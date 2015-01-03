@@ -7,6 +7,11 @@
 		<key>QBE.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>qbetest.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
 	</dict>
@@ -18,6 +23,21 @@
 			<true/>
 		</dict>
 		<key>65E3C2BF1A05222F007BB3C8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E3C2D41A052252007BB3C8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E3C2EB1A062E5E007BB3C8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E3C2FE1A062E5E007BB3C8</key>
 		<dict>
 			<key>primary</key>
 			<true/>

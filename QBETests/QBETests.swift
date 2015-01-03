@@ -2,7 +2,7 @@
 //  QBETests.swift
 //  QBETests
 //
-//  Created by Tommy on 01-11-14.
+//  Created by Tommy on 02-11-14.
 //  Copyright (c) 2014 Pixelspark. All rights reserved.
 //
 
