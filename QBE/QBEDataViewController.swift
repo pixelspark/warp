@@ -98,7 +98,8 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	private func updateColumns() {
 		if let tv = tableView {
 			for i in 0...tv.numberOfColumns {
-				tv.resizeColumnWithIndex(i, withDistance: 0.0)
+				//tv.resizeColumnWithIndex(<#columnIndex: UInt#>, withDistance: <#Float#>, location: <#NSPoint#>)
+				//tv.resizeColumnWithIndex(location: i, withDistance: 0.0)
 			}
 			
 			tv.reloadData()

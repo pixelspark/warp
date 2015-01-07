@@ -22,23 +22,33 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			var suggestions: [QBEStep] = [];
 			
 			if didChangeValue != toValue {
-				suggestions.append(QBEReplaceStep(previous: currentStep, explanation: "Replace all occurrences of '\(didChangeValue)' with '\(toValue)' in column \(r.columnNames[column])", replaceValue: didChangeValue, withValue: toValue, inColumn: r.columnNames[column]))
+				let targetColumn = r.columnNames[column]
 				
-				// Try to find a formula
-				let qs = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
-				
-				dispatch_async(qs) {
-					var suggestedFormulas: [QBEFunction] = []
-					QBEInferer.inferFunctions(nil, toValue: toValue, suggestions: &suggestedFormulas, level: 2, raster: r, row: inRow, column: column)
-					let targetColumn = r.columnNames[column]
-					for suggestedFormula in suggestedFormulas {
-						let explanation = NSLocalizedString("Calculate column", comment: "") + " " + targetColumn + " " + NSLocalizedString("as", comment: "") + " " + suggestedFormula.explanation
-						let cs = QBECalculateStep(previous: self.currentStep, explanation: explanation, targetColumn: targetColumn, function: suggestedFormula)
-						suggestions.append(cs)
-					}
+				// Was a formula typed in?
+				if let f = QBEFormula(formula: toValue.stringValue) {
+					let explanation = NSLocalizedString("Calculate column", comment: "") + " " + targetColumn + " " + NSLocalizedString("as", comment: "") + " " + f.root.explanation
+					suggestions.append(QBECalculateStep(previous: self.currentStep, explanation: explanation, targetColumn: targetColumn, function: f.root))
+					suggestSteps(suggestions)
+				}
+				else {
+					// Suggest a text replace
+					suggestions.append(QBEReplaceStep(previous: currentStep, explanation: "Replace all occurrences of '\(didChangeValue)' with '\(toValue)' in column \(r.columnNames[column])", replaceValue: didChangeValue, withValue: toValue, inColumn: r.columnNames[column]))
 					
-					dispatch_async(dispatch_get_main_queue()) {
-						self.suggestSteps(suggestions)
+					// Try to find a formula
+					let qs = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+					
+					dispatch_async(qs) {
+						var suggestedFormulas: [QBEFunction] = []
+						QBEInferer.inferFunctions(nil, toValue: toValue, suggestions: &suggestedFormulas, level: 2, raster: r, row: inRow, column: column)
+						for suggestedFormula in suggestedFormulas {
+							let explanation = NSLocalizedString("Calculate column", comment: "") + " " + targetColumn + " " + NSLocalizedString("as", comment: "") + " " + suggestedFormula.explanation
+							let cs = QBECalculateStep(previous: self.currentStep, explanation: explanation, targetColumn: targetColumn, function: suggestedFormula)
+							suggestions.append(cs)
+						}
+						
+						dispatch_async(dispatch_get_main_queue()) {
+							self.suggestSteps(suggestions)
+						}
 					}
 				}
 			}

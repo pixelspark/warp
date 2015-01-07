@@ -819,7 +819,7 @@ DQ
         <scene sceneID="BjY-ZD-Y7M">
             <objects>
                 <viewController id="heg-Gg-TM4" customClass="QBEDataViewController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" canDrawConcurrently="YES" focusRingType="none" id="qWX-f7-1Jq">
+                    <view key="view" focusRingType="none" id="qWX-f7-1Jq">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </view>

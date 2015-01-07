@@ -1,3 +1,6 @@
 [submodule "Libraries/swift-parser-generator"]
 	path = Libraries/swift-parser-generator
 	url = https://github.com/dparnell/swift-parser-generator.git
+[submodule "Libraries/MBTableGrid"]
+	path = Libraries/MBTableGrid
+	url = https://github.com/pixelspark/mbtablegrid

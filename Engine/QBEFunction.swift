@@ -7,6 +7,8 @@ let QBEFunctions: [QBEFunction.Type] = [
 	QBEAdditionFunction.self,
 	QBEUppercaseFunction.self,
 	QBELowercaseFunction.self,
+	QBELiteralFunction.self,
+	QBENegateFunction.self,
 	QBEIdentityFunction.self
 ]
 
@@ -34,6 +36,37 @@ class QBEFunction: NSObject, NSCoding {
 	
 	class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
 		return []
+	}
+}
+
+class QBELiteralFunction: QBEFunction {
+	let value: QBEValue
+	
+	init(_ value: QBEValue) {
+		self.value = value
+		super.init()
+	}
+	
+	required init(coder aDecoder: NSCoder) {
+		self.value = aDecoder.decodeObjectForKey("value") as? QBEValue ?? QBEValue()
+		super.init(coder: aDecoder)
+	}
+	
+	override var explanation: String { get {
+		return value.stringValue
+	} }
+	
+	override func encodeWithCoder(aCoder: NSCoder) {
+		aCoder.encodeObject(self.value(), forKey: "value")
+		super.encodeWithCoder(aCoder)
+	}
+	
+	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
+		return value
+	}
+	
+	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
+		return [QBELiteralFunction(toValue)]
 	}
 }
 
@@ -191,6 +224,33 @@ class QBELowercaseFunction: QBEFunction {
 	}
 }
 
+class QBENegateFunction: QBEFunction {
+	override var explanation: String { get {
+		return NSLocalizedString("-", comment: "")
+		}}
+	
+	override init() {
+		super.init()
+	}
+	
+	required init(coder aDecoder: NSCoder) {
+		super.init(coder: aDecoder)
+	}
+	
+	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
+		return -(inputValue ?? QBEValue())
+	}
+	
+	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
+		if let f = fromValue {
+			if toValue == -f {
+				return [QBENegateFunction()]
+			}
+		}
+		return []
+	}
+}
+
 extension String {
 	func histogram() -> [Character: Int] {
 		var histogram = Dictionary<Character, Int>()
@@ -305,6 +365,99 @@ class QBECompoundFunction: QBEFunction {
 	
 	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
 		return second.apply(raster, rowNumber: rowNumber, inputValue: first.apply(raster, rowNumber: rowNumber, inputValue: inputValue))
+	}
+	
+	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
+		return []
+	}
+}
+
+enum QBEBinary: String {
+	case Addition = "add"
+	case Subtraction = "sub"
+	case Multiplication = "mul"
+	case Division = "div"
+	case Modulus = "mod"
+	case Concatenation = "cat"
+	case Power = "pow"
+	
+	var description: String { get {
+		switch self {
+		case .Addition: return "+"
+		case .Subtraction: return "-"
+		case .Multiplication: return "*"
+		case .Division: return "/"
+		case .Modulus: return "%"
+		case .Concatenation: return "&"
+		case .Power: return "^"
+		}
+	} }
+	
+	func apply(left: QBEValue, _ right: QBEValue) -> QBEValue {
+		switch self {
+		case .Addition:
+			return left + right
+			
+		case .Subtraction:
+			return left - right
+			
+		case .Multiplication:
+			return left * right
+			
+		case .Modulus:
+			return left % right
+			
+		case .Division:
+			return left / right
+			
+		case .Concatenation:
+			return left & right
+			
+		case .Power:
+			return left ^ right
+		}
+	}
+}
+
+class QBEBinaryFunction: QBEFunction {
+	var first: QBEFunction
+	var second: QBEFunction
+	var type: QBEBinary
+	
+	override var explanation: String { get {
+		return "(" + second.explanation + " " + type.description + " " + first.explanation + ")"
+		}}
+	
+	override var complexity: Int { get {
+		return first.complexity + second.complexity + 1
+		}}
+	
+	init(first: QBEFunction, second: QBEFunction, type: QBEBinary) {
+		self.first = first
+		self.second = second
+		self.type = type
+		super.init()
+	}
+	
+	required init(coder aDecoder: NSCoder) {
+		self.first = aDecoder.decodeObjectForKey("first") as? QBEFunction ?? QBEIdentityFunction()
+		self.second = aDecoder.decodeObjectForKey("second") as? QBEFunction ?? QBEIdentityFunction()
+		let typeString = aDecoder.decodeObjectForKey("type") as? String ?? QBEBinary.Addition.rawValue
+		self.type = QBEBinary(rawValue: typeString) ?? QBEBinary.Addition
+		super.init(coder: aDecoder)
+	}
+	
+	override func encodeWithCoder(aCoder: NSCoder) {
+		super.encodeWithCoder(aCoder)
+		aCoder.encodeObject(first, forKey: "first")
+		aCoder.encodeObject(second, forKey: "second")
+		aCoder.encodeObject(type.rawValue, forKey: "type")
+	}
+	
+	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
+		let left = second.apply(raster, rowNumber: rowNumber, inputValue: nil)
+		let right = first.apply(raster, rowNumber: rowNumber, inputValue: nil)
+		return self.type.apply(left, right)
 	}
 	
 	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
