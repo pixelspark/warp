@@ -3,6 +3,8 @@ import Cocoa
 
 protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 	func suggestionsView(view: QBESuggestionsViewController, didSelectStep: QBEStep)
+	func suggestionsView(view: QBESuggestionsViewController, previewStep: QBEStep)
+	func suggestionsViewDidCancel(view: QBESuggestionsViewController)
 }
 
 class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
@@ -16,16 +18,35 @@ class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NST
 	
 	override func viewWillAppear() {
 		tableView?.selectRowIndexes(NSIndexSet(index: 0), byExtendingSelection: false)
+		delegate?.suggestionsView(self, previewStep: suggestions![0])
 	}
 	
 	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		return suggestions?[row].explanation
 	}
 	
-	@IBAction func chooseSuggestion(sender: NSObject) {
+	func tableViewSelectionDidChange(notification: NSNotification) {
 		if let selectedRow = tableView?.selectedRow {
 			if let selectedSuggestion = suggestions?[selectedRow] {
-				delegate?.suggestionsView(self, didSelectStep: selectedSuggestion)
+				delegate?.suggestionsView(self, previewStep: selectedSuggestion)
+			}
+		}
+	}
+	
+	@IBAction func cancel(sender: NSObject) {
+		delegate?.suggestionsViewDidCancel(self)
+		self.dismissController(sender)
+	}
+	
+	@IBAction func chooseSuggestion(sender: NSObject) {
+		if let selectedRow = tableView?.selectedRow {
+			if selectedRow == -1 {
+				delegate?.suggestionsViewDidCancel(self)
+			}
+			else {
+				if let selectedSuggestion = suggestions?[selectedRow] {
+					delegate?.suggestionsView(self, didSelectStep: selectedSuggestion)
+				}
 			}
 		}
 		self.dismissController(sender)

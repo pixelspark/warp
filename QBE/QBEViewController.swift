@@ -11,6 +11,17 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
+	var previewStep: QBEStep? {
+		didSet {
+			if previewStep == nil {
+				self.dataViewController?.data = currentStep?.exampleData
+			}
+			else {
+				self.dataViewController?.data = previewStep?.exampleData
+			}
+		}
+	}
+	
 	var document: QBEDocument? {
 		didSet {
 			self.currentStep = document?.head
@@ -79,7 +90,16 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	func suggestionsView(view: QBESuggestionsViewController, didSelectStep step: QBEStep) {
+		previewStep = nil
 		pushStep(step)
+	}
+	
+	func suggestionsView(view: QBESuggestionsViewController, previewStep step: QBEStep) {
+		previewStep = step
+	}
+	
+	func suggestionsViewDidCancel(view: QBESuggestionsViewController) {
+		previewStep = nil
 	}
 	
 	private func suggestSteps(steps: [QBEStep]) {

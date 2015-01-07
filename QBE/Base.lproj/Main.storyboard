@@ -872,7 +872,7 @@ Gw
 </string>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="dismissController:" target="TDg-0B-lyo" id="DZl-o2-cxa"/>
+                                    <action selector="cancel:" target="TDg-0B-lyo" id="R69-FO-0F6"/>
                                 </connections>
                             </button>
                             <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EGb-hU-fkL">
