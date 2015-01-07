@@ -1,0 +1,3 @@
+[submodule "Libraries/swift-parser-generator"]
+	path = Libraries/swift-parser-generator
+	url = https://github.com/dparnell/swift-parser-generator.git

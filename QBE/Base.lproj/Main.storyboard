@@ -87,6 +87,11 @@
                                                 <action selector="importFile:" target="Ady-hI-5gd" id="sqY-Mh-IO9"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Export data..." keyEquivalent="S" id="5as-D7-7Ei">
+                                            <connections>
+                                                <action selector="exportFile:" target="Ady-hI-5gd" id="h5w-eg-g6C"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="WxQ-HX-TGu"/>
                                         <menuItem title="Close" keyEquivalent="w" id="DVo-aG-piG">
                                             <connections>
@@ -712,11 +717,10 @@ DQ
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" unifiedTitleAndToolbar="YES"/>
                         <windowCollectionBehavior key="collectionBehavior" fullScreenPrimary="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-                        <rect key="contentRect" x="196" y="240" width="624" height="343"/>
+                        <rect key="contentRect" x="429" y="180" width="800" height="600"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
                         <toolbar key="toolbar" implicitIdentifier="8005E1A7-7EFF-4062-821E-E134B863AEB8" showsBaselineSeparator="NO" displayMode="iconOnly" sizeMode="small" id="kqZ-PO-6dW">
                             <allowedToolbarItems>
-                                <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="iJM-QM-hq8"/>
                                 <toolbarItem implicitItemIdentifier="15810E9C-AB69-4A05-AC69-E52BA00BB34D" label="Import" paletteLabel="Import" tag="-1" image="NSAddTemplate" id="fYI-Zb-Whe">
                                     <connections>
                                         <action selector="importFile:" target="6f7-a7-6o1" id="y4J-x0-zCS"/>
@@ -738,21 +742,13 @@ DQ
                                         <action selector="goForward:" target="6f7-a7-6o1" id="fz4-9J-z6O"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="NSToolbarShowFontsItem" id="IKJ-p6-bhX"/>
-                                <toolbarItem implicitItemIdentifier="NSToolbarPrintItem" id="f7h-5o-e3N"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="3JN-eV-tDK"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="Zil-Xh-hqD"/>
-                                <toolbarItem implicitItemIdentifier="7E74868F-6881-4A89-853B-7DD8D8551D71" label="Share" paletteLabel="Share" tag="-1" image="NSShareTemplate" id="L0G-9h-HPj">
-                                    <connections>
-                                        <action selector="shareDocument:" target="jGA-0Y-lOj" id="Rjz-aT-Z8R"/>
-                                    </connections>
-                                </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="U1V-Fd-2A2"/>
                                 <toolbarItem reference="vMh-pT-2la"/>
                                 <toolbarItem reference="Zil-Xh-hqD"/>
-                                <toolbarItem reference="L0G-9h-HPj"/>
                                 <toolbarItem reference="fYI-Zb-Whe"/>
                                 <toolbarItem reference="ERs-0J-vOl"/>
                             </defaultToolbarItems>
@@ -764,18 +760,18 @@ DQ
                 </windowController>
                 <customObject id="6f7-a7-6o1" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="106" y="40.5"/>
+            <point key="canvasLocation" x="-0.5" y="426"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="4qG-DD-elD">
             <objects>
                 <viewController id="DXE-ii-MK8" customClass="QBEViewController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="fdQ-Cz-nnL">
-                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                    <view key="view" focusRingType="none" id="fdQ-Cz-nnL">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="540"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <textField focusRingType="none" verticalHuggingPriority="1" horizontalCompressionResistancePriority="1" verticalCompressionResistancePriority="1" translatesAutoresizingMaskIntoConstraints="NO" id="E9J-Co-zPC">
-                                <rect key="frame" x="0.0" y="240" width="450" height="60"/>
+                                <rect key="frame" x="0.0" y="480" width="600" height="60"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="60" id="58g-VA-msv"/>
                                 </constraints>
@@ -789,7 +785,11 @@ DQ
                                 </connections>
                             </textField>
                             <containerView focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
-                                <rect key="frame" x="0.0" y="0.0" width="450" height="240"/>
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="480"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="600" id="PlL-5f-WlB"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="480" id="c6x-N8-dNA"/>
+                                </constraints>
                                 <connections>
                                     <segue destination="heg-Gg-TM4" kind="embed" identifier="grid" id="c37-ue-tCc"/>
                                 </connections>
@@ -813,7 +813,7 @@ DQ
                 <customObject id="Izd-TK-t8f" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="vGV-jK-BQ2"/>
             </objects>
-            <point key="canvasLocation" x="110" y="500"/>
+            <point key="canvasLocation" x="-122" y="1157"/>
         </scene>
         <!--Data View Controller-->
         <scene sceneID="BjY-ZD-Y7M">
@@ -826,7 +826,7 @@ DQ
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="115" y="934"/>
+            <point key="canvasLocation" x="-20" y="1735"/>
         </scene>
         <!--Settings View Controller-->
         <scene sceneID="Qof-I2-49O">
@@ -882,20 +882,20 @@ Gw
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="LRg-Y6-Q5v">
-                                            <rect key="frame" x="0.0" y="0.0" width="238" height="134"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="428" height="19"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                             <tableColumns>
-                                                <tableColumn width="400" minWidth="40" maxWidth="1000" id="pgO-DP-Hm6">
+                                                <tableColumn width="425" minWidth="40" maxWidth="1000" id="pgO-DP-Hm6">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                                     </tableHeaderCell>
-                                                    <textFieldCell key="dataCell" lineBreakMode="truncatingTail" alignment="left" title="Text Cell" id="ecC-Ak-W67">
-                                                        <font key="font" metaFont="system"/>
+                                                    <textFieldCell key="dataCell" alignment="left" placeholderString="" id="ecC-Ak-W67">
+                                                        <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     </textFieldCell>
@@ -937,7 +937,7 @@ Gw
                 </viewController>
                 <customObject id="hZp-iq-JdD" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="653" y="555.5"/>
+            <point key="canvasLocation" x="515" y="1086.5"/>
         </scene>
     </scenes>
     <resources>
@@ -945,6 +945,5 @@ Gw
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSGoLeftTemplate" width="9" height="12"/>
         <image name="NSGoRightTemplate" width="9" height="12"/>
-        <image name="NSShareTemplate" width="11" height="16"/>
     </resources>
 </document>

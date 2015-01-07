@@ -1,35 +1,52 @@
-//
-//  QBETests.swift
-//  QBETests
-//
-//  Created by Tommy on 02-11-14.
-//  Copyright (c) 2014 Pixelspark. All rights reserved.
-//
-
 import Cocoa
 import XCTest
+import QBE
 
 class QBETests: XCTestCase {
-    
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
     }
     
     override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
+	
+	func testQBEValue() {
+		XCTAssert(QBEValue("hello") == QBEValue("hello"), "String equality")
+		XCTAssert(QBEValue("hello") != QBEValue("HELLO"), "String equality is case sensitive")
+		XCTAssert(QBEValue(1337) == QBEValue("1337"), "Numbers are strings")
+	}
+	
+	func testEmptyQBERaster() {
+		let emptyRaster = QBERaster()
+		XCTAssert(emptyRaster.rowCount == 0, "Empty raster is empty")
+		XCTAssert(emptyRaster.columnCount == 0, "Empty raster is empty")
+		XCTAssert(emptyRaster.columnNames.count == emptyRaster.columnCount, "Column count matches")
+	}
     
-    func testExample() {
-        // This is an example of a functional test case.
-        XCTAssert(true, "Pass")
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measureBlock() {
-            // Put the code you want to measure the time of here.
+    func testQBERaster() {
+		var d: [[QBEValue]] = []
+		d.append([QBEValue("X"), QBEValue("Y"), QBEValue("Z")])
+		for i in 0...1000 {
+			d.append([QBEValue(i), QBEValue(i+1), QBEValue(i+2)])
+		}
+		
+		let rasterData = QBERasterData(data: d)
+		let raster = rasterData.raster()
+		
+		XCTAssert(raster.indexOfColumnWithName("X")==0, "First column has index 0")
+		XCTAssert(raster.indexOfColumnWithName("x") == nil, "Column names should be case-sensitive")
+		XCTAssert(rasterData.raster().rowCount == 1001, "Row count matches")
+		XCTAssert(rasterData.raster().columnCount == 3, "Column count matches")
+		
+		self.measureBlock() {
+			var td: QBEData = rasterData
+			for i in 1...11 {
+				td = td.transpose()
+			}
+
+			XCTAssert(td.raster().rowCount == 2, "Row count matches")
+			XCTAssert(td.raster().columnCount == 1002, "Column count matches")
         }
     }
     
