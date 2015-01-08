@@ -16,8 +16,37 @@ struct QBEStack<T> {
 	} }
 }
 
+internal func matchAnyCharacterExcept(characters: [Character]) -> ParserRule {
+	return {(parser: Parser, reader: Reader) -> Bool in
+		let pos = reader.position
+		let ch = reader.read()
+		for exceptedCharacter in characters {
+			if ch==exceptedCharacter {
+				reader.seek(pos)
+				return false
+			}
+		}
+		return true
+	}
+}
+
+internal func matchAnyFrom(rules: [ParserRule]) -> ParserRule {
+	return {(parser: Parser, reader: Reader) -> Bool in
+		let pos = reader.position
+		for rule in rules {
+			if(rule(parser: parser, reader: reader)) {
+				return true
+			}
+			reader.seek(pos)
+		}
+		
+		return false
+	}
+}
+
 class QBEFormula: Parser {
 	private var stack = QBEStack<QBEFunction>()
+	let locale: QBELocale
 	
 	var root: QBEFunction {
 		get {
@@ -25,55 +54,50 @@ class QBEFormula: Parser {
 		}
 	}
 	
-	init?(formula: String) {
+	init?(formula: String, locale: QBELocale = QBEDefaultLocale()) {
+		self.locale = locale
 		super.init()
 		if !self.parse(formula) {
 			return nil
 		}
+		println("parsed \(root.explanation)")
 	}
 	
-	private func pushNumber() {
+	private func pushInt() {
 		stack.push(QBELiteralFunction(QBEValue(self.text.toInt()!)))
 	}
 	
+	private func pushDouble() {
+		stack.push(QBELiteralFunction(QBEValue(self.text.toDouble()!)))
+	}
+	
 	private func pushString() {
-		stack.push(QBELiteralFunction(QBEValue(self.text)))
+		let text = self.text.stringByReplacingOccurrencesOfString("\"\"", withString: "\"")
+		stack.push(QBELiteralFunction(QBEValue(text)))
 	}
 	
 	private func pushAddition() {
-		let a = stack.pop()
-		let b = stack.pop()
-		stack.push(QBEBinaryFunction(first:a, second: b, type: QBEBinary.Addition))
+		pushBinary(QBEBinary.Addition)
 	}
 	
 	private func pushSubtraction() {
-		let a = stack.pop()
-		let b = stack.pop()
-		stack.push(QBEBinaryFunction(first:a, second: b, type: QBEBinary.Subtraction))
+		pushBinary(QBEBinary.Subtraction)
 	}
 	
 	private func pushMultiplication() {
-		let a = stack.pop()
-		let b = stack.pop()
-		stack.push(QBEBinaryFunction(first:a, second: b, type: QBEBinary.Multiplication))
+		pushBinary(QBEBinary.Multiplication)
 	}
 	
 	private func pushDivision() {
-		let a = stack.pop()
-		let b = stack.pop()
-		stack.push(QBEBinaryFunction(first:a, second: b, type: QBEBinary.Division))
+		pushBinary(QBEBinary.Division)
 	}
 	
 	private func pushPower() {
-		let a = stack.pop()
-		let b = stack.pop()
-		stack.push(QBEBinaryFunction(first:a, second: b, type: QBEBinary.Power))
+		pushBinary(QBEBinary.Power)
 	}
 	
 	private func pushConcat() {
-		let a = stack.pop()
-		let b = stack.pop()
-		stack.push(QBEBinaryFunction(first:a, second: b, type: QBEBinary.Concatenation))
+		pushBinary(QBEBinary.Concatenation)
 	}
 	
 	private func pushNegate() {
@@ -81,19 +105,82 @@ class QBEFormula: Parser {
 		stack.push(QBECompoundFunction(first: a, second: QBENegateFunction()));
 	}
 	
+	private func pushSibling() {
+		stack.push(QBESiblingFunction(columnName: self.text))
+	}
+	
+	private func pushConstant() {
+		if let value = locale.constants[self.text] {
+			stack.push(QBELiteralFunction(value));
+		}
+	}
+	
+	private func pushPercentagePostfix() {
+		let a = stack.pop()
+		stack.push(QBEBinaryFunction(first: QBELiteralFunction(QBEValue(100)), second: a, type: QBEBinary.Division))
+	}
+	
+	private func pushBinary(type: QBEBinary) {
+		let a = stack.pop()
+		let b = stack.pop()
+		stack.push(QBEBinaryFunction(first:a, second: b, type: type))
+	}
+	
+	private func pushGreater() {
+		pushBinary(QBEBinary.Greater)
+	}
+	
+	private func pushGreaterEqual() {
+		pushBinary(QBEBinary.GreaterEqual)
+	}
+	
+	private func pushLesser() {
+		pushBinary(QBEBinary.Lesser)
+	}
+	
+	private func pushLesserEqual() {
+		pushBinary(QBEBinary.LesserEqual)
+	}
+	
+	private func pushEqual() {
+		pushBinary(QBEBinary.Equal)
+	}
+	
+	private func pushNotEqual() {
+		pushBinary(QBEBinary.NotEqual)
+	}
+	
 	override func rules() {
-		let stringLiteral = ("\"" ~ (("a"-"z") => pushString) ~ "\"")
+		// String literals & constants
+		add_named_rule("constant",			rule: matchAnyFrom(locale.constants.keys.array.map({i in return literal(i)})) => pushConstant)
+		add_named_rule("stringLiteral",		rule: "\"" ~  ((matchAnyCharacterExcept(["\""]) | "\"\"")* => pushString) ~ "\"")
+		add_named_rule("sibling",			rule: "[@" ~  (matchAnyCharacterExcept(["]"])+ => pushSibling) ~ "]")
+		add_named_rule("subexpression",		rule: (("(" ~ (^"logic") ~ ")")))
 		
-		let positiveNumber = ("0"-"9")+ => pushNumber
-		let negativeNumber = ("-" ~ positiveNumber) => pushNegate
-		add_named_rule("number", rule: negativeNumber | positiveNumber | stringLiteral | (("(" ~ (^"concatenation") ~ ")")))
-		add_named_rule("exponent", rule: ^"number" ~ (("^" ~ ^"number") => pushPower)*)
+		// Number literals
+		add_named_rule("digits",			rule: ("0"-"9")+)
+		add_named_rule("integerNumber",		rule: (^"digits") => pushInt)
+		add_named_rule("percentagePostfix", rule: (literal("%") => pushPercentagePostfix)/~)
+		add_named_rule("doubleNumber",		rule: (^"digits" ~ (locale.decimalSeparator ~ ^"digits")/~) => pushDouble)
+		add_named_rule("negativeNumber",	rule: ("-" ~ ^"doubleNumber") => pushNegate)
+		add_named_rule("percentageNumber",  rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"percentagePostfix")
+		
+		add_named_rule("value", rule: ^"percentageNumber" | ^"stringLiteral" | ^"constant" | ^"sibling" | ^"subexpression")
+		add_named_rule("exponent", rule: ^"value" ~ (("^" ~ ^"value") => pushPower)*)
 		
 		let factor = ^"exponent" ~ ((("*" ~ ^"exponent") => pushMultiplication) | (("/" ~ ^"exponent") => pushDivision))*
 		let addition = factor ~ (("+" ~ factor => pushAddition) | ("-" ~ factor => pushSubtraction))*
 		add_named_rule("concatenation", rule: addition ~ (("&" ~ addition) => pushConcat)*)
 		
-		let formula = "=" ~ ^"concatenation"
+		// Comparisons
+		add_named_rule("greater", rule: (">" ~ ^"concatenation") => pushGreater)
+		add_named_rule("greaterEqual", rule: (">=" ~ ^"concatenation") => pushGreaterEqual)
+		add_named_rule("lesser", rule: ("<" ~ ^"concatenation") => pushLesser)
+		add_named_rule("lesserEqual", rule: ("<=" ~ ^"concatenation") => pushLesserEqual)
+		add_named_rule("equal", rule: ("=" ~ ^"concatenation") => pushEqual)
+		add_named_rule("notEqual", rule: ("<>" ~ ^"concatenation") => pushNotEqual)
+		add_named_rule("logic", rule: ^"concatenation" ~ (^"greater" | ^"greaterEqual" | ^"lesser" | ^"lesserEqual" | ^"equal" | ^"notEqual")*)
+		let formula = "=" ~ ^"logic"
 		start_rule = formula
 	}
 }

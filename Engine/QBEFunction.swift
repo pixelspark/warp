@@ -66,7 +66,10 @@ class QBELiteralFunction: QBEFunction {
 	}
 	
 	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		return [QBELiteralFunction(toValue)]
+		if fromValue == nil {
+			return [QBELiteralFunction(toValue)]
+		}
+		return []
 	}
 }
 
@@ -310,8 +313,12 @@ class QBESubstituteFunction: QBEFunction {
 			// Suggest some replacements...
 			var suggestions: [QBEFunction] = []
 			
+			// Don't spend too much time searching for weird replacements
+			if missingInLeft.count > 1 {
+				return []
+			}
+			
 			// Which characters are missing from the in value, but present in the out value?
-			var missingInRight: [Character] = []
 			for lch in leftHistogram!.keys {
 				if rightHistogram[lch]==nil {
 					for rch in missingInLeft {
@@ -380,6 +387,12 @@ enum QBEBinary: String {
 	case Modulus = "mod"
 	case Concatenation = "cat"
 	case Power = "pow"
+	case Greater = "gt"
+	case Lesser = "lt"
+	case GreaterEqual = "gte"
+	case LesserEqual = "lte"
+	case Equal = "eq"
+	case NotEqual = "neq"
 	
 	var description: String { get {
 		switch self {
@@ -390,6 +403,12 @@ enum QBEBinary: String {
 		case .Modulus: return "%"
 		case .Concatenation: return "&"
 		case .Power: return "^"
+		case .Greater: return ">"
+		case .Lesser: return "<"
+		case .GreaterEqual: return ">="
+		case .LesserEqual: return "<="
+		case .Equal: return "="
+		case .NotEqual: return "<>"
 		}
 	} }
 	
@@ -415,6 +434,24 @@ enum QBEBinary: String {
 			
 		case .Power:
 			return left ^ right
+			
+		case Greater:
+			return left > right
+			
+		case Lesser:
+			return left < right
+			
+		case GreaterEqual:
+			return left >= right
+			
+		case LesserEqual:
+			return left <= right
+			
+		case Equal:
+			return left == right
+			
+		case NotEqual:
+			return left != right
 		}
 	}
 }
@@ -488,20 +525,20 @@ class QBESiblingFunction: QBEFunction {
 	}
 	
 	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		return raster[rowNumber, raster.indexOfColumnWithName(columnName)!]
+		if let idx = raster.indexOfColumnWithName(columnName) {
+			return raster[rowNumber, idx]
+		}
+		return QBEValue()
 	}
 	
 	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
 		var s: [QBEFunction] = []
-		if fromValue != nil {
-			return s
+		if fromValue == nil {
+			for columnName in raster.columnNames {
+				let sourceValue = raster[row, raster.indexOfColumnWithName(columnName)!]
+				s.append(QBESiblingFunction(columnName: columnName))
+			}
 		}
-		
-		for columnName in raster.columnNames {
-			let sourceValue = raster[row, raster.indexOfColumnWithName(columnName)!]
-			s.append(QBESiblingFunction(columnName: columnName))
-		}
-		
 		return s
 	}
 }

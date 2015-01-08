@@ -3,7 +3,7 @@ import Cocoa
 
 protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 	func suggestionsView(view: QBESuggestionsViewController, didSelectStep: QBEStep)
-	func suggestionsView(view: QBESuggestionsViewController, previewStep: QBEStep)
+	func suggestionsView(view: QBESuggestionsViewController, previewStep: QBEStep?)
 	func suggestionsViewDidCancel(view: QBESuggestionsViewController)
 }
 
@@ -27,8 +27,13 @@ class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NST
 	
 	func tableViewSelectionDidChange(notification: NSNotification) {
 		if let selectedRow = tableView?.selectedRow {
-			if let selectedSuggestion = suggestions?[selectedRow] {
-				delegate?.suggestionsView(self, previewStep: selectedSuggestion)
+			if selectedRow >= 0 {
+				if let selectedSuggestion = suggestions?[selectedRow] {
+					delegate?.suggestionsView(self, previewStep: selectedSuggestion)
+				}
+			}
+			else {
+				delegate?.suggestionsView(self, previewStep: nil)
 			}
 		}
 	}

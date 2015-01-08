@@ -115,7 +115,7 @@ class QBERasterData: NSObject, QBEData {
 			let numberOfRows = r.rowCount
 			for rowNumber in 0..<numberOfRows {
 				var row = r[rowNumber]
-				let inputValue: QBEValue? = (row.count < columnIndex) ? nil : row[columnIndex]
+				let inputValue: QBEValue? = (row.count <= columnIndex) ? nil : row[columnIndex]
 				row[columnIndex] = formula.apply(r, rowNumber: rowNumber, inputValue: inputValue)
 				newData.append(row)
 			}

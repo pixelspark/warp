@@ -23,10 +23,20 @@ class QBETests: XCTestCase {
 		XCTAssert(emptyRaster.columnCount == 0, "Empty raster is empty")
 		XCTAssert(emptyRaster.columnNames.count == emptyRaster.columnCount, "Column count matches")
 	}
+	
+	func testArithmetic() {
+		XCTAssert(QBEValue(12) * QBEValue(13) == QBEValue(156), "Integer multiplication")
+		XCTAssert(QBEValue(12.2) * QBEValue(13.3) == QBEValue(162.26), "Double multiplication")
+		XCTAssert(QBEValue(12) * QBEValue(13) == QBEValue(156), "Integer multiplication to double")
+		XCTAssert(QBEValue("1337") & QBEValue("h4x0r") == QBEValue("1337h4x0r"), "String string concatenation")
+		
+		XCTAssert(QBEValue(12) / QBEValue(2) == QBEValue(6), "Integer division to double")
+		XCTAssert(QBEValue(10.0) / QBEValue(0) == QBEValue(), "Division by zero")
+	}
     
     func testQBERaster() {
 		var d: [[QBEValue]] = []
-		d.append([QBEValue("X"), QBEValue("Y"), QBEValue("Z")])
+		d.append([QBEValue("X"), QBEValue("Y"), QBEValue( "Z")])
 		for i in 0...1000 {
 			d.append([QBEValue(i), QBEValue(i+1), QBEValue(i+2)])
 		}

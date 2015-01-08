@@ -50,7 +50,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 					
 					dispatch_async(qs) {
 						var suggestedFormulas: [QBEFunction] = []
-						QBEInferer.inferFunctions(nil, toValue: toValue, suggestions: &suggestedFormulas, level: 2, raster: r, row: inRow, column: column)
+						QBEInferer.inferFunctions(nil, toValue: toValue, suggestions: &suggestedFormulas, level: 3, raster: r, row: inRow, column: column)
 						for suggestedFormula in suggestedFormulas {
 							let explanation = NSLocalizedString("Calculate column", comment: "") + " " + targetColumn + " " + NSLocalizedString("as", comment: "") + " " + suggestedFormula.explanation
 							let cs = QBECalculateStep(previous: self.currentStep, explanation: explanation, targetColumn: targetColumn, function: suggestedFormula)
@@ -94,7 +94,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		pushStep(step)
 	}
 	
-	func suggestionsView(view: QBESuggestionsViewController, previewStep step: QBEStep) {
+	func suggestionsView(view: QBESuggestionsViewController, previewStep step: QBEStep?) {
 		previewStep = step
 	}
 	
