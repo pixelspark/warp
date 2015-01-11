@@ -217,8 +217,8 @@ class QBEFormula: Parser {
 	override func rules() {
 		// String literals & constants
 		add_named_rule("arguments",			rule: (("(" ~ matchList(^"logic" => pushArgument, literal(locale.argumentSeparator)) ~ ")")))
-		add_named_rule("unaryFunction",		rule: ((matchAnyFrom(locale.unaryFunctions.keys.array.map({i in return matchLiteralInsensitive(i)})) => pushCall) ~ ^"arguments") => popCall)
-		add_named_rule("constant",			rule: matchAnyFrom(locale.constants.values.array.map({i in return matchLiteralInsensitive(i)})) => pushConstant)
+		add_named_rule("unaryFunction",		rule: ((matchAnyFrom(locale.unaryFunctions.keys.array.map({matchLiteralInsensitive($0)})) => pushCall) ~ ^"arguments") => popCall)
+		add_named_rule("constant",			rule: matchAnyFrom(locale.constants.values.array.map({matchLiteralInsensitive($0)})) => pushConstant)
 		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~  ((matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
 		
 		add_named_rule("sibling",			rule: "[@" ~  (matchAnyCharacterExcept(["]"])+ => pushSibling) ~ "]")

@@ -1,16 +1,10 @@
 import Foundation
 import Cocoa
 
-protocol QBESuggestionsViewDelegate: NSObjectProtocol {
-	func suggestionsView(view: QBESuggestionsViewController, didSelectStep: QBEStep)
-	func suggestionsView(view: QBESuggestionsViewController, previewStep: QBEStep?)
-	func suggestionsViewDidCancel(view: QBESuggestionsViewController)
-}
-
 class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 	var suggestions: [QBEStep]?
 	@IBOutlet var tableView: NSTableView?
-	weak var delegate: QBESuggestionsViewDelegate!
+	weak var delegate: QBESuggestionsViewDelegate?
 	
 	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
 		return suggestions?.count ?? 0

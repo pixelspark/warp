@@ -1,7 +1,15 @@
 import Cocoa
 
+protocol QBESuggestionsViewDelegate: NSObjectProtocol {
+	func suggestionsView(view: NSViewController, didSelectStep: QBEStep)
+	func suggestionsView(view: NSViewController, previewStep: QBEStep?)
+	func suggestionsViewDidCancel(view: NSViewController)
+	var currentStep: QBEStep? { get }
+	var locale: QBELocale { get }
+}
+
 class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate {
-	let locale = QBEDefaultLocale()
+	let locale: QBELocale = QBEDefaultLocale()
 	
 	var dataViewController: QBEDataViewController?
 	@IBOutlet var descriptionField: NSTextField?
@@ -88,16 +96,16 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
-	func suggestionsView(view: QBESuggestionsViewController, didSelectStep step: QBEStep) {
+	func suggestionsView(view: NSViewController, didSelectStep step: QBEStep) {
 		previewStep = nil
 		pushStep(step)
 	}
 	
-	func suggestionsView(view: QBESuggestionsViewController, previewStep step: QBEStep?) {
+	func suggestionsView(view: NSViewController, previewStep step: QBEStep?) {
 		previewStep = step
 	}
 	
-	func suggestionsViewDidCancel(view: QBESuggestionsViewController) {
+	func suggestionsViewDidCancel(view: NSViewController) {
 		previewStep = nil
 	}
 	
@@ -118,20 +126,31 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
+	@IBAction func addColumn(sender: NSObject) {
+		self.performSegueWithIdentifier("addColumn", sender: sender)
+	}
+	
 	@IBAction func removeColumns(sender: NSObject) {
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			// Get the names of the columns to remove
 			
 			if let data = currentStep?.exampleData? {
 				var namesToRemove: [QBEColumn] = []
+				var namesToSelect: [QBEColumn] = []
 				
-				for i in 0...data.columnNames.count {
+				for i in 0..<data.columnNames.count {
 					if colsToRemove.containsIndex(i) {
 						namesToRemove.append(data.columnNames[i])
 					}
+					else {
+						namesToSelect.append(data.columnNames[i])
+					}
 				}
 				
-				suggestSteps([QBERemoveColumnsStep(previous: self.currentStep, columnsToRemove: namesToRemove)])
+				suggestSteps([
+					QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: false),
+					QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: true)
+				])
 			}
 		}
 	}
@@ -175,15 +194,18 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 		else if item.action()==Selector("removeRows:") {
 			if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
-				return rowsToRemove.count > 0
+				return rowsToRemove.count > 0  && currentStep != nil
 			}
 			return false
 		}
 		else if item.action()==Selector("removeColumns:") {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
-				return colsToRemove.count > 0
+				return colsToRemove.count > 0 && currentStep != nil
 			}
 			return false
+		}
+		else if item.action()==Selector("addColumn:") {
+			return currentStep != nil
 		}
 		else if item.action()==Selector("importFile:") {
 			return true
@@ -267,6 +289,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			sv?.delegate = self
 			sv?.suggestions = self.suggestions
 			self.suggestions = nil
+		}
+		else if segue.identifier=="addColumn" {
+			let sv = segue.destinationController as? QBEAddColumnViewController
+			sv?.delegate = self
 		}
 		super.prepareForSegue(segue, sender: sender)
 	}

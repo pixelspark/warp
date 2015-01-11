@@ -1,34 +1,40 @@
 import Foundation
 
-class QBERemoveColumnsStep: QBEStep {
-	let columnsToRemove: [QBEColumn]
+class QBEColumnsStep: QBEStep {
+	let columnNames: [QBEColumn]
+	let select: Bool
 	
-	init(previous: QBEStep?, columnsToRemove: [QBEColumn]) {
-		self.columnsToRemove = columnsToRemove
-		let columnNames = columnsToRemove.map({i -> String in return i.name})
-		super.init(previous: previous, explanation: NSLocalizedString("Remove column(s) ", comment: "") + (columnNames.implode(", ") ?? ""))
+	init(previous: QBEStep?, columnNames: [QBEColumn], select: Bool) {
+		self.columnNames = columnNames
+		self.select = select
+		let columnNameStrings = columnNames.map({$0.name})
+		
+		let explanation = (select ? NSLocalizedString("Select column(s)", comment: "") : NSLocalizedString("Remove column(s)", comment: "")) + " " + (columnNameStrings.implode(", ") ?? "")
+		super.init(previous: previous, explanation: explanation)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		let names = aDecoder.decodeObjectForKey("columnsToRemove") as? [String] ?? []
-		columnsToRemove = names.map({i -> QBEColumn in QBEColumn(i)})
+		select = aDecoder.decodeBoolForKey("select")
+		let names = aDecoder.decodeObjectForKey("columnNames") as? [String] ?? []
+		columnNames = names.map({QBEColumn($0)})
 		super.init(coder: aDecoder)
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
-		let columnNames = columnsToRemove.map({i -> String in return i.name})
-		coder.encodeObject(columnNames, forKey: "columnsToRemove")
+		let columnNameStrings = columnNames.map({$0.name})
+		coder.encodeObject(columnNameStrings, forKey: "columnsToRemove")
+		coder.encodeBool(select, forKey: "select")
 		super.encodeWithCoder(coder)
 	}
 	
 	override func apply(data: QBEData?) -> QBEData? {
 		let columns = data?.columnNames.filter({column -> Bool in
-			for c in self.columnsToRemove {
+			for c in self.columnNames {
 				if c == column {
-					return false
+					return self.select
 				}
 			}
-			return true
+			return !self.select
 		}) ?? []
 		
 		return data?.selectColumns(columns)

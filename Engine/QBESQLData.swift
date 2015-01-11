@@ -23,7 +23,7 @@ struct QBESQLDialect {
 			}
 		}
 		else if let f = formula as? QBEFunctionExpression {
-			let argValues = f.arguments.map({(a) -> String? in return self.expressionToSQL(a)})
+			let argValues = f.arguments.map({self.expressionToSQL($0)})
 			return unaryToSQL(argValues, type: f.type)
 		}
 
@@ -136,7 +136,7 @@ class QBESQLData: NSObject, QBEData {
     }
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		let colNames = columns.map({(c) -> String in return c.name}).implode(", ") ?? ""
+		let colNames = columns.map({$0.name}).implode(", ") ?? ""
 		let sql = "SELECT \(colNames) FROM (\(self.sql))"
 		return QBESQLData(sql: sql, columnNames: columns)
 	}

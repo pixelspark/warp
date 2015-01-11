@@ -179,12 +179,12 @@ class QBEFunctionExpression: QBEExpression {
 	var type: QBEFunction
 	
 	override var explanation: String { get {
-		let argumentsList = arguments.map({(a) -> String in return a.explanation}).implode(", ") ?? ""
+		let argumentsList = arguments.map({$0.explanation}).implode(", ") ?? ""
 		return "\(type.description)(\(argumentsList))"
 	}}
 	
 	override func toFormula(locale: QBELocale) -> String {
-		let args = arguments.map({(i) -> String in i.toFormula(locale)}).implode(locale.argumentSeparator) ?? ""
+		let args = arguments.map({$0.toFormula(locale)}).implode(locale.argumentSeparator) ?? ""
 		return "\(type.toFormula(locale))(\(args))"
 	}
 	
@@ -217,7 +217,7 @@ class QBEFunctionExpression: QBEExpression {
 	}
 	
 	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		let vals = arguments.map({(a) -> QBEValue in return a.apply(raster, rowNumber: rowNumber, inputValue: inputValue)})
+		let vals = arguments.map({$0.apply(raster, rowNumber: rowNumber, inputValue: inputValue)})
 		return self.type.apply(vals)
 	}
 	

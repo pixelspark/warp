@@ -15,7 +15,7 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 		// The raster is stored as [[QBEValueCoder]], but needs to be a [[QBEValue]]. Lazily decode it
 		raster = memoize {
 			return QBERaster(codedRaster.map({(i) -> [QBEValue] in
-				return i.map({(j) -> QBEValue in return j.value})
+				return i.map({$0.value})
 			}))
 		}
 	}
@@ -51,7 +51,7 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 	func encodeWithCoder(coder: NSCoder) {
 		// Create coders
 		let codedRaster = raster().raster.map({(i) -> [QBEValueCoder] in
-			return i.map({(j) -> QBEValueCoder in return QBEValueCoder(j)})
+			return i.map({QBEValueCoder($0)})
 		})
 		
 		coder.encodeObject(codedRaster, forKey: "data")
@@ -113,7 +113,7 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
 			let indexesToKeep = columns.map({(col) -> Int? in return r.indexOfColumnWithName(col)})
-			var newData: [[QBEValue]] = [columns.map({s in return QBEValue(s.name)})]
+			var newData: [[QBEValue]] = [columns.map({QBEValue($0.name)})]
 			
 			for rowNumber in 0..<r.rowCount {
 				var oldRow = r[rowNumber]
@@ -139,13 +139,21 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 				columnIndex = columnNames.count-1
 			}
 			
-			var newData: [[QBEValue]] = [columnNames.map({s in return QBEValue(s.name)})]
+			var newData: [[QBEValue]] = [columnNames.map({QBEValue($0.name)})]
 			
 			let numberOfRows = r.rowCount
 			for rowNumber in 0..<numberOfRows {
 				var row = r[rowNumber]
 				let inputValue: QBEValue? = (row.count <= columnIndex) ? nil : row[columnIndex]
-				row[columnIndex] = formula.apply(r, rowNumber: rowNumber, inputValue: inputValue)
+				let newValue = formula.apply(r, rowNumber: rowNumber, inputValue: inputValue)
+				
+				if row.count > columnIndex {
+					row[columnIndex] = newValue
+				}
+				else {
+					row.append(newValue)
+				}
+				
 				newData.append(row)
 			}
 			
@@ -167,7 +175,7 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 	
 	func replace(value: QBEValue, withValue: QBEValue, inColumn: QBEColumn) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
-			var newData: [[QBEValue]] = [r.columnNames.map({s in return QBEValue(s.name)})]
+			var newData: [[QBEValue]] = [r.columnNames.map({QBEValue($0.name)})]
 			if let replaceColumnIndex = self.raster().indexOfColumnWithName(inColumn) {
 				for rowNumber in 0..<r.rowCount {
 					var newRow = r[rowNumber]

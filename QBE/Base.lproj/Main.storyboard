@@ -21,7 +21,11 @@
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
-                                        <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW"/>
+                                        <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW">
+                                            <connections>
+                                                <segue destination="GTc-kf-kV6" kind="show" id="53u-wT-sBr"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
                                         <menuItem title="Services" id="NMo-om-nkz">
                                             <modifierMask key="keyEquivalentModifierMask"/>
@@ -627,7 +631,7 @@ CA
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Data" id="9sC-KT-ikn">
                                     <items>
-                                        <menuItem title="Switch rows/columns" keyEquivalent="T" id="Qd1-7c-QpC">
+                                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="Qd1-7c-QpC">
                                             <connections>
                                                 <action selector="transposeData:" target="Ady-hI-5gd" id="zdd-dH-g4B"/>
                                             </connections>
@@ -641,6 +645,15 @@ CA
                                                 <action selector="removeRows:" target="Ady-hI-5gd" id="KyO-OJ-qkb"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Keep only selected rows" id="T5M-6C-O6U">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                                            <connections>
+                                                <action selector="selectRows:" target="Ady-hI-5gd" id="0vo-SF-qGf"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="Vx4-cs-x2V"/>
                                         <menuItem title="Remove selected column(s)" id="ShO-0r-bmP">
                                             <string key="keyEquivalent" base64-UTF8="YES">
 CA
@@ -650,12 +663,9 @@ CA
                                                 <action selector="removeColumns:" target="Ady-hI-5gd" id="Tmy-hE-6X8"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Keep only selected rows" id="T5M-6C-O6U">
-                                            <string key="keyEquivalent" base64-UTF8="YES">
-DQ
-</string>
+                                        <menuItem title="Add column..." keyEquivalent="A" id="FAo-Q2-Pil">
                                             <connections>
-                                                <action selector="selectRows:" target="Ady-hI-5gd" id="0vo-SF-qGf"/>
+                                                <action selector="addColumn:" target="Ady-hI-5gd" id="6bv-zz-7UB"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -707,7 +717,39 @@ DQ
                 <customObject id="Voe-Tx-rLC" customClass="QBEAppDelegate" customModule="QBE" customModuleProvider="target"/>
                 <customObject id="Ady-hI-5gd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="20" y="-298"/>
+            <point key="canvasLocation" x="184.5" y="-738"/>
+        </scene>
+        <!--Window Controller-->
+        <scene sceneID="FNS-F6-MVa">
+            <objects>
+                <windowController showSeguePresentationStyle="single" id="GTc-kf-kV6" sceneMemberID="viewController">
+                    <window key="window" title="Preferences" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="default" id="SMS-CO-LFo">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" unifiedTitleAndToolbar="YES"/>
+                        <windowCollectionBehavior key="collectionBehavior" transient="YES"/>
+                        <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+                        <rect key="contentRect" x="294" y="362" width="480" height="270"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1177"/>
+                    </window>
+                    <connections>
+                        <segue destination="nyj-Qm-GSe" kind="relationship" relationship="window.shadowedContentViewController" id="OhZ-ZD-rTx"/>
+                    </connections>
+                </windowController>
+                <customObject id="UU6-vb-q0Z" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="561" y="-422"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="q8y-wj-17x">
+            <objects>
+                <viewController id="nyj-Qm-GSe" sceneMemberID="viewController">
+                    <view key="view" id="Jc3-uf-xvU">
+                        <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                </viewController>
+                <customObject id="dH1-QD-FHa" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1173" y="-430"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="R2V-B0-nI4">
@@ -808,12 +850,13 @@ DQ
                     </view>
                     <connections>
                         <segue destination="TDg-0B-lyo" kind="sheet" identifier="suggestions" id="fwr-6P-6Ir"/>
+                        <segue destination="OvS-H1-pU0" kind="sheet" identifier="addColumn" id="djH-Ex-vc1"/>
                     </connections>
                 </viewController>
                 <customObject id="Izd-TK-t8f" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="vGV-jK-BQ2"/>
             </objects>
-            <point key="canvasLocation" x="-122" y="1157"/>
+            <point key="canvasLocation" x="-150" y="1183"/>
         </scene>
         <!--Data View Controller-->
         <scene sceneID="BjY-ZD-Y7M">
@@ -826,7 +869,7 @@ DQ
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-20" y="1735"/>
+            <point key="canvasLocation" x="-230" y="1751"/>
         </scene>
         <!--Settings View Controller-->
         <scene sceneID="Qof-I2-49O">
@@ -839,7 +882,7 @@ DQ
                 </viewController>
                 <customObject id="08A-nD-PhU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="780" y="-44"/>
+            <point key="canvasLocation" x="755" y="225"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -937,7 +980,120 @@ Gw
                 </viewController>
                 <customObject id="hZp-iq-JdD" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="515" y="1086.5"/>
+            <point key="canvasLocation" x="520" y="1156.5"/>
+        </scene>
+        <!--Add Column View Controller-->
+        <scene sceneID="c4P-Dw-LPh">
+            <objects>
+                <viewController id="OvS-H1-pU0" customClass="QBEAddColumnViewController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="odg-bA-gCm">
+                        <rect key="frame" x="0.0" y="0.0" width="551" height="245"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="ygl-u6-exP">
+                                <rect key="frame" x="203" y="41" width="338" height="136"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="136" id="iJ3-PU-RrQ"/>
+                                </constraints>
+                                <textFieldCell key="cell" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="I9D-NI-Rrp">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <binding destination="OvS-H1-pU0" name="value" keyPath="self.columnFormula" id="Tos-Nf-gge"/>
+                                </connections>
+                            </textField>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="1ze-2d-21G">
+                                <rect key="frame" x="487" y="3" width="60" height="32"/>
+                                <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="9Ao-UW-eYs">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="confirm:" target="OvS-H1-pU0" id="YA7-MJ-Bn3"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="zy3-tV-pwQ">
+                                <rect key="frame" x="406" y="3" width="83" height="32"/>
+                                <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="v37-se-rGc">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="cancel:" target="OvS-H1-pU0" id="hHf-8g-36m"/>
+                                </connections>
+                            </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4ZF-ng-u0b">
+                                <rect key="frame" x="8" y="187" width="535" height="48"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="48" id="vmk-4k-dNW"/>
+                                </constraints>
+                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="In order to add a column, enter a name for the new column, as well as a formula to fill the column's cells with." id="2ec-tA-j4r">
+                                    <font key="font" metaFont="systemBold"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="huH-Gh-J6p">
+                                <rect key="frame" x="10" y="155" width="164" height="22"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="22" id="2ly-he-0WH"/>
+                                </constraints>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="Column name" drawsBackground="YES" id="qB6-Wk-dah">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <binding destination="OvS-H1-pU0" name="value" keyPath="self.columnName" id="IjJ-V1-KNs"/>
+                                </connections>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aQ2-bK-kL9">
+                                <rect key="frame" x="182" y="160" width="13" height="17"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="=" id="NlX-O5-M9i">
+                                    <font key="font" metaFont="systemBold"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="zy3-tV-pwQ" secondAttribute="bottom" constant="10" id="0K2-iz-EPy"/>
+                            <constraint firstItem="huH-Gh-J6p" firstAttribute="top" secondItem="ygl-u6-exP" secondAttribute="top" id="7NV-WV-d4o"/>
+                            <constraint firstItem="huH-Gh-J6p" firstAttribute="leading" secondItem="odg-bA-gCm" secondAttribute="leading" constant="10" id="CPT-H6-dha"/>
+                            <constraint firstItem="aQ2-bK-kL9" firstAttribute="leading" secondItem="huH-Gh-J6p" secondAttribute="trailing" constant="10" id="MgY-JJ-mgm"/>
+                            <constraint firstItem="1ze-2d-21G" firstAttribute="leading" secondItem="zy3-tV-pwQ" secondAttribute="trailing" constant="10" id="Mlu-yl-V0W"/>
+                            <constraint firstAttribute="bottom" secondItem="1ze-2d-21G" secondAttribute="bottom" constant="10" id="TeZ-WW-IYT"/>
+                            <constraint firstItem="4ZF-ng-u0b" firstAttribute="top" secondItem="odg-bA-gCm" secondAttribute="top" constant="10" id="Z1b-q5-DCR"/>
+                            <constraint firstItem="zy3-tV-pwQ" firstAttribute="top" secondItem="ygl-u6-exP" secondAttribute="bottom" constant="10" id="b3T-tb-ohk"/>
+                            <constraint firstItem="ygl-u6-exP" firstAttribute="leading" secondItem="odg-bA-gCm" secondAttribute="leading" constant="203" id="bvr-id-Pk4"/>
+                            <constraint firstItem="ygl-u6-exP" firstAttribute="leading" secondItem="aQ2-bK-kL9" secondAttribute="trailing" constant="10" id="diV-DU-72Q"/>
+                            <constraint firstItem="1ze-2d-21G" firstAttribute="top" secondItem="ygl-u6-exP" secondAttribute="bottom" constant="10" id="gx0-RR-rAv"/>
+                            <constraint firstAttribute="trailing" secondItem="4ZF-ng-u0b" secondAttribute="trailing" constant="10" id="ibj-8v-xD6"/>
+                            <constraint firstAttribute="trailing" secondItem="1ze-2d-21G" secondAttribute="trailing" constant="10" id="rnq-WO-czA"/>
+                            <constraint firstItem="ygl-u6-exP" firstAttribute="top" secondItem="4ZF-ng-u0b" secondAttribute="bottom" constant="10" id="sVF-Dc-eEu"/>
+                            <constraint firstItem="4ZF-ng-u0b" firstAttribute="leading" secondItem="odg-bA-gCm" secondAttribute="leading" constant="10" id="tIt-Iw-uH0"/>
+                            <constraint firstItem="ygl-u6-exP" firstAttribute="top" secondItem="aQ2-bK-kL9" secondAttribute="top" id="tyM-5s-yqk"/>
+                            <constraint firstAttribute="trailing" secondItem="ygl-u6-exP" secondAttribute="trailing" constant="10" id="vTE-KS-gsz"/>
+                            <constraint firstItem="huH-Gh-J6p" firstAttribute="top" secondItem="ygl-u6-exP" secondAttribute="top" id="xCE-So-YE3"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="columnFormulaField" destination="ygl-u6-exP" id="Bnx-hf-qrm"/>
+                        <outlet property="columnNameField" destination="huH-Gh-J6p" id="qWb-Pe-Wq3"/>
+                    </connections>
+                </viewController>
+                <customObject id="mVo-1D-gei" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+                <userDefaultsController id="dwr-GU-0iP"/>
+            </objects>
+            <point key="canvasLocation" x="645.5" y="1461.5"/>
         </scene>
     </scenes>
     <resources>

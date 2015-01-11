@@ -78,7 +78,7 @@ class QBERaster {
 	
 	var columnNames: [QBEColumn] {
 		get {
-			return raster.count > 0 ? raster[0].map({v in return QBEColumn(v.stringValue!)}) : []
+			return raster.count > 0 ? raster[0].map({QBEColumn($0.stringValue!)}) : []
 		}
 	}
 	
