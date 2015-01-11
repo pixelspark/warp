@@ -119,7 +119,21 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func removeColumns(sender: NSObject) {
-		// TODO: implement
+		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
+			// Get the names of the columns to remove
+			
+			if let data = currentStep?.exampleData? {
+				var namesToRemove: [QBEColumn] = []
+				
+				for i in 0...data.columnNames.count {
+					if colsToRemove.containsIndex(i) {
+						namesToRemove.append(data.columnNames[i])
+					}
+				}
+				
+				suggestSteps([QBERemoveColumnsStep(previous: self.currentStep, columnsToRemove: namesToRemove)])
+			}
+		}
 	}
 	
 	@IBAction func removeRows(sender: NSObject) {
@@ -162,6 +176,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("removeRows:") {
 			if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
 				return rowsToRemove.count > 0
+			}
+			return false
+		}
+		else if item.action()==Selector("removeColumns:") {
+			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
+				return colsToRemove.count > 0
 			}
 			return false
 		}

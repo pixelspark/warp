@@ -110,6 +110,26 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 		}
 	}
 	
+	func selectColumns(columns: [QBEColumn]) -> QBEData {
+		return apply {(r: QBERaster) -> QBERaster in
+			let indexesToKeep = columns.map({(col) -> Int? in return r.indexOfColumnWithName(col)})
+			var newData: [[QBEValue]] = [columns.map({s in return QBEValue(s.name)})]
+			
+			for rowNumber in 0..<r.rowCount {
+				var oldRow = r[rowNumber]
+				var newRow: [QBEValue] = []
+				for i in indexesToKeep {
+					if i != nil {
+						newRow.append(oldRow[i!])
+					}
+				}
+				newData.append(newRow)
+			}
+			
+			return QBERaster(newData, readOnly: true)
+		}
+	}
+	
 	func calculate(targetColumn: QBEColumn, formula: QBEExpression) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
 			var columnNames = r.columnNames

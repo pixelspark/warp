@@ -55,8 +55,15 @@ protocol QBEData: NSObjectProtocol {
 	func calculate(targetColumn: QBEColumn, formula: QBEExpression) -> QBEData
 	func limit(numberOfRows: Int) -> QBEData
 	func replace(value: QBEValue, withValue: QBEValue, inColumn: QBEColumn) -> QBEData
+	
+	/* Select only the columns from the data set that are in the array, in the order specified. If a column named in the 
+	array does not exist, it is ignored. */
+	func selectColumns(columns: [QBEColumn]) -> QBEData
+	
 	func stream(receiver: ([[QBEValue]]) -> ())
 	
 	var raster: QBEFuture { get }
+	
+	/** Returns the names of the columns in the data set. The list of column names is ordered. **/
 	var columnNames: [QBEColumn] { get }
 }

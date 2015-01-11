@@ -134,6 +134,12 @@ class QBESQLData: NSObject, QBEData {
     func limit(numberOfRows: Int) -> QBEData {
         return QBESQLData(sql: "SELECT * FROM \(self.sql) LIMIT \(numberOfRows)", columnNames: self.columnNames)
     }
+	
+	func selectColumns(columns: [QBEColumn]) -> QBEData {
+		let colNames = columns.map({(c) -> String in return c.name}).implode(", ") ?? ""
+		let sql = "SELECT \(colNames) FROM (\(self.sql))"
+		return QBESQLData(sql: sql, columnNames: columns)
+	}
     
     func replace(value: QBEValue, withValue: QBEValue, inColumn: QBEColumn) -> QBEData {
         return QBESQLData(sql: "SELECT REPLACE(\(value), \(withValue), \(inColumn.name)) AS \(inColumn.name) FROM (\(sql))", columnNames: self.columnNames)
