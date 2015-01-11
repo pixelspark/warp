@@ -2,12 +2,16 @@ import Foundation
 
 enum QBEArity {
 	case Fixed(Int)
+	case Between(Int, Int)
 	case Any
 	
 	func valid(count: Int) -> Bool {
 		switch self {
 		case .Fixed(let i):
 			return count == i
+		
+		case .Between(let a, let b):
+			return count >= a && count <= b
 			
 		case .Any:
 			return true
@@ -35,6 +39,12 @@ enum QBEFunction: String {
 	case Asin = "asin"
 	case Atan = "atan"
 	case Sqrt = "sqrt"
+	case Left = "left"
+	case Right = "right"
+	case Mid = "mid"
+	case Length = "length"
+	case Log = "log"
+	case Not = "not"
 	
 	var description: String { get {
 		switch self {
@@ -57,6 +67,12 @@ enum QBEFunction: String {
 		case .Asin: return NSLocalizedString("arc sine", comment:"")
 		case .Atan: return NSLocalizedString("arc tangens", comment:"")
 		case .Sqrt: return NSLocalizedString("square root", comment:"")
+		case .Left: return NSLocalizedString("leftmost characters", comment: "")
+		case .Right: return NSLocalizedString("rightmost characters", comment: "")
+		case .Length: return NSLocalizedString("length of text", comment: "")
+		case .Mid: return NSLocalizedString("substring", comment: "")
+		case .Log: return NSLocalizedString("logarithm", comment: "")
+		case .Not: return NSLocalizedString("not", comment: "")
 		}
 	} }
 	
@@ -90,6 +106,12 @@ enum QBEFunction: String {
 		case .Sqrt: return QBEArity.Fixed(1)
 		case .If: return QBEArity.Fixed(3)
 		case .Concat: return QBEArity.Any
+		case .Left: return QBEArity.Fixed(2)
+		case .Right: return QBEArity.Fixed(2)
+		case .Length: return QBEArity.Fixed(1)
+		case .Mid: return QBEArity.Fixed(3)
+		case .Log: return QBEArity.Between(1,2)
+		case .Not: return QBEArity.Fixed(1)
 		}
 	} }
 	
@@ -128,6 +150,12 @@ enum QBEFunction: String {
 			}
 		}
 		return QBEValue(true)
+			
+		case .Not:
+			if let b = arguments[0].boolValue {
+				return QBEValue(!b)
+			}
+			return QBEValue.InvalidValue
 		
 		case .Or:
 		for a in arguments {
@@ -158,6 +186,18 @@ enum QBEFunction: String {
 		case .Cos:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(cos(d))
+			}
+			return QBEValue.InvalidValue
+			
+		case .Log:
+			if let d = arguments[0].doubleValue {
+				if arguments.count == 2 {
+					if let base = arguments[1].doubleValue {
+						return QBEValue(log(d) / log(base))
+					}
+					return QBEValue.InvalidValue
+				}
+				return QBEValue(log10(d))
 			}
 			return QBEValue.InvalidValue
 			
@@ -214,12 +254,55 @@ enum QBEFunction: String {
 				return QBEValue(sqrt(d))
 			}
 			return QBEValue.InvalidValue
+			
+		case .Left:
+			if let s = arguments[0].stringValue {
+				if let idx = arguments[1].intValue {
+					if countElements(s) >= idx {
+						let index = advance(s.startIndex, idx)
+						return QBEValue(s.substringToIndex(index))
+					}
+				}
+			}
+			return QBEValue.InvalidValue
+			
+		case .Right:
+			if let s = arguments[0].stringValue {
+				if let idx = arguments[1].intValue {
+					if countElements(s) >= idx {
+						let index = advance(s.endIndex, -idx)
+						return QBEValue(s.substringFromIndex(index))
+					}
+				}
+			}
+			return QBEValue.InvalidValue
+			
+		case .Mid:
+			if let s = arguments[0].stringValue {
+				if let start = arguments[1].intValue {
+					if let length = arguments[2].intValue {
+						let sourceLength = countElements(s)
+						if sourceLength >= start {
+							let index = advance(s.startIndex, start)
+							let end = sourceLength >= (start+length) ? advance(index, length) : s.endIndex
+							
+							return QBEValue(s.substringWithRange(Range(start: index, end: end)))
+						}
+					}
+				}
+			}
+			return QBEValue.InvalidValue
+			
+		case .Length:
+			if let s = arguments[0].stringValue {
+				return QBEValue(countElements(s))
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
-	static let allFunctions = [Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat, If]
+	static let allFunctions = [Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat, If, Left, Right, Mid, Length]
 }
-
 
 enum QBEBinary: String {
 	case Addition = "add"

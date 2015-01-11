@@ -663,9 +663,14 @@ CA
                                                 <action selector="removeColumns:" target="Ady-hI-5gd" id="Tmy-hE-6X8"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Add column..." keyEquivalent="A" id="FAo-Q2-Pil">
+                                        <menuItem title="Calculate new column..." keyEquivalent="F" id="FAo-Q2-Pil">
                                             <connections>
                                                 <action selector="addColumn:" target="Ady-hI-5gd" id="6bv-zz-7UB"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Add new empty column" keyEquivalent="A" id="59s-by-P6W">
+                                            <connections>
+                                                <action selector="addEmptyColumn:" target="Ady-hI-5gd" id="NQf-xv-2Lo"/>
                                             </connections>
                                         </menuItem>
                                     </items>

@@ -222,10 +222,11 @@ class QBEFunctionExpression: QBEExpression {
 	}
 	
 	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, raster: QBERaster, row: Int, inputValue: QBEValue?) -> [QBEExpression] {
+		var suggestions: [QBEExpression] = []
+		
 		if let from = fromValue {
 			if let f = fromValue?.apply(raster, rowNumber: row, inputValue: inputValue) {
-				var suggestions: [QBEExpression] = []
-			
+				// Check whether one of the unary functions can transform the input value to the output value
 				for op in QBEFunction.allFunctions {
 					if(op.arity.valid(1)) {
 						if op.apply([f]) == toValue {
@@ -233,10 +234,27 @@ class QBEFunctionExpression: QBEExpression {
 						}
 					}
 				}
-				return suggestions
+				
+				// For binary and n-ary functions, specific test cases follow
+				if let targetString = toValue.stringValue {
+					let length = QBEValue(countElements(targetString))
+					
+					suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Left))
+					suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Right))
+					
+					// Is the 'to' string perhaps a substring of the 'from' string?
+					if let sourceString = f.stringValue {
+						if let range = sourceString.rangeOfString(targetString) {
+							let start = QBELiteralExpression(QBEValue(distance(sourceString.startIndex, range.startIndex)))
+							let length = QBELiteralExpression(QBEValue(distance(range.startIndex, range.endIndex)))
+							suggestions.append(QBEFunctionExpression(arguments: [from, start, length], type: QBEFunction.Mid))
+						}
+					}
+				}
 			}
 		}
-		return []
+		
+		return suggestions
 	}
 }
 

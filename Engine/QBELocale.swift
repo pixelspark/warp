@@ -33,7 +33,8 @@ class QBEDefaultLocale: NSObject, QBELocale {
 	
 	let constants = [
 		QBEValue(true): "TRUE",
-		QBEValue(false): "FALSE"
+		QBEValue(false): "FALSE",
+		QBEValue(3.141592654): "PI"
 	]
 	
 	let unaryFunctions = [
@@ -53,7 +54,13 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		"COSH": QBEFunction.Cosh,
 		"TANH": QBEFunction.Tanh,
 		"IF": QBEFunction.If,
-		"CONCAT": QBEFunction.Concat
+		"CONCAT": QBEFunction.Concat,
+		"LEFT": QBEFunction.Left,
+		"RIGHT": QBEFunction.Right,
+		"MID": QBEFunction.Mid,
+		"LENGTH": QBEFunction.Length,
+		"LOG": QBEFunction.Log,
+		"NOT": QBEFunction.Not
 	]
 	
 	func csvRow(row: [QBEValue]) -> String {

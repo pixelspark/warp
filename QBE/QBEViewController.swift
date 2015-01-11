@@ -130,6 +130,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		self.performSegueWithIdentifier("addColumn", sender: sender)
 	}
 	
+	@IBAction func addEmptyColumn(sender: NSObject) {
+		let explanation = NSLocalizedString("Add new empty column", comment: "")
+		if let data = currentStep?.exampleData {
+			let step = QBECalculateStep(previous: currentStep, explanation: explanation, targetColumn: QBEColumn("\(data.columnNames.count)"), function: QBELiteralExpression(QBEValue.EmptyValue))
+			pushStep(step)
+		}
+	}
+	
 	@IBAction func removeColumns(sender: NSObject) {
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			// Get the names of the columns to remove
@@ -207,6 +215,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("addColumn:") {
 			return currentStep != nil
 		}
+		else if item.action()==Selector("addEmptyColumn:") {
+			return currentStep != nil
+		}
 		else if item.action()==Selector("importFile:") {
 			return true
 		}
@@ -240,6 +251,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func importFile(sender: NSObject) {
 		let no = NSOpenPanel()
 		no.canChooseFiles = true
+		no.allowedFileTypes = ["public.comma-separated-values-text"]
 		
 		no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result==NSFileHandlingPanelOKButton {
