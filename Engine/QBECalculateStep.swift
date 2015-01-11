@@ -1,22 +1,22 @@
 import Foundation
 
 class QBECalculateStep: QBEStep {
-	var function: QBEFunction
-	var targetColumn: String
+	var function: QBEExpression
+	var targetColumn: QBEColumn
 	
 	required init(coder aDecoder: NSCoder) {
-		function = aDecoder.decodeObjectForKey("function") as? QBEFunction ?? QBEIdentityFunction()
-		targetColumn = aDecoder.decodeObjectForKey("targetColumn") as? String ?? ""
+		function = aDecoder.decodeObjectForKey("function") as? QBEExpression ?? QBEIdentityExpression()
+		targetColumn = QBEColumn(aDecoder.decodeObjectForKey("targetColumn") as? String ?? "")
 		super.init(coder: aDecoder)
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
 		coder.encodeObject(function, forKey: "function")
-		coder.encodeObject(targetColumn, forKey: "targetColumn")
+		coder.encodeObject(targetColumn.name, forKey: "targetColumn")
 		super.encodeWithCoder(coder)
 	}
 	
-	required init(previous: QBEStep?, explanation: String, targetColumn: String, function: QBEFunction) {
+	required init(previous: QBEStep?, explanation: String, targetColumn: QBEColumn, function: QBEExpression) {
 		self.function = function
 		self.targetColumn = targetColumn
 		super.init(previous: previous, explanation: explanation)

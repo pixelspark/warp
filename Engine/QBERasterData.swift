@@ -1,6 +1,6 @@
 import Foundation
 
-class QBERasterData: NSObject, QBEData {
+class QBERasterData: NSObject, QBEData, NSCoding {
 	private(set) var raster: QBEFuture
 	
 	override init() {
@@ -10,9 +10,13 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	required init(coder: NSCoder) {
-		let loadedRaster = QBERaster(coder.decodeObjectForKey("data") as? [[QBEValue]] ?? [])
+		let codedRaster = coder.decodeObjectForKey("data") as? [[QBEValueCoder]] ?? []
+
+		// The raster is stored as [[QBEValueCoder]], but needs to be a [[QBEValue]]. Lazily decode it
 		raster = memoize {
-			return loadedRaster
+			return QBERaster(codedRaster.map({(i) -> [QBEValue] in
+				return i.map({(j) -> QBEValue in return j.value})
+			}))
 		}
 	}
 	
@@ -45,7 +49,12 @@ class QBERasterData: NSObject, QBEData {
 	}}
 	
 	func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(raster().raster, forKey: "data")
+		// Create coders
+		let codedRaster = raster().raster.map({(i) -> [QBEValueCoder] in
+			return i.map({(j) -> QBEValueCoder in return QBEValueCoder(j)})
+		})
+		
+		coder.encodeObject(codedRaster, forKey: "data")
 	}
 	
 	private func changeRasterDirectly(filter: QBEFilter) {
@@ -71,7 +80,7 @@ class QBERasterData: NSObject, QBEData {
 		}
 	}
 	
-	var columnNames: [String] {
+	var columnNames: [QBEColumn] {
 		get {
 			return raster().columnNames
 		}
@@ -90,7 +99,7 @@ class QBERasterData: NSObject, QBEData {
 			let columnNames = r.columnNames
 			for colNumber in 0..<r.columnCount {
 				let columnName = columnNames[colNumber];
-				var row: [QBEValue] = [QBEValue(columnName)]
+				var row: [QBEValue] = [QBEValue(columnName.name)]
 				for rowNumber in 0..<r.rowCount {
 					row.append(r[rowNumber, colNumber])
 				}
@@ -101,7 +110,7 @@ class QBERasterData: NSObject, QBEData {
 		}
 	}
 	
-	func calculate(targetColumn: String, formula: QBEFunction) -> QBEData {
+	func calculate(targetColumn: QBEColumn, formula: QBEExpression) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
 			var columnNames = r.columnNames
 			var columnIndex = r.indexOfColumnWithName(targetColumn) ?? -1
@@ -110,7 +119,7 @@ class QBERasterData: NSObject, QBEData {
 				columnIndex = columnNames.count-1
 			}
 			
-			var newData: [[QBEValue]] = [columnNames.map({s in return QBEValue(s)})]
+			var newData: [[QBEValue]] = [columnNames.map({s in return QBEValue(s.name)})]
 			
 			let numberOfRows = r.rowCount
 			for rowNumber in 0..<numberOfRows {
@@ -126,7 +135,7 @@ class QBERasterData: NSObject, QBEData {
 	
 	func limit(numberOfRows: Int) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
-			var newData: [[QBEValue]] = [r.columnNames.map({s in return QBEValue(s)})]
+			var newData: [[QBEValue]] = [r.columnNames.map({s in return QBEValue(s.name)})]
 			
 			for rowNumber in 0..<numberOfRows {
 				newData.append(r[rowNumber])
@@ -136,9 +145,9 @@ class QBERasterData: NSObject, QBEData {
 		}
 	}
 	
-	func replace(value: QBEValue, withValue: QBEValue, inColumn: String) -> QBEData {
+	func replace(value: QBEValue, withValue: QBEValue, inColumn: QBEColumn) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
-			var newData: [[QBEValue]] = [r.columnNames.map({s in return QBEValue(s)})]
+			var newData: [[QBEValue]] = [r.columnNames.map({s in return QBEValue(s.name)})]
 			if let replaceColumnIndex = self.raster().indexOfColumnWithName(inColumn) {
 				for rowNumber in 0..<r.rowCount {
 					var newRow = r[rowNumber]
@@ -160,5 +169,13 @@ class QBERasterData: NSObject, QBEData {
 	
 	func compare(other: QBEData) -> Bool {
 		return raster().compare(other.raster())
+	}
+	
+	func stream(receiver: ([[QBEValue]]) -> ()) {
+		// FIXME: batch this, perhaps just send the whole raster at once to receiver() (but do not send column names)
+		let r = raster();
+		for rowNumber in 0..<r.rowCount {
+			receiver([r[rowNumber]])
+		}
 	}
 }

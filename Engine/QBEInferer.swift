@@ -1,25 +1,23 @@
 import Foundation
 
 class QBEInferer {
-	class func inferFunctions(fromValue: QBEValue?, toValue: QBEValue, inout suggestions: [QBEFunction], level: Int, raster: QBERaster, row: Int, column: Int, maxComplexity: Int = Int.max, previousValues: [QBEValue] = []) {
-		if fromValue == toValue {
-			return
-		}
+	class func inferFunctions(fromValue: QBEExpression?, toValue: QBEValue, inout suggestions: [QBEExpression], level: Int, raster: QBERaster, row: Int, column: Int, maxComplexity: Int = Int.max, previousValues: [QBEValue] = []) {
+
+		
+		let inputValue = raster[row, column]
 		
 		// Try out combinations of formulas and see if they fit
-		for formulaType in QBEFunctions {
-			let suggestedFormulas = formulaType.suggest(fromValue, toValue: toValue, raster: raster, row: row);
+		for formulaType in QBEExpressions {
+			let suggestedFormulas = formulaType.suggest(fromValue, toValue: toValue, raster: raster, row: row, inputValue: inputValue);
 			var complexity = maxComplexity
-			var exploreFurther: [QBEFunction] = []
+			var exploreFurther: [QBEExpression] = []
 			
 			for formula in suggestedFormulas {
 				if formula.complexity >= maxComplexity {
 					continue
 				}
 				
-				println("try \(formula.explanation)")
-				let result = formula.apply(raster, rowNumber: row, inputValue: fromValue)
-				//println("\(level) Try formula \(formula) input=\(fromValue) expected=\(toValue) out=\(result)")
+				let result = formula.apply(raster, rowNumber: row, inputValue: inputValue)
 				if result == toValue {
 					suggestions.append(formula)
 					
@@ -37,7 +35,7 @@ class QBEInferer {
 			if suggestions.count == 0 {
 				// Let's see if we can find something else
 				for formula in exploreFurther {
-					let result = formula.apply(raster, rowNumber: row, inputValue: fromValue)
+					let result = formula.apply(raster, rowNumber: row, inputValue: inputValue)
 					
 					// Have we already seen this result? Then ignore
 					var found = false
@@ -52,18 +50,16 @@ class QBEInferer {
 						continue
 					}
 					
-					var nextLevelSuggestions: [QBEFunction] = []
+					var nextLevelSuggestions: [QBEExpression] = []
 					var newPreviousValues = previousValues
 					newPreviousValues.append(result)
-					QBEInferer.inferFunctions(result, toValue: toValue, suggestions: &nextLevelSuggestions, level: level-1, raster: raster, row: row, column: column, maxComplexity: complexity, previousValues: newPreviousValues)
+					QBEInferer.inferFunctions(formula, toValue: toValue, suggestions: &nextLevelSuggestions, level: level-1, raster: raster, row: row, column: column, maxComplexity: complexity, previousValues: newPreviousValues)
 					
 					for nextLevelSuggestion in nextLevelSuggestions {
-						let cf = QBECompoundFunction(first: formula, second: nextLevelSuggestion)
-						println("try compound \(cf.explanation)")
-						if cf.apply(raster, rowNumber: row, inputValue: fromValue) == toValue {
-							if cf.complexity <= complexity {
-								suggestions.append(cf)
-								complexity = cf.complexity
+						if nextLevelSuggestion.apply(raster, rowNumber: row, inputValue: inputValue) == toValue {
+							if nextLevelSuggestion.complexity <= complexity {
+								suggestions.append(nextLevelSuggestion)
+								complexity = nextLevelSuggestion.complexity
 							}
 						}
 					}

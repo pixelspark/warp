@@ -14,6 +14,16 @@ internal extension String {
 	}
 }
 
+internal extension Array {
+	func implode <C: ExtensibleCollectionType> (separator: C) -> C? {
+		if Element.self is C.Type {
+			return Swift.join(separator, unsafeBitCast(self, [C].self))
+		}
+		
+		return nil
+	}
+}
+
 internal extension Double {
 	func toString() -> String {
 		return String(format: "%.1f",self)
@@ -44,12 +54,32 @@ internal extension Int {
 	}
 }
 
-internal enum QBEValueRepresentation {
+internal enum QBEValue: Hashable {
 	case StringValue(String)
 	case IntValue(Int)
 	case BoolValue(Bool)
 	case DoubleValue(Double)
 	case EmptyValue
+	
+	init(_ value: String = "") {
+		self = .StringValue(value)
+	}
+	
+	init(_ value: Double) {
+		self = .DoubleValue(value)
+	}
+	
+	init(_ value: Int) {
+		self = .IntValue(value)
+	}
+	
+	init(_ value: Bool) {
+		self = .BoolValue(value)
+	}
+	
+	var hashValue: Int { get  {
+		return self.stringValue.hashValue
+	}}
 	
 	var stringValue: String { get {
 		switch self {
@@ -81,20 +111,50 @@ internal enum QBEValueRepresentation {
 		}
 	} }
 	
-	init(coder: NSCoder) {
-		let t = coder.decodeIntForKey("type")
+	var boolValue: Bool? { get {
+		switch self {
+		case .StringValue(let s): return s.toInt() == 1
+		case .IntValue(let i): return i == 1
+		case .BoolValue(let b): return b
+		case .DoubleValue(let d): return nil
+		case .EmptyValue: return nil
+		}
+	} }
+	
+	func absolute() -> QBEValue {
+		return (self < QBEValue(0)) ? -self : self
+	}
+	
+	var description: String { get {
+		return self.stringValue
+	} }
+}
+
+class QBEValueCoder: NSObject, NSSecureCoding {
+	let value: QBEValue
+	
+	override init() {
+		self.value = .EmptyValue
+	}
+	
+	init(_ value: QBEValue) {
+		self.value = value
+	}
+	
+	required init(coder aDecoder: NSCoder) {
+		let t = aDecoder.decodeIntForKey("type")
 		switch t {
-			case 1: self = .StringValue(coder.decodeObjectForKey("value") as? String ?? "")
-			case 2: self = .IntValue(coder.decodeIntegerForKey("value"))
-			case 3: self = .BoolValue(coder.decodeBoolForKey("value"))
-			case 4: self = .DoubleValue(coder.decodeDoubleForKey("value"))
-			case 5: self = .EmptyValue
-			default: self = .EmptyValue
+			case 1: value = .StringValue(aDecoder.decodeObjectForKey("value") as? String ?? "")
+			case 2: value = .IntValue(aDecoder.decodeIntegerForKey("value"))
+			case 3: value = .BoolValue(aDecoder.decodeBoolForKey("value"))
+			case 4: value = .DoubleValue(aDecoder.decodeDoubleForKey("value"))
+			case 5: value = .EmptyValue
+			default: value = .EmptyValue
 		}
 	}
 	
 	func encodeWithCoder(coder: NSCoder) {
-		switch self {
+		switch value {
 		case .StringValue(let s):
 			coder.encodeInt(1, forKey: "type")
 			coder.encodeObject(s, forKey: "value")
@@ -115,124 +175,10 @@ internal enum QBEValueRepresentation {
 			coder.encodeInt(5, forKey: "type")
 		}
 	}
-}
-
-class QBEValue: NSObject, UnicodeScalarLiteralConvertible, IntegerLiteralConvertible, NSCoding {
-	let value: QBEValueRepresentation
 	
-	internal init(_ value: QBEValueRepresentation) {
-		self.value = value
+	class func supportsSecureCoding() -> Bool {
+		return true
 	}
-	
-	init(_ value: String = "") {
-		self.value = .StringValue(value)
-	}
-	
-	init(_ value: Double) {
-		self.value = .DoubleValue(value)
-	}
-	
-	init(_ value: Int) {
-		self.value = .IntValue(value)
-	}
-	
-	init(_ value: Bool) {
-		self.value = .BoolValue(value)
-	}
-	
-	required init(coder: NSCoder) {
-		self.value = QBEValueRepresentation(coder: coder)
-	}
-	
-	required init(integerLiteral: Int) {
-		self.value = .IntValue(integerLiteral)
-	}
-	
-	required init(unicodeScalarLiteral: String) {
-		self.value = .StringValue(unicodeScalarLiteral)
-	}
-	
-	func encodeWithCoder(coder: NSCoder) {
-		value.encodeWithCoder(coder)
-	}
-	
-	override var description: String {
-		get {
-			return self.value.stringValue
-		}
-	}
-	
-	var stringValue: String { get {
-		return self.value.stringValue
-	} }
-	
-	var intValue: Int? { get {
-		return self.value.intValue
-	} }
-	
-	var doubleValue: Double? { get {
-			return self.value.doubleValue
-	} }
-}
-
-func + (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs.value + rhs.value)
-}
-
-func - (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs.value - rhs.value)
-}
-
-prefix func - (lhs: QBEValue) -> QBEValue {
-	return QBEValue(-lhs.value)
-}
-
-func * (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs.value * rhs.value)
-}
-
-func ^ (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs.value ^ rhs.value)
-}
-
-func > (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs.value > rhs.value)
-}
-
-func < (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs.value < rhs.value)
-}
-
-func >= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs.value >= rhs.value)
-}
-
-func <= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs.value <= rhs.value)
-}
-
-func == (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs.value == rhs.value)
-}
-
-func == (lhs: QBEValue, rhs: String) -> QBEValue {
-	return QBEValue(rhs == lhs.value.stringValue)
-}
-
-func != (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(!(lhs.value == rhs.value))
-}
-
-func == (lhs: QBEValue, rhs: QBEValue) -> Bool {
-	return (lhs.value == rhs.value)
-}
-
-func == (lhs: QBEValue, rhs: String) -> Bool {
-	return (rhs == lhs.value.stringValue)
-}
-
-func != (lhs: QBEValue, rhs: QBEValue) -> Bool {
-	return (!(lhs.value == rhs.value))
 }
 
 func / (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
@@ -257,80 +203,76 @@ func % (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 }
 
 func & (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs.value & rhs.value)
+	return QBEValue.StringValue(lhs.stringValue + rhs.stringValue)
 }
 
-func & (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> QBEValueRepresentation {
-	return QBEValueRepresentation.StringValue(lhs.stringValue + rhs.stringValue)
-}
-
-func * (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> QBEValueRepresentation {
+func * (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 	switch (lhs, rhs) {
 	case (.IntValue, .IntValue):
-		return QBEValueRepresentation.IntValue(lhs.intValue! * rhs.intValue!)
+		return QBEValue.IntValue(lhs.intValue! * rhs.intValue!)
 		
 	case (.DoubleValue, .DoubleValue):
-		return QBEValueRepresentation.DoubleValue(lhs.doubleValue! * rhs.doubleValue!)
+		return QBEValue.DoubleValue(lhs.doubleValue! * rhs.doubleValue!)
 		
 	case (.IntValue, .DoubleValue):
-		return QBEValueRepresentation.DoubleValue(lhs.doubleValue! * rhs.doubleValue!)
+		return QBEValue.DoubleValue(lhs.doubleValue! * rhs.doubleValue!)
 		
 	case (.DoubleValue, .IntValue):
-		return QBEValueRepresentation.DoubleValue(lhs.doubleValue! * rhs.doubleValue!)
+		return QBEValue.DoubleValue(lhs.doubleValue! * rhs.doubleValue!)
 		
 	default:
-		return QBEValueRepresentation.EmptyValue
+		return QBEValue.EmptyValue
 	}
 }
 
-func ^ (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> QBEValueRepresentation {
+func ^ (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 	if let lh = lhs.doubleValue {
 		if let rh = rhs.doubleValue {
-			return QBEValueRepresentation.DoubleValue(pow(lh, rh));
+			return QBEValue.DoubleValue(pow(lh, rh));
 		}
 	}
-	return QBEValueRepresentation.EmptyValue
+	return QBEValue.EmptyValue
 }
 
-func + (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> QBEValueRepresentation {
+func + (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 	switch (lhs, rhs) {
 	case (.IntValue, .IntValue):
-		return QBEValueRepresentation.IntValue(lhs.intValue! + rhs.intValue!)
+		return QBEValue.IntValue(lhs.intValue! + rhs.intValue!)
 		
 	case (.DoubleValue, .DoubleValue):
-		return QBEValueRepresentation.DoubleValue(lhs.doubleValue! + rhs.doubleValue!)
+		return QBEValue.DoubleValue(lhs.doubleValue! + rhs.doubleValue!)
 		
 	case (.IntValue, .DoubleValue):
-		return QBEValueRepresentation.DoubleValue(lhs.doubleValue! + rhs.doubleValue!)
+		return QBEValue.DoubleValue(lhs.doubleValue! + rhs.doubleValue!)
 		
 	case (.DoubleValue, .IntValue):
-		return QBEValueRepresentation.DoubleValue(lhs.doubleValue! + rhs.doubleValue!)
+		return QBEValue.DoubleValue(lhs.doubleValue! + rhs.doubleValue!)
 		
 	default:
-		return QBEValueRepresentation.EmptyValue
+		return QBEValue.EmptyValue
 	}
 }
 
-func - (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> QBEValueRepresentation {
+func - (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 	switch (lhs, rhs) {
 	case (.IntValue, .IntValue):
-		return QBEValueRepresentation.IntValue(lhs.intValue! - rhs.intValue!)
+		return QBEValue.IntValue(lhs.intValue! - rhs.intValue!)
 		
 	case (.DoubleValue, .DoubleValue):
-		return QBEValueRepresentation.DoubleValue(lhs.doubleValue! - rhs.doubleValue!)
+		return QBEValue.DoubleValue(lhs.doubleValue! - rhs.doubleValue!)
 		
 	case (.IntValue, .DoubleValue):
-		return QBEValueRepresentation.DoubleValue(lhs.doubleValue! - rhs.doubleValue!)
+		return QBEValue.DoubleValue(lhs.doubleValue! - rhs.doubleValue!)
 		
 	case (.DoubleValue, .IntValue):
-		return QBEValueRepresentation.DoubleValue(lhs.doubleValue! - rhs.doubleValue!)
+		return QBEValue.DoubleValue(lhs.doubleValue! - rhs.doubleValue!)
 		
 	default:
-		return QBEValueRepresentation.EmptyValue
+		return QBEValue.EmptyValue
 	}
 }
 
-func == (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> Bool {
+func == (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	switch (lhs, rhs) {
 	case (.IntValue, .IntValue):
 		return lhs.intValue == rhs.intValue
@@ -349,7 +291,7 @@ func == (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> Bool {
 	}
 }
 
-func > (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> Bool {
+func > (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	switch(lhs, rhs) {
 	case (.IntValue, .IntValue):
 		return lhs.intValue > rhs.intValue
@@ -359,7 +301,7 @@ func > (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> Bool {
 	}
 }
 
-func < (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> Bool {
+func < (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	switch(lhs, rhs) {
 	case (.IntValue, .IntValue):
 		return lhs.intValue < rhs.intValue
@@ -369,7 +311,7 @@ func < (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> Bool {
 	}
 }
 
-func >= (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> Bool {
+func >= (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	switch(lhs, rhs) {
 	case (.IntValue, .IntValue):
 		return lhs.intValue >= rhs.intValue
@@ -379,7 +321,7 @@ func >= (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> Bool {
 	}
 }
 
-func <= (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> Bool {
+func <= (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	switch(lhs, rhs) {
 	case (.IntValue, .IntValue):
 		return lhs.intValue <= rhs.intValue
@@ -389,15 +331,39 @@ func <= (lhs: QBEValueRepresentation, rhs: QBEValueRepresentation) -> Bool {
 	}
 }
 
-prefix func - (lhs: QBEValueRepresentation) -> QBEValueRepresentation {
+func <= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+	return QBEValue(lhs <= rhs)
+}
+
+func >= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+	return QBEValue(lhs >= rhs)
+}
+
+func == (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+	return QBEValue(lhs == rhs)
+}
+
+func != (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+	return QBEValue(lhs != rhs)
+}
+
+func < (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+	return QBEValue(lhs < rhs)
+}
+
+func > (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+	return QBEValue(lhs > rhs)
+}
+
+prefix func - (lhs: QBEValue) -> QBEValue {
 	switch lhs {
 	case .IntValue(let i):
-		return QBEValueRepresentation.IntValue(-i)
+		return QBEValue.IntValue(-i)
 		
 	case .DoubleValue(let d):
-		return QBEValueRepresentation.DoubleValue(-d)
+		return QBEValue.DoubleValue(-d)
 		
 	default:
-		return QBEValueRepresentation.EmptyValue
+		return QBEValue.EmptyValue
 	}
 }

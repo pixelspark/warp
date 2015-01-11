@@ -1,6 +1,8 @@
 import Cocoa
 
 class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate {
+	let locale = QBEDefaultLocale()
+	
 	var dataViewController: QBEDataViewController?
 	@IBOutlet var descriptionField: NSTextField?
 	var suggestions: [QBEStep]?
@@ -36,23 +38,23 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				let targetColumn = r.columnNames[column]
 				
 				// Was a formula typed in?
-				if let f = QBEFormula(formula: toValue.stringValue) {
-					let explanation = NSLocalizedString("Calculate column", comment: "") + " " + targetColumn + " " + NSLocalizedString("as", comment: "") + " " + f.root.explanation
+				if let f = QBEFormula(formula: toValue.stringValue, locale: locale) {
+					let explanation = "\(targetColumn.name) = \(f.root.toFormula(locale))"
 					suggestions.append(QBECalculateStep(previous: self.currentStep, explanation: explanation, targetColumn: targetColumn, function: f.root))
 					suggestSteps(suggestions)
 				}
 				else {
 					// Suggest a text replace
-					suggestions.append(QBEReplaceStep(previous: currentStep, explanation: "Replace all occurrences of '\(didChangeValue)' with '\(toValue)' in column \(r.columnNames[column])", replaceValue: didChangeValue, withValue: toValue, inColumn: r.columnNames[column]))
+					suggestions.append(QBEReplaceStep(previous: currentStep, explanation: "Replace all occurrences of '\(didChangeValue.description)' with '\(toValue.description)' in column \(r.columnNames[column].name)", replaceValue: didChangeValue, withValue: toValue, inColumn: r.columnNames[column]))
 					
 					// Try to find a formula
 					let qs = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
 					
 					dispatch_async(qs) {
-						var suggestedFormulas: [QBEFunction] = []
-						QBEInferer.inferFunctions(nil, toValue: toValue, suggestions: &suggestedFormulas, level: 3, raster: r, row: inRow, column: column)
+						var suggestedFormulas: [QBEExpression] = []
+						QBEInferer.inferFunctions(nil, toValue: toValue, suggestions: &suggestedFormulas, level: 4, raster: r, row: inRow, column: column)
 						for suggestedFormula in suggestedFormulas {
-							let explanation = NSLocalizedString("Calculate column", comment: "") + " " + targetColumn + " " + NSLocalizedString("as", comment: "") + " " + suggestedFormula.explanation
+							let explanation = "\(targetColumn.name) = \(suggestedFormula.explanation)"
 							let cs = QBECalculateStep(previous: self.currentStep, explanation: explanation, targetColumn: targetColumn, function: suggestedFormula)
 							suggestions.append(cs)
 						}
@@ -73,14 +75,11 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		if document?.head == nil || currentStep == document?.head {
 			document?.head = step
 		}
-		
-		println("push cs=\(step) prev=\(currentStep)")
 		currentStep = step
 	}
 	
 	private func popStep() {
 		currentStep = currentStep?.previous
-		println("cur=\(currentStep) next=\(currentStep?.next)")
 	}
 	
 	@IBAction func transposeData(sender: NSObject) {
@@ -226,9 +225,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				let gq = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0);
 				
 				dispatch_async(gq) {
-					let fr = self.currentStep?.fullData?
-					// TODO: Export full data set to CSV
-					fatalError("Not implemented yet")
+					if let fr = self.currentStep?.fullData {
+						let wr = QBECSVWriter(data: fr, locale: self.locale)
+						if let url = ns.URL {
+							wr.writeToFile(url)
+						}
+					}
 				}
 			}
 		})

@@ -1,383 +1,214 @@
 import Foundation
 
-let QBEFunctions: [QBEFunction.Type] = [
-	QBESiblingFunction.self,
-	QBEMultiplicationFunction.self,
-	QBESubstituteFunction.self,
-	QBEAdditionFunction.self,
-	QBEUppercaseFunction.self,
-	QBELowercaseFunction.self,
-	QBELiteralFunction.self,
-	QBENegateFunction.self,
-	QBEIdentityFunction.self
-]
-
-class QBEFunction: NSObject, NSCoding {
-	var explanation: String { get {
-		return "??"
-		}}
+enum QBEArity {
+	case Fixed(Int)
+	case Any
 	
-	var complexity: Int { get {
-		return 1
-		}}
-	
-	override init() {
-	}
-	
-	required init(coder aDecoder: NSCoder) {
-	}
-	
-	func encodeWithCoder(aCoder: NSCoder) {
-	}
-	
-	func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		fatalError("A QBEFunction was called that isn't implemented")
-	}
-	
-	class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		return []
+	func valid(count: Int) -> Bool {
+		switch self {
+		case .Fixed(let i):
+			return count == i
+			
+		case .Any:
+			return true
+		}
 	}
 }
 
-class QBELiteralFunction: QBEFunction {
-	let value: QBEValue
+enum QBEFunction: String {
+	case Uppercase = "upper"
+	case Lowercase = "lower"
+	case Negate = "negate"
+	case Identity = "identity"
+	case Absolute = "abs"
+	case And = "and"
+	case Or = "or"
+	case If = "if"
+	case Concat = "concat"
+	case Cos = "cos"
+	case Sin = "sin"
+	case Tan = "tan"
+	case Cosh = "cosh"
+	case Sinh = "sinh"
+	case Tanh = "tanh"
+	case Acos = "acos"
+	case Asin = "asin"
+	case Atan = "atan"
+	case Sqrt = "sqrt"
 	
-	init(_ value: QBEValue) {
-		self.value = value
-		super.init()
-	}
-	
-	required init(coder aDecoder: NSCoder) {
-		self.value = aDecoder.decodeObjectForKey("value") as? QBEValue ?? QBEValue()
-		super.init(coder: aDecoder)
-	}
-	
-	override var explanation: String { get {
-		return value.stringValue
+	var description: String { get {
+		switch self {
+		case .Uppercase: return NSLocalizedString("uppercase", comment: "")
+		case .Lowercase: return NSLocalizedString("lowercase", comment:"")
+		case .Negate: return NSLocalizedString("-", comment:"")
+		case .Absolute: return NSLocalizedString("absolute", comment:"")
+		case .Identity: return NSLocalizedString("", comment:"")
+		case .And: return NSLocalizedString("and", comment:"")
+		case .Or: return NSLocalizedString("or", comment:"")
+		case .If: return NSLocalizedString("if", comment: "")
+		case .Concat: return NSLocalizedString("concatenate", comment: "")
+		case .Cos: return NSLocalizedString("cose", comment:"")
+		case .Sin: return NSLocalizedString("sine", comment:"")
+		case .Tan: return NSLocalizedString("tangens", comment:"")
+		case .Cosh: return NSLocalizedString("cosine hyperbolic", comment:"")
+		case .Sinh: return NSLocalizedString("sine hyperbolic", comment:"")
+		case .Tanh: return NSLocalizedString("tangens hyperbolic", comment:"")
+		case .Acos: return NSLocalizedString("arc cosine", comment:"")
+		case .Asin: return NSLocalizedString("arc sine", comment:"")
+		case .Atan: return NSLocalizedString("arc tangens", comment:"")
+		case .Sqrt: return NSLocalizedString("square root", comment:"")
+		}
 	} }
 	
-	override func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(self.value(), forKey: "value")
-		super.encodeWithCoder(aCoder)
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		return value
-	}
-	
-	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		if fromValue == nil {
-			return [QBELiteralFunction(toValue)]
-		}
-		return []
-	}
-}
-
-class QBEIdentityFunction: QBEFunction {
-	override init() {
-		super.init()
-	}
-	
-	override var explanation: String { get {
-		return NSLocalizedString("value", comment: "")
-		}}
-	
-	required init(coder aDecoder: NSCoder) {
-		super.init(coder: aDecoder)
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		return inputValue ?? QBEValue()
-	}
-}
-
-class QBEAdditionFunction: QBEFunction {
-	var addendum: Int
-	
-	init(addendum: Int) {
-		self.addendum = addendum
-		super.init()
-	}
-	
-	override var explanation: String { get {
-		return NSLocalizedString("add", comment: "") + " \(addendum) " + NSLocalizedString("to", comment: "") + " "
-		}}
-	
-	required init(coder aDecoder: NSCoder) {
-		addendum = aDecoder.decodeIntegerForKey("addendum")
-		super.init(coder: aDecoder)
-	}
-	
-	override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeInteger(addendum, forKey: "addendum")
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		if let i = inputValue?.intValue {
-			return QBEValue(i + addendum)
-		}
-		return QBEValue()
-	}
-	
-	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		if fromValue != nil {
-			if let f = fromValue!.intValue {
-				if let t = toValue.intValue {
-					if f != t {
-						return [QBEAdditionFunction(addendum: t-f)]
-					}
-				}
+	func toFormula(locale: QBELocale) -> String {
+		for (name, function) in locale.unaryFunctions {
+			if function == self {
+				return name
 			}
 		}
-		return []
-	}
-}
-
-class QBEMultiplicationFunction: QBEFunction {
-	var multiplicant: Int
-	
-	init(multiplicant: Int) {
-		self.multiplicant = multiplicant
-		super.init()
+		return ""
 	}
 	
-	override var explanation: String { get {
-		return "\(multiplicant) " + NSLocalizedString("times", comment: "")
-		}}
-	
-	required init(coder aDecoder: NSCoder) {
-		multiplicant = aDecoder.decodeIntegerForKey("multiplicant")
-		super.init(coder: aDecoder)
-	}
-	
-	override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeInteger(multiplicant, forKey: "multiplicant")
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		if let i = inputValue?.intValue {
-			return QBEValue(i * multiplicant)
+	var arity: QBEArity { get {
+		switch self {
+		case .Uppercase: return QBEArity.Fixed(1)
+		case .Lowercase: return QBEArity.Fixed(1)
+		case .Negate: return QBEArity.Fixed(1)
+		case .Absolute: return QBEArity.Fixed(1)
+		case .Identity: return QBEArity.Fixed(1)
+		case .And: return QBEArity.Any
+		case .Or: return QBEArity.Any
+		case .Cos: return QBEArity.Fixed(1)
+		case .Sin: return QBEArity.Fixed(1)
+		case .Tan: return QBEArity.Fixed(1)
+		case .Cosh: return QBEArity.Fixed(1)
+		case .Sinh: return QBEArity.Fixed(1)
+		case .Tanh: return QBEArity.Fixed(1)
+		case .Acos: return QBEArity.Fixed(1)
+		case .Asin: return QBEArity.Fixed(1)
+		case .Atan: return QBEArity.Fixed(1)
+		case .Sqrt: return QBEArity.Fixed(1)
+		case .If: return QBEArity.Fixed(3)
+		case .Concat: return QBEArity.Any
 		}
-		return QBEValue()
-	}
+	} }
 	
-	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		if fromValue != nil {
-			if let f = fromValue!.intValue {
-				if let t = toValue.intValue {
-					if f != t && f>0 {
-						return [QBEMultiplicationFunction(multiplicant: t/f)]
-					}
-				}
-			}
-		}
-		return []
-	}
-}
-
-class QBEUppercaseFunction: QBEFunction {
-	override init() {
-		super.init()
-	}
-	
-	override var explanation: String { get {
-		return NSLocalizedString("uppercased", comment: "")
-		}}
-	
-	required init(coder aDecoder: NSCoder) {
-		super.init(coder: aDecoder)
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		return QBEValue(inputValue?.description.uppercaseString ?? "")
-	}
-	
-	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		if fromValue?.description.uppercaseString == toValue.description.uppercaseString {
-			return [QBEUppercaseFunction()]
-		}
-		return []
-	}
-}
-
-class QBELowercaseFunction: QBEFunction {
-	override var explanation: String { get {
-		return NSLocalizedString("lowercased", comment: "")
-		}}
-	
-	override init() {
-		super.init()
-	}
-	
-	required init(coder aDecoder: NSCoder) {
-		super.init(coder: aDecoder)
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		return QBEValue(inputValue?.description.lowercaseString ?? "")
-	}
-	
-	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		if fromValue?.description.lowercaseString == toValue.description.lowercaseString {
-			return [QBELowercaseFunction()]
-		}
-		return []
-	}
-}
-
-class QBENegateFunction: QBEFunction {
-	override var explanation: String { get {
-		return NSLocalizedString("-", comment: "")
-		}}
-	
-	override init() {
-		super.init()
-	}
-	
-	required init(coder aDecoder: NSCoder) {
-		super.init(coder: aDecoder)
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		return -(inputValue ?? QBEValue())
-	}
-	
-	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		if let f = fromValue {
-			if toValue == -f {
-				return [QBENegateFunction()]
-			}
-		}
-		return []
-	}
-}
-
-extension String {
-	func histogram() -> [Character: Int] {
-		var histogram = Dictionary<Character, Int>()
-		
-		for ch in self {
-			let old: Int = histogram[ch] ?? 0
-			histogram[ch] = old+1
+	func apply(arguments: [QBEValue]) -> QBEValue {
+		// Check arity
+		if !arity.valid(arguments.count) {
+			return QBEValue()
 		}
 		
-		return histogram
-	}
-}
-
-class QBESubstituteFunction: QBEFunction {
-	var replaceValue: String
-	var withValue: String
-	
-	override var explanation: String { get {
-		return NSLocalizedString("substitute", comment: "")+" '\(replaceValue)' "+NSLocalizedString("with",comment:"")+" '\(withValue)'"
-		}}
-	
-	init(replaceValue: String, withValue: String) {
-		self.replaceValue = replaceValue
-		self.withValue = withValue
-		super.init()
-	}
-	
-	override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(replaceValue, forKey: "replaceValue")
-		aCoder.encodeObject(withValue, forKey: "withValue")
-	}
-	
-	required init(coder aDecoder: NSCoder) {
-		replaceValue = aDecoder.decodeObjectForKey("replaceValue") as? String ?? ""
-		withValue = aDecoder.decodeObjectForKey("withValue") as? String ?? ""
-		super.init(coder: aDecoder)
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		return QBEValue(inputValue?.stringValue.stringByReplacingOccurrencesOfString(replaceValue, withString: withValue) ?? "")
-	}
-	
-	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		let leftHistogram = fromValue?.stringValue.histogram()
-		let rightHistogram = toValue.stringValue.histogram()
-		
-		if leftHistogram != nil {
-			// Which characters are missing from the out value, but present in the in value?
-			var missingInLeft: [Character] = []
-			for lch in rightHistogram.keys {
-				if leftHistogram![lch]==nil {
-					missingInLeft.append(lch)
-				}
+		switch self {
+		case .Negate:
+			return -arguments[0]
+			
+		case .Uppercase:
+			return QBEValue(arguments[0].stringValue.uppercaseString)
+			
+		case .Lowercase:
+			return QBEValue(arguments[0].stringValue.lowercaseString)
+			
+		case .Absolute:
+			return arguments[0].absolute()
+			
+		case .Identity:
+			return arguments[0]
+			
+		case .And:
+		for a in arguments {
+			if a != QBEValue(true) {
+				return QBEValue(false)
 			}
-			
-			// Suggest some replacements...
-			var suggestions: [QBEFunction] = []
-			
-			// Don't spend too much time searching for weird replacements
-			if missingInLeft.count > 1 {
-				return []
-			}
-			
-			// Which characters are missing from the in value, but present in the out value?
-			for lch in leftHistogram!.keys {
-				if rightHistogram[lch]==nil {
-					for rch in missingInLeft {
-						// Don't suggest a substitution for uppercase/lowercase conversions
-						let leftCharacterString = String(lch)
-						let rightCharacterString = String(rch)
-						
-						if leftCharacterString.uppercaseString != rightCharacterString.uppercaseString {
-							suggestions.append(QBESubstituteFunction(replaceValue: String(lch), withValue: String(rch)))
-						}
-					}
-				}
-			}
-			
-			return suggestions
 		}
+		return QBEValue(true)
 		
-		return []
+		case .Or:
+		for a in arguments {
+			if a == QBEValue(true) {
+				return QBEValue(true)
+			}
+		}
+		return QBEValue(false)
+			
+		case .Concat:
+			var s: String = ""
+			for a in arguments {
+				s += a.stringValue
+			}
+			return QBEValue(s)
+	
+		case .If:
+			if let d = arguments[0].boolValue {
+				return d ? arguments[1] : arguments[2]
+			}
+			return QBEValue()
+			
+		case .Cos:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(cos(d))
+			}
+			return QBEValue()
+			
+		case .Sin:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(sin(d))
+			}
+			return QBEValue()
+			
+		case .Tan:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(tan(d))
+			}
+			return QBEValue()
+			
+		case .Cosh:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(cosh(d))
+			}
+			return QBEValue()
+			
+		case .Sinh:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(sinh(d))
+			}
+			return QBEValue()
+			
+		case .Tanh:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(tanh(d))
+			}
+			return QBEValue()
+			
+		case .Acos:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(acos(d))
+			}
+			return QBEValue()
+			
+		case .Asin:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(asin(d))
+			}
+			return QBEValue()
+			
+		case .Atan:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(atan(d))
+			}
+			return QBEValue()
+			
+		case .Sqrt:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(sqrt(d))
+			}
+			return QBEValue()
+		}
 	}
+	
+	static let allFunctions = [Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat, If]
 }
 
-class QBECompoundFunction: QBEFunction {
-	var first: QBEFunction
-	var second: QBEFunction
-	
-	override var explanation: String { get {
-		return second.explanation + " " + first.explanation
-		}}
-	
-	override var complexity: Int { get {
-		return first.complexity + second.complexity + 1
-		}}
-	
-	init(first: QBEFunction, second: QBEFunction) {
-		self.first = first
-		self.second = second
-		super.init()
-	}
-	
-	required init(coder aDecoder: NSCoder) {
-		self.first = aDecoder.decodeObjectForKey("first") as? QBEFunction ?? QBEIdentityFunction()
-		self.second = aDecoder.decodeObjectForKey("second") as? QBEFunction ?? QBEIdentityFunction()
-		super.init(coder: aDecoder)
-	}
-	
-	override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(first, forKey: "first")
-		aCoder.encodeObject(second, forKey: "second")
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		return second.apply(raster, rowNumber: rowNumber, inputValue: first.apply(raster, rowNumber: rowNumber, inputValue: inputValue))
-	}
-	
-	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		return []
-	}
-}
 
 enum QBEBinary: String {
 	case Addition = "add"
@@ -411,6 +242,10 @@ enum QBEBinary: String {
 		case .NotEqual: return "<>"
 		}
 	} }
+	
+	func toFormula(locale: QBELocale) -> String {
+		return self.description
+	}
 	
 	func apply(left: QBEValue, _ right: QBEValue) -> QBEValue {
 		switch self {
@@ -453,92 +288,5 @@ enum QBEBinary: String {
 		case NotEqual:
 			return left != right
 		}
-	}
-}
-
-class QBEBinaryFunction: QBEFunction {
-	var first: QBEFunction
-	var second: QBEFunction
-	var type: QBEBinary
-	
-	override var explanation: String { get {
-		return "(" + second.explanation + " " + type.description + " " + first.explanation + ")"
-		}}
-	
-	override var complexity: Int { get {
-		return first.complexity + second.complexity + 1
-		}}
-	
-	init(first: QBEFunction, second: QBEFunction, type: QBEBinary) {
-		self.first = first
-		self.second = second
-		self.type = type
-		super.init()
-	}
-	
-	required init(coder aDecoder: NSCoder) {
-		self.first = aDecoder.decodeObjectForKey("first") as? QBEFunction ?? QBEIdentityFunction()
-		self.second = aDecoder.decodeObjectForKey("second") as? QBEFunction ?? QBEIdentityFunction()
-		let typeString = aDecoder.decodeObjectForKey("type") as? String ?? QBEBinary.Addition.rawValue
-		self.type = QBEBinary(rawValue: typeString) ?? QBEBinary.Addition
-		super.init(coder: aDecoder)
-	}
-	
-	override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(first, forKey: "first")
-		aCoder.encodeObject(second, forKey: "second")
-		aCoder.encodeObject(type.rawValue, forKey: "type")
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		let left = second.apply(raster, rowNumber: rowNumber, inputValue: nil)
-		let right = first.apply(raster, rowNumber: rowNumber, inputValue: nil)
-		return self.type.apply(left, right)
-	}
-	
-	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		return []
-	}
-}
-
-class QBESiblingFunction: QBEFunction {
-	var columnName: String
-	
-	init(columnName: String) {
-		self.columnName = columnName
-		super.init()
-	}
-	
-	override var explanation: String { get {
-		return NSLocalizedString("value in column", comment: "")+" "+columnName
-		}}
-	
-	required init(coder aDecoder: NSCoder) {
-		columnName = (aDecoder.decodeObjectForKey("columnName") as? String) ?? ""
-		super.init(coder: aDecoder)
-	}
-	
-	override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(columnName, forKey: "columnName")
-	}
-	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		if let idx = raster.indexOfColumnWithName(columnName) {
-			return raster[rowNumber, idx]
-		}
-		return QBEValue()
-	}
-	
-	override class func suggest(fromValue: QBEValue?, toValue: QBEValue, raster: QBERaster, row: Int) -> [QBEFunction] {
-		var s: [QBEFunction] = []
-		if fromValue == nil {
-			for columnName in raster.columnNames {
-				let sourceValue = raster[row, raster.indexOfColumnWithName(columnName)!]
-				s.append(QBESiblingFunction(columnName: columnName))
-			}
-		}
-		return s
 	}
 }

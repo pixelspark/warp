@@ -82,7 +82,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 				return "";
 			}
 			
-			return d.columnNames[Int(columnIndex)];
+			return d.columnNames[Int(columnIndex)].name;
 		}
 		return "c\(columnIndex)";
 	}

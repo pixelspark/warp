@@ -62,12 +62,12 @@ class QBERaster {
 		raster.append(row)
 	}
 	
-	func indexOfColumnWithName(name: String) -> Int? {
+	func indexOfColumnWithName(name: QBEColumn) -> Int? {
 		if raster.count<1 {
 			return nil
 		}
 		
-		let header = raster[0]
+		let header = columnNames
 		for i in 0..<self.columnCount {
 			if(header[i]==name) {
 				return i
@@ -76,9 +76,9 @@ class QBERaster {
 		return nil
 	}
 	
-	var columnNames: [String] {
+	var columnNames: [QBEColumn] {
 		get {
-			return raster.count > 0 ? raster[0].map({v in return v.description}) : []
+			return raster.count > 0 ? raster[0].map({v in return QBEColumn(v.stringValue)}) : []
 		}
 	}
 	
@@ -95,6 +95,10 @@ class QBERaster {
 	}
 	
 	subscript(row: Int, col: String) -> QBEValue? {
+		return self[row, QBEColumn(col)]
+	}
+	
+	subscript(row: Int, col: QBEColumn) -> QBEValue? {
 		if let colNr = indexOfColumnWithName(col) {
 			return self[row, colNr]
 		}
@@ -117,7 +121,7 @@ class QBERaster {
 		return rowData[col]
 	}
 	
-	func setValue(value: QBEValue, forColumn: String, inRow row: Int) {
+	func setValue(value: QBEValue, forColumn: QBEColumn, inRow row: Int) {
 		assert(row < self.rowCount)
 		
 		if readOnly {
@@ -136,7 +140,7 @@ class QBERaster {
 		
 		var line = "\t|"
 		for columnName in self.columnNames {
-			line += columnName+"\t|"
+			line += columnName.name+"\t|"
 		}
 		d += line + "\r\n"
 		

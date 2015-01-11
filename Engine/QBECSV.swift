@@ -28,6 +28,31 @@ class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
     }
 }
 
+class QBECSVWriter: NSObject, NSStreamDelegate {
+	let data: QBEData
+	let locale: QBELocale
+	
+	init(data: QBEData, locale: QBELocale) {
+		self.data = data
+		self.locale = locale
+	}
+	
+	func writeToFile(file: NSURL) {
+		// FIXME: Very naive implementation...
+		var csv = ""
+		
+		data.stream({ (rows: [[QBEValue]]) -> () in
+			for row in rows {
+				csv += self.locale.csvRow(row)
+			}
+		})
+		
+		var error: NSError?
+		csv.writeToURL(file, atomically: true, encoding: NSUTF8StringEncoding, error: &error)
+		println("Write csv: \(error)")
+	}
+}
+
 class QBECSVSourceStep: QBERasterStep {
 	var url: String
 	
@@ -38,24 +63,19 @@ class QBECSVSourceStep: QBERasterStep {
 		read(url)
 	}
 	
-	class private func readCSV(atURL url: NSURL, limit: Int?) -> (QBERaster, Bool) {
+	class private func readCSV(atURL url: NSURL, limit: Int?) -> QBERaster {
 		let inStream = NSInputStream(URL: url)
 		let parser = CHCSVParser(contentsOfCSVURL: url)
 		let reader = QBERasterCSVReader(limit: limit)
 		parser.delegate = reader
 		parser.parse()
-		return (reader.raster, reader.limitAchieved)
+		return reader.raster
 	}
 	
 	private func read(url: NSURL) {
-		let (r, limitAchieved) = QBECSVSourceStep.readCSV(atURL: url, limit: 100)
+		let r = QBECSVSourceStep.readCSV(atURL: url, limit: 100)
 		super.staticExampleData = QBERasterData(raster: r)
-		if limitAchieved {
-			super.staticFullData = QBERasterData(raster: QBECSVSourceStep.readCSV(atURL: url, limit: nil).0)
-		}
-		else {
-			super.staticFullData = super.staticExampleData
-		}
+		super.staticFullData = QBESQLData(sql: "FILE_AT_URL(\(url))", columnNames: super.staticExampleData!.columnNames)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
