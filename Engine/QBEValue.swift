@@ -59,14 +59,20 @@ internal enum QBEValue: Hashable {
 	case IntValue(Int)
 	case BoolValue(Bool)
 	case DoubleValue(Double)
-	case EmptyValue
+	case EmptyValue		// Any empty value that has no specific type. Equivalent to "" (empty string)
+	case InvalidValue	// The result of any invalid operation (e.g. division by zero). Treat as NaN
 	
-	init(_ value: String = "") {
+	init(_ value: String) {
 		self = .StringValue(value)
 	}
 	
 	init(_ value: Double) {
-		self = .DoubleValue(value)
+		if isnan(value) {
+			self = .InvalidValue
+		}
+		else {
+			self = .DoubleValue(value)
+		}
 	}
 	
 	init(_ value: Int) {
@@ -78,16 +84,17 @@ internal enum QBEValue: Hashable {
 	}
 	
 	var hashValue: Int { get  {
-		return self.stringValue.hashValue
+		return self.stringValue?.hashValue ?? 0
 	}}
 	
-	var stringValue: String { get {
+	var stringValue: String? { get {
 		switch self {
 		case .StringValue(let s): return s
 		case .IntValue(let i): return i.toString()
 		case .BoolValue(let b): return b.toString()
 		case .DoubleValue(let d): return d.toString()
-		case .EmptyValue: return ""
+		case .EmptyValue: return nil
+		case .InvalidValue: return nil
 		}
 	} }
 	
@@ -98,6 +105,7 @@ internal enum QBEValue: Hashable {
 			case .BoolValue(let b): return b.toDouble()
 			case .DoubleValue(let d): return d
 			case .EmptyValue: return nil
+			case .InvalidValue: return nil
 		}
 	} }
 	
@@ -108,6 +116,7 @@ internal enum QBEValue: Hashable {
 			case .BoolValue(let b): return b.toInt()
 			case .DoubleValue(let d): return Int(d)
 			case .EmptyValue: return nil
+			case .InvalidValue: return nil
 		}
 	} }
 	
@@ -118,6 +127,7 @@ internal enum QBEValue: Hashable {
 		case .BoolValue(let b): return b
 		case .DoubleValue(let d): return nil
 		case .EmptyValue: return nil
+		case .InvalidValue: return nil
 		}
 	} }
 	
@@ -126,7 +136,15 @@ internal enum QBEValue: Hashable {
 	}
 	
 	var description: String { get {
-		return self.stringValue
+		// FIXME: return something sensible for empty/invalid values
+		return self.stringValue ?? ""
+	} }
+	
+	var isValid: Bool { get {
+		switch self {
+		case .InvalidValue: return false
+		default: return true
+		}
 	} }
 }
 
@@ -149,6 +167,7 @@ class QBEValueCoder: NSObject, NSSecureCoding {
 			case 3: value = .BoolValue(aDecoder.decodeBoolForKey("value"))
 			case 4: value = .DoubleValue(aDecoder.decodeDoubleForKey("value"))
 			case 5: value = .EmptyValue
+			case 6: value = .InvalidValue
 			default: value = .EmptyValue
 		}
 	}
@@ -173,6 +192,9 @@ class QBEValueCoder: NSObject, NSSecureCoding {
 			
 		case .EmptyValue:
 			coder.encodeInt(5, forKey: "type")
+			
+		case .InvalidValue:
+			coder.encodeInt(6, forKey: "type")
 		}
 	}
 	
@@ -185,12 +207,12 @@ func / (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
 			if rd == 0 {
-				return QBEValue()
+				return QBEValue.InvalidValue
 			}
 			return QBEValue(ld / rd)
 		}
 	}
-	return QBEValue()
+	return QBEValue.InvalidValue
 }
 
 func % (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
@@ -199,11 +221,15 @@ func % (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 			return QBEValue(ld % rd)
 		}
 	}
-	return QBEValue()
+	return QBEValue.InvalidValue
 }
 
 func & (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue.StringValue(lhs.stringValue + rhs.stringValue)
+	if !lhs.isValid || !rhs.isValid {
+		return QBEValue.InvalidValue
+	}
+	
+	return QBEValue.StringValue((lhs.stringValue ?? "") + (rhs.stringValue ?? ""))
 }
 
 func * (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
@@ -221,7 +247,7 @@ func * (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 		return QBEValue.DoubleValue(lhs.doubleValue! * rhs.doubleValue!)
 		
 	default:
-		return QBEValue.EmptyValue
+		return QBEValue.InvalidValue
 	}
 }
 
@@ -231,7 +257,7 @@ func ^ (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 			return QBEValue.DoubleValue(pow(lh, rh));
 		}
 	}
-	return QBEValue.EmptyValue
+	return QBEValue.InvalidValue
 }
 
 func + (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
@@ -249,7 +275,7 @@ func + (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 		return QBEValue.DoubleValue(lhs.doubleValue! + rhs.doubleValue!)
 		
 	default:
-		return QBEValue.EmptyValue
+		return QBEValue.InvalidValue
 	}
 }
 
@@ -268,11 +294,16 @@ func - (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 		return QBEValue.DoubleValue(lhs.doubleValue! - rhs.doubleValue!)
 		
 	default:
-		return QBEValue.EmptyValue
+		return QBEValue.InvalidValue
 	}
 }
 
 func == (lhs: QBEValue, rhs: QBEValue) -> Bool {
+	// The invalid value is never equal to anything, not even another invalid value
+	if !lhs.isValid || !rhs.isValid {
+		return false
+	}
+	
 	switch (lhs, rhs) {
 	case (.IntValue, .IntValue):
 		return lhs.intValue == rhs.intValue
@@ -292,6 +323,10 @@ func == (lhs: QBEValue, rhs: QBEValue) -> Bool {
 }
 
 func > (lhs: QBEValue, rhs: QBEValue) -> Bool {
+	if !lhs.isValid || !rhs.isValid {
+		return false
+	}
+	
 	switch(lhs, rhs) {
 	case (.IntValue, .IntValue):
 		return lhs.intValue > rhs.intValue
@@ -302,6 +337,10 @@ func > (lhs: QBEValue, rhs: QBEValue) -> Bool {
 }
 
 func < (lhs: QBEValue, rhs: QBEValue) -> Bool {
+	if !lhs.isValid || !rhs.isValid {
+		return false
+	}
+	
 	switch(lhs, rhs) {
 	case (.IntValue, .IntValue):
 		return lhs.intValue < rhs.intValue
@@ -312,6 +351,10 @@ func < (lhs: QBEValue, rhs: QBEValue) -> Bool {
 }
 
 func >= (lhs: QBEValue, rhs: QBEValue) -> Bool {
+	if !lhs.isValid || !rhs.isValid {
+		return false
+	}
+	
 	switch(lhs, rhs) {
 	case (.IntValue, .IntValue):
 		return lhs.intValue >= rhs.intValue
@@ -322,6 +365,10 @@ func >= (lhs: QBEValue, rhs: QBEValue) -> Bool {
 }
 
 func <= (lhs: QBEValue, rhs: QBEValue) -> Bool {
+	if !lhs.isValid || !rhs.isValid {
+		return false
+	}
+	
 	switch(lhs, rhs) {
 	case (.IntValue, .IntValue):
 		return lhs.intValue <= rhs.intValue
@@ -364,6 +411,6 @@ prefix func - (lhs: QBEValue) -> QBEValue {
 		return QBEValue.DoubleValue(-d)
 		
 	default:
-		return QBEValue.EmptyValue
+		return QBEValue.InvalidValue
 	}
 }

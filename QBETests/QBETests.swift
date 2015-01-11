@@ -36,7 +36,7 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEValue("1337") & QBEValue("h4x0r") == QBEValue("1337h4x0r"), "String string concatenation")
 		
 		XCTAssert(QBEValue(12) / QBEValue(2) == QBEValue(6), "Integer division to double")
-		XCTAssert(QBEValue(10.0) / QBEValue(0) == QBEValue(), "Division by zero")
+		XCTAssert(QBEValue(10.0) / QBEValue(0) == QBEValue.InvalidValue, "Division by zero")
 		
 		XCTAssert((QBEValue(12) < QBEValue(25)) == QBEValue(true), "Less than")
 		XCTAssert((QBEValue(12) > QBEValue(25)) == QBEValue(false), "Greater than")
@@ -49,6 +49,14 @@ class QBETests: XCTestCase {
 		XCTAssert((QBEValue(12) == QBEValue(12.0)) == QBEValue(true), "Int == double")
 		XCTAssert((QBEValue(12.0) != QBEValue(12)) == QBEValue(false), "Double != int")
 		XCTAssert((QBEValue(12) != QBEValue(12.0)) == QBEValue(false), "Int != double")
+		
+		XCTAssert(QBEValue.EmptyValue == QBEValue.EmptyValue, "Empty equals empty")
+		XCTAssert(QBEValue.EmptyValue != QBEValue(0), "Empty is not equal to zero")
+		XCTAssert(QBEValue.EmptyValue != QBEValue(Double.NaN), "Empty is not equal to double NaN")
+		XCTAssert(QBEValue.EmptyValue == QBEValue(""), "Empty is equal to empty string")
+		
+		XCTAssert(!(QBEValue.InvalidValue == QBEValue.InvalidValue), "Invalid value equals nothing")
+		XCTAssert(!(QBEValue.InvalidValue != QBEValue.InvalidValue), "Invalid value inequals nothing")
 	}
 	
 	func testFormulaParser() {

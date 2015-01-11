@@ -52,13 +52,13 @@ class QBELiteralExpression: QBEExpression {
 	}
 	
 	override var explanation: String { get {
-		return value.stringValue
+		return value.description
 	} }
 	
 	override func toFormula(locale: QBELocale) -> String {
 		switch value {
 		case .StringValue(let s):
-			let escaped = value.stringValue.stringByReplacingOccurrencesOfString(String(locale.stringQualifier), withString: locale.stringQualifierEscape)
+			let escaped = value.stringValue!.stringByReplacingOccurrencesOfString(String(locale.stringQualifier), withString: locale.stringQualifierEscape)
 			return "\(locale.stringQualifier)\(escaped)\(locale.stringQualifier)"
 			
 		case .DoubleValue(let d):
@@ -70,7 +70,8 @@ class QBELiteralExpression: QBEExpression {
 			
 		case .IntValue(let i):
 			return "\(i)"
-			
+		
+		case .InvalidValue: return ""
 		case .EmptyValue: return ""
 		}
 	}
@@ -106,7 +107,7 @@ class QBEIdentityExpression: QBEExpression {
 	}
 	
 	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		return inputValue ?? QBEValue()
+		return inputValue ?? QBEValue.InvalidValue
 	}
 }
 
@@ -269,7 +270,7 @@ class QBESiblingExpression: QBEExpression {
 		if let idx = raster.indexOfColumnWithName(columnName) {
 			return raster[rowNumber, idx]
 		}
-		return QBEValue()
+		return QBEValue.InvalidValue
 	}
 	
 	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, raster: QBERaster, row: Int, inputValue: QBEValue?) -> [QBEExpression] {

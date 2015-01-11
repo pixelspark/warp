@@ -74,6 +74,9 @@ class QBEDefaultLocale: NSObject, QBELocale {
 			case .BoolValue(let b):
 				line += (b ? "1" : "0")
 				
+			case .InvalidValue:
+				break
+				
 			case .EmptyValue:
 				break
 			}

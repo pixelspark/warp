@@ -8,7 +8,7 @@ struct QBESQLDialect {
 		return columnName
 	}
 	
-	func expressionToSQL(formula: QBEExpression) -> String {
+	func expressionToSQL(formula: QBEExpression) -> String? {
 		if let f = formula as? QBELiteralExpression {
 			return valueToSQL(f.value)
 		}
@@ -16,17 +16,21 @@ struct QBESQLDialect {
 			return columnIdentifier(f.columnName.name)
 		}
 		else if let f = formula as? QBEBinaryExpression {
-			return binaryToSQL(expressionToSQL(f.first), second: expressionToSQL(f.second), type: f.type)
+			if let first = expressionToSQL(f.first) {
+				if let second = expressionToSQL(f.second) {
+					return binaryToSQL(first, second: second, type: f.type)
+				}
+			}
 		}
 		else if let f = formula as? QBEFunctionExpression {
-			let argValues = f.arguments.map({(a) -> String in return self.expressionToSQL(a)})
+			let argValues = f.arguments.map({(a) -> String? in return self.expressionToSQL(a)})
 			return unaryToSQL(argValues, type: f.type)
 		}
 
 		return "??"
 	}
 	
-	private func unaryToSQL(args: [String], type: QBEFunction) -> String {
+	private func unaryToSQL(args: [String?], type: QBEFunction) -> String {
 		let value = args.implode(", ") ?? ""
 		switch type {
 		case .Identity: return value
@@ -51,8 +55,30 @@ struct QBESQLDialect {
 		}
 	}
 	
-	private func valueToSQL(value: QBEValue) -> String {
-		return "\(stringQualifier)\(value.stringValue.stringByReplacingOccurrencesOfString(stringQualifier, withString: stringQualifierEscape))\(stringQualifier)"
+	private func valueToSQL(value: QBEValue) -> String? {
+		switch value {
+		case .StringValue(let s):
+			return "\(stringQualifier)\(s.stringByReplacingOccurrencesOfString(stringQualifier, withString: stringQualifierEscape))\(stringQualifier)"
+			
+		case .DoubleValue(let d):
+			// FIXME: check decimal separator
+			return "\(d)"
+			
+		case .IntValue(let i):
+			return "\(i)"
+			
+		case .BoolValue(let b):
+			return b ? "TRUE" : "FALSE"
+			
+		case .InvalidValue:
+			return nil
+			
+		case .EmptyValue:
+			return nil
+			
+		default:
+			return nil
+		}
 	}
 	
 	private func binaryToSQL(first: String, second: String, type: QBEBinary) -> String {

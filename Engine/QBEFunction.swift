@@ -96,7 +96,7 @@ enum QBEFunction: String {
 	func apply(arguments: [QBEValue]) -> QBEValue {
 		// Check arity
 		if !arity.valid(arguments.count) {
-			return QBEValue()
+			return QBEValue.InvalidValue
 		}
 		
 		switch self {
@@ -104,10 +104,16 @@ enum QBEFunction: String {
 			return -arguments[0]
 			
 		case .Uppercase:
-			return QBEValue(arguments[0].stringValue.uppercaseString)
+			if let s = arguments[0].stringValue {
+				return QBEValue(s.uppercaseString)
+			}
+			return QBEValue.InvalidValue
 			
 		case .Lowercase:
-			return QBEValue(arguments[0].stringValue.lowercaseString)
+			if let s = arguments[0].stringValue {
+				return QBEValue(s.lowercaseString)
+			}
+			return QBEValue.InvalidValue
 			
 		case .Absolute:
 			return arguments[0].absolute()
@@ -134,7 +140,12 @@ enum QBEFunction: String {
 		case .Concat:
 			var s: String = ""
 			for a in arguments {
-				s += a.stringValue
+				if let text = a.stringValue {
+					s += text
+				}
+				else {
+					return QBEValue.InvalidValue
+				}
 			}
 			return QBEValue(s)
 	
@@ -142,67 +153,67 @@ enum QBEFunction: String {
 			if let d = arguments[0].boolValue {
 				return d ? arguments[1] : arguments[2]
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 			
 		case .Cos:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(cos(d))
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 			
 		case .Sin:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(sin(d))
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 			
 		case .Tan:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(tan(d))
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 			
 		case .Cosh:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(cosh(d))
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 			
 		case .Sinh:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(sinh(d))
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 			
 		case .Tanh:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(tanh(d))
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 			
 		case .Acos:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(acos(d))
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 			
 		case .Asin:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(asin(d))
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 			
 		case .Atan:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(atan(d))
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 			
 		case .Sqrt:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(sqrt(d))
 			}
-			return QBEValue()
+			return QBEValue.InvalidValue
 		}
 	}
 	

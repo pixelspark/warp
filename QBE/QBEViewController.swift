@@ -38,7 +38,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				let targetColumn = r.columnNames[column]
 				
 				// Was a formula typed in?
-				if let f = QBEFormula(formula: toValue.stringValue, locale: locale) {
+				if let f = QBEFormula(formula: toValue.stringValue ?? "", locale: locale) {
 					let explanation = "\(targetColumn.name) = \(f.root.toFormula(locale))"
 					suggestions.append(QBECalculateStep(previous: self.currentStep, explanation: explanation, targetColumn: targetColumn, function: f.root))
 					suggestSteps(suggestions)
