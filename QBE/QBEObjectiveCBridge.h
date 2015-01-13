@@ -3,4 +3,5 @@
 
 #import "CHCSVParser.h"
 #import <MBTableGrid/MBTableGrid.h>
+#import "sqlite3.h"
 #endif

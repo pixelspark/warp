@@ -90,7 +90,6 @@ class QBEFormula: Parser {
 		if !self.parse(formula) {
 			return nil
 		}
-		println("parsed \(root.explanation)")
 	}
 	
 	private func pushInt() {

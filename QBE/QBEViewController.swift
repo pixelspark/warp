@@ -107,6 +107,11 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	func suggestionsViewDidCancel(view: NSViewController) {
 		previewStep = nil
+		
+		// Close any configuration sheets that may be open
+		if let s = self.view.window?.attachedSheet {
+			self.view.window?.endSheet(s, returnCode: NSModalResponseOK)
+		}
 	}
 	
 	private func suggestSteps(steps: [QBEStep]) {
@@ -230,6 +235,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("goForward:") {
 			return currentStep?.next != nil
 		}
+		else if item.action()==Selector("calculate:") {
+			return currentStep != nil
+		}
+		else if item.action()==Selector("configureStep:") {
+			return currentStep != nil && QBEConfigurators[currentStep!.className] != nil
+		}
 		else {
 			return false
 		}
@@ -248,27 +259,76 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
+	@IBAction func configureStep(sender: NSObject) {
+		if let s = currentStep {
+			let className = s.className
+			if let configurator = QBEConfigurators[className]?(step: s, delegate: self) {
+				//self.presentViewControllerAsSheet(configurator)
+				
+				let sheetWindow = NSWindow(contentViewController: configurator)
+				self.view.window?.beginSheet(sheetWindow, completionHandler: { (i: NSModalResponse) -> Void in
+					// Maybe refresh the data here (but already done in suggestionViewDidCancel)
+				})
+			}
+		}
+	}
+	
 	@IBAction func importFile(sender: NSObject) {
 		let no = NSOpenPanel()
 		no.canChooseFiles = true
-		no.allowedFileTypes = ["public.comma-separated-values-text"]
+		no.allowedFileTypes = ["public.comma-separated-values-text", "org.sqlite.v3"]
 		
 		no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result==NSFileHandlingPanelOKButton {
 				if let url = no.URLs[0] as? NSURL {
-					self.currentStep = nil
 					let gq = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0);
 					dispatch_async(gq) {
-						let sourceStep = QBECSVSourceStep(url: url)
-						
-						dispatch_async(dispatch_get_main_queue()) {
-							self.pushStep(sourceStep)
-							self.dataViewController?.data = self.currentStep!.exampleData
+					
+						var error: NSError?
+						if let type = NSWorkspace.sharedWorkspace().typeOfFile(url.path!, error: &error) {
+							var sourceStep: QBEStep?
+							switch type {
+								case "public.comma-separated-values-text":
+									sourceStep = QBECSVSourceStep(url: url)
+								
+								case "org.sqlite.v3":
+									sourceStep = QBESQLiteSourceStep(url: url)
+								
+								default:
+									sourceStep = nil
+							}
+							
+							dispatch_async(dispatch_get_main_queue()) {
+								if sourceStep != nil {
+									self.currentStep = nil
+									self.pushStep(sourceStep!)
+									self.configureStep(sender)
+									//self.dataViewController?.data = self.currentStep!.exampleData
+								}
+								else {
+									let alert = NSAlert()
+									alert.messageText = NSLocalizedString("Unknown file format: ", comment: "") + type
+									alert.alertStyle = NSAlertStyle.WarningAlertStyle
+									alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: NSModalResponse) -> Void in
+										// Do nothing...
+									})
+								}
+							}
 						}
 					}
 				}
 			}
 		})
+	}
+	
+	@IBAction func calculate(sender: NSObject) {
+		if let fr = self.currentStep?.fullData?.raster() {
+			println("All good: \(fr.columnCount)x\(fr.rowCount)")
+			println("\(fr.description())")
+		}
+		else {
+			println("No full result... this is bad")
+		}
 	}
 	
 	@IBAction func exportFile(sender: NSObject) {

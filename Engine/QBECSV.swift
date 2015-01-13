@@ -75,7 +75,9 @@ class QBECSVSourceStep: QBERasterStep {
 	private func read(url: NSURL) {
 		let r = QBECSVSourceStep.readCSV(atURL: url, limit: 100)
 		super.staticExampleData = QBERasterData(raster: r)
-		super.staticFullData = QBESQLData(sql: "FILE_AT_URL(\(url))", columnNames: super.staticExampleData!.columnNames)
+
+		let s = QBECSVSourceStep.readCSV(atURL: url, limit: nil)
+		super.staticFullData = QBERasterData(raster: s)
 	}
 	
 	required init(coder aDecoder: NSCoder) {

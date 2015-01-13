@@ -631,7 +631,7 @@ CA
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Data" id="9sC-KT-ikn">
                                     <items>
-                                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="Qd1-7c-QpC">
+                                        <menuItem title="Switch rows/columns" keyEquivalent="T" id="Qd1-7c-QpC">
                                             <connections>
                                                 <action selector="transposeData:" target="Ady-hI-5gd" id="zdd-dH-g4B"/>
                                             </connections>
@@ -645,10 +645,7 @@ CA
                                                 <action selector="removeRows:" target="Ady-hI-5gd" id="KyO-OJ-qkb"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Keep only selected rows" id="T5M-6C-O6U">
-                                            <string key="keyEquivalent" base64-UTF8="YES">
-DQ
-</string>
+                                        <menuItem title="Keep only selected rows" keyEquivalent="s" id="T5M-6C-O6U">
                                             <connections>
                                                 <action selector="selectRows:" target="Ady-hI-5gd" id="0vo-SF-qGf"/>
                                             </connections>
@@ -671,6 +668,15 @@ CA
                                         <menuItem title="Add new empty column" keyEquivalent="A" id="59s-by-P6W">
                                             <connections>
                                                 <action selector="addEmptyColumn:" target="Ady-hI-5gd" id="NQf-xv-2Lo"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="9jj-wo-9vJ"/>
+                                        <menuItem title="Calculate" id="QPZ-Pd-fQt">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                                            <connections>
+                                                <action selector="calculate:" target="Ady-hI-5gd" id="SNw-Yj-gnm"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -775,8 +781,7 @@ CA
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="259DFEB6-A290-4C31-97CC-0979149F688F" label="Settings" paletteLabel="Settings" tag="-1" image="NSActionTemplate" id="ERs-0J-vOl">
                                     <connections>
-                                        <action selector="importFile:" target="6f7-a7-6o1" id="fjM-Qt-MEO"/>
-                                        <segue destination="Bob-az-Jxr" kind="popover" identifier="editStepSettings" popoverAnchorView="ERs-0J-vOl" popoverBehavior="t" preferredEdge="maxY" id="7Qn-1a-7ME"/>
+                                        <action selector="configureStep:" target="6f7-a7-6o1" id="YLh-a0-iNI"/>
                                     </connections>
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="26972DA8-B7F3-4FC5-B020-352324D9BE2C" label="Back" paletteLabel="Back" tag="-1" image="NSGoLeftTemplate" id="U1V-Fd-2A2">
@@ -875,19 +880,6 @@ CA
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-230" y="1751"/>
-        </scene>
-        <!--Settings View Controller-->
-        <scene sceneID="Qof-I2-49O">
-            <objects>
-                <viewController id="Bob-az-Jxr" customClass="QBESettingsViewController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="PWd-hU-nY3">
-                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </view>
-                </viewController>
-                <customObject id="08A-nD-PhU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="755" y="225"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">

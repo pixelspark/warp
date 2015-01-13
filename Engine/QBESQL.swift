@@ -1,26 +1,39 @@
 import Foundation
 
-struct QBESQLDialect {
-	let stringQualifier = "\""
-	let stringQualifierEscape = "\\\""
+protocol QBESQLDialect {
+	var stringQualifier: String { get }
+	var stringQualifierEscape: String { get }
+	var identifierQualifier: String { get }
+	var identifierQualifierEscape: String { get }
+	func columnIdentifier(column: QBEColumn) -> String
+	func expressionToSQL(formula: QBEExpression) -> String
+}
+
+class QBEStandardSQLDialect: QBESQLDialect {
+	let stringQualifier = "\'"
+	let stringQualifierEscape = "\\\'"
+	let identifierQualifier = "\""
+	let identifierQualifierEscape = "\\\""
 	
-	func columnIdentifier(columnName: String) -> String {
-		return columnName
+	func columnIdentifier(column: QBEColumn) -> String {
+		return "\(identifierQualifier)\(column.name.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape))\(identifierQualifier)"
 	}
 	
-	func expressionToSQL(formula: QBEExpression) -> String? {
+	func tableIdentifier(table: String) -> String {
+		return "\(identifierQualifier)\(table.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape))\(identifierQualifier)"
+	}
+	
+	func expressionToSQL(formula: QBEExpression) -> String {
 		if let f = formula as? QBELiteralExpression {
 			return valueToSQL(f.value)
 		}
 		else if let f = formula as? QBESiblingExpression {
-			return columnIdentifier(f.columnName.name)
+			return columnIdentifier(f.columnName)
 		}
 		else if let f = formula as? QBEBinaryExpression {
-			if let first = expressionToSQL(f.first) {
-				if let second = expressionToSQL(f.second) {
-					return binaryToSQL(first, second: second, type: f.type)
-				}
-			}
+			let first = expressionToSQL(f.first)
+			let second = expressionToSQL(f.second)
+			return binaryToSQL(first, second: second, type: f.type)
 		}
 		else if let f = formula as? QBEFunctionExpression {
 			let argValues = f.arguments.map({self.expressionToSQL($0)})
@@ -30,7 +43,7 @@ struct QBESQLDialect {
 		return "??"
 	}
 	
-	private func unaryToSQL(args: [String?], type: QBEFunction) -> String {
+	private func unaryToSQL(args: [String], type: QBEFunction) -> String {
 		let value = args.implode(", ") ?? ""
 		switch type {
 		case .Identity: return value
@@ -63,7 +76,7 @@ struct QBESQLDialect {
 		}
 	}
 	
-	private func valueToSQL(value: QBEValue) -> String? {
+	private func valueToSQL(value: QBEValue) -> String {
 		switch value {
 		case .StringValue(let s):
 			return "\(stringQualifier)\(s.stringByReplacingOccurrencesOfString(stringQualifier, withString: stringQualifierEscape))\(stringQualifier)"
@@ -79,13 +92,10 @@ struct QBESQLDialect {
 			return b ? "TRUE" : "FALSE"
 			
 		case .InvalidValue:
-			return nil
+			return "(1/0)"
 			
 		case .EmptyValue:
-			return nil
-			
-		default:
-			return nil
+			return "NULL"
 		}
 	}
 	
@@ -109,62 +119,72 @@ struct QBESQLDialect {
 }
 
 class QBESQLData: NSObject, QBEData {
-    private let sql: String
-	let columnNames: [QBEColumn]
-	let dialect: QBESQLDialect = QBESQLDialect()
+    internal let sql: String
+	let dialect: QBESQLDialect
+	var columnNames: [QBEColumn] { get {
+		fatalError("Sublcass should implement")
+	} }
     
-	init(sql: String, columnNames: [QBEColumn]) {
+	internal init(sql: String, dialect: QBESQLDialect) {
         self.sql = sql
-		self.columnNames = columnNames
+		self.dialect = dialect
     }
     
     func transpose() -> QBEData {
-		return QBESQLData(sql: "TRANSPOSE(\(self.sql))", columnNames: self.columnNames)
+		return QBERasterData(raster: self.raster()).transpose()
     }
     
     func calculate(targetColumn: QBEColumn, formula: QBEExpression) -> QBEData {
 		var values: [String] = []
+		var targetFound = false
 		for column in columnNames {
 			if column == targetColumn {
-				values.append("\(dialect.expressionToSQL(formula)) AS \(column.name)")
+				targetFound = true
+				values.append("\(dialect.expressionToSQL(formula)) AS \(dialect.columnIdentifier(column))")
 			}
 			else {
 				values.append(column.name)
 			}
 		}
 		
+		// If a new column is calculated, add it near the end
+		if !targetFound {
+			values.append("\(dialect.expressionToSQL(formula)) AS \(dialect.columnIdentifier(targetColumn))")
+		}
+		
 		if let valueString = values.implode(", ") {
-			return QBESQLData(sql: "SELECT \(valueString) FROM \(sql)", columnNames: self.columnNames)
+			return apply("SELECT \(valueString) FROM (\(sql))")
 		}
 		return QBERasterData()
     }
     
     func limit(numberOfRows: Int) -> QBEData {
-        return QBESQLData(sql: "SELECT * FROM \(self.sql) LIMIT \(numberOfRows)", columnNames: self.columnNames)
+		return apply("SELECT * FROM (\(self.sql)) LIMIT \(numberOfRows)")
     }
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
 		let colNames = columns.map({$0.name}).implode(", ") ?? ""
 		let sql = "SELECT \(colNames) FROM (\(self.sql))"
-		return QBESQLData(sql: sql, columnNames: columns)
+		return apply(sql)
 	}
     
     func replace(value: QBEValue, withValue: QBEValue, inColumn: QBEColumn) -> QBEData {
-        return QBESQLData(sql: "SELECT REPLACE(\(value), \(withValue), \(inColumn.name)) AS \(inColumn.name) FROM (\(sql))", columnNames: self.columnNames)
+        return apply("SELECT REPLACE(\(value), \(withValue), \(inColumn.name)) AS \(inColumn.name) FROM (\(sql))")
     }
     
     var raster: QBEFuture { get {
-		println("SQL raster query=\(sql)")
-		
-        return {() -> QBERaster in
-            let d: [[QBEValue]] = [[QBEValue("SQL")], [QBEValue(self.sql)]]
-            return QBERaster(d)
-        }
+		fatalError("This should be implemented by a subclass")
     }}
+	
+	func apply(sql: String) -> QBEData {
+		return QBESQLData(sql: sql, dialect: dialect)
+	}
 	
 	func stream(receiver: ([[QBEValue]]) -> ()) {
 		// FIXME: batch this, perhaps just send the whole raster at once to receiver() (but do not send column names)
 		let r = raster();
+		let cols = r.columnNames.map({QBEValue($0.name)})
+		receiver([cols])
 		for rowNumber in 0..<r.rowCount {
 			receiver([r[rowNumber]])
 		}
