@@ -22,3 +22,21 @@ class QBELimitStep: QBEStep {
 		return data?.limit(numberOfRows)
 	}
 }
+
+class QBERandomStep: QBELimitStep {
+	override init(previous: QBEStep?, explanation: String, numberOfRows: Int) {
+		super.init(previous: previous, explanation: explanation, numberOfRows: numberOfRows)
+	}
+	
+	required init(coder aDecoder: NSCoder) {
+		super.init(coder: aDecoder)
+	}
+	
+	override func encodeWithCoder(coder: NSCoder) {
+		super.encodeWithCoder(coder)
+	}
+	
+	override func apply(data: QBEData?) -> QBEData? {
+		return data?.random(numberOfRows)
+	}
+}

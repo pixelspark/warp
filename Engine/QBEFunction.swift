@@ -45,6 +45,7 @@ enum QBEFunction: String {
 	case Length = "length"
 	case Log = "log"
 	case Not = "not"
+	case Substitute = "substitute"
 	
 	var description: String { get {
 		switch self {
@@ -73,6 +74,7 @@ enum QBEFunction: String {
 		case .Mid: return NSLocalizedString("substring", comment: "")
 		case .Log: return NSLocalizedString("logarithm", comment: "")
 		case .Not: return NSLocalizedString("not", comment: "")
+		case .Substitute: return NSLocalizedString("substitute", comment: "")
 		}
 	} }
 	
@@ -112,6 +114,7 @@ enum QBEFunction: String {
 		case .Mid: return QBEArity.Fixed(3)
 		case .Log: return QBEArity.Between(1,2)
 		case .Not: return QBEArity.Fixed(1)
+		case .Substitute: return QBEArity.Fixed(3)
 		}
 	} }
 	
@@ -298,10 +301,24 @@ enum QBEFunction: String {
 				return QBEValue(countElements(s))
 			}
 			return QBEValue.InvalidValue
+		
+		case .Substitute:
+			if let source = arguments[0].stringValue {
+				if let replace = arguments[1].stringValue {
+					if let replaceWith = arguments[2].stringValue {
+						// TODO: add case-insensitive and regex versions of this
+						return QBEValue(source.stringByReplacingOccurrencesOfString(replace, withString: replaceWith))
+					}
+				}
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
-	static let allFunctions = [Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat, If, Left, Right, Mid, Length]
+	static let allFunctions = [
+		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
+		If, Left, Right, Mid, Length, Substitute
+	]
 }
 
 enum QBEBinary: String {

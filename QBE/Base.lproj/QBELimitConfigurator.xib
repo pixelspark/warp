@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="6254" systemVersion="14B25" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6254"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="QBELimitConfigurator" customModule="QBE" customModuleProvider="target">
+            <connections>
+                <outlet property="numberOfRowsField" destination="pWS-P8-W3w" id="Cdw-Tx-71Q"/>
+                <outlet property="view" destination="m1o-gv-Fvc" id="Nht-KG-DhH"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView placeholderIntrinsicWidth="376" placeholderIntrinsicHeight="249" id="m1o-gv-Fvc">
+            <rect key="frame" x="0.0" y="0.0" width="347" height="113"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pWS-P8-W3w">
+                    <rect key="frame" x="5" y="64" width="337" height="22"/>
+                    <constraints>
+                        <constraint firstAttribute="width" relation="greaterThanOrEqual" priority="250" constant="240" id="JrM-96-iAw"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="9Qn-ig-5az">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                    <connections>
+                        <action selector="update:" target="-2" id="21l-K9-d6L"/>
+                    </connections>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="b00-ef-wQJ">
+                    <rect key="frame" x="3" y="91" width="341" height="17"/>
+                    <constraints>
+                        <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="rd9-Sv-gpk"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Number of rows:" id="Gte-yf-QRN">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+            </subviews>
+            <constraints>
+                <constraint firstItem="pWS-P8-W3w" firstAttribute="top" secondItem="b00-ef-wQJ" secondAttribute="bottom" constant="5" id="7Yk-Ve-iPl"/>
+                <constraint firstItem="b00-ef-wQJ" firstAttribute="leading" secondItem="m1o-gv-Fvc" secondAttribute="leading" constant="5" id="JM8-2X-hxv"/>
+                <constraint firstItem="b00-ef-wQJ" firstAttribute="top" secondItem="m1o-gv-Fvc" secondAttribute="top" constant="5" id="Ub0-G5-BZw"/>
+                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="pWS-P8-W3w" secondAttribute="bottom" constant="5" id="YhZ-vW-azD"/>
+                <constraint firstAttribute="trailing" secondItem="b00-ef-wQJ" secondAttribute="trailing" constant="5" id="ez8-ui-euA"/>
+                <constraint firstItem="pWS-P8-W3w" firstAttribute="leading" secondItem="m1o-gv-Fvc" secondAttribute="leading" constant="5" id="rDO-M8-9fh"/>
+                <constraint firstAttribute="trailing" secondItem="pWS-P8-W3w" secondAttribute="trailing" constant="5" id="xHD-Fo-ofQ"/>
+            </constraints>
+            <point key="canvasLocation" x="418.5" y="488.5"/>
+        </customView>
+    </objects>
+</document>

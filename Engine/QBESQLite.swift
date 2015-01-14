@@ -215,6 +215,7 @@ class QBESQLiteSourceStep: QBERasterStep {
 	var tableName: String = "" { didSet {
 		read()
 	} }
+	
 	let db: QBESQLiteDatabase?
 	
 	init(url: NSURL) {
@@ -224,13 +225,16 @@ class QBESQLiteSourceStep: QBERasterStep {
 		
 		if let url = NSURL(string: self.url) {
 			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
+			if let first = self.db?.tableNames?.first {
+				self.tableName = first
+			}
 		}
 	}
 	
 	private func read() {
 		if let db = self.db {
 			super.staticFullData = QBESQLiteData(db: db, tableName: self.tableName)
-			super.staticExampleData = QBERasterData(raster: super.staticFullData!.limit(100).raster())
+			super.staticExampleData = QBERasterData(raster: super.staticFullData!.random(100).raster())
 		}
 	}
 	

@@ -10,14 +10,45 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 
 class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate {
 	let locale: QBELocale = QBEDefaultLocale()
-	
 	var dataViewController: QBEDataViewController?
-	@IBOutlet var descriptionField: NSTextField?
 	var suggestions: [QBEStep]?
+	
+	var configuratorViewController: NSViewController? {
+		willSet(newValue) {
+			if let s = configuratorViewController {
+				s.removeFromParentViewController()
+				s.view.removeFromSuperview()
+			}
+		}
+		
+		didSet {
+			if let vc = configuratorViewController {
+				if let cv = configuratorView {
+					self.addChildViewController(vc)
+					vc.view.translatesAutoresizingMaskIntoConstraints = false
+					vc.view.frame = cv.bounds
+					self.configuratorView?.addSubview(vc.view)
+					
+					cv.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[CTRL_VIEW]|", options: NSLayoutFormatOptions.allZeros, metrics: nil, views: ["CTRL_VIEW": vc.view]))
+					
+					cv.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[CTRL_VIEW]|", options: NSLayoutFormatOptions.allZeros, metrics: nil, views: ["CTRL_VIEW": vc.view]))
+				}
+			}
+		}
+	}
+	
+	@IBOutlet var descriptionField: NSTextField?
+	@IBOutlet var configuratorView: NSView?
 	
 	dynamic var currentStep: QBEStep? {
 		didSet {
 			self.dataViewController?.data = currentStep?.exampleData
+			
+			if let s = currentStep {
+				let className = s.className
+				let configurator = QBEConfigurators[className]?(step: s, delegate: self)
+				self.configuratorViewController = configurator
+			}
 		}
 	}
 	
@@ -182,10 +213,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 					}
 				}
 				
+				let rowLimit = data.raster().rowCount - rowsToRemove.count
 				if contiguousLimit {
-					let rowLimit = data.raster().rowCount - rowsToRemove.count
 					// FIXME: localize
 					suggestions.append(QBELimitStep(previous: currentStep, explanation: "Limit to \(rowLimit) rows", numberOfRows: rowLimit))
+				}
+				else {
+					// FIXME: localize
+					suggestions.append(QBERandomStep(previous: currentStep, explanation: "Randomly select \(rowLimit) rows", numberOfRows: rowLimit))
 				}
 			}
 		}
@@ -199,6 +234,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
+		self.configuratorView?.translatesAutoresizingMaskIntoConstraints = false
 	}
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
@@ -238,9 +274,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("calculate:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("configureStep:") {
-			return currentStep != nil && QBEConfigurators[currentStep!.className] != nil
-		}
 		else {
 			return false
 		}
@@ -256,20 +289,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func goForward(sender: NSObject) {
 		if currentStep?.next != nil {
 			pushStep(currentStep!.next!)
-		}
-	}
-	
-	@IBAction func configureStep(sender: NSObject) {
-		if let s = currentStep {
-			let className = s.className
-			if let configurator = QBEConfigurators[className]?(step: s, delegate: self) {
-				//self.presentViewControllerAsSheet(configurator)
-				
-				let sheetWindow = NSWindow(contentViewController: configurator)
-				self.view.window?.beginSheet(sheetWindow, completionHandler: { (i: NSModalResponse) -> Void in
-					// Maybe refresh the data here (but already done in suggestionViewDidCancel)
-				})
-			}
 		}
 	}
 	
@@ -302,7 +321,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 								if sourceStep != nil {
 									self.currentStep = nil
 									self.pushStep(sourceStep!)
-									self.configureStep(sender)
 									//self.dataViewController?.data = self.currentStep!.exampleData
 								}
 								else {
@@ -322,12 +340,17 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func calculate(sender: NSObject) {
-		if let fr = self.currentStep?.fullData?.raster() {
-			println("All good: \(fr.columnCount)x\(fr.rowCount)")
-			println("\(fr.description())")
-		}
-		else {
-			println("No full result... this is bad")
+		let gq = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+		if let step = currentStep {
+			dispatch_async(gq) {
+				if let fr = step.fullData?.raster() {
+					println("All good: \(fr.columnCount)x\(fr.rowCount)")
+					println("\(fr.description())")
+				}
+				else {
+					println("No full result... this is bad")
+				}
+			}
 		}
 	}
 	

@@ -627,9 +627,24 @@ CA
                                     </items>
                                 </menu>
                             </menuItem>
-                            <menuItem title="Data" id="eGF-3B-6fa">
+                            <menuItem title="Actions" id="D1h-hy-B7I" userLabel="Analysis">
                                 <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="Data" id="9sC-KT-ikn">
+                                <menu key="submenu" title="Actions" id="LVu-Vk-WjC">
+                                    <items>
+                                        <menuItem title="Calculate" id="QPZ-Pd-fQt">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                                            <connections>
+                                                <action selector="calculate:" target="Ady-hI-5gd" id="SNw-Yj-gnm"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                            <menuItem title="Rows" id="cvu-Kj-tzs">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Rows" id="USh-4J-mhp">
                                     <items>
                                         <menuItem title="Switch rows/columns" keyEquivalent="T" id="Qd1-7c-QpC">
                                             <connections>
@@ -650,7 +665,19 @@ CA
                                                 <action selector="selectRows:" target="Ady-hI-5gd" id="0vo-SF-qGf"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="Vx4-cs-x2V"/>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                            <menuItem title="Columns" id="eGF-3B-6fa">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Columns" id="9sC-KT-ikn">
+                                    <items>
+                                        <menuItem title="Switch rows/columns" keyEquivalent="T" id="vAL-Mr-hZQ">
+                                            <connections>
+                                                <action selector="transposeData:" target="Ady-hI-5gd" id="7af-yJ-cQu"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="uR9-s2-uyO"/>
                                         <menuItem title="Remove selected column(s)" id="ShO-0r-bmP">
                                             <string key="keyEquivalent" base64-UTF8="YES">
 CA
@@ -668,15 +695,6 @@ CA
                                         <menuItem title="Add new empty column" keyEquivalent="A" id="59s-by-P6W">
                                             <connections>
                                                 <action selector="addEmptyColumn:" target="Ady-hI-5gd" id="NQf-xv-2Lo"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="9jj-wo-9vJ"/>
-                                        <menuItem title="Calculate" id="QPZ-Pd-fQt">
-                                            <string key="keyEquivalent" base64-UTF8="YES">
-DQ
-</string>
-                                            <connections>
-                                                <action selector="calculate:" target="Ady-hI-5gd" id="SNw-Yj-gnm"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -767,7 +785,7 @@ DQ
             <objects>
                 <windowController storyboardIdentifier="Document Window Controller" id="jGA-0Y-lOj" customClass="QBEWindowController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
                     <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="default" id="Ckk-yw-fiv">
-                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" unifiedTitleAndToolbar="YES"/>
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" texturedBackground="YES" unifiedTitleAndToolbar="YES"/>
                         <windowCollectionBehavior key="collectionBehavior" fullScreenPrimary="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="429" y="180" width="800" height="600"/>
@@ -777,11 +795,6 @@ DQ
                                 <toolbarItem implicitItemIdentifier="15810E9C-AB69-4A05-AC69-E52BA00BB34D" label="Import" paletteLabel="Import" tag="-1" image="NSAddTemplate" id="fYI-Zb-Whe">
                                     <connections>
                                         <action selector="importFile:" target="6f7-a7-6o1" id="y4J-x0-zCS"/>
-                                    </connections>
-                                </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="259DFEB6-A290-4C31-97CC-0979149F688F" label="Settings" paletteLabel="Settings" tag="-1" image="NSActionTemplate" id="ERs-0J-vOl">
-                                    <connections>
-                                        <action selector="configureStep:" target="6f7-a7-6o1" id="YLh-a0-iNI"/>
                                     </connections>
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="26972DA8-B7F3-4FC5-B020-352324D9BE2C" label="Back" paletteLabel="Back" tag="-1" image="NSGoLeftTemplate" id="U1V-Fd-2A2">
@@ -802,7 +815,6 @@ DQ
                                 <toolbarItem reference="vMh-pT-2la"/>
                                 <toolbarItem reference="Zil-Xh-hqD"/>
                                 <toolbarItem reference="fYI-Zb-Whe"/>
-                                <toolbarItem reference="ERs-0J-vOl"/>
                             </defaultToolbarItems>
                         </toolbar>
                     </window>
@@ -812,23 +824,33 @@ DQ
                 </windowController>
                 <customObject id="6f7-a7-6o1" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-0.5" y="426"/>
+            <point key="canvasLocation" x="-1" y="426"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="4qG-DD-elD">
             <objects>
                 <viewController id="DXE-ii-MK8" customClass="QBEViewController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" focusRingType="none" id="fdQ-Cz-nnL">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="540"/>
+                        <rect key="frame" x="0.0" y="0.0" width="610" height="350"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField focusRingType="none" verticalHuggingPriority="1" horizontalCompressionResistancePriority="1" verticalCompressionResistancePriority="1" translatesAutoresizingMaskIntoConstraints="NO" id="E9J-Co-zPC">
-                                <rect key="frame" x="0.0" y="480" width="600" height="60"/>
+                            <containerView focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
+                                <rect key="frame" x="0.0" y="0.0" width="350" height="350"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="60" id="58g-VA-msv"/>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="350" id="JTW-Rf-guh"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="350" id="SOn-0g-rg4"/>
                                 </constraints>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" focusRingType="none" placeholderString="Description..." drawsBackground="YES" allowsEditingTextAttributes="YES" id="EYp-ek-F52">
-                                    <font key="font" metaFont="system"/>
+                                <connections>
+                                    <segue destination="heg-Gg-TM4" kind="embed" identifier="grid" id="c37-ue-tCc"/>
+                                </connections>
+                            </containerView>
+                            <textField focusRingType="none" verticalHuggingPriority="1" horizontalCompressionResistancePriority="1" verticalCompressionResistancePriority="1" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="E9J-Co-zPC">
+                                <rect key="frame" x="355" y="286" width="250" height="64"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="64" id="iIe-Gf-wTZ"/>
+                                </constraints>
+                                <textFieldCell key="cell" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" focusRingType="none" placeholderString="Description..." drawsBackground="YES" allowsEditingTextAttributes="YES" id="EYp-ek-F52">
+                                    <font key="font" metaFont="cellTitle"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -836,29 +858,28 @@ DQ
                                     <binding destination="DXE-ii-MK8" name="value" keyPath="self.currentStep.explanation" id="AJ3-qw-yhI"/>
                                 </connections>
                             </textField>
-                            <containerView focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="480"/>
+                            <customView autoresizesSubviews="NO" canDrawConcurrently="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eRz-0B-PPl">
+                                <rect key="frame" x="350" y="0.0" width="260" height="281"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="600" id="PlL-5f-WlB"/>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="480" id="c6x-N8-dNA"/>
+                                    <constraint firstAttribute="width" constant="260" id="lIJ-T6-hTK"/>
                                 </constraints>
-                                <connections>
-                                    <segue destination="heg-Gg-TM4" kind="embed" identifier="grid" id="c37-ue-tCc"/>
-                                </connections>
-                            </containerView>
+                            </customView>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="mVs-W6-cUa" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="U2O-TL-4DF"/>
-                            <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="E9J-Co-zPC" secondAttribute="bottom" id="e5r-SF-sNR"/>
-                            <constraint firstAttribute="trailing" secondItem="mVs-W6-cUa" secondAttribute="trailing" id="lhV-hQ-hmL"/>
-                            <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="E9J-Co-zPC" secondAttribute="bottom" id="n27-Yy-Mo6"/>
-                            <constraint firstItem="E9J-Co-zPC" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="nnu-M3-C21"/>
-                            <constraint firstAttribute="trailing" secondItem="E9J-Co-zPC" secondAttribute="trailing" id="p0l-6b-oHI"/>
-                            <constraint firstItem="E9J-Co-zPC" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" id="qfZ-q6-F0h"/>
-                            <constraint firstAttribute="bottom" secondItem="mVs-W6-cUa" secondAttribute="bottom" id="tDf-MQ-d3c"/>
+                            <constraint firstItem="E9J-Co-zPC" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" id="6da-J9-idE"/>
+                            <constraint firstAttribute="bottom" secondItem="eRz-0B-PPl" secondAttribute="bottom" id="YZu-DM-WPF"/>
+                            <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" id="cio-PK-uWm"/>
+                            <constraint firstItem="eRz-0B-PPl" firstAttribute="leading" secondItem="mVs-W6-cUa" secondAttribute="trailing" id="hDG-CN-erY"/>
+                            <constraint firstAttribute="bottom" secondItem="mVs-W6-cUa" secondAttribute="bottom" id="mWi-z0-b2j"/>
+                            <constraint firstItem="eRz-0B-PPl" firstAttribute="top" secondItem="E9J-Co-zPC" secondAttribute="bottom" constant="5" id="qpF-So-h7b"/>
+                            <constraint firstItem="E9J-Co-zPC" firstAttribute="leading" secondItem="mVs-W6-cUa" secondAttribute="trailing" constant="5" id="reQ-ft-Vpa"/>
+                            <constraint firstAttribute="trailing" secondItem="E9J-Co-zPC" secondAttribute="trailing" constant="5" id="sHf-6k-u45"/>
+                            <constraint firstAttribute="trailing" secondItem="eRz-0B-PPl" secondAttribute="trailing" id="uCg-0J-5kA"/>
+                            <constraint firstItem="mVs-W6-cUa" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="vA9-wV-lv3"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="configuratorView" destination="eRz-0B-PPl" id="HNm-ag-J2G"/>
                         <segue destination="TDg-0B-lyo" kind="sheet" identifier="suggestions" id="fwr-6P-6Ir"/>
                         <segue destination="OvS-H1-pU0" kind="sheet" identifier="addColumn" id="djH-Ex-vc1"/>
                     </connections>
@@ -866,20 +887,44 @@ DQ
                 <customObject id="Izd-TK-t8f" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="vGV-jK-BQ2"/>
             </objects>
-            <point key="canvasLocation" x="-150" y="1183"/>
+            <point key="canvasLocation" x="-212" y="1209"/>
         </scene>
         <!--Data View Controller-->
         <scene sceneID="BjY-ZD-Y7M">
             <objects>
                 <viewController id="heg-Gg-TM4" customClass="QBEDataViewController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" focusRingType="none" id="qWX-f7-1Jq">
-                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <rect key="frame" x="0.0" y="0.0" width="605" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <textField focusRingType="none" verticalHuggingPriority="750" allowsExpansionToolTips="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gOO-m7-zbc">
+                                <rect key="frame" x="5" y="278" width="600" height="22"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="22" id="MkZ-h8-Gs2"/>
+                                </constraints>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" enabled="NO" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" focusRingType="none" drawsBackground="YES" usesSingleLineMode="YES" id="6vy-kH-wgk">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <action selector="setValueFromFormulaField:" target="heg-Gg-TM4" id="YjA-oc-jlA"/>
+                                </connections>
+                            </textField>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="gOO-m7-zbc" firstAttribute="top" secondItem="qWX-f7-1Jq" secondAttribute="top" id="9WF-kS-sY3"/>
+                            <constraint firstItem="gOO-m7-zbc" firstAttribute="leading" secondItem="qWX-f7-1Jq" secondAttribute="leading" constant="5" id="J6Y-7a-l6d"/>
+                            <constraint firstAttribute="trailing" secondItem="gOO-m7-zbc" secondAttribute="trailing" id="UPm-bk-gra"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="formulaField" destination="gOO-m7-zbc" id="wnd-At-f6j"/>
+                    </connections>
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-230" y="1751"/>
+            <point key="canvasLocation" x="-152.5" y="1751"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -977,7 +1022,7 @@ Gw
                 </viewController>
                 <customObject id="hZp-iq-JdD" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="520" y="1156.5"/>
+            <point key="canvasLocation" x="567" y="1102.5"/>
         </scene>
         <!--Add Column View Controller-->
         <scene sceneID="c4P-Dw-LPh">
@@ -1094,7 +1139,6 @@ Gw
         </scene>
     </scenes>
     <resources>
-        <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSGoLeftTemplate" width="9" height="12"/>
         <image name="NSGoRightTemplate" width="9" height="12"/>

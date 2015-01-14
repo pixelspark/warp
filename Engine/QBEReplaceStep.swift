@@ -27,6 +27,6 @@ class QBEReplaceStep: QBEStep {
 	}
 	
 	override func apply(data: QBEData?) -> QBEData? {
-		return data?.replace(replaceValue, withValue: withValue, inColumn: inColumn)
+		return data?.calculate(inColumn, formula: QBEFunctionExpression(arguments: [QBEIdentityExpression(), QBELiteralExpression(replaceValue), QBELiteralExpression(withValue)], type: QBEFunction.Substitute))
 	}
 }

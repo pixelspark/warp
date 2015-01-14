@@ -359,21 +359,22 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 		}
 	}
 	
-	func replace(value: QBEValue, withValue: QBEValue, inColumn: QBEColumn) -> QBEData {
+	func random(numberOfRows: Int) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
-			var newData: [[QBEValue]] = [r.columnNames.map({QBEValue($0.name)})]
-			if let replaceColumnIndex = self.raster().indexOfColumnWithName(inColumn) {
-				for rowNumber in 0..<r.rowCount {
-					var newRow = r[rowNumber]
-					if newRow[replaceColumnIndex] == value {
-						newRow[replaceColumnIndex] = withValue
-					}
-					newData.append(newRow)
-				}
-				
-				return QBERaster(newData, readOnly: true)
+			var newData: [[QBEValue]] = [r.columnNames.map({s in return QBEValue(s.name)})]
+			
+			/* Random selection without replacement works like this: first we assign each row a random number. Then, we 
+			sort the list of row numbers by the number assigned to each row. We then take the top x of these rows. */
+			let numberOfSourceRows = r.rowCount
+			var indexPairs = [Int](0..<r.rowCount).map({($0, rand())})
+			indexPairs.sort({ (a, b) -> Bool in return a.1 < b.1 })
+			let randomlySortedIndices = indexPairs.map({$0.0})
+			
+			for rowNumber in 0..<numberOfRows {
+				newData.append(r[randomlySortedIndices[rowNumber]])
 			}
-			return r
+			
+			return QBERaster(newData, readOnly: true)
 		}
 	}
 	

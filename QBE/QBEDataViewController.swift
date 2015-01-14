@@ -7,6 +7,7 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
 	@IBOutlet var tableView: MBTableGrid?
+	@IBOutlet var formulaField: NSTextField?
 	weak var delegate: QBEDataViewDelegate!
 	
 	var raster: QBERaster? {
@@ -47,23 +48,26 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return true
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, setObjectValue anObject: AnyObject?, forColumn columnIndex: UInt, row rowIndex: UInt) {
-		let valueObject = anObject==nil ? QBEValue("") : QBEValue(anObject!.description)
-		
+	private func setValue(value: QBEValue, inRow: Int, inColumn: Int) {
 		if let r = raster {
-			let oldValue = r[Int(rowIndex), Int(columnIndex)]
-			if !delegate.dataView(self, didChangeValue: oldValue, toValue: valueObject, inRow: Int(rowIndex), column: Int(columnIndex)) {
+			let oldValue = r[Int(inRow), Int(inColumn)]
+			if !delegate.dataView(self, didChangeValue: oldValue, toValue: value, inRow: Int(inRow), column: Int(inColumn)) {
 				if r.readOnly {
 					// When raster is read-only, only structural changes are allowed
 				}
 				else {
 					// The raster can be changed directly (it is source data), so change it
-					if(columnIndex>0) {
+					if(inColumn>0) {
 						//raster!.setValue(valueObject, forColumn: r.columnNames[Int(columnIndex)], inRow: Int(rowIndex))
 					}
 				}
 			}
 		}
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, setObjectValue anObject: AnyObject?, forColumn columnIndex: UInt, row rowIndex: UInt) {
+		let valueObject = anObject==nil ? QBEValue("") : QBEValue(anObject!.description)
+		setValue(valueObject, inRow: Int(rowIndex), inColumn: Int(columnIndex))
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> AnyObject! {
@@ -98,11 +102,11 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	private func updateColumns() {
 		if let tv = tableView {
 			for i in 0...tv.numberOfColumns {
-				//tv.resizeColumnWithIndex(<#columnIndex: UInt#>, withDistance: <#Float#>, location: <#NSPoint#>)
-				//tv.resizeColumnWithIndex(location: i, withDistance: 0.0)
+				tv.resizeColumnWithIndex(i, withDistance: 0.0)
 			}
 			
 			tv.reloadData()
+			updateFormulaField()
 		}
 	}
 	
@@ -118,6 +122,50 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return NSColor.whiteColor()
 	}
 	
+	private func updateFormulaField() {
+		let selectedRows = tableView!.selectedRowIndexes
+		let selectedCols = tableView!.selectedColumnIndexes
+		
+		if selectedRows?.count > 1 || selectedCols?.count > 1 {
+			formulaField?.enabled = false
+			formulaField?.stringValue = ""
+			formulaField?.placeholderString = "\(selectedRows?.count ?? 0)x\(selectedCols?.count ?? 0)"
+		}
+		else {
+			formulaField?.enabled = true
+			formulaField?.placeholderString = ""
+			
+			if let r = raster {
+				let rowIndex = selectedRows!.firstIndex
+				let colIndex = selectedCols!.firstIndex
+				if rowIndex >= 0 && colIndex >= 0 && rowIndex < r.rowCount && colIndex < r.columnCount {
+					let x = r[rowIndex, colIndex]
+					formulaField?.stringValue = x.stringValue ?? ""
+				}
+				else {
+					formulaField?.enabled = false
+					formulaField?.stringValue = ""
+				}
+			}
+			else {
+				formulaField?.enabled = false
+				formulaField?.stringValue = ""
+			}
+		}
+	}
+	
+	@IBAction func setValueFromFormulaField(sender: NSObject) {
+		if let selectedRows = tableView?.selectedRowIndexes {
+			if let selectedColumns = tableView?.selectedColumnIndexes {
+				setValue(QBEValue(formulaField!.stringValue), inRow: selectedRows.firstIndex, inColumn: selectedColumns.firstIndex)
+			}
+		}
+	}
+	
+	func tableGridDidChangeSelection(aNotification: NSNotification!) {
+		updateFormulaField()
+	}
+	
 	override func awakeFromNib() {
 		self.view.focusRingType = NSFocusRingType.None
 		if self.tableView == nil {
@@ -127,10 +175,10 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Horizontal)
 			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Vertical)
 			self.view.addSubview(tableView!)
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0));
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.formulaField, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 5.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 5.0));
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0));
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: -5.0));
 			
 			for v in self.tableView!.subviews {
 				if let vw = v as? NSView {

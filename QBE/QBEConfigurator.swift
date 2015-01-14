@@ -4,8 +4,53 @@ import Cocoa
 typealias QBEConfigurator = (step: QBEStep?, delegate: QBESuggestionsViewDelegate) -> NSViewController?
 
 let QBEConfigurators: Dictionary<String, QBEConfigurator> = [
-	QBESQLiteSourceStep.className(): {QBESQLiteSourceConfigurator(step: $0, delegate: $1)}
+	QBESQLiteSourceStep.className(): {QBESQLiteSourceConfigurator(step: $0, delegate: $1)},
+	QBELimitStep.className(): {QBELimitConfigurator(step: $0, delegate: $1)}
 ]
+
+private class QBELimitConfigurator: NSViewController {
+	weak var delegate: QBESuggestionsViewDelegate?
+	@IBOutlet var numberOfRowsField: NSTextField?
+	let step: QBELimitStep?
+	
+	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
+		self.delegate = delegate
+		
+		if let s = step as? QBELimitStep {
+			self.step = s
+			super.init(nibName: "QBELimitConfigurator", bundle: nil)
+		}
+		else {
+			super.init(nibName: "QBELimitConfigurator", bundle: nil)
+			return nil
+		}
+	}
+	
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+	}
+	
+	private override func viewWillAppear() {
+		super.viewWillAppear()
+		if let s = step {
+			numberOfRowsField?.stringValue = s.numberOfRows.toString()
+		}
+	}
+	
+	@IBAction func update(sender: NSObject) {
+		if let s = step {
+			s.numberOfRows = (numberOfRowsField?.stringValue ?? "1").toInt() ?? 1
+			delegate?.suggestionsView(self, previewStep: s)
+		}
+	}
+	
+	@IBAction func finish(sender: NSObject) {
+		if let s = step {
+			s.numberOfRows = (numberOfRowsField?.stringValue ?? "1").toInt() ?? 1
+		}
+		self.delegate?.suggestionsViewDidCancel(self)
+	}
+}
 
 private class QBESQLiteSourceConfigurator: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 	let step: QBESQLiteSourceStep?
