@@ -835,14 +835,14 @@ CA
         <scene sceneID="4qG-DD-elD">
             <objects>
                 <viewController id="DXE-ii-MK8" customClass="QBEViewController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" focusRingType="none" id="fdQ-Cz-nnL">
+                    <view key="view" wantsLayer="YES" focusRingType="none" id="fdQ-Cz-nnL">
                         <rect key="frame" x="0.0" y="0.0" width="660" height="400"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <visualEffectView appearanceType="vibrantLight" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="UN0-Q7-D7L">
                                 <rect key="frame" x="0.0" y="0.0" width="660" height="400"/>
                                 <subviews>
-                                    <containerView focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
+                                    <containerView canDrawConcurrently="YES" focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
                                         <rect key="frame" x="0.0" y="0.0" width="400" height="400"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="KeW-J3-VQO"/>
@@ -876,6 +876,7 @@ CA
                                             </textField>
                                             <customView autoresizesSubviews="NO" canDrawConcurrently="YES" appearanceType="aqua" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="eRz-0B-PPl">
                                                 <rect key="frame" x="0.0" y="0.0" width="260" height="326"/>
+                                                <animations/>
                                             </customView>
                                         </subviews>
                                         <constraints>
@@ -907,6 +908,7 @@ CA
                             <constraint firstAttribute="bottom" secondItem="UN0-Q7-D7L" secondAttribute="bottom" id="Zpx-9l-rsr"/>
                             <constraint firstAttribute="trailing" secondItem="UN0-Q7-D7L" secondAttribute="trailing" id="ctG-7K-i7y"/>
                         </constraints>
+                        <animations/>
                     </view>
                     <connections>
                         <outlet property="configuratorView" destination="eRz-0B-PPl" id="HNm-ag-J2G"/>
