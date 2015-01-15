@@ -27,6 +27,7 @@ enum QBEFunction: String {
 	case Absolute = "abs"
 	case And = "and"
 	case Or = "or"
+	case Xor = "xor"
 	case If = "if"
 	case Concat = "concat"
 	case Cos = "cos"
@@ -46,6 +47,9 @@ enum QBEFunction: String {
 	case Log = "log"
 	case Not = "not"
 	case Substitute = "substitute"
+	case Trim = "trim"
+	case Coalesce = "coalesce"
+	case IfError = "iferror"
 	
 	var description: String { get {
 		switch self {
@@ -75,6 +79,10 @@ enum QBEFunction: String {
 		case .Log: return NSLocalizedString("logarithm", comment: "")
 		case .Not: return NSLocalizedString("not", comment: "")
 		case .Substitute: return NSLocalizedString("substitute", comment: "")
+		case .Xor: return NSLocalizedString("xor", comment: "")
+		case .Trim: return NSLocalizedString("trim spaces", comment: "")
+		case .Coalesce: return NSLocalizedString("first non-empty value", comment: "")
+		case .IfError: return NSLocalizedString("if error", comment: "")
 		}
 	} }
 	
@@ -115,6 +123,10 @@ enum QBEFunction: String {
 		case .Log: return QBEArity.Between(1,2)
 		case .Not: return QBEArity.Fixed(1)
 		case .Substitute: return QBEArity.Fixed(3)
+		case .Xor: return QBEArity.Fixed(2)
+		case .Trim: return QBEArity.Fixed(1)
+		case .Coalesce: return QBEArity.Any
+		case .IfError: return QBEArity.Fixed(2)
 		}
 	} }
 	
@@ -147,12 +159,20 @@ enum QBEFunction: String {
 			return arguments[0]
 			
 		case .And:
-		for a in arguments {
-			if a != QBEValue(true) {
-				return QBEValue(false)
+			for a in arguments {
+				if a != QBEValue(true) {
+					return QBEValue(false)
+				}
 			}
-		}
-		return QBEValue(true)
+			return QBEValue(true)
+			
+		case .Coalesce:
+			for a in arguments {
+				if a != QBEValue.EmptyValue && a != QBEValue.InvalidValue {
+					return a
+				}
+			}
+			return QBEValue.EmptyValue
 			
 		case .Not:
 			if let b = arguments[0].boolValue {
@@ -167,6 +187,14 @@ enum QBEFunction: String {
 			}
 		}
 		return QBEValue(false)
+			
+		case .Xor:
+			if let a = arguments[0].boolValue {
+				if let b = arguments[1].boolValue {
+					return QBEValue((a != b) && (a || b))
+				}
+			}
+			return QBEValue.InvalidValue
 			
 		case .Concat:
 			var s: String = ""
@@ -185,6 +213,9 @@ enum QBEFunction: String {
 				return d ? arguments[1] : arguments[2]
 			}
 			return QBEValue.InvalidValue
+			
+		case .IfError:
+			return (arguments[0] == QBEValue.InvalidValue) ? arguments[1] : arguments[0]
 			
 		case .Cos:
 			if let d = arguments[0].doubleValue {
@@ -310,6 +341,12 @@ enum QBEFunction: String {
 						return QBEValue(source.stringByReplacingOccurrencesOfString(replace, withString: replaceWith))
 					}
 				}
+			}
+			return QBEValue.InvalidValue
+		
+		case .Trim:
+			if let s = arguments[0].stringValue {
+				return QBEValue(s.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()))
 			}
 			return QBEValue.InvalidValue
 		}

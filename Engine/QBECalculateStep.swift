@@ -10,16 +10,20 @@ class QBECalculateStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 	
+	override func description(locale: QBELocale) -> String {
+		return String(format: NSLocalizedString("Calculate column %@ as %@", comment: ""), targetColumn.name, function.explanation)
+	}
+	
 	override func encodeWithCoder(coder: NSCoder) {
 		coder.encodeObject(function, forKey: "function")
 		coder.encodeObject(targetColumn.name, forKey: "targetColumn")
 		super.encodeWithCoder(coder)
 	}
 	
-	required init(previous: QBEStep?, explanation: String, targetColumn: QBEColumn, function: QBEExpression) {
+	required init(previous: QBEStep?, targetColumn: QBEColumn, function: QBEExpression) {
 		self.function = function
 		self.targetColumn = targetColumn
-		super.init(previous: previous, explanation: explanation)
+		super.init(previous: previous)
 	}
 	
 	override func apply(data: QBEData?) -> QBEData? {

@@ -8,9 +8,20 @@ class QBEColumnsStep: QBEStep {
 		self.columnNames = columnNames
 		self.select = select
 		let columnNameStrings = columnNames.map({$0.name})
-		
-		let explanation = (select ? NSLocalizedString("Select column(s)", comment: "") : NSLocalizedString("Remove column(s)", comment: "")) + " " + (columnNameStrings.implode(", ") ?? "")
-		super.init(previous: previous, explanation: explanation)
+		super.init(previous: previous)
+	}
+	
+	override func description(locale: QBELocale) -> String {
+		if columnNames.count == 0 {
+			return NSLocalizedString("Remove all columns", comment: "")
+		}
+		else if columnNames.count == 1 {
+			return String(format: NSLocalizedString("Select only the column '%@'", comment: ""), columnNames.first!.name)
+		}
+		else {
+			let cn = columnNames.map({$0.name}).implode(", ") ?? ""
+			return String(format: NSLocalizedString("Select the columns %@", comment: ""), cn)
+		}
 	}
 	
 	required init(coder aDecoder: NSCoder) {

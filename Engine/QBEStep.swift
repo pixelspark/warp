@@ -17,6 +17,10 @@ class QBEStep: NSObject {
 	var next: QBEStep?
 	var explanation: NSAttributedString?
 	
+	func description(locale: QBELocale) -> String {
+		return NSLocalizedString("Unknown step", comment: "")
+	}
+	
 	override private init() {
 		self.explanation = NSAttributedString(string: "Hello")
 	}
@@ -33,9 +37,8 @@ class QBEStep: NSObject {
 		coder.encodeObject(explanation, forKey: "explanation")
 	}
 	
-	init(previous: QBEStep?, explanation: String) {
+	init(previous: QBEStep?) {
 		self.previous = previous
-		self.explanation = NSAttributedString(string: explanation)
 	}
 	
 	func apply(data: QBEData?) -> QBEData? {

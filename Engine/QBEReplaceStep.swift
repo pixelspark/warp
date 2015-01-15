@@ -5,11 +5,15 @@ class QBEReplaceStep: QBEStep {
 	var withValue: QBEValue
 	var inColumn: QBEColumn
 	
-	init(previous: QBEStep?, explanation: String, replaceValue: QBEValue, withValue: QBEValue, inColumn: QBEColumn) {
+	init(previous: QBEStep?, replaceValue: QBEValue, withValue: QBEValue, inColumn: QBEColumn) {
 		self.replaceValue = replaceValue
 		self.withValue = withValue
 		self.inColumn = inColumn
-		super.init(previous: previous, explanation: explanation)
+		super.init(previous: previous)
+	}
+	
+	override func description(locale: QBELocale) -> String {
+		return String(format: NSLocalizedString("Replace '%@' with '%@' in column '%@'", comment: ""), replaceValue.stringValue ?? "", withValue.stringValue ?? "", inColumn.name)
 	}
 	
 	required init(coder aDecoder: NSCoder) {

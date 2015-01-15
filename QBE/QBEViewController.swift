@@ -12,6 +12,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	let locale: QBELocale = QBEDefaultLocale()
 	var dataViewController: QBEDataViewController?
 	var suggestions: [QBEStep]?
+	@IBOutlet var descriptionField: NSTextField?
+	@IBOutlet var configuratorView: NSView?
 	
 	var configuratorViewController: NSViewController? {
 		willSet(newValue) {
@@ -37,28 +39,43 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
-	@IBOutlet var descriptionField: NSTextField?
-	@IBOutlet var configuratorView: NSView?
-	
 	dynamic var currentStep: QBEStep? {
 		didSet {
-			self.dataViewController?.data = currentStep?.exampleData
-			
 			if let s = currentStep {
 				let className = s.className
 				let configurator = QBEConfigurators[className]?(step: s, delegate: self)
 				self.configuratorViewController = configurator
 			}
+			
+			presentData(self.currentStep?.exampleData)
+		}
+	}
+	
+	private func presentData(data: QBEData?) {
+		let gq = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+		if let d = data {
+			if let dataView = self.dataViewController {
+				dispatch_async(gq) {
+					d.raster()
+					
+					dispatch_async(dispatch_get_main_queue()) {
+						dataView.data = d
+					}
+				}
+			}
+		}
+		else {
+			self.dataViewController?.data = nil
 		}
 	}
 	
 	var previewStep: QBEStep? {
 		didSet {
 			if previewStep == nil {
-				self.dataViewController?.data = currentStep?.exampleData
+				presentData(currentStep?.exampleData)
 			}
 			else {
-				self.dataViewController?.data = previewStep?.exampleData
+				presentData(previewStep?.exampleData)
 			}
 		}
 	}
@@ -78,13 +95,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				
 				// Was a formula typed in?
 				if let f = QBEFormula(formula: toValue.stringValue ?? "", locale: locale) {
-					let explanation = "\(targetColumn.name) = \(f.root.toFormula(locale))"
-					suggestions.append(QBECalculateStep(previous: self.currentStep, explanation: explanation, targetColumn: targetColumn, function: f.root))
+					suggestions.append(QBECalculateStep(previous: self.currentStep, targetColumn: targetColumn, function: f.root))
 					suggestSteps(suggestions)
 				}
 				else {
 					// Suggest a text replace
-					suggestions.append(QBEReplaceStep(previous: currentStep, explanation: "Replace all occurrences of '\(didChangeValue.description)' with '\(toValue.description)' in column \(r.columnNames[column].name)", replaceValue: didChangeValue, withValue: toValue, inColumn: r.columnNames[column]))
+					suggestions.append(QBEReplaceStep(previous: currentStep, replaceValue: didChangeValue, withValue: toValue, inColumn: r.columnNames[column]))
 					
 					// Try to find a formula
 					let qs = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
@@ -93,8 +109,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 						var suggestedFormulas: [QBEExpression] = []
 						QBEInferer.inferFunctions(nil, toValue: toValue, suggestions: &suggestedFormulas, level: 4, raster: r, row: inRow, column: column)
 						for suggestedFormula in suggestedFormulas {
-							let explanation = "\(targetColumn.name) = \(suggestedFormula.explanation)"
-							let cs = QBECalculateStep(previous: self.currentStep, explanation: explanation, targetColumn: targetColumn, function: suggestedFormula)
+							let cs = QBECalculateStep(previous: self.currentStep, targetColumn: targetColumn, function: suggestedFormula)
 							suggestions.append(cs)
 						}
 						
@@ -123,7 +138,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func transposeData(sender: NSObject) {
 		if let cs = currentStep {
-			suggestSteps([QBETransposeStep(previous: cs, explanation: NSLocalizedString("Switch rows/columns", comment: ""))])
+			suggestSteps([QBETransposeStep(previous: cs)])
 		}
 	}
 	
@@ -167,9 +182,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func addEmptyColumn(sender: NSObject) {
-		let explanation = NSLocalizedString("Add new empty column", comment: "")
 		if let data = currentStep?.exampleData {
-			let step = QBECalculateStep(previous: currentStep, explanation: explanation, targetColumn: QBEColumn("\(data.columnNames.count)"), function: QBELiteralExpression(QBEValue.EmptyValue))
+			let step = QBECalculateStep(previous: currentStep, targetColumn: QBEColumn("\(data.columnNames.count)"), function: QBELiteralExpression(QBEValue.EmptyValue))
 			pushStep(step)
 		}
 	}
@@ -199,6 +213,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
+	@IBAction func randomlySelectRows(sender: NSObject) {
+		suggestSteps([QBERandomStep(previous: currentStep, numberOfRows: 1)])
+	}
+	
+	@IBAction func limitRows(sender: NSObject) {
+		suggestSteps([QBELimitStep(previous: currentStep, numberOfRows: 1)])
+	}
+	
 	@IBAction func removeRows(sender: NSObject) {
 		var suggestions: [QBEStep] = []
 		
@@ -215,12 +237,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				
 				let rowLimit = data.raster().rowCount - rowsToRemove.count
 				if contiguousLimit {
-					// FIXME: localize
-					suggestions.append(QBELimitStep(previous: currentStep, explanation: "Limit to \(rowLimit) rows", numberOfRows: rowLimit))
+					suggestions.append(QBELimitStep(previous: currentStep, numberOfRows: rowLimit))
 				}
 				else {
-					// FIXME: localize
-					suggestions.append(QBERandomStep(previous: currentStep, explanation: "Randomly select \(rowLimit) rows", numberOfRows: rowLimit))
+					suggestions.append(QBERandomStep(previous: currentStep, numberOfRows: rowLimit))
 				}
 			}
 		}
@@ -272,6 +292,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			return currentStep?.next != nil
 		}
 		else if item.action()==Selector("calculate:") {
+			return currentStep != nil
+		}
+		else if item.action()==Selector("randomlySelectRows:") {
+			return currentStep != nil
+		}
+		else if item.action()==Selector("limitRows:") {
 			return currentStep != nil
 		}
 		else {

@@ -16,14 +16,14 @@
             <rect key="frame" x="0.0" y="0.0" width="182" height="315"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <scrollView ambiguous="YES" misplaced="YES" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IHc-7T-Was">
-                    <rect key="frame" x="5" y="71" width="172" height="217"/>
-                    <clipView key="contentView" ambiguous="YES" misplaced="YES" id="ESR-W0-gSz">
+                <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IHc-7T-Was">
+                    <rect key="frame" x="5" y="5" width="172" height="283"/>
+                    <clipView key="contentView" id="ESR-W0-gSz">
                         <rect key="frame" x="1" y="0.0" width="238" height="134"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="4Fv-nk-fsa">
-                                <rect key="frame" x="0.0" y="0.0" width="238" height="19"/>
+                                <rect key="frame" x="0.0" y="0.0" width="170" height="19"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -75,7 +75,7 @@
             <constraints>
                 <constraint firstItem="wRI-J0-mZu" firstAttribute="leading" secondItem="N3O-Vz-R4I" secondAttribute="leading" constant="5" id="061-xd-d2u"/>
                 <constraint firstItem="IHc-7T-Was" firstAttribute="top" secondItem="wRI-J0-mZu" secondAttribute="bottom" constant="5" id="5bC-VO-mzS"/>
-                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="IHc-7T-Was" secondAttribute="bottom" constant="5" id="PuU-OD-wc6"/>
+                <constraint firstAttribute="bottom" secondItem="IHc-7T-Was" secondAttribute="bottom" constant="5" id="PuU-OD-wc6"/>
                 <constraint firstAttribute="trailing" secondItem="IHc-7T-Was" secondAttribute="trailing" constant="5" id="VBJ-bO-kLD"/>
                 <constraint firstItem="wRI-J0-mZu" firstAttribute="top" secondItem="N3O-Vz-R4I" secondAttribute="top" constant="5" id="cp7-NW-P5W"/>
                 <constraint firstAttribute="trailing" secondItem="wRI-J0-mZu" secondAttribute="trailing" constant="5" id="hac-3e-k8D"/>

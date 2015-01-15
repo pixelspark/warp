@@ -5,6 +5,7 @@ class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
     var row : [QBEValue] = []
 	let limit: Int?
 	var limitAchieved = false
+	var columnCount: Int? = nil
 	
 	init(limit: Int? = nil) {
 		self.limit = limit
@@ -16,11 +17,16 @@ class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
 			limitAchieved = true
 		}
         row = []
+		if let c = columnCount {
+			row.reserveCapacity(c)
+		}
     }
     
     func parser(parser: CHCSVParser, didEndLine line: UInt) {
         raster.raster.append(row)
-        row = []
+		if columnCount == nil {
+			columnCount = row.count
+		}
     }
     
     func parser(parser: CHCSVParser, didReadField field: String, atIndex index: Int) {
@@ -76,8 +82,9 @@ class QBECSVSourceStep: QBERasterStep {
 		let r = QBECSVSourceStep.readCSV(atURL: url, limit: 100)
 		super.staticExampleData = QBERasterData(raster: r)
 
-		let s = QBECSVSourceStep.readCSV(atURL: url, limit: nil)
-		super.staticFullData = QBERasterData(raster: s)
+		super.staticFullData = QBERasterData({() -> QBERaster in
+			return QBECSVSourceStep.readCSV(atURL: url, limit: nil)
+		})
 	}
 	
 	required init(coder aDecoder: NSCoder) {

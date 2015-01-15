@@ -1,7 +1,7 @@
 import Foundation
 
 protocol QBELocale: NSObjectProtocol {
-	/** The decimal separator symbol**/
+	/** The decimal separator symbol **/
 	var decimalSeparator: String { get }
 	
 	/** Start and end of string literal **/
@@ -60,7 +60,14 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		"MID": QBEFunction.Mid,
 		"LENGTH": QBEFunction.Length,
 		"LOG": QBEFunction.Log,
-		"NOT": QBEFunction.Not
+		"NOT": QBEFunction.Not,
+		"XOR": QBEFunction.Xor,
+		"REPLACE": QBEFunction.Substitute,
+		"TRIM": QBEFunction.Trim,
+		
+		// Non-Excel functions
+		"COALESCE": QBEFunction.Coalesce,
+		"IFERROR": QBEFunction.IfError
 	]
 	
 	func csvRow(row: [QBEValue]) -> String {

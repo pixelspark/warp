@@ -51,6 +51,9 @@
 		65E3C2F71A062E5E007BB3C8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 65E3C2F61A062E5E007BB3C8 /* Images.xcassets */; };
 		65E3C2FA1A062E5E007BB3C8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65E3C2F81A062E5E007BB3C8 /* Main.storyboard */; };
 		65E3C3061A062E5E007BB3C8 /* QBETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E3C3051A062E5E007BB3C8 /* QBETests.swift */; };
+		65F4E2611A67D30E00BB57B8 /* QBEWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F4E2601A67D30E00BB57B8 /* QBEWindow.swift */; };
+		65F4E2641A681C3200BB57B8 /* QBERandomConfigurator.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65F4E2631A681C3200BB57B8 /* QBERandomConfigurator.xib */; };
+		65F4E2671A683B3600BB57B8 /* QBECalculateConfigurator.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65F4E2691A683B3600BB57B8 /* QBECalculateConfigurator.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -153,6 +156,9 @@
 		65E3C2FF1A062E5E007BB3C8 /* QBETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QBETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E3C3041A062E5E007BB3C8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		65E3C3051A062E5E007BB3C8 /* QBETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QBETests.swift; sourceTree = "<group>"; };
+		65F4E2601A67D30E00BB57B8 /* QBEWindow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEWindow.swift; sourceTree = "<group>"; };
+		65F4E2631A681C3200BB57B8 /* QBERandomConfigurator.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = QBERandomConfigurator.xib; sourceTree = "<group>"; };
+		65F4E2681A683B3600BB57B8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBECalculateConfigurator.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -274,17 +280,20 @@
 			children = (
 				65E3C2F61A062E5E007BB3C8 /* Images.xcassets */,
 				65E3C2F81A062E5E007BB3C8 /* Main.storyboard */,
-				658977A21A57077E001001F2 /* QBESettingsViewController.swift */,
+				65776EEF1A62FFD800F7F82A /* QBEAddColumnViewController.swift */,
 				65E3C2F01A062E5E007BB3C8 /* QBEAppDelegate.swift */,
+				65F4E2691A683B3600BB57B8 /* QBECalculateConfigurator.xib */,
+				656AA1EF1A65BB90006D331A /* QBEConfigurator.swift */,
 				652BEBDD1A063029002E45C7 /* QBEDataViewController.swift */,
 				65E3C2F41A062E5E007BB3C8 /* QBEDocument.swift */,
-				65E3C2F21A062E5E007BB3C8 /* QBEViewController.swift */,
-				652BEC401A063F96002E45C7 /* QBEWindowController.swift */,
-				658977A41A580FE8001001F2 /* QBESuggestionsViewController.swift */,
-				65776EEF1A62FFD800F7F82A /* QBEAddColumnViewController.swift */,
-				656AA1EF1A65BB90006D331A /* QBEConfigurator.swift */,
-				65A7FC5D1A667F860019B747 /* QBESQLiteSourceConfigurator.xib */,
 				65894A0B1A67036200B0C161 /* QBELimitConfigurator.xib */,
+				65F4E2631A681C3200BB57B8 /* QBERandomConfigurator.xib */,
+				658977A21A57077E001001F2 /* QBESettingsViewController.swift */,
+				65A7FC5D1A667F860019B747 /* QBESQLiteSourceConfigurator.xib */,
+				658977A41A580FE8001001F2 /* QBESuggestionsViewController.swift */,
+				65E3C2F21A062E5E007BB3C8 /* QBEViewController.swift */,
+				65F4E2601A67D30E00BB57B8 /* QBEWindow.swift */,
+				652BEC401A063F96002E45C7 /* QBEWindowController.swift */,
 			);
 			name = UI;
 			path = QBE;
@@ -441,6 +450,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65F4E2671A683B3600BB57B8 /* QBECalculateConfigurator.xib in Resources */,
+				65F4E2641A681C3200BB57B8 /* QBERandomConfigurator.xib in Resources */,
 				65E3C2F71A062E5E007BB3C8 /* Images.xcassets in Resources */,
 				65E3C2FA1A062E5E007BB3C8 /* Main.storyboard in Resources */,
 				65A7FC5B1A667F860019B747 /* QBESQLiteSourceConfigurator.xib in Resources */,
@@ -480,6 +491,7 @@
 				65D6F9E21A59B8AA006B6995 /* QBEData.swift in Sources */,
 				65776EFD1A646DFE00F7F82A /* QBESQLite.swift in Sources */,
 				65776EF01A62FFD800F7F82A /* QBEAddColumnViewController.swift in Sources */,
+				65F4E2611A67D30E00BB57B8 /* QBEWindow.swift in Sources */,
 				658977A31A57077E001001F2 /* QBESettingsViewController.swift in Sources */,
 				65D6F9ED1A59CD1A006B6995 /* QBERasterStep.swift in Sources */,
 				65D6F9E51A59BA55006B6995 /* QBECSV.swift in Sources */,
@@ -557,6 +569,14 @@
 				65E3C2F91A062E5E007BB3C8 /* Base */,
 			);
 			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		65F4E2691A683B3600BB57B8 /* QBECalculateConfigurator.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				65F4E2681A683B3600BB57B8 /* Base */,
+			);
+			name = QBECalculateConfigurator.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

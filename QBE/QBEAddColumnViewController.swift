@@ -12,8 +12,7 @@ class QBEAddColumnViewController: NSViewController {
 	@IBAction func confirm(sender: NSObject) {
 		if let targetColumn = columnName {
 			if let formula = QBEFormula(formula: "=" + (columnFormula ?? ""), locale: delegate.locale) {
-				let exp = "\(targetColumn) = \(formula.root.toFormula(delegate!.locale))"
-				let cs = QBECalculateStep(previous: delegate?.currentStep, explanation: exp, targetColumn: QBEColumn(columnName ?? ""), function: formula.root)
+				let cs = QBECalculateStep(previous: delegate?.currentStep, targetColumn: QBEColumn(columnName ?? ""), function: formula.root)
 				delegate?.suggestionsView(self, didSelectStep: cs)
 				self.dismissController(sender)
 			}

@@ -275,7 +275,7 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 	func apply(filter: QBEFilter) -> QBEData {
 		return QBERasterData(raster: memoize {
 			return filter(self.raster())
-			})
+		})
 	}
 	
 	func transpose() -> QBEData {

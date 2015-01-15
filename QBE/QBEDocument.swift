@@ -9,7 +9,7 @@ class QBEDocument: NSDocument, NSCoding {
 	
 	required init(coder aDecoder: NSCoder) {
 		let raster = QBERaster()
-		head = (aDecoder.decodeObjectForKey("head") as? QBEStep) ?? QBERasterStep(raster: raster, explanation: "Empty")
+		head = (aDecoder.decodeObjectForKey("head") as? QBEStep) ?? QBERasterStep(raster: raster)
 	}
 	
 	override func windowControllerDidLoadNib(aController: NSWindowController) {

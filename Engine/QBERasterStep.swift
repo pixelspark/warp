@@ -5,11 +5,11 @@ class QBERasterStep: QBEStep {
 	var staticFullData: QBEData?
 	
 	init() {
-		super.init(previous: nil, explanation: "")
+		super.init(previous: nil)
 	}
 	
-	init(raster: QBERaster, explanation: String) {
-		super.init(previous: nil, explanation: explanation)
+	init(raster: QBERaster) {
+		super.init(previous: nil)
 		self.staticExampleData = QBERasterData()
 		self.staticExampleData?.setRaster(raster)
 		self.staticFullData = staticExampleData

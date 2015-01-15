@@ -3,9 +3,13 @@ import Foundation
 class QBELimitStep: QBEStep {
 	var numberOfRows: Int
 	
-	init(previous: QBEStep?, explanation: String, numberOfRows: Int) {
+	init(previous: QBEStep?, numberOfRows: Int) {
 		self.numberOfRows = numberOfRows
-		super.init(previous: previous, explanation: explanation)
+		super.init(previous: previous)
+	}
+	
+	override func description(locale: QBELocale) -> String {
+		return String(format: NSLocalizedString("Select the top %d rows", comment: ""), numberOfRows)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -24,8 +28,12 @@ class QBELimitStep: QBEStep {
 }
 
 class QBERandomStep: QBELimitStep {
-	override init(previous: QBEStep?, explanation: String, numberOfRows: Int) {
-		super.init(previous: previous, explanation: explanation, numberOfRows: numberOfRows)
+	override init(previous: QBEStep?, numberOfRows: Int) {
+		super.init(previous: previous, numberOfRows: numberOfRows)
+	}
+	
+	override func description(locale: QBELocale) -> String {
+		return String(format: NSLocalizedString("Randomly select %d rows", comment: ""), numberOfRows)
 	}
 	
 	required init(coder aDecoder: NSCoder) {

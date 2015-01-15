@@ -5,8 +5,94 @@ typealias QBEConfigurator = (step: QBEStep?, delegate: QBESuggestionsViewDelegat
 
 let QBEConfigurators: Dictionary<String, QBEConfigurator> = [
 	QBESQLiteSourceStep.className(): {QBESQLiteSourceConfigurator(step: $0, delegate: $1)},
-	QBELimitStep.className(): {QBELimitConfigurator(step: $0, delegate: $1)}
+	QBELimitStep.className(): {QBELimitConfigurator(step: $0, delegate: $1)},
+	QBERandomStep.className(): {QBERandomConfigurator(step: $0, delegate: $1)},
+	QBECalculateStep.className(): {QBECalculateConfigurator(step: $0, delegate: $1)}
 ]
+
+private class QBECalculateConfigurator: NSViewController {
+	weak var delegate: QBESuggestionsViewDelegate?
+	@IBOutlet var targetColumnNameField: NSTextField?
+	@IBOutlet var formulaField: NSTextField?
+	let step: QBECalculateStep?
+	
+	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
+		self.delegate = delegate
+		
+		if let s = step as? QBECalculateStep {
+			self.step = s
+			super.init(nibName: "QBECalculateConfigurator", bundle: nil)
+		}
+		else {
+			super.init(nibName: "QBECalculateConfigurator", bundle: nil)
+			return nil
+		}
+	}
+	
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+	}
+	
+	private override func viewWillAppear() {
+		super.viewWillAppear()
+		if let s = step {
+			self.targetColumnNameField?.stringValue = s.targetColumn.name
+			self.formulaField?.stringValue = "=" + s.function.toFormula(self.delegate?.locale ?? QBEDefaultLocale())
+		}
+	}
+	
+	@IBAction func update(sender: NSObject) {
+		if let s = step {
+			s.targetColumn = QBEColumn(self.targetColumnNameField?.stringValue ?? s.targetColumn.name)
+			if let f = self.formulaField?.stringValue {
+				if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBEDefaultLocale()))?.root {
+					s.function = parsed
+				}
+				else {
+					// TODO parsing error
+				}
+			}
+			delegate?.suggestionsView(self, previewStep: s)
+		}
+	}
+}
+
+private class QBERandomConfigurator: NSViewController {
+	weak var delegate: QBESuggestionsViewDelegate?
+	@IBOutlet var numberOfRowsField: NSTextField?
+	let step: QBERandomStep?
+	
+	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
+		self.delegate = delegate
+		
+		if let s = step as? QBERandomStep {
+			self.step = s
+			super.init(nibName: "QBERandomConfigurator", bundle: nil)
+		}
+		else {
+			super.init(nibName: "QBERandomConfigurator", bundle: nil)
+			return nil
+		}
+	}
+	
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+	}
+	
+	private override func viewWillAppear() {
+		super.viewWillAppear()
+		if let s = step {
+			numberOfRowsField?.stringValue = s.numberOfRows.toString()
+		}
+	}
+	
+	@IBAction func update(sender: NSObject) {
+		if let s = step {
+			s.numberOfRows = (numberOfRowsField?.stringValue ?? "1").toInt() ?? 1
+			delegate?.suggestionsView(self, previewStep: s)
+		}
+	}
+}
 
 private class QBELimitConfigurator: NSViewController {
 	weak var delegate: QBESuggestionsViewDelegate?
@@ -42,13 +128,6 @@ private class QBELimitConfigurator: NSViewController {
 			s.numberOfRows = (numberOfRowsField?.stringValue ?? "1").toInt() ?? 1
 			delegate?.suggestionsView(self, previewStep: s)
 		}
-	}
-	
-	@IBAction func finish(sender: NSObject) {
-		if let s = step {
-			s.numberOfRows = (numberOfRowsField?.stringValue ?? "1").toInt() ?? 1
-		}
-		self.delegate?.suggestionsViewDidCancel(self)
 	}
 }
 
@@ -114,9 +193,5 @@ private class QBESQLiteSourceConfigurator: NSViewController, NSTableViewDataSour
 	
 	private func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		return tableNames?[row] ?? ""
-	}
-	
-	@IBAction func finish(sender: NSObject) {
-		self.delegate?.suggestionsViewDidCancel(self)
 	}
 }

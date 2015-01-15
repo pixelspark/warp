@@ -49,34 +49,38 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	private func unaryToSQL(args: [String], type: QBEFunction) -> String {
 		let value = args.implode(", ") ?? ""
 		switch type {
-		case .Identity: return value
-		case .Negate: return "-\(value)"
-		case .Uppercase: return "UPPER(\(value))"
-		case .Lowercase: return "LOWER(\(value))"
-		case .Absolute: return "ABS(\(value))"
-		case .And: return "AND(\(value))"
-		case .Or: return "OR(\(value))"
-		case .Cos: return "COS(\(value))"
-		case .Sin: return "SIN(\(value))"
-		case .Tan: return "TAN(\(value))"
-		case .Cosh: return "COSH(\(value))"
-		case .Sinh: return "SINH(\(value))"
-		case .Tanh: return "TANH(\(value))"
-		case .Acos: return "ACOS(\(value))"
-		case .Asin: return "ASIN(\(value))"
-		case .Atan: return "ATAN(\(value))"
-		case .Sqrt: return "SQRT(\(value))"
-		case .Concat: return "CONCAT(\(value))"
-		case .If: return "(CASE WHEN \(args[0]) THEN \(args[1]) ELSE \(args[2]) END)"
-		case .Left: return "LEFT(\(args[0]), \(args[1]))"
-		case .Right: return "RIGHT(\(args[0]), \(args[1]))"
-		case .Mid: return "SUBSTRING(\(args[0]), \(args[1]), \(args[2]))"
-		case .Length: return "LEN(\(args[0]))"
-			
-		// FIXME: Log can receive either one parameter (log 10) or two parameters (log base)
-		case .Log: return "LOG(\(value))"
-		case .Not: return "NOT(\(value))"
-		case .Substitute: return "REPLACE(\(args[0]), \(args[1]), \(args[2]))"
+			case .Identity: return value
+			case .Negate: return "-\(value)"
+			case .Uppercase: return "UPPER(\(value))"
+			case .Lowercase: return "LOWER(\(value))"
+			case .Absolute: return "ABS(\(value))"
+			case .And: return "AND(\(value))"
+			case .Or: return "OR(\(value))"
+			case .Cos: return "COS(\(value))"
+			case .Sin: return "SIN(\(value))"
+			case .Tan: return "TAN(\(value))"
+			case .Cosh: return "COSH(\(value))"
+			case .Sinh: return "SINH(\(value))"
+			case .Tanh: return "TANH(\(value))"
+			case .Acos: return "ACOS(\(value))"
+			case .Asin: return "ASIN(\(value))"
+			case .Atan: return "ATAN(\(value))"
+			case .Sqrt: return "SQRT(\(value))"
+			case .Concat: return "CONCAT(\(value))"
+			case .If: return "(CASE WHEN \(args[0]) THEN \(args[1]) ELSE \(args[2]) END)"
+			case .Left: return "LEFT(\(args[0]), \(args[1]))"
+			case .Right: return "RIGHT(\(args[0]), \(args[1]))"
+			case .Mid: return "SUBSTRING(\(args[0]), \(args[1]), \(args[2]))"
+			case .Length: return "LEN(\(args[0]))"
+			case .Trim: return "TRIM(\(args[0]))"
+				
+			// FIXME: Log can receive either one parameter (log 10) or two parameters (log base)
+			case .Log: return "LOG(\(value))"
+			case .Not: return "NOT(\(value))"
+			case .Substitute: return "REPLACE(\(args[0]), \(args[1]), \(args[2]))"
+			case .Xor: return "((\(args[0])<>\(args[1])) AND (\(args[0]) OR \(args[1])))"
+			case .Coalesce: return "COALESCE(\(value))"
+			case .IfError: return "IFNULL(\(args[0]), \(args[1]))" // In SQLite, the result of (1/0) equals NULL
 		}
 	}
 	
