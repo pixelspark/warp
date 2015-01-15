@@ -50,4 +50,8 @@ class QBETransposeStep: QBEStep {
 	override func apply(data: QBEData?) -> QBEData? {
 		return data?.transpose()
 	}
+	
+	override func description(locale: QBELocale) -> String {
+		return NSLocalizedString("Switch rows/columns", comment: "")
+	}
 }

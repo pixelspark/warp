@@ -102,6 +102,11 @@ class QBEIdentityExpression: QBEExpression {
 		return NSLocalizedString("value", comment: "")
 		}}
 	
+
+	override func toFormula(locale: QBELocale) -> String {
+		return locale.currentCellIdentifier
+	}
+	
 	required init(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
 	}

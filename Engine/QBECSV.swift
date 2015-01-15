@@ -65,8 +65,11 @@ class QBECSVSourceStep: QBERasterStep {
 	init(url: NSURL) {
 		self.url = url.absoluteString ?? ""
 		super.init()
-		super.explanation = NSAttributedString(string: NSLocalizedString("Load CSV file from",comment: "") + " " + (url.absoluteString ?? ""))
 		read(url)
+	}
+	
+	override func description(locale: QBELocale) -> String {
+		return String(format: NSLocalizedString("Load CSV file from '%@' ",comment: ""), url)
 	}
 	
 	class private func readCSV(atURL url: NSURL, limit: Int?) -> QBERaster {

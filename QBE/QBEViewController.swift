@@ -14,6 +14,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	var suggestions: [QBEStep]?
 	@IBOutlet var descriptionField: NSTextField?
 	@IBOutlet var configuratorView: NSView?
+	@IBOutlet var titleLabel: NSTextField?
 	
 	var configuratorViewController: NSViewController? {
 		willSet(newValue) {
@@ -42,16 +43,26 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	dynamic var currentStep: QBEStep? {
 		didSet {
 			if let s = currentStep {
+				self.previewStep = nil
 				let className = s.className
 				let configurator = QBEConfigurators[className]?(step: s, delegate: self)
 				self.configuratorViewController = configurator
+				self.titleLabel?.attributedStringValue = NSAttributedString(string: s.description(locale))
+				presentData(s.exampleData)
 			}
-			
-			presentData(self.currentStep?.exampleData)
+			else {
+				self.configuratorViewController = nil
+				self.titleLabel?.attributedStringValue = NSAttributedString(string: "")
+			}
 		}
 	}
 	
+	/** Present the given data set in the data grid. This is called by currentStep.didSet as well as previewStep.didSet.
+	The data from the previewed step takes precedence. **/
 	private func presentData(data: QBEData?) {
+		/* TODO: when calculation takes long, it should be cancelled before a new calculation is started. Otherwise the 
+		contents of the first calculation may be displayed before the second. Perhaps work out a way to cancel 
+		calculations.*/
 		let gq = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
 		if let d = data {
 			if let dataView = self.dataViewController {
@@ -100,7 +111,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				}
 				else {
 					// Suggest a text replace
-					suggestions.append(QBEReplaceStep(previous: currentStep, replaceValue: didChangeValue, withValue: toValue, inColumn: r.columnNames[column]))
+					let replaceExpression = QBEFunctionExpression(arguments: [QBEIdentityExpression(), QBELiteralExpression(didChangeValue), QBELiteralExpression(toValue)], type: QBEFunction.Substitute)
+					suggestions.append(QBECalculateStep(previous: currentStep, targetColumn: r.columnNames[column], function: replaceExpression))
 					
 					// Try to find a formula
 					let qs = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)

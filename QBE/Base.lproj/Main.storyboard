@@ -855,17 +855,38 @@ CA
                                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="V0f-zc-xhU">
                                         <rect key="frame" x="400" y="0.0" width="260" height="400"/>
                                         <subviews>
+                                            <customView autoresizesSubviews="NO" canDrawConcurrently="YES" appearanceType="aqua" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="eRz-0B-PPl">
+                                                <rect key="frame" x="0.0" y="0.0" width="260" height="265"/>
+                                                <animations/>
+                                            </customView>
+                                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="S3o-Kz-csJ" userLabel="Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label">
+                                                <rect key="frame" x="3" y="344" width="254" height="51"/>
+                                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label " id="285-uI-onn">
+                                                    <font key="font" metaFont="systemBold"/>
+                                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                                </textFieldCell>
+                                            </textField>
                                             <textField verticalHuggingPriority="750" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="E9J-Co-zPC">
-                                                <rect key="frame" x="5" y="331" width="250" height="64"/>
+                                                <rect key="frame" x="5" y="270" width="250" height="64"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="64" id="yhI-4n-MTs"/>
                                                 </constraints>
                                                 <textFieldCell key="cell" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="Description..." drawsBackground="YES" allowsEditingTextAttributes="YES" id="EYp-ek-F52">
                                                     <font key="font" metaFont="cellTitle"/>
                                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.59999999999999998" colorSpace="calibratedRGB"/>
                                                 </textFieldCell>
                                                 <connections>
+                                                    <binding destination="DXE-ii-MK8" name="enabled" keyPath="self.currentStep" id="Lqz-vl-5ge">
+                                                        <dictionary key="options">
+                                                            <integer key="NSMultipleValuesPlaceholder" value="0"/>
+                                                            <integer key="NSNoSelectionPlaceholder" value="0"/>
+                                                            <integer key="NSNotApplicablePlaceholder" value="0"/>
+                                                            <integer key="NSNullPlaceholder" value="0"/>
+                                                            <string key="NSValueTransformerName">NSIsNotNil</string>
+                                                        </dictionary>
+                                                    </binding>
                                                     <binding destination="DXE-ii-MK8" name="value" keyPath="self.currentStep.explanation" id="7xy-Ap-xyj">
                                                         <dictionary key="options">
                                                             <string key="NSNoSelectionPlaceholder">(No selection)</string>
@@ -874,20 +895,19 @@ CA
                                                     </binding>
                                                 </connections>
                                             </textField>
-                                            <customView autoresizesSubviews="NO" canDrawConcurrently="YES" appearanceType="aqua" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="eRz-0B-PPl">
-                                                <rect key="frame" x="0.0" y="0.0" width="260" height="326"/>
-                                                <animations/>
-                                            </customView>
                                         </subviews>
                                         <constraints>
                                             <constraint firstItem="E9J-Co-zPC" firstAttribute="leading" secondItem="V0f-zc-xhU" secondAttribute="leading" constant="5" id="19b-n9-OD1"/>
                                             <constraint firstAttribute="trailing" secondItem="E9J-Co-zPC" secondAttribute="trailing" constant="5" id="2wX-1a-Opu"/>
+                                            <constraint firstAttribute="trailing" secondItem="S3o-Kz-csJ" secondAttribute="trailing" constant="5" id="42u-qv-OXK"/>
                                             <constraint firstAttribute="trailing" secondItem="eRz-0B-PPl" secondAttribute="trailing" id="D9G-Dx-kof"/>
                                             <constraint firstAttribute="bottom" secondItem="eRz-0B-PPl" secondAttribute="bottom" id="TeS-Yt-7co"/>
                                             <constraint firstItem="eRz-0B-PPl" firstAttribute="top" secondItem="E9J-Co-zPC" secondAttribute="bottom" constant="5" id="VnU-L9-ftf"/>
                                             <constraint firstAttribute="width" constant="260" id="biD-yC-S1k"/>
+                                            <constraint firstItem="E9J-Co-zPC" firstAttribute="top" secondItem="S3o-Kz-csJ" secondAttribute="bottom" constant="10" id="iie-KW-HYR"/>
+                                            <constraint firstItem="S3o-Kz-csJ" firstAttribute="leading" secondItem="V0f-zc-xhU" secondAttribute="leading" constant="5" id="lgY-6G-yuD"/>
                                             <constraint firstItem="eRz-0B-PPl" firstAttribute="leading" secondItem="V0f-zc-xhU" secondAttribute="leading" id="sUn-7i-tU6"/>
-                                            <constraint firstItem="E9J-Co-zPC" firstAttribute="top" secondItem="V0f-zc-xhU" secondAttribute="top" constant="5" id="wNf-BQ-QMB"/>
+                                            <constraint firstItem="S3o-Kz-csJ" firstAttribute="top" secondItem="V0f-zc-xhU" secondAttribute="top" constant="5" id="tVh-6D-a5K"/>
                                         </constraints>
                                     </customView>
                                 </subviews>
@@ -912,6 +932,7 @@ CA
                     </view>
                     <connections>
                         <outlet property="configuratorView" destination="eRz-0B-PPl" id="HNm-ag-J2G"/>
+                        <outlet property="titleLabel" destination="S3o-Kz-csJ" id="xJS-8r-ioC"/>
                         <segue destination="TDg-0B-lyo" kind="sheet" identifier="suggestions" id="fwr-6P-6Ir"/>
                         <segue destination="OvS-H1-pU0" kind="sheet" identifier="addColumn" id="djH-Ex-vc1"/>
                     </connections>

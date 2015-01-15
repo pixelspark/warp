@@ -12,6 +12,8 @@ protocol QBELocale: NSObjectProtocol {
 	/** String to use when the string qualifier needs to appear in a string itself **/
 	var stringQualifierEscape: String { get }
 	
+	var currentCellIdentifier: String { get }
+	
 	var constants: [QBEValue:String] { get }
 	var unaryFunctions: [String: QBEFunction] { get }
 	
@@ -25,6 +27,7 @@ class QBEDefaultLocale: NSObject, QBELocale {
 	let stringQualifier: Character = "\""
 	let stringQualifierEscape = "\"\""
 	let argumentSeparator = ";"
+	let currentCellIdentifier = "RC"
 	
 	let csvFieldSeparator = ";"
 	let csvLineSeparator = "\r\n"

@@ -221,7 +221,6 @@ class QBESQLiteSourceStep: QBERasterStep {
 	init(url: NSURL) {
 		self.url = url.absoluteString ?? ""
 		super.init()
-		super.explanation = NSAttributedString(string: NSLocalizedString("Load SQLite file from",comment: "") + " " + (url.absoluteString ?? ""))
 		
 		if let url = NSURL(string: self.url) {
 			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
@@ -229,6 +228,10 @@ class QBESQLiteSourceStep: QBERasterStep {
 				self.tableName = first
 			}
 		}
+	}
+	
+	override func description(locale: QBELocale) -> String {
+		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName, url)
 	}
 	
 	private func read() {

@@ -29,7 +29,6 @@
 		658977A51A580FE8001001F2 /* QBESuggestionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658977A41A580FE8001001F2 /* QBESuggestionsViewController.swift */; };
 		658C23B71A5F23A000D6B1D0 /* QBELocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658C23B61A5F23A000D6B1D0 /* QBELocale.swift */; };
 		658C23B81A5F23A000D6B1D0 /* QBELocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658C23B61A5F23A000D6B1D0 /* QBELocale.swift */; };
-		65A393F81A587433004CB2EC /* QBEReplaceStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A393F71A587433004CB2EC /* QBEReplaceStep.swift */; };
 		65A7FC5B1A667F860019B747 /* QBESQLiteSourceConfigurator.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65A7FC5D1A667F860019B747 /* QBESQLiteSourceConfigurator.xib */; };
 		65ABB15E1A0ABF4A00A56C49 /* QBERaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65ABB15D1A0ABF4A00A56C49 /* QBERaster.swift */; };
 		65D6F9DA1A597C81006B6995 /* QBEExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D6F9D91A597C81006B6995 /* QBEExpression.swift */; };
@@ -137,7 +136,6 @@
 		658977A21A57077E001001F2 /* QBESettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESettingsViewController.swift; sourceTree = "<group>"; };
 		658977A41A580FE8001001F2 /* QBESuggestionsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESuggestionsViewController.swift; sourceTree = "<group>"; };
 		658C23B61A5F23A000D6B1D0 /* QBELocale.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBELocale.swift; path = Engine/QBELocale.swift; sourceTree = SOURCE_ROOT; };
-		65A393F71A587433004CB2EC /* QBEReplaceStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEReplaceStep.swift; path = Engine/QBEReplaceStep.swift; sourceTree = SOURCE_ROOT; };
 		65A7FC5C1A667F860019B747 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBESQLiteSourceConfigurator.xib; sourceTree = "<group>"; };
 		65ABB15D1A0ABF4A00A56C49 /* QBERaster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBERaster.swift; path = Engine/QBERaster.swift; sourceTree = SOURCE_ROOT; };
 		65D6F9D91A597C81006B6995 /* QBEExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEExpression.swift; path = Engine/QBEExpression.swift; sourceTree = SOURCE_ROOT; };
@@ -218,7 +216,6 @@
 			children = (
 				65D6F9EC1A59CD1A006B6995 /* QBERasterStep.swift */,
 				6589779D1A55C090001001F2 /* QBELimitStep.swift */,
-				65A393F71A587433004CB2EC /* QBEReplaceStep.swift */,
 				65D6F9DB1A597CC9006B6995 /* QBECalculateStep.swift */,
 				65776EEC1A62D8E700F7F82A /* QBEColumnsStep.swift */,
 			);
@@ -475,7 +472,6 @@
 			files = (
 				651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */,
 				658C23B71A5F23A000D6B1D0 /* QBELocale.swift in Sources */,
-				65A393F81A587433004CB2EC /* QBEReplaceStep.swift in Sources */,
 				652BEC411A063F96002E45C7 /* QBEWindowController.swift in Sources */,
 				65D6F9DC1A597CC9006B6995 /* QBECalculateStep.swift in Sources */,
 				6510A73D1A4E9A47005633EF /* QBEStep.swift in Sources */,
