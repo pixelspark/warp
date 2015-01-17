@@ -50,6 +50,8 @@
 		65E3C2F71A062E5E007BB3C8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 65E3C2F61A062E5E007BB3C8 /* Images.xcassets */; };
 		65E3C2FA1A062E5E007BB3C8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65E3C2F81A062E5E007BB3C8 /* Main.storyboard */; };
 		65E3C3061A062E5E007BB3C8 /* QBETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E3C3051A062E5E007BB3C8 /* QBETests.swift */; };
+		65F3867D1A6B1DFB00C83810 /* SwiftParser.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 652872921A5D16C200C155FA /* SwiftParser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65F4E2611A67D30E00BB57B8 /* QBEWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F4E2601A67D30E00BB57B8 /* QBEWindow.swift */; };
 		65F4E2641A681C3200BB57B8 /* QBERandomConfigurator.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65F4E2631A681C3200BB57B8 /* QBERandomConfigurator.xib */; };
 		65F4E2671A683B3600BB57B8 /* QBECalculateConfigurator.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65F4E2691A683B3600BB57B8 /* QBECalculateConfigurator.xib */; };
@@ -113,6 +115,20 @@
 			remoteInfo = QBE;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		65F3867C1A6B1DEE00C83810 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */,
+				65F3867D1A6B1DFB00C83810 /* SwiftParser.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		6506D3CC1A0A69C500F88F1E /* QBEValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEValue.swift; path = Engine/QBEValue.swift; sourceTree = SOURCE_ROOT; };
@@ -324,6 +340,7 @@
 				65E3C2E81A062E5E007BB3C8 /* Sources */,
 				65E3C2E91A062E5E007BB3C8 /* Frameworks */,
 				65E3C2EA1A062E5E007BB3C8 /* Resources */,
+				65F3867C1A6B1DEE00C83810 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -673,6 +690,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = QBE/QBEObjectiveCBridge.h;
+				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Debug;
 		};
@@ -686,6 +704,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = QBE/QBEObjectiveCBridge.h;
+				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Release;
 		};
