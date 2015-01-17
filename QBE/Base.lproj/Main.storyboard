@@ -835,7 +835,7 @@ CA
         <scene sceneID="4qG-DD-elD">
             <objects>
                 <viewController id="DXE-ii-MK8" customClass="QBEViewController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" wantsLayer="YES" focusRingType="none" id="fdQ-Cz-nnL">
+                    <view key="view" focusRingType="none" id="fdQ-Cz-nnL">
                         <rect key="frame" x="0.0" y="0.0" width="660" height="400"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>

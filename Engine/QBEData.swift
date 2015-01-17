@@ -6,7 +6,7 @@ typealias QBEFilter = (QBERaster) -> (QBERaster)
 /** QBEColumn represents a column (identifier) in a QBEData dataset. Column names in QBEData are case-insensitive when 
 compared, but do retain case. There cannot be two or more columns in a QBEData dataset that are equal to each other when
 compared case-insensitively. **/
-struct QBEColumn: StringLiteralConvertible {
+struct QBEColumn: StringLiteralConvertible, Hashable {
 	typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
 	typealias UnicodeScalarLiteralType = StringLiteralType
 	
@@ -27,6 +27,10 @@ struct QBEColumn: StringLiteralConvertible {
 	init(unicodeScalarLiteral value: UnicodeScalarLiteralType) {
 		self.name = value
 	}
+	
+	var hashValue: Int { get {
+		return self.name.lowercaseString.hashValue
+	} }
 }
 
 /** Column names retain case, but they are compared case-insensitively **/
@@ -64,12 +68,13 @@ protocol QBEData: NSObjectProtocol {
 	cell at [x][y] will end up at position [y][x]. **/
 	func transpose() -> QBEData
 	
-	/** For each row, compute the given expression and put the result in the column identified by targetColumn. If that 
-	column does not yet exist in the data set, it is created and appended as last column. If the column already exists,
-	the column's values are overwritten by the results of the calculation. Note that in this case the old value in the 
-	column is an input value to the formula (this value is nil in the case where the target column doesn't exist yet).
-	Calculations do not apply to the column headers. **/
-	func calculate(targetColumn: QBEColumn, formula: QBEExpression) -> QBEData
+	/** For each row, compute the given expressions and put the result in the desired columns. If that column does not 
+	yet exist in the data set, it is created and appended as last column. The order of existing columns remains intact.
+	If the column already exists, the column's values are overwritten by the results of the calculation. Note that in this
+	case the old value in the column is an input value to the formula (this value is QBEValue.EmptyValue in the case where
+	the target column doesn't exist yet). Calculations do not apply to the column headers. The specified calculations are
+	executed in no particular order. **/
+	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData
 	
 	/** Limit the number of rows in the data set to the specified number of rows. The number of rows does not include
 	column headers. **/

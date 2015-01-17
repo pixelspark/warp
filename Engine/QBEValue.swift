@@ -67,7 +67,7 @@ internal enum QBEValue: Hashable {
 	}
 	
 	init(_ value: Double) {
-		if isnan(value) {
+		if isnan(value) || isinf(value) {
 			self = .InvalidValue
 		}
 		else {
@@ -320,6 +320,14 @@ func == (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	default:
 		return lhs.stringValue == rhs.stringValue
 	}
+}
+
+func != (lhs: QBEValue, rhs: QBEValue) -> Bool {
+	if !lhs.isValid || !rhs.isValid {
+		return true
+	}
+	
+	return !(lhs == rhs)
 }
 
 func > (lhs: QBEValue, rhs: QBEValue) -> Bool {

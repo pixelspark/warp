@@ -126,6 +126,17 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	}
 }
 
+extension Array {
+	func contains<T: Equatable>(value: T) -> Bool {
+		for i in self {
+			if (i as? T) == value {
+				return true
+			}
+		}
+		return false
+	}
+}
+
 class QBESQLData: NSObject, QBEData {
     internal let sql: String
 	let dialect: QBESQLDialect
@@ -142,22 +153,26 @@ class QBESQLData: NSObject, QBEData {
 		return QBERasterData(raster: self.raster()).transpose()
     }
     
-    func calculate(targetColumn: QBEColumn, formula: QBEExpression) -> QBEData {
+	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
 		var values: [String] = []
 		var targetFound = false
-		for column in columnNames {
-			if column == targetColumn {
-				targetFound = true
-				values.append("\(dialect.expressionToSQL(formula, inputValue: dialect.columnIdentifier(targetColumn))) AS \(dialect.columnIdentifier(column))")
+		
+		// Re-calculate existing columns first
+		for targetColumn in columnNames {
+			if calculations[targetColumn] != nil {
+				let expression = calculations[targetColumn]!
+				values.append("\(dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn))) AS \(dialect.columnIdentifier(targetColumn))")
 			}
 			else {
-				values.append(column.name)
+				values.append(targetColumn.name)
 			}
 		}
 		
-		// If a new column is calculated, add it near the end
-		if !targetFound {
-			values.append("\(dialect.expressionToSQL(formula, inputValue: dialect.columnIdentifier(targetColumn))) AS \(dialect.columnIdentifier(targetColumn))")
+		// New columns are added at the end
+		for (targetColumn, expression) in calculations {
+			if !columnNames.contains(targetColumn) {
+				values.append("\(dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn))) AS \(dialect.columnIdentifier(targetColumn))")
+			}
 		}
 		
 		if let valueString = values.implode(", ") {

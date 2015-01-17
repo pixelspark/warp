@@ -27,6 +27,6 @@ class QBECalculateStep: QBEStep {
 	}
 	
 	override func apply(data: QBEData?) -> QBEData? {
-		return data?.calculate(targetColumn, formula: function)
+		return data?.calculate([targetColumn: function])
 	}
 }

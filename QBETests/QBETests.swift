@@ -36,7 +36,7 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEValue("1337") & QBEValue("h4x0r") == QBEValue("1337h4x0r"), "String string concatenation")
 		
 		XCTAssert(QBEValue(12) / QBEValue(2) == QBEValue(6), "Integer division to double")
-		XCTAssert(QBEValue(10.0) / QBEValue(0) == QBEValue.InvalidValue, "Division by zero")
+		XCTAssert(!(QBEValue(10.0) / QBEValue(0)).isValid, "Division by zero")
 		
 		XCTAssert((QBEValue(12) < QBEValue(25)) == QBEValue(true), "Less than")
 		XCTAssert((QBEValue(12) > QBEValue(25)) == QBEValue(false), "Greater than")
@@ -53,10 +53,10 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEValue.EmptyValue == QBEValue.EmptyValue, "Empty equals empty")
 		XCTAssert(QBEValue.EmptyValue != QBEValue(0), "Empty is not equal to zero")
 		XCTAssert(QBEValue.EmptyValue != QBEValue(Double.NaN), "Empty is not equal to double NaN")
-		XCTAssert(QBEValue.EmptyValue == QBEValue(""), "Empty is equal to empty string")
+		XCTAssert(QBEValue.EmptyValue != QBEValue(""), "Empty is not equal to empty string")
 		
 		XCTAssert(!(QBEValue.InvalidValue == QBEValue.InvalidValue), "Invalid value equals nothing")
-		XCTAssert(!(QBEValue.InvalidValue != QBEValue.InvalidValue), "Invalid value inequals nothing")
+		XCTAssert(QBEValue.InvalidValue != QBEValue.InvalidValue, "Invalid value inequals other invalid value")
 	}
 	
 	func testFormulaParser() {
@@ -94,6 +94,39 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEFunction.Absolute.apply([QBEValue(-1)]) == QBEValue(1), "Absolute")
 	}
 	
+	func testQBEDataImplementations() {
+		var d: [[QBEValue]] = []
+		d.append([QBEValue("X"), QBEValue("Y"), QBEValue( "Z")])
+		for i in 0...1000 {
+			d.append([QBEValue(i), QBEValue(i+1), QBEValue(i+2)])
+		}
+		
+		// Test the raster data implementation (the tests below are valid for all QBEData implementations)
+		let data = QBERasterData(data: d)
+		XCTAssert(data.limit(5).raster().rowCount == 5, "Limit actually works")
+		XCTAssert(data.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).columnNames.count == 0, "Selecting an invalid column returns a set without columns")
+		
+		// Repeatedly transpose and check whether the expected number of rows and columns results
+		self.measureBlock() {
+			let rowsBefore = data.raster().rowCount
+			let columnsBefore = data.raster().columnCount
+			
+			var td: QBEData = data
+			for i in 1...11 {
+				td = td.transpose()
+			}
+			
+			XCTAssert(td.raster().rowCount == columnsBefore-1, "Row count matches")
+			XCTAssert(td.raster().columnCount == rowsBefore+1, "Column count matches")
+		}
+		
+		
+		// Test an empty raster
+		let emptyRasterData = QBERasterData(data: [])
+		XCTAssert(emptyRasterData.limit(5).raster().rowCount == 0, "Limit works when number of rows > available rows")
+		XCTAssert(emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).columnNames.count == 0, "Selecting an invalid column works properly in empty raster")
+	}
+	
     func testQBERaster() {
 		var d: [[QBEValue]] = []
 		d.append([QBEValue("X"), QBEValue("Y"), QBEValue( "Z")])
@@ -108,16 +141,6 @@ class QBETests: XCTestCase {
 		XCTAssert(raster.indexOfColumnWithName("x")==0, "Column names should be case-insensitive")
 		XCTAssert(rasterData.raster().rowCount == 1001, "Row count matches")
 		XCTAssert(rasterData.raster().columnCount == 3, "Column count matches")
-		
-		self.measureBlock() {
-			var td: QBEData = rasterData
-			for i in 1...11 {
-				td = td.transpose()
-			}
-
-			XCTAssert(td.raster().rowCount == 2, "Row count matches")
-			XCTAssert(td.raster().columnCount == 1002, "Column count matches")
-        }
     }
     
 }

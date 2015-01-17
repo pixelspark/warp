@@ -62,18 +62,21 @@ class QBERaster {
 		raster.append(row)
 	}
 	
-	func indexOfColumnWithName(name: QBEColumn) -> Int? {
-		if raster.count<1 {
-			return nil
-		}
-		
-		let header = columnNames
-		for i in 0..<self.columnCount {
-			if(header[i]==name) {
+	private class func indexOfColumnWithName(name: QBEColumn, inHeader header: [QBEColumn]) -> Int? {
+		for i in 0..<header.count {
+			if header[i] == name {
 				return i
 			}
 		}
 		return nil
+	}
+	
+	func indexOfColumnWithName(name: QBEColumn) -> Int? {
+		if raster.count < 1 {
+			return nil
+		}
+		
+		return QBERaster.indexOfColumnWithName(name, inHeader: columnNames)
 	}
 	
 	var columnNames: [QBEColumn] {
@@ -299,8 +302,18 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
 			let indexesToKeep = columns.map({(col) -> Int? in return r.indexOfColumnWithName(col)})
-			var newData: [[QBEValue]] = [columns.map({QBEValue($0.name)})]
 			
+			// Create new header
+			var newData: [[QBEValue]] = []
+			var headerRow: [QBEValue] = []
+			for i in indexesToKeep {
+				if i != nil {
+					headerRow.append(QBEValue(r.columnNames[i!].name))
+				}
+			}
+			newData.append(headerRow)
+			
+			// Select columns for each row
 			for rowNumber in 0..<r.rowCount {
 				var oldRow = r[rowNumber]
 				var newRow: [QBEValue] = []
@@ -316,28 +329,37 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 		}
 	}
 	
-	func calculate(targetColumn: QBEColumn, formula: QBEExpression) -> QBEData {
+	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
 			var columnNames = r.columnNames
-			var columnIndex = r.indexOfColumnWithName(targetColumn) ?? -1
-			if columnIndex == -1 {
-				columnNames.append(targetColumn)
-				columnIndex = columnNames.count-1
+			var indices = Dictionary<QBEColumn, Int>()
+			
+			// Create newly calculated columns
+			for (targetColumn, formula) in calculations {
+				var columnIndex = r.indexOfColumnWithName(targetColumn) ?? -1
+				if columnIndex == -1 {
+					columnNames.append(targetColumn)
+					columnIndex = columnNames.count-1
+				}
+				indices[targetColumn] = columnIndex
 			}
 			
+			// Generate header row in raster
 			var newData: [[QBEValue]] = [columnNames.map({QBEValue($0.name)})]
 			
 			let numberOfRows = r.rowCount
 			for rowNumber in 0..<numberOfRows {
 				var row = r[rowNumber]
-				let inputValue: QBEValue? = (row.count <= columnIndex) ? nil : row[columnIndex]
-				let newValue = formula.apply(r, rowNumber: rowNumber, inputValue: inputValue)
 				
-				if row.count > columnIndex {
-					row[columnIndex] = newValue
+				for n in 0..<(columnNames.count - row.count) {
+					row.append(QBEValue.EmptyValue)
 				}
-				else {
-					row.append(newValue)
+				
+				for (targetColumn, formula) in calculations {
+					let columnIndex = indices[targetColumn]!
+					let inputValue: QBEValue = row[columnIndex]
+					let newValue = formula.apply(r, rowNumber: rowNumber, inputValue: inputValue)
+					row[columnIndex] = newValue
 				}
 				
 				newData.append(row)
@@ -351,7 +373,8 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 		return apply {(r: QBERaster) -> QBERaster in
 			var newData: [[QBEValue]] = [r.columnNames.map({s in return QBEValue(s.name)})]
 			
-			for rowNumber in 0..<numberOfRows {
+			let resultingNumberOfRows = min(numberOfRows, r.rowCount)
+			for rowNumber in 0..<resultingNumberOfRows {
 				newData.append(r[rowNumber])
 			}
 			

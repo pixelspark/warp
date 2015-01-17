@@ -166,6 +166,15 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		updateFormulaField()
 	}
 	
+	func tableGrid(aTableGrid: MBTableGrid!, canMoveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
+		return true
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, moveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
+		println("move \(columnIndexes) toIndex: \(index)")
+		return true
+	}
+	
 	override func awakeFromNib() {
 		self.view.focusRingType = NSFocusRingType.None
 		if self.tableView == nil {
