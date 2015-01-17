@@ -839,7 +839,7 @@ CA
                         <rect key="frame" x="0.0" y="0.0" width="660" height="400"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <visualEffectView appearanceType="vibrantLight" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="UN0-Q7-D7L">
+                            <visualEffectView appearanceType="aqua" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="UN0-Q7-D7L">
                                 <rect key="frame" x="0.0" y="0.0" width="660" height="400"/>
                                 <subviews>
                                     <containerView canDrawConcurrently="YES" focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
@@ -875,7 +875,7 @@ CA
                                                 <textFieldCell key="cell" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="Description..." drawsBackground="YES" allowsEditingTextAttributes="YES" id="EYp-ek-F52">
                                                     <font key="font" metaFont="cellTitle"/>
                                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.59999999999999998" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                 </textFieldCell>
                                                 <connections>
                                                     <binding destination="DXE-ii-MK8" name="enabled" keyPath="self.currentStep" id="Lqz-vl-5ge">
@@ -946,7 +946,7 @@ CA
         <scene sceneID="BjY-ZD-Y7M">
             <objects>
                 <viewController id="heg-Gg-TM4" customClass="QBEDataViewController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" focusRingType="none" appearanceType="aqua" id="qWX-f7-1Jq">
+                    <view key="view" focusRingType="none" id="qWX-f7-1Jq">
                         <rect key="frame" x="0.0" y="0.0" width="605" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
@@ -958,7 +958,7 @@ CA
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" enabled="NO" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="6vy-kH-wgk">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
                                     <action selector="setValueFromFormulaField:" target="heg-Gg-TM4" id="YjA-oc-jlA"/>

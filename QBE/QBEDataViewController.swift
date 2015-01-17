@@ -119,7 +119,8 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
-		return NSColor.whiteColor()
+		let cols = NSColor.controlAlternatingRowBackgroundColors()
+		return (cols[Int(rowIndex) % cols.count] as? NSColor)!
 	}
 	
 	private func updateFormulaField() {
