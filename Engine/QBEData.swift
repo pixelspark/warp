@@ -1,12 +1,11 @@
 import Foundation
 
 typealias QBEFuture = () -> QBERaster
-typealias QBEFilter = (QBERaster) -> (QBERaster)
 
 /** QBEColumn represents a column (identifier) in a QBEData dataset. Column names in QBEData are case-insensitive when 
 compared, but do retain case. There cannot be two or more columns in a QBEData dataset that are equal to each other when
 compared case-insensitively. **/
-struct QBEColumn: StringLiteralConvertible, Hashable {
+struct QBEColumn: StringLiteralConvertible, Hashable, DebugPrintable {
 	typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
 	typealias UnicodeScalarLiteralType = StringLiteralType
 	
@@ -30,6 +29,10 @@ struct QBEColumn: StringLiteralConvertible, Hashable {
 	
 	var hashValue: Int { get {
 		return self.name.lowercaseString.hashValue
+	} }
+	
+	var debugDescription: String { get {
+		return "QBEColumn(\(name))"
 	} }
 }
 
@@ -55,6 +58,15 @@ func memoize<T>(result: () -> T) -> () -> T {
 			return cached!
 		}
 	}
+}
+
+/** Specification of an aggregation. The map expression generates values (it is called for each item and included in the
+set if it is non-empty). The reduce function receives the mapped items as arguments and reduces them to a single value.
+Note that the reduce function can be called multiple times with different sets (e.g. reduce(reduce(a,b), reduce(c,d)) 
+should be equal to reduce(a,b,c,d). **/
+struct QBEAggregation {
+	var map: QBEExpression
+	var reduce: QBEFunction
 }
 
 /** QBEData represents a data set. A data set consists of a set of column names (QBEColumn) and rows that each have a 
@@ -88,6 +100,12 @@ protocol QBEData: NSObjectProtocol {
 	/* Select only the columns from the data set that are in the array, in the order specified. If a column named in the 
 	array does not exist, it is ignored. */
 	func selectColumns(columns: [QBEColumn]) -> QBEData
+	
+	
+	/** Aggregate data in this set. The 'groups' parameter defines different aggregation 'buckets'. Items are mapped in
+	into each bucket. Subsequently, the aggregations specified in the 'values' parameter are run on each bucket 
+	separately. The resulting data set starts with the group identifier columns, followed by the aggregation results. **/
+	func aggregate(groups: [QBEColumn:QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData
 	
 	func stream(receiver: ([[QBEValue]]) -> ())
 	

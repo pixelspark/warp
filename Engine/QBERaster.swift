@@ -1,5 +1,7 @@
 import Foundation
 
+typealias QBEFilter = (QBERaster) -> (QBERaster)
+
 private extension Array {
 	mutating func removeObjectsAtIndexes(indexes: NSIndexSet, offset: Int) {
 		for var i = indexes.lastIndex; i != NSNotFound; i = indexes.indexLessThanIndex(i) {
@@ -379,6 +381,88 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 			}
 			
 			return QBERaster(newData, readOnly: true)
+		}
+	}
+	
+	func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
+		/* This implementation is fairly naive and simply generates a tree where each node is a particular aggregation
+		group label. The first aggregation group defines the first level in the tree, the second group is the second
+		level, et cetera. Values are stored at the leafs and are 'reduced' at the end, producing a value for each 
+		possible group label combination. */
+		class QBEIndex {
+			var children = Dictionary<QBEValue, QBEIndex>()
+			var values: [QBEColumn: [QBEValue]]? = nil
+			
+			func reduce(aggregations: [QBEColumn : QBEAggregation], callback: ([QBEValue]) -> (), row: [QBEValue] = []) {
+				if values != nil {
+					var result = Dictionary<QBEColumn, QBEValue>()
+					var newRow = row
+					for (column, aggregation) in aggregations {
+						newRow.append(aggregation.reduce.apply(values![column] ?? []))
+					}
+					callback(newRow)
+				}
+				else {
+					for (val, index) in children {
+						var newRow = row
+						newRow.append(val)
+						index.reduce(aggregations, callback: callback, row: newRow)
+					}
+				}
+			}
+		}
+		
+		return apply {(r: QBERaster) -> QBERaster in
+			let index = QBEIndex()
+			
+			for rowNumber in 0..<r.rowCount {
+				let row = r[rowNumber]
+				
+				// Calculate group values
+				var currentIndex = index
+				for (groupColumn, groupExpression) in groups {
+					let groupValue = groupExpression.apply(r, rowNumber: rowNumber, inputValue: nil)
+					
+					if let nextIndex = currentIndex.children[groupValue] {
+						currentIndex = nextIndex
+					}
+					else {
+						let nextIndex = QBEIndex()
+						currentIndex.children[groupValue] = nextIndex
+						currentIndex = nextIndex
+					}
+				}
+				
+				// Calculate values
+				if currentIndex.values == nil {
+					currentIndex.values = Dictionary<QBEColumn, [QBEValue]>()
+				}
+				
+				for (column, value) in values {
+					let result = value.map.apply(r, rowNumber: rowNumber, inputValue: nil)
+					if let bag = currentIndex.values![column] {
+						currentIndex.values![column]!.append(result)
+					}
+					else {
+						currentIndex.values![column] = [result]
+					}
+				}
+			}
+
+			// Generate output raster and column headers
+			var headers: [QBEValue] = []
+			for (columnName, expression) in groups {
+				headers.append(QBEValue(columnName.name))
+			}
+			
+			for (columnName, aggregation) in values {
+				headers.append(QBEValue(columnName.name))
+			}
+			var newRaster: [[QBEValue]] = [headers]
+			
+			// Time to aggregate
+			index.reduce(values, callback: {newRaster.append($0)})
+			return QBERaster(newRaster)
 		}
 	}
 	

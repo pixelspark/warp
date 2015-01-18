@@ -670,6 +670,11 @@ CA
                                                 <action selector="randomlySelectRows:" target="Ady-hI-5gd" id="ejq-Vh-tsl"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Pivot data..." keyEquivalent="d" id="LEF-fQ-bF7">
+                                            <connections>
+                                                <action selector="pivot:" target="Ady-hI-5gd" id="OaH-7f-Umg"/>
+                                            </connections>
+                                        </menuItem>
                                     </items>
                                 </menu>
                             </menuItem>

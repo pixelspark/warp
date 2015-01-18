@@ -49,6 +49,8 @@ class QBETests: XCTestCase {
 		XCTAssert((QBEValue(12) == QBEValue(12.0)) == QBEValue(true), "Int == double")
 		XCTAssert((QBEValue(12.0) != QBEValue(12)) == QBEValue(false), "Double != int")
 		XCTAssert((QBEValue(12) != QBEValue(12.0)) == QBEValue(false), "Int != double")
+		XCTAssert(QBEValue("12") == QBEValue(12), "String number is treated as number")
+		XCTAssert((QBEValue("12") + QBEValue("13")) == QBEValue(25), "String number is treated as number")
 		
 		XCTAssert(QBEValue.EmptyValue == QBEValue.EmptyValue, "Empty equals empty")
 		XCTAssert(QBEValue.EmptyValue != QBEValue(0), "Empty is not equal to zero")
@@ -92,6 +94,9 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEFunction.Uppercase.apply([QBEValue("Tommy")]) == QBEValue("TOMMY"), "Uppercase")
 		
 		XCTAssert(QBEFunction.Absolute.apply([QBEValue(-1)]) == QBEValue(1), "Absolute")
+		
+		XCTAssert(QBEFunction.Count.apply([]) == QBEValue(0), "Empty count returns zero")
+		XCTAssert(QBEFunction.Count.apply([QBEValue(1), QBEValue(1), QBEValue.InvalidValue, QBEValue.EmptyValue]) == QBEValue(4), "Count includes invalid values and empty values")
 	}
 	
 	func testQBEDataImplementations() {

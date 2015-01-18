@@ -22,6 +22,24 @@ internal extension Array {
 		
 		return nil
 	}
+	
+	func each (call: (Element) -> ()) {
+		for item in self {
+			call(item)
+		}
+	}
+	
+	mutating func remove <U: Equatable> (element: U) {
+		let anotherSelf = self
+		removeAll(keepCapacity: true)
+		
+		anotherSelf.each {
+			(current: Element) in
+			if current as U != element {
+				self.append(current)
+			}
+		}
+	}
 }
 
 internal extension Double {
@@ -54,7 +72,7 @@ internal extension Int {
 	}
 }
 
-internal enum QBEValue: Hashable {
+internal enum QBEValue: Hashable, DebugPrintable {
 	case StringValue(String)
 	case IntValue(Int)
 	case BoolValue(Bool)
@@ -128,6 +146,17 @@ internal enum QBEValue: Hashable {
 		case .DoubleValue(let d): return nil
 		case .EmptyValue: return nil
 		case .InvalidValue: return nil
+		}
+	} }
+	
+	var debugDescription: String { get {
+		switch self {
+		case .StringValue(let s): return "QBEValue.String('\(s)')"
+		case .IntValue(let i): return "QBEValue.Int(\(i))"
+		case .BoolValue(let b): return "QBEValue.Bool(\(b))"
+		case .DoubleValue(let d): return "QBEValue.Double(\(d))"
+		case .EmptyValue: return "QBEValue.Empty"
+		case .InvalidValue: return "QBEValue.Invalid"
 		}
 	} }
 	
@@ -206,9 +235,7 @@ class QBEValueCoder: NSObject, NSSecureCoding {
 func / (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			if rd == 0 {
-				return QBEValue.InvalidValue
-			}
+			// Division by zero will result in QBEValue.InvalidValue (handled in QBEValue initializer, which checks isnan/isinf)
 			return QBEValue(ld / rd)
 		}
 	}
@@ -233,22 +260,12 @@ func & (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 }
 
 func * (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	switch (lhs, rhs) {
-	case (.IntValue, .IntValue):
-		return QBEValue.IntValue(lhs.intValue! * rhs.intValue!)
-		
-	case (.DoubleValue, .DoubleValue):
-		return QBEValue.DoubleValue(lhs.doubleValue! * rhs.doubleValue!)
-		
-	case (.IntValue, .DoubleValue):
-		return QBEValue.DoubleValue(lhs.doubleValue! * rhs.doubleValue!)
-		
-	case (.DoubleValue, .IntValue):
-		return QBEValue.DoubleValue(lhs.doubleValue! * rhs.doubleValue!)
-		
-	default:
-		return QBEValue.InvalidValue
+	if let ld = lhs.doubleValue {
+		if let rd = rhs.doubleValue {
+			return QBEValue.DoubleValue(ld * rd)
+		}
 	}
+	return QBEValue.InvalidValue
 }
 
 func ^ (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
@@ -261,41 +278,21 @@ func ^ (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 }
 
 func + (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	switch (lhs, rhs) {
-	case (.IntValue, .IntValue):
-		return QBEValue.IntValue(lhs.intValue! + rhs.intValue!)
-		
-	case (.DoubleValue, .DoubleValue):
-		return QBEValue.DoubleValue(lhs.doubleValue! + rhs.doubleValue!)
-		
-	case (.IntValue, .DoubleValue):
-		return QBEValue.DoubleValue(lhs.doubleValue! + rhs.doubleValue!)
-		
-	case (.DoubleValue, .IntValue):
-		return QBEValue.DoubleValue(lhs.doubleValue! + rhs.doubleValue!)
-		
-	default:
-		return QBEValue.InvalidValue
+	if let ld = lhs.doubleValue {
+		if let rd = rhs.doubleValue {
+			return QBEValue.DoubleValue(ld + rd)
+		}
 	}
+	return QBEValue.InvalidValue
 }
 
 func - (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	switch (lhs, rhs) {
-	case (.IntValue, .IntValue):
-		return QBEValue.IntValue(lhs.intValue! - rhs.intValue!)
-		
-	case (.DoubleValue, .DoubleValue):
-		return QBEValue.DoubleValue(lhs.doubleValue! - rhs.doubleValue!)
-		
-	case (.IntValue, .DoubleValue):
-		return QBEValue.DoubleValue(lhs.doubleValue! - rhs.doubleValue!)
-		
-	case (.DoubleValue, .IntValue):
-		return QBEValue.DoubleValue(lhs.doubleValue! - rhs.doubleValue!)
-		
-	default:
-		return QBEValue.InvalidValue
+	if let ld = lhs.doubleValue {
+		if let rd = rhs.doubleValue {
+			return QBEValue.DoubleValue(ld - rd)
+		}
 	}
+	return QBEValue.InvalidValue
 }
 
 func == (lhs: QBEValue, rhs: QBEValue) -> Bool {

@@ -67,6 +67,9 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		"XOR": QBEFunction.Xor,
 		"REPLACE": QBEFunction.Substitute,
 		"TRIM": QBEFunction.Trim,
+		"SUM": QBEFunction.Sum,
+		"COUNT": QBEFunction.Count,
+		"AVERAGE": QBEFunction.Average,
 		
 		// Non-Excel functions
 		"COALESCE": QBEFunction.Coalesce,

@@ -312,6 +312,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("limitRows:") {
 			return currentStep != nil
 		}
+		else if item.action()==Selector("pivot:") {
+			return currentStep != nil
+		}
 		else {
 			return false
 		}
@@ -375,6 +378,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				}
 			}
 		})
+	}
+	
+	@IBAction func pivot(sender: NSObject) {
+		suggestSteps([QBEPivotStep(previous: currentStep)])
 	}
 	
 	@IBAction func calculate(sender: NSObject) {

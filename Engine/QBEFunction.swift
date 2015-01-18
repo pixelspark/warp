@@ -50,6 +50,9 @@ enum QBEFunction: String {
 	case Trim = "trim"
 	case Coalesce = "coalesce"
 	case IfError = "iferror"
+	case Count = "count"
+	case Sum = "sum"
+	case Average = "average"
 	
 	var description: String { get {
 		switch self {
@@ -83,6 +86,9 @@ enum QBEFunction: String {
 		case .Trim: return NSLocalizedString("trim spaces", comment: "")
 		case .Coalesce: return NSLocalizedString("first non-empty value", comment: "")
 		case .IfError: return NSLocalizedString("if error", comment: "")
+		case .Count: return NSLocalizedString("number of", comment: "")
+		case .Sum: return NSLocalizedString("sum of", comment: "")
+		case .Average: return NSLocalizedString("average of", comment: "")
 		}
 	} }
 	
@@ -127,6 +133,9 @@ enum QBEFunction: String {
 		case .Trim: return QBEArity.Fixed(1)
 		case .Coalesce: return QBEArity.Any
 		case .IfError: return QBEArity.Fixed(2)
+		case .Count: return QBEArity.Any
+		case .Sum: return QBEArity.Any
+		case .Average: return QBEArity.Any
 		}
 	} }
 	
@@ -332,6 +341,9 @@ enum QBEFunction: String {
 				return QBEValue(countElements(s))
 			}
 			return QBEValue.InvalidValue
+			
+		case .Count:
+			return QBEValue(arguments.count)
 		
 		case .Substitute:
 			if let source = arguments[0].stringValue {
@@ -349,12 +361,22 @@ enum QBEFunction: String {
 				return QBEValue(s.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()))
 			}
 			return QBEValue.InvalidValue
+			
+		case .Sum:
+			var sum: QBEValue = QBEValue(0)
+			arguments.each({sum = sum + $0})
+			return sum
+		
+		case .Average:
+			var sum: QBEValue = QBEValue(0)
+			arguments.each({sum = sum + $0})
+			return sum / QBEValue(arguments.count)
 		}
 	}
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
-		If, Left, Right, Mid, Length, Substitute
+		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average
 	]
 }
 
