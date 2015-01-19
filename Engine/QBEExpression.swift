@@ -116,19 +116,6 @@ class QBEIdentityExpression: QBEExpression {
 	}
 }
 
-extension String {
-	func histogram() -> [Character: Int] {
-		var histogram = Dictionary<Character, Int>()
-		
-		for ch in self {
-			let old: Int = histogram[ch] ?? 0
-			histogram[ch] = old+1
-		}
-		
-		return histogram
-	}
-}
-
 class QBEBinaryExpression: QBEExpression {
 	var first: QBEExpression
 	var second: QBEExpression

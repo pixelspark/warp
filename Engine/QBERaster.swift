@@ -2,14 +2,6 @@ import Foundation
 
 typealias QBEFilter = (QBERaster) -> (QBERaster)
 
-private extension Array {
-	mutating func removeObjectsAtIndexes(indexes: NSIndexSet, offset: Int) {
-		for var i = indexes.lastIndex; i != NSNotFound; i = indexes.indexLessThanIndex(i) {
-			self.removeAtIndex(i+offset)
-		}
-	}
-}
-
 class QBERaster {
 	var raster: [[QBEValue]] {
 		didSet {

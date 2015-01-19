@@ -1,6 +1,6 @@
 import Foundation
 
-enum QBEArity {
+enum QBEArity: Equatable {
 	case Fixed(Int)
 	case Between(Int, Int)
 	case Any
@@ -16,6 +16,17 @@ enum QBEArity {
 		case .Any:
 			return true
 		}
+	}
+}
+
+func ==(lhs: QBEArity, rhs: QBEArity) -> Bool {
+	switch (lhs, rhs) {
+		case (.Any, .Any):
+			return true
+		case (.Fixed(let lf), .Fixed(let rf)):
+			return lf == rf
+		default:
+			return false
 	}
 }
 
@@ -53,6 +64,11 @@ enum QBEFunction: String {
 	case Count = "count"
 	case Sum = "sum"
 	case Average = "average"
+	case Min = "min"
+	case Max = "max"
+	case RandomItem = "randomItem"
+	case CountAll = "countAll"
+	case Pack = "pack"
 	
 	var description: String { get {
 		switch self {
@@ -86,14 +102,19 @@ enum QBEFunction: String {
 		case .Trim: return NSLocalizedString("trim spaces", comment: "")
 		case .Coalesce: return NSLocalizedString("first non-empty value", comment: "")
 		case .IfError: return NSLocalizedString("if error", comment: "")
-		case .Count: return NSLocalizedString("number of", comment: "")
+		case .Count: return NSLocalizedString("count", comment: "")
 		case .Sum: return NSLocalizedString("sum of", comment: "")
 		case .Average: return NSLocalizedString("average of", comment: "")
+		case .Min: return NSLocalizedString("lowest", comment: "")
+		case .Max: return NSLocalizedString("highest", comment: "")
+		case .RandomItem: return NSLocalizedString("random item", comment: "")
+		case .CountAll: return NSLocalizedString("number of items", comment: "")
+		case .Pack: return NSLocalizedString("pack", comment: "")
 		}
 	} }
 	
 	func toFormula(locale: QBELocale) -> String {
-		for (name, function) in locale.unaryFunctions {
+		for (name, function) in locale.functions {
 			if function == self {
 				return name
 			}
@@ -136,6 +157,11 @@ enum QBEFunction: String {
 		case .Count: return QBEArity.Any
 		case .Sum: return QBEArity.Any
 		case .Average: return QBEArity.Any
+		case .Max: return QBEArity.Any
+		case .Min: return QBEArity.Any
+		case .RandomItem: return QBEArity.Any
+		case .CountAll: return QBEArity.Any
+		case .Pack: return QBEArity.Any
 		}
 	} }
 	
@@ -216,7 +242,14 @@ enum QBEFunction: String {
 				}
 			}
 			return QBEValue(s)
-	
+			
+		case .Pack:
+			let res = arguments.map({
+				$0.stringValue?.stringByReplacingOccurrencesOfString(QBEPackEscape, withString: QBEPackEscapeEscape).stringByReplacingOccurrencesOfString(QBEPackSeparator, withString: QBEPackSeparatorEscape) ?? ""
+			})
+			
+			return QBEValue.StringValue(res.implode(QBEPackSeparator) ?? "")
+			
 		case .If:
 			if let d = arguments[0].boolValue {
 				return d ? arguments[1] : arguments[2]
@@ -343,6 +376,17 @@ enum QBEFunction: String {
 			return QBEValue.InvalidValue
 			
 		case .Count:
+			// Count only counts the number of numeric values
+			var count = 0
+			arguments.each({
+				if let d = $0.doubleValue {
+					count++
+				}
+			})
+			return QBEValue(count)
+			
+		case .CountAll:
+			// Like COUNTARGS in Excel, this function returns the number of arguments
 			return QBEValue(arguments.count)
 		
 		case .Substitute:
@@ -364,19 +408,52 @@ enum QBEFunction: String {
 			
 		case .Sum:
 			var sum: QBEValue = QBEValue(0)
-			arguments.each({sum = sum + $0})
+			arguments.each({
+				let s = sum + $0
+				
+				// SUM just ignores anything that doesn't add up
+				if s.isValid {
+					sum = s
+				}
+			})
 			return sum
 		
 		case .Average:
-			var sum: QBEValue = QBEValue(0)
-			arguments.each({sum = sum + $0})
+			var sum = QBEFunction.Sum.apply(arguments)
 			return sum / QBEValue(arguments.count)
+			
+		case .Min:
+			var least: QBEValue? = nil
+			for argument in arguments {
+				if least == nil || (argument.isValid && argument < least!) {
+					least = argument
+				}
+			}
+			return least ?? QBEValue.InvalidValue
+			
+		case .Max:
+			var least: QBEValue? = nil
+			for argument in arguments {
+				if least == nil || (argument.isValid && argument > least!) {
+					least = argument
+				}
+			}
+			return least ?? QBEValue.InvalidValue
+			
+		case .RandomItem:
+			if arguments.count == 0 {
+				return QBEValue.EmptyValue
+			}
+			else {
+				let index = Int.random(0..<arguments.count)
+				return arguments[index]
+			}
 		}
 	}
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
-		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average
+		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError
 	]
 }
 

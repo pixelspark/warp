@@ -989,11 +989,11 @@ CA
             <objects>
                 <viewController id="TDg-0B-lyo" customClass="QBESuggestionsViewController" customModule="QBE" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="y6U-4M-OI9">
-                        <rect key="frame" x="0.0" y="0.0" width="450" height="225"/>
+                        <rect key="frame" x="0.0" y="0.0" width="593" height="225"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aWK-mn-gan">
-                                <rect key="frame" x="386" y="3" width="60" height="32"/>
+                                <rect key="frame" x="529" y="3" width="60" height="32"/>
                                 <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="fMr-YO-xzR">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1006,7 +1006,7 @@ DQ
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="4c7-Mt-6gd">
-                                <rect key="frame" x="305" y="3" width="83" height="32"/>
+                                <rect key="frame" x="448" y="3" width="83" height="32"/>
                                 <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="8sW-jH-n5w">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1019,7 +1019,7 @@ Gw
                                 </connections>
                             </button>
                             <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EGb-hU-fkL">
-                                <rect key="frame" x="10" y="41" width="430" height="174"/>
+                                <rect key="frame" x="10" y="41" width="573" height="174"/>
                                 <clipView key="contentView" id="1sO-PC-Eiu">
                                     <rect key="frame" x="1" y="0.0" width="238" height="134"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1031,7 +1031,7 @@ Gw
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                             <tableColumns>
-                                                <tableColumn width="425" minWidth="40" maxWidth="1000" id="pgO-DP-Hm6">
+                                                <tableColumn width="568" minWidth="40" maxWidth="1000" id="pgO-DP-Hm6">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -1080,7 +1080,7 @@ Gw
                 </viewController>
                 <customObject id="hZp-iq-JdD" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="567" y="1102.5"/>
+            <point key="canvasLocation" x="638.5" y="1102.5"/>
         </scene>
         <!--Add Column View Controller-->
         <scene sceneID="c4P-Dw-LPh">

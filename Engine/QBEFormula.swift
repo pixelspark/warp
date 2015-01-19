@@ -64,7 +64,7 @@ internal func matchLiteralInsensitive(string:String) -> ParserRule {
 	}
 }
 
-struct QBECall {
+private struct QBECall {
 	let function: QBEFunction
 	var args: [QBEExpression] = []
 	
@@ -183,13 +183,13 @@ class QBEFormula: Parser {
 	}
 	
 	private func pushCall() {
-		if let qu = locale.unaryFunctions[self.text] {
+		if let qu = locale.functions[self.text] {
 			callStack.push(QBECall(function: qu))
 			return
 		}
 		
 		// Case insensitive function find (slower)
-		for (name, function) in locale.unaryFunctions {
+		for (name, function) in locale.functions {
 			if name.caseInsensitiveCompare(self.text) == NSComparisonResult.OrderedSame {
 				callStack.push(QBECall(function: function))
 				return
@@ -220,7 +220,7 @@ class QBEFormula: Parser {
 	override func rules() {
 		// String literals & constants
 		add_named_rule("arguments",			rule: (("(" ~ matchList(^"logic" => pushArgument, literal(locale.argumentSeparator)) ~ ")")))
-		add_named_rule("unaryFunction",		rule: ((matchAnyFrom(locale.unaryFunctions.keys.array.map({matchLiteralInsensitive($0)})) => pushCall) ~ ^"arguments") => popCall)
+		add_named_rule("unaryFunction",		rule: ((matchAnyFrom(locale.functions.keys.array.map({matchLiteralInsensitive($0)})) => pushCall) ~ ^"arguments") => popCall)
 		add_named_rule("constant",			rule: matchAnyFrom(locale.constants.values.array.map({matchLiteralInsensitive($0)})) => pushConstant)
 		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~  ((matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
 		

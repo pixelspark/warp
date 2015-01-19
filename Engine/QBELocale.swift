@@ -1,5 +1,13 @@
 import Foundation
 
+// Non-localized constants go here
+let QBEPackSeparator = ","
+let QBEPackEscape = "\\"
+let QBEPackSeparatorEscape = "\\0"
+let QBEPackEscapeEscape = "\\1"
+
+/** QBELocale contains settings that determine how values are presented to the user. Results from QBELocale are *never* 
+used in a calculation, as they change when the user selects a different locale. **/
 protocol QBELocale: NSObjectProtocol {
 	/** The decimal separator symbol **/
 	var decimalSeparator: String { get }
@@ -14,8 +22,12 @@ protocol QBELocale: NSObjectProtocol {
 	
 	var currentCellIdentifier: String { get }
 	
+	/** All constants that can be used in formulas (optionally the UI can choose to translate numbers back to constant 
+	names, but this is not done often, only for boolean values) **/
 	var constants: [QBEValue:String] { get }
-	var unaryFunctions: [String: QBEFunction] { get }
+	
+	/** A list of all function names and the QBEFunction they refer to. **/
+	var functions: [String: QBEFunction] { get }
 	
 	/** For CSV writing and reading **/
 	func csvRow(row: [QBEValue]) -> String
@@ -40,7 +52,7 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		QBEValue(3.141592654): "PI"
 	]
 	
-	let unaryFunctions = [
+	let functions = [
 		"UPPER": QBEFunction.Uppercase,
 		"LOWER": QBEFunction.Lowercase,
 		"ABS": QBEFunction.Absolute,
@@ -70,10 +82,14 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		"SUM": QBEFunction.Sum,
 		"COUNT": QBEFunction.Count,
 		"AVERAGE": QBEFunction.Average,
+		"COUNTARGS": QBEFunction.CountAll,
+		"MIN": QBEFunction.Min,
+		"MAX": QBEFunction.Max,
 		
 		// Non-Excel functions
 		"COALESCE": QBEFunction.Coalesce,
-		"IFERROR": QBEFunction.IfError
+		"IFERROR": QBEFunction.IfError,
+		"PACK": QBEFunction.Pack
 	]
 	
 	func csvRow(row: [QBEValue]) -> String {

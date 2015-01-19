@@ -50,9 +50,17 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	func aggregationToSQL(aggregation: QBEAggregation) -> String {
 		switch aggregation.reduce {
 			case .Average: return "AVG(\(expressionToSQL(aggregation.map, inputValue: nil))"
-			case .Count: return "COUNT(\(expressionToSQL(aggregation.map, inputValue: nil)))"
+			case .CountAll: return "COUNT(\(expressionToSQL(aggregation.map, inputValue: nil)))"
+			// FIXME: TYPEOF and its return values will be different for other RDBMSes
+			case .Count: return "SUM(CASE WHEN TYPEOF(\(expressionToSQL(aggregation.map, inputValue: nil)) IN('integer', 'real')) THEN 1 ELSE 0 END)"
 			case .Sum: return "SUM(\(expressionToSQL(aggregation.map, inputValue: nil)))"
-
+			case .Min: return "MIN(\(expressionToSQL(aggregation.map, inputValue: nil)))"
+			case .Max: return "MAX(\(expressionToSQL(aggregation.map, inputValue: nil)))"
+			
+			/* FIXME: RandomItem can be implemented using a UDF aggregation function in PostgreSQL. Implementing it in 
+			SQLite is not easy.. (perhaps QBE can define a UDF from Swift?). */
+			case .RandomItem: fatalError("Not implemented")
+			
 			default:
 				fatalError("Not implemented")
 		}
@@ -93,9 +101,19 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Xor: return "((\(args[0])<>\(args[1])) AND (\(args[0]) OR \(args[1])))"
 			case .Coalesce: return "COALESCE(\(value))"
 			case .IfError: return "IFNULL(\(args[0]), \(args[1]))" // In SQLite, the result of (1/0) equals NULL
-			case .Count: return "\(args.count)"
 			case .Sum: return args.implode(" + ") ?? "0"
 			case .Average: return "(" + (args.implode(" + ") ?? "0") + ")/\(args.count)"
+			case .Min: return "MIN(\(value))" // Should be LEAST in SQL Server
+			case .Max: return "MAX(\(value))" // Might be GREATEST in SQL Server
+			case .RandomItem: return (args.count > 0) ? args[Int.random(0..<args.count)] : "NULL"
+			
+			/* FIXME: These could simply call QBEFunction.Count.apply() if the parameters are constant, but then we need 
+			the original QBEExpression arguments. */
+			case .Count: fatalError("Not implemented")
+			case .CountAll:  fatalError("Not implemented")
+			
+			// FIXME: implement Pack in SQL (use REPLACE etc.)
+			case .Pack: fatalError("Not implemented")
 		}
 	}
 	
@@ -219,7 +237,7 @@ class QBESQLData: NSObject, QBEData {
 		var select: [String] = []
 		for (column, expression) in groups {
 			select.append("\(dialect.expressionToSQL(expression, inputValue: nil)) AS \(dialect.columnIdentifier(column))")
-			select.append("\(dialect.expressionToSQL(expression, inputValue: nil))")
+			groupBy.append("\(dialect.expressionToSQL(expression, inputValue: nil))")
 		}
 		
 		for (column, aggregation) in values {
@@ -228,11 +246,11 @@ class QBESQLData: NSObject, QBEData {
 		
 		let selectString = select.implode(", ") ?? ""
 		if let groupString = groupBy.implode(", ") {
-			return apply("SELECT \(selectString) FROM \(sql) GROUP BY \(groupString)")
+			return apply("SELECT \(selectString) FROM (\(sql)) GROUP BY \(groupString)")
 		}
 		else {
 			// No columns to group by, total aggregates it is
-			return apply("SELECT \(selectString) FROM \(sql)")
+			return apply("SELECT \(selectString) FROM (\(sql))")
 		}
 	}
 	

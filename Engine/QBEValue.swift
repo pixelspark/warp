@@ -12,10 +12,21 @@ internal extension String {
 			return end.memory != 0 ? nil : result
 		}
 	}
+	
+	func histogram() -> [Character: Int] {
+		var histogram = Dictionary<Character, Int>()
+		
+		for ch in self {
+			let old: Int = histogram[ch] ?? 0
+			histogram[ch] = old+1
+		}
+		
+		return histogram
+	}
 }
 
 internal extension Array {
-	func implode <C: ExtensibleCollectionType> (separator: C) -> C? {
+	func implode<C: ExtensibleCollectionType>(separator: C) -> C? {
 		if Element.self is C.Type {
 			return Swift.join(separator, unsafeBitCast(self, [C].self))
 		}
@@ -23,7 +34,7 @@ internal extension Array {
 		return nil
 	}
 	
-	func each (call: (Element) -> ()) {
+	func each(call: (Element) -> ()) {
 		for item in self {
 			call(item)
 		}
@@ -38,6 +49,12 @@ internal extension Array {
 			if current as U != element {
 				self.append(current)
 			}
+		}
+	}
+	
+	mutating func removeObjectsAtIndexes(indexes: NSIndexSet, offset: Int) {
+		for var i = indexes.lastIndex; i != NSNotFound; i = indexes.indexLessThanIndex(i) {
+			self.removeAtIndex(i+offset)
 		}
 	}
 }
@@ -69,6 +86,20 @@ internal extension Int {
 	
 	func toDouble() -> Double {
 		return Double(self)
+	}
+	
+	static func random(range: Range<Int>) -> Int {
+		var offset = 0
+		
+		if range.startIndex < 0   // allow negative ranges
+		{
+			offset = abs(range.startIndex)
+		}
+		
+		let mini = UInt32(range.startIndex + offset)
+		let maxi = UInt32(range.endIndex   + offset)
+		
+		return Int(mini + arc4random_uniform(maxi - mini)) - offset
 	}
 }
 

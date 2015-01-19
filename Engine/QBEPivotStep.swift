@@ -12,7 +12,7 @@ private func toDictionary<E, K, V>(array: [E], transformer: (element: E) -> (key
 class QBEPivotStep: QBEStep {
 	var rows: [QBEColumn] = []
 	var columns: [QBEColumn] = []
-	var aggregates: [QBEColumn] = []
+	var aggregates: [QBEAggregation] = []
 	
 	override init(previous: QBEStep?) {
 		super.init(previous: previous)
@@ -21,16 +21,14 @@ class QBEPivotStep: QBEStep {
 	required init(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
 		
-		if let a = aDecoder.decodeObjectForKey("aggregates") as? [String] {
-			aggregates = a.map({QBEColumn($0)})
-		}
+		aggregates = aDecoder.decodeObjectForKey("aggregates") as? [QBEAggregation] ?? []
 		
 		if let r = aDecoder.decodeObjectForKey("rows") as? [String] {
-			aggregates = r.map({QBEColumn($0)})
+			rows = r.map({QBEColumn($0)})
 		}
 		
 		if let c = aDecoder.decodeObjectForKey("columns") as? [String] {
-			aggregates = c.map({QBEColumn($0)})
+			columns = c.map({QBEColumn($0)})
 		}
 	}
 	
@@ -38,13 +36,12 @@ class QBEPivotStep: QBEStep {
 		super.encodeWithCoder(coder)
 		
 		// NSCoder can't store QBEColumn, so we store the raw names
-		let a = aggregates.map({$0.name})
 		let c = columns.map({$0.name})
 		let r = rows.map({$0.name})
 		
 		coder.encodeObject(r, forKey: "rows")
 		coder.encodeObject(c, forKey: "columns")
-		coder.encodeObject(a, forKey: "aggregates")
+		coder.encodeObject(aggregates, forKey: "aggregates")
 	}
 	
 	override func description(locale: QBELocale) -> String {
@@ -53,8 +50,10 @@ class QBEPivotStep: QBEStep {
 	
 	override func apply(data: QBEData?) -> QBEData? {
 		let groups = toDictionary(rows, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
-		let values = toDictionary(aggregates, { ($0, QBEAggregation(map: QBESiblingExpression(columnName: $0), reduce: QBEFunction.Count)) })
 		
+		/* FIXME: the explanation is locale-depended. We need to keep column names constant. Suggest to use 
+		toLocale(QBEDefaultLocale) or to let the user choose a title and then store it permanently in QBEAggregation. */
+		let values = toDictionary(aggregates, { ($0.targetColumnName, $0) })
 		return data?.aggregate(groups, values: values)
 	}
 }

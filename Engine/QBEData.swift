@@ -64,9 +64,33 @@ func memoize<T>(result: () -> T) -> () -> T {
 set if it is non-empty). The reduce function receives the mapped items as arguments and reduces them to a single value.
 Note that the reduce function can be called multiple times with different sets (e.g. reduce(reduce(a,b), reduce(c,d)) 
 should be equal to reduce(a,b,c,d). **/
-struct QBEAggregation {
+class QBEAggregation: NSObject, NSCoding {
 	var map: QBEExpression
 	var reduce: QBEFunction
+	var targetColumnName: QBEColumn
+	
+	init(map: QBEExpression, reduce: QBEFunction, targetColumnName: QBEColumn) {
+		self.map = map
+		self.reduce = reduce
+		self.targetColumnName = targetColumnName
+	}
+	
+	required init(coder: NSCoder) {
+		targetColumnName = QBEColumn(coder.decodeObjectForKey("targetColumnName") as? String ?? "")
+		map = coder.decodeObjectForKey("map") as? QBEExpression ?? QBEIdentityExpression()
+		if let rawReduce = coder.decodeObjectForKey("reduce") as? String {
+			reduce = QBEFunction(rawValue: rawReduce) ?? QBEFunction.Identity
+		}
+		else {
+			reduce = QBEFunction.Identity
+		}
+	}
+	
+	func encodeWithCoder(aCoder: NSCoder) {
+		aCoder.encodeObject(targetColumnName.name, forKey: "targetColumnName")
+		aCoder.encodeObject(map, forKey: "map")
+		aCoder.encodeObject(reduce.rawValue, forKey: "reduce")
+	}
 }
 
 /** QBEData represents a data set. A data set consists of a set of column names (QBEColumn) and rows that each have a 
