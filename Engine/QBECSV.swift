@@ -1,7 +1,7 @@
 import Foundation
 
-class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
-    var raster = QBERaster()
+internal class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
+	var data: [QBERow] = []
     var row : [QBEValue] = []
 	let limit: Int?
 	var limitAchieved = false
@@ -10,6 +10,10 @@ class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
 	init(limit: Int? = nil) {
 		self.limit = limit
 	}
+	
+	var raster: QBERaster { get {
+		return QBERaster(data)
+	} }
 	
     func parser(parser: CHCSVParser, didBeginLine line: UInt) {
 		if (limit? != nil) && limit! < (Int(line)-2) {
@@ -23,7 +27,7 @@ class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
     }
     
     func parser(parser: CHCSVParser, didEndLine line: UInt) {
-        raster.raster.append(row)
+        data.append(row)
 		if columnCount == nil {
 			columnCount = row.count
 		}
@@ -68,7 +72,7 @@ class QBECSVSourceStep: QBERasterStep {
 		read(url)
 	}
 	
-	override func description(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale) -> String {
 		return String(format: NSLocalizedString("Load CSV file from '%@' ",comment: ""), url)
 	}
 	

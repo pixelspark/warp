@@ -2,12 +2,9 @@ import Foundation
 
 typealias QBEFilter = (QBERaster) -> (QBERaster)
 
-class QBERaster {
-	var raster: [[QBEValue]] {
-		didSet {
-			// FIXME: check whether duplicate column names have been introduced
-		}
-	}
+class QBERaster: DebugPrintable {
+	var raster: [[QBEValue]]
+	var columnNames: [QBEColumn] = []
 	
 	var readOnly: Bool
 	
@@ -19,16 +16,22 @@ class QBERaster {
 	init(_ data: [[QBEValue]]) {
 		raster = data
 		readOnly = false
+		updateColumns()
 	}
 	
 	init(_ data: [[QBEValue]], readOnly: Bool) {
 		self.readOnly = readOnly
 		self.raster = data
+		updateColumns()
+	}
+	
+	private func updateColumns() {
+		columnNames = raster.count > 0 ? raster[0].map({QBEColumn($0.stringValue!)}) : []
 	}
 	
 	var isEmpty: Bool { get {
 		return raster.count==0
-		}}
+	}}
 	
 	func removeRows(set: NSIndexSet) {
 		if readOnly {
@@ -45,6 +48,7 @@ class QBERaster {
 		for i in 0..<raster.count {
 			raster[i].removeObjectsAtIndexes(set, offset: 0)
 		}
+		updateColumns()
 	}
 	
 	func addRow() {
@@ -71,12 +75,6 @@ class QBERaster {
 		}
 		
 		return QBERaster.indexOfColumnWithName(name, inHeader: columnNames)
-	}
-	
-	var columnNames: [QBEColumn] {
-		get {
-			return raster.count > 0 ? raster[0].map({QBEColumn($0.stringValue!)}) : []
-		}
 	}
 	
 	var rowCount: Int {
@@ -132,7 +130,7 @@ class QBERaster {
 		}
 	}
 	
-	func description() -> String {
+	var debugDescription: String { get {
 		var d = ""
 		
 		var line = "\t|"
@@ -144,12 +142,12 @@ class QBERaster {
 		for rowNumber in 0..<rowCount {
 			var line = "\(rowNumber)\t|"
 			for colNumber in 0..<self.columnCount {
-				line += self[rowNumber, colNumber].description + "\t|"
+				line += self[rowNumber, colNumber].debugDescription + "\t|"
 			}
 			d += line + "\r\n"
 		}
 		return d
-	}
+	} }
 	
 	func compare(other: QBERaster) -> Bool {
 		// Compare row count
@@ -183,7 +181,7 @@ class QBERaster {
 }
 
 
-class QBERasterData: NSObject, QBEData, NSCoding {
+class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 	private(set) var raster: QBEFuture
 	
 	override init() {
@@ -256,10 +254,10 @@ class QBERasterData: NSObject, QBEData, NSCoding {
 		changeRasterDirectly({(r: QBERaster) -> QBERaster in r.addRow(); return r })
 	}
 	
-	override var description: String {
+	override var debugDescription: String {
 		get {
 			let r = raster()
-			return r.description()
+			return r.debugDescription
 		}
 	}
 	

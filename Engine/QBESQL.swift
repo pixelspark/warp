@@ -1,12 +1,31 @@
 import Foundation
 
+/** Classes that implement QBESQLDialect provide SQL generating classes with tools to build SQL queries in a particular
+dialect. The standard dialect (implemented in QBEStandardSQLDialect) sticks as closely to the SQL92 standard (to implement
+a particular dialect, the standard dialect should be subclassed and should only implement the exceptions). **/
 protocol QBESQLDialect {
+	/** The string that starts and ends a string literal. **/
 	var stringQualifier: String { get }
+	
+	/** The string that is used to escape occurrences of the string qualifier in a literal. All occurrences are replaced
+	with the escape qualifier before the string is inserted in SQL. **/
 	var stringQualifierEscape: String { get }
+	
+	/** The string that is used to start and end identifiers (e.g. table or column names) in SQL. **/
 	var identifierQualifier: String { get }
+	
+	/** The string that is used to escape the identifier qualifier in identifiers that contain it. **/
 	var identifierQualifierEscape: String { get }
+	
+	/** Returns a column identifier for the given QBEColumn. **/
 	func columnIdentifier(column: QBEColumn) -> String
+	
+	/** Transforms the given expression to a SQL string. The inputValue parameter determines the return value of the
+	QBEIdentitiyExpression. **/
 	func expressionToSQL(formula: QBEExpression, inputValue: String?) -> String
+	
+	/** Transforms the given aggregation to an aggregation description that can be incldued as part of a GROUP BY 
+	statement. **/
 	func aggregationToSQL(aggregation: QBEAggregation) -> String
 }
 
@@ -159,29 +178,24 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	}
 }
 
-extension Array {
-	func contains<T: Equatable>(value: T) -> Bool {
-		for i in self {
-			if (i as? T) == value {
-				return true
-			}
-		}
-		return false
-	}
-}
-
+/** QBESQLData implements a general SQL-based data source. It maintains a single SQL statement that (when executed) 
+should return the data represented by this data set. This class needs to be subclassed to be able to actually fetch the
+data (a subclass implements the raster function to return the fetched data, preferably the stream function to return a
+stream of results, and the apply function, to make sure any operations on the data set return a data set of the same
+subclassed type). See QBESQLite for an implementation example. **/
 class QBESQLData: NSObject, QBEData {
     internal let sql: String
 	let dialect: QBESQLDialect
 	var columnNames: [QBEColumn] { get {
-		fatalError("Sublcass should implement")
+		fatalError("Sublcass should implement columnNames")
 	} }
     
 	internal init(sql: String, dialect: QBESQLDialect) {
         self.sql = sql
 		self.dialect = dialect
     }
-    
+	
+	/** Transposition is difficult in SQL, and therefore left to QBERasterData. **/
     func transpose() -> QBEData {
 		return QBERasterData(raster: self.raster()).transpose()
     }

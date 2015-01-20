@@ -11,7 +11,7 @@ class QBEColumnsStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func description(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale) -> String {
 		if columnNames.count == 0 {
 			return NSLocalizedString("Remove all columns", comment: "")
 		}

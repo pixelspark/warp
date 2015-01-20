@@ -8,7 +8,7 @@ class QBELimitStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func description(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale) -> String {
 		return String(format: NSLocalizedString("Select the top %d rows", comment: ""), numberOfRows)
 	}
 	
@@ -32,7 +32,7 @@ class QBERandomStep: QBELimitStep {
 		super.init(previous: previous, numberOfRows: numberOfRows)
 	}
 	
-	override func description(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale) -> String {
 		return String(format: NSLocalizedString("Randomly select %d rows", comment: ""), numberOfRows)
 	}
 	

@@ -10,8 +10,8 @@ class QBECalculateStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 	
-	override func description(locale: QBELocale) -> String {
-		return String(format: NSLocalizedString("Calculate column %@ as %@", comment: ""), targetColumn.name, function.explanation)
+	override func explain(locale: QBELocale) -> String {
+		return String(format: NSLocalizedString("Calculate column %@ as %@", comment: ""), targetColumn.name, function.explain(locale))
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {

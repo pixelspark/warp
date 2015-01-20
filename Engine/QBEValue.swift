@@ -1,5 +1,9 @@
 import Foundation
 
+protocol QBEExplainable {
+	func explain(locale: QBELocale) -> String
+}
+
 internal extension String {
 	func toDouble() -> Double? {
 		if self.isEmpty || self.hasPrefix(" ") {
@@ -57,6 +61,15 @@ internal extension Array {
 			self.removeAtIndex(i+offset)
 		}
 	}
+	
+	func contains<T: Equatable>(value: T) -> Bool {
+		for i in self {
+			if (i as? T) == value {
+				return true
+			}
+		}
+		return false
+	}
 }
 
 internal extension Double {
@@ -103,7 +116,17 @@ internal extension Int {
 	}
 }
 
-internal enum QBEValue: Hashable, DebugPrintable {
+/** QBEValue is used to represent all values in data sets. Although QBEValue can represent values of different types, 
+values of different types can usually easily be converted to another type. QBEValue closely models the way values are
+handled in Excel and SQL (striving for a greatest common denominator where possible). QBEValue supports four data types
+(string, integer, boolean and double) and two special types: 'empty' indicates a value that is intentionally empty (but
+should not trigger an error and is for instance equal to an empty string and 0 in some calculations) and 'invalid' (which
+represents the result of an invalid operation and should trigger subsequent operations on the value to also return 
+'invalid'). 
+
+Note that while QBEValue is an enum, it cannot be encoded using NSCoding. Wrap QBEValues inside QBEValueCoder before 
+encoding or decoding using NSCoding. **/
+internal enum QBEValue: Hashable, DebugPrintable, QBEExplainable {
 	case StringValue(String)
 	case IntValue(Int)
 	case BoolValue(Bool)
@@ -195,19 +218,37 @@ internal enum QBEValue: Hashable, DebugPrintable {
 		return (self < QBEValue(0)) ? -self : self
 	}
 	
-	var description: String { get {
-		// FIXME: return something sensible for empty/invalid values
-		return self.stringValue ?? ""
-	} }
-	
 	var isValid: Bool { get {
 		switch self {
 		case .InvalidValue: return false
 		default: return true
 		}
 	} }
+	
+	func explain(locale: QBELocale) -> String {
+		switch self {
+		case .BoolValue(let b):
+			return b ? NSLocalizedString("true", comment: "") : NSLocalizedString("false", comment: "")
+			
+		case .StringValue(let s):
+			return s
+		
+		case .DoubleValue(let d):
+			return "\(d)" // TODO: should format using QBELocale
+			
+		case .IntValue(let i):
+			return "\(i)" // TODO: format using QBELocale
+			
+		case .InvalidValue:
+			return ""
+			
+		case .EmptyValue:
+			return ""
+		}
+	}
 }
 
+/** QBEValueCoder implements encoding for QBEValue (which cannot implement it as it is an enum). **/
 class QBEValueCoder: NSObject, NSSecureCoding {
 	let value: QBEValue
 	

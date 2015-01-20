@@ -1,6 +1,13 @@
 import Foundation
 
-class QBEStep: NSObject {
+/** Represents a data manipulation step. Steps usually connect to (at least) one previous step and (sometimes) a next step.
+The step transforms a data manipulation on the data produced by the previous step; the results are in turn used by the 
+next. Steps work on two datasets: the 'example' data set (which is used to let the user design the data manipulation) and
+the 'full' data (which is the full dataset on which the final data operations are run). 
+
+Subclasses of QBEStep implement the data manipulation in the apply function, and should implement the description method
+as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. **/
+class QBEStep: NSObject, QBEExplainable {
 	var exampleData: QBEData? {
 		get {
 			return apply(self.previous?.exampleData)
@@ -14,15 +21,17 @@ class QBEStep: NSObject {
 	}
 	
 	var previous: QBEStep?
-	var next: QBEStep?
+	var next: QBEStep? // FIXME: memory leak (either previous or next should be weak when QBEDocument references the chain)
 	var explanation: NSAttributedString?
 	
-	func description(locale: QBELocale) -> String {
+	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific
+	 configuration of the step. **/
+	func explain(locale: QBELocale) -> String {
 		return NSLocalizedString("Unknown step", comment: "")
 	}
 	
 	override private init() {
-		self.explanation = NSAttributedString(string: "Hello")
+		self.explanation = NSAttributedString(string: "")
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -46,12 +55,14 @@ class QBEStep: NSObject {
 	}
 }
 
+/** The transpose step implements a row-column switch. It has no configuration and relies on the QBEData transpose()
+implementation to do the actual work. **/
 class QBETransposeStep: QBEStep {
 	override func apply(data: QBEData?) -> QBEData? {
 		return data?.transpose()
 	}
 	
-	override func description(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale) -> String {
 		return NSLocalizedString("Switch rows/columns", comment: "")
 	}
 }

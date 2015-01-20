@@ -230,7 +230,7 @@ class QBESQLiteSourceStep: QBERasterStep {
 		}
 	}
 	
-	override func description(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale) -> String {
 		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName, url)
 	}
 	

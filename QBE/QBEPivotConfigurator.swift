@@ -40,7 +40,7 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 		aggregatorsMenu = NSMenu()
 		for fun in QBEFunction.allFunctions {
 			if fun.arity == QBEArity.Any {
-				let item = NSMenuItem(title: fun.description, action: nil, keyEquivalent: "")
+				let item = NSMenuItem(title: fun.explain(delegate!.locale), action: nil, keyEquivalent: "")
 				item.representedObject = fun.rawValue
 				aggregatorsMenu!.addItem(item)
 			}
@@ -234,7 +234,7 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 				return step?.columns[row].name
 				
 			case aggregatesTable!:
-				return step?.aggregates[row].map.explanation
+				return step?.aggregates[row].map.explain(delegate!.locale)
 				
 			default:
 				return ""
@@ -244,7 +244,7 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 	internal func numberOfRowsInTableView(tableView: NSTableView) -> Int {
 		switch tableView {
 			case allTable!:
-				return step?.previous?.exampleData?.raster().columnNames.count ?? 0
+				return step?.previous?.exampleData?.columnNames.count ?? 0
 				
 			case rowsTable!:
 				return step?.rows.count ?? 0

@@ -7,14 +7,14 @@ let QBEExpressions: [QBEExpression.Type] = [
 	QBEIdentityExpression.self
 ]
 
-class QBEExpression: NSObject, NSCoding {
-	var explanation: String { get {
+class QBEExpression: NSObject, NSCoding, QBEExplainable {
+	func explain(locale: QBELocale) -> String {
 		return "??"
-		}}
+	}
 	
 	var complexity: Int { get {
 		return 1
-		}}
+	}}
 	
 	override init() {
 	}
@@ -51,9 +51,9 @@ class QBELiteralExpression: QBEExpression {
 		super.init(coder: aDecoder)
 	}
 	
-	override var explanation: String { get {
-		return value.description
-	} }
+	override func explain(locale: QBELocale) -> String {
+		return value.explain(locale)
+	}
 	
 	override func toFormula(locale: QBELocale) -> String {
 		switch value {
@@ -98,10 +98,9 @@ class QBEIdentityExpression: QBEExpression {
 		super.init()
 	}
 	
-	override var explanation: String { get {
-		return NSLocalizedString("value", comment: "")
-		}}
-	
+	override func explain(locale: QBELocale) -> String {
+		return NSLocalizedString("current value", comment: "")
+	}
 
 	override func toFormula(locale: QBELocale) -> String {
 		return locale.currentCellIdentifier
@@ -121,9 +120,9 @@ class QBEBinaryExpression: QBEExpression {
 	var second: QBEExpression
 	var type: QBEBinary
 	
-	override var explanation: String { get {
-		return "(" + second.explanation + " " + type.description + " " + first.explanation + ")"
-		}}
+	override func explain(locale: QBELocale) -> String {
+		return "(" + second.explain(locale) + " " + type.explain(locale) + " " + first.explain(locale) + ")"
+	}
 	
 	override func toFormula(locale: QBELocale) -> String {
 		return "(\(second.toFormula(locale)) \(type.toFormula(locale)) \(first.toFormula(locale)))"
@@ -170,10 +169,10 @@ class QBEFunctionExpression: QBEExpression {
 	var arguments: [QBEExpression]
 	var type: QBEFunction
 	
-	override var explanation: String { get {
-		let argumentsList = arguments.map({$0.explanation}).implode(", ") ?? ""
-		return "\(type.description)(\(argumentsList))"
-	}}
+	override func explain(locale: QBELocale) -> String {
+		let argumentsList = arguments.map({$0.explain(locale)}).implode(", ") ?? ""
+		return "\(type.explain(locale))(\(argumentsList))"
+	}
 	
 	override func toFormula(locale: QBELocale) -> String {
 		let args = arguments.map({$0.toFormula(locale)}).implode(locale.argumentSeparator) ?? ""
@@ -258,9 +257,9 @@ class QBESiblingExpression: QBEExpression {
 		super.init()
 	}
 	
-	override var explanation: String { get {
+	override func explain(locale: QBELocale) -> String {
 		return NSLocalizedString("value in column", comment: "")+" "+columnName.name
-		}}
+	}
 	
 	required init(coder aDecoder: NSCoder) {
 		columnName = QBEColumn((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")

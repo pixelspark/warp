@@ -9,6 +9,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	@IBOutlet var tableView: MBTableGrid?
 	@IBOutlet var formulaField: NSTextField?
 	weak var delegate: QBEDataViewDelegate!
+	var locale: QBELocale!
 	
 	var raster: QBERaster? {
 		didSet {
@@ -74,7 +75,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		if let r = raster {
 			if columnIndex>=0 {
 				let x = r[Int(rowIndex), Int(columnIndex)]
-				return x.description
+				return x.explain(locale)
 			}
 		}
 		return ""

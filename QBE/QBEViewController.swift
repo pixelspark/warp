@@ -47,7 +47,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				let className = s.className
 				let configurator = QBEConfigurators[className]?(step: s, delegate: self)
 				self.configuratorViewController = configurator
-				self.titleLabel?.attributedStringValue = NSAttributedString(string: s.description(locale))
+				self.titleLabel?.attributedStringValue = NSAttributedString(string: s.explain(locale))
 				presentData(s.exampleData)
 			}
 			else {
@@ -390,7 +390,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			dispatch_async(gq) {
 				if let fr = step.fullData?.raster() {
 					println("All good: \(fr.columnCount)x\(fr.rowCount)")
-					println("\(fr.description())")
+					println("\(fr)")
 				}
 				else {
 					println("No full result... this is bad")
@@ -423,6 +423,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			dataViewController = segue.destinationController as? QBEDataViewController
 			dataViewController?.data = currentStep?.exampleData
 			dataViewController?.delegate = self
+			dataViewController?.locale = locale
 		}
 		else if segue.identifier=="suggestions" {
 			let sv = segue.destinationController as? QBESuggestionsViewController

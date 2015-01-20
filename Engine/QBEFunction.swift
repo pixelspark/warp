@@ -30,7 +30,7 @@ func ==(lhs: QBEArity, rhs: QBEArity) -> Bool {
 	}
 }
 
-enum QBEFunction: String {
+enum QBEFunction: String, QBEExplainable {
 	case Uppercase = "upper"
 	case Lowercase = "lower"
 	case Negate = "negate"
@@ -70,48 +70,48 @@ enum QBEFunction: String {
 	case CountAll = "countAll"
 	case Pack = "pack"
 	
-	var description: String { get {
+	func explain(locale: QBELocale) -> String {
 		switch self {
-		case .Uppercase: return NSLocalizedString("uppercase", comment: "")
-		case .Lowercase: return NSLocalizedString("lowercase", comment:"")
-		case .Negate: return NSLocalizedString("-", comment:"")
-		case .Absolute: return NSLocalizedString("absolute", comment:"")
-		case .Identity: return NSLocalizedString("", comment:"")
-		case .And: return NSLocalizedString("and", comment:"")
-		case .Or: return NSLocalizedString("or", comment:"")
-		case .If: return NSLocalizedString("if", comment: "")
-		case .Concat: return NSLocalizedString("concatenate", comment: "")
-		case .Cos: return NSLocalizedString("cose", comment:"")
-		case .Sin: return NSLocalizedString("sine", comment:"")
-		case .Tan: return NSLocalizedString("tangens", comment:"")
-		case .Cosh: return NSLocalizedString("cosine hyperbolic", comment:"")
-		case .Sinh: return NSLocalizedString("sine hyperbolic", comment:"")
-		case .Tanh: return NSLocalizedString("tangens hyperbolic", comment:"")
-		case .Acos: return NSLocalizedString("arc cosine", comment:"")
-		case .Asin: return NSLocalizedString("arc sine", comment:"")
-		case .Atan: return NSLocalizedString("arc tangens", comment:"")
-		case .Sqrt: return NSLocalizedString("square root", comment:"")
-		case .Left: return NSLocalizedString("leftmost characters", comment: "")
-		case .Right: return NSLocalizedString("rightmost characters", comment: "")
-		case .Length: return NSLocalizedString("length of text", comment: "")
-		case .Mid: return NSLocalizedString("substring", comment: "")
-		case .Log: return NSLocalizedString("logarithm", comment: "")
-		case .Not: return NSLocalizedString("not", comment: "")
-		case .Substitute: return NSLocalizedString("substitute", comment: "")
-		case .Xor: return NSLocalizedString("xor", comment: "")
-		case .Trim: return NSLocalizedString("trim spaces", comment: "")
-		case .Coalesce: return NSLocalizedString("first non-empty value", comment: "")
-		case .IfError: return NSLocalizedString("if error", comment: "")
-		case .Count: return NSLocalizedString("count", comment: "")
-		case .Sum: return NSLocalizedString("sum of", comment: "")
-		case .Average: return NSLocalizedString("average of", comment: "")
-		case .Min: return NSLocalizedString("lowest", comment: "")
-		case .Max: return NSLocalizedString("highest", comment: "")
-		case .RandomItem: return NSLocalizedString("random item", comment: "")
-		case .CountAll: return NSLocalizedString("number of items", comment: "")
-		case .Pack: return NSLocalizedString("pack", comment: "")
+			case .Uppercase: return NSLocalizedString("uppercase", comment: "")
+			case .Lowercase: return NSLocalizedString("lowercase", comment:"")
+			case .Negate: return NSLocalizedString("-", comment:"")
+			case .Absolute: return NSLocalizedString("absolute", comment:"")
+			case .Identity: return NSLocalizedString("", comment:"")
+			case .And: return NSLocalizedString("and", comment:"")
+			case .Or: return NSLocalizedString("or", comment:"")
+			case .If: return NSLocalizedString("if", comment: "")
+			case .Concat: return NSLocalizedString("concatenate", comment: "")
+			case .Cos: return NSLocalizedString("cose", comment:"")
+			case .Sin: return NSLocalizedString("sine", comment:"")
+			case .Tan: return NSLocalizedString("tangens", comment:"")
+			case .Cosh: return NSLocalizedString("cosine hyperbolic", comment:"")
+			case .Sinh: return NSLocalizedString("sine hyperbolic", comment:"")
+			case .Tanh: return NSLocalizedString("tangens hyperbolic", comment:"")
+			case .Acos: return NSLocalizedString("arc cosine", comment:"")
+			case .Asin: return NSLocalizedString("arc sine", comment:"")
+			case .Atan: return NSLocalizedString("arc tangens", comment:"")
+			case .Sqrt: return NSLocalizedString("square root", comment:"")
+			case .Left: return NSLocalizedString("leftmost characters", comment: "")
+			case .Right: return NSLocalizedString("rightmost characters", comment: "")
+			case .Length: return NSLocalizedString("length of text", comment: "")
+			case .Mid: return NSLocalizedString("substring", comment: "")
+			case .Log: return NSLocalizedString("logarithm", comment: "")
+			case .Not: return NSLocalizedString("not", comment: "")
+			case .Substitute: return NSLocalizedString("substitute", comment: "")
+			case .Xor: return NSLocalizedString("xor", comment: "")
+			case .Trim: return NSLocalizedString("trim spaces", comment: "")
+			case .Coalesce: return NSLocalizedString("first non-empty value", comment: "")
+			case .IfError: return NSLocalizedString("if error", comment: "")
+			case .Count: return NSLocalizedString("count", comment: "")
+			case .Sum: return NSLocalizedString("sum of", comment: "")
+			case .Average: return NSLocalizedString("average of", comment: "")
+			case .Min: return NSLocalizedString("lowest", comment: "")
+			case .Max: return NSLocalizedString("highest", comment: "")
+			case .RandomItem: return NSLocalizedString("random item", comment: "")
+			case .CountAll: return NSLocalizedString("number of items", comment: "")
+			case .Pack: return NSLocalizedString("pack", comment: "")
 		}
-	} }
+	}
 	
 	func toFormula(locale: QBELocale) -> String {
 		for (name, function) in locale.functions {
@@ -457,7 +457,7 @@ enum QBEFunction: String {
 	]
 }
 
-enum QBEBinary: String {
+enum QBEBinary: String, QBEExplainable {
 	case Addition = "add"
 	case Subtraction = "sub"
 	case Multiplication = "mul"
@@ -472,7 +472,7 @@ enum QBEBinary: String {
 	case Equal = "eq"
 	case NotEqual = "neq"
 	
-	var description: String { get {
+	func explain(locale: QBELocale) -> String {
 		switch self {
 		case .Addition: return "+"
 		case .Subtraction: return "-"
@@ -488,10 +488,10 @@ enum QBEBinary: String {
 		case .Equal: return "="
 		case .NotEqual: return "<>"
 		}
-	} }
+	}
 	
 	func toFormula(locale: QBELocale) -> String {
-		return self.description
+		return self.explain(locale)
 	}
 	
 	func apply(left: QBEValue, _ right: QBEValue) -> QBEValue {
