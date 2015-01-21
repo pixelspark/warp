@@ -2,6 +2,7 @@ import Foundation
 
 internal class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
 	var data: [QBERow] = []
+	var columns: [QBEColumn] = []
     var row : [QBEValue] = []
 	let limit: Int?
 	var limitAchieved = false
@@ -12,7 +13,7 @@ internal class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
 	}
 	
 	var raster: QBERaster { get {
-		return QBERaster(data)
+		return QBERaster(data: data, columnNames: columns)
 	} }
 	
     func parser(parser: CHCSVParser, didBeginLine line: UInt) {
@@ -27,9 +28,12 @@ internal class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
     }
     
     func parser(parser: CHCSVParser, didEndLine line: UInt) {
-        data.append(row)
 		if columnCount == nil {
 			columnCount = row.count
+			columns = row.map({QBEColumn($0.stringValue ?? "")})
+		}
+		else {
+			data.append(row)
 		}
     }
     
@@ -50,8 +54,9 @@ class QBECSVWriter: NSObject, NSStreamDelegate {
 	func writeToFile(file: NSURL) {
 		// FIXME: Very naive implementation...
 		var csv = ""
+		csv += self.locale.csvRow(data.columnNames.map({QBEValue($0.name)}))
 		
-		data.stream({ (rows: [[QBEValue]]) -> () in
+		data.stream({ (columnNames: [QBEColumn], rows: [[QBEValue]]) -> () in
 			for row in rows {
 				csv += self.locale.csvRow(row)
 			}

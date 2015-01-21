@@ -2,6 +2,7 @@ import Foundation
 
 typealias QBEFuture = () -> QBERaster
 typealias QBERow = [QBEValue]
+typealias QBESink = ([QBEColumn], [QBERow]) -> ()
 
 /** QBEColumn represents a column (identifier) in a QBEData dataset. Column names in QBEData are case-insensitive when 
 compared, but do retain case. There cannot be two or more columns in a QBEData dataset that are equal to each other when
@@ -133,7 +134,7 @@ protocol QBEData: NSObjectProtocol {
 	func aggregate(groups: [QBEColumn:QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData
 	
 	/** Request streaming of the data contained in this dataset to the specified callback. **/
-	func stream(receiver: ([QBERow]) -> ())
+	func stream(receiver: QBESink)
 	
 	/** Returns an in-memory representation (QBERaster) of the data set. **/
 	var raster: QBEFuture { get }

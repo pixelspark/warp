@@ -1,32 +1,23 @@
 import Foundation
 
-typealias QBEFilter = (QBERaster) -> (QBERaster)
+internal typealias QBEFilter = (QBERaster) -> (QBERaster)
 
 class QBERaster: DebugPrintable {
 	var raster: [[QBEValue]]
-	var columnNames: [QBEColumn] = []
+	var columnNames: [QBEColumn]
 	
 	var readOnly: Bool
 	
 	init() {
 		raster = []
+		columnNames = []
 		readOnly = false
 	}
 	
-	init(_ data: [[QBEValue]]) {
-		raster = data
-		readOnly = false
-		updateColumns()
-	}
-	
-	init(_ data: [[QBEValue]], readOnly: Bool) {
-		self.readOnly = readOnly
+	init(data: [[QBEValue]], columnNames: [QBEColumn], readOnly: Bool = false) {
 		self.raster = data
-		updateColumns()
-	}
-	
-	private func updateColumns() {
-		columnNames = raster.count > 0 ? raster[0].map({QBEColumn($0.stringValue!)}) : []
+		self.columnNames = columnNames
+		self.readOnly = readOnly
 	}
 	
 	var isEmpty: Bool { get {
@@ -37,7 +28,7 @@ class QBERaster: DebugPrintable {
 		if readOnly {
 			fatalError("Raster is read-only")
 		}
-		raster.removeObjectsAtIndexes(set, offset: 1)
+		raster.removeObjectsAtIndexes(set, offset: 0)
 	}
 	
 	func removeColumns(set: NSIndexSet) {
@@ -45,10 +36,11 @@ class QBERaster: DebugPrintable {
 			fatalError("Raster is read-only")
 		}
 		
+		columnNames.removeObjectsAtIndexes(set, offset: 0)
+		
 		for i in 0..<raster.count {
 			raster[i].removeObjectsAtIndexes(set, offset: 0)
 		}
-		updateColumns()
 	}
 	
 	func addRow() {
@@ -60,32 +52,25 @@ class QBERaster: DebugPrintable {
 		raster.append(row)
 	}
 	
-	private class func indexOfColumnWithName(name: QBEColumn, inHeader header: [QBEColumn]) -> Int? {
-		for i in 0..<header.count {
-			if header[i] == name {
+	func indexOfColumnWithName(name: QBEColumn) -> Int? {
+		for i in 0..<columnNames.count {
+			if columnNames[i] == name {
 				return i
 			}
 		}
-		return nil
-	}
-	
-	func indexOfColumnWithName(name: QBEColumn) -> Int? {
-		if raster.count < 1 {
-			return nil
-		}
 		
-		return QBERaster.indexOfColumnWithName(name, inHeader: columnNames)
+		return nil
 	}
 	
 	var rowCount: Int {
 		get {
-			return max(0, raster.count-1)
+			return raster.count
 		}
 	}
 	
 	var columnCount: Int {
 		get {
-			return raster.count > 0 ? raster[0].count : 0
+			return columnNames.count
 		}
 	}
 	
@@ -102,16 +87,16 @@ class QBERaster: DebugPrintable {
 	
 	subscript(row: Int) -> [QBEValue] {
 		assert(row < rowCount)
-		return raster[row+1]
+		return raster[row]
 	}
 	
 	subscript(row: Int, col: Int) -> QBEValue {
 		assert(row < rowCount)
 		assert(col < columnCount)
 		
-		let rowData = raster[row+1]
+		let rowData = raster[row]
 		if(col > rowData.count) {
-			return QBEValue("")
+			fatalError("Encountered a QBERaster row that does not contain the prescribed amount of cells")
 		}
 		return rowData[col]
 	}
@@ -124,9 +109,7 @@ class QBERaster: DebugPrintable {
 		}
 		
 		if let col = indexOfColumnWithName(forColumn) {
-			var rowData = raster[row+1]
-			rowData[col] = value
-			raster[row+1] = rowData
+			raster[row][col] = value
 		}
 	}
 	
@@ -192,12 +175,14 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 	
 	required init(coder: NSCoder) {
 		let codedRaster = coder.decodeObjectForKey("data") as? [[QBEValueCoder]] ?? []
+		let codedColumns = coder.decodeObjectForKey("columns") as? [String] ?? []
 		
 		// The raster is stored as [[QBEValueCoder]], but needs to be a [[QBEValue]]. Lazily decode it
 		raster = memoize {
-			return QBERaster(codedRaster.map({(i) -> [QBEValue] in
-				return i.map({$0.value})
-			}))
+			return QBERaster(
+				data: codedRaster.map({$0.map({$0.value})}),
+				columnNames: codedColumns.map({QBEColumn($0)})
+			)
 		}
 	}
 	
@@ -211,9 +196,9 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 		self.raster = raster
 	}
 	
-	init(data: [[QBEValue]]) {
+	init(data: [[QBEValue]], columnNames: [QBEColumn]) {
 		raster = memoize {
-			return QBERaster(data)
+			return QBERaster(data: data, columnNames: columnNames)
 		}
 	}
 	
@@ -236,6 +221,7 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 		})
 		
 		coder.encodeObject(codedRaster, forKey: "data")
+		coder.encodeObject(columnNames.map({$0.name}), forKey: "columns")
 	}
 	
 	private func changeRasterDirectly(filter: QBEFilter) {
@@ -267,7 +253,7 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 		}
 	}
 	
-	func apply(filter: QBEFilter) -> QBEData {
+	internal func apply(filter: QBEFilter) -> QBEData {
 		return QBERasterData(raster: memoize {
 			return filter(self.raster())
 		})
@@ -275,10 +261,16 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 	
 	func transpose() -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
+			// Find new column names (first column stays in place)
+			var columns: [QBEColumn] = [self.columnNames[0]]
+			for i in 0..<r.rowCount {
+				columns.append(QBEColumn(r[i, 0].stringValue ?? ""))
+			}
+			
 			var newData: [[QBEValue]] = []
 			
 			let columnNames = r.columnNames
-			for colNumber in 0..<r.columnCount {
+			for colNumber in 1..<r.columnCount {
 				let columnName = columnNames[colNumber];
 				var row: [QBEValue] = [QBEValue(columnName.name)]
 				for rowNumber in 0..<r.rowCount {
@@ -287,37 +279,34 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 				newData.append(row)
 			}
 			
-			return QBERaster(newData, readOnly: true)
+			return QBERaster(data: newData, columnNames: columns, readOnly: true)
 		}
 	}
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
-			let indexesToKeep = columns.map({(col) -> Int? in return r.indexOfColumnWithName(col)})
+			var indexesToKeep: [Int] = []
+			var namesToKeep: [QBEColumn] = []
 			
-			// Create new header
-			var newData: [[QBEValue]] = []
-			var headerRow: [QBEValue] = []
-			for i in indexesToKeep {
-				if i != nil {
-					headerRow.append(QBEValue(r.columnNames[i!].name))
+			for col in columns {
+				if let index = r.indexOfColumnWithName(col) {
+					namesToKeep.append(col)
+					indexesToKeep.append(index)
 				}
 			}
-			newData.append(headerRow)
 			
 			// Select columns for each row
+			var newData: [QBERow] = []
 			for rowNumber in 0..<r.rowCount {
 				var oldRow = r[rowNumber]
 				var newRow: [QBEValue] = []
 				for i in indexesToKeep {
-					if i != nil {
-						newRow.append(oldRow[i!])
-					}
+					newRow.append(oldRow[i])
 				}
 				newData.append(newRow)
 			}
 			
-			return QBERaster(newData, readOnly: true)
+			return QBERaster(data: newData, columnNames: namesToKeep, readOnly: true)
 		}
 	}
 	
@@ -336,9 +325,8 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 				indices[targetColumn] = columnIndex
 			}
 			
-			// Generate header row in raster
-			var newData: [[QBEValue]] = [columnNames.map({QBEValue($0.name)})]
-			
+			// Calculate column for each row
+			var newData: [[QBEValue]] = []
 			let numberOfRows = r.rowCount
 			for rowNumber in 0..<numberOfRows {
 				var row = r[rowNumber]
@@ -357,20 +345,20 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 				newData.append(row)
 			}
 			
-			return QBERaster(newData, readOnly: true)
+			return QBERaster(data: newData,  columnNames: columnNames, readOnly: true)
 		}
 	}
 	
 	func limit(numberOfRows: Int) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
-			var newData: [[QBEValue]] = [r.columnNames.map({s in return QBEValue(s.name)})]
+			var newData: [[QBEValue]] = []
 			
 			let resultingNumberOfRows = min(numberOfRows, r.rowCount)
 			for rowNumber in 0..<resultingNumberOfRows {
 				newData.append(r[rowNumber])
 			}
 			
-			return QBERaster(newData, readOnly: true)
+			return QBERaster(data: newData, columnNames: r.columnNames, readOnly: true)
 		}
 	}
 	
@@ -440,25 +428,25 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 			}
 
 			// Generate output raster and column headers
-			var headers: [QBEValue] = []
+			var headers: [QBEColumn] = []
 			for (columnName, expression) in groups {
-				headers.append(QBEValue(columnName.name))
+				headers.append(columnName)
 			}
 			
 			for (columnName, aggregation) in values {
-				headers.append(QBEValue(columnName.name))
+				headers.append(columnName)
 			}
-			var newRaster: [[QBEValue]] = [headers]
+			var newRaster: [[QBEValue]] = []
 			
 			// Time to aggregate
 			index.reduce(values, callback: {newRaster.append($0)})
-			return QBERaster(newRaster)
+			return QBERaster(data: newRaster, columnNames: headers, readOnly: true)
 		}
 	}
 	
 	func random(numberOfRows: Int) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
-			var newData: [[QBEValue]] = [r.columnNames.map({s in return QBEValue(s.name)})]
+			var newData: [[QBEValue]] = []
 			
 			/* Random selection without replacement works like this: first we assign each row a random number. Then, we 
 			sort the list of row numbers by the number assigned to each row. We then take the top x of these rows. */
@@ -471,7 +459,7 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 				newData.append(r[randomlySortedIndices[rowNumber]])
 			}
 			
-			return QBERaster(newData, readOnly: true)
+			return QBERaster(data: newData, columnNames: r.columnNames, readOnly: true)
 		}
 	}
 	
@@ -483,11 +471,11 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 		return raster().compare(other.raster())
 	}
 	
-	func stream(receiver: ([[QBEValue]]) -> ()) {
+	func stream(receiver: QBESink) {
 		// FIXME: batch this, perhaps just send the whole raster at once to receiver() (but do not send column names)
 		let r = raster();
 		for rowNumber in 0..<r.rowCount {
-			receiver([r[rowNumber]])
+			receiver(columnNames, [r[rowNumber]])
 		}
 	}
 }

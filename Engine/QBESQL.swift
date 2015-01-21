@@ -272,13 +272,12 @@ class QBESQLData: NSObject, QBEData {
 		return QBESQLData(sql: sql, dialect: dialect)
 	}
 	
-	func stream(receiver: ([[QBEValue]]) -> ()) {
+	func stream(receiver: QBESink) {
 		// FIXME: batch this, perhaps just send the whole raster at once to receiver() (but do not send column names)
 		let r = raster();
-		let cols = r.columnNames.map({QBEValue($0.name)})
-		receiver([cols])
+		let cols = r.columnNames
 		for rowNumber in 0..<r.rowCount {
-			receiver([r[rowNumber]])
+			receiver(cols, [r[rowNumber]])
 		}
 	}
 }

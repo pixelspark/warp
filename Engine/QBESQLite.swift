@@ -197,13 +197,11 @@ class QBESQLiteData: QBESQLData {
 		return {() -> QBERaster in
 			if let result = self.db.query(self.sql) {
 				let columnNames = result.columnNames
-				var newRaster: [[QBEValue]] = [columnNames.map({QBEValue($0.name)})]
-				
+				var newRaster: [[QBEValue]] = []
 				for row in result {
 					newRaster.append(row)
 				}
-				
-				return QBERaster(newRaster)
+				return QBERaster(data: newRaster, columnNames: columnNames)
 			}
 			return QBERaster()
 		}
