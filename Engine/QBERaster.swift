@@ -95,8 +95,8 @@ class QBERaster: DebugPrintable {
 		assert(col < columnCount)
 		
 		let rowData = raster[row]
-		if(col > rowData.count) {
-			fatalError("Encountered a QBERaster row that does not contain the prescribed amount of cells")
+		if(col >= rowData.count) {
+			return QBEValue.EmptyValue
 		}
 		return rowData[col]
 	}
@@ -332,7 +332,7 @@ class QBERasterData: NSObject, QBEData {
 				for (targetColumn, formula) in calculations {
 					let columnIndex = indices[targetColumn]!
 					let inputValue: QBEValue = row[columnIndex]
-					let newValue = formula.apply(r, rowNumber: rowNumber, inputValue: inputValue)
+					let newValue = formula.apply(row, columns: columnNames, inputValue: inputValue)
 					row[columnIndex] = newValue
 				}
 				
@@ -393,7 +393,7 @@ class QBERasterData: NSObject, QBEData {
 				// Calculate group values
 				var currentIndex = index
 				for (groupColumn, groupExpression) in groups {
-					let groupValue = groupExpression.apply(r, rowNumber: rowNumber, inputValue: nil)
+					let groupValue = groupExpression.apply(row, columns: r.columnNames, inputValue: nil)
 					
 					if let nextIndex = currentIndex.children[groupValue] {
 						currentIndex = nextIndex
@@ -411,7 +411,7 @@ class QBERasterData: NSObject, QBEData {
 				}
 				
 				for (column, value) in values {
-					let result = value.map.apply(r, rowNumber: rowNumber, inputValue: nil)
+					let result = value.map.apply(row, columns: r.columnNames, inputValue: nil)
 					if let bag = currentIndex.values![column] {
 						currentIndex.values![column]!.append(result)
 					}

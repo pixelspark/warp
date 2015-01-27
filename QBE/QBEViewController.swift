@@ -128,7 +128,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 								// Try to find a formula
 								QBEAsyncBackground {
 									var suggestedFormulas: [QBEExpression] = []
-									QBEInferer.inferFunctions(nil, toValue: toValue, suggestions: &suggestedFormulas, level: 4, raster: r, row: inRow, column: column)
+									QBEInferer.inferFunctions(nil, toValue: toValue, suggestions: &suggestedFormulas, level: 4, raster: r, row: r[inRow], column: column)
 									for suggestedFormula in suggestedFormulas {
 										let cs = QBECalculateStep(previous: self.currentStep, targetColumn: targetColumn, function: suggestedFormula)
 										suggestions.append(cs)

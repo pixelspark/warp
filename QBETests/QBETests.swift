@@ -73,7 +73,7 @@ class QBETests: XCTestCase {
 		
 		// Test results
 		let raster = QBERaster()
-		XCTAssert(QBEFormula(formula: "=6/(1-3/4)", locale: locale)!.root.apply(raster, rowNumber: 0, inputValue: nil) == QBEValue(24), "Formula in default dialect")
+		XCTAssert(QBEFormula(formula: "=6/(1-3/4)", locale: locale)!.root.apply(raster[0], columns: raster.columnNames, inputValue: nil) == QBEValue(24), "Formula in default dialect")
 		
 		// Test whether parsing goes wrong when it should
 		XCTAssert(QBEFormula(formula: "", locale: locale) == nil, "Empty formula")

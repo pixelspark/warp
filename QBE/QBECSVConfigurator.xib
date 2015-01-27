@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="6254" systemVersion="14B25" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6254"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="QBECSVConfigurator" customModule="QBE" customModuleProvider="target">
+            <connections>
+                <outlet property="hasHeadersButton" destination="nIp-FI-Wyq" id="XEn-pD-6rc"/>
+                <outlet property="separatorField" destination="BKg-uV-W1r" id="dLI-M7-cLX"/>
+                <outlet property="view" destination="6ha-w3-wZt" id="ieQ-ga-f5d"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView placeholderIntrinsicWidth="376" placeholderIntrinsicHeight="249" id="6ha-w3-wZt">
+            <rect key="frame" x="0.0" y="0.0" width="347" height="113"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="BKg-uV-W1r">
+                    <rect key="frame" x="5" y="64" width="337" height="22"/>
+                    <constraints>
+                        <constraint firstAttribute="width" relation="greaterThanOrEqual" priority="250" constant="240" id="7hJ-gr-c85"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="8xn-sr-EoM">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                    <connections>
+                        <action selector="update:" target="-2" id="80q-gR-b6Z"/>
+                    </connections>
+                </textField>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="KUX-VE-Yxq">
+                    <rect key="frame" x="3" y="91" width="341" height="17"/>
+                    <constraints>
+                        <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="fRE-yo-Yxf"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Field separator:" id="uyA-fK-gw8">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="nIp-FI-Wyq">
+                    <rect key="frame" x="3" y="43" width="341" height="18"/>
+                    <buttonCell key="cell" type="check" title="Has column headers" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="HQW-vd-TnC">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="update:" target="-2" id="O1s-X0-TKH"/>
+                    </connections>
+                </button>
+            </subviews>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="KUX-VE-Yxq" secondAttribute="trailing" constant="5" id="FQN-50-OaW"/>
+                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="nIp-FI-Wyq" secondAttribute="bottom" constant="5" id="Klk-xY-PF2"/>
+                <constraint firstItem="KUX-VE-Yxq" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="Plb-fB-6Ey"/>
+                <constraint firstAttribute="trailing" secondItem="nIp-FI-Wyq" secondAttribute="trailing" constant="5" id="QEG-ad-SRL"/>
+                <constraint firstItem="BKg-uV-W1r" firstAttribute="top" secondItem="KUX-VE-Yxq" secondAttribute="bottom" constant="5" id="WuK-bB-xqr"/>
+                <constraint firstItem="BKg-uV-W1r" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="gq4-p0-vSx"/>
+                <constraint firstItem="nIp-FI-Wyq" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="kXd-kV-WK0"/>
+                <constraint firstItem="KUX-VE-Yxq" firstAttribute="top" secondItem="6ha-w3-wZt" secondAttribute="top" constant="5" id="nbg-XD-icX"/>
+                <constraint firstAttribute="trailing" secondItem="BKg-uV-W1r" secondAttribute="trailing" constant="5" id="tDa-EC-YqC"/>
+                <constraint firstItem="nIp-FI-Wyq" firstAttribute="top" secondItem="BKg-uV-W1r" secondAttribute="bottom" constant="5" id="z8x-iH-zYF"/>
+            </constraints>
+            <point key="canvasLocation" x="389.5" y="389.5"/>
+        </customView>
+    </objects>
+</document>

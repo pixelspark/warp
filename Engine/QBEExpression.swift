@@ -30,11 +30,11 @@ class QBEExpression: NSObject, NSCoding, QBEExplainable {
 		return ""
 	}
 	
-	func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
+	func apply(row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> QBEValue {
 		fatalError("A QBEExpression was called that isn't implemented")
 	}
 	
-	class func suggest(fromValue: QBEExpression?, toValue: QBEValue, raster: QBERaster, row: Int, inputValue: QBEValue?) -> [QBEExpression] {
+	class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> [QBEExpression] {
 		return []
 	}
 }
@@ -82,11 +82,11 @@ class QBELiteralExpression: QBEExpression {
 		super.encodeWithCoder(aCoder)
 	}
 	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
+	override func apply(row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> QBEValue {
 		return value
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, raster: QBERaster, row: Int, inputValue: QBEValue?) -> [QBEExpression] {
+	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> [QBEExpression] {
 		if fromValue == nil {
 			return [QBELiteralExpression(toValue)]
 		}
@@ -111,7 +111,7 @@ class QBEIdentityExpression: QBEExpression {
 		super.init(coder: aDecoder)
 	}
 	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
+	override func apply(row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> QBEValue {
 		return inputValue ?? QBEValue.InvalidValue
 	}
 }
@@ -155,13 +155,13 @@ class QBEBinaryExpression: QBEExpression {
 		aCoder.encodeObject(type.rawValue, forKey: "type")
 	}
 	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		let left = second.apply(raster, rowNumber: rowNumber, inputValue: nil)
-		let right = first.apply(raster, rowNumber: rowNumber, inputValue: nil)
+	override func apply(row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> QBEValue {
+		let left = second.apply(row, columns: columns, inputValue: nil)
+		let right = first.apply(row, columns: columns, inputValue: nil)
 		return self.type.apply(left, right)
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, raster: QBERaster, row: Int, inputValue: QBEValue?) -> [QBEExpression] {
+	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> [QBEExpression] {
 		return []
 	}
 }
@@ -208,16 +208,16 @@ class QBEFunctionExpression: QBEExpression {
 		aCoder.encodeObject(type.rawValue, forKey: "type")
 	}
 	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		let vals = arguments.map({$0.apply(raster, rowNumber: rowNumber, inputValue: inputValue)})
+	override func apply(row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> QBEValue {
+		let vals = arguments.map({$0.apply(row, columns: columns, inputValue: inputValue)})
 		return self.type.apply(vals)
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, raster: QBERaster, row: Int, inputValue: QBEValue?) -> [QBEExpression] {
+	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> [QBEExpression] {
 		var suggestions: [QBEExpression] = []
 		
 		if let from = fromValue {
-			if let f = fromValue?.apply(raster, rowNumber: row, inputValue: inputValue) {
+			if let f = fromValue?.apply(row, columns: columns, inputValue: inputValue) {
 				// Check whether one of the unary functions can transform the input value to the output value
 				for op in QBEFunction.allFunctions {
 					if(op.arity.valid(1)) {
@@ -276,19 +276,21 @@ class QBESiblingExpression: QBEExpression {
 		aCoder.encodeObject(columnName.name, forKey: "columnName")
 	}
 	
-	override func apply(raster: QBERaster, rowNumber: Int, inputValue: QBEValue?) -> QBEValue {
-		if let idx = raster.indexOfColumnWithName(columnName) {
-			return raster[rowNumber, idx]
+	override func apply(row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> QBEValue {
+		if let idx = find(columns, columnName) {
+			return idx < row.count ? row[idx] : QBEValue.EmptyValue
 		}
 		return QBEValue.InvalidValue
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, raster: QBERaster, row: Int, inputValue: QBEValue?) -> [QBEExpression] {
+	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> [QBEExpression] {
 		var s: [QBEExpression] = []
 		if fromValue == nil {
-			for columnName in raster.columnNames {
-				let sourceValue = raster[row, raster.indexOfColumnWithName(columnName)!]
-				s.append(QBESiblingExpression(columnName: columnName))
+			for columnName in columns {
+				if let idx = find(columns, columnName) {
+					let sourceValue = row[idx]
+					s.append(QBESiblingExpression(columnName: columnName))
+				}
 			}
 		}
 		return s

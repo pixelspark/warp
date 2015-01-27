@@ -9,18 +9,30 @@ internal class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	private var row: QBERow = []
 	private var rows: [QBERow] = []
 	
-	init(url: NSURL) {
+	let hasHeaders: Bool
+	let fieldSeparator: unichar
+	
+	init(url: NSURL, fieldSeparator: unichar, hasHeaders: Bool) {
 		self.url = url
-		parser = CHCSVParser(contentsOfCSVURL: url)
+		self.hasHeaders = hasHeaders
+		self.fieldSeparator = fieldSeparator
+		
+		parser = CHCSVParser(contentsOfDelimitedURL: url as NSURL!, delimiter: fieldSeparator)
 		super.init()
 		
 		parser.delegate = self
 		parser._beginDocument()
 		finished = !parser._parseRecord()
-		_columnNames = row.map({QBEColumn($0.stringValue ?? "")})
 		
-		// This ensures we have enough space to store rows without having to reallocate
-		rows.removeAll(keepCapacity: true)
+		if hasHeaders {
+			_columnNames = row.map({QBEColumn($0.stringValue ?? "")})
+			rows.removeAll(keepCapacity: true)
+		}
+		else {
+			for i in 0..<row.count {
+				_columnNames.append(QBEColumn("\(i)"))
+			}
+		}
 	}
 	
 	func columnNames(callback: ([QBEColumn]) -> ()) {
@@ -28,13 +40,13 @@ internal class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 	
 	func fetch(consumer: QBESink) {
-		rows.removeAll(keepCapacity: true)
 		var fetched = 0
 		while !finished && (fetched < QBEStreamDefaultBatchSize) {
 			finished = !parser._parseRecord()
 			fetched++
 		}
 		let r = rows
+		rows.removeAll(keepCapacity: true)
 		consumer(r, !finished)
 	}
 	
@@ -51,7 +63,7 @@ internal class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 	
 	func clone() -> QBEStream {
-		return QBECSVStream(url: url)
+		return QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: self.hasHeaders)
 	}
 }
 
@@ -104,10 +116,12 @@ class QBECSVWriter: NSObject, NSStreamDelegate {
 class QBECSVSourceStep: QBEStep {
 	private var _exampleData: QBEData?
 	var url: String
+	var fieldSeparator: unichar
+	var hasHeaders: Bool
 	
 	override func fullData(callback: (QBEData?) -> ()) {
 		if let url = NSURL(string: self.url) {
-			let s = QBECSVStream(url: url)
+			let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders)
 			callback(QBEStreamData(source: s))
 		}
 		else {
@@ -123,17 +137,27 @@ class QBECSVSourceStep: QBEStep {
 	
 	init(url: NSURL) {
 		self.url = url.absoluteString!
+		let s = ";"
+		self.fieldSeparator = s.utf16[s.utf16.startIndex]
+		self.hasHeaders = true
 		super.init(previous: nil)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
 		self.url = aDecoder.decodeObjectForKey("url") as? String ?? ""
+		let separator = aDecoder.decodeObjectForKey("fieldSeparator") as? String ?? ";"
+		self.fieldSeparator = separator.utf16[separator.utf16.startIndex]
+		self.hasHeaders = aDecoder.decodeBoolForKey("hasHeaders")
 		super.init(coder: aDecoder)
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
 		super.encodeWithCoder(coder)
 		coder.encodeObject(url, forKey: "url")
+		
+		let separator = String(fieldSeparator)
+		coder.encodeObject(separator, forKey: "fieldSeparator")
+		coder.encodeBool(hasHeaders, forKey: "hasHeaders")
 	}
 	
 	override func explain(locale: QBELocale) -> String {

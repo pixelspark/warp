@@ -798,7 +798,7 @@ CA
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" unifiedTitleAndToolbar="YES"/>
                         <windowCollectionBehavior key="collectionBehavior" fullScreenPrimary="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-                        <rect key="contentRect" x="429" y="180" width="800" height="600"/>
+                        <rect key="contentRect" x="429" y="180" width="1065" height="806"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
                         <toolbar key="toolbar" implicitIdentifier="8005E1A7-7EFF-4062-821E-E134B863AEB8" displayMode="iconOnly" sizeMode="small" id="kqZ-PO-6dW">
                             <allowedToolbarItems>
@@ -834,7 +834,7 @@ CA
                 </windowController>
                 <customObject id="6f7-a7-6o1" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1" y="426"/>
+            <point key="canvasLocation" x="131.5" y="529"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="4qG-DD-elD">
@@ -844,7 +844,7 @@ CA
                         <rect key="frame" x="0.0" y="0.0" width="660" height="400"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <visualEffectView appearanceType="aqua" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="UN0-Q7-D7L">
+                            <visualEffectView appearanceType="aqua" blendingMode="behindWindow" material="titlebar" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="UN0-Q7-D7L">
                                 <rect key="frame" x="0.0" y="0.0" width="660" height="400"/>
                                 <subviews>
                                     <containerView canDrawConcurrently="YES" focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
@@ -1025,7 +1025,7 @@ Gw
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="LRg-Y6-Q5v">
-                                            <rect key="frame" x="0.0" y="0.0" width="428" height="19"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="571" height="19"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>

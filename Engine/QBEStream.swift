@@ -165,6 +165,77 @@ private class QBEColumnsTransformer: QBETransformer {
 	}
 }
 
+private class QBECalculateTransformer: QBETransformer {
+	let calculations: Dictionary<QBEColumn, QBEExpression>
+	private var indices: Dictionary<QBEColumn, Int>? = nil
+	private var columns: [QBEColumn]? = nil
+	
+	init(source: QBEStream, calculations: Dictionary<QBEColumn, QBEExpression>) {
+		self.calculations = calculations
+		super.init(source: source)
+	}
+	
+	private func ensureIndexes(callback:() -> ()) {
+		if self.indices == nil {
+			source.columnNames { (var columnNames) -> () in
+				var indices = Dictionary<QBEColumn, Int>()
+				
+				// Create newly calculated columns
+				for (targetColumn, formula) in self.calculations {
+					var columnIndex = find(columnNames, targetColumn) ?? -1
+					if columnIndex == -1 {
+						columnNames.append(targetColumn)
+						columnIndex = columnNames.count-1
+					}
+					indices[targetColumn] = columnIndex
+				}
+				self.indices = indices
+				self.columns = columnNames
+				callback()
+			}
+		}
+		else {
+			callback()
+		}
+	}
+	
+	private override func columnNames(callback: ([QBEColumn]) -> ()) {
+		self.ensureIndexes {
+			callback(self.columns!)
+		}
+	}
+	
+	private override func transform(var rows: [QBERow], callback: ([QBERow], Bool) -> ()) {
+		self.ensureIndexes {
+			var newData = Array<QBERow>()
+			newData.reserveCapacity(rows.count)
+			
+			for rowNumber in 0..<rows.count {
+				var row = rows[rowNumber]
+				
+				for n in 0..<(self.columns!.count - row.count) {
+					row.append(QBEValue.EmptyValue)
+				}
+			
+				for (targetColumn, formula) in self.calculations {
+					let columnIndex = self.indices![targetColumn]!
+					let inputValue: QBEValue = row[columnIndex]
+					let newValue = formula.apply(row, columns: self.columns!, inputValue: inputValue)
+					row[columnIndex] = newValue
+				}
+			
+				newData.append(row)
+			}
+			
+			callback(newData, false)
+		}
+	}
+	
+	private override func clone() -> QBEStream {
+		return QBECalculateTransformer(source: source, calculations: calculations)
+	}
+}
+
 /** QBEStreamData is an implementation of QBEData that performs data operations on a stream. QBEStreamData will consume 
 the whole stream and proxy to a raster-based implementation for operations that cannot efficiently be performed on a 
 stream. **/
@@ -223,7 +294,7 @@ class QBEStreamData: NSObject, QBEData {
 	}
 	
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
-		return fallback().calculate(calculations)
+		return QBEStreamData(source: QBECalculateTransformer(source: source, calculations: calculations))
 	}
 	
 	func columnNames(callback: ([QBEColumn]) -> ()) {
