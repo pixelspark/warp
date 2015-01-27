@@ -29,6 +29,14 @@ internal extension String {
 	}
 }
 
+internal extension Slice {
+	func each(call: (Element) -> ()) {
+		for item in self {
+			call(item)
+		}
+	}
+}
+
 internal extension Array {
 	func implode<C: ExtensibleCollectionType>(separator: C) -> C? {
 		if Element.self is C.Type {

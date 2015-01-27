@@ -34,6 +34,10 @@ func ==(lhs: QBEArity, rhs: QBEArity) -> Bool {
 	}
 }
 
+/** A QBEFunction takes a list of QBEValue arguments (which may be empty) and returns a single QBEValue. QBEFunctions 
+each have a unique identifier (used for serializing), display names (which are localized), and arity (which indicates
+which number of arguments is allowed) and an implementation. QBEFunctions may also be implemented in other ways in other
+ways (e.g. by compilation to SQL). Functions that have 'any' arity can be considered to be aggregation functions. **/
 enum QBEFunction: String, QBEExplainable {
 	case Uppercase = "upper"
 	case Lowercase = "lower"

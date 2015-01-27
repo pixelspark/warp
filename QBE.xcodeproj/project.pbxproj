@@ -242,7 +242,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6594693B1A6C688C001CD1BB /* Steps */ = {
+		6594693B1A6C688C001CD1BB /* Steps UI */ = {
 			isa = PBXGroup;
 			children = (
 				65776EEF1A62FFD800F7F82A /* QBEAddColumnViewController.swift */,
@@ -257,13 +257,15 @@
 				6504BC3E1A7809BB0054C903 /* QBECSVConfigurator.swift */,
 				6504BC401A780C2E0054C903 /* QBECSVConfigurator.xib */,
 			);
-			name = Steps;
-			path = ..;
+			name = "Steps UI";
 			sourceTree = "<group>";
 		};
 		65D6F9DD1A59B700006B6995 /* Steps */ = {
 			isa = PBXGroup;
 			children = (
+				6501E7BA1A6C6A620030899E /* QBECSV.swift */,
+				6501E7B81A6C6A620030899E /* QBESQL.swift */,
+				6501E7B91A6C6A620030899E /* QBESQLite.swift */,
 				65D6F9EC1A59CD1A006B6995 /* QBERasterStep.swift */,
 				6589779D1A55C090001001F2 /* QBELimitStep.swift */,
 				65D6F9DB1A597CC9006B6995 /* QBECalculateStep.swift */,
@@ -271,6 +273,7 @@
 				65F3867F1A6BBAB700C83810 /* QBEPivotStep.swift */,
 			);
 			name = Steps;
+			path = qbetest;
 			sourceTree = "<group>";
 		};
 		65E3C2AB1A05222F007BB3C8 = {
@@ -278,7 +281,9 @@
 			children = (
 				651988E71A0F9C39003463AA /* Libraries */,
 				65E3C2D61A052252007BB3C8 /* Core */,
-				65E3C2ED1A062E5E007BB3C8 /* UI */,
+				65D6F9DD1A59B700006B6995 /* Steps */,
+				65E3C2ED1A062E5E007BB3C8 /* Core UI */,
+				6594693B1A6C688C001CD1BB /* Steps UI */,
 				65E3C3021A062E5E007BB3C8 /* Tests */,
 				65E3C2B61A05222F007BB3C8 /* Products */,
 			);
@@ -296,7 +301,6 @@
 		65E3C2D61A052252007BB3C8 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				6501E7BA1A6C6A620030899E /* QBECSV.swift */,
 				65D6F9E11A59B8AA006B6995 /* QBEData.swift */,
 				65D6F9D91A597C81006B6995 /* QBEExpression.swift */,
 				653414EF1A5DD0A500DDD472 /* QBEFormula.swift */,
@@ -304,18 +308,15 @@
 				65D6F9F61A59E032006B6995 /* QBEInferer.swift */,
 				658C23B61A5F23A000D6B1D0 /* QBELocale.swift */,
 				65ABB15D1A0ABF4A00A56C49 /* QBERaster.swift */,
-				6501E7B81A6C6A620030899E /* QBESQL.swift */,
-				6501E7B91A6C6A620030899E /* QBESQLite.swift */,
 				6510A73C1A4E9A47005633EF /* QBEStep.swift */,
 				653E89621A6F9D1C00E9A6F4 /* QBEStream.swift */,
 				6506D3CC1A0A69C500F88F1E /* QBEValue.swift */,
-				65D6F9DD1A59B700006B6995 /* Steps */,
 			);
 			name = Core;
 			path = qbetest;
 			sourceTree = "<group>";
 		};
-		65E3C2ED1A062E5E007BB3C8 /* UI */ = {
+		65E3C2ED1A062E5E007BB3C8 /* Core UI */ = {
 			isa = PBXGroup;
 			children = (
 				65E3C2F61A062E5E007BB3C8 /* Images.xcassets */,
@@ -328,9 +329,8 @@
 				65E3C2F21A062E5E007BB3C8 /* QBEViewController.swift */,
 				65F4E2601A67D30E00BB57B8 /* QBEWindow.swift */,
 				652BEC401A063F96002E45C7 /* QBEWindowController.swift */,
-				6594693B1A6C688C001CD1BB /* Steps */,
 			);
-			name = UI;
+			name = "Core UI";
 			path = QBE;
 			sourceTree = "<group>";
 		};

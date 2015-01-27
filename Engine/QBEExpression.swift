@@ -1,6 +1,6 @@
 import Foundation
 
-let QBEExpressions: [QBEExpression.Type] = [
+internal let QBEExpressions: [QBEExpression.Type] = [
 	QBESiblingExpression.self,
 	QBELiteralExpression.self,
 	QBEFunctionExpression.self,
@@ -39,6 +39,8 @@ class QBEExpression: NSObject, NSCoding, QBEExplainable {
 	}
 }
 
+/** The QBELiteralExpression always evaluates to the value set to it on initialization. The formula parser generates a 
+QBELiteralExpression for each literal (numbers, strings, constants) it encounters. **/
 class QBELiteralExpression: QBEExpression {
 	let value: QBEValue
 	
@@ -94,6 +96,8 @@ class QBELiteralExpression: QBEExpression {
 	}
 }
 
+/** The QBEIdentityExpression returns whatever value was set to the inputValue parameter during evaluation. This value
+usually represents the (current) value in the current cell. **/
 class QBEIdentityExpression: QBEExpression {
 	override init() {
 		super.init()
@@ -116,9 +120,11 @@ class QBEIdentityExpression: QBEExpression {
 	}
 }
 
+/** QBEBinaryExpression evaluates to the result of applying a particular binary operator to two operands, which are 
+other expressions. **/
 class QBEBinaryExpression: QBEExpression {
-	var first: QBEExpression
-	var second: QBEExpression
+	let first: QBEExpression
+	let second: QBEExpression
 	var type: QBEBinary
 	
 	override func explain(locale: QBELocale) -> String {
@@ -166,9 +172,11 @@ class QBEBinaryExpression: QBEExpression {
 	}
 }
 
+/** QBEFunctionExpression evaluates to the result of applying a function to a given set of arguments. The set of arguments
+consists of QBEExpressions that are evaluated before sending them to the function. **/
 class QBEFunctionExpression: QBEExpression {
-	var arguments: [QBEExpression]
-	var type: QBEFunction
+	let arguments: [QBEExpression]
+	let type: QBEFunction
 	
 	override func explain(locale: QBELocale) -> String {
 		let argumentsList = arguments.map({$0.explain(locale)}).implode(", ") ?? ""
@@ -250,6 +258,7 @@ class QBEFunctionExpression: QBEExpression {
 	}
 }
 
+/** The QBESiblingExpression evaluates to the value of a cell in a particular column on the same row as the current value. **/
 class QBESiblingExpression: QBEExpression {
 	var columnName: QBEColumn
 	

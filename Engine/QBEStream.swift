@@ -1,18 +1,21 @@
 import Foundation
 
-func QBEAsyncMain(block: () -> ()) {
+/** Runs the given block of code asynchronously on the main queue. **/
+internal func QBEAsyncMain(block: () -> ()) {
 	dispatch_async(dispatch_get_main_queue(), block)
 }
 
-func QBEAsyncBackground(block: () -> ()) {
+/** Runs the given block of code asynchronously on a concurrent background queue with QoS class 'user initiated'. **/
+internal func QBEAsyncBackground(block: () -> ()) {
 	let gq = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
 	dispatch_async(gq, block)
 }
 
 /** A QBESink is a function used as a callback in response to QBEStream.fetch. It receives a set of rows from the stream
 as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). **/
-typealias QBESink = ([QBERow], Bool) -> ()
+typealias QBESink = (Slice<QBERow>, Bool) -> ()
 
+/** The default number of rows that a QBEStream will send to a consumer upon request through QBEStream.fetch. **/
 let QBEStreamDefaultBatchSize = 256
 
 /** QBEStream represents a data set that can be streamed (consumed in batches). This allows for efficient processing of
@@ -34,6 +37,79 @@ protocol QBEStream: NSObjectProtocol {
 	func clone() -> QBEStream
 }
 
+/** QBEStreamData is an implementation of QBEData that performs data operations on a stream. QBEStreamData will consume 
+the whole stream and proxy to a raster-based implementation for operations that cannot efficiently be performed on a 
+stream. **/
+class QBEStreamData: NSObject, QBEData {
+	let source: QBEStream
+	
+	init(source: QBEStream) {
+		self.source = source
+	}
+	
+	private func fallback() -> QBEData {
+		return QBERasterData(future: self.raster)
+	}
+
+	func raster(callback: (QBERaster) -> ()) {
+		var data: [QBERow] = []
+		
+		let s = source.clone()
+		var appender: QBESink! = nil
+		appender = { (rows, hasNext) -> () in
+			rows.each({data.append($0)})
+			if hasNext {
+				QBEAsyncBackground {
+					s.fetch(appender)
+				}
+			}
+			else {
+				s.columnNames({ (columnNames) -> () in
+					callback(QBERaster(data: data, columnNames: columnNames, readOnly: true))
+				})
+			}
+		}
+		s.fetch(appender)
+	}
+	
+	func transpose() -> QBEData {
+		// This cannot be streamed
+		return fallback().transpose()
+	}
+	
+	func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
+		return fallback().aggregate(groups, values: values)
+	}
+	
+	func selectColumns(columns: [QBEColumn]) -> QBEData {
+		// Implemented by QBEColumnsTransformer
+		return QBEStreamData(source: QBEColumnsTransformer(source: source, selectColumns: columns))
+	}
+	
+	func limit(numberOfRows: Int) -> QBEData {
+		// Limit has a streaming implementation in QBELimitTransformer
+		return QBEStreamData(source: QBELimitTransformer(source: source, numberOfRows: numberOfRows))
+	}
+	
+	func random(numberOfRows: Int) -> QBEData {
+		// TODO: this should be implemented as a stream. See how MongoDB/RethinkDB deal with random-without-replacement sampling.
+		return fallback().random(numberOfRows)
+	}
+	
+	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
+		// Implemented as stream by QBECalculateTransformer
+		return QBEStreamData(source: QBECalculateTransformer(source: source, calculations: calculations))
+	}
+	
+	func columnNames(callback: ([QBEColumn]) -> ()) {
+		source.columnNames(callback)
+	}
+	
+	func stream() -> QBEStream? {
+		return source.clone()
+	}
+}
+
 /** A QBETransformer is a stream that provides data from an other stream, and applies a transformation step in between.
 This class needs to be subclassed before it does any real work (in particular, the transform and clone methods should be
 overridden). **/
@@ -53,7 +129,7 @@ private class QBETransformer: NSObject, QBEStream {
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). **/
-	private func transform(rows: [QBERow], callback: ([QBERow], Bool) -> ()) {
+	private func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
 		fatalError("QBETransformer.transform should be implemented in a subclass")
 	}
 	
@@ -84,14 +160,14 @@ private class QBELimitTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: [QBERow], callback: ([QBERow], Bool) -> ()) {
+	private override func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
 		if (position+rows.count) < limit {
 			position += rows.count
 			callback(rows, false)
 		}
 		else if position < limit {
 			let n = limit - position
-			callback(Array(rows[0..<n]), true)
+			callback(rows[0..<n], true)
 		}
 		else {
 			callback([], true)
@@ -124,7 +200,7 @@ private class QBEColumnsTransformer: QBETransformer {
 		}
 	}
 	
-	override private func transform(rows: [QBERow], callback: ([QBERow],Bool) -> ()) {
+	override private func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>,Bool) -> ()) {
 		ensureIndexes {
 			assert(self.indexes != nil)
 			
@@ -138,7 +214,7 @@ private class QBEColumnsTransformer: QBETransformer {
 				}
 				result.append(newRow)
 			}
-			callback(result, false)
+			callback(Slice(result), false)
 		}
 	}
 	
@@ -205,27 +281,21 @@ private class QBECalculateTransformer: QBETransformer {
 		}
 	}
 	
-	private override func transform(var rows: [QBERow], callback: ([QBERow], Bool) -> ()) {
+	private override func transform(var rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
 		self.ensureIndexes {
-			var newData = Array<QBERow>()
-			newData.reserveCapacity(rows.count)
-			
-			for rowNumber in 0..<rows.count {
-				var row = rows[rowNumber]
-				
+			let newData = rows.map({ (var row: QBERow) -> QBERow in
 				for n in 0..<(self.columns!.count - row.count) {
 					row.append(QBEValue.EmptyValue)
 				}
-			
+				
 				for (targetColumn, formula) in self.calculations {
 					let columnIndex = self.indices![targetColumn]!
 					let inputValue: QBEValue = row[columnIndex]
 					let newValue = formula.apply(row, columns: self.columns!, inputValue: inputValue)
 					row[columnIndex] = newValue
 				}
-			
-				newData.append(row)
-			}
+				return row
+			})
 			
 			callback(newData, false)
 		}
@@ -233,75 +303,5 @@ private class QBECalculateTransformer: QBETransformer {
 	
 	private override func clone() -> QBEStream {
 		return QBECalculateTransformer(source: source, calculations: calculations)
-	}
-}
-
-/** QBEStreamData is an implementation of QBEData that performs data operations on a stream. QBEStreamData will consume 
-the whole stream and proxy to a raster-based implementation for operations that cannot efficiently be performed on a 
-stream. **/
-class QBEStreamData: NSObject, QBEData {
-	let source: QBEStream
-	
-	init(source: QBEStream) {
-		self.source = source
-	}
-	
-	private func fallback() -> QBEData {
-		return QBERasterData(future: self.raster)
-	}
-
-	func raster(callback: (QBERaster) -> ()) {
-		var data: [QBERow] = []
-		
-		let s = source.clone()
-		var appender: QBESink! = nil
-		appender = { (rows, hasNext) -> () in
-			rows.each({data.append($0)})
-			if hasNext {
-				QBEAsyncBackground {
-					s.fetch(appender)
-				}
-			}
-			else {
-				s.columnNames({ (columnNames) -> () in
-					callback(QBERaster(data: data, columnNames: columnNames, readOnly: true))
-				})
-			}
-		}
-		s.fetch(appender)
-	}
-	
-	func transpose() -> QBEData {
-		// This cannot be streamed
-		return fallback().transpose()
-	}
-	
-	func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
-		return fallback().aggregate(groups, values: values)
-	}
-	
-	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		return QBEStreamData(source: QBEColumnsTransformer(source: source, selectColumns: columns))
-	}
-	
-	func limit(numberOfRows: Int) -> QBEData {
-		// Limit has a streaming implementation in QBELimitTransformer
-		return QBEStreamData(source: QBELimitTransformer(source: source, numberOfRows: numberOfRows))
-	}
-	
-	func random(numberOfRows: Int) -> QBEData {
-		return fallback().random(numberOfRows)
-	}
-	
-	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
-		return QBEStreamData(source: QBECalculateTransformer(source: source, calculations: calculations))
-	}
-	
-	func columnNames(callback: ([QBEColumn]) -> ()) {
-		source.columnNames(callback)
-	}
-	
-	func stream() -> QBEStream? {
-		return source.clone()
 	}
 }

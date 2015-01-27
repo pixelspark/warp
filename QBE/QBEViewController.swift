@@ -417,7 +417,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 							var cb: QBESink? = nil
 							var count: Int = 0
 		 
-							cb = {(rows: [QBERow], hasNext: Bool) -> () in
+							cb = {(rows: Slice<QBERow>, hasNext: Bool) -> () in
 								println("Got \(rows.count) rows from stream, hasNext=\(hasNext)")
 								count += rows.count
 								if hasNext {

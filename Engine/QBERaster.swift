@@ -2,16 +2,16 @@ import Foundation
 
 internal typealias QBEFilter = (QBERaster) -> (QBERaster)
 
+/** QBERaster represents a mutable, in-memory dataset. It is stored as a simple array of QBERow, which in turn is an array 
+of QBEValue. Column names are stored separately. Each QBERow should contain the same number of values as there are columns
+in the columnNames array. However, if rows are shorter, QBERaster will act as if there is a QBEValue.EmptyValue in its
+place. **/
 class QBERaster: DebugPrintable {
-	var raster: [[QBEValue]]
-	var columnNames: [QBEColumn]
-	
-	var readOnly: Bool
+	var raster: [[QBEValue]] = []
+	var columnNames: [QBEColumn] = []
+	let readOnly: Bool = false
 	
 	init() {
-		raster = []
-		columnNames = []
-		readOnly = false
 	}
 	
 	init(data: [[QBEValue]], columnNames: [QBEColumn], readOnly: Bool = false) {
@@ -25,17 +25,12 @@ class QBERaster: DebugPrintable {
 	}}
 	
 	func removeRows(set: NSIndexSet) {
-		if readOnly {
-			fatalError("Raster is read-only")
-		}
-		raster.removeObjectsAtIndexes(set, offset: 0)
+		assert(!readOnly, "Data set is read-only")
+		self.raster.removeObjectsAtIndexes(set, offset: 0)
 	}
 	
 	func removeColumns(set: NSIndexSet) {
-		if readOnly {
-			fatalError("Raster is read-only")
-		}
-		
+		assert(!readOnly, "Data set is read-only")
 		columnNames.removeObjectsAtIndexes(set, offset: 0)
 		
 		for i in 0..<raster.count {
@@ -44,10 +39,7 @@ class QBERaster: DebugPrintable {
 	}
 	
 	func addRow() {
-		if readOnly {
-			fatalError("Raster is read-only")
-		}
-		
+		assert(!readOnly, "Data set is read-only")
 		var row = Array<QBEValue>(count: columnCount, repeatedValue: QBEValue("0"))
 		raster.append(row)
 	}
@@ -103,10 +95,7 @@ class QBERaster: DebugPrintable {
 	
 	func setValue(value: QBEValue, forColumn: QBEColumn, inRow row: Int) {
 		assert(row < self.rowCount)
-		
-		if readOnly {
-			fatalError("Raster is read-only")
-		}
+		assert(!readOnly, "Data set is read-only")
 		
 		if let col = indexOfColumnWithName(forColumn) {
 			raster[row][col] = value
@@ -163,54 +152,11 @@ class QBERaster: DebugPrintable {
 	}
 }
 
-private class QBERasterDataStream: NSObject, QBEStream {
-	var data: QBERasterData
-	private var raster: QBERaster?
-	private var position = 0
-	
-	init(_ data: QBERasterData) {
-		self.data = data
-	}
-	
-	private func columnNames(callback: ([QBEColumn]) -> ()) {
-		if let cn = raster?.columnNames {
-			callback(cn)
-		}
-	}
-
-	private func clone() -> QBEStream {
-		return QBERasterDataStream(data)
-	}
-	
-	func fetch(consumer: QBESink) {
-		if raster == nil {
-			data.raster({ (r) -> () in
-				self.raster = r
-				self.fetch(consumer)
-			})
-		}
-		else {
-			if position < raster!.rowCount {
-				let end = min(raster!.rowCount, self.position + QBEStreamDefaultBatchSize)
-				
-				var rows: [QBERow] = []
-				for row in self.position..<end {
-					rows.append(raster![row])
-				}
-
-				self.position = end
-				let hasNext = self.position < self.raster!.rowCount
-				consumer(rows, hasNext)
-			}
-		}
-	}
-}
-
 typealias QBERasterCallback = (QBERaster) -> ()
 typealias QBERasterFuture = (QBERasterCallback) -> ()
 
 class QBERasterData: NSObject, QBEData {
-	private var future: QBERasterFuture
+	private let future: QBERasterFuture
 	
 	override init() {
 		future = {(cb: QBERasterCallback) in
@@ -305,42 +251,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
-		return apply {(r: QBERaster) -> QBERaster in
-			var columnNames = r.columnNames
-			var indices = Dictionary<QBEColumn, Int>()
-			
-			// Create newly calculated columns
-			for (targetColumn, formula) in calculations {
-				var columnIndex = r.indexOfColumnWithName(targetColumn) ?? -1
-				if columnIndex == -1 {
-					columnNames.append(targetColumn)
-					columnIndex = columnNames.count-1
-				}
-				indices[targetColumn] = columnIndex
-			}
-			
-			// Calculate column for each row
-			var newData: [[QBEValue]] = []
-			let numberOfRows = r.rowCount
-			for rowNumber in 0..<numberOfRows {
-				var row = r[rowNumber]
-				
-				for n in 0..<(columnNames.count - row.count) {
-					row.append(QBEValue.EmptyValue)
-				}
-				
-				for (targetColumn, formula) in calculations {
-					let columnIndex = indices[targetColumn]!
-					let inputValue: QBEValue = row[columnIndex]
-					let newValue = formula.apply(row, columns: columnNames, inputValue: inputValue)
-					row[columnIndex] = newValue
-				}
-				
-				newData.append(row)
-			}
-			
-			return QBERaster(data: newData,  columnNames: columnNames, readOnly: true)
-		}
+		return QBEStreamData(source: QBERasterDataStream(self)).calculate(calculations)
 	}
 	
 	func limit(numberOfRows: Int) -> QBEData {
@@ -460,5 +371,48 @@ class QBERasterData: NSObject, QBEData {
 	
 	func stream() -> QBEStream? {
 		return QBERasterDataStream(self)
+	}
+}
+
+/** QBERasterDataStream is a data stream that streams the contents of an in-memory raster. It is used by QBERasterData
+to make use of stream-based implementations of certain operations. It is also returned by QBERasterData.stream. **/
+private class QBERasterDataStream: NSObject, QBEStream {
+	let data: QBERasterData
+	private var raster: QBERaster?
+	private var position = 0
+	
+	init(_ data: QBERasterData) {
+		self.data = data
+	}
+	
+	private func columnNames(callback: ([QBEColumn]) -> ()) {
+		if let cn = raster?.columnNames {
+			callback(cn)
+		}
+	}
+	
+	private func clone() -> QBEStream {
+		return QBERasterDataStream(data)
+	}
+	
+	func fetch(consumer: QBESink) {
+		if raster == nil {
+			data.raster({ (r) -> () in
+				self.raster = r
+				self.fetch(consumer)
+			})
+		}
+		else {
+			if position < raster!.rowCount {
+				let end = min(raster!.rowCount, self.position + QBEStreamDefaultBatchSize)
+				let rows = raster!.raster[self.position..<end]
+				self.position = end
+				let hasNext = self.position < self.raster!.rowCount
+				consumer(rows, hasNext)
+			}
+			else {
+				consumer([], false)
+			}
+		}
 	}
 }

@@ -47,7 +47,7 @@ internal class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		}
 		let r = rows
 		rows.removeAll(keepCapacity: true)
-		consumer(r, !finished)
+		consumer(Slice(r), !finished)
 	}
 	
 	func parser(parser: CHCSVParser, didBeginLine line: UInt) {
@@ -88,7 +88,7 @@ class QBECSVWriter: NSObject, NSStreamDelegate {
 				csvOut.finishLine()
 				
 				var cb: QBESink? = nil
-				cb = { (rows: [QBERow], hasNext: Bool) -> () in
+				cb = { (rows: Slice<QBERow>, hasNext: Bool) -> () in
 					println("Stream: got \(rows.count) rows for writing")
 					for row in rows {
 						for cell in row {

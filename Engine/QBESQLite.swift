@@ -196,7 +196,7 @@ private class QBESQLiteStream: NSObject, QBEStream {
 				}
 			}
 			
-			consumer(rows, !done)
+			consumer(Slice(rows), !done)
 		}
 		else {
 			consumer([], false)
