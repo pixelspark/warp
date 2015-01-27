@@ -819,16 +819,27 @@ CA
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="3JN-eV-tDK"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="Zil-Xh-hqD"/>
+                                <toolbarItem implicitItemIdentifier="6FDA9CAA-DA6F-4514-95A5-B1C33669F2BF" label="Progress" paletteLabel="Progress" tag="-1" id="7ub-Yp-PxY">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="16" height="16"/>
+                                    <size key="maxSize" width="32" height="32"/>
+                                    <progressIndicator key="view" canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" displayedWhenStopped="NO" bezeled="NO" indeterminate="YES" style="bar" id="dQ4-Us-P7U">
+                                        <rect key="frame" x="11" y="14" width="32" height="20"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                    </progressIndicator>
+                                </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="U1V-Fd-2A2"/>
                                 <toolbarItem reference="vMh-pT-2la"/>
                                 <toolbarItem reference="Zil-Xh-hqD"/>
+                                <toolbarItem reference="7ub-Yp-PxY"/>
                                 <toolbarItem reference="fYI-Zb-Whe"/>
                             </defaultToolbarItems>
                         </toolbar>
                     </window>
                     <connections>
+                        <outlet property="progressIndicator" destination="dQ4-Us-P7U" id="jGN-fX-VVS"/>
                         <segue destination="DXE-ii-MK8" kind="relationship" relationship="window.shadowedContentViewController" id="Irf-sa-QNi"/>
                     </connections>
                 </windowController>

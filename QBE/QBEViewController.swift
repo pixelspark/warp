@@ -12,6 +12,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	let locale: QBELocale = QBEDefaultLocale()
 	var dataViewController: QBEDataViewController?
 	var suggestions: [QBEStep]?
+	weak var windowController: QBEWindowController?
 	@IBOutlet var descriptionField: NSTextField?
 	@IBOutlet var configuratorView: NSView?
 	@IBOutlet var titleLabel: NSTextField?
@@ -403,7 +404,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func calculate(sender: NSObject) {
 		if let step = currentStep {
+			
 			let startTime = CFAbsoluteTimeGetCurrent()
+			windowController?.startTask(NSLocalizedString("Calculate full result", comment: ""))
+			
 			QBEAsyncBackground {
 				step.fullData({ (data: QBEData?) -> () in
 					println("Got data: \(data)")
@@ -426,6 +430,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 									let endTime = CFAbsoluteTimeGetCurrent()
 									let duration = (endTime - startTime)
 									let speed =  Double(count) / duration
+									self.windowController?.stopTask()
 									println("Calculation took \(duration)s, \(count) rows, \(speed) rows/s")
 								}
 							}
