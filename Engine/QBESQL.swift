@@ -186,18 +186,27 @@ subclassed type). See QBESQLite for an implementation example. **/
 class QBESQLData: NSObject, QBEData {
     internal let sql: String
 	let dialect: QBESQLDialect
-	var columnNames: [QBEColumn] { get {
-		fatalError("Sublcass should implement columnNames")
-	} }
+	private var columns: [QBEColumn]
+	
+	func columnNames(callback: ([QBEColumn]) -> ()) {
+		callback(columns)
+	}
+	
+	func raster(callback: (QBERaster) -> ()) {
+		fatalError("Raster should be implemented by sublcass")
+	}
     
-	internal init(sql: String, dialect: QBESQLDialect) {
+	internal init(sql: String, dialect: QBESQLDialect, columns: [QBEColumn]) {
         self.sql = sql
 		self.dialect = dialect
+		self.columns = columns
     }
 	
 	/** Transposition is difficult in SQL, and therefore left to QBERasterData. **/
     func transpose() -> QBEData {
-		return QBERasterData(raster: self.raster()).transpose()
+		return QBERasterData(future: { (cb) -> () in
+			self.raster(cb)
+		}).transpose()
     }
     
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
@@ -205,7 +214,7 @@ class QBESQLData: NSObject, QBEData {
 		var targetFound = false
 		
 		// Re-calculate existing columns first
-		for targetColumn in columnNames {
+		for targetColumn in columns {
 			if calculations[targetColumn] != nil {
 				let expression = calculations[targetColumn]!
 				values.append("\(dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn))) AS \(dialect.columnIdentifier(targetColumn))")
@@ -217,67 +226,67 @@ class QBESQLData: NSObject, QBEData {
 		
 		// New columns are added at the end
 		for (targetColumn, expression) in calculations {
-			if !columnNames.contains(targetColumn) {
+			if !columns.contains(targetColumn) {
 				values.append("\(dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn))) AS \(dialect.columnIdentifier(targetColumn))")
 			}
 		}
 		
 		if let valueString = values.implode(", ") {
-			return apply("SELECT \(valueString) FROM (\(sql))")
+			return apply("SELECT \(valueString) FROM (\(sql))", resultingColumns: columns)
 		}
 		return QBERasterData()
     }
     
     func limit(numberOfRows: Int) -> QBEData {
-		return apply("SELECT * FROM (\(self.sql)) LIMIT \(numberOfRows)")
+		return apply("SELECT * FROM (\(self.sql)) LIMIT \(numberOfRows)", resultingColumns: columns)
     }
 	
 	func random(numberOfRows: Int) -> QBEData {
-		return apply("SELECT * FROM (\(self.sql)) ORDER BY RANDOM() LIMIT \(numberOfRows)")
+		return apply("SELECT * FROM (\(self.sql)) ORDER BY RANDOM() LIMIT \(numberOfRows)", resultingColumns: columns)
 	}
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		let colNames = columns.map({$0.name}).implode(", ") ?? ""
+		let colNames = columns.map({self.dialect.columnIdentifier($0)}).implode(", ") ?? ""
 		let sql = "SELECT \(colNames) FROM (\(self.sql))"
-		return apply(sql)
+		return apply(sql, resultingColumns: columns)
 	}
-    
-    var raster: QBEFuture { get {
-		fatalError("This should be implemented by a subclass")
-    }}
 	
 	func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
 		var groupBy: [String] = []
 		var select: [String] = []
+		var resultingColumns: [QBEColumn] = []
+		
 		for (column, expression) in groups {
 			select.append("\(dialect.expressionToSQL(expression, inputValue: nil)) AS \(dialect.columnIdentifier(column))")
 			groupBy.append("\(dialect.expressionToSQL(expression, inputValue: nil))")
+			resultingColumns.append(column)
 		}
 		
 		for (column, aggregation) in values {
 			select.append("\(dialect.aggregationToSQL(aggregation)) AS \(dialect.columnIdentifier(column))")
+			resultingColumns.append(column)
 		}
 		
 		let selectString = select.implode(", ") ?? ""
 		if let groupString = groupBy.implode(", ") {
-			return apply("SELECT \(selectString) FROM (\(sql)) GROUP BY \(groupString)")
+			return apply("SELECT \(selectString) FROM (\(sql)) GROUP BY \(groupString)", resultingColumns: resultingColumns)
 		}
 		else {
 			// No columns to group by, total aggregates it is
-			return apply("SELECT \(selectString) FROM (\(sql))")
+			return apply("SELECT \(selectString) FROM (\(sql))", resultingColumns: resultingColumns)
 		}
 	}
 	
-	func apply(sql: String) -> QBEData {
-		return QBESQLData(sql: sql, dialect: dialect)
+	func apply(sql: String, resultingColumns: [QBEColumn]) -> QBEData {
+		return QBESQLData(sql: sql, dialect: dialect, columns: columns)
 	}
 	
-	func stream(receiver: QBESink) {
-		// FIXME: batch this, perhaps just send the whole raster at once to receiver() (but do not send column names)
-		let r = raster();
-		let cols = r.columnNames
-		for rowNumber in 0..<r.rowCount {
-			receiver(cols, [r[rowNumber]])
-		}
+	func stream() -> QBEStream? {
+		/* The default implementation just fetches a raster and streams that, which obviously is not very efficient for 
+		large data sets, as it eats up a lot of memory that is not needed (that's what streaming is good for in the first 
+		place). Subclasses are encouraged to implement this more efficiently (e.g. by stepping through their result sets). */
+		return QBERasterData(future: { (cb) -> () in
+			self.raster(cb)
+		}).stream()
 	}
 }

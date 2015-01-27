@@ -1,5 +1,9 @@
 import Foundation
 
+/** QBEArity represents the 'arity' of a function (the number of arguments a function requires or supports). The arity
+of a function can either be 'fixed' (a function with an arity of '1' is called unary, a function with arity '2' is a 
+binary), constrained ('between x and y') or anything. Functions that can take any number of arguments can also be used
+as aggregating functions (if they are adhere to the property that (e.g.) SUM(1;2;3;4) == SUM(SUM(1;2);SUM(3;4)). **/
 enum QBEArity: Equatable {
 	case Fixed(Int)
 	case Between(Int, Int)

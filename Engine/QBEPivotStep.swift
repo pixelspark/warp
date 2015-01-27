@@ -48,12 +48,12 @@ class QBEPivotStep: QBEStep {
 		return NSLocalizedString("Pivot data", comment: "")
 	}
 	
-	override func apply(data: QBEData?) -> QBEData? {
+	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
 		let groups = toDictionary(rows, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
 		
 		/* FIXME: the explanation is locale-depended. We need to keep column names constant. Suggest to use 
 		toLocale(QBEDefaultLocale) or to let the user choose a title and then store it permanently in QBEAggregation. */
 		let values = toDictionary(aggregates, { ($0.targetColumnName, $0) })
-		return data?.aggregate(groups, values: values)
+		callback(data?.aggregate(groups, values: values))
 	}
 }

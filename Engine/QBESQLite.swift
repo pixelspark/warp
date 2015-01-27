@@ -166,59 +166,106 @@ internal class QBESQLiteDatabase {
 	} }
 }
 
-class QBESQLiteDialect: QBEStandardSQLDialect {
+private class QBESQLiteDialect: QBEStandardSQLDialect {
+}
+
+private class QBESQLiteStream: NSObject, QBEStream {
+	let data: QBESQLiteData
+	let result: QBESQLiteResult?
+	let generator: QBESQLiteResultGenerator?
+	
+	init(data: QBESQLiteData) {
+		self.data = data
+		result = data.db.query(data.sql)
+		generator = result?.generate()
+	}
+	
+	private func fetch(consumer: QBESink) {
+		if let g = generator {
+			var done = false
+			var rows :[QBERow] = []
+			rows.reserveCapacity(QBEStreamDefaultBatchSize)
+			
+			for i in 0..<QBEStreamDefaultBatchSize {
+				if let next = g.next() {
+					rows.append(next)
+				}
+				else {
+					done = true
+					break
+				}
+			}
+			
+			consumer(rows, !done)
+		}
+		else {
+			consumer([], false)
+		}
+	}
+	
+	private func columnNames(callback: ([QBEColumn]) -> ()) {
+		callback(result?.columnNames ?? [])
+	}
+	
+	private func clone() -> QBEStream {
+		return QBESQLiteStream(data: self.data)
+	}
 }
 
 class QBESQLiteData: QBESQLData {
 	private let db: QBESQLiteDatabase
-	
+
 	private convenience init(db: QBESQLiteDatabase, tableName: String) {
 		let dialect = QBESQLiteDialect()
-		self.init(db: db, sql: "SELECT * FROM \(dialect.tableIdentifier(tableName))")
+		let query = "SELECT * FROM \(dialect.tableIdentifier(tableName))"
+		let result = db.query(query)
+		self.init(db: db, sql: query, columns: result?.columnNames ?? [])
 	}
 	
-	private init(db: QBESQLiteDatabase, sql: String) {
+	private init(db: QBESQLiteDatabase, sql: String, columns: [QBEColumn]) {
 		(self.db) = (db)
-		super.init(sql: sql, dialect: QBESQLiteDialect())
+		super.init(sql: sql, dialect: QBESQLiteDialect(), columns: columns)
 	}
 	
-	override var columnNames: [QBEColumn] { get {
+	override func columnNames(callback: ([QBEColumn]) -> ()) {
 		if let result = self.db.query(self.sql) {
-			return result.columnNames
+			callback(result.columnNames)
 		}
-		return []
-	} }
-	
-	override func apply(sql: String) -> QBEData {
-		return QBESQLiteData(db: self.db, sql: sql)
+		else {
+			callback([])
+		}
 	}
 	
-	override var raster: QBEFuture { get {
-		return {() -> QBERaster in
-			if let result = self.db.query(self.sql) {
-				let columnNames = result.columnNames
-				var newRaster: [[QBEValue]] = []
-				for row in result {
-					newRaster.append(row)
-				}
-				return QBERaster(data: newRaster, columnNames: columnNames)
+	override func apply(sql: String, resultingColumns: [QBEColumn]) -> QBEData {
+		return QBESQLiteData(db: self.db, sql: sql, columns: resultingColumns)
+	}
+	
+	override func stream() -> QBEStream? {
+		return QBESQLiteStream(data: self)
+	}
+	
+	override func raster(callback: (QBERaster) -> ()) {
+		if let result = self.db.query(self.sql) {
+			let columnNames = result.columnNames
+			var newRaster: [[QBEValue]] = []
+			for row in result {
+				newRaster.append(row)
 			}
-			return QBERaster()
+			callback(QBERaster(data: newRaster, columnNames: columnNames))
 		}
-	}}
+		else {
+			callback(QBERaster())
+		}
+	}
 }
 
-class QBESQLiteSourceStep: QBERasterStep {
+class QBESQLiteSourceStep: QBEStep {
 	var url: String
-	var tableName: String = "" { didSet {
-		read()
-	} }
-	
+	var tableName: String = ""
 	let db: QBESQLiteDatabase?
 	
 	init(url: NSURL) {
 		self.url = url.absoluteString ?? ""
-		super.init()
 		
 		if let url = NSURL(string: self.url) {
 			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
@@ -226,16 +273,25 @@ class QBESQLiteSourceStep: QBERasterStep {
 				self.tableName = first
 			}
 		}
+		super.init(previous: nil)
 	}
 	
 	override func explain(locale: QBELocale) -> String {
 		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName, url)
 	}
 	
-	private func read() {
-		if let db = self.db {
-			super.staticFullData = QBESQLiteData(db: db, tableName: self.tableName)
-			super.staticExampleData = QBERasterData(raster: super.staticFullData!.random(100).raster())
+	override func fullData(callback: (QBEData?) -> ()) {
+		if let d = db {
+			callback(QBESQLiteData(db: d, tableName: self.tableName))
+		}
+		else {
+			callback(QBERasterData())
+		}
+	}
+	
+	override func exampleData(callback: (QBEData?) -> ()) {
+		self.fullData { (fd) -> () in
+			callback(fd?.random(100))
 		}
 	}
 	
@@ -246,7 +302,6 @@ class QBESQLiteSourceStep: QBERasterStep {
 		}
 		self.tableName = aDecoder.decodeObjectForKey("tableName") as? String ?? ""
 		super.init(coder: aDecoder)
-		read()
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {

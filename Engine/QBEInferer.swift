@@ -1,5 +1,8 @@
 import Foundation
 
+/** QBEInferer is a helper class that contains an algorithm to find one or more formulas that are able to transform an
+input value to a specific output value. It does so by looping over 'suggestions' (provided by QBEFunction implementations)
+for the application of (usually unary) functions to the input value to obtain (or come closer to) the output value. **/
 class QBEInferer {
 	class func inferFunctions(fromValue: QBEExpression?, toValue: QBEValue, inout suggestions: [QBEExpression], level: Int, raster: QBERaster, row: Int, column: Int, maxComplexity: Int = Int.max, previousValues: [QBEValue] = []) {
 

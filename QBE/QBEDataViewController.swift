@@ -17,15 +17,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 	
-	var data: QBEData? {
-		didSet {
-			self.raster = nil
-			dispatch_async(dispatch_get_main_queue(), { () -> Void in
-				self.raster = self.data?.raster()
-			})
-		}
-	}
-	
 	func update() {
 		updateColumns()
 	}
@@ -82,14 +73,11 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, headerStringForColumn columnIndex: UInt) -> String! {
-		if let d = data {
-			if(Int(columnIndex) >= d.columnNames.count) {
-				return "";
-			}
-			
-			return d.columnNames[Int(columnIndex)].name;
+		if(Int(columnIndex) >= raster?.columnNames.count) {
+			return "";
 		}
-		return "c\(columnIndex)";
+		
+		return raster?.columnNames[Int(columnIndex)].name;
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, withForColumn columnIndex: UInt) -> Float {

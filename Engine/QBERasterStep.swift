@@ -10,8 +10,7 @@ class QBERasterStep: QBEStep {
 	
 	init(raster: QBERaster) {
 		super.init(previous: nil)
-		self.staticExampleData = QBERasterData()
-		self.staticExampleData?.setRaster(raster)
+		self.staticExampleData = QBERasterData(raster: raster)
 		self.staticFullData = staticExampleData
 	}
 	
@@ -25,7 +24,11 @@ class QBERasterStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override var fullData: QBEData? { get { return staticFullData }}
+	override func fullData(callback: (QBEData?) -> ()) {
+		callback(staticFullData)
+	}
 	
-	override var exampleData: QBEData? { get { return staticExampleData }}
+	override func exampleData(callback: (QBEData?) -> ()) {
+		callback(staticExampleData)
+	}
 }

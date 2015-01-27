@@ -22,8 +22,8 @@ class QBELimitStep: QBEStep {
 		coder.encodeInt(Int32(numberOfRows), forKey: "numberOfRows")
 	}
 	
-	override func apply(data: QBEData?) -> QBEData? {
-		return data?.limit(numberOfRows)
+	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
+		callback(data?.limit(numberOfRows))
 	}
 }
 
@@ -44,7 +44,7 @@ class QBERandomStep: QBELimitStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData?) -> QBEData? {
-		return data?.random(numberOfRows)
+	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
+		callback(data?.random(numberOfRows))
 	}
 }

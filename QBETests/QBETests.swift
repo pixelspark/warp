@@ -108,28 +108,39 @@ class QBETests: XCTestCase {
 		
 		// Test the raster data implementation (the tests below are valid for all QBEData implementations)
 		let data = QBERasterData(data: d, columnNames: [QBEColumn("X"), QBEColumn("Y"), QBEColumn("Z")])
-		XCTAssert(data.limit(5).raster().rowCount == 5, "Limit actually works")
-		XCTAssert(data.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).columnNames.count == 0, "Selecting an invalid column returns a set without columns")
+		data.limit(5).raster { (r) -> () in
+			XCTAssert(r.rowCount == 5, "Limit actually works")
+		}
+		
+		data.selectColumns(["THIS_DOESNT_EXIST"]).columnNames { (r) -> () in
+			XCTAssert(r.count == 0, "Selecting an invalid column returns a set without columns")
+		}
 		
 		// Repeatedly transpose and check whether the expected number of rows and columns results
-		self.measureBlock() {
-			let rowsBefore = data.raster().rowCount
-			let columnsBefore = data.raster().columnCount
+		data.raster { (r) -> () in
+			let rowsBefore = r.rowCount
+			let columnsBefore = r.columnCount
 			
 			var td: QBEData = data
 			for i in 1...11 {
 				td = td.transpose()
 			}
 			
-			XCTAssert(td.raster().rowCount == columnsBefore-1, "Row count matches")
-			XCTAssert(td.raster().columnCount == rowsBefore+1, "Column count matches")
+			td.raster({ (s) -> () in
+				XCTAssert(s.rowCount == columnsBefore-1, "Row count matches")
+				XCTAssert(s.columnCount == rowsBefore+1, "Column count matches")
+			})
 		}
-		
 		
 		// Test an empty raster
 		let emptyRasterData = QBERasterData(data: [], columnNames: [])
-		XCTAssert(emptyRasterData.limit(5).raster().rowCount == 0, "Limit works when number of rows > available rows")
-		XCTAssert(emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).columnNames.count == 0, "Selecting an invalid column works properly in empty raster")
+		emptyRasterData.limit(5).raster({(r) -> () in
+			XCTAssert(r.rowCount == 0, "Limit works when number of rows > available rows")
+		})
+		
+		emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).raster { (r) -> () in
+			XCTAssert(r.columnNames.count == 0, "Selecting an invalid column works properly in empty raster")
+		}
 	}
 	
     func testQBERaster() {
@@ -139,12 +150,12 @@ class QBETests: XCTestCase {
 		}
 		
 		let rasterData = QBERasterData(data: d, columnNames: [QBEColumn("X"), QBEColumn("Y"), QBEColumn("Z")])
-		let raster = rasterData.raster()
-		
-		XCTAssert(raster.indexOfColumnWithName("X")==0, "First column has index 0")
-		XCTAssert(raster.indexOfColumnWithName("x")==0, "Column names should be case-insensitive")
-		XCTAssert(rasterData.raster().rowCount == 1001, "Row count matches")
-		XCTAssert(rasterData.raster().columnCount == 3, "Column count matches")
+		rasterData.raster { (raster) -> () in
+			XCTAssert(raster.indexOfColumnWithName("X")==0, "First column has index 0")
+			XCTAssert(raster.indexOfColumnWithName("x")==0, "Column names should be case-insensitive")
+			XCTAssert(raster.rowCount == 1001, "Row count matches")
+			XCTAssert(raster.columnCount == 3, "Column count matches")
+		}
     }
     
 }

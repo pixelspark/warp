@@ -12,6 +12,13 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 	@IBOutlet var aggregatesTable: NSTableView?
 	private var aggregatorsMenu: NSMenu?
 	
+	private var sourceColumns: [QBEColumn]? { didSet {
+		allTable?.reloadData()
+		rowsTable?.reloadData()
+		columnsTable?.reloadData()
+		aggregatesTable?.reloadData()
+	} }
+	
 	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
 		self.delegate = delegate
 		
@@ -27,6 +34,26 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 	
 	required init?(coder: NSCoder) {
 		super.init(coder: coder)
+	}
+	
+	override func viewWillAppear() {
+		super.viewWillAppear()
+		
+		if let sourceStep = self.step?.previous? {
+			sourceStep.exampleData({ (exData: QBEData?) -> () in
+				if let ex = exData {
+					ex.columnNames({ (columns: [QBEColumn]) -> () in
+						self.sourceColumns = columns
+					})
+				}
+				else {
+					self.sourceColumns = []
+				}
+			})
+		}
+		else {
+			self.sourceColumns = []
+		}
 	}
 	
 	internal override func awakeFromNib() {
@@ -52,7 +79,7 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 		
 		rowIndexes.enumerateIndexesUsingBlock({ (index, stop) -> Void in
 			if tableView == self.allTable! {
-				if let column = self.step?.previous?.exampleData?.raster().columnNames[index].name {
+				if let column = self.sourceColumns?[index].name {
 					cols.append(column)
 				}
 			}
@@ -225,8 +252,8 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 		
 		switch tableView {
 			case allTable!:
-				return step?.previous?.exampleData?.raster().columnNames[row].name
-				
+				return sourceColumns?[row].name
+			
 			case rowsTable!:
 				return step?.rows[row].name
 				
@@ -244,7 +271,7 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 	internal func numberOfRowsInTableView(tableView: NSTableView) -> Int {
 		switch tableView {
 			case allTable!:
-				return step?.previous?.exampleData?.columnNames.count ?? 0
+				return sourceColumns?.count ?? 0
 				
 			case rowsTable!:
 				return step?.rows.count ?? 0

@@ -163,106 +163,100 @@ class QBERaster: DebugPrintable {
 	}
 }
 
+private class QBERasterDataStream: NSObject, QBEStream {
+	var data: QBERasterData
+	private var raster: QBERaster?
+	private var position = 0
+	
+	init(_ data: QBERasterData) {
+		self.data = data
+	}
+	
+	private func columnNames(callback: ([QBEColumn]) -> ()) {
+		if let cn = raster?.columnNames {
+			callback(cn)
+		}
+	}
 
-class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
-	private(set) var raster: QBEFuture
+	private func clone() -> QBEStream {
+		return QBERasterDataStream(data)
+	}
+	
+	func fetch(consumer: QBESink) {
+		if raster == nil {
+			data.raster({ (r) -> () in
+				self.raster = r
+				self.fetch(consumer)
+			})
+		}
+		else {
+			if position < raster!.rowCount {
+				let end = min(raster!.rowCount, self.position + QBEStreamDefaultBatchSize)
+				
+				var rows: [QBERow] = []
+				for row in self.position..<end {
+					rows.append(raster![row])
+				}
+
+				self.position = end
+				let hasNext = self.position < self.raster!.rowCount
+				consumer(rows, hasNext)
+			}
+		}
+	}
+}
+
+typealias QBERasterCallback = (QBERaster) -> ()
+typealias QBERasterFuture = (QBERasterCallback) -> ()
+
+class QBERasterData: NSObject, QBEData {
+	private var future: QBERasterFuture
 	
 	override init() {
-		raster = memoize {
-			return QBERaster()
+		future = {(cb: QBERasterCallback) in
+			cb(QBERaster())
 		}
 	}
 	
-	required init(coder: NSCoder) {
-		let codedRaster = coder.decodeObjectForKey("data") as? [[QBEValueCoder]] ?? []
-		let codedColumns = coder.decodeObjectForKey("columns") as? [String] ?? []
-		
-		// The raster is stored as [[QBEValueCoder]], but needs to be a [[QBEValue]]. Lazily decode it
-		raster = memoize {
-			return QBERaster(
-				data: codedRaster.map({$0.map({$0.value})}),
-				columnNames: codedColumns.map({QBEColumn($0)})
-			)
-		}
+	func raster(callback: (QBERaster) -> ()) {
+		future(callback)
 	}
 	
 	init(raster: QBERaster) {
-		self.raster = memoize {
-			return raster
-		}
-	}
-	
-	init(raster: QBEFuture) {
-		self.raster = raster
+		future = {$0(raster)}
 	}
 	
 	init(data: [[QBEValue]], columnNames: [QBEColumn]) {
-		raster = memoize {
-			return QBERaster(data: data, columnNames: columnNames)
-		}
+		let raster = QBERaster(data: data, columnNames: columnNames)
+		future = {$0(raster)}
 	}
 	
-	internal init(_ r: QBEFuture) {
-		raster = r
+	init(future: QBERasterFuture) {
+		self.future = future
 	}
 	
 	func clone() -> QBEData {
-		return QBERasterData(raster)
+		return QBERasterData(future: future)
 	}
 	
-	var isEmpty: Bool { get {
-		return raster().isEmpty
-		}}
-	
-	func encodeWithCoder(coder: NSCoder) {
-		// Create coders
-		let codedRaster = raster().raster.map({(i) -> [QBEValueCoder] in
-			return i.map({QBEValueCoder($0)})
-		})
-		
-		coder.encodeObject(codedRaster, forKey: "data")
-		coder.encodeObject(columnNames.map({$0.name}), forKey: "columns")
-	}
-	
-	private func changeRasterDirectly(filter: QBEFilter) {
-		setRaster(filter(raster()))
-	}
-	
-	func removeRows(set: NSIndexSet) {
-		changeRasterDirectly({(r: QBERaster) -> QBERaster in r.removeRows(set); return r })
-	}
-	
-	func removeColumns(set: NSIndexSet) {
-		changeRasterDirectly({(r: QBERaster) -> QBERaster in r.removeColumns(set); return r })
-	}
-	
-	func addRow() {
-		changeRasterDirectly({(r: QBERaster) -> QBERaster in r.addRow(); return r })
-	}
-	
-	override var debugDescription: String {
-		get {
-			let r = raster()
-			return r.debugDescription
-		}
-	}
-	
-	var columnNames: [QBEColumn] {
-		get {
-			return raster().columnNames
+	func columnNames(callback: ([QBEColumn]) -> ()) {
+		raster { (r) -> () in
+			callback(r.columnNames)
 		}
 	}
 	
 	internal func apply(filter: QBEFilter) -> QBEData {
-		return QBERasterData(raster: memoize {
-			return filter(self.raster())
-		})
+		let newFuture = {(cb: QBERasterCallback) -> () in
+			let transformer = {cb(filter($0))}
+			self.future({transformer($0)})
+		}
+		return QBERasterData(future: newFuture)
 	}
 	
 	func transpose() -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
 			// Find new column names (first column stays in place)
-			var columns: [QBEColumn] = [self.columnNames[0]]
+			var columns: [QBEColumn] = [r.columnNames[0]]
 			for i in 0..<r.rowCount {
 				columns.append(QBEColumn(r[i, 0].stringValue ?? ""))
 			}
@@ -454,8 +448,9 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 			var indexPairs = [Int](0..<r.rowCount).map({($0, rand())})
 			indexPairs.sort({ (a, b) -> Bool in return a.1 < b.1 })
 			let randomlySortedIndices = indexPairs.map({$0.0})
+			let resultNumberOfRows = min(numberOfRows, r.rowCount)
 			
-			for rowNumber in 0..<numberOfRows {
+			for rowNumber in 0..<resultNumberOfRows {
 				newData.append(r[randomlySortedIndices[rowNumber]])
 			}
 			
@@ -463,19 +458,7 @@ class QBERasterData: NSObject, QBEData, NSCoding, DebugPrintable {
 		}
 	}
 	
-	func setRaster(r: QBERaster) {
-		raster = {() in return r}
-	}
-	
-	func compare(other: QBEData) -> Bool {
-		return raster().compare(other.raster())
-	}
-	
-	func stream(receiver: QBESink) {
-		// FIXME: batch this, perhaps just send the whole raster at once to receiver() (but do not send column names)
-		let r = raster();
-		for rowNumber in 0..<r.rowCount {
-			receiver(columnNames, [r[rowNumber]])
-		}
+	func stream() -> QBEStream? {
+		return QBERasterDataStream(self)
 	}
 }

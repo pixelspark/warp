@@ -1,7 +1,7 @@
 import Foundation
 import SwiftParser
 
-struct QBEStack<T> {
+private struct QBEStack<T> {
 	var items = [T]()
 
 	mutating func push(item: T) {
@@ -16,7 +16,7 @@ struct QBEStack<T> {
 	} }
 }
 
-internal func matchAnyCharacterExcept(characters: [Character]) -> ParserRule {
+private func matchAnyCharacterExcept(characters: [Character]) -> ParserRule {
 	return {(parser: Parser, reader: Reader) -> Bool in
 		let pos = reader.position
 		let ch = reader.read()
@@ -30,7 +30,7 @@ internal func matchAnyCharacterExcept(characters: [Character]) -> ParserRule {
 	}
 }
 
-internal func matchAnyFrom(rules: [ParserRule]) -> ParserRule {
+private func matchAnyFrom(rules: [ParserRule]) -> ParserRule {
 	return {(parser: Parser, reader: Reader) -> Bool in
 		let pos = reader.position
 		for rule in rules {
@@ -44,11 +44,11 @@ internal func matchAnyFrom(rules: [ParserRule]) -> ParserRule {
 	}
 }
 
-internal func matchList(item: ParserRule, separator: ParserRule) -> ParserRule {
+private func matchList(item: ParserRule, separator: ParserRule) -> ParserRule {
 	return (item ~ separator)* ~ item/~
 }
 
-internal func matchLiteralInsensitive(string:String) -> ParserRule {
+private func matchLiteralInsensitive(string:String) -> ParserRule {
 	return {(parser: Parser, reader: Reader) -> Bool in
 		let pos = reader.position
 		
@@ -73,6 +73,9 @@ private struct QBECall {
 	}
 }
 
+/** QBEFormula parses formulas written down in an Excel-like syntax (e.g. =SUM(SQRT(1+2/3);IF(1>2;3;4))) as a QBEExpression
+that can be used to calculate values. Like in Excel, the language used for the formulas (e.g. for function names) depends
+on the user's preference and is therefore variable (QBELocale implements this). **/
 class QBEFormula: Parser {
 	private var stack = QBEStack<QBEExpression>()
 	private var callStack = QBEStack<QBECall>()

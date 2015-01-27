@@ -12,15 +12,29 @@ class QBEColumnsStep: QBEStep {
 	}
 	
 	override func explain(locale: QBELocale) -> String {
-		if columnNames.count == 0 {
-			return NSLocalizedString("Remove all columns", comment: "")
-		}
-		else if columnNames.count == 1 {
-			return String(format: NSLocalizedString("Select only the column '%@'", comment: ""), columnNames.first!.name)
+		if select {
+			if columnNames.count == 0 {
+				return NSLocalizedString("Select all columns", comment: "")
+			}
+			else if columnNames.count == 1 {
+				return String(format: NSLocalizedString("Select only the column '%@'", comment: ""), columnNames.first!.name)
+			}
+			else {
+				let cn = columnNames.map({$0.name}).implode(", ") ?? ""
+				return String(format: NSLocalizedString("Select only the columns %@", comment: ""), cn)
+			}
 		}
 		else {
-			let cn = columnNames.map({$0.name}).implode(", ") ?? ""
-			return String(format: NSLocalizedString("Select the columns %@", comment: ""), cn)
+			if columnNames.count == 0 {
+				return NSLocalizedString("Remove all columns", comment: "")
+			}
+			else if columnNames.count == 1 {
+				return String(format: NSLocalizedString("Remove the column '%@'", comment: ""), columnNames.first!.name)
+			}
+			else {
+				let cn = columnNames.map({$0.name}).implode(", ") ?? ""
+				return String(format: NSLocalizedString("Remove the columns %@", comment: ""), cn)
+			}
 		}
 	}
 	
@@ -38,16 +52,18 @@ class QBEColumnsStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData?) -> QBEData? {
-		let columns = data?.columnNames.filter({column -> Bool in
-			for c in self.columnNames {
-				if c == column {
-					return self.select
+	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
+		data?.columnNames({ (existingColumns) -> () in
+			let columns = existingColumns.filter({column -> Bool in
+				for c in self.columnNames {
+					if c == column {
+						return self.select
+					}
 				}
-			}
-			return !self.select
-		}) ?? []
-		
-		return data?.selectColumns(columns)
+				return !self.select
+			}) ?? []
+			
+			callback(data?.selectColumns(columns))
+		})
 	}
 }

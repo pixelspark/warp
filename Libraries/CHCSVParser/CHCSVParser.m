@@ -31,7 +31,7 @@
 
 NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
 
-#define CHUNK_SIZE 512
+#define CHUNK_SIZE PAGE_SIZE
 #define DOUBLE_QUOTE '"'
 #define COMMA ','
 #define OCTOTHORPE '#'

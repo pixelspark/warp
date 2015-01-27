@@ -18,6 +18,8 @@
 		652BEC411A063F96002E45C7 /* QBEWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652BEC401A063F96002E45C7 /* QBEWindowController.swift */; };
 		653414F01A5DD0A500DDD472 /* QBEFormula.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653414EF1A5DD0A500DDD472 /* QBEFormula.swift */; };
 		653414F11A5DD0A500DDD472 /* QBEFormula.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653414EF1A5DD0A500DDD472 /* QBEFormula.swift */; };
+		653E89631A6F9D1C00E9A6F4 /* QBEStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653E89621A6F9D1C00E9A6F4 /* QBEStream.swift */; };
+		653E89651A6FA2D700E9A6F4 /* QBEStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653E89621A6F9D1C00E9A6F4 /* QBEStream.swift */; };
 		656AA1F01A65BB90006D331A /* QBEConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656AA1EF1A65BB90006D331A /* QBEConfigurator.swift */; };
 		65776EE81A614CE100F7F82A /* QBEFunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65776EE71A614CE100F7F82A /* QBEFunction.swift */; };
 		65776EE91A614D1400F7F82A /* QBEFunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65776EE71A614CE100F7F82A /* QBEFunction.swift */; };
@@ -148,6 +150,7 @@
 		652BEBDD1A063029002E45C7 /* QBEDataViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDataViewController.swift; sourceTree = "<group>"; };
 		652BEC401A063F96002E45C7 /* QBEWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEWindowController.swift; sourceTree = "<group>"; };
 		653414EF1A5DD0A500DDD472 /* QBEFormula.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEFormula.swift; path = Engine/QBEFormula.swift; sourceTree = SOURCE_ROOT; };
+		653E89621A6F9D1C00E9A6F4 /* QBEStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEStream.swift; path = Engine/QBEStream.swift; sourceTree = SOURCE_ROOT; };
 		656AA1EF1A65BB90006D331A /* QBEConfigurator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEConfigurator.swift; path = QBE/QBEConfigurator.swift; sourceTree = "<group>"; };
 		65776EE71A614CE100F7F82A /* QBEFunction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEFunction.swift; path = Engine/QBEFunction.swift; sourceTree = SOURCE_ROOT; };
 		65776EEC1A62D8E700F7F82A /* QBEColumnsStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEColumnsStep.swift; path = Engine/QBEColumnsStep.swift; sourceTree = SOURCE_ROOT; };
@@ -298,6 +301,7 @@
 				6501E7B81A6C6A620030899E /* QBESQL.swift */,
 				6501E7B91A6C6A620030899E /* QBESQLite.swift */,
 				6510A73C1A4E9A47005633EF /* QBEStep.swift */,
+				653E89621A6F9D1C00E9A6F4 /* QBEStream.swift */,
 				6506D3CC1A0A69C500F88F1E /* QBEValue.swift */,
 				65D6F9DD1A59B700006B6995 /* Steps */,
 			);
@@ -513,6 +517,7 @@
 				65776EED1A62D8E700F7F82A /* QBEColumnsStep.swift in Sources */,
 				6589779E1A55C090001001F2 /* QBELimitStep.swift in Sources */,
 				658977A51A580FE8001001F2 /* QBESuggestionsViewController.swift in Sources */,
+				653E89631A6F9D1C00E9A6F4 /* QBEStream.swift in Sources */,
 				65D6F9DA1A597C81006B6995 /* QBEExpression.swift in Sources */,
 				652BEBDF1A063029002E45C7 /* QBEDataViewController.swift in Sources */,
 				65D6F9E21A59B8AA006B6995 /* QBEData.swift in Sources */,
@@ -542,6 +547,7 @@
 				65D6F9E61A59BF2C006B6995 /* QBEValue.swift in Sources */,
 				65776EE91A614D1400F7F82A /* QBEFunction.swift in Sources */,
 				65D6F9E91A59C097006B6995 /* QBEData.swift in Sources */,
+				653E89651A6FA2D700E9A6F4 /* QBEStream.swift in Sources */,
 				65D6F9E71A59BFA3006B6995 /* QBERaster.swift in Sources */,
 				65D6F9EB1A59C09C006B6995 /* QBEStep.swift in Sources */,
 				65D6F9F81A59E032006B6995 /* QBEInferer.swift in Sources */,
@@ -681,15 +687,18 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 1;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};

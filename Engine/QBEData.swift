@@ -1,8 +1,6 @@
 import Foundation
 
-typealias QBEFuture = () -> QBERaster
 typealias QBERow = [QBEValue]
-typealias QBESink = ([QBEColumn], [QBERow]) -> ()
 
 /** QBEColumn represents a column (identifier) in a QBEData dataset. Column names in QBEData are case-insensitive when 
 compared, but do retain case. There cannot be two or more columns in a QBEData dataset that are equal to each other when
@@ -127,18 +125,17 @@ protocol QBEData: NSObjectProtocol {
 	array does not exist, it is ignored. */
 	func selectColumns(columns: [QBEColumn]) -> QBEData
 	
-	
 	/** Aggregate data in this set. The 'groups' parameter defines different aggregation 'buckets'. Items are mapped in
 	into each bucket. Subsequently, the aggregations specified in the 'values' parameter are run on each bucket 
 	separately. The resulting data set starts with the group identifier columns, followed by the aggregation results. **/
 	func aggregate(groups: [QBEColumn:QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData
 	
 	/** Request streaming of the data contained in this dataset to the specified callback. **/
-	func stream(receiver: QBESink)
+	func stream() -> QBEStream?
 	
-	/** Returns an in-memory representation (QBERaster) of the data set. **/
-	var raster: QBEFuture { get }
+	/** An in-memory representation (QBERaster) of the data set. **/
+	func raster(callback: (QBERaster) -> ())
 	
 	/** Returns the names of the columns in the data set. The list of column names is ordered. **/
-	var columnNames: [QBEColumn] { get }
+	func columnNames(callback: ([QBEColumn]) -> ())
 }

@@ -1,45 +1,58 @@
 import Foundation
 
-internal class QBERasterCSVReader: NSObject, CHCSVParserDelegate {
-	var data: [QBERow] = []
-	var columns: [QBEColumn] = []
-    var row : [QBEValue] = []
-	let limit: Int?
-	var limitAchieved = false
-	var columnCount: Int? = nil
+internal class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
+	let parser: CHCSVParser
+	let url: NSURL
+
+	private var _columnNames: [QBEColumn] = []
+	private var finished: Bool = false
+	private var row: QBERow = []
+	private var rows: [QBERow] = []
 	
-	init(limit: Int? = nil) {
-		self.limit = limit
+	init(url: NSURL) {
+		self.url = url
+		parser = CHCSVParser(contentsOfCSVURL: url)
+		super.init()
+		
+		parser.delegate = self
+		parser._beginDocument()
+		finished = !parser._parseRecord()
+		_columnNames = row.map({QBEColumn($0.stringValue ?? "")})
+		
+		// This ensures we have enough space to store rows without having to reallocate
+		rows.removeAll(keepCapacity: true)
 	}
 	
-	var raster: QBERaster { get {
-		return QBERaster(data: data, columnNames: columns)
-	} }
+	func columnNames(callback: ([QBEColumn]) -> ()) {
+		callback(_columnNames)
+	}
 	
-    func parser(parser: CHCSVParser, didBeginLine line: UInt) {
-		if (limit? != nil) && limit! < (Int(line)-2) {
-			parser.cancelParsing()
-			limitAchieved = true
+	func fetch(consumer: QBESink) {
+		rows.removeAll(keepCapacity: true)
+		var fetched = 0
+		while !finished && (fetched < QBEStreamDefaultBatchSize) {
+			finished = !parser._parseRecord()
+			fetched++
 		}
-        row = []
-		if let c = columnCount {
-			row.reserveCapacity(c)
-		}
-    }
-    
-    func parser(parser: CHCSVParser, didEndLine line: UInt) {
-		if columnCount == nil {
-			columnCount = row.count
-			columns = row.map({QBEColumn($0.stringValue ?? "")})
-		}
-		else {
-			data.append(row)
-		}
-    }
-    
-    func parser(parser: CHCSVParser, didReadField field: String, atIndex index: Int) {
-        row.append(QBEValue(field))
-    }
+		let r = rows
+		consumer(r, !finished)
+	}
+	
+	func parser(parser: CHCSVParser, didBeginLine line: UInt) {
+		row.removeAll(keepCapacity: true)
+	}
+	
+	func parser(parser: CHCSVParser, didEndLine line: UInt) {
+		rows.append(row)
+	}
+	
+	func parser(parser: CHCSVParser, didReadField field: String, atIndex index: Int) {
+		row.append(QBEValue(field))
+	}
+	
+	func clone() -> QBEStream {
+		return QBECSVStream(url: url)
+	}
 }
 
 class QBECSVWriter: NSObject, NSStreamDelegate {
@@ -52,63 +65,78 @@ class QBECSVWriter: NSObject, NSStreamDelegate {
 	}
 	
 	func writeToFile(file: NSURL) {
-		// FIXME: Very naive implementation...
-		var csv = ""
-		csv += self.locale.csvRow(data.columnNames.map({QBEValue($0.name)}))
-		
-		data.stream({ (columnNames: [QBEColumn], rows: [[QBEValue]]) -> () in
-			for row in rows {
-				csv += self.locale.csvRow(row)
+		if let stream = data.stream() {
+			let csvOut = CHCSVWriter(forWritingToCSVFile: file.path!)
+			
+			// Write column headers
+			stream.columnNames { (columnNames) -> () in
+				for col in columnNames {
+					csvOut.writeField(col.name)
+				}
+				csvOut.finishLine()
+				
+				var cb: QBESink? = nil
+				cb = { (rows: [QBERow], hasNext: Bool) -> () in
+					println("Stream: got \(rows.count) rows for writing")
+					for row in rows {
+						for cell in row {
+							csvOut.writeField(cell.explain(self.locale))
+						}
+						csvOut.finishLine()
+					}
+					
+					if hasNext {
+						QBEAsyncBackground {
+							stream.fetch(cb!)
+						}
+					}
+					else {
+						csvOut.closeStream()
+					}
+				}
+				
+				stream.fetch(cb!)
 			}
-		})
-		
-		var error: NSError?
-		csv.writeToURL(file, atomically: true, encoding: NSUTF8StringEncoding, error: &error)
-		println("Write csv: \(error)")
+		}
 	}
 }
 
-class QBECSVSourceStep: QBERasterStep {
+class QBECSVSourceStep: QBEStep {
+	private var _exampleData: QBEData?
 	var url: String
 	
+	override func fullData(callback: (QBEData?) -> ()) {
+		if let url = NSURL(string: self.url) {
+			let s = QBECSVStream(url: url)
+			callback(QBEStreamData(source: s))
+		}
+		else {
+			callback(nil)
+		}
+	}
+	
+	override func exampleData(callback: (QBEData?) -> ()) {
+		self.fullData { (fullData) -> () in
+			callback(fullData?.limit(100))
+		}
+	}
+	
 	init(url: NSURL) {
-		self.url = url.absoluteString ?? ""
-		super.init()
-		read(url)
-	}
-	
-	override func explain(locale: QBELocale) -> String {
-		return String(format: NSLocalizedString("Load CSV file from '%@' ",comment: ""), url)
-	}
-	
-	class private func readCSV(atURL url: NSURL, limit: Int?) -> QBERaster {
-		let inStream = NSInputStream(URL: url)
-		let parser = CHCSVParser(contentsOfCSVURL: url)
-		let reader = QBERasterCSVReader(limit: limit)
-		parser.delegate = reader
-		parser.parse()
-		return reader.raster
-	}
-	
-	private func read(url: NSURL) {
-		let r = QBECSVSourceStep.readCSV(atURL: url, limit: 100)
-		super.staticExampleData = QBERasterData(raster: r)
-
-		super.staticFullData = QBERasterData({() -> QBERaster in
-			return QBECSVSourceStep.readCSV(atURL: url, limit: nil)
-		})
+		self.url = url.absoluteString!
+		super.init(previous: nil)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
 		self.url = aDecoder.decodeObjectForKey("url") as? String ?? ""
 		super.init(coder: aDecoder)
-		if let url = NSURL(string: self.url) {
-			read(url)
-		}
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
 		super.encodeWithCoder(coder)
 		coder.encodeObject(url, forKey: "url")
+	}
+	
+	override func explain(locale: QBELocale) -> String {
+		return String(format: NSLocalizedString("Load CSV file from '%@' ",comment: ""), url)
 	}
 }

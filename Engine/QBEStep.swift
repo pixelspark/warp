@@ -8,16 +8,16 @@ the 'full' data (which is the full dataset on which the final data operations ar
 Subclasses of QBEStep implement the data manipulation in the apply function, and should implement the description method
 as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. **/
 class QBEStep: NSObject, QBEExplainable {
-	var exampleData: QBEData? {
-		get {
-			return apply(self.previous?.exampleData)
-		}
+	func exampleData(callback: (QBEData?) -> ()) {
+		self.previous?.exampleData({(data) in
+			self.apply(data, callback)
+		})
 	}
 	
-	var fullData: QBEData? {
-		get {
-			return apply(self.previous?.fullData)
-		}
+	func fullData(callback: (QBEData?) -> ()) {
+		self.previous?.fullData({(data) in
+			self.apply(data, callback)
+		})
 	}
 	
 	var previous: QBEStep?
@@ -50,16 +50,16 @@ class QBEStep: NSObject, QBEExplainable {
 		self.previous = previous
 	}
 	
-	func apply(data: QBEData?) -> QBEData? {
-		return nil
+	func apply(data: QBEData?, callback: (QBEData?) -> ()) {
+		callback(nil)
 	}
 }
 
 /** The transpose step implements a row-column switch. It has no configuration and relies on the QBEData transpose()
 implementation to do the actual work. **/
 class QBETransposeStep: QBEStep {
-	override func apply(data: QBEData?) -> QBEData? {
-		return data?.transpose()
+	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
+		callback(data?.transpose())
 	}
 	
 	override func explain(locale: QBELocale) -> String {
