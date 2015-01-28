@@ -217,6 +217,11 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		})
 	}
 	
+	@IBAction func removeStep(sender: NSObject) {
+		popStep()
+		currentStep?.next = nil
+	}
+	
 	@IBAction func removeColumns(sender: NSObject) {
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			// Get the names of the columns to remove
@@ -339,8 +344,23 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("pivot:") {
 			return currentStep != nil
 		}
+		else if item.action()==Selector("removeStep:") {
+			return currentStep != nil
+		}
 		else {
 			return false
+		}
+	}
+	
+	@IBAction func goBackForward(sender: NSObject) {
+		if let segment = sender as? NSSegmentedControl {
+			if segment.selectedSegment == 0 {
+				self.goBack(sender)
+			}
+			else if segment.selectedSegment == 1 {
+				self.goForward(sender)
+			}
+			segment.selectedSegment = -1
 		}
 	}
 	

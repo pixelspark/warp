@@ -2,20 +2,7 @@ import Foundation
 import Cocoa
 
 internal class QBEWindowController: NSWindowController {
-	@IBOutlet var progressIndicator: NSProgressIndicator?
-	
-	private var taskCount: Int = 0 {
-		didSet {
-			if taskCount > 0 {
-				self.progressIndicator?.startAnimation(nil)
-				self.progressIndicator?.hidden = false
-			}
-			else {
-				self.progressIndicator?.stopAnimation(nil)
-				self.progressIndicator?.hidden = true
-			}
-		}
-	}
+	private var taskCount: Int = 0
 	
 	override var document: AnyObject? {
 		didSet {

@@ -800,46 +800,97 @@ CA
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="429" y="180" width="1065" height="806"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
-                        <toolbar key="toolbar" implicitIdentifier="8005E1A7-7EFF-4062-821E-E134B863AEB8" displayMode="iconOnly" sizeMode="small" id="kqZ-PO-6dW">
+                        <toolbar key="toolbar" implicitIdentifier="8005E1A7-7EFF-4062-821E-E134B863AEB8" displayMode="iconOnly" sizeMode="regular" id="kqZ-PO-6dW">
                             <allowedToolbarItems>
-                                <toolbarItem implicitItemIdentifier="15810E9C-AB69-4A05-AC69-E52BA00BB34D" label="Import" paletteLabel="Import" tag="-1" image="NSAddTemplate" id="fYI-Zb-Whe">
-                                    <connections>
-                                        <action selector="importFile:" target="6f7-a7-6o1" id="y4J-x0-zCS"/>
-                                    </connections>
-                                </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="26972DA8-B7F3-4FC5-B020-352324D9BE2C" label="Back" paletteLabel="Back" tag="-1" image="NSGoLeftTemplate" id="U1V-Fd-2A2">
-                                    <connections>
-                                        <action selector="goBack:" target="6f7-a7-6o1" id="94s-tP-P1i"/>
-                                    </connections>
-                                </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="69634B6E-7C25-40E4-B0B4-AD73AD5C7753" label="Forward" paletteLabel="Forward" tag="-1" image="NSGoRightTemplate" id="vMh-pT-2la">
-                                    <connections>
-                                        <action selector="goForward:" target="6f7-a7-6o1" id="fz4-9J-z6O"/>
-                                    </connections>
-                                </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="3JN-eV-tDK"/>
-                                <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="Zil-Xh-hqD"/>
-                                <toolbarItem implicitItemIdentifier="6FDA9CAA-DA6F-4514-95A5-B1C33669F2BF" label="Progress" paletteLabel="Progress" tag="-1" id="7ub-Yp-PxY">
+                                <toolbarItem implicitItemIdentifier="BC4DBE76-8041-4CA3-AF6B-2C8A458E5E24" label="Remove step" paletteLabel="Remove step" image="NSRemoveTemplate" id="Q5C-GQ-mvs">
                                     <nil key="toolTip"/>
-                                    <size key="minSize" width="16" height="16"/>
-                                    <size key="maxSize" width="32" height="32"/>
-                                    <progressIndicator key="view" canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" displayedWhenStopped="NO" bezeled="NO" indeterminate="YES" style="spinning" id="dQ4-Us-P7U">
-                                        <rect key="frame" x="11" y="14" width="32" height="32"/>
+                                    <size key="minSize" width="46" height="25"/>
+                                    <size key="maxSize" width="49" height="28"/>
+                                    <button key="view" verticalHuggingPriority="750" id="X7o-7n-2mz">
+                                        <rect key="frame" x="0.0" y="14" width="49" height="28"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                    </progressIndicator>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="la6-Tg-irN">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="removeStep:" target="6f7-a7-6o1" id="CzO-K4-YwH"/>
+                                        </connections>
+                                    </button>
+                                    <connections>
+                                        <action selector="removeStep:" target="6f7-a7-6o1" id="b7A-Pw-lyY"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="Zil-Xh-hqD"/>
+                                <toolbarItem implicitItemIdentifier="103AF533-6BCA-4006-8C60-A015D06DC413" label="Add" paletteLabel="Add" image="NSAddTemplate" id="WWj-vT-RQX">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="46" height="25"/>
+                                    <size key="maxSize" width="49" height="28"/>
+                                    <button key="view" verticalHuggingPriority="750" id="ApX-pK-R8m">
+                                        <rect key="frame" x="0.0" y="14" width="49" height="28"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="NSAddTemplate" imagePosition="overlaps" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="C2Y-d8-Yof">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="importFile:" target="6f7-a7-6o1" id="TfX-ya-M1E"/>
+                                        </connections>
+                                    </button>
+                                    <connections>
+                                        <action selector="importFile:" target="6f7-a7-6o1" id="Srd-s0-s5G"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="283AF0CE-10F4-465F-A135-D083767DA0CE" label="Back" paletteLabel="Back" image="NSGoLeftTemplate" id="TaZ-DG-mii">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="46" height="25"/>
+                                    <size key="maxSize" width="49" height="28"/>
+                                    <button key="view" verticalHuggingPriority="750" id="w3x-CA-MsG">
+                                        <rect key="frame" x="0.0" y="14" width="49" height="28"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="NSGoLeftTemplate" imagePosition="overlaps" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="JbA-D1-ktB">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="goBack:" target="6f7-a7-6o1" id="ydt-CS-CUC"/>
+                                        </connections>
+                                    </button>
+                                    <connections>
+                                        <action selector="goBack:" target="6f7-a7-6o1" id="9VK-bn-pF2"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="4C50BDAD-FBA3-45C9-9D6C-449D5BDF6C80" label="Forward" paletteLabel="Forward" image="NSGoRightTemplate" id="lIG-N6-amC">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="46" height="25"/>
+                                    <size key="maxSize" width="49" height="28"/>
+                                    <button key="view" verticalHuggingPriority="750" id="w8u-Qp-E2w">
+                                        <rect key="frame" x="0.0" y="14" width="49" height="28"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="NSGoRightTemplate" imagePosition="overlaps" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="CsM-Ow-onc">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="goForward:" target="6f7-a7-6o1" id="tST-bj-tcn"/>
+                                        </connections>
+                                    </button>
+                                    <connections>
+                                        <action selector="goForward:" target="6f7-a7-6o1" id="86i-dD-lpw"/>
+                                    </connections>
                                 </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
-                                <toolbarItem reference="U1V-Fd-2A2"/>
-                                <toolbarItem reference="vMh-pT-2la"/>
+                                <toolbarItem reference="TaZ-DG-mii"/>
+                                <toolbarItem reference="lIG-N6-amC"/>
+                                <toolbarItem reference="Q5C-GQ-mvs"/>
                                 <toolbarItem reference="Zil-Xh-hqD"/>
-                                <toolbarItem reference="7ub-Yp-PxY"/>
-                                <toolbarItem reference="fYI-Zb-Whe"/>
+                                <toolbarItem reference="WWj-vT-RQX"/>
                             </defaultToolbarItems>
                         </toolbar>
                     </window>
                     <connections>
-                        <outlet property="progressIndicator" destination="dQ4-Us-P7U" id="jGN-fX-VVS"/>
                         <segue destination="DXE-ii-MK8" kind="relationship" relationship="window.shadowedContentViewController" id="Irf-sa-QNi"/>
                     </connections>
                 </windowController>
@@ -1211,5 +1262,6 @@ Gw
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSGoLeftTemplate" width="9" height="12"/>
         <image name="NSGoRightTemplate" width="9" height="12"/>
+        <image name="NSRemoveTemplate" width="11" height="11"/>
     </resources>
 </document>

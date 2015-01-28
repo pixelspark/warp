@@ -35,7 +35,9 @@ internal class QBECSVConfigurator: NSViewController {
 	@IBAction func update(sender: NSObject) {
 		if let s = step {
 			if let sv = separatorField?.stringValue {
-				s.fieldSeparator = sv.utf16[sv.utf16.startIndex]
+				if !sv.isEmpty {
+					s.fieldSeparator = sv.utf16[sv.utf16.startIndex]
+				}
 			}
 			s.hasHeaders = hasHeadersButton?.state == NSOnState
 			delegate?.suggestionsView(self, previewStep: s)
