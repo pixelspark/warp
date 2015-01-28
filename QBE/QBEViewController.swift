@@ -207,10 +207,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func addEmptyColumn(sender: NSObject) {
-		if let data = currentStep?.exampleData {
-			let step = QBECalculateStep(previous: currentStep, targetColumn: QBEColumn("XXX"), function: QBELiteralExpression(QBEValue.EmptyValue))
-			pushStep(step)
-		}
+		currentStep?.exampleData({ (data: QBEData?) -> () in
+			if let d = data {
+				d.columnNames({(cols) in
+					let step = QBECalculateStep(previous: self.currentStep, targetColumn: QBEColumn.defaultColumnForIndex(cols.count), function: QBELiteralExpression(QBEValue.EmptyValue))
+					self.pushStep(step)
+				})
+			}
+		})
 	}
 	
 	@IBAction func removeColumns(sender: NSObject) {

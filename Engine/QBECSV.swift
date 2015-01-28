@@ -18,6 +18,7 @@ internal class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		self.fieldSeparator = fieldSeparator
 		
 		parser = CHCSVParser(contentsOfDelimitedURL: url as NSURL!, delimiter: fieldSeparator)
+		parser.sanitizesFields = true
 		super.init()
 		
 		parser.delegate = self
@@ -30,7 +31,7 @@ internal class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		}
 		else {
 			for i in 0..<row.count {
-				_columnNames.append(QBEColumn("\(i)"))
+				_columnNames.append(QBEColumn.defaultColumnForIndex(i))
 			}
 		}
 	}

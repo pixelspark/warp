@@ -34,6 +34,20 @@ struct QBEColumn: StringLiteralConvertible, Hashable, DebugPrintable {
 	var debugDescription: String { get {
 		return "QBEColumn(\(name))"
 	} }
+	
+	/** Return Excel-style column name for column at a given index (starting at 0). **/
+	static func defaultColumnForIndex(var index: Int) -> QBEColumn {
+		let x = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
+		var str: String = ""
+		
+		do {
+			let i = ((index) % 26)
+			str = x[i] + str
+			index -= i
+			index /= 26
+		} while index > 0
+		return QBEColumn(str)
+	}
 }
 
 /** Column names retain case, but they are compared case-insensitively **/

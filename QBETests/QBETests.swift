@@ -27,6 +27,10 @@ class QBETests: XCTestCase {
 	func testColumn() {
 		XCTAssert(QBEColumn("Hello") == QBEColumn("hello"), "Case-insensitive column names")
 		XCTAssert(QBEColumn("xxx") != QBEColumn("hello"), "Case-insensitive column names")
+		
+		XCTAssert(QBEColumn.defaultColumnForIndex(1337)==QBEColumn("BZL"), "Generation of column names")
+		XCTAssert(QBEColumn.defaultColumnForIndex(0)==QBEColumn("A"), "Generation of column names")
+		XCTAssert(QBEColumn.defaultColumnForIndex(1)==QBEColumn("B"), "Generation of column names")
 	}
 	
 	func testArithmetic() {
