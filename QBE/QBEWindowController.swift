@@ -8,9 +8,11 @@ internal class QBEWindowController: NSWindowController {
 		didSet {
 			if taskCount > 0 {
 				self.progressIndicator?.startAnimation(nil)
+				self.progressIndicator?.hidden = false
 			}
 			else {
 				self.progressIndicator?.stopAnimation(nil)
+				self.progressIndicator?.hidden = true
 			}
 		}
 	}
@@ -30,7 +32,9 @@ internal class QBEWindowController: NSWindowController {
 	}
 	
 	func stopTask() {
-		self.taskCount = self.taskCount - 1
+		QBEAsyncMain {
+			self.taskCount = self.taskCount - 1
+		}
 	}
 	
 	@IBAction func shareDocument(sender: NSObject) {
