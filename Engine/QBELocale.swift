@@ -1,10 +1,18 @@
 import Foundation
 
-// Non-localized constants go here
+/** The pack format is a framing format to store an array of values in a string, where the items of the array themselves
+may contain the separator character. These occurrences are escaped in the pack format using the escape sequence 
+QBEPackSeparatorEscape. Occurrences of the escape character are replaced with the QBEPackEscapeEscape sequence. The pack
+format is inspired by the SLIP serial line framing format. The pack format allows values to be grouped together in a single
+value cell (e.g. during aggregation) to later be unpacked again.
+
+Using ',' as separator, '$0' as separator escape and '$1' as escape-escape, packing the array ["a","b,", "c$"] leads to 
+the following pack string: "a,b$0,c$1". Unpacking the pack string "$0$0$0,$1$0,," leads to the array [",,,", "$,","",""].
+**/
 let QBEPackSeparator = ","
-let QBEPackEscape = "\\"
-let QBEPackSeparatorEscape = "\\0"
-let QBEPackEscapeEscape = "\\1"
+let QBEPackEscape = "$"
+let QBEPackSeparatorEscape = "$0"
+let QBEPackEscapeEscape = "$1"
 
 /** QBELocale contains settings that determine how values are presented to the user. Results from QBELocale are *never* 
 used in a calculation, as they change when the user selects a different locale. **/
@@ -85,6 +93,8 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		"COUNTARGS": QBEFunction.CountAll,
 		"MIN": QBEFunction.Min,
 		"MAX": QBEFunction.Max,
+		"EXP": QBEFunction.Exp,
+		"LN": QBEFunction.Ln,
 		
 		// Non-Excel functions
 		"COALESCE": QBEFunction.Coalesce,

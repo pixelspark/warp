@@ -10,6 +10,8 @@
 	<string>QBE</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
+		<key>307F555C84941A2DF2F2E47C7CE5E42A997ACB44</key>
+		<string>github.com:natecook1000/SwiftSets.git</string>
 		<key>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</key>
 		<string>https://github.com/dparnell/swift-parser-generator.git</string>
 		<key>8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E</key>
@@ -21,6 +23,8 @@
 	<string>QBE.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
+		<key>307F555C84941A2DF2F2E47C7CE5E42A997ACB44</key>
+		<string>../../Libraries/SwiftSets</string>
 		<key>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</key>
 		<string>../..Libraries/swift-parser-generator</string>
 		<key>8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E</key>
@@ -59,6 +63,14 @@
 			<string>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</string>
 			<key>IDESourceControlWCCName</key>
 			<string>swift-parser-generator</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>307F555C84941A2DF2F2E47C7CE5E42A997ACB44</string>
+			<key>IDESourceControlWCCName</key>
+			<string>SwiftSets</string>
 		</dict>
 	</array>
 </dict>

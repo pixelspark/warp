@@ -49,11 +49,24 @@ class QBEPivotStep: QBEStep {
 	}
 	
 	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
-		let groups = toDictionary(rows, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
+		var rowGroups = toDictionary(rows, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
+		let colGroups = toDictionary(columns, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
+		for (k, v) in colGroups {
+			rowGroups[k] = v
+		}
 		
-		/* FIXME: the explanation is locale-depended. We need to keep column names constant. Suggest to use 
-		toLocale(QBEDefaultLocale) or to let the user choose a title and then store it permanently in QBEAggregation. */
 		let values = toDictionary(aggregates, { ($0.targetColumnName, $0) })
-		callback(data?.aggregate(groups, values: values))
+		if let resultData = data?.aggregate(rowGroups, values: values) {
+			if columns.count == 0 {
+				callback(resultData)
+			}
+			else {
+				let pivotedData = resultData.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumnName}))
+				callback(pivotedData)
+			}
+		}
+		else {
+			callback(nil)
+		}
 	}
 }

@@ -254,6 +254,13 @@ class QBERasterData: NSObject, QBEData {
 		return QBEStreamData(source: QBERasterDataStream(self)).calculate(calculations)
 	}
 	
+	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
+		self.raster { (raster) -> () in
+			let values = Set<QBEValue>(raster.raster.map({expression.apply($0, columns: raster.columnNames, inputValue: nil)}))
+			callback(values)
+		}
+	}
+	
 	func limit(numberOfRows: Int) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
 			var newData: [[QBEValue]] = []
@@ -349,6 +356,80 @@ class QBERasterData: NSObject, QBEData {
 		}
 	}
 	
+	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData {
+		if horizontal.count == 0 {
+			return self
+		}
+		
+		return apply {(r: QBERaster) -> QBERaster in
+			let horizontalIndexes = horizontal.map({r.indexOfColumnWithName($0)})
+			let verticalIndexes = vertical.map({r.indexOfColumnWithName($0)})
+			let valuesIndexes = values.map({r.indexOfColumnWithName($0)})
+			
+			var horizontalGroups: Set<QBEHashableArray<QBEValue>> = []
+			var verticalGroups: Dictionary<QBEHashableArray<QBEValue>, Dictionary<QBEHashableArray<QBEValue>, [QBEValue]> > = [:]
+			
+			// Group all rows to horizontal and vertical groups
+			r.raster.each({ (row) -> () in
+				let verticalGroup = QBEHashableArray(verticalIndexes.map({$0 == nil ? QBEValue.InvalidValue : row[$0!]}))
+				let horizontalGroup = QBEHashableArray(horizontalIndexes.map({$0 == nil ? QBEValue.InvalidValue : row[$0!]}))
+				horizontalGroups.add(horizontalGroup)
+				let rowValues = valuesIndexes.map({$0 == nil ? QBEValue.InvalidValue : row[$0!]})
+				
+				if verticalGroups[verticalGroup] == nil {
+					verticalGroups[verticalGroup] = [horizontalGroup: rowValues]
+				}
+				else {
+					verticalGroups[verticalGroup]![horizontalGroup] = rowValues
+				}
+			})
+			
+			// Generate column names
+			var newColumnNames: [QBEColumn] = vertical
+			for hGroup in horizontalGroups {
+				let hGroupLabel = hGroup.row.reduce("", combine: { (label, value) -> String in
+					return label + (value.stringValue ?? "") + "_"
+				})
+				
+				for value in values {
+					newColumnNames.append(QBEColumn(hGroupLabel + value.name))
+				}
+			}
+			
+			// Generate rows
+			var row: [QBEValue] = []
+			var rows: [QBERow] = []
+			for (verticalGroup, horizontalCells) in verticalGroups {
+				// Insert vertical group labels
+				verticalGroup.row.each({row.append($0)})
+				
+				// See if this row has a value for each of the horizontal groups
+				for hGroup in horizontalGroups {
+					if let cellValues = horizontalCells[hGroup] {
+						cellValues.each({row.append($0)})
+					}
+					else {
+						for c in 0..<values.count {
+							row.append(QBEValue.InvalidValue)
+						}
+					}
+				}
+				rows.append(row)
+				row.removeAll(keepCapacity: true)
+			}
+			
+			return QBERaster(data: rows, columnNames: newColumnNames, readOnly: true)
+		}
+	}
+	
+	func distinct() -> QBEData {
+		return apply {(r: QBERaster) -> QBERaster in
+			var newData: Set<QBEHashableArray<QBEValue>> = []
+			r.raster.each({newData.add(QBEHashableArray<QBEValue>($0))})
+			return QBERaster(data: newData.elements.map({$0.row}), columnNames: r.columnNames, readOnly: true)
+		}
+	}
+	
 	func random(numberOfRows: Int) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
 			var newData: [[QBEValue]] = []
@@ -415,4 +496,28 @@ private class QBERasterDataStream: NSObject, QBEStream {
 			}
 		}
 	}
+}
+
+private struct QBEHashableArray<T: Hashable>: Hashable, Equatable {
+	let row: [T]
+	let hashValue: Int
+	
+	init(_ row: [T]) {
+		self.row = row
+		self.hashValue = reduce(row, 0) { $0.hashValue ^ $1.hashValue }
+	}
+}
+
+private func ==<T>(lhs: QBEHashableArray<T>, rhs: QBEHashableArray<T>) -> Bool {
+	if lhs.row.count != rhs.row.count {
+		return false
+	}
+	
+	for i in 0..<lhs.row.count {
+		if lhs.row[i] != rhs.row[i] {
+			return false
+		}
+	}
+	
+	return true
 }

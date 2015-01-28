@@ -2,7 +2,7 @@ import Foundation
 
 typealias QBERow = [QBEValue]
 
-/** QBEColumn represents a column (identifier) in a QBEData dataset. Column names in QBEData are case-insensitive when 
+/** QBEColumn represents a column (identifier) in a QBEData dataset. Column names in QBEData are case-insensitive when
 compared, but do retain case. There cannot be two or more columns in a QBEData dataset that are equal to each other when
 compared case-insensitively. **/
 struct QBEColumn: StringLiteralConvertible, Hashable, DebugPrintable {
@@ -135,6 +135,11 @@ protocol QBEData: NSObjectProtocol {
 	all rows of the original data set. **/
 	func random(numberOfRows: Int) -> QBEData
 	
+	/** Returns a dataset with only unique rows from the data set. **/
+	func distinct() -> QBEData
+	
+	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ())
+	
 	/* Select only the columns from the data set that are in the array, in the order specified. If a column named in the 
 	array does not exist, it is ignored. */
 	func selectColumns(columns: [QBEColumn]) -> QBEData
@@ -142,7 +147,9 @@ protocol QBEData: NSObjectProtocol {
 	/** Aggregate data in this set. The 'groups' parameter defines different aggregation 'buckets'. Items are mapped in
 	into each bucket. Subsequently, the aggregations specified in the 'values' parameter are run on each bucket 
 	separately. The resulting data set starts with the group identifier columns, followed by the aggregation results. **/
-	func aggregate(groups: [QBEColumn:QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData
+	func aggregate(groups: [QBEColumn: QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData
+	
+	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData
 	
 	/** Request streaming of the data contained in this dataset to the specified callback. **/
 	func stream() -> QBEStream?

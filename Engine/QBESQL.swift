@@ -7,6 +7,9 @@ protocol QBESQLDialect {
 	/** The string that starts and ends a string literal. **/
 	var stringQualifier: String { get }
 	
+	/** The escape character used inside string literals to escape special characters. Usually '\' **/
+	var stringEscape: String { get }
+	
 	/** The string that is used to escape occurrences of the string qualifier in a literal. All occurrences are replaced
 	with the escape qualifier before the string is inserted in SQL. **/
 	var stringQualifierEscape: String { get }
@@ -21,12 +24,12 @@ protocol QBESQLDialect {
 	func columnIdentifier(column: QBEColumn) -> String
 	
 	/** Transforms the given expression to a SQL string. The inputValue parameter determines the return value of the
-	QBEIdentitiyExpression. **/
-	func expressionToSQL(formula: QBEExpression, inputValue: String?) -> String
+	QBEIdentitiyExpression. The function may return nil for expressions it cannot successfully transform to SQL. **/
+	func expressionToSQL(formula: QBEExpression, inputValue: String?) -> String?
 	
 	/** Transforms the given aggregation to an aggregation description that can be incldued as part of a GROUP BY 
-	statement. **/
-	func aggregationToSQL(aggregation: QBEAggregation) -> String
+	statement. The function may return nil for aggregations it cannot represent or transform to SQL. **/
+	func aggregationToSQL(aggregation: QBEAggregation) -> String?
 }
 
 class QBEStandardSQLDialect: QBESQLDialect {
@@ -34,6 +37,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	let stringQualifierEscape = "\\\'"
 	let identifierQualifier = "\""
 	let identifierQualifierEscape = "\\\""
+	let stringEscape = "\\"
 	
 	func columnIdentifier(column: QBEColumn) -> String {
 		return "\(identifierQualifier)\(column.name.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape))\(identifierQualifier)"
@@ -43,7 +47,14 @@ class QBEStandardSQLDialect: QBESQLDialect {
 		return "\(identifierQualifier)\(table.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape))\(identifierQualifier)"
 	}
 	
-	func expressionToSQL(formula: QBEExpression, inputValue: String? = nil) -> String {
+	private func literalString(str: String) -> String {
+		let escaped = str
+			.stringByReplacingOccurrencesOfString(stringEscape, withString: stringEscape+stringEscape)
+			.stringByReplacingOccurrencesOfString(stringQualifier, withString: stringQualifierEscape)
+		return "\(stringQualifier)\(escaped)\(stringQualifier)"
+	}
+	
+	func expressionToSQL(formula: QBEExpression, inputValue: String? = nil) -> String? {
 		if let f = formula as? QBELiteralExpression {
 			return valueToSQL(f.value)
 		}
@@ -54,38 +65,57 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			return columnIdentifier(f.columnName)
 		}
 		else if let f = formula as? QBEBinaryExpression {
-			let first = expressionToSQL(f.first, inputValue: inputValue)
-			let second = expressionToSQL(f.second, inputValue: inputValue)
-			return binaryToSQL(first, second: second, type: f.type)
+			if let first = expressionToSQL(f.first, inputValue: inputValue) {
+				if let second = expressionToSQL(f.second, inputValue: inputValue) {
+					return binaryToSQL(first, second: second, type: f.type)
+				}
+			}
+			return nil
 		}
 		else if let f = formula as? QBEFunctionExpression {
-			let argValues = f.arguments.map({self.expressionToSQL($0, inputValue: inputValue)})
-			return unaryToSQL(argValues, type: f.type)
+			var anyNils = false
+			let argValues = f.arguments.map({(e: QBEExpression) -> (String) in
+				let r = self.expressionToSQL(e, inputValue: inputValue)
+				if r == nil {
+					anyNils = true
+				}
+				return r ?? ""
+			})
+			return anyNils ? nil : unaryToSQL(argValues, type: f.type)
 		}
 
-		return "???"
+		return nil
 	}
 	
-	func aggregationToSQL(aggregation: QBEAggregation) -> String {
-		switch aggregation.reduce {
-			case .Average: return "AVG(\(expressionToSQL(aggregation.map, inputValue: nil))"
-			case .CountAll: return "COUNT(\(expressionToSQL(aggregation.map, inputValue: nil)))"
-			// FIXME: TYPEOF and its return values will be different for other RDBMSes
-			case .Count: return "SUM(CASE WHEN TYPEOF(\(expressionToSQL(aggregation.map, inputValue: nil)) IN('integer', 'real')) THEN 1 ELSE 0 END)"
-			case .Sum: return "SUM(\(expressionToSQL(aggregation.map, inputValue: nil)))"
-			case .Min: return "MIN(\(expressionToSQL(aggregation.map, inputValue: nil)))"
-			case .Max: return "MAX(\(expressionToSQL(aggregation.map, inputValue: nil)))"
-			
-			/* FIXME: RandomItem can be implemented using a UDF aggregation function in PostgreSQL. Implementing it in 
-			SQLite is not easy.. (perhaps QBE can define a UDF from Swift?). */
-			case .RandomItem: fatalError("Not implemented")
-			
-			default:
-				fatalError("Not implemented")
+	func aggregationToSQL(aggregation: QBEAggregation) -> String? {
+		if let expressionSQL = expressionToSQL(aggregation.map, inputValue: nil) {
+			switch aggregation.reduce {
+				case .Average: return "AVG(\(expressionSQL))"
+				case .CountAll: return "COUNT(\(expressionSQL))"
+				
+				// FIXME: TYPEOF and its return values will be different for other RDBMSes
+				case .Count: return "SUM(CASE WHEN TYPEOF(\(expressionSQL)) IN('integer', 'real')) THEN 1 ELSE 0 END)"
+				case .Sum: return "SUM(\(expressionSQL))"
+				case .Min: return "MIN(\(expressionSQL))"
+				case .Max: return "MAX(\(expressionSQL))"
+				case .Concat: return "GROUP_CONCAT(\(expressionSQL),'')"
+				
+				case .Pack:
+					return "GROUP_CONCAT(REPLACE(REPLACE(\(expressionSQL),\(literalString(QBEPackEscape)),\(literalString(QBEPackEscapeEscape))),\(literalString(QBEPackSeparator)),\(literalString(QBEPackSeparatorEscape))), \(literalString(QBEPackSeparator)))"
+				
+				default:
+					/* TODO: RandomItem can be implemented using a UDF aggregation function in PostgreSQL. Implementing it in
+					SQLite is not easy.. (perhaps QBE can define a UDF from Swift?). */
+					return nil
+			}
+		}
+		else {
+			return nil
 		}
 	}
 	
-	private func unaryToSQL(args: [String], type: QBEFunction) -> String {
+	// FIXME: SQLite supports none of the math functions used below (SIN, COS, TAN, ..)
+	private func unaryToSQL(args: [String], type: QBEFunction) -> String? {
 		let value = args.implode(", ") ?? ""
 		switch type {
 			case .Identity: return value
@@ -112,9 +142,6 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Mid: return "SUBSTRING(\(args[0]), \(args[1]), \(args[2]))"
 			case .Length: return "LEN(\(args[0]))"
 			case .Trim: return "TRIM(\(args[0]))"
-				
-			// FIXME: Log can receive either one parameter (log 10) or two parameters (log base)
-			case .Log: return "LOG(\(value))"
 			case .Not: return "NOT(\(value))"
 			case .Substitute: return "REPLACE(\(args[0]), \(args[1]), \(args[2]))"
 			case .Xor: return "((\(args[0])<>\(args[1])) AND (\(args[0]) OR \(args[1])))"
@@ -124,22 +151,36 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Average: return "(" + (args.implode(" + ") ?? "0") + ")/\(args.count)"
 			case .Min: return "MIN(\(value))" // Should be LEAST in SQL Server
 			case .Max: return "MAX(\(value))" // Might be GREATEST in SQL Server
+			
+			/* FIXME: this is random once (before query execution), in the raster implementation it is random for each
+			row. Something like INDEX(RANDOM(), arg0, arg1, ...) might work (or even using CASE WHEN). */
 			case .RandomItem: return (args.count > 0) ? args[Int.random(0..<args.count)] : "NULL"
+			case .Log:
+				// LOG() can either receive two parameters (number, log base) or one (just number, log base is 10).
+				if args.count == 2 {
+					return "(LOG(\(args[0])) / LOG(\(args[1])))"
+				}
+				else {
+					return "(LOG(\(args[0])) / LOG(10))"
+				}
+			case .Ln:
+				return "(LOG(\(args[0])) / LOG(\(exp(1.0))))"
 			
-			/* FIXME: These could simply call QBEFunction.Count.apply() if the parameters are constant, but then we need 
+			case .Exp:
+				return "EXP(\(args[0]))"
+			
+			/* FIXME: These could simply call QBEFunction.Count.apply() if the parameters are constant, but then we need
 			the original QBEExpression arguments. */
-			case .Count: fatalError("Not implemented")
-			case .CountAll:  fatalError("Not implemented")
-			
-			// FIXME: implement Pack in SQL (use REPLACE etc.)
-			case .Pack: fatalError("Not implemented")
+			case .Count: return nil
+			case .CountAll: return nil
+			case .Pack: return nil
 		}
 	}
 	
 	private func valueToSQL(value: QBEValue) -> String {
 		switch value {
 			case .StringValue(let s):
-				return "\(stringQualifier)\(s.stringByReplacingOccurrencesOfString(stringQualifier, withString: stringQualifierEscape))\(stringQualifier)"
+				return literalString(s)
 				
 			case .DoubleValue(let d):
 				// FIXME: check decimal separator
@@ -202,12 +243,20 @@ class QBESQLData: NSObject, QBEData {
 		self.columns = columns
     }
 	
-	/** Transposition is difficult in SQL, and therefore left to QBERasterData. **/
-    func transpose() -> QBEData {
+	private func fallback() -> QBEData {
 		return QBERasterData(future: { (cb) -> () in
 			self.raster(cb)
-		}).transpose()
+		})
+	}
+	
+	/** Transposition is difficult in SQL, and therefore left to QBERasterData. **/
+    func transpose() -> QBEData {
+		return fallback().transpose()
     }
+	
+	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData {
+		return fallback().pivot(horizontal, vertical: vertical, values: values)
+	}
     
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
 		var values: [String] = []
@@ -217,7 +266,12 @@ class QBESQLData: NSObject, QBEData {
 		for targetColumn in columns {
 			if calculations[targetColumn] != nil {
 				let expression = calculations[targetColumn]!
-				values.append("\(dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn))) AS \(dialect.columnIdentifier(targetColumn))")
+				if let expressionString = dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn)) {
+					values.append("\(expressionString) AS \(dialect.columnIdentifier(targetColumn))")
+				}
+				else {
+					return fallback().calculate(calculations)
+				}
 			}
 			else {
 				values.append(targetColumn.name)
@@ -227,7 +281,12 @@ class QBESQLData: NSObject, QBEData {
 		// New columns are added at the end
 		for (targetColumn, expression) in calculations {
 			if !columns.contains(targetColumn) {
-				values.append("\(dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn))) AS \(dialect.columnIdentifier(targetColumn))")
+				if let expressionString = dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn)) {
+					values.append("\(expressionString) AS \(dialect.columnIdentifier(targetColumn))")
+				}
+				else {
+					return fallback().calculate(calculations)
+				}
 			}
 		}
 		
@@ -236,6 +295,10 @@ class QBESQLData: NSObject, QBEData {
 		}
 		return QBERasterData()
     }
+	
+	func distinct() -> QBEData {
+		return apply("SELECT DISTINCT * FROM (\(self.sql))", resultingColumns: columns)
+	}
     
     func limit(numberOfRows: Int) -> QBEData {
 		return apply("SELECT * FROM (\(self.sql)) LIMIT \(numberOfRows)", resultingColumns: columns)
@@ -243,6 +306,21 @@ class QBESQLData: NSObject, QBEData {
 	
 	func random(numberOfRows: Int) -> QBEData {
 		return apply("SELECT * FROM (\(self.sql)) ORDER BY RANDOM() LIMIT \(numberOfRows)", resultingColumns: columns)
+	}
+	
+	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
+		if let expressionString = dialect.expressionToSQL(expression, inputValue: nil) {
+			let query = "SELECT DISTINCT \(expressionString) AS _value FROM \(self.sql)"
+			let data = apply(query, resultingColumns: ["_value"])
+			
+			data.raster { (raster) -> () in
+				let values = Set<QBEValue>(raster.raster.map({$0[0]}))
+				callback(values)
+			}
+		}
+		else {
+			return fallback().unique(expression, callback: callback)
+		}
 	}
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
@@ -257,14 +335,25 @@ class QBESQLData: NSObject, QBEData {
 		var resultingColumns: [QBEColumn] = []
 		
 		for (column, expression) in groups {
-			select.append("\(dialect.expressionToSQL(expression, inputValue: nil)) AS \(dialect.columnIdentifier(column))")
-			groupBy.append("\(dialect.expressionToSQL(expression, inputValue: nil))")
-			resultingColumns.append(column)
+			if let expressionString = dialect.expressionToSQL(expression, inputValue: nil) {
+				select.append("\(expressionString) AS \(dialect.columnIdentifier(column))")
+				groupBy.append("\(expressionString)")
+				resultingColumns.append(column)
+			}
+			else {
+				return fallback().aggregate(groups, values: values)
+			}
 		}
 		
 		for (column, aggregation) in values {
-			select.append("\(dialect.aggregationToSQL(aggregation)) AS \(dialect.columnIdentifier(column))")
-			resultingColumns.append(column)
+			if let aggregationSQL = dialect.aggregationToSQL(aggregation) {
+				select.append("\(aggregationSQL) AS \(dialect.columnIdentifier(column))")
+				resultingColumns.append(column)
+			}
+			else {
+				// Fall back to default implementation for unsupported aggregation functions
+				return fallback().aggregate(groups, values: values)
+			}
 		}
 		
 		let selectString = select.implode(", ") ?? ""

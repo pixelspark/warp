@@ -7,7 +7,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="QBECSVConfigurator" customModule="QBE" customModuleProvider="target">
             <connections>
                 <outlet property="hasHeadersButton" destination="nIp-FI-Wyq" id="XEn-pD-6rc"/>
-                <outlet property="separatorField" destination="BKg-uV-W1r" id="dLI-M7-cLX"/>
+                <outlet property="separatorField" destination="Gqc-VY-pgW" id="1Zy-a7-kGK"/>
                 <outlet property="view" destination="6ha-w3-wZt" id="ieQ-ga-f5d"/>
             </connections>
         </customObject>
@@ -17,20 +17,6 @@
             <rect key="frame" x="0.0" y="0.0" width="347" height="113"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="BKg-uV-W1r">
-                    <rect key="frame" x="5" y="64" width="337" height="22"/>
-                    <constraints>
-                        <constraint firstAttribute="width" relation="greaterThanOrEqual" priority="250" constant="240" id="7hJ-gr-c85"/>
-                    </constraints>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="8xn-sr-EoM">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                    <connections>
-                        <action selector="update:" target="-2" id="80q-gR-b6Z"/>
-                    </connections>
-                </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="KUX-VE-Yxq">
                     <rect key="frame" x="3" y="91" width="341" height="17"/>
                     <constraints>
@@ -43,7 +29,7 @@
                     </textFieldCell>
                 </textField>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="nIp-FI-Wyq">
-                    <rect key="frame" x="3" y="43" width="341" height="18"/>
+                    <rect key="frame" x="3" y="45" width="341" height="18"/>
                     <buttonCell key="cell" type="check" title="Has column headers" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="HQW-vd-TnC">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
@@ -52,18 +38,38 @@
                         <action selector="update:" target="-2" id="O1s-X0-TKH"/>
                     </connections>
                 </button>
+                <comboBox focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Gqc-VY-pgW">
+                    <rect key="frame" x="5" y="62" width="340" height="26"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="20" id="84g-c7-gHZ"/>
+                    </constraints>
+                    <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" focusRingType="none" drawsBackground="YES" numberOfVisibleItems="5" id="Xmt-rF-B7G">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        <objectValues>
+                            <string>;</string>
+                            <string>|</string>
+                            <string>,</string>
+                            <string>:</string>
+                        </objectValues>
+                    </comboBoxCell>
+                    <connections>
+                        <action selector="update:" target="-2" id="3yL-jA-oxh"/>
+                    </connections>
+                </comboBox>
             </subviews>
             <constraints>
                 <constraint firstAttribute="trailing" secondItem="KUX-VE-Yxq" secondAttribute="trailing" constant="5" id="FQN-50-OaW"/>
+                <constraint firstItem="nIp-FI-Wyq" firstAttribute="top" secondItem="Gqc-VY-pgW" secondAttribute="bottom" constant="5" id="JQa-9w-9Jy"/>
+                <constraint firstItem="Gqc-VY-pgW" firstAttribute="top" secondItem="KUX-VE-Yxq" secondAttribute="bottom" constant="5" id="KF2-ML-uQP"/>
                 <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="nIp-FI-Wyq" secondAttribute="bottom" constant="5" id="Klk-xY-PF2"/>
+                <constraint firstItem="Gqc-VY-pgW" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="L2p-I0-Lq0"/>
                 <constraint firstItem="KUX-VE-Yxq" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="Plb-fB-6Ey"/>
                 <constraint firstAttribute="trailing" secondItem="nIp-FI-Wyq" secondAttribute="trailing" constant="5" id="QEG-ad-SRL"/>
-                <constraint firstItem="BKg-uV-W1r" firstAttribute="top" secondItem="KUX-VE-Yxq" secondAttribute="bottom" constant="5" id="WuK-bB-xqr"/>
-                <constraint firstItem="BKg-uV-W1r" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="gq4-p0-vSx"/>
                 <constraint firstItem="nIp-FI-Wyq" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="kXd-kV-WK0"/>
                 <constraint firstItem="KUX-VE-Yxq" firstAttribute="top" secondItem="6ha-w3-wZt" secondAttribute="top" constant="5" id="nbg-XD-icX"/>
-                <constraint firstAttribute="trailing" secondItem="BKg-uV-W1r" secondAttribute="trailing" constant="5" id="tDa-EC-YqC"/>
-                <constraint firstItem="nIp-FI-Wyq" firstAttribute="top" secondItem="BKg-uV-W1r" secondAttribute="bottom" constant="5" id="z8x-iH-zYF"/>
+                <constraint firstAttribute="trailing" secondItem="Gqc-VY-pgW" secondAttribute="trailing" constant="5" id="xoK-RM-qHb"/>
             </constraints>
             <point key="canvasLocation" x="389.5" y="389.5"/>
         </customView>

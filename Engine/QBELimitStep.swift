@@ -48,3 +48,25 @@ class QBERandomStep: QBELimitStep {
 		callback(data?.random(numberOfRows))
 	}
 }
+
+class QBEDistinctStep: QBEStep {
+	override init(previous: QBEStep?) {
+		super.init(previous: previous)
+	}
+	
+	override func explain(locale: QBELocale) -> String {
+		return NSLocalizedString("Remove duplicate rows", comment: "")
+	}
+	
+	required init(coder aDecoder: NSCoder) {
+		super.init(coder: aDecoder)
+	}
+	
+	override func encodeWithCoder(coder: NSCoder) {
+		super.encodeWithCoder(coder)
+	}
+	
+	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
+		callback(data?.distinct())
+	}
+}

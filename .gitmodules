@@ -4,3 +4,6 @@
 [submodule "Libraries/MBTableGrid"]
 	path = Libraries/MBTableGrid
 	url = https://github.com/pixelspark/mbtablegrid
+[submodule "Libraries/SwiftSets"]
+	path = Libraries/SwiftSets
+	url = git@github.com:natecook1000/SwiftSets.git

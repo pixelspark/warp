@@ -77,9 +77,12 @@ enum QBEFunction: String, QBEExplainable {
 	case RandomItem = "randomItem"
 	case CountAll = "countAll"
 	case Pack = "pack"
+	case Exp = "exp"
+	case Ln = "ln"
 	
 	func explain(locale: QBELocale) -> String {
 		switch self {
+			// TODO: make tihs more detailed. E.g., "5 leftmost characters of" instead of just "leftmost characters"
 			case .Uppercase: return NSLocalizedString("uppercase", comment: "")
 			case .Lowercase: return NSLocalizedString("lowercase", comment:"")
 			case .Negate: return NSLocalizedString("-", comment:"")
@@ -118,6 +121,8 @@ enum QBEFunction: String, QBEExplainable {
 			case .RandomItem: return NSLocalizedString("random item", comment: "")
 			case .CountAll: return NSLocalizedString("number of items", comment: "")
 			case .Pack: return NSLocalizedString("pack", comment: "")
+			case .Exp: return NSLocalizedString("e^", comment: "exponent function")
+			case .Ln: return NSLocalizedString("natural logarithm", comment: "lm")
 		}
 	}
 	
@@ -170,6 +175,8 @@ enum QBEFunction: String, QBEExplainable {
 		case .RandomItem: return QBEArity.Any
 		case .CountAll: return QBEArity.Any
 		case .Pack: return QBEArity.Any
+		case .Exp: return QBEArity.Fixed(1)
+		case .Ln: return QBEArity.Fixed(1)
 		}
 	} }
 	
@@ -270,6 +277,18 @@ enum QBEFunction: String, QBEExplainable {
 		case .Cos:
 			if let d = arguments[0].doubleValue {
 				return QBEValue(cos(d))
+			}
+			return QBEValue.InvalidValue
+		
+		case .Ln:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(log10(d) / log10(exp(1.0)))
+			}
+			return QBEValue.InvalidValue
+			
+		case .Exp:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(exp(d))
 			}
 			return QBEValue.InvalidValue
 			
@@ -461,7 +480,8 @@ enum QBEFunction: String, QBEExplainable {
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
-		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError
+		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
+		Exp, Log, Ln
 	]
 }
 

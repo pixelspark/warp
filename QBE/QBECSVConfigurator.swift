@@ -3,7 +3,7 @@ import Cocoa
 
 internal class QBECSVConfigurator: NSViewController {
 	weak var delegate: QBESuggestionsViewDelegate?
-	@IBOutlet var separatorField: NSTextField?
+	@IBOutlet var separatorField: NSComboBox?
 	@IBOutlet var hasHeadersButton: NSButton?
 	let step: QBECSVSourceStep?
 	

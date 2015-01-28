@@ -59,7 +59,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			else {
 				self.configuratorViewController = nil
 				self.titleLabel?.attributedStringValue = NSAttributedString(string: "")
+				self.presentData(nil)
 			}
+			self.view.window?.update()
 		}
 	}
 	
@@ -347,9 +349,16 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("removeStep:") {
 			return currentStep != nil
 		}
+		else if item.action()==Selector("removeDuplicateRows:") {
+			return currentStep != nil
+		}
 		else {
 			return false
 		}
+	}
+	
+	@IBAction func removeDuplicateRows(sender: NSObject) {
+		pushStep(QBEDistinctStep(previous: self.currentStep))
 	}
 	
 	@IBAction func goBackForward(sender: NSObject) {

@@ -81,6 +81,10 @@ class QBEStreamData: NSObject, QBEData {
 		return fallback().aggregate(groups, values: values)
 	}
 	
+	func distinct() -> QBEData {
+		return fallback().distinct()
+	}
+	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
 		// Implemented by QBEColumnsTransformer
 		return QBEStreamData(source: QBEColumnsTransformer(source: source, selectColumns: columns))
@@ -96,9 +100,18 @@ class QBEStreamData: NSObject, QBEData {
 		return fallback().random(numberOfRows)
 	}
 	
+	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
+		// TODO: this can be implemented as a stream with some memory
+		return fallback().unique(expression, callback: callback)
+	}
+	
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
 		// Implemented as stream by QBECalculateTransformer
 		return QBEStreamData(source: QBECalculateTransformer(source: source, calculations: calculations))
+	}
+	
+	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData {
+		return fallback().pivot(horizontal, vertical: vertical, values: values)
 	}
 	
 	func columnNames(callback: ([QBEColumn]) -> ()) {

@@ -84,11 +84,8 @@ internal class QBESQLiteResultGenerator: GeneratorType {
 					if type.hasPrefix("BOOL") {
 						return QBEValue(intValue != 0)
 					}
-					else {
-						return QBEValue(intValue)
-					}
 				}
-				return QBEValue.InvalidValue
+				return QBEValue(intValue)
 				
 			case SQLITE_TEXT:
 				return QBEValue(String.fromCString(UnsafePointer<CChar>(sqlite3_column_text(self.result.resultSet, Int32(idx))))!)
