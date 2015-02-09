@@ -13,6 +13,8 @@ class QBEExpression: NSObject, NSCoding, QBEExplainable {
 		return "??"
 	}
 	
+	/** The complexity of an expression is an indication of how 'far fetched' it is - this is used by QBEInferer to 
+	decide which expressions to suggest. **/
 	var complexity: Int { get {
 		return 1
 	}}
@@ -26,14 +28,19 @@ class QBEExpression: NSObject, NSCoding, QBEExplainable {
 	func encodeWithCoder(aCoder: NSCoder) {
 	}
 	
+	/** Returns a localized representation of this expression, which should (when parsed by QBEFormula in the same locale)
+	result in an equivalent expression. **/
 	func toFormula(locale: QBELocale) -> String {
 		return ""
 	}
 	
+	/** Calculate the result of this expression for the given row, columns and current input value. **/
 	func apply(row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> QBEValue {
 		fatalError("A QBEExpression was called that isn't implemented")
 	}
 	
+	/** Returns a list of suggestions for applications of this expression on the given value (fromValue) that result in the
+	given 'to' value (or bring the value closer to the toValue). **/
 	class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> [QBEExpression] {
 		return []
 	}
@@ -50,7 +57,7 @@ class QBELiteralExpression: QBEExpression {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.value = (aDecoder.decodeObjectForKey("value") as? QBEValueCoder ?? QBEValueCoder()).value
+		self.value = ((aDecoder.decodeObjectForKey("value") as? QBEValueCoder) ?? QBEValueCoder()).value
 		super.init(coder: aDecoder)
 	}
 	
@@ -147,9 +154,9 @@ class QBEBinaryExpression: QBEExpression {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.first = aDecoder.decodeObjectForKey("first") as? QBEExpression ?? QBEIdentityExpression()
-		self.second = aDecoder.decodeObjectForKey("second") as? QBEExpression ?? QBEIdentityExpression()
-		let typeString = aDecoder.decodeObjectForKey("type") as? String ?? QBEBinary.Addition.rawValue
+		self.first = (aDecoder.decodeObjectForKey("first") as? QBEExpression) ?? QBEIdentityExpression()
+		self.second = (aDecoder.decodeObjectForKey("second") as? QBEExpression) ?? QBEIdentityExpression()
+		let typeString = (aDecoder.decodeObjectForKey("type") as? String) ?? QBEBinary.Addition.rawValue
 		self.type = QBEBinary(rawValue: typeString) ?? QBEBinary.Addition
 		super.init(coder: aDecoder)
 	}
@@ -204,8 +211,8 @@ class QBEFunctionExpression: QBEExpression {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.arguments = aDecoder.decodeObjectForKey("args") as? [QBEExpression] ?? []
-		let typeString = aDecoder.decodeObjectForKey("type") as? String ?? QBEFunction.Identity.rawValue
+		self.arguments = (aDecoder.decodeObjectForKey("args") as? [QBEExpression]) ?? []
+		let typeString = (aDecoder.decodeObjectForKey("type") as? String) ?? QBEFunction.Identity.rawValue
 		self.type = QBEFunction(rawValue: typeString) ?? QBEFunction.Identity
 		super.init(coder: aDecoder)
 	}

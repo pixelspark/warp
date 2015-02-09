@@ -40,7 +40,7 @@ class QBEColumnsStep: QBEStep {
 	
 	required init(coder aDecoder: NSCoder) {
 		select = aDecoder.decodeBoolForKey("select")
-		let names = aDecoder.decodeObjectForKey("columnNames") as? [String] ?? []
+		let names = (aDecoder.decodeObjectForKey("columnNames") as? [String]) ?? []
 		columnNames = names.map({QBEColumn($0)})
 		super.init(coder: aDecoder)
 	}

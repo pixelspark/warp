@@ -90,8 +90,8 @@ class QBEAggregation: NSObject, NSCoding {
 	}
 	
 	required init(coder: NSCoder) {
-		targetColumnName = QBEColumn(coder.decodeObjectForKey("targetColumnName") as? String ?? "")
-		map = coder.decodeObjectForKey("map") as? QBEExpression ?? QBEIdentityExpression()
+		targetColumnName = QBEColumn((coder.decodeObjectForKey("targetColumnName") as? String) ?? "")
+		map = (coder.decodeObjectForKey("map") as? QBEExpression) ?? QBEIdentityExpression()
 		if let rawReduce = coder.decodeObjectForKey("reduce") as? String {
 			reduce = QBEFunction(rawValue: rawReduce) ?? QBEFunction.Identity
 		}

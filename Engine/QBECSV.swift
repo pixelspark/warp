@@ -41,13 +41,15 @@ internal class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 	
 	func fetch(consumer: QBESink) {
-		var fetched = 0
-		while !finished && (fetched < QBEStreamDefaultBatchSize) {
-			finished = !parser._parseRecord()
-			fetched++
+		QBETime("Parse \(QBEStreamDefaultBatchSize) CSV rows") {
+			var fetched = 0
+			while !self.finished && (fetched < QBEStreamDefaultBatchSize) {
+				self.finished = !self.parser._parseRecord()
+				fetched++
+			}
 		}
-		let r = rows
-		rows.removeAll(keepCapacity: true)
+		let r = self.rows
+		self.rows.removeAll(keepCapacity: true)
 		consumer(Slice(r), !finished)
 	}
 	
@@ -145,8 +147,8 @@ class QBECSVSourceStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.url = aDecoder.decodeObjectForKey("url") as? String ?? ""
-		let separator = aDecoder.decodeObjectForKey("fieldSeparator") as? String ?? ";"
+		self.url = (aDecoder.decodeObjectForKey("url") as? String) ?? ""
+		let separator = (aDecoder.decodeObjectForKey("fieldSeparator") as? String) ?? ";"
 		self.fieldSeparator = separator.utf16[separator.utf16.startIndex]
 		self.hasHeaders = aDecoder.decodeBoolForKey("hasHeaders")
 		super.init(coder: aDecoder)

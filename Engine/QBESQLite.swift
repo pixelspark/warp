@@ -14,7 +14,7 @@ internal class QBESQLiteResult: NSObject {
 		self.resultSet = nil
 		super.init()
 		println("SQL \(sql)")
-		if !self.db.perform([sqlite3_prepare_v2(self.db.db, sql, -1, &resultSet, nil)]) {
+		if !self.db.perform({sqlite3_prepare_v2(self.db.db, sql, -1, &self.resultSet, nil)}) {
 			return nil
 		}
 	}
@@ -57,12 +57,19 @@ internal class QBESQLiteResultGenerator: GeneratorType {
 		
 		var item: Element? = nil
 		
-		self.result.db.perform {
+		self.result.db.perform({
 			self.lastStatus = sqlite3_step(self.result.resultSet)
 			if self.lastStatus == SQLITE_ROW {
 				item = self.row
+				return SQLITE_OK
 			}
-		}
+			else if self.lastStatus == SQLITE_DONE {
+				return SQLITE_OK
+			}
+			else {
+				return self.lastStatus
+			}
+		})
 		
 		return item
 	}
@@ -115,36 +122,30 @@ internal class QBESQLiteDatabase {
 		 return String.fromCString(sqlite3_errmsg(self.db)) ?? ""
 	}
 	
-	private func perform(ops: [@autoclosure () -> Int32]) -> Bool {
+	private func perform(op: () -> Int32) -> Bool {
 		var ret: Bool = true
 		dispatch_sync(QBESQLiteDatabase.sharedQueue) {
-			// FIXME: because of rdar://15217242, for op in ops { op() ... } doesn't work
-			for idx in 0..<ops.count {
-				if ops[idx]() != SQLITE_OK {
-					println("SQLite error: \(self.lastError)")
-					ret = false
-					break
-				}
+			if op() != SQLITE_OK {
+				println("SQLite error: \(self.lastError)")
+				ret = false
 			}
 		}
 		return ret
-	}
-	
-	private func perform(fn: () -> ()) {
-		dispatch_sync(QBESQLiteDatabase.sharedQueue, fn)
 	}
 	
 	init?(path: String, readOnly: Bool = false) {
 		let flags = readOnly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
 		self.db = nil
 		
-		if !perform([sqlite3_open_v2(path, &self.db, flags, nil)]) {
+		if !perform({sqlite3_open_v2(path, &self.db, flags, nil) }) {
 			return nil
 		}
+		
+		//RegisterExtensionFunctions(self.db)
 	}
 	
 	deinit {
-		perform([sqlite3_close(self.db)])
+		perform({sqlite3_close(self.db)})
 	}
 	
 	func query(sql: String) -> QBESQLiteResult? {
@@ -258,28 +259,37 @@ class QBESQLiteData: QBESQLData {
 
 class QBESQLiteSourceStep: QBEStep {
 	var url: String
-	var tableName: String = ""
+	var tableName: String?
 	let db: QBESQLiteDatabase?
 	
-	init(url: NSURL) {
+	init?(url: NSURL) {
 		self.url = url.absoluteString ?? ""
 		
-		if let url = NSURL(string: self.url) {
-			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
+		if let nsu = NSURL(string: self.url) {
+			self.db = QBESQLiteDatabase(path: nsu.path!, readOnly: true)
 			if let first = self.db?.tableNames?.first {
 				self.tableName = first
 			}
+			else {
+				self.tableName = nil
+			}
+			super.init(previous: nil)
 		}
-		super.init(previous: nil)
+		else {
+			self.db = nil
+			self.tableName = nil
+			super.init(previous: nil)
+			return nil
+		}
 	}
 	
 	override func explain(locale: QBELocale) -> String {
-		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName, url)
+		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName ?? "", url)
 	}
 	
 	override func fullData(callback: (QBEData?) -> ()) {
 		if let d = db {
-			callback(QBESQLiteData(db: d, tableName: self.tableName))
+			callback(QBESQLiteData(db: d, tableName: self.tableName ?? ""))
 		}
 		else {
 			callback(QBERasterData())
@@ -293,11 +303,15 @@ class QBESQLiteSourceStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.url = aDecoder.decodeObjectForKey("url") as? String ?? ""
+		self.url = (aDecoder.decodeObjectForKey("url") as? String) ?? ""
+		self.tableName = (aDecoder.decodeObjectForKey("tableName") as? String) ?? ""
+		
 		if let url = NSURL(string: self.url) {
 			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
 		}
-		self.tableName = aDecoder.decodeObjectForKey("tableName") as? String ?? ""
+		else {
+			self.db = nil
+		}
 		super.init(coder: aDecoder)
 	}
 	

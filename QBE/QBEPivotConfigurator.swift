@@ -27,19 +27,21 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 			super.init(nibName: "QBEPivotConfigurator", bundle: nil)
 		}
 		else {
+			self.step = nil
 			super.init(nibName: "QBEPivotConfigurator", bundle: nil)
 			return nil
 		}
 	}
 	
 	required init?(coder: NSCoder) {
+		step = nil
 		super.init(coder: coder)
 	}
 	
 	override func viewWillAppear() {
 		super.viewWillAppear()
-		
-		if let sourceStep = self.step?.previous? {
+	
+		if let sourceStep = self.step?.previous {
 			sourceStep.exampleData({ (exData: QBEData?) -> () in
 				if let ex = exData {
 					ex.columnNames({ (columns: [QBEColumn]) -> () in

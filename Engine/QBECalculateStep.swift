@@ -5,8 +5,8 @@ class QBECalculateStep: QBEStep {
 	var targetColumn: QBEColumn
 	
 	required init(coder aDecoder: NSCoder) {
-		function = aDecoder.decodeObjectForKey("function") as? QBEExpression ?? QBEIdentityExpression()
-		targetColumn = QBEColumn(aDecoder.decodeObjectForKey("targetColumn") as? String ?? "")
+		function = (aDecoder.decodeObjectForKey("function") as? QBEExpression) ?? QBEIdentityExpression()
+		targetColumn = QBEColumn((aDecoder.decodeObjectForKey("targetColumn") as? String) ?? "")
 		super.init(coder: aDecoder)
 	}
 	

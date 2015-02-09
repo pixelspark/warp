@@ -271,7 +271,7 @@ class QBEValueCoder: NSObject, NSSecureCoding {
 	required init(coder aDecoder: NSCoder) {
 		let t = aDecoder.decodeIntForKey("type")
 		switch t {
-			case 1: value = .StringValue(aDecoder.decodeObjectForKey("value") as? String ?? "")
+			case 1: value = .StringValue((aDecoder.decodeObjectForKey("value") as? String) ?? "")
 			case 2: value = .IntValue(aDecoder.decodeIntegerForKey("value"))
 			case 3: value = .BoolValue(aDecoder.decodeBoolForKey("value"))
 			case 4: value = .DoubleValue(aDecoder.decodeDoubleForKey("value"))

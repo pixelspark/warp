@@ -15,12 +15,14 @@ internal class QBECSVConfigurator: NSViewController {
 			super.init(nibName: "QBECSVConfigurator", bundle: nil)
 		}
 		else {
+			self.step = nil
 			super.init(nibName: "QBECSVConfigurator", bundle: nil)
 			return nil
 		}
 	}
 	
 	required init?(coder: NSCoder) {
+		self.step = nil
 		super.init(coder: coder)
 	}
 	

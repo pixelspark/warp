@@ -21,7 +21,7 @@ class QBEPivotStep: QBEStep {
 	required init(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
 		
-		aggregates = aDecoder.decodeObjectForKey("aggregates") as? [QBEAggregation] ?? []
+		aggregates = (aDecoder.decodeObjectForKey("aggregates") as? [QBEAggregation]) ?? []
 		
 		if let r = aDecoder.decodeObjectForKey("rows") as? [String] {
 			rows = r.map({QBEColumn($0)})

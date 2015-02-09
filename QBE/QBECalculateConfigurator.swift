@@ -15,12 +15,14 @@ internal class QBECalculateConfigurator: NSViewController {
 			super.init(nibName: "QBECalculateConfigurator", bundle: nil)
 		}
 		else {
+			self.step = nil
 			super.init(nibName: "QBECalculateConfigurator", bundle: nil)
 			return nil
 		}
 	}
 	
 	required init?(coder: NSCoder) {
+		step = nil
 		super.init(coder: coder)
 	}
 	

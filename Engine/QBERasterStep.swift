@@ -4,10 +4,6 @@ class QBERasterStep: QBEStep {
 	var staticExampleData: QBERasterData?
 	var staticFullData: QBEData?
 	
-	init() {
-		super.init(previous: nil)
-	}
-	
 	init(raster: QBERaster) {
 		super.init(previous: nil)
 		self.staticExampleData = QBERasterData(raster: raster)

@@ -1,5 +1,18 @@
 import Foundation
 
+/** Records the time taken to execute the given block and writes it to the console. In release builds, the block is simply
+called and no timing information is gathered. **/
+internal func QBETime(description: String, block: () -> ()) {
+	#if DEBUG
+		let t = CFAbsoluteTimeGetCurrent()
+		block()
+		let d = CFAbsoluteTimeGetCurrent() - t
+		println("QBETime \(description): \(d)")
+	#else
+		block()
+	#endif
+}
+
 /** Runs the given block of code asynchronously on the main queue. **/
 internal func QBEAsyncMain(block: () -> ()) {
 	dispatch_async(dispatch_get_main_queue(), block)
@@ -232,6 +245,7 @@ private class QBEColumnsTransformer: QBETransformer {
 	}
 	
 	private func ensureIndexes(callback: () -> ()) {
+		// FIXME: not threadsafe
 		if indexes == nil {
 			indexes = []
 			source.columnNames({ (sourceColumnNames: [QBEColumn]) -> () in

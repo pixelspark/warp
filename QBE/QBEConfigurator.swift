@@ -25,12 +25,14 @@ private class QBERandomConfigurator: NSViewController {
 			super.init(nibName: "QBERandomConfigurator", bundle: nil)
 		}
 		else {
+			self.step = nil
 			super.init(nibName: "QBERandomConfigurator", bundle: nil)
 			return nil
 		}
 	}
 	
 	required init?(coder: NSCoder) {
+		self.step = nil
 		super.init(coder: coder)
 	}
 	
@@ -62,12 +64,14 @@ private class QBELimitConfigurator: NSViewController {
 			super.init(nibName: "QBELimitConfigurator", bundle: nil)
 		}
 		else {
+			self.step = nil
 			super.init(nibName: "QBELimitConfigurator", bundle: nil)
 			return nil
 		}
 	}
 	
 	required init?(coder: NSCoder) {
+		self.step = nil
 		super.init(coder: coder)
 	}
 	
@@ -86,7 +90,7 @@ private class QBELimitConfigurator: NSViewController {
 	}
 }
 
-private class QBESQLiteSourceConfigurator: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
+internal class QBESQLiteSourceConfigurator: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 	let step: QBESQLiteSourceStep?
 	var tableNames: [String]?
 	weak var delegate: QBESuggestionsViewDelegate?
@@ -100,16 +104,18 @@ private class QBESQLiteSourceConfigurator: NSViewController, NSTableViewDataSour
 			super.init(nibName: "QBESQLiteSourceConfigurator", bundle: nil)
 		}
 		else {
+			self.step = nil
 			super.init(nibName: "QBESQLiteSourceConfigurator", bundle: nil)
 			return nil
 		}
 	}
 	
 	required init?(coder: NSCoder) {
+		self.step = nil
 		super.init(coder: coder)
 	}
 	
-	private override func viewWillAppear() {
+	internal override func viewWillAppear() {
 		super.viewWillAppear()
 		
 		// Fetch table names
@@ -133,7 +139,7 @@ private class QBESQLiteSourceConfigurator: NSViewController, NSTableViewDataSour
 		}
 	}
 	
-	private func tableViewSelectionDidChange(notification: NSNotification) {
+	internal func tableViewSelectionDidChange(notification: NSNotification) {
 		let selection = tableView?.selectedRow ?? -1
 		if tableNames != nil && selection >= 0 && selection < tableNames!.count {
 			let selectedName = tableNames![selection]
@@ -142,11 +148,11 @@ private class QBESQLiteSourceConfigurator: NSViewController, NSTableViewDataSour
 		}
 	}
 	
-	private func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
 		return tableNames?.count ?? 0
 	}
 	
-	private func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		return tableNames?[row] ?? ""
 	}
 }

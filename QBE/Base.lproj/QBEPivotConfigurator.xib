@@ -77,7 +77,7 @@
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
                                     <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnSelection="YES" autosaveColumns="NO" headerView="s4n-Oe-A8Q" id="Ho5-CO-TdL">
-                                        <rect key="frame" x="0.0" y="0.0" width="447" height="19"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="256" height="19"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <size key="intercellSpacing" width="3" height="2"/>
                                         <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -96,7 +96,7 @@
                                                 </textFieldCell>
                                                 <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                             </tableColumn>
-                                            <tableColumn identifier="aggregator" width="100" minWidth="10" maxWidth="3.4028234663852886e+38" id="arW-1a-mHN">
+                                            <tableColumn identifier="aggregator" width="291" minWidth="10" maxWidth="3.4028234663852886e+38" id="arW-1a-mHN">
                                                 <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Show">
                                                     <font key="font" metaFont="smallSystem"/>
                                                     <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -104,7 +104,7 @@
                                                 </tableHeaderCell>
                                                 <popUpButtonCell key="dataCell" type="bevel" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" id="N4p-hC-lHR">
                                                     <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-                                                    <font key="font" metaFont="system"/>
+                                                    <font key="font" metaFont="menu"/>
                                                     <menu key="menu" id="aZT-0f-neT">
                                                         <items>
                                                             <menuItem title="Item 1" id="jsK-Ps-fDh"/>

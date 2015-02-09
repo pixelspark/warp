@@ -10,13 +10,13 @@ as well as coding methods. The explanation variable contains a user-defined comm
 class QBEStep: NSObject, QBEExplainable {
 	func exampleData(callback: (QBEData?) -> ()) {
 		self.previous?.exampleData({(data) in
-			self.apply(data, callback)
+			self.apply(data, callback: callback)
 		})
 	}
 	
 	func fullData(callback: (QBEData?) -> ()) {
 		self.previous?.fullData({(data) in
-			self.apply(data, callback)
+			self.apply(data, callback: callback)
 		})
 	}
 	
