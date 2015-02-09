@@ -362,9 +362,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		65E3C2EB1A062E5E007BB3C8 /* QBE */ = {
+		65E3C2EB1A062E5E007BB3C8 /* Warp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 65E3C3071A062E5E007BB3C8 /* Build configuration list for PBXNativeTarget "QBE" */;
+			buildConfigurationList = 65E3C3071A062E5E007BB3C8 /* Build configuration list for PBXNativeTarget "Warp" */;
 			buildPhases = (
 				65E3C2E81A062E5E007BB3C8 /* Sources */,
 				65E3C2E91A062E5E007BB3C8 /* Frameworks */,
@@ -377,7 +377,7 @@
 				652872961A5D16CE00C155FA /* PBXTargetDependency */,
 				6510A7381A4D982E005633EF /* PBXTargetDependency */,
 			);
-			name = QBE;
+			name = Warp;
 			productName = QBE;
 			productReference = 65E3C2EC1A062E5E007BB3C8 /* QBE.app */;
 			productType = "com.apple.product-type.application";
@@ -451,7 +451,7 @@
 			);
 			projectRoot = "";
 			targets = (
-				65E3C2EB1A062E5E007BB3C8 /* QBE */,
+				65E3C2EB1A062E5E007BB3C8 /* Warp */,
 				65E3C2FE1A062E5E007BB3C8 /* QBETests */,
 			);
 		};
@@ -594,7 +594,7 @@
 		};
 		65E3C3011A062E5E007BB3C8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 65E3C2EB1A062E5E007BB3C8 /* QBE */;
+			target = 65E3C2EB1A062E5E007BB3C8 /* Warp */;
 			targetProxy = 65E3C3001A062E5E007BB3C8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -829,7 +829,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		65E3C3071A062E5E007BB3C8 /* Build configuration list for PBXNativeTarget "QBE" */ = {
+		65E3C3071A062E5E007BB3C8 /* Build configuration list for PBXNativeTarget "Warp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				65E3C3081A062E5E007BB3C8 /* Debug */,

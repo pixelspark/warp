@@ -3,61 +3,61 @@
     {
       "size" : "16x16",
       "idiom" : "mac",
-      "filename" : "appicon-2.png",
+      "filename" : "Warp@16.png",
       "scale" : "1x"
     },
     {
       "size" : "16x16",
       "idiom" : "mac",
-      "filename" : "appicon-3.png",
+      "filename" : "Warp@32-1.png",
       "scale" : "2x"
     },
     {
       "size" : "32x32",
       "idiom" : "mac",
-      "filename" : "appicon-4.png",
+      "filename" : "Warp@32.png",
       "scale" : "1x"
     },
     {
       "size" : "32x32",
       "idiom" : "mac",
-      "filename" : "appicon-5.png",
+      "filename" : "Warp@64.png",
       "scale" : "2x"
     },
     {
       "size" : "128x128",
       "idiom" : "mac",
-      "filename" : "appicon-6.png",
+      "filename" : "Warp@128.png",
       "scale" : "1x"
     },
     {
       "size" : "128x128",
       "idiom" : "mac",
-      "filename" : "appicon-7.png",
+      "filename" : "Warp@256.png",
       "scale" : "2x"
     },
     {
       "size" : "256x256",
       "idiom" : "mac",
-      "filename" : "appicon-8.png",
+      "filename" : "Warp@256-1.png",
       "scale" : "1x"
     },
     {
       "size" : "256x256",
       "idiom" : "mac",
-      "filename" : "appicon-9.png",
+      "filename" : "Warp@512.png",
       "scale" : "2x"
     },
     {
       "size" : "512x512",
       "idiom" : "mac",
-      "filename" : "appicon-1.png",
+      "filename" : "Warp@512-1.png",
       "scale" : "1x"
     },
     {
       "size" : "512x512",
       "idiom" : "mac",
-      "filename" : "appicon.png",
+      "filename" : "Warp@1024.png",
       "scale" : "2x"
     }
   ],
