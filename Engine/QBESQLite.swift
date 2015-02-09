@@ -141,7 +141,9 @@ internal class QBESQLiteDatabase {
 			return nil
 		}
 		
-		//RegisterExtensionFunctions(self.db)
+		/* By default, SQLite does not implement various mathematical SQL functions such as SIN, COS, TAN, as well as 
+		certain aggregates such as STDEV. RegisterExtensionFunctions plugs these into the database. */
+		RegisterExtensionFunctions(self.db)
 	}
 	
 	deinit {

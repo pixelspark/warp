@@ -108,7 +108,7 @@ Original code 2006 June 05 by relicoder.
 
 //#include "config.h"
 
-#define COMPILE_SQLITE_EXTENSIONS_AS_LOADABLE_MODULE 0
+//#define COMPILE_SQLITE_EXTENSIONS_AS_LOADABLE_MODULE 0
 #define HAVE_ACOSH 1
 #define HAVE_ASINH 1
 #define HAVE_ATANH 1
@@ -616,7 +616,7 @@ static void signFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
 */
 static void ceilFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
   double rVal=0.0;
-  i64 iVal=0;
+
   assert( argc==1 );
   switch( sqlite3_value_type(argv[0]) ){
     case SQLITE_INTEGER: {
@@ -641,7 +641,7 @@ static void ceilFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
 */
 static void floorFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
   double rVal=0.0;
-  i64 iVal=0;
+
   assert( argc==1 );
   switch( sqlite3_value_type(argv[0]) ){
     case SQLITE_INTEGER: {
