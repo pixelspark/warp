@@ -112,36 +112,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		self.currentStep?.exampleData({ (data: QBEData?) -> () in
 			if data != nil {
 				data!.raster({ (r: QBERaster) -> () in
-					QBEAsyncMain {
-						var suggestions: [QBEStep] = [];
+					QBEAsyncBackground {
+						let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: r, row: inRow, column: column, locale: self.locale)
+						let steps = expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: r.columnNames[column], function: $0)})
 						
-						if didChangeValue != toValue {
-							let targetColumn = r.columnNames[column]
-							
-							// Was a formula typed in?
-							if let f = QBEFormula(formula: toValue.stringValue ?? "", locale: self.locale) {
-								suggestions.append(QBECalculateStep(previous: self.currentStep, targetColumn: targetColumn, function: f.root))
-								self.suggestSteps(suggestions)
-							}
-							else {
-								// Suggest a text replace
-								let replaceExpression = QBEFunctionExpression(arguments: [QBEIdentityExpression(), QBELiteralExpression(didChangeValue), QBELiteralExpression(toValue)], type: QBEFunction.Substitute)
-								suggestions.append(QBECalculateStep(previous: self.currentStep, targetColumn: r.columnNames[column], function: replaceExpression))
-								
-								// Try to find a formula
-								QBEAsyncBackground {
-									var suggestedFormulas: [QBEExpression] = []
-									QBEInferer.inferFunctions(nil, toValue: toValue, suggestions: &suggestedFormulas, level: 4, raster: r, row: r[inRow], column: column)
-									for suggestedFormula in suggestedFormulas {
-										let cs = QBECalculateStep(previous: self.currentStep, targetColumn: targetColumn, function: suggestedFormula)
-										suggestions.append(cs)
-									}
-									
-									QBEAsyncMain {
-										self.suggestSteps(suggestions)
-									}
-								}
-							}
+						QBEAsyncMain {
+							self.suggestSteps(steps)
 						}
 					}
 				})
@@ -262,27 +238,20 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func removeRows(sender: NSObject) {
 		if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
-			// Check if the row selection is contiguous from the bottom of the data set; if so, this is a limit operation
 			currentStep?.exampleData({ (data: QBEData?) -> () in
 				if data != nil {
 					data!.raster({ (raster: QBERaster) -> () in
+						// Invert the selection
+						let selected = NSMutableIndexSet()
+						for index in 0..<raster.rowCount {
+							if !rowsToRemove.containsIndex(index) {
+								selected.addIndex(index)
+							}
+						}
+						
+						let suggestions = QBERowsStep.suggest(selected, inRaster: raster, fromStep: self.currentStep)
+						
 						QBEAsyncMain {
-							var suggestions: [QBEStep] = []
-							var contiguousLimit = true
-							for index in 1...rowsToRemove.count {
-								if !rowsToRemove.containsIndex(raster.rowCount-index) {
-									contiguousLimit = false
-									break;
-								}
-							}
-					
-							let rowLimit = raster.rowCount - rowsToRemove.count
-							if contiguousLimit {
-								suggestions.append(QBELimitStep(previous: self.currentStep, numberOfRows: rowLimit))
-							}
-							else {
-								suggestions.append(QBERandomStep(previous: self.currentStep, numberOfRows: rowLimit))
-							}
 							self.suggestSteps(suggestions)
 						}
 					})
@@ -292,7 +261,19 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func selectRows(sender: NSObject) {
-		// TODO: implement
+		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
+			currentStep?.exampleData({ (data: QBEData?) -> () in
+				if data != nil {
+					data!.raster({ (raster: QBERaster) -> () in
+						let suggestions = QBERowsStep.suggest(selectedRows, inRaster: raster, fromStep: self.currentStep)
+						
+						QBEAsyncMain {
+							self.suggestSteps(suggestions)
+						}
+					})
+				}
+			})
+		}
 	}
 	
 	override func viewDidLoad() {
@@ -350,6 +331,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			return currentStep != nil
 		}
 		else if item.action()==Selector("removeDuplicateRows:") {
+			return currentStep != nil
+		}
+		else if item.action()==Selector("selectRows:") {
 			return currentStep != nil
 		}
 		else {

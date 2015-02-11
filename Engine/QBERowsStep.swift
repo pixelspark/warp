@@ -1,5 +1,28 @@
 import Foundation
 
+class QBERowsStep: NSObject {
+	class func suggest(selectRows: NSIndexSet, inRaster: QBERaster, fromStep: QBEStep?) -> [QBEStep] {
+		var suggestions: [QBEStep] = []
+		
+		// Is the selection contiguous from the top? Then suggest a limit selection
+		var contiguousTop = true
+		for index in 0..<selectRows.count {
+			if !selectRows.containsIndex(index) {
+				contiguousTop = false
+				break
+			}
+		}
+		if contiguousTop {
+			suggestions.append(QBELimitStep(previous: fromStep, numberOfRows: selectRows.count))
+		}
+		
+		// Suggest a random selection
+		suggestions.append(QBERandomStep(previous: fromStep, numberOfRows: selectRows.count))
+		
+		return suggestions
+	}
+}
+
 class QBELimitStep: QBEStep {
 	var numberOfRows: Int
 	

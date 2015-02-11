@@ -1,6 +1,6 @@
 import Foundation
 
-internal class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
+private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	let parser: CHCSVParser
 	let url: NSURL
 
