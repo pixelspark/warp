@@ -169,11 +169,16 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Exp:
 				return "EXP(\(args[0]))"
 			
+			case .Round:
+				return "ROUND(\(args[0]), \(args[1]))"
+			
 			/* FIXME: These could simply call QBEFunction.Count.apply() if the parameters are constant, but then we need
 			the original QBEExpression arguments. */
 			case .Count: return nil
 			case .CountAll: return nil
 			case .Pack: return nil
+			
+			
 		}
 	}
 	

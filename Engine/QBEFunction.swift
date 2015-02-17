@@ -79,6 +79,7 @@ enum QBEFunction: String, QBEExplainable {
 	case Pack = "pack"
 	case Exp = "exp"
 	case Ln = "ln"
+	case Round = "round"
 	
 	func explain(locale: QBELocale) -> String {
 		switch self {
@@ -122,7 +123,8 @@ enum QBEFunction: String, QBEExplainable {
 			case .CountAll: return NSLocalizedString("number of items", comment: "")
 			case .Pack: return NSLocalizedString("pack", comment: "")
 			case .Exp: return NSLocalizedString("e^", comment: "exponent function")
-			case .Ln: return NSLocalizedString("natural logarithm", comment: "lm")
+			case .Ln: return NSLocalizedString("natural logarithm", comment: "ln")
+			case .Round: return NSLocalizedString("round", comment: "")
 		}
 	}
 	
@@ -177,6 +179,7 @@ enum QBEFunction: String, QBEExplainable {
 		case .Pack: return QBEArity.Any
 		case .Exp: return QBEArity.Fixed(1)
 		case .Ln: return QBEArity.Fixed(1)
+		case .Round: return QBEArity.Between(1,2)
 		}
 	} }
 	
@@ -475,13 +478,36 @@ enum QBEFunction: String, QBEExplainable {
 				let index = Int.random(0..<arguments.count)
 				return arguments[index]
 			}
+			
+			
+		case .Round:
+			var decimals = 0
+			if arguments.count == 2 {
+				decimals = arguments[1].intValue ?? 0
+			}
+			
+			if decimals < 0 {
+				return QBEValue.InvalidValue
+			}
+			
+			if let d = arguments[0].doubleValue {
+				if decimals == 0 {
+					return QBEValue.IntValue(Int(round(d)))
+				}
+				else {
+					let filler = pow(10.0, Double(decimals))
+					return QBEValue(round(filler * d) / filler)
+				}
+			}
+			
+			return QBEValue.InvalidValue
 		}
 	}
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
-		Exp, Log, Ln
+		Exp, Log, Ln, Round
 	]
 }
 

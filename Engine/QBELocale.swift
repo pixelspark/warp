@@ -95,6 +95,7 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		"MAX": QBEFunction.Max,
 		"EXP": QBEFunction.Exp,
 		"LN": QBEFunction.Ln,
+		"ROUND": QBEFunction.Round,
 		
 		// Non-Excel functions
 		"COALESCE": QBEFunction.Coalesce,
