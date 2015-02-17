@@ -394,6 +394,18 @@ func == (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	case (.DoubleValue, .IntValue):
 		return lhs.doubleValue == rhs.doubleValue
 		
+	case (.StringValue, .DoubleValue):
+		return lhs.doubleValue == rhs.doubleValue
+		
+	case (.DoubleValue, .StringValue):
+		return lhs.doubleValue == rhs.doubleValue
+		
+	case (.StringValue, .IntValue):
+		return lhs.intValue == rhs.intValue
+		
+	case (.IntValue, .StringValue):
+		return lhs.intValue == rhs.intValue
+		
 	default:
 		return lhs.stringValue == rhs.stringValue
 	}

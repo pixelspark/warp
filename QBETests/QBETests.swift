@@ -77,7 +77,7 @@ class QBETests: XCTestCase {
 		
 		// Test results
 		let raster = QBERaster()
-		XCTAssert(QBEFormula(formula: "=6/(1-3/4)", locale: locale)!.root.apply(raster[0], columns: raster.columnNames, inputValue: nil) == QBEValue(24), "Formula in default dialect")
+		XCTAssert(QBEFormula(formula: "=6/(1-3/4)", locale: locale)!.root.apply([], columns: raster.columnNames, inputValue: nil) == QBEValue(24), "Formula in default dialect")
 		
 		// Test whether parsing goes wrong when it should
 		XCTAssert(QBEFormula(formula: "", locale: locale) == nil, "Empty formula")
@@ -102,6 +102,15 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEFunction.Count.apply([]) == QBEValue(0), "Empty count returns zero")
 		XCTAssert(QBEFunction.Count.apply([QBEValue(1), QBEValue(1), QBEValue.InvalidValue, QBEValue.EmptyValue]) == QBEValue(2), "Count does not include invalid values and empty values")
 		XCTAssert(QBEFunction.CountAll.apply([QBEValue(1), QBEValue(1), QBEValue.InvalidValue, QBEValue.EmptyValue]) == QBEValue(4), "CountAll includes invalid values and empty values")
+	}
+	
+	func testInferer() {
+		var suggestions: [QBEExpression] = []
+		let cols = ["A","B","C","D"].map({QBEColumn($0)})
+		let row = [1,3,4,6].map({QBEValue($0)})
+		QBEExpression.infer(nil, toValue: QBEValue(24), suggestions: &suggestions, level: 10, columns: cols, row: row, column: 0, maxComplexity: Int.max, previousValues: [])
+		suggestions.each({println($0.explain(QBEDefaultLocale()))})
+		XCTAssert(suggestions.count>0, "Can solve the 1-3-4-6 24 game.")
 	}
 	
 	func testQBEDataImplementations() {
