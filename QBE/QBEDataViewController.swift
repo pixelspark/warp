@@ -91,7 +91,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	private func updateColumns() {
 		if let tv = tableView {
 			for i in 0...tv.numberOfColumns {
-				tv.resizeColumnWithIndex(i, withDistance: 0.0)
+				tv.resizeColumnWithIndex(i, width: 50.0)
 			}
 			
 			tv.reloadData()
@@ -109,7 +109,8 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
 		let cols = NSColor.controlAlternatingRowBackgroundColors()
-		return (cols[Int(rowIndex) % cols.count] as? NSColor)!
+		return cols[0] as NSColor
+		//return (cols[Int(rowIndex) % cols.count] as? NSColor)!
 	}
 	
 	private func updateFormulaField() {
