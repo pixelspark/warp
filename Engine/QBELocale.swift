@@ -96,6 +96,7 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		"EXP": QBEFunction.Exp,
 		"LN": QBEFunction.Ln,
 		"ROUND": QBEFunction.Round,
+		"CHOOSE": QBEFunction.Choose,
 		
 		// Non-Excel functions
 		"COALESCE": QBEFunction.Coalesce,

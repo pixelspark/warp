@@ -178,6 +178,8 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .CountAll: return nil
 			case .Pack: return nil
 			
+			// FIXME: should be implemented as CASE WHEN i=1 THEN a WHEN i=2 THEN b ... END
+			case .Choose: return nil
 			
 		}
 	}

@@ -80,6 +80,7 @@ enum QBEFunction: String, QBEExplainable {
 	case Exp = "exp"
 	case Ln = "ln"
 	case Round = "round"
+	case Choose = "choose"
 	
 	func explain(locale: QBELocale) -> String {
 		switch self {
@@ -125,6 +126,7 @@ enum QBEFunction: String, QBEExplainable {
 			case .Exp: return NSLocalizedString("e^", comment: "exponent function")
 			case .Ln: return NSLocalizedString("natural logarithm", comment: "ln")
 			case .Round: return NSLocalizedString("round", comment: "")
+			case .Choose: return NSLocalizedString("choose", comment: "")
 		}
 	}
 	
@@ -180,6 +182,7 @@ enum QBEFunction: String, QBEExplainable {
 		case .Exp: return QBEArity.Fixed(1)
 		case .Ln: return QBEArity.Fixed(1)
 		case .Round: return QBEArity.Between(1,2)
+		case .Choose: return QBEArity.Any
 		}
 	} }
 	
@@ -501,13 +504,25 @@ enum QBEFunction: String, QBEExplainable {
 			}
 			
 			return QBEValue.InvalidValue
+			
+		case .Choose:
+			if arguments.count < 2 {
+				return QBEValue.InvalidValue
+			}
+			
+			if let index = arguments[0].intValue {
+				if index < arguments.count && index > 0 {
+					return arguments[index]
+				}
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
-		Exp, Log, Ln, Round
+		Exp, Log, Ln, Round, Choose
 	]
 }
 
