@@ -199,7 +199,8 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 							columnsTable?.reloadData()
 						}
 						else if info.draggingSource() as? NSTableView == aggregatesTable {
-							self.step?.aggregates.remove(QBEColumn(col))
+							// FIXME: needs to remove a QBEAggregation object
+							//self.step?.aggregates.remove(QBEColumn(col))
 							aggregatesTable?.reloadData()
 						}
 					}
@@ -215,17 +216,31 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 	}
 	
 	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
-		if tableColumn?.identifier == "aggregator" {
-			if let menuItem = aggregatorsMenu?.itemAtIndex(object?.integerValue ?? 0) {
-				if let rep = menuItem.representedObject as? QBEFunction.RawValue {
-					if let fun = QBEFunction(rawValue: rep) {
-						step?.aggregates[row].reduce = fun
-						tableView.reloadData()
-						delegate?.suggestionsView(self, previewStep: nil)
+		if tableView == aggregatesTable {
+			if tableColumn?.identifier == "aggregator" {
+				if let menuItem = aggregatorsMenu?.itemAtIndex(object?.integerValue ?? 0) {
+					if let rep = menuItem.representedObject as? QBEFunction.RawValue {
+						if let fun = QBEFunction(rawValue: rep) {
+							step?.aggregates[row].reduce = fun
+							tableView.reloadData()
+							delegate?.suggestionsView(self, previewStep: nil)
+						}
 					}
 				}
 			}
+			else if tableColumn?.identifier == "targetColumnName" {
+				if let s = object as? String {
+					step?.aggregates[row].targetColumnName = QBEColumn(s)
+				}
+			}
 		}
+	}
+	
+	func tableView(tableView: NSTableView, shouldEditTableColumn tableColumn: NSTableColumn?, row: Int) -> Bool {
+		if tableView == aggregatesTable {
+			return true
+		}
+		return false
 	}
 	
 	func tableView(tableView: NSTableView, dataCellForTableColumn tableColumn: NSTableColumn?, row: Int) -> NSCell? {
@@ -263,7 +278,7 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 				return step?.columns[row].name
 				
 			case aggregatesTable!:
-				return step?.aggregates[row].map.explain(delegate!.locale)
+				return step?.aggregates[row].targetColumnName.name
 				
 			default:
 				return ""

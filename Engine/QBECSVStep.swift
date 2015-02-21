@@ -75,7 +75,11 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 }
 
-class QBECSVWriter: NSObject, NSStreamDelegate {
+protocol QBEFileWriter: NSObjectProtocol {
+	func writeToFile(file: NSURL, callback: () -> ())
+}
+
+class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 	let data: QBEData
 	let locale: QBELocale
 	
@@ -84,7 +88,7 @@ class QBECSVWriter: NSObject, NSStreamDelegate {
 		self.locale = locale
 	}
 	
-	func writeToFile(file: NSURL) {
+	func writeToFile(file: NSURL, callback: () -> ()) {
 		if let stream = data.stream() {
 			let csvOut = CHCSVWriter(forWritingToCSVFile: file.path!)
 			
@@ -97,21 +101,25 @@ class QBECSVWriter: NSObject, NSStreamDelegate {
 				
 				var cb: QBESink? = nil
 				cb = { (rows: Slice<QBERow>, hasNext: Bool) -> () in
-					println("Stream: got \(rows.count) rows for writing")
-					for row in rows {
-						for cell in row {
-							csvOut.writeField(cell.explain(self.locale))
-						}
-						csvOut.finishLine()
-					}
-					
+					// We want the next row, so fetch it while we start writing this one.
 					if hasNext {
 						QBEAsyncBackground {
 							stream.fetch(cb!)
 						}
 					}
-					else {
+					
+					QBETime("Write \(rows.count) CSV rows") {
+						for row in rows {
+							for cell in row {
+								csvOut.writeField(cell.explain(self.locale))
+							}
+							csvOut.finishLine()
+						}
+					}
+					
+					if !hasNext {
 						csvOut.closeStream()
+						callback()
 					}
 				}
 				

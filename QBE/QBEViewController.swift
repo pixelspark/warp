@@ -476,6 +476,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func exportFile(sender: NSObject) {
 		let ns = NSSavePanel()
+		ns.allowedFileTypes = ["csv","txt","tab"]
 		
 		ns.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result == NSFileHandlingPanelOKButton {
@@ -485,7 +486,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 							if data != nil {
 								let wr = QBECSVWriter(data: data!, locale: self.locale)
 								if let url = ns.URL {
-									wr.writeToFile(url)
+									wr.writeToFile(url, {
+										QBEAsyncMain {
+											let alert = NSAlert()
+											alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
+											alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (response) -> Void in
+											})
+										}
+									})
 								}
 							}
 						})

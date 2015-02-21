@@ -2,7 +2,7 @@ import Foundation
 
 /** Records the time taken to execute the given block and writes it to the console. In release builds, the block is simply
 called and no timing information is gathered. **/
-internal func QBETime(description: String, block: () -> (), file: String = __FILE__, line: Int = __LINE__) {
+internal func QBETime(description: String, block: () -> (), file: String = __FUNCTION__, line: Int = __LINE__) {
 	#if DEBUG
 		let t = CFAbsoluteTimeGetCurrent()
 		block()
