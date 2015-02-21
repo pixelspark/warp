@@ -26,7 +26,7 @@
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>158F01A270B5C65F60F886E059360E7F68227D7E</key>
-		<string>../../Libraries/Bayes/</string>
+		<string>../../Libraries/Bayes</string>
 		<key>307F555C84941A2DF2F2E47C7CE5E42A997ACB44</key>
 		<string>../../Libraries/SwiftSets</string>
 		<key>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</key>

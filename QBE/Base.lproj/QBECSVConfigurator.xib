@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="6254" systemVersion="14B25" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="6254" systemVersion="14C109" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6254"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="QBECSVConfigurator" customModule="QBE" customModuleProvider="target">
+        <customObject id="-2" userLabel="File's Owner" customClass="QBECSVConfigurator" customModule="Warp" customModuleProvider="target">
             <connections>
                 <outlet property="hasHeadersButton" destination="nIp-FI-Wyq" id="XEn-pD-6rc"/>
                 <outlet property="separatorField" destination="Gqc-VY-pgW" id="1Zy-a7-kGK"/>
@@ -43,19 +43,14 @@
                     <constraints>
                         <constraint firstAttribute="height" constant="20" id="84g-c7-gHZ"/>
                     </constraints>
-                    <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" focusRingType="none" drawsBackground="YES" numberOfVisibleItems="5" id="Xmt-rF-B7G">
+                    <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" focusRingType="none" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="Xmt-rF-B7G">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                        <objectValues>
-                            <string>;</string>
-                            <string>|</string>
-                            <string>,</string>
-                            <string>:</string>
-                        </objectValues>
                     </comboBoxCell>
                     <connections>
                         <action selector="update:" target="-2" id="3yL-jA-oxh"/>
+                        <outlet property="dataSource" destination="-2" id="Gt1-w3-Ivo"/>
                     </connections>
                 </comboBox>
             </subviews>

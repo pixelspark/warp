@@ -139,9 +139,10 @@ class QBECSVSourceStep: QBEStep {
 	}
 	
 	init(url: NSURL) {
+		let defaultSeparator = NSUserDefaults.standardUserDefaults().stringForKey("defaultSeparator") ?? ";"
+		
 		self.url = url.absoluteString!
-		let s = ";"
-		self.fieldSeparator = s.utf16[s.utf16.startIndex]
+		self.fieldSeparator = defaultSeparator.utf16[defaultSeparator.utf16.startIndex]
 		self.hasHeaders = true
 		super.init(previous: nil)
 	}

@@ -25,6 +25,10 @@ protocol QBELocale: NSObjectProtocol {
 	
 	var argumentSeparator: String { get }
 	
+	/** A list of common field separators (e.g. for parsing CSVs). Note that currently, only single-character separators
+	are supported. **/
+	var commonFieldSeparators: [String] { get }
+	
 	/** String to use when the string qualifier needs to appear in a string itself **/
 	var stringQualifierEscape: String { get }
 	
@@ -53,6 +57,8 @@ class QBEDefaultLocale: NSObject, QBELocale {
 	let csvLineSeparator = "\r\n"
 	let csvStringQualifier = "\""
 	let csvStringEscaper = "\"\""
+	
+	let commonFieldSeparators = [";",",","|","\t"]
 	
 	let constants = [
 		QBEValue(true): "TRUE",

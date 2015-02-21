@@ -23,7 +23,7 @@
                                         <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
                                         <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW">
                                             <connections>
-                                                <segue destination="GTc-kf-kV6" kind="show" id="53u-wT-sBr"/>
+                                                <segue destination="GTc-kf-kV6" kind="show" identifier="preferences" id="53u-wT-sBr"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
@@ -784,7 +784,7 @@ CA
             <objects>
                 <windowController showSeguePresentationStyle="single" id="GTc-kf-kV6" sceneMemberID="viewController">
                     <window key="window" title="Preferences" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="default" id="SMS-CO-LFo">
-                        <windowStyleMask key="styleMask" titled="YES" closable="YES" unifiedTitleAndToolbar="YES"/>
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" resizable="YES" texturedBackground="YES" unifiedTitleAndToolbar="YES"/>
                         <windowCollectionBehavior key="collectionBehavior" transient="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="294" y="362" width="480" height="270"/>
@@ -798,16 +798,49 @@ CA
             </objects>
             <point key="canvasLocation" x="561" y="-422"/>
         </scene>
-        <!--View Controller-->
+        <!--Settings View Controller-->
         <scene sceneID="q8y-wj-17x">
             <objects>
-                <viewController id="nyj-Qm-GSe" sceneMemberID="viewController">
+                <viewController id="nyj-Qm-GSe" customClass="QBESettingsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="Jc3-uf-xvU">
                         <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
                         <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <comboBox focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="g92-DK-z9E">
+                                <rect key="frame" x="160" y="236" width="313" height="26"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="200" id="DjT-Ms-zDL"/>
+                                </constraints>
+                                <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" focusRingType="none" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="rJU-Mt-0Xo">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </comboBoxCell>
+                                <connections>
+                                    <binding destination="UfJ-Kh-gyi" name="value" keyPath="values.defaultSeparator" id="qBm-f2-6WS"/>
+                                    <outlet property="dataSource" destination="nyj-Qm-GSe" id="l55-K0-Map"/>
+                                </connections>
+                            </comboBox>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="QBF-Ya-2UW">
+                                <rect key="frame" x="8" y="243" width="144" height="17"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Default field separator:" id="zRv-Pg-yZW">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="g92-DK-z9E" firstAttribute="top" secondItem="Jc3-uf-xvU" secondAttribute="top" constant="10" id="0y8-zu-VSq"/>
+                            <constraint firstAttribute="trailing" secondItem="g92-DK-z9E" secondAttribute="trailing" constant="10" id="ACE-gk-6ij"/>
+                            <constraint firstItem="QBF-Ya-2UW" firstAttribute="leading" secondItem="Jc3-uf-xvU" secondAttribute="leading" constant="10" id="KGp-W0-a8B"/>
+                            <constraint firstItem="g92-DK-z9E" firstAttribute="leading" secondItem="QBF-Ya-2UW" secondAttribute="trailing" constant="10" id="v8t-v3-hH3"/>
+                            <constraint firstItem="QBF-Ya-2UW" firstAttribute="top" secondItem="Jc3-uf-xvU" secondAttribute="top" constant="10" id="xq1-cS-C0u"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <customObject id="dH1-QD-FHa" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+                <userDefaultsController id="UfJ-Kh-gyi"/>
             </objects>
             <point key="canvasLocation" x="1173" y="-430"/>
         </scene>
@@ -821,7 +854,7 @@ CA
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="429" y="180" width="1065" height="806"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
-                        <toolbar key="toolbar" implicitIdentifier="8005E1A7-7EFF-4062-821E-E134B863AEB8" displayMode="iconOnly" sizeMode="small" id="kqZ-PO-6dW">
+                        <toolbar key="toolbar" implicitIdentifier="8005E1A7-7EFF-4062-821E-E134B863AEB8" showsBaselineSeparator="NO" displayMode="iconOnly" sizeMode="small" id="kqZ-PO-6dW">
                             <allowedToolbarItems>
                                 <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="3JN-eV-tDK"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="Zil-Xh-hqD"/>
@@ -974,10 +1007,50 @@ CA
             </objects>
             <point key="canvasLocation" x="-181" y="1223"/>
         </scene>
+        <!--Result View Controller-->
+        <scene sceneID="FbG-3g-HAb">
+            <objects>
+                <viewController storyboardIdentifier="resultViewController" id="RGB-my-B5w" customClass="QBEResultViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="vcC-pe-prS">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="400"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <containerView translatesAutoresizingMaskIntoConstraints="NO" id="o5B-PG-5tn">
+                                <rect key="frame" x="5" y="42" width="440" height="353"/>
+                                <connections>
+                                    <segue destination="heg-Gg-TM4" kind="embed" identifier="tableGrid" id="nrv-FT-MZN"/>
+                                </connections>
+                            </containerView>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="vgP-f4-e3K">
+                                <rect key="frame" x="375" y="3" width="76" height="33"/>
+                                <buttonCell key="cell" type="push" title="Close" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="PGX-1w-cvN">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="dismissController:" target="RGB-my-B5w" id="32g-u6-ohX"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="vgP-f4-e3K" secondAttribute="bottom" constant="10" id="2As-RO-Gow"/>
+                            <constraint firstAttribute="bottom" secondItem="o5B-PG-5tn" secondAttribute="bottom" constant="42" id="9Dj-BM-Q16"/>
+                            <constraint firstAttribute="trailing" secondItem="o5B-PG-5tn" secondAttribute="trailing" constant="5" id="KlD-tF-qui"/>
+                            <constraint firstAttribute="trailing" secondItem="vgP-f4-e3K" secondAttribute="trailing" constant="5" id="MVU-Ci-ORY"/>
+                            <constraint firstItem="o5B-PG-5tn" firstAttribute="leading" secondItem="vcC-pe-prS" secondAttribute="leading" constant="5" id="UaU-PG-BlY"/>
+                            <constraint firstItem="o5B-PG-5tn" firstAttribute="top" secondItem="vcC-pe-prS" secondAttribute="top" constant="5" id="gS4-E9-rsl"/>
+                            <constraint firstItem="vgP-f4-e3K" firstAttribute="top" secondItem="o5B-PG-5tn" secondAttribute="bottom" constant="10" id="ka9-h6-cuP"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <customObject id="ieb-LL-E2m" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-791" y="1223"/>
+        </scene>
         <!--Data View Controller-->
         <scene sceneID="BjY-ZD-Y7M">
             <objects>
-                <viewController id="heg-Gg-TM4" customClass="QBEDataViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="dataViewController" id="heg-Gg-TM4" customClass="QBEDataViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" focusRingType="none" id="qWX-f7-1Jq">
                         <rect key="frame" x="0.0" y="0.0" width="605" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -1009,7 +1082,7 @@ CA
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-152.5" y="1751"/>
+            <point key="canvasLocation" x="-458.5" y="1748"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -1229,4 +1302,7 @@ Gw
         <image name="NSGoRightTemplate" width="9" height="12"/>
         <image name="NSStopProgressFreestandingTemplate" width="14" height="14"/>
     </resources>
+    <inferredMetricsTieBreakers>
+        <segue reference="nrv-FT-MZN"/>
+    </inferredMetricsTieBreakers>
 </document>

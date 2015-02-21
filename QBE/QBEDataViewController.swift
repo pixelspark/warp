@@ -6,9 +6,9 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 }
 
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
-	@IBOutlet var tableView: MBTableGrid?
+	var tableView: MBTableGrid?
 	@IBOutlet var formulaField: NSTextField?
-	weak var delegate: QBEDataViewDelegate!
+	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
 	
 	var raster: QBERaster? {
@@ -36,21 +36,22 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, shouldEditColumn columnIndex: UInt, row rowIndex: UInt) -> Bool {
-		//return !(raster?.readOnly ?? true)
-		return true
+		return delegate != nil
 	}
 	
 	private func setValue(value: QBEValue, inRow: Int, inColumn: Int) {
 		if let r = raster {
 			let oldValue = r[Int(inRow), Int(inColumn)]
-			if !delegate.dataView(self, didChangeValue: oldValue, toValue: value, inRow: Int(inRow), column: Int(inColumn)) {
-				if r.readOnly {
-					// When raster is read-only, only structural changes are allowed
-				}
-				else {
-					// The raster can be changed directly (it is source data), so change it
-					if(inColumn>0) {
-						//raster!.setValue(valueObject, forColumn: r.columnNames[Int(columnIndex)], inRow: Int(rowIndex))
+			if let d = delegate {
+				if !d.dataView(self, didChangeValue: oldValue, toValue: value, inRow: Int(inRow), column: Int(inColumn)) {
+					if r.readOnly {
+						// When raster is read-only, only structural changes are allowed
+					}
+					else {
+						// The raster can be changed directly (it is source data), so change it
+						if(inColumn>0) {
+							//raster!.setValue(valueObject, forColumn: r.columnNames[Int(columnIndex)], inRow: Int(rowIndex))
+						}
 					}
 				}
 			}
@@ -190,6 +191,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	override func viewWillAppear() {
+		assert(locale != nil, "Need to set a locale to this data view before showing it")
 		self.tableView?.dataSource = self
 		self.tableView?.delegate = self
 		self.tableView?.reloadData()

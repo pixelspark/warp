@@ -430,29 +430,24 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 					println("Got data: \(data)")
 					
 					if data != nil {
-						if let stream = data!.stream() {
-							var cb: QBESink? = nil
-							var count: Int = 0
-		 
-							cb = {(rows: Slice<QBERow>, hasNext: Bool) -> () in
-								println("Got \(rows.count) rows from stream, hasNext=\(hasNext)")
-								count += rows.count
-								if hasNext {
-									QBEAsyncBackground {
-										stream.fetch(cb!)
+						data!.raster({ (raster) -> () in
+							// End
+							let endTime = CFAbsoluteTimeGetCurrent()
+							let duration = (endTime - startTime)
+							let speed =  Double(raster.rowCount) / duration
+							self.windowController?.stopTask()
+							println("Calculation took \(duration)s, \(raster.rowCount) rows, \(speed) rows/s")
+							
+							QBEAsyncMain {
+								if let s = self.storyboard {
+									if let dv = s.instantiateControllerWithIdentifier("resultViewController") as? QBEResultViewController {
+										dv.locale = self.locale
+										dv.raster = raster
+										self.presentViewControllerAsSheet(dv)
 									}
 								}
-								else {
-									// End
-									let endTime = CFAbsoluteTimeGetCurrent()
-									let duration = (endTime - startTime)
-									let speed =  Double(count) / duration
-									self.windowController?.stopTask()
-									println("Calculation took \(duration)s, \(count) rows, \(speed) rows/s")
-								}
 							}
-							stream.fetch(cb!)
-						}
+						})
 					}
 				})
 			}

@@ -1,7 +1,7 @@
 import Foundation
 import Cocoa
 
-internal class QBECSVConfigurator: NSViewController {
+internal class QBECSVConfigurator: NSViewController, NSComboBoxDataSource {
 	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var separatorField: NSComboBox?
 	@IBOutlet var hasHeadersButton: NSButton?
@@ -32,6 +32,20 @@ internal class QBECSVConfigurator: NSViewController {
 			separatorField?.stringValue = String(Character(UnicodeScalar(s.fieldSeparator)))
 			hasHeadersButton?.state = s.hasHeaders ? NSOnState : NSOffState
 		}
+	}
+	
+	func numberOfItemsInComboBox(aComboBox: NSComboBox) -> Int {
+		if let locale = self.delegate?.locale {
+			return locale.commonFieldSeparators.count
+		}
+		return 0
+	}
+	
+	func comboBox(aComboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> AnyObject {
+		if let locale = self.delegate?.locale {
+			return locale.commonFieldSeparators[index]
+		}
+		return ""
 	}
 	
 	@IBAction func update(sender: NSObject) {
