@@ -863,6 +863,31 @@ CA
                                         <action selector="goBack:" target="6f7-a7-6o1" id="hFm-x5-lHl"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="34EC8972-686E-4063-9997-947CF1F456FF" label="Select" paletteLabel="Select rows" tag="-1" image="FilterIcon" id="BG9-hH-0Ls">
+                                    <connections>
+                                        <action selector="selectRows:" target="6f7-a7-6o1" id="1Zl-VS-SbK"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="5A875367-3DD9-4294-8F39-76BFC4B56940" label="Calculate" paletteLabel="Calculate column" tag="-1" image="CalculateIcon" id="4lu-86-fUW">
+                                    <connections>
+                                        <action selector="addColumn:" target="6f7-a7-6o1" id="G8Z-tq-FcS"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="21C338D6-0A6A-492D-89DC-5EFB6762A397" label="Pivot" paletteLabel="Pivot data" tag="-1" image="PivotIcon" id="7Uz-TX-Nnq">
+                                    <connections>
+                                        <action selector="pivot:" target="6f7-a7-6o1" id="2g3-ic-eyU"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="63D40D94-EE6B-4C02-9E98-581DF03911E2" label="Limit" paletteLabel="Limit rows" tag="-1" image="LimitIcon" id="dYk-wy-X3M">
+                                    <connections>
+                                        <action selector="limitRows:" target="6f7-a7-6o1" id="KZF-Vg-ljK"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="D6B14001-AB88-4CF0-85DD-D0B3E792E724" label="Random" paletteLabel="Select rows randomly" tag="-1" image="RandomIcon" id="oLp-fq-bRb">
+                                    <connections>
+                                        <action selector="randomlySelectRows:" target="6f7-a7-6o1" id="EX9-Mt-jNP"/>
+                                    </connections>
+                                </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="0D5D46EC-F542-409A-84EB-282A91656B6F" label="Forward" paletteLabel="Go forward" tag="-1" image="NSGoRightTemplate" id="dlO-l3-BJL">
                                     <connections>
                                         <action selector="goForward:" target="6f7-a7-6o1" id="bu9-gz-xwv"/>
@@ -884,6 +909,10 @@ CA
                                 <toolbarItem reference="dlO-l3-BJL"/>
                                 <toolbarItem reference="x4w-cF-8lE"/>
                                 <toolbarItem reference="Zil-Xh-hqD"/>
+                                <toolbarItem reference="BG9-hH-0Ls"/>
+                                <toolbarItem reference="4lu-86-fUW"/>
+                                <toolbarItem reference="7Uz-TX-Nnq"/>
+                                <toolbarItem reference="Zil-Xh-hqD"/>
                                 <toolbarItem reference="51V-E9-1Wy"/>
                             </defaultToolbarItems>
                         </toolbar>
@@ -894,7 +923,7 @@ CA
                 </windowController>
                 <customObject id="6f7-a7-6o1" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="131.5" y="529"/>
+            <point key="canvasLocation" x="-187.5" y="449"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="4qG-DD-elD">
@@ -1091,7 +1120,7 @@ CA
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-458.5" y="1748"/>
+            <point key="canvasLocation" x="-498.5" y="1832"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -1306,10 +1335,15 @@ Gw
         </scene>
     </scenes>
     <resources>
+        <image name="CalculateIcon" width="32" height="32"/>
+        <image name="FilterIcon" width="32" height="32"/>
+        <image name="LimitIcon" width="32" height="32"/>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSGoLeftTemplate" width="9" height="12"/>
         <image name="NSGoRightTemplate" width="9" height="12"/>
         <image name="NSStopProgressFreestandingTemplate" width="14" height="14"/>
+        <image name="PivotIcon" width="32" height="32"/>
+        <image name="RandomIcon" width="32" height="32"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="nrv-FT-MZN"/>
