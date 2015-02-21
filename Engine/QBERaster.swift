@@ -274,6 +274,21 @@ class QBERasterData: NSObject, QBEData {
 		}
 	}
 	
+	func filter(condition: QBEExpression) -> QBEData {
+		return apply {(r: QBERaster) -> QBERaster in
+			var newData: [[QBEValue]] = []
+			
+			for rowNumber in 0..<r.rowCount {
+				let row = r[rowNumber]
+				if condition.apply(row, columns: r.columnNames, inputValue: nil) == QBEValue.BoolValue(true) {
+					newData.append(row)
+				}
+			}
+			
+			return QBERaster(data: newData, columnNames: r.columnNames, readOnly: true)
+		}
+	}
+	
 	func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
 		/* This implementation is fairly naive and simply generates a tree where each node is a particular aggregation
 		group label. The first aggregation group defines the first level in the tree, the second group is the second

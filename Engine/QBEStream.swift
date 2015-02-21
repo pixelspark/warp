@@ -127,6 +127,10 @@ class QBEStreamData: NSObject, QBEData {
 		return fallback().pivot(horizontal, vertical: vertical, values: values)
 	}
 	
+	func filter(condition: QBEExpression) -> QBEData {
+		return QBEStreamData(source: QBEFilterTransformer(source: source, condition: condition))
+	}
+	
 	func columnNames(callback: ([QBEColumn]) -> ()) {
 		source.columnNames(callback)
 	}
@@ -172,6 +176,30 @@ private class QBETransformer: NSObject, QBEStream {
 	
 	private func clone() -> QBEStream {
 		fatalError("Should be implemented by subclass")
+	}
+}
+
+private class QBEFilterTransformer: QBETransformer {
+	var position = 0
+	let condition: QBEExpression
+	
+	init(source: QBEStream, condition: QBEExpression) {
+		self.condition = condition
+		super.init(source: source)
+	}
+	
+	private override func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
+		source.columnNames { (columnNames) -> () in
+			let newRows = rows.filter({(row) -> Bool in
+				return self.condition.apply(row, columns: columnNames, inputValue: nil) == QBEValue.BoolValue(true)
+			})
+			
+			callback(newRows, false)
+		}
+	}
+	
+	private override func clone() -> QBEStream {
+		return QBEFilterTransformer(source: source, condition: condition)
 	}
 }
 

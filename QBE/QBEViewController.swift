@@ -240,41 +240,59 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func removeRows(sender: NSObject) {
 		if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
-			currentStep?.exampleData({ (data: QBEData?) -> () in
-				if data != nil {
-					data!.raster({ (raster: QBERaster) -> () in
-						// Invert the selection
-						let selected = NSMutableIndexSet()
-						for index in 0..<raster.rowCount {
-							if !rowsToRemove.containsIndex(index) {
-								selected.addIndex(index)
+			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
+				currentStep?.exampleData({ (data: QBEData?) -> () in
+					if data != nil {
+						data!.raster({ (raster: QBERaster) -> () in
+							// Invert the selection
+							let selected = NSMutableIndexSet()
+							for index in 0..<raster.rowCount {
+								if !rowsToRemove.containsIndex(index) {
+									selected.addIndex(index)
+								}
 							}
-						}
-						
-						let suggestions = QBERowsStep.suggest(selected, inRaster: raster, fromStep: self.currentStep)
-						
-						QBEAsyncMain {
-							self.suggestSteps(suggestions)
-						}
-					})
-				}
-			})
+							
+							var relevantColumns = Set<QBEColumn>()
+							for columnIndex in 0..<raster.columnCount {
+								if selectedColumns.containsIndex(columnIndex) {
+									relevantColumns.add(raster.columnNames[columnIndex])
+								}
+							}
+
+							let suggestions = QBERowsStep.suggest(selected, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep)
+							
+							QBEAsyncMain {
+								self.suggestSteps(suggestions)
+							}
+						})
+					}
+				})
+			}
 		}
 	}
 	
 	@IBAction func selectRows(sender: NSObject) {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
-			currentStep?.exampleData({ (data: QBEData?) -> () in
-				if data != nil {
-					data!.raster({ (raster: QBERaster) -> () in
-						let suggestions = QBERowsStep.suggest(selectedRows, inRaster: raster, fromStep: self.currentStep)
-						
-						QBEAsyncMain {
-							self.suggestSteps(suggestions)
-						}
-					})
-				}
-			})
+			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
+				currentStep?.exampleData({ (data: QBEData?) -> () in
+					if data != nil {
+						data!.raster({ (raster: QBERaster) -> () in
+							var relevantColumns = Set<QBEColumn>()
+							for columnIndex in 0..<raster.columnCount {
+								if selectedColumns.containsIndex(columnIndex) {
+									relevantColumns.add(raster.columnNames[columnIndex])
+								}
+							}
+							
+							let suggestions = QBERowsStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep)
+							
+							QBEAsyncMain {
+								self.suggestSteps(suggestions)
+							}
+						})
+					}
+				})
+			}
 		}
 	}
 	

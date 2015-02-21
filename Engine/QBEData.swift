@@ -138,6 +138,11 @@ protocol QBEData: NSObjectProtocol {
 	/** Returns a dataset with only unique rows from the data set. **/
 	func distinct() -> QBEData
 	
+	/** Selects only those rows from the data set for which the supplied expression evaluates to a value that equals
+	QBEValue.BoolValue(true). **/
+	func filter(condition: QBEExpression) -> QBEData
+	
+	/** Returns a data set in which there is not more than one row with the same result for the given expression. **/
 	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ())
 	
 	/* Select only the columns from the data set that are in the array, in the order specified. If a column named in the 

@@ -197,7 +197,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 				return "\(i)"
 				
 			case .BoolValue(let b):
-				return b ? "TRUE" : "FALSE"
+				return b ? "(1=1)" : "(1=0)"
 				
 			case .InvalidValue:
 				return "(1/0)"
@@ -310,6 +310,15 @@ class QBESQLData: NSObject, QBEData {
     func limit(numberOfRows: Int) -> QBEData {
 		return apply("SELECT * FROM (\(self.sql)) LIMIT \(numberOfRows)", resultingColumns: columns)
     }
+	
+	func filter(condition: QBEExpression) -> QBEData {
+		if let expressionString = dialect.expressionToSQL(condition, inputValue: nil) {
+			return apply("SELECT * FROM (\(self.sql)) WHERE \(expressionString)", resultingColumns: columns)
+		}
+		else {
+			return fallback().filter(condition)
+		}
+	}
 	
 	func random(numberOfRows: Int) -> QBEData {
 		return apply("SELECT * FROM (\(self.sql)) ORDER BY RANDOM() LIMIT \(numberOfRows)", resultingColumns: columns)
