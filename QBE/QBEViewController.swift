@@ -73,6 +73,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		calculations.*/
 		if let d = data {
 			if let dataView = self.dataViewController {
+				dataView.calculating = true
+				
 				QBEAsyncBackground {
 					d.raster({ (raster) -> () in
 						QBEAsyncMain {
@@ -421,6 +423,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func calculate(sender: NSObject) {
 		if let step = currentStep {
+			// Create a result view
+			let resultView = self.storyboard?.instantiateControllerWithIdentifier("resultViewController") as? QBEResultViewController;
+			resultView?.locale = self.locale
+			if let rv = resultView {
+				self.presentViewControllerAsSheet(rv)
+			}
 			
 			let startTime = CFAbsoluteTimeGetCurrent()
 			windowController?.startTask(NSLocalizedString("Calculate full result", comment: ""))
@@ -438,15 +446,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 							self.windowController?.stopTask()
 							println("Calculation took \(duration)s, \(raster.rowCount) rows, \(speed) rows/s")
 							
-							QBEAsyncMain {
-								if let s = self.storyboard {
-									if let dv = s.instantiateControllerWithIdentifier("resultViewController") as? QBEResultViewController {
-										dv.locale = self.locale
-										dv.raster = raster
-										self.presentViewControllerAsSheet(dv)
-									}
-								}
-							}
+							QBEAsyncMain({
+								resultView?.raster = raster; return;
+							})
 						})
 					}
 				})

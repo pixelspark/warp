@@ -7,18 +7,22 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
 	var tableView: MBTableGrid?
+	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var formulaField: NSTextField?
 	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
 	
+	var calculating: Bool = false { didSet {
+		update()
+	} }
+	
 	var raster: QBERaster? {
 		didSet {
-			updateColumns()
+			if raster != nil {
+				calculating = false
+			}
+			update()
 		}
-	}
-	
-	func update() {
-		updateColumns()
 	}
 	
 	func numberOfColumnsInTableGrid(aTableGrid: MBTableGrid!) -> UInt {
@@ -89,7 +93,22 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return "\(rowIndex)";
 	}
 	
-	private func updateColumns() {
+	private func update() {
+		// Set visibility
+		let hasNoData = (raster==nil)
+		
+		tableView?.layer?.opacity = (hasNoData || calculating) ? 0.5 : 1.0;
+		progressView?.hidden = !calculating
+		formulaField?.enabled = !hasNoData
+		progressView?.layer?.zPosition = 2.0
+		
+		if calculating {
+			progressView?.startAnimation(nil)
+		}
+		else {
+			progressView?.stopAnimation(nil)
+		}
+		
 		if let tv = tableView {
 			for i in 0...tv.numberOfColumns {
 				tv.resizeColumnWithIndex(i, width: 50.0)

@@ -1051,7 +1051,7 @@ CA
         <scene sceneID="BjY-ZD-Y7M">
             <objects>
                 <viewController storyboardIdentifier="dataViewController" id="heg-Gg-TM4" customClass="QBEDataViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" focusRingType="none" id="qWX-f7-1Jq">
+                    <view key="view" wantsLayer="YES" focusRingType="none" id="qWX-f7-1Jq">
                         <rect key="frame" x="0.0" y="0.0" width="605" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
@@ -1060,7 +1060,7 @@ CA
                                 <constraints>
                                     <constraint firstAttribute="height" constant="22" id="MkZ-h8-Gs2"/>
                                 </constraints>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" enabled="NO" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="6vy-kH-wgk">
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" enabled="NO" sendsActionOnEndEditing="YES" state="on" drawsBackground="YES" usesSingleLineMode="YES" id="6vy-kH-wgk">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -1069,15 +1069,24 @@ CA
                                     <action selector="setValueFromFormulaField:" target="heg-Gg-TM4" id="YjA-oc-jlA"/>
                                 </connections>
                             </textField>
+                            <progressIndicator hidden="YES" wantsLayer="YES" maxValue="100" indeterminate="YES" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="ckd-Aw-A1T">
+                                <rect key="frame" x="243" y="140" width="120" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="120" id="yeg-tW-UHn"/>
+                                </constraints>
+                            </progressIndicator>
                         </subviews>
                         <constraints>
+                            <constraint firstAttribute="centerX" secondItem="ckd-Aw-A1T" secondAttribute="centerX" id="7Bc-Vt-so9"/>
                             <constraint firstItem="gOO-m7-zbc" firstAttribute="top" secondItem="qWX-f7-1Jq" secondAttribute="top" constant="5" id="9WF-kS-sY3"/>
                             <constraint firstItem="gOO-m7-zbc" firstAttribute="leading" secondItem="qWX-f7-1Jq" secondAttribute="leading" constant="5" id="J6Y-7a-l6d"/>
                             <constraint firstAttribute="trailing" secondItem="gOO-m7-zbc" secondAttribute="trailing" id="UPm-bk-gra"/>
+                            <constraint firstAttribute="centerY" secondItem="ckd-Aw-A1T" secondAttribute="centerY" id="gg9-n6-AAV"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="formulaField" destination="gOO-m7-zbc" id="wnd-At-f6j"/>
+                        <outlet property="progressView" destination="ckd-Aw-A1T" id="VLb-Ny-mnn"/>
                     </connections>
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
@@ -1303,6 +1312,6 @@ Gw
         <image name="NSStopProgressFreestandingTemplate" width="14" height="14"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="nrv-FT-MZN"/>
+        <segue reference="c37-ue-tCc"/>
     </inferredMetricsTieBreakers>
 </document>
