@@ -130,6 +130,16 @@ enum QBEFunction: String, QBEExplainable {
 		}
 	}
 	
+	/** Returns true if this function is guaranteed to return the same result when called multiple times in succession
+	with the exact same set of arguments. Functions that depend on/return randomness or the current date/time are not
+	 deterministic. **/
+	var isDeterministic: Bool { get {
+		switch self {
+			case .RandomItem: return false
+			default: return true
+		}
+	} }
+	
 	func toFormula(locale: QBELocale) -> String {
 		for (name, function) in locale.functions {
 			if function == self {

@@ -275,12 +275,14 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func filter(condition: QBEExpression) -> QBEData {
+		let optimizedCondition = condition.prepare()
+		
 		return apply {(r: QBERaster) -> QBERaster in
 			var newData: [[QBEValue]] = []
 			
 			for rowNumber in 0..<r.rowCount {
 				let row = r[rowNumber]
-				if condition.apply(row, columns: r.columnNames, inputValue: nil) == QBEValue.BoolValue(true) {
+				if optimizedCondition.apply(row, columns: r.columnNames, inputValue: nil) == QBEValue.BoolValue(true) {
 					newData.append(row)
 				}
 			}

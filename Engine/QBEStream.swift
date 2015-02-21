@@ -304,7 +304,12 @@ private class QBECalculateTransformer: QBETransformer {
 	private var columns: [QBEColumn]? = nil
 	
 	init(source: QBEStream, calculations: Dictionary<QBEColumn, QBEExpression>) {
-		self.calculations = calculations
+		var optimizedCalculations = Dictionary<QBEColumn, QBEExpression>()
+		for (column, expression) in calculations {
+			optimizedCalculations[column] = expression.prepare()
+		}
+		
+		self.calculations = optimizedCalculations
 		super.init(source: source)
 	}
 	

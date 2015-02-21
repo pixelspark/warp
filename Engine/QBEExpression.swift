@@ -20,6 +20,20 @@ class QBEExpression: NSObject, NSCoding, QBEExplainable {
 		return 1
 	}}
 	
+	/** Returns whether the result of this expression is independent of the row fed to it. An expression that reports it
+	is constant is guaranteed to return a value for apply() called without a row, set of columns and input value. **/
+	var isConstant: Bool { get {
+		return false
+	} }
+	
+	/** Returns a version of this expression that has constant parts replaced with their actual values. **/
+	func prepare() -> QBEExpression {
+		if isConstant {
+			return QBELiteralExpression(self.apply([], columns: [], inputValue: nil))
+		}
+		return self
+	}
+	
 	override init() {
 	}
 	
@@ -130,6 +144,10 @@ class QBELiteralExpression: QBEExpression {
 		return 10
 	}}
 	
+	override var isConstant: Bool { get {
+		return true
+	} }
+	
 	required init(coder aDecoder: NSCoder) {
 		self.value = ((aDecoder.decodeObjectForKey("value") as? QBEValueCoder) ?? QBEValueCoder()).value
 		super.init(coder: aDecoder)
@@ -207,6 +225,20 @@ class QBEBinaryExpression: QBEExpression {
 	let first: QBEExpression
 	let second: QBEExpression
 	var type: QBEBinary
+	
+	override var isConstant: Bool { get {
+		return first.isConstant && second.isConstant
+	} }
+	
+	override func prepare() -> QBEExpression {
+		let firstOptimized = first.prepare()
+		let secondOptimized = second.prepare()
+		let optimized = QBEBinaryExpression(first: firstOptimized, second: secondOptimized, type: self.type)
+		if optimized.isConstant {
+			return QBELiteralExpression(optimized.apply([], columns: [], inputValue: nil))
+		}
+		return optimized
+	}
 	
 	override func explain(locale: QBELocale) -> String {
 		return "(" + second.explain(locale) + " " + type.explain(locale) + " " + first.explain(locale) + ")"
@@ -299,6 +331,20 @@ consists of QBEExpressions that are evaluated before sending them to the functio
 class QBEFunctionExpression: QBEExpression {
 	let arguments: [QBEExpression]
 	let type: QBEFunction
+	
+	override var isConstant: Bool { get {
+		if !type.isDeterministic {
+			return false
+		}
+		
+		for a in arguments {
+			if !a.isConstant {
+				return false
+			}
+		}
+		
+		return true
+	} }
 	
 	override func explain(locale: QBELocale) -> String {
 		let argumentsList = arguments.map({$0.explain(locale)}).implode(", ") ?? ""

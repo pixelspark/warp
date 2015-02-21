@@ -89,6 +89,13 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEFormula(formula: "=siN(1)", locale: locale) != nil, "Function names should be case-insensitive")
 	}
 	
+	func testExpressions() {
+		XCTAssert(QBELiteralExpression(QBEValue(13.46)).isConstant, "Literal expression should be constant")
+		XCTAssert(!QBEFunctionExpression(arguments: [], type: QBEFunction.RandomItem).isConstant, "Non-deterministic function expression should not be constant")
+		
+		XCTAssert(!QBEBinaryExpression(first: QBELiteralExpression(QBEValue(13.45)), second: QBEFunctionExpression(arguments: [], type: QBEFunction.RandomItem), type: QBEBinary.Equal).isConstant, "Binary operator applied to at least one non-constant expression should not be constant itself")
+	}
+	
 	func testFunctions() {
 		XCTAssert(QBEFunction.And.apply([QBEValue(true), QBEValue(true)]) == QBEValue(true), "AND(true, true)")
 		XCTAssert(QBEFunction.And.apply([QBEValue(true), QBEValue(false)]) == QBEValue(false), "AND(true, false)")

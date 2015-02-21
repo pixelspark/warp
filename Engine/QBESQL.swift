@@ -55,8 +55,13 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	}
 	
 	func expressionToSQL(formula: QBEExpression, inputValue: String? = nil) -> String? {
+		if formula.isConstant {
+			let result = formula.apply([], columns: [], inputValue: nil)
+			return valueToSQL(result)
+		}
+		
 		if let f = formula as? QBELiteralExpression {
-			return valueToSQL(f.value)
+			fatalError("This code is unreachable since literals should always be constant")
 		}
 		else if let f = formula as? QBEIdentityExpression {
 			return inputValue ?? "???"
@@ -272,7 +277,7 @@ class QBESQLData: NSObject, QBEData {
 		// Re-calculate existing columns first
 		for targetColumn in columns {
 			if calculations[targetColumn] != nil {
-				let expression = calculations[targetColumn]!
+				let expression = calculations[targetColumn]!.prepare()
 				if let expressionString = dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn)) {
 					values.append("\(expressionString) AS \(dialect.columnIdentifier(targetColumn))")
 				}
@@ -288,7 +293,7 @@ class QBESQLData: NSObject, QBEData {
 		// New columns are added at the end
 		for (targetColumn, expression) in calculations {
 			if !columns.contains(targetColumn) {
-				if let expressionString = dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn)) {
+				if let expressionString = dialect.expressionToSQL(expression.prepare(), inputValue: dialect.columnIdentifier(targetColumn)) {
 					values.append("\(expressionString) AS \(dialect.columnIdentifier(targetColumn))")
 				}
 				else {
@@ -312,7 +317,7 @@ class QBESQLData: NSObject, QBEData {
     }
 	
 	func filter(condition: QBEExpression) -> QBEData {
-		if let expressionString = dialect.expressionToSQL(condition, inputValue: nil) {
+		if let expressionString = dialect.expressionToSQL(condition.prepare(), inputValue: nil) {
 			return apply("SELECT * FROM (\(self.sql)) WHERE \(expressionString)", resultingColumns: columns)
 		}
 		else {
@@ -325,7 +330,7 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
-		if let expressionString = dialect.expressionToSQL(expression, inputValue: nil) {
+		if let expressionString = dialect.expressionToSQL(expression.prepare(), inputValue: nil) {
 			let query = "SELECT DISTINCT \(expressionString) AS _value FROM \(self.sql)"
 			let data = apply(query, resultingColumns: ["_value"])
 			
@@ -351,7 +356,7 @@ class QBESQLData: NSObject, QBEData {
 		var resultingColumns: [QBEColumn] = []
 		
 		for (column, expression) in groups {
-			if let expressionString = dialect.expressionToSQL(expression, inputValue: nil) {
+			if let expressionString = dialect.expressionToSQL(expression.prepare(), inputValue: nil) {
 				select.append("\(expressionString) AS \(dialect.columnIdentifier(column))")
 				groupBy.append("\(expressionString)")
 				resultingColumns.append(column)
