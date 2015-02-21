@@ -8,6 +8,7 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	private var finished: Bool = false
 	private var row: QBERow = []
 	private var rows: [QBERow] = []
+	private var queue: dispatch_queue_t
 	
 	let hasHeaders: Bool
 	let fieldSeparator: unichar
@@ -16,6 +17,8 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		self.url = url
 		self.hasHeaders = hasHeaders
 		self.fieldSeparator = fieldSeparator
+		
+		queue = dispatch_queue_create("nl.pixelspark.qbe.QBECSVStreamQueue", DISPATCH_QUEUE_SERIAL)
 		
 		parser = CHCSVParser(contentsOfDelimitedURL: url as NSURL!, delimiter: fieldSeparator)
 		parser.sanitizesFields = true
@@ -41,16 +44,18 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 	
 	func fetch(consumer: QBESink) {
-		QBETime("Parse \(QBEStreamDefaultBatchSize) CSV rows") {
-			var fetched = 0
-			while !self.finished && (fetched < QBEStreamDefaultBatchSize) {
-				self.finished = !self.parser._parseRecord()
-				fetched++
+		dispatch_async(queue) {
+			QBETime("Parse \(QBEStreamDefaultBatchSize) CSV rows") {
+				var fetched = 0
+				while !self.finished && (fetched < QBEStreamDefaultBatchSize) {
+					self.finished = !self.parser._parseRecord()
+					fetched++
+				}
 			}
+			let r = self.rows
+			self.rows.removeAll(keepCapacity: true)
+			consumer(Slice(r), !self.finished)
 		}
-		let r = self.rows
-		self.rows.removeAll(keepCapacity: true)
-		consumer(Slice(r), !finished)
 	}
 	
 	func parser(parser: CHCSVParser, didBeginLine line: UInt) {

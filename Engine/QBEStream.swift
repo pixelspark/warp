@@ -2,12 +2,12 @@ import Foundation
 
 /** Records the time taken to execute the given block and writes it to the console. In release builds, the block is simply
 called and no timing information is gathered. **/
-internal func QBETime(description: String, block: () -> ()) {
+internal func QBETime(description: String, block: () -> (), file: String = __FILE__, line: Int = __LINE__) {
 	#if DEBUG
 		let t = CFAbsoluteTimeGetCurrent()
 		block()
 		let d = CFAbsoluteTimeGetCurrent() - t
-		println("QBETime \(description): \(d)")
+		println("QBETime \(description) (\(file):\(line)): \(d)")
 	#else
 		block()
 	#endif
@@ -70,13 +70,15 @@ class QBEStreamData: NSObject, QBEData {
 		let s = source.clone()
 		var appender: QBESink! = nil
 		appender = { (rows, hasNext) -> () in
-			rows.each({data.append($0)})
 			if hasNext {
 				QBEAsyncBackground {
 					s.fetch(appender)
 				}
 			}
-			else {
+				
+			rows.each({data.append($0)})
+				
+			if !hasNext {
 				s.columnNames({ (columnNames) -> () in
 					callback(QBERaster(data: data, columnNames: columnNames, readOnly: true))
 				})
