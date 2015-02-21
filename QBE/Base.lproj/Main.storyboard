@@ -1016,7 +1016,7 @@ CA
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <containerView translatesAutoresizingMaskIntoConstraints="NO" id="o5B-PG-5tn">
-                                <rect key="frame" x="5" y="42" width="440" height="353"/>
+                                <rect key="frame" x="0.0" y="42" width="450" height="358"/>
                                 <connections>
                                     <segue destination="heg-Gg-TM4" kind="embed" identifier="tableGrid" id="nrv-FT-MZN"/>
                                 </connections>
@@ -1035,10 +1035,10 @@ CA
                         <constraints>
                             <constraint firstAttribute="bottom" secondItem="vgP-f4-e3K" secondAttribute="bottom" constant="10" id="2As-RO-Gow"/>
                             <constraint firstAttribute="bottom" secondItem="o5B-PG-5tn" secondAttribute="bottom" constant="42" id="9Dj-BM-Q16"/>
-                            <constraint firstAttribute="trailing" secondItem="o5B-PG-5tn" secondAttribute="trailing" constant="5" id="KlD-tF-qui"/>
+                            <constraint firstAttribute="trailing" secondItem="o5B-PG-5tn" secondAttribute="trailing" id="KlD-tF-qui"/>
                             <constraint firstAttribute="trailing" secondItem="vgP-f4-e3K" secondAttribute="trailing" constant="5" id="MVU-Ci-ORY"/>
-                            <constraint firstItem="o5B-PG-5tn" firstAttribute="leading" secondItem="vcC-pe-prS" secondAttribute="leading" constant="5" id="UaU-PG-BlY"/>
-                            <constraint firstItem="o5B-PG-5tn" firstAttribute="top" secondItem="vcC-pe-prS" secondAttribute="top" constant="5" id="gS4-E9-rsl"/>
+                            <constraint firstItem="o5B-PG-5tn" firstAttribute="leading" secondItem="vcC-pe-prS" secondAttribute="leading" id="UaU-PG-BlY"/>
+                            <constraint firstItem="o5B-PG-5tn" firstAttribute="top" secondItem="vcC-pe-prS" secondAttribute="top" id="gS4-E9-rsl"/>
                             <constraint firstItem="vgP-f4-e3K" firstAttribute="top" secondItem="o5B-PG-5tn" secondAttribute="bottom" constant="10" id="ka9-h6-cuP"/>
                         </constraints>
                     </view>
@@ -1312,6 +1312,6 @@ Gw
         <image name="NSStopProgressFreestandingTemplate" width="14" height="14"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="c37-ue-tCc"/>
+        <segue reference="nrv-FT-MZN"/>
     </inferredMetricsTieBreakers>
 </document>

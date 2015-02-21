@@ -213,7 +213,7 @@ class QBEBinaryExpression: QBEExpression {
 	}
 	
 	override func toFormula(locale: QBELocale) -> String {
-		return "(\(second.toFormula(locale)) \(type.toFormula(locale)) \(first.toFormula(locale)))"
+		return "(\(second.toFormula(locale))\(type.toFormula(locale))\(first.toFormula(locale)))"
 	}
 	
 	override var complexity: Int { get {
