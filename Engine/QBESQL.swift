@@ -156,6 +156,16 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Average: return "(" + (args.implode(" + ") ?? "0") + ")/\(args.count)"
 			case .Min: return "MIN(\(value))" // Should be LEAST in SQL Server
 			case .Max: return "MAX(\(value))" // Might be GREATEST in SQL Server
+			case .RandomBetween:
+				/* FIXME check this! Using RANDOM() with modulus introduces a bias, but because we're using ABS, the bias
+				should be cancelled out. See http://stackoverflow.com/questions/8304204/generating-only-positive-random-numbers-in-sqlite */
+				return "(\(args[0]) + ABS(RANDOM() % (\(args[1])-\(args[0]))))"
+			
+			case .Random:
+				/* FIXME: According to the SQLite documentation, RANDOM() generates a number between -9223372036854775808 
+				and +9223372036854775807. This should work to generate a random double between 0 and 1 (although there is 
+				a slight bias introduced because the lower bound is one lower than the upper bound). */
+				return "ABS(RANDOM() / 9223372036854775807.0)"
 			
 			/* FIXME: this is random once (before query execution), in the raster implementation it is random for each
 			row. Something like INDEX(RANDOM(), arg0, arg1, ...) might work (or even using CASE WHEN). */

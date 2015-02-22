@@ -103,6 +103,8 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		"LN": QBEFunction.Ln,
 		"ROUND": QBEFunction.Round,
 		"CHOOSE": QBEFunction.Choose,
+		"RANDBETWEEN": QBEFunction.RandomBetween,
+		"RANDOM": QBEFunction.Random,
 		
 		// Non-Excel functions
 		"COALESCE": QBEFunction.Coalesce,
@@ -142,13 +144,4 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		line += csvLineSeparator
 		return line
 	}
-}
-
-private func keyForValue(value: QBEValue, inDictionary: Dictionary<String, QBEValue>) -> String? {
-	for (key, v) in inDictionary {
-		if v == value {
-			return key
-		}
-	}
-	return nil
 }

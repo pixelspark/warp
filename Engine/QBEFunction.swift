@@ -81,6 +81,8 @@ enum QBEFunction: String, QBEExplainable {
 	case Ln = "ln"
 	case Round = "round"
 	case Choose = "choose"
+	case RandomBetween = "randomBetween"
+	case Random = "random"
 	
 	func explain(locale: QBELocale) -> String {
 		switch self {
@@ -127,6 +129,8 @@ enum QBEFunction: String, QBEExplainable {
 			case .Ln: return NSLocalizedString("natural logarithm", comment: "ln")
 			case .Round: return NSLocalizedString("round", comment: "")
 			case .Choose: return NSLocalizedString("choose", comment: "")
+			case .RandomBetween: return NSLocalizedString("random number between", comment: "")
+			case .Random: return NSLocalizedString("random number between 0 and 1", comment: "")
 		}
 	}
 	
@@ -136,6 +140,8 @@ enum QBEFunction: String, QBEExplainable {
 	var isDeterministic: Bool { get {
 		switch self {
 			case .RandomItem: return false
+			case .RandomBetween: return false
+			case .Random: return false
 			default: return true
 		}
 	} }
@@ -193,6 +199,8 @@ enum QBEFunction: String, QBEExplainable {
 		case .Ln: return QBEArity.Fixed(1)
 		case .Round: return QBEArity.Between(1,2)
 		case .Choose: return QBEArity.Any
+		case .RandomBetween: return QBEArity.Fixed(2)
+		case .Random: return QBEArity.Fixed(0)
 		}
 	} }
 	
@@ -526,13 +534,28 @@ enum QBEFunction: String, QBEExplainable {
 				}
 			}
 			return QBEValue.InvalidValue
+			
+		case .RandomBetween:
+			if let bottom = arguments[0].intValue {
+				if let top = arguments[1].intValue {
+					if top <= bottom {
+						return QBEValue.InvalidValue
+					}
+					
+					return QBEValue(Int.random(lower: bottom, upper: top+1))
+				}
+			}
+			return QBEValue.InvalidValue
+			
+		case .Random:
+			return QBEValue(Double.random())
 		}
 	}
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
-		Exp, Log, Ln, Round, Choose
+		Exp, Log, Ln, Round, Choose, Random, RandomBetween
 	]
 }
 

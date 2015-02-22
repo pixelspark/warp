@@ -45,7 +45,7 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	
 	func fetch(consumer: QBESink) {
 		dispatch_async(queue) {
-			QBETime("Parse \(QBEStreamDefaultBatchSize) CSV rows") {
+			QBETime("Parse CSV", QBEStreamDefaultBatchSize, "row") {
 				var fetched = 0
 				while !self.finished && (fetched < QBEStreamDefaultBatchSize) {
 					self.finished = !self.parser._parseRecord()
@@ -108,7 +108,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 						}
 					}
 					
-					QBETime("Write \(rows.count) CSV rows") {
+					QBETime("Write CSV", rows.count, "rows") {
 						for row in rows {
 							for cell in row {
 								csvOut.writeField(cell.explain(self.locale))

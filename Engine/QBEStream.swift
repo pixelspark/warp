@@ -2,12 +2,12 @@ import Foundation
 
 /** Records the time taken to execute the given block and writes it to the console. In release builds, the block is simply
 called and no timing information is gathered. **/
-internal func QBETime(description: String, block: () -> (), file: String = __FUNCTION__, line: Int = __LINE__) {
+internal func QBETime(description: String, items: Int, itemType: String, block: () -> ()) {
 	#if DEBUG
 		let t = CFAbsoluteTimeGetCurrent()
 		block()
 		let d = CFAbsoluteTimeGetCurrent() - t
-		println("QBETime \(description) (\(file):\(line)): \(d)")
+		println("QBETime\t\(description)\t\(items) \(itemType):\t\(d);\t\(Double(items)/d) \(itemType)/s")
 	#else
 		block()
 	#endif
@@ -192,11 +192,13 @@ private class QBEFilterTransformer: QBETransformer {
 	
 	private override func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
 		source.columnNames { (columnNames) -> () in
-			let newRows = rows.filter({(row) -> Bool in
-				return self.condition.apply(row, columns: columnNames, inputValue: nil) == QBEValue.BoolValue(true)
-			})
-			
-			callback(newRows, false)
+			QBETime("Stream filter", rows.count, "row") {
+				let newRows = rows.filter({(row) -> Bool in
+					return self.condition.apply(row, columns: columnNames, inputValue: nil) == QBEValue.BoolValue(true)
+				})
+				
+				callback(newRows, false)
+			}
 		}
 	}
 	
@@ -346,7 +348,7 @@ private class QBECalculateTransformer: QBETransformer {
 	private override func transform(var rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
 		self.ensureIndexes {
 			let newData = rows.map({ (var row: QBERow) -> QBERow in
-				for n in 0..<(self.columns!.count - row.count) {
+				for n in 0..<max(0, self.columns!.count - row.count) {
 					row.append(QBEValue.EmptyValue)
 				}
 				

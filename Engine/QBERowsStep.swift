@@ -40,7 +40,6 @@ class QBERowsStep: NSObject {
 			}
 			
 			if let fullCondition = conditions.count > 1 ? QBEFunctionExpression(arguments: conditions, type: QBEFunction.And) : conditions.first {
-				println("WHERE \(fullCondition.toFormula(QBEDefaultLocale()))")
 				suggestions.append(QBEFilterStep(previous: fromStep, condition: fullCondition))
 			}
 		}
