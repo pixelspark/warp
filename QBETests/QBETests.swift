@@ -141,15 +141,17 @@ class QBETests: XCTestCase {
 			let rowsBefore = r.rowCount
 			let columnsBefore = r.columnCount
 			
-			var td: QBEData = data
-			for i in 1...11 {
-				td = td.transpose()
-			}
+			self.measureBlock {
+				var td: QBEData = data
+				for i in 1...11 {
+					td = td.transpose()
+				}
 			
-			td.raster({ (s) -> () in
-				XCTAssert(s.rowCount == columnsBefore-1, "Row count matches")
-				XCTAssert(s.columnCount == rowsBefore+1, "Column count matches")
-			})
+				td.raster({ (s) -> () in
+					XCTAssert(s.rowCount == columnsBefore-1, "Row count matches")
+					XCTAssert(s.columnCount == rowsBefore+1, "Column count matches")
+				})
+			}
 		}
 		
 		// Test an empty raster

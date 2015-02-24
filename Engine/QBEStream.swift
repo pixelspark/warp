@@ -347,21 +347,23 @@ private class QBECalculateTransformer: QBETransformer {
 	
 	private override func transform(var rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
 		self.ensureIndexes {
-			let newData = rows.map({ (var row: QBERow) -> QBERow in
-				for n in 0..<max(0, self.columns!.count - row.count) {
-					row.append(QBEValue.EmptyValue)
-				}
-				
-				for (targetColumn, formula) in self.calculations {
-					let columnIndex = self.indices![targetColumn]!
-					let inputValue: QBEValue = row[columnIndex]
-					let newValue = formula.apply(row, columns: self.columns!, inputValue: inputValue)
-					row[columnIndex] = newValue
-				}
-				return row
-			})
+			QBETime("Calculate", rows.count, "row") {
+				let newData = rows.map({ (var row: QBERow) -> QBERow in
+					for n in 0..<max(0, self.columns!.count - row.count) {
+						row.append(QBEValue.EmptyValue)
+					}
+					
+					for (targetColumn, formula) in self.calculations {
+						let columnIndex = self.indices![targetColumn]!
+						let inputValue: QBEValue = row[columnIndex]
+						let newValue = formula.apply(row, columns: self.columns!, inputValue: inputValue)
+						row[columnIndex] = newValue
+					}
+					return row
+				})
 			
-			callback(newData, false)
+				callback(newData, false)
+			}
 		}
 	}
 	
