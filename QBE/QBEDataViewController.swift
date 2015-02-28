@@ -182,7 +182,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, moveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
-		println("move \(columnIndexes) toIndex: \(index)")
 		return true
 	}
 	

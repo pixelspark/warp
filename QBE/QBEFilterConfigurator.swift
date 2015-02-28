@@ -33,15 +33,19 @@ class QBEFilterConfigurator: NSViewController {
 	
 	@IBAction func update(sender: NSObject) {
 		if let s = step {
+			let oldFormula = "=" + (s.condition?.toFormula(self.delegate?.locale ?? QBEDefaultLocale()) ?? "");
 			if let f = self.formulaField?.stringValue {
-				if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBEDefaultLocale()))?.root {
-					s.condition = parsed
-				}
-				else {
-					// TODO parsing error
+				if f != oldFormula {
+					if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBEDefaultLocale()))?.root {
+						self.formulaField?.stringValue = "="+parsed.toFormula(self.delegate?.locale ?? QBEDefaultLocale())
+						s.condition = parsed
+					}
+					else {
+						// TODO parsing error
+					}
+					delegate?.suggestionsView(self, previewStep: s)
 				}
 			}
-			delegate?.suggestionsView(self, previewStep: s)
 		}
 	}
 }

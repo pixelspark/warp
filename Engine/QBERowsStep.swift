@@ -71,7 +71,11 @@ class QBEFilterStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, short: Bool) -> String {
+		if short {
+			return NSLocalizedString("Select rows", comment: "")
+		}
+		
 		return String(format: NSLocalizedString("Select rows where %@", comment: ""), (condition?.explain(locale)) ?? "")
 	}
 	
@@ -103,7 +107,10 @@ class QBELimitStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, short: Bool) -> String {
+		if short {
+			return NSLocalizedString("Top rows", comment: "")
+		}
 		return String(format: NSLocalizedString("Select the top %d rows", comment: ""), numberOfRows)
 	}
 	
@@ -127,7 +134,10 @@ class QBERandomStep: QBELimitStep {
 		super.init(previous: previous, numberOfRows: numberOfRows)
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, short: Bool) -> String {
+		if short {
+			return NSLocalizedString("Random rows", comment: "")
+		}
 		return String(format: NSLocalizedString("Randomly select %d rows", comment: ""), numberOfRows)
 	}
 	
@@ -149,7 +159,10 @@ class QBEDistinctStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, short: Bool) -> String {
+		if short {
+			return NSLocalizedString("Unique rows", comment: "")
+		}
 		return NSLocalizedString("Remove duplicate rows", comment: "")
 	}
 	

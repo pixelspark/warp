@@ -172,12 +172,15 @@ class QBECSVSourceStep: QBEStep {
 		super.encodeWithCoder(coder)
 		coder.encodeObject(url, forKey: "url")
 		
-		let separator = String(fieldSeparator)
+		let separator = String(Character(UnicodeScalar(fieldSeparator)))
 		coder.encodeObject(separator, forKey: "fieldSeparator")
 		coder.encodeBool(hasHeaders, forKey: "hasHeaders")
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, short: Bool) -> String {
+		if short {
+			return NSLocalizedString("Load CSV", comment: "")
+		}
 		return String(format: NSLocalizedString("Load CSV file from '%@' ",comment: ""), url)
 	}
 }

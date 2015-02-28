@@ -8,14 +8,26 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 	var locale: QBELocale { get }
 }
 
-class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate {
+
+class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate {
 	let locale: QBELocale = QBEDefaultLocale()
 	var dataViewController: QBEDataViewController?
+	var stepsViewController: QBEStepsViewController?
 	var suggestions: [QBEStep]?
 	weak var windowController: QBEWindowController?
 	@IBOutlet var descriptionField: NSTextField?
 	@IBOutlet var configuratorView: NSView?
 	@IBOutlet var titleLabel: NSTextField?
+	internal var currentData = QBECalculation<QBEData>()
+	internal var currentRaster = QBECalculation<QBERaster>()
+	
+	internal var useFullData: Bool = false {
+		didSet {
+			if useFullData != oldValue {
+				calculate()
+			}
+		}
+	}
 	
 	var configuratorViewController: NSViewController? {
 		willSet(newValue) {
@@ -50,17 +62,15 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				self.configuratorViewController = configurator
 				self.titleLabel?.attributedStringValue = NSAttributedString(string: s.explain(locale))
 				
-				s.exampleData({ (data: QBEData?) -> () in
-					QBEAsyncMain {
-						self.presentData(data)
-					}
-				})
+				calculate()
 			}
 			else {
 				self.configuratorViewController = nil
 				self.titleLabel?.attributedStringValue = NSAttributedString(string: "")
 				self.presentData(nil)
 			}
+			
+			self.stepsViewController?.currentStep = currentStep
 			self.view.window?.update()
 		}
 	}
@@ -73,28 +83,30 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		calculations.*/
 		if let d = data {
 			if let dataView = self.dataViewController {
-				dataView.calculating = true
-				
 				QBEAsyncBackground {
 					d.raster({ (raster) -> () in
 						QBEAsyncMain {
-							dataView.raster = raster
+							self.presentRaster(raster)
 						}
 					})
 				}
 			}
 		}
 		else {
-			self.dataViewController?.raster = nil
+			presentRaster(nil)
+		}
+	}
+	
+	private func presentRaster(raster: QBERaster?) {
+		if let dataView = self.dataViewController {
+			dataView.raster = raster
 		}
 	}
 	
 	var previewStep: QBEStep? {
 		didSet {
 			if previewStep == nil {
-				currentStep?.exampleData({ (d) -> () in
-					self.presentData(d)
-				})
+				refreshData()
 			}
 			else {
 				previewStep?.exampleData({ (d) -> () in
@@ -107,38 +119,75 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	var document: QBEDocument? {
 		didSet {
 			self.currentStep = document?.head
+			stepsChanged()
+		}
+	}
+	
+	func calculate() {
+		currentData.producer = useFullData ? currentStep?.fullData : currentStep?.exampleData
+		
+		currentRaster.producer = {(callback: QBECalculation<QBERaster>.Callback) in
+			self.currentData.get({ (data: QBEData?) -> () in
+				if let d = data {
+					d.raster(callback)
+				}
+			})
+		}
+		
+		refreshData()
+	}
+	
+	private func refreshData() {
+		self.presentData(nil)
+		dataViewController?.calculating = true
+		currentRaster.get({(raster) in
+			QBEAsyncMain {
+				self.presentRaster(raster)
+			}
+		})
+	}
+	
+	func stepsController(vc: QBEStepsViewController, didSelectStep step: QBEStep) {
+		if currentStep != step {
+			currentStep = step
 		}
 	}
 
 	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
-		self.currentStep?.exampleData({ (data: QBEData?) -> () in
-			if data != nil {
-				data!.raster({ (r: QBERaster) -> () in
-					QBEAsyncBackground {
-						let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: r, row: inRow, column: column, locale: self.locale)
-						let steps = expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: r.columnNames[column], function: $0)})
-						
-						QBEAsyncMain {
-							self.suggestSteps(steps)
-						}
+		currentRaster.get({(raster) in
+			if let r = raster {
+				QBEAsyncBackground {
+					let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: r, row: inRow, column: column, locale: self.locale)
+					let steps = expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: r.columnNames[column], function: $0)})
+					
+					QBEAsyncMain {
+						self.suggestSteps(steps)
 					}
-				})
+				}
 			}
 		})
 		return false
 	}
 	
+	private func stepsChanged() {
+		self.stepsViewController?.steps = document?.steps
+		self.stepsViewController?.currentStep = currentStep
+		println("steps=\(document?.steps)");
+	}
+	
 	private func pushStep(step: QBEStep) {
-		assert(step.previous==currentStep)
+		step.previous = currentStep
 		currentStep?.next = step
 		if document?.head == nil || currentStep == document?.head {
 			document?.head = step
 		}
 		currentStep = step
+		stepsChanged()
 	}
 	
 	private func popStep() {
 		currentStep = currentStep?.previous
+		stepsChanged()
 	}
 	
 	@IBAction func transposeData(sender: NSObject) {
@@ -153,7 +202,13 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	func suggestionsView(view: NSViewController, previewStep step: QBEStep?) {
-		previewStep = step
+		if step == currentStep {
+			previewStep = nil
+			calculate()
+		}
+		else {
+			previewStep = step
+		}
 	}
 	
 	func suggestionsViewDidCancel(view: NSViewController) {
@@ -186,8 +241,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		self.performSegueWithIdentifier("addColumn", sender: sender)
 	}
 	
+	@IBAction func setWorkingSet(sender: NSObject) {
+		if let sc = sender as? NSSegmentedControl {
+			useFullData = (sc.selectedSegment == 1);
+		}
+	}
+	
 	@IBAction func addEmptyColumn(sender: NSObject) {
-		currentStep?.exampleData({ (data: QBEData?) -> () in
+		currentData.get({(data) in
 			if let d = data {
 				d.columnNames({(cols) in
 					let step = QBECalculateStep(previous: self.currentStep, targetColumn: QBEColumn.defaultColumnForIndex(cols.count), function: QBELiteralExpression(QBEValue.EmptyValue))
@@ -198,8 +259,24 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func removeStep(sender: NSObject) {
-		popStep()
-		currentStep?.next = nil
+		if let stepToRemove = currentStep {
+			let previous = stepToRemove.previous
+			previous?.next = stepToRemove.next
+		
+			popStep()
+			
+			if let next = stepToRemove.next {
+				next.previous = previous
+				stepToRemove.next = nil
+			}
+		
+			if document?.head == stepToRemove {
+				document?.head = stepToRemove.previous
+			}
+		
+			stepToRemove.previous = nil
+			stepsChanged()
+		}
 	}
 	
 	@IBAction func removeColumns(sender: NSObject) {
@@ -241,30 +318,28 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func removeRows(sender: NSObject) {
 		if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				currentStep?.exampleData({ (data: QBEData?) -> () in
-					if data != nil {
-						data!.raster({ (raster: QBERaster) -> () in
-							// Invert the selection
-							let selected = NSMutableIndexSet()
-							for index in 0..<raster.rowCount {
-								if !rowsToRemove.containsIndex(index) {
-									selected.addIndex(index)
-								}
+				currentRaster.get({(raster) in
+					if let r = raster {
+						// Invert the selection
+						let selected = NSMutableIndexSet()
+						for index in 0..<r.rowCount {
+							if !rowsToRemove.containsIndex(index) {
+								selected.addIndex(index)
 							}
-							
-							var relevantColumns = Set<QBEColumn>()
-							for columnIndex in 0..<raster.columnCount {
-								if selectedColumns.containsIndex(columnIndex) {
-									relevantColumns.add(raster.columnNames[columnIndex])
-								}
+						}
+						
+						var relevantColumns = Set<QBEColumn>()
+						for columnIndex in 0..<r.columnCount {
+							if selectedColumns.containsIndex(columnIndex) {
+								relevantColumns.add(r.columnNames[columnIndex])
 							}
+						}
 
-							let suggestions = QBERowsStep.suggest(selected, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep)
-							
-							QBEAsyncMain {
-								self.suggestSteps(suggestions)
-							}
-						})
+						let suggestions = QBERowsStep.suggest(selected, columns: relevantColumns, inRaster: r, fromStep: self.currentStep)
+						
+						QBEAsyncMain {
+							self.suggestSteps(suggestions)
+						}
 					}
 				})
 			}
@@ -274,22 +349,20 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func selectRows(sender: NSObject) {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				currentStep?.exampleData({ (data: QBEData?) -> () in
-					if data != nil {
-						data!.raster({ (raster: QBERaster) -> () in
-							var relevantColumns = Set<QBEColumn>()
-							for columnIndex in 0..<raster.columnCount {
-								if selectedColumns.containsIndex(columnIndex) {
-									relevantColumns.add(raster.columnNames[columnIndex])
-								}
+				currentRaster.get({(raster) in
+					if let r = raster {
+						var relevantColumns = Set<QBEColumn>()
+						for columnIndex in 0..<r.columnCount {
+							if selectedColumns.containsIndex(columnIndex) {
+								relevantColumns.add(r.columnNames[columnIndex])
 							}
-							
-							let suggestions = QBERowsStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep)
-							
-							QBEAsyncMain {
-								self.suggestSteps(suggestions)
-							}
-						})
+						}
+						
+						let suggestions = QBERowsStep.suggest(selectedRows, columns: relevantColumns, inRaster: r, fromStep: self.currentStep)
+						
+						QBEAsyncMain {
+							self.suggestSteps(suggestions)
+						}
 					}
 				})
 			}
@@ -379,14 +452,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func goBack(sender: NSObject) {
 		// Prevent popping the last step (popStep allows it but goBack doesn't)
-		if currentStep?.previous != nil {
-			popStep()
+		if let p = currentStep?.previous {
+			currentStep = p
 		}
 	}
 	
 	@IBAction func goForward(sender: NSObject) {
-		if currentStep?.next != nil {
-			pushStep(currentStep!.next!)
+		if let n = currentStep?.next {
+			currentStep = n
 		}
 	}
 	
@@ -417,7 +490,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 								if sourceStep != nil {
 									self.currentStep = nil
 									self.pushStep(sourceStep!)
-									//self.dataViewController?.data = self.currentStep!.exampleData
 								}
 								else {
 									let alert = NSAlert()
@@ -437,41 +509,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func pivot(sender: NSObject) {
 		suggestSteps([QBEPivotStep(previous: currentStep)])
-	}
-	
-	@IBAction func calculate(sender: NSObject) {
-		if let step = currentStep {
-			// Create a result view
-			let resultView = self.storyboard?.instantiateControllerWithIdentifier("resultViewController") as? QBEResultViewController;
-			resultView?.locale = self.locale
-			if let rv = resultView {
-				self.presentViewControllerAsSheet(rv)
-			}
-			
-			let startTime = CFAbsoluteTimeGetCurrent()
-			windowController?.startTask(NSLocalizedString("Calculate full result", comment: ""))
-			
-			QBEAsyncBackground {
-				step.fullData({ (data: QBEData?) -> () in
-					println("Got data: \(data)")
-					
-					if data != nil {
-						data!.raster({ (raster) -> () in
-							// End
-							let endTime = CFAbsoluteTimeGetCurrent()
-							let duration = (endTime - startTime)
-							let speed =  Double(raster.rowCount) / duration
-							self.windowController?.stopTask()
-							println("Calculation took \(duration)s, \(raster.rowCount) rows, \(speed) rows/s")
-							
-							QBEAsyncMain({
-								resultView?.raster = raster; return;
-							})
-						})
-					}
-				})
-			}
-		}
 	}
 	
 	@IBAction func exportFile(sender: NSObject) {
@@ -503,21 +540,16 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		})
 	}
 	
+	override func viewWillAppear() {
+		stepsChanged()
+	}
+	
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
 		if segue.identifier=="grid" {
 			dataViewController = segue.destinationController as? QBEDataViewController
 			dataViewController?.delegate = self
 			dataViewController?.locale = locale
-			
-			currentStep?.exampleData({ (data: QBEData?) -> () in
-				QBEAsyncMain {
-					if data != nil {
-						data!.raster({(r: QBERaster) -> () in
-							self.dataViewController!.raster = r
-						})
-					}
-				}
-			})
+			calculate()
 		}
 		else if segue.identifier=="suggestions" {
 			let sv = segue.destinationController as? QBESuggestionsViewController
@@ -528,6 +560,11 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if segue.identifier=="addColumn" {
 			let sv = segue.destinationController as? QBEAddColumnViewController
 			sv?.delegate = self
+		}
+		else if segue.identifier=="steps" {
+			stepsViewController = segue.destinationController as? QBEStepsViewController
+			stepsViewController?.delegate = self
+			stepsChanged()
 		}
 		super.prepareForSegue(segue, sender: sender)
 	}

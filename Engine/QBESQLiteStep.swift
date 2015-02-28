@@ -285,7 +285,11 @@ class QBESQLiteSourceStep: QBEStep {
 		}
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, short: Bool) -> String {
+		if short {
+			return NSLocalizedString("SQLite table", comment: "")
+		}
+		
 		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName ?? "", url)
 	}
 	

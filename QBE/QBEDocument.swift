@@ -7,6 +7,18 @@ class QBEDocument: NSDocument, NSCoding {
 		let raster = QBERaster()
 	}
 	
+	var steps: [QBEStep] { get {
+		var s: [QBEStep] = []
+		var current = head
+		
+		while current != nil {
+			s.append(current!)
+			current = current!.previous
+		}
+		
+		return s.reverse()
+	} }
+	
 	required init(coder aDecoder: NSCoder) {
 		let raster = QBERaster()
 		head = (aDecoder.decodeObjectForKey("head") as? QBEStep) ?? QBERasterStep(raster: raster)

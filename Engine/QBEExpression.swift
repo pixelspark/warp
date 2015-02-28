@@ -9,7 +9,7 @@ internal let QBEExpressions: [QBEExpression.Type] = [
 ]
 
 /** A QBEExpression is a 'formula' that evaluates to a certain QBEValue given a particular context. **/
-class QBEExpression: NSObject, NSCoding, QBEExplainable {
+class QBEExpression: NSObject, NSCoding {
 	func explain(locale: QBELocale) -> String {
 		return "??"
 	}

@@ -16,7 +16,7 @@ class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NST
 	}
 	
 	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
-		return suggestions?[row].explain(delegate?.locale ?? QBEDefaultLocale())
+		return suggestions?[row].explain(delegate?.locale ?? QBEDefaultLocale(), short: false)
 	}
 	
 	func tableViewSelectionDidChange(notification: NSNotification) {

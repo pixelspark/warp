@@ -38,7 +38,7 @@ func ==(lhs: QBEArity, rhs: QBEArity) -> Bool {
 each have a unique identifier (used for serializing), display names (which are localized), and arity (which indicates
 which number of arguments is allowed) and an implementation. QBEFunctions may also be implemented in other ways in other
 ways (e.g. by compilation to SQL). Functions that have 'any' arity can be considered to be aggregation functions. **/
-enum QBEFunction: String, QBEExplainable {
+enum QBEFunction: String {
 	case Uppercase = "upper"
 	case Lowercase = "lower"
 	case Negate = "negate"
@@ -559,7 +559,7 @@ enum QBEFunction: String, QBEExplainable {
 	]
 }
 
-enum QBEBinary: String, QBEExplainable {
+enum QBEBinary: String {
 	case Addition = "add"
 	case Subtraction = "sub"
 	case Multiplication = "mul"

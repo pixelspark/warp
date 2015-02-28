@@ -44,7 +44,7 @@ class QBEPivotStep: QBEStep {
 		coder.encodeObject(aggregates, forKey: "aggregates")
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, short: Bool) -> String {
 		return NSLocalizedString("Pivot data", comment: "")
 	}
 	

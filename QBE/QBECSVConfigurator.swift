@@ -49,14 +49,28 @@ internal class QBECSVConfigurator: NSViewController, NSComboBoxDataSource {
 	}
 	
 	@IBAction func update(sender: NSObject) {
+		var changed = false
+		
 		if let s = step {
 			if let sv = separatorField?.stringValue {
 				if !sv.isEmpty {
-					s.fieldSeparator = sv.utf16[sv.utf16.startIndex]
+					let separator = sv.utf16[sv.utf16.startIndex]
+					if s.fieldSeparator != separator {
+						s.fieldSeparator = separator
+						changed = true
+					}
 				}
 			}
-			s.hasHeaders = hasHeadersButton?.state == NSOnState
-			delegate?.suggestionsView(self, previewStep: s)
+			
+			let shouldHaveHeaders = (hasHeadersButton?.state == NSOnState)
+			if s.hasHeaders != shouldHaveHeaders {
+				s.hasHeaders = shouldHaveHeaders
+				changed = true
+			}
+			
+			if changed {
+				delegate?.suggestionsView(self, previewStep: s)
+			}
 		}
 	}
 }

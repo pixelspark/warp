@@ -611,13 +611,12 @@ CA
                                                 <action selector="goBack:" target="Ady-hI-5gd" id="rZN-1k-bHM"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="Ccz-1e-bEd"/>
-                                        <menuItem title="Calculate" id="QPZ-Pd-fQt">
+                                        <menuItem title="Remove step" id="oDn-7p-C6j">
                                             <string key="keyEquivalent" base64-UTF8="YES">
-DQ
+CA
 </string>
                                             <connections>
-                                                <action selector="calculate:" target="Ady-hI-5gd" id="SNw-Yj-gnm"/>
+                                                <action selector="removeStep:" target="Ady-hI-5gd" id="nnF-n3-wQB"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="PYa-SM-ZQg"/>
@@ -854,7 +853,7 @@ CA
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="429" y="180" width="1065" height="806"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
-                        <toolbar key="toolbar" implicitIdentifier="8005E1A7-7EFF-4062-821E-E134B863AEB8" showsBaselineSeparator="NO" displayMode="iconOnly" sizeMode="small" id="kqZ-PO-6dW">
+                        <toolbar key="toolbar" implicitIdentifier="8005E1A7-7EFF-4062-821E-E134B863AEB8" displayMode="iconOnly" sizeMode="small" id="kqZ-PO-6dW">
                             <allowedToolbarItems>
                                 <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="3JN-eV-tDK"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="Zil-Xh-hqD"/>
@@ -903,6 +902,25 @@ CA
                                         <action selector="removeStep:" target="6f7-a7-6o1" id="ZjN-5b-f6N"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="13904954-A006-4F01-9733-47EE7460E76F" label="Working set" paletteLabel="Working set" id="970-Vh-P6W">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="67" height="26"/>
+                                    <size key="maxSize" width="132" height="28"/>
+                                    <segmentedControl key="view" verticalHuggingPriority="750" id="2OH-Q4-h2a">
+                                        <rect key="frame" x="0.0" y="14" width="132" height="28"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <segmentedCell key="cell" borderStyle="border" alignment="left" style="texturedSquare" trackingMode="selectOne" id="8ie-uh-4mV">
+                                            <font key="font" metaFont="system"/>
+                                            <segments>
+                                                <segment label="Selection" width="65" selected="YES"/>
+                                                <segment label="All" width="64" tag="1"/>
+                                            </segments>
+                                        </segmentedCell>
+                                    </segmentedControl>
+                                    <connections>
+                                        <action selector="setWorkingSet:" target="6f7-a7-6o1" id="Wvw-os-yT3"/>
+                                    </connections>
+                                </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="8u6-iF-miR"/>
@@ -914,6 +932,8 @@ CA
                                 <toolbarItem reference="7Uz-TX-Nnq"/>
                                 <toolbarItem reference="Zil-Xh-hqD"/>
                                 <toolbarItem reference="51V-E9-1Wy"/>
+                                <toolbarItem reference="Zil-Xh-hqD"/>
+                                <toolbarItem reference="970-Vh-P6W"/>
                             </defaultToolbarItems>
                         </toolbar>
                     </window>
@@ -925,19 +945,19 @@ CA
             </objects>
             <point key="canvasLocation" x="-187.5" y="449"/>
         </scene>
-        <!--View Controller-->
+        <!--Document view controller-->
         <scene sceneID="4qG-DD-elD">
             <objects>
-                <viewController id="DXE-ii-MK8" customClass="QBEViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="Document view controller" id="DXE-ii-MK8" customClass="QBEViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" focusRingType="none" id="fdQ-Cz-nnL">
-                        <rect key="frame" x="0.0" y="0.0" width="660" height="400"/>
+                        <rect key="frame" x="0.0" y="0.0" width="737" height="614"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <visualEffectView blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="UN0-Q7-D7L">
-                                <rect key="frame" x="0.0" y="0.0" width="660" height="400"/>
+                                <rect key="frame" x="0.0" y="0.0" width="737" height="532"/>
                                 <subviews>
                                     <containerView canDrawConcurrently="YES" focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
-                                        <rect key="frame" x="0.0" y="0.0" width="400" height="400"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="477" height="532"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="KeW-J3-VQO"/>
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="400" id="uiJ-1d-vdA"/>
@@ -947,14 +967,14 @@ CA
                                         </connections>
                                     </containerView>
                                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="V0f-zc-xhU">
-                                        <rect key="frame" x="400" y="0.0" width="260" height="400"/>
+                                        <rect key="frame" x="477" y="0.0" width="260" height="532"/>
                                         <subviews>
                                             <customView autoresizesSubviews="NO" canDrawConcurrently="YES" appearanceType="aqua" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="eRz-0B-PPl">
-                                                <rect key="frame" x="0.0" y="0.0" width="260" height="265"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="260" height="397"/>
                                                 <animations/>
                                             </customView>
                                             <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="S3o-Kz-csJ" userLabel="Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label">
-                                                <rect key="frame" x="3" y="344" width="254" height="51"/>
+                                                <rect key="frame" x="3" y="476" width="254" height="51"/>
                                                 <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label " id="285-uI-onn">
                                                     <font key="font" metaFont="systemBold"/>
                                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -962,7 +982,7 @@ CA
                                                 </textFieldCell>
                                             </textField>
                                             <textField verticalHuggingPriority="750" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="E9J-Co-zPC">
-                                                <rect key="frame" x="5" y="270" width="250" height="64"/>
+                                                <rect key="frame" x="5" y="402" width="250" height="64"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="64" id="yhI-4n-MTs"/>
                                                 </constraints>
@@ -1006,21 +1026,44 @@ CA
                                     </customView>
                                 </subviews>
                                 <constraints>
-                                    <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="UN0-Q7-D7L" secondAttribute="top" id="1ij-yp-jib"/>
                                     <constraint firstAttribute="bottom" secondItem="V0f-zc-xhU" secondAttribute="bottom" id="D5W-c3-UGA"/>
+                                    <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="UN0-Q7-D7L" secondAttribute="top" id="JY2-1P-iUd"/>
+                                    <constraint firstItem="V0f-zc-xhU" firstAttribute="top" secondItem="UN0-Q7-D7L" secondAttribute="top" id="Rtb-Wh-wAM"/>
                                     <constraint firstAttribute="bottom" secondItem="mVs-W6-cUa" secondAttribute="bottom" id="Z2J-Kz-gQp"/>
                                     <constraint firstAttribute="trailing" secondItem="V0f-zc-xhU" secondAttribute="trailing" id="am0-CN-qvY"/>
-                                    <constraint firstItem="V0f-zc-xhU" firstAttribute="top" secondItem="UN0-Q7-D7L" secondAttribute="top" id="cr9-Ri-nf7"/>
                                     <constraint firstItem="mVs-W6-cUa" firstAttribute="leading" secondItem="UN0-Q7-D7L" secondAttribute="leading" id="nGq-Ea-5hQ"/>
                                     <constraint firstItem="V0f-zc-xhU" firstAttribute="leading" secondItem="mVs-W6-cUa" secondAttribute="trailing" id="r5h-M5-d2X"/>
+                                </constraints>
+                            </visualEffectView>
+                            <visualEffectView appearanceType="vibrantLight" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="YZV-ql-8Ur">
+                                <rect key="frame" x="0.0" y="532" width="737" height="82"/>
+                                <subviews>
+                                    <containerView translatesAutoresizingMaskIntoConstraints="NO" id="788-NV-QHP">
+                                        <rect key="frame" x="0.0" y="0.0" width="737" height="82"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="82" id="ZXJ-2N-vw4"/>
+                                        </constraints>
+                                        <connections>
+                                            <segue destination="Ww8-Sq-VTz" kind="embed" identifier="steps" id="Muu-a2-euC"/>
+                                        </connections>
+                                    </containerView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="788-NV-QHP" firstAttribute="top" secondItem="YZV-ql-8Ur" secondAttribute="top" id="N7L-2J-bTk"/>
+                                    <constraint firstAttribute="bottom" secondItem="788-NV-QHP" secondAttribute="bottom" id="edE-qY-520"/>
+                                    <constraint firstAttribute="trailing" secondItem="788-NV-QHP" secondAttribute="trailing" id="mUh-Ka-ynI"/>
+                                    <constraint firstItem="788-NV-QHP" firstAttribute="leading" secondItem="YZV-ql-8Ur" secondAttribute="leading" id="sPN-Xa-sWR"/>
                                 </constraints>
                             </visualEffectView>
                         </subviews>
                         <constraints>
                             <constraint firstItem="UN0-Q7-D7L" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="0jK-wc-Pxk"/>
-                            <constraint firstItem="UN0-Q7-D7L" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" id="0t4-6Y-y6e"/>
+                            <constraint firstItem="YZV-ql-8Ur" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="1pQ-RH-J1x"/>
+                            <constraint firstAttribute="trailing" secondItem="YZV-ql-8Ur" secondAttribute="trailing" id="50m-Ex-QZG"/>
                             <constraint firstAttribute="bottom" secondItem="UN0-Q7-D7L" secondAttribute="bottom" id="Zpx-9l-rsr"/>
                             <constraint firstAttribute="trailing" secondItem="UN0-Q7-D7L" secondAttribute="trailing" id="ctG-7K-i7y"/>
+                            <constraint firstItem="YZV-ql-8Ur" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" id="fYc-br-dEb"/>
+                            <constraint firstItem="UN0-Q7-D7L" firstAttribute="top" secondItem="YZV-ql-8Ur" secondAttribute="bottom" id="hNA-Em-4N4"/>
                         </constraints>
                         <animations/>
                     </view>
@@ -1034,53 +1077,13 @@ CA
                 <customObject id="Izd-TK-t8f" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="vGV-jK-BQ2"/>
             </objects>
-            <point key="canvasLocation" x="-181" y="1223"/>
+            <point key="canvasLocation" x="-142.5" y="1330"/>
         </scene>
-        <!--Result View Controller-->
-        <scene sceneID="FbG-3g-HAb">
-            <objects>
-                <viewController storyboardIdentifier="resultViewController" id="RGB-my-B5w" customClass="QBEResultViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="vcC-pe-prS">
-                        <rect key="frame" x="0.0" y="0.0" width="450" height="400"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                        <subviews>
-                            <containerView translatesAutoresizingMaskIntoConstraints="NO" id="o5B-PG-5tn">
-                                <rect key="frame" x="0.0" y="42" width="450" height="358"/>
-                                <connections>
-                                    <segue destination="heg-Gg-TM4" kind="embed" identifier="tableGrid" id="nrv-FT-MZN"/>
-                                </connections>
-                            </containerView>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="vgP-f4-e3K">
-                                <rect key="frame" x="375" y="3" width="76" height="33"/>
-                                <buttonCell key="cell" type="push" title="Close" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="PGX-1w-cvN">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="dismissController:" target="RGB-my-B5w" id="32g-u6-ohX"/>
-                                </connections>
-                            </button>
-                        </subviews>
-                        <constraints>
-                            <constraint firstAttribute="bottom" secondItem="vgP-f4-e3K" secondAttribute="bottom" constant="10" id="2As-RO-Gow"/>
-                            <constraint firstAttribute="bottom" secondItem="o5B-PG-5tn" secondAttribute="bottom" constant="42" id="9Dj-BM-Q16"/>
-                            <constraint firstAttribute="trailing" secondItem="o5B-PG-5tn" secondAttribute="trailing" id="KlD-tF-qui"/>
-                            <constraint firstAttribute="trailing" secondItem="vgP-f4-e3K" secondAttribute="trailing" constant="5" id="MVU-Ci-ORY"/>
-                            <constraint firstItem="o5B-PG-5tn" firstAttribute="leading" secondItem="vcC-pe-prS" secondAttribute="leading" id="UaU-PG-BlY"/>
-                            <constraint firstItem="o5B-PG-5tn" firstAttribute="top" secondItem="vcC-pe-prS" secondAttribute="top" id="gS4-E9-rsl"/>
-                            <constraint firstItem="vgP-f4-e3K" firstAttribute="top" secondItem="o5B-PG-5tn" secondAttribute="bottom" constant="10" id="ka9-h6-cuP"/>
-                        </constraints>
-                    </view>
-                </viewController>
-                <customObject id="ieb-LL-E2m" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-791" y="1223"/>
-        </scene>
-        <!--Data View Controller-->
+        <!--Data view controller-->
         <scene sceneID="BjY-ZD-Y7M">
             <objects>
-                <viewController storyboardIdentifier="dataViewController" id="heg-Gg-TM4" customClass="QBEDataViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" wantsLayer="YES" focusRingType="none" id="qWX-f7-1Jq">
+                <viewController title="Data view controller" storyboardIdentifier="dataViewController" id="heg-Gg-TM4" customClass="QBEDataViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" focusRingType="none" id="qWX-f7-1Jq">
                         <rect key="frame" x="0.0" y="0.0" width="605" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
@@ -1120,7 +1123,7 @@ CA
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-498.5" y="1832"/>
+            <point key="canvasLocation" x="-491.5" y="1937"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -1333,6 +1336,55 @@ Gw
             </objects>
             <point key="canvasLocation" x="645.5" y="1461.5"/>
         </scene>
+        <!--Steps view controller-->
+        <scene sceneID="zxO-hf-1cr">
+            <objects>
+                <viewController title="Steps view controller" id="Ww8-Sq-VTz" customClass="QBEStepsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="3pN-vv-bdv">
+                        <rect key="frame" x="0.0" y="0.0" width="617" height="144"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <scrollView autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" verticalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="oh5-QN-ivd">
+                                <rect key="frame" x="-1" y="0.0" width="619" height="145"/>
+                                <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="IgC-yr-ZlP">
+                                    <rect key="frame" x="1" y="1" width="248" height="158"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <collectionView selectable="YES" maxNumberOfRows="1" id="z7I-jG-SgO">
+                                            <rect key="frame" x="0.0" y="0.0" width="248" height="158"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                            <color key="primaryBackgroundColor" white="1" alpha="0.0" colorSpace="deviceWhite"/>
+                                        </collectionView>
+                                    </subviews>
+                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </clipView>
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="tt1-Sj-Rxq">
+                                    <rect key="frame" x="1" y="144" width="233" height="15"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                                <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="vYR-91-Loj">
+                                    <rect key="frame" x="234" y="1" width="15" height="143"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                            </scrollView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="oh5-QN-ivd" firstAttribute="top" secondItem="3pN-vv-bdv" secondAttribute="top" constant="-1" id="EPq-Rn-dQL"/>
+                            <constraint firstAttribute="trailing" secondItem="oh5-QN-ivd" secondAttribute="trailing" constant="-1" id="IFi-9S-NFG"/>
+                            <constraint firstAttribute="bottom" secondItem="oh5-QN-ivd" secondAttribute="bottom" id="N9K-8r-0Hx"/>
+                            <constraint firstItem="oh5-QN-ivd" firstAttribute="leading" secondItem="3pN-vv-bdv" secondAttribute="leading" constant="-1" id="QB9-oc-2Tn"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="collectionView" destination="z7I-jG-SgO" id="fKn-kf-nWy"/>
+                    </connections>
+                </viewController>
+                <customObject id="nkn-pH-Nqr" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+                <userDefaultsController id="4bb-Af-HRu"/>
+                <userDefaultsController id="pYt-VS-Pms"/>
+            </objects>
+            <point key="canvasLocation" x="380.5" y="1859"/>
+        </scene>
     </scenes>
     <resources>
         <image name="CalculateIcon" width="32" height="32"/>
@@ -1345,7 +1397,4 @@ Gw
         <image name="PivotIcon" width="32" height="32"/>
         <image name="RandomIcon" width="32" height="32"/>
     </resources>
-    <inferredMetricsTieBreakers>
-        <segue reference="nrv-FT-MZN"/>
-    </inferredMetricsTieBreakers>
 </document>

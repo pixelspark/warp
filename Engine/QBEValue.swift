@@ -1,9 +1,5 @@
 import Foundation
 
-protocol QBEExplainable {
-	func explain(locale: QBELocale) -> String
-}
-
 internal extension String {
 	func toDouble() -> Double? {
 		if self.isEmpty || self.hasPrefix(" ") {
@@ -213,7 +209,7 @@ represents the result of an invalid operation and should trigger subsequent oper
 
 Note that while QBEValue is an enum, it cannot be encoded using NSCoding. Wrap QBEValues inside QBEValueCoder before 
 encoding or decoding using NSCoding. **/
-internal enum QBEValue: Hashable, DebugPrintable, QBEExplainable {
+internal enum QBEValue: Hashable, DebugPrintable {
 	case StringValue(String)
 	case IntValue(Int)
 	case BoolValue(Bool)

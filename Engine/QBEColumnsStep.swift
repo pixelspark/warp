@@ -11,7 +11,11 @@ class QBEColumnsStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, short: Bool) -> String {
+		if short {
+			return NSLocalizedString("Select columns", comment: "")
+		}
+		
 		if select {
 			if columnNames.count == 0 {
 				return NSLocalizedString("Select all columns", comment: "")
