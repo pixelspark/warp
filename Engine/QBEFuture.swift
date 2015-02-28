@@ -1,12 +1,36 @@
 import Foundation
 
-/** QBECalculation represents a result of a (potentially expensive) calculation. Code that needs the result of the 
+/** Records the time taken to execute the given block and writes it to the console. In release builds, the block is simply
+called and no timing information is gathered. **/
+internal func QBETime(description: String, items: Int, itemType: String, block: () -> ()) {
+	#if DEBUG
+		let t = CFAbsoluteTimeGetCurrent()
+		block()
+		let d = CFAbsoluteTimeGetCurrent() - t
+		println("QBETime\t\(description)\t\(items) \(itemType):\t\(d);\t\(Double(items)/d) \(itemType)/s")
+		#else
+		block()
+	#endif
+}
+
+/** Runs the given block of code asynchronously on the main queue. **/
+internal func QBEAsyncMain(block: () -> ()) {
+	dispatch_async(dispatch_get_main_queue(), block)
+}
+
+/** Runs the given block of code asynchronously on a concurrent background queue with QoS class 'user initiated'. **/
+internal func QBEAsyncBackground(block: () -> ()) {
+	let gq = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+	dispatch_async(gq, block)
+}
+
+/** QBEFuture represents a result of a (potentially expensive) calculation. Code that needs the result of the
 operation express their interest by enqueuing a callback with the get() function. The callback gets called immediately
 if the result of the calculation was available in cache, or as soon as the result has been calculated. 
 
 The calculation itself is done by the 'producer' block. When the producer block is changed, the cached result is 
-invalidated (pre-registered callbacks will receive the stale result when it has been calculated). **/
-class QBECalculation<T> {
+invalidated (pre-registered callbacks may still receive the stale result when it has been calculated). **/
+class QBEFuture<T> {
 	typealias Callback = QBEBatch<T>.Callback
 	typealias Producer = (Callback) -> ()
 	private var batch: QBEBatch<T>?
@@ -15,14 +39,14 @@ class QBECalculation<T> {
 		return batch != nil
 	} }
 	
-	var producer: Producer? { didSet {
-		if let b = batch {
-			b.cancel()
-		}
-		batch = nil
-	} }
+	let producer: Producer?
 	
-	init()  {
+	init(_ producer: Producer?)  {
+		self.producer = producer
+	}
+	
+	deinit {
+		batch?.cancel()
 	}
 	
 	private func calculate() {
@@ -64,18 +88,24 @@ private class QBEBatch<T> {
 		cached = value
 		satisfied = true
 		for waiting in waitingList {
-			waiting(value)
+			QBEAsyncMain {
+				waiting(value)
+			}
 		}
 		waitingList = []
 	}
 	
 	func cancel() {
-		waitingList = []
+		if !satisfied {
+			waitingList = []
+		}
 	}
 	
 	func enqueue(callback: Callback) {
 		if satisfied {
-			callback(cached)
+			QBEAsyncMain {
+				callback(self.cached)
+			}
 		}
 		else {
 			waitingList.append(callback)

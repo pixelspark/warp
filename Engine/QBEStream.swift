@@ -1,29 +1,5 @@
 import Foundation
 
-/** Records the time taken to execute the given block and writes it to the console. In release builds, the block is simply
-called and no timing information is gathered. **/
-internal func QBETime(description: String, items: Int, itemType: String, block: () -> ()) {
-	#if DEBUG
-		let t = CFAbsoluteTimeGetCurrent()
-		block()
-		let d = CFAbsoluteTimeGetCurrent() - t
-		println("QBETime\t\(description)\t\(items) \(itemType):\t\(d);\t\(Double(items)/d) \(itemType)/s")
-	#else
-		block()
-	#endif
-}
-
-/** Runs the given block of code asynchronously on the main queue. **/
-internal func QBEAsyncMain(block: () -> ()) {
-	dispatch_async(dispatch_get_main_queue(), block)
-}
-
-/** Runs the given block of code asynchronously on a concurrent background queue with QoS class 'user initiated'. **/
-internal func QBEAsyncBackground(block: () -> ()) {
-	let gq = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
-	dispatch_async(gq, block)
-}
-
 /** A QBESink is a function used as a callback in response to QBEStream.fetch. It receives a set of rows from the stream
 as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). **/
 typealias QBESink = (Slice<QBERow>, Bool) -> ()

@@ -18,8 +18,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBOutlet var descriptionField: NSTextField?
 	@IBOutlet var configuratorView: NSView?
 	@IBOutlet var titleLabel: NSTextField?
-	internal var currentData = QBECalculation<QBEData>()
-	internal var currentRaster = QBECalculation<QBERaster>()
+	internal var currentData: QBEFuture<QBEData>?
+	internal var currentRaster: QBEFuture<QBERaster>?
 	
 	internal var useFullData: Bool = false {
 		didSet {
@@ -105,7 +105,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	var previewStep: QBEStep? {
 		didSet {
-			if previewStep == nil {
+			if oldValue != nil && previewStep == nil {
 				refreshData()
 			}
 			else {
@@ -124,15 +124,17 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	func calculate() {
-		currentData.producer = useFullData ? currentStep?.fullData : currentStep?.exampleData
+		currentData = QBEFuture<QBEData>(useFullData ? currentStep?.fullData : currentStep?.exampleData)
 		
-		currentRaster.producer = {(callback: QBECalculation<QBERaster>.Callback) in
-			self.currentData.get({ (data: QBEData?) -> () in
-				if let d = data {
-					d.raster(callback)
-				}
-			})
-		}
+		currentRaster = QBEFuture<QBERaster>({(callback: QBEFuture<QBERaster>.Callback) in
+			if let cd = self.currentData {
+				cd.get({ (data: QBEData?) -> () in
+					if let d = data {
+						d.raster(callback)
+					}
+				})
+			}
+		})
 		
 		refreshData()
 	}
@@ -140,7 +142,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	private func refreshData() {
 		self.presentData(nil)
 		dataViewController?.calculating = true
-		currentRaster.get({(raster) in
+		
+		currentRaster?.get({(raster) in
 			QBEAsyncMain {
 				self.presentRaster(raster)
 			}
@@ -154,7 +157,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 
 	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
-		currentRaster.get({(raster) in
+		currentRaster?.get({(raster) in
 			if let r = raster {
 				QBEAsyncBackground {
 					let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: r, row: inRow, column: column, locale: self.locale)
@@ -172,7 +175,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	private func stepsChanged() {
 		self.stepsViewController?.steps = document?.steps
 		self.stepsViewController?.currentStep = currentStep
-		println("steps=\(document?.steps)");
 	}
 	
 	private func pushStep(step: QBEStep) {
@@ -248,7 +250,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func addEmptyColumn(sender: NSObject) {
-		currentData.get({(data) in
+		currentData?.get({(data) in
 			if let d = data {
 				d.columnNames({(cols) in
 					let step = QBECalculateStep(previous: self.currentStep, targetColumn: QBEColumn.defaultColumnForIndex(cols.count), function: QBELiteralExpression(QBEValue.EmptyValue))
@@ -318,7 +320,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func removeRows(sender: NSObject) {
 		if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				currentRaster.get({(raster) in
+				currentRaster?.get({(raster) in
 					if let r = raster {
 						// Invert the selection
 						let selected = NSMutableIndexSet()
@@ -349,7 +351,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func selectRows(sender: NSObject) {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				currentRaster.get({(raster) in
+				currentRaster?.get({(raster) in
 					if let r = raster {
 						var relevantColumns = Set<QBEColumn>()
 						for columnIndex in 0..<r.columnCount {

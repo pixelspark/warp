@@ -927,13 +927,8 @@ CA
                                 <toolbarItem reference="dlO-l3-BJL"/>
                                 <toolbarItem reference="x4w-cF-8lE"/>
                                 <toolbarItem reference="Zil-Xh-hqD"/>
-                                <toolbarItem reference="BG9-hH-0Ls"/>
-                                <toolbarItem reference="4lu-86-fUW"/>
-                                <toolbarItem reference="7Uz-TX-Nnq"/>
-                                <toolbarItem reference="Zil-Xh-hqD"/>
-                                <toolbarItem reference="51V-E9-1Wy"/>
-                                <toolbarItem reference="Zil-Xh-hqD"/>
                                 <toolbarItem reference="970-Vh-P6W"/>
+                                <toolbarItem reference="51V-E9-1Wy"/>
                             </defaultToolbarItems>
                         </toolbar>
                     </window>
@@ -950,14 +945,14 @@ CA
             <objects>
                 <viewController title="Document view controller" id="DXE-ii-MK8" customClass="QBEViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" focusRingType="none" id="fdQ-Cz-nnL">
-                        <rect key="frame" x="0.0" y="0.0" width="737" height="614"/>
+                        <rect key="frame" x="0.0" y="0.0" width="1089" height="744"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <visualEffectView blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="UN0-Q7-D7L">
-                                <rect key="frame" x="0.0" y="0.0" width="737" height="532"/>
+                                <rect key="frame" x="0.0" y="0.0" width="1089" height="662"/>
                                 <subviews>
                                     <containerView canDrawConcurrently="YES" focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
-                                        <rect key="frame" x="0.0" y="0.0" width="477" height="532"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="829" height="662"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="KeW-J3-VQO"/>
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="400" id="uiJ-1d-vdA"/>
@@ -967,14 +962,14 @@ CA
                                         </connections>
                                     </containerView>
                                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="V0f-zc-xhU">
-                                        <rect key="frame" x="477" y="0.0" width="260" height="532"/>
+                                        <rect key="frame" x="829" y="0.0" width="260" height="662"/>
                                         <subviews>
                                             <customView autoresizesSubviews="NO" canDrawConcurrently="YES" appearanceType="aqua" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="eRz-0B-PPl">
-                                                <rect key="frame" x="0.0" y="0.0" width="260" height="397"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="260" height="527"/>
                                                 <animations/>
                                             </customView>
                                             <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="S3o-Kz-csJ" userLabel="Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label">
-                                                <rect key="frame" x="3" y="476" width="254" height="51"/>
+                                                <rect key="frame" x="3" y="606" width="254" height="51"/>
                                                 <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label " id="285-uI-onn">
                                                     <font key="font" metaFont="systemBold"/>
                                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -982,7 +977,7 @@ CA
                                                 </textFieldCell>
                                             </textField>
                                             <textField verticalHuggingPriority="750" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="E9J-Co-zPC">
-                                                <rect key="frame" x="5" y="402" width="250" height="64"/>
+                                                <rect key="frame" x="5" y="532" width="250" height="64"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="64" id="yhI-4n-MTs"/>
                                                 </constraints>
@@ -1036,10 +1031,10 @@ CA
                                 </constraints>
                             </visualEffectView>
                             <visualEffectView appearanceType="vibrantLight" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="YZV-ql-8Ur">
-                                <rect key="frame" x="0.0" y="532" width="737" height="82"/>
+                                <rect key="frame" x="0.0" y="662" width="1089" height="82"/>
                                 <subviews>
                                     <containerView translatesAutoresizingMaskIntoConstraints="NO" id="788-NV-QHP">
-                                        <rect key="frame" x="0.0" y="0.0" width="737" height="82"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="1089" height="82"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="82" id="ZXJ-2N-vw4"/>
                                         </constraints>
@@ -1077,7 +1072,7 @@ CA
                 <customObject id="Izd-TK-t8f" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="vGV-jK-BQ2"/>
             </objects>
-            <point key="canvasLocation" x="-142.5" y="1330"/>
+            <point key="canvasLocation" x="33.5" y="1395"/>
         </scene>
         <!--Data view controller-->
         <scene sceneID="BjY-ZD-Y7M">
@@ -1123,7 +1118,7 @@ CA
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-491.5" y="1937"/>
+            <point key="canvasLocation" x="42.5" y="2111"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -1221,7 +1216,7 @@ Gw
                 </viewController>
                 <customObject id="hZp-iq-JdD" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="638.5" y="1102.5"/>
+            <point key="canvasLocation" x="1062.5" y="1030.5"/>
         </scene>
         <!--Add Column View Controller-->
         <scene sceneID="c4P-Dw-LPh">
@@ -1334,7 +1329,7 @@ Gw
                 <customObject id="mVo-1D-gei" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController id="dwr-GU-0iP"/>
             </objects>
-            <point key="canvasLocation" x="645.5" y="1461.5"/>
+            <point key="canvasLocation" x="1025.5" y="1627.5"/>
         </scene>
         <!--Steps view controller-->
         <scene sceneID="zxO-hf-1cr">
@@ -1383,7 +1378,7 @@ Gw
                 <userDefaultsController id="4bb-Af-HRu"/>
                 <userDefaultsController id="pYt-VS-Pms"/>
             </objects>
-            <point key="canvasLocation" x="380.5" y="1859"/>
+            <point key="canvasLocation" x="1104.5" y="1317"/>
         </scene>
     </scenes>
     <resources>
