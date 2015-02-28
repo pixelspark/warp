@@ -24,7 +24,7 @@ class QBEStep: NSObject {
 		previous?.next = self
 	} }
 	
-	var next: QBEStep? // FIXME: memory leak (either previous or next should be weak when QBEDocument references the chain)
+	weak var next: QBEStep?
 	var explanation: NSAttributedString?
 	
 	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific

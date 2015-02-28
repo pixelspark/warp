@@ -70,6 +70,9 @@ class QBEStepsItem: NSCollectionViewItem {
 class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	@IBOutlet var collectionView: NSCollectionView!
 	weak var delegate: QBEStepsControllerDelegate?
+	
+	private var ignoreSelection = false
+	
 	var steps: [QBEStep]? { didSet {
 		update()
 	} }
@@ -83,31 +86,42 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	}
 	
 	private func update() {
-		if let cv = collectionView {
-			if cv.itemPrototype != nil {
-				cv.content = steps ?? []
-			}
-			
-			// Update current selection
-			var indexSet = NSMutableIndexSet()
-			
-			for itemNumber in 0..<cv.content.count {
-				if let step = cv.content[itemNumber] as? QBEStep {
-					if step == currentStep {
-						indexSet.addIndex(itemNumber)
+		QBEAsyncMain {
+			if let cv = self.collectionView {
+				if cv.itemPrototype != nil {
+					cv.content = self.steps ?? []
+				}
+				
+				// Update current selection
+				var indexSet = NSMutableIndexSet()
+				
+				for itemNumber in 0..<cv.content.count {
+					if let step = cv.content[itemNumber] as? QBEStep {
+						if step == self.currentStep {
+							indexSet.addIndex(itemNumber)
+						}
 					}
 				}
+				
+				cv.selectionIndexes = indexSet
 			}
-			
-			cv.selectionIndexes = indexSet
 		}
 	}
 	
 	override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>) {
+		if ignoreSelection {
+			return
+		}
+		
 		if collectionView?.selectionIndexes.count > 0 {
 			if let selected = collectionView?.selectionIndexes.firstIndex {
 				if let step = collectionView?.content[selected] as? QBEStep {
-					self.delegate?.stepsController(self, didSelectStep: step)
+					ignoreSelection = true
+					QBEAsyncMain {
+						self.delegate?.stepsController(self, didSelectStep: step)
+						self.ignoreSelection = false
+						return;
+					}
 				}
 			}
 		}
