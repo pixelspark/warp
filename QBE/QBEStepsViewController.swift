@@ -17,11 +17,52 @@ protocol QBEStepsControllerDelegate: NSObjectProtocol {
 }
 
 @IBDesignable class QBEStepsItemView: NSView {
-	var selected: Bool = false
+	private var highlighted = false
 	@IBOutlet var label: NSTextField?
 	@IBOutlet var imageView: NSImageView?
+	@IBOutlet var previousImageView: NSImageView?
+	@IBOutlet var nextImageView: NSImageView?
+	
+	var selected: Bool = false { didSet {
+		update()
+	} }
+	
+	override init(frame: NSRect) {
+		super.init(frame: frame)
+		setup()
+	}
+
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+		setup()
+	}
+	
+	private func setup() {
+		self.addToolTipRect(frame, owner: self, userData: nil)
+		self.addTrackingArea(NSTrackingArea(rect: frame, options: NSTrackingAreaOptions.MouseEnteredAndExited | NSTrackingAreaOptions.ActiveInActiveApp, owner: self, userInfo: nil))
+	}
+	
+	override func mouseEntered(theEvent: NSEvent) {
+		highlighted = true
+		update()
+		setNeedsDisplayInRect(self.bounds)
+	}
+	
+	override func mouseExited(theEvent: NSEvent) {
+		highlighted = false
+		update()
+		setNeedsDisplayInRect(self.bounds)
+	}
+	
+	override func view(view: NSView, stringForToolTip tag: NSToolTipTag, point: NSPoint, userData data: UnsafeMutablePointer<Void>) -> String {
+		return step?.explain(QBEDefaultLocale(), short: false) ?? ""
+	}
 	
 	var step: QBEStep? { didSet {
+		update()
+	} }
+	
+	private func update() {
 		if let e = step?.explanation {
 			label?.attributedStringValue = e
 		}
@@ -33,14 +74,24 @@ protocol QBEStepsControllerDelegate: NSObjectProtocol {
 			if let icon = QBEStepIcons[s.className] {
 				imageView?.image = NSImage(named: icon)
 			}
+			
+			nextImageView?.hidden = (s.next == nil) || selected || highlighted
+			previousImageView?.hidden = (s.previous == nil) // || selected || highlighted
 		}
-	} }
+	}
 	
 	override func drawRect(dirtyRect: NSRect) {
 		if self.selected {
 			NSColor.secondarySelectedControlColor().set()
-			NSRectFill(self.bounds)
 		}
+		else if self.highlighted {
+			NSColor.selectedControlColor().set()
+		}
+		else {
+			NSColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0).set()
+		}
+		
+		NSRectFill(self.bounds)
 	}
 	
 	override var allowsVibrancy: Bool { get {

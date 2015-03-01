@@ -31,22 +31,39 @@
                     </constraints>
                     <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="z2w-fk-K4O"/>
                 </imageView>
+                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="cYg-Eq-9dj">
+                    <rect key="frame" x="91" y="28" width="18" height="27"/>
+                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="NextIcon" id="KX2-vD-rKv"/>
+                </imageView>
+                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="QCt-Sl-a6l">
+                    <rect key="frame" x="-8" y="28" width="18" height="27"/>
+                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="NextIcon" id="jpo-7y-WoM"/>
+                </imageView>
             </subviews>
             <constraints>
+                <constraint firstItem="QCt-Sl-a6l" firstAttribute="leading" secondItem="p82-vT-MLo" secondAttribute="leading" constant="-8" id="2bU-3S-a3g"/>
                 <constraint firstAttribute="centerX" secondItem="sSk-3l-TxM" secondAttribute="centerX" id="7Er-0z-btC"/>
+                <constraint firstAttribute="centerY" secondItem="cYg-Eq-9dj" secondAttribute="centerY" id="Bvw-m2-L52"/>
                 <constraint firstAttribute="centerX" secondItem="D5i-ln-MmN" secondAttribute="centerX" id="P2i-XP-XTT"/>
+                <constraint firstAttribute="trailing" secondItem="cYg-Eq-9dj" secondAttribute="trailing" constant="-10" id="ZeY-5s-wQi"/>
                 <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="sSk-3l-TxM" secondAttribute="trailing" id="aUG-46-7Wk"/>
                 <constraint firstItem="sSk-3l-TxM" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="p82-vT-MLo" secondAttribute="leading" id="ceE-EB-mFR"/>
                 <constraint firstAttribute="centerX" secondItem="D5i-ln-MmN" secondAttribute="centerX" id="fJH-Bk-LNs"/>
                 <constraint firstItem="sSk-3l-TxM" firstAttribute="top" secondItem="D5i-ln-MmN" secondAttribute="bottom" constant="5" id="ssM-p7-ybS"/>
                 <constraint firstAttribute="bottom" secondItem="sSk-3l-TxM" secondAttribute="bottom" constant="10" id="uZ7-Pr-uWO"/>
                 <constraint firstItem="D5i-ln-MmN" firstAttribute="top" secondItem="p82-vT-MLo" secondAttribute="top" constant="5" id="xAQ-hc-KoN"/>
+                <constraint firstAttribute="centerY" secondItem="QCt-Sl-a6l" secondAttribute="centerY" id="zTn-T8-OLe"/>
             </constraints>
             <connections>
                 <outlet property="imageView" destination="D5i-ln-MmN" id="NoF-1C-Fky"/>
                 <outlet property="label" destination="sSk-3l-TxM" id="Hit-xo-Ag0"/>
+                <outlet property="nextImageView" destination="cYg-Eq-9dj" id="Zms-AI-P7x"/>
+                <outlet property="previousImageView" destination="QCt-Sl-a6l" id="HeD-Ko-j5t"/>
             </connections>
             <point key="canvasLocation" x="472.5" y="254"/>
         </customView>
     </objects>
+    <resources>
+        <image name="NextIcon" width="18" height="27"/>
+    </resources>
 </document>
