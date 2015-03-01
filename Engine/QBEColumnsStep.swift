@@ -51,7 +51,7 @@ class QBEColumnsStep: QBEStep {
 	
 	override func encodeWithCoder(coder: NSCoder) {
 		let columnNameStrings = columnNames.map({$0.name})
-		coder.encodeObject(columnNameStrings, forKey: "columnsToRemove")
+		coder.encodeObject(columnNameStrings, forKey: "columnNames")
 		coder.encodeBool(select, forKey: "select")
 		super.encodeWithCoder(coder)
 	}
