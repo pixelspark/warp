@@ -56,6 +56,7 @@ internal class QBESQLiteResult: NSObject {
 		}
 
 		self.db.perform({sqlite3_step(self.resultSet)})
+		self.db.perform({sqlite3_clear_bindings(self.resultSet)})
 		self.db.perform({sqlite3_reset(self.resultSet)})
 	}
 	
@@ -162,7 +163,7 @@ internal class QBESQLiteDatabase {
 		var ret: Bool = true
 		dispatch_sync(QBESQLiteDatabase.sharedQueue) {
 			let code = op()
-			if code != SQLITE_OK && code != SQLITE_DONE {
+			if code != SQLITE_OK && code != SQLITE_DONE && code != SQLITE_ROW {
 				println("SQLite error: \(self.lastError)")
 				ret = false
 			}
@@ -317,6 +318,11 @@ class QBESQLiteCachedData: QBEProxyData {
 				let sql = "CREATE TABLE \(self.tableName) (\(columnSpec))"
 				self.database.query(sql)!.run()
 				self.stream = source.stream()
+				
+				// We do not need to wait for this cached data to be written to disk
+				self.database.query("PRAGMA synchronous = OFF")?.run()
+				self.database.query("PRAGMA journal_mode = MEMORY")?.run()
+				self.database.query("BEGIN TRANSACTION")?.run()
 				self.stream?.fetch(self.ingest, job: nil)
 			}
 		}
@@ -339,6 +345,7 @@ class QBESQLiteCachedData: QBEProxyData {
 			else {
 				// Swap out the original source with our new cached source
 				println("Done caching, swapping out")
+				self.database.query("END TRANSACTION")?.run()
 				let sql = "SELECT * FROM \(self.tableName)"
 				self.data = QBESQLiteData(db: self.database, sql: sql, columns: columns)
 			}
