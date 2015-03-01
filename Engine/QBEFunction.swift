@@ -91,7 +91,7 @@ enum QBEFunction: String {
 			case .Lowercase: return NSLocalizedString("lowercase", comment:"")
 			case .Negate: return NSLocalizedString("-", comment:"")
 			case .Absolute: return NSLocalizedString("absolute", comment:"")
-			case .Identity: return NSLocalizedString("", comment:"")
+			case .Identity: return NSLocalizedString("the", comment:"")
 			case .And: return NSLocalizedString("and", comment:"")
 			case .Or: return NSLocalizedString("or", comment:"")
 			case .If: return NSLocalizedString("if", comment: "")

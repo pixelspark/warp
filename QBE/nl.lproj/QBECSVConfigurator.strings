@@ -1,0 +1,9 @@
+
+/* Class = "NSButtonCell"; title = "Has column headers"; ObjectID = "HQW-vd-TnC"; */
+"HQW-vd-TnC.title" = "Heeft kolomnamen";
+
+/* Class = "NSButtonCell"; title = "Cache the contents of this file"; ObjectID = "g1B-0K-6wf"; */
+"g1B-0K-6wf.title" = "Onthoud de inhoud van dit bestand";
+
+/* Class = "NSTextFieldCell"; title = "Field separator:"; ObjectID = "uyA-fK-gw8"; */
+"uyA-fK-gw8.title" = "Velden zijn gescheiden door:";

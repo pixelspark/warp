@@ -236,7 +236,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		if steps.count == 0 {
 			// Alert
 			let alert = NSAlert()
-			alert.messageText = "I have no idea what you did."
+			alert.messageText = NSLocalizedString("I have no idea what you did.", comment: "")
 			alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (a: NSModalResponse) -> Void in
 			})
 		}
