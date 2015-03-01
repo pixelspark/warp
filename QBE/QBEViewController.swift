@@ -510,6 +510,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 							QBEAsyncMain {
 								if sourceStep != nil {
 									self.currentStep = nil
+									self.document?.head = sourceStep!
 									self.pushStep(sourceStep!)
 								}
 								else {

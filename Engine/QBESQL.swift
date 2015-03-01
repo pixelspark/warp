@@ -185,7 +185,13 @@ class QBEStandardSQLDialect: QBESQLDialect {
 				return "EXP(\(args[0]))"
 			
 			case .Round:
-				return "ROUND(\(args[0]), \(args[1]))"
+				if args.count == 1 {
+					return "ROUND(\(args[0]), 0)"
+				}
+				else {
+					return "ROUND(\(args[0]), \(args[1]))"
+				}
+			
 			
 			/* FIXME: These could simply call QBEFunction.Count.apply() if the parameters are constant, but then we need
 			the original QBEExpression arguments. */
