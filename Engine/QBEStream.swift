@@ -11,7 +11,7 @@ let QBEStreamDefaultBatchSize = 256
 data sets for operations that do not require memory (e.g. a limit or filter can be performed almost statelessly). The 
 stream implements a single method (fetch) that allows batch fetching of result rows. The size of the batches are defined
 by the stream (for now). **/
-protocol QBEStream: NSObjectProtocol {
+protocol QBEStream {
 	/** The column names associated with the rows produced by this stream. **/
 	func columnNames(callback: ([QBEColumn]) -> ())
 	
@@ -29,7 +29,7 @@ protocol QBEStream: NSObjectProtocol {
 /** QBEStreamData is an implementation of QBEData that performs data operations on a stream. QBEStreamData will consume 
 the whole stream and proxy to a raster-based implementation for operations that cannot efficiently be performed on a 
 stream. **/
-class QBEStreamData: NSObject, QBEData {
+class QBEStreamData: QBEData {
 	let source: QBEStream
 	
 	init(source: QBEStream) {

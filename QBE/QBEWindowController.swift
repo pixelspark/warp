@@ -6,21 +6,10 @@ internal class QBEWindowController: NSWindowController {
 	
 	override var document: AnyObject? {
 		didSet {
-			let qbeDocumentViewController = window!.contentViewController as QBEViewController
-			qbeDocumentViewController.document = document as? QBEDocument
-			qbeDocumentViewController.windowController = self
-		}
-	}
-	
-	func startTask(name: String) {
-		QBEAsyncMain {
-			self.taskCount = self.taskCount + 1
-		}
-	}
-	
-	func stopTask() {
-		QBEAsyncMain {
-			self.taskCount = self.taskCount - 1
+			if let qbeDocumentViewController = window!.contentViewController as? QBEViewController {
+				qbeDocumentViewController.document = document as? QBEDocument
+				qbeDocumentViewController.windowController = self
+			}
 		}
 	}
 	

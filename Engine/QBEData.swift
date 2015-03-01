@@ -113,7 +113,7 @@ operations. The exact semantics of the operations are described here, but QBEDat
 Internally, QBEData may be represented as a two-dimensional array of QBEValue, which may or may not include the column
 names ('column header row'). Data manipulations do not operate on the column header row unless explicitly stated otherwise.
 **/
-protocol QBEData: NSObjectProtocol {
+protocol QBEData {
 	/** Transpose the data set, e.g. columns become rows and vice versa. In the full raster (including column names), a
 	cell at [x][y] will end up at position [y][x]. **/
 	func transpose() -> QBEData

@@ -545,7 +545,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 							if data != nil {
 								let wr = QBECSVWriter(data: data!, locale: self.locale)
 								if let url = ns.URL {
-									wr.writeToFile(url, {
+									wr.writeToFile(url, callback: {
 										QBEAsyncMain {
 											let alert = NSAlert()
 											alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")

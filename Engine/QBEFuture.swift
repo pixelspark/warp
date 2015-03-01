@@ -51,9 +51,9 @@ class QBEJob {
 			// Ignore spurious progress reports
 			println("Ignoring spurious progress report \(progress) for key \(forKey)")
 		}
-		progressComponents[forKey] = progress
 		
 		QBEAsyncMain {
+			self.progressComponents[forKey] = progress
 			self.delegate?.job(self, didProgress: self.progress)
 			return
 		}

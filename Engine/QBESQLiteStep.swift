@@ -2,7 +2,7 @@ import Foundation
 
 private let SQLITE_TRANSIENT = sqlite3_destructor_type(COpaquePointer(bitPattern:-1))
 
-internal class QBESQLiteResult: NSObject {
+internal class QBESQLiteResult {
 	let resultSet: COpaquePointer
 	let db: QBESQLiteDatabase
 	
@@ -14,7 +14,6 @@ internal class QBESQLiteResult: NSObject {
 	init?(sql: String, db: QBESQLiteDatabase) {
 		self.db = db
 		self.resultSet = nil
-		super.init()
 		println("SQL \(sql)")
 		if !self.db.perform({sqlite3_prepare_v2(self.db.db, sql, -1, &self.resultSet, nil)}) {
 			return nil
