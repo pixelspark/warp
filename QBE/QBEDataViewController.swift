@@ -16,6 +16,10 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		update()
 	} }
 	
+	var progress: Double = 0.0 { didSet {
+		update()
+	} }
+	
 	var raster: QBERaster? {
 		didSet {
 			if raster != nil {
@@ -100,6 +104,10 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		tableView?.layer?.opacity = (hasNoData || calculating) ? 0.5 : 1.0;
 		progressView?.hidden = !calculating
 		formulaField?.enabled = !hasNoData
+		progressView?.indeterminate = progress <= 0.0
+		progressView?.doubleValue = progress
+		progressView?.minValue = 0.0
+		progressView?.maxValue = 1.0
 		progressView?.layer?.zPosition = 2.0
 		
 		if calculating {

@@ -48,7 +48,7 @@ class QBEPivotStep: QBEStep {
 		return NSLocalizedString("Pivot data", comment: "")
 	}
 	
-	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
+	override func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob?) {
 		var rowGroups = toDictionary(rows, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
 		let colGroups = toDictionary(columns, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
 		for (k, v) in colGroups {
@@ -56,17 +56,13 @@ class QBEPivotStep: QBEStep {
 		}
 		
 		let values = toDictionary(aggregates, { ($0.targetColumnName, $0) })
-		if let resultData = data?.aggregate(rowGroups, values: values) {
-			if columns.count == 0 {
-				callback(resultData)
-			}
-			else {
-				let pivotedData = resultData.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumnName}))
-				callback(pivotedData)
-			}
+		let resultData = data.aggregate(rowGroups, values: values)
+		if columns.count == 0 {
+			callback(resultData)
 		}
 		else {
-			callback(nil)
+			let pivotedData = resultData.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumnName}))
+			callback(pivotedData)
 		}
 	}
 }

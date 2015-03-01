@@ -152,32 +152,29 @@ class QBERaster: DebugPrintable {
 	}
 }
 
-typealias QBERasterCallback = (QBERaster) -> ()
-typealias QBERasterFuture = (QBERasterCallback) -> ()
-
 class QBERasterData: NSObject, QBEData {
-	private let future: QBERasterFuture
+	private let future: QBEFuture<QBERaster>.Producer
 	
 	override init() {
-		future = {(cb: QBERasterCallback) in
+		future = {(cb: QBEFuture<QBERaster>.Callback, job: QBEJob?) in
 			cb(QBERaster())
 		}
 	}
 	
-	func raster(callback: (QBERaster) -> ()) {
-		future(callback)
+	func raster(callback: (QBERaster) -> (), job: QBEJob?) {
+		future(callback, job)
 	}
 	
 	init(raster: QBERaster) {
-		future = {$0(raster)}
+		future = {(callback, job) in callback(raster)}
 	}
 	
 	init(data: [[QBEValue]], columnNames: [QBEColumn]) {
 		let raster = QBERaster(data: data, columnNames: columnNames)
-		future = {$0(raster)}
+		future = {(callback, job) in callback(raster)}
 	}
 	
-	init(future: QBERasterFuture) {
+	init(future: QBEFuture<QBERaster>.Producer) {
 		self.future = future
 	}
 	
@@ -186,15 +183,15 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func columnNames(callback: ([QBEColumn]) -> ()) {
-		raster { (r) -> () in
+		raster({ (r) -> () in
 			callback(r.columnNames)
-		}
+		}, job: nil)
 	}
 	
 	internal func apply(filter: QBEFilter) -> QBEData {
-		let newFuture = {(cb: QBERasterCallback) -> () in
+		let newFuture = {(cb: QBEFuture<QBERaster>.Callback, job: QBEJob?) -> () in
 			let transformer = {cb(filter($0))}
-			self.future({transformer($0)})
+			self.future({transformer($0)}, job)
 		}
 		return QBERasterData(future: newFuture)
 	}
@@ -255,10 +252,10 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
-		self.raster { (raster) -> () in
+		self.raster({ (raster) -> () in
 			let values = Set<QBEValue>(raster.raster.map({expression.apply($0, columns: raster.columnNames, inputValue: nil)}))
 			callback(values)
-		}
+		}, job: nil)
 	}
 	
 	func limit(numberOfRows: Int) -> QBEData {
@@ -493,12 +490,12 @@ private class QBERasterDataStream: NSObject, QBEStream {
 		return QBERasterDataStream(data)
 	}
 	
-	func fetch(consumer: QBESink) {
+	func fetch(consumer: QBESink, job: QBEJob?) {
 		if raster == nil {
 			data.raster({ (r) -> () in
 				self.raster = r
-				self.fetch(consumer)
-			})
+				self.fetch(consumer, job: job)
+			}, job: job)
 		}
 		else {
 			if position < raster!.rowCount {
@@ -506,6 +503,7 @@ private class QBERasterDataStream: NSObject, QBEStream {
 				let rows = raster!.raster[self.position..<end]
 				self.position = end
 				let hasNext = self.position < self.raster!.rowCount
+				job?.reportProgress(Double(self.position) / Double(self.raster!.rowCount), forKey: self.hashValue)
 				consumer(rows, hasNext)
 			}
 			else {

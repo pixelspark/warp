@@ -56,8 +56,8 @@ class QBEColumnsStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
-		data?.columnNames({ (existingColumns) -> () in
+	override func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob?) {
+		data.columnNames({ (existingColumns) -> () in
 			let columns = existingColumns.filter({column -> Bool in
 				for c in self.columnNames {
 					if c == column {
@@ -67,7 +67,7 @@ class QBEColumnsStep: QBEStep {
 				return !self.select
 			}) ?? []
 			
-			callback(data?.selectColumns(columns))
+			callback(data.selectColumns(columns))
 		})
 	}
 }

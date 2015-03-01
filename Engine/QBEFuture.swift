@@ -24,6 +24,53 @@ internal func QBEAsyncBackground(block: () -> ()) {
 	dispatch_async(gq, block)
 }
 
+protocol QBEJobDelegate {
+	func job(job: QBEJob, didProgress: Double)
+}
+
+/** The QBEJob interface provides access to an object that can be used to track the progress of, and cancel, a single 
+'job'. A job is a single attempt at the calculation of a future. The 'producer' callback of a QBEFuture receives the
+Job object and should use it to check whether calculation of the future is still necessary (or the job has been cancelled)
+and report progress information. 
+
+The QBEJob object should never be stored by the producer. It should be passed on by the producer to any other 
+asynchronous operations that belong to the same job.
+
+QBEJob can be used to track the progress of a job's execution. Components in the job can report their progress using the
+reportProgress call. As key, callers should use a unique value (e.g. their own hashValue). The progress reported by QBEJob
+is the average progress of all components. **/
+class QBEJob {
+	private(set) var cancelled: Bool = false
+	private var progressComponents: [Int: Double] = [:]
+	/* FIXME: delegate needs to be weak (but then QBEJobDelegate needs to be @objc, which in turn requires QBEJob to be 
+	NSObject subclass, which crashes the compiler... */
+	var delegate: QBEJobDelegate?
+	
+	func reportProgress(progress: Double, forKey: Int) {
+		if progress < 0.0 || progress > 1.0 {
+			// Ignore spurious progress reports
+			println("Ignoring spurious progress report \(progress) for key \(forKey)")
+		}
+		progressComponents[forKey] = progress
+		
+		QBEAsyncMain {
+			self.delegate?.job(self, didProgress: self.progress)
+			return
+		}
+	}
+	
+	var progress: Double { get {
+		var sumProgress = 0.0;
+		var items = 0;
+		for (k, p) in self.progressComponents {
+			sumProgress += p
+			items++
+		}
+		
+		return items > 0 ? (sumProgress / Double(items)) : 0.0;
+	} }
+}
+
 /** QBEFuture represents a result of a (potentially expensive) calculation. Code that needs the result of the
 operation express their interest by enqueuing a callback with the get() function. The callback gets called immediately
 if the result of the calculation was available in cache, or as soon as the result has been calculated. 
@@ -32,17 +79,22 @@ The calculation itself is done by the 'producer' block. When the producer block 
 invalidated (pre-registered callbacks may still receive the stale result when it has been calculated). **/
 class QBEFuture<T> {
 	typealias Callback = QBEBatch<T>.Callback
-	typealias Producer = (Callback) -> ()
+	typealias SimpleProducer = (Callback) -> ()
+	typealias Producer = (Callback, QBEJob?) -> ()
 	private var batch: QBEBatch<T>?
 	
 	var calculating: Bool { get {
 		return batch != nil
 	} }
 	
-	let producer: Producer?
+	let producer: Producer
 	
-	init(_ producer: Producer?)  {
+	init(_ producer: Producer)  {
 		self.producer = producer
+	}
+	
+	init(_ producer: SimpleProducer) {
+		self.producer = {(callback, job) in producer(callback)}
 	}
 	
 	deinit {
@@ -53,16 +105,11 @@ class QBEFuture<T> {
 		assert(batch != nil, "calculate() called without a current batch")
 		
 		if let batch = self.batch {
-			if let p = producer {
-				p(batch.satisfy)
-			}
-			else {
-				batch.satisfy(nil)
-			}
+			producer(batch.satisfy, batch)
 		}
 	}
 	
-	func get(callback: Callback) {
+	func get(callback: Callback) -> QBEJob {
 		if batch == nil {
 			batch = QBEBatch<T>()
 			batch!.enqueue(callback)
@@ -71,22 +118,25 @@ class QBEFuture<T> {
 		else {
 			batch!.enqueue(callback)
 		}
+		return batch!
 	}
 }
 
-private class QBEBatch<T> {
-	typealias Callback = (T?) -> ()
+private class QBEBatch<T>: QBEJob {
+	typealias Callback = (T) -> ()
 	
 	private var cached: T? = nil
-	private var satisfied: Bool = false
-	var waitingList: [Callback] = []
+	private var waitingList: [Callback] = []
 	
-	private func satisfy(value: T?) {
+	var satisfied: Bool { get {
+		return cached != nil
+	} }
+	
+	private func satisfy(value: T) {
 		assert(cached == nil, "QBEBatch.satisfy called with cached!=nil")
 		assert(!satisfied, "QBEBatch already satisfied")
 		
 		cached = value
-		satisfied = true
 		for waiting in waitingList {
 			QBEAsyncMain {
 				waiting(value)
@@ -98,13 +148,14 @@ private class QBEBatch<T> {
 	func cancel() {
 		if !satisfied {
 			waitingList = []
+			cancelled = true
 		}
 	}
 	
 	func enqueue(callback: Callback) {
 		if satisfied {
 			QBEAsyncMain {
-				callback(self.cached)
+				callback(self.cached!)
 			}
 		}
 		else {

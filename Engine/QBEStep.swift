@@ -8,15 +8,15 @@ the 'full' data (which is the full dataset on which the final data operations ar
 Subclasses of QBEStep implement the data manipulation in the apply function, and should implement the description method
 as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. **/
 class QBEStep: NSObject {
-	func exampleData(callback: (QBEData?) -> ()) {
+	func exampleData(callback: (QBEData) -> (), job: QBEJob? = nil) {
 		self.previous?.exampleData({(data) in
-			self.apply(data, callback: callback)
+			self.apply(data, callback: callback, job: job)
 		})
 	}
 	
-	func fullData(callback: (QBEData?) -> ()) {
+	func fullData(callback: (QBEData) -> (), job: QBEJob? = nil) {
 		self.previous?.fullData({(data) in
-			self.apply(data, callback: callback)
+			self.apply(data, callback: callback, job: job)
 		})
 	}
 	
@@ -53,16 +53,16 @@ class QBEStep: NSObject {
 		self.previous = previous
 	}
 	
-	func apply(data: QBEData?, callback: (QBEData?) -> ()) {
-		callback(nil)
+	func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob? = nil) {
+		fatalError("Child class of QBEStep should implement apply()")
 	}
 }
 
 /** The transpose step implements a row-column switch. It has no configuration and relies on the QBEData transpose()
 implementation to do the actual work. **/
 class QBETransposeStep: QBEStep {
-	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
-		callback(data?.transpose())
+	override func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob? = nil) {
+		callback(data.transpose())
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {

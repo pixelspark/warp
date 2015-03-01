@@ -9,6 +9,8 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	private var row: QBERow = []
 	private var rows: [QBERow] = []
 	private var queue: dispatch_queue_t
+	private var rowsRead: Int = 0
+	private var totalBytes: Int = 0
 	
 	let hasHeaders: Bool
 	let fieldSeparator: unichar
@@ -18,8 +20,16 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		self.hasHeaders = hasHeaders
 		self.fieldSeparator = fieldSeparator
 		
-		queue = dispatch_queue_create("nl.pixelspark.qbe.QBECSVStreamQueue", DISPATCH_QUEUE_SERIAL)
+		// Get total file size
+		if let p = url.path {
+			var error: NSError?
+			if let attributes = NSFileManager.defaultManager().attributesOfItemAtPath(p, error: &error) {
+				totalBytes = (attributes[NSFileSize] as? NSNumber)?.integerValue ?? 0
+			}
+		}
 		
+		// Create a queue and initialize the parser
+		queue = dispatch_queue_create("nl.pixelspark.qbe.QBECSVStreamQueue", DISPATCH_QUEUE_SERIAL)
 		parser = CHCSVParser(contentsOfDelimitedURL: url as NSURL!, delimiter: fieldSeparator)
 		parser.sanitizesFields = true
 		super.init()
@@ -43,7 +53,7 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		callback(_columnNames)
 	}
 	
-	func fetch(consumer: QBESink) {
+	func fetch(consumer: QBESink, job: QBEJob?) {
 		dispatch_async(queue) {
 			QBETime("Parse CSV", QBEStreamDefaultBatchSize, "row") {
 				var fetched = 0
@@ -51,7 +61,13 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 					self.finished = !self.parser._parseRecord()
 					fetched++
 				}
+			
+				// Calculate progress
+				self.rowsRead += fetched
+				let progress = Double(self.parser.totalBytesRead) / Double(self.totalBytes)
+				job?.reportProgress(progress, forKey: self.hashValue);
 			}
+			
 			let r = self.rows
 			self.rows.removeAll(keepCapacity: true)
 			consumer(Slice(r), !self.finished)
@@ -104,7 +120,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 					// We want the next row, so fetch it while we start writing this one.
 					if hasNext {
 						QBEAsyncBackground {
-							stream.fetch(cb!)
+							stream.fetch(cb!, job: nil)
 						}
 					}
 					
@@ -123,7 +139,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 					}
 				}
 				
-				stream.fetch(cb!)
+				stream.fetch(cb!, job: nil)
 			}
 		}
 	}
@@ -135,20 +151,17 @@ class QBECSVSourceStep: QBEStep {
 	var fieldSeparator: unichar
 	var hasHeaders: Bool
 	
-	override func fullData(callback: (QBEData?) -> ()) {
+	override func fullData(callback: (QBEData) -> (), job: QBEJob?) {
 		if let url = NSURL(string: self.url) {
 			let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders)
 			callback(QBEStreamData(source: s))
 		}
-		else {
-			callback(nil)
-		}
 	}
 	
-	override func exampleData(callback: (QBEData?) -> ()) {
-		self.fullData { (fullData) -> () in
-			callback(fullData?.limit(100))
-		}
+	override func exampleData(callback: (QBEData) -> (), job: QBEJob?) {
+		self.fullData({ (fullData) -> () in
+			callback(fullData.limit(100))
+		}, job: job)
 	}
 	
 	init(url: NSURL) {

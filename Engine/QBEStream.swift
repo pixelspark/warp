@@ -19,7 +19,7 @@ protocol QBEStream: NSObjectProtocol {
 	specified callback. If the callback is to perform computations, it should queue this work to another queue. If the 
 	stream is empty (e.g. hasNext was false when fetch was last called), fetch may either silently ignore your rqeuest or 
 	call the callback with an empty set of rows. **/
-	func fetch(consumer: QBESink)
+	func fetch(consumer: QBESink, job: QBEJob?)
 	
 	/** Create a copy of this stream. The copied stream is reset to the initial position (e.g. will return the first row
 	of the data set during the first call to fetch on the copy). **/
@@ -37,18 +37,19 @@ class QBEStreamData: NSObject, QBEData {
 	}
 	
 	private func fallback() -> QBEData {
-		return QBERasterData(future: self.raster)
+		return QBERasterData(future: raster)
 	}
 
-	func raster(callback: (QBERaster) -> ()) {
+	func raster(callback: (QBERaster) -> (), job: QBEJob?) {
 		var data: [QBERow] = []
 		
 		let s = source.clone()
 		var appender: QBESink! = nil
 		appender = { (rows, hasNext) -> () in
-			if hasNext {
+			let cancelled = job?.cancelled ?? false
+			if hasNext && !cancelled {
 				QBEAsyncBackground {
-					s.fetch(appender)
+					s.fetch(appender, job: job)
 				}
 			}
 				
@@ -60,7 +61,7 @@ class QBEStreamData: NSObject, QBEData {
 				})
 			}
 		}
-		s.fetch(appender)
+		s.fetch(appender, job: job)
 	}
 	
 	func transpose() -> QBEData {
@@ -141,14 +142,14 @@ private class QBETransformer: NSObject, QBEStream {
 		fatalError("QBETransformer.transform should be implemented in a subclass")
 	}
 	
-	private func fetch(consumer: QBESink) {
+	private func fetch(consumer: QBESink, job: QBEJob?) {
 		if !stopped {
-			source.fetch { (rows, hasNext) -> () in
+			source.fetch({ (rows, hasNext) -> () in
 				self.transform(rows, callback: { (transformedRows, shouldStop) -> () in
 					self.stopped = shouldStop
 					consumer(transformedRows, !self.stopped && hasNext)
 				})
-			}
+			}, job: job)
 		}
 	}
 	

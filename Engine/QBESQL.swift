@@ -255,7 +255,7 @@ class QBESQLData: NSObject, QBEData {
 		callback(columns)
 	}
 	
-	func raster(callback: (QBERaster) -> ()) {
+	func raster(callback: (QBERaster) -> (), job: QBEJob?) {
 		fatalError("Raster should be implemented by sublcass")
 	}
     
@@ -266,9 +266,7 @@ class QBESQLData: NSObject, QBEData {
     }
 	
 	private func fallback() -> QBEData {
-		return QBERasterData(future: { (cb) -> () in
-			self.raster(cb)
-		})
+		return QBERasterData(future: self.raster)
 	}
 	
 	/** Transposition is difficult in SQL, and therefore left to QBERasterData. **/
@@ -344,10 +342,10 @@ class QBESQLData: NSObject, QBEData {
 			let query = "SELECT DISTINCT \(expressionString) AS _value FROM \(self.sql)"
 			let data = apply(query, resultingColumns: ["_value"])
 			
-			data.raster { (raster) -> () in
+			data.raster({ (raster) -> () in
 				let values = Set<QBEValue>(raster.raster.map({$0[0]}))
 				callback(values)
-			}
+			}, job: nil)
 		}
 		else {
 			return fallback().unique(expression, callback: callback)
@@ -405,8 +403,6 @@ class QBESQLData: NSObject, QBEData {
 		/* The default implementation just fetches a raster and streams that, which obviously is not very efficient for 
 		large data sets, as it eats up a lot of memory that is not needed (that's what streaming is good for in the first 
 		place). Subclasses are encouraged to implement this more efficiently (e.g. by stepping through their result sets). */
-		return QBERasterData(future: { (cb) -> () in
-			self.raster(cb)
-		}).stream()
+		return QBERasterData(future: self.raster).stream()
 	}
 }

@@ -31,8 +31,8 @@ class QBECalculateStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func apply(data: QBEData?, callback: (QBEData?) -> ()) {
-		callback(data?.calculate([targetColumn: function]))
+	override func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob?) {
+		callback(data.calculate([targetColumn: function]))
 	}
 	
 	class func suggest(change fromValue: QBEValue, toValue: QBEValue, inRaster: QBERaster, row: Int, column: Int, locale: QBELocale) -> [QBEExpression] {

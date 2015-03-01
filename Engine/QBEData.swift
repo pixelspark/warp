@@ -160,7 +160,7 @@ protocol QBEData: NSObjectProtocol {
 	func stream() -> QBEStream?
 	
 	/** An in-memory representation (QBERaster) of the data set. **/
-	func raster(callback: (QBERaster) -> ())
+	func raster(callback: (QBERaster) -> (), job: QBEJob?)
 	
 	/** Returns the names of the columns in the data set. The list of column names is ordered. **/
 	func columnNames(callback: ([QBEColumn]) -> ())

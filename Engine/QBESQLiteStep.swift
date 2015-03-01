@@ -180,7 +180,7 @@ private class QBESQLiteStream: NSObject, QBEStream {
 		generator = result?.generate()
 	}
 	
-	private func fetch(consumer: QBESink) {
+	private func fetch(consumer: QBESink, job: QBEJob?) {
 		if let g = generator {
 			var done = false
 			var rows :[QBERow] = []
@@ -244,7 +244,7 @@ class QBESQLiteData: QBESQLData {
 		return QBESQLiteStream(data: self)
 	}
 	
-	override func raster(callback: (QBERaster) -> ()) {
+	override func raster(callback: (QBERaster) -> (), job: QBEJob?) {
 		if let result = self.db.query(self.sql) {
 			let columnNames = result.columnNames
 			var newRaster: [[QBEValue]] = []
@@ -293,7 +293,7 @@ class QBESQLiteSourceStep: QBEStep {
 		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName ?? "", url)
 	}
 	
-	override func fullData(callback: (QBEData?) -> ()) {
+	override func fullData(callback: (QBEData) -> (), job: QBEJob?) {
 		if let d = db {
 			callback(QBESQLiteData(db: d, tableName: self.tableName ?? ""))
 		}
@@ -302,10 +302,10 @@ class QBESQLiteSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleData(callback: (QBEData?) -> ()) {
-		self.fullData { (fd) -> () in
-			callback(fd?.random(100))
-		}
+	override func exampleData(callback: (QBEData) -> (), job: QBEJob?) {
+		self.fullData({ (fd) -> () in
+			callback(fd.random(100))
+		}, job: job)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
