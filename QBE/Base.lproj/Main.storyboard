@@ -1086,11 +1086,11 @@ CA
             <objects>
                 <viewController title="Data view controller" storyboardIdentifier="dataViewController" id="heg-Gg-TM4" customClass="QBEDataViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" focusRingType="none" id="qWX-f7-1Jq">
-                        <rect key="frame" x="0.0" y="0.0" width="605" height="300"/>
+                        <rect key="frame" x="0.0" y="0.0" width="667" height="395"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <textField verticalHuggingPriority="750" allowsExpansionToolTips="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gOO-m7-zbc">
-                                <rect key="frame" x="5" y="273" width="600" height="22"/>
+                                <rect key="frame" x="5" y="368" width="662" height="22"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="22" id="MkZ-h8-Gs2"/>
                                 </constraints>
@@ -1104,8 +1104,9 @@ CA
                                 </connections>
                             </textField>
                             <progressIndicator hidden="YES" wantsLayer="YES" maxValue="100" indeterminate="YES" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="ckd-Aw-A1T">
-                                <rect key="frame" x="243" y="140" width="120" height="20"/>
+                                <rect key="frame" x="274" y="188" width="120" height="20"/>
                                 <constraints>
+                                    <constraint firstAttribute="height" constant="18" id="Owk-ma-mp9"/>
                                     <constraint firstAttribute="width" constant="120" id="yeg-tW-UHn"/>
                                 </constraints>
                             </progressIndicator>
@@ -1125,7 +1126,7 @@ CA
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="42.5" y="2111"/>
+            <point key="canvasLocation" x="73.5" y="2158.5"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">

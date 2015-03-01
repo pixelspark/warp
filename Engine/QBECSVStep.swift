@@ -30,6 +30,7 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		
 		// Create a queue and initialize the parser
 		queue = dispatch_queue_create("nl.pixelspark.qbe.QBECSVStreamQueue", DISPATCH_QUEUE_SERIAL)
+		dispatch_set_target_queue(queue, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
 		parser = CHCSVParser(contentsOfDelimitedURL: url as NSURL!, delimiter: fieldSeparator)
 		parser.sanitizesFields = true
 		super.init()

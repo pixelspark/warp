@@ -29,35 +29,37 @@ internal class QBESQLiteResult: NSObject {
 	be fed with parameters which will be bound before query execution. **/
 	func run(parameters: [QBEValue]? = nil) {
 		// If there are parameters, bind them
-		if let p = parameters {
-			for i in 0..<p.count {
-				let value = p[i]
-				
-				switch value {
-					case .StringValue(let s):
-						self.db.perform({sqlite3_bind_text(self.resultSet, CInt(i+1), s, -1, SQLITE_TRANSIENT)})
-					
-					case .IntValue(let x):
-						self.db.perform({sqlite3_bind_int64(self.resultSet, CInt(i+1), sqlite3_int64(x))})
-					
-					case .DoubleValue(let d):
-						self.db.perform({sqlite3_bind_double(self.resultSet, CInt(i+1), d)})
-					
-					case .BoolValue(let b):
-						self.db.perform({sqlite3_bind_int(self.resultSet, CInt(i+1), b ? 1 : 0)})
-					
-					case .InvalidValue:
-						self.db.perform({sqlite3_bind_null(self.resultSet, CInt(i+1))})
-					
-					case .EmptyValue:
-						self.db.perform({sqlite3_bind_null(self.resultSet, CInt(i+1))})
+		dispatch_sync(QBESQLiteDatabase.sharedQueue) {
+			if let p = parameters {
+				var i = 0
+				for value in p {
+					switch value {
+						case .StringValue(let s):
+							sqlite3_bind_text(self.resultSet, CInt(i+1), s, -1, SQLITE_TRANSIENT)
+						
+						case .IntValue(let x):
+							sqlite3_bind_int64(self.resultSet, CInt(i+1), sqlite3_int64(x))
+						
+						case .DoubleValue(let d):
+							sqlite3_bind_double(self.resultSet, CInt(i+1), d)
+						
+						case .BoolValue(let b):
+							sqlite3_bind_int(self.resultSet, CInt(i+1), b ? 1 : 0)
+						
+						case .InvalidValue:
+							sqlite3_bind_null(self.resultSet, CInt(i+1))
+						
+						case .EmptyValue:
+							sqlite3_bind_null(self.resultSet, CInt(i+1))
+					}
+					i++
 				}
 			}
+		
+			sqlite3_step(self.resultSet)
+			sqlite3_clear_bindings(self.resultSet)
+			sqlite3_reset(self.resultSet)
 		}
-
-		self.db.perform({sqlite3_step(self.resultSet)})
-		self.db.perform({sqlite3_clear_bindings(self.resultSet)})
-		self.db.perform({sqlite3_reset(self.resultSet)})
 	}
 	
 	var columnCount: Int { get {
@@ -149,6 +151,7 @@ internal class QBESQLiteDatabase {
 		}
 		dispatch_once(&Static.onceToken) {
 			Static.instance = dispatch_queue_create("QBESQLiteDatabase.Queue", DISPATCH_QUEUE_SERIAL)
+			dispatch_set_target_queue(Static.instance, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
 		}
 		return Static.instance!
 	}
@@ -301,6 +304,7 @@ class QBESQLiteCachedData: QBEProxyData {
 	private let database: QBESQLiteDatabase
 	private let tableName: String
 	private var stream: QBEStream?
+	private var insertStatement: QBESQLiteResult?
 	
 	init(source: QBEData) {
 		database = QBESQLiteDatabase(path: "", readOnly: false)!
@@ -323,33 +327,39 @@ class QBESQLiteCachedData: QBEProxyData {
 				self.database.query("PRAGMA synchronous = OFF")?.run()
 				self.database.query("PRAGMA journal_mode = MEMORY")?.run()
 				self.database.query("BEGIN TRANSACTION")?.run()
+				
+				// Prepare the insert-statement
+				let values = columns.map({(m) -> String in return "?"}).implode(",") ?? ""
+				self.insertStatement = self.database.query("INSERT INTO \(self.tableName) VALUES (\(values))")
+				
 				self.stream?.fetch(self.ingest, job: nil)
+			
 			}
 		}
 	}
 	
 	private func ingest(rows: Slice<QBERow>, hasMore: Bool) {
-		self.data.columnNames({ (columns) -> () in
-			QBETime("SQLite insert", rows.count, "rows") {
-				let values = columns.map({(m) -> String in return "?"}).implode(",") ?? ""
-				if let statement = self.database.query("INSERT INTO \(self.tableName) VALUES (\(values))") {
-					for row in rows {
-						statement.run(parameters: row)
-					}
+		if hasMore {
+			self.stream?.fetch(self.ingest, job: nil)
+		}
+		
+		QBETime("SQLite insert", rows.count, "rows") {
+			if let statement = self.insertStatement {
+				for row in rows {
+					statement.run(parameters: row)
 				}
 			}
-			
-			if hasMore {
-				self.stream?.fetch(self.ingest, job: nil)
-			}
-			else {
-				// Swap out the original source with our new cached source
-				println("Done caching, swapping out")
-				self.database.query("END TRANSACTION")?.run()
+		}
+		
+		if !hasMore {
+			// Swap out the original source with our new cached source
+			println("Done caching, swapping out")
+			self.database.query("END TRANSACTION")?.run()
+			self.data.columnNames({ (columns) -> () in
 				let sql = "SELECT * FROM \(self.tableName)"
 				self.data = QBESQLiteData(db: self.database, sql: sql, columns: columns)
-			}
-		})
+			})
+		}
 	}
 }
 
