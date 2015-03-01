@@ -306,7 +306,6 @@
 		65E3C2AB1A05222F007BB3C8 = {
 			isa = PBXGroup;
 			children = (
-				6593B7321AA37AE200BE9726 /* Localizable.strings */,
 				651988E71A0F9C39003463AA /* Libraries */,
 				65E3C2D61A052252007BB3C8 /* Core */,
 				65D6F9DD1A59B700006B6995 /* Steps */,
@@ -347,6 +346,7 @@
 		65E3C2ED1A062E5E007BB3C8 /* Core UI */ = {
 			isa = PBXGroup;
 			children = (
+				6593B7321AA37AE200BE9726 /* Localizable.strings */,
 				65E3C2F61A062E5E007BB3C8 /* Images.xcassets */,
 				65E3C2F81A062E5E007BB3C8 /* Main.storyboard */,
 				6567AC871AA1C92D00640CC5 /* QBEStepsViewController.swift */,
@@ -440,7 +440,7 @@
 								enabled = 0;
 							};
 							com.apple.iCloud = {
-								enabled = 1;
+								enabled = 0;
 							};
 						};
 					};
@@ -645,6 +645,7 @@
 				6593B73E1AA37B6100BE9726 /* nl */,
 			);
 			name = Localizable.strings;
+			path = ..;
 			sourceTree = "<group>";
 		};
 		65A7FC5D1A667F860019B747 /* QBESQLiteSourceConfigurator.xib */ = {

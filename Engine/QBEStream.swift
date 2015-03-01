@@ -180,7 +180,7 @@ private class QBEFilterTransformer: QBETransformer {
 	}
 	
 	private override func clone() -> QBEStream {
-		return QBEFilterTransformer(source: source, condition: condition)
+		return QBEFilterTransformer(source: source.clone(), condition: condition)
 	}
 }
 
@@ -210,7 +210,7 @@ private class QBELimitTransformer: QBETransformer {
 	}
 	
 	private override func clone() -> QBEStream {
-		return QBELimitTransformer(source: source, numberOfRows: limit)
+		return QBELimitTransformer(source: source.clone(), numberOfRows: limit)
 	}
 }
 
@@ -273,7 +273,7 @@ private class QBEColumnsTransformer: QBETransformer {
 	}
 	
 	private override func clone() -> QBEStream {
-		return QBEColumnsTransformer(source: source, selectColumns: columns)
+		return QBEColumnsTransformer(source: source.clone(), selectColumns: columns)
 	}
 }
 
@@ -345,6 +345,6 @@ private class QBECalculateTransformer: QBETransformer {
 	}
 	
 	private override func clone() -> QBEStream {
-		return QBECalculateTransformer(source: source, calculations: calculations)
+		return QBECalculateTransformer(source: source.clone(), calculations: calculations)
 	}
 }

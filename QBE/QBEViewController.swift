@@ -214,12 +214,13 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	func suggestionsView(view: NSViewController, previewStep step: QBEStep?) {
-		if step == currentStep {
+		if step == currentStep || step == nil {
 			previewStep = nil
 			calculate()
 		}
 		else {
 			previewStep = step
+			refreshData()
 		}
 	}
 	
