@@ -146,15 +146,25 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 }
 
 class QBECSVSourceStep: QBEStep {
-	private var _exampleData: QBEData?
-	var url: String
-	var fieldSeparator: unichar
-	var hasHeaders: Bool
+	private var cachedData: QBEData?
+	var url: String { didSet { cachedData = nil; } }
+	var fieldSeparator: unichar { didSet { cachedData = nil; } }
+	var hasHeaders: Bool { didSet { cachedData = nil; } }
+	var useCaching: Bool { didSet { cachedData = nil; } }
 	
 	override func fullData(callback: (QBEData) -> (), job: QBEJob?) {
-		if let url = NSURL(string: self.url) {
-			let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders)
-			callback(QBEStreamData(source: s))
+		if cachedData == nil {
+			if let url = NSURL(string: self.url) {
+				let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders)
+				cachedData = QBEStreamData(source: s)
+				if useCaching {
+					cachedData = QBESQLiteCachedData(source: cachedData!)
+				}
+				callback(cachedData!)
+			}
+		}
+		else {
+			callback(cachedData!)
 		}
 	}
 	
@@ -170,6 +180,7 @@ class QBECSVSourceStep: QBEStep {
 		self.url = url.absoluteString!
 		self.fieldSeparator = defaultSeparator.utf16[defaultSeparator.utf16.startIndex]
 		self.hasHeaders = true
+		self.useCaching = false
 		super.init(previous: nil)
 	}
 	
@@ -178,6 +189,7 @@ class QBECSVSourceStep: QBEStep {
 		let separator = (aDecoder.decodeObjectForKey("fieldSeparator") as? String) ?? ";"
 		self.fieldSeparator = separator.utf16[separator.utf16.startIndex]
 		self.hasHeaders = aDecoder.decodeBoolForKey("hasHeaders")
+		self.useCaching = aDecoder.decodeBoolForKey("useCaching")
 		super.init(coder: aDecoder)
 	}
 	
@@ -188,6 +200,7 @@ class QBECSVSourceStep: QBEStep {
 		let separator = String(Character(UnicodeScalar(fieldSeparator)))
 		coder.encodeObject(separator, forKey: "fieldSeparator")
 		coder.encodeBool(hasHeaders, forKey: "hasHeaders")
+		coder.encodeBool(useCaching, forKey: "useCaching")
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {

@@ -165,3 +165,27 @@ protocol QBEData: NSObjectProtocol {
 	/** Returns the names of the columns in the data set. The list of column names is ordered. **/
 	func columnNames(callback: ([QBEColumn]) -> ())
 }
+
+/** Utility class that allows for easy swapping of QBEData objects. This can for instance be used to swap-in a cached
+version of a particular data object. **/
+class QBEProxyData: NSObject, QBEData {
+	var data: QBEData
+	
+	init(data: QBEData) {
+		self.data = data
+	}
+	
+	func transpose() -> QBEData { return data.transpose() }
+	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData { return data.calculate(calculations) }
+	func limit(numberOfRows: Int) -> QBEData { return data.limit(numberOfRows) }
+	func random(numberOfRows: Int) -> QBEData { return data.random(numberOfRows) }
+	func distinct() -> QBEData { return data.distinct() }
+	func filter(condition: QBEExpression) -> QBEData { return data.filter(condition) }
+	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) { return data.unique(expression, callback: callback) }
+	func selectColumns(columns: [QBEColumn]) -> QBEData { return data.selectColumns(columns) }
+	func aggregate(groups: [QBEColumn: QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData { return data.aggregate(groups, values: values) }
+	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData { return data.pivot(horizontal, vertical: vertical, values: values) }
+	func stream() -> QBEStream? { return data.stream() }
+	func raster(callback: (QBERaster) -> (), job: QBEJob?) { return data.raster(callback, job: job) }
+	func columnNames(callback: ([QBEColumn]) -> ()) { return data.columnNames(callback) }
+}

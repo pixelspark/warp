@@ -224,19 +224,19 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	
 	private func binaryToSQL(first: String, second: String, type: QBEBinary) -> String {
 		switch type {
-			case .Addition:		return "(\(first)+\(second))"
-			case .Subtraction:	return "(\(first)-\(second))"
-			case .Multiplication: return "(\(first)*\(second))"
-			case .Division:		return "(\(first)/\(second))"
-			case .Modulus:		return "MOD(\(first), \(second))"
-			case .Concatenation: return "CONCAT(\(first),\(second))"
-			case .Power:		return "POW(\(first), \(second))"
-			case .Greater:		return "(\(first)>\(second))"
-			case .Lesser:		return "(\(first)<\(second))"
-			case .GreaterEqual:	return "(\(first)>=\(second))"
-			case .LesserEqual:	return "(\(first)<=\(second))"
-			case .Equal:		return "(\(first)=\(second))"
-			case .NotEqual:		return "(\(first)<>\(second))"
+			case .Addition:		return "(\(second)+\(first))"
+			case .Subtraction:	return "(\(second)-\(first))"
+			case .Multiplication: return "(\(second)*\(first))"
+			case .Division:		return "(\(second)/\(first))"
+			case .Modulus:		return "MOD(\(second), \(first))"
+			case .Concatenation: return "CONCAT(\(second),\(first))"
+			case .Power:		return "POW(\(second), \(first))"
+			case .Greater:		return "(\(second)>\(first))"
+			case .Lesser:		return "(\(second)<\(first))"
+			case .GreaterEqual:	return "(\(second)>=\(first))"
+			case .LesserEqual:	return "(\(second)<=\(first))"
+			case .Equal:		return "(\(second)=\(first))"
+			case .NotEqual:		return "(\(second)<>\(first))"
 		}
 	}
 }

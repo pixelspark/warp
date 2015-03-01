@@ -4,7 +4,6 @@
 #import "CHCSVParser.h"
 #import <MBTableGrid/MBTableGrid.h>
 #import "sqlite3.h"
-#endif
 
 int RegisterExtensionFunctions(sqlite3 *db);
 
@@ -14,3 +13,4 @@ int RegisterExtensionFunctions(sqlite3 *db);
 - (void) _endDocument;
 @end
 
+#endif

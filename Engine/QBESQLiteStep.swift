@@ -1,5 +1,7 @@
 import Foundation
 
+private let SQLITE_TRANSIENT = sqlite3_destructor_type(COpaquePointer(bitPattern:-1))
+
 internal class QBESQLiteResult: NSObject {
 	let resultSet: COpaquePointer
 	let db: QBESQLiteDatabase
@@ -21,6 +23,40 @@ internal class QBESQLiteResult: NSObject {
 	
 	deinit {
 		sqlite3_finalize(resultSet)
+	}
+	
+	/** Run is used to execute statements that do not return data (e.g. UPDATE, INSERT, DELETE, etc.). It can optionally
+	be fed with parameters which will be bound before query execution. **/
+	func run(parameters: [QBEValue]? = nil) {
+		// If there are parameters, bind them
+		if let p = parameters {
+			for i in 0..<p.count {
+				let value = p[i]
+				
+				switch value {
+					case .StringValue(let s):
+						self.db.perform({sqlite3_bind_text(self.resultSet, CInt(i+1), s, -1, SQLITE_TRANSIENT)})
+					
+					case .IntValue(let x):
+						self.db.perform({sqlite3_bind_int64(self.resultSet, CInt(i+1), sqlite3_int64(x))})
+					
+					case .DoubleValue(let d):
+						self.db.perform({sqlite3_bind_double(self.resultSet, CInt(i+1), d)})
+					
+					case .BoolValue(let b):
+						self.db.perform({sqlite3_bind_int(self.resultSet, CInt(i+1), b ? 1 : 0)})
+					
+					case .InvalidValue:
+						self.db.perform({sqlite3_bind_null(self.resultSet, CInt(i+1))})
+					
+					case .EmptyValue:
+						self.db.perform({sqlite3_bind_null(self.resultSet, CInt(i+1))})
+				}
+			}
+		}
+
+		self.db.perform({sqlite3_step(self.resultSet)})
+		self.db.perform({sqlite3_reset(self.resultSet)})
 	}
 	
 	var columnCount: Int { get {
@@ -125,7 +161,8 @@ internal class QBESQLiteDatabase {
 	private func perform(op: () -> Int32) -> Bool {
 		var ret: Bool = true
 		dispatch_sync(QBESQLiteDatabase.sharedQueue) {
-			if op() != SQLITE_OK {
+			let code = op()
+			if code != SQLITE_OK && code != SQLITE_DONE {
 				println("SQLite error: \(self.lastError)")
 				ret = false
 			}
@@ -256,6 +293,56 @@ class QBESQLiteData: QBESQLData {
 		else {
 			callback(QBERaster())
 		}
+	}
+}
+
+class QBESQLiteCachedData: QBEProxyData {
+	private let database: QBESQLiteDatabase
+	private let tableName: String
+	private var stream: QBEStream?
+	
+	init(source: QBEData) {
+		database = QBESQLiteDatabase(path: "", readOnly: false)!
+		tableName = "cache"
+		super.init(data: source)
+		
+		// Create a table to cache this dataset
+		QBEAsyncBackground {
+			source.columnNames { (columns) -> () in
+				let columnSpec = columns.map({(column) -> String in
+					let colString = QBESQLiteDialect().columnIdentifier(column)
+					return "\(colString) VARCHAR"
+				}).implode(", ")!
+				
+				let sql = "CREATE TABLE \(self.tableName) (\(columnSpec))"
+				self.database.query(sql)!.run()
+				self.stream = source.stream()
+				self.stream?.fetch(self.ingest, job: nil)
+			}
+		}
+	}
+	
+	private func ingest(rows: Slice<QBERow>, hasMore: Bool) {
+		self.data.columnNames({ (columns) -> () in
+			QBETime("SQLite insert", rows.count, "rows") {
+				let values = columns.map({(m) -> String in return "?"}).implode(",") ?? ""
+				if let statement = self.database.query("INSERT INTO \(self.tableName) VALUES (\(values))") {
+					for row in rows {
+						statement.run(parameters: row)
+					}
+				}
+			}
+			
+			if hasMore {
+				self.stream?.fetch(self.ingest, job: nil)
+			}
+			else {
+				// Swap out the original source with our new cached source
+				println("Done caching, swapping out")
+				let sql = "SELECT * FROM \(self.tableName)"
+				self.data = QBESQLiteData(db: self.database, sql: sql, columns: columns)
+			}
+		})
 	}
 }
 

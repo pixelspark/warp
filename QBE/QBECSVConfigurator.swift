@@ -5,6 +5,8 @@ internal class QBECSVConfigurator: NSViewController, NSComboBoxDataSource {
 	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var separatorField: NSComboBox?
 	@IBOutlet var hasHeadersButton: NSButton?
+	@IBOutlet var cacheButton: NSButton?
+	
 	let step: QBECSVSourceStep?
 	
 	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
@@ -31,6 +33,7 @@ internal class QBECSVConfigurator: NSViewController, NSComboBoxDataSource {
 		if let s = step {
 			separatorField?.stringValue = String(Character(UnicodeScalar(s.fieldSeparator)))
 			hasHeadersButton?.state = s.hasHeaders ? NSOnState : NSOffState
+			cacheButton?.state = s.useCaching ? NSOnState : NSOffState
 		}
 	}
 	
@@ -60,6 +63,12 @@ internal class QBECSVConfigurator: NSViewController, NSComboBoxDataSource {
 						changed = true
 					}
 				}
+			}
+			
+			let shouldCache = (cacheButton?.state == NSOnState)
+			if s.useCaching != shouldCache {
+				s.useCaching = shouldCache
+				changed = true
 			}
 			
 			let shouldHaveHeaders = (hasHeadersButton?.state == NSOnState)

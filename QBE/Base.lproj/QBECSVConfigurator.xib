@@ -6,6 +6,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBECSVConfigurator" customModule="Warp" customModuleProvider="target">
             <connections>
+                <outlet property="cacheButton" destination="2Ej-3W-0m1" id="ect-vy-lCZ"/>
                 <outlet property="hasHeadersButton" destination="nIp-FI-Wyq" id="XEn-pD-6rc"/>
                 <outlet property="separatorField" destination="Gqc-VY-pgW" id="1Zy-a7-kGK"/>
                 <outlet property="view" destination="6ha-w3-wZt" id="ieQ-ga-f5d"/>
@@ -29,13 +30,23 @@
                     </textFieldCell>
                 </textField>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="nIp-FI-Wyq">
-                    <rect key="frame" x="3" y="45" width="341" height="18"/>
+                    <rect key="frame" x="3" y="40" width="341" height="18"/>
                     <buttonCell key="cell" type="check" title="Has column headers" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="HQW-vd-TnC">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
                     <connections>
                         <action selector="update:" target="-2" id="O1s-X0-TKH"/>
+                    </connections>
+                </button>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="2Ej-3W-0m1">
+                    <rect key="frame" x="3" y="16" width="341" height="18"/>
+                    <buttonCell key="cell" type="check" title="Cache the contents of this file" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="g1B-0K-6wf">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="update:" target="-2" id="ijq-c9-Tzw"/>
                     </connections>
                 </button>
                 <comboBox focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Gqc-VY-pgW">
@@ -56,14 +67,17 @@
             </subviews>
             <constraints>
                 <constraint firstAttribute="trailing" secondItem="KUX-VE-Yxq" secondAttribute="trailing" constant="5" id="FQN-50-OaW"/>
-                <constraint firstItem="nIp-FI-Wyq" firstAttribute="top" secondItem="Gqc-VY-pgW" secondAttribute="bottom" constant="5" id="JQa-9w-9Jy"/>
+                <constraint firstItem="nIp-FI-Wyq" firstAttribute="top" secondItem="Gqc-VY-pgW" secondAttribute="bottom" constant="10" id="JQa-9w-9Jy"/>
                 <constraint firstItem="Gqc-VY-pgW" firstAttribute="top" secondItem="KUX-VE-Yxq" secondAttribute="bottom" constant="5" id="KF2-ML-uQP"/>
-                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="nIp-FI-Wyq" secondAttribute="bottom" constant="5" id="Klk-xY-PF2"/>
                 <constraint firstItem="Gqc-VY-pgW" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="L2p-I0-Lq0"/>
                 <constraint firstItem="KUX-VE-Yxq" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="Plb-fB-6Ey"/>
                 <constraint firstAttribute="trailing" secondItem="nIp-FI-Wyq" secondAttribute="trailing" constant="5" id="QEG-ad-SRL"/>
+                <constraint firstItem="2Ej-3W-0m1" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="ULT-53-Eod"/>
+                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="2Ej-3W-0m1" secondAttribute="bottom" constant="5" id="WhL-xX-guf"/>
                 <constraint firstItem="nIp-FI-Wyq" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="kXd-kV-WK0"/>
                 <constraint firstItem="KUX-VE-Yxq" firstAttribute="top" secondItem="6ha-w3-wZt" secondAttribute="top" constant="5" id="nbg-XD-icX"/>
+                <constraint firstAttribute="trailing" secondItem="2Ej-3W-0m1" secondAttribute="trailing" constant="5" id="pcn-dn-jGJ"/>
+                <constraint firstItem="2Ej-3W-0m1" firstAttribute="top" secondItem="nIp-FI-Wyq" secondAttribute="bottom" constant="10" id="r3B-S6-RLl"/>
                 <constraint firstAttribute="trailing" secondItem="Gqc-VY-pgW" secondAttribute="trailing" constant="5" id="xoK-RM-qHb"/>
             </constraints>
             <point key="canvasLocation" x="389.5" y="389.5"/>
