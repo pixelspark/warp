@@ -703,6 +703,13 @@ CA
                                                 <action selector="removeColumns:" target="Ady-hI-5gd" id="Tmy-hE-6X8"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Keep only selected column(s)" keyEquivalent="s" id="7LD-D5-QvZ">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
+                                            <connections>
+                                                <action selector="selectColumns:" target="Ady-hI-5gd" id="IPU-Cj-jv2"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="Q6R-jb-5hp"/>
                                         <menuItem title="Calculate new column..." keyEquivalent="c" id="FAo-Q2-Pil">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
                                             <connections>

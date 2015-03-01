@@ -289,7 +289,15 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
+	@IBAction func selectColumns(sender: NSObject) {
+		selectColumns(false)
+	}
+	
 	@IBAction func removeColumns(sender: NSObject) {
+		selectColumns(true)
+	}
+	
+	private func selectColumns(remove: Bool) {
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			// Get the names of the columns to remove
 			currentStep?.exampleData({ (data: QBEData?) -> () in
@@ -308,8 +316,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 					
 					QBEAsyncMain {
 						self.suggestSteps([
-							QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: false),
-							QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: true)
+							QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: !remove),
+							QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: remove)
 						])
 					}
 				})
@@ -391,6 +399,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			return false
 		}
 		else if item.action()==Selector("removeColumns:") {
+			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
+				return colsToRemove.count > 0 && currentStep != nil
+			}
+			return false
+		}
+		else if item.action()==Selector("selectColumns:") {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
 			}
