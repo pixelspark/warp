@@ -1,0 +1,14 @@
+/* Class = "NSTextFieldCell"; placeholderString = "Value in first column"; ObjectID = "BOX-eV-pOe"; */
+"BOX-eV-pOe.placeholderString" = "Value in first column";
+
+/* Class = "NSTextFieldCell"; title = "Put column name in column:"; ObjectID = "0hk-W5-j1s"; */
+"0hk-W5-j1s.title" = "Zet kolomnaam in kolom:";
+
+/* Class = "NSTextFieldCell"; title = "Put value in column:"; ObjectID = "QSu-o9-zdF"; */
+"QSu-o9-zdF.title" = "Zet waarde in kolom:";
+
+/* Class = "NSTextFieldCell"; title = "Calculated as:"; ObjectID = "kJ1-pL-Saj"; */
+"kJ1-pL-Saj.title" = "Berekend als:";
+
+/* Class = "NSTextFieldCell"; title = "Put row identifier in column:"; ObjectID = "mKK-JE-STB"; */
+"mKK-JE-STB.title" = "Zet rij-identificatie in kolom:";

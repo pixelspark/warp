@@ -275,7 +275,7 @@ class QBERasterData: NSObject, QBEData {
 		let optimizedCondition = condition.prepare()
 		
 		return apply {(r: QBERaster) -> QBERaster in
-			var newData: [[QBEValue]] = []
+			var newData: [QBERow] = []
 			
 			for rowNumber in 0..<r.rowCount {
 				let row = r[rowNumber]
@@ -286,6 +286,49 @@ class QBERasterData: NSObject, QBEData {
 			
 			return QBERaster(data: newData, columnNames: r.columnNames, readOnly: true)
 		}
+	}
+	
+	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to rowColumn: QBEColumn?) -> QBEData {
+		return apply({(r: QBERaster) -> QBERaster in
+			let writeRowIdentifier = rowIdentifier != nil && rowColumn != nil
+			let writeColumnName = columnNameTo != nil
+			
+			// Determine which columns we are going to write to
+			var columns: [QBEColumn] = []
+			if writeRowIdentifier {
+				columns.append(rowColumn!)
+			}
+			
+			if writeColumnName {
+				columns.append(columnNameTo!)
+			}
+			columns.append(valueTo)
+			
+			let originalColumnNames = r.columnNames
+			
+			// Iterate over all source rows and write the required rows
+			var newData: [QBERow] = []
+			var templateRow: [QBEValue] = [QBEValue.InvalidValue, QBEValue.InvalidValue, QBEValue.InvalidValue]
+			let valueIndex = (writeRowIdentifier ? 1 : 0) + (writeColumnName ? 1 : 0)
+			for rowNumber in 0..<r.rowCount {
+				let row = r[rowNumber]
+				
+				if writeRowIdentifier {
+					templateRow[0] = rowIdentifier!.apply(row, columns: originalColumnNames, inputValue: nil)
+				}
+				
+				for columnNumber in 0..<originalColumnNames.count {
+					if writeColumnName {
+						templateRow[writeRowIdentifier ? 1 : 0] = QBEValue(originalColumnNames[columnNumber].name)
+					}
+					
+					templateRow[valueIndex] = row[columnNumber]
+					newData.append(templateRow)
+				}
+			}
+			
+			return QBERaster(data: newData, columnNames: columns, readOnly: true)
+		})
 	}
 	
 	func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {

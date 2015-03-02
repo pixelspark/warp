@@ -6,6 +6,7 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 
 	private var _columnNames: [QBEColumn] = []
 	private var finished: Bool = false
+	private var templateRow: QBERow = []
 	private var row: QBERow = []
 	private var rows: [QBERow] = []
 	private var queue: dispatch_queue_t
@@ -48,6 +49,8 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 				_columnNames.append(QBEColumn.defaultColumnForIndex(i))
 			}
 		}
+		
+		templateRow = Array<QBEValue>(count: _columnNames.count, repeatedValue: QBEValue.InvalidValue)
 	}
 	
 	func columnNames(callback: ([QBEColumn]) -> ()) {
@@ -69,14 +72,14 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 				job?.reportProgress(progress, forKey: self.hashValue);
 			}
 			
-			let r = self.rows
+			let r = Slice(self.rows)
 			self.rows.removeAll(keepCapacity: true)
-			consumer(Slice(r), !self.finished)
+			consumer(r, !self.finished)
 		}
 	}
 	
 	func parser(parser: CHCSVParser, didBeginLine line: UInt) {
-		row.removeAll(keepCapacity: true)
+		row = templateRow
 	}
 	
 	func parser(parser: CHCSVParser, didEndLine line: UInt) {
@@ -84,7 +87,12 @@ private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 	
 	func parser(parser: CHCSVParser, didReadField field: String, atIndex index: Int) {
-		row.append(QBEValue(field))
+		if index >= row.count {
+			row.append(QBEValue(field))
+		}
+		else {
+			row[index] = QBEValue(field)
+		}
 	}
 	
 	func clone() -> QBEStream {

@@ -77,6 +77,10 @@ class QBEStreamData: QBEData {
 		return fallback().distinct()
 	}
 	
+	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData {
+		return QBEStreamData(source: QBEFlattenTransformer(source: source, valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
+	}
+	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
 		// Implemented by QBEColumnsTransformer
 		return QBEStreamData(source: QBEColumnsTransformer(source: source, selectColumns: columns))
@@ -153,8 +157,97 @@ private class QBETransformer: NSObject, QBEStream {
 		}
 	}
 	
+	/** Returns a clone of the transformer. It should also clone the source stream. **/
 	private func clone() -> QBEStream {
 		fatalError("Should be implemented by subclass")
+	}
+}
+
+private class QBEFlattenTransformer: QBETransformer {
+	private let valueTo: QBEColumn
+	private let columnNameTo: QBEColumn?
+	private let rowIdentifier: QBEExpression?
+	private let rowIdentifierTo: QBEColumn?
+	
+	private let columnNames: [QBEColumn]
+	private let writeRowIdentifier: Bool
+	private let writeColumnIdentifier: Bool
+	private var originalColumns: [QBEColumn]? = nil
+	
+	init(source: QBEStream, valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) {
+		self.valueTo = valueTo
+		self.columnNameTo = columnNameTo
+		self.rowIdentifier = rowIdentifier
+		self.rowIdentifierTo = to
+		
+		// Determine which columns we are going to produce
+		var cols: [QBEColumn] = []
+		if rowIdentifierTo != nil && rowIdentifier != nil {
+			cols.append(rowIdentifierTo!)
+			writeRowIdentifier = true
+		}
+		else {
+			writeRowIdentifier = false
+		}
+		
+		if let ct = columnNameTo {
+			cols.append(ct)
+			writeColumnIdentifier = true
+		}
+		else {
+			writeColumnIdentifier = false
+		}
+		cols.append(valueTo)
+		self.columnNames = cols
+		
+		super.init(source: source)
+	}
+	
+	private func prepare(callback: () -> ()) {
+		if self.originalColumns == nil {
+			source.columnNames({ (cols) -> () in
+				self.originalColumns = cols
+				callback()
+			})
+		}
+		else {
+			callback()
+		}
+	}
+	
+	private override func columnNames(callback: ([QBEColumn]) -> ()) {
+		callback(columnNames)
+	}
+	
+	private override func clone() -> QBEStream {
+		return QBEFlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
+	}
+	
+	private override func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
+		prepare {
+			var newRows: [QBERow] = []
+			newRows.reserveCapacity(self.columnNames.count * rows.count)
+			var templateRow: [QBEValue] = self.columnNames.map({(c) -> (QBEValue) in return QBEValue.InvalidValue})
+			let valueIndex = (self.writeRowIdentifier ? 1 : 0) + (self.writeColumnIdentifier ? 1 : 0);
+
+			QBETime("flatten", self.columnNames.count * rows.count, "cells") {
+				for row in rows {
+					if self.writeRowIdentifier {
+						templateRow[0] = self.rowIdentifier!.apply(row, columns: self.originalColumns!, inputValue: nil)
+					}
+					
+					for columnIndex in 0..<self.originalColumns!.count {
+						if self.writeColumnIdentifier {
+							templateRow[self.writeRowIdentifier ? 1 : 0] = QBEValue(self.originalColumns![columnIndex].name)
+						}
+						
+						templateRow[valueIndex] = row[columnIndex]
+						newRows.append(templateRow)
+					}
+				}
+			}
+			callback(Slice(newRows), false)
+		}
 	}
 }
 

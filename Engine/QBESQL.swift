@@ -272,7 +272,12 @@ class QBESQLData: NSObject, QBEData {
     }
 	
 	private func fallback() -> QBEData {
-		return QBERasterData(future: self.raster)
+		if let s = self.stream() {
+			return QBEStreamData(source: s)
+		}
+		else {
+			return QBERasterData(future: self.raster)
+		}
 	}
 	
 	/** Transposition is difficult in SQL, and therefore left to QBERasterData. **/
@@ -282,6 +287,10 @@ class QBESQLData: NSObject, QBEData {
 	
 	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData {
 		return fallback().pivot(horizontal, vertical: vertical, values: values)
+	}
+	
+	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData {
+		return fallback().flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to)
 	}
     
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {

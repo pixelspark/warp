@@ -10,7 +10,8 @@ let QBEStepIcons = [
 	QBECSVSourceStep.className(): "CSVIcon",
 	QBESQLiteSourceStep.className(): "SQLIcon",
 	QBECalculateStep.className(): "CalculateIcon",
-	QBEColumnsStep.className(): "ColumnsIcon"
+	QBEColumnsStep.className(): "ColumnsIcon",
+	QBEFlattenStep.className(): "FlattenIcon"
 ];
 
 protocol QBEStepsControllerDelegate: NSObjectProtocol {

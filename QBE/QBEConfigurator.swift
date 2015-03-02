@@ -10,7 +10,8 @@ let QBEConfigurators: Dictionary<String, QBEConfigurator> = [
 	QBECalculateStep.className(): {QBECalculateConfigurator(step: $0, delegate: $1)},
 	QBEPivotStep.className(): {QBEPivotConfigurator(step: $0, delegate: $1)},
 	QBECSVSourceStep.className(): {QBECSVConfigurator(step: $0, delegate: $1)},
-	QBEFilterStep.className(): {QBEFilterConfigurator(step: $0, delegate: $1)}
+	QBEFilterStep.className(): {QBEFilterConfigurator(step: $0, delegate: $1)},
+	QBEFlattenStep.className(): {QBEFlattenConfigurator(step: $0, delegate: $1)}
 ]
 
 private class QBERandomConfigurator: NSViewController {

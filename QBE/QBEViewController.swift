@@ -126,6 +126,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	func calculate() {
 		if let s = currentStep {
+			currentData?.cancel()
+			currentRaster?.cancel()
+			
 			currentData = QBEFuture<QBEData>(useFullData ? s.fullData : s.exampleData)
 			
 			currentRaster = QBEFuture<QBERaster>({(callback: QBEFuture<QBERaster>.Callback, job: QBEJob?) in
@@ -441,6 +444,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("pivot:") {
 			return currentStep != nil
 		}
+		else if item.action()==Selector("flatten:") {
+			return currentStep != nil
+		}
 		else if item.action()==Selector("removeStep:") {
 			return currentStep != nil
 		}
@@ -527,6 +533,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				}
 			}
 		})
+	}
+	
+	@IBAction func flatten(sender: NSObject) {
+		suggestSteps([QBEFlattenStep(previous: currentStep)])
 	}
 	
 	@IBAction func pivot(sender: NSObject) {

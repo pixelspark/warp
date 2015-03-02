@@ -97,16 +97,16 @@ class QBEFuture<T> {
 		self.producer = {(callback, job) in producer(callback)}
 	}
 	
-	deinit {
-		batch?.cancel()
-	}
-	
 	private func calculate() {
 		assert(batch != nil, "calculate() called without a current batch")
 		
 		if let batch = self.batch {
 			producer(batch.satisfy, batch)
 		}
+	}
+	
+	func cancel() {
+		batch?.cancel()
 	}
 	
 	func get(callback: Callback) -> QBEJob {
@@ -147,12 +147,13 @@ private class QBEBatch<T>: QBEJob {
 	
 	func cancel() {
 		if !satisfied {
-			waitingList = []
+			waitingList.removeAll(keepCapacity: false)
 			cancelled = true
 		}
 	}
 	
 	func enqueue(callback: Callback) {
+		assert(!cancelled, "Cannot enqueue on a QBEFuture that is cancelled")
 		if satisfied {
 			QBEAsyncMain {
 				callback(self.cached!)

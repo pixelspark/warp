@@ -159,6 +159,14 @@ protocol QBEData {
 	/** Request streaming of the data contained in this dataset to the specified callback. **/
 	func stream() -> QBEStream?
 	
+	/** Flattens a data set. For each cell in the source data set, a row is generated that contains the following columns
+	(in the following order):
+	- A column containing the original column's name (if columnNameTo is non-nil)
+	- A column containing the result of applying the rowIdentifier expression on the original row (if rowIdentifier is 
+	  non-nil AND the to parameter is non-nil)
+	- The original cell value **/
+	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData
+	
 	/** An in-memory representation (QBERaster) of the data set. **/
 	func raster(callback: (QBERaster) -> (), job: QBEJob?)
 	
@@ -188,4 +196,5 @@ class QBEProxyData: NSObject, QBEData {
 	func stream() -> QBEStream? { return data.stream() }
 	func raster(callback: (QBERaster) -> (), job: QBEJob?) { return data.raster(callback, job: job) }
 	func columnNames(callback: ([QBEColumn]) -> ()) { return data.columnNames(callback) }
+	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
 }

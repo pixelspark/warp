@@ -1,6 +1,5 @@
 import Cocoa
 import XCTest
-import QBE
 
 class QBETests: XCTestCase {
     override func setUp() {
