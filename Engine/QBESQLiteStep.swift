@@ -26,39 +26,62 @@ internal class QBESQLiteResult {
 	
 	/** Run is used to execute statements that do not return data (e.g. UPDATE, INSERT, DELETE, etc.). It can optionally
 	be fed with parameters which will be bound before query execution. **/
-	func run(parameters: [QBEValue]? = nil) {
+	func run(parameters: [QBEValue]? = nil) -> Bool {
 		// If there are parameters, bind them
+		var ret = true
+		
 		dispatch_sync(QBESQLiteDatabase.sharedQueue) {
 			if let p = parameters {
 				var i = 0
 				for value in p {
+					var result = SQLITE_OK
 					switch value {
 						case .StringValue(let s):
-							sqlite3_bind_text(self.resultSet, CInt(i+1), s, -1, SQLITE_TRANSIENT)
+							// This, apparently, is super-slow, because Swift needs to convert its string to UTF-8.
+							result = sqlite3_bind_text(self.resultSet, CInt(i+1), s, -1, SQLITE_TRANSIENT)
 						
 						case .IntValue(let x):
-							sqlite3_bind_int64(self.resultSet, CInt(i+1), sqlite3_int64(x))
+							result = sqlite3_bind_int64(self.resultSet, CInt(i+1), sqlite3_int64(x))
 						
 						case .DoubleValue(let d):
-							sqlite3_bind_double(self.resultSet, CInt(i+1), d)
+							result = sqlite3_bind_double(self.resultSet, CInt(i+1), d)
 						
 						case .BoolValue(let b):
-							sqlite3_bind_int(self.resultSet, CInt(i+1), b ? 1 : 0)
+							result = sqlite3_bind_int(self.resultSet, CInt(i+1), b ? 1 : 0)
 						
 						case .InvalidValue:
-							sqlite3_bind_null(self.resultSet, CInt(i+1))
+							result = sqlite3_bind_null(self.resultSet, CInt(i+1))
 						
 						case .EmptyValue:
-							sqlite3_bind_null(self.resultSet, CInt(i+1))
+							result = sqlite3_bind_null(self.resultSet, CInt(i+1))
 					}
+					
+					if result != SQLITE_OK {
+						println("SQLite error on parameter bind: \(self.db.lastError)")
+						ret = false
+					}
+					
 					i++
 				}
 			}
 		
-			sqlite3_step(self.resultSet)
-			sqlite3_clear_bindings(self.resultSet)
-			sqlite3_reset(self.resultSet)
+			let result = sqlite3_step(self.resultSet)
+			if result != SQLITE_ROW && result != SQLITE_DONE {
+				println("SQLite error running statement: \(self.db.lastError)")
+				ret = false
+			}
+			
+			if sqlite3_clear_bindings(self.resultSet) != SQLITE_OK {
+				println("SQLite: failed to clear parameter bindings: \(self.db.lastError)")
+				ret = false
+			}
+			
+			if sqlite3_reset(self.resultSet) != SQLITE_OK {
+				println("SQLite: could not reset statement: \(self.db.lastError)")
+				ret = false
+			}
 		}
+		return ret
 	}
 	
 	var columnCount: Int { get {
