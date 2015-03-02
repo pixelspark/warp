@@ -94,7 +94,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, headerStringForRow rowIndex: UInt) -> String! {
-		return "\(rowIndex)";
+		return "\(rowIndex+1)";
 	}
 	
 	private func update() {
