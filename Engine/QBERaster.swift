@@ -247,8 +247,15 @@ class QBERasterData: NSObject, QBEData {
 		}
 	}
 	
+	/** The fallback data object implements data operators not implemented here. Because QBERasterData is the fallback
+	for QBEStreamData and the other way around, neither should call the fallback for an operation it implements itself,
+	and at least one of the classes has to implement each operation. **/
+	private func fallback() -> QBEData {
+		return QBEStreamData(source: QBERasterDataStream(self))
+	}
+	
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
-		return QBEStreamData(source: QBERasterDataStream(self)).calculate(calculations)
+		return fallback().calculate(calculations)
 	}
 	
 	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
@@ -289,46 +296,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to rowColumn: QBEColumn?) -> QBEData {
-		return apply({(r: QBERaster) -> QBERaster in
-			let writeRowIdentifier = rowIdentifier != nil && rowColumn != nil
-			let writeColumnName = columnNameTo != nil
-			
-			// Determine which columns we are going to write to
-			var columns: [QBEColumn] = []
-			if writeRowIdentifier {
-				columns.append(rowColumn!)
-			}
-			
-			if writeColumnName {
-				columns.append(columnNameTo!)
-			}
-			columns.append(valueTo)
-			
-			let originalColumnNames = r.columnNames
-			
-			// Iterate over all source rows and write the required rows
-			var newData: [QBERow] = []
-			var templateRow: [QBEValue] = [QBEValue.InvalidValue, QBEValue.InvalidValue, QBEValue.InvalidValue]
-			let valueIndex = (writeRowIdentifier ? 1 : 0) + (writeColumnName ? 1 : 0)
-			for rowNumber in 0..<r.rowCount {
-				let row = r[rowNumber]
-				
-				if writeRowIdentifier {
-					templateRow[0] = rowIdentifier!.apply(row, columns: originalColumnNames, inputValue: nil)
-				}
-				
-				for columnNumber in 0..<originalColumnNames.count {
-					if writeColumnName {
-						templateRow[writeRowIdentifier ? 1 : 0] = QBEValue(originalColumnNames[columnNumber].name)
-					}
-					
-					templateRow[valueIndex] = row[columnNumber]
-					newData.append(templateRow)
-				}
-			}
-			
-			return QBERaster(data: newData, columnNames: columns, readOnly: true)
-		})
+		return fallback().flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowColumn)
 	}
 	
 	func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {

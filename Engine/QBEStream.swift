@@ -36,6 +36,9 @@ class QBEStreamData: QBEData {
 		self.source = source
 	}
 	
+	/** The fallback data object implements data operators not implemented here. Because QBERasterData is the fallback
+	for QBEStreamData and the other way around, neither should call the fallback for an operation it implements itself,
+	and at least one of the classes has to implement each operation. **/
 	private func fallback() -> QBEData {
 		return QBERasterData(future: raster)
 	}

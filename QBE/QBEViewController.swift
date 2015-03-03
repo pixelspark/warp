@@ -500,9 +500,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result==NSFileHandlingPanelOKButton {
 				if let url = no.URLs[0] as? NSURL {
-					QBEAsyncBackground {
-						var error: NSError?
-						if let type = NSWorkspace.sharedWorkspace().typeOfFile(url.path!, error: &error) {
+					var error: NSError?
+					if let type = NSWorkspace.sharedWorkspace().typeOfFile(url.path!, error: &error) {
+						QBEAsyncBackground {
 							var sourceStep: QBEStep?
 							switch type {
 								case "public.comma-separated-values-text":
