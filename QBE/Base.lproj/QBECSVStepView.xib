@@ -4,7 +4,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6254"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="QBECSVConfigurator" customModule="Warp" customModuleProvider="target">
+        <customObject id="-2" userLabel="File's Owner" customClass="QBECSVStepView" customModule="Warp" customModuleProvider="target">
             <connections>
                 <outlet property="cacheButton" destination="2Ej-3W-0m1" id="ect-vy-lCZ"/>
                 <outlet property="hasHeadersButton" destination="nIp-FI-Wyq" id="XEn-pD-6rc"/>

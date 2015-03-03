@@ -1,7 +1,7 @@
 import Foundation
 import Cocoa
 
-internal class QBECSVConfigurator: NSViewController, NSComboBoxDataSource {
+internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var separatorField: NSComboBox?
 	@IBOutlet var hasHeadersButton: NSButton?
@@ -14,11 +14,11 @@ internal class QBECSVConfigurator: NSViewController, NSComboBoxDataSource {
 		
 		if let s = step as? QBECSVSourceStep {
 			self.step = s
-			super.init(nibName: "QBECSVConfigurator", bundle: nil)
+			super.init(nibName: "QBECSVStepView", bundle: nil)
 		}
 		else {
 			self.step = nil
-			super.init(nibName: "QBECSVConfigurator", bundle: nil)
+			super.init(nibName: "QBECSVStepView", bundle: nil)
 			return nil
 		}
 	}

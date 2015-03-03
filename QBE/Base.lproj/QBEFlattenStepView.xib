@@ -4,7 +4,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6254"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="QBEFlattenConfigurator" customModule="Warp" customModuleProvider="target">
+        <customObject id="-2" userLabel="File's Owner" customClass="QBEFlattenStepView" customModule="Warp" customModuleProvider="target">
             <connections>
                 <outlet property="columnColumnField" destination="wJt-QJ-JwA" id="Y48-wC-fwR"/>
                 <outlet property="rowColumnField" destination="kWW-oV-Dol" id="ege-Hq-5Fn"/>

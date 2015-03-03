@@ -1,6 +1,6 @@
 import Foundation
 
-class QBEFilterConfigurator: NSViewController {
+class QBEFilterStepView: NSViewController {
 	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var formulaField: NSTextField?
 	let step: QBEFilterStep?
@@ -10,11 +10,11 @@ class QBEFilterConfigurator: NSViewController {
 		
 		if let s = step as? QBEFilterStep {
 			self.step = s
-			super.init(nibName: "QBEFilterConfigurator", bundle: nil)
+			super.init(nibName: "QBEFilterStepView", bundle: nil)
 		}
 		else {
 			self.step = nil
-			super.init(nibName: "QBEFilterConfigurator", bundle: nil)
+			super.init(nibName: "QBEFilterStepView", bundle: nil)
 			return nil
 		}
 	}

@@ -1,19 +1,6 @@
 import Foundation
 import Cocoa
 
-let QBEStepIcons = [
-	QBETransposeStep.className(): "CalculateIcon",
-	QBEPivotStep.className(): "PivotIcon",
-	QBERandomStep.className(): "RandomIcon",
-	QBEFilterStep.className(): "FilterIcon",
-	QBELimitStep.className(): "LimitIcon",
-	QBECSVSourceStep.className(): "CSVIcon",
-	QBESQLiteSourceStep.className(): "SQLIcon",
-	QBECalculateStep.className(): "CalculateIcon",
-	QBEColumnsStep.className(): "ColumnsIcon",
-	QBEFlattenStep.className(): "FlattenIcon"
-];
-
 protocol QBEStepsControllerDelegate: NSObjectProtocol {
 	func stepsController(vc: QBEStepsViewController, didSelectStep: QBEStep)
 }

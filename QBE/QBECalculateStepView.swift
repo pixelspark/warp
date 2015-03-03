@@ -1,7 +1,7 @@
 import Foundation
 import Cocoa
 
-internal class QBECalculateConfigurator: NSViewController {
+internal class QBECalculateStepView: NSViewController {
 	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var targetColumnNameField: NSTextField?
 	@IBOutlet var formulaField: NSTextField?
@@ -12,11 +12,11 @@ internal class QBECalculateConfigurator: NSViewController {
 		
 		if let s = step as? QBECalculateStep {
 			self.step = s
-			super.init(nibName: "QBECalculateConfigurator", bundle: nil)
+			super.init(nibName: "QBECalculateStepView", bundle: nil)
 		}
 		else {
 			self.step = nil
-			super.init(nibName: "QBECalculateConfigurator", bundle: nil)
+			super.init(nibName: "QBECalculateStepView", bundle: nil)
 			return nil
 		}
 	}

@@ -4,7 +4,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6254"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="QBEFilterConfigurator" customModule="Warp" customModuleProvider="target">
+        <customObject id="-2" userLabel="File's Owner" customClass="QBEFilterStepView" customModule="Warp" customModuleProvider="target">
             <connections>
                 <outlet property="formulaField" destination="7j3-bC-IeT" id="CXg-Mw-DX3"/>
                 <outlet property="view" destination="4KZ-pM-TZ9" id="ehi-mA-xZu"/>

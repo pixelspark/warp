@@ -58,8 +58,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			if let s = currentStep {
 				self.previewStep = nil
 				let className = s.className
-				let configurator = QBEConfigurators[className]?(step: s, delegate: self)
-				self.configuratorViewController = configurator
+				let StepView = QBEStepViews[className]?(step: s, delegate: self)
+				self.configuratorViewController = StepView
 				self.titleLabel?.attributedStringValue = NSAttributedString(string: s.explain(locale))
 				
 				calculate()
@@ -191,8 +191,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	private func pushStep(step: QBEStep) {
-		step.previous = currentStep
+		currentStep?.next?.previous = step
 		currentStep?.next = step
+		step.previous = currentStep
+		
 		if document?.head == nil || currentStep == document?.head {
 			document?.head = step
 		}

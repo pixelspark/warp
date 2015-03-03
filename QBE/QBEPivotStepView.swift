@@ -1,7 +1,7 @@
 import Foundation
 import Cocoa
 
-internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTableViewDataSource, NSMenuDelegate {
+internal class QBEPivotStepView: NSViewController, NSTableViewDelegate, NSTableViewDataSource, NSMenuDelegate {
 	private let dragType = "nl.pixelspark.qbe.column"
 	
 	weak var delegate: QBESuggestionsViewDelegate?
@@ -24,11 +24,11 @@ internal class QBEPivotConfigurator: NSViewController, NSTableViewDelegate, NSTa
 		
 		if let s = step as? QBEPivotStep {
 			self.step = s
-			super.init(nibName: "QBEPivotConfigurator", bundle: nil)
+			super.init(nibName: "QBEPivotStepView", bundle: nil)
 		}
 		else {
 			self.step = nil
-			super.init(nibName: "QBEPivotConfigurator", bundle: nil)
+			super.init(nibName: "QBEPivotStepView", bundle: nil)
 			return nil
 		}
 	}

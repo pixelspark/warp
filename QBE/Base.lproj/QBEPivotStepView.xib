@@ -4,7 +4,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="6254"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="QBEPivotConfigurator" customModule="Warp" customModuleProvider="target">
+        <customObject id="-2" userLabel="File's Owner" customClass="QBEPivotStepView" customModule="Warp" customModuleProvider="target">
             <connections>
                 <outlet property="aggregatesTable" destination="Ho5-CO-TdL" id="2e5-5w-y9b"/>
                 <outlet property="allTable" destination="XCO-xg-sq8" id="1TI-hq-Hgd"/>

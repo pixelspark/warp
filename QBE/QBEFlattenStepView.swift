@@ -1,6 +1,6 @@
 import Foundation
 
-class QBEFlattenConfigurator: NSViewController {
+class QBEFlattenStepView: NSViewController {
 	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var rowIdentifierField: NSTextField?
 	@IBOutlet var rowColumnField: NSTextField?
@@ -14,11 +14,11 @@ class QBEFlattenConfigurator: NSViewController {
 		
 		if let s = step as? QBEFlattenStep {
 			self.step = s
-			super.init(nibName: "QBEFlattenConfigurator", bundle: nil)
+			super.init(nibName: "QBEFlattenStepView", bundle: nil)
 		}
 		else {
 			self.step = nil
-			super.init(nibName: "QBEFlattenConfigurator", bundle: nil)
+			super.init(nibName: "QBEFlattenStepView", bundle: nil)
 			return nil
 		}
 	}
