@@ -52,6 +52,110 @@ class QBEStep: NSObject {
 	func apply(data: QBEData, job: QBEJob? = nil, callback: (QBEData) -> ()) {
 		fatalError("Child class of QBEStep should implement apply()")
 	}
+	
+	/** This method is called right before a document is saved to disk using encodeWithCoder. Steps that reference 
+	external files should take the opportunity to create security bookmarks to these files (as required by Apple's
+	App Sandbox) and store them. **/
+	func willSaveToDocument(atURL: NSURL) {
+	}
+	
+	/** This method is called right after a document has been loaded from disk. **/
+	func didLoadFromDocument(atURL: NSURL) {
+	}
+}
+
+/** QBEFileReference is the class to be used by steps that need to reference auxiliary files. It employs Apple's App
+Sandbox API to create 'secure bookmarks' to these files, so that they can be referenced when opening the Warp document
+again later. Steps should call bookmark() on all their references from the willSavetoDocument method, and call resolve()
+on all file references inside didLoadFromDocument. In addition they should store both the 'url' as well as the 'bookmark'
+property when serializing a file reference (in encodeWithCoder).
+
+On non-sandbox builds, QBEFileReference will not be able to resolve bookmarks to URLs, and it will return the original URL
+(which will allow regular unlimited access). **/
+enum QBEFileReference {
+	case Bookmark(NSData)
+	case ResolvedBookmark(NSData, NSURL)
+	case URL(NSURL)
+	
+	static func create(url: NSURL?, _ bookmark: NSData?) -> QBEFileReference? {
+		if bookmark == nil {
+			if url == nil {
+				return QBEFileReference.URL(url!)
+			}
+			else {
+				return nil
+			}
+		}
+		else {
+			if url == nil {
+				return QBEFileReference.Bookmark(bookmark!)
+			}
+			else {
+				return QBEFileReference.ResolvedBookmark(bookmark!, url!)
+			}
+		}
+	}
+	
+	func bookmark(relativeToDocument: NSURL) -> QBEFileReference? {
+		switch self {
+		case .URL(let u):
+			var error: NSError? = nil
+			if let bookmark = u.bookmarkDataWithOptions(NSURLBookmarkCreationOptions.WithSecurityScope, includingResourceValuesForKeys: nil, relativeToURL: u, error: &error) {
+				return QBEFileReference.ResolvedBookmark(bookmark, u)
+			}
+			else {
+				println("Could not create bookmark for url \(u): \(error)")
+			}
+			return self
+			
+		case .Bookmark(let b):
+			return self
+			
+		case .ResolvedBookmark(let b, let u):
+			return self
+		}
+	}
+	
+	func resolve(relativeToDocument: NSURL) -> QBEFileReference? {
+		switch self {
+		case .URL(let u):
+			return self
+			
+		case .ResolvedBookmark(let b, let oldURL):
+			var error: NSError? = nil
+			if let u = NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: relativeToDocument, bookmarkDataIsStale: nil, error: &error) {
+				println("Re-resolved bookmark \(b) --> \(u)")
+				return QBEFileReference.ResolvedBookmark(b, u)
+			}
+			println("Could not re-resolve bookmark \(b) to \(oldURL): \(error)")
+			return self
+			
+		case .Bookmark(let b):
+			var error: NSError? = nil
+			if let u = NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: relativeToDocument, bookmarkDataIsStale: nil, error: &error) {
+				println("Resolved bookmark \(b) --> \(u)")
+				return QBEFileReference.ResolvedBookmark(b, u)
+			}
+			println("Could not resolve secure bookmark \(b): \(error)")
+			return self
+		}
+	}
+	
+	var bookmark: NSData? { get {
+		switch self {
+		case .ResolvedBookmark(let d, _): return d
+		case .Bookmark(let d): return d
+		default: return nil
+		}
+		} }
+	
+	var url: NSURL? { get {
+		switch self {
+		case .URL(let u): return u
+		case .ResolvedBookmark(_, let u): return u
+		default: return nil
+		}
+		} }
 }
 
 /** The transpose step implements a row-column switch. It has no configuration and relies on the QBEData transpose()

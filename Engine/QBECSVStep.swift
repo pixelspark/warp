@@ -156,14 +156,14 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 
 class QBECSVSourceStep: QBEStep {
 	private var cachedData: QBEData?
-	var url: String { didSet { cachedData = nil; } }
+	var file: QBEFileReference? { didSet { cachedData = nil; } }
 	var fieldSeparator: unichar { didSet { cachedData = nil; } }
 	var hasHeaders: Bool { didSet { cachedData = nil; } }
 	var useCaching: Bool { didSet { cachedData = nil; } }
 	
 	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
 		if cachedData == nil {
-			if let url = NSURL(string: self.url) {
+			if let url = file?.url {
 				let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders)
 				cachedData = QBEStreamData(source: s)
 				if useCaching {
@@ -186,7 +186,7 @@ class QBECSVSourceStep: QBEStep {
 	init(url: NSURL) {
 		let defaultSeparator = NSUserDefaults.standardUserDefaults().stringForKey("defaultSeparator") ?? ";"
 		
-		self.url = url.absoluteString!
+		self.file = QBEFileReference.URL(url)
 		self.fieldSeparator = defaultSeparator.utf16[defaultSeparator.utf16.startIndex]
 		self.hasHeaders = true
 		self.useCaching = false
@@ -194,7 +194,10 @@ class QBECSVSourceStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.url = (aDecoder.decodeObjectForKey("url") as? String) ?? ""
+		let d = aDecoder.decodeObjectForKey("fileBookmark") as? NSData
+		let u = aDecoder.decodeObjectForKey("fileURL") as? NSURL
+		self.file = QBEFileReference.create(u, d)
+		
 		let separator = (aDecoder.decodeObjectForKey("fieldSeparator") as? String) ?? ";"
 		self.fieldSeparator = separator.utf16[separator.utf16.startIndex]
 		self.hasHeaders = aDecoder.decodeBoolForKey("hasHeaders")
@@ -202,20 +205,44 @@ class QBECSVSourceStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 	
+	deinit {
+		self.file?.url?.stopAccessingSecurityScopedResource()
+	}
+	
 	override func encodeWithCoder(coder: NSCoder) {
 		super.encodeWithCoder(coder)
-		coder.encodeObject(url, forKey: "url")
 		
 		let separator = String(Character(UnicodeScalar(fieldSeparator)))
 		coder.encodeObject(separator, forKey: "fieldSeparator")
 		coder.encodeBool(hasHeaders, forKey: "hasHeaders")
 		coder.encodeBool(useCaching, forKey: "useCaching")
+		coder.encodeObject(self.file?.url, forKey: "fileURL")
+		coder.encodeObject(self.file?.bookmark, forKey: "fileBookmark")
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
 		if short {
 			return NSLocalizedString("Load CSV", comment: "")
 		}
-		return String(format: NSLocalizedString("Load CSV file from '%@' ",comment: ""), url)
+		
+		if let f = file {
+			switch f {
+				case .URL(let u):
+					return String(format: NSLocalizedString("Load CSV file from '%@' ",comment: ""), u.lastPathComponent ?? "")
+				
+				default:
+					break
+			}
+		}
+		return NSLocalizedString("Load CSV", comment: "")
+	}
+	
+	override func willSaveToDocument(atURL: NSURL) {
+		self.file = self.file?.bookmark(atURL)
+	}
+	
+	override func didLoadFromDocument(atURL: NSURL) {
+		self.file = self.file?.resolve(atURL)
+		self.file?.url?.startAccessingSecurityScopedResource()
 	}
 }

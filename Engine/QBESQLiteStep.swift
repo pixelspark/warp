@@ -388,29 +388,25 @@ class QBESQLiteCachedData: QBEProxyData {
 }
 
 class QBESQLiteSourceStep: QBEStep {
-	var url: String
+	var file: QBEFileReference?
 	var tableName: String?
-	let db: QBESQLiteDatabase?
+	var db: QBESQLiteDatabase?
 	
 	init?(url: NSURL) {
-		self.url = url.absoluteString ?? ""
+		self.file = QBEFileReference.URL(url)
+		self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
 		
-		if let nsu = NSURL(string: self.url) {
-			self.db = QBESQLiteDatabase(path: nsu.path!, readOnly: true)
-			if let first = self.db?.tableNames?.first {
-				self.tableName = first
-			}
-			else {
-				self.tableName = nil
-			}
-			super.init(previous: nil)
+		if let first = self.db?.tableNames?.first {
+			self.tableName = first
 		}
 		else {
-			self.db = nil
 			self.tableName = nil
-			super.init(previous: nil)
-			return nil
 		}
+		super.init(previous: nil)
+	}
+	
+	deinit {
+		self.file?.url?.stopAccessingSecurityScopedResource()
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
@@ -418,7 +414,7 @@ class QBESQLiteSourceStep: QBEStep {
 			return NSLocalizedString("SQLite table", comment: "")
 		}
 		
-		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName ?? "", url)
+		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName ?? "", self.file?.url ?? "")
 	}
 	
 	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
@@ -437,21 +433,30 @@ class QBESQLiteSourceStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.url = (aDecoder.decodeObjectForKey("url") as? String) ?? ""
 		self.tableName = (aDecoder.decodeObjectForKey("tableName") as? String) ?? ""
 		
-		if let url = NSURL(string: self.url) {
-			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
-		}
-		else {
-			self.db = nil
-		}
+		let u = aDecoder.decodeObjectForKey("fileURL") as? NSURL
+		let b = aDecoder.decodeObjectForKey("fileBookmark") as? NSData
+		self.file = QBEFileReference.create(u, b)
 		super.init(coder: aDecoder)
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
 		super.encodeWithCoder(coder)
-		coder.encodeObject(url, forKey: "url")
+		coder.encodeObject(file?.url, forKey: "fileURL")
+		coder.encodeObject(file?.bookmark, forKey: "fileBookmark")
 		coder.encodeObject(tableName, forKey: "tableName")
+	}
+	
+	override func willSaveToDocument(atURL: NSURL) {
+		self.file = self.file?.bookmark(atURL)
+	}
+	
+	override func didLoadFromDocument(atURL: NSURL) {
+		self.file = self.file?.resolve(atURL)
+		if let url = self.file?.url {
+			url.startAccessingSecurityScopedResource()
+			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
+		}
 	}
 }

@@ -47,6 +47,17 @@ class QBEDocument: NSDocument, NSCoding {
 		return NSKeyedArchiver.archivedDataWithRootObject(self)
 	}
 	
+	override func writeToURL(url: NSURL, ofType typeName: String, error outError: NSErrorPointer) -> Bool {
+		self.steps.each({$0.willSaveToDocument(url)})
+		return super.writeToURL(url, ofType: typeName, error: outError)
+	}
+	
+	override func readFromURL(url: NSURL, ofType typeName: String, error outError: NSErrorPointer) -> Bool {
+		let r = super.readFromURL(url, ofType: typeName, error: outError)
+		self.steps.each({$0.didLoadFromDocument(url)})
+		return r
+	}
+	
 	override func readFromData(data: NSData, ofType typeName: String, error outError: NSErrorPointer) -> Bool {
 		if let x = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEDocument {
 			head = x.head

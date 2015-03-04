@@ -4,19 +4,24 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>Warp Release.xcscheme</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>5</integer>
-		</dict>
-		<key>Warp.xcscheme</key>
+		<key>Warp (App Store).xcscheme</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
+		<key>Warp.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>654EBA721AA7A2AE00DDBBCA</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>65E3C2B41A05222F007BB3C8</key>
 		<dict>
 			<key>primary</key>
