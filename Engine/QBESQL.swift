@@ -142,9 +142,9 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Sqrt: return "SQRT(\(value))"
 			case .Concat: return "CONCAT(\(value))"
 			case .If: return "(CASE WHEN \(args[0]) THEN \(args[1]) ELSE \(args[2]) END)"
-			case .Left: return "LEFT(\(args[0]), \(args[1]))"
-			case .Right: return "RIGHT(\(args[0]), \(args[1]))"
-			case .Mid: return "SUBSTRING(\(args[0]), \(args[1]), \(args[2]))"
+			case .Left: return "SUBSTR(\(args[0]), 1, \(args[1]))"
+			case .Right: return "RIGHT(\(args[0]), LENGTH(\(args[0]))-\(args[1]))"
+			case .Mid: return "SUBSTR(\(args[0]), \(args[1]), \(args[2]))"
 			case .Length: return "LEN(\(args[0]))"
 			case .Trim: return "TRIM(\(args[0]))"
 			case .Not: return "NOT(\(value))"
@@ -401,7 +401,7 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		let selectString = select.implode(", ") ?? ""
-		if let groupString = groupBy.implode(", ") {
+		if groupBy.count>0, let groupString = groupBy.implode(", ") {
 			return apply("SELECT \(selectString) FROM (\(sql)) GROUP BY \(groupString)", resultingColumns: resultingColumns)
 		}
 		else {
