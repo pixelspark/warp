@@ -31,7 +31,12 @@ class QBEFlattenStepView: NSViewController {
 	internal override func viewWillAppear() {
 		super.viewWillAppear()
 		if let s = step {
-			self.rowIdentifierField?.stringValue = "=" + (s.rowIdentifier?.toFormula(self.delegate?.locale ?? QBEDefaultLocale()) ?? "")
+			if let ri = s.rowIdentifier {
+				self.rowIdentifierField?.stringValue = "=" + (ri.toFormula(self.delegate?.locale ?? QBEDefaultLocale()) ?? "")
+			}
+			else {
+				self.rowIdentifierField?.stringValue = ""
+			}
 			self.valueColumnField?.stringValue = s.valueColumn.name
 			self.rowColumnField?.stringValue = s.rowColumn?.name ?? ""
 			self.columnColumnField?.stringValue = s.colColumn?.name ?? ""

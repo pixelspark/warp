@@ -25,32 +25,28 @@ class QBEStep: NSObject {
 	} }
 	
 	weak var next: QBEStep?
-	var explanation: NSAttributedString?
-	
-	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific
-	 configuration of the step. **/
-	func explain(locale: QBELocale, short: Bool = false) -> String {
-		return NSLocalizedString("Unknown step", comment: "")
-	}
 	
 	override private init() {
-		self.explanation = NSAttributedString(string: "")
+	}
+	
+	init(previous: QBEStep?) {
+		self.previous = previous
 	}
 	
 	required init(coder aDecoder: NSCoder) {
 		previous = aDecoder.decodeObjectForKey("previousStep") as? QBEStep
 		next = aDecoder.decodeObjectForKey("nextStep") as? QBEStep
-		explanation = aDecoder.decodeObjectForKey("explanation") as? NSAttributedString
 	}
 	
 	func encodeWithCoder(coder: NSCoder) {
 		coder.encodeObject(previous, forKey: "previousStep")
 		coder.encodeObject(next, forKey: "nextStep")
-		coder.encodeObject(explanation, forKey: "explanation")
 	}
 	
-	init(previous: QBEStep?) {
-		self.previous = previous
+	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific
+	configuration of the step. **/
+	func explain(locale: QBELocale, short: Bool = false) -> String {
+		return NSLocalizedString("Unknown step", comment: "")
 	}
 	
 	func apply(data: QBEData, job: QBEJob? = nil, callback: (QBEData) -> ()) {

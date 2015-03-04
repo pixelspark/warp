@@ -15,9 +15,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	var stepsViewController: QBEStepsViewController?
 	var suggestions: [QBEStep]?
 	weak var windowController: QBEWindowController?
+	
 	@IBOutlet var descriptionField: NSTextField?
 	@IBOutlet var configuratorView: NSView?
 	@IBOutlet var titleLabel: NSTextField?
+	@IBOutlet var addStepMenu: NSMenu?
+	
 	internal var currentData: QBEFuture<QBEData>?
 	internal var currentRaster: QBEFuture<QBERaster>?
 	
@@ -497,6 +500,15 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func goForward(sender: NSObject) {
 		if let n = currentStep?.next {
 			currentStep = n
+		}
+	}
+	
+	@IBAction func addStep(sender: NSView) {
+		if currentStep == nil {
+			self.importFile(sender)
+		}
+		else {
+			NSMenu.popUpContextMenu(self.addStepMenu!, withEvent: NSApplication.sharedApplication().currentEvent!, forView: sender)
 		}
 	}
 	

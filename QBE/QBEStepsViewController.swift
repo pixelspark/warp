@@ -64,12 +64,7 @@ import Cocoa
 	}
 	
 	private func update() {
-		if let e = step?.explanation {
-			label?.attributedStringValue = e
-		}
-		else {
-			label?.attributedStringValue = NSAttributedString(string: step?.explain(QBEDefaultLocale(), short: true) ?? "??")
-		}
+		label?.attributedStringValue = NSAttributedString(string: step?.explain(QBEDefaultLocale(), short: true) ?? "??")
 		
 		if let s = step {
 			if let icon = QBEStepIcons[s.className] {

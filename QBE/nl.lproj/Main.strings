@@ -12,7 +12,7 @@
 "1tx-W0-xDw.title" = "Lower";
 
 /* Class = "NSMenuItem"; title = "Randomly select rows..."; ObjectID = "21p-in-cPl"; */
-"21p-in-cPl.title" = "Selecteer willekeurig rijen...";
+"21p-in-cPl.title" = "Filter willekeurig rijen...";
 
 /* Class = "NSTextFieldCell"; title = "Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label "; ObjectID = "285-uI-onn"; */
 "285-uI-onn.title" = "Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label ";
@@ -135,10 +135,10 @@
 "AYu-sK-qS6.title" = "Hoofdmenu";
 
 /* Class = "NSToolbarItem"; label = "Select"; ObjectID = "BG9-hH-0Ls"; */
-"BG9-hH-0Ls.label" = "Selecteer";
+"BG9-hH-0Ls.label" = "Filter";
 
 /* Class = "NSToolbarItem"; paletteLabel = "Select rows"; ObjectID = "BG9-hH-0Ls"; */
-"BG9-hH-0Ls.paletteLabel" = "Selecteer rijen";
+"BG9-hH-0Ls.paletteLabel" = "Filter rijen";
 
 /* Class = "NSMenuItem"; title = "Preferences…"; ObjectID = "BOF-NM-1cW"; */
 "BOF-NM-1cW.title" = "Voorkeuren…";
@@ -290,7 +290,7 @@
 "Rqc-34-cIF.title" = "Superscript";
 
 /* Class = "NSMenuItem"; title = "Select All"; ObjectID = "Ruw-6m-B2m"; */
-"Ruw-6m-B2m.title" = "Selecteer alles";
+"Ruw-6m-B2m.title" = "Filter alles";
 
 /* Class = "NSMenuItem"; title = "Jump to Selection"; ObjectID = "S0p-oC-mLd"; */
 "S0p-oC-mLd.title" = "Spring naar selectie";
@@ -573,3 +573,12 @@
 
 /* Class = "NSTextFieldCell"; title = "Default field separator:"; ObjectID = "zRv-Pg-yZW"; */
 "zRv-Pg-yZW.title" = "Standaard veldscheidingsteken:";
+
+"zOH-It-cbM.title" = "Selecteer rij(en) zoals deze...";
+"3Yw-cV-pc0.title" = "Verwissel rij(en) met kolommen";
+"4wT-WT-bJe.title" = "Selecteer kolom(men) zoals deze...";
+"oAp-0V-aL3.title" = "Draaitabel van gegevens...";
+"JN0-7D-bJs.title" = "Gegevens uitpakken...";
+"WGW-vi-DfZ.title" = "Verwijder dubbele rijen";
+"6yc-4E-Ad5.title" = "Verwijder rijen zoals deze...";
+

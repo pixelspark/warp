@@ -966,6 +966,7 @@ CA
                         <animations/>
                     </view>
                     <connections>
+                        <outlet property="addStepMenu" destination="TbW-HU-EDH" id="Mvr-tx-vGF"/>
                         <outlet property="configuratorView" destination="eRz-0B-PPl" id="HNm-ag-J2G"/>
                         <outlet property="titleLabel" destination="S3o-Kz-csJ" id="xJS-8r-ioC"/>
                         <segue destination="TDg-0B-lyo" kind="sheet" identifier="suggestions" id="fwr-6P-6Ir"/>
@@ -974,6 +975,55 @@ CA
                 </viewController>
                 <customObject id="Izd-TK-t8f" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="vGV-jK-BQ2"/>
+                <menu id="TbW-HU-EDH">
+                    <items>
+                        <menuItem title="Select rows like this..." keyEquivalent="s" id="zOH-It-cbM">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="selectRows:" target="Izd-TK-t8f" id="BTL-jN-ZHk"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Remove rows like this..." id="6yc-4E-Ad5">
+                            <string key="keyEquivalent" base64-UTF8="YES">
+CA
+</string>
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="removeRows:" target="Izd-TK-t8f" id="Zl1-8n-Aqk"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Select columns like this..." keyEquivalent="s" id="4wT-WT-bJe" userLabel="Select columns">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
+                            <connections>
+                                <action selector="selectColumns:" target="Izd-TK-t8f" id="afc-rw-TRp"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Remove duplicate rows" keyEquivalent="d" id="WGW-vi-DfZ">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="removeDuplicateRows:" target="Izd-TK-t8f" id="HSY-dX-hwi"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem isSeparatorItem="YES" id="m99-mh-eh9"/>
+                        <menuItem title="Pivot data..." keyEquivalent="d" id="oAp-0V-aL3">
+                            <connections>
+                                <action selector="pivot:" target="Izd-TK-t8f" id="4FY-ID-4l2"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Flatten data..." keyEquivalent="D" id="JN0-7D-bJs">
+                            <connections>
+                                <action selector="flatten:" target="Izd-TK-t8f" id="hXx-6Y-fqn"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem isSeparatorItem="YES" id="VRV-jA-hVg"/>
+                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="3Yw-cV-pc0">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="transposeData:" target="Izd-TK-t8f" id="lm3-1p-vhs"/>
+                            </connections>
+                        </menuItem>
+                    </items>
+                </menu>
             </objects>
             <point key="canvasLocation" x="33.5" y="1395"/>
         </scene>
@@ -1296,7 +1346,7 @@ Gw
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="importFile:" target="nkn-pH-Nqr" id="mfn-cT-VUt"/>
+                                    <action selector="addStep:" target="nkn-pH-Nqr" id="OTz-Hk-THq"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -1316,13 +1366,6 @@ Gw
                 <customObject id="nkn-pH-Nqr" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController id="4bb-Af-HRu"/>
                 <userDefaultsController id="pYt-VS-Pms"/>
-                <segmentedCell borderStyle="border" alignment="left" style="texturedSquare" trackingMode="selectOne" id="wXR-UR-5Y7">
-                    <font key="font" metaFont="system"/>
-                    <segments>
-                        <segment label="Selection" width="65" selected="YES"/>
-                        <segment label="All" width="64" tag="1"/>
-                    </segments>
-                </segmentedCell>
             </objects>
             <point key="canvasLocation" x="1104.5" y="1317"/>
         </scene>
