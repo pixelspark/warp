@@ -55,8 +55,8 @@ class QBEStreamData: QBEData {
 					s.fetch(appender, job: job)
 				}
 			}
-				
-			rows.each({data.append($0)})
+			
+			data.extend(rows)
 				
 			if !hasNext {
 				s.columnNames({ (columnNames) -> () in
@@ -145,14 +145,14 @@ private class QBETransformer: NSObject, QBEStream {
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). **/
-	private func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
+	private func transform(rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
 		fatalError("QBETransformer.transform should be implemented in a subclass")
 	}
 	
 	private func fetch(consumer: QBESink, job: QBEJob?) {
 		if !stopped {
 			source.fetch({ (rows, hasNext) -> () in
-				self.transform(rows, callback: { (transformedRows, shouldStop) -> () in
+				self.transform(rows, job: job, callback: { (transformedRows, shouldStop) -> () in
 					self.stopped = shouldStop
 					consumer(transformedRows, !self.stopped && hasNext)
 				})
@@ -226,14 +226,14 @@ private class QBEFlattenTransformer: QBETransformer {
 		return QBEFlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
 	}
 	
-	private override func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
 		prepare {
 			var newRows: [QBERow] = []
 			newRows.reserveCapacity(self.columnNames.count * rows.count)
 			var templateRow: [QBEValue] = self.columnNames.map({(c) -> (QBEValue) in return QBEValue.InvalidValue})
 			let valueIndex = (self.writeRowIdentifier ? 1 : 0) + (self.writeColumnIdentifier ? 1 : 0);
 
-			QBETime("flatten", self.columnNames.count * rows.count, "cells") {
+			QBETime("flatten", self.columnNames.count * rows.count, "cells", job) {
 				for row in rows {
 					if self.writeRowIdentifier {
 						templateRow[0] = self.rowIdentifier!.apply(row, columns: self.originalColumns!, inputValue: nil)
@@ -263,9 +263,9 @@ private class QBEFilterTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
 		source.columnNames { (columnNames) -> () in
-			QBETime("Stream filter", rows.count, "row") {
+			QBETime("Stream filter", rows.count, "row", job) {
 				let newRows = rows.filter({(row) -> Bool in
 					return self.condition.apply(row, columns: columnNames, inputValue: nil) == QBEValue.BoolValue(true)
 				})
@@ -291,7 +291,7 @@ private class QBELimitTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
 		if (position+rows.count) < limit {
 			position += rows.count
 			callback(rows, false)
@@ -331,7 +331,7 @@ private class QBEColumnsTransformer: QBETransformer {
 		}
 	}
 	
-	override private func transform(rows: Slice<QBERow>, callback: (Slice<QBERow>,Bool) -> ()) {
+	override private func transform(rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>,Bool) -> ()) {
 		ensureIndexes {
 			assert(self.indexes != nil)
 			
@@ -418,7 +418,7 @@ private class QBECalculateTransformer: QBETransformer {
 		}
 	}
 	
-	private override func transform(var rows: Slice<QBERow>, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(var rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
 		self.ensureIndexes {
 			QBETime("Calculate", rows.count, "row") {
 				let newData = rows.map({ (var row: QBERow) -> QBERow in

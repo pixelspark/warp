@@ -2,13 +2,17 @@ import Foundation
 
 /** Records the time taken to execute the given block and writes it to the console. In release builds, the block is simply
 called and no timing information is gathered. **/
-internal func QBETime(description: String, items: Int, itemType: String, block: () -> ()) {
+internal func QBETime(description: String, items: Int, itemType: String, _ job: QBEJob? = nil, @noescape block: () -> ()) {
 	#if DEBUG
 		let t = CFAbsoluteTimeGetCurrent()
 		block()
 		let d = CFAbsoluteTimeGetCurrent() - t
-		println("QBETime\t\(description)\t\(items) \(itemType):\t\(d);\t\(Double(items)/d) \(itemType)/s")
-		#else
+		println("QBETime\t\(description)\t\(items) \(itemType):\t\(round(10*Double(items)/d)/10) \(itemType)/s")
+		
+		if let j = job {
+			j.reportTime(description, time: d)
+		}
+	#else
 		block()
 	#endif
 }
@@ -69,6 +73,20 @@ class QBEJob {
 		
 		return items > 0 ? (sumProgress / Double(items)) : 0.0;
 	} }
+	
+	#if DEBUG
+	private var timeComponents: [String: Double] = [:]
+	
+	func reportTime(component: String, time: Double) {
+		if let t = timeComponents[component] {
+			timeComponents[component] = t + time
+		}
+		else {
+			timeComponents[component] = time
+		}
+		println("Job \(unsafeAddressOf(self)): \(timeComponents)")
+	}
+	#endif
 }
 
 /** QBEFuture represents a result of a (potentially expensive) calculation. Code that needs the result of the

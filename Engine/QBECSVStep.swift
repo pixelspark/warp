@@ -59,7 +59,7 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	
 	func fetch(consumer: QBESink, job: QBEJob?) {
 		dispatch_async(queue) {
-			QBETime("Parse CSV", QBEStreamDefaultBatchSize, "row") {
+			QBETime("Parse CSV", QBEStreamDefaultBatchSize, "row", job) {
 				var fetched = 0
 				while !self.finished && (fetched < QBEStreamDefaultBatchSize) {
 					self.finished = !self.parser._parseRecord()
