@@ -89,7 +89,7 @@ class QBEFilterStep: QBEStep {
 		coder.encodeObject(condition, forKey: "condition")
 	}
 	
-	override func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob?) {
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
 		if let c = condition {
 			callback(data.filter(c))
 		}
@@ -124,7 +124,7 @@ class QBELimitStep: QBEStep {
 		coder.encodeInt(Int32(numberOfRows), forKey: "numberOfRows")
 	}
 	
-	override func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob?) {
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
 		callback(data.limit(numberOfRows))
 	}
 }
@@ -149,7 +149,7 @@ class QBERandomStep: QBELimitStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob?) {
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
 		callback(data.random(numberOfRows))
 	}
 }
@@ -174,7 +174,7 @@ class QBEDistinctStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob?) {
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
 		callback(data.distinct())
 	}
 }

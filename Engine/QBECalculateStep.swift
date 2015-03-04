@@ -31,7 +31,7 @@ class QBECalculateStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob?) {
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
 		callback(data.calculate([targetColumn: function]))
 	}
 	

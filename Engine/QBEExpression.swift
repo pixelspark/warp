@@ -405,7 +405,7 @@ class QBEFunctionExpression: QBEExpression {
 				
 				// For binary and n-ary functions, specific test cases follow
 				if let targetString = toValue.stringValue {
-					let length = QBEValue(countElements(targetString))
+					let length = QBEValue(count(targetString))
 					
 					suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Left))
 					suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Right))

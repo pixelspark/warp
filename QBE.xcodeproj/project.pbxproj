@@ -41,8 +41,6 @@
 		65776F101A6470BB00F7F82A /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 652872921A5D16C200C155FA /* SwiftParser.framework */; };
 		65776F121A6483AD00F7F82A /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65776F111A6483AD00F7F82A /* libsqlite3.dylib */; };
 		657A9C9B1AA1FC0600E28074 /* QBEFuture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657A9C9A1AA1FC0600E28074 /* QBEFuture.swift */; };
-		658285D51AA3CFA100EF9639 /* Set.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658285D41AA3CFA100EF9639 /* Set.swift */; };
-		658285D71AA3CFC500EF9639 /* Set.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658285D41AA3CFA100EF9639 /* Set.swift */; };
 		65894A091A67036200B0C161 /* QBELimitStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65894A0B1A67036200B0C161 /* QBELimitStepView.xib */; };
 		6589779E1A55C090001001F2 /* QBERowsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6589779D1A55C090001001F2 /* QBERowsStep.swift */; };
 		658977A31A57077E001001F2 /* QBESettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658977A21A57077E001001F2 /* QBESettingsViewController.swift */; };
@@ -193,7 +191,6 @@
 		65776EEF1A62FFD800F7F82A /* QBEAddColumnViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEAddColumnViewController.swift; sourceTree = "<group>"; };
 		65776F111A6483AD00F7F82A /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
 		657A9C9A1AA1FC0600E28074 /* QBEFuture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEFuture.swift; path = Engine/QBEFuture.swift; sourceTree = SOURCE_ROOT; };
-		658285D41AA3CFA100EF9639 /* Set.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Set.swift; path = Libraries/SwiftSets/Set.swift; sourceTree = "<group>"; };
 		65894A0A1A67036200B0C161 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBELimitStepView.xib; sourceTree = "<group>"; };
 		6589779D1A55C090001001F2 /* QBERowsStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBERowsStep.swift; path = Engine/QBERowsStep.swift; sourceTree = SOURCE_ROOT; };
 		658977A21A57077E001001F2 /* QBESettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESettingsViewController.swift; sourceTree = "<group>"; };
@@ -268,7 +265,6 @@
 		651988E71A0F9C39003463AA /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				658285D41AA3CFA100EF9639 /* Set.swift */,
 				6548F2331A8673BF00FE8EF2 /* extension-functions.c */,
 				65776F111A6483AD00F7F82A /* libsqlite3.dylib */,
 				6528728B1A5D16C200C155FA /* SwiftParser.xcodeproj */,
@@ -588,7 +584,6 @@
 				6506D3CD1A0A69C500F88F1E /* QBEValue.swift in Sources */,
 				659A27F11AA504F7009269A4 /* QBEFlattenStep.swift in Sources */,
 				656AA1F01A65BB90006D331A /* QBEStepView.swift in Sources */,
-				658285D51AA3CFA100EF9639 /* Set.swift in Sources */,
 				65ABB15E1A0ABF4A00A56C49 /* QBERaster.swift in Sources */,
 				65776EED1A62D8E700F7F82A /* QBEColumnsStep.swift in Sources */,
 				654AE17A1AA59B3B0022C533 /* QBEFilterStepView.swift in Sources */,
@@ -629,7 +624,6 @@
 				65D6F9E91A59C097006B6995 /* QBEData.swift in Sources */,
 				653E89651A6FA2D700E9A6F4 /* QBEStream.swift in Sources */,
 				65D6F9E71A59BFA3006B6995 /* QBERaster.swift in Sources */,
-				658285D71AA3CFC500EF9639 /* Set.swift in Sources */,
 				65D6F9EB1A59C09C006B6995 /* QBEStep.swift in Sources */,
 				658C23B81A5F23A000D6B1D0 /* QBELocale.swift in Sources */,
 				65E3C3061A062E5E007BB3C8 /* QBETests.swift in Sources */,
@@ -884,6 +878,8 @@
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = QBE/QBEObjectiveCBridge.h;
+				SWIFT_OPTIMIZATION_LEVEL = "-Ounchecked";
+				SWIFT_WHOLE_MODULE_OPTIMIZATION = YES;
 				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Release;

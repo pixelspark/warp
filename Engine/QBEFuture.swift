@@ -80,7 +80,7 @@ invalidated (pre-registered callbacks may still receive the stale result when it
 class QBEFuture<T> {
 	typealias Callback = QBEBatch<T>.Callback
 	typealias SimpleProducer = (Callback) -> ()
-	typealias Producer = (Callback, QBEJob?) -> ()
+	typealias Producer = (QBEJob?, Callback) -> ()
 	private var batch: QBEBatch<T>?
 	
 	var calculating: Bool { get {
@@ -94,14 +94,14 @@ class QBEFuture<T> {
 	}
 	
 	init(_ producer: SimpleProducer) {
-		self.producer = {(callback, job) in producer(callback)}
+		self.producer = {(job, callback) in producer(callback)}
 	}
 	
 	private func calculate() {
 		assert(batch != nil, "calculate() called without a current batch")
 		
 		if let batch = self.batch {
-			producer(batch.satisfy, batch)
+			producer(batch, batch.satisfy)
 		}
 	}
 	

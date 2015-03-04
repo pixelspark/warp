@@ -81,7 +81,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				refreshData()
 			}
 			else {
-				previewStep?.exampleData({ (d) -> () in
+				previewStep?.exampleData(nil, callback: { (d) -> () in
 					self.presentData(d)
 				})
 			}
@@ -105,11 +105,11 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		if let d = data {
 			if let dataView = self.dataViewController {
 				QBEAsyncBackground {
-					d.raster({ (raster) -> () in
+					d.raster(nil, callback: { (raster) -> () in
 						QBEAsyncMain {
 							self.presentRaster(raster)
 						}
-						}, job: nil)
+					})
 				}
 			}
 		}
@@ -131,12 +131,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			
 			currentData = QBEFuture<QBEData>(useFullData ? s.fullData : s.exampleData)
 			
-			currentRaster = QBEFuture<QBERaster>({(callback: QBEFuture<QBERaster>.Callback, job: QBEJob?) in
+			currentRaster = QBEFuture<QBERaster>({(job: QBEJob?, callback: QBEFuture<QBERaster>.Callback) in
 				if let cd = self.currentData {
-					cd.get({ (data: QBEData?) -> () in
-						if let d = data {
-							d.raster(callback, job: job)
-						}
+					cd.get({ (data: QBEData) -> () in
+						data.raster(job, callback: callback)
 					})
 				}
 			})
@@ -306,11 +304,11 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	private func selectColumns(remove: Bool) {
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			// Get the names of the columns to remove
-			currentStep?.exampleData({ (data: QBEData?) -> () in
+			currentStep?.exampleData(nil, callback: { (data: QBEData) -> () in
 				var namesToRemove: [QBEColumn] = []
 				var namesToSelect: [QBEColumn] = []
 				
-				data?.columnNames({ (columnNames) -> () in
+				data.columnNames({ (columnNames) -> () in
 					for i in 0..<columnNames.count {
 						if colsToRemove.containsIndex(i) {
 							namesToRemove.append(columnNames[i])
@@ -354,7 +352,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 					var relevantColumns = Set<QBEColumn>()
 					for columnIndex in 0..<raster.columnCount {
 						if selectedColumns.containsIndex(columnIndex) {
-							relevantColumns.add(raster.columnNames[columnIndex])
+							relevantColumns.insert(raster.columnNames[columnIndex])
 						}
 					}
 
@@ -375,7 +373,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 					var relevantColumns = Set<QBEColumn>()
 					for columnIndex in 0..<raster.columnCount {
 						if selectedColumns.containsIndex(columnIndex) {
-							relevantColumns.add(raster.columnNames[columnIndex])
+							relevantColumns.insert(raster.columnNames[columnIndex])
 						}
 					}
 					
@@ -553,19 +551,17 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			if result == NSFileHandlingPanelOKButton {
 				QBEAsyncBackground {
 					if let cs = self.currentStep {
-						cs.fullData({(data: QBEData?) -> () in
-							if data != nil {
-								let wr = QBECSVWriter(data: data!, locale: self.locale)
-								if let url = ns.URL {
-									wr.writeToFile(url, callback: {
-										QBEAsyncMain {
-											let alert = NSAlert()
-											alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
-											alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (response) -> Void in
-											})
-										}
-									})
-								}
+						cs.fullData(nil, callback: {(data: QBEData) -> () in
+							let wr = QBECSVWriter(data: data, locale: self.locale)
+							if let url = ns.URL {
+								wr.writeToFile(url, callback: {
+									QBEAsyncMain {
+										let alert = NSAlert()
+										alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
+										alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (response) -> Void in
+										})
+									}
+								})
 							}
 						})
 					}

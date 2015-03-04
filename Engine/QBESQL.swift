@@ -261,7 +261,7 @@ class QBESQLData: NSObject, QBEData {
 		callback(columns)
 	}
 	
-	func raster(callback: (QBERaster) -> (), job: QBEJob?) {
+	func raster(job: QBEJob?, callback: (QBERaster) -> ()) {
 		fatalError("Raster should be implemented by sublcass")
 	}
     
@@ -357,10 +357,10 @@ class QBESQLData: NSObject, QBEData {
 			let query = "SELECT DISTINCT \(expressionString) AS _value FROM \(self.sql)"
 			let data = apply(query, resultingColumns: ["_value"])
 			
-			data.raster({ (raster) -> () in
+			data.raster(nil, callback: { (raster) -> () in
 				let values = Set<QBEValue>(raster.raster.map({$0[0]}))
 				callback(values)
-			}, job: nil)
+			})
 		}
 		else {
 			return fallback().unique(expression, callback: callback)

@@ -35,7 +35,7 @@ class QBEDocument: NSDocument, NSCoding {
 	
 	override func makeWindowControllers() {
 		let storyboard = NSStoryboard(name: "Main", bundle: nil)!
-		let windowController = storyboard.instantiateControllerWithIdentifier("Document Window Controller") as NSWindowController
+		let windowController = storyboard.instantiateControllerWithIdentifier("Document Window Controller") as! NSWindowController
 		self.addWindowController(windowController)
 	}
 	

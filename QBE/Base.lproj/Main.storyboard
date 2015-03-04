@@ -32,7 +32,7 @@
                                             <menu key="submenu" title="Services" systemMenu="services" id="hz9-B4-Xy5"/>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="4je-JR-u6R"/>
-                                        <menuItem title="Hide QBE" keyEquivalent="h" id="Olw-nP-bQN">
+                                        <menuItem title="Hide Warp" keyEquivalent="h" id="Olw-nP-bQN">
                                             <connections>
                                                 <action selector="hide:" target="Ady-hI-5gd" id="PnN-Uc-m68"/>
                                             </connections>
@@ -788,7 +788,7 @@ CA
                 <customObject id="Voe-Tx-rLC" customClass="QBEAppDelegate" customModule="Warp" customModuleProvider="target"/>
                 <customObject id="Ady-hI-5gd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="184.5" y="-738"/>
+            <point key="canvasLocation" x="184.5" y="-795"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="FNS-F6-MVa">
@@ -807,7 +807,7 @@ CA
                 </windowController>
                 <customObject id="UU6-vb-q0Z" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="184" y="-314"/>
+            <point key="canvasLocation" x="184" y="-389"/>
         </scene>
         <!--Settings View Controller-->
         <scene sceneID="q8y-wj-17x">
@@ -853,7 +853,7 @@ CA
                 <customObject id="dH1-QD-FHa" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController id="UfJ-Kh-gyi"/>
             </objects>
-            <point key="canvasLocation" x="878" y="-321"/>
+            <point key="canvasLocation" x="778" y="-395"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="R2V-B0-nI4">

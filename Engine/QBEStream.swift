@@ -43,7 +43,7 @@ class QBEStreamData: QBEData {
 		return QBERasterData(future: raster)
 	}
 
-	func raster(callback: (QBERaster) -> (), job: QBEJob?) {
+	func raster(job: QBEJob?, callback: (QBERaster) -> ()) {
 		var data: [QBERow] = []
 		
 		let s = source.clone()

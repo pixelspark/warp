@@ -168,7 +168,7 @@ protocol QBEData {
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData
 	
 	/** An in-memory representation (QBERaster) of the data set. **/
-	func raster(callback: (QBERaster) -> (), job: QBEJob?)
+	func raster(job: QBEJob?, callback: (QBERaster) -> ())
 	
 	/** Returns the names of the columns in the data set. The list of column names is ordered. **/
 	func columnNames(callback: ([QBEColumn]) -> ())
@@ -194,7 +194,7 @@ class QBEProxyData: NSObject, QBEData {
 	func aggregate(groups: [QBEColumn: QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData { return data.aggregate(groups, values: values) }
 	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData { return data.pivot(horizontal, vertical: vertical, values: values) }
 	func stream() -> QBEStream? { return data.stream() }
-	func raster(callback: (QBERaster) -> (), job: QBEJob?) { return data.raster(callback, job: job) }
+	func raster(job: QBEJob?, callback: (QBERaster) -> ()) { return data.raster(job, callback: callback) }
 	func columnNames(callback: ([QBEColumn]) -> ()) { return data.columnNames(callback) }
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
 }

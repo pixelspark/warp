@@ -39,7 +39,7 @@ class QBEFlattenStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, callback: (QBEData) -> (), job: QBEJob?) {
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
 		/* If a column is set to put a row identifier in, but there is no expression, fill in an expression that uses the
 		value in the first column. */
 		if rowIdentifier == nil && rowColumn != nil {

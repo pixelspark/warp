@@ -385,7 +385,7 @@ enum QBEFunction: String {
 		case .Left:
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
-					if countElements(s) >= idx {
+					if count(s) >= idx {
 						let index = advance(s.startIndex, idx)
 						return QBEValue(s.substringToIndex(index))
 					}
@@ -396,7 +396,7 @@ enum QBEFunction: String {
 		case .Right:
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
-					if countElements(s) >= idx {
+					if count(s) >= idx {
 						let index = advance(s.endIndex, -idx)
 						return QBEValue(s.substringFromIndex(index))
 					}
@@ -408,7 +408,7 @@ enum QBEFunction: String {
 			if let s = arguments[0].stringValue {
 				if let start = arguments[1].intValue {
 					if let length = arguments[2].intValue {
-						let sourceLength = countElements(s)
+						let sourceLength = count(s)
 						if sourceLength >= start {
 							let index = advance(s.startIndex, start)
 							let end = sourceLength >= (start+length) ? advance(index, length) : s.endIndex
@@ -422,7 +422,7 @@ enum QBEFunction: String {
 			
 		case .Length:
 			if let s = arguments[0].stringValue {
-				return QBEValue(countElements(s))
+				return QBEValue(count(s))
 			}
 			return QBEValue.InvalidValue
 			

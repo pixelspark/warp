@@ -21,11 +21,11 @@ class QBERasterStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func fullData(callback: (QBEData) -> (), job: QBEJob?) {
+	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
 		callback(staticFullData)
 	}
 	
-	override func exampleData(callback: (QBEData) -> (), job: QBEJob?) {
+	override func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
 		callback(staticExampleData)
 	}
 }

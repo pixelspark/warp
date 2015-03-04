@@ -1,6 +1,6 @@
 import Foundation
 
-private class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
+class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	let parser: CHCSVParser
 	let url: NSURL
 
@@ -161,7 +161,7 @@ class QBECSVSourceStep: QBEStep {
 	var hasHeaders: Bool { didSet { cachedData = nil; } }
 	var useCaching: Bool { didSet { cachedData = nil; } }
 	
-	override func fullData(callback: (QBEData) -> (), job: QBEJob?) {
+	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
 		if cachedData == nil {
 			if let url = NSURL(string: self.url) {
 				let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders)
@@ -177,10 +177,10 @@ class QBECSVSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleData(callback: (QBEData) -> (), job: QBEJob?) {
-		self.fullData({ (fullData) -> () in
+	override func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
+		self.fullData(job, callback: { (fullData) -> () in
 			callback(fullData.limit(100))
-		}, job: job)
+		})
 	}
 	
 	init(url: NSURL) {

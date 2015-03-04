@@ -307,7 +307,7 @@ class QBESQLiteData: QBESQLData {
 		return QBESQLiteStream(data: self)
 	}
 	
-	override func raster(callback: (QBERaster) -> (), job: QBEJob?) {
+	override func raster(job: QBEJob?, callback: (QBERaster) -> ()) {
 		if let result = self.db.query(self.sql) {
 			let columnNames = result.columnNames
 			var newRaster: [[QBEValue]] = []
@@ -342,20 +342,22 @@ class QBESQLiteCachedData: QBEProxyData {
 				}).implode(", ")!
 				
 				let sql = "CREATE TABLE \(self.tableName) (\(columnSpec))"
-				self.database.query(sql)!.run()
-				self.stream = source.stream()
-				
-				// We do not need to wait for this cached data to be written to disk
-				self.database.query("PRAGMA synchronous = OFF")?.run()
-				self.database.query("PRAGMA journal_mode = MEMORY")?.run()
-				self.database.query("BEGIN TRANSACTION")?.run()
-				
-				// Prepare the insert-statement
-				let values = columns.map({(m) -> String in return "?"}).implode(",") ?? ""
-				self.insertStatement = self.database.query("INSERT INTO \(self.tableName) VALUES (\(values))")
-				
-				self.stream?.fetch(self.ingest, job: nil)
-			
+				if let q = self.database.query(sql) {
+					q.run()
+					
+					self.stream = source.stream()
+					
+					// We do not need to wait for this cached data to be written to disk
+					self.database.query("PRAGMA synchronous = OFF")?.run()
+					self.database.query("PRAGMA journal_mode = MEMORY")?.run()
+					self.database.query("BEGIN TRANSACTION")?.run()
+					
+					// Prepare the insert-statement
+					let values = columns.map({(m) -> String in return "?"}).implode(",") ?? ""
+					self.insertStatement = self.database.query("INSERT INTO \(self.tableName) VALUES (\(values))")
+					
+					self.stream?.fetch(self.ingest, job: nil)
+				}
 			}
 		}
 	}
@@ -419,7 +421,7 @@ class QBESQLiteSourceStep: QBEStep {
 		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName ?? "", url)
 	}
 	
-	override func fullData(callback: (QBEData) -> (), job: QBEJob?) {
+	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
 		if let d = db {
 			callback(QBESQLiteData(db: d, tableName: self.tableName ?? ""))
 		}
@@ -428,10 +430,10 @@ class QBESQLiteSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleData(callback: (QBEData) -> (), job: QBEJob?) {
-		self.fullData({ (fd) -> () in
+	override func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
+		self.fullData(job, callback: { (fd) -> () in
 			callback(fd.random(100))
-		}, job: job)
+		})
 	}
 	
 	required init(coder aDecoder: NSCoder) {

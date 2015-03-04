@@ -127,16 +127,16 @@ class QBETests: XCTestCase {
 		
 		// Test the raster data implementation (the tests below are valid for all QBEData implementations)
 		let data = QBERasterData(data: d, columnNames: [QBEColumn("X"), QBEColumn("Y"), QBEColumn("Z")])
-		data.limit(5).raster({ (r) -> () in
+		data.limit(5).raster(nil) { (r) -> () in
 			XCTAssert(r.rowCount == 5, "Limit actually works")
-		}, job: nil)
+		}
 		
 		data.selectColumns(["THIS_DOESNT_EXIST"]).columnNames { (r) -> () in
 			XCTAssert(r.count == 0, "Selecting an invalid column returns a set without columns")
 		}
 		
 		// Repeatedly transpose and check whether the expected number of rows and columns results
-		data.raster({ (r) -> () in
+		data.raster(nil) { (r) -> () in
 			let rowsBefore = r.rowCount
 			let columnsBefore = r.columnCount
 			
@@ -146,22 +146,22 @@ class QBETests: XCTestCase {
 					td = td.transpose()
 				}
 			
-				td.raster({ (s) -> () in
+				td.raster(nil) { (s) -> () in
 					XCTAssert(s.rowCount == columnsBefore-1, "Row count matches")
 					XCTAssert(s.columnCount == rowsBefore+1, "Column count matches")
-				}, job: nil)
+				}
 			}
-		}, job: nil)
+		}
 		
 		// Test an empty raster
 		let emptyRasterData = QBERasterData(data: [], columnNames: [])
-		emptyRasterData.limit(5).raster({(r) -> () in
+		emptyRasterData.limit(5).raster(nil) {(r) -> () in
 			XCTAssert(r.rowCount == 0, "Limit works when number of rows > available rows")
-		}, job: nil)
+		}
 		
-		emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).raster({ (r) -> () in
+		emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).raster(nil) { (r) -> () in
 			XCTAssert(r.columnNames.count == 0, "Selecting an invalid column works properly in empty raster")
-		}, job: nil)
+		}
 	}
 	
     func testQBERaster() {
@@ -171,12 +171,12 @@ class QBETests: XCTestCase {
 		}
 		
 		let rasterData = QBERasterData(data: d, columnNames: [QBEColumn("X"), QBEColumn("Y"), QBEColumn("Z")])
-		rasterData.raster({ (raster) -> () in
+		rasterData.raster(nil) { (raster) -> () in
 			XCTAssert(raster.indexOfColumnWithName("X")==0, "First column has index 0")
 			XCTAssert(raster.indexOfColumnWithName("x")==0, "Column names should be case-insensitive")
 			XCTAssert(raster.rowCount == 1001, "Row count matches")
 			XCTAssert(raster.columnCount == 3, "Column count matches")
-		}, job: nil)
+		}
     }
     
 }

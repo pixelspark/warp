@@ -54,7 +54,7 @@ internal extension Array {
 		
 		anotherSelf.each {
 			(current: Element) in
-			if current as U != element {
+			if (current as! U) != element {
 				self.append(current)
 			}
 		}
@@ -122,7 +122,7 @@ internal extension Int {
 
 internal func arc4random <T: IntegerLiteralConvertible> (type: T.Type) -> T {
 	var r: T = 0
-	arc4random_buf(&r, UInt(sizeof(T)))
+	arc4random_buf(&r, sizeof(T))
 	return r
 }
 
