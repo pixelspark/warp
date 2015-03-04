@@ -24,5 +24,6 @@ let QBEStepIcons = [
 	QBESQLiteSourceStep.className(): "SQLIcon",
 	QBECalculateStep.className(): "CalculateIcon",
 	QBEColumnsStep.className(): "ColumnsIcon",
-	QBEFlattenStep.className(): "FlattenIcon"
+	QBEFlattenStep.className(): "FlattenIcon",
+	QBEDistinctStep.className(): "DistinctIcon"
 ]
