@@ -9,6 +9,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	var tableView: MBTableGrid?
 	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var formulaField: NSTextField?
+	@IBOutlet var workingSetSelector: NSSegmentedControl!
 	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
 	
@@ -104,6 +105,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		tableView?.layer?.opacity = (hasNoData || calculating) ? 0.5 : 1.0;
 		progressView?.hidden = !calculating
 		formulaField?.enabled = !hasNoData
+		workingSetSelector?.enabled = !hasNoData || calculating
 		progressView?.indeterminate = progress <= 0.0
 		progressView?.doubleValue = progress
 		progressView?.minValue = 0.0

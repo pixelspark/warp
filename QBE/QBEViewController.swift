@@ -149,7 +149,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	private func refreshData() {
 		self.presentData(nil)
-		dataViewController?.calculating = true
+		dataViewController?.calculating = (currentRaster != nil)
 		
 		let job = currentRaster?.get({(raster) in
 			QBEAsyncMain {
@@ -167,6 +167,13 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		if currentStep != step {
 			currentStep = step
 		}
+	}
+	
+	func stepsController(vc: QBEStepsViewController, didRemoveStep step: QBEStep) {
+		if step == currentStep {
+			popStep()
+		}
+		remove(step)
 	}
 
 	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
@@ -272,24 +279,27 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		})
 	}
 	
+	private func remove(stepToRemove: QBEStep) {
+		let previous = stepToRemove.previous
+		previous?.next = stepToRemove.next
+		
+		if let next = stepToRemove.next {
+			next.previous = previous
+			stepToRemove.next = nil
+		}
+		
+		if document?.head == stepToRemove {
+			document?.head = stepToRemove.previous
+		}
+		
+		stepToRemove.previous = nil
+		stepsChanged()
+	}
+	
 	@IBAction func removeStep(sender: NSObject) {
 		if let stepToRemove = currentStep {
-			let previous = stepToRemove.previous
-			previous?.next = stepToRemove.next
-		
 			popStep()
-			
-			if let next = stepToRemove.next {
-				next.previous = previous
-				stepToRemove.next = nil
-			}
-		
-			if document?.head == stepToRemove {
-				document?.head = stepToRemove.previous
-			}
-		
-			stepToRemove.previous = nil
-			stepsChanged()
+			removeStep(stepToRemove)
 		}
 	}
 	

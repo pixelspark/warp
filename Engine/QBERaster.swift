@@ -200,24 +200,29 @@ class QBERasterData: NSObject, QBEData {
 	func transpose() -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in
 			// Find new column names (first column stays in place)
-			var columns: [QBEColumn] = [r.columnNames[0]]
-			for i in 0..<r.rowCount {
-				columns.append(QBEColumn(r[i, 0].stringValue ?? ""))
-			}
-			
-			var newData: [[QBEValue]] = []
-			
-			let columnNames = r.columnNames
-			for colNumber in 1..<r.columnCount {
-				let columnName = columnNames[colNumber];
-				var row: [QBEValue] = [QBEValue(columnName.name)]
-				for rowNumber in 0..<r.rowCount {
-					row.append(r[rowNumber, colNumber])
+			if r.columnNames.count > 0 {
+				var columns: [QBEColumn] = [r.columnNames[0]]
+				for i in 0..<r.rowCount {
+					columns.append(QBEColumn(r[i, 0].stringValue ?? ""))
 				}
-				newData.append(row)
+				
+				var newData: [[QBEValue]] = []
+				
+				let columnNames = r.columnNames
+				for colNumber in 1..<r.columnCount {
+					let columnName = columnNames[colNumber];
+					var row: [QBEValue] = [QBEValue(columnName.name)]
+					for rowNumber in 0..<r.rowCount {
+						row.append(r[rowNumber, colNumber])
+					}
+					newData.append(row)
+				}
+				
+				return QBERaster(data: newData, columnNames: columns, readOnly: true)
 			}
-			
-			return QBERaster(data: newData, columnNames: columns, readOnly: true)
+			else {
+				return QBERaster()
+			}
 		}
 	}
 	

@@ -1,8 +1,9 @@
 import Foundation
 import Cocoa
 
-protocol QBEStepsControllerDelegate: NSObjectProtocol {
+@objc protocol QBEStepsControllerDelegate: NSObjectProtocol {
 	func stepsController(vc: QBEStepsViewController, didSelectStep: QBEStep)
+	func stepsController(vc: QBEStepsViewController, didRemoveStep: QBEStep)
 }
 
 @IBDesignable class QBEStepsItemView: NSView {
@@ -11,6 +12,7 @@ protocol QBEStepsControllerDelegate: NSObjectProtocol {
 	@IBOutlet var imageView: NSImageView?
 	@IBOutlet var previousImageView: NSImageView?
 	@IBOutlet var nextImageView: NSImageView?
+	@IBOutlet var removeButton: NSButton?
 	
 	var selected: Bool = false { didSet {
 		update()
@@ -51,6 +53,16 @@ protocol QBEStepsControllerDelegate: NSObjectProtocol {
 		update()
 	} }
 	
+	@IBAction func remove(sender: NSObject) {
+		if let s = step {
+			if let cv = self.superview as? NSCollectionView {
+				if let sc = cv.delegate as? QBEStepsViewController {
+					sc.delegate?.stepsController(sc, didRemoveStep: s)
+				}
+			}
+		}
+	}
+	
 	private func update() {
 		if let e = step?.explanation {
 			label?.attributedStringValue = e
@@ -64,6 +76,7 @@ protocol QBEStepsControllerDelegate: NSObjectProtocol {
 				imageView?.image = NSImage(named: icon)
 			}
 			
+			removeButton?.hidden = !highlighted
 			nextImageView?.hidden = (s.next == nil) || selected || highlighted
 			previousImageView?.hidden = (s.previous == nil) // || selected || highlighted
 		}
@@ -110,6 +123,7 @@ class QBEStepsItem: NSCollectionViewItem {
 class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	@IBOutlet var collectionView: NSCollectionView!
 	weak var delegate: QBEStepsControllerDelegate?
+	private var contents: NSArrayController?
 	
 	private var ignoreSelection = false
 	
@@ -125,8 +139,14 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 		super.awakeFromNib()
 	}
 	
+	func delete(sender: NSObject) {
+		if let s = currentStep {
+			delegate?.stepsController(self, didRemoveStep: s)
+		}
+	}
+	
 	private func update() {
-		QBEAsyncMain {
+		//QBEAsyncMain {
 			if let cv = self.collectionView {
 				if cv.itemPrototype != nil {
 					cv.content = self.steps ?? []
@@ -145,7 +165,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 				
 				cv.selectionIndexes = indexSet
 			}
-		}
+		//}
 	}
 	
 	override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>) {
@@ -165,11 +185,16 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 				}
 			}
 		}
+		else {
+			ignoreSelection = true
+			self.update()
+			self.ignoreSelection = false
+		}
 	}
 	
 	override func viewWillAppear() {
 		collectionView?.itemPrototype = QBEStepsItem(nibName: "QBEStepsItem", bundle: nil)
-		collectionView?.content = steps ?? []
+		collectionView?.content = steps
 		collectionView.addObserver(self, forKeyPath: "selectionIndexes", options: NSKeyValueObservingOptions.New, context: nil)
 		update()
 	}

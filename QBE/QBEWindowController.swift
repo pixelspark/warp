@@ -13,6 +13,11 @@ internal class QBEWindowController: NSWindowController {
 		}
 	}
 	
+	override func windowDidLoad() {
+		self.window?.titlebarAppearsTransparent = true
+		self.window?.titleVisibility = NSWindowTitleVisibility.Visible
+	}
+	
 	@IBAction func shareDocument(sender: NSObject) {
 		/*if let listDocument = document as? ListDocument {
 		let listContents = ListFormatting.stringFromListItems(listDocument.list.items)

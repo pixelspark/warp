@@ -81,7 +81,7 @@
 "78Y-hA-62v.title" = "Corrigeer spelling automatisch";
 
 /* Class = "NSMenuItem"; title = "Keep only selected column(s)"; ObjectID = "7LD-D5-QvZ"; */
-"7LD-D5-QvZ.title" = "Behoud alleen de geselecteerde rij(en)";
+"7LD-D5-QvZ.title" = "Behoud alleen de geselecteerde kolom(men)";
 
 /* Class = "NSToolbarItem"; label = "Pivot"; ObjectID = "7Uz-TX-Nnq"; */
 "7Uz-TX-Nnq.label" = "Draaitabel";
@@ -96,10 +96,10 @@
 "7xy-Ap-xyj.ibShadowedNoSelectionPlaceholder" = "(Geen selectie)";
 
 /* Class = "NSSegmentedCell"; 8ie-uh-4mV.ibShadowedLabels[0] = "Selection"; ObjectID = "8ie-uh-4mV"; */
-"8ie-uh-4mV.ibShadowedLabels[0]" = "Selectie";
+"7bg-Hf-1SA.ibShadowedLabels[0]" = "Selectie";
 
 /* Class = "NSSegmentedCell"; 8ie-uh-4mV.ibShadowedLabels[1] = "All"; ObjectID = "8ie-uh-4mV"; */
-"8ie-uh-4mV.ibShadowedLabels[1]" = "Alles";
+"7bg-Hf-1SA.ibShadowedLabels[1]" = "Alles";
 
 /* Class = "NSMenu"; title = "Writing Direction"; ObjectID = "8mr-sm-Yjd"; */
 "8mr-sm-Yjd.title" = "Schrijfrichting";
