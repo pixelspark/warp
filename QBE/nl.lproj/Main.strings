@@ -66,7 +66,7 @@
 "5Vv-lz-BsD.title" = "Kopieer stijl";
 
 /* Class = "NSMenuItem"; title = "Export data..."; ObjectID = "5as-D7-7Ei"; */
-"5as-D7-7Ei.title" = "Exporteer gegevens...";
+"5as-D7-7Ei.title" = "Sla gegevens op in een bestand...";
 
 /* Class = "NSMenuItem"; title = "About..."; ObjectID = "5kV-Vb-QxS"; */
 "5kV-Vb-QxS.title" = "Over...";
@@ -431,7 +431,7 @@
 "eGF-3B-6fa.title" = "Kolommen";
 
 /* Class = "NSMenuItem"; title = "Import data..."; ObjectID = "fB4-We-7hb"; */
-"fB4-We-7hb.title" = "Importeer gegevens...";
+"fB4-We-7hb.title" = "Laad gegevens uit een bestand...";
 
 /* Class = "NSButtonCell"; title = "OK"; ObjectID = "fMr-YO-xzR"; */
 "fMr-YO-xzR.title" = "OK";
@@ -581,4 +581,5 @@
 "JN0-7D-bJs.title" = "Gegevens uitpakken...";
 "WGW-vi-DfZ.title" = "Verwijder dubbele rijen";
 "6yc-4E-Ad5.title" = "Verwijder rijen zoals deze...";
+"oO5-Wj-JT9.title" = "Laad gegevens uit een bestand...";
 

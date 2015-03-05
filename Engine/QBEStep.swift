@@ -79,7 +79,7 @@ enum QBEFileReference {
 	
 	static func create(url: NSURL?, _ bookmark: NSData?) -> QBEFileReference? {
 		if bookmark == nil {
-			if url == nil {
+			if url != nil {
 				return QBEFileReference.URL(url!)
 			}
 			else {
@@ -100,8 +100,15 @@ enum QBEFileReference {
 		switch self {
 		case .URL(let u):
 			var error: NSError? = nil
-			if let bookmark = u.bookmarkDataWithOptions(NSURLBookmarkCreationOptions.WithSecurityScope, includingResourceValuesForKeys: nil, relativeToURL: u, error: &error) {
-				return QBEFileReference.ResolvedBookmark(bookmark, u)
+			if let bookmark = u.bookmarkDataWithOptions(NSURLBookmarkCreationOptions.WithSecurityScope, includingResourceValuesForKeys: nil, relativeToURL: nil, error: &error) {
+				println("Bookmarked \(u): \(error) \(bookmark) relative to \(relativeToDocument)")
+				
+				if let resolved = NSURL(byResolvingBookmarkData: bookmark, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil, error: &error) {
+					return QBEFileReference.ResolvedBookmark(bookmark, resolved)
+				}
+				else {
+					println("Failed to resolve just-created bookmark: \(error)")
+				}
 			}
 			else {
 				println("Could not create bookmark for url \(u): \(error)")
@@ -112,6 +119,7 @@ enum QBEFileReference {
 			return self
 			
 		case .ResolvedBookmark(let b, let u):
+			println("Did not re-bookmark \(u): \(b)")
 			return self
 		}
 	}
@@ -123,17 +131,15 @@ enum QBEFileReference {
 			
 		case .ResolvedBookmark(let b, let oldURL):
 			var error: NSError? = nil
-			if let u = NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: relativeToDocument, bookmarkDataIsStale: nil, error: &error) {
-				println("Re-resolved bookmark \(b) --> \(u)")
+			if let u = NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil, error: &error) {
 				return QBEFileReference.ResolvedBookmark(b, u)
 			}
-			println("Could not re-resolve bookmark \(b) to \(oldURL): \(error)")
+			println("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(relativeToDocument): \(error)")
 			return self
 			
 		case .Bookmark(let b):
 			var error: NSError? = nil
-			if let u = NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: relativeToDocument, bookmarkDataIsStale: nil, error: &error) {
-				println("Resolved bookmark \(b) --> \(u)")
+			if let u = NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil, error: &error) {
 				return QBEFileReference.ResolvedBookmark(b, u)
 			}
 			println("Could not resolve secure bookmark \(b): \(error)")
@@ -143,17 +149,17 @@ enum QBEFileReference {
 	
 	var bookmark: NSData? { get {
 		switch self {
-		case .ResolvedBookmark(let d, _): return d
-		case .Bookmark(let d): return d
-		default: return nil
+			case .ResolvedBookmark(let d, _): return d
+			case .Bookmark(let d): return d
+			default: return nil
 		}
 		} }
 	
 	var url: NSURL? { get {
 		switch self {
-		case .URL(let u): return u
-		case .ResolvedBookmark(_, let u): return u
-		default: return nil
+			case .URL(let u): return u
+			case .ResolvedBookmark(_, let u): return u
+			default: return nil
 		}
 		} }
 }

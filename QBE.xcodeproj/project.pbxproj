@@ -87,6 +87,8 @@
 		654EBAAF1AA7A2AE00DDBBCA /* QBEFilterStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65C4F3A91A992A6C00197CF4 /* QBEFilterStepView.xib */; };
 		654EBAB11AA7A2AE00DDBBCA /* MBTableGrid.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		654EBAB21AA7A2AE00DDBBCA /* SwiftParser.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 652872921A5D16C200C155FA /* SwiftParser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		654EBAC21AA8B73C00DDBBCA /* Warp.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 654EBA711AA7947400DDBBCA /* Warp.entitlements */; };
+		654EBAC31AA8B73D00DDBBCA /* Warp.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 654EBA711AA7947400DDBBCA /* Warp.entitlements */; };
 		6567AC881AA1C92D00640CC5 /* QBEStepsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6567AC871AA1C92D00640CC5 /* QBEStepsViewController.swift */; };
 		6567AC8B1AA1D12C00640CC5 /* QBEStepsItem.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6567AC8A1AA1D12C00640CC5 /* QBEStepsItem.xib */; };
 		656AA1F01A65BB90006D331A /* QBEStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656AA1EF1A65BB90006D331A /* QBEStepView.swift */; };
@@ -575,6 +577,7 @@
 				ORGANIZATIONNAME = Pixelspark;
 				TargetAttributes = {
 					654EBA721AA7A2AE00DDBBCA = {
+						DevelopmentTeam = 2T2T7HAA8S;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
 								enabled = 1;
@@ -671,6 +674,7 @@
 				654EBAA61AA7A2AE00DDBBCA /* Localizable.strings in Resources */,
 				654EBAA71AA7A2AE00DDBBCA /* QBECalculateStepView.xib in Resources */,
 				654EBAA81AA7A2AE00DDBBCA /* QBERandomStepView.xib in Resources */,
+				654EBAC21AA8B73C00DDBBCA /* Warp.entitlements in Resources */,
 				654EBAA91AA7A2AE00DDBBCA /* Images.xcassets in Resources */,
 				654EBAAA1AA7A2AE00DDBBCA /* Main.storyboard in Resources */,
 				654EBAAB1AA7A2AE00DDBBCA /* QBESQLiteSourceStepView.xib in Resources */,
@@ -690,6 +694,7 @@
 				6593B7341AA37AE200BE9726 /* Localizable.strings in Resources */,
 				65F4E2671A683B3600BB57B8 /* QBECalculateStepView.xib in Resources */,
 				65DBA5651A798F35004CDF36 /* QBERandomStepView.xib in Resources */,
+				654EBAC31AA8B73D00DDBBCA /* Warp.entitlements in Resources */,
 				65E3C2F71A062E5E007BB3C8 /* Images.xcassets in Resources */,
 				65E3C2FA1A062E5E007BB3C8 /* Main.storyboard in Resources */,
 				65A7FC5B1A667F860019B747 /* QBESQLiteSourceStepView.xib in Resources */,
@@ -969,6 +974,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Warp.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -989,6 +995,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Warp.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = "Warp App Store-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -1090,6 +1097,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -1109,6 +1117,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = QBE/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";

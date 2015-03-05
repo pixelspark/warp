@@ -504,12 +504,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func addStep(sender: NSView) {
-		if currentStep == nil {
-			self.importFile(sender)
-		}
-		else {
-			NSMenu.popUpContextMenu(self.addStepMenu!, withEvent: NSApplication.sharedApplication().currentEvent!, forView: sender)
-		}
+		NSMenu.popUpContextMenu(self.addStepMenu!, withEvent: NSApplication.sharedApplication().currentEvent!, forView: sender)
 	}
 	
 	@IBAction func importFile(sender: NSObject) {
