@@ -10,7 +10,6 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 
 
 class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate {
-	let locale: QBELocale = QBEDefaultLocale()
 	var dataViewController: QBEDataViewController?
 	var stepsViewController: QBEStepsViewController?
 	var suggestions: [QBEStep]?
@@ -31,6 +30,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			}
 		}
 	}
+	
+	internal var locale: QBELocale { get {
+		return QBEAppDelegate.sharedInstance.locale ?? QBELocale()
+	} }
 	
 	var configuratorViewController: NSViewController? {
 		willSet(newValue) {

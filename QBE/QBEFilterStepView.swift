@@ -27,21 +27,25 @@ class QBEFilterStepView: NSViewController {
 	internal override func viewWillAppear() {
 		super.viewWillAppear()
 		if let s = step {
-			self.formulaField?.stringValue = "=" + (s.condition?.toFormula(self.delegate?.locale ?? QBEDefaultLocale()) ?? "")
+			self.formulaField?.stringValue = "=" + (s.condition?.toFormula(self.delegate?.locale ?? QBELocale()) ?? "")
 		}
 	}
 	
 	@IBAction func update(sender: NSObject) {
 		if let s = step {
-			let oldFormula = "=" + (s.condition?.toFormula(self.delegate?.locale ?? QBEDefaultLocale()) ?? "");
+			let oldFormula = "=" + (s.condition?.toFormula(self.delegate?.locale ?? QBELocale()) ?? "");
 			if let f = self.formulaField?.stringValue {
 				if f != oldFormula {
-					if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBEDefaultLocale()))?.root {
-						self.formulaField?.stringValue = "="+parsed.toFormula(self.delegate?.locale ?? QBEDefaultLocale())
+					if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale()))?.root {
+						self.formulaField?.stringValue = "="+parsed.toFormula(self.delegate?.locale ?? QBELocale())
 						s.condition = parsed
 					}
 					else {
-						// TODO parsing error
+						// TODO this should be a bit more informative
+						let a = NSAlert()
+						a.messageText = NSLocalizedString("The formula you typed is not valid.", comment: "")
+						a.alertStyle = NSAlertStyle.WarningAlertStyle
+						a.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
 					}
 					delegate?.suggestionsView(self, previewStep: s)
 				}

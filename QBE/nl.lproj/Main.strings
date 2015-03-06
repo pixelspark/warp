@@ -573,6 +573,7 @@
 
 /* Class = "NSTextFieldCell"; title = "Default field separator:"; ObjectID = "zRv-Pg-yZW"; */
 "zRv-Pg-yZW.title" = "Standaard veldscheidingsteken:";
+"yiB-vE-P4g.title" = "Formuletaal:";
 
 "zOH-It-cbM.title" = "Selecteer rij(en) zoals deze...";
 "3Yw-cV-pc0.title" = "Verwissel rij(en) met kolommen";
@@ -582,4 +583,4 @@
 "WGW-vi-DfZ.title" = "Verwijder dubbele rijen";
 "6yc-4E-Ad5.title" = "Verwijder rijen zoals deze...";
 "oO5-Wj-JT9.title" = "Laad gegevens uit een bestand...";
-
+"amm-s8-FIg.placeholderString" = "(automatisch)";

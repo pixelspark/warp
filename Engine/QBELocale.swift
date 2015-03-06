@@ -14,47 +14,15 @@ let QBEPackEscape = "$"
 let QBEPackSeparatorEscape = "$0"
 let QBEPackEscapeEscape = "$1"
 
-/** QBELocale contains settings that determine how values are presented to the user. Results from QBELocale are *never* 
-used in a calculation, as they change when the user selects a different locale. **/
-protocol QBELocale: NSObjectProtocol {
-	/** The decimal separator symbol **/
-	var decimalSeparator: String { get }
-	
-	/** Start and end of string literal **/
-	var stringQualifier: Character { get }
-	
-	var argumentSeparator: String { get }
-	
-	/** A list of common field separators (e.g. for parsing CSVs). Note that currently, only single-character separators
-	are supported. **/
-	var commonFieldSeparators: [String] { get }
-	
-	/** String to use when the string qualifier needs to appear in a string itself **/
-	var stringQualifierEscape: String { get }
-	
-	var currentCellIdentifier: String { get }
-	
-	/** All constants that can be used in formulas (optionally the UI can choose to translate numbers back to constant 
-	names, but this is not done often, only for boolean values) **/
-	var constants: [QBEValue:String] { get }
-	
-	/** Returns the function for the specified name, or nil if that function doesn't exist. **/
-	func functionWithName(name: String) -> QBEFunction?
-	
-	func nameForFunction(function: QBEFunction) -> String?
-	
-	/** For CSV writing and reading **/
-	func csvRow(row: [QBEValue]) -> String
-}
-
 /** The default dialect for formulas reflects the English version of Excel closely. **/
-class QBEDefaultLocale: NSObject, QBELocale {
+class QBELocale: NSObject {
+	typealias QBELanguage = String
+	
 	let decimalSeparator = "."
 	let stringQualifier: Character = "\""
 	let stringQualifierEscape = "\"\""
 	let argumentSeparator = ";"
 	let currentCellIdentifier = "RC"
-	
 	let csvFieldSeparator = ";"
 	let csvLineSeparator = "\r\n"
 	let csvStringQualifier = "\""
@@ -62,69 +30,122 @@ class QBEDefaultLocale: NSObject, QBELocale {
 	let commonFieldSeparators = [";",",","|","\t"]
 	
 	let constants: [QBEValue: String]
-	
 	private let functions: [String: QBEFunction]
 	
-	private let defaultConstants = [
-		QBEValue(true): "TRUE",
-		QBEValue(false): "FALSE",
-		QBEValue(3.141592654): "PI"
+	static let languages: [QBELanguage: String] = [
+		"nl": NSLocalizedString("Dutch", comment: ""),
+		"en": NSLocalizedString("English", comment: "")
 	]
 	
-	private let defaultFunctions: [String: QBEFunction] = [
-		"UPPER": QBEFunction.Uppercase,
-		"LOWER": QBEFunction.Lowercase,
-		"ABS": QBEFunction.Absolute,
-		"AND": QBEFunction.And,
-		"OR": QBEFunction.Or,
-		"SQRT": QBEFunction.Sqrt,
-		"SIN": QBEFunction.Sin,
-		"COS": QBEFunction.Cos,
-		"TAN": QBEFunction.Tan,
-		"ASIN": QBEFunction.Asin,
-		"ACOS": QBEFunction.Acos,
-		"ATAN": QBEFunction.Atan,
-		"SINH": QBEFunction.Sinh,
-		"COSH": QBEFunction.Cosh,
-		"TANH": QBEFunction.Tanh,
-		"IF": QBEFunction.If,
-		"CONCAT": QBEFunction.Concat,
-		"LEFT": QBEFunction.Left,
-		"RIGHT": QBEFunction.Right,
-		"MID": QBEFunction.Mid,
-		"LENGTH": QBEFunction.Length,
-		"LOG": QBEFunction.Log,
-		"NOT": QBEFunction.Not,
-		"XOR": QBEFunction.Xor,
-		"REPLACE": QBEFunction.Substitute,
-		"TRIM": QBEFunction.Trim,
-		"SUM": QBEFunction.Sum,
-		"COUNT": QBEFunction.Count,
-		"AVERAGE": QBEFunction.Average,
-		"COUNTARGS": QBEFunction.CountAll,
-		"MIN": QBEFunction.Min,
-		"MAX": QBEFunction.Max,
-		"EXP": QBEFunction.Exp,
-		"LN": QBEFunction.Ln,
-		"ROUND": QBEFunction.Round,
-		"CHOOSE": QBEFunction.Choose,
-		"RANDBETWEEN": QBEFunction.RandomBetween,
-		"RANDOM": QBEFunction.Random,
+	static let defaultLanguage: QBELanguage = "en"
+	
+	private static let allConstants: [QBELanguage: [QBEValue: String]] = [
+		"en": [
+			QBEValue(true): "TRUE",
+			QBEValue(false): "FALSE",
+			QBEValue(3.141592654): "PI"
+		],
 		
-		// Non-Excel functions
-		"COALESCE": QBEFunction.Coalesce,
-		"IFERROR": QBEFunction.IfError,
-		"PACK": QBEFunction.Pack
+		"nl": [
+			QBEValue(true): "WAAR",
+			QBEValue(false): "ONWAAR",
+			QBEValue(3.141592654): "PI"
+		]
 	]
 	
-	internal init(functions: [String: QBEFunction], constants: [QBEValue: String]) {
-		self.functions = functions
-		self.constants = constants
-	}
+	private static let allFunctions: [QBELanguage: [String: QBEFunction]] = [
+		"en": [
+			"UPPER": QBEFunction.Uppercase,
+			"LOWER": QBEFunction.Lowercase,
+			"ABS": QBEFunction.Absolute,
+			"AND": QBEFunction.And,
+			"OR": QBEFunction.Or,
+			"SQRT": QBEFunction.Sqrt,
+			"SIN": QBEFunction.Sin,
+			"COS": QBEFunction.Cos,
+			"TAN": QBEFunction.Tan,
+			"ASIN": QBEFunction.Asin,
+			"ACOS": QBEFunction.Acos,
+			"ATAN": QBEFunction.Atan,
+			"SINH": QBEFunction.Sinh,
+			"COSH": QBEFunction.Cosh,
+			"TANH": QBEFunction.Tanh,
+			"IF": QBEFunction.If,
+			"CONCAT": QBEFunction.Concat,
+			"LEFT": QBEFunction.Left,
+			"RIGHT": QBEFunction.Right,
+			"MID": QBEFunction.Mid,
+			"LENGTH": QBEFunction.Length,
+			"LOG": QBEFunction.Log,
+			"NOT": QBEFunction.Not,
+			"XOR": QBEFunction.Xor,
+			"REPLACE": QBEFunction.Substitute,
+			"TRIM": QBEFunction.Trim,
+			"SUM": QBEFunction.Sum,
+			"COUNT": QBEFunction.Count,
+			"AVERAGE": QBEFunction.Average,
+			"COUNTA": QBEFunction.CountAll,
+			"MIN": QBEFunction.Min,
+			"MAX": QBEFunction.Max,
+			"EXP": QBEFunction.Exp,
+			"LN": QBEFunction.Ln,
+			"ROUND": QBEFunction.Round,
+			"CHOOSE": QBEFunction.Choose,
+			"RANDBETWEEN": QBEFunction.RandomBetween,
+			"RAND": QBEFunction.Random,
+			"COALESCE": QBEFunction.Coalesce,
+			"IFERROR": QBEFunction.IfError,
+			"PACK": QBEFunction.Pack
+		],
+		
+		"nl": [
+			"ABS": QBEFunction.Absolute,
+			"BOOGCOS": QBEFunction.Acos,
+			"EN": QBEFunction.And,
+			"BOOGSIN": QBEFunction.Asin,
+			"BOOGTAN": QBEFunction.Atan,
+			"GEMIDDELDE": QBEFunction.Average,
+			"KIEZEN": QBEFunction.Choose,
+			"TEKST.SAMENVOEGEN": QBEFunction.Concat,
+			"COS": QBEFunction.Cos,
+			"COSH": QBEFunction.Cosh,
+			"AANTAL": QBEFunction.Count,
+			"AANTALARG": QBEFunction.CountAll,
+			"EXP": QBEFunction.Exp,
+			"ALS": QBEFunction.If,
+			"ALS.FOUT": QBEFunction.IfError,
+			"LINKS": QBEFunction.Left,
+			"LENGTE": QBEFunction.Length,
+			"LN": QBEFunction.Ln,
+			"LOG": QBEFunction.Log,
+			"KLEINE.LETTERS": QBEFunction.Lowercase,
+			"MAX": QBEFunction.Max,
+			"DEEL": QBEFunction.Mid,
+			"MIN": QBEFunction.Min,
+			"NIET": QBEFunction.Not,
+			"OF": QBEFunction.Or,
+			"ASELECT": QBEFunction.Random,
+			"ASELECTTUSSEN": QBEFunction.RandomBetween,
+			"RECHTS": QBEFunction.Right,
+			"AFRONDEN": QBEFunction.Round,
+			"SIN": QBEFunction.Sin,
+			"SINH": QBEFunction.Sinh,
+			"WORTEL": QBEFunction.Sqrt,
+			"SUBSTITUEREN": QBEFunction.Substitute,
+			"SOM": QBEFunction.Sum,
+			"TAN": QBEFunction.Tan,
+			"TANH": QBEFunction.Tanh,
+			"SPATIES.WISSEN": QBEFunction.Trim,
+			"HOOFDLETTERS": QBEFunction.Uppercase,
+			"EX.OF": QBEFunction.Xor,
+			"EERSTE.GELDIG": QBEFunction.Coalesce,
+			"INPAKKEN": QBEFunction.Pack,
+		]
+	]
 	
-	override init() {
-		functions = defaultFunctions
-		constants = defaultConstants
+	init(language: QBELanguage = QBELocale.defaultLanguage) {
+		functions = QBELocale.allFunctions[language] ?? QBELocale.allFunctions[QBELocale.defaultLanguage]!
+		constants = QBELocale.allConstants[language] ?? QBELocale.allConstants[QBELocale.defaultLanguage]!
 	}
 	
 	func functionWithName(name: String) -> QBEFunction? {

@@ -46,7 +46,7 @@ import Cocoa
 	}
 	
 	override func view(view: NSView, stringForToolTip tag: NSToolTipTag, point: NSPoint, userData data: UnsafeMutablePointer<Void>) -> String {
-		return step?.explain(QBEDefaultLocale(), short: false) ?? ""
+		return step?.explain(QBELocale(), short: false) ?? ""
 	}
 	
 	var step: QBEStep? { didSet {
@@ -64,7 +64,7 @@ import Cocoa
 	}
 	
 	private func update() {
-		label?.attributedStringValue = NSAttributedString(string: step?.explain(QBEDefaultLocale(), short: true) ?? "??")
+		label?.attributedStringValue = NSAttributedString(string: step?.explain(QBELocale(), short: true) ?? "??")
 		
 		if let s = step {
 			if let icon = QBEStepIcons[s.className] {

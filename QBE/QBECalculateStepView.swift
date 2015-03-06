@@ -30,7 +30,7 @@ internal class QBECalculateStepView: NSViewController {
 		super.viewWillAppear()
 		if let s = step {
 			self.targetColumnNameField?.stringValue = s.targetColumn.name
-			self.formulaField?.stringValue = "=" + s.function.toFormula(self.delegate?.locale ?? QBEDefaultLocale())
+			self.formulaField?.stringValue = "=" + s.function.toFormula(self.delegate?.locale ?? QBELocale())
 		}
 	}
 	
@@ -38,11 +38,15 @@ internal class QBECalculateStepView: NSViewController {
 		if let s = step {
 			s.targetColumn = QBEColumn(self.targetColumnNameField?.stringValue ?? s.targetColumn.name)
 			if let f = self.formulaField?.stringValue {
-				if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBEDefaultLocale()))?.root {
+				if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale()))?.root {
 					s.function = parsed
 				}
 				else {
-					// TODO parsing error
+					// TODO: this should be a bit more informative
+					let a = NSAlert()
+					a.messageText = NSLocalizedString("The formula you typed is not valid.", comment: "")
+					a.alertStyle = NSAlertStyle.WarningAlertStyle
+					a.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
 				}
 			}
 			delegate?.suggestionsView(self, previewStep: s)

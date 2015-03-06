@@ -5,8 +5,17 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate {
 	var locale: QBELocale!
 	
 	func applicationDidFinishLaunching(aNotification: NSNotification) {
-		// Insert code here to initialize your application
-		self.locale = QBEDefaultLocale()
+		applyDefaults()
+		NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("defaultsChanged:"), name: NSUserDefaultsDidChangeNotification, object: nil)
+	}
+	
+	func defaultsChanged(nf: NSNotification) {
+		applyDefaults()
+	}
+	
+	private func applyDefaults() {
+		let language = NSUserDefaults.standardUserDefaults().stringForKey("locale") ?? QBELocale.defaultLanguage
+		self.locale = QBELocale(language: language)
 	}
 	
 	func applicationWillTerminate(aNotification: NSNotification) {
