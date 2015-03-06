@@ -108,6 +108,14 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEFunction.Count.apply([]) == QBEValue(0), "Empty count returns zero")
 		XCTAssert(QBEFunction.Count.apply([QBEValue(1), QBEValue(1), QBEValue.InvalidValue, QBEValue.EmptyValue]) == QBEValue(2), "Count does not include invalid values and empty values")
 		XCTAssert(QBEFunction.CountAll.apply([QBEValue(1), QBEValue(1), QBEValue.InvalidValue, QBEValue.EmptyValue]) == QBEValue(4), "CountAll includes invalid values and empty values")
+		
+		
+		// Binaries
+		XCTAssert(QBEBinary.ContainsString.apply(QBEValue("Tommy"), QBEValue("om"))==QBEValue(true), "Contains string operator should be case-insensitive")
+		XCTAssert(QBEBinary.ContainsString.apply(QBEValue("Tommy"), QBEValue("x"))==QBEValue(false), "Contains string operator should work")
+		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("Tom"))==QBEValue(true), "Strict contains string operator should work")
+		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("tom"))==QBEValue(false), "Strict contains string operator should be case-sensitive")
+		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("x"))==QBEValue(false), "Strict contains string operator should work")
 	}
 	
 	func testInferer() {

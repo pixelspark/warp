@@ -243,6 +243,8 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .LesserEqual:	return "(\(second)<=\(first))"
 			case .Equal:		return "(\(second)=\(first))"
 			case .NotEqual:		return "(\(second)<>\(first))"
+			case .ContainsString: return "INSTR(LOWER(\(second)), LOWER(\(first)))>0"
+			case .ContainsStringStrict: return "INSTR(\(second), \(first))>0"
 		}
 	}
 }
@@ -309,7 +311,7 @@ class QBESQLData: NSObject, QBEData {
 				}
 			}
 			else {
-				values.append(targetColumn.name)
+				values.append(dialect.columnIdentifier(targetColumn))
 			}
 		}
 		

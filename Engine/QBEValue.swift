@@ -574,6 +574,24 @@ func > (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 	return QBEValue(lhs > rhs)
 }
 
+func ~= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+	if let l = lhs.stringValue, r = rhs.stringValue {
+		return QBEValue.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) != nil)
+	}
+	return QBEValue.InvalidValue
+}
+
+infix operator ~~= {
+	associativity left precedence 120
+}
+
+func ~~= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+	if let l = lhs.stringValue, r = rhs.stringValue {
+		return QBEValue.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions.allZeros, range: nil, locale: nil) != nil)
+	}
+	return QBEValue.InvalidValue
+}
+
 prefix func - (lhs: QBEValue) -> QBEValue {
 	switch lhs {
 	case .IntValue(let i):

@@ -177,6 +177,14 @@ class QBEFormula: Parser {
 		pushBinary(QBEBinary.LesserEqual)
 	}
 	
+	private func pushContainsString() {
+		pushBinary(QBEBinary.ContainsString)
+	}
+	
+	private func pushContainsStringStrict() {
+		pushBinary(QBEBinary.ContainsStringStrict)
+	}
+	
 	private func pushEqual() {
 		pushBinary(QBEBinary.Equal)
 	}
@@ -252,13 +260,15 @@ class QBEFormula: Parser {
 		add_named_rule("concatenation", rule: addition ~ (("&" ~ addition) => pushConcat)*)
 		
 		// Comparisons
+		add_named_rule("containsString", rule: ("~=" ~ ^"concatenation") => pushContainsString)
+		add_named_rule("containsStringStrict", rule: ("~~=" ~ ^"concatenation") => pushContainsStringStrict)
 		add_named_rule("greater", rule: (">" ~ ^"concatenation") => pushGreater)
 		add_named_rule("greaterEqual", rule: (">=" ~ ^"concatenation") => pushGreaterEqual)
 		add_named_rule("lesser", rule: ("<" ~ ^"concatenation") => pushLesser)
 		add_named_rule("lesserEqual", rule: ("<=" ~ ^"concatenation") => pushLesserEqual)
 		add_named_rule("equal", rule: ("=" ~ ^"concatenation") => pushEqual)
 		add_named_rule("notEqual", rule: ("<>" ~ ^"concatenation") => pushNotEqual)
-		add_named_rule("logic", rule: ^"concatenation" ~ (^"greater" | ^"greaterEqual" | ^"lesser" | ^"lesserEqual" | ^"equal" | ^"notEqual")*)
+		add_named_rule("logic", rule: ^"concatenation" ~ (^"greater" | ^"greaterEqual" | ^"lesser" | ^"lesserEqual" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict")*)
 		let formula = "=" ~ (^"logic")*!*
 		start_rule = formula
 	}
