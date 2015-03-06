@@ -38,8 +38,10 @@ protocol QBELocale: NSObjectProtocol {
 	names, but this is not done often, only for boolean values) **/
 	var constants: [QBEValue:String] { get }
 	
-	/** A list of all function names and the QBEFunction they refer to. **/
-	var functions: [String: QBEFunction] { get }
+	/** Returns the function for the specified name, or nil if that function doesn't exist. **/
+	func functionWithName(name: String) -> QBEFunction?
+	
+	func nameForFunction(function: QBEFunction) -> String?
 	
 	/** For CSV writing and reading **/
 	func csvRow(row: [QBEValue]) -> String
@@ -57,16 +59,19 @@ class QBEDefaultLocale: NSObject, QBELocale {
 	let csvLineSeparator = "\r\n"
 	let csvStringQualifier = "\""
 	let csvStringEscaper = "\"\""
-	
 	let commonFieldSeparators = [";",",","|","\t"]
 	
-	let constants = [
+	let constants: [QBEValue: String]
+	
+	private let functions: [String: QBEFunction]
+	
+	private let defaultConstants = [
 		QBEValue(true): "TRUE",
 		QBEValue(false): "FALSE",
 		QBEValue(3.141592654): "PI"
 	]
 	
-	let functions = [
+	private let defaultFunctions: [String: QBEFunction] = [
 		"UPPER": QBEFunction.Uppercase,
 		"LOWER": QBEFunction.Lowercase,
 		"ABS": QBEFunction.Absolute,
@@ -111,6 +116,40 @@ class QBEDefaultLocale: NSObject, QBELocale {
 		"IFERROR": QBEFunction.IfError,
 		"PACK": QBEFunction.Pack
 	]
+	
+	internal init(functions: [String: QBEFunction], constants: [QBEValue: String]) {
+		self.functions = functions
+		self.constants = constants
+	}
+	
+	override init() {
+		functions = defaultFunctions
+		constants = defaultConstants
+	}
+	
+	func functionWithName(name: String) -> QBEFunction? {
+		if let qu = functions[name] {
+			return qu
+		}
+		else {
+			// Case insensitive function find (slower)
+			for (name, function) in functions {
+				if name.caseInsensitiveCompare(name) == NSComparisonResult.OrderedSame {
+					return function
+				}
+			}
+		}
+		return nil
+	}
+	
+	func nameForFunction(function: QBEFunction) -> String? {
+		for (name, f) in functions {
+			if function == f {
+				return name
+			}
+		}
+		return nil
+	}
 	
 	func csvRow(row: [QBEValue]) -> String {
 		var line = ""

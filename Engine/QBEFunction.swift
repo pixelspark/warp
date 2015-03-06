@@ -147,12 +147,7 @@ enum QBEFunction: String {
 	} }
 	
 	func toFormula(locale: QBELocale) -> String {
-		for (name, function) in locale.functions {
-			if function == self {
-				return name
-			}
-		}
-		return ""
+		return locale.nameForFunction(self) ?? ""
 	}
 	
 	var arity: QBEArity { get {
