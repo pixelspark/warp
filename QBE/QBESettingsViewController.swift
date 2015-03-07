@@ -1,6 +1,20 @@
 import Foundation
 import Cocoa
 
+class QBESettings {
+	static var locale: QBELocale.QBELanguage {
+		get {
+			return NSUserDefaults.standardUserDefaults().stringForKey("locale") ?? QBELocale.defaultLanguage
+		}
+	}
+	
+	static var defaultFieldSeparator: String {
+		get {
+			return NSUserDefaults.standardUserDefaults().stringForKey("defaultSeparator") ?? ","
+		}
+	}
+}
+
 class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 	@IBOutlet var separatorBox: NSComboBox?
 	@IBOutlet var localeBox: NSComboBox?
