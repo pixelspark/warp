@@ -11,6 +11,9 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 	
 	override func viewWillAppear() {
 		assert(locale != nil, "Locale needs to be set before presenting settings view controller")
+		
+		self.view.window?.titlebarAppearsTransparent = true
+		
 		if let language = NSUserDefaults.standardUserDefaults().stringForKey("locale") {
 			if let name = QBELocale.languages[language] {
 				self.localeBox?.stringValue = name
