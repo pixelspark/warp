@@ -2,6 +2,7 @@ import Cocoa
 
 protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 	func suggestionsView(view: NSViewController, didSelectStep: QBEStep)
+	func suggestionsView(view: NSViewController, didSelectAlternativeStep: QBEStep)
 	func suggestionsView(view: NSViewController, previewStep: QBEStep?)
 	func suggestionsViewDidCancel(view: NSViewController)
 	var currentStep: QBEStep? { get }
@@ -12,13 +13,13 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate {
 	var dataViewController: QBEDataViewController?
 	var stepsViewController: QBEStepsViewController?
-	var suggestions: [QBEStep]?
 	weak var windowController: QBEWindowController?
 	
 	@IBOutlet var descriptionField: NSTextField?
 	@IBOutlet var configuratorView: NSView?
 	@IBOutlet var titleLabel: NSTextField?
 	@IBOutlet var addStepMenu: NSMenu?
+	@IBOutlet var suggestionsButton: NSButton?
 	
 	internal var currentData: QBEFuture<QBEData>?
 	internal var currentRaster: QBEFuture<QBERaster>?
@@ -67,7 +68,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				let StepView = QBEStepViews[className]?(step: s, delegate: self)
 				self.configuratorViewController = StepView
 				self.titleLabel?.attributedStringValue = NSAttributedString(string: s.explain(locale))
-				
 				calculate()
 			}
 			else {
@@ -78,6 +78,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			
 			self.stepsViewController?.currentStep = currentStep
 			self.view.window?.update()
+			updateView()
 		}
 	}
 	
@@ -186,7 +187,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		currentRaster?.get({(raster) in
 			QBEAsyncBackground {
 				let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale)
-				let steps = expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)})
+				let steps = Set(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)}))
 				
 				QBEAsyncMain {
 					self.suggestSteps(steps)
@@ -199,6 +200,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	private func stepsChanged() {
 		self.stepsViewController?.steps = document?.steps
 		self.stepsViewController?.currentStep = currentStep
+		updateView()
 	}
 	
 	private func pushStep(step: QBEStep) {
@@ -227,6 +229,37 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	func suggestionsView(view: NSViewController, didSelectStep step: QBEStep) {
 		previewStep = nil
 		pushStep(step)
+		stepsChanged()
+	}
+	
+	func suggestionsView(view: NSViewController, didSelectAlternativeStep step: QBEStep) {
+		selectAlternativeStep(step)
+	}
+	
+	private func selectAlternativeStep(step: QBEStep) {
+		previewStep = nil
+		
+		// Swap out alternatives
+		if var oldAlternatives = currentStep?.alternatives {
+			oldAlternatives.remove(step)
+			oldAlternatives.insert(currentStep!)
+			step.alternatives = oldAlternatives
+		}
+		
+		// Swap out step
+		let next = currentStep?.next
+		let previous = currentStep?.previous
+		step.previous = previous
+		currentStep = step
+		
+		if next == nil {
+			document?.head = step
+		}
+		else {
+			next!.previous = step
+			step.next = next
+		}
+		stepsChanged()
 	}
 	
 	func suggestionsView(view: NSViewController, previewStep step: QBEStep?) {
@@ -249,7 +282,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
-	private func suggestSteps(steps: [QBEStep]) {
+	private func updateView() {
+		self.suggestionsButton?.hidden = currentStep == nil
+		self.suggestionsButton?.enabled = currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
+	}
+	
+	private func suggestSteps(var steps: Set<QBEStep>) {
 		if steps.count == 0 {
 			// Alert
 			let alert = NSAlert()
@@ -257,12 +295,24 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (a: NSModalResponse) -> Void in
 			})
 		}
-		else if steps.count == 1 {
-			pushStep(steps.first!)
-		}
 		else {
-			suggestions = steps
-			self.performSegueWithIdentifier("suggestions", sender: self)
+			let step = steps.first!
+			pushStep(step)
+			steps.remove(step)
+			step.alternatives = steps
+			updateView()
+		}
+	}
+	
+	@IBAction func showSuggestions(sender: NSObject) {
+		if let s = currentStep?.alternatives where s.count > 0 {
+			self.performSegueWithIdentifier("suggestions", sender: sender)
+		}
+	}
+	
+	@IBAction func chooseFirstAlternativeStep(sender: NSObject) {
+		if let s = currentStep?.alternatives where s.count > 0 {
+			selectAlternativeStep(s.first!)
 		}
 	}
 	
@@ -472,6 +522,13 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("selectRows:") {
 			return currentStep != nil
 		}
+		else if item.action()==Selector("showSuggestions:") {
+			return currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
+		}
+		else if item.action()==Selector("chooseFirstAlternativeStep:") {
+			return currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
+		}
+
 		else {
 			return false
 		}
@@ -604,8 +661,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if segue.identifier=="suggestions" {
 			let sv = segue.destinationController as? QBESuggestionsViewController
 			sv?.delegate = self
-			sv?.suggestions = self.suggestions
-			self.suggestions = nil
+			if let alts = currentStep?.alternatives {
+				sv?.suggestions = Array(alts)
+			}
 		}
 		else if segue.identifier=="addColumn" {
 			let sv = segue.destinationController as? QBEAddColumnViewController

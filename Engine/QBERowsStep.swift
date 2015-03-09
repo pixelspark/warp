@@ -1,8 +1,8 @@
 import Foundation
 
 class QBERowsStep: NSObject {
-	class func suggest(selectRows: NSIndexSet, columns: Set<QBEColumn>, inRaster: QBERaster, fromStep: QBEStep?) -> [QBEStep] {
-		var suggestions: [QBEStep] = []
+	class func suggest(selectRows: NSIndexSet, columns: Set<QBEColumn>, inRaster: QBERaster, fromStep: QBEStep?) -> Set<QBEStep> {
+		var suggestions: Set<QBEStep> = []
 		
 		// Check to see if the selected rows have similar values for the relevant columns
 		var sameValues = Dictionary<QBEColumn, QBEValue>()
@@ -40,7 +40,7 @@ class QBERowsStep: NSObject {
 			}
 			
 			if let fullCondition = conditions.count > 1 ? QBEFunctionExpression(arguments: conditions, type: QBEFunction.And) : conditions.first {
-				suggestions.append(QBEFilterStep(previous: fromStep, condition: fullCondition))
+				suggestions.insert(QBEFilterStep(previous: fromStep, condition: fullCondition))
 			}
 		}
 		
@@ -53,11 +53,11 @@ class QBERowsStep: NSObject {
 			}
 		}
 		if contiguousTop {
-			suggestions.append(QBELimitStep(previous: fromStep, numberOfRows: selectRows.count))
+			suggestions.insert(QBELimitStep(previous: fromStep, numberOfRows: selectRows.count))
 		}
 		
 		// Suggest a random selection
-		suggestions.append(QBERandomStep(previous: fromStep, numberOfRows: selectRows.count))
+		suggestions.insert(QBERandomStep(previous: fromStep, numberOfRows: selectRows.count))
 		
 		return suggestions
 	}

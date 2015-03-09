@@ -123,11 +123,15 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	private var ignoreSelection = false
 	
 	var steps: [QBEStep]? { didSet {
+		ignoreSelection = true
 		update()
+		ignoreSelection = false
 	} }
 	
 	var currentStep: QBEStep? { didSet {
+		ignoreSelection = true
 		update()
+		ignoreSelection = false
 	} }
 	
 	override func awakeFromNib() {

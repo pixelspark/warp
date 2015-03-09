@@ -44,7 +44,7 @@ class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NST
 			}
 			else {
 				if let selectedSuggestion = suggestions?[selectedRow] {
-					delegate?.suggestionsView(self, didSelectStep: selectedSuggestion)
+					delegate?.suggestionsView(self, didSelectAlternativeStep: selectedSuggestion)
 				}
 			}
 		}

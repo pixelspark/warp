@@ -24,6 +24,7 @@ class QBEStep: NSObject {
 		previous?.next = self
 	} }
 	
+	var alternatives: Set<QBEStep>?
 	weak var next: QBEStep?
 	
 	override private init() {
