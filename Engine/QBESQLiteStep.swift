@@ -327,10 +327,13 @@ class QBESQLiteCachedData: QBEProxyData {
 	private let tableName: String
 	private var stream: QBEStream?
 	private var insertStatement: QBESQLiteResult?
+	private(set) var cacheJob: QBEJob
+	private(set) var isCached: Bool = false
 	
 	init(source: QBEData) {
 		database = QBESQLiteDatabase(path: "", readOnly: false)!
 		tableName = "cache"
+		cacheJob = QBEJob()
 		super.init(data: source)
 		
 		// Create a table to cache this dataset
@@ -356,15 +359,16 @@ class QBESQLiteCachedData: QBEProxyData {
 					let values = columns.map({(m) -> String in return "?"}).implode(",") ?? ""
 					self.insertStatement = self.database.query("INSERT INTO \(self.tableName) VALUES (\(values))")
 					
-					self.stream?.fetch(self.ingest, job: nil)
+					self.stream?.fetch(self.ingest, job: self.cacheJob)
 				}
 			}
 		}
 	}
 	
 	private func ingest(rows: Slice<QBERow>, hasMore: Bool) {
+		assert(!isCached, "Cannot ingest more rows after data has already been cached")
 		if hasMore {
-			self.stream?.fetch(self.ingest, job: nil)
+			self.stream?.fetch(self.ingest, job: cacheJob)
 		}
 		
 		QBETime("SQLite insert", rows.count, "rows") {
@@ -382,6 +386,7 @@ class QBESQLiteCachedData: QBEProxyData {
 			self.data.columnNames({ (columns) -> () in
 				let sql = "SELECT * FROM \(self.tableName)"
 				self.data = QBESQLiteData(db: self.database, sql: sql, columns: columns)
+				self.isCached = true
 			})
 		}
 	}

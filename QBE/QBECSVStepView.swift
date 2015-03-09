@@ -6,6 +6,9 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 	@IBOutlet var separatorField: NSComboBox?
 	@IBOutlet var hasHeadersButton: NSButton?
 	@IBOutlet var cacheButton: NSButton?
+	@IBOutlet var cacheUpdateButton: NSButton?
+	@IBOutlet var cacheProgress: NSProgressIndicator?
+	@IBOutlet var fileField: NSTextField?
 	
 	let step: QBECSVSourceStep?
 	
@@ -30,11 +33,7 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 	
 	internal override func viewWillAppear() {
 		super.viewWillAppear()
-		if let s = step {
-			separatorField?.stringValue = String(Character(UnicodeScalar(s.fieldSeparator)))
-			hasHeadersButton?.state = s.hasHeaders ? NSOnState : NSOffState
-			cacheButton?.state = s.useCaching ? NSOnState : NSOffState
-		}
+		updateView()
 	}
 	
 	func numberOfItemsInComboBox(aComboBox: NSComboBox) -> Int {
@@ -49,6 +48,51 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 			return locale.commonFieldSeparators[index]
 		}
 		return ""
+	}
+	
+	@IBAction func trashCache(sender: NSObject) {
+		if let s = step {
+			s.updateCache(callback: {
+				self.updateView()
+			})
+		}
+		updateView()
+	}
+	
+	private func updateView() {
+		if let s = step {
+			separatorField?.stringValue = String(Character(UnicodeScalar(s.fieldSeparator)))
+			hasHeadersButton?.state = s.hasHeaders ? NSOnState : NSOffState
+			cacheButton?.state = s.useCaching ? NSOnState : NSOffState
+			cacheUpdateButton?.enabled = s.useCaching && s.isCached
+			fileField?.stringValue = s.file?.url?.absoluteString ?? ""
+			
+			if s.useCaching && !s.isCached {
+				cacheProgress?.startAnimation(nil)
+			}
+			else {
+				cacheProgress?.stopAnimation(nil)
+			}
+		}
+	}
+	
+	@IBAction func chooseFile(sender: NSObject) {
+		if let s = step {
+			let no = NSOpenPanel()
+			no.canChooseFiles = true
+			no.allowedFileTypes = ["public.comma-separated-values-text"]
+			
+			no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
+				if result==NSFileHandlingPanelOKButton {
+					if let url = no.URLs[0] as? NSURL {
+						var error: NSError?
+						s.file = QBEFileReference.URL(url)
+						self.delegate?.suggestionsView(self, previewStep: s)
+					}
+				}
+				self.updateView()
+			})
+		}
 	}
 	
 	@IBAction func update(sender: NSObject) {
@@ -81,5 +125,7 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 				delegate?.suggestionsView(self, previewStep: s)
 			}
 		}
+		
+		updateView()
 	}
 }

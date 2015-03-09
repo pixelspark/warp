@@ -164,27 +164,21 @@ class QBECSVSourceStep: QBEStep {
 	var hasHeaders: Bool { didSet { cachedData = nil; } }
 	var useCaching: Bool { didSet { cachedData = nil; } }
 	
-	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
-		if cachedData == nil {
-			if let url = file?.url {
-				let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders)
-				cachedData = QBEStreamData(source: s)
-				if useCaching {
-					cachedData = QBESQLiteCachedData(source: cachedData!)
-				}
-				callback(cachedData!)
+	var isCached: Bool { get {
+		if useCaching {
+			if let d = cachedData as? QBESQLiteCachedData {
+				return d.isCached
 			}
 		}
-		else {
-			callback(cachedData!)
-		}
-	}
+		return false
+	} }
 	
-	override func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
-		self.fullData(job, callback: { (fullData) -> () in
-			callback(fullData.limit(100))
-		})
-	}
+	var cacheJob: QBEJob? { get {
+		if useCaching, let d = cachedData as? QBESQLiteCachedData {
+			return d.cacheJob
+		}
+		return nil
+	} }
 	
 	init(url: NSURL) {
 		let defaultSeparator = QBESettings.defaultFieldSeparator
@@ -210,6 +204,28 @@ class QBECSVSourceStep: QBEStep {
 	
 	deinit {
 		self.file?.url?.stopAccessingSecurityScopedResource()
+	}
+	
+	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
+		if cachedData == nil {
+			if let url = file?.url {
+				let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders)
+				cachedData = QBEStreamData(source: s)
+				if useCaching {
+					cachedData = QBESQLiteCachedData(source: cachedData!)
+				}
+				callback(cachedData!)
+			}
+		}
+		else {
+			callback(cachedData!)
+		}
+	}
+	
+	override func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
+		self.fullData(job, callback: { (fullData) -> () in
+			callback(fullData.limit(100))
+		})
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
@@ -247,5 +263,16 @@ class QBECSVSourceStep: QBEStep {
 	override func didLoadFromDocument(atURL: NSURL) {
 		self.file = self.file?.resolve(atURL)
 		self.file?.url?.startAccessingSecurityScopedResource()
+	}
+	
+	func updateCache(callback: (() -> ())? = nil) {
+		cachedData = nil
+		if useCaching {
+			self.fullData(nil, callback: { (data) -> () in
+				if let c = callback {
+					c()
+				}
+			})
+		}
 	}
 }
