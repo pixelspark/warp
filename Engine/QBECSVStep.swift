@@ -159,7 +159,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 
 class QBECSVSourceStep: QBEStep {
 	private var cachedData: QBEData?
-	var file: QBEFileReference? { didSet { cachedData = nil; } }
+	var file: QBEFileReference? { didSet { cachedData = nil; self.useCaching = self.cachingAllowed } }
 	var fieldSeparator: unichar { didSet { cachedData = nil; } }
 	var hasHeaders: Bool { didSet { cachedData = nil; } }
 	var useCaching: Bool { didSet { cachedData = nil; } }
@@ -187,7 +187,9 @@ class QBECSVSourceStep: QBEStep {
 		self.fieldSeparator = defaultSeparator.utf16[defaultSeparator.utf16.startIndex]
 		self.hasHeaders = true
 		self.useCaching = false
+		
 		super.init(previous: nil)
+		self.useCaching = self.cachingAllowed
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -205,6 +207,21 @@ class QBECSVSourceStep: QBEStep {
 	deinit {
 		self.file?.url?.stopAccessingSecurityScopedResource()
 	}
+	
+	/** Get size of the selected file to determine whether caching should be enabled by default **/
+	private var cachingAllowed: Bool { get {
+		var error: NSError?
+		if let url = self.file?.url {
+			if let attributes = NSFileManager.defaultManager().attributesOfItemAtPath(url.path!, error: &error) {
+				if let size = attributes[NSFileSize] as? NSNumber {
+					/* SQLite files are often a bit larger than the source CSV. If we are allowed to cache 1.5x the
+					original file size, then proceed by caching the CSV in SQLite */
+					return QBESettings.sharedInstance.shouldCacheFile(ofEstimatedSize: Int(size) * 3 / 2, atLocation: url)
+				}
+			}
+		}
+		return false
+	} }
 	
 	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
 		if cachedData == nil {
@@ -267,7 +284,7 @@ class QBECSVSourceStep: QBEStep {
 	
 	func updateCache(callback: (() -> ())? = nil) {
 		cachedData = nil
-		if useCaching {
+		if useCaching && cachingAllowed {
 			self.fullData(nil, callback: { (data) -> () in
 				if let c = callback {
 					c()

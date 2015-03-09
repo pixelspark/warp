@@ -25,6 +25,26 @@ class QBESettings {
 		}
 	}
 	
+	/** Return whether it is allowable to cache a file of the indicated size in the indicated location. This function 
+	bases its decision on the amount of disk space free in the target location (and allows any file to be cached to
+	only use a particular fraction of it). In the future, it may use preferences exposed to the user. The result of this 
+	function should be used to set the default preference for caching in steps that allow the user to toggle caching.
+	Caching explicitly requested by the user should be disabled anyway if this function returns false. **/
+	func shouldCacheFile(ofEstimatedSize size: Int, atLocation: NSURL) -> Bool {
+		// Let's find out how much disk space is left in the proposed cache location
+		var error: NSError?
+		if let attrs = NSFileManager.defaultManager().attributesOfFileSystemForPath(atLocation.path!, error: &error) {
+			if let freeSpace = attrs[NSFileSystemFreeSize] as? NSNumber {
+				println("want to cache file of size \(size) at location \(atLocation) which has \(Int(freeSpace)) space free.")
+				let freeSize = Double(size) / Double(freeSpace)
+				if freeSize < 0.5 {
+					return true
+				}
+			}
+		}
+		return false
+	}
+	
 	/** Call the provided callback only when this function has not been called before with the same key. This can be used
 	to show the user certain things (such as tips) only once. **/
 	func once(key: String, callback: () -> ()) {
