@@ -11,12 +11,22 @@ class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NST
 	}
 	
 	override func viewWillAppear() {
-		tableView?.selectRowIndexes(NSIndexSet(index: 0), byExtendingSelection: false)
-		delegate?.suggestionsView(self, previewStep: suggestions![0])
 	}
 	
 	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
-		return suggestions?[row].explain(delegate?.locale ?? QBELocale(), short: false)
+		if tableColumn?.identifier == "suggestionLabel" {
+			return suggestions?[row].explain(delegate?.locale ?? QBELocale(), short: false)
+		}
+		else if tableColumn?.identifier == "suggestionIcon" {
+			if let suggestedStep = suggestions?[row] {
+				let className = suggestedStep.className
+				if let icon = QBEStepIcons[className] {
+					return NSImage(named: icon)
+				}
+			}
+		}
+		
+		return nil
 	}
 	
 	func tableViewSelectionDidChange(notification: NSNotification) {

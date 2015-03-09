@@ -617,8 +617,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 							
 							QBEAsyncMain {
 								if sourceStep != nil {
-									self.currentStep = nil
-									self.document?.head = sourceStep!
+									// FIXME: in the future, we should propose data set joins here
+									//self.currentStep = nil
+									//self.document?.head = sourceStep!
 									self.pushStep(sourceStep!)
 								}
 								else {
