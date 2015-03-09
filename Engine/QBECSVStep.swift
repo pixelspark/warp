@@ -247,7 +247,7 @@ class QBECSVSourceStep: QBEStep {
 		if let f = file {
 			switch f {
 				case .URL(let u):
-					return String(format: NSLocalizedString("Load CSV file from '%@' ",comment: ""), u.lastPathComponent ?? "")
+					return String(format: NSLocalizedString("Load CSV file '%@'",comment: ""), u.lastPathComponent ?? "")
 				
 				default:
 					break

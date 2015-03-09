@@ -65,7 +65,7 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 			hasHeadersButton?.state = s.hasHeaders ? NSOnState : NSOffState
 			cacheButton?.state = s.useCaching ? NSOnState : NSOffState
 			cacheUpdateButton?.enabled = s.useCaching && s.isCached
-			fileField?.stringValue = s.file?.url?.absoluteString ?? ""
+			fileField?.stringValue = s.file?.url?.lastPathComponent ?? ""
 			
 			if s.useCaching && !s.isCached {
 				cacheProgress?.startAnimation(nil)

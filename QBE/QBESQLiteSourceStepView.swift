@@ -5,6 +5,7 @@ internal class QBESQLiteSourceStepView: NSViewController, NSTableViewDataSource,
 	var tableNames: [String]?
 	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var tableView: NSTableView?
+	@IBOutlet var fileField: NSTextField?
 	
 	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
 		self.delegate = delegate
@@ -27,9 +28,33 @@ internal class QBESQLiteSourceStepView: NSViewController, NSTableViewDataSource,
 	
 	internal override func viewWillAppear() {
 		super.viewWillAppear()
-		
+		updateView()
+	}
+	
+	@IBAction func chooseFile(sender: NSObject) {
+		if let s = step {
+			let no = NSOpenPanel()
+			no.canChooseFiles = true
+			no.allowedFileTypes = ["org.sqlite.v3"]
+			
+			no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
+				if result==NSFileHandlingPanelOKButton {
+					if let url = no.URLs[0] as? NSURL {
+						var error: NSError?
+						s.file = QBEFileReference.URL(url)
+						self.delegate?.suggestionsView(self, previewStep: s)
+					}
+				}
+				self.updateView()
+			})
+		}
+	}
+	
+	private func updateView() {
 		// Fetch table names
 		if let s = step {
+			fileField?.stringValue = s.file?.url?.lastPathComponent ?? ""
+			
 			tableNames = []
 			if let db = s.db {
 				tableNames = db.tableNames

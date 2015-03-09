@@ -393,25 +393,36 @@ class QBESQLiteCachedData: QBEProxyData {
 }
 
 class QBESQLiteSourceStep: QBEStep {
-	var file: QBEFileReference?
+	var file: QBEFileReference? { didSet {
+		oldValue?.url?.stopAccessingSecurityScopedResource()
+		file?.url?.startAccessingSecurityScopedResource()
+		switchDatabase()
+	} }
+	
 	var tableName: String?
 	var db: QBESQLiteDatabase?
 	
 	init?(url: NSURL) {
 		self.file = QBEFileReference.URL(url)
-		self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
-		
-		if let first = self.db?.tableNames?.first {
-			self.tableName = first
-		}
-		else {
-			self.tableName = nil
-		}
 		super.init(previous: nil)
+		switchDatabase()
 	}
 	
 	deinit {
 		self.file?.url?.stopAccessingSecurityScopedResource()
+	}
+	
+	private func switchDatabase() {
+		self.db = nil
+		self.tableName = nil
+		
+		if let url = file?.url {
+			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
+			
+			if let first = self.db?.tableNames?.first {
+				self.tableName = first
+			}
+		}
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
@@ -419,7 +430,7 @@ class QBESQLiteSourceStep: QBEStep {
 			return NSLocalizedString("SQLite table", comment: "")
 		}
 		
-		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName ?? "", self.file?.url ?? "")
+		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName ?? "", self.file?.url?.lastPathComponent ?? "")
 	}
 	
 	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
