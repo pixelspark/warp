@@ -10,9 +10,6 @@ class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NST
 		return suggestions?.count ?? 0
 	}
 	
-	override func viewWillAppear() {
-	}
-	
 	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if tableColumn?.identifier == "suggestionLabel" {
 			return suggestions?[row].explain(delegate?.locale ?? QBELocale(), short: false)

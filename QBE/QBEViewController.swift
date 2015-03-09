@@ -84,6 +84,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	var previewStep: QBEStep? {
 		didSet {
+			previewStep?.previous = currentStep?.previous
 			if oldValue != nil && previewStep == nil {
 				refreshData()
 			}
@@ -277,7 +278,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 		else {
 			previewStep = step
-			refreshData()
 		}
 	}
 	
