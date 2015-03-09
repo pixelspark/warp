@@ -119,6 +119,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	@IBOutlet var collectionView: NSCollectionView!
 	weak var delegate: QBEStepsControllerDelegate?
 	private var contents: NSArrayController?
+	@IBOutlet var addButton: NSButton!
 	
 	private var ignoreSelection = false
 	

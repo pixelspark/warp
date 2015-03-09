@@ -128,6 +128,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	private func presentRaster(raster: QBERaster?) {
 		if let dataView = self.dataViewController {
 			dataView.raster = raster
+			
+			if raster != nil && raster!.rowCount > 0 {
+				if let btn = self.dataViewController?.workingSetSelector {
+					QBESettings.sharedInstance.once("workingSetTip") {
+						self.showTip(NSLocalizedString("By default, Warp shows you a small part of the data. Using this button, you can toggle between the full data and the working selection.",comment: "Working set selector tip"), atView: btn)
+					}
+				}
+			}
 		}
 	}
 	
@@ -301,6 +309,23 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			steps.remove(step)
 			step.alternatives = steps
 			updateView()
+			
+			// Show a tip if there are alternatives
+			if steps.count > 1 {
+				QBESettings.sharedInstance.once("suggestionsTip") {
+					self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, click here.", comment: "Tip for suggestions button"), atView: self.suggestionsButton!)
+				}
+			}
+		}
+	}
+	
+	private func showTip(message: String, atView: NSView) {
+		if let vc = self.storyboard?.instantiateControllerWithIdentifier("tipController") as? QBETipViewController {
+			vc.message = message
+			let popover = NSPopover()
+			popover.contentViewController = vc
+			popover.behavior = NSPopoverBehavior.Transient
+			popover.showRelativeToRect(atView.bounds, ofView: atView, preferredEdge: NSMaxYEdge)
 		}
 	}
 	
@@ -648,7 +673,20 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	override func viewWillAppear() {
+		super.viewWillAppear()
 		stepsChanged()
+	}
+	
+	override func viewDidAppear() {
+		super.viewDidAppear()
+		
+		if currentStep == nil {
+			QBESettings.sharedInstance.once("welcomeTip") {
+				if let btn = self.stepsViewController?.addButton {
+					self.showTip(NSLocalizedString("Welcome to Warp! Click here to start and load some data.",comment: "Welcome tip"), atView: btn)
+				}
+			}
+		}
 	}
 	
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
@@ -678,3 +716,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 }
 
+class QBETipViewController: NSViewController {
+	@IBOutlet var messageLabel: NSTextField? = nil
+	
+	var message: String = "" { didSet {
+		messageLabel?.stringValue = message
+	} }
+	
+	override func viewWillAppear() {
+		self.messageLabel?.stringValue = message
+	}
+}

@@ -899,9 +899,20 @@ CA
                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                         </textFieldCell>
                                     </textField>
+                                    <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bSO-LK-FLV">
+                                        <rect key="frame" x="214" y="121" width="161" height="32"/>
+                                        <buttonCell key="cell" type="push" title="Reset first-time tips" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ZfB-ER-8HL">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="resetOnces:" target="nyj-Qm-GSe" id="eZ7-Rh-ht7"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                                 <constraints>
                                     <constraint firstItem="g92-DK-z9E" firstAttribute="top" secondItem="Jc3-uf-xvU" secondAttribute="top" constant="10" id="0y8-zu-VSq"/>
+                                    <constraint firstItem="bSO-LK-FLV" firstAttribute="top" secondItem="ZbN-mS-Vky" secondAttribute="bottom" constant="10" id="1T8-U6-oD3"/>
                                     <constraint firstAttribute="trailing" secondItem="g92-DK-z9E" secondAttribute="trailing" constant="10" id="ACE-gk-6ij"/>
                                     <constraint firstAttribute="trailing" secondItem="ZbN-mS-Vky" secondAttribute="trailing" constant="10" id="C35-YF-dgO"/>
                                     <constraint firstItem="ZbN-mS-Vky" firstAttribute="top" secondItem="cDt-pe-gP5" secondAttribute="bottom" constant="5" id="Hh7-6r-2hM"/>
@@ -909,6 +920,7 @@ CA
                                     <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="cDt-pe-gP5" secondAttribute="bottom" constant="10" id="Om5-aS-jdd"/>
                                     <constraint firstItem="cDt-pe-gP5" firstAttribute="leading" secondItem="ZbN-mS-Vky" secondAttribute="leading" id="RAW-yp-Pvj"/>
                                     <constraint firstItem="cDt-pe-gP5" firstAttribute="leading" secondItem="hIg-u5-wBg" secondAttribute="trailing" constant="10" id="Wjc-FB-oJl"/>
+                                    <constraint firstItem="bSO-LK-FLV" firstAttribute="leading" secondItem="cDt-pe-gP5" secondAttribute="leading" id="Yow-kt-Tdr"/>
                                     <constraint firstItem="hIg-u5-wBg" firstAttribute="leading" secondItem="Jc3-uf-xvU" secondAttribute="leading" constant="10" id="ZBB-Yj-dD5"/>
                                     <constraint firstItem="cDt-pe-gP5" firstAttribute="top" secondItem="g92-DK-z9E" secondAttribute="bottom" constant="10" id="aL3-ba-2si"/>
                                     <constraint firstItem="hIg-u5-wBg" firstAttribute="top" secondItem="QBF-Ya-2UW" secondAttribute="bottom" constant="10" id="nD0-0L-ZnA"/>
@@ -1392,6 +1404,49 @@ Gw
             </objects>
             <point key="canvasLocation" x="1032.5" y="1620.5"/>
         </scene>
+        <!--Tip View Controller-->
+        <scene sceneID="ITy-71-tQC">
+            <objects>
+                <viewController storyboardIdentifier="tipController" id="ad7-6K-liA" customClass="QBETipViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="sIp-ZD-KuM">
+                        <rect key="frame" x="0.0" y="0.0" width="280" height="47"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JR9-Wq-8BO">
+                                <rect key="frame" x="45" y="10" width="227" height="27"/>
+                                <textFieldCell key="cell" controlSize="mini" sendsActionOnEndEditing="YES" alignment="left" title="Multiline Label" id="mNp-48-TuJ">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="LsL-qD-1Xy">
+                                <rect key="frame" x="10" y="5" width="32" height="32"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="32" id="LXt-hA-b2s"/>
+                                    <constraint firstAttribute="width" constant="32" id="Wjd-Yw-Zxp"/>
+                                </constraints>
+                                <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="TipIcon" id="BuG-4L-FNg"/>
+                            </imageView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="JR9-Wq-8BO" secondAttribute="trailing" constant="10" id="ALC-mX-Agd"/>
+                            <constraint firstItem="JR9-Wq-8BO" firstAttribute="leading" secondItem="LsL-qD-1Xy" secondAttribute="trailing" constant="5" id="KlK-ke-Qfz"/>
+                            <constraint firstItem="LsL-qD-1Xy" firstAttribute="leading" secondItem="sIp-ZD-KuM" secondAttribute="leading" constant="10" id="VH9-x7-TIE"/>
+                            <constraint firstItem="LsL-qD-1Xy" firstAttribute="top" secondItem="sIp-ZD-KuM" secondAttribute="top" constant="10" id="aX1-sU-WB6"/>
+                            <constraint firstItem="JR9-Wq-8BO" firstAttribute="top" secondItem="sIp-ZD-KuM" secondAttribute="top" constant="10" id="e5n-a6-msr"/>
+                            <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="LsL-qD-1Xy" secondAttribute="bottom" constant="5" id="rZ7-T9-wdC"/>
+                            <constraint firstAttribute="bottom" secondItem="JR9-Wq-8BO" secondAttribute="bottom" constant="10" id="w2v-nm-YfP"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="messageLabel" destination="JR9-Wq-8BO" id="jiT-f5-1FR"/>
+                    </connections>
+                </viewController>
+                <customObject id="5qC-lz-geN" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="738" y="1999"/>
+        </scene>
         <!--Steps view controller-->
         <scene sceneID="zxO-hf-1cr">
             <objects>
@@ -1451,6 +1506,7 @@ Gw
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="addButton" destination="c1C-i2-wGu" id="qk9-lY-nHj"/>
                         <outlet property="collectionView" destination="z7I-jG-SgO" id="fKn-kf-nWy"/>
                     </connections>
                 </viewController>
@@ -1464,5 +1520,6 @@ Gw
     <resources>
         <image name="ChangeIcon" width="26" height="26"/>
         <image name="NSAddTemplate" width="11" height="11"/>
+        <image name="TipIcon" width="32" height="32"/>
     </resources>
 </document>

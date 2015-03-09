@@ -115,7 +115,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 	
 	func writeToFile(file: NSURL, callback: () -> ()) {
 		if let stream = data.stream() {
-			let separatorString = QBESettings.defaultFieldSeparator
+			let separatorString = QBESettings.sharedInstance.defaultFieldSeparator
 			let separatorChar = separatorString.utf16[separatorString.utf16.startIndex]
 			let outStream = NSOutputStream(toFileAtPath: file.path!, append: false)
 			let csvOut = CHCSVWriter(outputStream: outStream, encoding: NSUTF8StringEncoding, delimiter: separatorChar)
@@ -181,7 +181,7 @@ class QBECSVSourceStep: QBEStep {
 	} }
 	
 	init(url: NSURL) {
-		let defaultSeparator = QBESettings.defaultFieldSeparator
+		let defaultSeparator = QBESettings.sharedInstance.defaultFieldSeparator
 		
 		self.file = QBEFileReference.URL(url)
 		self.fieldSeparator = defaultSeparator.utf16[defaultSeparator.utf16.startIndex]

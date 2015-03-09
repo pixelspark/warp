@@ -2,15 +2,48 @@ import Foundation
 import Cocoa
 
 class QBESettings {
-	static var locale: QBELocale.QBELanguage {
+	static let sharedInstance = QBESettings()
+	private let defaults: NSUserDefaults
+	
+	init () {
+		defaults = NSUserDefaults.standardUserDefaults()
+		
+		#if DEBUG
+			resetOnces()
+		#endif
+	}
+	
+	var locale: QBELocale.QBELanguage {
 		get {
-			return NSUserDefaults.standardUserDefaults().stringForKey("locale") ?? QBELocale.defaultLanguage
+			return defaults.stringForKey("locale") ?? QBELocale.defaultLanguage
 		}
 	}
 	
-	static var defaultFieldSeparator: String {
+	var defaultFieldSeparator: String {
 		get {
-			return NSUserDefaults.standardUserDefaults().stringForKey("defaultSeparator") ?? ","
+			return defaults.stringForKey("defaultSeparator") ?? ","
+		}
+	}
+	
+	/** Call the provided callback only when this function has not been called before with the same key. This can be used
+	to show the user certain things (such as tips) only once. **/
+	func once(key: String, callback: () -> ()) {
+		let onceKey = "once.\(key)"
+		if !defaults.boolForKey(onceKey) {
+			defaults.setBool(true, forKey: onceKey)
+			callback()
+		}
+	}
+	
+	func resetOnces() {
+		/* In debug builds, all keys starting with "once." are removed, to re-enable all 'once' actions such as
+		first-time tips. */
+		let dict = defaults.dictionaryRepresentation()
+		for (key, value) in dict {
+			let keyString = key.description
+			if let r = keyString.rangeOfString("once.", options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) where r.startIndex==keyString.startIndex {
+				defaults.removeObjectForKey(keyString)
+			}
 		}
 	}
 }
@@ -33,6 +66,10 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 				self.localeBox?.stringValue = name
 			}
 		}
+	}
+	
+	@IBAction func resetOnces(sender: NSObject) {
+		QBESettings.sharedInstance.resetOnces()
 	}
 	
 	@IBAction func valuesChanged(sender: NSObject) {
