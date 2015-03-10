@@ -28,6 +28,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		didSet {
 			if useFullData != oldValue {
 				calculate()
+				dataViewController?.workingSetSelector?.selectedSegment = (useFullData ? 1 : 0)
 			}
 		}
 	}
@@ -351,6 +352,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
+	@IBAction func setFullWorkingSet(sender: NSObject) {
+		useFullData = true
+	}
+	
+	@IBAction func setSelectionWorkingSet(sender: NSObject) {
+		useFullData = false
+	}
+	
 	@IBAction func addEmptyColumn(sender: NSObject) {
 		currentData?.get({(data) in
 			data.columnNames({(cols) in
@@ -553,7 +562,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("chooseFirstAlternativeStep:") {
 			return currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
 		}
-
+		else if item.action()==Selector("setFullWorkingSet:") {
+			return currentStep != nil && !useFullData
+		}
+		else if item.action()==Selector("setSelectionWorkingSet:") {
+			return currentStep != nil && useFullData
+		}
 		else {
 			return false
 		}
