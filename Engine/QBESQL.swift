@@ -23,6 +23,8 @@ protocol QBESQLDialect {
 	/** Returns a column identifier for the given QBEColumn. **/
 	func columnIdentifier(column: QBEColumn) -> String
 	
+	func tableIdentifier(table: String) -> String
+	
 	/** Transforms the given expression to a SQL string. The inputValue parameter determines the return value of the
 	QBEIdentitiyExpression. The function may return nil for expressions it cannot successfully transform to SQL. **/
 	func expressionToSQL(formula: QBEExpression, inputValue: String?) -> String?

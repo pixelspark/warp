@@ -165,7 +165,17 @@ internal class QBESQLiteResultGenerator: GeneratorType {
 	}
 }
 
-internal class QBESQLiteDatabase {
+class QBEDatabase {
+	var dialect: QBESQLDialect
+	
+	private init(dialect: QBESQLDialect) {
+		self.dialect = dialect
+	}
+}
+
+internal class QBESQLiteDatabase: QBEDatabase {
+	typealias Dialect = QBESQLiteDialect
+	
 	class var sharedQueue : dispatch_queue_t {
 		struct Static {
 			static var onceToken : dispatch_once_t = 0
@@ -199,6 +209,7 @@ internal class QBESQLiteDatabase {
 	init?(path: String, readOnly: Bool = false) {
 		let flags = readOnly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
 		self.db = nil
+		super.init(dialect: QBESQLiteDialect())
 		
 		if !perform({sqlite3_open_v2(path, &self.db, flags, nil) }) {
 			return nil
@@ -229,7 +240,7 @@ internal class QBESQLiteDatabase {
 	} }
 }
 
-private class QBESQLiteDialect: QBEStandardSQLDialect {
+internal class QBESQLiteDialect: QBEStandardSQLDialect {
 }
 
 private class QBESQLiteStream: NSObject, QBEStream {
@@ -279,15 +290,14 @@ class QBESQLiteData: QBESQLData {
 	private let db: QBESQLiteDatabase
 
 	private convenience init(db: QBESQLiteDatabase, tableName: String) {
-		let dialect = QBESQLiteDialect()
-		let query = "SELECT * FROM \(dialect.tableIdentifier(tableName))"
+		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName))"
 		let result = db.query(query)
 		self.init(db: db, sql: query, columns: result?.columnNames ?? [])
 	}
 	
 	private init(db: QBESQLiteDatabase, sql: String, columns: [QBEColumn]) {
 		(self.db) = (db)
-		super.init(sql: sql, dialect: QBESQLiteDialect(), columns: columns)
+		super.init(sql: sql, dialect: db.dialect, columns: columns)
 	}
 	
 	override func columnNames(callback: ([QBEColumn]) -> ()) {
@@ -336,28 +346,31 @@ class QBESQLiteCachedData: QBEProxyData {
 		cacheJob = QBEJob()
 		super.init(data: source)
 		
+		let dialect = database.dialect
+		
 		// Create a table to cache this dataset
 		QBEAsyncBackground {
 			source.columnNames { (columns) -> () in
 				let columnSpec = columns.map({(column) -> String in
-					let colString = QBESQLiteDialect().columnIdentifier(column)
+					let colString = dialect.columnIdentifier(column)
 					return "\(colString) VARCHAR"
 				}).implode(", ")!
 				
-				let sql = "CREATE TABLE \(self.tableName) (\(columnSpec))"
+				let sql = "CREATE TABLE \(dialect.tableIdentifier(self.tableName)) (\(columnSpec))"
 				if let q = self.database.query(sql) {
 					q.run()
 					
 					self.stream = source.stream()
 					
 					// We do not need to wait for this cached data to be written to disk
+					let dialect = self.database.dialect
 					self.database.query("PRAGMA synchronous = OFF")?.run()
 					self.database.query("PRAGMA journal_mode = MEMORY")?.run()
 					self.database.query("BEGIN TRANSACTION")?.run()
 					
 					// Prepare the insert-statement
 					let values = columns.map({(m) -> String in return "?"}).implode(",") ?? ""
-					self.insertStatement = self.database.query("INSERT INTO \(self.tableName) VALUES (\(values))")
+					self.insertStatement = self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName)) VALUES (\(values))")
 					
 					self.stream?.fetch(self.ingest, job: self.cacheJob)
 				}
@@ -384,7 +397,7 @@ class QBESQLiteCachedData: QBEProxyData {
 			println("Done caching, swapping out")
 			self.database.query("END TRANSACTION")?.run()
 			self.data.columnNames({ (columns) -> () in
-				let sql = "SELECT * FROM \(self.tableName)"
+				let sql = "SELECT * FROM \(self.database.dialect.tableIdentifier(self.tableName))"
 				self.data = QBESQLiteData(db: self.database, sql: sql, columns: columns)
 				self.isCached = true
 			})
