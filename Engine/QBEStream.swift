@@ -95,8 +95,7 @@ class QBEStreamData: QBEData {
 	}
 	
 	func random(numberOfRows: Int) -> QBEData {
-		// TODO: this should be implemented as a stream. See how MongoDB/RethinkDB deal with random-without-replacement sampling.
-		return fallback().random(numberOfRows)
+		return QBEStreamData(source: QBERandomTransformer(source: source, numberOfRows: numberOfRows))
 	}
 	
 	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
@@ -145,14 +144,14 @@ private class QBETransformer: NSObject, QBEStream {
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). **/
-	private func transform(rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private func transform(rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
 		fatalError("QBETransformer.transform should be implemented in a subclass")
 	}
 	
 	private func fetch(consumer: QBESink, job: QBEJob?) {
 		if !stopped {
 			source.fetch({ (rows, hasNext) -> () in
-				self.transform(rows, job: job, callback: { (transformedRows, shouldStop) -> () in
+				self.transform(rows, hasNext: hasNext, job: job, callback: { (transformedRows, shouldStop) -> () in
 					self.stopped = shouldStop
 					consumer(transformedRows, !self.stopped && hasNext)
 				})
@@ -226,7 +225,7 @@ private class QBEFlattenTransformer: QBETransformer {
 		return QBEFlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
 	}
 	
-	private override func transform(rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
 		prepare {
 			var newRows: [QBERow] = []
 			newRows.reserveCapacity(self.columnNames.count * rows.count)
@@ -263,7 +262,7 @@ private class QBEFilterTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
 		source.columnNames { (columnNames) -> () in
 			QBETime("Stream filter", rows.count, "row", job) {
 				let newRows = rows.filter({(row) -> Bool in
@@ -280,6 +279,69 @@ private class QBEFilterTransformer: QBETransformer {
 	}
 }
 
+/** The QBERandomTransformer randomly samples the specified amount of rows from a stream. It uses reservoir sampling to
+achieve this. **/
+private class QBERandomTransformer: QBETransformer {
+	var sample: [QBERow] = []
+	let sampleSize: Int
+	var samplesSeen: Int = 0
+	
+	init(source: QBEStream, numberOfRows: Int) {
+		sampleSize = numberOfRows
+		super.init(source: source)
+	}
+	
+	private override func transform(var rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+		// Reservoir initial fill
+		if sample.count < sampleSize {
+			let length = sampleSize - sample.count
+			
+			QBETime("Reservoir fill",min(length,rows.count), "rows", job) {
+				sample += rows[0..<min(length,rows.count)]
+				self.samplesSeen += min(length,rows.count)
+				
+				if length >= rows.count {
+					rows = []
+				}
+				else {
+					rows = rows[min(length,rows.count)..<rows.count]
+				}
+			}
+		}
+		
+		/* Reservoir replace (note: if the sample size is larger than the total number of samples we'll ever recieve, 
+		this will never execute. We will return the full sample in that case below. */
+		if sample.count == sampleSize {
+			QBETime("Reservoir replace", rows.count, "rows", job) {
+				for i in 0..<rows.count {
+					/* The chance of choosing an item starts out at (1/s) and ends at (1/N), where s is the sample size and N
+					is the number of actual input rows. */
+					let probability = Int.random(lower: 0, upper: self.samplesSeen+i)
+					if probability < self.sampleSize {
+						// Place this sample in the list at the randomly chosen position
+						self.sample[probability] = rows[i]
+					}
+				}
+				
+				self.samplesSeen += rows.count
+			}
+		}
+		
+		if hasNext {
+			// More input is coming from the source, do not return our sample yet
+			callback([], false)
+		}
+		else {
+			// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
+			callback(Slice(sample), true)
+		}
+	}
+	
+	private override func clone() -> QBEStream {
+		return QBERandomTransformer(source: source.clone(), numberOfRows: sampleSize)
+	}
+}
+
 /** The QBELimitTransformer limits the number of rows passed through a stream. It effectively stops pumping data from the
 source stream to the consuming stream when the limit is reached. **/
 private class QBELimitTransformer: QBETransformer {
@@ -291,7 +353,7 @@ private class QBELimitTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
 		if (position+rows.count) < limit {
 			position += rows.count
 			callback(rows, false)
@@ -331,7 +393,7 @@ private class QBEColumnsTransformer: QBETransformer {
 		}
 	}
 	
-	override private func transform(rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>,Bool) -> ()) {
+	override private func transform(rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>,Bool) -> ()) {
 		ensureIndexes {
 			assert(self.indexes != nil)
 			
@@ -418,7 +480,7 @@ private class QBECalculateTransformer: QBETransformer {
 		}
 	}
 	
-	private override func transform(var rows: Slice<QBERow>, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(var rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
 		self.ensureIndexes {
 			QBETime("Calculate", rows.count, "row") {
 				let newData = rows.map({ (var row: QBERow) -> QBERow in
