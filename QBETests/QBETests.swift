@@ -68,11 +68,22 @@ class QBETests: XCTestCase {
 		let locale = QBELocale(language: QBELocale.defaultLanguage)
 		
 		// Test whether parsing goes right
+		XCTAssert(QBEFormula(formula: "=6/ 2", locale: locale) != nil, "Parse whitespace around binary operator: right side")
+		XCTAssert(QBEFormula(formula: "=6 / 2", locale: locale) != nil, "Parse whitespace around binary operator: both sides")
+		XCTAssert(QBEFormula(formula: "=6 /2", locale: locale) != nil, "Parse whitespace around binary operator: left side")
+		
 		XCTAssert(QBEFormula(formula: "=6/(1-3/4)", locale: locale) != nil, "Formula in default dialect")
 		XCTAssert(QBEFormula(formula: "6/(1-3/4)", locale: locale) == nil, "Formula needs to start with equals sign")
 		XCTAssert(QBEFormula(formula: "=6/(1-3/4)±", locale: locale) == nil, "Formula needs to ignore any garbage near the end of a formula")
 		XCTAssert(QBEFormula(formula: "=6/(1-3/4)+[@colRef]", locale: locale) != nil, "Formula in default dialect with column ref")
 		XCTAssert(QBEFormula(formula: "=6/(1-3/4)+[@colRef]&\"stringLit\"", locale: locale) != nil, "Formula in default dialect with string literal")
+		
+		for ws in [" ","\t", " \t", "\r", "\n", "\r\n"] {
+			XCTAssert(QBEFormula(formula: "=6\(ws)/\(ws)(\(ws)1-3/\(ws)4)", locale: locale) != nil, "Formula with whitespace '\(ws)' in between")
+			XCTAssert(QBEFormula(formula: "=\(ws)6\(ws)/\(ws)(\(ws)1-3/\(ws)4)", locale: locale) != nil, "Formula with whitespace '\(ws)' after =")
+			XCTAssert(QBEFormula(formula: "\(ws)=6\(ws)/\(ws)(\(ws)1-3/\(ws)4)", locale: locale) != nil, "Formula with whitespace '\(ws)' before =")
+			XCTAssert(QBEFormula(formula: "=6\(ws)/\(ws)(\(ws)1-3/\(ws)4)\(ws)", locale: locale) != nil, "Formula with whitespace '\(ws)' at end")
+		}
 		
 		// Test results
 		let raster = QBERaster()
