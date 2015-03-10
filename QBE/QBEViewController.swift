@@ -68,7 +68,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				let className = s.className
 				let StepView = QBEStepViews[className]?(step: s, delegate: self)
 				self.configuratorViewController = StepView
-				self.titleLabel?.attributedStringValue = NSAttributedString(string: s.explain(locale))
 				calculate()
 			}
 			else {
@@ -280,6 +279,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else {
 			previewStep = step
 		}
+		updateView()
 	}
 	
 	func suggestionsViewDidCancel(view: NSViewController) {
@@ -289,11 +289,18 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		if let s = self.view.window?.attachedSheet {
 			self.view.window?.endSheet(s, returnCode: NSModalResponseOK)
 		}
+		updateView()
 	}
 	
 	private func updateView() {
 		self.suggestionsButton?.hidden = currentStep == nil
 		self.suggestionsButton?.enabled = currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
+		
+		if let s = currentStep {
+			self.titleLabel?.attributedStringValue = NSAttributedString(string: s.explain(locale))
+		}
+		
+		self.view.window?.update()
 	}
 	
 	private func suggestSteps(var steps: Set<QBEStep>) {

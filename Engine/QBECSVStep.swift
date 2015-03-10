@@ -162,7 +162,13 @@ class QBECSVSourceStep: QBEStep {
 	var file: QBEFileReference? { didSet { cachedData = nil; self.useCaching = self.cachingAllowed } }
 	var fieldSeparator: unichar { didSet { cachedData = nil; } }
 	var hasHeaders: Bool { didSet { cachedData = nil; } }
-	var useCaching: Bool { didSet { cachedData = nil; } }
+	
+	var useCaching: Bool { didSet {
+		if let d = cachedData as? QBESQLiteCachedData {
+			d.cacheJob.cancel()
+		}
+		cachedData = nil;
+	} }
 	
 	var isCached: Bool { get {
 		if useCaching {

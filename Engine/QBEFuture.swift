@@ -74,6 +74,10 @@ class QBEJob {
 		return items > 0 ? (sumProgress / Double(items)) : 0.0;
 	} }
 	
+	func cancel() {
+		self.cancelled = true
+	}
+	
 	#if DEBUG
 	private var timeComponents: [String: Double] = [:]
 	
@@ -163,7 +167,7 @@ private class QBEBatch<T>: QBEJob {
 		waitingList = []
 	}
 	
-	func cancel() {
+	override func cancel() {
 		if !satisfied {
 			waitingList.removeAll(keepCapacity: false)
 			cancelled = true
