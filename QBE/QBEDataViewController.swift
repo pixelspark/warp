@@ -12,6 +12,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	@IBOutlet var workingSetSelector: NSSegmentedControl!
 	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
+	private var columnWidths: [QBEColumn: Float] = [:]
 	
 	var calculating: Bool = false { didSet {
 		update()
@@ -90,8 +91,26 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return raster?.columnNames[Int(columnIndex)].name;
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, withForColumn columnIndex: UInt) -> Float {
-		return 100.0
+	func tableGrid(aTableGrid: MBTableGrid!, widthForColumn columnIndex: UInt) -> Float {
+		if let r = raster {
+			if Int(columnIndex) < r.columnNames.count {
+				let cn = r.columnNames[Int(columnIndex)]
+				if let w = columnWidths[cn] {
+					return w
+				}
+			}
+		}
+		return 160.0
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt) -> Float {
+		if let r = raster {
+			if Int(columnIndex) < r.columnNames.count {
+				let cn = r.columnNames[Int(columnIndex)]
+				columnWidths[cn] = width
+			}
+		}
+		return width
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, headerStringForRow rowIndex: UInt) -> String! {
@@ -121,16 +140,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		
 		if let tv = tableView {
 			for i in 0...tv.numberOfColumns {
-				tv.resizeColumnWithIndex(i, width: 50.0)
+				tv.resizeColumnWithIndex(i, width: self.tableGrid(tv, widthForColumn: i))
 			}
 			
 			tv.reloadData()
 			updateFormulaField()
 		}
-	}
-	
-	func tableGrid(aTableGrid: MBTableGrid!, setWidthForColumn columnIndex: UInt) -> Float {
-		return 60.0
 	}
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
