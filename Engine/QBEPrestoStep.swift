@@ -34,6 +34,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 	private var buffer: [QBERow] = []
 	private var columns: [QBEColumn]?
 	private var stopped: Bool = false
+	private var started: Bool = false
 	private var nextURI: NSURL?
 	private var columnsFuture: QBEFuture<[QBEColumn]>! = nil
 	
@@ -42,6 +43,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 		self.sql = sql
 		self.schema = schema
 		self.catalog = catalog
+		self.nextURI = self.url.URLByAppendingPathComponent("/v1/statement")
 		super.init()
 		
 		let c = { [unowned self] (callback: ([QBEColumn]) -> ()) -> () in
@@ -55,118 +57,133 @@ private class QBEPrestoStream: NSObject, QBEStream {
 	
 	/** Request the next batch of result data from Presto. **/
 	private func request(job: QBEJob?, callback: () -> ()) {
-		let endpoint = nextURI ?? url.URLByAppendingPathComponent("/v1/statement")
-		let request = NSMutableURLRequest(URL: endpoint)
-		request.setValue("Warp", forHTTPHeaderField: "User-Agent")
+		if stopped {
+			callback()
+			return
+		}
 		
-		if nextURI == nil {
-			// Initial request
-			request.HTTPMethod = "POST"
-			request.setValue("Warp", forHTTPHeaderField: "X-Presto-User")
-			request.setValue("Warp", forHTTPHeaderField: "X-Presto-Source")
-			request.setValue(self.catalog, forHTTPHeaderField: "X-Presto-Catalog")
-			request.setValue(self.schema, forHTTPHeaderField: "X-Presto-Schema")
-			
-			if let sqlData = sql.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false) {
-				request.HTTPBody = sqlData
+		if let endpoint = self.nextURI {
+			let request = NSMutableURLRequest(URL: endpoint)
+			request.setValue("Warp", forHTTPHeaderField: "User-Agent")
+		
+			if !started {
+				// Initial request
+				started = true
+				request.HTTPMethod = "POST"
+				request.setValue("Warp", forHTTPHeaderField: "X-Presto-User")
+				request.setValue("Warp", forHTTPHeaderField: "X-Presto-Source")
+				request.setValue(self.catalog, forHTTPHeaderField: "X-Presto-Catalog")
+				request.setValue(self.schema, forHTTPHeaderField: "X-Presto-Schema")
+				
+				if let sqlData = sql.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false) {
+					request.HTTPBody = sqlData
+				}
 			}
-		}
-		else {
-			// Follow-up request
-			request.HTTPMethod = "GET"
-		}
-		
-		println("Presto requesting \(endpoint)")
-		Alamofire.request(request).responseJSON(options: NSJSONReadingOptions.allZeros, completionHandler: { (request, response, data, error) -> Void in
-			if let res = response {
-				// Status code 503 means that we should wait a bit
-				if res.statusCode == 503 {
-					let queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
-					dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(100 * NSEC_PER_MSEC)), queue) {
-						callback()
-					}
-					return
-				}
-				
-				// Any status code other than 200 means trouble
-				if res.statusCode != 200 {
-					println("Presto errored: \(res.statusCode)")
-					self.stopped = true
-					return
-				}
+			else {
+				// Follow-up request
+				request.HTTPMethod = "GET"
+			}
 			
-				if let e = error {
-					println("Presto request error: \(e)")
-					self.stopped = true
-					return
-				}
-				
-				// Let's see if the response got something useful
-				if let d = data as? [String: AnyObject] {
-					// Get progress data from response
-					if let stats = d["stats"] as? [String: AnyObject] {
-						if let completedSplits = stats["completedSplits"] as? Int,
-						   let queuedSplits = stats["queuedSplits"] as? Int {
-							let progress = Double(completedSplits) / Double(completedSplits + queuedSplits)
-							job?.reportProgress(progress, forKey: self.hash)
+			println("Presto requesting \(endpoint)")
+			Alamofire.request(request).responseJSON(options: NSJSONReadingOptions.allZeros, completionHandler: { (request, response, data, error) -> Void in
+				if let res = response {
+					// Status code 503 means that we should wait a bit
+					if res.statusCode == 503 {
+						let queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+						dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(100 * NSEC_PER_MSEC)), queue) {
+							callback()
 						}
+						return
 					}
 					
-					// Does the response tell us where to look next?
-					if let nu = (d["nextUri"] as? String) {
-						self.nextURI = NSURL(string: nu)
+					// Any status code other than 200 means trouble
+					if res.statusCode != 200 {
+						println("Presto errored: \(res.statusCode)")
+						self.stopped = true
+						return
+					}
+				
+					if let e = error {
+						println("Presto request error: \(e)")
+						self.stopped = true
+						return
+					}
+					
+					// Let's see if the response got something useful
+					if let d = data as? [String: AnyObject] {
+						// Get progress data from response
+						if let stats = d["stats"] as? [String: AnyObject] {
+							if let completedSplits = stats["completedSplits"] as? Int,
+							   let queuedSplits = stats["queuedSplits"] as? Int {
+								let progress = Double(completedSplits) / Double(completedSplits + queuedSplits)
+								job?.reportProgress(progress, forKey: self.hash)
+							}
+						}
+						
+						// Does the response tell us where to look next?
+						if let nu = (d["nextUri"] as? String) {
+							self.nextURI = NSURL(string: nu)
+						}
+						else {
+							self.nextURI = nil
+							self.stopped = true
+						}
+						
+						// Does the response include column information?
+						if self.columns == nil {
+							if let columns = d["columns"] as? [AnyObject] {
+								self.columns = []
+								
+								for columnSpec in columns {
+									if let columnInfo = columnSpec as? [String: AnyObject] {
+										if let name = columnInfo["name"] as? String {
+											self.columns!.append(QBEColumn(name))
+										}
+									}
+								}
+							}
+						}
+							
+						// Does the response contain any data?
+						if let data = d["data"] as? [AnyObject] {
+							QBETime("Fetch Presto", data.count, "row", job) {
+								var templateRow: [QBEValue] = []
+								for row in data {
+									if let rowArray = row as? [AnyObject] {
+										for cell in rowArray {
+											if let value = cell as? NSNumber {
+												templateRow.append(QBEValue(value.doubleValue))
+											}
+											else if let value = cell as? String {
+												templateRow.append(QBEValue(value))
+											}
+											else if let value = cell as? NSNull {
+												templateRow.append(QBEValue.EmptyValue)
+											}
+											else {
+												templateRow.append(QBEValue.InvalidValue)
+											}
+										}
+									}
+									self.buffer.append(templateRow)
+									templateRow.removeAll(keepCapacity: true)
+								}
+							}
+						}
 					}
 					else {
 						self.nextURI = nil
 						self.stopped = true
 					}
-					
-					// Does the response include column information?
-					if self.columns == nil {
-						if let columns = d["columns"] as? [AnyObject] {
-							self.columns = []
-							
-							for columnSpec in columns {
-								if let columnInfo = columnSpec as? [String: AnyObject] {
-									if let name = columnInfo["name"] as? String {
-										self.columns!.append(QBEColumn(name))
-									}
-								}
-							}
-						}
-					}
-						
-					// Does the response contain any data?
-					if let data = d["data"] as? [AnyObject] {
-						QBETime("Fetch Presto", data.count, "row", job) {
-							var templateRow: [QBEValue] = []
-							for row in data {
-								if let rowArray = row as? [AnyObject] {
-									for cell in rowArray {
-										if let value = cell as? NSNumber {
-											templateRow.append(QBEValue(value.doubleValue))
-										}
-										else if let value = cell as? String {
-											templateRow.append(QBEValue(value))
-										}
-										else if let value = cell as? NSNull {
-											templateRow.append(QBEValue.EmptyValue)
-										}
-										else {
-											templateRow.append(QBEValue.InvalidValue)
-										}
-									}
-								}
-								self.buffer.append(templateRow)
-								templateRow.removeAll(keepCapacity: true)
-							}
-						}
-					}
 				}
-			}
-			
-			callback()
-		})
+				else {
+					self.stopped = true
+					self.nextURI = nil
+				}
+				
+				callback()
+			})
+		}
 	}
 	
 	private func awaitColumns(callback: () -> ()) {
