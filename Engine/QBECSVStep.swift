@@ -114,45 +114,44 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 	}
 	
 	func writeToFile(file: NSURL, callback: () -> ()) {
-		if let stream = data.stream() {
-			let separatorString = QBESettings.sharedInstance.defaultFieldSeparator
-			let separatorChar = separatorString.utf16[separatorString.utf16.startIndex]
-			let outStream = NSOutputStream(toFileAtPath: file.path!, append: false)
-			let csvOut = CHCSVWriter(outputStream: outStream, encoding: NSUTF8StringEncoding, delimiter: separatorChar)
-			
-			// Write column headers
-			stream.columnNames { (columnNames) -> () in
-				for col in columnNames {
-					csvOut.writeField(col.name)
-				}
-				csvOut.finishLine()
-				
-				var cb: QBESink? = nil
-				cb = { (rows: Slice<QBERow>, hasNext: Bool) -> () in
-					// We want the next row, so fetch it while we start writing this one.
-					if hasNext {
-						QBEAsyncBackground {
-							stream.fetch(cb!, job: nil)
-						}
-					}
-					
-					QBETime("Write CSV", rows.count, "rows") {
-						for row in rows {
-							for cell in row {
-								csvOut.writeField(cell.explain(self.locale))
-							}
-							csvOut.finishLine()
-						}
-					}
-					
-					if !hasNext {
-						csvOut.closeStream()
-						callback()
-					}
-				}
-				
-				stream.fetch(cb!, job: nil)
+		let stream = data.stream()
+		let separatorString = QBESettings.sharedInstance.defaultFieldSeparator
+		let separatorChar = separatorString.utf16[separatorString.utf16.startIndex]
+		let outStream = NSOutputStream(toFileAtPath: file.path!, append: false)
+		let csvOut = CHCSVWriter(outputStream: outStream, encoding: NSUTF8StringEncoding, delimiter: separatorChar)
+		
+		// Write column headers
+		stream.columnNames { (columnNames) -> () in
+			for col in columnNames {
+				csvOut.writeField(col.name)
 			}
+			csvOut.finishLine()
+			
+			var cb: QBESink? = nil
+			cb = { (rows: Slice<QBERow>, hasNext: Bool) -> () in
+				// We want the next row, so fetch it while we start writing this one.
+				if hasNext {
+					QBEAsyncBackground {
+						stream.fetch(cb!, job: nil)
+					}
+				}
+				
+				QBETime("Write CSV", rows.count, "rows") {
+					for row in rows {
+						for cell in row {
+							csvOut.writeField(cell.explain(self.locale))
+						}
+						csvOut.finishLine()
+					}
+				}
+				
+				if !hasNext {
+					csvOut.closeStream()
+					callback()
+				}
+			}
+			
+			stream.fetch(cb!, job: nil)
 		}
 	}
 }

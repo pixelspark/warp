@@ -92,6 +92,14 @@
 		6567AC881AA1C92D00640CC5 /* QBEStepsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6567AC871AA1C92D00640CC5 /* QBEStepsViewController.swift */; };
 		6567AC8B1AA1D12C00640CC5 /* QBEStepsItem.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6567AC8A1AA1D12C00640CC5 /* QBEStepsItem.xib */; };
 		656AA1F01A65BB90006D331A /* QBEStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656AA1EF1A65BB90006D331A /* QBEStepView.swift */; };
+		65734BD41AB0BD8B00D2C2F6 /* QBEPrestoStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65734BD31AB0BD8B00D2C2F6 /* QBEPrestoStep.swift */; };
+		65734BD61AB0BD8B00D2C2F6 /* QBEPrestoStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65734BD31AB0BD8B00D2C2F6 /* QBEPrestoStep.swift */; };
+		65734BD71AB0CBAA00D2C2F6 /* Alamofire.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		65734BDE1AB0E40100D2C2F6 /* QBEPrestoSourceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65734BDD1AB0E40100D2C2F6 /* QBEPrestoSourceStepView.swift */; };
+		65734BDF1AB0E40100D2C2F6 /* QBEPrestoSourceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65734BDD1AB0E40100D2C2F6 /* QBEPrestoSourceStepView.swift */; };
+		65734BE01AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65734BE31AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib */; };
+		65734BE11AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65734BE31AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib */; };
 		65776EE81A614CE100F7F82A /* QBEFunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65776EE71A614CE100F7F82A /* QBEFunction.swift */; };
 		65776EE91A614D1400F7F82A /* QBEFunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65776EE71A614CE100F7F82A /* QBEFunction.swift */; };
 		65776EED1A62D8E700F7F82A /* QBEColumnsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65776EEC1A62D8E700F7F82A /* QBEColumnsStep.swift */; };
@@ -206,6 +214,55 @@
 			remoteGlobalIDString = E2E62BA91781C33400F36275;
 			remoteInfo = MBTableGrid;
 		};
+		65734BC41AB0380200D2C2F6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F8111E3319A95C8B0040E7D1;
+			remoteInfo = "Alamofire iOS";
+		};
+		65734BC61AB0380200D2C2F6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4DD67C0B1A5C55C900ED2280;
+			remoteInfo = "Alamofire OSX";
+		};
+		65734BC81AB0380200D2C2F6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F8111E3E19A95C8B0040E7D1;
+			remoteInfo = "Alamofire iOS Tests";
+		};
+		65734BCA1AB0380200D2C2F6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F829C6B21A7A94F100A2CD59;
+			remoteInfo = "Alamofire OSX Tests";
+		};
+		65734BCD1AB0380F00D2C2F6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4DD67C0A1A5C55C900ED2280;
+			remoteInfo = "Alamofire OSX";
+		};
+		65734BCF1AB0381500D2C2F6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F829C6B11A7A94F100A2CD59;
+			remoteInfo = "Alamofire OSX Tests";
+		};
+		65734BD11AB0381A00D2C2F6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4DD67C0A1A5C55C900ED2280;
+			remoteInfo = "Alamofire OSX";
+		};
 		65E3C3001A062E5E007BB3C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65E3C2AC1A05222F007BB3C8 /* Project object */;
@@ -222,6 +279,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				65734BD71AB0CBAA00D2C2F6 /* Alamofire.framework in CopyFiles */,
 				654EBAB11AA7A2AE00DDBBCA /* MBTableGrid.framework in CopyFiles */,
 				654EBAB21AA7A2AE00DDBBCA /* SwiftParser.framework in CopyFiles */,
 			);
@@ -233,6 +291,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */,
 				65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */,
 				65F3867D1A6B1DFB00C83810 /* SwiftParser.framework in CopyFiles */,
 			);
@@ -272,6 +331,11 @@
 		6567AC871AA1C92D00640CC5 /* QBEStepsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEStepsViewController.swift; sourceTree = "<group>"; };
 		6567AC8A1AA1D12C00640CC5 /* QBEStepsItem.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = QBEStepsItem.xib; sourceTree = "<group>"; };
 		656AA1EF1A65BB90006D331A /* QBEStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = QBEStepView.swift; path = QBE/QBEStepView.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Libraries/Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
+		65734BD31AB0BD8B00D2C2F6 /* QBEPrestoStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEPrestoStep.swift; path = Engine/QBEPrestoStep.swift; sourceTree = SOURCE_ROOT; };
+		65734BDD1AB0E40100D2C2F6 /* QBEPrestoSourceStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEPrestoSourceStepView.swift; path = QBE/QBEPrestoSourceStepView.swift; sourceTree = "<group>"; };
+		65734BE21AB0E60A00D2C2F6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEPrestoSourceStepView.xib; sourceTree = "<group>"; };
+		65734BE51AB0E60D00D2C2F6 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEPrestoSourceStepView.strings; sourceTree = "<group>"; };
 		65776EE71A614CE100F7F82A /* QBEFunction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEFunction.swift; path = Engine/QBEFunction.swift; sourceTree = SOURCE_ROOT; };
 		65776EEC1A62D8E700F7F82A /* QBEColumnsStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEColumnsStep.swift; path = Engine/QBEColumnsStep.swift; sourceTree = SOURCE_ROOT; };
 		65776EEF1A62FFD800F7F82A /* QBEAddColumnViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEAddColumnViewController.swift; sourceTree = "<group>"; };
@@ -363,6 +427,7 @@
 			children = (
 				6548F2331A8673BF00FE8EF2 /* extension-functions.c */,
 				65776F111A6483AD00F7F82A /* libsqlite3.dylib */,
+				65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */,
 				6528728B1A5D16C200C155FA /* SwiftParser.xcodeproj */,
 				6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */,
 				651988E41A0F9C30003463AA /* CHCSVParser.h */,
@@ -377,6 +442,17 @@
 			children = (
 				652872921A5D16C200C155FA /* SwiftParser.framework */,
 				652872941A5D16C200C155FA /* SwiftParserTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		65734BBE1AB0380200D2C2F6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				65734BC51AB0380200D2C2F6 /* Alamofire.framework */,
+				65734BC71AB0380200D2C2F6 /* Alamofire.framework */,
+				65734BC91AB0380200D2C2F6 /* Alamofire iOS Tests.xctest */,
+				65734BCB1AB0380200D2C2F6 /* Alamofire OSX Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -396,6 +472,8 @@
 				65894A0B1A67036200B0C161 /* QBELimitStepView.xib */,
 				654AE1771AA59B3B0022C533 /* QBEPivotStepView.swift */,
 				65DBA5631A798F31004CDF36 /* QBEPivotStepView.xib */,
+				65734BDD1AB0E40100D2C2F6 /* QBEPrestoSourceStepView.swift */,
+				65734BE31AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib */,
 				654AE1811AA59BF30022C533 /* QBERandomStepView.swift */,
 				65DBA5671A798F35004CDF36 /* QBERandomStepView.xib */,
 				654AE17D1AA59BBC0022C533 /* QBESQLiteSourceStepView.swift */,
@@ -417,6 +495,7 @@
 				6589779D1A55C090001001F2 /* QBERowsStep.swift */,
 				6501E7B91A6C6A620030899E /* QBESQLiteStep.swift */,
 				6510A73C1A4E9A47005633EF /* QBEStep.swift */,
+				65734BD31AB0BD8B00D2C2F6 /* QBEPrestoStep.swift */,
 			);
 			name = Steps;
 			path = qbetest;
@@ -519,6 +598,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				65734BD21AB0381A00D2C2F6 /* PBXTargetDependency */,
 				654EBA731AA7A2AE00DDBBCA /* PBXTargetDependency */,
 				654EBA751AA7A2AE00DDBBCA /* PBXTargetDependency */,
 			);
@@ -539,6 +619,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				65734BCE1AB0380F00D2C2F6 /* PBXTargetDependency */,
 				652872961A5D16CE00C155FA /* PBXTargetDependency */,
 				6510A7381A4D982E005633EF /* PBXTargetDependency */,
 			);
@@ -558,6 +639,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				65734BD01AB0381500D2C2F6 /* PBXTargetDependency */,
 				654AE16A1AA5145E0022C533 /* PBXTargetDependency */,
 				652872981A5D16D300C155FA /* PBXTargetDependency */,
 				65E3C3011A062E5E007BB3C8 /* PBXTargetDependency */,
@@ -616,6 +698,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = 65734BBE1AB0380200D2C2F6 /* Products */;
+					ProjectRef = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+				},
+				{
 					ProductGroup = 6510A72F1A4D9811005633EF /* Products */;
 					ProjectRef = 6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */;
 				},
@@ -662,6 +748,34 @@
 			remoteRef = 652872931A5D16C200C155FA /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		65734BC51AB0380200D2C2F6 /* Alamofire.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Alamofire.framework;
+			remoteRef = 65734BC41AB0380200D2C2F6 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65734BC71AB0380200D2C2F6 /* Alamofire.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Alamofire.framework;
+			remoteRef = 65734BC61AB0380200D2C2F6 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65734BC91AB0380200D2C2F6 /* Alamofire iOS Tests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "Alamofire iOS Tests.xctest";
+			remoteRef = 65734BC81AB0380200D2C2F6 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65734BCB1AB0380200D2C2F6 /* Alamofire OSX Tests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "Alamofire OSX Tests.xctest";
+			remoteRef = 65734BCA1AB0380200D2C2F6 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -670,6 +784,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				654EBAA41AA7A2AE00DDBBCA /* QBEStepsItem.xib in Resources */,
+				65734BE11AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib in Resources */,
 				654EBAA51AA7A2AE00DDBBCA /* QBEPivotStepView.xib in Resources */,
 				654EBAA61AA7A2AE00DDBBCA /* Localizable.strings in Resources */,
 				654EBAA71AA7A2AE00DDBBCA /* QBECalculateStepView.xib in Resources */,
@@ -690,6 +805,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6567AC8B1AA1D12C00640CC5 /* QBEStepsItem.xib in Resources */,
+				65734BE01AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib in Resources */,
 				65DBA5611A798F31004CDF36 /* QBEPivotStepView.xib in Resources */,
 				6593B7341AA37AE200BE9726 /* Localizable.strings in Resources */,
 				65F4E2671A683B3600BB57B8 /* QBECalculateStepView.xib in Resources */,
@@ -734,6 +850,7 @@
 				654EBA841AA7A2AE00DDBBCA /* QBEFlattenStep.swift in Sources */,
 				654EBA851AA7A2AE00DDBBCA /* QBEStepView.swift in Sources */,
 				654EBA861AA7A2AE00DDBBCA /* QBERaster.swift in Sources */,
+				65734BD61AB0BD8B00D2C2F6 /* QBEPrestoStep.swift in Sources */,
 				654EBA871AA7A2AE00DDBBCA /* QBEColumnsStep.swift in Sources */,
 				654EBA881AA7A2AE00DDBBCA /* QBEFilterStepView.swift in Sources */,
 				654EBA891AA7A2AE00DDBBCA /* QBECSVStepView.swift in Sources */,
@@ -743,6 +860,7 @@
 				654EBA8D1AA7A2AE00DDBBCA /* QBESuggestionsViewController.swift in Sources */,
 				654EBA8E1AA7A2AE00DDBBCA /* QBEStream.swift in Sources */,
 				654EBA8F1AA7A2AE00DDBBCA /* QBEExpression.swift in Sources */,
+				65734BDF1AB0E40100D2C2F6 /* QBEPrestoSourceStepView.swift in Sources */,
 				654EBA901AA7A2AE00DDBBCA /* QBEDataViewController.swift in Sources */,
 				654EBA911AA7A2AE00DDBBCA /* QBEData.swift in Sources */,
 				654EBA921AA7A2AE00DDBBCA /* QBEStepsViewController.swift in Sources */,
@@ -780,6 +898,7 @@
 				659A27F11AA504F7009269A4 /* QBEFlattenStep.swift in Sources */,
 				656AA1F01A65BB90006D331A /* QBEStepView.swift in Sources */,
 				65ABB15E1A0ABF4A00A56C49 /* QBERaster.swift in Sources */,
+				65734BD41AB0BD8B00D2C2F6 /* QBEPrestoStep.swift in Sources */,
 				65776EED1A62D8E700F7F82A /* QBEColumnsStep.swift in Sources */,
 				654AE17A1AA59B3B0022C533 /* QBEFilterStepView.swift in Sources */,
 				654AE1791AA59B3B0022C533 /* QBECSVStepView.swift in Sources */,
@@ -789,6 +908,7 @@
 				658977A51A580FE8001001F2 /* QBESuggestionsViewController.swift in Sources */,
 				653E89631A6F9D1C00E9A6F4 /* QBEStream.swift in Sources */,
 				65D6F9DA1A597C81006B6995 /* QBEExpression.swift in Sources */,
+				65734BDE1AB0E40100D2C2F6 /* QBEPrestoSourceStepView.swift in Sources */,
 				652BEBDF1A063029002E45C7 /* QBEDataViewController.swift in Sources */,
 				65D6F9E21A59B8AA006B6995 /* QBEData.swift in Sources */,
 				6567AC881AA1C92D00640CC5 /* QBEStepsViewController.swift in Sources */,
@@ -858,6 +978,21 @@
 			name = MBTableGrid;
 			targetProxy = 654EBA761AA7A2AE00DDBBCA /* PBXContainerItemProxy */;
 		};
+		65734BCE1AB0380F00D2C2F6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Alamofire OSX";
+			targetProxy = 65734BCD1AB0380F00D2C2F6 /* PBXContainerItemProxy */;
+		};
+		65734BD01AB0381500D2C2F6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Alamofire OSX Tests";
+			targetProxy = 65734BCF1AB0381500D2C2F6 /* PBXContainerItemProxy */;
+		};
+		65734BD21AB0381A00D2C2F6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Alamofire OSX";
+			targetProxy = 65734BD11AB0381A00D2C2F6 /* PBXContainerItemProxy */;
+		};
 		65E3C3011A062E5E007BB3C8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 65E3C2EB1A062E5E007BB3C8 /* Warp */;
@@ -873,6 +1008,16 @@
 				654AE1721AA516E30022C533 /* nl */,
 			);
 			name = QBEFlattenStepView.xib;
+			path = QBE;
+			sourceTree = "<group>";
+		};
+		65734BE31AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				65734BE21AB0E60A00D2C2F6 /* Base */,
+				65734BE51AB0E60D00D2C2F6 /* nl */,
+			);
+			name = QBEPrestoSourceStepView.xib;
 			path = QBE;
 			sourceTree = "<group>";
 		};

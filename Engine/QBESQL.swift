@@ -34,6 +34,14 @@ protocol QBESQLDialect {
 	func aggregationToSQL(aggregation: QBEAggregation) -> String?
 }
 
+class QBESQLDatabase {
+	var dialect: QBESQLDialect
+	
+	internal init(dialect: QBESQLDialect) {
+		self.dialect = dialect
+	}
+}
+
 class QBEStandardSQLDialect: QBESQLDialect {
 	let stringQualifier = "\'"
 	let stringQualifierEscape = "\\\'"
@@ -74,7 +82,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 		else if let f = formula as? QBEBinaryExpression {
 			if let first = expressionToSQL(f.first, inputValue: inputValue) {
 				if let second = expressionToSQL(f.second, inputValue: inputValue) {
-					return binaryToSQL(first, second: second, type: f.type)
+					return binaryToSQL(f.type, first: first, second: second)
 				}
 			}
 			return nil
@@ -88,7 +96,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 				}
 				return r ?? ""
 			})
-			return anyNils ? nil : unaryToSQL(argValues, type: f.type)
+			return anyNils ? nil : unaryToSQL(f.type, args: argValues)
 		}
 
 		return nil
@@ -120,9 +128,8 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			return nil
 		}
 	}
-	
-	// FIXME: SQLite supports none of the math functions used below (SIN, COS, TAN, ..)
-	private func unaryToSQL(args: [String], type: QBEFunction) -> String? {
+
+	internal func unaryToSQL(type: QBEFunction, args: [String]) -> String? {
 		let value = args.implode(", ") ?? ""
 		switch type {
 			case .Identity: return value
@@ -207,7 +214,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 		}
 	}
 	
-	private func valueToSQL(value: QBEValue) -> String {
+	internal func valueToSQL(value: QBEValue) -> String {
 		switch value {
 			case .StringValue(let s):
 				return literalString(s)
@@ -230,7 +237,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 		}
 	}
 	
-	private func binaryToSQL(first: String, second: String, type: QBEBinary) -> String {
+	internal func binaryToSQL(type: QBEBinary, first: String, second: String) -> String {
 		switch type {
 			case .Addition:		return "(\(second)+\(first))"
 			case .Subtraction:	return "(\(second)-\(first))"
@@ -245,8 +252,12 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .LesserEqual:	return "(\(second)<=\(first))"
 			case .Equal:		return "(\(second)=\(first))"
 			case .NotEqual:		return "(\(second)<>\(first))"
-			case .ContainsString: return "INSTR(LOWER(\(second)), LOWER(\(first)))>0"
-			case .ContainsStringStrict: return "INSTR(\(second), \(first))>0"
+			
+			/* Most SQL database support the "a LIKE '%b%'" syntax for finding items where column a contains the string b
+			(case-insensitive), so that's what we use for ContainsString and ContainsStringStrict. Because Presto doesn't
+			support CONCAT with multiple parameters, we use two. */
+			case .ContainsString: return "(LOWER(\(second)) LIKE CONCAT('%', CONCAT(LOWER(\(first)),'%')))"
+			case .ContainsStringStrict: return "(\(second) LIKE CONCAT('%',CONCAT(\(first),'%')))"
 		}
 	}
 }
@@ -259,15 +270,7 @@ subclassed type). See QBESQLite for an implementation example. **/
 class QBESQLData: NSObject, QBEData {
     internal let sql: String
 	let dialect: QBESQLDialect
-	private var columns: [QBEColumn]
-	
-	func columnNames(callback: ([QBEColumn]) -> ()) {
-		callback(columns)
-	}
-	
-	func raster(job: QBEJob?, callback: (QBERaster) -> ()) {
-		fatalError("Raster should be implemented by sublcass")
-	}
+	var columns: [QBEColumn]
     
 	internal init(sql: String, dialect: QBESQLDialect, columns: [QBEColumn]) {
         self.sql = sql
@@ -276,12 +279,15 @@ class QBESQLData: NSObject, QBEData {
     }
 	
 	private func fallback() -> QBEData {
-		if let s = self.stream() {
-			return QBEStreamData(source: s)
-		}
-		else {
-			return QBERasterData(future: self.raster)
-		}
+		return QBEStreamData(source: self.stream())
+	}
+	
+	func columnNames(callback: ([QBEColumn]) -> ()) {
+		callback(columns)
+	}
+	
+	func raster(job: QBEJob?, callback: (QBERaster) -> ()) {
+		QBEStreamData(source: self.stream()).raster(job, callback: callback)
 	}
 	
 	/** Transposition is difficult in SQL, and therefore left to QBERasterData. **/
@@ -418,10 +424,7 @@ class QBESQLData: NSObject, QBEData {
 		return QBESQLData(sql: sql, dialect: dialect, columns: columns)
 	}
 	
-	func stream() -> QBEStream? {
-		/* The default implementation just fetches a raster and streams that, which obviously is not very efficient for 
-		large data sets, as it eats up a lot of memory that is not needed (that's what streaming is good for in the first 
-		place). Subclasses are encouraged to implement this more efficiently (e.g. by stepping through their result sets). */
-		return QBERasterData(future: self.raster).stream()
+	func stream() -> QBEStream {
+		fatalError("Stream() must be implemented by subclass of QBESQLData")
 	}
 }

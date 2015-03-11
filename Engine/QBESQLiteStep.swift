@@ -165,17 +165,7 @@ internal class QBESQLiteResultGenerator: GeneratorType {
 	}
 }
 
-class QBEDatabase {
-	var dialect: QBESQLDialect
-	
-	private init(dialect: QBESQLDialect) {
-		self.dialect = dialect
-	}
-}
-
-internal class QBESQLiteDatabase: QBEDatabase {
-	typealias Dialect = QBESQLiteDialect
-	
+internal class QBESQLiteDatabase: QBESQLDatabase {
 	class var sharedQueue : dispatch_queue_t {
 		struct Static {
 			static var onceToken : dispatch_once_t = 0
@@ -241,48 +231,15 @@ internal class QBESQLiteDatabase: QBEDatabase {
 }
 
 internal class QBESQLiteDialect: QBEStandardSQLDialect {
-}
-
-private class QBESQLiteStream: NSObject, QBEStream {
-	let data: QBESQLiteData
-	let result: QBESQLiteResult?
-	let generator: QBESQLiteResultGenerator?
-	
-	init(data: QBESQLiteData) {
-		self.data = data
-		result = data.db.query(data.sql)
-		generator = result?.generate()
-	}
-	
-	private func fetch(consumer: QBESink, job: QBEJob?) {
-		if let g = generator {
-			var done = false
-			var rows :[QBERow] = []
-			rows.reserveCapacity(QBEStreamDefaultBatchSize)
-			
-			for i in 0..<QBEStreamDefaultBatchSize {
-				if let next = g.next() {
-					rows.append(next)
-				}
-				else {
-					done = true
-					break
-				}
-			}
-			
-			consumer(Slice(rows), !done)
+	override func binaryToSQL(type: QBEBinary, first: String, second: String) -> String {
+		switch type {
+			/** For 'contains string', the default implementation uses "a LIKE '%b%'" syntax. Using INSTR is probably a
+			bit faster on SQLite. **/
+			case .ContainsString: return "INSTR(LOWER(\(second)), LOWER(\(first)))>0"
+			case .ContainsStringStrict: return "INSTR(\(second), \(first))>0"
+			default:
+				return super.binaryToSQL(type, first: first, second: second)
 		}
-		else {
-			consumer([], false)
-		}
-	}
-	
-	private func columnNames(callback: ([QBEColumn]) -> ()) {
-		callback(result?.columnNames ?? [])
-	}
-	
-	private func clone() -> QBEStream {
-		return QBESQLiteStream(data: self.data)
 	}
 }
 
@@ -300,35 +257,15 @@ class QBESQLiteData: QBESQLData {
 		super.init(sql: sql, dialect: db.dialect, columns: columns)
 	}
 	
-	override func columnNames(callback: ([QBEColumn]) -> ()) {
-		if let result = self.db.query(self.sql) {
-			callback(result.columnNames)
-		}
-		else {
-			callback([])
-		}
-	}
-	
 	override func apply(sql: String, resultingColumns: [QBEColumn]) -> QBEData {
 		return QBESQLiteData(db: self.db, sql: sql, columns: resultingColumns)
 	}
 	
-	override func stream() -> QBEStream? {
-		return QBESQLiteStream(data: self)
-	}
-	
-	override func raster(job: QBEJob?, callback: (QBERaster) -> ()) {
+	override func stream() -> QBEStream {
 		if let result = self.db.query(self.sql) {
-			let columnNames = result.columnNames
-			var newRaster: [[QBEValue]] = []
-			for row in result {
-				newRaster.append(row)
-			}
-			callback(QBERaster(data: newRaster, columnNames: columnNames))
+			return QBESequenceStream(SequenceOf<QBERow>(result), columnNames: result.columnNames)
 		}
-		else {
-			callback(QBERaster())
-		}
+		return QBEEmptyStream()
 	}
 }
 

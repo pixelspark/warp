@@ -481,7 +481,7 @@ class QBERasterData: NSObject, QBEData {
 		}
 	}
 	
-	func stream() -> QBEStream? {
+	func stream() -> QBEStream {
 		return QBERasterDataStream(self)
 	}
 }

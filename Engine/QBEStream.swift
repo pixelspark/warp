@@ -120,8 +120,62 @@ class QBEStreamData: QBEData {
 		source.columnNames(callback)
 	}
 	
-	func stream() -> QBEStream? {
+	func stream() -> QBEStream {
 		return source.clone()
+	}
+}
+
+/** A stream that never produces any data. **/
+class QBEEmptyStream: QBEStream {
+	func fetch(consumer: QBESink, job: QBEJob?) {
+		consumer([], true)
+	}
+	
+	func clone() -> QBEStream {
+		return QBEEmptyStream()
+	}
+	
+	func columnNames(callback: ([QBEColumn]) -> ()) {
+		callback([])
+	}
+}
+
+/** A stream that sources from a Swift generator of QBERow. **/
+class QBESequenceStream: QBEStream {
+	private let sequence: SequenceOf<QBERow>
+	private var generator: GeneratorOf<QBERow>
+	private let columns: [QBEColumn]
+	
+	init(_ sequence: SequenceOf<QBERow>, columnNames: [QBEColumn]) {
+		self.sequence = sequence
+		self.generator = sequence.generate()
+		self.columns = columnNames
+	}
+	
+	func fetch(consumer: QBESink, job: QBEJob?) {
+		var done = false
+		var rows :[QBERow] = []
+		rows.reserveCapacity(QBEStreamDefaultBatchSize)
+		
+		for i in 0..<QBEStreamDefaultBatchSize {
+			if let next = generator.next() {
+				rows.append(next)
+			}
+			else {
+				done = true
+				break
+			}
+		}
+		
+		consumer(Slice(rows), !done)
+	}
+	
+	func columnNames(callback: ([QBEColumn]) -> ()) {
+		callback(self.columns)
+	}
+	
+	func clone() -> QBEStream {
+		return QBESequenceStream(self.sequence, columnNames: self.columns)
 	}
 }
 

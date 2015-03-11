@@ -530,6 +530,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("importFile:") {
 			return true
 		}
+		else if item.action()==Selector("connectDatabase:") {
+			return true
+		}
 		else if item.action()==Selector("exportFile:") {
 			return currentStep != nil
 		}
@@ -611,6 +614,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func addStep(sender: NSView) {
 		NSMenu.popUpContextMenu(self.addStepMenu!, withEvent: NSApplication.sharedApplication().currentEvent!, forView: sender)
+	}
+	
+	@IBAction func connectDatabase(sender: NSObject) {
+		self.pushStep(QBEPrestoSourceStep())
 	}
 	
 	@IBAction func importFile(sender: NSObject) {

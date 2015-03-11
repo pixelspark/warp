@@ -1109,6 +1109,11 @@ CA
                                 <action selector="importFile:" target="Izd-TK-t8f" id="Cdg-Di-X1p"/>
                             </connections>
                         </menuItem>
+                        <menuItem title="Load data from Presto..." keyEquivalent="D" id="PBU-iY-SYv">
+                            <connections>
+                                <action selector="connectDatabase:" target="Izd-TK-t8f" id="0Hf-h0-oDF"/>
+                            </connections>
+                        </menuItem>
                         <menuItem isSeparatorItem="YES" id="Rf1-BS-aUM"/>
                         <menuItem title="Select rows like this..." keyEquivalent="s" id="zOH-It-cbM">
                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>

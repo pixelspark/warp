@@ -157,7 +157,7 @@ protocol QBEData {
 	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData
 	
 	/** Request streaming of the data contained in this dataset to the specified callback. **/
-	func stream() -> QBEStream?
+	func stream() -> QBEStream
 	
 	/** Flattens a data set. For each cell in the source data set, a row is generated that contains the following columns
 	(in the following order):
@@ -193,7 +193,7 @@ class QBEProxyData: NSObject, QBEData {
 	func selectColumns(columns: [QBEColumn]) -> QBEData { return data.selectColumns(columns) }
 	func aggregate(groups: [QBEColumn: QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData { return data.aggregate(groups, values: values) }
 	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData { return data.pivot(horizontal, vertical: vertical, values: values) }
-	func stream() -> QBEStream? { return data.stream() }
+	func stream() -> QBEStream { return data.stream() }
 	func raster(job: QBEJob?, callback: (QBERaster) -> ()) { return data.raster(job, callback: callback) }
 	func columnNames(callback: ([QBEColumn]) -> ()) { return data.columnNames(callback) }
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }

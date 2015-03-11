@@ -260,7 +260,7 @@ class QBEFormula: Parser {
 		add_named_rule("arguments",			rule: (("(" ~~ matchList(^"logic" => pushArgument, literal(locale.argumentSeparator)) ~~ ")")))
 		add_named_rule("unaryFunction",		rule: ((matchAnyFrom(functionRules) => pushCall) ~~ ^"arguments") => popCall)
 		add_named_rule("constant",			rule: matchAnyFrom(locale.constants.values.array.map({matchLiteralInsensitive($0)})) => pushConstant)
-		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~~  ((matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
+		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~  ((matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
 		
 		add_named_rule("currentCell",		rule: literal(locale.currentCellIdentifier) => pushIdentity)
 		
