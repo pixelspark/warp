@@ -196,7 +196,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		currentRaster?.get({(raster) in
 			QBEAsyncBackground {
 				let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale)
-				let steps = Set(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)}))
+				let steps = expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)})
 				
 				QBEAsyncMain {
 					self.suggestSteps(steps)
@@ -251,7 +251,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		// Swap out alternatives
 		if var oldAlternatives = currentStep?.alternatives {
 			oldAlternatives.remove(step)
-			oldAlternatives.insert(currentStep!)
+			oldAlternatives.append(currentStep!)
 			step.alternatives = oldAlternatives
 		}
 		
@@ -303,7 +303,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		self.view.window?.update()
 	}
 	
-	private func suggestSteps(var steps: Set<QBEStep>) {
+	private func suggestSteps(var steps: Array<QBEStep>) {
 		if steps.count == 0 {
 			// Alert
 			let alert = NSAlert()
