@@ -25,6 +25,14 @@ class QBESettings {
 		}
 	}
 	
+	func defaultWidthForColumn(withName: QBEColumn) -> Double? {
+		return defaults.doubleForKey("width.\(withName.name)")
+	}
+	
+	func setDefaultWidth(width: Double, forColumn: QBEColumn) {
+		defaults.setDouble(width, forKey: "width.\(forColumn.name)")
+	}
+	
 	/** Return whether it is allowable to cache a file of the indicated size in the indicated location. This function 
 	bases its decision on the amount of disk space free in the target location (and allows any file to be cached to
 	only use a particular fraction of it). In the future, it may use preferences exposed to the user. The result of this 

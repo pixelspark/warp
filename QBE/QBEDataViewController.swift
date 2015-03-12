@@ -12,7 +12,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	@IBOutlet var workingSetSelector: NSSegmentedControl!
 	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
-	private var columnWidths: [QBEColumn: Float] = [:]
 	
 	var calculating: Bool = false { didSet {
 		update()
@@ -117,19 +116,19 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		if let r = raster {
 			if Int(columnIndex) < r.columnNames.count {
 				let cn = r.columnNames[Int(columnIndex)]
-				if let w = columnWidths[cn] {
-					return w
+				if let w = QBESettings.sharedInstance.defaultWidthForColumn(cn) where w > 0 {
+					return Float(w)
 				}
 			}
 		}
-		return 160.0
+		return 60.0
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt) -> Float {
 		if let r = raster {
 			if Int(columnIndex) < r.columnNames.count {
 				let cn = r.columnNames[Int(columnIndex)]
-				columnWidths[cn] = width
+				QBESettings.sharedInstance.setDefaultWidth(Double(width), forColumn: cn)
 			}
 		}
 		return width
@@ -161,8 +160,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 		
 		if let tv = tableView {
-			for i in 0...tv.numberOfColumns {
-				tv.resizeColumnWithIndex(i, width: self.tableGrid(tv, widthForColumn: i))
+			for i in 0..<tv.numberOfColumns {
+				let w = self.tableGrid(tv, widthForColumn: i)
+				tv.resizeColumnWithIndex(i, width: w)
 			}
 			
 			tv.reloadData()
