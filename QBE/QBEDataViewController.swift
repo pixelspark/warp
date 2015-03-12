@@ -52,15 +52,17 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	private func setValue(value: QBEValue, inRow: Int, inColumn: Int) {
 		if let r = raster {
 			let oldValue = r[Int(inRow), Int(inColumn)]
-			if let d = delegate {
-				if !d.dataView(self, didChangeValue: oldValue, toValue: value, inRow: Int(inRow), column: Int(inColumn)) {
-					if r.readOnly {
-						// When raster is read-only, only structural changes are allowed
-					}
-					else {
-						// The raster can be changed directly (it is source data), so change it
-						if(inColumn>0) {
-							//raster!.setValue(valueObject, forColumn: r.columnNames[Int(columnIndex)], inRow: Int(rowIndex))
+			if oldValue != value {
+				if let d = delegate {
+					if !d.dataView(self, didChangeValue: oldValue, toValue: value, inRow: Int(inRow), column: Int(inColumn)) {
+						if r.readOnly {
+							// When raster is read-only, only structural changes are allowed
+						}
+						else {
+							// The raster can be changed directly (it is source data), so change it
+							if(inColumn>0) {
+								//raster!.setValue(valueObject, forColumn: r.columnNames[Int(columnIndex)], inRow: Int(rowIndex))
+							}
 						}
 					}
 				}
