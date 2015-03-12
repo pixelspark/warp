@@ -319,7 +319,7 @@ class QBESQLiteCachedData: QBEProxyData {
 		cacheJob.cancel()
 	}
 	
-	private func ingest(rows: Slice<QBERow>, hasMore: Bool) {
+	private func ingest(rows: ArraySlice<QBERow>, hasMore: Bool) {
 		assert(!isCached, "Cannot ingest more rows after data has already been cached")
 		if hasMore && !cacheJob.cancelled {
 			self.stream?.fetch(self.ingest, job: cacheJob)

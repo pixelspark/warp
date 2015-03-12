@@ -2,7 +2,7 @@ import Foundation
 
 /** A QBESink is a function used as a callback in response to QBEStream.fetch. It receives a set of rows from the stream
 as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). **/
-typealias QBESink = (Slice<QBERow>, Bool) -> ()
+typealias QBESink = (ArraySlice<QBERow>, Bool) -> ()
 
 /** The default number of rows that a QBEStream will send to a consumer upon request through QBEStream.fetch. **/
 let QBEStreamDefaultBatchSize = 256
@@ -167,7 +167,7 @@ class QBESequenceStream: QBEStream {
 			}
 		}
 		
-		consumer(Slice(rows), !done)
+		consumer(ArraySlice(rows), !done)
 	}
 	
 	func columnNames(callback: ([QBEColumn]) -> ()) {
@@ -198,7 +198,7 @@ private class QBETransformer: NSObject, QBEStream {
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). **/
-	private func transform(rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
 		fatalError("QBETransformer.transform should be implemented in a subclass")
 	}
 	
@@ -279,7 +279,7 @@ private class QBEFlattenTransformer: QBETransformer {
 		return QBEFlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
 	}
 	
-	private override func transform(rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
 		prepare {
 			var newRows: [QBERow] = []
 			newRows.reserveCapacity(self.columnNames.count * rows.count)
@@ -302,7 +302,7 @@ private class QBEFlattenTransformer: QBETransformer {
 					}
 				}
 			}
-			callback(Slice(newRows), false)
+			callback(ArraySlice(newRows), false)
 		}
 	}
 }
@@ -316,7 +316,7 @@ private class QBEFilterTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
 		source.columnNames { (columnNames) -> () in
 			QBETime("Stream filter", rows.count, "row", job) {
 				let newRows = rows.filter({(row) -> Bool in
@@ -345,7 +345,7 @@ private class QBERandomTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(var rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(var rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
 		// Reservoir initial fill
 		if sample.count < sampleSize {
 			let length = sampleSize - sample.count
@@ -387,7 +387,7 @@ private class QBERandomTransformer: QBETransformer {
 		}
 		else {
 			// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
-			callback(Slice(sample), true)
+			callback(ArraySlice(sample), true)
 		}
 	}
 	
@@ -407,7 +407,7 @@ private class QBELimitTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
 		if (position+rows.count) < limit {
 			position += rows.count
 			callback(rows, false)
@@ -447,7 +447,7 @@ private class QBEColumnsTransformer: QBETransformer {
 		}
 	}
 	
-	override private func transform(rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>,Bool) -> ()) {
+	override private func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>,Bool) -> ()) {
 		ensureIndexes {
 			assert(self.indexes != nil)
 			
@@ -461,7 +461,7 @@ private class QBEColumnsTransformer: QBETransformer {
 				}
 				result.append(newRow)
 			}
-			callback(Slice(result), false)
+			callback(ArraySlice(result), false)
 		}
 	}
 	
@@ -534,7 +534,7 @@ private class QBECalculateTransformer: QBETransformer {
 		}
 	}
 	
-	private override func transform(var rows: Slice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (Slice<QBERow>, Bool) -> ()) {
+	private override func transform(var rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
 		self.ensureIndexes {
 			QBETime("Calculate", rows.count, "row") {
 				let newData = rows.map({ (var row: QBERow) -> QBERow in

@@ -25,7 +25,7 @@ internal extension String {
 	}
 }
 
-internal extension Slice {
+internal extension ArraySlice {
 	func each(call: (Element) -> ()) {
 		for item in self {
 			call(item)

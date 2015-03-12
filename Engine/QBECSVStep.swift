@@ -72,7 +72,7 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 				job?.reportProgress(progress, forKey: self.hashValue);
 			}
 			
-			let r = Slice(self.rows)
+			let r = ArraySlice(self.rows)
 			self.rows.removeAll(keepCapacity: true)
 			consumer(r, !self.finished)
 		}
@@ -128,7 +128,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 			csvOut.finishLine()
 			
 			var cb: QBESink? = nil
-			cb = { (rows: Slice<QBERow>, hasNext: Bool) -> () in
+			cb = { (rows: ArraySlice<QBERow>, hasNext: Bool) -> () in
 				// We want the next row, so fetch it while we start writing this one.
 				if hasNext {
 					QBEAsyncBackground {
