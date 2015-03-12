@@ -16,7 +16,7 @@ let QBEStepViews: Dictionary<String, QBEStepView> = [
 ]
 
 let QBEStepIcons = [
-	QBETransposeStep.className(): "CalculateIcon",
+	QBETransposeStep.className(): "TransposeIcon",
 	QBEPivotStep.className(): "PivotIcon",
 	QBERandomStep.className(): "RandomIcon",
 	QBEFilterStep.className(): "FilterIcon",
