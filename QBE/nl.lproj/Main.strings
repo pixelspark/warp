@@ -60,7 +60,7 @@
 "59s-by-P6W.title" = "Voeg een nieuwe, lege kolom toe";
 
 /* Class = "NSMenuItem"; title = "Edit"; ObjectID = "5QF-Oa-p0T"; */
-"5QF-Oa-p0T.title" = "Bewerken";
+"5QF-Oa-p0T.title" = "Wijzig";
 
 /* Class = "NSMenuItem"; title = "Copy Style"; ObjectID = "5Vv-lz-BsD"; */
 "5Vv-lz-BsD.title" = "Kopieer stijl";
@@ -82,12 +82,6 @@
 
 /* Class = "NSMenuItem"; title = "Keep only selected column(s)"; ObjectID = "7LD-D5-QvZ"; */
 "7LD-D5-QvZ.title" = "Behoud alleen de geselecteerde kolom(men)";
-
-/* Class = "NSToolbarItem"; label = "Pivot"; ObjectID = "7Uz-TX-Nnq"; */
-"7Uz-TX-Nnq.label" = "Draaitabel";
-
-/* Class = "NSToolbarItem"; paletteLabel = "Pivot data"; ObjectID = "7Uz-TX-Nnq"; */
-"7Uz-TX-Nnq.paletteLabel" = "Draaitabel";
 
 /* Class = "IBBindingConnection"; ibShadowedIsNilPlaceholder = "Notes..."; ObjectID = "7xy-Ap-xyj"; */
 "7xy-Ap-xyj.ibShadowedIsNilPlaceholder" = "Notities...";
@@ -111,7 +105,7 @@
 "8u6-iF-miR.label" = "Terug";
 
 /* Class = "NSToolbarItem"; paletteLabel = "Go back"; ObjectID = "8u6-iF-miR"; */
-"8u6-iF-miR.paletteLabel" = "Ga terug";
+"8u6-iF-miR.paletteLabel" = "Ga naar vorige stap";
 
 /* Class = "NSToolbarItem"; label = "Working set"; ObjectID = "970-Vh-P6W"; */
 "970-Vh-P6W.label" = "Werkset";
@@ -144,7 +138,7 @@
 "BOF-NM-1cW.title" = "Voorkeuren…";
 
 /* Class = "NSMenuItem"; title = "Go back"; ObjectID = "BXv-d1-8v7"; */
-"BXv-d1-8v7.title" = "Ga terug";
+"BXv-d1-8v7.title" = "Ga naar vorige stap";
 
 /* Class = "NSMenuItem"; title = "\tLeft to Right"; ObjectID = "BgM-ve-c93"; */
 "BgM-ve-c93.title" = "\tVan links naar rechts";
@@ -237,9 +231,9 @@
 "Lbh-J2-qVU.title" = "\tVan links naar rechts";
 
 /* Class = "NSMenuItem"; title = "Pivot..."; ObjectID = "Mg0-TA-h4E"; */
-"Mg0-TA-h4E.title" = "Draaitabel...";
+"Mg0-TA-h4E.title" = "Maak draaitabel van gegevens...";
 
-"OG0-83-x0Z.title" = "Uitpakken...";
+"OG0-83-x0Z.title" = "Pak gegevens uit...";
 
 /* Class = "NSMenuItem"; title = "Copy Ruler"; ObjectID = "MkV-Pr-PK5"; */
 "MkV-Pr-PK5.title" = "Kopieer liniaal";
@@ -278,7 +272,7 @@
 "Q5e-8K-NDq.title" = "Toon fonts";
 
 /* Class = "NSMenuItem"; title = "Switch rows/columns"; ObjectID = "Qd1-7c-QpC"; */
-"Qd1-7c-QpC.title" = "Rijen en kolommen verwisselen";
+"Qd1-7c-QpC.title" = "Verwissel rijen met kolommen";
 
 /* Class = "NSMenuItem"; title = "Zoom"; ObjectID = "R4o-n2-Eq4"; */
 "R4o-n2-Eq4.title" = "Zoom";
@@ -326,7 +320,7 @@
 "Vjx-xi-njq.title" = "Schuingedrukt";
 
 /* Class = "NSMenu"; title = "Edit"; ObjectID = "W48-6f-4Dl"; */
-"W48-6f-4Dl.title" = "Bewerk";
+"W48-6f-4Dl.title" = "Wijzig";
 
 /* Class = "NSMenuItem"; title = "Underline"; ObjectID = "WRG-CD-K1S"; */
 "WRG-CD-K1S.title" = "Onderstreep";
@@ -374,7 +368,7 @@
 "agt-UL-0e3.title" = "Gebruik standaard";
 
 /* Class = "NSMenu"; title = "Analyze"; ObjectID = "bCT-hI-Iv5"; */
-"bCT-hI-Iv5.title" = "Analyseer";
+"bCT-hI-Iv5.title" = "Tabel";
 
 /* Class = "NSMenuItem"; title = "Remove selected row(s)"; ObjectID = "bP3-jR-pV3"; */
 "bP3-jR-pV3.title" = "Verwijder geselecteerde rij(en)";
@@ -473,7 +467,7 @@
 "o6e-r0-MWq.title" = "Ligaturen";
 
 /* Class = "NSMenuItem"; title = "Remove step"; ObjectID = "oDn-7p-C6j"; */
-"oDn-7p-C6j.title" = "Verwijder stap";
+"oDn-7p-C6j.title" = "Verwijder deze stap";
 
 /* Class = "NSToolbarItem"; label = "Random"; ObjectID = "oLp-fq-bRb"; */
 "oLp-fq-bRb.label" = "Willekeurig";
@@ -509,7 +503,7 @@
 "rgM-f4-ycn.title" = "Slimme streepjes";
 
 /* Class = "NSMenuItem"; title = "Go forward"; ObjectID = "snW-S8-Cw5"; */
-"snW-S8-Cw5.title" = "Ga vooruit";
+"snW-S8-Cw5.title" = "Ga naar volgende stap";
 
 /* Class = "NSMenuItem"; title = "Data Detectors"; ObjectID = "tRr-pd-1PS"; */
 "tRr-pd-1PS.title" = "Gegevensdetectoren";
@@ -579,7 +573,7 @@
 "3Yw-cV-pc0.title" = "Verwissel rij(en) met kolommen";
 "4wT-WT-bJe.title" = "Selecteer kolom(men) zoals deze...";
 "oAp-0V-aL3.title" = "Draaitabel van gegevens...";
-"JN0-7D-bJs.title" = "Gegevens uitpakken...";
+"JN0-7D-bJs.title" = "Pak gegevens uit...";
 "WGW-vi-DfZ.title" = "Verwijder dubbele rijen";
 "6yc-4E-Ad5.title" = "Verwijder rijen zoals deze...";
 "oO5-Wj-JT9.title" = "Laad gegevens uit een bestand...";
