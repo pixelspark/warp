@@ -91,6 +91,26 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return raster?.columnNames[Int(columnIndex)].name;
 	}
 	
+	func tableGrid(aTableGrid: MBTableGrid!, canMoveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
+		return false
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, writeColumnsWithIndexes columnIndexes: NSIndexSet!, toPasteboard pboard: NSPasteboard!) -> Bool {
+		return false
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, moveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
+		return false
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, moveRows rowIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
+		return false
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, writeRowsWithIndexes rowIndexes: NSIndexSet!, toPasteboard pboard: NSPasteboard!) -> Bool {
+		return false
+	}
+	
 	func tableGrid(aTableGrid: MBTableGrid!, widthForColumn columnIndex: UInt) -> Float {
 		if let r = raster {
 			if Int(columnIndex) < r.columnNames.count {
@@ -200,14 +220,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func tableGridDidChangeSelection(aNotification: NSNotification!) {
 		updateFormulaField()
-	}
-	
-	func tableGrid(aTableGrid: MBTableGrid!, canMoveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
-		return true
-	}
-	
-	func tableGrid(aTableGrid: MBTableGrid!, moveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
-		return true
 	}
 	
 	override func awakeFromNib() {
