@@ -8,6 +8,8 @@ the 'full' data (which is the full dataset on which the final data operations ar
 Subclasses of QBEStep implement the data manipulation in the apply function, and should implement the description method
 as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. **/
 class QBEStep: NSObject {
+	static let defaultExampleRows = 100
+	
 	func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
 		self.previous?.exampleData(job, callback: {(data) in
 			self.apply(data, job: job, callback: callback)

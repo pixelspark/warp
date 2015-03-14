@@ -585,6 +585,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("setSelectionWorkingSet:") {
 			return currentStep != nil && useFullData
 		}
+		else if item.action()==Selector("paste:") {
+			return true
+		}
 		else {
 			return false
 		}
@@ -749,6 +752,39 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			stepsChanged()
 		}
 		super.prepareForSegue(segue, sender: sender)
+	}
+	
+	@IBAction func paste(sender: NSObject) {
+		var data = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeString)
+		if data == nil {
+			data = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeTabularText)
+		}
+		
+		if let tsvString = data {
+			var data: [QBERow] = []
+			var headerRow: QBERow? = nil
+			let rows = tsvString.componentsSeparatedByString("\r")
+			for row in rows {
+				var rowValues: [QBEValue] = []
+				
+				let cells = row.componentsSeparatedByString("\t")
+				for cell in cells {
+					rowValues.append(locale.valueForLocalString(cell))
+				}
+				
+				if headerRow == nil {
+					headerRow = rowValues
+				}
+				else {
+					data.append(rowValues)
+				}
+			}
+			
+			if headerRow != nil {
+				let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue!)}), readOnly: false)
+				pushStep(QBERasterStep(raster: raster))
+			}
+		}
 	}
 }
 

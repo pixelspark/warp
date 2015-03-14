@@ -30,5 +30,6 @@ let QBEStepIcons = [
 	QBEColumnsStep.className(): "ColumnsIcon",
 	QBEFlattenStep.className(): "FlattenIcon",
 	QBEDistinctStep.className(): "DistinctIcon",
-	QBEPrestoSourceStep.className(): "PrestoIcon"
+	QBEPrestoSourceStep.className(): "PrestoIcon",
+	QBERasterStep.className(): "RasterIcon",
 ]
