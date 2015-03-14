@@ -12,6 +12,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	@IBOutlet var workingSetSelector: NSSegmentedControl!
 	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
+	private var textCell: MBTableGridCell!
 	
 	var calculating: Bool = false { didSet {
 		update()
@@ -112,26 +113,17 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return false
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, widthForColumn columnIndex: UInt) -> Float {
-		if let r = raster {
-			if Int(columnIndex) < r.columnNames.count {
-				let cn = r.columnNames[Int(columnIndex)]
-				if let w = QBESettings.sharedInstance.defaultWidthForColumn(cn) where w > 0 {
-					return Float(w)
-				}
-			}
-		}
-		return 60.0
+	func tableGrid(aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt) -> NSCell! {
+		return textCell
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt) -> Float {
+	func tableGrid(aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt)  {
 		if let r = raster {
 			if Int(columnIndex) < r.columnNames.count {
 				let cn = r.columnNames[Int(columnIndex)]
 				QBESettings.sharedInstance.setDefaultWidth(Double(width), forColumn: cn)
 			}
 		}
-		return width
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, headerStringForRow rowIndex: UInt) -> String! {
@@ -160,13 +152,21 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 		
 		if let tv = tableView {
-			for i in 0..<tv.numberOfColumns {
-				let w = self.tableGrid(tv, widthForColumn: i)
-				tv.resizeColumnWithIndex(i, width: w)
+			if let r = raster {
+				for i in 0..<r.columnCount {
+					let cn = r.columnNames[i]
+					if let w = QBESettings.sharedInstance.defaultWidthForColumn(cn) where w > 0 {
+						tv.resizeColumnWithIndex(UInt(i), width: Float(w))
+					}
+					else {
+						tv.resizeColumnWithIndex(UInt(i), width: 100.0)
+					}
+				}
 			}
 			
 			tv.reloadData()
 			updateFormulaField()
+			tv.needsDisplay = true
 		}
 	}
 	
@@ -225,6 +225,8 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	override func awakeFromNib() {
+		self.textCell = MBTableGridCell(textCell: "")
+		
 		self.view.focusRingType = NSFocusRingType.None
 		if self.tableView == nil {
 			self.tableView = MBTableGrid(frame: view.frame)
@@ -257,5 +259,72 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, formatterForColumn columnIndex: UInt) -> NSFormatter! {
+		return nil
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, copyCellsAtColumns columnIndexes: NSIndexSet!, rows rowIndexes: NSIndexSet!) {
+		if let r = raster {
+			var rowData: [String] = []
+			
+			rowIndexes.enumerateIndexesUsingBlock { (rowIndex, stop) -> Void in
+				var colData: [String] = []
+				columnIndexes.enumerateIndexesUsingBlock({ (colIndex, stop) -> Void in
+					if let cellValue = r[rowIndex, colIndex].stringValue {
+						// FIXME formatting
+						colData.append(cellValue)
+					}
+					else {
+						colData.append("")
+					}
+				})
+				
+				rowData.append(colData.implode("\t") ?? "")
+			}
+			
+			let tsv = rowData.implode("\r\n") ?? ""
+			let pasteboard = NSPasteboard.generalPasteboard()
+			pasteboard.clearContents()
+			pasteboard.declareTypes([NSPasteboardTypeTabularText, NSPasteboardTypeString], owner: nil)
+			pasteboard.setString(tsv, forType: NSPasteboardTypeTabularText)
+			pasteboard.setString(tsv, forType: NSPasteboardTypeString)
+		}
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, pasteCellsAtColumns columnIndexes: NSIndexSet!, rows rowIndexes: NSIndexSet!) {
+		if let r = raster {
+			let tsvString = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeTabularText)
+			
+			var startRow = rowIndexes.firstIndex
+			var startColumn = columnIndexes.firstIndex
+			if startRow == NSNotFound {
+				startRow = 0
+			}
+			if startColumn == NSNotFound {
+				startColumn = 0
+			}
+			
+			let rowCount = r.rowCount
+			let columnCount = r.columnCount
+			
+			if let rowStrings = tsvString?.componentsSeparatedByString("\r\n") {
+				var row = startRow
+				if row < rowCount {
+					for rowString in rowStrings {
+						let cellStrings = rowString.componentsSeparatedByString("\t")
+						var col = startColumn
+						for cellString in cellStrings {
+							if col < columnCount {
+								setValue(QBEValue(cellString), inRow: row, inColumn: col)
+							}
+							col++
+						}
+						row++
+					}
+				}
+			}
+		}
 	}
 }

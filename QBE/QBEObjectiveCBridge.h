@@ -3,6 +3,7 @@
 
 #import "CHCSVParser.h"
 #import <MBTableGrid/MBTableGrid.h>
+#import <MBTableGrid/MBTableGridCell.h>
 #import "sqlite3.h"
 
 int RegisterExtensionFunctions(sqlite3 *db);
