@@ -6,12 +6,12 @@ internal typealias QBEFilter = (QBERaster) -> (QBERaster)
 of QBEValue. Column names are stored separately. Each QBERow should contain the same number of values as there are columns
 in the columnNames array. However, if rows are shorter, QBERaster will act as if there is a QBEValue.EmptyValue in its
 place. **/
-class QBERaster: DebugPrintable {
+class QBERaster: NSObject, DebugPrintable, NSCoding {
 	var raster: [[QBEValue]] = []
 	var columnNames: [QBEColumn] = []
 	let readOnly: Bool
 	
-	init() {
+	override init() {
 		self.readOnly = false
 	}
 	
@@ -21,9 +21,27 @@ class QBERaster: DebugPrintable {
 		self.readOnly = readOnly
 	}
 	
+	required init(coder aDecoder: NSCoder) {
+		let codedRaster = (aDecoder.decodeObjectForKey("raster") as? [[QBEValueCoder]]) ?? []
+		raster = codedRaster.map({$0.map({return $0.value})})
+		
+		let saveColumns = aDecoder.decodeObjectForKey("columns") as? [String] ?? []
+		columnNames = saveColumns.map({return QBEColumn($0)})
+		readOnly = aDecoder.decodeBoolForKey("readOnly")
+	}
+	
 	var isEmpty: Bool { get {
 		return raster.count==0
 	}}
+	
+	func encodeWithCoder(aCoder: NSCoder) {
+		let saveValues = raster.map({return $0.map({return QBEValueCoder($0)})})
+		aCoder.encodeObject(saveValues, forKey: "raster")
+		
+		let saveColumns = columnNames.map({return $0.name})
+		aCoder.encodeObject(saveColumns, forKey: "columns")
+		aCoder.encodeBool(readOnly, forKey: "readOnly")
+	}
 	
 	func removeRows(set: NSIndexSet) {
 		assert(!readOnly, "Data set is read-only")
@@ -103,7 +121,7 @@ class QBERaster: DebugPrintable {
 		}
 	}
 	
-	var debugDescription: String { get {
+	override var debugDescription: String { get {
 		var d = ""
 		
 		var line = "\t|"

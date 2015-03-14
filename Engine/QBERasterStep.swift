@@ -1,18 +1,21 @@
 import Foundation
 
 class QBERasterStep: QBEStep {
-	var staticExampleData: QBERasterData
-	var staticFullData: QBEData
+	let raster: QBERaster
+	let staticExampleData: QBERasterData
+	let staticFullData: QBEData
 	
 	init(raster: QBERaster) {
+		self.raster = raster
 		self.staticExampleData = QBERasterData(raster: raster)
 		self.staticFullData = staticExampleData
 		super.init(previous: nil)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		staticExampleData = (aDecoder.decodeObjectForKey("staticExampleData") as? QBERasterData) ?? QBERasterData()
-		staticFullData = (aDecoder.decodeObjectForKey("staticFullData") as? QBERasterData) ?? QBERasterData()
+		self.raster = (aDecoder.decodeObjectForKey("raster") as? QBERaster) ?? QBERaster()
+		staticExampleData = QBERasterData(raster: self.raster)
+		staticFullData = staticExampleData
 		super.init(coder: aDecoder)
 	}
 	
@@ -21,7 +24,7 @@ class QBERasterStep: QBEStep {
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(staticExampleData, forKey: "staticData")
+		coder.encodeObject(raster, forKey: "raster")
 		super.encodeWithCoder(coder)
 	}
 	
