@@ -154,7 +154,7 @@ class QBELiteralExpression: QBEExpression {
 	}
 	
 	override func explain(locale: QBELocale) -> String {
-		return value.explain(locale)
+		return locale.localStringFor(value)
 	}
 	
 	override func toFormula(locale: QBELocale) -> String {

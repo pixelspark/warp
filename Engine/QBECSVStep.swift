@@ -15,11 +15,13 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	
 	let hasHeaders: Bool
 	let fieldSeparator: unichar
+	let locale: QBELocale
 	
-	init(url: NSURL, fieldSeparator: unichar, hasHeaders: Bool) {
+	init(url: NSURL, fieldSeparator: unichar, hasHeaders: Bool, locale: QBELocale) {
 		self.url = url
 		self.hasHeaders = hasHeaders
 		self.fieldSeparator = fieldSeparator
+		self.locale = locale
 		
 		// Get total file size
 		if let p = url.path {
@@ -87,16 +89,17 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 	
 	func parser(parser: CHCSVParser, didReadField field: String, atIndex index: Int) {
+		let value = locale.valueForLocalString(field)
 		if index >= row.count {
-			row.append(QBEValue(field))
+			row.append(value)
 		}
 		else {
-			row[index] = QBEValue(field)
+			row[index] = value
 		}
 	}
 	
 	func clone() -> QBEStream {
-		return QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: self.hasHeaders)
+		return QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: self.hasHeaders, locale: self.locale)
 	}
 }
 
@@ -139,7 +142,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 				QBETime("Write CSV", rows.count, "rows") {
 					for row in rows {
 						for cell in row {
-							csvOut.writeField(cell.explain(self.locale))
+							csvOut.writeField(self.locale.localStringFor(cell))
 						}
 						csvOut.finishLine()
 					}
@@ -231,10 +234,11 @@ class QBECSVSourceStep: QBEStep {
 	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
 		if cachedData == nil {
 			if let url = file?.url {
-				let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders)
+				let locale = QBEAppDelegate.sharedInstance.locale
+				let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders, locale: locale)
 				cachedData = QBEStreamData(source: s)
 				if useCaching {
-					cachedData = QBESQLiteCachedData(source: cachedData!)
+					cachedData = QBESQLiteCachedData(source: cachedData!, locale: locale)
 				}
 				callback(cachedData!)
 			}

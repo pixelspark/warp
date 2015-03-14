@@ -303,32 +303,20 @@ internal enum QBEValue: Hashable, DebugPrintable {
 	
 	var isValid: Bool { get {
 		switch self {
-		case .InvalidValue: return false
-		default: return true
+			case .InvalidValue: return false
+			default: return true
 		}
 	} }
 	
-	func explain(locale: QBELocale) -> String {
+	var isEmpty: Bool { get {
 		switch self {
-		case .BoolValue(let b):
-			return b ? NSLocalizedString("true", comment: "") : NSLocalizedString("false", comment: "")
-			
-		case .StringValue(let s):
-			return s
-		
-		case .DoubleValue(let d):
-			return "\(d)" // TODO: should format using QBELocale
-			
-		case .IntValue(let i):
-			return "\(i)" // TODO: format using QBELocale
-			
-		case .InvalidValue:
-			return ""
-			
-		case .EmptyValue:
-			return ""
+			case .EmptyValue:
+				return true
+				
+			default:
+				return false
 		}
-	}
+	} }
 }
 
 /** QBEValueCoder implements encoding for QBEValue (which cannot implement it as it is an enum). **/

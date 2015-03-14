@@ -143,9 +143,13 @@ class QBELocale: NSObject {
 		]
 	]
 	
+	var numberFormatter: NSNumberFormatter
+	
 	init(language: QBELanguage = QBELocale.defaultLanguage) {
 		functions = QBELocale.allFunctions[language] ?? QBELocale.allFunctions[QBELocale.defaultLanguage]!
 		constants = QBELocale.allConstants[language] ?? QBELocale.allConstants[QBELocale.defaultLanguage]!
+		numberFormatter = NSNumberFormatter()
+		numberFormatter.numberStyle = NSNumberFormatterStyle.DecimalStyle
 	}
 	
 	func functionWithName(name: String) -> QBEFunction? {
@@ -170,6 +174,48 @@ class QBELocale: NSObject {
 			}
 		}
 		return nil
+	}
+	
+	/** Return a string representation of the value in the user's locale. **/
+	func localStringFor(value: QBEValue) -> String {
+		switch value {
+			case .StringValue(let s):
+				return s
+			
+			case .BoolValue(let b):
+				return constants[QBEValue(b)]!
+			
+			case .IntValue(let i):
+				return numberFormatter.stringFromNumber(i)!
+			
+			case .DoubleValue(let d):
+				return numberFormatter.stringFromNumber(d)!
+			
+			case .InvalidValue:
+				return ""
+			
+			case .EmptyValue:
+				return ""
+		}
+	}
+	
+	func valueForLocalString(value: String) -> QBEValue {
+		if value.isEmpty {
+			return QBEValue.EmptyValue
+		}
+		
+		// Can this string be interpreted as a number?
+		if let n = numberFormatter.numberFromString(value) {
+			if n.isEqualToNumber(NSNumber(integer: n.integerValue)) {
+				// This number is an integer
+				return QBEValue.IntValue(n.integerValue)
+			}
+			else {
+				return QBEValue.DoubleValue(n.doubleValue)
+			}
+		}
+		
+		return QBEValue.StringValue(value)
 	}
 	
 	func csvRow(row: [QBEValue]) -> String {

@@ -13,6 +13,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
 	private var textCell: MBTableGridCell!
+	private var numberCell: MBTableGridCell!
 	
 	var calculating: Bool = false { didSet {
 		update()
@@ -71,7 +72,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, setObjectValue anObject: AnyObject?, forColumn columnIndex: UInt, row rowIndex: UInt) {
-		let valueObject = anObject==nil ? QBEValue("") : QBEValue(anObject!.description)
+		let valueObject = anObject==nil ? QBEValue.EmptyValue : locale.valueForLocalString(anObject!.description)
 		setValue(valueObject, inRow: Int(rowIndex), inColumn: Int(columnIndex))
 	}
 	
@@ -79,7 +80,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		if let r = raster {
 			if columnIndex>=0 {
 				let x = r[Int(rowIndex), Int(columnIndex)]
-				return x.explain(locale)
+				return locale.localStringFor(x)
 			}
 		}
 		return ""
@@ -114,6 +115,29 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt) -> NSCell! {
+		// Check the first row to see what kind of value is in this column
+		if let r = raster where r.rowCount > 0 && r.columnCount > Int(columnIndex) {
+			var prototypeValue = r[0, Int(columnIndex)]
+			
+			// Find the first non-invalid, non-empty value
+			var row = 0
+			while (!prototypeValue.isValid || prototypeValue.isEmpty) && row < r.rowCount {
+				prototypeValue = r[row, Int(columnIndex)]
+				row++
+			}
+			
+			switch prototypeValue {
+				case .IntValue(_):
+					return numberCell
+					
+				case .DoubleValue(_):
+					return numberCell
+					
+				default:
+					return textCell
+			}
+		}
+		
 		return textCell
 	}
 	
@@ -226,6 +250,8 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	override func awakeFromNib() {
 		self.textCell = MBTableGridCell(textCell: "")
+		self.numberCell = MBTableGridCell(textCell: "")
+		self.numberCell.alignment = NSTextAlignment.RightTextAlignment
 		
 		self.view.focusRingType = NSFocusRingType.None
 		if self.tableView == nil {
