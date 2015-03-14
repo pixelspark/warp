@@ -12,7 +12,8 @@ let QBEStepViews: Dictionary<String, QBEStepView> = [
 	QBECSVSourceStep.className(): {QBECSVStepView(step: $0, delegate: $1)},
 	QBEFilterStep.className(): {QBEFilterStepView(step: $0, delegate: $1)},
 	QBEFlattenStep.className(): {QBEFlattenStepView(step: $0, delegate: $1)},
-	QBEPrestoSourceStep.className(): {QBEPrestoSourceStepView(step: $0, delegate: $1)}
+	QBEPrestoSourceStep.className(): {QBEPrestoSourceStepView(step: $0, delegate: $1)},
+	QBEColumnsStep.className(): {QBEColumnsStepView(step: $0, delegate: $1)},
 ]
 
 let QBEStepIcons = [

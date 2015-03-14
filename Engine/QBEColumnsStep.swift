@@ -1,7 +1,7 @@
 import Foundation
 
 class QBEColumnsStep: QBEStep {
-	let columnNames: [QBEColumn]
+	var columnNames: [QBEColumn]
 	let select: Bool
 	
 	init(previous: QBEStep?, columnNames: [QBEColumn], select: Bool) {
@@ -23,9 +23,12 @@ class QBEColumnsStep: QBEStep {
 			else if columnNames.count == 1 {
 				return String(format: NSLocalizedString("Select only the column '%@'", comment: ""), columnNames.first!.name)
 			}
-			else {
+			else if columnNames.count < 5 {
 				let cn = columnNames.map({$0.name}).implode(", ") ?? ""
 				return String(format: NSLocalizedString("Select only the columns %@", comment: ""), cn)
+			}
+			else {
+				return String(format: NSLocalizedString("Select %lu columns", comment: ""), columnNames.count)
 			}
 		}
 		else {
@@ -35,9 +38,12 @@ class QBEColumnsStep: QBEStep {
 			else if columnNames.count == 1 {
 				return String(format: NSLocalizedString("Remove the column '%@'", comment: ""), columnNames.first!.name)
 			}
-			else {
+			else if columnNames.count < 5 {
 				let cn = columnNames.map({$0.name}).implode(", ") ?? ""
 				return String(format: NSLocalizedString("Remove the columns %@", comment: ""), cn)
+			}
+			else {
+				return String(format: NSLocalizedString("Remove %lu columns", comment: ""), columnNames.count)
 			}
 		}
 	}
