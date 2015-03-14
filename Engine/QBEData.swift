@@ -130,6 +130,9 @@ protocol QBEData {
 	column headers. **/
 	func limit(numberOfRows: Int) -> QBEData
 	
+	/** Skip the specified number of rows in the data set. The number of rows does not include column headers. **/
+	func offset(numberOfRows: Int) -> QBEData
+	
 	/** Randomly select the indicated amount of rows from the source data set, using sampling without replacement. If the
 	number of rows specified is greater than the number of rows available in the set, the resulting data set will contain
 	all rows of the original data set. **/
@@ -197,4 +200,5 @@ class QBEProxyData: NSObject, QBEData {
 	func raster(job: QBEJob?, callback: (QBERaster) -> ()) { return data.raster(job, callback: callback) }
 	func columnNames(callback: ([QBEColumn]) -> ()) { return data.columnNames(callback) }
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
+	func offset(numberOfRows: Int) -> QBEData { return data.offset(numberOfRows) }
 }

@@ -349,6 +349,12 @@ class QBESQLData: NSObject, QBEData {
 		return apply("SELECT * FROM (\(self.sql)) LIMIT \(numberOfRows)", resultingColumns: columns)
     }
 	
+	func offset(numberOfRows: Int) -> QBEData {
+		// FIXME: T-SQL uses "SELECT TOP x" syntax
+		// FIXME: the LIMIT -1 is probably only necessary for SQLite
+		return apply("SELECT * FROM (\(self.sql)) LIMIT -1 OFFSET \(numberOfRows)", resultingColumns: columns)
+	}
+	
 	func filter(condition: QBEExpression) -> QBEData {
 		if let expressionString = dialect.expressionToSQL(condition.prepare(), inputValue: nil) {
 			return apply("SELECT * FROM (\(self.sql)) WHERE \(expressionString)", resultingColumns: columns)

@@ -283,6 +283,19 @@ class QBERasterData: NSObject, QBEData {
 			return QBERaster(data: newData, columnNames: r.columnNames, readOnly: true)
 		}
 	}
+
+	func offset(numberOfRows: Int) -> QBEData {
+		return apply {(r: QBERaster) -> QBERaster in
+			var newData: [[QBEValue]] = []
+			
+			let skipRows = min(numberOfRows, r.rowCount)
+			for rowNumber in skipRows..<r.rowCount {
+				newData.append(r[rowNumber])
+			}
+			
+			return QBERaster(data: newData, columnNames: r.columnNames, readOnly: true)
+		}
+	}
 	
 	func filter(condition: QBEExpression) -> QBEData {
 		let optimizedCondition = condition.prepare()

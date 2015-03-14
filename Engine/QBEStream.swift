@@ -89,6 +89,10 @@ class QBEStreamData: QBEData {
 		return QBEStreamData(source: QBEColumnsTransformer(source: source, selectColumns: columns))
 	}
 	
+	func offset(numberOfRows: Int) -> QBEData {
+		return QBEStreamData(source: QBEOffsetTransformer(source: source, numberOfRows: numberOfRows))
+	}
+	
 	func limit(numberOfRows: Int) -> QBEData {
 		// Limit has a streaming implementation in QBELimitTransformer
 		return QBEStreamData(source: QBELimitTransformer(source: source, numberOfRows: numberOfRows))
@@ -393,6 +397,37 @@ private class QBERandomTransformer: QBETransformer {
 	
 	private override func clone() -> QBEStream {
 		return QBERandomTransformer(source: source.clone(), numberOfRows: sampleSize)
+	}
+}
+
+/** The QBEOffsetTransformer skips the first specified number of rows passed through a stream. **/
+private class QBEOffsetTransformer: QBETransformer {
+	var position = 0
+	let offset: Int
+	
+	init(source: QBEStream, numberOfRows: Int) {
+		self.offset = numberOfRows
+		super.init(source: source)
+	}
+	
+	private override func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
+		if position > offset {
+			position += rows.count
+			callback(rows, false)
+		}
+		else {
+			let rest = offset - position
+			if rest > rows.count {
+				callback([], false)
+			}
+			else {
+				callback(rows[rest..<rows.count], false)
+			}
+		}
+	}
+	
+	private override func clone() -> QBEStream {
+		return QBEOffsetTransformer(source: source.clone(), numberOfRows: offset)
 	}
 }
 

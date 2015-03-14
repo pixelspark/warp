@@ -1,7 +1,7 @@
 import Foundation
 
 class QBERowsStep: NSObject {
-	class func suggest(selectRows: NSIndexSet, columns: Set<QBEColumn>, inRaster: QBERaster, fromStep: QBEStep?) -> [QBEStep] {
+	class func suggest(selectRows: NSIndexSet, columns: Set<QBEColumn>, inRaster: QBERaster, fromStep: QBEStep?, select: Bool) -> [QBEStep] {
 		var suggestions: [QBEStep] = []
 		
 		// Check to see if the selected rows have similar values for the relevant columns
@@ -40,7 +40,12 @@ class QBERowsStep: NSObject {
 			}
 			
 			if let fullCondition = conditions.count > 1 ? QBEFunctionExpression(arguments: conditions, type: QBEFunction.And) : conditions.first {
-				suggestions.append(QBEFilterStep(previous: fromStep, condition: fullCondition))
+				if select {
+					suggestions.append(QBEFilterStep(previous: fromStep, condition: fullCondition))
+				}
+				else {
+					suggestions.append(QBEFilterStep(previous: fromStep, condition: QBEFunctionExpression(arguments: [fullCondition], type: QBEFunction.Not)))
+				}
 			}
 		}
 		
@@ -53,7 +58,12 @@ class QBERowsStep: NSObject {
 			}
 		}
 		if contiguousTop {
-			suggestions.append(QBELimitStep(previous: fromStep, numberOfRows: selectRows.count))
+			if select {
+				suggestions.append(QBELimitStep(previous: fromStep, numberOfRows: selectRows.count))
+			}
+			else {
+				suggestions.append(QBEOffsetStep(previous: fromStep, numberOfRows: selectRows.count))
+			}
 		}
 		
 		// Suggest a random selection
@@ -109,9 +119,9 @@ class QBELimitStep: QBEStep {
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
 		if short {
-			return NSLocalizedString("Top rows", comment: "")
+			return NSLocalizedString("First rows", comment: "")
 		}
-		return String(format: NSLocalizedString("Select the top %d rows", comment: ""), numberOfRows)
+		return String(format: NSLocalizedString("Select the first %d rows", comment: ""), numberOfRows)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -126,6 +136,36 @@ class QBELimitStep: QBEStep {
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
 		callback(data.limit(numberOfRows))
+	}
+}
+
+class QBEOffsetStep: QBEStep {
+	var numberOfRows: Int
+	
+	init(previous: QBEStep?, numberOfRows: Int) {
+		self.numberOfRows = numberOfRows
+		super.init(previous: previous)
+	}
+	
+	override func explain(locale: QBELocale, short: Bool) -> String {
+		if short {
+			return NSLocalizedString("Skip rows", comment: "")
+		}
+		return String(format: NSLocalizedString("Skip the first %d rows", comment: ""), numberOfRows)
+	}
+	
+	required init(coder aDecoder: NSCoder) {
+		numberOfRows = Int(aDecoder.decodeIntForKey("numberOfRows"))
+		super.init(coder: aDecoder)
+	}
+	
+	override func encodeWithCoder(coder: NSCoder) {
+		super.encodeWithCoder(coder)
+		coder.encodeInt(Int32(numberOfRows), forKey: "numberOfRows")
+	}
+	
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
+		callback(data.offset(numberOfRows))
 	}
 }
 

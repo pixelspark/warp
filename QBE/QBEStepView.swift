@@ -6,6 +6,7 @@ typealias QBEStepView = (step: QBEStep?, delegate: QBESuggestionsViewDelegate) -
 let QBEStepViews: Dictionary<String, QBEStepView> = [
 	QBESQLiteSourceStep.className(): {QBESQLiteSourceStepView(step: $0, delegate: $1)},
 	QBELimitStep.className(): {QBELimitStepView(step: $0, delegate: $1)},
+	QBEOffsetStep.className(): {QBEOffsetStepView(step: $0, delegate: $1)},
 	QBERandomStep.className(): {QBERandomStepView(step: $0, delegate: $1)},
 	QBECalculateStep.className(): {QBECalculateStepView(step: $0, delegate: $1)},
 	QBEPivotStep.className(): {QBEPivotStepView(step: $0, delegate: $1)},
@@ -22,6 +23,7 @@ let QBEStepIcons = [
 	QBERandomStep.className(): "RandomIcon",
 	QBEFilterStep.className(): "FilterIcon",
 	QBELimitStep.className(): "LimitIcon",
+	QBEOffsetStep.className(): "LimitIcon",
 	QBECSVSourceStep.className(): "CSVIcon",
 	QBESQLiteSourceStep.className(): "SQLIcon",
 	QBECalculateStep.className(): "CalculateIcon",

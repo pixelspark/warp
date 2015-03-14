@@ -449,10 +449,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 				currentRaster?.get({(raster) in
 					// Invert the selection
-					let selected = NSMutableIndexSet()
+					let selectedToKeep = NSMutableIndexSet()
+					let selectedToRemove = NSMutableIndexSet()
 					for index in 0..<raster.rowCount {
 						if !rowsToRemove.containsIndex(index) {
-							selected.addIndex(index)
+							selectedToKeep.addIndex(index)
+						}
+						else {
+							selectedToRemove.addIndex(index)
 						}
 					}
 					
@@ -462,11 +466,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 							relevantColumns.insert(raster.columnNames[columnIndex])
 						}
 					}
-
-					let suggestions = QBERowsStep.suggest(selected, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep)
+					
+					// Find suggestions for keeping the other rows
+					let keepSuggestions = QBERowsStep.suggest(selectedToKeep, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: true)
+					var removeSuggestions = QBERowsStep.suggest(selectedToRemove, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: false)
+					removeSuggestions.extend(keepSuggestions)
 					
 					QBEAsyncMain {
-						self.suggestSteps(suggestions)
+						self.suggestSteps(removeSuggestions)
 					}
 				})
 			}
@@ -484,7 +491,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 						}
 					}
 					
-					let suggestions = QBERowsStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep)
+					let suggestions = QBERowsStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: true)
 					
 					QBEAsyncMain {
 						self.suggestSteps(suggestions)
