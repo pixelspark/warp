@@ -7,8 +7,8 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 	func suggestionsViewDidCancel(view: NSViewController)
 	var currentStep: QBEStep? { get }
 	var locale: QBELocale { get }
+	var undo: NSUndoManager? { get }
 }
-
 
 class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate {
 	var dataViewController: QBEDataViewController?
@@ -212,6 +212,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		updateView()
 	}
 	
+	internal var undo: NSUndoManager? { get { return document?.undoManager } }
+	
 	private func pushStep(step: QBEStep) {
 		currentStep?.next?.previous = step
 		currentStep?.next = step
@@ -222,6 +224,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 		currentStep = step
 		stepsChanged()
+		
+		undo?.prepareWithInvocationTarget(self).removeStep(step)
+		undo?.setActionName(String(format: NSLocalizedString("Add step '%@'", comment: ""), step.explain(locale, short: true)))
 	}
 	
 	private func popStep() {
