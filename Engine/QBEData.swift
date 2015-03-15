@@ -74,6 +74,31 @@ func memoize<T>(result: () -> T) -> () -> T {
 	}
 }
 
+/** Specification of a sort **/
+class QBEOrder: NSObject, NSCoding {
+	var expression: QBEExpression?
+	var ascending: Bool = true
+	var numeric: Bool = true
+	
+	init(expression: QBEExpression, ascending: Bool, numeric: Bool) {
+		self.expression = expression
+		self.ascending = ascending
+		self.numeric = numeric
+	}
+	
+	required init(coder aDecoder: NSCoder) {
+		self.expression = (aDecoder.decodeObjectForKey("expression") as? QBEExpression) ?? nil
+		self.ascending = aDecoder.decodeBoolForKey("ascending")
+		self.numeric = aDecoder.decodeBoolForKey("numeric")
+	}
+	
+	func encodeWithCoder(aCoder: NSCoder) {
+		aCoder.encodeObject(expression, forKey: "expression")
+		aCoder.encodeBool(ascending, forKey: "ascending")
+		aCoder.encodeBool(numeric, forKey: "numeric")
+	}
+}
+
 /** Specification of an aggregation. The map expression generates values (it is called for each item and included in the
 set if it is non-empty). The reduce function receives the mapped items as arguments and reduces them to a single value.
 Note that the reduce function can be called multiple times with different sets (e.g. reduce(reduce(a,b), reduce(c,d)) 
@@ -175,6 +200,11 @@ protocol QBEData {
 	
 	/** Returns the names of the columns in the data set. The list of column names is ordered. **/
 	func columnNames(callback: ([QBEColumn]) -> ())
+	
+	/** Sort the dataset in the indicates ways. The sorts are applied in-order, e.g. the dataset is sorted by the first
+	order specified, in case of ties by the second, et cetera. If there are ties and there is no further order to sort by,
+	ordering is unspecified. **/
+	func sort(by order: [QBEOrder]) -> QBEData
 }
 
 /** Utility class that allows for easy swapping of QBEData objects. This can for instance be used to swap-in a cached
@@ -201,4 +231,5 @@ class QBEProxyData: NSObject, QBEData {
 	func columnNames(callback: ([QBEColumn]) -> ()) { return data.columnNames(callback) }
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
 	func offset(numberOfRows: Int) -> QBEData { return data.offset(numberOfRows) }
+	func sort(by orders: [QBEOrder]) -> QBEData { return data.sort(by: orders) }
 }

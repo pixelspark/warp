@@ -66,6 +66,16 @@ internal extension Array {
 		}
 	}
 	
+	func objectsAtIndexes(indexes: NSIndexSet) -> [T] {
+		var items: [T] = []
+		
+		indexes.enumerateIndexesUsingBlock {(idx, stop) -> () in
+			items.append(self[idx])
+		}
+		
+		return items
+	}
+	
 	func contains<T: Equatable>(value: T) -> Bool {
 		for i in self {
 			if (i as? T) == value {

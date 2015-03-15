@@ -23,6 +23,7 @@ class QBEStep: NSObject {
 	}
 	
 	var previous: QBEStep? { didSet {
+		assert(previous != self, "A step cannot be its own previous step")
 		previous?.next = self
 	} }
 	
@@ -104,8 +105,6 @@ enum QBEFileReference {
 		case .URL(let u):
 			var error: NSError? = nil
 			if let bookmark = u.bookmarkDataWithOptions(NSURLBookmarkCreationOptions.WithSecurityScope, includingResourceValuesForKeys: nil, relativeToURL: nil, error: &error) {
-				println("Bookmarked \(u): \(error) \(bookmark) relative to \(relativeToDocument)")
-				
 				if let resolved = NSURL(byResolvingBookmarkData: bookmark, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil, error: &error) {
 					return QBEFileReference.ResolvedBookmark(bookmark, resolved)
 				}
@@ -122,7 +121,6 @@ enum QBEFileReference {
 			return self
 			
 		case .ResolvedBookmark(let b, let u):
-			println("Did not re-bookmark \(u): \(b)")
 			return self
 		}
 	}

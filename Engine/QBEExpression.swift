@@ -168,13 +168,13 @@ class QBELiteralExpression: QBEExpression {
 			return "\(d)"
 			
 		case .BoolValue(let b):
-			return locale.constants[QBEValue(b)] ?? ""
+			return locale.constants[QBEValue(b)]!
 			
 		case .IntValue(let i):
 			return "\(i)"
 		
-		case .InvalidValue: return ""
-		case .EmptyValue: return ""
+		case .InvalidValue: return locale.constants[QBEValue.InvalidValue]!
+		case .EmptyValue: return locale.constants[QBEValue.EmptyValue]!
 		}
 	}
 	

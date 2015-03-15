@@ -43,13 +43,17 @@ class QBELocale: NSObject {
 		"en": [
 			QBEValue(true): "TRUE",
 			QBEValue(false): "FALSE",
-			QBEValue(3.141592654): "PI"
+			QBEValue(3.141592654): "PI",
+			QBEValue.EmptyValue: "NULL",
+			QBEValue.InvalidValue: "ERROR"
 		],
 		
 		"nl": [
 			QBEValue(true): "WAAR",
 			QBEValue(false): "ONWAAR",
-			QBEValue(3.141592654): "PI"
+			QBEValue(3.141592654): "PI",
+			QBEValue.EmptyValue: "LEEG",
+			QBEValue.InvalidValue: "FOUT"
 		]
 	]
 	

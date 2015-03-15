@@ -1,0 +1,12 @@
+
+/* Class = "NSMenuItem"; title = "Add order"; ObjectID = "FoX-Yu-r3o"; */
+"FoX-Yu-r3o.title" = "Sorteercriterium toevoegen...";
+
+/* Class = "NSTableColumn"; headerCell.title = "Ascending"; ObjectID = "Jrz-TW-fxn"; */
+"Jrz-TW-fxn.headerCell.title" = "Oplopend";
+
+/* Class = "NSTableColumn"; headerCell.title = "Formula"; ObjectID = "yRr-CR-qGk"; */
+"yRr-CR-qGk.headerCell.title" = "Formule";
+
+/* Class = "NSTableColumn"; headerCell.title = "Numeric"; ObjectID = "ySy-OM-AEP"; */
+"ySy-OM-AEP.headerCell.title" = "Numeriek";

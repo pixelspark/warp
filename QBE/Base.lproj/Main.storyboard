@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="7525" systemVersion="14C109" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="7525" systemVersion="14C1510" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7525"/>
     </dependencies>
@@ -682,6 +682,19 @@ CA
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="TKS-Eg-OdV"/>
+                                        <menuItem title="Sort rows on selected column(s)" keyEquivalent="l" id="lWV-Af-fdF">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <connections>
+                                                <action selector="sortRows:" target="Ady-hI-5gd" id="UOG-tp-n6I"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Reverse sort rows on selected column(s)" alternate="YES" keyEquivalent="l" id="Yk7-iC-znO">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
+                                            <connections>
+                                                <action selector="reverseSortRows:" target="Ady-hI-5gd" id="zUh-Z7-ghr"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="ykg-qT-Nzg"/>
                                         <menuItem title="Limit to a specified number of rows..." keyEquivalent="l" id="TxF-Ed-uJa">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
@@ -1103,13 +1116,13 @@ CA
                             </connections>
                         </menuItem>
                         <menuItem isSeparatorItem="YES" id="Rf1-BS-aUM"/>
-                        <menuItem title="Select rows like this..." keyEquivalent="s" id="zOH-It-cbM">
+                        <menuItem title="Select rows like this" keyEquivalent="s" id="zOH-It-cbM">
                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                             <connections>
                                 <action selector="selectRows:" target="Izd-TK-t8f" id="BTL-jN-ZHk"/>
                             </connections>
                         </menuItem>
-                        <menuItem title="Remove rows like this..." id="6yc-4E-Ad5">
+                        <menuItem title="Remove rows like this" id="6yc-4E-Ad5">
                             <string key="keyEquivalent" base64-UTF8="YES">
 CA
 </string>
@@ -1118,19 +1131,32 @@ CA
                                 <action selector="removeRows:" target="Izd-TK-t8f" id="Zl1-8n-Aqk"/>
                             </connections>
                         </menuItem>
-                        <menuItem title="Select columns like this..." keyEquivalent="s" id="4wT-WT-bJe" userLabel="Select columns">
-                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
-                            <connections>
-                                <action selector="selectColumns:" target="Izd-TK-t8f" id="afc-rw-TRp"/>
-                            </connections>
-                        </menuItem>
                         <menuItem title="Remove duplicate rows" keyEquivalent="d" id="WGW-vi-DfZ">
                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                             <connections>
                                 <action selector="removeDuplicateRows:" target="Izd-TK-t8f" id="HSY-dX-hwi"/>
                             </connections>
                         </menuItem>
+                        <menuItem title="Sort rows by selected column(s)" keyEquivalent="l" id="ILY-7M-toS">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="sortRows:" target="Izd-TK-t8f" id="Uks-9d-TJ9"/>
+                            </connections>
+                        </menuItem>
                         <menuItem isSeparatorItem="YES" id="m99-mh-eh9"/>
+                        <menuItem title="Select columns like this..." keyEquivalent="s" id="4wT-WT-bJe" userLabel="Select columns">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
+                            <connections>
+                                <action selector="selectColumns:" target="Izd-TK-t8f" id="afc-rw-TRp"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="3Yw-cV-pc0">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
+                            <connections>
+                                <action selector="transposeData:" target="Izd-TK-t8f" id="lm3-1p-vhs"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem isSeparatorItem="YES" id="5In-x5-uWk"/>
                         <menuItem title="Pivot data..." keyEquivalent="d" id="oAp-0V-aL3">
                             <connections>
                                 <action selector="pivot:" target="Izd-TK-t8f" id="4FY-ID-4l2"/>
@@ -1139,13 +1165,6 @@ CA
                         <menuItem title="Flatten data..." keyEquivalent="D" id="JN0-7D-bJs">
                             <connections>
                                 <action selector="flatten:" target="Izd-TK-t8f" id="hXx-6Y-fqn"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem isSeparatorItem="YES" id="VRV-jA-hVg"/>
-                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="3Yw-cV-pc0">
-                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                            <connections>
-                                <action selector="transposeData:" target="Izd-TK-t8f" id="lm3-1p-vhs"/>
                             </connections>
                         </menuItem>
                     </items>

@@ -301,6 +301,50 @@ class QBERasterData: NSObject, QBEData {
 			return QBERaster(data: newData, columnNames: r.columnNames, readOnly: true)
 		}
 	}
+	
+	func sort(by orders: [QBEOrder]) -> QBEData {
+		return apply({(r: QBERaster) -> QBERaster in
+			let columns = r.columnNames
+			
+			let newData = r.raster.sorted({ (a, b) -> Bool in
+				// Return true if a comes before b
+				for order in orders {
+					if let aValue = order.expression?.apply(a, columns: columns, inputValue: nil),
+					   let bValue = order.expression?.apply(b, columns: columns, inputValue: nil) {
+						
+						if order.numeric {
+							if order.ascending && aValue < bValue {
+								return true
+							}
+							else if !order.ascending && bValue < aValue {
+								return true
+							}
+							else {
+								// Ordered same
+							}
+						}
+						else {
+							if let aString = aValue.stringValue, let bString = bValue.stringValue {
+								if order.ascending && aString.compare(bString) == NSComparisonResult.OrderedAscending {
+									return true
+								}
+								else if !order.ascending && aString.compare(bString) == NSComparisonResult.OrderedDescending {
+									return true
+								}
+								else {
+									// Ordered same
+								}
+							}
+						}
+					}
+				}
+				
+				return false
+			})
+			
+			return QBERaster(data: newData, columnNames: columns, readOnly: true)
+		})
+	}
 
 	func offset(numberOfRows: Int) -> QBEData {
 		return apply {(r: QBERaster) -> QBERaster in

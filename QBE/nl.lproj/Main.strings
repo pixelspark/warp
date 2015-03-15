@@ -12,7 +12,7 @@
 "1tx-W0-xDw.title" = "Lower";
 
 /* Class = "NSMenuItem"; title = "Randomly select rows..."; ObjectID = "21p-in-cPl"; */
-"21p-in-cPl.title" = "Filter willekeurig rijen...";
+"21p-in-cPl.title" = "Filter willekeurig rijen";
 
 /* Class = "NSTextFieldCell"; title = "Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label "; ObjectID = "285-uI-onn"; */
 "285-uI-onn.title" = "Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label ";
@@ -165,7 +165,7 @@
 "F2S-fz-NVQ.title" = "Help";
 
 /* Class = "NSMenuItem"; title = "Calculate new column..."; ObjectID = "FAo-Q2-Pil"; */
-"FAo-Q2-Pil.title" = "Bereken nieuwe  kolom...";
+"FAo-Q2-Pil.title" = "Bereken nieuwe  kolom";
 
 /* Class = "NSMenuItem"; title = "QBE Help"; ObjectID = "FKE-Sm-Kum"; */
 "FKE-Sm-Kum.title" = "Warp Help";
@@ -231,7 +231,7 @@
 "Lbh-J2-qVU.title" = "\tVan links naar rechts";
 
 /* Class = "NSMenuItem"; title = "Pivot..."; ObjectID = "Mg0-TA-h4E"; */
-"Mg0-TA-h4E.title" = "Maak draaitabel van gegevens...";
+"Mg0-TA-h4E.title" = "Maak draaitabel van gegevens";
 
 "OG0-83-x0Z.title" = "Pak gegevens uit...";
 
@@ -302,7 +302,7 @@
 "Td7-aD-5lo.title" = "Venster";
 
 /* Class = "NSMenuItem"; title = "Limit to a specified number of rows..."; ObjectID = "TxF-Ed-uJa"; */
-"TxF-Ed-uJa.title" = "Beperk tot een specifiek aantal rijen...";
+"TxF-Ed-uJa.title" = "Beperk tot een specifiek aantal rijen";
 
 /* Class = "NSMenuItem"; title = "Capitalize"; ObjectID = "UEZ-Bs-lqG"; */
 "UEZ-Bs-lqG.title" = "Hoofdletters";
@@ -569,9 +569,9 @@
 "zRv-Pg-yZW.title" = "Standaard veldscheidingsteken:";
 "yiB-vE-P4g.title" = "Formuletaal:";
 
-"zOH-It-cbM.title" = "Selecteer rij(en) zoals deze...";
+"zOH-It-cbM.title" = "Selecteer rij(en) zoals deze";
 "3Yw-cV-pc0.title" = "Verwissel rij(en) met kolommen";
-"4wT-WT-bJe.title" = "Selecteer kolom(men) zoals deze...";
+"4wT-WT-bJe.title" = "Selecteer kolom(men) zoals deze";
 "oAp-0V-aL3.title" = "Draaitabel van gegevens...";
 "JN0-7D-bJs.title" = "Pak gegevens uit...";
 "WGW-vi-DfZ.title" = "Verwijder dubbele rijen";
@@ -586,3 +586,6 @@
 "qVv-Br-0GO.title" = "Gebruik selectie als werkset";
 "jE3-cm-bk2.title" = "Gebruik volledige dataset als werkset";
 "PBU-iY-SYv.title" = "Laad data uit Presto...";
+"lWV-Af-fdF.title" = "Sorteer rijen op de geselecteerde kolom(men)";
+"ILY-7M-toS.title" = "Sorteer rijen op de geselecteerde kolom(men)";
+"Yk7-iC-znO.title" = "Sorteer rijen andersom op de geselecteerde kolom(men)";

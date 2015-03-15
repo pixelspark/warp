@@ -43,9 +43,8 @@ class QBESettings {
 		var error: NSError?
 		if let attrs = NSFileManager.defaultManager().attributesOfFileSystemForPath(atLocation.path!, error: &error) {
 			if let freeSpace = attrs[NSFileSystemFreeSize] as? NSNumber {
-				println("want to cache file of size \(size) at location \(atLocation) which has \(Int(freeSpace)) space free.")
 				let freeSize = Double(size) / Double(freeSpace)
-				if freeSize < 0.5 {
+				if freeSize < 0.8 {
 					return true
 				}
 			}

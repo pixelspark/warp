@@ -1,5 +1,40 @@
 import Foundation
 
+/** The QBESQL family of classes enables data operations to be pushed down to SQL for efficient execution. In order for 
+this to work properly and consistently, the calculations need to behave exactly like the (in-memory) reference 
+implementations provided by QBERaster/QBEStream. There are two problems associated with that:
+
+- The SQL type system is different than the QBE type system. A lot has been done to align the two type systems closely.
+  * The QBEValue types map rougly to the basic SQL types VARCHAR/TEXT (StringValue), BOOL or INT (BoolValue), DOUBLE
+    (DoubleValue), INT (IntValue).
+
+  * The EmptyValue maps to an empty string in expressions. NULLs received from the database are coalesced to empty 
+	strings in expressions, or returned as EmptyValue.
+
+  * InvalidValue always maps to the result of the expression "(1/0)" in SQL.
+
+- Generating SQL statements that work across a large number of different implementations. 
+
+   * Some functions are not supported by a DBMS or have a different name and specification (e.g. GROUP_CONCAT in MySQL
+     is roughly similar to String_Agg in Postgres).
+
+   * Functions can behave differently between implementations (e.g. CONCAT can take 2+ values on most DBMS'es, but not on
+      Presto, where it can take only two)
+
+   * There may be subtly differences between the handling of types (DBMS'es differ especially on whether they cast values
+     'softly' to another type, e.g. when comparing or using for ordering).
+
+   * Corner case behaviour may be different. An example is the usage of "LIMIT 0" to obtain information about the columns
+     a query would result in.
+   
+   In order to overcome the differences between DBMS'es, QBE uses the concept of a "SQL Dialect" which defines the mapping
+   from and to SQL for different SQL vendors. The default dialect closely matches SQL/92. For each vendor, a subclass of
+   QBESQLDialect defines exceptions.
+
+- The DBMS may use a different locale than the application. Care is taken not to rely too much on locale-dependent parts.
+
+Even with the measures above in place, there may still be differences between our reference implementation and SQL. **/
+
 /** Classes that implement QBESQLDialect provide SQL generating classes with tools to build SQL queries in a particular
 dialect. The standard dialect (implemented in QBEStandardSQLDialect) sticks as closely to the SQL92 standard (to implement
 a particular dialect, the standard dialect should be subclassed and should only implement the exceptions). **/
@@ -32,6 +67,12 @@ protocol QBESQLDialect {
 	/** Transforms the given aggregation to an aggregation description that can be incldued as part of a GROUP BY 
 	statement. The function may return nil for aggregations it cannot represent or transform to SQL. **/
 	func aggregationToSQL(aggregation: QBEAggregation) -> String?
+	
+	/** Create an expression that forces the specified expression to a numeric type (DOUBLE or INT in SQL). **/
+	func forceNumericExpression(expression: String) -> String
+	
+	/** Create an expression that forces the specified expression to a string type (e.g. VARCHAR or TEXT in SQL). **/
+	func forceStringExpression(expression: String) -> String
 }
 
 class QBESQLDatabase {
@@ -62,6 +103,14 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			.stringByReplacingOccurrencesOfString(stringEscape, withString: stringEscape+stringEscape)
 			.stringByReplacingOccurrencesOfString(stringQualifier, withString: stringQualifierEscape)
 		return "\(stringQualifier)\(escaped)\(stringQualifier)"
+	}
+	
+	func forceNumericExpression(expression: String) -> String {
+		return "CAST(\(expression) AS NUMERIC)"
+	}
+	
+	func forceStringExpression(expression: String) -> String {
+		return "CAST(\(expression) AS TEXT)"
 	}
 	
 	func expressionToSQL(formula: QBEExpression, inputValue: String? = nil) -> String? {
@@ -233,7 +282,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 				return "(1/0)"
 				
 			case .EmptyValue:
-				return "NULL"
+				return "''"
 		}
 	}
 	
@@ -340,6 +389,37 @@ class QBESQLData: NSObject, QBEData {
 		}
 		return QBERasterData()
     }
+	
+	func sort(by orders: [QBEOrder]) -> QBEData {
+		var error = false
+		
+		let sqlOrders = orders.map({(order) -> (String) in
+			if let expression = order.expression, let esql = self.dialect.expressionToSQL(expression, inputValue: nil) {
+				let castedSQL: String
+				if order.numeric {
+					castedSQL = self.dialect.forceNumericExpression(esql)
+				}
+				else {
+					castedSQL = self.dialect.forceStringExpression(esql)
+				}
+				return castedSQL + " " + (order.ascending ? "ASC" : "DESC")
+			}
+			else {
+				error = true
+				return ""
+			}
+		})
+		
+		// If one of the sorting expressions can't be represented in SQL, use the fall-back
+		if error {
+			return fallback().sort(by: orders)
+		}
+		
+		if let orderClause = sqlOrders.implode(", ") {
+			return apply("SELECT * FROM (\(self.sql)) ORDER BY \(orderClause)", resultingColumns: columns)
+		}
+		return self
+	}
 	
 	func distinct() -> QBEData {
 		return apply("SELECT DISTINCT * FROM (\(self.sql))", resultingColumns: columns)

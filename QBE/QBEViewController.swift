@@ -84,7 +84,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	var previewStep: QBEStep? {
 		didSet {
-			previewStep?.previous = currentStep?.previous
+			if previewStep != currentStep?.previous {
+				previewStep?.previous = currentStep?.previous
+			}
+			
 			if oldValue != nil && previewStep == nil {
 				refreshData()
 			}
@@ -225,7 +228,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		currentStep = step
 		stepsChanged()
 		
-		undo?.prepareWithInvocationTarget(self).removeStep(step)
+		(undo?.prepareWithInvocationTarget(self) as? QBEViewController)?.removeStep(step)
 		undo?.setActionName(String(format: NSLocalizedString("Add step '%@'", comment: ""), step.explain(locale, short: true)))
 	}
 	
@@ -403,6 +406,30 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			popStep()
 			removeStep(stepToRemove)
 		}
+	}
+	
+	private func sortRows(ascending: Bool) {
+		if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
+			let firstSelectedColumn = selectedColumns.firstIndex
+			if firstSelectedColumn != NSNotFound {
+				currentStep?.exampleData(nil, callback: { (data: QBEData) -> () in
+					data.columnNames({(columnNames) -> () in
+						let columnName = columnNames[firstSelectedColumn]
+						let expression = QBESiblingExpression(columnName: columnName)
+						let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
+						self.pushStep(QBESortStep(previous: self.currentStep, orders: [order]))
+					})
+				})
+			}
+		}
+	}
+	
+	@IBAction func reverseSortRows(sender: NSObject) {
+		sortRows(false)
+	}
+	
+	@IBAction func sortRows(sender: NSObject) {
+		sortRows(true)
 	}
 	
 	@IBAction func selectColumns(sender: NSObject) {
@@ -589,6 +616,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 		else if item.action()==Selector("setSelectionWorkingSet:") {
 			return currentStep != nil && useFullData
+		}
+		else if item.action()==Selector("sortRows:") {
+			return currentStep != nil
+		}
+		else if item.action()==Selector("reverseSortRows:") {
+			return currentStep != nil
 		}
 		else if item.action()==Selector("paste:") {
 			return true

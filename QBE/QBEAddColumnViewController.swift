@@ -11,7 +11,12 @@ class QBEAddColumnViewController: NSViewController {
 	
 	@IBAction func confirm(sender: NSObject) {
 		if let targetColumn = columnName {
-			if let formula = QBEFormula(formula: "=" + (columnFormula ?? ""), locale: delegate.locale) {
+			if columnFormula==nil || columnFormula!.isEmpty {
+				let cs = QBECalculateStep(previous: delegate?.currentStep, targetColumn: QBEColumn(columnName ?? ""), function: QBELiteralExpression(QBEValue.EmptyValue))
+				delegate?.suggestionsView(self, didSelectStep: cs)
+				self.dismissController(sender)
+			}
+			else if let formula = QBEFormula(formula: "=" + (columnFormula ?? ""), locale: delegate.locale) {
 				let cs = QBECalculateStep(previous: delegate?.currentStep, targetColumn: QBEColumn(columnName ?? ""), function: formula.root)
 				delegate?.suggestionsView(self, didSelectStep: cs)
 				self.dismissController(sender)

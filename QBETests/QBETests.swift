@@ -151,6 +151,10 @@ class QBETests: XCTestCase {
 			XCTAssert(r.rowCount == 5, "Limit actually works")
 		}
 		
+		data.offset(5).raster(nil) { (r) -> () in
+			XCTAssert(r.rowCount == 5, "Offset actually works")
+		}
+		
 		data.selectColumns(["THIS_DOESNT_EXIST"]).columnNames { (r) -> () in
 			XCTAssert(r.count == 0, "Selecting an invalid column returns a set without columns")
 		}
