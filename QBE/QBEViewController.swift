@@ -417,7 +417,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 						let columnName = columnNames[firstSelectedColumn]
 						let expression = QBESiblingExpression(columnName: columnName)
 						let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
-						self.pushStep(QBESortStep(previous: self.currentStep, orders: [order]))
+						
+						QBEAsyncMain {
+							self.pushStep(QBESortStep(previous: self.currentStep, orders: [order]))
+						}
 					})
 				})
 			}
@@ -569,7 +572,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("importFile:") {
 			return true
 		}
-		else if item.action()==Selector("connectDatabase:") {
+		else if item.action()==Selector("connectPrestoDatabase:") {
+			return true
+		}
+		else if item.action()==Selector("connectMySQLDatabase:") {
 			return true
 		}
 		else if item.action()==Selector("exportFile:") {
@@ -664,8 +670,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		NSMenu.popUpContextMenu(self.addStepMenu!, withEvent: NSApplication.sharedApplication().currentEvent!, forView: sender)
 	}
 	
-	@IBAction func connectDatabase(sender: NSObject) {
+	@IBAction func connectPrestoDatabase(sender: NSObject) {
 		self.pushStep(QBEPrestoSourceStep())
+	}
+	
+	@IBAction func connectMySQLDatabase(sender: NSObject) {
+		self.pushStep(QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", password: "", database: "test", tableName: "test"))
 	}
 	
 	@IBAction func importFile(sender: NSObject) {

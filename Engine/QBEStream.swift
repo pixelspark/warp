@@ -136,7 +136,7 @@ class QBEStreamData: QBEData {
 /** A stream that never produces any data. **/
 class QBEEmptyStream: QBEStream {
 	func fetch(consumer: QBESink, job: QBEJob?) {
-		consumer([], true)
+		consumer([], false)
 	}
 	
 	func clone() -> QBEStream {
@@ -161,21 +161,23 @@ class QBESequenceStream: QBEStream {
 	}
 	
 	func fetch(consumer: QBESink, job: QBEJob?) {
-		var done = false
-		var rows :[QBERow] = []
-		rows.reserveCapacity(QBEStreamDefaultBatchSize)
-		
-		for i in 0..<QBEStreamDefaultBatchSize {
-			if let next = generator.next() {
-				rows.append(next)
+		QBETime("sequence", QBEStreamDefaultBatchSize, "rows", job) {
+			var done = false
+			var rows :[QBERow] = []
+			rows.reserveCapacity(QBEStreamDefaultBatchSize)
+			
+			for i in 0..<QBEStreamDefaultBatchSize {
+				if let next = self.generator.next() {
+					rows.append(next)
+				}
+				else {
+					done = true
+					break
+				}
 			}
-			else {
-				done = true
-				break
-			}
+			
+			consumer(ArraySlice(rows), !done)
 		}
-		
-		consumer(ArraySlice(rows), !done)
 	}
 	
 	func columnNames(callback: ([QBEColumn]) -> ()) {

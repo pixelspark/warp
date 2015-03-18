@@ -64,6 +64,8 @@ protocol QBESQLDialect {
 	QBEIdentitiyExpression. The function may return nil for expressions it cannot successfully transform to SQL. **/
 	func expressionToSQL(formula: QBEExpression, inputValue: String?) -> String?
 	
+	func unaryToSQL(type: QBEFunction, args: [String]) -> String?
+	
 	/** Transforms the given aggregation to an aggregation description that can be incldued as part of a GROUP BY 
 	statement. The function may return nil for aggregations it cannot represent or transform to SQL. **/
 	func aggregationToSQL(aggregation: QBEAggregation) -> String?
@@ -84,11 +86,11 @@ class QBESQLDatabase {
 }
 
 class QBEStandardSQLDialect: QBESQLDialect {
-	let stringQualifier = "\'"
-	let stringQualifierEscape = "\\\'"
-	let identifierQualifier = "\""
-	let identifierQualifierEscape = "\\\""
-	let stringEscape = "\\"
+	var stringQualifier: String { get { return "\'" } }
+	var stringQualifierEscape: String { get { return "\\\'" } }
+	var identifierQualifier: String { get { return "\"" } }
+	var identifierQualifierEscape: String { get { return "\\\"" } }
+	var stringEscape: String { get { return "\\" } }
 	
 	func columnIdentifier(column: QBEColumn) -> String {
 		return "\(identifierQualifier)\(column.name.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape))\(identifierQualifier)"
@@ -217,7 +219,8 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .RandomBetween:
 				/* FIXME check this! Using RANDOM() with modulus introduces a bias, but because we're using ABS, the bias
 				should be cancelled out. See http://stackoverflow.com/questions/8304204/generating-only-positive-random-numbers-in-sqlite */
-				return "(\(args[0]) + ABS(RANDOM() % (\(args[1])-\(args[0]))))"
+				let rf = self.unaryToSQL(QBEFunction.Random, args: []) ?? "RANDOM()"
+				return "(\(args[0]) + ABS(\(rf) % (\(args[1])-\(args[0]))))"
 			
 			case .Random:
 				/* FIXME: According to the SQLite documentation, RANDOM() generates a number between -9223372036854775808 
@@ -336,7 +339,9 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func raster(job: QBEJob?, callback: (QBERaster) -> ()) {
-		QBEStreamData(source: self.stream()).raster(job, callback: callback)
+		QBEAsyncBackground {
+			QBEStreamData(source: self.stream()).raster(job, callback: callback)
+		}
 	}
 	
 	/** Transposition is difficult in SQL, and therefore left to QBERasterData. **/
@@ -351,7 +356,11 @@ class QBESQLData: NSObject, QBEData {
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData {
 		return fallback().flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to)
 	}
-    
+	
+	private var tableAlias: String {
+		return dialect.tableIdentifier("T\(abs(self.sql.hash))")
+	}
+	
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
 		var values: [String] = []
 		var targetFound = false
@@ -385,7 +394,7 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		if let valueString = values.implode(", ") {
-			return apply("SELECT \(valueString) FROM (\(sql))", resultingColumns: columns)
+			return apply("SELECT \(valueString) FROM (\(sql) AS \(tableAlias))", resultingColumns: columns)
 		}
 		return QBERasterData()
     }
@@ -416,28 +425,28 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		if let orderClause = sqlOrders.implode(", ") {
-			return apply("SELECT * FROM (\(self.sql)) ORDER BY \(orderClause)", resultingColumns: columns)
+			return apply("SELECT * FROM (\(self.sql)) AS \(tableAlias) ORDER BY \(orderClause)", resultingColumns: columns)
 		}
 		return self
 	}
 	
 	func distinct() -> QBEData {
-		return apply("SELECT DISTINCT * FROM (\(self.sql))", resultingColumns: columns)
+		return apply("SELECT DISTINCT * FROM (\(self.sql)) AS \(tableAlias)", resultingColumns: columns)
 	}
     
     func limit(numberOfRows: Int) -> QBEData {
-		return apply("SELECT * FROM (\(self.sql)) LIMIT \(numberOfRows)", resultingColumns: columns)
+		return apply("SELECT * FROM (\(self.sql)) AS \(tableAlias) LIMIT \(numberOfRows)", resultingColumns: columns)
     }
 	
 	func offset(numberOfRows: Int) -> QBEData {
 		// FIXME: T-SQL uses "SELECT TOP x" syntax
 		// FIXME: the LIMIT -1 is probably only necessary for SQLite
-		return apply("SELECT * FROM (\(self.sql)) LIMIT -1 OFFSET \(numberOfRows)", resultingColumns: columns)
+		return apply("SELECT * FROM (\(self.sql)) AS \(tableAlias) LIMIT -1 OFFSET \(numberOfRows)", resultingColumns: columns)
 	}
 	
 	func filter(condition: QBEExpression) -> QBEData {
 		if let expressionString = dialect.expressionToSQL(condition.prepare(), inputValue: nil) {
-			return apply("SELECT * FROM (\(self.sql)) WHERE \(expressionString)", resultingColumns: columns)
+			return apply("SELECT * FROM (\(self.sql)) AS \(tableAlias) WHERE \(expressionString)", resultingColumns: columns)
 		}
 		else {
 			return fallback().filter(condition)
@@ -445,7 +454,8 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func random(numberOfRows: Int) -> QBEData {
-		return apply("SELECT * FROM (\(self.sql)) ORDER BY RANDOM() LIMIT \(numberOfRows)", resultingColumns: columns)
+		let randomFunction = dialect.unaryToSQL(QBEFunction.Random, args: []) ?? "RANDOM()"
+		return apply("SELECT * FROM (\(self.sql)) AS \(tableAlias) ORDER BY \(randomFunction) LIMIT \(numberOfRows)", resultingColumns: columns)
 	}
 	
 	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
@@ -465,7 +475,7 @@ class QBESQLData: NSObject, QBEData {
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
 		let colNames = columns.map({self.dialect.columnIdentifier($0)}).implode(", ") ?? ""
-		let sql = "SELECT \(colNames) FROM (\(self.sql))"
+		let sql = "SELECT \(colNames) FROM (\(self.sql)) AS \(tableAlias)"
 		return apply(sql, resultingColumns: columns)
 	}
 	
@@ -498,11 +508,11 @@ class QBESQLData: NSObject, QBEData {
 		
 		let selectString = select.implode(", ") ?? ""
 		if groupBy.count>0, let groupString = groupBy.implode(", ") {
-			return apply("SELECT \(selectString) FROM (\(sql)) GROUP BY \(groupString)", resultingColumns: resultingColumns)
+			return apply("SELECT \(selectString) FROM (\(sql)) AS \(tableAlias) GROUP BY \(groupString)", resultingColumns: resultingColumns)
 		}
 		else {
 			// No columns to group by, total aggregates it is
-			return apply("SELECT \(selectString) FROM (\(sql))", resultingColumns: resultingColumns)
+			return apply("SELECT \(selectString) FROM (\(sql)) AS \(tableAlias)", resultingColumns: resultingColumns)
 		}
 	}
 	

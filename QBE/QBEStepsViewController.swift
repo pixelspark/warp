@@ -146,7 +146,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	}
 	
 	private func update() {
-		//QBEAsyncMain {
+		QBEAsyncMain {
 			if let cv = self.collectionView {
 				if cv.itemPrototype != nil {
 					cv.content = self.steps ?? []
@@ -165,7 +165,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 				
 				cv.selectionIndexes = indexSet
 			}
-		//}
+		}
 	}
 	
 	override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>) {

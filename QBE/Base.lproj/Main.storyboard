@@ -1112,7 +1112,12 @@ CA
                         </menuItem>
                         <menuItem title="Load data from Presto..." keyEquivalent="D" id="PBU-iY-SYv">
                             <connections>
-                                <action selector="connectDatabase:" target="Izd-TK-t8f" id="0Hf-h0-oDF"/>
+                                <action selector="connectPrestoDatabase:" target="Izd-TK-t8f" id="iGV-pE-1m2"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Load data from MySQL..." keyEquivalent="M" id="l6x-MG-F5q">
+                            <connections>
+                                <action selector="connectMySQLDatabase:" target="Izd-TK-t8f" id="EvE-OD-HgE"/>
                             </connections>
                         </menuItem>
                         <menuItem isSeparatorItem="YES" id="Rf1-BS-aUM"/>

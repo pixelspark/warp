@@ -15,7 +15,8 @@ let QBEStepViews: Dictionary<String, QBEStepView> = [
 	QBEFlattenStep.className(): {QBEFlattenStepView(step: $0, delegate: $1)},
 	QBEPrestoSourceStep.className(): {QBEPrestoSourceStepView(step: $0, delegate: $1)},
 	QBEColumnsStep.className(): {QBEColumnsStepView(step: $0, delegate: $1)},
-	QBESortStep.className(): {QBESortStepView(step: $0, delegate: $1)}
+	QBESortStep.className(): {QBESortStepView(step: $0, delegate: $1)},
+	QBEMySQLSourceStep.className(): {QBEMySQLSourceStepView(step: $0, delegate: $1)}
 ]
 
 let QBEStepIcons = [
@@ -33,5 +34,6 @@ let QBEStepIcons = [
 	QBEDistinctStep.className(): "DistinctIcon",
 	QBEPrestoSourceStep.className(): "PrestoIcon",
 	QBERasterStep.className(): "RasterIcon",
-	QBESortStep.className(): "SortIcon"
+	QBESortStep.className(): "SortIcon",
+	QBEMySQLSourceStep.className(): "MySQLIcon"
 ]

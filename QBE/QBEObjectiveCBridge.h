@@ -5,6 +5,7 @@
 #import <MBTableGrid/MBTableGrid.h>
 #import <MBTableGrid/MBTableGridCell.h>
 #import "sqlite3.h"
+#import "mysql.h"
 
 int RegisterExtensionFunctions(sqlite3 *db);
 

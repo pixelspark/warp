@@ -20,6 +20,14 @@
 		653414F11A5DD0A500DDD472 /* QBEFormula.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653414EF1A5DD0A500DDD472 /* QBEFormula.swift */; };
 		653E89631A6F9D1C00E9A6F4 /* QBEStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653E89621A6F9D1C00E9A6F4 /* QBEStream.swift */; };
 		653E89651A6FA2D700E9A6F4 /* QBEStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653E89621A6F9D1C00E9A6F4 /* QBEStream.swift */; };
+		654297081AB83123000472E6 /* mysql_version.h.in in Resources */ = {isa = PBXBuildFile; fileRef = 654296FA1AB83123000472E6 /* mysql_version.h.in */; };
+		654297091AB83123000472E6 /* mysql_version.h.in in Resources */ = {isa = PBXBuildFile; fileRef = 654296FA1AB83123000472E6 /* mysql_version.h.in */; };
+		6542970B1AB97D5C000472E6 /* QBEMySQLSourceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6542970A1AB97D5C000472E6 /* QBEMySQLSourceStepView.swift */; };
+		6542970C1AB97D5C000472E6 /* QBEMySQLSourceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6542970A1AB97D5C000472E6 /* QBEMySQLSourceStepView.swift */; };
+		654297121AB98E6B000472E6 /* QBEMySQLSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 654297101AB98E6B000472E6 /* QBEMySQLSourceStepView.xib */; };
+		654297131AB98E6B000472E6 /* QBEMySQLSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 654297101AB98E6B000472E6 /* QBEMySQLSourceStepView.xib */; };
+		654297171AB995A6000472E6 /* QBEMySQLSourceStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654297161AB995A6000472E6 /* QBEMySQLSourceStep.swift */; };
+		654297181AB995A6000472E6 /* QBEMySQLSourceStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654297161AB995A6000472E6 /* QBEMySQLSourceStep.swift */; };
 		6548F2341A8673BF00FE8EF2 /* extension-functions.c in Sources */ = {isa = PBXBuildFile; fileRef = 6548F2331A8673BF00FE8EF2 /* extension-functions.c */; };
 		654AE1671AA514530022C533 /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 652872921A5D16C200C155FA /* SwiftParser.framework */; };
 		654AE16B1AA5163E0022C533 /* QBEFlattenStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 654AE16D1AA5163E0022C533 /* QBEFlattenStepView.xib */; };
@@ -121,6 +129,14 @@
 		659604CF1AB45F9300701758 /* QBEColumnsStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 659604CC1AB45F9300701758 /* QBEColumnsStepView.xib */; };
 		659A27F11AA504F7009269A4 /* QBEFlattenStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659A27F01AA504F7009269A4 /* QBEFlattenStep.swift */; };
 		65A7FC5B1A667F860019B747 /* QBESQLiteSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65A7FC5D1A667F860019B747 /* QBESQLiteSourceStepView.xib */; };
+		65AA260F1ABB1FAC00085E26 /* libmariadbclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */; };
+		65AA26101ABB1FAC00085E26 /* libmariadbclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */; };
+		65AA26121ABB1FC700085E26 /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA26111ABB1FC700085E26 /* libiconv.dylib */; };
+		65AA26141ABB1FCB00085E26 /* libssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA26131ABB1FCB00085E26 /* libssl.dylib */; };
+		65AA26151ABB1FED00085E26 /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA26111ABB1FC700085E26 /* libiconv.dylib */; };
+		65AA26161ABB1FF100085E26 /* libssl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA26131ABB1FCB00085E26 /* libssl.dylib */; };
+		65AA26181ABB201700085E26 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA26171ABB201700085E26 /* libcrypto.dylib */; };
+		65AA26191ABB202300085E26 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA26171ABB201700085E26 /* libcrypto.dylib */; };
 		65ABB15E1A0ABF4A00A56C49 /* QBERaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65ABB15D1A0ABF4A00A56C49 /* QBERaster.swift */; };
 		65C4F3A71A992A6C00197CF4 /* QBEFilterStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65C4F3A91A992A6C00197CF4 /* QBEFilterStepView.xib */; };
 		65D6F9DA1A597C81006B6995 /* QBEExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D6F9D91A597C81006B6995 /* QBEExpression.swift */; };
@@ -324,6 +340,48 @@
 		652BEC401A063F96002E45C7 /* QBEWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEWindowController.swift; sourceTree = "<group>"; };
 		653414EF1A5DD0A500DDD472 /* QBEFormula.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEFormula.swift; path = Engine/QBEFormula.swift; sourceTree = SOURCE_ROOT; };
 		653E89621A6F9D1C00E9A6F4 /* QBEStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEStream.swift; path = Engine/QBEStream.swift; sourceTree = SOURCE_ROOT; };
+		654296D81AB83123000472E6 /* config-win.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "config-win.h"; sourceTree = "<group>"; };
+		654296D91AB83123000472E6 /* dbug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dbug.h; sourceTree = "<group>"; };
+		654296DA1AB83123000472E6 /* errmsg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = errmsg.h; sourceTree = "<group>"; };
+		654296DB1AB83123000472E6 /* getopt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = getopt.h; sourceTree = "<group>"; };
+		654296DC1AB83123000472E6 /* global.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global.h; sourceTree = "<group>"; };
+		654296DD1AB83123000472E6 /* hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hash.h; sourceTree = "<group>"; };
+		654296DE1AB83123000472E6 /* m_ctype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = m_ctype.h; sourceTree = "<group>"; };
+		654296DF1AB83123000472E6 /* m_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = m_string.h; sourceTree = "<group>"; };
+		654296E01AB83123000472E6 /* ma_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ma_common.h; sourceTree = "<group>"; };
+		654296E11AB83123000472E6 /* ma_dyncol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ma_dyncol.h; sourceTree = "<group>"; };
+		654296E21AB83123000472E6 /* ma_secure.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ma_secure.h; sourceTree = "<group>"; };
+		654296E51AB83123000472E6 /* my_alarm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_alarm.h; sourceTree = "<group>"; };
+		654296E61AB83123000472E6 /* my_base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_base.h; sourceTree = "<group>"; };
+		654296E71AB83123000472E6 /* my_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_config.h; sourceTree = "<group>"; };
+		654296E91AB83123000472E6 /* my_dir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_dir.h; sourceTree = "<group>"; };
+		654296EA1AB83123000472E6 /* my_global.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_global.h; sourceTree = "<group>"; };
+		654296EB1AB83123000472E6 /* my_list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_list.h; sourceTree = "<group>"; };
+		654296EC1AB83123000472E6 /* my_net.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_net.h; sourceTree = "<group>"; };
+		654296ED1AB83123000472E6 /* my_no_pthread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_no_pthread.h; sourceTree = "<group>"; };
+		654296EE1AB83123000472E6 /* my_pthread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_pthread.h; sourceTree = "<group>"; };
+		654296EF1AB83123000472E6 /* my_stmt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_stmt.h; sourceTree = "<group>"; };
+		654296F01AB83123000472E6 /* my_sys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_sys.h; sourceTree = "<group>"; };
+		654296F21AB83123000472E6 /* client_plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = client_plugin.h; sourceTree = "<group>"; };
+		654296F31AB83123000472E6 /* plugin_auth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugin_auth.h; sourceTree = "<group>"; };
+		654296F41AB83123000472E6 /* plugin_auth_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugin_auth_common.h; sourceTree = "<group>"; };
+		654296F51AB83123000472E6 /* mysql_com.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_com.h; sourceTree = "<group>"; };
+		654296F61AB83123000472E6 /* mysql_io.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_io.h; sourceTree = "<group>"; };
+		654296F71AB83123000472E6 /* mysql_mm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_mm.h; sourceTree = "<group>"; };
+		654296F81AB83123000472E6 /* mysql_priv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_priv.h; sourceTree = "<group>"; };
+		654296F91AB83123000472E6 /* mysql_version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_version.h; sourceTree = "<group>"; };
+		654296FA1AB83123000472E6 /* mysql_version.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mysql_version.h.in; sourceTree = "<group>"; };
+		654296FB1AB83123000472E6 /* mysql_wireprotocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_wireprotocol.h; sourceTree = "<group>"; };
+		654296FC1AB83123000472E6 /* mysql.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql.h; sourceTree = "<group>"; };
+		654296FD1AB83123000472E6 /* mysqld_error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysqld_error.h; sourceTree = "<group>"; };
+		654296FE1AB83123000472E6 /* mysys_err.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysys_err.h; sourceTree = "<group>"; };
+		654296FF1AB83123000472E6 /* sha1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sha1.h; sourceTree = "<group>"; };
+		654297001AB83123000472E6 /* thr_alarm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = thr_alarm.h; sourceTree = "<group>"; };
+		654297011AB83123000472E6 /* violite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = violite.h; sourceTree = "<group>"; };
+		6542970A1AB97D5C000472E6 /* QBEMySQLSourceStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEMySQLSourceStepView.swift; path = QBE/QBEMySQLSourceStepView.swift; sourceTree = "<group>"; };
+		654297111AB98E6B000472E6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = QBE/Base.lproj/QBEMySQLSourceStepView.xib; sourceTree = "<group>"; };
+		654297151AB98E70000472E6 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = QBE/nl.lproj/QBEMySQLSourceStepView.strings; sourceTree = "<group>"; };
+		654297161AB995A6000472E6 /* QBEMySQLSourceStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEMySQLSourceStep.swift; path = QBE/QBEMySQLSourceStep.swift; sourceTree = SOURCE_ROOT; };
 		6548F2331A8673BF00FE8EF2 /* extension-functions.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "extension-functions.c"; path = "Libraries/extension-functions.c"; sourceTree = "<group>"; };
 		654AE16C1AA5163E0022C533 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEFlattenStepView.xib; sourceTree = "<group>"; };
 		654AE1721AA516E30022C533 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEFlattenStepView.strings; sourceTree = "<group>"; };
@@ -372,6 +430,10 @@
 		659604D61AB45FC600701758 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = QBE/nl.lproj/QBEColumnsStepView.strings; sourceTree = "<group>"; };
 		659A27F01AA504F7009269A4 /* QBEFlattenStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEFlattenStep.swift; path = Engine/QBEFlattenStep.swift; sourceTree = SOURCE_ROOT; };
 		65A7FC5C1A667F860019B747 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBESQLiteSourceStepView.xib; sourceTree = "<group>"; };
+		65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
+		65AA26111ABB1FC700085E26 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
+		65AA26131ABB1FCB00085E26 /* libssl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.dylib; path = usr/lib/libssl.dylib; sourceTree = SDKROOT; };
+		65AA26171ABB201700085E26 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
 		65ABB15D1A0ABF4A00A56C49 /* QBERaster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBERaster.swift; path = Engine/QBERaster.swift; sourceTree = SOURCE_ROOT; };
 		65C4F3A81A992A6C00197CF4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEFilterStepView.xib; sourceTree = "<group>"; };
 		65D6F9D91A597C81006B6995 /* QBEExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEExpression.swift; path = Engine/QBEExpression.swift; sourceTree = SOURCE_ROOT; };
@@ -403,6 +465,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65AA26181ABB201700085E26 /* libcrypto.dylib in Frameworks */,
+				65AA26161ABB1FF100085E26 /* libssl.dylib in Frameworks */,
+				65AA26151ABB1FED00085E26 /* libiconv.dylib in Frameworks */,
+				65AA26101ABB1FAC00085E26 /* libmariadbclient.a in Frameworks */,
 				654EBAA01AA7A2AE00DDBBCA /* libsqlite3.dylib in Frameworks */,
 				654EBAA11AA7A2AE00DDBBCA /* SwiftParser.framework in Frameworks */,
 				654EBAA21AA7A2AE00DDBBCA /* MBTableGrid.framework in Frameworks */,
@@ -413,6 +479,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65AA26191ABB202300085E26 /* libcrypto.dylib in Frameworks */,
+				65AA26141ABB1FCB00085E26 /* libssl.dylib in Frameworks */,
+				65AA26121ABB1FC700085E26 /* libiconv.dylib in Frameworks */,
+				65AA260F1ABB1FAC00085E26 /* libmariadbclient.a in Frameworks */,
 				65776F121A6483AD00F7F82A /* libsqlite3.dylib in Frameworks */,
 				65776F101A6470BB00F7F82A /* SwiftParser.framework in Frameworks */,
 				6510A7391A4D9832005633EF /* MBTableGrid.framework in Frameworks */,
@@ -442,14 +512,19 @@
 		651988E71A0F9C39003463AA /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				6548F2331A8673BF00FE8EF2 /* extension-functions.c */,
-				65776F111A6483AD00F7F82A /* libsqlite3.dylib */,
+				65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */,
 				65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */,
-				6528728B1A5D16C200C155FA /* SwiftParser.xcodeproj */,
-				6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */,
 				651988E41A0F9C30003463AA /* CHCSVParser.h */,
 				651988E51A0F9C30003463AA /* CHCSVParser.m */,
+				6548F2331A8673BF00FE8EF2 /* extension-functions.c */,
+				65AA26171ABB201700085E26 /* libcrypto.dylib */,
+				65AA26131ABB1FCB00085E26 /* libssl.dylib */,
+				65AA26111ABB1FC700085E26 /* libiconv.dylib */,
+				65776F111A6483AD00F7F82A /* libsqlite3.dylib */,
+				6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */,
+				654296901AB80D09000472E6 /* MySQL */,
 				651988E81A0FAA3F003463AA /* QBEObjectiveCBridge.h */,
+				6528728B1A5D16C200C155FA /* SwiftParser.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -461,6 +536,68 @@
 				652872941A5D16C200C155FA /* SwiftParserTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		654296901AB80D09000472E6 /* MySQL */ = {
+			isa = PBXGroup;
+			children = (
+				654296911AB80D09000472E6 /* include */,
+			);
+			name = MySQL;
+			path = Libraries/MySQL;
+			sourceTree = "<group>";
+		};
+		654296911AB80D09000472E6 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				654296D81AB83123000472E6 /* config-win.h */,
+				654296D91AB83123000472E6 /* dbug.h */,
+				654296DA1AB83123000472E6 /* errmsg.h */,
+				654296DB1AB83123000472E6 /* getopt.h */,
+				654296DC1AB83123000472E6 /* global.h */,
+				654296DD1AB83123000472E6 /* hash.h */,
+				654296DE1AB83123000472E6 /* m_ctype.h */,
+				654296DF1AB83123000472E6 /* m_string.h */,
+				654296E01AB83123000472E6 /* ma_common.h */,
+				654296E11AB83123000472E6 /* ma_dyncol.h */,
+				654296E21AB83123000472E6 /* ma_secure.h */,
+				654296E51AB83123000472E6 /* my_alarm.h */,
+				654296E61AB83123000472E6 /* my_base.h */,
+				654296E71AB83123000472E6 /* my_config.h */,
+				654296E91AB83123000472E6 /* my_dir.h */,
+				654296EA1AB83123000472E6 /* my_global.h */,
+				654296EB1AB83123000472E6 /* my_list.h */,
+				654296EC1AB83123000472E6 /* my_net.h */,
+				654296ED1AB83123000472E6 /* my_no_pthread.h */,
+				654296EE1AB83123000472E6 /* my_pthread.h */,
+				654296EF1AB83123000472E6 /* my_stmt.h */,
+				654296F01AB83123000472E6 /* my_sys.h */,
+				654296F11AB83123000472E6 /* mysql */,
+				654296F51AB83123000472E6 /* mysql_com.h */,
+				654296F61AB83123000472E6 /* mysql_io.h */,
+				654296F71AB83123000472E6 /* mysql_mm.h */,
+				654296F81AB83123000472E6 /* mysql_priv.h */,
+				654296F91AB83123000472E6 /* mysql_version.h */,
+				654296FA1AB83123000472E6 /* mysql_version.h.in */,
+				654296FB1AB83123000472E6 /* mysql_wireprotocol.h */,
+				654296FC1AB83123000472E6 /* mysql.h */,
+				654296FD1AB83123000472E6 /* mysqld_error.h */,
+				654296FE1AB83123000472E6 /* mysys_err.h */,
+				654296FF1AB83123000472E6 /* sha1.h */,
+				654297001AB83123000472E6 /* thr_alarm.h */,
+				654297011AB83123000472E6 /* violite.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		654296F11AB83123000472E6 /* mysql */ = {
+			isa = PBXGroup;
+			children = (
+				654296F21AB83123000472E6 /* client_plugin.h */,
+				654296F31AB83123000472E6 /* plugin_auth.h */,
+				654296F41AB83123000472E6 /* plugin_auth_common.h */,
+			);
+			path = mysql;
 			sourceTree = "<group>";
 		};
 		65734BBE1AB0380200D2C2F6 /* Products */ = {
@@ -489,6 +626,8 @@
 				654AE16D1AA5163E0022C533 /* QBEFlattenStepView.xib */,
 				654AE17F1AA59BDB0022C533 /* QBELimitStepView.swift */,
 				65894A0B1A67036200B0C161 /* QBELimitStepView.xib */,
+				6542970A1AB97D5C000472E6 /* QBEMySQLSourceStepView.swift */,
+				654297101AB98E6B000472E6 /* QBEMySQLSourceStepView.xib */,
 				654AE1771AA59B3B0022C533 /* QBEPivotStepView.swift */,
 				65DBA5631A798F31004CDF36 /* QBEPivotStepView.xib */,
 				65734BDD1AB0E40100D2C2F6 /* QBEPrestoSourceStepView.swift */,
@@ -511,13 +650,14 @@
 				65776EEC1A62D8E700F7F82A /* QBEColumnsStep.swift */,
 				6501E7BA1A6C6A620030899E /* QBECSVStep.swift */,
 				659A27F01AA504F7009269A4 /* QBEFlattenStep.swift */,
+				654297161AB995A6000472E6 /* QBEMySQLSourceStep.swift */,
 				65F3867F1A6BBAB700C83810 /* QBEPivotStep.swift */,
+				65734BD31AB0BD8B00D2C2F6 /* QBEPrestoStep.swift */,
 				65D6F9EC1A59CD1A006B6995 /* QBERasterStep.swift */,
 				6589779D1A55C090001001F2 /* QBERowsStep.swift */,
+				65FCB8D01AB58AAF0002C119 /* QBESortStep.swift */,
 				6501E7B91A6C6A620030899E /* QBESQLiteStep.swift */,
 				6510A73C1A4E9A47005633EF /* QBEStep.swift */,
-				65734BD31AB0BD8B00D2C2F6 /* QBEPrestoStep.swift */,
-				65FCB8D01AB58AAF0002C119 /* QBESortStep.swift */,
 			);
 			name = Steps;
 			path = qbetest;
@@ -816,9 +956,11 @@
 				654EBAC21AA8B73C00DDBBCA /* Warp.entitlements in Resources */,
 				654EBAA91AA7A2AE00DDBBCA /* Images.xcassets in Resources */,
 				654EBAAA1AA7A2AE00DDBBCA /* Main.storyboard in Resources */,
+				654297091AB83123000472E6 /* mysql_version.h.in in Resources */,
 				654EBAAB1AA7A2AE00DDBBCA /* QBESQLiteSourceStepView.xib in Resources */,
 				654EBAAC1AA7A2AE00DDBBCA /* QBEFlattenStepView.xib in Resources */,
 				654EBAAD1AA7A2AE00DDBBCA /* QBECSVStepView.xib in Resources */,
+				654297131AB98E6B000472E6 /* QBEMySQLSourceStepView.xib in Resources */,
 				654EBAAE1AA7A2AE00DDBBCA /* QBELimitStepView.xib in Resources */,
 				654EBAAF1AA7A2AE00DDBBCA /* QBEFilterStepView.xib in Resources */,
 			);
@@ -839,9 +981,11 @@
 				654EBAC31AA8B73D00DDBBCA /* Warp.entitlements in Resources */,
 				65E3C2F71A062E5E007BB3C8 /* Images.xcassets in Resources */,
 				65E3C2FA1A062E5E007BB3C8 /* Main.storyboard in Resources */,
+				654297081AB83123000472E6 /* mysql_version.h.in in Resources */,
 				65A7FC5B1A667F860019B747 /* QBESQLiteSourceStepView.xib in Resources */,
 				654AE16B1AA5163E0022C533 /* QBEFlattenStepView.xib in Resources */,
 				65DBA5681A798F41004CDF36 /* QBECSVStepView.xib in Resources */,
+				654297121AB98E6B000472E6 /* QBEMySQLSourceStepView.xib in Resources */,
 				65894A091A67036200B0C161 /* QBELimitStepView.xib in Resources */,
 				65C4F3A71A992A6C00197CF4 /* QBEFilterStepView.xib in Resources */,
 			);
@@ -868,6 +1012,7 @@
 				654EBA7C1AA7A2AE00DDBBCA /* QBEWindowController.swift in Sources */,
 				654EBA7D1AA7A2AE00DDBBCA /* QBELimitStepView.swift in Sources */,
 				654EBA7E1AA7A2AE00DDBBCA /* QBECalculateStep.swift in Sources */,
+				6542970C1AB97D5C000472E6 /* QBEMySQLSourceStepView.swift in Sources */,
 				654EBA7F1AA7A2AE00DDBBCA /* QBEStep.swift in Sources */,
 				654EBA801AA7A2AE00DDBBCA /* extension-functions.c in Sources */,
 				654EBA811AA7A2AE00DDBBCA /* QBECSVStep.swift in Sources */,
@@ -905,6 +1050,7 @@
 				654EBA9C1AA7A2AE00DDBBCA /* QBEFormula.swift in Sources */,
 				654EBA9D1AA7A2AE00DDBBCA /* QBEAppDelegate.swift in Sources */,
 				654EBA9E1AA7A2AE00DDBBCA /* QBEDocument.swift in Sources */,
+				654297181AB995A6000472E6 /* QBEMySQLSourceStep.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -919,6 +1065,7 @@
 				652BEC411A063F96002E45C7 /* QBEWindowController.swift in Sources */,
 				654AE1801AA59BDB0022C533 /* QBELimitStepView.swift in Sources */,
 				65D6F9DC1A597CC9006B6995 /* QBECalculateStep.swift in Sources */,
+				6542970B1AB97D5C000472E6 /* QBEMySQLSourceStepView.swift in Sources */,
 				6510A73D1A4E9A47005633EF /* QBEStep.swift in Sources */,
 				6548F2341A8673BF00FE8EF2 /* extension-functions.c in Sources */,
 				6501E7BD1A6C6A620030899E /* QBECSVStep.swift in Sources */,
@@ -956,6 +1103,7 @@
 				653414F01A5DD0A500DDD472 /* QBEFormula.swift in Sources */,
 				65E3C2F11A062E5E007BB3C8 /* QBEAppDelegate.swift in Sources */,
 				65E3C2F51A062E5E007BB3C8 /* QBEDocument.swift in Sources */,
+				654297171AB995A6000472E6 /* QBEMySQLSourceStep.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1033,6 +1181,15 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		654297101AB98E6B000472E6 /* QBEMySQLSourceStepView.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				654297111AB98E6B000472E6 /* Base */,
+				654297151AB98E70000472E6 /* nl */,
+			);
+			name = QBEMySQLSourceStepView.xib;
+			sourceTree = "<group>";
+		};
 		654AE16D1AA5163E0022C533 /* QBEFlattenStepView.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1177,6 +1334,10 @@
 				);
 				INFOPLIST_FILE = "Warp App Store-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Libraries/MySQL",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
 				PRODUCT_NAME = Warp;
@@ -1194,6 +1355,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = "Warp App Store-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Libraries/MySQL",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_NAME = Warp;
@@ -1238,6 +1403,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Applications/Xcode-beta.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
+					"$(SRCROOT)/Libraries/MySQL/include",
+				);
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Libraries/MySQL";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1278,6 +1449,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Applications/Xcode-beta.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
+					"$(SRCROOT)/Libraries/MySQL/include",
+				);
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Libraries/MySQL";
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -1300,6 +1477,10 @@
 				);
 				INFOPLIST_FILE = QBE/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Libraries/MySQL",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1316,6 +1497,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = QBE/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Libraries/MySQL",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_SWIFT_FLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
