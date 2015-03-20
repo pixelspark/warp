@@ -394,7 +394,7 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		if let valueString = values.implode(", ") {
-			return apply("SELECT \(valueString) FROM (\(sql) AS \(tableAlias))", resultingColumns: columns)
+			return apply("SELECT \(valueString) FROM (\(sql)) AS \(tableAlias)", resultingColumns: columns)
 		}
 		return QBERasterData()
     }
