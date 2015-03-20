@@ -570,6 +570,8 @@ enum QBEBinary: String {
 	case NotEqual = "neq"
 	case ContainsString = "contains" // case-insensitive
 	case ContainsStringStrict = "containsStrict" // case-sensitive
+	case MatchesRegex = "matchesRegex" // not case-sensitive
+	case MatchesRegexStrict = "matchesRegexStrict" // case-sensitive
 	
 	func explain(locale: QBELocale) -> String {
 		switch self {
@@ -588,6 +590,8 @@ enum QBEBinary: String {
 		case .NotEqual: return "<>"
 		case .ContainsString: return "~="
 		case .ContainsStringStrict: return "~~="
+		case .MatchesRegex: return "±="
+		case .MatchesRegexStrict: return "±±="
 		}
 	}
 	
@@ -641,6 +645,12 @@ enum QBEBinary: String {
 			
 		case .ContainsStringStrict:
 			return left ~~= right
+			
+		case .MatchesRegex:
+			return left ±= right
+			
+		case .MatchesRegexStrict:
+			return left ±±= right
 		}
 	}
 }

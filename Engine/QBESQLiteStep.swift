@@ -248,12 +248,16 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 }
 
 internal class QBESQLiteDialect: QBEStandardSQLDialect {
-	override func binaryToSQL(type: QBEBinary, first: String, second: String) -> String {
+	override func binaryToSQL(type: QBEBinary, first: String, second: String) -> String? {
 		switch type {
 			/** For 'contains string', the default implementation uses "a LIKE '%b%'" syntax. Using INSTR is probably a
 			bit faster on SQLite. **/
 			case .ContainsString: return "INSTR(LOWER(\(second)), LOWER(\(first)))>0"
 			case .ContainsStringStrict: return "INSTR(\(second), \(first))>0"
+			
+			// FIXME: REGEXP can be supported using a UDF in SQLite; see https://www.sqlite.org/lang_expr.html
+			case .MatchesRegex: return nil
+			case .MatchesRegexStrict: return nil
 			default:
 				return super.binaryToSQL(type, first: first, second: second)
 		}

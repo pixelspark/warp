@@ -65,6 +65,7 @@ protocol QBESQLDialect {
 	func expressionToSQL(formula: QBEExpression, inputValue: String?) -> String?
 	
 	func unaryToSQL(type: QBEFunction, args: [String]) -> String?
+	func binaryToSQL(type: QBEBinary, first: String, second: String) -> String?
 	
 	/** Transforms the given aggregation to an aggregation description that can be incldued as part of a GROUP BY 
 	statement. The function may return nil for aggregations it cannot represent or transform to SQL. **/
@@ -289,7 +290,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 		}
 	}
 	
-	internal func binaryToSQL(type: QBEBinary, first: String, second: String) -> String {
+	internal func binaryToSQL(type: QBEBinary, first: String, second: String) -> String? {
 		switch type {
 			case .Addition:		return "(\(second)+\(first))"
 			case .Subtraction:	return "(\(second)-\(first))"
@@ -310,6 +311,8 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			support CONCAT with multiple parameters, we use two. */
 			case .ContainsString: return "(LOWER(\(second)) LIKE CONCAT('%', CONCAT(LOWER(\(first)),'%')))"
 			case .ContainsStringStrict: return "(\(second) LIKE CONCAT('%',CONCAT(\(first),'%')))"
+			case .MatchesRegex: return "(\(second) REGEXP \(first))"
+			case .MatchesRegexStrict: return "(\(second) REGEXP BINARY \(first))"
 		}
 	}
 }

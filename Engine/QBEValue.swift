@@ -583,9 +583,39 @@ infix operator ~~= {
 	associativity left precedence 120
 }
 
+infix operator ±= {
+associativity left precedence 120
+}
+
+infix operator ±±= {
+associativity left precedence 120
+}
+
 func ~~= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 	if let l = lhs.stringValue, r = rhs.stringValue {
 		return QBEValue.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions.allZeros, range: nil, locale: nil) != nil)
+	}
+	return QBEValue.InvalidValue
+}
+
+func ±= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+	if let l = lhs.stringValue, r = rhs.stringValue {
+		if let re = NSRegularExpression(pattern: r, options: NSRegularExpressionOptions.CaseInsensitive, error: nil) {
+			let range = NSMakeRange(0, count(l))
+			let match = re.rangeOfFirstMatchInString(l, options: NSMatchingOptions.allZeros, range: range).location != NSNotFound
+			return QBEValue.BoolValue(match)
+		}
+	}
+	return QBEValue.InvalidValue
+}
+
+func ±±= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+	if let l = lhs.stringValue, r = rhs.stringValue {
+		if let re = NSRegularExpression(pattern: r, options: NSRegularExpressionOptions.allZeros, error: nil) {
+			let range = NSMakeRange(0, count(l))
+			let match = re.rangeOfFirstMatchInString(l, options: NSMatchingOptions.allZeros, range: range).location != NSNotFound
+			return QBEValue.BoolValue(match)
+		}
 	}
 	return QBEValue.InvalidValue
 }

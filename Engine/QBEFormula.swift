@@ -285,13 +285,15 @@ class QBEFormula: Parser {
 		// Comparisons
 		add_named_rule("containsString", rule: ("~=" ~~ ^"concatenation") => pushContainsString)
 		add_named_rule("containsStringStrict", rule: ("~~=" ~~ ^"concatenation") => pushContainsStringStrict)
+		add_named_rule("matchesRegex", rule: ("±=" ~~ ^"concatenation") => {self.pushBinary(QBEBinary.MatchesRegex)})
+		add_named_rule("matchesRegexStrict", rule: ("±±=" ~~ ^"concatenation") => {self.pushBinary(QBEBinary.MatchesRegexStrict)})
 		add_named_rule("greater", rule: (">" ~~ ^"concatenation") => pushGreater)
 		add_named_rule("greaterEqual", rule: (">=" ~~ ^"concatenation") => pushGreaterEqual)
 		add_named_rule("lesser", rule: ("<" ~~ ^"concatenation") => pushLesser)
 		add_named_rule("lesserEqual", rule: ("<=" ~~ ^"concatenation") => pushLesserEqual)
 		add_named_rule("equal", rule: ("=" ~~ ^"concatenation") => pushEqual)
 		add_named_rule("notEqual", rule: ("<>" ~~ ^"concatenation") => pushNotEqual)
-		add_named_rule("logic", rule: ^"concatenation" ~~ (^"greater" | ^"greaterEqual" | ^"lesser" | ^"lesserEqual" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict")*)
+		add_named_rule("logic", rule: ^"concatenation" ~~ (^"greater" | ^"greaterEqual" | ^"lesser" | ^"lesserEqual" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict" | ^"matchesRegex" | ^"matchesRegexStrict" )*)
 		let formula = matchWhitespace ~ "=" ~~ (^"logic")*!*
 		start_rule = formula
 	}
