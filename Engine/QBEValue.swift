@@ -23,6 +23,22 @@ internal extension String {
 		
 		return histogram
 	}
+	
+	func replace(pattern: String, withTemplate replacement: String, caseSensitive: Bool = true) -> String? {
+		if let re = NSRegularExpression(pattern: pattern, options: (caseSensitive ? NSRegularExpressionOptions.allZeros: NSRegularExpressionOptions.CaseInsensitive), error: nil) {
+			let range = NSMakeRange(0, count(self))
+			return re.stringByReplacingMatchesInString(self, options: NSMatchingOptions.allZeros, range: range, withTemplate: replacement)
+		}
+		return nil
+	}
+	
+	func matches(pattern: String, caseSensitive: Bool = true) -> Bool? {
+		if let re = NSRegularExpression(pattern: pattern, options: (caseSensitive ? NSRegularExpressionOptions.allZeros : NSRegularExpressionOptions.CaseInsensitive), error: nil) {
+			let range = NSMakeRange(0, count(self))
+			return re.rangeOfFirstMatchInString(self, options: NSMatchingOptions.allZeros, range: range).location != NSNotFound
+		}
+		return nil
+	}
 }
 
 internal extension ArraySlice {
@@ -584,11 +600,11 @@ infix operator ~~= {
 }
 
 infix operator ±= {
-associativity left precedence 120
+	associativity left precedence 120
 }
 
 infix operator ±±= {
-associativity left precedence 120
+	associativity left precedence 120
 }
 
 func ~~= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
@@ -599,23 +615,15 @@ func ~~= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 }
 
 func ±= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	if let l = lhs.stringValue, r = rhs.stringValue {
-		if let re = NSRegularExpression(pattern: r, options: NSRegularExpressionOptions.CaseInsensitive, error: nil) {
-			let range = NSMakeRange(0, count(l))
-			let match = re.rangeOfFirstMatchInString(l, options: NSMatchingOptions.allZeros, range: range).location != NSNotFound
-			return QBEValue.BoolValue(match)
-		}
+	if let l = lhs.stringValue, r = rhs.stringValue, matches = l.matches(r, caseSensitive: false) {
+		return QBEValue.BoolValue(matches)
 	}
 	return QBEValue.InvalidValue
 }
 
 func ±±= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	if let l = lhs.stringValue, r = rhs.stringValue {
-		if let re = NSRegularExpression(pattern: r, options: NSRegularExpressionOptions.allZeros, error: nil) {
-			let range = NSMakeRange(0, count(l))
-			let match = re.rangeOfFirstMatchInString(l, options: NSMatchingOptions.allZeros, range: range).location != NSNotFound
-			return QBEValue.BoolValue(match)
-		}
+	if let l = lhs.stringValue, r = rhs.stringValue, matches = l.matches(r, caseSensitive: true) {
+		return QBEValue.BoolValue(matches)
 	}
 	return QBEValue.InvalidValue
 }

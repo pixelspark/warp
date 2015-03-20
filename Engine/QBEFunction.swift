@@ -83,6 +83,7 @@ enum QBEFunction: String {
 	case Choose = "choose"
 	case RandomBetween = "randomBetween"
 	case Random = "random"
+	case RegexSubstitute = "regexSubstitute"
 	
 	func explain(locale: QBELocale) -> String {
 		switch self {
@@ -131,6 +132,7 @@ enum QBEFunction: String {
 			case .Choose: return NSLocalizedString("choose", comment: "")
 			case .RandomBetween: return NSLocalizedString("random number between", comment: "")
 			case .Random: return NSLocalizedString("random number between 0 and 1", comment: "")
+			case .RegexSubstitute: return NSLocalizedString("replace using pattern", comment: "")
 		}
 	}
 	
@@ -196,6 +198,7 @@ enum QBEFunction: String {
 		case .Choose: return QBEArity.Any
 		case .RandomBetween: return QBEArity.Fixed(2)
 		case .Random: return QBEArity.Fixed(0)
+		case .RegexSubstitute: return QBEArity.Fixed(3)
 		}
 	} }
 	
@@ -544,13 +547,23 @@ enum QBEFunction: String {
 			
 		case .Random:
 			return QBEValue(Double.random())
+			
+		case .RegexSubstitute:
+			// Note: by default, this is case-sensitive (like .Substitute)
+			if	let source = arguments[0].stringValue,
+				let pattern = arguments[1].stringValue,
+				let replacement = arguments[2].stringValue,
+				let result = source.replace(pattern, withTemplate: replacement, caseSensitive: true) {
+					return QBEValue.StringValue(result)
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
-		Exp, Log, Ln, Round, Choose, Random, RandomBetween
+		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute
 	]
 }
 
