@@ -249,10 +249,17 @@ class QBEFormula: Parser {
 	}
 	
 	override func rules() {
+		/* We need to sort the function names by length (longest first) to make sure the right one gets matched. If the 
+		shorter functions come first, they match with the formula before we get a chance to see whether the longer one 
+		would also match  (parser is dumb) */
 		var functionRules: [ParserRule] = []
-		QBEFunction.allFunctions.each({(function) in
-			if let name = self.locale.nameForFunction(function) {
-				functionRules.append(matchLiteralInsensitive(name))
+		let functionNames = QBEFunction.allFunctions
+			.map({return self.locale.nameForFunction($0) ?? ""})
+			.sorted({(a,b) in return count(a) > count(b)})
+		
+		functionNames.each({(functionName) in
+			if !functionName.isEmpty {
+				functionRules.append(matchLiteralInsensitive(functionName))
 			}
 		})
 		
