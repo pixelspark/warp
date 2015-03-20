@@ -16,6 +16,8 @@
 		651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 651988E51A0F9C30003463AA /* CHCSVParser.m */; };
 		652BEBDF1A063029002E45C7 /* QBEDataViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652BEBDD1A063029002E45C7 /* QBEDataViewController.swift */; };
 		652BEC411A063F96002E45C7 /* QBEWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652BEC401A063F96002E45C7 /* QBEWindowController.swift */; };
+		6531FBD81ABB74EF00EBCF41 /* Warp@1024.png in Resources */ = {isa = PBXBuildFile; fileRef = 6531FBD71ABB74EF00EBCF41 /* Warp@1024.png */; };
+		6531FBD91ABB74EF00EBCF41 /* Warp@1024.png in Resources */ = {isa = PBXBuildFile; fileRef = 6531FBD71ABB74EF00EBCF41 /* Warp@1024.png */; };
 		653414F01A5DD0A500DDD472 /* QBEFormula.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653414EF1A5DD0A500DDD472 /* QBEFormula.swift */; };
 		653414F11A5DD0A500DDD472 /* QBEFormula.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653414EF1A5DD0A500DDD472 /* QBEFormula.swift */; };
 		653E89631A6F9D1C00E9A6F4 /* QBEStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653E89621A6F9D1C00E9A6F4 /* QBEStream.swift */; };
@@ -338,6 +340,7 @@
 		6528728B1A5D16C200C155FA /* SwiftParser.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftParser.xcodeproj; path = "Libraries/swift-parser-generator/SwiftParser.xcodeproj"; sourceTree = "<group>"; };
 		652BEBDD1A063029002E45C7 /* QBEDataViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDataViewController.swift; sourceTree = "<group>"; };
 		652BEC401A063F96002E45C7 /* QBEWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEWindowController.swift; sourceTree = "<group>"; };
+		6531FBD71ABB74EF00EBCF41 /* Warp@1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Warp@1024.png"; path = "QBE/Images.xcassets/AppIcon.appiconset/Warp@1024.png"; sourceTree = "<group>"; };
 		653414EF1A5DD0A500DDD472 /* QBEFormula.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEFormula.swift; path = Engine/QBEFormula.swift; sourceTree = SOURCE_ROOT; };
 		653E89621A6F9D1C00E9A6F4 /* QBEStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEStream.swift; path = Engine/QBEStream.swift; sourceTree = SOURCE_ROOT; };
 		654296D81AB83123000472E6 /* config-win.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "config-win.h"; sourceTree = "<group>"; };
@@ -666,6 +669,7 @@
 		65E3C2AB1A05222F007BB3C8 = {
 			isa = PBXGroup;
 			children = (
+				6531FBD71ABB74EF00EBCF41 /* Warp@1024.png */,
 				651988E71A0F9C39003463AA /* Libraries */,
 				65E3C2D61A052252007BB3C8 /* Core */,
 				65D6F9DD1A59B700006B6995 /* Steps */,
@@ -952,6 +956,7 @@
 				65FCB8DF1AB5A5420002C119 /* QBESortStepView.xib in Resources */,
 				654EBAA61AA7A2AE00DDBBCA /* Localizable.strings in Resources */,
 				654EBAA71AA7A2AE00DDBBCA /* QBECalculateStepView.xib in Resources */,
+				6531FBD91ABB74EF00EBCF41 /* Warp@1024.png in Resources */,
 				654EBAA81AA7A2AE00DDBBCA /* QBERandomStepView.xib in Resources */,
 				654EBAC21AA8B73C00DDBBCA /* Warp.entitlements in Resources */,
 				654EBAA91AA7A2AE00DDBBCA /* Images.xcassets in Resources */,
@@ -977,6 +982,7 @@
 				65FCB8DE1AB5A5420002C119 /* QBESortStepView.xib in Resources */,
 				6593B7341AA37AE200BE9726 /* Localizable.strings in Resources */,
 				65F4E2671A683B3600BB57B8 /* QBECalculateStepView.xib in Resources */,
+				6531FBD81ABB74EF00EBCF41 /* Warp@1024.png in Resources */,
 				65DBA5651A798F35004CDF36 /* QBERandomStepView.xib in Resources */,
 				654EBAC31AA8B73D00DDBBCA /* Warp.entitlements in Resources */,
 				65E3C2F71A062E5E007BB3C8 /* Images.xcassets in Resources */,
