@@ -14,6 +14,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	var locale: QBELocale!
 	private var textCell: MBTableGridCell!
 	private var numberCell: MBTableGridCell!
+	private let DefaultColumnWidth = 100.0
 	
 	var calculating: Bool = false { didSet {
 		update()
@@ -145,7 +146,11 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		if let r = raster {
 			if Int(columnIndex) < r.columnNames.count {
 				let cn = r.columnNames[Int(columnIndex)]
-				QBESettings.sharedInstance.setDefaultWidth(Double(width), forColumn: cn)
+				let previousWidth = QBESettings.sharedInstance.defaultWidthForColumn(cn)
+				
+				if width != Float(self.DefaultColumnWidth) || (previousWidth != nil && previousWidth! > 0) {
+					QBESettings.sharedInstance.setDefaultWidth(Double(width), forColumn: cn)
+				}
 			}
 		}
 	}
@@ -183,7 +188,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 						tv.resizeColumnWithIndex(UInt(i), width: Float(w))
 					}
 					else {
-						tv.resizeColumnWithIndex(UInt(i), width: 100.0)
+						tv.resizeColumnWithIndex(UInt(i), width: Float(self.DefaultColumnWidth))
 					}
 				}
 			}

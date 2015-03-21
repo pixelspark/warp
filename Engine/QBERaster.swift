@@ -240,16 +240,20 @@ class QBERasterData: NSObject, QBEData {
 		})
 	}
 	
-	internal func apply(filter: QBEFilter) -> QBEData {
+	internal func apply(_ description: String? = nil, filter: QBEFilter) -> QBEData {
 		let newFuture = {(job: QBEJob?, cb: QBEFuture<QBERaster>.Callback) -> () in
-			let transformer = {cb(filter($0))}
+			let transformer = { (r: QBERaster) in
+				QBETime(description ?? "raster apply", r.rowCount, "rows", job) {
+					cb(filter(r))
+				}
+			}
 			self.future(job, {transformer($0)})
 		}
 		return QBERasterData(future: newFuture)
 	}
 	
 	func transpose() -> QBEData {
-		return apply {(r: QBERaster) -> QBERaster in
+		return apply("transpose") {(r: QBERaster) -> QBERaster in
 			// Find new column names (first column stays in place)
 			if r.columnNames.count > 0 {
 				var columns: [QBEColumn] = [r.columnNames[0]]
@@ -278,7 +282,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		return apply {(r: QBERaster) -> QBERaster in
+		return apply("selectColumns") {(r: QBERaster) -> QBERaster in
 			var indexesToKeep: [Int] = []
 			var namesToKeep: [QBEColumn] = []
 			
@@ -323,7 +327,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func limit(numberOfRows: Int) -> QBEData {
-		return apply {(r: QBERaster) -> QBERaster in
+		return apply("limit") {(r: QBERaster) -> QBERaster in
 			var newData: [[QBEValue]] = []
 			
 			let resultingNumberOfRows = min(numberOfRows, r.rowCount)
@@ -336,7 +340,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func sort(by orders: [QBEOrder]) -> QBEData {
-		return apply({(r: QBERaster) -> QBERaster in
+		return apply("sort") {(r: QBERaster) -> QBERaster in
 			let columns = r.columnNames
 			
 			let newData = r.raster.sorted({ (a, b) -> Bool in
@@ -376,7 +380,7 @@ class QBERasterData: NSObject, QBEData {
 			})
 			
 			return QBERaster(data: newData, columnNames: columns, readOnly: true)
-		})
+		}
 	}
 
 	func offset(numberOfRows: Int) -> QBEData {

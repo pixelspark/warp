@@ -90,8 +90,9 @@ class QBEJob {
 		}
 	
 		let tcs = timeComponents
+		let addr = unsafeAddressOf(self).debugDescription
 		QBEAsyncMain {
-			println("Job done: \(tcs)")
+			println("Job: \(addr) \(tcs)")
 		}
 	}
 	#endif
