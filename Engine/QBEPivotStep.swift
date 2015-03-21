@@ -45,6 +45,22 @@ class QBEPivotStep: QBEStep {
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
+		if !short && aggregates.count == 1 {
+			let aggregation = aggregates[0]
+			if rows.count != 1 || columns.count != 0 {
+				return String(format: NSLocalizedString("Pivot: %@ of %@", comment: "Pivot with 1 aggregate"),
+					aggregation.reduce.explain(locale),
+					aggregation.map.explain(locale))
+			}
+			else {
+				let row = rows[0]
+				return String(format: NSLocalizedString("Pivot: %@ of %@ grouped by %@", comment: "Pivot with 1 aggregate"),
+					aggregation.reduce.explain(locale),
+					aggregation.map.explain(locale),
+					row.name)
+			}
+		}
+		
 		return NSLocalizedString("Pivot data", comment: "")
 	}
 	
@@ -64,5 +80,36 @@ class QBEPivotStep: QBEStep {
 			let pivotedData = resultData.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumnName}))
 			callback(pivotedData)
 		}
+	}
+	
+	class func suggest(aggregateRows: NSIndexSet, columns aggregateColumns: Set<QBEColumn>, inRaster raster: QBERaster, fromStep: QBEStep?) -> [QBEStep] {
+		if aggregateColumns.count == 0 {
+			return []
+		}
+		
+		// Check to see if the selected rows have similar values for other than the relevant columns
+		let groupColumnCandidates = Set<QBEColumn>(raster.columnNames).subtract(aggregateColumns)
+		let sameValues = aggregateRows.count > 1 ? raster.commonalitiesOf(aggregateRows, inColumns: groupColumnCandidates) : [:]
+		
+		// What are our aggregate functions? Select the most likely ones (user can always change)
+		let aggregateFunctions = [QBEFunction.Sum, QBEFunction.Count, QBEFunction.Average]
+		
+		// Generate a suggestion for each type of aggregation we have
+		var suggestions: [QBEStep] = []
+		for fun in aggregateFunctions {
+			let step = QBEPivotStep(previous: fromStep)
+			
+			for column in aggregateColumns {
+				step.aggregates.append(QBEAggregation(map: QBESiblingExpression(columnName: column), reduce: fun, targetColumnName: column))
+			}
+			
+			for (sameColumn, sameValue) in sameValues {
+				step.rows.append(sameColumn)
+			}
+			
+			suggestions.append(step)
+		}
+		
+		return suggestions
 	}
 }

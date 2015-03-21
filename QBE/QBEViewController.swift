@@ -515,6 +515,27 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
+	@IBAction func aggregateRowsByCells(sender: NSObject) {
+		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
+			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
+				currentRaster?.get({(raster) in
+					var relevantColumns = Set<QBEColumn>()
+					for columnIndex in 0..<raster.columnCount {
+						if selectedColumns.containsIndex(columnIndex) {
+							relevantColumns.insert(raster.columnNames[columnIndex])
+						}
+					}
+					
+					let suggestions = QBEPivotStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep)
+					
+					QBEAsyncMain {
+						self.suggestSteps(suggestions)
+					}
+				})
+			}
+		}
+	}
+	
 	@IBAction func selectRows(sender: NSObject) {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
@@ -544,6 +565,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action()==Selector("transposeData:") {
 			return currentStep != nil
+		}
+		else if item.action()==Selector("aggregateRowsByCells:") {
+			if let rowsToAggregate = dataViewController?.tableView?.selectedRowIndexes {
+				return rowsToAggregate.count > 0  && currentStep != nil
+			}
+			return false
 		}
 		else if item.action()==Selector("removeRows:") {
 			if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {

@@ -13,6 +13,18 @@ private class QBEMySQLDialect: QBEStandardSQLDialect {
 		return super.unaryToSQL(type, args: args)
 	}
 	
+	private override func aggregationToSQL(aggregation: QBEAggregation) -> String? {
+		// For QBEFunction.Count, we should count numeric values only. In MySQL this can be done using REGEXP
+		if aggregation.reduce == QBEFunction.Count {
+			if let expressionSQL = expressionToSQL(aggregation.map, inputValue: nil) {
+				return "SUM(CASE WHEN \(expressionSQL) REGEXP '^[[:digit:]]+$') THEN 1 ELSE 0 END)"
+			}
+			return nil
+		}
+		
+		return super.aggregationToSQL(aggregation)
+	}
+	
 	private override func forceStringExpression(expression: String) -> String {
 		return "CAST(\(expression) AS BINARY)"
 	}

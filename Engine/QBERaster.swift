@@ -169,6 +169,39 @@ class QBERaster: NSObject, DebugPrintable, NSCoding {
 		
 		return true
 	}
+	
+	/** Finds out whether a set of columns exists for which the indicates rows all have the same value. Returns a 
+	dictionary of the column names in this set, with the values for which the condition holds. **/
+	func commonalitiesOf(rows: NSIndexSet, inColumns columns: Set<QBEColumn>) -> [QBEColumn: QBEValue] {
+		// Check to see if the selected rows have similar values for other than the relevant columns
+		var sameValues = Dictionary<QBEColumn, QBEValue>()
+		var sameColumns = columns
+		
+		for index in 0..<rowCount {
+			if rows.containsIndex(index) {
+				for column in columns {
+					if let ci = indexOfColumnWithName(column) {
+						let value = self[index][ci]
+						if let previous = sameValues[column] {
+							if previous != value {
+								sameColumns.remove(column)
+								sameValues.removeValueForKey(column)
+							}
+						}
+						else {
+							sameValues[column] = value
+						}
+					}
+				}
+				
+				if sameColumns.count == 0 {
+					break
+				}
+			}
+		}
+		
+		return sameValues
+	}
 }
 
 class QBERasterData: NSObject, QBEData {

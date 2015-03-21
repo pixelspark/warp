@@ -660,7 +660,7 @@ CA
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="0Dp-rC-xCW"/>
-                                        <menuItem title="Remove selected row(s)" id="bP3-jR-pV3">
+                                        <menuItem title="Remove row(s)" id="bP3-jR-pV3">
                                             <string key="keyEquivalent" base64-UTF8="YES">
 CA
 </string>
@@ -675,10 +675,16 @@ CA
                                                 <action selector="removeDuplicateRows:" target="Ady-hI-5gd" id="RQx-hH-lkS"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Keep only selected rows" keyEquivalent="s" id="T5M-6C-O6U">
+                                        <menuItem title="Keep only selected rows" keyEquivalent="s" id="zxu-sF-VWl">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
-                                                <action selector="selectRows:" target="Ady-hI-5gd" id="0vo-SF-qGf"/>
+                                                <action selector="selectRows:" target="Ady-hI-5gd" id="Vg2-7t-0sB"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Combine rows by aggregating selected cells" keyEquivalent="a" id="T5M-6C-O6U">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <connections>
+                                                <action selector="aggregateRowsByCells:" target="Ady-hI-5gd" id="Tqr-T9-EHd"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="TKS-Eg-OdV"/>
@@ -1000,6 +1006,7 @@ CA
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="400" id="uiJ-1d-vdA"/>
                                         </constraints>
                                         <connections>
+                                            <outlet property="menu" destination="c1B-ct-Sxw" id="135-Bb-7YY"/>
                                             <segue destination="heg-Gg-TM4" kind="embed" identifier="grid" id="c37-ue-tCc"/>
                                         </connections>
                                     </containerView>
@@ -1103,7 +1110,7 @@ CA
                 </viewController>
                 <customObject id="Izd-TK-t8f" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="vGV-jK-BQ2"/>
-                <menu id="TbW-HU-EDH">
+                <menu id="TbW-HU-EDH" userLabel="Add data menu">
                     <items>
                         <menuItem title="Load data from a file..." keyEquivalent="O" id="oO5-Wj-JT9">
                             <connections>
@@ -1120,41 +1127,7 @@ CA
                                 <action selector="connectMySQLDatabase:" target="Izd-TK-t8f" id="EvE-OD-HgE"/>
                             </connections>
                         </menuItem>
-                        <menuItem isSeparatorItem="YES" id="Rf1-BS-aUM"/>
-                        <menuItem title="Select rows like this" keyEquivalent="s" id="zOH-It-cbM">
-                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                            <connections>
-                                <action selector="selectRows:" target="Izd-TK-t8f" id="BTL-jN-ZHk"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem title="Remove rows like this" id="6yc-4E-Ad5">
-                            <string key="keyEquivalent" base64-UTF8="YES">
-CA
-</string>
-                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                            <connections>
-                                <action selector="removeRows:" target="Izd-TK-t8f" id="Zl1-8n-Aqk"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem title="Remove duplicate rows" keyEquivalent="d" id="WGW-vi-DfZ">
-                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                            <connections>
-                                <action selector="removeDuplicateRows:" target="Izd-TK-t8f" id="HSY-dX-hwi"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem title="Sort rows by selected column(s)" keyEquivalent="l" id="ILY-7M-toS">
-                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                            <connections>
-                                <action selector="sortRows:" target="Izd-TK-t8f" id="Uks-9d-TJ9"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem isSeparatorItem="YES" id="m99-mh-eh9"/>
-                        <menuItem title="Select columns like this..." keyEquivalent="s" id="4wT-WT-bJe" userLabel="Select columns">
-                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
-                            <connections>
-                                <action selector="selectColumns:" target="Izd-TK-t8f" id="afc-rw-TRp"/>
-                            </connections>
-                        </menuItem>
+                        <menuItem isSeparatorItem="YES" id="AQB-kT-WcG"/>
                         <menuItem title="Switch rows/columns" keyEquivalent="t" id="3Yw-cV-pc0">
                             <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
                             <connections>
@@ -1170,6 +1143,43 @@ CA
                         <menuItem title="Flatten data..." keyEquivalent="D" id="JN0-7D-bJs">
                             <connections>
                                 <action selector="flatten:" target="Izd-TK-t8f" id="hXx-6Y-fqn"/>
+                            </connections>
+                        </menuItem>
+                    </items>
+                </menu>
+                <menu id="c1B-ct-Sxw" userLabel="Data context menu">
+                    <items>
+                        <menuItem title="Select rows like this" keyEquivalent="s" id="hIF-La-Kkp">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="selectRows:" target="Izd-TK-t8f" id="Ilc-Nw-fUH"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Remove rows like this" id="8qQ-5u-hWW">
+                            <string key="keyEquivalent" base64-UTF8="YES">
+CA
+</string>
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="removeRows:" target="Izd-TK-t8f" id="Sun-xv-Nk5"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Select these column(s)" keyEquivalent="s" id="kMm-xA-kB4">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
+                            <connections>
+                                <action selector="selectColumns:" target="Izd-TK-t8f" id="2l5-zX-B2D"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Sort rows by these column(s)" keyEquivalent="l" id="g0t-86-Lvi">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="sortRows:" target="Izd-TK-t8f" id="Frv-CF-g0b"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Combine these cells by aggregating" keyEquivalent="a" id="aGP-PL-8zZ">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="aggregateRowsByCells:" target="Izd-TK-t8f" id="HyP-hi-0bn"/>
                             </connections>
                         </menuItem>
                     </items>

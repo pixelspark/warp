@@ -296,7 +296,10 @@
 "ShO-0r-bmP.title" = "Verwijder geselecteerde kolommen";
 
 /* Class = "NSMenuItem"; title = "Keep only selected rows"; ObjectID = "T5M-6C-O6U"; */
-"T5M-6C-O6U.title" = "Behoud alleen geselecteerde rijen";
+"T5M-6C-O6U.title" = "Combineer rijen door geselecteerde cellen te aggregeren";
+"aGP-PL-8zZ.title" = "Combineer deze cellen door te aggregeren";
+
+"zxu-sF-VWl.title" = "Behoud alleen geselecteerde rijen";
 
 /* Class = "NSMenu"; title = "Window"; ObjectID = "Td7-aD-5lo"; */
 "Td7-aD-5lo.title" = "Venster";
@@ -590,3 +593,8 @@
 "ILY-7M-toS.title" = "Sorteer rijen op de geselecteerde kolom(men)";
 "Yk7-iC-znO.title" = "Sorteer rijen andersom op de geselecteerde kolom(men)";
 "l6x-MG-F5q.title" = "Laad data uit MySQL...";
+
+"hIF-La-Kkp.title" = "Selecteer rijen zoals deze";
+"8qQ-5u-hWW.title" = "Verwijder rijen zoals deze";
+"kMm-xA-kB4.title" = "Selecteer alleen deze kolommen";
+"g0t-86-Lvi.title" = "Sorteer hierop";

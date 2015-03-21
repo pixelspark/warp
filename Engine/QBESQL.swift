@@ -158,10 +158,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 		if let expressionSQL = expressionToSQL(aggregation.map, inputValue: nil) {
 			switch aggregation.reduce {
 				case .Average: return "AVG(\(expressionSQL))"
-				case .CountAll: return "COUNT(\(expressionSQL))"
-				
-				// FIXME: TYPEOF and its return values will be different for other RDBMSes
-				case .Count: return "SUM(CASE WHEN TYPEOF(\(expressionSQL)) IN('integer', 'real')) THEN 1 ELSE 0 END)"
+				case .CountAll: return "COUNT(*)"
 				case .Sum: return "SUM(\(expressionSQL))"
 				case .Min: return "MIN(\(expressionSQL))"
 				case .Max: return "MAX(\(expressionSQL))"

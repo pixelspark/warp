@@ -262,6 +262,18 @@ internal class QBESQLiteDialect: QBEStandardSQLDialect {
 				return super.binaryToSQL(type, first: first, second: second)
 		}
 	}
+	
+	override func aggregationToSQL(aggregation: QBEAggregation) -> String? {
+		// QBEFunction.Count only counts numeric values
+		if aggregation.reduce == QBEFunction.Count {
+			if let expressionSQL = self.expressionToSQL(aggregation.map) {
+				return "SUM(CASE WHEN TYPEOF(\(expressionSQL)) IN('integer', 'real')) THEN 1 ELSE 0 END)"
+			}
+			return nil
+		}
+		
+		return super.aggregationToSQL(aggregation)
+	}
 }
 
 class QBESQLiteData: QBESQLData {
