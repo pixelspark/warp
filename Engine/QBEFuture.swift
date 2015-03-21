@@ -88,7 +88,11 @@ class QBEJob {
 		else {
 			timeComponents[component] = time
 		}
-		println("Job \(unsafeAddressOf(self)): \(timeComponents)")
+	
+		let tcs = timeComponents
+		QBEAsyncMain {
+			println("Job done: \(tcs)")
+		}
 	}
 	#endif
 }
