@@ -13,7 +13,7 @@
 				<string>qbe</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string></string>
+			<string>QBEDocument</string>
 			<key>CFBundleTypeName</key>
 			<string>QBEDocumentType</string>
 			<key>CFBundleTypeOSTypes</key>
