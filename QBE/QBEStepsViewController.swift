@@ -123,7 +123,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	
 	private var ignoreSelection = false
 	
-	var steps: [QBEStep]? { didSet {
+	dynamic var steps: [QBEStep]? { didSet {
 		ignoreSelection = true
 		update()
 		ignoreSelection = false
@@ -148,10 +148,6 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	private func update() {
 		QBEAsyncMain {
 			if let cv = self.collectionView {
-				if cv.itemPrototype != nil {
-					cv.content = self.steps ?? []
-				}
-				
 				// Update current selection
 				var indexSet = NSMutableIndexSet()
 				
@@ -194,7 +190,8 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	
 	override func viewWillAppear() {
 		collectionView?.itemPrototype = QBEStepsItem(nibName: "QBEStepsItem", bundle: nil)
-		collectionView?.content = steps
+		//collectionView?.content = steps
+		collectionView?.bind(NSContentBinding, toObject: self, withKeyPath: "steps", options: nil)
 		collectionView.addObserver(self, forKeyPath: "selectionIndexes", options: NSKeyValueObservingOptions.New, context: nil)
 		update()
 	}
