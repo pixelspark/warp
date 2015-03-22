@@ -310,10 +310,10 @@ class QBEMySQLData: QBESQLData {
 		self.init(db: db, table: tableName, columns: result?.columnNames ?? [], locale: locale)
 	}
 	
-	private init(db: QBEMySQLConnection, sql: String, columns: [QBEColumn], locale: QBELocale?) {
+	private init(db: QBEMySQLConnection, fragment: QBESQLFragment, columns: [QBEColumn], locale: QBELocale?) {
 		self.db = db
 		self.locale = locale
-		super.init(sql: sql, dialect: db.dialect, columns: columns)
+		super.init(fragment: fragment, columns: columns)
 	}
 	
 	private init(db: QBEMySQLConnection, table: String, columns: [QBEColumn], locale: QBELocale?) {
@@ -322,12 +322,12 @@ class QBEMySQLData: QBESQLData {
 		super.init(table: table, dialect: db.dialect, columns: columns)
 	}
 	
-	override func apply(sql: String, resultingColumns: [QBEColumn]) -> QBEData {
-		return QBEMySQLData(db: self.db, sql: sql, columns: resultingColumns, locale: locale)
+	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
+		return QBEMySQLData(db: self.db, fragment: fragment, columns: resultingColumns, locale: locale)
 	}
 	
 	override func stream() -> QBEStream {
-		if let result = self.db.query(self.sqlForQuery) {
+		if let result = self.db.query(self.sql.sqlSelect(nil).sql) {
 			return QBESequenceStream(SequenceOf<QBERow>(result), columnNames: result.columnNames)
 		}
 		return QBEEmptyStream()

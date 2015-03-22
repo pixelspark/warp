@@ -245,7 +245,7 @@ private class QBEPrestoData: QBESQLData {
 		
 		if let result = db.query(sql) {
 			result.columnNames({ (columns) -> () in
-				callback(QBEPrestoData(db: db, sql: sql, columns: columns))
+				callback(QBEPrestoData(db: db, fragment: QBESQLFragment(table: tableName, dialect: db.dialect), columns: columns))
 			})
 		}
 		else {
@@ -253,17 +253,17 @@ private class QBEPrestoData: QBESQLData {
 		}
 	}
 	
-	init(db: QBEPrestoDatabase, sql: String, columns: [QBEColumn]) {
+	init(db: QBEPrestoDatabase, fragment: QBESQLFragment, columns: [QBEColumn]) {
 		self.db = db
-		super.init(sql: sql, dialect: db.dialect, columns: columns)
+		super.init(fragment: fragment, columns: columns)
 	}
 	
-	override func apply(sql: String, resultingColumns: [QBEColumn]) -> QBEData {
-		return QBEPrestoData(db: self.db, sql: sql, columns: resultingColumns)
+	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
+		return QBEPrestoData(db: self.db, fragment: fragment, columns: resultingColumns)
 	}
 	
 	override func stream() -> QBEStream {
-		return db.query(self.sql) ?? QBEEmptyStream()
+		return db.query(self.sql.sqlSelect(nil).sql) ?? QBEEmptyStream()
 	}
 }
 

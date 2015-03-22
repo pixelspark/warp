@@ -284,21 +284,21 @@ class QBESQLiteData: QBESQLData {
 		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName))"
 		let result = db.query(query)
 		
-		self.init(db: db, sql: query, columns: result?.columnNames ?? [], locale: locale)
+		self.init(db: db, fragment: QBESQLFragment(table: tableName, dialect: db.dialect), columns: result?.columnNames ?? [], locale: locale)
 	}
 	
-	private init(db: QBESQLiteDatabase, sql: String, columns: [QBEColumn], locale: QBELocale?) {
+	private init(db: QBESQLiteDatabase, fragment: QBESQLFragment, columns: [QBEColumn], locale: QBELocale?) {
 		self.db = db
 		self.locale = locale
-		super.init(sql: sql, dialect: db.dialect, columns: columns)
+		super.init(fragment: fragment, columns: columns)
 	}
 	
-	override func apply(sql: String, resultingColumns: [QBEColumn]) -> QBEData {
-		return QBESQLiteData(db: self.db, sql: sql, columns: resultingColumns, locale: locale)
+	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
+		return QBESQLiteData(db: self.db, fragment: fragment, columns: resultingColumns, locale: locale)
 	}
 	
 	override func stream() -> QBEStream {
-		if let result = self.db.query(self.sql) {
+		if let result = self.db.query(self.sql.sqlSelect(nil).sql) {
 			return QBESequenceStream(SequenceOf<QBERow>(result.sequence(locale)), columnNames: result.columnNames)
 		}
 		return QBEEmptyStream()
@@ -376,8 +376,7 @@ class QBESQLiteCachedData: QBEProxyData {
 			println("Done caching, swapping out")
 			self.database.query("END TRANSACTION")?.run()
 			self.data.columnNames({ (columns) -> () in
-				let sql = "SELECT * FROM \(self.database.dialect.tableIdentifier(self.tableName))"
-				self.data = QBESQLiteData(db: self.database, sql: sql, columns: columns, locale: self.locale)
+				self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: columns, locale: self.locale)
 				self.isCached = true
 			})
 		}

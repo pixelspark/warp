@@ -321,37 +321,175 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	}
 }
 
+/** Logical fragments in an SQL statement, in order of logical execution. **/
+internal enum QBESQLFragmentType {
+	case From
+	case Where
+	case Group
+	case Having
+	case Order
+	case Limit
+	case Select
+	
+	var precedingType: QBESQLFragmentType? {
+		switch self {
+		case .From: return nil
+		case .Where: return .From
+		case .Group: return .Where
+		case .Having: return .Group
+		case .Order: return .Having
+		case .Limit: return .Order
+		case .Select: return .Limit
+		}
+	}
+}
+
+/** QBESQLFragment is used to generate SQL queries in an efficient manner, by taking the logical execution order of an SQL
+statement into account. Fragments can be added to an existing fragment by calling one of the sql* functions. If the 
+fragment logically followed the existing one (e.g. a LIMIT after a WHERE), it will be added to the fragment. If however
+the added fragment does *not* logically follow the existing fragment (e.g. a WHERE after a LIMIT), the existing fragment
+is made to be a subquery of a new query in which the added fragment is put. 
+
+Why go through all this trouble? Some RDBMS'es execute subqueries naively, leading to very large temporary tables. By 
+combining as much limiting factors in a subquery as possible, the size of intermediate results can be decreased, resulting
+in higher performance. Another issue is that indexes can often not be used to accelerate lookups on derived tables. By
+combining operations in a single query, they stay 'closer' to the original table, and the chance we can use an available
+index is higher.
+
+Note that QBESQLFragment is not concerned with filling in the actual fragments - that is the job of QBESQLData. **/
+internal class QBESQLFragment {
+	let type: QBESQLFragmentType
+	let sql: String
+	let dialect: QBESQLDialect
+	let alias: String
+	
+	init(type: QBESQLFragmentType, sql: String, dialect: QBESQLDialect, alias: String) {
+		self.type = type
+		self.sql = sql
+		self.dialect = dialect
+		self.alias = alias
+	}
+	
+	convenience init(table: String, dialect: QBESQLDialect) {
+		self.init(type: .From, sql: "FROM \(dialect.tableIdentifier(table))", dialect: dialect, alias: table)
+	}
+	
+	convenience init(query: String, dialect: QBESQLDialect) {
+		let alias = "T\(abs(query.hash))"
+		
+		// TODO: can use WITH..AS syntax here for DBMS'es that work better with that
+		self.init(type: .From, sql: "FROM (\(query)) AS \(dialect.tableIdentifier(alias))", dialect: dialect, alias: alias)
+	}
+	
+	// State transitions
+	func sqlWhere(part: String?) -> QBESQLFragment {
+		return advance(QBESQLFragmentType.Where, part: part)
+	}
+	
+	func sqlGroup(part: String?) -> QBESQLFragment {
+		return advance(QBESQLFragmentType.Group, part: part)
+	}
+	
+	func sqlHaving(part: String?) -> QBESQLFragment {
+		return advance(QBESQLFragmentType.Having, part: part)
+	}
+	
+	func sqlOrder(part: String?) -> QBESQLFragment {
+		return advance(QBESQLFragmentType.Order, part: part)
+	}
+	
+	func sqlLimit(part: String?) -> QBESQLFragment {
+		return advance(QBESQLFragmentType.Limit, part: part)
+	}
+	
+	func sqlSelect(part: String?) -> QBESQLFragment {
+		return advance(QBESQLFragmentType.Select, part: part)
+	}
+	
+	private func advance(toType: QBESQLFragmentType, part: String?) -> QBESQLFragment {
+		// From which state can one go to the to-state?
+		let precedingType = toType.precedingType
+		let source: QBESQLFragment
+		
+		if self.type == toType && part == nil {
+			// We are in the right place
+			return self
+		}
+		
+		if self.type == precedingType {
+			// We are in the right state :-)
+			source = self
+		}
+		else if precedingType == nil {
+			// We are at the beginning, need to subquery
+			source = QBESQLFragment(query: self.sqlSelect(nil).sql, dialect: dialect)
+		}
+		else {
+			// We need to skip some states to get in the right one
+			source = advance(precedingType!, part: nil)
+		}
+		
+		let fullPart: String
+		if let p = part {
+			switch toType {
+				case .Group:
+					fullPart = "\(source.sql) GROUP BY \(p)"
+				
+				case .Where:
+					fullPart = "\(source.sql) WHERE \(p)"
+				
+				case .Having:
+					fullPart = "\(source.sql) HAVING \(p)"
+				
+				case .Order:
+					fullPart = "\(source.sql) ORDER BY \(p)"
+				
+				case .Limit:
+					fullPart = "\(source.sql) LIMIT \(p)"
+				
+				case .Select:
+					fullPart = "SELECT \(p) \(source.sql)"
+				
+				case .From:
+					fatalError("Cannot advance to FROM with a part")
+			}
+		}
+		else {
+			switch toType {
+				case .Select:
+					fullPart = "SELECT * \(source.sql)"
+				
+				default:
+					fullPart = source.sql
+			}
+		}
+		
+		return QBESQLFragment(type: toType, sql: fullPart, dialect: source.dialect, alias: source.alias)
+	}
+}
+
 /** QBESQLData implements a general SQL-based data source. It maintains a single SQL statement that (when executed) 
 should return the data represented by this data set. This class needs to be subclassed to be able to actually fetch the
 data (a subclass implements the raster function to return the fetched data, preferably the stream function to return a
 stream of results, and the apply function, to make sure any operations on the data set return a data set of the same
 subclassed type). See QBESQLite for an implementation example. **/
 class QBESQLData: NSObject, QBEData {
-    internal let sql: String
-	internal let tableNameOnly: Bool
-	let dialect: QBESQLDialect
+    internal let sql: QBESQLFragment
 	var columns: [QBEColumn]
-    
+	
+	internal init(fragment: QBESQLFragment, columns: [QBEColumn]) {
+		self.columns = columns
+		self.sql = fragment
+	}
+	
 	internal init(sql: String, dialect: QBESQLDialect, columns: [QBEColumn]) {
-        self.sql = sql
-		self.tableNameOnly = false
-		self.dialect = dialect
+		self.sql = QBESQLFragment(query: sql, dialect: dialect)
 		self.columns = columns
     }
 	
 	internal init(table: String, dialect: QBESQLDialect, columns: [QBEColumn]) {
-		self.sql = dialect.tableIdentifier(table)
-		self.tableNameOnly = true
-		self.dialect = dialect
+		self.sql = QBESQLFragment(table: table, dialect: dialect)
 		self.columns = columns
-	}
-	
-	internal var sqlForSubquery: String {
-		return tableNameOnly ? self.sql : "(\(self.sql))"
-	}
-	
-	internal var sqlForQuery: String {
-		return tableNameOnly ? "SELECT * FROM \(self.sql) AS \(tableAlias)" : self.sql
 	}
 	
 	private func fallback() -> QBEData {
@@ -381,10 +519,6 @@ class QBESQLData: NSObject, QBEData {
 		return fallback().flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to)
 	}
 	
-	private var tableAlias: String {
-		return dialect.tableIdentifier("T\(abs(self.sql.hash))")
-	}
-	
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
 		var values: [String] = []
 		var targetFound = false
@@ -393,23 +527,23 @@ class QBESQLData: NSObject, QBEData {
 		for targetColumn in columns {
 			if calculations[targetColumn] != nil {
 				let expression = calculations[targetColumn]!.prepare()
-				if let expressionString = dialect.expressionToSQL(expression, inputValue: dialect.columnIdentifier(targetColumn)) {
-					values.append("\(expressionString) AS \(dialect.columnIdentifier(targetColumn))")
+				if let expressionString = sql.dialect.expressionToSQL(expression, inputValue: sql.dialect.columnIdentifier(targetColumn)) {
+					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn))")
 				}
 				else {
 					return fallback().calculate(calculations)
 				}
 			}
 			else {
-				values.append(dialect.columnIdentifier(targetColumn))
+				values.append(sql.dialect.columnIdentifier(targetColumn))
 			}
 		}
 		
 		// New columns are added at the end
 		for (targetColumn, expression) in calculations {
 			if !columns.contains(targetColumn) {
-				if let expressionString = dialect.expressionToSQL(expression.prepare(), inputValue: dialect.columnIdentifier(targetColumn)) {
-					values.append("\(expressionString) AS \(dialect.columnIdentifier(targetColumn))")
+				if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), inputValue: sql.dialect.columnIdentifier(targetColumn)) {
+					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn))")
 				}
 				else {
 					return fallback().calculate(calculations)
@@ -418,7 +552,7 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		if let valueString = values.implode(", ") {
-			return apply("SELECT \(valueString) FROM \(sqlForSubquery) AS \(tableAlias)", resultingColumns: columns)
+			return apply(sql.sqlSelect(valueString), resultingColumns: columns)
 		}
 		return QBERasterData()
     }
@@ -427,13 +561,13 @@ class QBESQLData: NSObject, QBEData {
 		var error = false
 		
 		let sqlOrders = by.map({(order) -> (String) in
-			if let expression = order.expression, let esql = self.dialect.expressionToSQL(expression, inputValue: nil) {
+			if let expression = order.expression, let esql = self.sql.dialect.expressionToSQL(expression, inputValue: nil) {
 				let castedSQL: String
 				if order.numeric {
-					castedSQL = self.dialect.forceNumericExpression(esql)
+					castedSQL = self.sql.dialect.forceNumericExpression(esql)
 				}
 				else {
-					castedSQL = self.dialect.forceStringExpression(esql)
+					castedSQL = self.sql.dialect.forceStringExpression(esql)
 				}
 				return castedSQL + " " + (order.ascending ? "ASC" : "DESC")
 			}
@@ -450,28 +584,28 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		if let orderClause = sqlOrders.implode(", ") {
-			return apply("SELECT * FROM \(sqlForSubquery) AS \(tableAlias) ORDER BY \(orderClause)", resultingColumns: columns)
+			return apply(sql.sqlOrder(orderClause), resultingColumns: columns)
 		}
 		return self
 	}
 	
 	func distinct() -> QBEData {
-		return apply("SELECT DISTINCT * FROM \(sqlForSubquery) AS \(tableAlias)", resultingColumns: columns)
+		return apply(self.sql.sqlSelect("DISTINCT *"), resultingColumns: columns)
 	}
     
     func limit(numberOfRows: Int) -> QBEData {
-		return apply("SELECT * FROM \(sqlForSubquery) AS \(tableAlias) LIMIT \(numberOfRows)", resultingColumns: columns)
+		return apply(self.sql.sqlLimit("\(numberOfRows)"), resultingColumns: columns)
     }
 	
 	func offset(numberOfRows: Int) -> QBEData {
 		// FIXME: T-SQL uses "SELECT TOP x" syntax
 		// FIXME: the LIMIT -1 is probably only necessary for SQLite
-		return apply("SELECT * FROM \(sqlForSubquery) AS \(tableAlias) LIMIT -1 OFFSET \(numberOfRows)", resultingColumns: columns)
+		return apply(sql.sqlLimit("-1 OFFSET \(numberOfRows)"), resultingColumns: columns)
 	}
 	
 	func filter(condition: QBEExpression) -> QBEData {
-		if let expressionString = dialect.expressionToSQL(condition.prepare(), inputValue: nil) {
-			return apply("SELECT * FROM \(sqlForSubquery) AS \(tableAlias) WHERE \(expressionString)", resultingColumns: columns)
+		if let expressionString = sql.dialect.expressionToSQL(condition.prepare(), inputValue: nil) {
+			return apply(sql.sqlWhere(expressionString), resultingColumns: columns)
 		}
 		else {
 			return fallback().filter(condition)
@@ -479,14 +613,13 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func random(numberOfRows: Int) -> QBEData {
-		let randomFunction = dialect.unaryToSQL(QBEFunction.Random, args: []) ?? "RANDOM()"
-		return apply("SELECT * FROM \(sqlForSubquery) AS \(tableAlias) ORDER BY \(randomFunction) LIMIT \(numberOfRows)", resultingColumns: columns)
+		let randomFunction = sql.dialect.unaryToSQL(QBEFunction.Random, args: []) ?? "RANDOM()"
+		return apply(sql.sqlOrder(randomFunction).sqlLimit("\(numberOfRows)"), resultingColumns: columns)
 	}
 	
 	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
-		if let expressionString = dialect.expressionToSQL(expression.prepare(), inputValue: nil) {
-			let query = "SELECT DISTINCT \(expressionString) AS _value FROM \(sqlForSubquery) AS \(tableAlias)"
-			let data = apply(query, resultingColumns: ["_value"])
+		if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), inputValue: nil) {
+			let data = apply(self.sql.sqlSelect("DISTINCT \(expressionString) AS _value"), resultingColumns: ["_value"])
 			
 			data.raster(nil, callback: { (raster) -> () in
 				let values = Set<QBEValue>(raster.raster.map({$0[0]}))
@@ -499,9 +632,8 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		let colNames = columns.map({self.dialect.columnIdentifier($0)}).implode(", ") ?? ""
-		let sql = "SELECT \(colNames) FROM \(sqlForSubquery) AS \(tableAlias)"
-		return apply(sql, resultingColumns: columns)
+		let colNames = columns.map({self.sql.dialect.columnIdentifier($0)}).implode(", ") ?? ""
+		return apply(self.sql.sqlSelect(colNames), resultingColumns: columns)
 	}
 	
 	func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
@@ -510,8 +642,8 @@ class QBESQLData: NSObject, QBEData {
 		var resultingColumns: [QBEColumn] = []
 		
 		for (column, expression) in groups {
-			if let expressionString = dialect.expressionToSQL(expression.prepare(), inputValue: nil) {
-				select.append("\(expressionString) AS \(dialect.columnIdentifier(column))")
+			if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), inputValue: nil) {
+				select.append("\(expressionString) AS \(sql.dialect.columnIdentifier(column))")
 				groupBy.append("\(expressionString)")
 				resultingColumns.append(column)
 			}
@@ -521,8 +653,8 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		for (column, aggregation) in values {
-			if let aggregationSQL = dialect.aggregationToSQL(aggregation) {
-				select.append("\(aggregationSQL) AS \(dialect.columnIdentifier(column))")
+			if let aggregationSQL = sql.dialect.aggregationToSQL(aggregation) {
+				select.append("\(aggregationSQL) AS \(sql.dialect.columnIdentifier(column))")
 				resultingColumns.append(column)
 			}
 			else {
@@ -533,16 +665,16 @@ class QBESQLData: NSObject, QBEData {
 		
 		let selectString = select.implode(", ") ?? ""
 		if groupBy.count>0, let groupString = groupBy.implode(", ") {
-			return apply("SELECT \(selectString) FROM \(sqlForSubquery) AS \(tableAlias) GROUP BY \(groupString)", resultingColumns: resultingColumns)
+			return apply(sql.sqlGroup(groupString).sqlSelect(selectString), resultingColumns: resultingColumns)
 		}
 		else {
 			// No columns to group by, total aggregates it is
-			return apply("SELECT \(selectString) FROM \(sqlForSubquery) AS \(tableAlias)", resultingColumns: resultingColumns)
+			return apply(sql.sqlSelect(selectString), resultingColumns: resultingColumns)
 		}
 	}
 	
-	func apply(sql: String, resultingColumns: [QBEColumn]) -> QBEData {
-		return QBESQLData(sql: sql, dialect: dialect, columns: columns)
+	func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
+		return QBESQLData(fragment: fragment, columns: columns)
 	}
 	
 	func stream() -> QBEStream {
