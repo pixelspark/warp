@@ -129,6 +129,73 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("x"))==QBEValue(false), "Strict contains string operator should work")
 	}
 	
+	func compareData(a: QBEData, b: QBEData, callback: (Bool) -> ()) {
+		a.raster(nil, callback: { (aRaster) -> () in
+			b.raster(nil, callback: { (bRaster) -> () in
+				let equal = aRaster.compare(bRaster)
+				if !equal {
+					println("A: \(aRaster.debugDescription)")
+					println("B: \(bRaster.debugDescription)")
+				}
+				callback(equal)
+			})
+		})
+	}
+	
+	func testCoalescer() {
+		let raster = QBERaster(data: [
+			[QBEValue.IntValue(1), QBEValue.IntValue(2), QBEValue.IntValue(3)],
+			[QBEValue.IntValue(4), QBEValue.IntValue(5), QBEValue.IntValue(6)],
+			[QBEValue.IntValue(7), QBEValue.IntValue(8), QBEValue.IntValue(9)]
+		], columnNames: [QBEColumn("a"), QBEColumn("b"), QBEColumn("c")], readOnly: true)
+		
+		let inData = QBERasterData(raster: raster)
+		let inOptData = QBECoalescedData(inData)
+		
+		compareData(inData.limit(2).limit(1), b: inOptData.limit(2).limit(1)) { (equal) -> () in
+			XCTAssert(equal, "Coalescer result for limit(2).limit(1) should equal normal result")
+		}
+		
+		compareData(inData.offset(2).offset(1), b: inOptData.offset(2).offset(1)) { (equal) -> () in
+			XCTAssert(equal, "Coalescer result for offset(2).offset(1) should equal normal result")
+		}
+		
+		compareData(inData.offset(3), b: inOptData.offset(2).offset(1)) { (equal) -> () in
+			XCTAssert(equal, "Coalescer result for offset(2).offset(1) should equal offset(3)")
+		}
+		
+		// Verify coalesced sort operations
+		let aSorts = [
+			QBEOrder(expression: QBESiblingExpression(columnName: "a"), ascending: true, numeric: true),
+			QBEOrder(expression: QBESiblingExpression(columnName: "b"), ascending: false, numeric: true)
+		]
+		
+		let bSorts = [
+			QBEOrder(expression: QBESiblingExpression(columnName: "c"), ascending: true, numeric: true)
+		]
+		
+		compareData(inData.sort(aSorts).sort(bSorts), b: inData.sort(bSorts + aSorts)) { (equal) -> () in
+			XCTAssert(equal, "Coalescer result for sort().sort() should equal normal result")
+		}
+		
+		compareData(inData.sort(aSorts).sort(bSorts), b: inOptData.sort(aSorts).sort(bSorts)) { (equal) -> () in
+			XCTAssert(equal, "Coalescer result for sort().sort() should equal normal result")
+		}
+		
+		// Verify coalesced transpose
+		compareData(inData.transpose().transpose(), b: inOptData.transpose().transpose()) { (equal) -> () in
+			XCTAssert(equal, "Coalescer result for transpose().transpose() should equal normal result")
+		}
+		
+		compareData(inData.transpose().transpose().transpose(), b: inOptData.transpose().transpose().transpose()) { (equal) -> () in
+			XCTAssert(equal, "Coalescer result for transpose().transpose().transpose() should equal normal result")
+		}
+		
+		compareData(inData, b: inOptData.transpose().transpose()) { (equal) -> () in
+			XCTAssert(equal, "Coalescer result for transpose().transpose() should equal original result")
+		}
+	}
+	
 	func testInferer() {
 		let locale = QBELocale(language: QBELocale.defaultLanguage)
 		var suggestions: [QBEExpression] = []
@@ -141,7 +208,7 @@ class QBETests: XCTestCase {
 	
 	func testQBEDataImplementations() {
 		var d: [[QBEValue]] = []
-		for i in 0...1000 {
+		for i in 0..<1000 {
 			d.append([QBEValue(i), QBEValue(i+1), QBEValue(i+2)])
 		}
 		
@@ -152,7 +219,7 @@ class QBETests: XCTestCase {
 		}
 		
 		data.offset(5).raster(nil) { (r) -> () in
-			XCTAssert(r.rowCount == 5, "Offset actually works")
+			XCTAssert(r.rowCount == 1000 - 5, "Offset actually works")
 		}
 		
 		data.selectColumns(["THIS_DOESNT_EXIST"]).columnNames { (r) -> () in

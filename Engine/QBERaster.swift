@@ -339,13 +339,13 @@ class QBERasterData: NSObject, QBEData {
 		}
 	}
 	
-	func sort(by orders: [QBEOrder]) -> QBEData {
+	func sort(by: [QBEOrder]) -> QBEData {
 		return apply("sort") {(r: QBERaster) -> QBERaster in
 			let columns = r.columnNames
 			
 			let newData = r.raster.sorted({ (a, b) -> Bool in
 				// Return true if a comes before b
-				for order in orders {
+				for order in by {
 					if let aValue = order.expression?.apply(a, columns: columns, inputValue: nil),
 					   let bValue = order.expression?.apply(b, columns: columns, inputValue: nil) {
 						
@@ -356,20 +356,27 @@ class QBERasterData: NSObject, QBEData {
 							else if !order.ascending && bValue < aValue {
 								return true
 							}
+							if order.ascending && aValue > bValue {
+								return false
+							}
+							else if !order.ascending && bValue > aValue {
+								return false
+							}
 							else {
-								// Ordered same
+								// Ordered same, let next order decide
 							}
 						}
 						else {
 							if let aString = aValue.stringValue, let bString = bValue.stringValue {
-								if order.ascending && aString.compare(bString) == NSComparisonResult.OrderedAscending {
-									return true
+								let res = aString.compare(bString)
+								if res == NSComparisonResult.OrderedAscending {
+									return order.ascending
 								}
-								else if !order.ascending && aString.compare(bString) == NSComparisonResult.OrderedDescending {
-									return true
+								else if res == NSComparisonResult.OrderedDescending {
+									return !order.ascending
 								}
 								else {
-									// Ordered same
+									// Ordered same, let next order decide
 								}
 							}
 						}

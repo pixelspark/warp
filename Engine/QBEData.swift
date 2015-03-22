@@ -155,7 +155,8 @@ protocol QBEData {
 	column headers. **/
 	func limit(numberOfRows: Int) -> QBEData
 	
-	/** Skip the specified number of rows in the data set. The number of rows does not include column headers. **/
+	/** Skip the specified number of rows in the data set. The number of rows does not include column headers. The number
+	 of rows cannot be negative (but can be zero, in which case offset is a no-op).**/
 	func offset(numberOfRows: Int) -> QBEData
 	
 	/** Randomly select the indicated amount of rows from the source data set, using sampling without replacement. If the
@@ -203,8 +204,8 @@ protocol QBEData {
 	
 	/** Sort the dataset in the indicates ways. The sorts are applied in-order, e.g. the dataset is sorted by the first
 	order specified, in case of ties by the second, et cetera. If there are ties and there is no further order to sort by,
-	ordering is unspecified. **/
-	func sort(by order: [QBEOrder]) -> QBEData
+	ordering is unspecified. If no orders are specified, sort is a no-op. **/
+	func sort(by: [QBEOrder]) -> QBEData
 }
 
 /** Utility class that allows for easy swapping of QBEData objects. This can for instance be used to swap-in a cached
@@ -231,5 +232,201 @@ class QBEProxyData: NSObject, QBEData {
 	func columnNames(callback: ([QBEColumn]) -> ()) { return data.columnNames(callback) }
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
 	func offset(numberOfRows: Int) -> QBEData { return data.offset(numberOfRows) }
-	func sort(by orders: [QBEOrder]) -> QBEData { return data.sort(by: orders) }
+	func sort(by: [QBEOrder]) -> QBEData { return data.sort(by) }
+}
+
+/** QBECoalescedData is a class that optimizes data operations by combining (coalescing) them. For instance, the operation
+data.limit(10).limit(5) can be simplified to data.limit(5). QBECoalescedData is a first optimization step that acts purely
+at the highest level of the QBEData interface. Implementation (e.g. QBESQLData) are encouraged to implement further 
+optimizations (e.g. coalescing multiple data operations into a single SQL statement).
+
+Technically, QBECoalescedData represents a QBEData coupled with a data operation that is deferred (e.g.
+QBECoalescedData.Limiting(data, 10) means it should eventually be equivalent to the result of data.limit(10)). Operations
+on QBECoalescedData will either cause the deferred operation to be executed (before the new one is applied) or to combine
+the deferred operation with the newly applied operation.**/
+enum QBECoalescedData: QBEData {
+	case None(QBEData)
+	case Limiting(QBEData, Int)
+	case Offsetting(QBEData, Int)
+	case Transposing(QBEData)
+	case Filtering(QBEData, QBEExpression)
+	case Sorting(QBEData, [QBEOrder])
+	case SelectingColumns(QBEData, [QBEColumn])
+	case Distincting(QBEData)
+	
+	init(_ data: QBEData) {
+		self = QBECoalescedData.None(data)
+	}
+	
+	/** Applies the deferred operation represented by this coalesced data object and returns the result. **/
+	private var data: QBEData { get {
+		switch self {
+			case .Limiting(let data, let numberOfRows):
+				return data.limit(numberOfRows)
+			
+			case .Transposing(let data):
+				return data.transpose()
+			
+			case .Offsetting(let data, let nr):
+				return data.offset(nr)
+			
+			case .Filtering(let data, let filter):
+				return data.filter(filter)
+			
+			case .Sorting(let data, let order):
+				return data.sort(order)
+			
+			case .SelectingColumns(let data, let cols):
+				return data.selectColumns(cols)
+			
+			case .Distincting(let data):
+				return data.distinct()
+			
+			case .None(let data):
+				return data
+		}
+	} }
+	
+	/** data.transpose().transpose() is equivalent to data. **/
+	func transpose() -> QBEData {
+		switch self {
+		case .Transposing(let data):
+			return QBECoalescedData.None(data)
+			
+		default:
+			return QBECoalescedData.Transposing(self.data)
+		}
+	}
+	
+	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
+		/* TODO: calculatings can be combined if the new calculation does not depend on the old one. Also, calculate() 
+		can be combined with selectColumns. */
+		return QBECoalescedData.None(data.calculate(calculations))
+	}
+	
+	/** data.limit(x).limit(y) is equivalent to data.limit(min(x,y)) **/
+	func limit(numberOfRows: Int) -> QBEData {
+		switch self {
+			case .Limiting(let data, let nr):
+				return QBECoalescedData.Limiting(data, min(numberOfRows, nr))
+			
+			default:
+				return QBECoalescedData.Limiting(self.data, numberOfRows)
+		}
+	}
+	
+	func random(numberOfRows: Int) -> QBEData {
+		return QBECoalescedData.None(data.random(numberOfRows))
+	}
+	
+	/** data.distinct().distinct() is equivalent to data.distinct() (after the first distinct(), there are only distinct
+	rows left). **/
+	func distinct() -> QBEData {
+		switch self {
+			case .Distincting(let data):
+				return self
+			
+			default:
+				return QBECoalescedData.Distincting(self.data)
+		}
+	}
+	
+	/** This function relies on the following axioms:
+		- data.filter(a).filter(b) is equivalent to data.filter(QBEFunctionExpression(a,b,QBEFunction.And)) 
+		- data.filter(e) is equivalent to an empty data set if e is a constant expression evaluating to false
+		- data.filter(e) is equivalent to data if e is a constant expression evaluating to true
+	**/
+	func filter(condition: QBEExpression) -> QBEData {
+		let prepared = condition.prepare()
+		if prepared.isConstant {
+			let value = prepared.apply([], columns: [], inputValue: nil)
+			if value == QBEValue.BoolValue(false) {
+				// This will never return any rows
+				return QBERasterData()
+			}
+			else if value == QBEValue.BoolValue(true) {
+				// This filter operation will never filter out any rows
+				return self
+			}
+		}
+		
+		switch self {
+			case .Filtering(let data, let oldFilter):
+				return QBECoalescedData.Filtering(data, QBEFunctionExpression(arguments: [oldFilter, condition], type: QBEFunction.And))
+				
+			default:
+				return QBECoalescedData.Filtering(self.data, condition)
+		}
+	}
+	
+	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
+		return data.unique(expression, callback: callback)
+	}
+	
+	/** data.selectColumns(a).selectColumns(b) is equivalent to data.selectColumns(c), where c is b without any columns
+	that are not contained in a (selectColumns is specified to ignore any column names that do not exist). **/
+	func selectColumns(columns: [QBEColumn]) -> QBEData {
+		switch self {
+			case .SelectingColumns(let data, let oldColumns):
+				let oldSet = Set(oldColumns)
+				let newColumns = columns.filter({return oldSet.contains($0)})
+				return QBECoalescedData.SelectingColumns(data, newColumns)
+			
+			default:
+				return QBECoalescedData.SelectingColumns(data, columns)
+		}
+	}
+	
+	func aggregate(groups: [QBEColumn: QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData {
+		return QBECoalescedData.None(data.aggregate(groups, values: values))
+	}
+	
+	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData {
+		return QBECoalescedData.None(data.pivot(horizontal, vertical: vertical, values: values))
+	}
+	
+	func stream() -> QBEStream {
+		return data.stream()
+	}
+	
+	func raster(job: QBEJob?, callback: (QBERaster) -> ()) {
+		return data.raster(job, callback: callback)
+	}
+	
+	func columnNames(callback: ([QBEColumn]) -> ()) {
+		return data.columnNames(callback)
+	}
+	
+	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData {
+		return QBECoalescedData.None(data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
+	}
+	
+	/** data.offset(x).offset(y) is equivalent to data.offset(x+y).**/
+	func offset(numberOfRows: Int) -> QBEData {
+		assert(numberOfRows > 0)
+		
+		switch self {
+			case .Offsetting(let data, let offset):
+				return QBECoalescedData.Offsetting(data, offset + numberOfRows)
+			
+			default:
+				return QBECoalescedData.Offsetting(data, numberOfRows)
+		}
+	}
+	
+	/** - data.sort([a,b]).sort([c,d]) is equivalent to data.sort([c,d, a,b]) 
+		- data.sort([]) is equivalent to data. **/
+	func sort(orders: [QBEOrder]) -> QBEData {
+		if orders.count == 0 {
+			return self
+		}
+		
+		switch self {
+			case .Sorting(let data, let oldOrders):
+				return QBECoalescedData.Sorting(data, orders + oldOrders)
+			
+			default:
+				return QBECoalescedData.Sorting(self.data, orders)
+		}
+	}
 }

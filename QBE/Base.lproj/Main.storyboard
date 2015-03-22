@@ -1511,7 +1511,7 @@ Gw
                                     <rect key="frame" x="1" y="1" width="248" height="158"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <collectionView selectable="YES" maxNumberOfRows="1" id="z7I-jG-SgO">
+                                        <collectionView canDrawConcurrently="YES" selectable="YES" maxNumberOfRows="1" id="z7I-jG-SgO">
                                             <rect key="frame" x="0.0" y="0.0" width="248" height="158"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="primaryBackgroundColor" white="1" alpha="0.0" colorSpace="deviceWhite"/>

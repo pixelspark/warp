@@ -427,7 +427,7 @@ class QBESQLiteSourceStep: QBEStep {
 	
 	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
 		if let d = db {
-			callback(QBESQLiteData(db: d, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale))
+			callback(QBECoalescedData(QBESQLiteData(db: d, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale)))
 		}
 		else {
 			callback(QBERasterData())

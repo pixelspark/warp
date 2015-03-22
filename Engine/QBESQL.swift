@@ -186,8 +186,6 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Uppercase: return "UPPER(\(value))"
 			case .Lowercase: return "LOWER(\(value))"
 			case .Absolute: return "ABS(\(value))"
-			case .And: return "AND(\(value))"
-			case .Or: return "OR(\(value))"
 			case .Cos: return "COS(\(value))"
 			case .Sin: return "SIN(\(value))"
 			case .Tan: return "TAN(\(value))"
@@ -214,6 +212,15 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Average: return "(" + (args.implode(" + ") ?? "0") + ")/\(args.count)"
 			case .Min: return "MIN(\(value))" // Should be LEAST in SQL Server
 			case .Max: return "MAX(\(value))" // Might be GREATEST in SQL Server
+			
+			case .And:
+				let ands = args.implode(" AND ") ?? "FALSE"
+				return "(\(ands))"
+				
+			case .Or:
+				let ors = args.implode(" OR ") ?? "TRUE"
+				return "(\(ors))"
+			
 			case .RandomBetween:
 				/* FIXME check this! Using RANDOM() with modulus introduces a bias, but because we're using ABS, the bias
 				should be cancelled out. See http://stackoverflow.com/questions/8304204/generating-only-positive-random-numbers-in-sqlite */
@@ -416,10 +423,10 @@ class QBESQLData: NSObject, QBEData {
 		return QBERasterData()
     }
 	
-	func sort(by orders: [QBEOrder]) -> QBEData {
+	func sort(by: [QBEOrder]) -> QBEData {
 		var error = false
 		
-		let sqlOrders = orders.map({(order) -> (String) in
+		let sqlOrders = by.map({(order) -> (String) in
 			if let expression = order.expression, let esql = self.dialect.expressionToSQL(expression, inputValue: nil) {
 				let castedSQL: String
 				if order.numeric {
@@ -437,8 +444,9 @@ class QBESQLData: NSObject, QBEData {
 		})
 		
 		// If one of the sorting expressions can't be represented in SQL, use the fall-back
+		// TODO: for ORDER BY a, b, c still perform ORDER BY b, c if a cannot be represented in sQL
 		if error {
-			return fallback().sort(by: orders)
+			return fallback().sort(by)
 		}
 		
 		if let orderClause = sqlOrders.implode(", ") {

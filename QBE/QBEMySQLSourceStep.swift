@@ -285,6 +285,10 @@ internal class QBEMySQLConnection {
 			fatalError("Cannot start a query when the previous result is not finished yet")
 		}
 		self.result = nil
+		
+		#if DEBUG
+			println("MySQL Query \(sql)")
+		#endif
 
 		if self.perform({return mysql_query(self.connection, sql.cStringUsingEncoding(NSUTF8StringEncoding)!)}) {
 			self.result = QBEMySQLResult(mysql_use_result(self.connection), connection: self)
@@ -389,7 +393,7 @@ class QBEMySQLSourceStep: QBEStep {
 	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
 		QBEAsyncBackground {
 			if let d = self.db() {
-				callback(QBEMySQLData(db: d, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale))
+				callback(QBECoalescedData(QBEMySQLData(db: d, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale)))
 			}
 			else {
 				callback(QBERasterData())

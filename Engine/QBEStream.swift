@@ -107,8 +107,8 @@ class QBEStreamData: QBEData {
 		return fallback().unique(expression, callback: callback)
 	}
 	
-	func sort(by order: [QBEOrder]) -> QBEData {
-		return fallback().sort(by: order)
+	func sort(by: [QBEOrder]) -> QBEData {
+		return fallback().sort(by)
 	}
 	
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
