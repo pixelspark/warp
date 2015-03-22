@@ -321,14 +321,31 @@ stream of results, and the apply function, to make sure any operations on the da
 subclassed type). See QBESQLite for an implementation example. **/
 class QBESQLData: NSObject, QBEData {
     internal let sql: String
+	internal let tableNameOnly: Bool
 	let dialect: QBESQLDialect
 	var columns: [QBEColumn]
     
 	internal init(sql: String, dialect: QBESQLDialect, columns: [QBEColumn]) {
         self.sql = sql
+		self.tableNameOnly = false
 		self.dialect = dialect
 		self.columns = columns
     }
+	
+	internal init(table: String, dialect: QBESQLDialect, columns: [QBEColumn]) {
+		self.sql = dialect.tableIdentifier(table)
+		self.tableNameOnly = true
+		self.dialect = dialect
+		self.columns = columns
+	}
+	
+	internal var sqlForSubquery: String {
+		return tableNameOnly ? self.sql : "(\(self.sql))"
+	}
+	
+	internal var sqlForQuery: String {
+		return tableNameOnly ? "SELECT * FROM \(self.sql) AS \(tableAlias)" : self.sql
+	}
 	
 	private func fallback() -> QBEData {
 		return QBEStreamData(source: self.stream())
@@ -394,7 +411,7 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		if let valueString = values.implode(", ") {
-			return apply("SELECT \(valueString) FROM (\(sql)) AS \(tableAlias)", resultingColumns: columns)
+			return apply("SELECT \(valueString) FROM \(sqlForSubquery) AS \(tableAlias)", resultingColumns: columns)
 		}
 		return QBERasterData()
     }
@@ -425,28 +442,28 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		if let orderClause = sqlOrders.implode(", ") {
-			return apply("SELECT * FROM (\(self.sql)) AS \(tableAlias) ORDER BY \(orderClause)", resultingColumns: columns)
+			return apply("SELECT * FROM \(sqlForSubquery) AS \(tableAlias) ORDER BY \(orderClause)", resultingColumns: columns)
 		}
 		return self
 	}
 	
 	func distinct() -> QBEData {
-		return apply("SELECT DISTINCT * FROM (\(self.sql)) AS \(tableAlias)", resultingColumns: columns)
+		return apply("SELECT DISTINCT * FROM \(sqlForSubquery) AS \(tableAlias)", resultingColumns: columns)
 	}
     
     func limit(numberOfRows: Int) -> QBEData {
-		return apply("SELECT * FROM (\(self.sql)) AS \(tableAlias) LIMIT \(numberOfRows)", resultingColumns: columns)
+		return apply("SELECT * FROM \(sqlForSubquery) AS \(tableAlias) LIMIT \(numberOfRows)", resultingColumns: columns)
     }
 	
 	func offset(numberOfRows: Int) -> QBEData {
 		// FIXME: T-SQL uses "SELECT TOP x" syntax
 		// FIXME: the LIMIT -1 is probably only necessary for SQLite
-		return apply("SELECT * FROM (\(self.sql)) AS \(tableAlias) LIMIT -1 OFFSET \(numberOfRows)", resultingColumns: columns)
+		return apply("SELECT * FROM \(sqlForSubquery) AS \(tableAlias) LIMIT -1 OFFSET \(numberOfRows)", resultingColumns: columns)
 	}
 	
 	func filter(condition: QBEExpression) -> QBEData {
 		if let expressionString = dialect.expressionToSQL(condition.prepare(), inputValue: nil) {
-			return apply("SELECT * FROM (\(self.sql)) AS \(tableAlias) WHERE \(expressionString)", resultingColumns: columns)
+			return apply("SELECT * FROM \(sqlForSubquery) AS \(tableAlias) WHERE \(expressionString)", resultingColumns: columns)
 		}
 		else {
 			return fallback().filter(condition)
@@ -455,12 +472,12 @@ class QBESQLData: NSObject, QBEData {
 	
 	func random(numberOfRows: Int) -> QBEData {
 		let randomFunction = dialect.unaryToSQL(QBEFunction.Random, args: []) ?? "RANDOM()"
-		return apply("SELECT * FROM (\(self.sql)) AS \(tableAlias) ORDER BY \(randomFunction) LIMIT \(numberOfRows)", resultingColumns: columns)
+		return apply("SELECT * FROM \(sqlForSubquery) AS \(tableAlias) ORDER BY \(randomFunction) LIMIT \(numberOfRows)", resultingColumns: columns)
 	}
 	
 	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
 		if let expressionString = dialect.expressionToSQL(expression.prepare(), inputValue: nil) {
-			let query = "SELECT DISTINCT \(expressionString) AS _value FROM \(self.sql)"
+			let query = "SELECT DISTINCT \(expressionString) AS _value FROM \(sqlForSubquery) AS \(tableAlias)"
 			let data = apply(query, resultingColumns: ["_value"])
 			
 			data.raster(nil, callback: { (raster) -> () in
@@ -475,7 +492,7 @@ class QBESQLData: NSObject, QBEData {
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
 		let colNames = columns.map({self.dialect.columnIdentifier($0)}).implode(", ") ?? ""
-		let sql = "SELECT \(colNames) FROM (\(self.sql)) AS \(tableAlias)"
+		let sql = "SELECT \(colNames) FROM \(sqlForSubquery) AS \(tableAlias)"
 		return apply(sql, resultingColumns: columns)
 	}
 	
@@ -508,11 +525,11 @@ class QBESQLData: NSObject, QBEData {
 		
 		let selectString = select.implode(", ") ?? ""
 		if groupBy.count>0, let groupString = groupBy.implode(", ") {
-			return apply("SELECT \(selectString) FROM (\(sql)) AS \(tableAlias) GROUP BY \(groupString)", resultingColumns: resultingColumns)
+			return apply("SELECT \(selectString) FROM \(sqlForSubquery) AS \(tableAlias) GROUP BY \(groupString)", resultingColumns: resultingColumns)
 		}
 		else {
 			// No columns to group by, total aggregates it is
-			return apply("SELECT \(selectString) FROM (\(sql)) AS \(tableAlias)", resultingColumns: resultingColumns)
+			return apply("SELECT \(selectString) FROM \(sqlForSubquery) AS \(tableAlias)", resultingColumns: resultingColumns)
 		}
 	}
 	

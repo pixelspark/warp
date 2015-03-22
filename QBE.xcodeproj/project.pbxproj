@@ -515,15 +515,15 @@
 		651988E71A0F9C39003463AA /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */,
 				65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */,
 				651988E41A0F9C30003463AA /* CHCSVParser.h */,
 				651988E51A0F9C30003463AA /* CHCSVParser.m */,
 				6548F2331A8673BF00FE8EF2 /* extension-functions.c */,
 				65AA26171ABB201700085E26 /* libcrypto.dylib */,
-				65AA26131ABB1FCB00085E26 /* libssl.dylib */,
 				65AA26111ABB1FC700085E26 /* libiconv.dylib */,
+				65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */,
 				65776F111A6483AD00F7F82A /* libsqlite3.dylib */,
+				65AA26131ABB1FCB00085E26 /* libssl.dylib */,
 				6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */,
 				654296901AB80D09000472E6 /* MySQL */,
 				651988E81A0FAA3F003463AA /* QBEObjectiveCBridge.h */,

@@ -303,8 +303,7 @@ class QBEMySQLData: QBESQLData {
 		let result = db.query(query)
 		result?.finish() // We're not interested in that one row we just requested, just the column names
 		
-		let sql = "SELECT * FROM \(db.dialect.tableIdentifier(tableName))"
-		self.init(db: db, sql: sql, columns: result?.columnNames ?? [], locale: locale)
+		self.init(db: db, table: tableName, columns: result?.columnNames ?? [], locale: locale)
 	}
 	
 	private init(db: QBEMySQLConnection, sql: String, columns: [QBEColumn], locale: QBELocale?) {
@@ -313,12 +312,18 @@ class QBEMySQLData: QBESQLData {
 		super.init(sql: sql, dialect: db.dialect, columns: columns)
 	}
 	
+	private init(db: QBEMySQLConnection, table: String, columns: [QBEColumn], locale: QBELocale?) {
+		self.db = db
+		self.locale = locale
+		super.init(table: table, dialect: db.dialect, columns: columns)
+	}
+	
 	override func apply(sql: String, resultingColumns: [QBEColumn]) -> QBEData {
 		return QBEMySQLData(db: self.db, sql: sql, columns: resultingColumns, locale: locale)
 	}
 	
 	override func stream() -> QBEStream {
-		if let result = self.db.query(self.sql) {
+		if let result = self.db.query(self.sqlForQuery) {
 			return QBESequenceStream(SequenceOf<QBERow>(result), columnNames: result.columnNames)
 		}
 		return QBEEmptyStream()
