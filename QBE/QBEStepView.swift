@@ -30,6 +30,7 @@ let QBEStepIcons = [
 	QBESQLiteSourceStep.className(): "SQLIcon",
 	QBECalculateStep.className(): "CalculateIcon",
 	QBEColumnsStep.className(): "ColumnsIcon",
+	QBESortColumnsStep.className(): "ColumnsIcon",
 	QBEFlattenStep.className(): "FlattenIcon",
 	QBEDistinctStep.className(): "DistinctIcon",
 	QBEPrestoSourceStep.className(): "PrestoIcon",

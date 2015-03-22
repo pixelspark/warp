@@ -3,6 +3,7 @@ import Cocoa
 protocol QBEDataViewDelegate: NSObjectProtocol {
 	// Returns true if the delegate has handled the change (e.g. converted it to a strutural one)
 	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool
+	func dataView(view: QBEDataViewController, didOrderColumns: [QBEColumn], toIndex: Int) -> Bool
 }
 
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
@@ -96,19 +97,30 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, canMoveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
-		return false
+		return true
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, writeColumnsWithIndexes columnIndexes: NSIndexSet!, toPasteboard pboard: NSPasteboard!) -> Bool {
-		return false
+		return true
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, moveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
+		if let r = raster {
+			var columnsOrdered: [QBEColumn] = []
+			for columnIndex in 0..<r.columnCount {
+				if columnIndexes.containsIndex(columnIndex) {
+					columnsOrdered.append(r.columnNames[columnIndex])
+				}
+			}
+			
+			return delegate?.dataView(self, didOrderColumns: columnsOrdered, toIndex: Int(index)) ?? false
+		}
+
 		return false
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, moveRows rowIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
-		return false
+		return true
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, writeRowsWithIndexes rowIndexes: NSIndexSet!, toPasteboard pboard: NSPasteboard!) -> Bool {
@@ -265,6 +277,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			self.tableView!.translatesAutoresizingMaskIntoConstraints = false
 			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Horizontal)
 			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Vertical)
+			self.tableView!.awakeFromNib()
 			self.view.addSubview(tableView!)
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.formulaField, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 5.0));
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0));

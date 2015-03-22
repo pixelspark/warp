@@ -194,6 +194,21 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 		remove(step)
 	}
+	
+	func dataView(view: QBEDataViewController, didOrderColumns columns: [QBEColumn], toIndex: Int) -> Bool {
+		// Construct a new column ordering
+		if let r = view.raster {
+			var allColumns = r.columnNames
+			if toIndex < allColumns.count {
+				pushStep(QBESortColumnsStep(previous: self.currentStep, sortColumns: columns, before: allColumns[toIndex]))
+			}
+			else {
+				pushStep(QBESortColumnsStep(previous: self.currentStep, sortColumns: columns, before: nil))
+			}
+			return true
+		}
+		return false
+	}
 
 	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
 		currentRaster?.get({(raster) in
