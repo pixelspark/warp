@@ -159,7 +159,9 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 					}
 				}
 				
-				cv.selectionIndexes = indexSet
+				if !indexSet.isEqualToIndexSet(cv.selectionIndexes) {
+					cv.selectionIndexes = indexSet
+				}
 			}
 		}
 	}
