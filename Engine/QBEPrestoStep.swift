@@ -23,6 +23,14 @@ private class QBEPrestoSQLDialect: QBEStandardSQLDialect {
 			return super.unaryToSQL(type, args: args)
 		}
 	}
+	
+	private override func forceNumericExpression(expression: String) -> String {
+		return "TRY_CAST(\(expression) AS DOUBLE)"
+	}
+	
+	private override func forceStringExpression(expression: String) -> String {
+		return "CAST(\(expression) AS VARCHAR)"
+	}
 }
 
 private class QBEPrestoStream: NSObject, QBEStream {
