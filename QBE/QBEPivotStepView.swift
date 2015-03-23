@@ -44,7 +44,9 @@ internal class QBEPivotStepView: NSViewController, NSTableViewDelegate, NSTableV
 		if let sourceStep = self.step?.previous {
 			sourceStep.exampleData(nil, callback: { (exData: QBEData) -> () in
 				exData.columnNames({ (columns: [QBEColumn]) -> () in
-					self.sourceColumns = columns
+					QBEAsyncMain {
+						self.sourceColumns = columns
+					}
 				})
 			})
 		}
