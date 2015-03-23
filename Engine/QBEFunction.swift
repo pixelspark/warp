@@ -85,10 +85,22 @@ enum QBEFunction: String {
 	case Random = "random"
 	case RegexSubstitute = "regexSubstitute"
 	
+	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
+	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
+	is deterministic and all arguments are constants, it is automatically replaced with a literal expression containing
+	its constant result). **/
 	func prepare(args: [QBEExpression]) -> QBEExpression {
 		var prepared = args.map({$0.prepare()})
 		
 		switch self {
+			case .Not:
+				// NOT(a=b) should be replaced with simply a!=b
+				if args.count == 1 {
+					if let a = args[0] as? QBEBinaryExpression where a.type == QBEBinary.Equal {
+						return QBEBinaryExpression(first: a.first, second: a.second, type: QBEBinary.NotEqual)
+					}
+				}
+			
 			case .And:
 				// Insert arguments that are Ands themselves in this and
 				prepared = prepared.flatMap({
