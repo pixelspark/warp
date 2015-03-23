@@ -240,7 +240,8 @@ class QBECSVSourceStep: QBEStep {
 				if useCaching {
 					cachedData = QBESQLiteCachedData(source: cachedData!, locale: locale)
 				}
-				callback(QBECoalescedData(cachedData!))
+				cachedData = QBECoalescedData(cachedData!)
+				callback(cachedData!)
 			}
 		}
 		else {
