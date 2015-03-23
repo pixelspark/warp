@@ -85,6 +85,49 @@ enum QBEFunction: String {
 	case Random = "random"
 	case RegexSubstitute = "regexSubstitute"
 	
+	func prepare(args: [QBEExpression]) -> QBEExpression {
+		var prepared = args.map({$0.prepare()})
+		
+		switch self {
+			case .And:
+				// Insert arguments that are Ands themselves in this and
+				prepared = prepared.flatMap({
+					if let a = $0 as? QBEFunctionExpression where a.type == QBEFunction.And {
+						return a.arguments
+					}
+					return [$0]
+				})
+				
+				// If at least one of the arguments to an AND is a constant false, then this And always evaluates to false
+				for p in prepared {
+					if p.isConstant && p.apply([], columns: [], inputValue: nil) == QBEValue.BoolValue(false) {
+						return QBELiteralExpression(QBEValue.BoolValue(false))
+					}
+				}
+			
+			case .Or:
+				// Insert arguments that are Ors themselves in this and
+				prepared = prepared.flatMap({
+					if let a = $0 as? QBEFunctionExpression where a.type == QBEFunction.Or {
+						return a.arguments
+					}
+					return [$0]
+				})
+				
+				// If at least one of the arguments to an OR is a constant true, this OR always evaluates to true
+				for p in prepared {
+					if p.isConstant && p.apply([], columns: [], inputValue: nil) == QBEValue.BoolValue(true) {
+						return QBELiteralExpression(QBEValue.BoolValue(true))
+					}
+				}
+		
+			default:
+				break
+		}
+	
+		return QBEFunctionExpression(arguments: prepared, type: self)
+	}
+	
 	func explain(locale: QBELocale) -> String {
 		switch self {
 			// TODO: make tihs more detailed. E.g., "5 leftmost characters of" instead of just "leftmost characters"

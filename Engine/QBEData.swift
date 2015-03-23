@@ -363,9 +363,15 @@ enum QBECoalescedData: QBEData {
 		return data.unique(expression, callback: callback)
 	}
 	
-	/** data.selectColumns(a).selectColumns(b) is equivalent to data.selectColumns(c), where c is b without any columns
-	that are not contained in a (selectColumns is specified to ignore any column names that do not exist). **/
+	/**  Two optimizations are performed on selectColumns:
+		- data.selectColumns(a).selectColumns(b) is equivalent to data.selectColumns(c), where c is b without any columns
+		  that are not contained in a (selectColumns is specified to ignore any column names that do not exist).
+		- data.selectColumns(a) is equivalent to an empty data set if a is empty **/
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
+		if columns.count == 0 {
+			return QBERasterData()
+		}
+		
 		switch self {
 			case .SelectingColumns(let data, let oldColumns):
 				let oldSet = Set(oldColumns)

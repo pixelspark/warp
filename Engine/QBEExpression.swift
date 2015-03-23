@@ -346,6 +346,10 @@ class QBEFunctionExpression: QBEExpression {
 		return true
 	} }
 	
+	override func prepare() -> QBEExpression {
+		return self.type.prepare(arguments)
+	}
+	
 	override func explain(locale: QBELocale) -> String {
 		let argumentsList = arguments.map({$0.explain(locale)}).implode(", ") ?? ""
 		return "\(type.explain(locale))(\(argumentsList))"
