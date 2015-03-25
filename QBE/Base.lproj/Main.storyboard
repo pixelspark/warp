@@ -767,7 +767,7 @@ CA
                                                 <action selector="pivot:" target="Ady-hI-5gd" id="Cw3-1m-cKZ"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Flatten data..." keyEquivalent="D" id="OG0-83-x0Z">
+                                        <menuItem title="Make columnar..." keyEquivalent="D" id="OG0-83-x0Z">
                                             <connections>
                                                 <action selector="flatten:" target="Ady-hI-5gd" id="fyP-TI-xwT"/>
                                             </connections>

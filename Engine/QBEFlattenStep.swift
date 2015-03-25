@@ -14,7 +14,7 @@ class QBEFlattenStep: QBEStep {
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
-		return NSLocalizedString("Flatten", comment: "Short explanation of QBEFlattenStep")
+		return NSLocalizedString("Make columnar", comment: "Short explanation of QBEFlattenStep")
 	}
 	
 	required init(coder aDecoder: NSCoder) {
