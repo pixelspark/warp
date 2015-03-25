@@ -53,7 +53,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	private func setValue(value: QBEValue, inRow: Int, inColumn: Int) {
-		if let r = raster {
+		if let r = raster where inRow < r.rowCount && inColumn < r.columnCount {
 			let oldValue = r[Int(inRow), Int(inColumn)]
 			if oldValue != value {
 				if let d = delegate {

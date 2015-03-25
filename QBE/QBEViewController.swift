@@ -195,6 +195,51 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		remove(step)
 	}
 	
+	func stepsController(vc: QBEStepsViewController, didMoveStep: QBEStep, afterStep: QBEStep?) {
+		if didMoveStep == currentStep {
+			popStep()
+		}
+		
+		// Pull the step from its current location
+		var after = afterStep
+		
+		// If we are inserting after nil, this means inserting as first
+		if after == nil {
+			remove(didMoveStep)
+			
+			// Insert at beginning
+			if let head = document?.head {
+				after = head
+				while after!.previous != nil {
+					after = after!.previous
+				}
+			}
+			
+			if after == nil {
+				// this is the only step
+				document?.head = didMoveStep
+			}
+			else {
+				// insert at beginning
+				after!.previous = didMoveStep
+			}
+		}
+		else {
+			if after != didMoveStep {
+				remove(didMoveStep)
+				didMoveStep.next = after?.next
+				after?.next?.previous = didMoveStep
+				didMoveStep.previous = after
+				
+				if let h = document?.head where after == h {
+					document?.head = didMoveStep
+				}
+			}
+		}
+
+		stepsChanged()
+	}
+	
 	func dataView(view: QBEDataViewController, didOrderColumns columns: [QBEColumn], toIndex: Int) -> Bool {
 		// Construct a new column ordering
 		if let r = view.raster {

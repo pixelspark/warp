@@ -4,6 +4,7 @@ import Cocoa
 @objc protocol QBEStepsControllerDelegate: NSObjectProtocol {
 	func stepsController(vc: QBEStepsViewController, didSelectStep: QBEStep)
 	func stepsController(vc: QBEStepsViewController, didRemoveStep: QBEStep)
+	func stepsController(vc: QBEStepsViewController, didMoveStep: QBEStep, afterStep: QBEStep!)
 }
 
 @IBDesignable class QBEStepsItemView: NSView {
@@ -122,6 +123,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	@IBOutlet var addButton: NSButton!
 	
 	private var ignoreSelection = false
+	private static let DragType = "nl.pixelspark.Warp.QBEStepsViewController.Step"
 	
 	dynamic var steps: [QBEStep]? { didSet {
 		ignoreSelection = true
@@ -137,6 +139,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	
 	override func awakeFromNib() {
 		super.awakeFromNib()
+		self.collectionView?.registerForDraggedTypes([QBEStepsViewController.DragType])
 	}
 	
 	func delete(sender: NSObject) {
@@ -164,6 +167,39 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 				}
 			}
 		}
+	}
+	
+	func collectionView(collectionView: NSCollectionView, canDragItemsAtIndexes indexes: NSIndexSet, withEvent event: NSEvent) -> Bool {
+		return true
+	}
+	
+	func collectionView(collectionView: NSCollectionView, writeItemsAtIndexes indexes: NSIndexSet, toPasteboard pasteboard: NSPasteboard) -> Bool {
+		let data = NSKeyedArchiver.archivedDataWithRootObject(indexes)
+		pasteboard.declareTypes([QBEStepsViewController.DragType], owner: nil)
+		pasteboard.setData(data, forType: QBEStepsViewController.DragType)
+		return true
+	}
+	
+	func collectionView(collectionView: NSCollectionView, validateDrop draggingInfo: NSDraggingInfo, proposedIndex proposedDropIndex: UnsafeMutablePointer<Int>, dropOperation proposedDropOperation: UnsafeMutablePointer<NSCollectionViewDropOperation>) -> NSDragOperation {
+		return NSDragOperation.Move
+	}
+	
+	func collectionView(collectionView: NSCollectionView, acceptDrop draggingInfo: NSDraggingInfo, index: Int, dropOperation: NSCollectionViewDropOperation) -> Bool {
+		let pboard = draggingInfo.draggingPasteboard()
+		if let data = pboard.dataForType(QBEStepsViewController.DragType) {
+			if let indices = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? NSIndexSet {
+				let draggedIndex = indices.firstIndex
+				
+				if let s = steps where draggedIndex != NSNotFound && draggedIndex < s.count {
+					// Swap away
+					let step = s[draggedIndex]
+					let afterStep: QBEStep? = (index <= s.count && index >= 1) ? s[index-1] : nil
+					self.delegate?.stepsController(self, didMoveStep: step, afterStep: afterStep)
+					return true
+				}
+			}
+		}
+		return false
 	}
 	
 	override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>) {
