@@ -48,6 +48,18 @@ struct QBEColumn: StringLiteralConvertible, Hashable, DebugPrintable {
 		} while index > 0
 		return QBEColumn(str)
 	}
+	
+	func newName(accept: (QBEColumn) -> Bool) -> QBEColumn {
+		var i = 0
+		do {
+			let newName = QBEColumn("\(self.name)_\(QBEColumn.defaultColumnForIndex(i).name)")
+			let accepted = accept(newName)
+			if accepted {
+				return newName
+			}
+			i++
+		} while true
+	}
 }
 
 /** Column names retain case, but they are compared case-insensitively **/

@@ -34,6 +34,7 @@ class QBEPivotStep: QBEStep {
 	
 	override func encodeWithCoder(coder: NSCoder) {
 		super.encodeWithCoder(coder)
+		fixupColumnNames()
 		
 		// NSCoder can't store QBEColumn, so we store the raw names
 		let c = columns.map({$0.name})
@@ -64,7 +65,30 @@ class QBEPivotStep: QBEStep {
 		return NSLocalizedString("Pivot data", comment: "")
 	}
 	
+	private func fixupColumnNames() {
+		var columnNames = Set(rows)
+		
+		// Make sure we don't create duplicate columns
+		for idx in 0..<columns.count {
+			let column = columns[idx]
+			if columnNames.contains(column) {
+				columns[idx] = column.newName({return !columnNames.contains($0)})
+			}
+		}
+		
+		columnNames.unionInPlace(Set(columns))
+		
+		for idx in 0..<aggregates.count {
+			let aggregation = aggregates[idx]
+			
+			if columnNames.contains(aggregation.targetColumnName) {
+				aggregation.targetColumnName = aggregation.targetColumnName.newName({return !columnNames.contains($0)})
+			}
+		}
+	}
+	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
+		fixupColumnNames()
 		var rowGroups = toDictionary(rows, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
 		let colGroups = toDictionary(columns, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
 		for (k, v) in colGroups {

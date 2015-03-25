@@ -452,6 +452,15 @@ class QBERasterData: NSObject, QBEData {
 			}
 		}
 		
+		#if DEBUG
+		// Check if there are duplicate target column names. If so, bail out
+		for (col, value) in values {
+			if groups[col] != nil {
+				fatalError("Duplicate column names in QBERasterData.aggregate are not allowed")
+			}
+		}
+		#endif
+		
 		return apply {(r: QBERaster) -> QBERaster in
 			let index = QBEIndex()
 			
