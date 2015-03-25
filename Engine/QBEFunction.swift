@@ -84,6 +84,7 @@ enum QBEFunction: String {
 	case RandomBetween = "randomBetween"
 	case Random = "random"
 	case RegexSubstitute = "regexSubstitute"
+	case NormalInverse = "normalInverse"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -188,6 +189,7 @@ enum QBEFunction: String {
 			case .RandomBetween: return NSLocalizedString("random number between", comment: "")
 			case .Random: return NSLocalizedString("random number between 0 and 1", comment: "")
 			case .RegexSubstitute: return NSLocalizedString("replace using pattern", comment: "")
+			case .NormalInverse: return NSLocalizedString("inverse normal", comment: "")
 		}
 	}
 	
@@ -254,6 +256,7 @@ enum QBEFunction: String {
 		case .RandomBetween: return QBEArity.Fixed(2)
 		case .Random: return QBEArity.Fixed(0)
 		case .RegexSubstitute: return QBEArity.Fixed(3)
+		case .NormalInverse: return QBEArity.Fixed(3)
 		}
 	} }
 	
@@ -612,13 +615,26 @@ enum QBEFunction: String {
 					return QBEValue.StringValue(result)
 			}
 			return QBEValue.InvalidValue
+			
+		case .NormalInverse:
+			if	let p = arguments[0].doubleValue,
+				let mu = arguments[1].doubleValue,
+				let sigma = arguments[2].doubleValue {
+				if p < 0.0 || p > 1.0 {
+					return QBEValue.InvalidValue
+				}
+					
+				let deviations = QBENormalDistribution().inverse(p)
+				return QBEValue.DoubleValue(mu + sigma * deviations)
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
-		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute
+		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse
 	]
 }
 

@@ -7,6 +7,8 @@
 #import "sqlite3.h"
 #import "mysql.h"
 
+#import "ltqnorm.h"
+
 int RegisterExtensionFunctions(sqlite3 *db);
 
 @interface CHCSVParser (QBE)

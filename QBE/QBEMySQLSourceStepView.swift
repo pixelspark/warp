@@ -1,4 +1,5 @@
 import Foundation
+import Cocoa
 
 internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate, NSComboBoxDelegate, NSComboBoxDataSource {
 	let step: QBEMySQLSourceStep?

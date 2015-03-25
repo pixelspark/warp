@@ -100,6 +100,16 @@ internal extension Array {
 		}
 		return false
 	}
+	
+	static func filterNils(array: [T?]) -> [T] {
+		return array.filter { $0 != nil }.map { $0! }
+	}
+	
+	var optionals: [T?] {
+		get {
+			return self.map { return Optional($0) }
+		}
+	}
 }
 
 internal extension Double {

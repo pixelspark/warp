@@ -1,4 +1,5 @@
 import Foundation
+import Cocoa
 
 internal class QBELimitStepView: NSViewController {
 	weak var delegate: QBESuggestionsViewDelegate?

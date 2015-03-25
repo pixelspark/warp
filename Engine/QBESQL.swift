@@ -268,6 +268,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			// FIXME: should be implemented as CASE WHEN i=1 THEN a WHEN i=2 THEN b ... END
 			case .Choose: return nil
 			case .RegexSubstitute: return nil
+			case .NormalInverse: return nil
 		}
 	}
 	

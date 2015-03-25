@@ -8,7 +8,30 @@ class QBETests: XCTestCase {
     
     override func tearDown() {
         super.tearDown()
-    }
+    } 
+	
+	func testStatistics() {
+		var moving = QBEMoving(size: 10, items: [0,10,0,10,0,10,10,10,0,0,10,0,10,0,10,999999999999,0,5,5,5,5,5,5,5,5,5,5,5])
+		XCTAssert(moving.sample.n == 10, "QBEMoving should discard old samples properly")
+		XCTAssert(moving.sample.mean == 5.0, "Average of test sample should be exactly 5")
+		XCTAssert(moving.sample.stdev == 0.0, "Test sample has no deviations")
+		
+		let (lower, upper) = moving.sample.confidenceInterval(0.90)
+		XCTAssert(lower <= upper, "Test sample confidence interval must not be flipped")
+		XCTAssert(lower == 5.0 && upper == 5.0, "Test sample has confidence interval that is [5,5]")
+		
+		// Add a value to the moving average and try again
+		moving.add(100)
+		XCTAssert(moving.sample.n == 10, "QBEMoving should discard old samples properly")
+		XCTAssert(moving.sample.mean > 5.0, "Average of test sample should be > 5")
+		XCTAssert(moving.sample.stdev > 0.0, "Test sample has a deviation now")
+		let (lower2, upper2) = moving.sample.confidenceInterval(0.90)
+		XCTAssert(lower2 <= upper2, "Test sample confidence interval must not be flipped")
+		XCTAssert(lower2 < 5.0 && upper2 > 5.0, "Test sample has confidence interval that is wider")
+		
+		let (lower3, upper3) = moving.sample.confidenceInterval(0.95)
+		XCTAssert(lower3 < lower2 && upper3 > upper2, "A more confident interval is wider")
+	}
 	
 	func testQBEValue() {
 		XCTAssert(QBEValue("hello") == QBEValue("hello"), "String equality")
@@ -127,6 +150,11 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("Tom"))==QBEValue(true), "Strict contains string operator should work")
 		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("tom"))==QBEValue(false), "Strict contains string operator should be case-sensitive")
 		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("x"))==QBEValue(false), "Strict contains string operator should work")
+		
+		// Stats
+		let z = QBEFunction.NormalInverse.apply([QBEValue(0.9), QBEValue(10), QBEValue(5)]).doubleValue
+		XCTAssert(z != nil, "NormalInverse should return a value under normal conditions")
+		XCTAssert(z! > 16.406 && z! < 16.408, "NormalInverse should results that are equal to those of NORM.INV.N in Excel")
 	}
 	
 	func compareData(a: QBEData, b: QBEData, callback: (Bool) -> ()) {

@@ -100,7 +100,8 @@ class QBELocale: NSObject {
 			"RAND": QBEFunction.Random,
 			"COALESCE": QBEFunction.Coalesce,
 			"IFERROR": QBEFunction.IfError,
-			"PACK": QBEFunction.Pack
+			"PACK": QBEFunction.Pack,
+			"NORM.INV": QBEFunction.NormalInverse
 		],
 		
 		"nl": [
@@ -146,6 +147,7 @@ class QBELocale: NSObject {
 			"EX.OF": QBEFunction.Xor,
 			"EERSTE.GELDIG": QBEFunction.Coalesce,
 			"INPAKKEN": QBEFunction.Pack,
+			"NORM.INV.N": QBEFunction.NormalInverse
 		]
 	]
 	
