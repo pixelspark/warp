@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7519.1" systemVersion="14C109" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7528.3" systemVersion="14C1510" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7519.1"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7528.3"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBEStepsItem" customModule="Warp" customModuleProvider="target">
@@ -39,7 +39,7 @@
                     <rect key="frame" x="-8" y="39" width="18" height="27"/>
                     <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="NextIcon" id="jpo-7y-WoM"/>
                 </imageView>
-                <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="650-cU-F8F">
+                <button hidden="YES" toolTip="Remove step" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="650-cU-F8F">
                     <rect key="frame" x="71" y="58" width="21" height="19"/>
                     <buttonCell key="cell" type="roundRect" bezelStyle="roundedRect" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="FEn-Zn-GAr">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -67,12 +67,29 @@
             <connections>
                 <outlet property="imageView" destination="D5i-ln-MmN" id="NoF-1C-Fky"/>
                 <outlet property="label" destination="sSk-3l-TxM" id="Hit-xo-Ag0"/>
+                <outlet property="menu" destination="ZB5-QH-UND" id="PcN-Cv-nlH"/>
                 <outlet property="nextImageView" destination="cYg-Eq-9dj" id="Zms-AI-P7x"/>
                 <outlet property="previousImageView" destination="QCt-Sl-a6l" id="HeD-Ko-j5t"/>
                 <outlet property="removeButton" destination="650-cU-F8F" id="KgE-Ry-0sb"/>
             </connections>
             <point key="canvasLocation" x="482" y="235.5"/>
         </customView>
+        <menu id="ZB5-QH-UND">
+            <items>
+                <menuItem title="Copy step" keyEquivalent="c" id="LHt-7n-MAc">
+                    <connections>
+                        <action selector="copy:" target="-1" id="2Nl-4K-c0j"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="Remove step" id="JqR-Va-Pjb">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="remove:" target="p82-vT-MLo" id="bbT-oX-AKK"/>
+                    </connections>
+                </menuItem>
+            </items>
+            <point key="canvasLocation" x="482" y="388.5"/>
+        </menu>
     </objects>
     <resources>
         <image name="NSRemoveTemplate" width="11" height="11"/>

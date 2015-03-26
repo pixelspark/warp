@@ -1,0 +1,12 @@
+
+/* Class = "NSButton"; ibShadowedToolTip = "Remove step"; ObjectID = "650-cU-F8F"; */
+"650-cU-F8F.ibShadowedToolTip" = "Verwijder stap";
+
+/* Class = "NSMenuItem"; title = "Remove step"; ObjectID = "JqR-Va-Pjb"; */
+"JqR-Va-Pjb.title" = "Verwijder stap";
+
+/* Class = "NSMenuItem"; title = "Copy step"; ObjectID = "LHt-7n-MAc"; */
+"LHt-7n-MAc.title" = "Kopieer stap";
+
+/* Class = "NSTextFieldCell"; title = "Label pretty long"; ObjectID = "ajj-y9-dSO"; */
+"ajj-y9-dSO.title" = "Label best lang";

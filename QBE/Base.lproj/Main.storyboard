@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="7525" systemVersion="14C1510" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="7528.3" systemVersion="14C1510" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7525"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7528.3"/>
     </dependencies>
     <scenes>
         <!--Application-->
@@ -1554,6 +1554,9 @@ Gw
                             <constraint firstAttribute="trailing" secondItem="c1C-i2-wGu" secondAttribute="trailing" constant="15" id="hUf-Xh-c4j"/>
                             <constraint firstAttribute="centerY" secondItem="c1C-i2-wGu" secondAttribute="centerY" id="uC9-d2-3q0"/>
                         </constraints>
+                        <connections>
+                            <outlet property="menu" destination="LW4-CU-Q57" id="zfh-D7-iW2"/>
+                        </connections>
                     </view>
                     <connections>
                         <outlet property="addButton" destination="c1C-i2-wGu" id="qk9-lY-nHj"/>
@@ -1563,6 +1566,15 @@ Gw
                 <customObject id="nkn-pH-Nqr" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController id="4bb-Af-HRu"/>
                 <userDefaultsController id="pYt-VS-Pms"/>
+                <menu id="LW4-CU-Q57">
+                    <items>
+                        <menuItem title="Paste step" keyEquivalent="v" id="PI3-50-jR1">
+                            <connections>
+                                <action selector="paste:" target="nkn-pH-Nqr" id="z9g-NZ-Co0"/>
+                            </connections>
+                        </menuItem>
+                    </items>
+                </menu>
             </objects>
             <point key="canvasLocation" x="1065.5" y="1325"/>
         </scene>
