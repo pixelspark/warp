@@ -267,7 +267,7 @@ internal class QBESQLiteDialect: QBEStandardSQLDialect {
 		// QBEFunction.Count only counts numeric values
 		if aggregation.reduce == QBEFunction.Count {
 			if let expressionSQL = self.expressionToSQL(aggregation.map) {
-				return "SUM(CASE WHEN TYPEOF(\(expressionSQL)) IN('integer', 'real')) THEN 1 ELSE 0 END)"
+				return "SUM(CASE WHEN TYPEOF(\(expressionSQL)) IN('integer', 'real') THEN 1 ELSE 0 END)"
 			}
 			return nil
 		}
