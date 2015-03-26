@@ -101,7 +101,8 @@ class QBELocale: NSObject {
 			"COALESCE": QBEFunction.Coalesce,
 			"IFERROR": QBEFunction.IfError,
 			"PACK": QBEFunction.Pack,
-			"NORM.INV": QBEFunction.NormalInverse
+			"NORM.INV": QBEFunction.NormalInverse,
+			"SIGN": QBEFunction.Sign
 		],
 		
 		"nl": [
@@ -147,7 +148,8 @@ class QBELocale: NSObject {
 			"EX.OF": QBEFunction.Xor,
 			"EERSTE.GELDIG": QBEFunction.Coalesce,
 			"INPAKKEN": QBEFunction.Pack,
-			"NORM.INV.N": QBEFunction.NormalInverse
+			"NORM.INV.N": QBEFunction.NormalInverse,
+			"POS.NEG": QBEFunction.Sign
 		]
 	]
 	

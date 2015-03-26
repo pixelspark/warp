@@ -85,6 +85,7 @@ enum QBEFunction: String {
 	case Random = "random"
 	case RegexSubstitute = "regexSubstitute"
 	case NormalInverse = "normalInverse"
+	case Sign = "sign"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -190,6 +191,7 @@ enum QBEFunction: String {
 			case .Random: return NSLocalizedString("random number between 0 and 1", comment: "")
 			case .RegexSubstitute: return NSLocalizedString("replace using pattern", comment: "")
 			case .NormalInverse: return NSLocalizedString("inverse normal", comment: "")
+			case .Sign: return NSLocalizedString("sign", comment: "")
 		}
 	}
 	
@@ -257,6 +259,7 @@ enum QBEFunction: String {
 		case .Random: return QBEArity.Fixed(0)
 		case .RegexSubstitute: return QBEArity.Fixed(3)
 		case .NormalInverse: return QBEArity.Fixed(3)
+		case .Sign: return QBEArity.Fixed(1)
 		}
 	} }
 	
@@ -628,13 +631,20 @@ enum QBEFunction: String {
 				return QBEValue.DoubleValue(mu + sigma * deviations)
 			}
 			return QBEValue.InvalidValue
+			
+		case .Sign:
+			if let d = arguments[0].doubleValue {
+				let sign = (d==0) ? 0 : (d>0 ? 1 : -1)
+				return QBEValue.IntValue(sign)
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
-		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse
+		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign
 	]
 }
 

@@ -258,6 +258,9 @@ class QBEStandardSQLDialect: QBESQLDialect {
 					return "ROUND(\(args[0]), \(args[1]))"
 				}
 			
+			case .Sign:
+				return "(CASE WHEN \(args[0])=0 THEN 0 WHEN \(args[0])>0 THEN 1 ELSE -1 END)"
+			
 			
 			/* FIXME: These could simply call QBEFunction.Count.apply() if the parameters are constant, but then we need
 			the original QBEExpression arguments. */
