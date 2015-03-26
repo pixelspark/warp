@@ -240,6 +240,30 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		stepsChanged()
 	}
 	
+	func stepsController(vc: QBEStepsViewController, didInsertStep step: QBEStep, afterStep: QBEStep?) {
+		if afterStep == nil {
+			// Insert at beginning
+			if document?.head != nil {
+				var before = document?.head
+				while before!.previous != nil {
+					before = before!.previous
+				}
+				
+				before!.previous = step
+			}
+			else {
+				document?.head = step
+			}
+		}
+		else {
+			step.previous = afterStep
+			if document?.head == afterStep {
+				document?.head = step
+			}
+		}
+		stepsChanged()
+	}
+	
 	func dataView(view: QBEDataViewController, didOrderColumns columns: [QBEColumn], toIndex: Int) -> Bool {
 		// Construct a new column ordering
 		if let r = view.raster {
@@ -459,6 +483,16 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		
 		stepToRemove.previous = nil
 		stepsChanged()
+	}
+	
+	@IBAction func copy(sender: NSObject) {
+		if let s = currentStep {
+			let pboard = NSPasteboard.generalPasteboard()
+			pboard.clearContents()
+			pboard.declareTypes([QBEStep.dragType], owner: nil)
+			let data = NSKeyedArchiver.archivedDataWithRootObject(s)
+			pboard.setData(data, forType: QBEStep.dragType)
+		}
 	}
 	
 	@IBAction func removeStep(sender: NSObject) {
@@ -719,6 +753,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		else if item.action()==Selector("paste:") {
 			return true
 		}
+		else if item.action() == Selector("copy:") {
+			return currentStep != nil
+		}
 		else {
 			return false
 		}
@@ -890,34 +927,44 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func paste(sender: NSObject) {
-		var data = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeString)
-		if data == nil {
-			data = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeTabularText)
-		}
+		let pboard = NSPasteboard.generalPasteboard()
 		
-		if let tsvString = data {
-			var data: [QBERow] = []
-			var headerRow: QBERow? = nil
-			let rows = tsvString.componentsSeparatedByString("\r")
-			for row in rows {
-				var rowValues: [QBEValue] = []
-				
-				let cells = row.componentsSeparatedByString("\t")
-				for cell in cells {
-					rowValues.append(locale.valueForLocalString(cell))
-				}
-				
-				if headerRow == nil {
-					headerRow = rowValues
-				}
-				else {
-					data.append(rowValues)
-				}
+		if let data = pboard.dataForType(QBEStep.dragType) {
+			if let step = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEStep {
+				step.previous = nil
+				pushStep(step)
+			}
+		}
+		else {
+			var data = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeString)
+			if data == nil {
+				data = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeTabularText)
 			}
 			
-			if headerRow != nil {
-				let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue!)}), readOnly: false)
-				pushStep(QBERasterStep(raster: raster))
+			if let tsvString = data {
+				var data: [QBERow] = []
+				var headerRow: QBERow? = nil
+				let rows = tsvString.componentsSeparatedByString("\r")
+				for row in rows {
+					var rowValues: [QBEValue] = []
+					
+					let cells = row.componentsSeparatedByString("\t")
+					for cell in cells {
+						rowValues.append(locale.valueForLocalString(cell))
+					}
+					
+					if headerRow == nil {
+						headerRow = rowValues
+					}
+					else {
+						data.append(rowValues)
+					}
+				}
+				
+				if headerRow != nil {
+					let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue!)}), readOnly: false)
+					pushStep(QBERasterStep(raster: raster))
+				}
 			}
 		}
 	}

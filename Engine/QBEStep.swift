@@ -9,6 +9,7 @@ Subclasses of QBEStep implement the data manipulation in the apply function, and
 as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. **/
 class QBEStep: NSObject {
 	static let defaultExampleRows = 100
+	static let dragType = "nl.pixelspark.Warp.Step"
 	
 	func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
 		self.previous?.exampleData(job, callback: {(data) in
