@@ -17,6 +17,10 @@ internal func QBETime(description: String, items: Int, itemType: String, _ job: 
 	#endif
 }
 
+internal func QBEAssertMainThread(file: StaticString = __FILE__, line: UWord = __LINE__) {
+	assert(NSThread.isMainThread(), "Code at \(file):\(line) must run on main thread!")
+}
+
 /** Runs the given block of code asynchronously on the main queue. **/
 internal func QBEAsyncMain(block: () -> ()) {
 	/*This used dispatch_async(dispatch_get_main_queue(), block) before, but I'm suspecting this causes lock-ups involving

@@ -150,6 +150,8 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	}
 	
 	private func update() {
+		QBEAssertMainThread()
+		
 		if let cv = self.collectionView {
 			// Update current selection
 			var indexSet = NSMutableIndexSet()

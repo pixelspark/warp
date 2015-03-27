@@ -295,6 +295,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	private func stepsChanged() {
+		QBEAssertMainThread()
 		self.stepsViewController?.steps = document?.steps
 		self.stepsViewController?.currentStep = currentStep
 		updateView()
@@ -304,6 +305,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	internal var undo: NSUndoManager? { get { return document?.undoManager } }
 	
 	private func pushStep(var step: QBEStep) {
+		QBEAssertMainThread()
+		
 		let isHead = document?.head == nil || currentStep == document?.head
 		
 		// Check if this step can (or should) be merged with the step it will be appended after
@@ -320,11 +323,25 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 					remove(cs)
 					step = merged
 					step.previous = nil
+					
+					if let v = self.stepsViewController?.view {
+						QBESettings.sharedInstance.once("mergeAdvised") {
+							self.showTip(NSLocalizedString("Warp has automatically combined your changes with the previous step.", comment: ""), atView: v)
+							return
+						}
+					}
+					
 					break;
 				
 				case .Cancels:
 					currentStep = cs.previous
 					remove(cs)
+					if let v = self.stepsViewController?.view {
+						QBESettings.sharedInstance.once("mergeCancelOut") {
+							self.showTip(NSLocalizedString("Your changes undo the previous step. Warp has therefore automatically removed the previous step.", comment: ""), atView: v)
+							return
+						}
+					}
 					return
 			}
 		}
@@ -412,6 +429,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	private func updateView() {
+		QBEAssertMainThread()
+		
 		self.suggestionsButton?.hidden = currentStep == nil
 		self.suggestionsButton?.enabled = currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
 		
@@ -423,6 +442,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	private func suggestSteps(var steps: Array<QBEStep>) {
+		QBEAssertMainThread()
+		
 		if steps.count == 0 {
 			// Alert
 			let alert = NSAlert()
@@ -447,6 +468,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	private func showTip(message: String, atView: NSView) {
+		QBEAssertMainThread()
+		
 		if let vc = self.storyboard?.instantiateControllerWithIdentifier("tipController") as? QBETipViewController {
 			vc.message = message
 			let popover = NSPopover()
@@ -457,6 +480,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func showSuggestions(sender: NSObject) {
+		QBEAssertMainThread()
+		
 		if let s = currentStep?.alternatives where s.count > 0 {
 			self.performSegueWithIdentifier("suggestions", sender: sender)
 		}
@@ -474,7 +499,16 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func setWorkingSet(sender: NSObject) {
 		if let sc = sender as? NSSegmentedControl {
-			useFullData = (sc.selectedSegment == 1);
+			let changing = (sc.selectedSegment == 1) != useFullData
+			if changing {
+				useFullData = (sc.selectedSegment == 1)
+			}
+			else {
+				calculate()
+				QBESettings.sharedInstance.once("setWorkingSetReload") {
+					self.showTip(NSLocalizedString("If you select the currently active working set, Warp will reload the current working set.", comment: ""), atView: sc)
+				}
+			}
 		}
 	}
 	
@@ -496,6 +530,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	private func remove(stepToRemove: QBEStep) {
+		QBEAssertMainThread()
+		
 		let previous = stepToRemove.previous
 		previous?.next = stepToRemove.next
 		
@@ -513,6 +549,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func copy(sender: NSObject) {
+		QBEAssertMainThread()
+		
 		if let s = currentStep {
 			let pboard = NSPasteboard.generalPasteboard()
 			pboard.clearContents()
