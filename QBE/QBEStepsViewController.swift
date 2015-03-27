@@ -150,22 +150,20 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	}
 	
 	private func update() {
-		QBEAsyncMain {
-			if let cv = self.collectionView {
-				// Update current selection
-				var indexSet = NSMutableIndexSet()
-				
-				for itemNumber in 0..<cv.content.count {
-					if let step = cv.content[itemNumber] as? QBEStep {
-						if step == self.currentStep {
-							indexSet.addIndex(itemNumber)
-						}
+		if let cv = self.collectionView {
+			// Update current selection
+			var indexSet = NSMutableIndexSet()
+			
+			for itemNumber in 0..<cv.content.count {
+				if let step = cv.content[itemNumber] as? QBEStep {
+					if step == self.currentStep {
+						indexSet.addIndex(itemNumber)
 					}
 				}
-				
-				if !indexSet.isEqualToIndexSet(cv.selectionIndexes) {
-					cv.selectionIndexes = indexSet
-				}
+			}
+			
+			if !indexSet.isEqualToIndexSet(cv.selectionIndexes) {
+				cv.selectionIndexes = indexSet
 			}
 		}
 	}

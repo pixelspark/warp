@@ -35,6 +35,19 @@ class QBECalculateStep: QBEStep {
 		callback(data.calculate([targetColumn: function]))
 	}
 	
+	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+		if let p = prior as? QBECalculateStep {
+			if p.targetColumn == self.targetColumn && p.function.isConstant && p.function.apply([], columns: [], inputValue: nil) == QBEValue.EmptyValue {
+				return QBEStepMerge.Advised(self)
+			}
+		}
+		
+		/* TODO: we can merge with a previous calculate step that has the same target column name if this calculation does
+		not depend on the previously calculated column. */
+		
+		return QBEStepMerge.Impossible
+	}
+	
 	class func suggest(change fromValue: QBEValue, toValue: QBEValue, inRaster: QBERaster, row: Int, column: Int, locale: QBELocale) -> [QBEExpression] {
 		var suggestions: [QBEExpression] = []
 		if fromValue != toValue {

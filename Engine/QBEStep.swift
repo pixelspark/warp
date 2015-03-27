@@ -67,6 +67,18 @@ class QBEStep: NSObject {
 	/** This method is called right after a document has been loaded from disk. **/
 	func didLoadFromDocument(atURL: NSURL) {
 	}
+
+	/** Returns whether this step can be merged with the specified previous step. **/
+	func mergeWith(prior: QBEStep) -> QBEStepMerge {
+		return QBEStepMerge.Impossible
+	}
+}
+
+enum QBEStepMerge {
+	case Impossible
+	case Advised(QBEStep)
+	case Possible(QBEStep)
+	case Cancels
 }
 
 /** QBEFileReference is the class to be used by steps that need to reference auxiliary files. It employs Apple's App
@@ -175,5 +187,12 @@ class QBETransposeStep: QBEStep {
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
 		return NSLocalizedString("Switch rows/columns", comment: "")
+	}
+	
+	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+		if let t = prior as? QBETransposeStep {
+			return QBEStepMerge.Cancels
+		}
+		return QBEStepMerge.Impossible
 	}
 }

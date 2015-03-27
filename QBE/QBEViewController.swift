@@ -193,6 +193,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			popStep()
 		}
 		remove(step)
+		calculate()
 	}
 	
 	func stepsController(vc: QBEStepsViewController, didMoveStep: QBEStep, afterStep: QBEStep?) {
@@ -297,19 +298,45 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		self.stepsViewController?.steps = document?.steps
 		self.stepsViewController?.currentStep = currentStep
 		updateView()
+		refreshData()
 	}
 	
 	internal var undo: NSUndoManager? { get { return document?.undoManager } }
 	
-	private func pushStep(step: QBEStep) {
+	private func pushStep(var step: QBEStep) {
+		let isHead = document?.head == nil || currentStep == document?.head
+		
+		// Check if this step can (or should) be merged with the step it will be appended after
+		if let cs = currentStep {
+			switch step.mergeWith(cs) {
+				case .Impossible:
+					break;
+				
+				case .Possible:
+					break;
+				
+				case .Advised(let merged):
+					popStep()
+					remove(cs)
+					step = merged
+					step.previous = nil
+					break;
+				
+				case .Cancels:
+					currentStep = cs.previous
+					remove(cs)
+					return
+			}
+		}
+		
 		currentStep?.next?.previous = step
 		currentStep?.next = step
 		step.previous = currentStep
-		
-		if document?.head == nil || currentStep == document?.head {
+		currentStep = step
+
+		if isHead {
 			document?.head = step
 		}
-		currentStep = step
 		stepsChanged()
 		
 		(undo?.prepareWithInvocationTarget(self) as? QBEViewController)?.removeStep(step)
@@ -498,7 +525,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func removeStep(sender: NSObject) {
 		if let stepToRemove = currentStep {
 			popStep()
-			removeStep(stepToRemove)
+			remove(stepToRemove)
 		}
 	}
 	

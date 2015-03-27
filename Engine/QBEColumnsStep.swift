@@ -76,6 +76,15 @@ class QBEColumnsStep: QBEStep {
 			callback(data.selectColumns(columns))
 		})
 	}
+	
+	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+		if let p = prior as? QBEColumnsStep {
+			// This step can ony be a further subset of the columns selected by the prior
+			return QBEStepMerge.Advised(self)
+		}
+		
+		return QBEStepMerge.Impossible
+	}
 }
 
 class QBESortColumnsStep: QBEStep {

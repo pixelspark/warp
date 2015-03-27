@@ -99,6 +99,36 @@ class QBEFilterStep: QBEStep {
 		coder.encodeObject(condition, forKey: "condition")
 	}
 	
+	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+		if let p = prior as? QBEFilterStep {
+			// This filter step can be AND'ed with the previous
+			let combinedCondition: QBEExpression
+			
+			if let myCondition = self.condition {
+				if let otherCondition = p.condition {
+					if let rootAnd = otherCondition as? QBEFunctionExpression where rootAnd.type == QBEFunction.And {
+						let args: [QBEExpression] = rootAnd.arguments + [myCondition]
+						combinedCondition = QBEFunctionExpression(arguments: args, type: QBEFunction.And)
+					}
+					else {
+						var args: [QBEExpression] = [p.condition!, myCondition]
+						combinedCondition = QBEFunctionExpression(arguments: args, type: QBEFunction.And)
+					}
+					
+					return QBEStepMerge.Possible(QBEFilterStep(previous: nil, condition: combinedCondition))
+				}
+				else {
+					return QBEStepMerge.Advised(self)
+				}
+			}
+			else {
+				return QBEStepMerge.Advised(p)
+			}
+		}
+		
+		return QBEStepMerge.Impossible
+	}
+	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
 		if let c = condition {
 			callback(data.filter(c))
@@ -136,6 +166,13 @@ class QBELimitStep: QBEStep {
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
 		callback(data.limit(numberOfRows))
+	}
+	
+	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+		if let p = prior as? QBELimitStep {
+			return QBEStepMerge.Advised(QBELimitStep(previous: nil, numberOfRows: min(self.numberOfRows, p.numberOfRows)))
+		}
+		return QBEStepMerge.Impossible
 	}
 }
 

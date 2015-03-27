@@ -19,7 +19,10 @@ internal func QBETime(description: String, items: Int, itemType: String, _ job: 
 
 /** Runs the given block of code asynchronously on the main queue. **/
 internal func QBEAsyncMain(block: () -> ()) {
-	dispatch_async(dispatch_get_main_queue(), block)
+	/*This used dispatch_async(dispatch_get_main_queue(), block) before, but I'm suspecting this causes lock-ups involving
+	NSCollectionView, which seems to keep NSHierarchyLock between events. Let's see if things work better when using 
+	NSOperationQueue instead. */
+	NSOperationQueue.mainQueue().addOperationWithBlock(block)
 }
 
 /** Runs the given block of code asynchronously on a concurrent background queue with QoS class 'user initiated'. **/
