@@ -4,9 +4,11 @@ import SwiftParser
 private struct QBEStack<T> {
 	var items = [T]()
 
-	mutating func push(item: T) {
+	mutating func push(item: T) -> T {
 		items.append(item)
+		return item
 	}
+	
 	mutating func pop() -> T {
 		return items.removeLast()
 	}
@@ -100,9 +102,20 @@ private struct QBECall {
 that can be used to calculate values. Like in Excel, the language used for the formulas (e.g. for function names) depends
 on the user's preference and is therefore variable (QBELocale implements this). **/
 class QBEFormula: Parser {
+	struct Fragment {
+		let start: Int
+		let end: Int
+		let expression: QBEExpression
+		
+		var length: Int { get {
+			return end - start
+		} }
+	}
+	
 	private var stack = QBEStack<QBEExpression>()
 	private var callStack = QBEStack<QBECall>()
 	let locale: QBELocale
+	var fragments: [Fragment] = []
 	
 	var root: QBEExpression {
 		get {
@@ -112,23 +125,30 @@ class QBEFormula: Parser {
 	
 	init?(formula: String, locale: QBELocale) {
 		self.locale = locale
+		self.fragments = []
 		super.init()
 		if !self.parse(formula) {
 			return nil
 		}
 	}
 	
+	private func annotate(expression: QBEExpression) {
+		if let cc = super.current_capture {
+			fragments.append(Fragment(start: cc.start, end: cc.end, expression: expression))
+		}
+	}
+	
 	private func pushInt() {
-		stack.push(QBELiteralExpression(QBEValue(self.text.toInt()!)))
+		annotate(stack.push(QBELiteralExpression(QBEValue(self.text.toInt()!))))
 	}
 	
 	private func pushDouble() {
-		stack.push(QBELiteralExpression(QBEValue(self.text.toDouble()!)))
+		annotate(stack.push(QBELiteralExpression(QBEValue(self.text.toDouble()!))))
 	}
 	
 	private func pushString() {
 		let text = self.text.stringByReplacingOccurrencesOfString("\"\"", withString: "\"")
-		stack.push(QBELiteralExpression(QBEValue(text)))
+		annotate(stack.push(QBELiteralExpression(QBEValue(text))))
 	}
 	
 	private func pushAddition() {
@@ -161,13 +181,13 @@ class QBEFormula: Parser {
 	}
 	
 	private func pushSibling() {
-		stack.push(QBESiblingExpression(columnName: QBEColumn(self.text)))
+		annotate(stack.push(QBESiblingExpression(columnName: QBEColumn(self.text))))
 	}
 	
 	private func pushConstant() {
 		for (constant, name) in locale.constants {
 			if name.caseInsensitiveCompare(self.text) == NSComparisonResult.OrderedSame {
-				stack.push(QBELiteralExpression(constant))
+				annotate(stack.push(QBELiteralExpression(constant)))
 				return
 			}
 		}
@@ -175,7 +195,7 @@ class QBEFormula: Parser {
 	
 	private func pushPercentagePostfix() {
 		let a = stack.pop()
-		stack.push(QBEBinaryExpression(first: QBELiteralExpression(QBEValue(100)), second: a, type: QBEBinary.Division))
+		annotate(stack.push(QBEBinaryExpression(first: QBELiteralExpression(QBEValue(100)), second: a, type: QBEBinary.Division)))
 	}
 	
 	private func pushBinary(type: QBEBinary) {
@@ -227,7 +247,7 @@ class QBEFormula: Parser {
 	}
 	
 	private func pushIdentity() {
-		stack.push(QBEIdentityExpression())
+		annotate(stack.push(QBEIdentityExpression()))
 	}
 	
 	private func popCall() {
@@ -238,7 +258,7 @@ class QBEFormula: Parser {
 		if q.args.count > 0 {
 			q.args.removeLast()
 		}
-		stack.push(QBEFunctionExpression(arguments: q.args, type: q.function))
+		annotate(stack.push(QBEFunctionExpression(arguments: q.args, type: q.function)))
 	}
 	
 	private func pushArgument() {

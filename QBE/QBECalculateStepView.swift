@@ -30,7 +30,33 @@ internal class QBECalculateStepView: NSViewController {
 		super.viewWillAppear()
 		if let s = step {
 			self.targetColumnNameField?.stringValue = s.targetColumn.name
-			self.formulaField?.stringValue = "=" + s.function.toFormula(self.delegate?.locale ?? QBELocale())
+			updateView()
+		}
+	}
+	
+	private func updateView() {
+		if let f = step?.function.toFormula(self.delegate?.locale ?? QBELocale()) {
+			let fullFormula = "="+f
+			if let parsed = QBEFormula(formula: fullFormula, locale: (self.delegate?.locale ?? QBELocale())) {
+				let ma = NSMutableAttributedString(string: fullFormula, attributes: [
+					NSForegroundColorAttributeName: NSColor.blackColor(),
+					NSFontAttributeName: NSFont.systemFontOfSize(13)
+				])
+				
+				for fragment in parsed.fragments.sorted({return $0.length > $1.length}) {
+					if let literal = fragment.expression as? QBELiteralExpression {
+						ma.addAttributes([NSForegroundColorAttributeName: NSColor.blueColor()], range: NSMakeRange(fragment.start, fragment.length))
+					}
+					else if let literal = fragment.expression as? QBESiblingExpression {
+						ma.addAttributes([NSForegroundColorAttributeName: NSColor(red: 0.0, green: 0.5, blue: 0.0, alpha: 1.0)], range: NSMakeRange(fragment.start, fragment.length))
+					}
+					else if let literal = fragment.expression as? QBEIdentityExpression {
+						ma.addAttributes([NSForegroundColorAttributeName: NSColor(red: 0.8, green: 0.5, blue: 0.0, alpha: 1.0)], range: NSMakeRange(fragment.start, fragment.length))
+					}
+				}
+			
+				self.formulaField?.attributedStringValue = ma
+			}
 		}
 	}
 	
@@ -38,8 +64,9 @@ internal class QBECalculateStepView: NSViewController {
 		if let s = step {
 			s.targetColumn = QBEColumn(self.targetColumnNameField?.stringValue ?? s.targetColumn.name)
 			if let f = self.formulaField?.stringValue {
-				if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale()))?.root {
-					s.function = parsed
+				if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale())) {
+					s.function = parsed.root
+					updateView()
 				}
 				else {
 					// TODO: this should be a bit more informative
