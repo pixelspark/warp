@@ -172,6 +172,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	private func update() {
+		QBEAssertMainThread()
 		// Set visibility
 		let hasNoData = (raster==nil)
 		
@@ -184,6 +185,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		progressView?.minValue = 0.0
 		progressView?.maxValue = 1.0
 		progressView?.layer?.zPosition = 2.0
+		progressView.usesThreadedAnimation = false // This is to prevent lock-ups involving __psync_cvwait, NSViewHierarchyLock + NSCollectionView
 		
 		if calculating {
 			progressView?.startAnimation(nil)

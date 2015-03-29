@@ -23,10 +23,7 @@ internal func QBEAssertMainThread(file: StaticString = __FILE__, line: UWord = _
 
 /** Runs the given block of code asynchronously on the main queue. **/
 internal func QBEAsyncMain(block: () -> ()) {
-	/*This used dispatch_async(dispatch_get_main_queue(), block) before, but I'm suspecting this causes lock-ups involving
-	NSCollectionView, which seems to keep NSHierarchyLock between events. Let's see if things work better when using 
-	NSOperationQueue instead. */
-	NSOperationQueue.mainQueue().addOperationWithBlock(block)
+	dispatch_async(dispatch_get_main_queue(), block)
 }
 
 /** Runs the given block of code asynchronously on a concurrent background queue with QoS class 'user initiated'. **/
