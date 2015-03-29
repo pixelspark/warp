@@ -122,25 +122,42 @@ class QBEFuture<T> {
 	} }
 	
 	let producer: Producer
+	let timeLimit: Double?
 	
-	init(_ producer: Producer)  {
+	init(_ producer: Producer, timeLimit: Double? = nil)  {
 		self.producer = producer
+		self.timeLimit = timeLimit
 	}
 	
-	init(_ producer: SimpleProducer) {
+	init(_ producer: SimpleProducer, timeLimit: Double? = nil) {
 		self.producer = {(job, callback) in producer(callback)}
+		self.timeLimit = timeLimit
 	}
 	
 	private func calculate() {
 		assert(batch != nil, "calculate() called without a current batch")
 		
 		if let batch = self.batch {
+			if let tl = timeLimit {
+				// Set a timer to cancel this job
+				dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(tl * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+					println("Job timed out after \(tl) seconds")
+					batch.expire()
+				}
+			}
 			producer(batch, batch.satisfy)
 		}
 	}
 	
+	/** Abort calculating the result (if calculation is in progress). Registered callbacks will not be called (when 
+	callbacks are already being called, this will be finished).**/
 	func cancel() {
 		batch?.cancel()
+	}
+	
+	/** Abort calculating the result (if calculation is in progress). Registered callbacks may still be called. **/
+	func expire() {
+		batch?.expire()
 	}
 	
 	func get(callback: Callback) -> QBEJob {
@@ -177,6 +194,14 @@ private class QBEBatch<T>: QBEJob {
 			}
 		}
 		waitingList = []
+	}
+	
+	/* Expire is like cancel, only the waiting consumers are not removed from the waiting list. This allows a job to 
+	return a partial result (by calling the callback while job.cancelled is already true) */
+	func expire() {
+		if !satisfied {
+			cancelled = true
+		}
 	}
 	
 	override func cancel() {

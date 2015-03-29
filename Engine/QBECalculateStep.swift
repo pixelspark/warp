@@ -48,7 +48,7 @@ class QBECalculateStep: QBEStep {
 		return QBEStepMerge.Impossible
 	}
 	
-	class func suggest(change fromValue: QBEValue, toValue: QBEValue, inRaster: QBERaster, row: Int, column: Int, locale: QBELocale) -> [QBEExpression] {
+	class func suggest(change fromValue: QBEValue, toValue: QBEValue, inRaster: QBERaster, row: Int, column: Int, locale: QBELocale, job: QBEJob?) -> [QBEExpression] {
 		var suggestions: [QBEExpression] = []
 		if fromValue != toValue {
 			let targetColumn = inRaster.columnNames[column]
@@ -59,7 +59,7 @@ class QBECalculateStep: QBEStep {
 				return suggestions
 			}
 			else {
-				QBEExpression.infer(nil, toValue: toValue, suggestions: &suggestions, level: 6, columns: inRaster.columnNames, row: inRaster[row], column: column)
+				QBEExpression.infer(nil, toValue: toValue, suggestions: &suggestions, level: 6, columns: inRaster.columnNames, row: inRaster[row], column: column, job: job)
 				// Suggest a text replace
 				suggestions.append(QBEFunctionExpression(arguments: [QBEIdentityExpression(), QBELiteralExpression(fromValue), QBELiteralExpression(toValue)], type: QBEFunction.Substitute))
 			}

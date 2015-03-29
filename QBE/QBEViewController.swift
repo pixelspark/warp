@@ -23,6 +23,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	internal var currentData: QBEFuture<QBEData>?
 	internal var currentRaster: QBEFuture<QBERaster>?
+	internal var suggestions: QBEFuture<[QBEStep]>?
 	
 	internal var useFullData: Bool = false {
 		didSet {
@@ -281,15 +282,21 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 
 	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
+		suggestions?.cancel()
+		
 		currentRaster?.get({(raster) in
-			QBEAsyncBackground {
-				let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale)
-				let steps = expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)})
-				
+			self.suggestions = QBEFuture<[QBEStep]>({(job, callback) -> () in
+				QBEAsyncBackground {
+					let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
+					callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)}))
+				}
+			}, timeLimit: 5.0)
+			
+			self.suggestions!.get({(steps) -> () in
 				QBEAsyncMain {
 					self.suggestSteps(steps)
 				}
-			}
+			})
 		})
 		return false
 	}

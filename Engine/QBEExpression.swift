@@ -56,7 +56,7 @@ class QBEExpression: NSObject, NSCoding {
 	
 	/** Returns a list of suggestions for applications of this expression on the given value (fromValue) that result in the
 	given 'to' value (or bring the value closer to the toValue). **/
-	class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?, level: Int) -> [QBEExpression] {
+	class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
 		return []
 	}
 	
@@ -64,12 +64,19 @@ class QBEExpression: NSObject, NSCoding {
 	input value to a specific output value. It does so by looping over 'suggestions' (provided by QBEFunction
 	implementations) for the application of (usually unary) functions to the input value to obtain (or come closer to) the
 	output value. **/
-	internal class final func infer(fromValue: QBEExpression?, toValue: QBEValue, inout suggestions: [QBEExpression], level: Int, columns: [QBEColumn], row: QBERow, column: Int, maxComplexity: Int = Int.max, previousValues: [QBEValue] = []) {
+	internal class final func infer(fromValue: QBEExpression?, toValue: QBEValue, inout suggestions: [QBEExpression], level: Int, columns: [QBEColumn], row: QBERow, column: Int, maxComplexity: Int = Int.max, previousValues: [QBEValue] = [], job: QBEJob? = nil) {
 		let inputValue = row[column]
+		if let c = job?.cancelled where c {
+			return
+		}
 		
 		// Try out combinations of formulas and see if they fit
 		for formulaType in QBEExpressions {
-			let suggestedFormulas = formulaType.suggest(fromValue, toValue: toValue, row: row, columns: columns, inputValue: inputValue, level: level);
+			if let c = job?.cancelled where c {
+				return
+			}
+			
+			let suggestedFormulas = formulaType.suggest(fromValue, toValue: toValue, row: row, columns: columns, inputValue: inputValue, level: level, job: job);
 			var complexity = maxComplexity
 			var exploreFurther: [QBEExpression] = []
 			
@@ -114,7 +121,7 @@ class QBEExpression: NSObject, NSCoding {
 					var nextLevelSuggestions: [QBEExpression] = []
 					var newPreviousValues = previousValues
 					newPreviousValues.append(result)
-					infer(formula, toValue: toValue, suggestions: &nextLevelSuggestions, level: level-1, columns: columns, row: row, column: column, maxComplexity: complexity, previousValues: newPreviousValues)
+					infer(formula, toValue: toValue, suggestions: &nextLevelSuggestions, level: level-1, columns: columns, row: row, column: column, maxComplexity: complexity, previousValues: newPreviousValues, job: job)
 					
 					for nextLevelSuggestion in nextLevelSuggestions {
 						if nextLevelSuggestion.apply(row, columns:columns, inputValue: inputValue) == toValue {
@@ -187,7 +194,7 @@ class QBELiteralExpression: QBEExpression {
 		return value
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?, level: Int) -> [QBEExpression] {
+	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
 		if fromValue == nil {
 			return [QBELiteralExpression(toValue)]
 		}
@@ -280,7 +287,7 @@ class QBEBinaryExpression: QBEExpression {
 		return self.type.apply(left, right)
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?, level: Int) -> [QBEExpression] {
+	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
 		var suggestions: [QBEExpression] = []
 		
 		if let from = fromValue {
@@ -292,7 +299,7 @@ class QBEBinaryExpression: QBEExpression {
 							let difference = targetDouble - fromDouble
 							if difference != 0 {
 								var addSuggestions: [QBEExpression] = []
-								QBEExpression.infer(nil, toValue: QBEValue(abs(difference)), suggestions: &addSuggestions, level: level-1, columns: columns, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f])
+								QBEExpression.infer(nil, toValue: QBEValue(abs(difference)), suggestions: &addSuggestions, level: level-1, columns: columns, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
 								if difference > 0 {
 									addSuggestions.each({suggestions.append(QBEBinaryExpression(first: $0, second: from, type: QBEBinary.Addition))})
@@ -307,7 +314,7 @@ class QBEBinaryExpression: QBEExpression {
 								let dividend = targetDouble / fromDouble
 								
 								var mulSuggestions: [QBEExpression] = []
-								QBEExpression.infer(nil, toValue: QBEValue(dividend < 1 ? (1/dividend) : dividend), suggestions: &mulSuggestions, level: level-1, columns: columns, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f])
+								QBEExpression.infer(nil, toValue: QBEValue(dividend < 1 ? (1/dividend) : dividend), suggestions: &mulSuggestions, level: level-1, columns: columns, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
 								if dividend >= 1 {
 									mulSuggestions.each({suggestions.append(QBEBinaryExpression(first: $0, second: from, type: QBEBinary.Multiplication))})
@@ -393,7 +400,7 @@ class QBEFunctionExpression: QBEExpression {
 		return self.type.apply(vals)
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?, level: Int) -> [QBEExpression] {
+	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
 		var suggestions: [QBEExpression] = []
 		
 		if let from = fromValue {
@@ -418,6 +425,10 @@ class QBEFunctionExpression: QBEExpression {
 						var foundAsElement = false
 						let separators = [" ", ",", ";", "\t", "|", "-", ".", "/", ":", "\\", "#", "=", "_", "(", ")", "[", "]"]
 						for separator in separators {
+							if let c = job?.cancelled where c {
+								break
+							}
+							
 							let splitted = sourceString.componentsSeparatedByString(separator)
 							if splitted.count > 1 {
 								let pack = QBEPack(splitted)
@@ -491,7 +502,7 @@ class QBESiblingExpression: QBEExpression {
 		return QBEValue.InvalidValue
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?, level: Int) -> [QBEExpression] {
+	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, columns: [QBEColumn], inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
 		var s: [QBEExpression] = []
 		if fromValue == nil {
 			for columnName in columns {
