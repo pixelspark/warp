@@ -408,18 +408,45 @@ class QBEFunctionExpression: QBEExpression {
 				}
 				
 				// For binary and n-ary functions, specific test cases follow
+				var incompleteSuggestions: [QBEExpression] = []
 				if let targetString = toValue.stringValue {
 					let length = QBEValue(count(targetString))
-					
-					suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Left))
-					suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Right))
-					
+
 					// Is the 'to' string perhaps a substring of the 'from' string?
 					if let sourceString = f.stringValue {
-						if let range = sourceString.rangeOfString(targetString) {
-							let start = QBELiteralExpression(QBEValue(distance(sourceString.startIndex, range.startIndex)))
-							let length = QBELiteralExpression(QBEValue(distance(range.startIndex, range.endIndex)))
-							suggestions.append(QBEFunctionExpression(arguments: [from, start, length], type: QBEFunction.Mid))
+						// Let's see if we can extract this string using array logic. Otherwise suggest index-based string splitting
+						var foundAsElement = false
+						let separators = [" ", ",", ";", "\t", "|", "-", ".", "/", ":", "\\", "#", "=", "_", "(", ")", "[", "]"]
+						for separator in separators {
+							let splitted = sourceString.componentsSeparatedByString(separator)
+							if splitted.count > 1 {
+								let pack = QBEPack(splitted)
+								for i in 0..<pack.count {
+									let item = pack[i]
+									let splitExpression = QBEFunctionExpression(arguments: [from, QBELiteralExpression(QBEValue.StringValue(separator))], type: QBEFunction.Split)
+									let nthExpression = QBEFunctionExpression(arguments: [splitExpression, QBELiteralExpression(QBEValue.IntValue(i+1))], type: QBEFunction.Nth)
+									if targetString == item {
+										suggestions.append(nthExpression)
+										foundAsElement = true
+									}
+									else {
+										incompleteSuggestions.append(nthExpression)
+									}
+									
+								}
+							}
+						}
+
+						if !foundAsElement {
+							suggestions += incompleteSuggestions
+							if let range = sourceString.rangeOfString(targetString) {
+								suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Left))
+								suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Right))
+								
+								let start = QBELiteralExpression(QBEValue(distance(sourceString.startIndex, range.startIndex)))
+								let length = QBELiteralExpression(QBEValue(distance(range.startIndex, range.endIndex)))
+								suggestions.append(QBEFunctionExpression(arguments: [from, start, length], type: QBEFunction.Mid))
+							}
 						}
 					}
 				}

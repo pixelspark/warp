@@ -165,7 +165,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 				case .Concat: return "GROUP_CONCAT(\(expressionSQL),'')"
 				
 				case .Pack:
-					return "GROUP_CONCAT(REPLACE(REPLACE(\(expressionSQL),\(literalString(QBEPackEscape)),\(literalString(QBEPackEscapeEscape))),\(literalString(QBEPackSeparator)),\(literalString(QBEPackSeparatorEscape))), \(literalString(QBEPackSeparator)))"
+					return "GROUP_CONCAT(REPLACE(REPLACE(\(expressionSQL),\(literalString(QBEPack.Escape)),\(literalString(QBEPack.EscapeEscape))),\(literalString(QBEPack.Separator)),\(literalString(QBEPack.SeparatorEscape))), \(literalString(QBEPack.Separator)))"
 				
 				default:
 					/* TODO: RandomItem can be implemented using a UDF aggregation function in PostgreSQL. Implementing it in
@@ -272,6 +272,9 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Choose: return nil
 			case .RegexSubstitute: return nil
 			case .NormalInverse: return nil
+			case .Split: return nil
+			case .Nth: return nil
+			case .Items: return nil
 		}
 	}
 	

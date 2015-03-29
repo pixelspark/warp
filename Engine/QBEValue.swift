@@ -355,6 +355,63 @@ internal enum QBEValue: Hashable, DebugPrintable {
 	} }
 }
 
+/** The pack format is a framing format to store an array of values in a string, where the items of the array themselves
+may contain the separator character. These occurrences are escaped in the pack format using the escape sequence
+QBEPackSeparatorEscape. Occurrences of the escape character are replaced with the QBEPackEscapeEscape sequence. The pack
+format is inspired by the SLIP serial line framing format. The pack format allows values to be grouped together in a single
+value cell (e.g. during aggregation) to later be unpacked again.
+
+Using ',' as separator, '$0' as separator escape and '$1' as escape-escape, packing the array ["a","b,", "c$"] leads to
+the following pack string: "a,b$0,c$1". Unpacking the pack string "$0$0$0,$1$0,," leads to the array [",,,", "$,","",""].
+**/
+class QBEPack {
+	static let Separator = ","
+	static let Escape = "$"
+	static let SeparatorEscape = "$0"
+	static let EscapeEscape = "$1"
+	
+	private let items: [String]
+	
+	init(_ items: [String]) {
+		self.items = items
+	}
+	
+	init(_ items: [QBEValue]) {
+		self.items = items.map({return $0.stringValue ?? ""})
+	}
+	
+	init(_ pack: String) {
+		if pack.isEmpty {
+			items = []
+		}
+		else {
+			items = pack.componentsSeparatedByString(QBEPack.Separator).map({
+				return $0.stringByReplacingOccurrencesOfString(QBEPack.EscapeEscape, withString: QBEPack.Escape)
+					.stringByReplacingOccurrencesOfString(QBEPack.SeparatorEscape, withString: QBEPack.Separator)
+			})
+		}
+	}
+
+	var count: Int { get {
+		return items.count
+	} }
+	
+	subscript(n: Int) -> String {
+		assert(n >= 0, "Index on a pack cannot be negative")
+		assert(n < count, "Index out of bounds")
+		return items[n]
+	}
+	
+	var stringValue: String { get {
+		let res = items.map({
+			$0.stringByReplacingOccurrencesOfString(QBEPack.Escape, withString: QBEPack.EscapeEscape)
+			  .stringByReplacingOccurrencesOfString(QBEPack.Separator, withString: QBEPack.SeparatorEscape) ?? ""
+		})
+		
+		return res.implode(QBEPack.Separator) ?? ""
+	} }
+}
+
 /** QBEValueCoder implements encoding for QBEValue (which cannot implement it as it is an enum). **/
 class QBEValueCoder: NSObject, NSSecureCoding {
 	let value: QBEValue

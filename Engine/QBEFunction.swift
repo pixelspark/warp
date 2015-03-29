@@ -86,6 +86,9 @@ enum QBEFunction: String {
 	case RegexSubstitute = "regexSubstitute"
 	case NormalInverse = "normalInverse"
 	case Sign = "sign"
+	case Split = "split"
+	case Nth = "nth"
+	case Items = "items"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -192,6 +195,9 @@ enum QBEFunction: String {
 			case .RegexSubstitute: return NSLocalizedString("replace using pattern", comment: "")
 			case .NormalInverse: return NSLocalizedString("inverse normal", comment: "")
 			case .Sign: return NSLocalizedString("sign", comment: "")
+			case .Split: return NSLocalizedString("split", comment: "")
+			case .Nth: return NSLocalizedString("nth item", comment: "")
+			case .Items: return NSLocalizedString("number of items", comment: "")
 		}
 	}
 	
@@ -260,6 +266,9 @@ enum QBEFunction: String {
 		case .RegexSubstitute: return QBEArity.Fixed(3)
 		case .NormalInverse: return QBEArity.Fixed(3)
 		case .Sign: return QBEArity.Fixed(1)
+		case .Split: return QBEArity.Fixed(2)
+		case .Nth: return QBEArity.Fixed(2)
+		case .Items: return QBEArity.Fixed(1)
 		}
 	} }
 	
@@ -342,11 +351,8 @@ enum QBEFunction: String {
 			return QBEValue(s)
 			
 		case .Pack:
-			let res = arguments.map({
-				$0.stringValue?.stringByReplacingOccurrencesOfString(QBEPackEscape, withString: QBEPackEscapeEscape).stringByReplacingOccurrencesOfString(QBEPackSeparator, withString: QBEPackSeparatorEscape) ?? ""
-			})
-			
-			return QBEValue.StringValue(res.implode(QBEPackSeparator) ?? "")
+			let pack = QBEPack(arguments)
+			return QBEValue.StringValue(pack.stringValue)
 			
 		case .If:
 			if let d = arguments[0].boolValue {
@@ -638,13 +644,40 @@ enum QBEFunction: String {
 				return QBEValue.IntValue(sign)
 			}
 			return QBEValue.InvalidValue
+			
+			
+		case .Split:
+			if let s = arguments[0].stringValue {
+				let separator = (arguments.count > 1 ? arguments[1].stringValue : nil) ?? " "
+				let splitted = s.componentsSeparatedByString(separator)
+				let pack = QBEPack(splitted)
+				return QBEValue.StringValue(pack.stringValue)
+			}
+			return QBEValue.InvalidValue
+			
+			
+		case .Nth:
+			if let source = arguments[0].stringValue, let index = arguments[1].intValue {
+				let pack = QBEPack(source)
+				let adjustedIndex = index-1
+				if adjustedIndex < pack.count && adjustedIndex >= 0 {
+					return QBEValue.StringValue(pack[adjustedIndex])
+				}
+			}
+			return QBEValue.InvalidValue
+			
+		case .Items:
+			if let source = arguments[0].stringValue {
+				return QBEValue.IntValue(QBEPack(source).count)
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
-		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign
+		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items
 	]
 }
 

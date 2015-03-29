@@ -85,6 +85,15 @@ class QBETests: XCTestCase {
 		
 		XCTAssert(!(QBEValue.InvalidValue == QBEValue.InvalidValue), "Invalid value equals nothing")
 		XCTAssert(QBEValue.InvalidValue != QBEValue.InvalidValue, "Invalid value inequals other invalid value")
+		
+		
+		XCTAssert(QBEPack("a,b,c,d").count == 4, "Pack format parser works")
+		XCTAssert(QBEPack("a,b,c,d,").count == 5, "Pack format parser works")
+		XCTAssert(QBEPack("a,b$0,c$1$0,d$0$1").count == 4, "Pack format parser works")
+		XCTAssert(QBEPack(",").count == 2, "Pack format parser works")
+		XCTAssert(QBEPack("").count == 0, "Pack format parser works")
+		
+		XCTAssert(QBEPack(["Tommy", "van$,der,Vorst"]).stringValue == "Tommy,van$1$0der$0Vorst", "Pack writer properly escapes")
 	}
 	
 	func testFormulaParser() {
@@ -150,6 +159,11 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("Tom"))==QBEValue(true), "Strict contains string operator should work")
 		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("tom"))==QBEValue(false), "Strict contains string operator should be case-sensitive")
 		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("x"))==QBEValue(false), "Strict contains string operator should work")
+		
+		// Split / nth
+		XCTAssert(QBEFunction.Split.apply([QBEValue("van der Vorst, Tommy"), QBEValue(" ")]).stringValue == "van,der,Vorst$0,Tommy", "Split works")
+		XCTAssert(QBEFunction.Nth.apply([QBEValue("van,der,Vorst$0,Tommy"), QBEValue(3)]).stringValue == "Vorst,", "Nth works")
+		XCTAssert(QBEFunction.Items.apply([QBEValue("van,der,Vorst$0,Tommy")]).intValue == 4, "Items works")
 		
 		// Stats
 		let z = QBEFunction.NormalInverse.apply([QBEValue(0.9), QBEValue(10), QBEValue(5)]).doubleValue

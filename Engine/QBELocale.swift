@@ -1,19 +1,5 @@
 import Foundation
 
-/** The pack format is a framing format to store an array of values in a string, where the items of the array themselves
-may contain the separator character. These occurrences are escaped in the pack format using the escape sequence 
-QBEPackSeparatorEscape. Occurrences of the escape character are replaced with the QBEPackEscapeEscape sequence. The pack
-format is inspired by the SLIP serial line framing format. The pack format allows values to be grouped together in a single
-value cell (e.g. during aggregation) to later be unpacked again.
-
-Using ',' as separator, '$0' as separator escape and '$1' as escape-escape, packing the array ["a","b,", "c$"] leads to 
-the following pack string: "a,b$0,c$1". Unpacking the pack string "$0$0$0,$1$0,," leads to the array [",,,", "$,","",""].
-**/
-let QBEPackSeparator = ","
-let QBEPackEscape = "$"
-let QBEPackSeparatorEscape = "$0"
-let QBEPackEscapeEscape = "$1"
-
 /** The default dialect for formulas reflects the English version of Excel closely. **/
 class QBELocale: NSObject {
 	typealias QBELanguage = String
@@ -102,7 +88,10 @@ class QBELocale: NSObject {
 			"IFERROR": QBEFunction.IfError,
 			"PACK": QBEFunction.Pack,
 			"NORM.INV": QBEFunction.NormalInverse,
-			"SIGN": QBEFunction.Sign
+			"SIGN": QBEFunction.Sign,
+			"SPLIT": QBEFunction.Split,
+			"NTH": QBEFunction.Nth,
+			"ITEMS": QBEFunction.Items
 		],
 		
 		"nl": [
@@ -149,7 +138,10 @@ class QBELocale: NSObject {
 			"EERSTE.GELDIG": QBEFunction.Coalesce,
 			"INPAKKEN": QBEFunction.Pack,
 			"NORM.INV.N": QBEFunction.NormalInverse,
-			"POS.NEG": QBEFunction.Sign
+			"POS.NEG": QBEFunction.Sign,
+			"SPLITS": QBEFunction.Split,
+			"NDE": QBEFunction.Nth,
+			"ITEMS": QBEFunction.Items
 		]
 	]
 	
