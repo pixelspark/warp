@@ -185,7 +185,7 @@ internal class QBEMySQLResult: SequenceType, GeneratorType {
 internal class QBEMySQLConnection {
 	private var connection: UnsafeMutablePointer<MYSQL>
 	private let dialect: QBESQLDialect
-	private(set) var result: QBEMySQLResult?
+	private(set) weak var result: QBEMySQLResult?
 	
 	class var sharedQueue : dispatch_queue_t {
 		struct Static {
@@ -221,7 +221,6 @@ internal class QBEMySQLConnection {
 				UnsafePointer<Int8>(nil),
 				UInt(0)
 			)
-			
 			return Int32(mysql_errno(self.connection))
 		})
 		
@@ -291,10 +290,11 @@ internal class QBEMySQLConnection {
 		#endif
 
 		if self.perform({return mysql_query(self.connection, sql.cStringUsingEncoding(NSUTF8StringEncoding)!)}) {
-			self.result = QBEMySQLResult(mysql_use_result(self.connection), connection: self)
+			let result = QBEMySQLResult(mysql_use_result(self.connection), connection: self)
+			self.result = result
+			return result
 		}
-		
-		return result
+		return nil
 	}
 }
 
