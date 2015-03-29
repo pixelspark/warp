@@ -306,7 +306,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		self.stepsViewController?.steps = document?.steps
 		self.stepsViewController?.currentStep = currentStep
 		updateView()
-		refreshData()
+		calculate()
 	}
 	
 	internal var undo: NSUndoManager? { get { return document?.undoManager } }
