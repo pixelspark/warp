@@ -941,6 +941,8 @@ CA
                                     <constraint firstItem="QBF-Ya-2UW" firstAttribute="leading" secondItem="Jc3-uf-xvU" secondAttribute="leading" constant="10" id="KGp-W0-a8B"/>
                                     <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="cDt-pe-gP5" secondAttribute="bottom" constant="10" id="Om5-aS-jdd"/>
                                     <constraint firstItem="cDt-pe-gP5" firstAttribute="leading" secondItem="ZbN-mS-Vky" secondAttribute="leading" id="RAW-yp-Pvj"/>
+                                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="bSO-LK-FLV" secondAttribute="trailing" constant="10" id="SmQ-Nw-HIN"/>
+                                    <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="bSO-LK-FLV" secondAttribute="bottom" constant="10" id="TN8-e0-w5p"/>
                                     <constraint firstItem="cDt-pe-gP5" firstAttribute="leading" secondItem="hIg-u5-wBg" secondAttribute="trailing" constant="10" id="Wjc-FB-oJl"/>
                                     <constraint firstItem="bSO-LK-FLV" firstAttribute="leading" secondItem="cDt-pe-gP5" secondAttribute="leading" id="Yow-kt-Tdr"/>
                                     <constraint firstItem="hIg-u5-wBg" firstAttribute="leading" secondItem="Jc3-uf-xvU" secondAttribute="leading" constant="10" id="ZBB-Yj-dD5"/>
@@ -967,7 +969,7 @@ CA
                 <customObject id="dH1-QD-FHa" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController id="UfJ-Kh-gyi"/>
             </objects>
-            <point key="canvasLocation" x="778" y="-336"/>
+            <point key="canvasLocation" x="782" y="-384"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="R2V-B0-nI4">
@@ -986,7 +988,7 @@ CA
                 </windowController>
                 <customObject id="6f7-a7-6o1" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-187.5" y="449"/>
+            <point key="canvasLocation" x="33.5" y="449"/>
         </scene>
         <!--Document view controller-->
         <scene sceneID="4qG-DD-elD">
@@ -1248,7 +1250,7 @@ CA
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="73.5" y="2158.5"/>
+            <point key="canvasLocation" x="33.5" y="2158.5"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -1576,7 +1578,7 @@ Gw
                     </items>
                 </menu>
             </objects>
-            <point key="canvasLocation" x="1065.5" y="1325"/>
+            <point key="canvasLocation" x="1065.5" y="1289"/>
         </scene>
     </scenes>
     <resources>
