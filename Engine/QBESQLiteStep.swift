@@ -169,11 +169,15 @@ internal class QBESQLiteResultGenerator: GeneratorType {
 				return QBEValue(intValue)
 				
 			case SQLITE_TEXT:
-				let string = (String.fromCString(UnsafePointer<CChar>(sqlite3_column_text(self.result.resultSet, Int32(idx))))!)
-				if let l = self.locale {
-					return l.valueForLocalString(string)
+				if let string = String.fromCString(UnsafePointer<CChar>(sqlite3_column_text(self.result.resultSet, Int32(idx)))) {
+					if let l = self.locale {
+						return l.valueForLocalString(string)
+					}
+					return QBEValue(string)
 				}
-				return QBEValue(string)
+				else {
+					return QBEValue.InvalidValue
+				}
 				
 			default:
 				return QBEValue.InvalidValue
@@ -213,6 +217,83 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 		return ret
 	}
 	
+	private static func sqliteValueToValue(value: COpaquePointer) -> QBEValue {
+		switch sqlite3_value_type(value) {
+			case SQLITE_NULL:
+				return QBEValue.EmptyValue
+			
+			case SQLITE_FLOAT:
+				return QBEValue.DoubleValue(sqlite3_value_double(value))
+			
+			case SQLITE_TEXT:
+				return QBEValue.StringValue(String.fromCString(UnsafePointer<CChar>(sqlite3_value_text(value)))!)
+			
+			case SQLITE_INTEGER:
+				return QBEValue.IntValue(Int(sqlite3_value_int64(value)))
+			
+			default:
+				return QBEValue.InvalidValue
+		}
+	}
+	
+	private static func sqliteResult(context: COpaquePointer, result: QBEValue) {
+		switch result {
+			case .InvalidValue:
+				sqlite3_result_null(context)
+				
+			case .EmptyValue:
+				sqlite3_result_null(context)
+				
+			case .StringValue(let s):
+				sqlite3_result_text(context, s, -1, SQLITE_TRANSIENT)
+				
+			case .IntValue(let s):
+				sqlite3_result_int64(context, Int64(s))
+				
+			case .DoubleValue(let d):
+				sqlite3_result_double(context, d)
+				
+			case .BoolValue(let b):
+				sqlite3_result_int64(context, b ? 1 : 0)
+		}
+	}
+	
+	private static let sqliteUDFFunctionName = "WARP_FUNCTION"
+	private static let sqliteUDFBinaryName = "WARP_BINARY"
+	
+	/* This function implements the 'WARP_FUNCTION' user-defined function in SQLite. When called, it looks up the native
+	implementation of a QBEFunction whose raw value name is equal to the first parameter. It applies the function to the
+	other parameters and returns the result to SQLite. */
+	private static func sqliteUDFFunction(context: COpaquePointer, argc: Int32,  values: UnsafeMutablePointer<COpaquePointer>) {
+		assert(argc>0, "The Warp UDF should always be called with at least one parameter")
+		let functionName = sqliteValueToValue(values[0]).stringValue!
+		let type = QBEFunction(rawValue: functionName)!
+		assert(type.isDeterministic, "Calling non-deterministic function through SQLite Warp UDF is not allowed")
+		
+		var args: [QBEValue] = []
+		for i in 1..<argc {
+			let sqliteValue = values[Int(i)]
+			args.append(sqliteValueToValue(sqliteValue))
+		}
+		
+		let result = type.apply(args)
+		sqliteResult(context, result: result)
+	}
+	
+	/* This function implements the 'WARP_BINARY' user-defined function in SQLite. When called, it looks up the native
+	implementation of a QBEBinary whose raw value name is equal to the first parameter. It applies the function to the
+	other parameters and returns the result to SQLite. */
+	private static func sqliteUDFBinary(context: COpaquePointer, argc: Int32,  values: UnsafeMutablePointer<COpaquePointer>) {
+		assert(argc==3, "The Warp_binary UDF should always be called with three parameters")
+		let functionName = sqliteValueToValue(values[0]).stringValue!
+		let type = QBEBinary(rawValue: functionName)!
+		let first = sqliteValueToValue(values[1])
+		let second = sqliteValueToValue(values[2])
+		
+		let result = type.apply(first, second)
+		sqliteResult(context, result: result)
+	}
+	
 	init?(path: String, readOnly: Bool = false) {
 		let flags = readOnly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
 		self.db = nil
@@ -225,6 +306,12 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 		/* By default, SQLite does not implement various mathematical SQL functions such as SIN, COS, TAN, as well as 
 		certain aggregates such as STDEV. RegisterExtensionFunctions plugs these into the database. */
 		RegisterExtensionFunctions(self.db)
+		
+		/* Create the 'WARP_*' user-defined functions in SQLite. When called, it looks up the native implementation of a
+		QBEFunction/QBEBinary whose raw value name is equal to the first parameter. It applies the function to the other parameters
+		and returns the result to SQLite. */
+		SQLiteCreateFunction(self.db, QBESQLiteDatabase.sqliteUDFFunctionName, -1, true, QBESQLiteDatabase.sqliteUDFFunction)
+		SQLiteCreateFunction(self.db, QBESQLiteDatabase.sqliteUDFBinaryName, 3, true, QBESQLiteDatabase.sqliteUDFBinary)
 	}
 	
 	deinit {
@@ -248,19 +335,35 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 }
 
 internal class QBESQLiteDialect: QBEStandardSQLDialect {
+	private static let udfFunctions: Set<QBEFunction> = [QBEFunction.Nth, QBEFunction.Split, QBEFunction.Items, QBEFunction.RegexSubstitute]
+	private static let udfBinaries: Set<QBEBinary> = [QBEBinary.MatchesRegex, QBEBinary.MatchesRegexStrict]
+	
 	override func binaryToSQL(type: QBEBinary, first: String, second: String) -> String? {
+		/* Some binaries cannot be performed in SQL. Luckily, we have our own user-defined function which allows calling
+		the native QBEBinary implementations from SQL. */
+		if QBESQLiteDialect.udfBinaries.contains(type) {
+			return "\(QBESQLiteDatabase.sqliteUDFBinaryName)('\(type.rawValue)',\(second), \(first))"
+		}
+		
 		switch type {
 			/** For 'contains string', the default implementation uses "a LIKE '%b%'" syntax. Using INSTR is probably a
 			bit faster on SQLite. **/
 			case .ContainsString: return "INSTR(LOWER(\(second)), LOWER(\(first)))>0"
 			case .ContainsStringStrict: return "INSTR(\(second), \(first))>0"
 			
-			// FIXME: REGEXP can be supported using a UDF in SQLite; see https://www.sqlite.org/lang_expr.html
-			case .MatchesRegex: return nil
-			case .MatchesRegexStrict: return nil
 			default:
 				return super.binaryToSQL(type, first: first, second: second)
 		}
+	}
+	
+	override func unaryToSQL(type: QBEFunction, args: [String]) -> String? {
+		/* Some function cannot be performed in SQL. Luckily, we have our own user-defined function which allows calling 
+		the native QBEFunction implementations from SQL. */
+		if QBESQLiteDialect.udfFunctions.contains(type) {
+			let value = args.implode(", ") ?? ""
+			return "\(QBESQLiteDatabase.sqliteUDFFunctionName)('\(type.rawValue)',\(value))"
+		}
+		return super.unaryToSQL(type, args: args)
 	}
 	
 	override func aggregationToSQL(aggregation: QBEAggregation) -> String? {
