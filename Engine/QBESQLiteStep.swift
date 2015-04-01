@@ -335,35 +335,37 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 }
 
 internal class QBESQLiteDialect: QBEStandardSQLDialect {
-	private static let udfFunctions: Set<QBEFunction> = [QBEFunction.Nth, QBEFunction.Split, QBEFunction.Items, QBEFunction.RegexSubstitute]
-	private static let udfBinaries: Set<QBEBinary> = [QBEBinary.MatchesRegex, QBEBinary.MatchesRegexStrict]
-	
 	override func binaryToSQL(type: QBEBinary, first: String, second: String) -> String? {
-		/* Some binaries cannot be performed in SQL. Luckily, we have our own user-defined function which allows calling
-		the native QBEBinary implementations from SQL. */
-		if QBESQLiteDialect.udfBinaries.contains(type) {
-			return "\(QBESQLiteDatabase.sqliteUDFBinaryName)('\(type.rawValue)',\(second), \(first))"
-		}
-		
+		let result: String?
 		switch type {
 			/** For 'contains string', the default implementation uses "a LIKE '%b%'" syntax. Using INSTR is probably a
 			bit faster on SQLite. **/
-			case .ContainsString: return "INSTR(LOWER(\(second)), LOWER(\(first)))>0"
-			case .ContainsStringStrict: return "INSTR(\(second), \(first))>0"
+			case .ContainsString: result = "INSTR(LOWER(\(second)), LOWER(\(first)))>0"
+			case .ContainsStringStrict: result = "INSTR(\(second), \(first))>0"
+			case .MatchesRegex: result = nil // Force usage of UDF here, SQLite does not implement (a REGEXP p)
+			case .MatchesRegexStrict: result = nil
 			
 			default:
-				return super.binaryToSQL(type, first: first, second: second)
+				result = super.binaryToSQL(type, first: first, second: second)
 		}
+		
+		/* If a binary expression cannot be represented in 'normal' SQL, we can always use the special UDF function to 
+		call into the native implementation */
+		if result == nil {
+			return "\(QBESQLiteDatabase.sqliteUDFBinaryName)('\(type.rawValue)',\(second), \(first))"
+		}
+		return result
 	}
 	
 	override func unaryToSQL(type: QBEFunction, args: [String]) -> String? {
-		/* Some function cannot be performed in SQL. Luckily, we have our own user-defined function which allows calling 
-		the native QBEFunction implementations from SQL. */
-		if QBESQLiteDialect.udfFunctions.contains(type) {
-			let value = args.implode(", ") ?? ""
-			return "\(QBESQLiteDatabase.sqliteUDFFunctionName)('\(type.rawValue)',\(value))"
+		if let result = super.unaryToSQL(type, args: args) {
+			return result
 		}
-		return super.unaryToSQL(type, args: args)
+		
+		/* If a function cannot be implemented in SQL, we should fall back to our special UDF function to call into the 
+		native implementation */
+		let value = args.implode(", ") ?? ""
+		return "\(QBESQLiteDatabase.sqliteUDFFunctionName)('\(type.rawValue)',\(value))"
 	}
 	
 	override func aggregationToSQL(aggregation: QBEAggregation) -> String? {
