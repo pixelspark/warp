@@ -69,7 +69,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				let className = s.className
 				let StepView = QBEStepViews[className]?(step: s, delegate: self)
 				self.configuratorViewController = StepView
-				calculate()
 			}
 			else {
 				self.configuratorViewController = nil
@@ -78,8 +77,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			}
 			
 			self.stepsViewController?.currentStep = currentStep
-			self.view.window?.update()
-			updateView()
+			self.stepsChanged()
 		}
 	}
 	
@@ -103,7 +101,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	var document: QBEDocument? {
 		didSet {
 			self.currentStep = document?.head
-			stepsChanged()
 		}
 	}
 	
@@ -186,6 +183,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	func stepsController(vc: QBEStepsViewController, didSelectStep step: QBEStep) {
 		if currentStep != step {
 			currentStep = step
+			stepsChanged()
+			updateView()
+			calculate()
 		}
 	}
 	
@@ -194,6 +194,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			popStep()
 		}
 		remove(step)
+		stepsChanged()
+		updateView()
 		calculate()
 	}
 	
@@ -240,6 +242,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 
 		stepsChanged()
+		updateView()
+		calculate()
 	}
 	
 	func stepsController(vc: QBEStepsViewController, didInsertStep step: QBEStep, afterStep: QBEStep?) {
@@ -306,7 +310,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		self.stepsViewController?.steps = document?.steps
 		self.stepsViewController?.currentStep = currentStep
 		updateView()
-		calculate()
 	}
 	
 	internal var undo: NSUndoManager? { get { return document?.undoManager } }
@@ -361,15 +364,17 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		if isHead {
 			document?.head = step
 		}
-		stepsChanged()
 		
 		(undo?.prepareWithInvocationTarget(self) as? QBEViewController)?.removeStep(step)
 		undo?.setActionName(String(format: NSLocalizedString("Add step '%@'", comment: ""), step.explain(locale, short: true)))
+		
+		updateView()
+		stepsChanged()
 	}
 	
 	private func popStep() {
 		currentStep = currentStep?.previous
-		stepsChanged()
+		calculate()
 	}
 	
 	@IBAction func transposeData(sender: NSObject) {
@@ -382,6 +387,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		previewStep = nil
 		pushStep(step)
 		stepsChanged()
+		updateView()
+		calculate()
 	}
 	
 	func suggestionsView(view: NSViewController, didSelectAlternativeStep step: QBEStep) {
@@ -412,12 +419,12 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			step.next = next
 		}
 		stepsChanged()
+		calculate()
 	}
 	
 	func suggestionsView(view: NSViewController, previewStep step: QBEStep?) {
 		if step == currentStep || step == nil {
 			previewStep = nil
-			calculate()
 		}
 		else {
 			previewStep = step
@@ -464,6 +471,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			steps.remove(step)
 			step.alternatives = steps
 			updateView()
+			calculate()
 			
 			// Show a tip if there are alternatives
 			if steps.count > 1 {
@@ -571,6 +579,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		if let stepToRemove = currentStep {
 			popStep()
 			remove(stepToRemove)
+			calculate()
 		}
 	}
 	
@@ -853,12 +862,16 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		// Prevent popping the last step (popStep allows it but goBack doesn't)
 		if let p = currentStep?.previous {
 			currentStep = p
+			updateView()
+			calculate()
 		}
 	}
 	
 	@IBAction func goForward(sender: NSObject) {
 		if let n = currentStep?.next {
 			currentStep = n
+			updateView()
+			calculate()
 		}
 	}
 	
@@ -868,10 +881,16 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func connectPrestoDatabase(sender: NSObject) {
 		self.pushStep(QBEPrestoSourceStep())
+		stepsChanged()
+		updateView()
+		calculate()
 	}
 	
 	@IBAction func connectMySQLDatabase(sender: NSObject) {
 		self.pushStep(QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", password: "", database: "test", tableName: "test"))
+		stepsChanged()
+		updateView()
+		calculate()
 	}
 	
 	@IBAction func importFile(sender: NSObject) {
@@ -903,6 +922,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 									//self.currentStep = nil
 									//self.document?.head = sourceStep!
 									self.pushStep(sourceStep!)
+									self.stepsChanged()
+									self.updateView()
+									self.calculate()
 								}
 								else {
 									let alert = NSAlert()
@@ -958,6 +980,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	override func viewWillAppear() {
 		super.viewWillAppear()
 		stepsChanged()
+		calculate()
 	}
 	
 	override func viewDidAppear() {

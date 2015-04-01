@@ -325,6 +325,35 @@ class QBEBinaryExpression: QBEExpression {
 							}
 						}
 					}
+					else if let targetString = toValue.stringValue, let fromString = f.stringValue {
+						if !targetString.isEmpty && !fromString.isEmpty && count(fromString) < count(targetString) {
+							// See if the target string shares a prefix with the source string
+							let targetPrefix = targetString.substringWithRange(targetString.startIndex..<advance(targetString.startIndex, count(fromString)))
+							if fromString == targetPrefix {
+								let postfix = targetString.substringWithRange(advance(targetString.startIndex, count(fromString))..<targetString.endIndex)
+								println("'\(fromString)' => '\(targetString)' share prefix: '\(targetPrefix)' need postfix: '\(postfix)'")
+								
+								var postfixSuggestions: [QBEExpression] = []
+								QBEExpression.infer(nil, toValue: QBEValue.StringValue(postfix), suggestions: &postfixSuggestions, level: level-1, columns: columns, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+								
+								postfixSuggestions.each({suggestions.append(QBEBinaryExpression(first: $0, second: from, type: QBEBinary.Concatenation))})
+							}
+							else {
+								// See if the target string shares a postfix with the source string
+								let prefixLength = count(targetString) - count(fromString)
+								let targetPostfix = targetString.substringWithRange(advance(targetString.startIndex, prefixLength)..<targetString.endIndex)
+								if fromString == targetPostfix {
+									let prefix = targetString.substringWithRange(targetString.startIndex..<advance(targetString.startIndex, prefixLength))
+									println("'\(fromString)' => '\(targetString)' share postfix: '\(targetPostfix)' need prefix: '\(prefix)'")
+									
+									var prefixSuggestions: [QBEExpression] = []
+									QBEExpression.infer(nil, toValue: QBEValue.StringValue(prefix), suggestions: &prefixSuggestions, level: level-1, columns: columns, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+									
+									prefixSuggestions.each({suggestions.append(QBEBinaryExpression(first: from, second: $0, type: QBEBinary.Concatenation))})
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -449,14 +478,18 @@ class QBEFunctionExpression: QBEExpression {
 						}
 
 						if !foundAsElement {
-							suggestions += incompleteSuggestions
-							if let range = sourceString.rangeOfString(targetString) {
-								suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Left))
-								suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Right))
-								
-								let start = QBELiteralExpression(QBEValue(distance(sourceString.startIndex, range.startIndex)))
-								let length = QBELiteralExpression(QBEValue(distance(range.startIndex, range.endIndex)))
-								suggestions.append(QBEFunctionExpression(arguments: [from, start, length], type: QBEFunction.Mid))
+							if incompleteSuggestions.count > 0 {
+								suggestions += incompleteSuggestions
+							}
+							else {
+								if let range = sourceString.rangeOfString(targetString) {
+									suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Left))
+									suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Right))
+									
+									let start = QBELiteralExpression(QBEValue(distance(sourceString.startIndex, range.startIndex)))
+									let length = QBELiteralExpression(QBEValue(distance(range.startIndex, range.endIndex)))
+									suggestions.append(QBEFunctionExpression(arguments: [from, start, length], type: QBEFunction.Mid))
+								}
 							}
 						}
 					}
