@@ -138,7 +138,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		
 		if let s = currentStep {
 			let sourceStep = previewStep ?? s
-			if sourceStep != calculationInProgressForStep {
+			if sourceStep != calculationInProgressForStep || currentData?.cancelled ?? false || currentRaster?.cancelled ?? false {
 				currentData?.cancel()
 				currentRaster?.cancel()
 				calculationInProgressForStep = sourceStep
@@ -517,6 +517,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func setWorkingSet(sender: NSObject) {
 		if let sc = sender as? NSSegmentedControl {
 			let changing = (sc.selectedSegment == 1) != useFullData
+			currentData?.cancel()
+			currentRaster?.cancel()
 			if changing {
 				useFullData = (sc.selectedSegment == 1)
 			}

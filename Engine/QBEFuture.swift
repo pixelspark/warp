@@ -157,6 +157,10 @@ class QBEFuture<T> {
 		batch?.expire()
 	}
 	
+	var cancelled: Bool { get {
+		return batch?.cancelled ?? false
+	} }
+	
 	func get(callback: Callback) -> QBEJob {
 		if batch == nil {
 			batch = QBEBatch<T>()
