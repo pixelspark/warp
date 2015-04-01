@@ -9,7 +9,7 @@ class QBECalculateStep: QBEStep {
 		function = (aDecoder.decodeObjectForKey("function") as? QBEExpression) ?? QBEIdentityExpression()
 		targetColumn = QBEColumn((aDecoder.decodeObjectForKey("targetColumn") as? String) ?? "")
 		
-		if let after = aDecoder.decodeObjectForKey("targetColumn") as? String {
+		if let after = aDecoder.decodeObjectForKey("insertAfter") as? String {
 			insertAfter = QBEColumn(after)
 		}
 		super.init(coder: aDecoder)
