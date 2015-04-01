@@ -281,6 +281,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			else {
 				pushStep(QBESortColumnsStep(previous: self.currentStep, sortColumns: columns, before: nil))
 			}
+			calculate()
 			return true
 		}
 		return false
