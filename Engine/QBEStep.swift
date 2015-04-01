@@ -190,6 +190,16 @@ enum QBEFileReference {
 		} }
 }
 
+func == (lhs: QBEFileReference, rhs: QBEFileReference) -> Bool {
+	if let lu = lhs.url, ru = rhs.url {
+		return lu == ru
+	}
+	else if let lb = lhs.bookmark, rb = rhs.bookmark {
+		return lb == rb
+	}
+	return false
+}
+
 /** The transpose step implements a row-column switch. It has no configuration and relies on the QBEData transpose()
 implementation to do the actual work. **/
 class QBETransposeStep: QBEStep {

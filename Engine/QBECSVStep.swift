@@ -160,16 +160,36 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 }
 
 class QBECSVSourceStep: QBEStep {
-	private var cachedData: QBEData?
-	var file: QBEFileReference? { didSet { cachedData = nil; self.useCaching = self.cachingAllowed } }
-	var fieldSeparator: unichar { didSet { cachedData = nil; } }
-	var hasHeaders: Bool { didSet { cachedData = nil; } }
-	
-	var useCaching: Bool { didSet {
-		if let d = cachedData as? QBESQLiteCachedData {
-			d.cacheJob.cancel()
+	private var cachedData: QBEData? { didSet {
+		println("Did set cachedData=\(cachedData)");
+	}}
+	var file: QBEFileReference? { didSet {
+		if let o = oldValue, let f = file where o == f {
+			return;
 		}
 		cachedData = nil;
+		self.useCaching = self.cachingAllowed
+	} }
+	
+	var fieldSeparator: unichar { didSet {
+		if oldValue != fieldSeparator {
+			cachedData = nil;
+		}
+	} }
+	
+	var hasHeaders: Bool { didSet {
+		if oldValue != hasHeaders {
+			cachedData = nil;
+		}
+	} }
+	
+	var useCaching: Bool { didSet {
+		if oldValue != useCaching {
+			if let d = cachedData as? QBESQLiteCachedData {
+				d.cacheJob.cancel()
+			}
+			cachedData = nil;
+		}
 	} }
 	
 	var isCached: Bool { get {
