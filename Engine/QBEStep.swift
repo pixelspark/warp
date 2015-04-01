@@ -12,15 +12,27 @@ class QBEStep: NSObject {
 	static let dragType = "nl.pixelspark.Warp.Step"
 	
 	func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
-		self.previous?.exampleData(job, callback: {(data) in
-			self.apply(data, job: job, callback: callback)
-		})
+		if let p = self.previous {
+			self.previous?.exampleData(job, callback: {(data) in
+				self.apply(data, job: job, callback: callback)
+			})
+		}
+		else {
+			// TODO set an error message
+			callback(QBERasterData())
+		}
 	}
 	
 	func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
-		self.previous?.fullData(job, callback: {(data) in
-			self.apply(data, job: job, callback: callback)
-		})
+		if let p = self.previous {
+			p.fullData(job, callback: {(data) in
+				self.apply(data, job: job, callback: callback)
+			})
+		}
+		else {
+			// TODO: set an error message
+			callback(QBERasterData())
+		}
 	}
 	
 	var previous: QBEStep? { didSet {
