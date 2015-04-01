@@ -91,8 +91,14 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 	
 	@IBAction func update(sender: NSObject) {
 		if let s = step {
-			let after = insertAfterField.stringValue
-			s.insertAfter = after.isEmpty ? nil : QBEColumn(after)
+			if sender == insertAfterField {
+				let after = insertAfterField.stringValue
+				if after != s.insertAfter?.name {
+					s.insertAfter = after.isEmpty ? nil : QBEColumn(after)
+				}
+				delegate?.suggestionsView(self, previewStep: s)
+				return
+			}
 			
 			s.targetColumn = QBEColumn(self.targetColumnNameField?.stringValue ?? s.targetColumn.name)
 			if let f = self.formulaField?.stringValue {
