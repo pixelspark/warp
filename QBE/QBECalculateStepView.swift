@@ -1,10 +1,12 @@
 import Foundation
 import Cocoa
 
-internal class QBECalculateStepView: NSViewController {
+internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegate {
 	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var targetColumnNameField: NSTextField?
 	@IBOutlet var formulaField: NSTextField?
+	@IBOutlet var insertAfterField: NSComboBox!
+	var existingColumns: [QBEColumn]?
 	let step: QBECalculateStep?
 	
 	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
@@ -34,8 +36,35 @@ internal class QBECalculateStepView: NSViewController {
 		}
 	}
 	
+	func comboBox(aComboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> AnyObject {
+		if let c = existingColumns where index >= 0 && index < c.count {
+			return c[index].name
+		}
+		return ""
+	}
+	
+	func numberOfItemsInComboBox(aComboBox: NSComboBox) -> Int {
+		return existingColumns?.count ?? 0
+	}
+	
+	
 	private func updateView() {
-		if let f = step?.function.toFormula(self.delegate?.locale ?? QBELocale()) {
+		QBEAssertMainThread()
+		
+		if let s = step {
+			self.insertAfterField?.stringValue = s.insertAfter?.name ?? ""
+			self.existingColumns = nil
+			s.exampleData(nil) { (d) in
+				d.columnNames {(cns) in
+					self.existingColumns = cns
+					
+					QBEAsyncMain {
+						self.insertAfterField?.reloadData()
+					}
+				}
+			}
+		
+			let f = s.function.toFormula(self.delegate?.locale ?? QBELocale())
 			let fullFormula = "="+f
 			if let parsed = QBEFormula(formula: fullFormula, locale: (self.delegate?.locale ?? QBELocale())) {
 				let ma = NSMutableAttributedString(string: fullFormula, attributes: [
@@ -62,6 +91,9 @@ internal class QBECalculateStepView: NSViewController {
 	
 	@IBAction func update(sender: NSObject) {
 		if let s = step {
+			let after = insertAfterField.stringValue
+			s.insertAfter = after.isEmpty ? nil : QBEColumn(after)
+			
 			s.targetColumn = QBEColumn(self.targetColumnNameField?.stringValue ?? s.targetColumn.name)
 			if let f = self.formulaField?.stringValue {
 				if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale())) {

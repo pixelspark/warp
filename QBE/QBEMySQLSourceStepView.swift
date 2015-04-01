@@ -124,8 +124,10 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 		let selection = tableView?.selectedRow ?? -1
 		if tableNames != nil && selection >= 0 && selection < tableNames!.count {
 			let selectedName = tableNames![selection]
-			step?.tableName = selectedName
-			delegate?.suggestionsView(self, previewStep: step)
+			if step?.tableName != selectedName {
+				step?.tableName = selectedName
+				delegate?.suggestionsView(self, previewStep: step)
+			}
 		}
 	}
 	

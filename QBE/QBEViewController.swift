@@ -86,15 +86,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			if previewStep != currentStep?.previous {
 				previewStep?.previous = currentStep?.previous
 			}
-			
-			if oldValue != nil && previewStep == nil {
-				refreshData()
-			}
-			else {
-				previewStep?.exampleData(nil, callback: { (d) -> () in
-					self.presentData(d)
-				})
-			}
 		}
 	}
 	
@@ -103,7 +94,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			self.currentStep = document?.head
 		}
 	}
-	
 	
 	/** Present the given data set in the data grid. This is called by currentStep.didSet as well as previewStep.didSet.
 	The data from the previewed step takes precedence. **/
@@ -141,22 +131,33 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
+	var calculationInProgressForStep: QBEStep?
+	
 	func calculate() {
+		QBEAssertMainThread()
+		
 		if let s = currentStep {
-			currentData?.cancel()
-			currentRaster?.cancel()
-			
-			currentData = QBEFuture<QBEData>(useFullData ? s.fullData : s.exampleData)
-			
-			currentRaster = QBEFuture<QBERaster>({(job: QBEJob?, callback: QBEFuture<QBERaster>.Callback) in
-				if let cd = self.currentData {
-					cd.get({ (data: QBEData) -> () in
-						data.raster(job, callback: callback)
-					})
-				}
-			})
+			let sourceStep = previewStep ?? s
+			if sourceStep != calculationInProgressForStep {
+				currentData?.cancel()
+				currentRaster?.cancel()
+				calculationInProgressForStep = sourceStep
+				currentData = QBEFuture<QBEData>(useFullData ? sourceStep.fullData : sourceStep.exampleData)
+				
+				currentRaster = QBEFuture<QBERaster>({(job: QBEJob?, callback: QBEFuture<QBERaster>.Callback) in
+					if let cd = self.currentData {
+						cd.get({ (data: QBEData) -> () in
+							data.raster(job, callback: callback)
+						})
+					}
+				})
+				
+				currentRaster!.get({(_) in self.calculationInProgressForStep = nil})
+			}
 		}
 		else {
+			currentData?.cancel()
+			currentRaster?.cancel()
 			currentData = nil
 			currentRaster = nil
 		}
@@ -374,7 +375,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	private func popStep() {
 		currentStep = currentStep?.previous
-		calculate()
 	}
 	
 	@IBAction func transposeData(sender: NSObject) {
@@ -430,6 +430,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			previewStep = step
 		}
 		updateView()
+		calculate()
 	}
 	
 	func suggestionsViewDidCancel(view: NSViewController) {
@@ -440,6 +441,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			self.view.window?.endSheet(s, returnCode: NSModalResponseOK)
 		}
 		updateView()
+		calculate()
 	}
 	
 	private func updateView() {
@@ -538,8 +540,18 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func addEmptyColumn(sender: NSObject) {
 		currentData?.get({(data) in
 			data.columnNames({(cols) in
-				let step = QBECalculateStep(previous: self.currentStep, targetColumn: QBEColumn.defaultColumnForIndex(cols.count), function: QBELiteralExpression(QBEValue.EmptyValue))
+				// If a column is selected, insert the new column right after it
+				var insertAfter: QBEColumn? = nil
+				if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
+					let firstSelectedColumn = selectedColumns.firstIndex
+					if firstSelectedColumn != NSNotFound {
+						insertAfter = cols[firstSelectedColumn]
+					}
+				}
+				
+				let step = QBECalculateStep(previous: self.currentStep, targetColumn: QBEColumn.defaultColumnForIndex(cols.count), function: QBELiteralExpression(QBEValue.EmptyValue), insertAfter: insertAfter)
 				self.pushStep(step)
+				self.calculate()
 			})
 		})
 	}

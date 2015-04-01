@@ -49,6 +49,12 @@ class QBEExpression: NSObject, NSCoding {
 		return ""
 	}
 	
+	/** Requests that callback be called on self, and visit() forwarded to all children. This can be used to implement
+	dependency searches, etc. **/
+	func visit(callback: (QBEExpression) -> ()) {
+		callback(self)
+	}
+	
 	/** Calculate the result of this expression for the given row, columns and current input value. **/
 	func apply(row: QBERow, columns: [QBEColumn], inputValue: QBEValue?) -> QBEValue {
 		fatalError("A QBEExpression was called that isn't implemented")
@@ -247,6 +253,12 @@ class QBEBinaryExpression: QBEExpression {
 		return optimized
 	}
 	
+	override func visit(callback: (QBEExpression) -> ()) {
+		callback(self)
+		first.visit(callback)
+		second.visit(callback)
+	}
+	
 	override func explain(locale: QBELocale) -> String {
 		return "(" + second.explain(locale) + " " + type.explain(locale) + " " + first.explain(locale) + ")"
 	}
@@ -381,6 +393,11 @@ class QBEFunctionExpression: QBEExpression {
 		
 		return true
 	} }
+	
+	override func visit(callback: (QBEExpression) -> ()) {
+		callback(self)
+		arguments.each({$0.visit(callback)})
+	}
 	
 	override func prepare() -> QBEExpression {
 		return self.type.prepare(arguments)
