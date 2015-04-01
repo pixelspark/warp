@@ -160,9 +160,8 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 }
 
 class QBECSVSourceStep: QBEStep {
-	private var cachedData: QBEData? { didSet {
-		println("Did set cachedData=\(cachedData)");
-	}}
+	private var cachedData: QBEData?
+	
 	var file: QBEFileReference? { didSet {
 		if let o = oldValue, let f = file where o == f {
 			return;

@@ -601,17 +601,15 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 			let firstSelectedColumn = selectedColumns.firstIndex
 			if firstSelectedColumn != NSNotFound {
-				currentStep?.exampleData(nil, callback: { (data: QBEData) -> () in
-					data.columnNames({(columnNames) -> () in
-						let columnName = columnNames[firstSelectedColumn]
-						let expression = QBESiblingExpression(columnName: columnName)
-						let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
-						
-						QBEAsyncMain {
-							self.pushStep(QBESortStep(previous: self.currentStep, orders: [order]))
-						}
-					})
-				})
+				currentRaster?.get {(raster) in
+					let columnName = raster.columnNames[firstSelectedColumn]
+					let expression = QBESiblingExpression(columnName: columnName)
+					let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
+					
+					QBEAsyncMain {
+						self.pushStep(QBESortStep(previous: self.currentStep, orders: [order]))
+					}
+				}
 			}
 		}
 	}
@@ -635,27 +633,25 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	private func selectColumns(remove: Bool) {
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			// Get the names of the columns to remove
-			currentStep?.exampleData(nil, callback: { (data: QBEData) -> () in
+			currentRaster?.get({(raster) in
 				var namesToRemove: [QBEColumn] = []
 				var namesToSelect: [QBEColumn] = []
 				
-				data.columnNames({ (columnNames) -> () in
-					for i in 0..<columnNames.count {
-						if colsToRemove.containsIndex(i) {
-							namesToRemove.append(columnNames[i])
-						}
-						else {
-							namesToSelect.append(columnNames[i])
-						}
+				for i in 0..<raster.columnNames.count {
+					if colsToRemove.containsIndex(i) {
+						namesToRemove.append(raster.columnNames[i])
 					}
-					
-					QBEAsyncMain {
-						self.suggestSteps([
-							QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: !remove),
-							QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: remove)
-						])
+					else {
+						namesToSelect.append(raster.columnNames[i])
 					}
-				})
+				}
+				
+				QBEAsyncMain {
+					self.suggestSteps([
+						QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: !remove),
+						QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: remove)
+					])
+				}
 			})
 		}
 	}
