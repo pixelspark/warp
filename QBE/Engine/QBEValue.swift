@@ -235,6 +235,162 @@ internal extension Double {
 	}
 }
 
+struct OrderedDictionaryGenerator<KeyType: Hashable, ValueType>: GeneratorType {
+	typealias Element = (KeyType, ValueType)
+	private let orderedDictionary: OrderedDictionary<KeyType, ValueType>
+	private var keyGenerator: IndexingGenerator<[KeyType]>
+	
+	init(orderedDictionary: OrderedDictionary<KeyType, ValueType>) {
+		self.orderedDictionary = orderedDictionary
+		self.keyGenerator = self.orderedDictionary.keys.generate()
+	}
+	
+	mutating func next() -> Element? {
+		if let nextKey = self.keyGenerator.next() {
+			return (nextKey, self.orderedDictionary.values[nextKey]!)
+		}
+		return nil
+	}
+}
+
+struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
+	typealias KeyArrayType = [KeyType]
+	typealias DictionaryType = [KeyType: ValueType]
+	typealias Generator = OrderedDictionaryGenerator<KeyType, ValueType>
+	
+	private(set) var keys = KeyArrayType()
+	private(set) var values = DictionaryType()
+	
+	init() {
+		// Empty ordered dictionary
+	}
+	
+	init(dictionaryInAnyOrder: DictionaryType) {
+		self.values = dictionaryInAnyOrder
+		self.keys = [KeyType](dictionaryInAnyOrder.keys)
+	}
+	
+	func generate() -> Generator {
+		return OrderedDictionaryGenerator(orderedDictionary: self)
+	}
+	
+	var count: Int { get {
+		return keys.count
+	} }
+	
+	mutating func remove(key: KeyType) {
+		keys.remove(key)
+		values.removeValueForKey(key)
+	}
+	
+	mutating func insert(value: ValueType, forKey key: KeyType, atIndex index: Int) -> ValueType? {
+		var adjustedIndex = index
+		let existingValue = self.values[key]
+		if existingValue != nil {
+			let existingIndex = find(self.keys, key)!
+
+			if existingIndex < index {
+				adjustedIndex--
+			}
+			self.keys.removeAtIndex(existingIndex)
+		}
+
+		self.keys.insert(key, atIndex:adjustedIndex)
+		self.values[key] = value
+		return existingValue
+	}
+	
+	func contains(key: KeyType) -> Bool {
+		return self.values[key] != nil
+	}
+	
+	/** Keeps only the keys present in the 'keys' parameter and puts them in the specified order. The 'keys' parameter is
+	not allowed to contain keys that do not exist in the ordered dictionary, or contain the same key twice. **/
+	mutating func filterAndOrder(keyOrder: [KeyType]) {
+		var newKeySet = Set<KeyType>()
+		for k in keyOrder {
+			if contains(k) {
+				if newKeySet.contains(k) {
+					precondition(false, "Key appears twice in specified key order")
+				}
+				else {
+					newKeySet.insert(k)
+				}
+			}
+			else {
+				precondition(false, "Key '\(k)' does not exist in the current ordered dictionary and can't be ordered")
+			}
+		}
+		
+		// Remove keys that weren't ordered
+		for k in self.keys {
+			if !newKeySet.contains(k) {
+				self.values.removeValueForKey(k)
+			}
+		}
+		self.keys = keyOrder
+	}
+	
+	mutating func orderKey(key: KeyType, toIndex: Int) {
+		precondition(find(self.keys, key) != nil, "key to be ordered must exist")
+		self.keys.remove(key)
+		self.keys.splice([key], atIndex: toIndex)
+	}
+	
+	mutating func orderKey(key: KeyType, beforeKey: KeyType) {
+		if let newIndex = find(self.keys, beforeKey) {
+			orderKey(key, toIndex: newIndex)
+		}
+		else {
+			precondition(false, "key to order before must exist")
+		}
+	}
+	
+	mutating func removeAtIndex(index: Int) -> (KeyType, ValueType)
+	{
+		precondition(index < self.keys.count, "Index out-of-bounds")
+		let key = self.keys.removeAtIndex(index)
+		let value = self.values.removeValueForKey(key)!
+		return (key, value)
+	}
+	
+	mutating func append(value: ValueType, forKey: KeyType) {
+		precondition(!contains(forKey), "Ordered dictionary already contains value")
+		self.keys.append(forKey)
+		self.values[forKey] = value
+	}
+	
+	mutating func replaceOrAppend(value: ValueType, forKey key: KeyType) {
+		if !contains(key) {
+			self.keys.append(key)
+		}
+		self.values[key] = value
+	}
+	
+	subscript(key: KeyType) -> ValueType? {
+		get {
+			return self.values[key]
+		}
+		set {
+			if let n = newValue {
+				self.replaceOrAppend(n, forKey: key)
+			}
+			else {
+				self.remove(key)
+			}
+		}
+	}
+	
+	subscript(index: Int) -> (KeyType, ValueType) {
+		get {
+			precondition(index < self.keys.count, "Index out-of-bounds")
+			let key = self.keys[index]
+			let value = self.values[key]!
+			return (key, value)
+		}
+	}
+}
+
 /** QBEValue is used to represent all values in data sets. Although QBEValue can represent values of different types,
 values of different types can usually easily be converted to another type. QBEValue closely models the way values are
 handled in Excel and SQL (striving for a greatest common denominator where possible). QBEValue supports four data types

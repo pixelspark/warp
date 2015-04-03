@@ -268,6 +268,7 @@ enum QBECoalescedData: QBEData {
 	case Sorting(QBEData, [QBEOrder])
 	case SelectingColumns(QBEData, [QBEColumn])
 	case Calculating(QBEData, [QBEColumn: QBEExpression])
+	case CalculatingThenSelectingColumns(QBEData, OrderedDictionary<QBEColumn, QBEExpression>)
 	case Distincting(QBEData)
 	
 	init(_ data: QBEData) {
@@ -301,6 +302,9 @@ enum QBECoalescedData: QBEData {
 			case .Calculating(let data, let calculations):
 				return data.calculate(calculations)
 			
+			case .CalculatingThenSelectingColumns(let data, let calculations):
+				return data.calculate(calculations.values).selectColumns(calculations.keys)
+			
 			case .None(let data):
 				return data
 		}
@@ -323,16 +327,24 @@ enum QBECoalescedData: QBEData {
 	  the content A had before the calculation)
 	**/
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
-		var newCalculations = Dictionary<QBEColumn, QBEExpression>()
+		var newCalculations = OrderedDictionary<QBEColumn, QBEExpression>()
 		
 		let source: QBEData
+		let keepOrder: Bool
 		switch self {
 			case .Calculating(let data, let calculations):
+				newCalculations = OrderedDictionary(dictionaryInAnyOrder: calculations)
+				source = data
+				keepOrder = false
+			
+			case .CalculatingThenSelectingColumns(let data, let calculations):
 				newCalculations = calculations
 				source = data
-				
+				keepOrder = true
+			
 			default:
 				source = self.data
+				keepOrder = false
 				break
 		}
 		
@@ -369,7 +381,15 @@ enum QBECoalescedData: QBEData {
 			}
 		}
 		
-		let result = QBECoalescedData.Calculating(source, newCalculations)
+		let result: QBECoalescedData
+		if keepOrder {
+			result = QBECoalescedData.CalculatingThenSelectingColumns(source, newCalculations)
+		}
+		else {
+			result = QBECoalescedData.Calculating(source, newCalculations.values)
+		}
+		
+		// If we have deferred some of the calculations to a second call to calculate, append it here
 		if deferred.count > 0 {
 			return QBECoalescedData.Calculating(result.data, deferred)
 		}
@@ -436,10 +456,12 @@ enum QBECoalescedData: QBEData {
 		return data.unique(expression, callback: callback)
 	}
 	
-	/**  Two optimizations are performed on selectColumns:
+	/**  The following optimizations are performed on selectColumns:
 		- data.selectColumns(a).selectColumns(b) is equivalent to data.selectColumns(c), where c is b without any columns
 		  that are not contained in a (selectColumns is specified to ignore any column names that do not exist).
-		- data.selectColumns(a) is equivalent to an empty data set if a is empty **/
+		- data.selectColumns(a) is equivalent to an empty data set if a is empty
+		- data.calculate().selectColumns() can be combined: calculations that result into columns that are not selected are not included
+	**/
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
 		if columns.count == 0 {
 			return QBERasterData()
@@ -450,6 +472,23 @@ enum QBECoalescedData: QBEData {
 				let oldSet = Set(oldColumns)
 				let newColumns = columns.filter({return oldSet.contains($0)})
 				return QBECoalescedData.SelectingColumns(data, newColumns)
+			
+			case .Calculating(let data, let calculations):
+				var newCalculations = OrderedDictionary<QBEColumn, QBEExpression>()
+				for column in columns {
+					if let expression = calculations[column] {
+						newCalculations.append(expression, forKey: column)
+					}
+					else {
+						newCalculations.append(QBEIdentityExpression(), forKey: column)
+					}
+				}
+				return QBECoalescedData.CalculatingThenSelectingColumns(data, newCalculations)
+			
+			case .CalculatingThenSelectingColumns(let data, let calculations):
+				var newCalculations = calculations
+				newCalculations.filterAndOrder(columns)
+				return QBECoalescedData.CalculatingThenSelectingColumns(data, newCalculations)
 			
 			default:
 				return QBECoalescedData.SelectingColumns(data, columns)
