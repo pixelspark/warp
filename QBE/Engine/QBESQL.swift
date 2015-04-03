@@ -529,6 +529,7 @@ class QBESQLData: NSObject, QBEData {
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
 		var values: [String] = []
 		var targetFound = false
+		var newColumns = columns
 		
 		// Re-calculate existing columns first
 		for targetColumn in columns {
@@ -555,11 +556,12 @@ class QBESQLData: NSObject, QBEData {
 				else {
 					return fallback().calculate(calculations)
 				}
+				newColumns.append(targetColumn)
 			}
 		}
 		
 		if let valueString = values.implode(", ") {
-			return apply(sql.sqlSelect(valueString), resultingColumns: columns)
+			return apply(sql.sqlSelect(valueString), resultingColumns: newColumns)
 		}
 		return QBERasterData()
     }
