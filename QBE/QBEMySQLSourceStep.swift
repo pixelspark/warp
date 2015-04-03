@@ -91,7 +91,7 @@ internal class QBEMySQLResult: SequenceType, GeneratorType {
 			
 			#if DEBUG
 				if warn && n > 0 {
-					println("Unfinished result was destroyed, drained \(n) rows to prevent packet errors. This is a performance issue!")
+					QBELog("Unfinished result was destroyed, drained \(n) rows to prevent packet errors. This is a performance issue!")
 				}
 			#endif
 			self.finished = true
@@ -200,7 +200,7 @@ internal class QBEMySQLConnection {
 				dispatch_set_target_queue(Static.instance, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
 			}
 			else {
-				println("Error initializing MySQL library")
+				QBELog("Error initializing MySQL library")
 			}
 		}
 		return Static.instance!
@@ -271,7 +271,7 @@ internal class QBEMySQLConnection {
 			let result = block()
 			if result != 0 {
 				let message = String(CString: mysql_error(self.connection), encoding: NSUTF8StringEncoding)
-				println("MySQL perform error: \(message)")
+				QBELog("MySQL perform error: \(message)")
 				success = false
 			}
 			success = true
@@ -286,7 +286,7 @@ internal class QBEMySQLConnection {
 		self.result = nil
 		
 		#if DEBUG
-			println("MySQL Query \(sql)")
+			QBELog("MySQL Query \(sql)")
 		#endif
 
 		if self.perform({return mysql_query(self.connection, sql.cStringUsingEncoding(NSUTF8StringEncoding)!)}) {
@@ -401,9 +401,9 @@ class QBEMySQLSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
 		self.fullData(job, callback: { (fd) -> () in
-			callback(fd.random(100))
+			callback(fd.random(maxInputRows))
 		})
 	}
 }

@@ -8,12 +8,14 @@ the 'full' data (which is the full dataset on which the final data operations ar
 Subclasses of QBEStep implement the data manipulation in the apply function, and should implement the description method
 as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. **/
 class QBEStep: NSObject {
-	static let defaultExampleRows = 100
 	static let dragType = "nl.pixelspark.Warp.Step"
 	
-	func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
+	/** Creates a data object representing the result of an 'example' calculation of the result of this QBEStep. The
+	maxInputRows parameter defines the maximum number of input rows a source step should generate. The maxOutputRows
+	parameter defines the maximum number of rows a step should strive to produce. **/
+	func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
 		if let p = self.previous {
-			self.previous?.exampleData(job, callback: {(data) in
+			self.previous?.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: {(data) in
 				self.apply(data, job: job, callback: callback)
 			})
 		}
@@ -134,11 +136,11 @@ enum QBEFileReference {
 					return QBEFileReference.ResolvedBookmark(bookmark, resolved)
 				}
 				else {
-					println("Failed to resolve just-created bookmark: \(error)")
+					QBELog("Failed to resolve just-created bookmark: \(error)")
 				}
 			}
 			else {
-				println("Could not create bookmark for url \(u): \(error)")
+				QBELog("Could not create bookmark for url \(u): \(error)")
 			}
 			return self
 			
@@ -160,7 +162,7 @@ enum QBEFileReference {
 			if let u = NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil, error: &error) {
 				return QBEFileReference.ResolvedBookmark(b, u)
 			}
-			println("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(relativeToDocument): \(error)")
+			QBELog("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(relativeToDocument): \(error)")
 			return self
 			
 		case .Bookmark(let b):
@@ -168,7 +170,7 @@ enum QBEFileReference {
 			if let u = NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil, error: &error) {
 				return QBEFileReference.ResolvedBookmark(b, u)
 			}
-			println("Could not resolve secure bookmark \(b): \(error)")
+			QBELog("Could not resolve secure bookmark \(b): \(error)")
 			return self
 		}
 	}

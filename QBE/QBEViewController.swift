@@ -11,19 +11,16 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 }
 
 class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate {
+	var suggestions: QBEFuture<[QBEStep]>?
+	let calculator: QBECalculator = QBECalculator()
 	var dataViewController: QBEDataViewController?
 	var stepsViewController: QBEStepsViewController?
-	weak var windowController: QBEWindowController?
-	
+
 	@IBOutlet var descriptionField: NSTextField?
 	@IBOutlet var configuratorView: NSView?
 	@IBOutlet var titleLabel: NSTextField?
 	@IBOutlet var addStepMenu: NSMenu?
 	@IBOutlet var suggestionsButton: NSButton?
-	
-	internal var currentData: QBEFuture<QBEData>?
-	internal var currentRaster: QBEFuture<QBERaster>?
-	internal var suggestions: QBEFuture<[QBEStep]>?
 	
 	internal var useFullData: Bool = false {
 		didSet {
@@ -131,35 +128,15 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
-	var calculationInProgressForStep: QBEStep?
-	
 	func calculate() {
 		QBEAssertMainThread()
 		
 		if let s = currentStep {
 			let sourceStep = previewStep ?? s
-			if sourceStep != calculationInProgressForStep || currentData?.cancelled ?? false || currentRaster?.cancelled ?? false {
-				currentData?.cancel()
-				currentRaster?.cancel()
-				calculationInProgressForStep = sourceStep
-				currentData = QBEFuture<QBEData>(useFullData ? sourceStep.fullData : sourceStep.exampleData)
-				
-				currentRaster = QBEFuture<QBERaster>({(job: QBEJob?, callback: QBEFuture<QBERaster>.Callback) in
-					if let cd = self.currentData {
-						cd.get({ (data: QBEData) -> () in
-							data.raster(job, callback: callback)
-						})
-					}
-				})
-				
-				currentRaster!.get({(_) in self.calculationInProgressForStep = nil})
-			}
+			calculator.calculate(sourceStep, fullData: useFullData)
 		}
 		else {
-			currentData?.cancel()
-			currentRaster?.cancel()
-			currentData = nil
-			currentRaster = nil
+			calculator.cancel()
 		}
 		
 		refreshData()
@@ -167,9 +144,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	private func refreshData() {
 		self.presentData(nil)
-		dataViewController?.calculating = (currentRaster != nil)
+		dataViewController?.calculating = calculator.calculating
 		
-		let job = currentRaster?.get({(raster) in
+		let job = calculator.currentRaster?.get({(raster) in
 			QBEAsyncMain {
 				self.presentRaster(raster)
 			}
@@ -290,7 +267,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
 		suggestions?.cancel()
 		
-		currentRaster?.get({(raster) in
+		calculator.currentRaster?.get({(raster) in
 			self.suggestions = QBEFuture<[QBEStep]>({(job, callback) -> () in
 				QBEAsyncBackground {
 					let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
@@ -518,8 +495,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func setWorkingSet(sender: NSObject) {
 		if let sc = sender as? NSSegmentedControl {
 			let changing = (sc.selectedSegment == 1) != useFullData
-			currentData?.cancel()
-			currentRaster?.cancel()
+			calculator.cancel()
 			if changing {
 				useFullData = (sc.selectedSegment == 1)
 			}
@@ -541,7 +517,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	}
 	
 	@IBAction func addEmptyColumn(sender: NSObject) {
-		currentData?.get({(data) in
+		calculator.currentData?.get({(data) in
 			data.columnNames({(cols) in
 				// If a column is selected, insert the new column right after it
 				var insertAfter: QBEColumn? = nil
@@ -602,7 +578,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 			let firstSelectedColumn = selectedColumns.firstIndex
 			if firstSelectedColumn != NSNotFound {
-				currentRaster?.get {(raster) in
+				calculator.currentRaster?.get {(raster) in
 					let columnName = raster.columnNames[firstSelectedColumn]
 					let expression = QBESiblingExpression(columnName: columnName)
 					let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
@@ -634,7 +610,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	private func selectColumns(remove: Bool) {
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			// Get the names of the columns to remove
-			currentRaster?.get({(raster) in
+			calculator.currentRaster?.get({(raster) in
 				var namesToRemove: [QBEColumn] = []
 				var namesToSelect: [QBEColumn] = []
 				
@@ -668,7 +644,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func removeRows(sender: NSObject) {
 		if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				currentRaster?.get({(raster) in
+				calculator.currentRaster?.get({(raster) in
 					// Invert the selection
 					let selectedToKeep = NSMutableIndexSet()
 					let selectedToRemove = NSMutableIndexSet()
@@ -704,7 +680,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func aggregateRowsByCells(sender: NSObject) {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				currentRaster?.get({(raster) in
+				calculator.currentRaster?.get({(raster) in
 					var relevantColumns = Set<QBEColumn>()
 					for columnIndex in 0..<raster.columnCount {
 						if selectedColumns.containsIndex(columnIndex) {
@@ -725,7 +701,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func selectRows(sender: NSObject) {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				currentRaster?.get({(raster) in
+				calculator.currentRaster?.get({(raster) in
 					var relevantColumns = Set<QBEColumn>()
 					for columnIndex in 0..<raster.columnCount {
 						if selectedColumns.containsIndex(columnIndex) {

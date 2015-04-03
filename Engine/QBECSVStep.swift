@@ -268,9 +268,9 @@ class QBECSVSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
 		self.fullData(job, callback: { (fullData) -> () in
-			callback(fullData.limit(100))
+			callback(fullData.limit(maxInputRows))
 		})
 	}
 	

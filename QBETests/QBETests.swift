@@ -176,8 +176,8 @@ class QBETests: XCTestCase {
 			b.raster(nil, callback: { (bRaster) -> () in
 				let equal = aRaster.compare(bRaster)
 				if !equal {
-					println("A: \(aRaster.debugDescription)")
-					println("B: \(bRaster.debugDescription)")
+					QBELog("A: \(aRaster.debugDescription)")
+					QBELog("B: \(bRaster.debugDescription)")
 				}
 				callback(equal)
 			})
@@ -244,7 +244,7 @@ class QBETests: XCTestCase {
 		let cols = ["A","B","C","D"].map({QBEColumn($0)})
 		let row = [1,3,4,6].map({QBEValue($0)})
 		QBEExpression.infer(nil, toValue: QBEValue(24), suggestions: &suggestions, level: 10, columns: cols, row: row, column: 0, maxComplexity: Int.max, previousValues: [])
-		suggestions.each({println($0.explain(locale))})
+		suggestions.each({QBELog($0.explain(locale))})
 		XCTAssert(suggestions.count>0, "Can solve the 1-3-4-6 24 game.")
 	}
 	

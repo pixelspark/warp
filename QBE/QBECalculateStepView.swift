@@ -54,7 +54,7 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 		if let s = step {
 			self.insertAfterField?.stringValue = s.insertAfter?.name ?? ""
 			self.existingColumns = nil
-			s.exampleData(nil) { (d) in
+			s.exampleData(nil, maxInputRows: 100, maxOutputRows: 100) { (d) in
 				d.columnNames {(cns) in
 					self.existingColumns = cns
 					

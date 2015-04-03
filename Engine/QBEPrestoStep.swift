@@ -92,7 +92,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 				request.HTTPMethod = "GET"
 			}
 			
-			println("Presto requesting \(endpoint)")
+			QBELog("Presto requesting \(endpoint)")
 			Alamofire.request(request).responseJSON(options: NSJSONReadingOptions.allZeros, completionHandler: { (request, response, data, error) -> Void in
 				if let res = response {
 					// Status code 503 means that we should wait a bit
@@ -106,13 +106,13 @@ private class QBEPrestoStream: NSObject, QBEStream {
 					
 					// Any status code other than 200 means trouble
 					if res.statusCode != 200 {
-						println("Presto errored: \(res.statusCode)")
+						QBELog("Presto errored: \(res.statusCode)")
 						self.stopped = true
 						return
 					}
 				
 					if let e = error {
-						println("Presto request error: \(e)")
+						QBELog("Presto request error: \(e)")
 						self.stopped = true
 						return
 					}
@@ -373,9 +373,9 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
 		self.fullData(job, callback: { (fd) -> () in
-			callback(fd.random(100))
+			callback(fd.random(maxInputRows))
 		})
 	}
 }

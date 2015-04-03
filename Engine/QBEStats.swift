@@ -52,7 +52,7 @@ class QBEMoving: NSObject, NSCoding {
 	private(set) var values: [ValueType?]
 	let size: Int
 	
-	init(size: Int, items: [ValueType]) {
+	init(size: Int, items: [ValueType] = []) {
 		values = items.optionals
 		self.size = size
 		super.init()

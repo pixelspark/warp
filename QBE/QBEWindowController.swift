@@ -8,7 +8,6 @@ internal class QBEWindowController: NSWindowController {
 		didSet {
 			if let qbeDocumentViewController = window!.contentViewController as? QBEViewController {
 				qbeDocumentViewController.document = document as? QBEDocument
-				qbeDocumentViewController.windowController = self
 			}
 		}
 	}

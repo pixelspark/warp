@@ -7,13 +7,21 @@ internal func QBETime(description: String, items: Int, itemType: String, _ job: 
 		let t = CFAbsoluteTimeGetCurrent()
 		block()
 		let d = CFAbsoluteTimeGetCurrent() - t
-		println("QBETime\t\(description)\t\(items) \(itemType):\t\(round(10*Double(items)/d)/10) \(itemType)/s")
+		QBELog("QBETime\t\(description)\t\(items) \(itemType):\t\(round(10*Double(items)/d)/10) \(itemType)/s")
 		
 		if let j = job {
 			j.reportTime(description, time: d)
 		}
 	#else
 		block()
+	#endif
+}
+
+internal func QBELog(message: String, file: StaticString = __FILE__, line: UWord = __LINE__) {
+	#if DEBUG
+		dispatch_async(dispatch_get_main_queue()) {
+			println(message)
+		}
 	#endif
 }
 
@@ -57,7 +65,7 @@ class QBEJob {
 	func reportProgress(progress: Double, forKey: Int) {
 		if progress < 0.0 || progress > 1.0 {
 			// Ignore spurious progress reports
-			println("Ignoring spurious progress report \(progress) for key \(forKey)")
+			QBELog("Ignoring spurious progress report \(progress) for key \(forKey)")
 		}
 		
 		QBEAsyncMain {
@@ -96,7 +104,7 @@ class QBEJob {
 		let tcs = timeComponents
 		let addr = unsafeAddressOf(self).debugDescription
 		QBEAsyncMain {
-			println("Job: \(addr) \(tcs)")
+			QBELog("Job: \(addr) \(tcs)")
 		}
 	}
 	#endif
@@ -138,7 +146,7 @@ class QBEFuture<T> {
 			if let tl = timeLimit {
 				// Set a timer to cancel this job
 				dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(tl * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
-					println("Job timed out after \(tl) seconds")
+					QBELog("Job timed out after \(tl) seconds")
 					batch.expire()
 				}
 			}

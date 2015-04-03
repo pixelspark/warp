@@ -32,7 +32,7 @@ class QBERasterStep: QBEStep {
 		callback(staticFullData)
 	}
 	
-	override func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
-		callback(staticExampleData)
+	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+		callback(staticExampleData.limit(min(maxInputRows, maxOutputRows)))
 	}
 }

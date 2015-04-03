@@ -14,7 +14,7 @@ internal class QBESQLiteResult {
 	init?(sql: String, db: QBESQLiteDatabase) {
 		self.db = db
 		self.resultSet = nil
-		println("SQL \(sql)")
+		QBELog("SQL \(sql)")
 		if !self.db.perform({sqlite3_prepare_v2(self.db.db, sql, -1, &self.resultSet, nil)}) {
 			return nil
 		}
@@ -57,7 +57,7 @@ internal class QBESQLiteResult {
 					}
 					
 					if result != SQLITE_OK {
-						println("SQLite error on parameter bind: \(self.db.lastError)")
+						QBELog("SQLite error on parameter bind: \(self.db.lastError)")
 						ret = false
 					}
 					
@@ -67,17 +67,17 @@ internal class QBESQLiteResult {
 		
 			let result = sqlite3_step(self.resultSet)
 			if result != SQLITE_ROW && result != SQLITE_DONE {
-				println("SQLite error running statement: \(self.db.lastError)")
+				QBELog("SQLite error running statement: \(self.db.lastError)")
 				ret = false
 			}
 			
 			if sqlite3_clear_bindings(self.resultSet) != SQLITE_OK {
-				println("SQLite: failed to clear parameter bindings: \(self.db.lastError)")
+				QBELog("SQLite: failed to clear parameter bindings: \(self.db.lastError)")
 				ret = false
 			}
 			
 			if sqlite3_reset(self.resultSet) != SQLITE_OK {
-				println("SQLite: could not reset statement: \(self.db.lastError)")
+				QBELog("SQLite: could not reset statement: \(self.db.lastError)")
 				ret = false
 			}
 		}
@@ -210,7 +210,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 		dispatch_sync(QBESQLiteDatabase.sharedQueue) {
 			let code = op()
 			if code != SQLITE_OK && code != SQLITE_DONE && code != SQLITE_ROW {
-				println("SQLite error: \(self.lastError)")
+				QBELog("SQLite error: \(self.lastError)")
 				ret = false
 			}
 		}
@@ -468,7 +468,7 @@ class QBESQLiteCachedData: QBEProxyData {
 			self.stream?.fetch(self.ingest, job: cacheJob)
 		}
 		
-		QBETime("SQLite insert", rows.count, "rows") {
+		QBETime("SQLite insert", rows.count, "rows", cacheJob) {
 			if let statement = self.insertStatement {
 				for row in rows {
 					statement.run(parameters: row)
@@ -478,7 +478,7 @@ class QBESQLiteCachedData: QBEProxyData {
 		
 		if !hasMore {
 			// Swap out the original source with our new cached source
-			println("Done caching, swapping out")
+			QBELog("Done caching, swapping out")
 			self.database.query("END TRANSACTION")?.run()
 			self.data.columnNames({ (columns) -> () in
 				self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: columns, locale: self.locale)
@@ -538,9 +538,9 @@ class QBESQLiteSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleData(job: QBEJob?, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
 		self.fullData(job, callback: { (fd) -> () in
-			callback(fd.random(100))
+			callback(fd.random(maxInputRows))
 		})
 	}
 	
