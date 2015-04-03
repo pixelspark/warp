@@ -159,8 +159,11 @@ protocol QBEData {
 	yet exist in the data set, it is created and appended as last column. The order of existing columns remains intact.
 	If the column already exists, the column's values are overwritten by the results of the calculation. Note that in this
 	case the old value in the column is an input value to the formula (this value is QBEValue.EmptyValue in the case where
-	the target column doesn't exist yet). Calculations do not apply to the column headers. The specified calculations are
-	executed in no particular order. **/
+	the target column doesn't exist yet). Calculations do not apply to the column headers. 
+	
+	The specified calculations are executed in no particular order. Expressions that read data from the row (e.g. from
+	another column) are read from the previous version of the row as if none of the specified calculations have 
+	happened. **/
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData
 	
 	/** Limit the number of rows in the data set to the specified number of rows. The number of rows does not include
@@ -264,6 +267,7 @@ enum QBECoalescedData: QBEData {
 	case Filtering(QBEData, QBEExpression)
 	case Sorting(QBEData, [QBEOrder])
 	case SelectingColumns(QBEData, [QBEColumn])
+	case Calculating(QBEData, [QBEColumn: QBEExpression])
 	case Distincting(QBEData)
 	
 	init(_ data: QBEData) {
@@ -294,6 +298,9 @@ enum QBECoalescedData: QBEData {
 			case .Distincting(let data):
 				return data.distinct()
 			
+			case .Calculating(let data, let calculations):
+				return data.calculate(calculations)
+			
 			case .None(let data):
 				return data
 		}
@@ -310,10 +317,64 @@ enum QBECoalescedData: QBEData {
 		}
 	}
 	
+	/** Combine calculations under the following circumstances:
+	- calculate(A: x).calculate(B: y) is equivalent to calculate(A: x, B: y) if y does not depend on A and A!=B
+	- calculate(A: x).calculate(A: y) is equivalent to calculate(A: y) if x is an identity expression (e.g. just returns
+	  the content A had before the calculation)
+	**/
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
-		/* TODO: calculatings can be combined if the new calculation does not depend on the old one. Also, calculate() 
-		can be combined with selectColumns. */
-		return QBECoalescedData.None(data.calculate(calculations))
+		var newCalculations = Dictionary<QBEColumn, QBEExpression>()
+		
+		let source: QBEData
+		switch self {
+			case .Calculating(let data, let calculations):
+				newCalculations = calculations
+				source = data
+				
+			default:
+				source = self.data
+				break
+		}
+		
+		/* Calculations that do not depend on any columns already being calculated in this batch can be combined with the
+		current batch. The rest will be put in a new step (note that ordering *between* calculations sent to the calculate
+		function is undefined). */
+		var deferred = Dictionary<QBEColumn, QBEExpression>()
+		for (targetColumn, expression) in calculations {
+			// Find out if the new calculation depends on anything that was calculated earlier
+			var dependsOnCurrent = false
+			
+			if let se = newCalculations[targetColumn] as? QBESiblingExpression where se.columnName == targetColumn {
+				// The old calculation is just an identity one, it can safely be overwritten
+			}
+			else if let se = newCalculations[targetColumn] as? QBEIdentityExpression {
+				// The old calculation is just an identity one, it can safely be overwritten
+			}
+			else {
+				// Iterate over all column dependencies of the new expression
+				expression.visit({ (subexpression) -> () in
+					if let se = subexpression as? QBESiblingExpression {
+						if let existing = newCalculations[se.columnName] {
+							dependsOnCurrent = true
+						}
+					}
+				})
+			}
+
+			if dependsOnCurrent {
+				deferred[targetColumn] = expression
+			}
+			else {
+				newCalculations[targetColumn] = expression
+			}
+		}
+		
+		let result = QBECoalescedData.Calculating(source, newCalculations)
+		if deferred.count > 0 {
+			return QBECoalescedData.Calculating(result.data, deferred)
+		}
+		
+		return result
 	}
 	
 	/** data.limit(x).limit(y) is equivalent to data.limit(min(x,y)) **/
