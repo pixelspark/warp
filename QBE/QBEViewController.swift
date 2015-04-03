@@ -132,6 +132,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		QBEAssertMainThread()
 		
 		if let s = currentStep {
+			calculator.desiredExampleRows = QBESettings.sharedInstance.exampleMaximumRows
+			calculator.maximumExampleTime = QBESettings.sharedInstance.exampleMaximumTime
+			
 			let sourceStep = previewStep ?? s
 			calculator.calculate(sourceStep, fullData: useFullData)
 		}
