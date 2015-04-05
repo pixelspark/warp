@@ -344,6 +344,7 @@ internal class QBESQLiteDialect: QBEStandardSQLDialect {
 			case .ContainsStringStrict: result = "INSTR(\(second), \(first))>0"
 			case .MatchesRegex: result = nil // Force usage of UDF here, SQLite does not implement (a REGEXP p)
 			case .MatchesRegexStrict: result = nil
+			case .Concatenation: result = "(\(second) || \(first))"
 			
 			default:
 				result = super.binaryToSQL(type, first: first, second: second)
@@ -358,7 +359,16 @@ internal class QBESQLiteDialect: QBEStandardSQLDialect {
 	}
 	
 	override func unaryToSQL(type: QBEFunction, args: [String]) -> String? {
-		if let result = super.unaryToSQL(type, args: args) {
+		let result: String?
+		switch type {
+			case .Concat:
+				result = args.implode(" || ") ?? ""
+			
+			default:
+				result = super.unaryToSQL(type, args: args)
+		}
+		
+		if result != nil {
 			return result
 		}
 		
