@@ -186,7 +186,7 @@ class QBELiteralExpression: QBEExpression {
 		case .IntValue(let i):
 			return "\(i)"
 		
-		case .InvalidValue: return locale.constants[QBEValue.InvalidValue]!
+		case .InvalidValue: return locale.constants[QBEValue.EmptyValue]!
 		case .EmptyValue: return locale.constants[QBEValue.EmptyValue]!
 		}
 	}
