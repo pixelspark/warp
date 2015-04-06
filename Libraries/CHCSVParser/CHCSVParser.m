@@ -574,8 +574,11 @@ NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
     NSUInteger _currentField;
 }
 
+@synthesize newlineCharacter;
+
 - (instancetype)initForWritingToCSVFile:(NSString *)path {
     NSOutputStream *stream = [NSOutputStream outputStreamToFileAtPath:path append:NO];
+	self.newlineCharacter = @"\r\n";
     return [self initWithOutputStream:stream encoding:NSUTF8StringEncoding delimiter:COMMA];
 }
 
@@ -652,7 +655,7 @@ NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
 }
 
 - (void)finishLine {
-    [self _writeString:@"\n"];
+    [self _writeString:self.newlineCharacter];
     _currentField = 0;
 }
 

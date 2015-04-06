@@ -64,8 +64,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			if let s = currentStep {
 				self.previewStep = nil
 				let className = s.className
-				let StepView = QBEStepViews[className]?(step: s, delegate: self)
-				self.configuratorViewController = StepView
+				let stepView = QBEFactory.sharedInstance.viewForStep(s.self, delegate: self)
+				self.configuratorViewController = stepView
 			}
 			else {
 				self.configuratorViewController = nil
@@ -942,23 +942,28 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func exportFile(sender: NSObject) {
 		let ns = NSSavePanel()
-		ns.allowedFileTypes = ["csv","txt","tab"]
+		ns.allowedFileTypes = QBEFactory.sharedInstance.fileTypesForWriting
+		let title = document?.displayName ?? NSLocalizedString("Warp data", comment: "")
 		
 		ns.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result == NSFileHandlingPanelOKButton {
+				// What type of file are we exporting?
 				QBEAsyncBackground {
 					if let cs = self.currentStep {
 						cs.fullData(nil, callback: {(data: QBEData) -> () in
-							let wr = QBECSVWriter(data: data, locale: self.locale)
-							if let url = ns.URL {
-								wr.writeToFile(url, callback: {
-									QBEAsyncMain {
-										let alert = NSAlert()
-										alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
-										alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (response) -> Void in
-										})
-									}
-								})
+							if let url = ns.URL, let ext = url.pathExtension {
+								// Get the file writer for this type
+								// FIXME: make a registry somewhere
+								if let writer = QBEFactory.sharedInstance.fileWriterForType(ext, data: data, locale: self.locale, title: title) {
+									writer.writeToFile(url, callback: {
+										QBEAsyncMain {
+											let alert = NSAlert()
+											alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
+											alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (response) -> Void in
+											})
+										}
+									})
+								}
 							}
 						})
 					}

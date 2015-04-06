@@ -14,7 +14,7 @@ class QBELocale: NSObject {
 	let csvStringQualifier = "\""
 	let csvStringEscaper = "\"\""
 	let commonFieldSeparators = [";",",","|","\t"]
-	
+	var numberFormatter: NSNumberFormatter
 	let constants: [QBEValue: String]
 	private let functions: [String: QBEFunction]
 	
@@ -144,8 +144,6 @@ class QBELocale: NSObject {
 			"ITEMS": QBEFunction.Items
 		]
 	]
-	
-	var numberFormatter: NSNumberFormatter
 	
 	init(language: QBELanguage = QBELocale.defaultLanguage) {
 		functions = QBELocale.allFunctions[language] ?? QBELocale.allFunctions[QBELocale.defaultLanguage]!

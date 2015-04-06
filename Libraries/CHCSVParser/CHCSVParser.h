@@ -305,6 +305,8 @@ typedef NS_ENUM(NSInteger, CHCSVErrorCode) {
  */
 - (void)closeStream;
 
+@property (nonatomic, retain) NSString* newlineCharacter;
+
 @end
 
 #pragma mark - Convenience Categories

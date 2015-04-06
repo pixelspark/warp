@@ -69,7 +69,7 @@ import Cocoa
 		label?.attributedStringValue = NSAttributedString(string: step?.explain(QBELocale(), short: true) ?? "??")
 		
 		if let s = step {
-			if let icon = QBEStepIcons[s.className] {
+			if let icon = QBEFactory.sharedInstance.iconForStep(s) {
 				imageView?.image = NSImage(named: icon)
 			}
 			

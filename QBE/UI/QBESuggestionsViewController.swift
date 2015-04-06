@@ -16,8 +16,7 @@ class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NST
 		}
 		else if tableColumn?.identifier == "suggestionIcon" {
 			if let suggestedStep = suggestions?[row] {
-				let className = suggestedStep.className
-				if let icon = QBEStepIcons[className] {
+				if let icon = QBEFactory.sharedInstance.iconForStep(suggestedStep) {
 					return NSImage(named: icon)
 				}
 			}

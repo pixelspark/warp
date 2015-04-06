@@ -110,51 +110,118 @@ protocol QBEFileWriter: NSObjectProtocol {
 class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 	let data: QBEData
 	let locale: QBELocale
+	let separatorCharacter: UInt16
+	let newLineCharacter: String?
 	
-	init(data: QBEData, locale: QBELocale) {
+	init(data: QBEData, locale: QBELocale, separatorCharacter: UInt16? = nil, newLineCharacter: String? = nil) {
 		self.data = data
 		self.locale = locale
+		self.newLineCharacter = newLineCharacter
+		
+		if separatorCharacter == nil {
+			let separatorString = QBESettings.sharedInstance.defaultFieldSeparator
+			self.separatorCharacter = separatorString.utf16[separatorString.utf16.startIndex]
+		}
+		else {
+			self.separatorCharacter = separatorCharacter!
+		}
+	}
+	
+	func writeHeader(toStream: NSOutputStream) {
+		// Not used
+	}
+	
+	func writeFooter(toStream: NSOutputStream) {
+		// Not used
 	}
 	
 	func writeToFile(file: NSURL, callback: () -> ()) {
 		let stream = data.stream()
-		let separatorString = QBESettings.sharedInstance.defaultFieldSeparator
-		let separatorChar = separatorString.utf16[separatorString.utf16.startIndex]
-		let outStream = NSOutputStream(toFileAtPath: file.path!, append: false)
-		let csvOut = CHCSVWriter(outputStream: outStream, encoding: NSUTF8StringEncoding, delimiter: separatorChar)
-		
-		// Write column headers
-		stream.columnNames { (columnNames) -> () in
-			for col in columnNames {
-				csvOut.writeField(col.name)
-			}
-			csvOut.finishLine()
+
+		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
+			let csvOut = CHCSVWriter(outputStream: outStream, encoding: NSUTF8StringEncoding, delimiter: separatorCharacter)
+			writeHeader(outStream)
 			
-			var cb: QBESink? = nil
-			cb = { (rows: ArraySlice<QBERow>, hasNext: Bool) -> () in
-				// We want the next row, so fetch it while we start writing this one.
-				if hasNext {
-					QBEAsyncBackground {
-						stream.fetch(cb!, job: nil)
-					}
+			// If a custom new line character is set, use that instead of the default
+			if let nl = newLineCharacter {
+				csvOut.newlineCharacter = nl
+			}
+			
+			// Write column headers
+			stream.columnNames { (columnNames) -> () in
+				for col in columnNames {
+					csvOut.writeField(col.name)
 				}
+				csvOut.finishLine()
 				
-				QBETime("Write CSV", rows.count, "rows") {
-					for row in rows {
-						for cell in row {
-							csvOut.writeField(self.locale.localStringFor(cell))
+				var cb: QBESink? = nil
+				cb = { (rows: ArraySlice<QBERow>, hasNext: Bool) -> () in
+					// We want the next row, so fetch it while we start writing this one.
+					if hasNext {
+						QBEAsyncBackground {
+							stream.fetch(cb!, job: nil)
 						}
-						csvOut.finishLine()
+					}
+					
+					QBETime("Write CSV", rows.count, "rows") {
+						for row in rows {
+							for cell in row {
+								csvOut.writeField(self.locale.localStringFor(cell))
+							}
+							csvOut.finishLine()
+						}
+					}
+					
+					if !hasNext {
+						self.writeFooter(outStream)
+						csvOut.closeStream()
+						callback()
 					}
 				}
 				
-				if !hasNext {
-					csvOut.closeStream()
-					callback()
-				}
+				stream.fetch(cb!, job: nil)
 			}
-			
-			stream.fetch(cb!, job: nil)
+		}
+	}
+}
+
+class QBEHTMLWriter: QBECSVWriter {
+	let header: String
+	let footer: String
+	
+	init(data: QBEData, locale: QBELocale, title: String) {
+		// Get pivot template from resources
+		if let path = NSBundle.mainBundle().pathForResource("pivot", ofType: "html") {
+			var error: NSError? = nil
+			if let template = NSString(contentsOfFile: path, encoding: NSUTF8StringEncoding, error: &error) {
+				let template = template.stringByReplacingOccurrencesOfString("$$$TITLE$$$", withString: title)
+				let parts = template.componentsSeparatedByString("$$$CSV$$$")
+				header = parts[0]
+				footer = parts[1]
+				let separatorString = ","
+				let separatorCharacter = separatorString.utf16[separatorString.utf16.startIndex]
+				
+				let locale = QBELocale()
+				locale.numberFormatter.perMillSymbol = ""
+				locale.numberFormatter.decimalSeparator = "."
+				super.init(data: data, locale: locale, separatorCharacter: separatorCharacter, newLineCharacter: "\r\n")
+				return
+			}
+		}
+		header = ""
+		footer = ""
+		super.init(data: data, locale: QBELocale())
+	}
+	
+	override func writeHeader(toStream: NSOutputStream) {
+		if let data = header.dataUsingEncoding(NSUTF8StringEncoding) {
+			toStream.write(UnsafePointer<UInt8>(data.bytes), maxLength: data.length)
+		}
+	}
+	
+	override func writeFooter(toStream: NSOutputStream) {
+		if let data = footer.dataUsingEncoding(NSUTF8StringEncoding) {
+			toStream.write(UnsafePointer<UInt8>(data.bytes), maxLength: data.length)
 		}
 	}
 }
