@@ -886,44 +886,31 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func importFile(sender: NSObject) {
 		let no = NSOpenPanel()
 		no.canChooseFiles = true
-		no.allowedFileTypes = ["public.comma-separated-values-text", "org.sqlite.v3"]
+		no.allowedFileTypes = QBEFactory.sharedInstance.fileTypesForReading
 		
 		no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result==NSFileHandlingPanelOKButton {
 				if let url = no.URLs[0] as? NSURL {
-					var error: NSError?
-					if let type = NSWorkspace.sharedWorkspace().typeOfFile(url.path!, error: &error) {
-						QBEAsyncBackground {
-							var sourceStep: QBEStep?
-							switch type {
-								case "public.comma-separated-values-text":
-									sourceStep = QBECSVSourceStep(url: url)
-								
-								case "org.sqlite.v3":
-									sourceStep = QBESQLiteSourceStep(url: url)
-								
-								default:
-									sourceStep = nil
+					QBEAsyncBackground {
+						let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url)
+						
+						QBEAsyncMain {
+							if sourceStep != nil {
+								// FIXME: in the future, we should propose data set joins here
+								//self.currentStep = nil
+								//self.document?.head = sourceStep!
+								self.pushStep(sourceStep!)
+								self.stepsChanged()
+								self.updateView()
+								self.calculate()
 							}
-							
-							QBEAsyncMain {
-								if sourceStep != nil {
-									// FIXME: in the future, we should propose data set joins here
-									//self.currentStep = nil
-									//self.document?.head = sourceStep!
-									self.pushStep(sourceStep!)
-									self.stepsChanged()
-									self.updateView()
-									self.calculate()
-								}
-								else {
-									let alert = NSAlert()
-									alert.messageText = NSLocalizedString("Unknown file format: ", comment: "") + type
-									alert.alertStyle = NSAlertStyle.WarningAlertStyle
-									alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: NSModalResponse) -> Void in
-										// Do nothing...
-									})
-								}
+							else {
+								let alert = NSAlert()
+								alert.messageText = NSLocalizedString("Unknown file format: ", comment: "") + (url.pathExtension ?? "")
+								alert.alertStyle = NSAlertStyle.WarningAlertStyle
+								alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: NSModalResponse) -> Void in
+									// Do nothing...
+								})
 							}
 						}
 					}
@@ -942,7 +929,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	@IBAction func exportFile(sender: NSObject) {
 		let ns = NSSavePanel()
-		ns.allowedFileTypes = QBEFactory.sharedInstance.fileTypesForWriting
+		ns.allowedFileTypes = QBEFactory.sharedInstance.fileExtensionsForWriting
 		let title = document?.displayName ?? NSLocalizedString("Warp data", comment: "")
 		
 		ns.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in

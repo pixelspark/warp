@@ -3,6 +3,7 @@ import Foundation
 class QBEFactory {
 	typealias QBEStepViewCreator = (step: QBEStep?, delegate: QBESuggestionsViewDelegate) -> NSViewController?
 	typealias QBEFileWriterCreator = (data: QBEData, locale: QBELocale, title: String) -> QBEFileWriter?
+	typealias QBEFileReaderCreator = (url: NSURL) -> QBEStep?
 	
 	static let sharedInstance = QBEFactory()
 	
@@ -10,6 +11,11 @@ class QBEFactory {
 		"html": {(data,locale,title) in QBEHTMLWriter(data: data, locale: locale, title: title)},
 		"csv": {(data,locale,title) in QBECSVWriter(data: data, locale: locale)},
 		"tsv": {(data,locale,title) in QBECSVWriter(data: data, locale: locale)}
+	]
+	
+	private let fileReaders: [String: QBEFileReaderCreator] = [
+		"public.comma-separated-values-text": {(url) in return QBECSVSourceStep(url: url)},
+		"org.sqlite.v3": {(url) in return QBESQLiteSourceStep(url: url)}
 	]
 	
 	private let stepViews: Dictionary<String, QBEStepViewCreator> = [
@@ -48,9 +54,23 @@ class QBEFactory {
 		QBEMySQLSourceStep.className(): "MySQLIcon"
 	]
 	
-	var fileTypesForWriting: [String] { get {
+	var fileExtensionsForWriting: [String] { get {
 		return [String](fileWriters.keys)
 	} }
+	
+	var fileTypesForReading: [String] { get {
+		return [String](fileReaders.keys)
+	} }
+	
+	func stepForReadingFile(atURL: NSURL) -> QBEStep? {
+		var error: NSError?
+		if let type = NSWorkspace.sharedWorkspace().typeOfFile(atURL.path!, error: &error) {
+			if let creator = fileReaders[type] {
+				return creator(url: atURL)
+			}
+		}
+		return nil
+	}
 	
 	func fileWriterForType(type: String, data: QBEData, locale: QBELocale, title: String) -> QBEFileWriter? {
 		if type == "html" {
