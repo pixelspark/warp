@@ -1,27 +1,30 @@
 import Cocoa
 
-class QBEDocument: NSDocument, NSCoding {
-	var head: QBEStep?
+class QBEDocument: NSDocument, NSSecureCoding {
+	private(set) var tablets: [QBETablet] = []
 	
 	override init () {
-		let raster = QBERaster()
 	}
-	
-	var steps: [QBEStep] { get {
-		var s: [QBEStep] = []
-		var current = head
-		
-		while current != nil {
-			s.append(current!)
-			current = current!.previous
-		}
-		
-		return s.reverse()
-	} }
 	
 	required init(coder aDecoder: NSCoder) {
 		let raster = QBERaster()
-		head = (aDecoder.decodeObjectForKey("head") as? QBEStep) ?? QBERasterStep(raster: raster)
+		if let head = (aDecoder.decodeObjectOfClass(QBEStep.self, forKey: "head") as? QBEStep) {
+			let legacyTablet = QBETablet(chain: QBEChain(head: head))
+			tablets.append(legacyTablet)
+		}
+		else {
+			let classes = Set<NSObject>(arrayLiteral: [QBETablet.self, NSArray.self])
+			tablets = aDecoder.decodeObjectOfClasses(classes, forKey: "tablets") as? [QBETablet] ?? []
+		}
+		
+		super.init()
+		tablets.each({$0.document = self})
+	}
+	
+	func addTablet(tablet: QBETablet) {
+		assert(tablet.document == nil, "tablet must not be associated with another document already")
+		tablet.document = self
+		tablets.append(tablet)
 	}
 	
 	override func windowControllerDidLoadNib(aController: NSWindowController) {
@@ -40,7 +43,11 @@ class QBEDocument: NSDocument, NSCoding {
 	}
 	
 	func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(head, forKey: "head")
+		coder.encodeObject(tablets, forKey: "tablets")
+	}
+	
+	static func supportsSecureCoding() -> Bool {
+		return true
 	}
 	
 	override func dataOfType(typeName: String, error outError: NSErrorPointer) -> NSData? {
@@ -48,19 +55,19 @@ class QBEDocument: NSDocument, NSCoding {
 	}
 	
 	override func writeToURL(url: NSURL, ofType typeName: String, error outError: NSErrorPointer) -> Bool {
-		self.steps.each({$0.willSaveToDocument(url)})
+		self.tablets.each({$0.willSaveToDocument(url)})
 		return super.writeToURL(url, ofType: typeName, error: outError)
 	}
 	
 	override func readFromURL(url: NSURL, ofType typeName: String, error outError: NSErrorPointer) -> Bool {
 		let r = super.readFromURL(url, ofType: typeName, error: outError)
-		self.steps.each({$0.didLoadFromDocument(url)})
+		self.tablets.each({$0.didLoadFromDocument(url)})
 		return r
 	}
 	
 	override func readFromData(data: NSData, ofType typeName: String, error outError: NSErrorPointer) -> Bool {
 		if let x = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEDocument {
-			head = x.head
+			tablets = x.tablets
 		}
 		return true
 	}

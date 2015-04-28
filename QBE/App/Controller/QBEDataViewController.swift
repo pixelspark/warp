@@ -272,6 +272,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		self.numberCell = MBTableGridCell(textCell: "")
 		self.numberCell.alignment = NSTextAlignment.RightTextAlignment
 		
+		self.textCell.font = NSFont.userFixedPitchFontOfSize(10.0)
+		self.numberCell.font = NSFont.userFixedPitchFontOfSize(10.0)
+		
 		self.view.focusRingType = NSFocusRingType.None
 		if self.tableView == nil {
 			self.tableView = MBTableGrid(frame: view.frame)

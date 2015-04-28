@@ -94,7 +94,7 @@ import Cocoa
 	}
 	
 	override var allowsVibrancy: Bool { get {
-		return true
+		return false
 	} }
 }
 

@@ -10,17 +10,33 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 	var undo: NSUndoManager? { get }
 }
 
-class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate {
+protocol QBEChainViewDelegate: NSObjectProtocol {
+	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESuggestionsViewDelegate)
+}
+
+internal extension NSViewController {
+	internal func showTip(message: String, atView: NSView) {
+		QBEAssertMainThread()
+		
+		if let vc = self.storyboard?.instantiateControllerWithIdentifier("tipController") as? QBETipViewController {
+			vc.message = message
+			let popover = NSPopover()
+			popover.contentViewController = vc
+			popover.behavior = NSPopoverBehavior.Transient
+			popover.showRelativeToRect(atView.bounds, ofView: atView, preferredEdge: NSMaxYEdge)
+		}
+	}
+}
+
+class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate {
 	var suggestions: QBEFuture<[QBEStep]>?
 	let calculator: QBECalculator = QBECalculator()
 	var dataViewController: QBEDataViewController?
 	var stepsViewController: QBEStepsViewController?
-
-	@IBOutlet var descriptionField: NSTextField?
-	@IBOutlet var configuratorView: NSView?
-	@IBOutlet var titleLabel: NSTextField?
-	@IBOutlet var addStepMenu: NSMenu?
 	@IBOutlet var suggestionsButton: NSButton?
+	weak var delegate: QBEChainViewDelegate?
+	
+	@IBOutlet var addStepMenu: NSMenu?
 	
 	internal var useFullData: Bool = false {
 		didSet {
@@ -35,41 +51,14 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		return QBEAppDelegate.sharedInstance.locale ?? QBELocale()
 	} }
 	
-	var configuratorViewController: NSViewController? {
-		willSet(newValue) {
-			if let s = configuratorViewController {
-				s.removeFromParentViewController()
-				s.view.removeFromSuperview()
-			}
-		}
-		
-		didSet {
-			if let vc = configuratorViewController {
-				if let cv = configuratorView {
-					self.addChildViewController(vc)
-					vc.view.translatesAutoresizingMaskIntoConstraints = false
-					vc.view.frame = cv.bounds
-					self.configuratorView?.addSubview(vc.view)
-					
-					cv.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[CTRL_VIEW]|", options: NSLayoutFormatOptions.allZeros, metrics: nil, views: ["CTRL_VIEW": vc.view]))
-					
-					cv.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[CTRL_VIEW]|", options: NSLayoutFormatOptions.allZeros, metrics: nil, views: ["CTRL_VIEW": vc.view]))
-				}
-			}
-		}
-	}
-	
 	dynamic var currentStep: QBEStep? {
 		didSet {
 			if let s = currentStep {
-				self.previewStep = nil
-				let className = s.className
-				let stepView = QBEFactory.sharedInstance.viewForStep(s.self, delegate: self)
-				self.configuratorViewController = stepView
+				self.previewStep = nil				
+				delegate?.chainView(self, configureStep: s, delegate: self)
 			}
 			else {
-				self.configuratorViewController = nil
-				self.titleLabel?.attributedStringValue = NSAttributedString(string: "")
+				delegate?.chainView(self, configureStep: nil, delegate: self)
 				self.presentData(nil)
 			}
 			
@@ -86,9 +75,9 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
-	var document: QBEDocument? {
+	var chain: QBEChain? {
 		didSet {
-			self.currentStep = document?.head
+			self.currentStep = chain?.head
 		}
 	}
 	
@@ -193,7 +182,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			remove(didMoveStep)
 			
 			// Insert at beginning
-			if let head = document?.head {
+			if let head = chain?.head {
 				after = head
 				while after!.previous != nil {
 					after = after!.previous
@@ -202,7 +191,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			
 			if after == nil {
 				// this is the only step
-				document?.head = didMoveStep
+				chain?.head = didMoveStep
 			}
 			else {
 				// insert at beginning
@@ -216,8 +205,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				after?.next?.previous = didMoveStep
 				didMoveStep.previous = after
 				
-				if let h = document?.head where after == h {
-					document?.head = didMoveStep
+				if let h = chain?.head where after == h {
+					chain?.head = didMoveStep
 				}
 			}
 		}
@@ -230,8 +219,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	func stepsController(vc: QBEStepsViewController, didInsertStep step: QBEStep, afterStep: QBEStep?) {
 		if afterStep == nil {
 			// Insert at beginning
-			if document?.head != nil {
-				var before = document?.head
+			if chain?.head != nil {
+				var before = chain?.head
 				while before!.previous != nil {
 					before = before!.previous
 				}
@@ -239,13 +228,13 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 				before!.previous = step
 			}
 			else {
-				document?.head = step
+				chain?.head = step
 			}
 		}
 		else {
 			step.previous = afterStep
-			if document?.head == afterStep {
-				document?.head = step
+			if chain?.head == afterStep {
+				chain?.head = step
 			}
 		}
 		stepsChanged()
@@ -289,17 +278,17 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	
 	private func stepsChanged() {
 		QBEAssertMainThread()
-		self.stepsViewController?.steps = document?.steps
+		self.stepsViewController?.steps = chain?.steps
 		self.stepsViewController?.currentStep = currentStep
 		updateView()
 	}
 	
-	internal var undo: NSUndoManager? { get { return document?.undoManager } }
+	internal var undo: NSUndoManager? { get { return chain?.tablet?.document?.undoManager } }
 	
 	private func pushStep(var step: QBEStep) {
 		QBEAssertMainThread()
 		
-		let isHead = document?.head == nil || currentStep == document?.head
+		let isHead = chain?.head == nil || currentStep == chain?.head
 		
 		// Check if this step can (or should) be merged with the step it will be appended after
 		if let cs = currentStep {
@@ -344,10 +333,10 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		currentStep = step
 
 		if isHead {
-			document?.head = step
+			chain?.head = step
 		}
 		
-		(undo?.prepareWithInvocationTarget(self) as? QBEViewController)?.removeStep(step)
+		(undo?.prepareWithInvocationTarget(self) as? QBEChainViewController)?.removeStep(step)
 		undo?.setActionName(String(format: NSLocalizedString("Add step '%@'", comment: ""), step.explain(locale, short: true)))
 		
 		updateView()
@@ -393,7 +382,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		currentStep = step
 		
 		if next == nil {
-			document?.head = step
+			chain?.head = step
 		}
 		else {
 			next!.previous = step
@@ -431,10 +420,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		self.suggestionsButton?.hidden = currentStep == nil
 		self.suggestionsButton?.enabled = currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
 		
-		if let s = currentStep {
-			self.titleLabel?.attributedStringValue = NSAttributedString(string: s.explain(locale))
-		}
-		
 		self.view.window?.update()
 	}
 	
@@ -462,18 +447,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 					self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, click here.", comment: "Tip for suggestions button"), atView: self.suggestionsButton!)
 				}
 			}
-		}
-	}
-	
-	private func showTip(message: String, atView: NSView) {
-		QBEAssertMainThread()
-		
-		if let vc = self.storyboard?.instantiateControllerWithIdentifier("tipController") as? QBETipViewController {
-			vc.message = message
-			let popover = NSPopover()
-			popover.contentViewController = vc
-			popover.behavior = NSPopoverBehavior.Transient
-			popover.showRelativeToRect(atView.bounds, ofView: atView, preferredEdge: NSMaxYEdge)
 		}
 	}
 	
@@ -549,8 +522,8 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			stepToRemove.next = nil
 		}
 		
-		if document?.head == stepToRemove {
-			document?.head = stepToRemove.previous
+		if chain?.head == stepToRemove {
+			chain?.head = stepToRemove.previous
 		}
 		
 		stepToRemove.previous = nil
@@ -722,11 +695,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
-	override func viewDidLoad() {
-		super.viewDidLoad()
-		self.configuratorView?.translatesAutoresizingMaskIntoConstraints = false
-	}
-	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action()==Selector("transposeData:") {
 			return currentStep != nil
@@ -760,15 +728,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 		else if item.action()==Selector("addEmptyColumn:") {
 			return currentStep != nil
-		}
-		else if item.action()==Selector("importFile:") {
-			return true
-		}
-		else if item.action()==Selector("connectPrestoDatabase:") {
-			return true
-		}
-		else if item.action()==Selector("connectMySQLDatabase:") {
-			return true
 		}
 		else if item.action()==Selector("exportFile:") {
 			return currentStep != nil
@@ -822,7 +781,11 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			return currentStep != nil
 		}
 		else if item.action()==Selector("paste:") {
-			return true
+			let pboard = NSPasteboard.generalPasteboard()
+			if let data = pboard.dataForType(QBEStep.dragType) {
+				return true
+			}
+			return false
 		}
 		else if item.action() == Selector("copy:") {
 			return currentStep != nil
@@ -865,60 +828,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 		}
 	}
 	
-	@IBAction func addStep(sender: NSView) {
-		NSMenu.popUpContextMenu(self.addStepMenu!, withEvent: NSApplication.sharedApplication().currentEvent!, forView: sender)
-	}
-	
-	@IBAction func connectPrestoDatabase(sender: NSObject) {
-		self.pushStep(QBEPrestoSourceStep())
-		stepsChanged()
-		updateView()
-		calculate()
-	}
-	
-	@IBAction func connectMySQLDatabase(sender: NSObject) {
-		self.pushStep(QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", password: "", database: "test", tableName: "test"))
-		stepsChanged()
-		updateView()
-		calculate()
-	}
-	
-	@IBAction func importFile(sender: NSObject) {
-		let no = NSOpenPanel()
-		no.canChooseFiles = true
-		no.allowedFileTypes = QBEFactory.sharedInstance.fileTypesForReading
-		
-		no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
-			if result==NSFileHandlingPanelOKButton {
-				if let url = no.URLs[0] as? NSURL {
-					QBEAsyncBackground {
-						let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url)
-						
-						QBEAsyncMain {
-							if sourceStep != nil {
-								// FIXME: in the future, we should propose data set joins here
-								//self.currentStep = nil
-								//self.document?.head = sourceStep!
-								self.pushStep(sourceStep!)
-								self.stepsChanged()
-								self.updateView()
-								self.calculate()
-							}
-							else {
-								let alert = NSAlert()
-								alert.messageText = NSLocalizedString("Unknown file format: ", comment: "") + (url.pathExtension ?? "")
-								alert.alertStyle = NSAlertStyle.WarningAlertStyle
-								alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: NSModalResponse) -> Void in
-									// Do nothing...
-								})
-							}
-						}
-					}
-				}
-			}
-		})
-	}
-	
 	@IBAction func flatten(sender: NSObject) {
 		suggestSteps([QBEFlattenStep(previous: currentStep)])
 	}
@@ -930,7 +839,7 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 	@IBAction func exportFile(sender: NSObject) {
 		let ns = NSSavePanel()
 		ns.allowedFileTypes = QBEFactory.sharedInstance.fileExtensionsForWriting
-		let title = document?.displayName ?? NSLocalizedString("Warp data", comment: "")
+		let title = chain?.tablet?.document?.displayName ?? NSLocalizedString("Warp data", comment: "")
 		
 		ns.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result == NSFileHandlingPanelOKButton {
@@ -1010,38 +919,6 @@ class QBEViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataVi
 			if let step = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEStep {
 				step.previous = nil
 				pushStep(step)
-			}
-		}
-		else {
-			var data = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeString)
-			if data == nil {
-				data = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeTabularText)
-			}
-			
-			if let tsvString = data {
-				var data: [QBERow] = []
-				var headerRow: QBERow? = nil
-				let rows = tsvString.componentsSeparatedByString("\r")
-				for row in rows {
-					var rowValues: [QBEValue] = []
-					
-					let cells = row.componentsSeparatedByString("\t")
-					for cell in cells {
-						rowValues.append(locale.valueForLocalString(cell))
-					}
-					
-					if headerRow == nil {
-						headerRow = rowValues
-					}
-					else {
-						data.append(rowValues)
-					}
-				}
-				
-				if headerRow != nil {
-					let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue!)}), readOnly: false)
-					pushStep(QBERasterStep(raster: raster))
-				}
 			}
 		}
 	}

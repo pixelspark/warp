@@ -10,16 +10,12 @@
 	<string>QBE</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>158F01A270B5C65F60F886E059360E7F68227D7E</key>
-		<string>github.com:konradbloor/objc-simplenbayes.git</string>
-		<key>307F555C84941A2DF2F2E47C7CE5E42A997ACB44</key>
-		<string>github.com:natecook1000/SwiftSets.git</string>
 		<key>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</key>
-		<string>https://github.com/dparnell/swift-parser-generator.git</string>
+		<string>github.com:pixelspark/swift-parser-generator.git</string>
 		<key>67620B5EFA902936DF04070AF595B76AB0333747</key>
 		<string>https://github.com/Alamofire/Alamofire</string>
 		<key>8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E</key>
-		<string>https://github.com/pixelspark/mbtablegrid</string>
+		<string>github.com:pixelspark/mbtablegrid.git</string>
 		<key>A5F18CC216C059F29632AA08FA9E5DF3898315E3</key>
 		<string>/Volumes/code/qbe.git</string>
 	</dict>
@@ -27,16 +23,12 @@
 	<string>QBE.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>158F01A270B5C65F60F886E059360E7F68227D7E</key>
-		<string>../../Libraries/Bayes</string>
-		<key>307F555C84941A2DF2F2E47C7CE5E42A997ACB44</key>
-		<string>../../Libraries/SwiftSets</string>
 		<key>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</key>
-		<string>../..Libraries/swift-parser-generator</string>
+		<string>../..Libraries/swift-parser-generator/</string>
 		<key>67620B5EFA902936DF04070AF595B76AB0333747</key>
-		<string>../../Libraries/Alamofire</string>
+		<string>../..Libraries/Alamofire/</string>
 		<key>8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E</key>
-		<string>../..Libraries/MBTableGrid</string>
+		<string>../..Libraries/MBTableGrid/</string>
 		<key>A5F18CC216C059F29632AA08FA9E5DF3898315E3</key>
 		<string>../..</string>
 	</dict>
@@ -55,14 +47,6 @@
 			<string>67620B5EFA902936DF04070AF595B76AB0333747</string>
 			<key>IDESourceControlWCCName</key>
 			<string>Alamofire</string>
-		</dict>
-		<dict>
-			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
-			<string>public.vcs.git</string>
-			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>158F01A270B5C65F60F886E059360E7F68227D7E</string>
-			<key>IDESourceControlWCCName</key>
-			<string>Bayes</string>
 		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
@@ -87,14 +71,6 @@
 			<string>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</string>
 			<key>IDESourceControlWCCName</key>
 			<string>swift-parser-generator</string>
-		</dict>
-		<dict>
-			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
-			<string>public.vcs.git</string>
-			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>307F555C84941A2DF2F2E47C7CE5E42A997ACB44</string>
-			<key>IDESourceControlWCCName</key>
-			<string>SwiftSets</string>
 		</dict>
 	</array>
 </dict>

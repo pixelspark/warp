@@ -37,7 +37,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate {
 						if utiString == "public.comma-separated-values-text" {
 							// CSV file
 							let doc = QBEDocument()
-							doc.head = QBECSVSourceStep(url: u)
+							doc.addTablet(QBETablet(chain: QBEChain(head: QBECSVSourceStep(url: u))))
 							dc.addDocument(doc)
 							doc.makeWindowControllers()
 							doc.showWindows()
