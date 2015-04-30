@@ -4,15 +4,18 @@ class QBEConfiguratorViewController: NSViewController {
 	@IBOutlet var titleLabel: NSTextField?
 	@IBOutlet var configuratorView: NSView?
 	
-	func configure(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
+	func configure(step: QBEStep?, delegate: QBESuggestionsViewDelegate?) {
 		if let s = step {
 			let className = s.className
-			let stepView = QBEFactory.sharedInstance.viewForStep(s.self, delegate: delegate)
+			let stepView = QBEFactory.sharedInstance.viewForStep(s.self, delegate: delegate!)
 			self.contentView = stepView
-			self.titleLabel?.attributedStringValue = NSAttributedString(string: s.explain(delegate.locale, short: true))
+			self.titleLabel?.hidden = false
+			self.titleLabel?.attributedStringValue = NSAttributedString(string: s.explain(delegate!.locale, short: true))
 		}
 		else {
+			self.titleLabel?.hidden = true
 			self.titleLabel?.attributedStringValue = NSAttributedString(string: "")
+			self.contentView = nil
 		}
 	}
 	

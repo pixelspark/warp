@@ -11,7 +11,15 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 }
 
 protocol QBEChainViewDelegate: NSObjectProtocol {
+	/** Called when the chain view wants the delegate to present a configurator for a step. **/
 	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESuggestionsViewDelegate)
+	
+	/** Called when the chain view has a value it wants to present for editing (e.g. in a formula bar). The callback
+	 can be called (possibly multiple times) to change the value. If the callback is nil, the value is not changeable. **/
+	func chainView(view: QBEChainViewController, editValue: QBEValue, callback: ((QBEValue) -> ())?)
+	
+	/** Called when the user closes a chain view **/
+	func chainViewDidClose(view: QBEChainViewController)
 }
 
 internal extension NSViewController {
@@ -33,7 +41,9 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 	let calculator: QBECalculator = QBECalculator()
 	var dataViewController: QBEDataViewController?
 	var stepsViewController: QBEStepsViewController?
-	@IBOutlet var suggestionsButton: NSButton?
+	
+	@IBOutlet var workingSetSelector: NSSegmentedControl!
+	@IBOutlet var suggestionsButton: NSButton!
 	weak var delegate: QBEChainViewDelegate?
 	
 	@IBOutlet var addStepMenu: NSMenu?
@@ -42,7 +52,7 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 		didSet {
 			if useFullData != oldValue {
 				calculate()
-				dataViewController?.workingSetSelector?.selectedSegment = (useFullData ? 1 : 0)
+				workingSetSelector.selectedSegment = (useFullData ? 1 : 0)
 			}
 		}
 	}
@@ -108,7 +118,7 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 			dataView.raster = raster
 			
 			if raster != nil && raster!.rowCount > 0 {
-				if let btn = self.dataViewController?.workingSetSelector {
+				if let btn = self.workingSetSelector {
 					QBESettings.sharedInstance.once("workingSetTip") {
 						self.showTip(NSLocalizedString("By default, Warp shows you a small part of the data. Using this button, you can toggle between the full data and the working selection.",comment: "Working set selector tip"), atView: btn)
 					}
@@ -238,6 +248,13 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 			}
 		}
 		stepsChanged()
+	}
+	
+	func dataView(view: QBEDataViewController, didSelectValue: QBEValue, changeable: Bool) {
+		delegate?.chainView(self, editValue: didSelectValue, callback: changeable ? {(v) -> () in
+			QBEAssertMainThread()
+			self.dataViewController?.changeSelectedValue(v)
+		} : nil)
 	}
 	
 	func dataView(view: QBEDataViewController, didOrderColumns columns: [QBEColumn], toIndex: Int) -> Bool {
@@ -780,6 +797,9 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 		else if item.action()==Selector("reverseSortRows:") {
 			return currentStep != nil
 		}
+		else if item.action() == Selector("removeTablet:") {
+			return true
+		}
 		else if item.action()==Selector("paste:") {
 			let pboard = NSPasteboard.generalPasteboard()
 			if let data = pboard.dataForType(QBEStep.dragType) {
@@ -793,6 +813,10 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 		else {
 			return false
 		}
+	}
+	
+	@IBAction func removeTablet(sender: NSObject) {
+		self.delegate?.chainViewDidClose(self)
 	}
 	
 	@IBAction func removeDuplicateRows(sender: NSObject) {

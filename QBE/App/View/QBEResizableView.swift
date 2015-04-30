@@ -12,8 +12,13 @@ internal extension CGRect {
 	}
 }
 
+protocol QBEResizableDelegate: NSObjectProtocol {
+	func resizableView(view: QBEResizableView, changedFrameTo: CGRect)
+}
+
 class QBEResizableView: NSView {
 	private var resizerView: QBEResizerView! = nil
+	weak var delegate: QBEResizableDelegate?
 	
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
@@ -72,6 +77,8 @@ class QBEResizableView: NSView {
 		NSColor.windowBackgroundColor().set()
 		NSRectFill(self.bounds.inset(self.resizerView.inset))
 	}
+	
+	override var acceptsFirstResponder: Bool { get { return true } }
 }
 
 private enum QBEResizerAnchor {
@@ -243,9 +250,14 @@ private class QBEResizerView: NSView {
 		if let rs = resizingSession {
 			let locationInView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
 			
-			let delta = (locationInView.x - rs.downPoint.x, locationInView.y - rs.downPoint.y)
-			self.superview?.frame = rs.downAnchor.offset(rs.downRect, horizontal: delta.0, vertical: delta.1)
+			let delta = (Int(locationInView.x - rs.downPoint.x), Int(locationInView.y - rs.downPoint.y))
+			let newFrame = rs.downAnchor.offset(rs.downRect, horizontal: CGFloat(delta.0), vertical: CGFloat(delta.1))
+			self.superview?.frame = newFrame
 			self.frame = self.superview!.bounds
+			
+			if let p = superview as? QBEResizableView {
+				p.delegate?.resizableView(p, changedFrameTo: newFrame)
+			}
 		}
 		
 		update()

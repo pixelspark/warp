@@ -21,6 +21,12 @@ class QBEDocument: NSDocument, NSSecureCoding {
 		tablets.each({$0.document = self})
 	}
 	
+	func removeTablet(tablet: QBETablet) {
+		assert(tablet.document == self, "tablet must belong to this document")
+		tablet.document = nil
+		tablets.remove(tablet)
+	}
+	
 	func addTablet(tablet: QBETablet) {
 		assert(tablet.document == nil, "tablet must not be associated with another document already")
 		tablet.document = self
@@ -68,6 +74,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	override func readFromData(data: NSData, ofType typeName: String, error outError: NSErrorPointer) -> Bool {
 		if let x = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEDocument {
 			tablets = x.tablets
+			tablets.each({$0.document = self})
 		}
 		return true
 	}

@@ -179,6 +179,8 @@
 		65A0E0211AF29A750005C50F /* QBESortStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E00A1AF29A750005C50F /* QBESortStepView.swift */; };
 		65A0E0221AF29A750005C50F /* QBESQLiteSourceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E00B1AF29A750005C50F /* QBESQLiteSourceStepView.swift */; };
 		65A0E0231AF29A750005C50F /* QBESQLiteSourceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E00B1AF29A750005C50F /* QBESQLiteSourceStepView.swift */; };
+		65A0E0261AF2B92A0005C50F /* QBEDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */; };
+		65A0E0271AF2B92A0005C50F /* QBEDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */; };
 		65A7FC5B1A667F860019B747 /* QBESQLiteSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65A7FC5D1A667F860019B747 /* QBESQLiteSourceStepView.xib */; };
 		65AA260F1ABB1FAC00085E26 /* libmariadbclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */; };
 		65AA26101ABB1FAC00085E26 /* libmariadbclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */; };
@@ -486,6 +488,7 @@
 		65A0E0091AF29A750005C50F /* QBERandomStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERandomStepView.swift; sourceTree = "<group>"; };
 		65A0E00A1AF29A750005C50F /* QBESortStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESortStepView.swift; sourceTree = "<group>"; };
 		65A0E00B1AF29A750005C50F /* QBESQLiteSourceStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESQLiteSourceStepView.swift; sourceTree = "<group>"; };
+		65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDocumentView.swift; sourceTree = "<group>"; };
 		65A7FC5C1A667F860019B747 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBESQLiteSourceStepView.xib; sourceTree = "<group>"; };
 		65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
 		65AA26111ABB1FC700085E26 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
@@ -711,6 +714,7 @@
 				65E3C2F81A062E5E007BB3C8 /* Main.storyboard */,
 				650FC6F31AC49306004B0520 /* QBEStepsItem.xib */,
 				65A0DF7B1AF299C20005C50F /* QBEResizableView.swift */,
+				65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */,
 			);
 			name = View;
 			path = App/View;
@@ -1120,6 +1124,7 @@
 			files = (
 				65A0E0151AF29A750005C50F /* QBEFlattenStepView.swift in Sources */,
 				65A0DFF71AF299F30005C50F /* QBESortStep.swift in Sources */,
+				65A0E0271AF2B92A0005C50F /* QBEDocumentView.swift in Sources */,
 				65A0DFBB1AF299F30005C50F /* QBEExpression.swift in Sources */,
 				65A0E00D1AF29A750005C50F /* QBECalculateStepView.swift in Sources */,
 				65A0DF971AF299C20005C50F /* QBEResizableView.swift in Sources */,
@@ -1182,6 +1187,7 @@
 			files = (
 				65A0E0141AF29A750005C50F /* QBEFlattenStepView.swift in Sources */,
 				65A0DFF51AF299F30005C50F /* QBESortStep.swift in Sources */,
+				65A0E0261AF2B92A0005C50F /* QBEDocumentView.swift in Sources */,
 				65A0DFB91AF299F30005C50F /* QBEExpression.swift in Sources */,
 				65A0E00C1AF29A750005C50F /* QBECalculateStepView.swift in Sources */,
 				65A0DF961AF299C20005C50F /* QBEResizableView.swift in Sources */,

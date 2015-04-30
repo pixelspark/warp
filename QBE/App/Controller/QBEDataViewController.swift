@@ -4,13 +4,12 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 	// Returns true if the delegate has handled the change (e.g. converted it to a strutural one)
 	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool
 	func dataView(view: QBEDataViewController, didOrderColumns: [QBEColumn], toIndex: Int) -> Bool
+	func dataView(view: QBEDataViewController, didSelectValue: QBEValue, changeable: Bool)
 }
 
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
 	var tableView: MBTableGrid?
 	@IBOutlet var progressView: NSProgressIndicator!
-	@IBOutlet var formulaField: NSTextField?
-	@IBOutlet var workingSetSelector: NSSegmentedControl!
 	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
 	private var textCell: MBTableGridCell!
@@ -178,8 +177,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		
 		tableView?.layer?.opacity = (hasNoData || calculating) ? 0.5 : 1.0;
 		progressView?.hidden = !calculating
-		formulaField?.enabled = !hasNoData
-		workingSetSelector?.enabled = !hasNoData || calculating
 		progressView?.indeterminate = progress <= 0.0
 		progressView?.doubleValue = progress
 		progressView?.minValue = 0.0
@@ -228,37 +225,30 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		let selectedCols = tableView!.selectedColumnIndexes
 		
 		if selectedRows?.count > 1 || selectedCols?.count > 1 {
-			formulaField?.enabled = false
-			formulaField?.stringValue = ""
-			formulaField?.placeholderString = "\(selectedRows?.count ?? 0)x\(selectedCols?.count ?? 0)"
+			delegate?.dataView(self, didSelectValue: QBEValue.InvalidValue, changeable: false)
 		}
 		else {
-			formulaField?.enabled = true
-			formulaField?.placeholderString = ""
-			
 			if let r = raster {
 				let rowIndex = selectedRows!.firstIndex
 				let colIndex = selectedCols!.firstIndex
 				if rowIndex >= 0 && colIndex >= 0 && rowIndex < r.rowCount && colIndex < r.columnCount {
 					let x = r[rowIndex, colIndex]
-					formulaField?.stringValue = x.stringValue ?? ""
+					delegate?.dataView(self, didSelectValue: x, changeable: true)
 				}
 				else {
-					formulaField?.enabled = false
-					formulaField?.stringValue = ""
+					delegate?.dataView(self, didSelectValue: QBEValue.InvalidValue, changeable: false)
 				}
 			}
 			else {
-				formulaField?.enabled = false
-				formulaField?.stringValue = ""
+				delegate?.dataView(self, didSelectValue: QBEValue.InvalidValue, changeable: false)
 			}
 		}
 	}
 	
-	@IBAction func setValueFromFormulaField(sender: NSObject) {
+	func changeSelectedValue(toValue: QBEValue) {
 		if let selectedRows = tableView?.selectedRowIndexes {
 			if let selectedColumns = tableView?.selectedColumnIndexes {
-				setValue(QBEValue(formulaField!.stringValue), inRow: selectedRows.firstIndex, inColumn: selectedColumns.firstIndex)
+				setValue(toValue, inRow: selectedRows.firstIndex, inColumn: selectedColumns.firstIndex)
 			}
 		}
 	}
@@ -284,7 +274,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Vertical)
 			self.tableView!.awakeFromNib()
 			self.view.addSubview(tableView!)
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.formulaField, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 5.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0));
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0));
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0));
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0.0));

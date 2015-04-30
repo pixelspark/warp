@@ -90,10 +90,10 @@
 "7xy-Ap-xyj.ibShadowedNoSelectionPlaceholder" = "(Geen selectie)";
 
 /* Class = "NSSegmentedCell"; 8ie-uh-4mV.ibShadowedLabels[0] = "Selection"; ObjectID = "8ie-uh-4mV"; */
-"7bg-Hf-1SA.ibShadowedLabels[0]" = "Selectie";
+"oTe-ow-TIO.ibShadowedLabels[0]" = "Selectie";
 
 /* Class = "NSSegmentedCell"; 8ie-uh-4mV.ibShadowedLabels[1] = "All"; ObjectID = "8ie-uh-4mV"; */
-"7bg-Hf-1SA.ibShadowedLabels[1]" = "Alles";
+"oTe-ow-TIO.ibShadowedLabels[1]" = "Alles";
 
 /* Class = "NSMenu"; title = "Writing Direction"; ObjectID = "8mr-sm-Yjd"; */
 "8mr-sm-Yjd.title" = "Schrijfrichting";
