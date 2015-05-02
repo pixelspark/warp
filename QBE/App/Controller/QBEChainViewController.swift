@@ -94,9 +94,6 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 	/** Present the given data set in the data grid. This is called by currentStep.didSet as well as previewStep.didSet.
 	The data from the previewed step takes precedence. **/
 	private func presentData(data: QBEData?) {
-		/* TODO: when calculation takes long, it should be cancelled before a new calculation is started. Otherwise the
-		contents of the first calculation may be displayed before the second. Perhaps work out a way to cancel
-		calculations.*/
 		if let d = data {
 			if let dataView = self.dataViewController {
 				QBEAsyncBackground {
@@ -111,6 +108,10 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 		else {
 			presentRaster(nil)
 		}
+	}
+	
+	func tabletWasSelected() {
+		delegate?.chainView(self, configureStep: currentStep, delegate: self)
 	}
 	
 	private func presentRaster(raster: QBERaster?) {
@@ -873,7 +874,6 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 						cs.fullData(nil, callback: {(data: QBEData) -> () in
 							if let url = ns.URL, let ext = url.pathExtension {
 								// Get the file writer for this type
-								// FIXME: make a registry somewhere
 								if let writer = QBEFactory.sharedInstance.fileWriterForType(ext, data: data, locale: self.locale, title: title) {
 									writer.writeToFile(url, callback: {
 										QBEAsyncMain {
@@ -896,18 +896,6 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 		super.viewWillAppear()
 		stepsChanged()
 		calculate()
-	}
-	
-	override func viewDidAppear() {
-		super.viewDidAppear()
-		
-		if currentStep == nil {
-			QBESettings.sharedInstance.once("welcomeTip") {
-				if let btn = self.stepsViewController?.addButton {
-					self.showTip(NSLocalizedString("Welcome to Warp! Click here to start and load some data.",comment: "Welcome tip"), atView: btn)
-				}
-			}
-		}
 	}
 	
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {

@@ -82,9 +82,6 @@ class QBECalculateStep: QBEStep {
 			}
 		}
 		
-		/* TODO: we can merge with a previous calculate step that has the same target column name if this calculation does
-		not depend on the previously calculated column. */
-		
 		return QBEStepMerge.Impossible
 	}
 	

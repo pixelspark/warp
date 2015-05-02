@@ -507,7 +507,6 @@ private class QBEColumnsTransformer: QBETransformer {
 	}
 	
 	private func ensureIndexes(callback: () -> ()) {
-		// FIXME: not threadsafe
 		if indexes == nil {
 			indexes = []
 			source.columnNames({ (sourceColumnNames: [QBEColumn]) -> () in

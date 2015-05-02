@@ -102,6 +102,21 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		}
 	}
 	
+	func resizableViewWasSelected(view: QBEResizableView) {
+		if let tv = view as? QBEResizableTabletView {
+			NSAnimationContext.beginGrouping()
+			NSAnimationContext.currentContext().duration = 0.5
+			
+			NSAnimationContext.currentContext().completionHandler = {
+				tv.scrollRectToVisible(tv.bounds)
+				tv.tabletController.tabletWasSelected()
+			}
+			self.workspaceView.animator().magnification = 1.0
+			NSAnimationContext.endGrouping()
+			
+		}
+	}
+	
 	@IBAction func updateFromFormulaField(sender: NSObject) {
 		if let fc = formulaFieldCallback {
 			fc(locale.valueForLocalString(formulaField.stringValue))
@@ -161,9 +176,6 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 			
 			QBEAsyncMain {
 				if sourceStep != nil {
-					// FIXME: in the future, we should propose data set joins here
-					//self.currentStep = nil
-					//self.document?.head = sourceStep!
 					let tablet = QBETablet(chain: QBEChain(head: sourceStep))
 					self.addTablet(tablet)
 				}

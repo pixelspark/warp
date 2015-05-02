@@ -14,6 +14,7 @@ internal extension CGRect {
 
 protocol QBEResizableDelegate: NSObjectProtocol {
 	func resizableView(view: QBEResizableView, changedFrameTo: CGRect)
+	func resizableViewWasSelected(view: QBEResizableView)
 }
 
 class QBEResizableView: NSView {
@@ -337,7 +338,21 @@ private class QBEResizerView: NSView {
 	}
 	
 	override func mouseUp(theEvent: NSEvent) {
-		updateSize(theEvent)
+		let locationInView = self.convertPoint(theEvent.locationInWindow, fromView: nil)
+		let locationInSuperView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
+		if let r = resizingSession where locationInSuperView != resizingSession?.downPoint {
+			updateSize(theEvent)
+		}
+		else {
+			if let sv = superview, psv = sv.superview {
+				psv.addSubview(sv)
+			}
+			
+			if let p = superview as? QBEResizableView {
+				p.delegate?.resizableViewWasSelected(p)
+			}
+		}
+		
 		resizingSession = nil
 		setNeedsDisplayInRect(self.bounds)
 		self.hidden = hide
