@@ -264,6 +264,10 @@ private class QBEResizerView: NSView {
 	private func update() {
 		self.contentView?.frame = self.bounds.inset(self.inset)
 		
+		if let p = superview as? QBEResizableView {
+			p.delegate?.resizableView(p, changedFrameTo: p.frame)
+		}
+		
 		// Set cursor rects
 		self.resetCursorRects()
 		for anchor in visibleAnchors {

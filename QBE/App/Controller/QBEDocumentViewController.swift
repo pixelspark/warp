@@ -255,7 +255,9 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 	}
 	
 	override func viewDidLoad() {
-		documentView = QBEDocumentView(frame: CGRectMake(0, 0, 1337, 1337))
+		let initialDocumentSize = self.workspaceView.bounds
+		
+		documentView = QBEDocumentView(frame: initialDocumentSize)
 		documentView.delegate = self
 		self.workspaceView.documentView = documentView
 	}

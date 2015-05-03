@@ -1171,6 +1171,10 @@ CA
                                     </containerView>
                                     <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aXH-7Y-wRY">
                                         <rect key="frame" x="4" y="780" width="680" height="22"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" relation="lessThanOrEqual" constant="88" id="RPW-Rw-mYG"/>
+                                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="mj6-WW-mxC"/>
+                                        </constraints>
                                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" enabled="NO" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="Ppg-Ih-4BI">
                                             <font key="font" metaFont="fixedUser" size="11"/>
                                             <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>

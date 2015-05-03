@@ -95,14 +95,15 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate {
 	
 	// Call whenever tablets are added/removed or resized
 	private func tabletsChanged() {
-		if let ab = boundsOfAllTablets {
+		if let contentSize = boundsOfAllTablets {
 			// Determine new size of the document
-			var newBounds = ab.rectByInsetting(dx: -300, dy: -300)
+			let margin: CGFloat = 500.0
+			var newBounds = contentSize.rectByInsetting(dx: -margin, dy: -margin)
 			let offset = CGPointMake(-newBounds.origin.x, -newBounds.origin.y)
 			newBounds.offset(dx: offset.x, dy: offset.y)
 			
-			newBounds.size.width = max(self.superview!.bounds.size.width, newBounds.size.width)
-			newBounds.size.height = max(self.superview!.bounds.size.height, newBounds.size.height)
+			// Translate the 'visible rect' (just like we will translate tablets)
+			let newVisible = self.visibleRect.rectByOffsetting(dx: offset.x, dy: offset.y)
 			
 			// Move all tablets
 			for vw in subviews {
@@ -116,10 +117,9 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate {
 				}
 			}
 			
-			// Set new document bounds
-			let newBoundsVisible = self.visibleRect.rectByOffsetting(dx: -offset.x, dy: -offset.y)
+			// Set new document bounds and scroll to the 'old' location in the new coordinate system
 			self.frame = CGRectMake(0, 0, newBounds.size.width, newBounds.size.height)
-			//self.scrollRectToVisible(newBoundsVisible)
+			self.scrollRectToVisible(newVisible)
 		}
 	}
 	
