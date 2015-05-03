@@ -255,10 +255,6 @@ private class QBEResizerView: NSView {
 			let newFrame = rs.downAnchor.offset(rs.downRect, horizontal: CGFloat(delta.0), vertical: CGFloat(delta.1))
 			self.superview?.frame = newFrame
 			self.frame = self.superview!.bounds
-			
-			if let p = superview as? QBEResizableView {
-				p.delegate?.resizableView(p, changedFrameTo: newFrame)
-			}
 		}
 		
 		update()
@@ -342,6 +338,10 @@ private class QBEResizerView: NSView {
 		let locationInSuperView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
 		if let r = resizingSession where locationInSuperView != resizingSession?.downPoint {
 			updateSize(theEvent)
+			
+			if let p = superview as? QBEResizableView {
+				p.delegate?.resizableView(p, changedFrameTo: p.frame)
+			}
 		}
 		else {
 			if let sv = superview, psv = sv.superview {

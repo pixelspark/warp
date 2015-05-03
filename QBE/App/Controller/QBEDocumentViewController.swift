@@ -68,6 +68,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 				}
 			}
 		}
+		tabletsChanged()
 	}
 	
 	func addTablet(tablet: QBETablet, atLocation location: CGPoint? = nil) {
@@ -100,7 +101,47 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 			resizer.delegate = self
 			
 			documentView.addTablet(resizer)
+			tabletsChanged()
 			selectView(resizer)
+		}
+	}
+	
+	// Call whenever tablets are added/removed or resized
+	private func tabletsChanged() {
+		// Find out the bounds of all tablets combined
+		var allBounds: CGRect? = nil
+		for vw in documentView.subviews {
+			if let tv = vw as? QBEResizableTabletView {
+				allBounds = allBounds == nil ? tv.frame : CGRectUnion(allBounds!, tv.frame)
+			}
+		}
+		
+		if let ab = allBounds {
+			// Determine new size of the document
+			var newBounds = ab.rectByInsetting(dx: -100, dy: -100)
+			let offset = CGPointMake(-newBounds.origin.x, -newBounds.origin.y)
+			newBounds.offset(dx: offset.x, dy: offset.y)
+			
+			newBounds.size.width = max(self.workspaceView.bounds.size.width, newBounds.size.width)
+			newBounds.size.height = max(self.workspaceView.bounds.size.height, newBounds.size.height)
+			
+			// Move all tablets
+			for vw in documentView.subviews {
+				if let tv = vw as? QBEResizableTabletView {
+					if let tablet = tv.tabletController.chain?.tablet {
+						if let tabletFrame = tablet.frame {
+							tablet.frame = tabletFrame.rectByOffsetting(dx: offset.x, dy: offset.y)
+							tv.frame = tablet.frame!
+						}
+					}
+				}
+			}
+			
+			// Set new document bounds
+			let newBoundsVisible = self.documentView.visibleRect.rectByOffsetting(dx: -offset.x, dy: -offset.y)
+			documentView.frame = CGRectMake(0, 0, newBounds.size.width, newBounds.size.height)
+			workspaceView.scrollRectToVisible(newBoundsVisible)
+			workspaceView.flashScrollers()
 		}
 	}
 	
@@ -108,6 +149,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		if let tv = view as? QBEResizableTabletView {
 			if let tablet = tv.tabletController.chain?.tablet {
 				tablet.frame = frame
+				tabletsChanged()
 				if tv.selected {
 					tv.scrollRectToVisible(tv.bounds)
 				}
@@ -286,8 +328,9 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 	}
 	
 	override func viewDidLoad() {
-		documentView = QBEDocumentView(frame: CGRectMake(0,0,9999,9999))
+		documentView = QBEDocumentView(frame: CGRectMake(0, 0, 1337, 1337))
 		documentView.delegate = self
 		self.workspaceView.documentView = documentView
+		tabletsChanged()
 	}
 }
