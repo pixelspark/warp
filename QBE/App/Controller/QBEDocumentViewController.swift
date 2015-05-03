@@ -106,8 +106,18 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		}
 	}
 	
-	// Call whenever tablets are added/removed or resized
-	private func tabletsChanged() {
+	private var selectedView: QBEResizableTabletView? { get {
+		for vw in documentView.subviews {
+			if let tv = vw as? QBEResizableTabletView {
+				if tv.selected {
+					return tv
+				}
+			}
+		}
+		return nil
+	}}
+	
+	private var boundsOfAllTablets: CGRect? { get {
 		// Find out the bounds of all tablets combined
 		var allBounds: CGRect? = nil
 		for vw in documentView.subviews {
@@ -115,8 +125,24 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 				allBounds = allBounds == nil ? tv.frame : CGRectUnion(allBounds!, tv.frame)
 			}
 		}
-		
-		if let ab = allBounds {
+		return allBounds
+	} }
+	
+	@IBAction func zoomAll(sender: NSObject) {
+		if let ab = boundsOfAllTablets {
+			self.workspaceView.magnifyToFitRect(ab)
+		}
+	}
+	
+	@IBAction func zoomSelection(sender: NSObject) {
+		if let selected = selectedView {
+			self.workspaceView.magnifyToFitRect(selected.frame)
+		}
+	}
+	
+	// Call whenever tablets are added/removed or resized
+	private func tabletsChanged() {
+		if let ab = boundsOfAllTablets {
 			// Determine new size of the document
 			var newBounds = ab.rectByInsetting(dx: -100, dy: -100)
 			let offset = CGPointMake(-newBounds.origin.x, -newBounds.origin.y)
@@ -317,6 +343,8 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		if item.action() == Selector("addTabletFromPresto:") { return true }
 		if item.action() == Selector("addTabletFromMySQL:") { return true }
 		if item.action() == Selector("updateFromFormulaField:") { return true }
+		if item.action() == Selector("zoomAll:") { return boundsOfAllTablets != nil }
+		if item.action() == Selector("zoomSelection:") { return boundsOfAllTablets != nil }
 		if item.action() == Selector("delete:") { return true }
 		if item.action() == Selector("paste:") {
 			let pboard = NSPasteboard.generalPasteboard()

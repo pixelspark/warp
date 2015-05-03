@@ -625,6 +625,19 @@ CA
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="PYa-SM-ZQg"/>
+                                        <menuItem title="Zoom to all" id="iyV-Df-S2D">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="zoomAll:" target="Ady-hI-5gd" id="2YB-4Y-BvY"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Zoom to selection" id="v55-av-755">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="zoomSelection:" target="Ady-hI-5gd" id="0rI-wd-4pc"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="V8D-ck-WW5"/>
                                         <menuItem title="Use selection working set" keyEquivalent="-" id="qVv-Br-0GO">
                                             <connections>
                                                 <action selector="setSelectionWorkingSet:" target="Ady-hI-5gd" id="e94-fO-NJ6"/>
@@ -1076,7 +1089,7 @@ CA
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="429" y="180" width="1065" height="806"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
-                        <toolbar key="toolbar" implicitIdentifier="2EBAC5BC-9FAB-4475-8666-2326836DC6DE" autosavesConfiguration="NO" displayMode="iconOnly" sizeMode="regular" id="Mya-2b-t6F">
+                        <toolbar key="toolbar" implicitIdentifier="2EBAC5BC-9FAB-4475-8666-2326836DC6DE" autosavesConfiguration="NO" displayMode="iconOnly" sizeMode="small" id="Mya-2b-t6F">
                             <allowedToolbarItems>
                                 <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="iGp-sH-qSs"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarShowFontsItem" id="Xmw-Y9-USw"/>
@@ -1086,6 +1099,16 @@ CA
                                 <toolbarItem implicitItemIdentifier="6729A4D4-A221-46CD-897E-F90F5AD2F3FE" label="Add" paletteLabel="Add" tag="-1" image="NSAddTemplate" id="ZRd-bD-OPv">
                                     <connections>
                                         <action selector="addButtonClicked:" target="6f7-a7-6o1" id="KNF-pq-8Il"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="058B910A-8146-4564-BE8A-2ECC5997F094" label="Zoom to all" paletteLabel="Zoom to all" tag="-1" image="ZoomOutIcon" id="uPf-Qt-XpM">
+                                    <connections>
+                                        <action selector="zoomAll:" target="6f7-a7-6o1" id="qgj-Ml-SLa"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="65B21C31-F9E1-4753-9770-07804938BD85" label="Zoom to selection" paletteLabel="Zoom to selection" tag="-1" image="ZoomInIcon" id="QnM-NS-IrF">
+                                    <connections>
+                                        <action selector="zoomSelection:" target="6f7-a7-6o1" id="NrX-OE-0uM"/>
                                     </connections>
                                 </toolbarItem>
                             </allowedToolbarItems>
@@ -1743,5 +1766,7 @@ Gw
         <image name="CloseIcon" width="26" height="26"/>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="TipIcon" width="32" height="32"/>
+        <image name="ZoomInIcon" width="26" height="26"/>
+        <image name="ZoomOutIcon" width="26" height="26"/>
     </resources>
 </document>
