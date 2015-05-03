@@ -1,12 +1,12 @@
 import Cocoa
 
-protocol QBEDocumentViewDelegate: NSObjectProtocol {
+@objc protocol QBEDocumentViewDelegate: NSObjectProtocol {
 	func documentView(view: QBEDocumentView, didReceiveFiles: [String], atLocation: CGPoint)
 	func documentViewDidClickNowhere(view: QBEDocumentView)
 }
 
 class QBEDocumentView: NSView {
-	weak var delegate: QBEDocumentViewDelegate?
+	@IBOutlet weak var delegate: QBEDocumentViewDelegate?
 	
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
@@ -40,7 +40,7 @@ class QBEDocumentView: NSView {
 	}
 	
 	required init?(coder: NSCoder) {
-		fatalError("init(coder:) has not been implemented")
+		super.init(coder: coder)
 	}
 	
 	func addTablet(tablet: NSView) {

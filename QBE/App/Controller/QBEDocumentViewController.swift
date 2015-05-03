@@ -157,36 +157,46 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 	}
 	
 	@IBAction func paste(sender: NSObject) {
-		var data = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeString)
-		if data == nil {
-			data = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeTabularText)
+		// Pasting a step?
+		let pboard = NSPasteboard.generalPasteboard()
+		if let data = pboard.dataForType(QBEStep.dragType) {
+			if let step = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEStep {
+				self.addTablet(QBETablet(chain: QBEChain(head: step)))
+			}
 		}
-		
-		if let tsvString = data {
-			var data: [QBERow] = []
-			var headerRow: QBERow? = nil
-			let rows = tsvString.componentsSeparatedByString("\r")
-			for row in rows {
-				var rowValues: [QBEValue] = []
-				
-				let cells = row.componentsSeparatedByString("\t")
-				for cell in cells {
-					rowValues.append(locale.valueForLocalString(cell))
-				}
-				
-				if headerRow == nil {
-					headerRow = rowValues
-				}
-				else {
-					data.append(rowValues)
-				}
+		else {
+			// No? Maybe we're pasting TSV/CSV data...
+			var data = pboard.stringForType(NSPasteboardTypeString)
+			if data == nil {
+				data = pboard.stringForType(NSPasteboardTypeTabularText)
 			}
 			
-			if headerRow != nil {
-				let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue!)}), readOnly: false)
-				let s = QBERasterStep(raster: raster)
-				let tablet = QBETablet(chain: QBEChain(head: s))
-				addTablet(tablet)
+			if let tsvString = data {
+				var data: [QBERow] = []
+				var headerRow: QBERow? = nil
+				let rows = tsvString.componentsSeparatedByString("\r")
+				for row in rows {
+					var rowValues: [QBEValue] = []
+					
+					let cells = row.componentsSeparatedByString("\t")
+					for cell in cells {
+						rowValues.append(locale.valueForLocalString(cell))
+					}
+					
+					if headerRow == nil {
+						headerRow = rowValues
+					}
+					else {
+						data.append(rowValues)
+					}
+				}
+				
+				if headerRow != nil {
+					let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue!)}), readOnly: false)
+					let s = QBERasterStep(raster: raster)
+					let tablet = QBETablet(chain: QBEChain(head: s))
+					addTablet(tablet)
+				}
 			}
 		}
 	}
@@ -264,9 +274,14 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		if item.action() == Selector("addTabletFromFile:") { return true }
 		if item.action() == Selector("addTabletFromPresto:") { return true }
 		if item.action() == Selector("addTabletFromMySQL:") { return true }
-		if item.action() == Selector("paste:") { return true }
 		if item.action() == Selector("updateFromFormulaField:") { return true }
 		if item.action() == Selector("delete:") { return true }
+		if item.action() == Selector("paste:") {
+			let pboard = NSPasteboard.generalPasteboard()
+			if pboard.dataForType(QBEStep.dragType) != nil || pboard.dataForType(NSPasteboardTypeString) != nil || pboard.dataForType(NSPasteboardTypeTabularText) != nil {
+				return true
+			}
+		}
 		return false
 	}
 	

@@ -1133,6 +1133,9 @@ CA
                                             <rect key="frame" x="167" y="1" width="15" height="79"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </scroller>
+                                        <connections>
+                                            <outlet property="menu" destination="AA5-ar-r3l" id="1Zd-S6-3bm"/>
+                                        </connections>
                                     </scrollView>
                                     <containerView appearanceType="aqua" translatesAutoresizingMaskIntoConstraints="NO" id="P5v-FZ-cCC">
                                         <rect key="frame" x="688" y="0.0" width="260" height="806"/>
@@ -1198,6 +1201,15 @@ CA
                         <menuItem title="Load data from MySQL..." keyEquivalent="M" id="l6x-MG-F5q">
                             <connections>
                                 <action selector="addTabletFromMySQL:" target="0Jp-3X-LwR" id="aGr-f2-Tjs"/>
+                            </connections>
+                        </menuItem>
+                    </items>
+                </menu>
+                <menu id="AA5-ar-r3l" userLabel="Workspace context menu">
+                    <items>
+                        <menuItem title="Paste" keyEquivalent="v" id="3tj-IE-VFf">
+                            <connections>
+                                <action selector="paste:" target="0Jp-3X-LwR" id="kph-JM-Yyx"/>
                             </connections>
                         </menuItem>
                     </items>

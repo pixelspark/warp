@@ -46,7 +46,7 @@ class QBEResizableView: NSView {
 	
 	override func hitTest(aPoint: NSPoint) -> NSView? {
 		if !selected {
-			return self.resizerView
+			return self.frame.contains(aPoint) ? self.resizerView : nil
 		}
 		
 		if let cv = contentView {
