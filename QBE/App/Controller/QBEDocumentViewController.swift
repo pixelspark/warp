@@ -108,6 +108,9 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		if let tv = view as? QBEResizableTabletView {
 			if let tablet = tv.tabletController.chain?.tablet {
 				tablet.frame = frame
+				if tv.selected {
+					tv.scrollRectToVisible(tv.bounds)
+				}
 			}
 		}
 	}
