@@ -1234,7 +1234,7 @@ CA
                                 </connections>
                             </containerView>
                             <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Jh8-wb-gef">
-                                <rect key="frame" x="1019" y="403" width="32" height="30"/>
+                                <rect key="frame" x="1029" y="403" width="32" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="32" id="dKJ-3c-fUj"/>
                                 </constraints>
@@ -1247,12 +1247,12 @@ CA
                                 </connections>
                             </button>
                             <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="WZZ-hS-HjA">
-                                <rect key="frame" x="1054" y="403" width="32" height="30"/>
+                                <rect key="frame" x="1064" y="411" width="16" height="16"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="32" id="6B6-wz-kn2"/>
-                                    <constraint firstAttribute="height" constant="30" id="bXD-Sq-a6n"/>
+                                    <constraint firstAttribute="width" constant="16" id="6B6-wz-kn2"/>
+                                    <constraint firstAttribute="height" constant="16" id="bXD-Sq-a6n"/>
                                 </constraints>
-                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="NSRemoveTemplate" imagePosition="only" alignment="left" imageScaling="proportionallyDown" id="r6I-th-VLx">
+                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="CloseIcon" imagePosition="only" alignment="left" imageScaling="proportionallyDown" id="r6I-th-VLx">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -1260,18 +1260,18 @@ CA
                                     <action selector="removeTablet:" target="DXE-ii-MK8" id="O8E-7n-lsI"/>
                                 </connections>
                             </button>
-                            <segmentedControl verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="NSh-sr-S2o">
-                                <rect key="frame" x="897" y="408" width="125" height="20"/>
+                            <segmentedControl verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="NSh-sr-S2o">
+                                <rect key="frame" x="902" y="408" width="125" height="20"/>
                                 <segmentedCell key="cell" borderStyle="border" alignment="left" style="roundRect" trackingMode="selectOne" id="oTe-ow-TIO">
                                     <font key="font" metaFont="cellTitle"/>
                                     <segments>
                                         <segment label="Selection" width="59" selected="YES"/>
                                         <segment label="All" width="59" tag="1"/>
                                     </segments>
-                                    <connections>
-                                        <action selector="setWorkingSet:" target="Izd-TK-t8f" id="o6C-dv-zny"/>
-                                    </connections>
                                 </segmentedCell>
+                                <connections>
+                                    <action selector="setWorkingSet:" target="DXE-ii-MK8" id="SgV-93-vKI"/>
+                                </connections>
                             </segmentedControl>
                         </subviews>
                         <constraints>
@@ -1282,8 +1282,8 @@ CA
                             <constraint firstItem="788-NV-QHP" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" id="KUA-gT-h2H"/>
                             <constraint firstItem="mVs-W6-cUa" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="LzO-kr-yAA"/>
                             <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="788-NV-QHP" secondAttribute="bottom" id="TS1-se-ljc"/>
-                            <constraint firstItem="WZZ-hS-HjA" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" constant="3" id="VEz-5v-Te2"/>
-                            <constraint firstAttribute="trailing" secondItem="WZZ-hS-HjA" secondAttribute="trailing" constant="3" id="bYO-0R-EbS"/>
+                            <constraint firstItem="WZZ-hS-HjA" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" constant="9" id="VEz-5v-Te2"/>
+                            <constraint firstAttribute="trailing" secondItem="WZZ-hS-HjA" secondAttribute="trailing" constant="9" id="bYO-0R-EbS"/>
                             <constraint firstItem="WZZ-hS-HjA" firstAttribute="leading" secondItem="Jh8-wb-gef" secondAttribute="trailing" constant="3" id="iXo-C1-slQ"/>
                             <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="Jh8-wb-gef" secondAttribute="bottom" constant="3" id="mfH-Dq-gjV"/>
                             <constraint firstItem="788-NV-QHP" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="s3D-J4-XgD"/>
@@ -1694,7 +1694,7 @@ Gw
                                 <rect key="frame" x="0.0" y="0.0" width="260" height="571"/>
                             </customView>
                             <textField hidden="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5LD-r2-LYf" userLabel="Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label">
-                                <rect key="frame" x="3" y="576" width="200" height="51"/>
+                                <rect key="frame" x="3" y="576" width="254" height="51"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="32" id="K7m-EF-Wam"/>
                                 </constraints>
@@ -1708,6 +1708,7 @@ Gw
                         <constraints>
                             <constraint firstAttribute="bottom" secondItem="095-ZA-NPs" secondAttribute="bottom" id="4xw-Xk-eVP"/>
                             <constraint firstItem="095-ZA-NPs" firstAttribute="leading" secondItem="vS4-Ho-FVv" secondAttribute="leading" id="G6K-72-ad7"/>
+                            <constraint firstAttribute="trailing" secondItem="5LD-r2-LYf" secondAttribute="trailing" constant="5" id="R7V-02-e6E"/>
                             <constraint firstAttribute="trailing" secondItem="095-ZA-NPs" secondAttribute="trailing" id="bi7-Ka-oqs"/>
                             <constraint firstAttribute="width" constant="260" id="qvK-kg-1rn"/>
                             <constraint firstItem="095-ZA-NPs" firstAttribute="top" secondItem="5LD-r2-LYf" secondAttribute="bottom" constant="5" id="rdA-bp-ONr"/>
@@ -1727,8 +1728,8 @@ Gw
     </scenes>
     <resources>
         <image name="ChangeIcon" width="26" height="26"/>
+        <image name="CloseIcon" width="26" height="26"/>
         <image name="NSAddTemplate" width="11" height="11"/>
-        <image name="NSRemoveTemplate" width="11" height="11"/>
         <image name="TipIcon" width="32" height="32"/>
     </resources>
 </document>
