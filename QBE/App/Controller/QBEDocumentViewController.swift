@@ -47,8 +47,12 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 	}
 	
 	func chainView(view: QBEChainViewController, editValue: QBEValue, callback: ((QBEValue) -> ())?) {
+		setFormula(editValue, callback: callback)
+	}
+	
+	private func setFormula(value: QBEValue, callback: ((QBEValue) -> ())?) {
 		formulaField.enabled = callback != nil
-		formulaField.stringValue = editValue.stringValue ?? ""
+		formulaField.stringValue = value.stringValue ?? ""
 		formulaFieldCallback = callback
 	}
 	
@@ -66,17 +70,22 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		}
 	}
 	
-	func addTablet(tablet: QBETablet) {
+	func addTablet(tablet: QBETablet, atLocation location: CGPoint? = nil) {
 		// Check if this tablet is also in the document
 		if let d = document where tablet.document != document {
 			d.addTablet(tablet)
 		}
 		
+		// By default, tablets get a size that (when at 100% zoom) fills about 61% horizontally/vertically
 		if tablet.frame == nil {
 			let vr = self.workspaceView.documentVisibleRect
-			let defaultWidth: CGFloat = vr.size.width * 0.619;
-			let defaultHeight: CGFloat = vr.size.height * 0.619;
+			let defaultWidth: CGFloat = vr.size.width * 0.619 * self.workspaceView.magnification
+			let defaultHeight: CGFloat = vr.size.height * 0.619 * self.workspaceView.magnification
 			tablet.frame = CGRectMake(vr.origin.x + (vr.size.width - defaultWidth) / 2, vr.origin.y + (vr.size.height - defaultHeight) / 2, defaultWidth, defaultHeight)
+		}
+		
+		if let l = location {
+			tablet.frame = tablet.frame!.centeredAt(l)
 		}
 		
 		if let tabletController = self.storyboard?.instantiateControllerWithIdentifier("chain") as? QBEChainViewController {
@@ -91,6 +100,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 			resizer.delegate = self
 			
 			documentView.addTablet(resizer)
+			selectView(resizer)
 		}
 	}
 	
@@ -102,19 +112,39 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		}
 	}
 	
-	func resizableViewWasSelected(view: QBEResizableView) {
+	private func selectView(view: QBEResizableView?) {
+		// Deselect other views
+		for sv in documentView.subviews {
+			if let tv = sv as? QBEResizableTabletView {
+				tv.selected = (tv == view)
+			}
+		}
+		
+		// Move selected view to front
 		if let tv = view as? QBEResizableTabletView {
-			NSAnimationContext.beginGrouping()
-			NSAnimationContext.currentContext().duration = 0.5
-			
-			NSAnimationContext.currentContext().completionHandler = {
+			let complete = {() -> () in
 				tv.scrollRectToVisible(tv.bounds)
+				self.setFormula(QBEValue.InvalidValue, callback: nil)
 				tv.tabletController.tabletWasSelected()
 			}
-			self.workspaceView.animator().magnification = 1.0
-			NSAnimationContext.endGrouping()
 			
+			if self.workspaceView.magnification != 1.0 {
+				NSAnimationContext.beginGrouping()
+				NSAnimationContext.currentContext().duration = 0.5
+				
+				NSAnimationContext.currentContext().completionHandler = complete
+				self.workspaceView.animator().magnification = 1.0
+				tv.selected = true
+				NSAnimationContext.endGrouping()
+			}
+			else {
+				complete()
+			}
 		}
+	}
+	
+	func resizableViewWasSelected(view: QBEResizableView) {
+		selectView(view)
 	}
 	
 	@IBAction func updateFromFormulaField(sender: NSObject) {
@@ -162,22 +192,28 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		NSMenu.popUpContextMenu(self.addTabletMenu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.view)
 	}
 	
-	func documentView(view: QBEDocumentView, didReceiveFiles files: [String]) {
+	func documentView(view: QBEDocumentView, didReceiveFiles files: [String], atLocation: CGPoint) {
+		var offset: CGPoint = CGPointMake(0,0)
 		for file in files {
 			if let url = NSURL(fileURLWithPath: file) {
-				addTabletFromURL(url)
+				addTabletFromURL(url, atLocation: atLocation.offsetBy(offset))
+				offset = offset.offsetBy(CGPointMake(25,-25))
 			}
 		}
 	}
 	
-	private func addTabletFromURL(url: NSURL) {
+	func documentViewDidClickNowhere(view: QBEDocumentView) {
+		selectView(nil)
+	}
+	
+	private func addTabletFromURL(url: NSURL, atLocation: CGPoint? = nil) {
 		QBEAsyncBackground {
 			let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url)
 			
 			QBEAsyncMain {
 				if sourceStep != nil {
 					let tablet = QBETablet(chain: QBEChain(head: sourceStep))
-					self.addTablet(tablet)
+					self.addTablet(tablet, atLocation: atLocation)
 				}
 				else {
 					let alert = NSAlert()
@@ -199,7 +235,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result==NSFileHandlingPanelOKButton {
 				if let url = no.URLs[0] as? NSURL {
-				self.addTabletFromURL(url)
+					self.addTabletFromURL(url)
 				}
 			}
 		})

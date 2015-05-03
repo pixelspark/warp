@@ -1,17 +1,6 @@
 import Foundation
 import Cocoa
 
-internal extension CGRect {
-	func inset(inset: CGFloat) -> CGRect {
-		return CGRectMake(
-			self.origin.x + inset,
-			self.origin.y + inset,
-			self.size.width - 2*inset,
-			self.size.height - 2*inset
-		)
-	}
-}
-
 protocol QBEResizableDelegate: NSObjectProtocol {
 	func resizableView(view: QBEResizableView, changedFrameTo: CGRect)
 	func resizableViewWasSelected(view: QBEResizableView)
@@ -20,6 +9,11 @@ protocol QBEResizableDelegate: NSObjectProtocol {
 class QBEResizableView: NSView {
 	private var resizerView: QBEResizerView! = nil
 	weak var delegate: QBEResizableDelegate?
+	
+	var selected: Bool = false { didSet {
+		setNeedsDisplayInRect(self.bounds)
+		resizerView.setNeedsDisplayInRect(resizerView.bounds)
+	} }
 	
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
@@ -51,6 +45,10 @@ class QBEResizableView: NSView {
 	} }
 	
 	override func hitTest(aPoint: NSPoint) -> NSView? {
+		if !selected {
+			return self.resizerView
+		}
+		
 		if let cv = contentView {
 			let pt = convertPoint(convertPoint(aPoint, fromView: superview), toView: cv)
 			let ht = cv.hitTest(pt)
@@ -58,6 +56,7 @@ class QBEResizableView: NSView {
 				return self.resizerView
 			}
 		}
+		
 		return super.hitTest(aPoint)
 	}
 	
@@ -67,13 +66,13 @@ class QBEResizableView: NSView {
 	}
 	
 	override func mouseEntered(theEvent: NSEvent) {
-		resizerView.hide = false
+		self.resizerView.hide = false
 	}
 	
 	override func mouseExited(theEvent: NSEvent) {
-		resizerView.hide = true
+		self.resizerView.hide = true
 	}
-	
+
 	override func drawRect(dirtyRect: NSRect) {
 		NSColor.windowBackgroundColor().set()
 		NSRectFill(self.bounds.inset(self.resizerView.inset))
@@ -181,9 +180,7 @@ private class QBEResizerView: NSView {
 	} }
 	
 	var hide: Bool = false { didSet {
-		if self.resizingSession == nil {
-			self.hidden = hide
-		}
+		setNeedsDisplayInRect(self.bounds)
 	} }
 	
 	var isResizing: Bool { get {
@@ -207,7 +204,8 @@ private class QBEResizerView: NSView {
 		CGContextSaveGState(context)
 		
 		// Draw the bounding box
-		let borderColor = isResizing ? NSColor.blueColor() : NSColor.grayColor()
+		let selected = (self.superview as! QBEResizableView).selected
+		let borderColor = selected ? NSColor.blueColor() : NSColor.grayColor()
 		CGContextSetLineWidth(context, 1.0)
 		CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
 		CGContextAddRect(context, self.bounds.inset(inset))
@@ -225,24 +223,26 @@ private class QBEResizerView: NSView {
 		];
 		
 		let baseSpace = CGColorSpaceCreateDeviceRGB();
-		let gradient = CGGradientCreateWithColorComponents(baseSpace, isResizing ? activeColors: inactiveColors, nil, 2);
+		let gradient = CGGradientCreateWithColorComponents(baseSpace, selected ? activeColors: inactiveColors, nil, 2);
 		
 		// (4) Set up the stroke for drawing the border of each of the anchor points.
 		CGContextSetLineWidth(context, 1);
 		CGContextSetShadow(context, CGSizeMake(0.5, 0.5), 1);
 		CGContextSetStrokeColorWithColor(context, NSColor.whiteColor().CGColor);
 		
-		// Fill each anchor point using the gradient, then stroke the border.
-		for anchor in visibleAnchors {
-			let currPoint = anchor.frameInBounds(self.bounds, withInset: inset)
-			CGContextSaveGState(context)
-			CGContextAddEllipseInRect(context, currPoint)
-			CGContextClip(context)
-			let startPoint = CGPointMake(CGRectGetMidX(currPoint), CGRectGetMinY(currPoint))
-			let endPoint = CGPointMake(CGRectGetMidX(currPoint), CGRectGetMaxY(currPoint))
-			CGContextDrawLinearGradient(context, gradient, startPoint, endPoint, 0)
-			CGContextRestoreGState(context)
-			CGContextStrokeEllipseInRect(context, CGRectInset(currPoint, 1, 1))
+		if !hide {
+			// Fill each anchor point using the gradient, then stroke the border.
+			for anchor in visibleAnchors {
+				let currPoint = anchor.frameInBounds(self.bounds, withInset: inset)
+				CGContextSaveGState(context)
+				CGContextAddEllipseInRect(context, currPoint)
+				CGContextClip(context)
+				let startPoint = CGPointMake(CGRectGetMidX(currPoint), CGRectGetMinY(currPoint))
+				let endPoint = CGPointMake(CGRectGetMidX(currPoint), CGRectGetMaxY(currPoint))
+				CGContextDrawLinearGradient(context, gradient, startPoint, endPoint, 0)
+				CGContextRestoreGState(context)
+				CGContextStrokeEllipseInRect(context, CGRectInset(currPoint, 1, 1))
+			}
 		}
 		CGContextRestoreGState(context)
 	}
@@ -349,12 +349,13 @@ private class QBEResizerView: NSView {
 			}
 			
 			if let p = superview as? QBEResizableView {
-				p.delegate?.resizableViewWasSelected(p)
+				if !p.selected {
+					p.delegate?.resizableViewWasSelected(p)
+				}
 			}
 		}
 		
 		resizingSession = nil
 		setNeedsDisplayInRect(self.bounds)
-		self.hidden = hide
 	}
 }
