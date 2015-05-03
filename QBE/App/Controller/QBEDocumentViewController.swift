@@ -1,20 +1,14 @@
 import Foundation
 import Cocoa
 
-private class QBEResizableTabletView: QBEResizableView {
-	let tabletController: QBEChainViewController
+class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate {
+	private var documentView: QBEDocumentView!
+	private var configurator: QBEConfiguratorViewController? = nil
+	@IBOutlet var addTabletMenu: NSMenu!
+	@IBOutlet var workspaceView: NSScrollView!
+	@IBOutlet var formulaField: NSTextField!
+	private var formulaFieldCallback: ((QBEValue) -> ())?
 	
-	init(frame: CGRect, controller: QBEChainViewController) {
-		tabletController = controller
-		super.init(frame: frame)
-	}
-
-	required init?(coder: NSCoder) {
-	    fatalError("init(coder:) has not been implemented")
-	}
-}
-
-class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate, QBEResizableDelegate {
 	var document: QBEDocument? { didSet {
 		self.documentView.subviews.each({($0 as? NSView)?.removeFromSuperview()})
 		if let d = document {
@@ -23,14 +17,6 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 			}
 		}
 	} }
-	
-	private var documentView: QBEDocumentView!
-	private var configurator: QBEConfiguratorViewController? = nil
-	@IBOutlet var addTabletMenu: NSMenu!
-	@IBOutlet var workspaceView: NSScrollView!
-	@IBOutlet var formulaField: NSTextField!
-	
-	private var formulaFieldCallback: ((QBEValue) -> ())?
 	
 	internal var locale: QBELocale { get {
 		return QBEAppDelegate.sharedInstance.locale ?? QBELocale()
@@ -61,15 +47,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 
 		document?.removeTablet(tablet)
 		self.configurator?.configure(nil, delegate: nil)
-		
-		for subview in documentView.subviews {
-			if let rv = subview as? QBEResizableTabletView {
-				if let ct = rv.tabletController.chain?.tablet where ct == tablet {
-					subview.removeFromSuperview()
-				}
-			}
-		}
-		tabletsChanged()
+		documentView.removeTablet(tablet)
 		
 		(undoManager?.prepareWithInvocationTarget(self) as? QBEDocumentViewController)?.addTablet(tablet, atLocation: nil)
 		undoManager?.setActionName(NSLocalizedString("Remove tablet", comment: ""))
@@ -100,126 +78,21 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 			tabletController.chain = tablet.chain
 			tabletController.view.frame = tablet.frame!
 			
-			let resizer = QBEResizableTabletView(frame: tablet.frame!, controller: tabletController)
-			resizer.contentView = tabletController.view
-			resizer.delegate = self
-			
-			documentView.addTablet(resizer)
-			tabletsChanged()
-			selectView(resizer)
+			documentView.addTablet(tabletController)
+			documentView.selectTablet(tablet)
 		}
 	}
 	
-	private var selectedView: QBEResizableTabletView? { get {
-		for vw in documentView.subviews {
-			if let tv = vw as? QBEResizableTabletView {
-				if tv.selected {
-					return tv
-				}
-			}
-		}
-		return nil
-	}}
-	
-	private var boundsOfAllTablets: CGRect? { get {
-		// Find out the bounds of all tablets combined
-		var allBounds: CGRect? = nil
-		for vw in documentView.subviews {
-			if let tv = vw as? QBEResizableTabletView {
-				allBounds = allBounds == nil ? tv.frame : CGRectUnion(allBounds!, tv.frame)
-			}
-		}
-		return allBounds
-	} }
-	
 	@IBAction func zoomAll(sender: NSObject) {
-		if let ab = boundsOfAllTablets {
+		if let ab = documentView.boundsOfAllTablets {
 			self.workspaceView.magnifyToFitRect(ab)
 		}
 	}
 	
 	@IBAction func zoomSelection(sender: NSObject) {
-		if let selected = selectedView {
-			self.workspaceView.magnifyToFitRect(selected.frame)
+		if let selected = documentView.selectedTablet, f = selected.frame {
+			self.workspaceView.magnifyToFitRect(f)
 		}
-	}
-	
-	// Call whenever tablets are added/removed or resized
-	private func tabletsChanged() {
-		if let ab = boundsOfAllTablets {
-			// Determine new size of the document
-			var newBounds = ab.rectByInsetting(dx: -100, dy: -100)
-			let offset = CGPointMake(-newBounds.origin.x, -newBounds.origin.y)
-			newBounds.offset(dx: offset.x, dy: offset.y)
-			
-			newBounds.size.width = max(self.workspaceView.bounds.size.width, newBounds.size.width)
-			newBounds.size.height = max(self.workspaceView.bounds.size.height, newBounds.size.height)
-			
-			// Move all tablets
-			for vw in documentView.subviews {
-				if let tv = vw as? QBEResizableTabletView {
-					if let tablet = tv.tabletController.chain?.tablet {
-						if let tabletFrame = tablet.frame {
-							tablet.frame = tabletFrame.rectByOffsetting(dx: offset.x, dy: offset.y)
-							tv.frame = tablet.frame!
-						}
-					}
-				}
-			}
-			
-			// Set new document bounds
-			let newBoundsVisible = self.documentView.visibleRect.rectByOffsetting(dx: -offset.x, dy: -offset.y)
-			documentView.frame = CGRectMake(0, 0, newBounds.size.width, newBounds.size.height)
-			workspaceView.scrollRectToVisible(newBoundsVisible)
-			workspaceView.flashScrollers()
-		}
-	}
-	
-	func resizableView(view: QBEResizableView, changedFrameTo frame: CGRect) {
-		if let tv = view as? QBEResizableTabletView {
-			if let tablet = tv.tabletController.chain?.tablet {
-				tablet.frame = frame
-				tabletsChanged()
-				if tv.selected {
-					tv.scrollRectToVisible(tv.bounds)
-				}
-			}
-		}
-	}
-	
-	private func selectView(view: QBEResizableView?) {
-		// Deselect other views
-		for sv in documentView.subviews {
-			if let tv = sv as? QBEResizableTabletView {
-				tv.selected = (tv == view)
-			}
-		}
-		
-		// Move selected view to front
-		if let tv = view as? QBEResizableTabletView {
-			let complete = {() -> () in
-				tv.scrollRectToVisible(tv.bounds)
-				self.setFormula(QBEValue.InvalidValue, callback: nil)
-				tv.tabletController.tabletWasSelected()
-			}
-			
-			if self.workspaceView.magnification != 1.0 {
-				NSAnimationContext.beginGrouping()
-				NSAnimationContext.currentContext().duration = 0.5
-				
-				NSAnimationContext.currentContext().completionHandler = complete
-				self.workspaceView.animator().magnification = 1.0
-				tv.selected = true
-				NSAnimationContext.endGrouping()
-			}
-			else {
-				complete()
-			}
-		}
-	}
-	
-	func resizableViewWasSelected(view: QBEResizableView) {
-		selectView(view)
 	}
 	
 	@IBAction func updateFromFormulaField(sender: NSObject) {
@@ -287,8 +160,30 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		}
 	}
 	
-	func documentViewDidClickNowhere(view: QBEDocumentView) {
-		selectView(nil)
+	func documentView(view: QBEDocumentView, didSelectTablet: QBEChainViewController?) {
+		if let tv = didSelectTablet {
+			let complete = {() -> () in
+				tv.view.scrollRectToVisible(tv.view.bounds)
+				self.setFormula(QBEValue.InvalidValue, callback: nil)
+				tv.tabletWasSelected()
+			}
+				
+			if self.workspaceView.magnification != 1.0 {
+				NSAnimationContext.beginGrouping()
+				NSAnimationContext.currentContext().duration = 0.5
+				
+				NSAnimationContext.currentContext().completionHandler = complete
+				self.workspaceView.animator().magnification = 1.0
+				NSAnimationContext.endGrouping()
+			}
+			else {
+				complete()
+			}
+		}
+		else {
+			self.setFormula(QBEValue.InvalidValue, callback: nil)
+			self.configurator?.configure(nil, delegate: nil)
+		}
 	}
 	
 	private func addTabletFromURL(url: NSURL, atLocation: CGPoint? = nil) {
@@ -347,8 +242,8 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		if item.action() == Selector("addTabletFromPresto:") { return true }
 		if item.action() == Selector("addTabletFromMySQL:") { return true }
 		if item.action() == Selector("updateFromFormulaField:") { return true }
-		if item.action() == Selector("zoomAll:") { return boundsOfAllTablets != nil }
-		if item.action() == Selector("zoomSelection:") { return boundsOfAllTablets != nil }
+		if item.action() == Selector("zoomAll:") { return documentView.boundsOfAllTablets != nil }
+		if item.action() == Selector("zoomSelection:") { return documentView.boundsOfAllTablets != nil }
 		if item.action() == Selector("delete:") { return true }
 		if item.action() == Selector("paste:") {
 			let pboard = NSPasteboard.generalPasteboard()
@@ -363,6 +258,5 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		documentView = QBEDocumentView(frame: CGRectMake(0, 0, 1337, 1337))
 		documentView.delegate = self
 		self.workspaceView.documentView = documentView
-		tabletsChanged()
 	}
 }
