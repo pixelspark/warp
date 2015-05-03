@@ -58,6 +58,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 	
 	func removeTablet(tablet: QBETablet) {
 		assert(tablet.document == document, "tablet should belong to our document")
+
 		document?.removeTablet(tablet)
 		self.configurator?.configure(nil, delegate: nil)
 		
@@ -69,6 +70,9 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 			}
 		}
 		tabletsChanged()
+		
+		(undoManager?.prepareWithInvocationTarget(self) as? QBEDocumentViewController)?.addTablet(tablet, atLocation: nil)
+		undoManager?.setActionName(NSLocalizedString("Remove tablet", comment: ""))
 	}
 	
 	func addTablet(tablet: QBETablet, atLocation location: CGPoint? = nil) {

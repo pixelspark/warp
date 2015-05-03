@@ -140,7 +140,7 @@ private enum QBEResizerAnchor {
 	}
 	
 	var cursor: NSCursor? { get {
-		switch self {
+		/*switch self {
 		case .North: return NSCursor.resizeUpCursor()
 		case .South: return NSCursor.resizeDownCursor()
 		case .East: return NSCursor.resizeRightCursor()
@@ -150,7 +150,8 @@ private enum QBEResizerAnchor {
 		case .NorthWest: return NSCursor.resizeLeftCursor()
 		case .SouthWest: return NSCursor.resizeLeftCursor()
 		default: return NSCursor.dragCopyCursor()
-		}
+		}*/
+		return NSCursor.closedHandCursor()
 		} }
 }
 
@@ -266,7 +267,7 @@ private class QBEResizerView: NSView {
 		// Set cursor rects
 		self.resetCursorRects()
 		for anchor in visibleAnchors {
-			let frame = anchor.frameInBounds(self.bounds, withInset: inset * 3)
+			let frame = anchor.frameInBounds(self.bounds, withInset: inset)
 			if let c = anchor.cursor {
 				self.addCursorRect(frame, cursor: c)
 			}
@@ -327,10 +328,12 @@ private class QBEResizerView: NSView {
 		
 		resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: realAnchor)
 		setNeedsDisplayInRect(self.bounds)
+		NSCursor.closedHandCursor().push()
 	}
 	
 	override func mouseDragged(theEvent: NSEvent) {
 		updateSize(theEvent)
+		NSCursor.closedHandCursor().push()
 	}
 	
 	override func mouseUp(theEvent: NSEvent) {
