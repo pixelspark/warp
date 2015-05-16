@@ -557,8 +557,13 @@ class QBESQLData: NSObject, QBEData {
 		switch join {
 		case .LeftJoin(var rightData, let expression):
 			// We need to 'unpack' coalesced data to get to the actual data
-			if let rd = rightData as? QBECoalescedData {
-				rightData = rd.data
+			while rightData is QBEProxyData || rightData is QBECoalescedData {
+				if let rd = rightData as? QBECoalescedData {
+					rightData = rd.data
+				}
+				else if let rd = rightData as? QBEProxyData {
+					rightData = rd.data
+				}
 			}
 			
 			// Check if the other data set is a compatible SQL data set
@@ -575,7 +580,7 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func isCompatibleWith(other: QBESQLData) -> Bool {
-		return true
+		return false
 	}
 	
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {

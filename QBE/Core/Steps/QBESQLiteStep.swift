@@ -187,6 +187,9 @@ internal class QBESQLiteResultGenerator: GeneratorType {
 }
 
 internal class QBESQLiteDatabase: QBESQLDatabase {
+	internal var url: String?
+	let db: COpaquePointer
+	
 	class var sharedQueue : dispatch_queue_t {
 		struct Static {
 			static var onceToken : dispatch_once_t = 0
@@ -198,8 +201,6 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 		}
 		return Static.instance!
 	}
-	
-	let db: COpaquePointer
 	
 	private var lastError: String {
 		 return String.fromCString(sqlite3_errmsg(self.db)) ?? ""
@@ -297,6 +298,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 	init?(path: String, readOnly: Bool = false) {
 		let flags = readOnly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
 		self.db = nil
+		self.url = NSURL(fileURLWithPath: path)?.absoluteString
 		super.init(dialect: QBESQLiteDialect())
 		
 		if !perform({sqlite3_open_v2(path, &self.db, flags, nil) }) {
@@ -332,6 +334,10 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 		}
 		return nil
 	} }
+}
+
+func ==(lhs: QBESQLiteDatabase, rhs: QBESQLiteDatabase) -> Bool {
+	return lhs.url == rhs.url && lhs.url != nil && rhs.url != nil
 }
 
 internal class QBESQLiteDialect: QBEStandardSQLDialect {
@@ -417,6 +423,13 @@ class QBESQLiteData: QBESQLData {
 			return QBESequenceStream(SequenceOf<QBETuple>(result.sequence(locale)), columnNames: result.columnNames)
 		}
 		return QBEEmptyStream()
+	}
+	
+	override func isCompatibleWith(other: QBESQLData) -> Bool {
+		if let os = other as? QBESQLiteData {
+			return os.db == self.db
+		}
+		return false
 	}
 }
 

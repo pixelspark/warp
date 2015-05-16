@@ -186,6 +186,7 @@ internal class QBEMySQLConnection {
 	private var connection: UnsafeMutablePointer<MYSQL>
 	private let dialect: QBESQLDialect
 	private(set) weak var result: QBEMySQLResult?
+	let url: String
 	
 	class var sharedQueue : dispatch_queue_t {
 		struct Static {
@@ -209,6 +210,7 @@ internal class QBEMySQLConnection {
 	init?(host: String, port: Int, user: String, password: String, database: String) {
 		self.dialect = QBEMySQLDialect()
 		self.connection = nil
+		self.url = NSURL(scheme: "mysql", host: "\(host):\(port)", path: "/\(user)")!.absoluteString!
 		
 		self.perform({() -> Int32 in
 			self.connection = mysql_init(nil)
@@ -298,6 +300,10 @@ internal class QBEMySQLConnection {
 	}
 }
 
+func == (lhs: QBEMySQLConnection, rhs: QBEMySQLConnection) -> Bool {
+	return lhs.url == rhs.url
+}
+
 class QBEMySQLData: QBESQLData {
 	private let db: QBEMySQLConnection
 	private let locale: QBELocale?
@@ -331,6 +337,15 @@ class QBEMySQLData: QBESQLData {
 			return QBESequenceStream(SequenceOf<QBETuple>(result), columnNames: result.columnNames)
 		}
 		return QBEEmptyStream()
+	}
+	
+	override func isCompatibleWith(other: QBESQLData) -> Bool {
+		if let om = other as? QBEMySQLData {
+			if om.db == self.db {
+				return true
+			}
+		}
+		return false
 	}
 }
 
