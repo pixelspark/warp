@@ -211,7 +211,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 		dispatch_sync(QBESQLiteDatabase.sharedQueue) {
 			let code = op()
 			if code != SQLITE_OK && code != SQLITE_DONE && code != SQLITE_ROW {
-				QBELog("SQLite error: \(self.lastError)")
+				QBELog("SQLite error \(code): \(self.lastError)")
 				ret = false
 			}
 		}
@@ -419,10 +419,7 @@ class QBESQLiteData: QBESQLData {
 	}
 	
 	override func stream() -> QBEStream {
-		if let result = self.db.query(self.sql.sqlSelect(nil).sql) {
-			return QBESequenceStream(SequenceOf<QBETuple>(result.sequence(locale)), columnNames: result.columnNames)
-		}
-		return QBEEmptyStream()
+		return QBESQLiteStream(data: self) ?? QBEEmptyStream()
 	}
 	
 	override func isCompatibleWith(other: QBESQLData) -> Bool {
@@ -430,6 +427,29 @@ class QBESQLiteData: QBESQLData {
 			return os.db == self.db
 		}
 		return false
+	}
+}
+
+/** 
+QBESQLiteStream provides a stream of records from a SQLite result set. Because SQLite result can only be accessed once
+sequentially, cloning of this stream requires re-executing the query.
+*/
+class QBESQLiteStream: QBESequenceStream {
+	private let data: QBESQLiteData
+	
+	init?(data: QBESQLiteData) {
+		self.data = data
+		if let result = data.db.query(data.sql.sqlSelect(nil).sql) {
+			super.init(SequenceOf<QBETuple>(result.sequence(data.locale)), columnNames: result.columnNames)
+		}
+		else {
+			super.init(SequenceOf<QBETuple>([]), columnNames: [])
+			return nil
+		}
+	}
+	
+	override func clone() -> QBEStream {
+		return QBESQLiteStream(data: self.data) ?? QBEEmptyStream()
 	}
 }
 

@@ -1,5 +1,7 @@
 import Foundation
 
+/** 
+Implementation of the MySQL 'SQL dialect'. Only deviatons from the standard dialect are implemented here. */
 private class QBEMySQLDialect: QBEStandardSQLDialect {
 	override var identifierQualifier: String { get { return  "`" } }
 	override var identifierQualifierEscape: String { get { return  "\\`" } }
@@ -182,12 +184,16 @@ internal class QBEMySQLResult: SequenceType, GeneratorType {
 	}
 }
 
+/** 
+Implements a connection to a MySQL database (corresponding to a MYSQL object in the MySQL library). The connection ensures
+that any operations are serialized (for now using a global queue for all MySQL operations). */
 internal class QBEMySQLConnection {
 	private var connection: UnsafeMutablePointer<MYSQL>
 	private let dialect: QBESQLDialect
 	private(set) weak var result: QBEMySQLResult?
 	let url: String
 	
+	// TODO: make this a per-connection queue if the library is thread-safe per connection
 	class var sharedQueue : dispatch_queue_t {
 		struct Static {
 			static var onceToken : dispatch_once_t = 0
@@ -304,6 +310,8 @@ func == (lhs: QBEMySQLConnection, rhs: QBEMySQLConnection) -> Bool {
 	return lhs.url == rhs.url
 }
 
+/** 
+Represents the result of a MySQL query as a QBEData object. */
 class QBEMySQLData: QBESQLData {
 	private let db: QBEMySQLConnection
 	private let locale: QBELocale?
@@ -333,10 +341,7 @@ class QBEMySQLData: QBESQLData {
 	}
 	
 	override func stream() -> QBEStream {
-		if let result = self.db.query(self.sql.sqlSelect(nil).sql) {
-			return QBESequenceStream(SequenceOf<QBETuple>(result), columnNames: result.columnNames)
-		}
-		return QBEEmptyStream()
+		return QBEMySQLStream(data: self) ?? QBEEmptyStream()
 	}
 	
 	override func isCompatibleWith(other: QBESQLData) -> Bool {
@@ -346,6 +351,28 @@ class QBEMySQLData: QBESQLData {
 			}
 		}
 		return false
+	}
+}
+
+/**
+QBEMySQLStream provides a stream of records from a MySQL result set. Because SQLite result can only be accessed once
+sequentially, cloning of this stream requires re-executing the query. */
+class QBEMySQLStream: QBESequenceStream {
+	private let data: QBEMySQLData
+	
+	init?(data: QBEMySQLData) {
+		self.data = data
+		if let result = data.db.query(data.sql.sqlSelect(nil).sql) {
+			super.init(SequenceOf<QBETuple>(result), columnNames: result.columnNames)
+		}
+		else {
+			super.init(SequenceOf<QBETuple>([]), columnNames: [])
+			return nil
+		}
+	}
+	
+	override func clone() -> QBEStream {
+		return QBEMySQLStream(data: self.data) ?? QBEEmptyStream()
 	}
 }
 
