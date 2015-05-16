@@ -236,6 +236,14 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 				}
 			}
 		}
+		
+		self.view.window?.update() // So that the 'cancel calculation' toolbar button autovalidates
+	}
+	
+	@IBAction func cancelCalculation(sender: NSObject) {
+		QBEAssertMainThread()
+		calculator.cancel()
+		self.view.window?.update()
 	}
 	
 	private func refreshData() {
@@ -249,6 +257,7 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 			}
 		})
 		job?.delegate = self
+		self.view.window?.update() // So that the 'cancel calculation' toolbar button autovalidates
 	}
 	
 	func job(job: QBEJob, didProgress: Double) {
@@ -893,6 +902,9 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 		}
 		else if item.action() == Selector("copy:") {
 			return currentStep != nil
+		}
+		else if item.action() == Selector("cancelCalculation:") {
+			return self.calculator.calculating
 		}
 		else {
 			return false

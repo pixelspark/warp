@@ -643,6 +643,11 @@ CA
                                                 <action selector="setFullWorkingSet:" target="Ady-hI-5gd" id="Bwk-0i-gbX"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Stop calculating" keyEquivalent="-" id="dyF-Ue-jgE">
+                                            <connections>
+                                                <action selector="cancelCalculation:" target="Ady-hI-5gd" id="2WI-cj-dlz"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="XEY-Yx-6bd"/>
                                         <menuItem title="Show alternatives for this step..." keyEquivalent="1" id="dvK-sd-ynK">
                                             <connections>
@@ -1101,6 +1106,11 @@ CA
                                         <action selector="zoomToAll:" target="6f7-a7-6o1" id="F3O-EA-0gJ"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="645B5A5E-8763-4543-AF18-0566BC1E465C" label="Stop" paletteLabel="Stop calculating" tag="-1" image="StopIcon" id="qY2-Sw-ffx">
+                                    <connections>
+                                        <action selector="cancelCalculation:" target="6f7-a7-6o1" id="5y4-t5-jaI"/>
+                                    </connections>
+                                </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="65B21C31-F9E1-4753-9770-07804938BD85" label="Zoom to selection" paletteLabel="Zoom to selection" tag="-1" image="ZoomInIcon" id="QnM-NS-IrF">
                                     <connections>
                                         <action selector="zoomSelection:" target="6f7-a7-6o1" id="NrX-OE-0uM"/>
@@ -1147,6 +1157,7 @@ CA
                                 <toolbarItem reference="QnM-NS-IrF"/>
                                 <toolbarItem reference="wdl-hf-yLn"/>
                                 <toolbarItem reference="OzT-DI-1G1"/>
+                                <toolbarItem reference="qY2-Sw-ffx"/>
                                 <toolbarItem reference="wdl-hf-yLn"/>
                                 <toolbarItem reference="xJa-5Q-4SE"/>
                                 <toolbarItem reference="ZRd-bD-OPv"/>
@@ -1781,6 +1792,7 @@ Gw
         <image name="ChangeIcon" width="26" height="26"/>
         <image name="CloseIcon" width="26" height="26"/>
         <image name="NSAddTemplate" width="11" height="11"/>
+        <image name="StopIcon" width="26" height="26"/>
         <image name="TipIcon" width="32" height="32"/>
         <image name="ZoomInIcon" width="26" height="26"/>
         <image name="ZoomOutIcon" width="26" height="26"/>

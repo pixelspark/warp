@@ -612,12 +612,15 @@
 "OzT-DI-1G1.label" = "Bereken";
 "OzT-DI-1G1.paletteLabel" = "Bereken";
 
-"uPf-Qt-XpM.label" = "Toon alles";
+"uPf-Qt-XpM.label" = "Alles";
 "uPf-Qt-XpM.paletteLabel" = "Toon alles";
-"QnM-NS-IrF.label" = "Toon selectie";
+"QnM-NS-IrF.label" = "Selectie";
 "QnM-NS-IrF.paletteLabel" = "Toon selectie";
 "v55-av-755.title" = "Toon selectie";
 "iyV-Df-S2D.title" = "Toon alles";
+"dyF-Ue-jgE.title" = "Stop berekenen";
+"qY2-Sw-ffx.title" = "Stop";
+"qY2-Sw-ffx.paletteLabel" = "Stop berekenen";
 
 
 
