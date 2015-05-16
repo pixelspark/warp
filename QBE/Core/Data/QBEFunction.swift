@@ -117,7 +117,7 @@ enum QBEFunction: String {
 				
 				// If at least one of the arguments to an AND is a constant false, then this And always evaluates to false
 				for p in prepared {
-					if p.isConstant && p.apply([], columns: [], inputValue: nil) == QBEValue.BoolValue(false) {
+					if p.isConstant && p.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue.BoolValue(false) {
 						return QBELiteralExpression(QBEValue.BoolValue(false))
 					}
 				}
@@ -133,7 +133,7 @@ enum QBEFunction: String {
 				
 				// If at least one of the arguments to an OR is a constant true, this OR always evaluates to true
 				for p in prepared {
-					if p.isConstant && p.apply([], columns: [], inputValue: nil) == QBEValue.BoolValue(true) {
+					if p.isConstant && p.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue.BoolValue(true) {
 						return QBELiteralExpression(QBEValue.BoolValue(true))
 					}
 				}

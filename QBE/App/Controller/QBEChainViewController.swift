@@ -10,6 +10,10 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 	var undo: NSUndoManager? { get }
 }
 
+class QBEChainView: NSView {
+	override var acceptsFirstResponder: Bool { get { return true } }
+}
+
 protocol QBEChainViewDelegate: NSObjectProtocol {
 	/** Called when the chain view wants the delegate to present a configurator for a step. **/
 	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESuggestionsViewDelegate)
@@ -20,6 +24,9 @@ protocol QBEChainViewDelegate: NSObjectProtocol {
 	
 	/** Called when the user closes a chain view **/
 	func chainViewDidClose(view: QBEChainViewController)
+	
+	/** Called when the chain has changed */
+	func chainViewDidChangeChain(view: QBEChainViewController)
 }
 
 internal extension NSViewController {
@@ -36,13 +43,14 @@ internal extension NSViewController {
 	}
 }
 
-class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate {
+class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget {
 	var suggestions: QBEFuture<[QBEStep]>?
 	let calculator: QBECalculator = QBECalculator()
 	var dataViewController: QBEDataViewController?
 	var stepsViewController: QBEStepsViewController?
+	private var outletDropView: QBEOutletDropView!
 	
-	@IBOutlet var workingSetSelector: NSSegmentedControl!
+	@IBOutlet var outletView: QBEOutletView!
 	@IBOutlet var suggestionsButton: NSButton!
 	weak var delegate: QBEChainViewDelegate?
 	
@@ -50,10 +58,10 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 	
 	internal var useFullData: Bool = false {
 		didSet {
-			if useFullData != oldValue {
+			if useFullData {
 				calculate()
-				workingSetSelector.selectedSegment = (useFullData ? 1 : 0)
 			}
+			// TODO: Visually indicate what kind of selection is used
 		}
 	}
 	
@@ -91,6 +99,70 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 		}
 	}
 	
+	override func viewDidLoad() {
+		super.viewDidLoad()
+		outletView.delegate = self
+		outletDropView = QBEOutletDropView(frame: self.view.bounds)
+		outletDropView.translatesAutoresizingMaskIntoConstraints = false
+		outletDropView.delegate = self
+		self.view.addSubview(self.outletDropView, positioned: NSWindowOrderingMode.Above, relativeTo: nil)
+		self.view.addConstraints([
+			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0),
+			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0.0),
+			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0),
+			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0)
+		])
+	}
+	
+	func receiveDropFromOutlet(draggedObject: AnyObject?) {
+		if let myChain = chain {
+			if let otherChain = draggedObject as? QBEChain {
+				if otherChain == myChain || otherChain.dependencies.contains(myChain) {
+					// This would introduce a loop, don't do anything.
+				}
+				else {
+					// Generate sensible joins
+					calculator.currentRaster?.get({(raster) in
+						let myColumns = raster.columnNames
+						
+						otherChain.head?.fullData(nil, callback: { (otherData) -> () in
+							otherData.columnNames({ (otherColumns) -> () in
+								let overlappingColumns = Set(myColumns).intersect(Set(otherColumns))
+								QBEAsyncMain {
+									var joinSteps: [QBEJoinStep] = []
+									
+									// Create a join step for each column name that appears both left and right
+									for overlappingColumn in overlappingColumns {
+										let joinStep = QBEJoinStep(previous: nil)
+										joinStep.right = otherChain
+										joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: overlappingColumn), second: QBEForeignExpression(columnName: overlappingColumn), type: QBEBinary.Equal)
+										joinSteps.append(joinStep)
+									}
+									
+									if let firstJoin = joinSteps.first {
+										firstJoin.alternatives = joinSteps.filter({return $0 != firstJoin})
+										self.chain?.insertStep(firstJoin, afterStep: self.currentStep)
+										self.stepsChanged()
+										self.currentStep = firstJoin
+										self.calculate()
+									}
+								}
+							})
+						})
+					})
+				}
+			}
+		}
+	}
+	
+	func outletViewDidEndDragging(view: QBEOutletView) {
+		view.draggedObject = nil
+	}
+	
+	func outletViewWillStartDragging(view: QBEOutletView) {
+		view.draggedObject = self.chain
+	}
+	
 	/** Present the given data set in the data grid. This is called by currentStep.didSet as well as previewStep.didSet.
 	The data from the previewed step takes precedence. **/
 	private func presentData(data: QBEData?) {
@@ -119,9 +191,15 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 			dataView.raster = raster
 			
 			if raster != nil && raster!.rowCount > 0 {
-				if let btn = self.workingSetSelector {
-					QBESettings.sharedInstance.once("workingSetTip") {
-						self.showTip(NSLocalizedString("By default, Warp shows you a small part of the data. Using this button, you can toggle between the full data and the working selection.",comment: "Working set selector tip"), atView: btn)
+				QBESettings.sharedInstance.once("workingSetTip") {
+					if let toolbar = self.view.window?.toolbar {
+						for item in toolbar.items {
+							if let ti = item as? NSToolbarItem where ti.action == Selector("setFullWorkingSet:") {
+								if let vw = ti.view {
+									self.showTip(NSLocalizedString("By default, Warp shows you a small part of the data. Using this button, you can calculate the full result.",comment: "Working set selector tip"), atView: vw)
+								}
+							}
+						}
 					}
 				}
 			}
@@ -131,18 +209,33 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 	func calculate() {
 		QBEAssertMainThread()
 		
-		if let s = currentStep {
-			calculator.desiredExampleRows = QBESettings.sharedInstance.exampleMaximumRows
-			calculator.maximumExampleTime = QBESettings.sharedInstance.exampleMaximumTime
-			
-			let sourceStep = previewStep ?? s
-			calculator.calculate(sourceStep, fullData: useFullData)
+		if let ch = chain {
+			if ch.isPartOfDependencyLoop {
+				if let w = self.view.window {
+					// TODO: make this message more helpful (maybe even indicate the offending step)
+					let a = NSAlert()
+					a.messageText = NSLocalizedString("The calculation steps for this data set form a loop, and therefore no data can be calculated.", comment: "")
+					a.alertStyle = NSAlertStyle.WarningAlertStyle
+					a.beginSheetModalForWindow(w, completionHandler: nil)
+				}
+				calculator.cancel()
+				refreshData()
+			}
+			else {
+				if let s = currentStep {
+					calculator.desiredExampleRows = QBESettings.sharedInstance.exampleMaximumRows
+					calculator.maximumExampleTime = QBESettings.sharedInstance.exampleMaximumTime
+					
+					let sourceStep = previewStep ?? s
+					calculator.calculate(sourceStep, fullData: useFullData)
+					refreshData()
+				}
+				else {
+					calculator.cancel()
+					refreshData()
+				}
+			}
 		}
-		else {
-			calculator.cancel()
-		}
-		
-		refreshData()
 	}
 	
 	private func refreshData() {
@@ -152,6 +245,7 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 		let job = calculator.currentRaster?.get({(raster) in
 			QBEAsyncMain {
 				self.presentRaster(raster)
+				self.useFullData = false
 			}
 		})
 		job?.delegate = self
@@ -228,26 +322,7 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 	}
 	
 	func stepsController(vc: QBEStepsViewController, didInsertStep step: QBEStep, afterStep: QBEStep?) {
-		if afterStep == nil {
-			// Insert at beginning
-			if chain?.head != nil {
-				var before = chain?.head
-				while before!.previous != nil {
-					before = before!.previous
-				}
-				
-				before!.previous = step
-			}
-			else {
-				chain?.head = step
-			}
-		}
-		else {
-			step.previous = afterStep
-			if chain?.head == afterStep {
-				chain?.head = step
-			}
-		}
+		chain?.insertStep(step, afterStep: afterStep)
 		stepsChanged()
 	}
 	
@@ -299,6 +374,7 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 		self.stepsViewController?.steps = chain?.steps
 		self.stepsViewController?.currentStep = currentStep
 		updateView()
+		self.delegate?.chainViewDidChangeChain(self)
 	}
 	
 	internal var undo: NSUndoManager? { get { return chain?.tablet?.document?.undoManager } }
@@ -462,7 +538,15 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 			// Show a tip if there are alternatives
 			if steps.count > 1 {
 				QBESettings.sharedInstance.once("suggestionsTip") {
-					self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, click here.", comment: "Tip for suggestions button"), atView: self.suggestionsButton!)
+					if let toolbar = self.view.window?.toolbar {
+						for item in toolbar.items {
+							if let ti = item as? NSToolbarItem where ti.action == Selector("showSuggestions:") {
+								if let button = ti.view as? NSButton {
+									self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, click here.", comment: "Tip for suggestions button"), atView: button)
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -471,8 +555,23 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 	@IBAction func showSuggestions(sender: NSObject) {
 		QBEAssertMainThread()
 		
-		if let s = currentStep?.alternatives where s.count > 0 {
-			self.performSegueWithIdentifier("suggestions", sender: sender)
+		let sendingView: NSView
+		if let ti = sender as? NSToolbarItem {
+			sendingView = ti.view ?? self.view
+		}
+		else if let vw = sender as? NSView {
+			sendingView = vw
+		}
+		else {
+			sendingView = self.view
+		}
+		
+		if let alternatives = currentStep?.alternatives where alternatives.count > 0 {
+			if let sv = self.storyboard?.instantiateControllerWithIdentifier("suggestions") as? QBESuggestionsViewController {
+				sv.delegate = self
+				sv.suggestions = Array(alternatives)
+				self.presentViewController(sv, asPopoverRelativeToRect: sendingView.bounds, ofView: sendingView, preferredEdge: NSMinYEdge, behavior: NSPopoverBehavior.Semitransient)
+			}
 		}
 	}
 	
@@ -484,22 +583,6 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 	
 	@IBAction func addColumn(sender: NSObject) {
 		self.performSegueWithIdentifier("addColumn", sender: sender)
-	}
-	
-	@IBAction func setWorkingSet(sender: NSObject) {
-		if let sc = sender as? NSSegmentedControl {
-			let changing = (sc.selectedSegment == 1) != useFullData
-			calculator.cancel()
-			if changing {
-				useFullData = (sc.selectedSegment == 1)
-			}
-			else {
-				calculate()
-				QBESettings.sharedInstance.once("setWorkingSetReload") {
-					self.showTip(NSLocalizedString("If you select the currently active working set, Warp will reload the current working set.", comment: ""), atView: sc)
-				}
-			}
-		}
 	}
 	
 	@IBAction func setFullWorkingSet(sender: NSObject) {
@@ -818,6 +901,9 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 	
 	@IBAction func removeTablet(sender: NSObject) {
 		self.delegate?.chainViewDidClose(self)
+		self.chain = nil
+		self.dataViewController = nil
+		self.delegate = nil
 	}
 	
 	@IBAction func removeDuplicateRows(sender: NSObject) {
@@ -904,13 +990,6 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 			dataViewController?.delegate = self
 			dataViewController?.locale = locale
 			calculate()
-		}
-		else if segue.identifier=="suggestions" {
-			let sv = segue.destinationController as? QBESuggestionsViewController
-			sv?.delegate = self
-			if let alts = currentStep?.alternatives {
-				sv?.suggestions = Array(alts)
-			}
 		}
 		else if segue.identifier=="addColumn" {
 			let sv = segue.destinationController as? QBEAddColumnViewController

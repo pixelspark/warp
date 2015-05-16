@@ -184,6 +184,10 @@ class QBEFormula: Parser {
 		annotate(stack.push(QBESiblingExpression(columnName: QBEColumn(self.text))))
 	}
 	
+	private func pushForeign() {
+		annotate(stack.push(QBEForeignExpression(columnName: QBEColumn(self.text))))
+	}
+	
 	private func pushConstant() {
 		for (constant, name) in locale.constants {
 			if name.caseInsensitiveCompare(self.text) == NSComparisonResult.OrderedSame {
@@ -292,6 +296,7 @@ class QBEFormula: Parser {
 		add_named_rule("currentCell",		rule: literal(locale.currentCellIdentifier) => pushIdentity)
 		
 		add_named_rule("sibling",			rule: "[@" ~  (matchAnyCharacterExcept(["]"])+ => pushSibling) ~ "]")
+		add_named_rule("foreign",			rule: "[#" ~  (matchAnyCharacterExcept(["]"])+ => pushForeign) ~ "]")
 		add_named_rule("subexpression",		rule: (("(" ~~ (^"logic") ~~ ")")))
 		
 		// Number literals
@@ -302,7 +307,7 @@ class QBEFormula: Parser {
 		add_named_rule("negativeNumber",	rule: ("-" ~ ^"doubleNumber") => pushNegate)
 		add_named_rule("percentageNumber",  rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"percentagePostfix")
 		
-		add_named_rule("value", rule: ^"percentageNumber" | ^"stringLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"subexpression")
+		add_named_rule("value", rule: ^"percentageNumber" | ^"stringLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"foreign" | ^"subexpression")
 		add_named_rule("exponent", rule: ^"value" ~~ (("^" ~~ ^"value") => pushPower)*)
 		
 		let factor = ^"exponent" ~~ ((("*" ~~ ^"exponent") => pushMultiplication) | (("/" ~~ ^"exponent") => pushDivision))*

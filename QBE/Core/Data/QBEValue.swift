@@ -399,7 +399,7 @@ should not trigger an error and is for instance equal to an empty string and 0 i
 represents the result of an invalid operation and should trigger subsequent operations on the value to also return 
 'invalid'). 
 
-Note that while QBEValue is an enum, it cannot be encoded using NSCoding. Wrap QBEValues inside QBEValueCoder before 
+Note that while QBEValue is an enum, it cannot be encoded using NSCoding. Wrap QBETuple inside QBEValueCoder before 
 encoding or decoding using NSCoding. **/
 internal enum QBEValue: Hashable, DebugPrintable {
 	case StringValue(String)

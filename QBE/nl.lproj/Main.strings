@@ -586,8 +586,7 @@
 "dvK-sd-ynK.title" = "Toon alternatieven voor deze stap...";
 "Oze-Ue-8Uh.title" = "Kies eerste alternatieve stap";
 "ZfB-ER-8HL.title" = "Herstel tipballonnen voor beginners";
-"qVv-Br-0GO.title" = "Gebruik selectie als werkset";
-"jE3-cm-bk2.title" = "Gebruik volledige dataset als werkset";
+"jE3-cm-bk2.title" = "Bereken volledig resultaat";
 "PBU-iY-SYv.title" = "Laad data uit Presto...";
 "lWV-Af-fdF.title" = "Sorteer rijen op de geselecteerde kolom(men)";
 "ILY-7M-toS.title" = "Sorteer rijen op de geselecteerde kolom(men)";
@@ -605,6 +604,13 @@
 "jA4-M7-4yd.title" = "Maximale rekentijd:";
 "nR1-jX-5Hf.title" = "Gewenst aantal rijen:";
 "3tj-IE-VFf.title" = "Plakken";
+
+"ZRd-bD-OPv.label" = "Voeg in";
+"ZRd-bD-OPv.paletteLabel" = "Voeg in";
+"xJa-5Q-4SE.label" = "Alternatieven";
+"xJa-5Q-4SE.paletteLabel" = "Toon alternatieven";
+"OzT-DI-1G1.label" = "Bereken";
+"OzT-DI-1G1.paletteLabel" = "Bereken";
 
 "uPf-Qt-XpM.label" = "Toon alles";
 "uPf-Qt-XpM.paletteLabel" = "Toon alles";

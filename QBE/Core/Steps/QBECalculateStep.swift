@@ -96,7 +96,7 @@ class QBECalculateStep: QBEStep {
 				return suggestions
 			}
 			else {
-				QBEExpression.infer(nil, toValue: toValue, suggestions: &suggestions, level: 8, columns: inRaster.columnNames, row: inRaster[row], column: column, job: job)
+				QBEExpression.infer(nil, toValue: toValue, suggestions: &suggestions, level: 8, row: QBERow(inRaster[row], columnNames: inRaster.columnNames), column: column, job: job)
 				// Suggest a text replace
 				suggestions.append(QBEFunctionExpression(arguments: [QBEIdentityExpression(), QBELiteralExpression(fromValue), QBELiteralExpression(toValue)], type: QBEFunction.Substitute))
 			}

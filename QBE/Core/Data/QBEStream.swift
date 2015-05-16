@@ -2,7 +2,7 @@ import Foundation
 
 /** A QBESink is a function used as a callback in response to QBEStream.fetch. It receives a set of rows from the stream
 as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). **/
-typealias QBESink = (ArraySlice<QBERow>, Bool) -> ()
+typealias QBESink = (ArraySlice<QBETuple>, Bool) -> ()
 
 /** The default number of rows that a QBEStream will send to a consumer upon request through QBEStream.fetch. **/
 let QBEStreamDefaultBatchSize = 256
@@ -44,7 +44,7 @@ class QBEStreamData: QBEData {
 	}
 
 	func raster(job: QBEJob?, callback: (QBERaster) -> ()) {
-		var data: [QBERow] = []
+		var data: [QBETuple] = []
 		
 		let s = source.clone()
 		var appender: QBESink! = nil
@@ -120,6 +120,10 @@ class QBEStreamData: QBEData {
 		return fallback().pivot(horizontal, vertical: vertical, values: values)
 	}
 	
+	func join(join: QBEJoin) -> QBEData {
+		return fallback().join(join)
+	}
+	
 	func filter(condition: QBEExpression) -> QBEData {
 		return QBEStreamData(source: QBEFilterTransformer(source: source, condition: condition))
 	}
@@ -148,13 +152,13 @@ class QBEEmptyStream: QBEStream {
 	}
 }
 
-/** A stream that sources from a Swift generator of QBERow. **/
+/** A stream that sources from a Swift generator of QBETuple. **/
 class QBESequenceStream: QBEStream {
-	private let sequence: SequenceOf<QBERow>
-	private var generator: GeneratorOf<QBERow>
+	private let sequence: SequenceOf<QBETuple>
+	private var generator: GeneratorOf<QBETuple>
 	private let columns: [QBEColumn]
 	
-	init(_ sequence: SequenceOf<QBERow>, columnNames: [QBEColumn]) {
+	init(_ sequence: SequenceOf<QBETuple>, columnNames: [QBEColumn]) {
 		self.sequence = sequence
 		self.generator = sequence.generate()
 		self.columns = columnNames
@@ -163,7 +167,7 @@ class QBESequenceStream: QBEStream {
 	func fetch(consumer: QBESink, job: QBEJob?) {
 		QBETime("sequence", QBEStreamDefaultBatchSize, "rows", job) {
 			var done = false
-			var rows :[QBERow] = []
+			var rows :[QBETuple] = []
 			rows.reserveCapacity(QBEStreamDefaultBatchSize)
 			
 			for i in 0..<QBEStreamDefaultBatchSize {
@@ -208,7 +212,7 @@ private class QBETransformer: NSObject, QBEStream {
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). **/
-	private func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
+	private func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBETuple>, Bool) -> ()) {
 		fatalError("QBETransformer.transform should be implemented in a subclass")
 	}
 	
@@ -289,9 +293,9 @@ private class QBEFlattenTransformer: QBETransformer {
 		return QBEFlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
 	}
 	
-	private override func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBETuple>, Bool) -> ()) {
 		prepare {
-			var newRows: [QBERow] = []
+			var newRows: [QBETuple] = []
 			newRows.reserveCapacity(self.columnNames.count * rows.count)
 			var templateRow: [QBEValue] = self.columnNames.map({(c) -> (QBEValue) in return QBEValue.InvalidValue})
 			let valueIndex = (self.writeRowIdentifier ? 1 : 0) + (self.writeColumnIdentifier ? 1 : 0);
@@ -299,7 +303,7 @@ private class QBEFlattenTransformer: QBETransformer {
 			QBETime("flatten", self.columnNames.count * rows.count, "cells", job) {
 				for row in rows {
 					if self.writeRowIdentifier {
-						templateRow[0] = self.rowIdentifier!.apply(row, columns: self.originalColumns!, inputValue: nil)
+						templateRow[0] = self.rowIdentifier!.apply(QBERow(row, columnNames: self.originalColumns!), foreign: nil, inputValue: nil)
 					}
 					
 					for columnIndex in 0..<self.originalColumns!.count {
@@ -326,11 +330,11 @@ private class QBEFilterTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBETuple>, Bool) -> ()) {
 		source.columnNames { (columnNames) -> () in
 			QBETime("Stream filter", rows.count, "row", job) {
 				let newRows = rows.filter({(row) -> Bool in
-					return self.condition.apply(row, columns: columnNames, inputValue: nil) == QBEValue.BoolValue(true)
+					return self.condition.apply(QBERow(row, columnNames: columnNames), foreign: nil, inputValue: nil) == QBEValue.BoolValue(true)
 				})
 				
 				callback(newRows, false)
@@ -346,7 +350,7 @@ private class QBEFilterTransformer: QBETransformer {
 /** The QBERandomTransformer randomly samples the specified amount of rows from a stream. It uses reservoir sampling to
 achieve this. **/
 private class QBERandomTransformer: QBETransformer {
-	var sample: [QBERow] = []
+	var sample: [QBETuple] = []
 	let sampleSize: Int
 	var samplesSeen: Int = 0
 	
@@ -355,7 +359,7 @@ private class QBERandomTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(var rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
+	private override func transform(var rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBETuple>, Bool) -> ()) {
 		// Reservoir initial fill
 		if sample.count < sampleSize {
 			let length = sampleSize - sample.count
@@ -416,7 +420,7 @@ private class QBEOffsetTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBETuple>, Bool) -> ()) {
 		if position > offset {
 			position += rows.count
 			callback(rows, false)
@@ -448,7 +452,7 @@ private class QBELimitTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
+	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBETuple>, Bool) -> ()) {
 		if (position+rows.count) < limit {
 			position += rows.count
 			callback(rows, false)
@@ -488,14 +492,14 @@ private class QBEColumnsTransformer: QBETransformer {
 		}
 	}
 	
-	override private func transform(rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>,Bool) -> ()) {
+	override private func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBETuple>,Bool) -> ()) {
 		ensureIndexes {
 			assert(self.indexes != nil)
 			
-			var result: [QBERow] = []
+			var result: [QBETuple] = []
 			
 			for row in rows {
-				var newRow: QBERow = []
+				var newRow: QBETuple = []
 				newRow.reserveCapacity(self.indexes!.count)
 				for idx in self.indexes! {
 					newRow.append(row[idx])
@@ -574,10 +578,10 @@ private class QBECalculateTransformer: QBETransformer {
 		}
 	}
 	
-	private override func transform(var rows: ArraySlice<QBERow>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBERow>, Bool) -> ()) {
+	private override func transform(var rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (ArraySlice<QBETuple>, Bool) -> ()) {
 		self.ensureIndexes {
 			QBETime("Calculate", rows.count, "row") {
-				let newData = rows.map({ (var row: QBERow) -> QBERow in
+				let newData = rows.map({ (var row: QBETuple) -> QBETuple in
 					for n in 0..<max(0, self.columns!.count - row.count) {
 						row.append(QBEValue.EmptyValue)
 					}
@@ -585,7 +589,7 @@ private class QBECalculateTransformer: QBETransformer {
 					for (targetColumn, formula) in self.calculations {
 						let columnIndex = self.indices![targetColumn]!
 						let inputValue: QBEValue = row[columnIndex]
-						let newValue = formula.apply(row, columns: self.columns!, inputValue: inputValue)
+						let newValue = formula.apply(QBERow(row, columnNames: self.columns!), foreign: nil, inputValue: inputValue)
 						row[columnIndex] = newValue
 					}
 					return row

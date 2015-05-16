@@ -6,7 +6,6 @@ import Cocoa
 	@IBOutlet var imageView: NSImageView?
 	@IBOutlet var previousImageView: NSImageView?
 	@IBOutlet var nextImageView: NSImageView?
-	@IBOutlet var removeButton: NSButton?
 	
 	var selected: Bool = false { didSet {
 		update()
@@ -67,7 +66,6 @@ import Cocoa
 				imageView?.image = NSImage(named: icon)
 			}
 			
-			removeButton?.hidden = !highlighted
 			nextImageView?.hidden = (s.next == nil) || selected || highlighted
 			previousImageView?.hidden = (s.previous == nil) // || selected || highlighted
 		}
@@ -75,10 +73,11 @@ import Cocoa
 	
 	override func drawRect(dirtyRect: NSRect) {
 		if self.selected {
-			NSColor.secondarySelectedControlColor().set()
+			NSColor.blueColor().colorWithAlphaComponent(0.15).set()
+			//NSColor.selectedControlColor().set()
 		}
 		else if self.highlighted {
-			NSColor.selectedControlColor().set()
+			NSColor.secondarySelectedControlColor().set()
 		}
 		else {
 			NSColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0).set()
@@ -88,7 +87,7 @@ import Cocoa
 	}
 	
 	override var allowsVibrancy: Bool { get {
-		return false
+		return true
 	} }
 }
 

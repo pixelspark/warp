@@ -30,7 +30,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	
 	override func awakeFromNib() {
 		super.awakeFromNib()
-		self.collectionView?.registerForDraggedTypes([QBEStepsViewController.dragType, QBEStep.dragType])
+		self.collectionView?.registerForDraggedTypes([QBEStepsViewController.dragType, QBEStep.dragType, QBEOutletView.dragType])
 	}
 	
 	func delete(sender: NSObject) {

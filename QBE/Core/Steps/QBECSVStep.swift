@@ -6,9 +6,9 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 
 	private var _columnNames: [QBEColumn] = []
 	private var finished: Bool = false
-	private var templateRow: QBERow = []
-	private var row: QBERow = []
-	private var rows: [QBERow] = []
+	private var templateRow: QBETuple = []
+	private var row: QBETuple = []
+	private var rows: [QBETuple] = []
 	private var queue: dispatch_queue_t
 	private var rowsRead: Int = 0
 	private var totalBytes: Int = 0
@@ -155,7 +155,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 				csvOut.finishLine()
 				
 				var cb: QBESink? = nil
-				cb = { (rows: ArraySlice<QBERow>, hasNext: Bool) -> () in
+				cb = { (rows: ArraySlice<QBETuple>, hasNext: Bool) -> () in
 					// We want the next row, so fetch it while we start writing this one.
 					if hasNext {
 						QBEAsyncBackground {

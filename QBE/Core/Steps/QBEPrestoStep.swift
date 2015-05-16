@@ -39,7 +39,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 	let catalog: String
 	let schema: String
 	
-	private var buffer: [QBERow] = []
+	private var buffer: [QBETuple] = []
 	private var columns: [QBEColumn]?
 	private var stopped: Bool = false
 	private var started: Bool = false

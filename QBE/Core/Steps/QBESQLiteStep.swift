@@ -93,8 +93,8 @@ internal class QBESQLiteResult {
 		return (0..<count).map({QBEColumn(String.fromCString(sqlite3_column_name(self.resultSet, $0))!)})
 	} }
 
-	func sequence(locale: QBELocale?) -> SequenceOf<QBERow> {
-		return SequenceOf<QBERow>(QBESQLiteResultSequence(result: self, locale: locale))
+	func sequence(locale: QBELocale?) -> SequenceOf<QBETuple> {
+		return SequenceOf<QBETuple>(QBESQLiteResultSequence(result: self, locale: locale))
 	}
 }
 
@@ -114,7 +114,7 @@ internal class QBESQLiteResultSequence: SequenceType {
 }
 
 internal class QBESQLiteResultGenerator: GeneratorType {
-	typealias Element = [QBEValue]
+	typealias Element = QBETuple
 	let result: QBESQLiteResult
 	var lastStatus: Int32 = SQLITE_OK
 	var locale: QBELocale?
@@ -378,16 +378,16 @@ internal class QBESQLiteDialect: QBEStandardSQLDialect {
 		return "\(QBESQLiteDatabase.sqliteUDFFunctionName)('\(type.rawValue)',\(value))"
 	}
 	
-	override func aggregationToSQL(aggregation: QBEAggregation) -> String? {
+	override func aggregationToSQL(aggregation: QBEAggregation, alias: String) -> String? {
 		// QBEFunction.Count only counts numeric values
 		if aggregation.reduce == QBEFunction.Count {
-			if let expressionSQL = self.expressionToSQL(aggregation.map) {
+			if let expressionSQL = self.expressionToSQL(aggregation.map, alias: alias) {
 				return "SUM(CASE WHEN TYPEOF(\(expressionSQL)) IN('integer', 'real') THEN 1 ELSE 0 END)"
 			}
 			return nil
 		}
 		
-		return super.aggregationToSQL(aggregation)
+		return super.aggregationToSQL(aggregation, alias: alias)
 	}
 }
 
@@ -414,7 +414,7 @@ class QBESQLiteData: QBESQLData {
 	
 	override func stream() -> QBEStream {
 		if let result = self.db.query(self.sql.sqlSelect(nil).sql) {
-			return QBESequenceStream(SequenceOf<QBERow>(result.sequence(locale)), columnNames: result.columnNames)
+			return QBESequenceStream(SequenceOf<QBETuple>(result.sequence(locale)), columnNames: result.columnNames)
 		}
 		return QBEEmptyStream()
 	}
@@ -442,7 +442,7 @@ class QBESQLiteCachedData: QBEProxyData {
 		QBEAsyncBackground {
 			source.columnNames { (columns) -> () in
 				let columnSpec = columns.map({(column) -> String in
-					let colString = dialect.columnIdentifier(column)
+					let colString = dialect.columnIdentifier(column, table: nil)
 					return "\(colString) VARCHAR"
 				}).implode(", ")!
 				
@@ -472,7 +472,7 @@ class QBESQLiteCachedData: QBEProxyData {
 		cacheJob.cancel()
 	}
 	
-	private func ingest(rows: ArraySlice<QBERow>, hasMore: Bool) {
+	private func ingest(rows: ArraySlice<QBETuple>, hasMore: Bool) {
 		assert(!isCached, "Cannot ingest more rows after data has already been cached")
 		if hasMore && !cacheJob.cancelled {
 			self.stream?.fetch(self.ingest, job: cacheJob)

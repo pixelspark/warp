@@ -10,7 +10,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 	private var formulaFieldCallback: ((QBEValue) -> ())?
 	
 	var document: QBEDocument? { didSet {
-		self.documentView.subviews.each({($0 as? NSView)?.removeFromSuperview()})
+		self.documentView.removeAllTablets()
 		if let d = document {
 			for tablet in d.tablets {
 				self.addTablet(tablet)
@@ -26,6 +26,10 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		if let t = view.chain?.tablet {
 			removeTablet(t)
 		}
+	}
+	
+	func chainViewDidChangeChain(view: QBEChainViewController) {
+		documentView.reloadData()
 	}
 	
 	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESuggestionsViewDelegate) {
@@ -83,7 +87,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		}
 	}
 	
-	@IBAction func zoomAll(sender: NSObject) {
+	@IBAction func zoomToAll(sender: NSObject) {
 		if let ab = documentView.boundsOfAllTablets {
 			self.workspaceView.magnifyToFitRect(ab)
 		}
@@ -117,8 +121,8 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 			}
 			
 			if let tsvString = data {
-				var data: [QBERow] = []
-				var headerRow: QBERow? = nil
+				var data: [QBETuple] = []
+				var headerRow: QBETuple? = nil
 				let rows = tsvString.componentsSeparatedByString("\r")
 				for row in rows {
 					var rowValues: [QBEValue] = []
@@ -137,7 +141,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 				}
 				
 				if headerRow != nil {
-					let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue!)}), readOnly: false)
+					let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue ?? "")}), readOnly: false)
 					let s = QBERasterStep(raster: raster)
 					let tablet = QBETablet(chain: QBEChain(head: s))
 					addTablet(tablet)
@@ -160,25 +164,15 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		}
 	}
 	
+	func documentView(view: QBEDocumentView, wantsZoomToView: NSView) {
+		//self.workspaceView.setMagnification(1.0, centeredAtPoint: wantsZoomToTablet.view.frame.center)
+		self.workspaceView.magnifyToFitRect(wantsZoomToView.frame)
+	}
+	
 	func documentView(view: QBEDocumentView, didSelectTablet: QBEChainViewController?) {
 		if let tv = didSelectTablet {
-			let complete = {() -> () in
-				tv.view.scrollRectToVisible(tv.view.bounds)
-				self.setFormula(QBEValue.InvalidValue, callback: nil)
-				tv.tabletWasSelected()
-			}
-				
-			if self.workspaceView.magnification != 1.0 {
-				NSAnimationContext.beginGrouping()
-				NSAnimationContext.currentContext().duration = 0.5
-				
-				NSAnimationContext.currentContext().completionHandler = complete
-				self.workspaceView.animator().magnification = 1.0
-				NSAnimationContext.endGrouping()
-			}
-			else {
-				complete()
-			}
+			self.setFormula(QBEValue.InvalidValue, callback: nil)
+			tv.tabletWasSelected()
 		}
 		else {
 			self.setFormula(QBEValue.InvalidValue, callback: nil)
@@ -242,7 +236,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		if item.action() == Selector("addTabletFromPresto:") { return true }
 		if item.action() == Selector("addTabletFromMySQL:") { return true }
 		if item.action() == Selector("updateFromFormulaField:") { return true }
-		if item.action() == Selector("zoomAll:") { return documentView.boundsOfAllTablets != nil }
+		if item.action() == Selector("zoomToAll:") { return documentView.boundsOfAllTablets != nil }
 		if item.action() == Selector("zoomSelection:") { return documentView.boundsOfAllTablets != nil }
 		if item.action() == Selector("delete:") { return true }
 		if item.action() == Selector("paste:") {

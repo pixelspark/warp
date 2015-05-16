@@ -23,6 +23,10 @@ internal extension CGPoint {
 	func offsetBy(point: CGPoint) -> CGPoint {
 		return CGPointMake(self.x + point.x, self.y + point.y)
 	}
+	
+	func distanceTo(point: CGPoint) -> CGFloat {
+		return hypot(point.x - self.x, point.y - self.y)
+	}
 }
 
 internal extension NSView {

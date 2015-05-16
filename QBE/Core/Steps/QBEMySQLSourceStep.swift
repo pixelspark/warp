@@ -13,16 +13,16 @@ private class QBEMySQLDialect: QBEStandardSQLDialect {
 		return super.unaryToSQL(type, args: args)
 	}
 	
-	private override func aggregationToSQL(aggregation: QBEAggregation) -> String? {
+	private override func aggregationToSQL(aggregation: QBEAggregation, alias: String) -> String? {
 		// For QBEFunction.Count, we should count numeric values only. In MySQL this can be done using REGEXP
 		if aggregation.reduce == QBEFunction.Count {
-			if let expressionSQL = expressionToSQL(aggregation.map, inputValue: nil) {
+			if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
 				return "SUM(CASE WHEN \(expressionSQL) REGEXP '^[[:digit:]]+$') THEN 1 ELSE 0 END)"
 			}
 			return nil
 		}
 		
-		return super.aggregationToSQL(aggregation)
+		return super.aggregationToSQL(aggregation, alias: alias)
 	}
 	
 	private override func forceStringExpression(expression: String) -> String {
@@ -35,7 +35,7 @@ private class QBEMySQLDialect: QBEStandardSQLDialect {
 }
 
 internal class QBEMySQLResult: SequenceType, GeneratorType {
-	typealias Element = QBERow
+	typealias Element = QBETuple
 	typealias Generator = QBEMySQLResult
 	
 	private let connection: QBEMySQLConnection
@@ -328,7 +328,7 @@ class QBEMySQLData: QBESQLData {
 	
 	override func stream() -> QBEStream {
 		if let result = self.db.query(self.sql.sqlSelect(nil).sql) {
-			return QBESequenceStream(SequenceOf<QBERow>(result), columnNames: result.columnNames)
+			return QBESequenceStream(SequenceOf<QBETuple>(result), columnNames: result.columnNames)
 		}
 		return QBEEmptyStream()
 	}

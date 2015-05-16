@@ -1,6 +1,33 @@
 import Foundation
 
-typealias QBERow = [QBEValue]
+typealias QBETuple = [QBEValue]
+
+struct QBERow {
+	var values: QBETuple
+	var columnNames: [QBEColumn]
+	
+	init() {
+		self.values = []
+		self.columnNames = []
+	}
+	
+	init(_ values: QBETuple, columnNames: [QBEColumn]) {
+		assert(values.count == columnNames.count, "All values should have column names")
+		self.values = values
+		self.columnNames = columnNames
+	}
+	
+	func indexOfColumnWithName(name: QBEColumn) -> Int? {
+		return find(columnNames, name)
+	}
+	
+	subscript(column: QBEColumn) -> QBEValue? {
+		if let i = find(columnNames, column) {
+			return values[i]
+		}
+		return nil
+	}
+}
 
 /** QBEColumn represents a column (identifier) in a QBEData dataset. Column names in QBEData are case-insensitive when
 compared, but do retain case. There cannot be two or more columns in a QBEData dataset that are equal to each other when
@@ -144,6 +171,21 @@ class QBEAggregation: NSObject, NSCoding {
 	}
 }
 
+enum QBEJoin {
+	/** In a left join, rows of the 'left'  table match with a row in the 'right' table if the join condition returns
+	true. The result set will contain all columns from the left table, and all columns in the right table that do not
+	appear in the left table. The following rules determine which rows appear in the result set:
+	
+	- If a row in the left table has no matching rows in the right table, it will appear in the result set once, with 
+	  empty values in those columns only present in the right table;
+	- If a row in the left table has exactly one matching row in the right table, it will appear in the result set once,
+	  and the values of the matching right row will appear in those columns that are only present in the right table;
+	- If a row in the left table matches with more than one row in the right table, the left row is repeated for each
+	  match in the result table; for each repeated row, the columns only present in the right table are filled with the
+	  data from the matching right row. */
+	case LeftJoin(QBEData, QBEExpression)
+}
+
 /** QBEData represents a data set. A data set consists of a set of column names (QBEColumn) and rows that each have a 
 value for all columns in the data set. Values are represented as QBEValue. QBEData supports various data manipulation
 operations. The exact semantics of the operations are described here, but QBEData does not implement the operations. 
@@ -221,6 +263,9 @@ protocol QBEData {
 	order specified, in case of ties by the second, et cetera. If there are ties and there is no further order to sort by,
 	ordering is unspecified. If no orders are specified, sort is a no-op. **/
 	func sort(by: [QBEOrder]) -> QBEData
+	
+	/** Perform the specified join operation on this data set and return the resulting data. **/
+	func join(join: QBEJoin) -> QBEData
 }
 
 /** Utility class that allows for easy swapping of QBEData objects. This can for instance be used to swap-in a cached
@@ -248,6 +293,7 @@ class QBEProxyData: NSObject, QBEData {
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
 	func offset(numberOfRows: Int) -> QBEData { return data.offset(numberOfRows) }
 	func sort(by: [QBEOrder]) -> QBEData { return data.sort(by) }
+	func join(join: QBEJoin) -> QBEData { return data.join(join) }
 }
 
 /** QBECoalescedData is a class that optimizes data operations by combining (coalescing) them. For instance, the operation
@@ -276,7 +322,7 @@ enum QBECoalescedData: QBEData {
 	}
 	
 	/** Applies the deferred operation represented by this coalesced data object and returns the result. **/
-	private var data: QBEData { get {
+	var data: QBEData { get {
 		switch self {
 			case .Limiting(let data, let numberOfRows):
 				return data.limit(numberOfRows)
@@ -319,6 +365,11 @@ enum QBECoalescedData: QBEData {
 		default:
 			return QBECoalescedData.Transposing(self.data)
 		}
+	}
+
+	/** No optimzations are currently done on joins. **/
+	func join(join: QBEJoin) -> QBEData {
+		return QBECoalescedData.None(data.join(join))
 	}
 	
 	/** Combine calculations under the following circumstances:
@@ -432,7 +483,7 @@ enum QBECoalescedData: QBEData {
 	func filter(condition: QBEExpression) -> QBEData {
 		let prepared = condition.prepare()
 		if prepared.isConstant {
-			let value = prepared.apply([], columns: [], inputValue: nil)
+			let value = prepared.apply(QBERow(), foreign: nil, inputValue: nil)
 			if value == QBEValue.BoolValue(false) {
 				// This will never return any rows
 				return QBERasterData()

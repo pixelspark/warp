@@ -1,7 +1,13 @@
 import Foundation
 
+protocol QBEChainDependent: NSObjectProtocol {
+	var dependencies: Set<QBEChain> { get }
+}
+
 /** QBEChain represents a chain of steps, leading to a result data set. **/
-class QBEChain: NSObject, NSSecureCoding {
+class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
+	static let dragType = "nl.pixelspark.Warp.Chain"
+	
 	var head: QBEStep? = nil
 	weak internal(set) var tablet: QBETablet? = nil
 	
@@ -21,6 +27,22 @@ class QBEChain: NSObject, NSSecureCoding {
 		return true
 	}
 	
+	var dependencies: Set<QBEChain> { get {
+		var deps: Set<QBEChain> = []
+		
+		for s in steps {
+			if let sd = s as? QBEChainDependent {
+				deps.unionInPlace(sd.dependencies)
+			}
+		}
+		
+		return deps
+	} }
+	
+	var isPartOfDependencyLoop: Bool { get {
+		return dependencies.contains(self)
+	} }
+	
 	var steps: [QBEStep] { get {
 		var s: [QBEStep] = []
 		var current = head
@@ -31,7 +53,30 @@ class QBEChain: NSObject, NSSecureCoding {
 		}
 		
 		return s.reverse()
-		} }
+	} }
+	
+	func insertStep(step: QBEStep, afterStep: QBEStep?) {
+		if afterStep == nil {
+			// Insert at beginning
+			if head != nil {
+				var before = head
+				while before!.previous != nil {
+					before = before!.previous
+				}
+				
+				before!.previous = step
+			}
+			else {
+				head = step
+			}
+		}
+		else {
+			step.previous = afterStep
+			if head == afterStep {
+				head = step
+			}
+		}
+	}
 	
 	/** This method is called right before a document is saved to disk using encodeWithCoder. Steps that reference
 	external files should take the opportunity to create security bookmarks to these files (as required by Apple's

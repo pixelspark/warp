@@ -628,7 +628,7 @@ CA
                                         <menuItem title="Zoom to all" id="iyV-Df-S2D">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="zoomAll:" target="Ady-hI-5gd" id="2YB-4Y-BvY"/>
+                                                <action selector="zoomToAll:" target="Ady-hI-5gd" id="QHz-dD-gmz"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Zoom to selection" id="v55-av-755">
@@ -638,12 +638,7 @@ CA
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="V8D-ck-WW5"/>
-                                        <menuItem title="Use selection working set" keyEquivalent="-" id="qVv-Br-0GO">
-                                            <connections>
-                                                <action selector="setSelectionWorkingSet:" target="Ady-hI-5gd" id="e94-fO-NJ6"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Use full data working set" keyEquivalent="=" id="jE3-cm-bk2">
+                                        <menuItem title="Calculate full result" keyEquivalent="=" id="jE3-cm-bk2">
                                             <connections>
                                                 <action selector="setFullWorkingSet:" target="Ady-hI-5gd" id="Bwk-0i-gbX"/>
                                             </connections>
@@ -1087,9 +1082,9 @@ CA
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowCollectionBehavior key="collectionBehavior" fullScreenPrimary="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-                        <rect key="contentRect" x="429" y="180" width="1065" height="806"/>
+                        <rect key="contentRect" x="149" y="180" width="1345" height="806"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
-                        <toolbar key="toolbar" implicitIdentifier="2EBAC5BC-9FAB-4475-8666-2326836DC6DE" autosavesConfiguration="NO" displayMode="iconOnly" sizeMode="small" id="Mya-2b-t6F">
+                        <toolbar key="toolbar" implicitIdentifier="2EBAC5BC-9FAB-4475-8666-2326836DC6DE" displayMode="iconOnly" sizeMode="small" id="Mya-2b-t6F">
                             <allowedToolbarItems>
                                 <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="iGp-sH-qSs"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarShowFontsItem" id="Xmw-Y9-USw"/>
@@ -1103,7 +1098,7 @@ CA
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="058B910A-8146-4564-BE8A-2ECC5997F094" label="Zoom to all" paletteLabel="Zoom to all" tag="-1" image="ZoomOutIcon" id="uPf-Qt-XpM">
                                     <connections>
-                                        <action selector="zoomAll:" target="6f7-a7-6o1" id="qgj-Ml-SLa"/>
+                                        <action selector="zoomToAll:" target="6f7-a7-6o1" id="F3O-EA-0gJ"/>
                                     </connections>
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="65B21C31-F9E1-4753-9770-07804938BD85" label="Zoom to selection" paletteLabel="Zoom to selection" tag="-1" image="ZoomInIcon" id="QnM-NS-IrF">
@@ -1111,9 +1106,49 @@ CA
                                         <action selector="zoomSelection:" target="6f7-a7-6o1" id="NrX-OE-0uM"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="63411011-AB43-4F4F-949B-CA1E1E0CF7DB" label="Calculate" paletteLabel="Calculate" image="BigIcon" id="OzT-DI-1G1">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="32" height="32"/>
+                                    <size key="maxSize" width="32" height="32"/>
+                                    <button key="view" id="8y0-qO-v96">
+                                        <rect key="frame" x="23" y="14" width="32" height="32"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="bevel" bezelStyle="rounded" image="BigIcon" imagePosition="overlaps" alignment="center" imageScaling="proportionallyDown" inset="2" id="f3b-xk-pOw">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="setFullWorkingSet:" target="6f7-a7-6o1" id="e2r-SV-LlV"/>
+                                        </connections>
+                                    </button>
+                                    <connections>
+                                        <action selector="setFullWorkingSet:" target="6f7-a7-6o1" id="pJO-7z-peH"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="0BEC5DFF-DB48-4C73-96D3-311D651560AD" label="Alternatives" paletteLabel="Show alternatives" image="ChangeIcon" id="xJa-5Q-4SE">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="32" height="32"/>
+                                    <size key="maxSize" width="32" height="32"/>
+                                    <button key="view" id="gi2-Ku-Aru">
+                                        <rect key="frame" x="23" y="14" width="32" height="32"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="bevel" bezelStyle="rounded" image="ChangeIcon" imagePosition="overlaps" alignment="center" imageScaling="proportionallyDown" inset="2" id="l96-Qw-TRb">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="showSuggestions:" target="6f7-a7-6o1" id="hBI-LF-iqo"/>
+                                        </connections>
+                                    </button>
+                                </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
+                                <toolbarItem reference="uPf-Qt-XpM"/>
+                                <toolbarItem reference="QnM-NS-IrF"/>
                                 <toolbarItem reference="wdl-hf-yLn"/>
+                                <toolbarItem reference="OzT-DI-1G1"/>
+                                <toolbarItem reference="wdl-hf-yLn"/>
+                                <toolbarItem reference="xJa-5Q-4SE"/>
                                 <toolbarItem reference="ZRd-bD-OPv"/>
                             </defaultToolbarItems>
                         </toolbar>
@@ -1124,7 +1159,7 @@ CA
                 </windowController>
                 <customObject id="6f7-a7-6o1" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-438.5" y="-217"/>
+            <point key="canvasLocation" x="-556.5" y="-183"/>
         </scene>
         <!--Document View Controller-->
         <scene sceneID="QgJ-tc-ecA">
@@ -1248,12 +1283,12 @@ CA
         <scene sceneID="4qG-DD-elD">
             <objects>
                 <viewController title="Tablet view controller" storyboardIdentifier="chain" id="DXE-ii-MK8" userLabel="Chain view controller" customClass="QBEChainViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" focusRingType="none" id="fdQ-Cz-nnL">
+                    <view key="view" focusRingType="none" id="fdQ-Cz-nnL" customClass="QBEChainView" customModule="Warp" customModuleProvider="target">
                         <rect key="frame" x="0.0" y="0.0" width="1089" height="436"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <containerView canDrawConcurrently="YES" focusRingType="none" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
-                                <rect key="frame" x="0.0" y="0.0" width="1089" height="708"/>
+                            <containerView canDrawConcurrently="YES" focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
+                                <rect key="frame" x="0.0" y="0.0" width="1089" height="401"/>
                                 <constraints>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="KeW-J3-VQO"/>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="400" id="uiJ-1d-vdA"/>
@@ -1264,29 +1299,16 @@ CA
                                 </connections>
                             </containerView>
                             <containerView translatesAutoresizingMaskIntoConstraints="NO" id="788-NV-QHP">
-                                <rect key="frame" x="0.0" y="400" width="1089" height="36"/>
+                                <rect key="frame" x="0.0" y="401" width="1032" height="35"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="36" id="ZXJ-2N-vw4"/>
+                                    <constraint firstAttribute="height" constant="35" id="ZXJ-2N-vw4"/>
                                 </constraints>
                                 <connections>
                                     <segue destination="Ww8-Sq-VTz" kind="embed" identifier="steps" id="Muu-a2-euC"/>
                                 </connections>
                             </containerView>
-                            <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Jh8-wb-gef">
-                                <rect key="frame" x="1029" y="403" width="32" height="30"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="32" id="dKJ-3c-fUj"/>
-                                </constraints>
-                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="ChangeIcon" imagePosition="only" alignment="left" enabled="NO" imageScaling="proportionallyDown" id="IwK-g9-FMH">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="showSuggestions:" target="DXE-ii-MK8" id="wFk-J5-JeS"/>
-                                </connections>
-                            </button>
                             <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="WZZ-hS-HjA">
-                                <rect key="frame" x="1064" y="411" width="16" height="16"/>
+                                <rect key="frame" x="1066" y="411" width="16" height="16"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="16" id="6B6-wz-kn2"/>
                                     <constraint firstAttribute="height" constant="16" id="bXD-Sq-a6n"/>
@@ -1299,43 +1321,32 @@ CA
                                     <action selector="removeTablet:" target="DXE-ii-MK8" id="O8E-7n-lsI"/>
                                 </connections>
                             </button>
-                            <segmentedControl verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="NSh-sr-S2o">
-                                <rect key="frame" x="902" y="408" width="125" height="20"/>
-                                <segmentedCell key="cell" borderStyle="border" alignment="left" style="roundRect" trackingMode="selectOne" id="oTe-ow-TIO">
-                                    <font key="font" metaFont="cellTitle"/>
-                                    <segments>
-                                        <segment label="Selection" width="59" selected="YES"/>
-                                        <segment label="All" width="59" tag="1"/>
-                                    </segments>
-                                </segmentedCell>
-                                <connections>
-                                    <action selector="setWorkingSet:" target="DXE-ii-MK8" id="SgV-93-vKI"/>
-                                </connections>
-                            </segmentedControl>
+                            <customView translatesAutoresizingMaskIntoConstraints="NO" id="W1j-vX-x7J" customClass="QBEOutletView" customModule="Warp" customModuleProvider="target">
+                                <rect key="frame" x="1039" y="409" width="20" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="P0Z-T6-ZMi"/>
+                                    <constraint firstAttribute="width" constant="20" id="S7M-TG-H60"/>
+                                </constraints>
+                            </customView>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="Jh8-wb-gef" firstAttribute="leading" secondItem="NSh-sr-S2o" secondAttribute="trailing" constant="3" id="1xA-J4-4qO"/>
-                            <constraint firstItem="Jh8-wb-gef" firstAttribute="centerY" secondItem="NSh-sr-S2o" secondAttribute="centerY" id="6ye-xL-EQ0"/>
-                            <constraint firstItem="Jh8-wb-gef" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" constant="3" id="ARt-dQ-mx5"/>
+                            <constraint firstItem="W1j-vX-x7J" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" constant="7" id="45H-4F-k2o"/>
                             <constraint firstAttribute="bottom" secondItem="mVs-W6-cUa" secondAttribute="bottom" id="Eaq-X1-yjL"/>
                             <constraint firstItem="788-NV-QHP" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" id="KUA-gT-h2H"/>
                             <constraint firstItem="mVs-W6-cUa" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="LzO-kr-yAA"/>
                             <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="788-NV-QHP" secondAttribute="bottom" id="TS1-se-ljc"/>
                             <constraint firstItem="WZZ-hS-HjA" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" constant="9" id="VEz-5v-Te2"/>
-                            <constraint firstAttribute="trailing" secondItem="WZZ-hS-HjA" secondAttribute="trailing" constant="9" id="bYO-0R-EbS"/>
-                            <constraint firstItem="WZZ-hS-HjA" firstAttribute="leading" secondItem="Jh8-wb-gef" secondAttribute="trailing" constant="3" id="iXo-C1-slQ"/>
-                            <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="Jh8-wb-gef" secondAttribute="bottom" constant="3" id="mfH-Dq-gjV"/>
+                            <constraint firstAttribute="trailing" secondItem="WZZ-hS-HjA" secondAttribute="trailing" constant="7" id="WXq-TD-SdR"/>
+                            <constraint firstItem="WZZ-hS-HjA" firstAttribute="leading" secondItem="W1j-vX-x7J" secondAttribute="trailing" constant="7" id="jbY-dq-kaB"/>
+                            <constraint firstItem="W1j-vX-x7J" firstAttribute="leading" secondItem="788-NV-QHP" secondAttribute="trailing" constant="7" id="qYD-4T-w06"/>
                             <constraint firstItem="788-NV-QHP" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="s3D-J4-XgD"/>
                             <constraint firstAttribute="trailing" secondItem="mVs-W6-cUa" secondAttribute="trailing" id="wGo-B6-Wht"/>
-                            <constraint firstAttribute="trailing" secondItem="788-NV-QHP" secondAttribute="trailing" id="yL5-ff-meb"/>
                         </constraints>
                         <animations/>
                     </view>
                     <connections>
                         <outlet property="addStepMenu" destination="TbW-HU-EDH" id="Mvr-tx-vGF"/>
-                        <outlet property="suggestionsButton" destination="Jh8-wb-gef" id="7Gm-Pc-GG5"/>
-                        <outlet property="workingSetSelector" destination="NSh-sr-S2o" id="S8j-WG-mKe"/>
-                        <segue destination="TDg-0B-lyo" kind="popover" identifier="suggestions" popoverAnchorView="Jh8-wb-gef" popoverBehavior="t" preferredEdge="maxY" id="fwr-6P-6Ir"/>
+                        <outlet property="outletView" destination="W1j-vX-x7J" id="eoj-aU-N87"/>
                         <segue destination="OvS-H1-pU0" kind="sheet" identifier="addColumn" id="djH-Ex-vc1"/>
                     </connections>
                 </viewController>
@@ -1379,7 +1390,7 @@ CA
                     </items>
                 </menu>
             </objects>
-            <point key="canvasLocation" x="33.5" y="1395"/>
+            <point key="canvasLocation" x="33.5" y="1298"/>
         </scene>
         <!--Data view controller-->
         <scene sceneID="BjY-ZD-Y7M">
@@ -1408,12 +1419,12 @@ CA
                 </viewController>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="33.5" y="2158.5"/>
+            <point key="canvasLocation" x="33.5" y="1897.5"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
             <objects>
-                <viewController id="TDg-0B-lyo" customClass="QBESuggestionsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="suggestions" id="TDg-0B-lyo" customClass="QBESuggestionsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="y6U-4M-OI9">
                         <rect key="frame" x="0.0" y="0.0" width="358" height="314"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -1665,7 +1676,7 @@ Gw
                         <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <scrollView autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" verticalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="oh5-QN-ivd">
+                            <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" verticalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="oh5-QN-ivd">
                                 <rect key="frame" x="-1" y="0.0" width="619" height="33"/>
                                 <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="IgC-yr-ZlP">
                                     <rect key="frame" x="1" y="1" width="248" height="158"/>
@@ -1766,6 +1777,7 @@ Gw
         </scene>
     </scenes>
     <resources>
+        <image name="BigIcon" width="26" height="26"/>
         <image name="ChangeIcon" width="26" height="26"/>
         <image name="CloseIcon" width="26" height="26"/>
         <image name="NSAddTemplate" width="11" height="11"/>

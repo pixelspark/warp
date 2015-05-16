@@ -3,13 +3,42 @@ import Cocoa
 @objc protocol QBEDocumentViewDelegate: NSObjectProtocol {
 	func documentView(view: QBEDocumentView, didReceiveFiles: [String], atLocation: CGPoint)
 	func documentView(view: QBEDocumentView, didSelectTablet: QBEChainViewController?)
+	func documentView(view: QBEDocumentView, wantsZoomToView: NSView)
 }
 
-internal class QBEDocumentView: NSView, QBEResizableDelegate {
+class QBETabletArrow: NSObject, QBEArrow {
+	private weak var from: QBETablet?
+	private weak var to: QBETablet?
+	
+	init(from: QBETablet, to: QBETablet) {
+		self.from = from
+		self.to = to
+	}
+	
+	var sourceFrame: CGRect { get {
+		return from?.frame ?? CGRectZero
+	} }
+	
+	var targetFrame: CGRect { get {
+		return to?.frame ?? CGRectZero
+	} }
+}
+
+internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDelegate {
 	@IBOutlet weak var delegate: QBEDocumentViewDelegate?
+	var flowchartView: QBEFlowchartView!
 	
 	override init(frame frameRect: NSRect) {
+		flowchartView = QBEFlowchartView(frame: frameRect)
 		super.init(frame: frameRect)
+		flowchartView.frame = self.bounds
+		flowchartView.delegate = self
+		addSubview(flowchartView)
+
+		/*self.addConstraint(NSLayoutConstraint(item: flowchartView, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0))
+		self.addConstraint(NSLayoutConstraint(item: flowchartView, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0.0))
+		self.addConstraint(NSLayoutConstraint(item: flowchartView, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0))
+		self.addConstraint(NSLayoutConstraint(item: flowchartView, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0))*/
 		
 		registerForDraggedTypes([NSFilenamesPboardType])
 	}
@@ -24,6 +53,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate {
 	
 	override func prepareForDragOperation(sender: NSDraggingInfo) -> Bool {
 		return true
+	}
+	
+	func removeAllTablets() {
+		subviews.each({($0 as? QBEResizableTabletView)?.removeFromSuperview()})
 	}
 	
 	override func performDragOperation(sender: NSDraggingInfo) -> Bool {
@@ -51,6 +84,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate {
 		}
 	}
 	
+	func flowchartView(view: QBEFlowchartView, didSelectArrow: QBEArrow?) {
+		selectView(nil)
+	}
+	
 	private func selectView(view: QBEResizableTabletView?) {
 		// Deselect other views
 		for sv in subviews {
@@ -67,8 +104,17 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate {
 		}
 	}
 	
+	private func zoomToView(view: QBEResizableTabletView) {
+		delegate?.documentView(self, wantsZoomToView: view)
+	}
+	
 	func resizableViewWasSelected(view: QBEResizableView) {
+		flowchartView.selectedArrow = nil
 		selectView(view as? QBEResizableTabletView)
+		zoomToView(view as! QBEResizableTabletView)
+	}
+	
+	func resizableViewWasDoubleClicked(view: QBEResizableView) {
 	}
 	
 	func resizableView(view: QBEResizableView, changedFrameTo frame: CGRect) {
@@ -81,17 +127,23 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate {
 				}
 			}
 		}
+		setNeedsDisplayInRect(self.bounds)
 	}
-	
 	
 	var boundsOfAllTablets: CGRect? { get {
 		// Find out the bounds of all tablets combined
 		var allBounds: CGRect? = nil
 		for vw in subviews {
-			allBounds = allBounds == nil ? vw.frame : CGRectUnion(allBounds!, vw.frame)
+			if vw !== flowchartView {
+				allBounds = allBounds == nil ? vw.frame : CGRectUnion(allBounds!, vw.frame)
+			}
 		}
 		return allBounds
 	} }
+	
+	func reloadData() {
+		tabletsChanged()
+	}
 	
 	// Call whenever tablets are added/removed or resized
 	private func tabletsChanged() {
@@ -121,6 +173,20 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate {
 			self.frame = CGRectMake(0, 0, newBounds.size.width, newBounds.size.height)
 			self.scrollRectToVisible(newVisible)
 		}
+		
+		self.flowchartView.frame = self.bounds
+		// Update flowchart
+		var arrows: [QBEArrow] = []
+		for va in subviews {
+			if let sourceChain = (va as? QBEResizableTabletView)?.tabletController.chain {
+				for dep in sourceChain.dependencies {
+					if let s = sourceChain.tablet, let t = dep.tablet {
+						arrows.append(QBETabletArrow(from: s, to: t))
+					}
+				}
+			}
+		}
+		flowchartView.arrows = arrows
 	}
 	
 	private var selectedView: QBEResizableTabletView? { get {

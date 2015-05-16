@@ -252,6 +252,18 @@ class QBERasterData: NSObject, QBEData {
 		return QBERasterData(future: newFuture)
 	}
 	
+	internal func applyAsynchronous(_ description: String? = nil, filter: (QBEJob?, QBERaster, (QBERaster) -> ()) -> ()) -> QBEData {
+		let newFuture = {(job: QBEJob?, cb: QBEFuture<QBERaster>.Callback) -> () in
+			let transformer = { (r: QBERaster) in
+				QBETime(description ?? "raster async apply", r.rowCount, "rows", job) {
+					filter(job, r, cb)
+				}
+			}
+			self.future(job, {transformer($0)})
+		}
+		return QBERasterData(future: newFuture)
+	}
+	
 	func transpose() -> QBEData {
 		return apply("transpose") {(r: QBERaster) -> QBERaster in
 			// Find new column names (first column stays in place)
@@ -294,10 +306,10 @@ class QBERasterData: NSObject, QBEData {
 			}
 			
 			// Select columns for each row
-			var newData: [QBERow] = []
+			var newData: [QBETuple] = []
 			for rowNumber in 0..<r.rowCount {
 				var oldRow = r[rowNumber]
-				var newRow: [QBEValue] = []
+				var newRow: QBETuple = []
 				for i in indexesToKeep {
 					newRow.append(oldRow[i])
 				}
@@ -321,7 +333,7 @@ class QBERasterData: NSObject, QBEData {
 	
 	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
 		self.raster(nil, callback: { (raster) -> () in
-			let values = Set<QBEValue>(raster.raster.map({expression.apply($0, columns: raster.columnNames, inputValue: nil)}))
+			let values = Set<QBEValue>(raster.raster.map({expression.apply(QBERow($0, columnNames: raster.columnNames), foreign: nil, inputValue: nil)}))
 			callback(values)
 		})
 	}
@@ -346,8 +358,8 @@ class QBERasterData: NSObject, QBEData {
 			let newData = r.raster.sorted({ (a, b) -> Bool in
 				// Return true if a comes before b
 				for order in by {
-					if let aValue = order.expression?.apply(a, columns: columns, inputValue: nil),
-					   let bValue = order.expression?.apply(b, columns: columns, inputValue: nil) {
+					if let aValue = order.expression?.apply(QBERow(a, columnNames: columns), foreign: nil, inputValue: nil),
+						let bValue = order.expression?.apply(QBERow(b, columnNames: columns), foreign: nil, inputValue: nil) {
 						
 						if order.numeric {
 							if order.ascending && aValue < bValue {
@@ -407,11 +419,11 @@ class QBERasterData: NSObject, QBEData {
 		let optimizedCondition = condition.prepare()
 		
 		return apply {(r: QBERaster) -> QBERaster in
-			var newData: [QBERow] = []
+			var newData: [QBETuple] = []
 			
 			for rowNumber in 0..<r.rowCount {
 				let row = r[rowNumber]
-				if optimizedCondition.apply(row, columns: r.columnNames, inputValue: nil) == QBEValue.BoolValue(true) {
+				if optimizedCondition.apply(QBERow(row, columnNames: r.columnNames), foreign: nil, inputValue: nil) == QBEValue.BoolValue(true) {
 					newData.append(row)
 				}
 			}
@@ -422,6 +434,59 @@ class QBERasterData: NSObject, QBEData {
 	
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to rowColumn: QBEColumn?) -> QBEData {
 		return fallback().flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowColumn)
+	}
+	
+	func join(join: QBEJoin) -> QBEData {
+		return applyAsynchronous("join") {(job: QBEJob?, leftRaster: QBERaster, callback: (QBERaster) -> ()) in
+			switch join {
+			case .LeftJoin(let rightData, let expression):
+				let leftColumns = leftRaster.columnNames
+				
+				rightData.raster(job) { (rightRaster) in
+					let rightColumns = rightRaster.columnNames
+					
+					// Which columns are going to show up in the result set?
+					let rightColumnsInResult = rightColumns.filter({return !leftColumns.contains($0)})
+					let rightIndicesInResult = rightColumnsInResult.map({return find(rightColumns, $0)! })
+					let rightIndicesInResultSet = NSMutableIndexSet()
+					rightIndicesInResult.each({rightIndicesInResultSet.addIndex($0)})
+					
+					// Start joining rows
+					let joinExpression = expression.prepare()
+					var newData: [QBETuple] = []
+					var templateRow = QBERow(Array<QBEValue>(count: leftColumns.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: leftColumns + rightColumnsInResult)
+					
+					// Perform carthesian product
+					for leftRowNumber in 0..<leftRaster.rowCount {
+						let leftRow = QBERow(leftRaster[leftRowNumber], columnNames: leftColumns)
+						var foundRightMatch = false
+						
+						for rightRowNumber in 0..<rightRaster.rowCount {
+							let rightRow = QBERow(rightRaster[rightRowNumber], columnNames: rightColumns)
+							
+							if joinExpression.apply(leftRow, foreign: rightRow, inputValue: nil) == QBEValue.BoolValue(true) {
+								templateRow.values.removeAll(keepCapacity: true)
+								templateRow.values.extend(leftRow.values)
+								templateRow.values.extend(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
+								newData.append(templateRow.values)
+								foundRightMatch = true
+							}
+						}
+						
+						// If there was no matching row in the right table, we need to add the left row regardless
+						if !foundRightMatch {
+							templateRow.values.removeAll(keepCapacity: true)
+							templateRow.values.extend(leftRow.values)
+							rightIndicesInResult.each({(Int) -> () in templateRow.values.append(QBEValue.EmptyValue)})
+							newData.append(templateRow.values)
+						}
+						
+						job?.reportProgress(Double(leftRowNumber) / Double(leftRaster.rowCount), forKey: self.hash)
+					}
+					callback(QBERaster(data: newData, columnNames: templateRow.columnNames, readOnly: true))
+				}
+			}
+		}
 	}
 	
 	func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
@@ -470,7 +535,7 @@ class QBERasterData: NSObject, QBEData {
 				// Calculate group values
 				var currentIndex = index
 				for (groupColumn, groupExpression) in groups {
-					let groupValue = groupExpression.apply(row, columns: r.columnNames, inputValue: nil)
+					let groupValue = groupExpression.apply(QBERow(row, columnNames: r.columnNames), foreign: nil, inputValue: nil)
 					
 					if let nextIndex = currentIndex.children[groupValue] {
 						currentIndex = nextIndex
@@ -488,7 +553,7 @@ class QBERasterData: NSObject, QBEData {
 				}
 				
 				for (column, value) in values {
-					let result = value.map.apply(row, columns: r.columnNames, inputValue: nil)
+					let result = value.map.apply(QBERow(row, columnNames: r.columnNames), foreign: nil, inputValue: nil)
 					if let bag = currentIndex.values![column] {
 						currentIndex.values![column]!.append(result)
 					}
@@ -557,7 +622,7 @@ class QBERasterData: NSObject, QBEData {
 			
 			// Generate rows
 			var row: [QBEValue] = []
-			var rows: [QBERow] = []
+			var rows: [QBETuple] = []
 			for (verticalGroup, horizontalCells) in verticalGroups {
 				// Insert vertical group labels
 				verticalGroup.row.each({row.append($0)})
