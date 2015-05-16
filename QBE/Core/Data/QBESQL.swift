@@ -404,6 +404,16 @@ internal class QBESQLFragment {
 		self.init(type: .From, sql: "FROM (\(query)) AS \(dialect.tableIdentifier(alias))", dialect: dialect, alias: alias)
 	}
 	
+	/** 
+	Returns the table alias to be used in the next call that adds a part; for example:
+	  
+	let fragment = QBESQLFragment(table: "test", dialect: ...)
+	let newFragment = fragment.sqlOrder(dialect.columnIdentifier("col", table: fragment.aliasFor(.Order)) + " ASC")
+	**/
+	func aliasFor(part: QBESQLFragmentType) -> String {
+		return advance(part, part: nil).alias
+	}
+	
 	// State transitions
 	func sqlWhere(part: String?) -> QBESQLFragment {
 		return advance(QBESQLFragmentType.Where, part: part)
@@ -570,15 +580,19 @@ class QBESQLData: NSObject, QBEData {
 			if let rightSQL = rightData as? QBESQLData where isCompatibleWith(rightSQL) {
 				// Generate a join expression
 				let rightQuery = rightSQL.sql.sqlSelect(nil)
-				let ownQuery = self.sql.asSubquery
-				if let es = sql.dialect.expressionToSQL(expression, alias: ownQuery.alias, foreignAlias: rightQuery.alias, inputValue: nil) {
-					return apply(ownQuery.sqlJoin("LEFT JOIN (\(rightQuery.sql)) AS \(rightQuery.alias) ON \(es)"), resultingColumns: columns)
+				if let es = sql.dialect.expressionToSQL(expression, alias: self.sql.aliasFor(.Join), foreignAlias: rightQuery.alias, inputValue: nil) {
+					return apply(self.sql.sqlJoin("LEFT JOIN (\(rightQuery.sql)) AS \(rightQuery.alias) ON \(es)"), resultingColumns: columns)
 				}
 			}
 			return fallback().join(join)
 		}
 	}
 	
+	/** 
+	Determines whether another QBESQLData set is 'compatible' with this one. Compatible means that the two data sets are 
+	actually in the same database, so that a join (or other merging operation) is possible between these datasets. By 
+	default, we assume data sets are never compatible.
+	*/
 	func isCompatibleWith(other: QBESQLData) -> Bool {
 		return false
 	}
@@ -670,7 +684,7 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func filter(condition: QBEExpression) -> QBEData {
-		if let expressionString = sql.dialect.expressionToSQL(condition.prepare(), alias: sql.alias, foreignAlias: nil,inputValue: nil) {
+		if let expressionString = sql.dialect.expressionToSQL(condition.prepare(), alias: sql.aliasFor(.Where), foreignAlias: nil,inputValue: nil) {
 			return apply(sql.sqlWhere(expressionString), resultingColumns: columns)
 		}
 		else {
@@ -684,7 +698,7 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func unique(expression: QBEExpression, callback: (Set<QBEValue>) -> ()) {
-		if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sql.alias, foreignAlias: nil, inputValue: nil) {
+		if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sql.aliasFor(.Select), foreignAlias: nil, inputValue: nil) {
 			let data = apply(self.sql.sqlSelect("DISTINCT \(expressionString) AS _value"), resultingColumns: ["_value"])
 			
 			data.raster(nil, callback: { (raster) -> () in
@@ -698,7 +712,8 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		let colNames = columns.map({self.sql.dialect.columnIdentifier($0, table: self.sql.alias)}).implode(", ") ?? ""
+		let alias = self.sql.aliasFor(.Select)
+		let colNames = columns.map({self.sql.dialect.columnIdentifier($0, table: alias)}).implode(", ") ?? ""
 		return apply(self.sql.sqlSelect(colNames), resultingColumns: columns)
 	}
 	
