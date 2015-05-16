@@ -722,8 +722,9 @@ class QBESQLData: NSObject, QBEData {
 		var select: [String] = []
 		var resultingColumns: [QBEColumn] = []
 		
+		let alias = sql.aliasFor(.Group)
 		for (column, expression) in groups {
-			if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sql.alias, foreignAlias: nil, inputValue: nil) {
+			if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: alias, foreignAlias: nil, inputValue: nil) {
 				select.append("\(expressionString) AS \(sql.dialect.columnIdentifier(column, table: nil))")
 				groupBy.append("\(expressionString)")
 				resultingColumns.append(column)
@@ -734,7 +735,7 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		for (column, aggregation) in values {
-			if let aggregationSQL = sql.dialect.aggregationToSQL(aggregation, alias: sql.alias) {
+			if let aggregationSQL = sql.dialect.aggregationToSQL(aggregation, alias: alias) {
 				select.append("\(aggregationSQL) AS \(sql.dialect.columnIdentifier(column, table: nil))")
 				resultingColumns.append(column)
 			}
