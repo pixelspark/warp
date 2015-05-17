@@ -230,12 +230,33 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		}
 	}
 	
+	@IBAction func setFullWorkingSet(sender: NSObject) {
+		if let t = documentView.selectedTabletController {
+			t.setFullWorkingSet(sender)
+		}
+	}
+	
+	@IBAction func cancelCalculation(sender: NSObject) {
+		if let t = documentView.selectedTabletController {
+			t.cancelCalculation(sender)
+		}
+	}
+	
+	@IBAction func showSuggestions(sender: NSObject) {
+		if let t = documentView.selectedTabletController {
+			t.showSuggestions(sender)
+		}
+	}
+	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action() == Selector("addButtonClicked:") { return true }
 		if item.action() == Selector("addTabletFromFile:") { return true }
 		if item.action() == Selector("addTabletFromPresto:") { return true }
 		if item.action() == Selector("addTabletFromMySQL:") { return true }
 		if item.action() == Selector("updateFromFormulaField:") { return true }
+		if item.action() == Selector("setFullWorkingSet:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
+		if item.action() == Selector("cancelCalculation:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
+		if item.action() == Selector("showSuggestions:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
 		if item.action() == Selector("zoomToAll:") { return documentView.boundsOfAllTablets != nil }
 		if item.action() == Selector("zoomSelection:") { return documentView.boundsOfAllTablets != nil }
 		if item.action() == Selector("delete:") { return true }

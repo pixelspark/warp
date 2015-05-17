@@ -7,7 +7,7 @@
 	<key>IDESourceControlProjectIdentifier</key>
 	<string>D833A390-2985-4CB6-8462-A69C0B82753D</string>
 	<key>IDESourceControlProjectName</key>
-	<string>project</string>
+	<string>QBE</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</key>
@@ -20,7 +20,7 @@
 		<string>/Volumes/code/qbe.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>QBE.xcodeproj/project.xcworkspace</string>
+	<string>QBE.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</key>

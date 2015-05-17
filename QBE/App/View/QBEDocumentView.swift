@@ -204,6 +204,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		return selectedView?.tabletController.chain?.tablet
 	} }
 	
+	var selectedTabletController: QBEChainViewController? { get {
+		return selectedView?.tabletController
+	} }
+	
 	override func mouseDown(theEvent: NSEvent) {
 		selectView(nil)
 	}
