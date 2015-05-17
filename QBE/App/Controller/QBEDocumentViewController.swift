@@ -248,6 +248,12 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		}
 	}
 	
+	@IBAction func exportFile(sender: NSObject) {
+		if let t = documentView.selectedTabletController {
+			t.exportFile(sender)
+		}
+	}
+	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action() == Selector("addButtonClicked:") { return true }
 		if item.action() == Selector("addTabletFromFile:") { return true }
@@ -257,6 +263,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		if item.action() == Selector("setFullWorkingSet:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
 		if item.action() == Selector("cancelCalculation:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
 		if item.action() == Selector("showSuggestions:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
+		if item.action() == Selector("exportFile:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
 		if item.action() == Selector("zoomToAll:") { return documentView.boundsOfAllTablets != nil }
 		if item.action() == Selector("zoomSelection:") { return documentView.boundsOfAllTablets != nil }
 		if item.action() == Selector("delete:") { return true }

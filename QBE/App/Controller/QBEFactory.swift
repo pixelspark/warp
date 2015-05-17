@@ -2,15 +2,15 @@ import Foundation
 
 class QBEFactory {
 	typealias QBEStepViewCreator = (step: QBEStep?, delegate: QBESuggestionsViewDelegate) -> NSViewController?
-	typealias QBEFileWriterCreator = (data: QBEData, locale: QBELocale, title: String) -> QBEFileWriter?
+	typealias QBEFileWriterCreator = (locale: QBELocale, title: String?) -> (QBEFileWriter?)
 	typealias QBEFileReaderCreator = (url: NSURL) -> QBEStep?
 	
 	static let sharedInstance = QBEFactory()
 	
-	private let fileWriters: [String: QBEFileWriterCreator] = [
-		"html": {(data,locale,title) in QBEHTMLWriter(data: data, locale: locale, title: title)},
-		"csv": {(data,locale,title) in QBECSVWriter(data: data, locale: locale)},
-		"tsv": {(data,locale,title) in QBECSVWriter(data: data, locale: locale)}
+	private let fileWriters: [String: QBEFileWriter.Type] = [
+		"html": QBEHTMLWriter.self,
+		"csv": QBECSVWriter.self,
+		"tsv": QBECSVWriter.self
 	]
 	
 	private let fileReaders: [String: QBEFileReaderCreator] = [
@@ -74,17 +74,11 @@ class QBEFactory {
 		return nil
 	}
 	
-	func fileWriterForType(type: String, data: QBEData, locale: QBELocale, title: String) -> QBEFileWriter? {
-		if type == "html" {
-			return QBEHTMLWriter(data: data, locale: locale, title: title)
+	func fileWriterForType(type: String, locale: QBELocale, title: String) -> QBEFileWriter? {
+		if let c = fileWriters[type] {
+			return c(locale: locale, title: title)
 		}
-		return QBECSVWriter(data: data, locale: locale)
-		
-		/** FIXME: the code below generates invalid code in Swift 6.3b4...
-		if let creator = fileWriters[type] {
-			return creator(data: data, locale: locale, title: title)
-		}
-		return nil **/
+		return nil
 	}
 	
 	func viewForStep(step: QBEStep, delegate: QBESuggestionsViewDelegate) -> NSViewController? {

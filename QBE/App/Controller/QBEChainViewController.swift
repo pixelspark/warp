@@ -972,13 +972,12 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 						cs.fullData(nil, callback: {(data: QBEData) -> () in
 							if let url = ns.URL, let ext = url.pathExtension {
 								// Get the file writer for this type
-								if let writer = QBEFactory.sharedInstance.fileWriterForType(ext, data: data, locale: self.locale, title: title) {
-									writer.writeToFile(url, callback: {
+								if let writer = QBEFactory.sharedInstance.fileWriterForType(ext, locale: self.locale, title: title) {
+									writer.writeData(data, toFile: url, job: nil, callback: {
 										QBEAsyncMain {
 											let alert = NSAlert()
 											alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
-											alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (response) -> Void in
-											})
+											alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
 										}
 									})
 								}

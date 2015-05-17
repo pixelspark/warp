@@ -103,28 +103,15 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 }
 
-protocol QBEFileWriter: NSObjectProtocol {
-	func writeToFile(file: NSURL, callback: () -> ())
-}
+class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
+	var separatorCharacter: UInt16
+	var newLineCharacter: String?
 
-class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
-	let data: QBEData
-	let locale: QBELocale
-	let separatorCharacter: UInt16
-	let newLineCharacter: String?
-	
-	init(data: QBEData, locale: QBELocale, separatorCharacter: UInt16? = nil, newLineCharacter: String? = nil) {
-		self.data = data
-		self.locale = locale
-		self.newLineCharacter = newLineCharacter
-		
-		if separatorCharacter == nil {
-			let separatorString = QBESettings.sharedInstance.defaultFieldSeparator
-			self.separatorCharacter = separatorString.utf16[separatorString.utf16.startIndex]
-		}
-		else {
-			self.separatorCharacter = separatorCharacter!
-		}
+	required init(locale: QBELocale, title: String? = nil) {
+		self.newLineCharacter = "\r\n"
+		let separator = QBESettings.sharedInstance.defaultFieldSeparator
+		self.separatorCharacter = separator.utf16[separator.utf16.startIndex]
+		super.init(locale: locale, title: title)
 	}
 	
 	func writeHeader(toStream: NSOutputStream) {
@@ -135,7 +122,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 		// Not used
 	}
 	
-	func writeToFile(file: NSURL, callback: () -> ()) {
+	override func writeData(data: QBEData, toFile file: NSURL, job: QBEJob?, callback: () -> ()) {
 		let stream = data.stream()
 
 		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
@@ -189,12 +176,12 @@ class QBEHTMLWriter: QBECSVWriter {
 	let header: String
 	let footer: String
 	
-	init(data: QBEData, locale: QBELocale, title: String) {
+	required init(locale: QBELocale, title: String? = nil) {
 		// Get pivot template from resources
 		if let path = NSBundle.mainBundle().pathForResource("pivot", ofType: "html") {
 			var error: NSError? = nil
 			if let template = NSString(contentsOfFile: path, encoding: NSUTF8StringEncoding, error: &error) {
-				let template = template.stringByReplacingOccurrencesOfString("$$$TITLE$$$", withString: title)
+				let template = template.stringByReplacingOccurrencesOfString("$$$TITLE$$$", withString: title ?? "")
 				let parts = template.componentsSeparatedByString("$$$CSV$$$")
 				header = parts[0]
 				footer = parts[1]
@@ -204,13 +191,13 @@ class QBEHTMLWriter: QBECSVWriter {
 				let locale = QBELocale()
 				locale.numberFormatter.perMillSymbol = ""
 				locale.numberFormatter.decimalSeparator = "."
-				super.init(data: data, locale: locale, separatorCharacter: separatorCharacter, newLineCharacter: "\r\n")
+				super.init(locale: locale, title: title)
 				return
 			}
 		}
 		header = ""
 		footer = ""
-		super.init(data: data, locale: QBELocale())
+		super.init(locale: locale, title: title)
 	}
 	
 	override func writeHeader(toStream: NSOutputStream) {

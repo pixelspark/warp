@@ -1116,6 +1116,11 @@ CA
                                         <action selector="zoomSelection:" target="6f7-a7-6o1" id="NrX-OE-0uM"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="C32CAEDE-B9A1-49E9-8C7E-ABAE2BA30F3F" label="Export" paletteLabel="Export data" tag="-1" image="ExportIcon" id="A5A-19-saX">
+                                    <connections>
+                                        <action selector="exportFile:" target="6f7-a7-6o1" id="fzC-Od-uUm"/>
+                                    </connections>
+                                </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="63411011-AB43-4F4F-949B-CA1E1E0CF7DB" label="Calculate" paletteLabel="Calculate" image="BigIcon" id="OzT-DI-1G1">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="32" height="32"/>
@@ -1791,6 +1796,7 @@ Gw
         <image name="BigIcon" width="26" height="26"/>
         <image name="ChangeIcon" width="26" height="26"/>
         <image name="CloseIcon" width="26" height="26"/>
+        <image name="ExportIcon" width="26" height="26"/>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="StopIcon" width="26" height="26"/>
         <image name="TipIcon" width="32" height="32"/>
