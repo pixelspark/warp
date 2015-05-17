@@ -641,7 +641,7 @@ class QBESQLData: NSObject, QBEData {
 		var error = false
 		
 		let sqlOrders = by.map({(order) -> (String) in
-			if let expression = order.expression, let esql = self.sql.dialect.expressionToSQL(expression, alias: self.sql.alias, foreignAlias: nil,inputValue: nil) {
+			if let expression = order.expression, let esql = self.sql.dialect.expressionToSQL(expression, alias: self.sql.aliasFor(.Order), foreignAlias: nil,inputValue: nil) {
 				let castedSQL: String
 				if order.numeric {
 					castedSQL = self.sql.dialect.forceNumericExpression(esql)

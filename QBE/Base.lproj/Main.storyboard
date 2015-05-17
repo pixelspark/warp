@@ -1329,9 +1329,9 @@ CA
                                     <constraint firstAttribute="width" constant="16" id="6B6-wz-kn2"/>
                                     <constraint firstAttribute="height" constant="16" id="bXD-Sq-a6n"/>
                                 </constraints>
-                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="CloseIcon" imagePosition="only" alignment="left" imageScaling="proportionallyDown" id="r6I-th-VLx">
+                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="CloseIcon" imagePosition="only" alignment="left" controlSize="small" imageScaling="proportionallyDown" id="r6I-th-VLx">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
+                                    <font key="font" metaFont="smallSystem"/>
                                 </buttonCell>
                                 <connections>
                                     <action selector="removeTablet:" target="DXE-ii-MK8" id="O8E-7n-lsI"/>

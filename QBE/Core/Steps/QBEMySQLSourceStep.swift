@@ -301,7 +301,7 @@ internal class QBEMySQLConnection {
 		dispatch_sync(QBEMySQLConnection.sharedQueue) {
 			let result = block()
 			if result != 0 {
-				let message = String(CString: mysql_error(self.connection), encoding: NSUTF8StringEncoding)
+				let message = String(CString: mysql_error(self.connection), encoding: NSUTF8StringEncoding) ?? "(unknown)"
 				QBELog("MySQL perform error: \(message)")
 				success = false
 			}
