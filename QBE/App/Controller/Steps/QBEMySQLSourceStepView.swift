@@ -91,7 +91,7 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 			
 			tableNames = []
 			tableView?.reloadData()
-			if let db = s.db() {
+			if let server = s.server, let db = QBEMySQLConnection(server: server) {
 				// Update list of databases
 				db.databases({(dbs) in
 					QBEAsyncMain {

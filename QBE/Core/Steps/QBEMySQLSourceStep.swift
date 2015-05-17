@@ -184,14 +184,34 @@ internal class QBEMySQLResult: SequenceType, GeneratorType {
 	}
 }
 
-/** 
+class QBEMySQLServer {
+	private let host: String
+	private let port: Int
+	private let user: String
+	private let password: String
+	private let database: String
+	private let dialect: QBESQLDialect = QBEMySQLDialect()
+	
+	init(host: String, port: Int, user: String, password: String, database: String) {
+		self.host = host
+		self.port = port
+		self.user = user
+		self.password = password
+		self.database = database
+	}
+	
+	var url: String { get {
+		return NSURL(scheme: "mysql", host: "\(host):\(port)", path: "/\(user)")!.absoluteString!
+	} }
+}
+
+/**
 Implements a connection to a MySQL database (corresponding to a MYSQL object in the MySQL library). The connection ensures
 that any operations are serialized (for now using a global queue for all MySQL operations). */
 internal class QBEMySQLConnection {
+	private(set) var server: QBEMySQLServer
 	private var connection: UnsafeMutablePointer<MYSQL>
-	private let dialect: QBESQLDialect
 	private(set) weak var result: QBEMySQLResult?
-	let url: String
 	
 	// TODO: make this a per-connection queue if the library is thread-safe per connection
 	class var sharedQueue : dispatch_queue_t {
@@ -213,26 +233,25 @@ internal class QBEMySQLConnection {
 		return Static.instance!
 	}
 	
-	init?(host: String, port: Int, user: String, password: String, database: String) {
-		self.dialect = QBEMySQLDialect()
+	init?(server: QBEMySQLServer) {
+		self.server = server
 		self.connection = nil
-		self.url = NSURL(scheme: "mysql", host: "\(host):\(port)", path: "/\(user)")!.absoluteString!
 		
 		self.perform({() -> Int32 in
 			self.connection = mysql_init(nil)
 			mysql_real_connect(self.connection,
-				host.cStringUsingEncoding(NSUTF8StringEncoding)!,
-				user.cStringUsingEncoding(NSUTF8StringEncoding)!,
-				password.cStringUsingEncoding(NSUTF8StringEncoding)!,
-				/*database.cStringUsingEncoding(NSUTF8StringEncoding)!,*/ nil,
-				UInt32(port),
+				self.server.host.cStringUsingEncoding(NSUTF8StringEncoding)!,
+				self.server.user.cStringUsingEncoding(NSUTF8StringEncoding)!,
+				self.server.password.cStringUsingEncoding(NSUTF8StringEncoding)!,
+				nil,
+				UInt32(self.server.port),
 				UnsafePointer<Int8>(nil),
 				UInt(0)
 			)
 			return Int32(mysql_errno(self.connection))
 		})
 		
-		if let dbn = database.cStringUsingEncoding(NSUTF8StringEncoding) where !database.isEmpty {
+		if let dbn = server.database.cStringUsingEncoding(NSUTF8StringEncoding) where !server.database.isEmpty {
 			self.perform({() -> Int32 in
 				return mysql_select_db(self.connection, dbn)
 			})
@@ -245,6 +264,10 @@ internal class QBEMySQLConnection {
 				mysql_close(self.connection)
 			}
 		}
+	}
+	
+	func clone() -> QBEMySQLConnection? {
+		return QBEMySQLConnection(server: self.server)
 	}
 	
 	func databases(callback: ([String]) -> ()) {
@@ -306,47 +329,51 @@ internal class QBEMySQLConnection {
 	}
 }
 
-func == (lhs: QBEMySQLConnection, rhs: QBEMySQLConnection) -> Bool {
+func == (lhs: QBEMySQLServer, rhs: QBEMySQLServer) -> Bool {
 	return lhs.url == rhs.url
 }
 
 /** 
 Represents the result of a MySQL query as a QBEData object. */
 class QBEMySQLData: QBESQLData {
-	private let db: QBEMySQLConnection
+	private let server: QBEMySQLServer
 	private let locale: QBELocale?
 	
-	private convenience init(db: QBEMySQLConnection, tableName: String, locale: QBELocale?) {
-		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName)) LIMIT 1"
-		let result = db.query(query)
+	private convenience init(server: QBEMySQLServer, tableName: String, locale: QBELocale?) {
+		let query = "SELECT * FROM \(server.dialect.tableIdentifier(tableName)) LIMIT 1"
+		let result = QBEMySQLConnection(server: server)?.query(query)
 		result?.finish() // We're not interested in that one row we just requested, just the column names
 		
-		self.init(db: db, table: tableName, columns: result?.columnNames ?? [], locale: locale)
+		self.init(server: server, table: tableName, columns: result?.columnNames ?? [], locale: locale)
 	}
 	
-	private init(db: QBEMySQLConnection, fragment: QBESQLFragment, columns: [QBEColumn], locale: QBELocale?) {
-		self.db = db
+	private init(server: QBEMySQLServer, fragment: QBESQLFragment, columns: [QBEColumn], locale: QBELocale?) {
+		self.server = server
 		self.locale = locale
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(db: QBEMySQLConnection, table: String, columns: [QBEColumn], locale: QBELocale?) {
-		self.db = db
+	private init(server: QBEMySQLServer, table: String, columns: [QBEColumn], locale: QBELocale?) {
+		self.server = server
 		self.locale = locale
-		super.init(table: table, dialect: db.dialect, columns: columns)
+		super.init(table: table, dialect: server.dialect, columns: columns)
 	}
 	
 	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
-		return QBEMySQLData(db: self.db, fragment: fragment, columns: resultingColumns, locale: locale)
+		return QBEMySQLData(server: self.server, fragment: fragment, columns: resultingColumns, locale: locale)
 	}
 	
 	override func stream() -> QBEStream {
 		return QBEMySQLStream(data: self) ?? QBEEmptyStream()
 	}
 	
+	private func result() -> QBEMySQLResult? {
+		return QBEMySQLConnection(server: self.server)?.query(self.sql.sqlSelect(nil).sql)
+	}
+	
 	override func isCompatibleWith(other: QBESQLData) -> Bool {
 		if let om = other as? QBEMySQLData {
-			if om.db == self.db {
+			if om.server == self.server {
 				return true
 			}
 		}
@@ -357,22 +384,48 @@ class QBEMySQLData: QBESQLData {
 /**
 QBEMySQLStream provides a stream of records from a MySQL result set. Because SQLite result can only be accessed once
 sequentially, cloning of this stream requires re-executing the query. */
-class QBEMySQLStream: QBESequenceStream {
-	private let data: QBEMySQLData
-	
-	init?(data: QBEMySQLData) {
-		self.data = data
-		if let result = data.db.query(data.sql.sqlSelect(nil).sql) {
-			super.init(SequenceOf<QBETuple>(result), columnNames: result.columnNames)
-		}
-		else {
-			super.init(SequenceOf<QBETuple>([]), columnNames: [])
-			return nil
-		}
+private class QBEMySQLResultStream: QBESequenceStream {
+	init(result: QBEMySQLResult) {
+		super.init(SequenceOf<QBETuple>(result), columnNames: result.columnNames)
 	}
 	
 	override func clone() -> QBEStream {
-		return QBEMySQLStream(data: self.data) ?? QBEEmptyStream()
+		fatalError("QBEMySQLResultStream cannot be cloned, because a result cannot be iterated multiple times. Clone QBEMySQLStream instead")
+	}
+}
+
+/** Stream that lazily queries and streams results from a MySQL query.
+*/
+class QBEMySQLStream: QBEStream {
+	private var resultStream: QBEStream?
+	private let data: QBEMySQLData
+	
+	init(data: QBEMySQLData) {
+		self.data = data
+	}
+	
+	private func stream() -> QBEStream {
+		if resultStream == nil {
+			if let rs = data.result() {
+				resultStream = QBEMySQLResultStream(result: rs)
+			}
+			else {
+				resultStream = QBEEmptyStream()
+			}
+		}
+		return resultStream!
+	}
+	
+	func fetch(consumer: QBESink, job: QBEJob?) {
+		return stream().fetch(consumer, job: job)
+	}
+	
+	func columnNames(callback: ([QBEColumn]) -> ()) {
+		return stream().columnNames(callback)
+	}
+	
+	func clone() -> QBEStream {
+		return QBEMySQLStream(data: data)
 	}
 }
 
@@ -421,21 +474,21 @@ class QBEMySQLSourceStep: QBEStep {
 		return String(format: NSLocalizedString("Load table %@ from MySQL database", comment: ""), self.tableName ?? "")
 	}
 	
-	internal func db() -> QBEMySQLConnection? {
+	internal var server: QBEMySQLServer? { get {
 		if let h = host, p = port, u = user, pw = password, d = database {
 			/* For MySQL, the hostname 'localhost' is special and indicates access through a local UNIX socket. This does
-			not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite 
+			not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite
 			localhost here to 127.0.0.1 in order to force access through TCP/IP. */
 			let ha = (h == "localhost") ? "127.0.0.1" : h
-			return QBEMySQLConnection(host: ha, port: p, user: u, password: pw, database: d)
+			return QBEMySQLServer(host: ha, port: p, user: u, password: pw, database: d)
 		}
 		return nil
-	}
+	} }
 	
 	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
 		QBEAsyncBackground {
-			if let d = self.db() {
-				callback(QBECoalescedData(QBEMySQLData(db: d, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale)))
+			if let s = self.server {
+				callback(QBECoalescedData(QBEMySQLData(server: s, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale)))
 			}
 			else {
 				callback(QBERasterData())
