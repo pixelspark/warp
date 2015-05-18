@@ -61,8 +61,8 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 				changed = true
 			}
 			
-			if let u = self.databaseField?.stringValue where u != s.database {
-				s.database = u
+			if let u = self.databaseField?.stringValue where u != s.databaseName {
+				s.databaseName = u
 				changed = true
 			}
 		
@@ -87,11 +87,11 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 			self.passwordField?.stringValue = s.password ?? ""
 			self.hostField?.stringValue = s.host ?? ""
 			self.portField?.stringValue = "\(s.port ?? 0)"
-			self.databaseField?.stringValue = s.database ?? ""
+			self.databaseField?.stringValue = s.databaseName ?? ""
 			
 			tableNames = []
 			tableView?.reloadData()
-			if let server = s.server, let db = QBEMySQLConnection(server: server) {
+			if let database = s.database, let db = QBEMySQLConnection(database: database) {
 				// Update list of databases
 				db.databases({(dbs) in
 					QBEAsyncMain {
