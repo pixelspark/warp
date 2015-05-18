@@ -587,11 +587,12 @@
 "Oze-Ue-8Uh.title" = "Kies eerste alternatieve stap";
 "ZfB-ER-8HL.title" = "Herstel tipballonnen voor beginners";
 "jE3-cm-bk2.title" = "Bereken volledig resultaat";
-"PBU-iY-SYv.title" = "Laad data uit Presto...";
+"PBU-iY-SYv.title" = "Laad gegevens uit Presto...";
 "lWV-Af-fdF.title" = "Sorteer rijen op de geselecteerde kolom(men)";
 "ILY-7M-toS.title" = "Sorteer rijen op de geselecteerde kolom(men)";
 "Yk7-iC-znO.title" = "Sorteer rijen andersom op de geselecteerde kolom(men)";
-"l6x-MG-F5q.title" = "Laad data uit MySQL...";
+"l6x-MG-F5q.title" = "Laad gegevens uit MySQL...";
+"Emm-Nr-CLs.title" = "Laad gegevens uit PostgreSQL...";
 
 "hIF-La-Kkp.title" = "Selecteer rijen zoals deze";
 "8qQ-5u-hWW.title" = "Verwijder rijen zoals deze";

@@ -32,7 +32,8 @@ class QBEFactory {
 		QBEColumnsStep.className(): {QBEColumnsStepView(step: $0, delegate: $1)},
 		QBESortStep.className(): {QBESortStepView(step: $0, delegate: $1)},
 		QBEMySQLSourceStep.className(): {QBEMySQLSourceStepView(step: $0, delegate: $1)},
-		QBEJoinStep.className(): {QBEJoinStepView(step: $0, delegate: $1)}
+		QBEJoinStep.className(): {QBEJoinStepView(step: $0, delegate: $1)},
+		QBEPostgresSourceStep.className(): {QBEPostgresStepView(step: $0, delegate: $1)}
 	]
 	
 	private let stepIcons = [
@@ -53,6 +54,7 @@ class QBEFactory {
 		QBERasterStep.className(): "RasterIcon",
 		QBESortStep.className(): "SortIcon",
 		QBEMySQLSourceStep.className(): "MySQLIcon",
+		QBEPostgresSourceStep.className(): "PostgresIcon",
 		QBEJoinStep.className(): "JoinIcon"
 	]
 	

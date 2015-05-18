@@ -224,6 +224,11 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		self.addTablet(QBETablet(chain: QBEChain(head: s)))
 	}
 	
+	@IBAction func addTabletFromPostgres(sender: NSObject) {
+		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "root", password: "", database: "test", tableName: "test")
+		self.addTablet(QBETablet(chain: QBEChain(head: s)))
+	}
+	
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
 		if segue.identifier == "configurator" {
 			self.configurator = segue.destinationController as? QBEConfiguratorViewController
@@ -259,6 +264,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		if item.action() == Selector("addTabletFromFile:") { return true }
 		if item.action() == Selector("addTabletFromPresto:") { return true }
 		if item.action() == Selector("addTabletFromMySQL:") { return true }
+		if item.action() == Selector("addTabletFromPostgres:") { return true }
 		if item.action() == Selector("updateFromFormulaField:") { return true }
 		if item.action() == Selector("setFullWorkingSet:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
 		if item.action() == Selector("cancelCalculation:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }

@@ -1,0 +1,21 @@
+
+/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "Dsz-Vi-TPW"; */
+"Dsz-Vi-TPW.title" = "Text Cell";
+
+/* Class = "NSTextFieldCell"; title = "Database:"; ObjectID = "Mwl-cc-EgW"; */
+"Mwl-cc-EgW.title" = "Database:";
+
+/* Class = "NSTextFieldCell"; title = "User name:"; ObjectID = "VeM-0x-U4U"; */
+"VeM-0x-U4U.title" = "Gebruikersnaam:";
+
+/* Class = "NSTextFieldCell"; title = "Password:"; ObjectID = "ZC9-Xu-buY"; */
+"ZC9-Xu-buY.title" = "Wachtwoord:";
+
+/* Class = "NSTextFieldCell"; title = "Table:"; ObjectID = "aX7-FR-NWg"; */
+"aX7-FR-NWg.title" = "Tabel:";
+
+/* Class = "NSTextFieldCell"; title = "Host name or IP address:"; ObjectID = "ba8-5H-p0p"; */
+"ba8-5H-p0p.title" = "Hostnaam of IP-adres:";
+
+/* Class = "NSTextFieldCell"; title = "Port:"; ObjectID = "nNf-hy-CZp"; */
+"nNf-hy-CZp.title" = "Poort:";

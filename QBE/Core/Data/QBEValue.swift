@@ -1,6 +1,14 @@
 import Foundation
 
 internal extension String {
+	var urlEncoded: String { get {
+		return self.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
+	} }
+	
+	var urlDecoded: String { get {
+		return self.stringByReplacingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
+	} }
+	
 	func toDouble() -> Double? {
 		if self.isEmpty || self.hasPrefix(" ") {
 			return nil

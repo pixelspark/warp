@@ -1271,14 +1271,22 @@ CA
                                 <action selector="addTabletFromFile:" target="0Jp-3X-LwR" id="Nyt-Jp-DnU"/>
                             </connections>
                         </menuItem>
-                        <menuItem title="Load data from Presto..." keyEquivalent="D" id="PBU-iY-SYv">
+                        <menuItem title="Load data from Presto..." id="PBU-iY-SYv">
+                            <modifierMask key="keyEquivalentModifierMask"/>
                             <connections>
                                 <action selector="addTabletFromPresto:" target="0Jp-3X-LwR" id="0eO-Ap-ro3"/>
                             </connections>
                         </menuItem>
-                        <menuItem title="Load data from MySQL..." keyEquivalent="M" id="l6x-MG-F5q">
+                        <menuItem title="Load data from MySQL..." id="l6x-MG-F5q">
+                            <modifierMask key="keyEquivalentModifierMask"/>
                             <connections>
                                 <action selector="addTabletFromMySQL:" target="0Jp-3X-LwR" id="aGr-f2-Tjs"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Load data from PostgreSQL..." id="Emm-Nr-CLs">
+                            <modifierMask key="keyEquivalentModifierMask"/>
+                            <connections>
+                                <action selector="addTabletFromPostgres:" target="0Jp-3X-LwR" id="EBs-Gl-VZi"/>
                             </connections>
                         </menuItem>
                     </items>
