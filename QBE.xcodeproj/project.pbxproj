@@ -18,8 +18,6 @@
 		6526F0131AD2A41800A92777 /* pivot.html in Resources */ = {isa = PBXBuildFile; fileRef = 6526F0101AD2A41800A92777 /* pivot.html */; };
 		6531FBDE1ABD9A5800EBCF41 /* QBEDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = 6531FBDD1ABD9A5800EBCF41 /* QBEDocument.icns */; };
 		6531FBDF1ABD9A5800EBCF41 /* QBEDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = 6531FBDD1ABD9A5800EBCF41 /* QBEDocument.icns */; };
-		654297081AB83123000472E6 /* mysql_version.h.in in Resources */ = {isa = PBXBuildFile; fileRef = 654296FA1AB83123000472E6 /* mysql_version.h.in */; };
-		654297091AB83123000472E6 /* mysql_version.h.in in Resources */ = {isa = PBXBuildFile; fileRef = 654296FA1AB83123000472E6 /* mysql_version.h.in */; };
 		654297121AB98E6B000472E6 /* QBEMySQLSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 654297101AB98E6B000472E6 /* QBEMySQLSourceStepView.xib */; };
 		654297131AB98E6B000472E6 /* QBEMySQLSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 654297101AB98E6B000472E6 /* QBEMySQLSourceStepView.xib */; };
 		6548F2341A8673BF00FE8EF2 /* extension-functions.c in Sources */ = {isa = PBXBuildFile; fileRef = 6548F2331A8673BF00FE8EF2 /* extension-functions.c */; };
@@ -1163,7 +1161,6 @@
 				654EBAA81AA7A2AE00DDBBCA /* QBERandomStepView.xib in Resources */,
 				654EBAA91AA7A2AE00DDBBCA /* Images.xcassets in Resources */,
 				654EBAAA1AA7A2AE00DDBBCA /* Main.storyboard in Resources */,
-				654297091AB83123000472E6 /* mysql_version.h.in in Resources */,
 				650FC6F61AC49306004B0520 /* QBEStepsItem.xib in Resources */,
 				654EBAAB1AA7A2AE00DDBBCA /* QBESQLiteSourceStepView.xib in Resources */,
 				654EBAAC1AA7A2AE00DDBBCA /* QBEFlattenStepView.xib in Resources */,
@@ -1194,7 +1191,6 @@
 				65DBA5651A798F35004CDF36 /* QBERandomStepView.xib in Resources */,
 				65E3C2F71A062E5E007BB3C8 /* Images.xcassets in Resources */,
 				65E3C2FA1A062E5E007BB3C8 /* Main.storyboard in Resources */,
-				654297081AB83123000472E6 /* mysql_version.h.in in Resources */,
 				650FC6F51AC49306004B0520 /* QBEStepsItem.xib in Resources */,
 				65A7FC5B1A667F860019B747 /* QBESQLiteSourceStepView.xib in Resources */,
 				654AE16B1AA5163E0022C533 /* QBEFlattenStepView.xib in Resources */,

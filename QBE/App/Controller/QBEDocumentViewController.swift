@@ -225,7 +225,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 	}
 	
 	@IBAction func addTabletFromPostgres(sender: NSObject) {
-		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "root", password: "", database: "test", tableName: "test")
+		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", password: "", database: "postgres", tableName: "")
 		self.addTablet(QBETablet(chain: QBEChain(head: s)))
 	}
 	

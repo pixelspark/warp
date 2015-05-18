@@ -573,7 +573,7 @@ class QBEForeignExpression: QBEExpression {
 	}
 	
 	override func explain(locale: QBELocale) -> String {
-		return NSLocalizedString("value in foreign column", comment: "")+" "+columnName.name
+		return String(format: NSLocalizedString("value in foreign column %@", comment: ""), columnName.name)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
