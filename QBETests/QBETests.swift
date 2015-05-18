@@ -119,7 +119,7 @@ class QBETests: XCTestCase {
 		
 		// Test results
 		let raster = QBERaster()
-		XCTAssert(QBEFormula(formula: "=6/(1-3/4)", locale: locale)!.root.apply([], columns: raster.columnNames, inputValue: nil) == QBEValue(24), "Formula in default dialect")
+		XCTAssert(QBEFormula(formula: "=6/(1-3/4)", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(24), "Formula in default dialect")
 		
 		// Test whether parsing goes wrong when it should
 		XCTAssert(QBEFormula(formula: "", locale: locale) == nil, "Empty formula")
@@ -243,7 +243,7 @@ class QBETests: XCTestCase {
 		var suggestions: [QBEExpression] = []
 		let cols = ["A","B","C","D"].map({QBEColumn($0)})
 		let row = [1,3,4,6].map({QBEValue($0)})
-		QBEExpression.infer(nil, toValue: QBEValue(24), suggestions: &suggestions, level: 10, columns: cols, row: row, column: 0, maxComplexity: Int.max, previousValues: [])
+		QBEExpression.infer(nil, toValue: QBEValue(24), suggestions: &suggestions, level: 10, row: QBERow(row, columnNames: cols), column: 0, maxComplexity: Int.max, previousValues: [])
 		suggestions.each({QBELog($0.explain(locale))})
 		XCTAssert(suggestions.count>0, "Can solve the 1-3-4-6 24 game.")
 	}

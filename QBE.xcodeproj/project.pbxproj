@@ -205,6 +205,9 @@
 		65A0E0271AF2B92A0005C50F /* QBEDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */; };
 		65A526B21B08E77300CCF3E3 /* QBEFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A526B11B08E77300CCF3E3 /* QBEFileWriter.swift */; };
 		65A526B31B08E77300CCF3E3 /* QBEFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A526B11B08E77300CCF3E3 /* QBEFileWriter.swift */; };
+		65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A526B91B09BFDB00CCF3E3 /* libpq.a */; };
+		65A526BB1B09BFDB00CCF3E3 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A526B91B09BFDB00CCF3E3 /* libpq.a */; };
+		65A526BE1B09C0C300CCF3E3 /* QBEFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A526B11B08E77300CCF3E3 /* QBEFileWriter.swift */; };
 		65A7FC5B1A667F860019B747 /* QBESQLiteSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65A7FC5D1A667F860019B747 /* QBESQLiteSourceStepView.xib */; };
 		65A9817D1AF357C2006BACA7 /* QBEStepItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A9817C1AF357C2006BACA7 /* QBEStepItemView.swift */; };
 		65A9817E1AF357C2006BACA7 /* QBEStepItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A9817C1AF357C2006BACA7 /* QBEStepItemView.swift */; };
@@ -525,6 +528,10 @@
 		65A0E00B1AF29A750005C50F /* QBESQLiteSourceStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESQLiteSourceStepView.swift; sourceTree = "<group>"; };
 		65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDocumentView.swift; sourceTree = "<group>"; };
 		65A526B11B08E77300CCF3E3 /* QBEFileWriter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFileWriter.swift; sourceTree = "<group>"; };
+		65A526B81B09BFDB00CCF3E3 /* libpq-fe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "libpq-fe.h"; sourceTree = "<group>"; };
+		65A526B91B09BFDB00CCF3E3 /* libpq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libpq.a; sourceTree = "<group>"; };
+		65A526BC1B09C01A00CCF3E3 /* pg_config_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pg_config_ext.h; sourceTree = "<group>"; };
+		65A526BD1B09C01A00CCF3E3 /* postgres_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = postgres_ext.h; sourceTree = "<group>"; };
 		65A7FC5C1A667F860019B747 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBESQLiteSourceStepView.xib; sourceTree = "<group>"; };
 		65A9817C1AF357C2006BACA7 /* QBEStepItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEStepItemView.swift; sourceTree = "<group>"; };
 		65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
@@ -563,6 +570,7 @@
 				65AA26101ABB1FAC00085E26 /* libmariadbclient.a in Frameworks */,
 				654EBAA01AA7A2AE00DDBBCA /* libsqlite3.dylib in Frameworks */,
 				654EBAA11AA7A2AE00DDBBCA /* SwiftParser.framework in Frameworks */,
+				65A526BB1B09BFDB00CCF3E3 /* libpq.a in Frameworks */,
 				654EBAA21AA7A2AE00DDBBCA /* MBTableGrid.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -577,6 +585,7 @@
 				65AA260F1ABB1FAC00085E26 /* libmariadbclient.a in Frameworks */,
 				65776F121A6483AD00F7F82A /* libsqlite3.dylib in Frameworks */,
 				65776F101A6470BB00F7F82A /* SwiftParser.framework in Frameworks */,
+				65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */,
 				6510A7391A4D9832005633EF /* MBTableGrid.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -605,6 +614,7 @@
 		651988E71A0F9C39003463AA /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				65A526B71B09BFDB00CCF3E3 /* PostgreSQL */,
 				65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */,
 				651988E41A0F9C30003463AA /* CHCSVParser.h */,
 				651988E51A0F9C30003463AA /* CHCSVParser.m */,
@@ -852,6 +862,18 @@
 				65A7FC5D1A667F860019B747 /* QBESQLiteSourceStepView.xib */,
 			);
 			name = Steps;
+			sourceTree = "<group>";
+		};
+		65A526B71B09BFDB00CCF3E3 /* PostgreSQL */ = {
+			isa = PBXGroup;
+			children = (
+				65A526BC1B09C01A00CCF3E3 /* pg_config_ext.h */,
+				65A526BD1B09C01A00CCF3E3 /* postgres_ext.h */,
+				65A526B81B09BFDB00CCF3E3 /* libpq-fe.h */,
+				65A526B91B09BFDB00CCF3E3 /* libpq.a */,
+			);
+			name = PostgreSQL;
+			path = Libraries/PostgreSQL;
 			sourceTree = "<group>";
 		};
 		65E3C2AB1A05222F007BB3C8 = {
@@ -1319,6 +1341,7 @@
 				651BEB121AC2B0FA00B1CCC0 /* ltqnorm.c in Sources */,
 				65A0DFE11AF299F30005C50F /* QBECSVStep.swift in Sources */,
 				65884A341AFF518B003A5BF1 /* QBEChain.swift in Sources */,
+				65A526BE1B09C0C300CCF3E3 /* QBEFileWriter.swift in Sources */,
 				65A0DFBA1AF299F30005C50F /* QBEExpression.swift in Sources */,
 				65A0DFF31AF299F30005C50F /* QBERowsStep.swift in Sources */,
 				65884A361AFF5190003A5BF1 /* QBETablet.swift in Sources */,
@@ -1603,6 +1626,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Libraries/MySQL",
+					"$(PROJECT_DIR)/Libraries/PostgreSQL",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
@@ -1623,6 +1647,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Libraries/MySQL",
+					"$(PROJECT_DIR)/Libraries/PostgreSQL",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_SWIFT_FLAGS = "";
@@ -1747,6 +1772,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Libraries/MySQL",
+					"$(PROJECT_DIR)/Libraries/PostgreSQL",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
@@ -1767,6 +1793,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Libraries/MySQL",
+					"$(PROJECT_DIR)/Libraries/PostgreSQL",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_SWIFT_FLAGS = "";
