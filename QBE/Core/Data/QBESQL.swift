@@ -579,9 +579,10 @@ class QBESQLData: NSObject, QBEData {
 			// Check if the other data set is a compatible SQL data set
 			if let rightSQL = rightData as? QBESQLData where isCompatibleWith(rightSQL) {
 				// Generate a join expression
-				let rightQuery = rightSQL.sql.sqlSelect(nil)
-				if let es = sql.dialect.expressionToSQL(expression, alias: self.sql.aliasFor(.Join), foreignAlias: rightQuery.alias, inputValue: nil) {
-					return apply(self.sql.sqlJoin("LEFT JOIN (\(rightQuery.sql)) AS \(rightQuery.alias) ON \(es)"), resultingColumns: columns)
+				let rightQuery = rightSQL.sql.sqlSelect(nil).sql
+				let rightAlias = "F\(rightQuery.hash)"
+				if let es = sql.dialect.expressionToSQL(expression, alias: self.sql.aliasFor(.Join), foreignAlias: rightAlias, inputValue: nil) {
+					return apply(self.sql.sqlJoin("LEFT JOIN (\(rightQuery)) AS \(sql.dialect.tableIdentifier(rightAlias)) ON \(es)"), resultingColumns: columns)
 				}
 			}
 			return fallback().join(join)
