@@ -859,16 +859,16 @@
 		65A0E0241AF29A9A0005C50F /* Steps */ = {
 			isa = PBXGroup;
 			children = (
-				65A526C81B0A5C4900CCF3E3 /* QBEPostgresStepView.xib */,
-				65884A4E1B076CB6003A5BF1 /* QBEJoinStepView.xib */,
 				65F4E2691A683B3600BB57B8 /* QBECalculateStepView.xib */,
 				659604CC1AB45F9300701758 /* QBEColumnsStepView.xib */,
 				65DBA56A1A798F41004CDF36 /* QBECSVStepView.xib */,
 				65C4F3A91A992A6C00197CF4 /* QBEFilterStepView.xib */,
 				654AE16D1AA5163E0022C533 /* QBEFlattenStepView.xib */,
+				65884A4E1B076CB6003A5BF1 /* QBEJoinStepView.xib */,
 				65894A0B1A67036200B0C161 /* QBELimitStepView.xib */,
 				654297101AB98E6B000472E6 /* QBEMySQLSourceStepView.xib */,
 				65DBA5631A798F31004CDF36 /* QBEPivotStepView.xib */,
+				65A526C81B0A5C4900CCF3E3 /* QBEPostgresStepView.xib */,
 				65734BE31AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib */,
 				65DBA5671A798F35004CDF36 /* QBERandomStepView.xib */,
 				65FCB8DC1AB5A5420002C119 /* QBESortStepView.xib */,

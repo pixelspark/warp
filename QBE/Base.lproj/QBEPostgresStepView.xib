@@ -8,7 +8,7 @@
             <connections>
                 <outlet property="databaseField" destination="aUV-dd-J0C" id="icG-gt-49w"/>
                 <outlet property="hostField" destination="KuM-Sv-zCp" id="hGA-n3-LPH"/>
-                <outlet property="passwordField" destination="fOB-OV-162" id="SSt-kW-7dg"/>
+                <outlet property="passwordField" destination="x2M-3u-OZp" id="1EV-Ni-2Gy"/>
                 <outlet property="portField" destination="ma3-E6-aDT" id="HKN-yZ-eGp"/>
                 <outlet property="tableView" destination="hhy-f3-mNI" id="hRf-7j-RLQ"/>
                 <outlet property="userField" destination="FZW-2o-nGC" id="iaw-IR-zgU"/>
@@ -30,17 +30,6 @@
                     </textFieldCell>
                     <connections>
                         <action selector="updateStep:" target="-2" id="RdG-Ex-4cV"/>
-                    </connections>
-                </textField>
-                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="fOB-OV-162">
-                    <rect key="frame" x="5" y="355" width="312" height="22"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="viO-In-eby">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                    <connections>
-                        <action selector="updateStep:" target="-2" id="aDH-XW-emA"/>
                     </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FZW-2o-nGC">
@@ -173,6 +162,20 @@
                         <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
+                <secureTextField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="x2M-3u-OZp">
+                    <rect key="frame" x="5" y="355" width="312" height="22"/>
+                    <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="Uue-Y1-qRv">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        <allowedInputSourceLocales>
+                            <string>NSAllRomanInputSourcesLocaleIdentifier</string>
+                        </allowedInputSourceLocales>
+                    </secureTextFieldCell>
+                    <connections>
+                        <action selector="updateStep:" target="-2" id="onR-YS-7dk"/>
+                    </connections>
+                </secureTextField>
             </subviews>
             <constraints>
                 <constraint firstItem="FZW-2o-nGC" firstAttribute="top" secondItem="f55-YM-KXL" secondAttribute="bottom" constant="5" id="0Ow-Ig-ekg"/>
@@ -181,27 +184,27 @@
                 <constraint firstItem="YSp-Cy-H4b" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="9ew-1a-fKZ"/>
                 <constraint firstItem="4SH-8K-QLQ" firstAttribute="top" secondItem="KuM-Sv-zCp" secondAttribute="bottom" constant="10" id="EWK-Qq-knV"/>
                 <constraint firstItem="f55-YM-KXL" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="EX3-QP-FXz"/>
-                <constraint firstItem="fOB-OV-162" firstAttribute="top" secondItem="YSp-Cy-H4b" secondAttribute="bottom" constant="5" id="Ikx-wD-rSL"/>
                 <constraint firstAttribute="trailing" secondItem="j0M-3r-bnh" secondAttribute="trailing" constant="5" id="JeN-z9-h2m"/>
                 <constraint firstItem="KuM-Sv-zCp" firstAttribute="top" secondItem="j0M-3r-bnh" secondAttribute="bottom" constant="5" id="Kjn-aN-vGG"/>
+                <constraint firstAttribute="trailing" secondItem="x2M-3u-OZp" secondAttribute="trailing" constant="5" id="KzF-eP-33W"/>
+                <constraint firstItem="5v4-1i-nBc" firstAttribute="top" secondItem="x2M-3u-OZp" secondAttribute="bottom" constant="10" id="M6a-K9-cZF"/>
                 <constraint firstAttribute="trailing" secondItem="5v4-1i-nBc" secondAttribute="trailing" constant="5" id="MOu-1Q-5NH"/>
                 <constraint firstItem="4SH-8K-QLQ" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="OMN-N1-dhM"/>
                 <constraint firstItem="aUV-dd-J0C" firstAttribute="top" secondItem="5v4-1i-nBc" secondAttribute="bottom" constant="5" id="OVh-hC-mh9"/>
-                <constraint firstItem="5v4-1i-nBc" firstAttribute="top" secondItem="fOB-OV-162" secondAttribute="bottom" constant="10" id="Q0Z-gH-dJ6"/>
                 <constraint firstItem="qU9-vM-QTK" firstAttribute="top" secondItem="rHA-Ve-FeO" secondAttribute="bottom" constant="5" id="Q1y-T2-IDw"/>
                 <constraint firstItem="ma3-E6-aDT" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="SVn-AZ-1i7"/>
                 <constraint firstAttribute="trailing" secondItem="FZW-2o-nGC" secondAttribute="trailing" constant="5" id="VGD-9B-CA8"/>
                 <constraint firstAttribute="trailing" secondItem="aUV-dd-J0C" secondAttribute="trailing" constant="5" id="XSt-BO-rEw"/>
-                <constraint firstItem="fOB-OV-162" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="ZfJ-Sa-qwK"/>
                 <constraint firstItem="rHA-Ve-FeO" firstAttribute="top" secondItem="aUV-dd-J0C" secondAttribute="bottom" constant="10" id="cD2-y0-aeU"/>
                 <constraint firstItem="qU9-vM-QTK" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="dkI-kk-k8g"/>
                 <constraint firstAttribute="trailing" secondItem="4SH-8K-QLQ" secondAttribute="trailing" constant="5" id="eig-oR-5iR"/>
                 <constraint firstAttribute="trailing" secondItem="qU9-vM-QTK" secondAttribute="trailing" constant="5" id="fAE-WO-iFR"/>
                 <constraint firstItem="5v4-1i-nBc" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="fB3-XL-eE1"/>
-                <constraint firstAttribute="trailing" secondItem="fOB-OV-162" secondAttribute="trailing" constant="5" id="fRz-6A-lLr"/>
                 <constraint firstAttribute="bottom" secondItem="qU9-vM-QTK" secondAttribute="bottom" constant="5" id="fS7-4G-XPH"/>
+                <constraint firstItem="x2M-3u-OZp" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="gbG-0P-tM7"/>
                 <constraint firstItem="KuM-Sv-zCp" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="gnN-VM-hzJ"/>
                 <constraint firstAttribute="trailing" secondItem="f55-YM-KXL" secondAttribute="trailing" constant="5" id="hqZ-Vc-Dfn"/>
+                <constraint firstItem="x2M-3u-OZp" firstAttribute="top" secondItem="YSp-Cy-H4b" secondAttribute="bottom" constant="5" id="iBb-bc-og9"/>
                 <constraint firstItem="f55-YM-KXL" firstAttribute="top" secondItem="ma3-E6-aDT" secondAttribute="bottom" constant="10" id="inu-HX-eUK"/>
                 <constraint firstItem="rHA-Ve-FeO" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="isw-gc-m5N"/>
                 <constraint firstItem="j0M-3r-bnh" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="lF8-LC-EhF"/>
