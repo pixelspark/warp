@@ -299,6 +299,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Split: return nil
 			case .Nth: return nil
 			case .Items: return nil
+			case .Levenshtein: return nil
 		}
 	}
 	

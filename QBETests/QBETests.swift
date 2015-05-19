@@ -37,6 +37,11 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEValue("hello") == QBEValue("hello"), "String equality")
 		XCTAssert(QBEValue("hello") != QBEValue("HELLO"), "String equality is case sensitive")
 		XCTAssert(QBEValue(1337) == QBEValue("1337"), "Numbers are strings")
+		
+		XCTAssert("Tommy".levenshteinDistance("tommy") == 1, "Levenshtein is case sensitive")
+		XCTAssert("Tommy".levenshteinDistance("Tomy") == 1, "Levenshtein recognizes deletes")
+		XCTAssert("Tommy".levenshteinDistance("ymmoT") == 4, "Levenshtein recognizes moves")
+		XCTAssert("Tommy".levenshteinDistance("TommyV") == 1, "Levenshtein recognizes adds")
 	}
 	
 	func testEmptyQBERaster() {

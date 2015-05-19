@@ -89,6 +89,7 @@ enum QBEFunction: String {
 	case Split = "split"
 	case Nth = "nth"
 	case Items = "items"
+	case Levenshtein = "levenshtein"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -198,6 +199,7 @@ enum QBEFunction: String {
 			case .Split: return NSLocalizedString("split", comment: "")
 			case .Nth: return NSLocalizedString("nth item", comment: "")
 			case .Items: return NSLocalizedString("number of items", comment: "")
+			case .Levenshtein: return NSLocalizedString("text similarity", comment: "")
 		}
 	}
 	
@@ -269,6 +271,7 @@ enum QBEFunction: String {
 		case .Split: return QBEArity.Fixed(2)
 		case .Nth: return QBEArity.Fixed(2)
 		case .Items: return QBEArity.Fixed(1)
+		case .Levenshtein: return QBEArity.Fixed(2)
 		}
 	} }
 	
@@ -671,13 +674,20 @@ enum QBEFunction: String {
 				return QBEValue.IntValue(QBEPack(source).count)
 			}
 			return QBEValue.InvalidValue
+			
+		case .Levenshtein:
+			if let a = arguments[0].stringValue, let b = arguments[1].stringValue {
+				return QBEValue.IntValue(a.levenshteinDistance(b))
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
 	static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
-		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items
+		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
+		Levenshtein
 	]
 }
 

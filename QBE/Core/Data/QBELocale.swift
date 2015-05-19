@@ -91,7 +91,8 @@ class QBELocale: NSObject {
 			"SIGN": QBEFunction.Sign,
 			"SPLIT": QBEFunction.Split,
 			"NTH": QBEFunction.Nth,
-			"ITEMS": QBEFunction.Items
+			"ITEMS": QBEFunction.Items,
+			"SIMILARITY": QBEFunction.Levenshtein
 		],
 		
 		"nl": [
@@ -141,7 +142,8 @@ class QBELocale: NSObject {
 			"POS.NEG": QBEFunction.Sign,
 			"SPLITS": QBEFunction.Split,
 			"NDE": QBEFunction.Nth,
-			"ITEMS": QBEFunction.Items
+			"ITEMS": QBEFunction.Items,
+			"GELIJKENIS": QBEFunction.Levenshtein
 		]
 	]
 	
