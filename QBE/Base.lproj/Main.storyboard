@@ -1101,7 +1101,7 @@ CA
                                         <action selector="addButtonClicked:" target="6f7-a7-6o1" id="KNF-pq-8Il"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="058B910A-8146-4564-BE8A-2ECC5997F094" label="Zoom to all" paletteLabel="Zoom to all" tag="-1" image="ZoomOutIcon" id="uPf-Qt-XpM">
+                                <toolbarItem implicitItemIdentifier="058B910A-8146-4564-BE8A-2ECC5997F094" label="All" paletteLabel="Zoom to all" tag="-1" image="ZoomOutIcon" id="uPf-Qt-XpM">
                                     <connections>
                                         <action selector="zoomToAll:" target="6f7-a7-6o1" id="F3O-EA-0gJ"/>
                                     </connections>
@@ -1111,7 +1111,7 @@ CA
                                         <action selector="cancelCalculation:" target="6f7-a7-6o1" id="5y4-t5-jaI"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="65B21C31-F9E1-4753-9770-07804938BD85" label="Zoom to selection" paletteLabel="Zoom to selection" tag="-1" image="ZoomInIcon" id="QnM-NS-IrF">
+                                <toolbarItem implicitItemIdentifier="65B21C31-F9E1-4753-9770-07804938BD85" label="Selection" paletteLabel="Zoom to selection" tag="-1" image="ZoomInIcon" id="QnM-NS-IrF">
                                     <connections>
                                         <action selector="zoomSelection:" target="6f7-a7-6o1" id="NrX-OE-0uM"/>
                                     </connections>
