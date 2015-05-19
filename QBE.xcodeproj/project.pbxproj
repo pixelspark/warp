@@ -550,7 +550,7 @@
 		65AA26171ABB201700085E26 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
 		65C4F3A81A992A6C00197CF4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEFilterStepView.xib; sourceTree = "<group>"; };
 		65CD951F1AC9E80300557C9E /* QBEObjectiveCBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = QBEObjectiveCBridge.m; path = QBE/QBEObjectiveCBridge.m; sourceTree = "<group>"; };
-		65CD95C81ACEB60C00557C9E /* nl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = nl; path = QBE/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
+		65CD95C81ACEB60C00557C9E /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = QBE/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		65CD95CA1ACEB62500557C9E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
 		65CD95CE1ACEB65400557C9E /* Base */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = Base; path = QBE/Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		65CD95CF1ACEB68000557C9E /* Warp App Store-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "Warp App Store-Info.plist"; path = "../../Warp App Store-Info.plist"; sourceTree = "<group>"; };

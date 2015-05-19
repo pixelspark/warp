@@ -202,7 +202,7 @@ typedef uint16_t        u16;
 typedef int64_t         i64;
 
 static char *sqlite3StrDup( const char *z ) {
-    char *res = sqlite3_malloc( strlen(z)+1 );
+    char *res = sqlite3_malloc( (int)(strlen(z)+1) );
     return strcpy( res, z );
 }
 
@@ -684,8 +684,8 @@ static void replicateFunc(sqlite3_context *context, int argc, sqlite3_value **ar
 
     nLen  = sqlite3_value_bytes(argv[0]);
     nTLen = nLen*iCount;
-    z=sqlite3_malloc(nTLen+1);
-    zo=sqlite3_malloc(nLen+1);
+    z=sqlite3_malloc((int)(nTLen+1));
+    zo=sqlite3_malloc((int)(nLen+1));
     if (!z || !zo){
       sqlite3_result_error_nomem(context);
       if (z) sqlite3_free(z);
@@ -790,7 +790,7 @@ static void padlFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
       }
       sqlite3_result_text(context, zo, -1, SQLITE_TRANSIENT);
     }else{
-      zo = sqlite3_malloc(strlen(zi)+ilen-zl+1);
+      zo = sqlite3_malloc((int)(strlen(zi)+ilen-zl+1));
       if (!zo){
         sqlite3_result_error_nomem(context);
         return;
@@ -845,7 +845,7 @@ static void padrFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
       sqlite3_result_text(context, zo, -1, SQLITE_TRANSIENT);
     }else{
       zll = strlen(zi);
-      zo = sqlite3_malloc(zll+ilen-zl+1);
+      zo = sqlite3_malloc((int)(zll+ilen-zl+1));
       if (!zo){
         sqlite3_result_error_nomem(context);
         return;
@@ -900,7 +900,7 @@ static void padcFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
       sqlite3_result_text(context, zo, -1, SQLITE_TRANSIENT);
     }else{
       zll = strlen(zi);
-      zo = sqlite3_malloc(zll+ilen-zl+1);
+      zo = sqlite3_malloc((int)(zll+ilen-zl+1));
       if (!zo){
         sqlite3_result_error_nomem(context);
         return;
@@ -947,7 +947,7 @@ static void strfilterFunc(sqlite3_context *context, int argc, sqlite3_value **ar
     ** maybe I could allocate less, but that would imply 2 passes, rather waste 
     ** (possibly) some memory
     */
-    zo = sqlite3_malloc(strlen(zi1)+1); 
+    zo = sqlite3_malloc((int)(strlen(zi1)+1));
     if (!zo){
       sqlite3_result_error_nomem(context);
       return;
@@ -1084,9 +1084,9 @@ static void leftFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
   while( sqliteCharVal(zt) && c++<l)
     sqliteNextChar(zt);
 
-  cc=zt-z;
+  cc= (int)(zt-z);
 
-  rz = sqlite3_malloc(zt-z+1);
+  rz = sqlite3_malloc((int)(zt-z+1));
   if (!rz){
     sqlite3_result_error_nomem(context);
     return;
@@ -1137,7 +1137,7 @@ static void rightFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
     sqliteNextChar(zt);
   }
 
-  rz = sqlite3_malloc(ze-zt+1);
+  rz = sqlite3_malloc((int)(ze-zt+1));
   if (!rz){
     sqlite3_result_error_nomem(context);
     return;
@@ -1327,7 +1327,7 @@ static void reverseFunc(sqlite3_context *context, int argc, sqlite3_value **argv
     return;
   }
   z = (char *)sqlite3_value_text(argv[0]);
-  l = strlen(z);
+  l = (int)strlen(z);
   rz = sqlite3_malloc(l+1);
   if (!rz){
     sqlite3_result_error_nomem(context);
@@ -1502,8 +1502,8 @@ static void medianIterate(void* e, i64 c, void* pp){
 
   iL = p->pcnt;
   iR = p->cnt - p->pcnt;
-  il = p->mcnt + c;
-  ir = p->cnt - p->mcnt;
+  il = (int)(p->mcnt + c);
+  ir = (int)(p->cnt - p->mcnt);
 
   if( il >= iL ){
     if( ir >= iR ){
