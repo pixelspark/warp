@@ -87,7 +87,7 @@ class QBEResizableView: NSView {
 private class QBEResizerView: NSView {
 	private struct ResizingSession {
 		let downPoint: NSPoint
-		let downRect: NSRect
+		var downRect: NSRect
 		let downAnchor: QBEAnchor
 	}
 	
@@ -105,7 +105,7 @@ private class QBEResizerView: NSView {
 	}
 	
 	var contentView: NSView? { didSet {
-		update()
+		update(nil)
 	} }
 	
 	var hide: Bool = false { didSet {
@@ -189,15 +189,22 @@ private class QBEResizerView: NSView {
 			}
 		}
 		
-		update()
+		update(theEvent)
 	}
 	
-	private func update() {
+	private func update(event: NSEvent?) {
 		self.contentView?.frame = self.bounds.inset(self.inset)
 		
 		if let p = superview as? QBEResizableView {
 			p.delegate?.resizableView(p, changedFrameTo: p.frame)
 		}
+		
+		if let theEvent = event, let rs = resizingSession {
+			let locationInView = self.convertPoint(theEvent.locationInWindow, fromView: nil)
+			let locationInSuperView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
+			resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: rs.downAnchor)
+		}
+
 		
 		// Set cursor rects
 		self.resetCursorRects()
@@ -269,7 +276,6 @@ private class QBEResizerView: NSView {
 	
 	override func mouseDragged(theEvent: NSEvent) {
 		updateSize(theEvent)
-		NSCursor.closedHandCursor().push()
 	}
 	
 	override func mouseUp(theEvent: NSEvent) {
