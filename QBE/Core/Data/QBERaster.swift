@@ -447,6 +447,14 @@ class QBERasterData: NSObject, QBEData {
 					
 					// Which columns are going to show up in the result set?
 					let rightColumnsInResult = rightColumns.filter({return !leftColumns.contains($0)})
+					
+					// If no columns from the right table will ever show up, we don't have to do the join
+					if rightColumnsInResult.count == 0 {
+						callback(leftRaster)
+						return
+					}
+					
+					// Create a list of indices of the columns from the right table that need to be copied over
 					let rightIndicesInResult = rightColumnsInResult.map({return find(rightColumns, $0)! })
 					let rightIndicesInResultSet = NSMutableIndexSet()
 					rightIndicesInResult.each({rightIndicesInResultSet.addIndex($0)})
@@ -456,7 +464,12 @@ class QBERasterData: NSObject, QBEData {
 					var newData: [QBETuple] = []
 					var templateRow = QBERow(Array<QBEValue>(count: leftColumns.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: leftColumns + rightColumnsInResult)
 					
-					// Perform carthesian product
+					// Perform carthesian product (slow!)
+					/* TODO: A 'batch filter' approach, where for a subset of rows (±256?) we create a big OR expression
+					to look up all related records in the right table. On this smaller result set, we perform the carthesian
+					product below to find out which belongs to which. This allows outsourcing a lot of work to the database
+					in case the right dataset is the database, at the expense of some duplicate rows transmitted. This 
+					might even be implemented as a stream so we can throw away the left rows after they're joined. */
 					for leftRowNumber in 0..<leftRaster.rowCount {
 						let leftRow = QBERow(leftRaster[leftRowNumber], columnNames: leftColumns)
 						var foundRightMatch = false
