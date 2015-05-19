@@ -3,7 +3,7 @@ import Cocoa
 @IBDesignable class QBEStepsItemView: NSView {
 	private var highlighted = false
 	@IBOutlet var label: NSTextField?
-	@IBOutlet var imageView: NSImageView?
+	@IBOutlet var imageView: NSButton?
 	@IBOutlet var previousImageView: NSImageView?
 	@IBOutlet var nextImageView: NSImageView?
 	
@@ -56,6 +56,36 @@ import Cocoa
 				}
 			}
 		}
+	}
+	
+	override func validateMenuItem(menuItem: NSMenuItem) -> Bool {
+		if menuItem.action == Selector("remove:") {
+			return true
+		}
+		else if menuItem.action == Selector("showSuggestions:") {
+			if let s = step, let alternatives = s.alternatives where alternatives.count > 0 {
+				return true
+			}
+		}
+		
+		return false
+	}
+	
+	@IBAction func showSuggestions(sender: NSObject) {
+		if let s = step, let alternatives = s.alternatives where alternatives.count > 0 {
+			if let cv = self.superview as? NSCollectionView {
+				if let sc = cv.delegate as? QBEStepsViewController {
+					sc.delegate?.stepsController(sc, showSuggestionsForStep: s, atView: self)
+				}
+			}
+		}
+	}
+	
+	override func hitTest(aPoint: NSPoint) -> NSView? {
+		if self.selected {
+			return super.hitTest(aPoint)
+		}
+		return self
 	}
 	
 	private func update() {

@@ -55,11 +55,13 @@ class QBEStep: NSObject {
 	required init(coder aDecoder: NSCoder) {
 		previous = aDecoder.decodeObjectForKey("previousStep") as? QBEStep
 		next = aDecoder.decodeObjectForKey("nextStep") as? QBEStep
+		alternatives = aDecoder.decodeObjectForKey("alternatives") as? [QBEStep]
 	}
 	
 	func encodeWithCoder(coder: NSCoder) {
 		coder.encodeObject(previous, forKey: "previousStep")
 		coder.encodeObject(next, forKey: "nextStep")
+		coder.encodeObject(alternatives, forKey: "alternatives")
 	}
 	
 	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific

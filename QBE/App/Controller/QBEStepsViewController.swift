@@ -6,6 +6,7 @@ import Cocoa
 	func stepsController(vc: QBEStepsViewController, didRemoveStep: QBEStep)
 	func stepsController(vc: QBEStepsViewController, didMoveStep: QBEStep, afterStep: QBEStep?)
 	func stepsController(vc: QBEStepsViewController, didInsertStep: QBEStep, afterStep: QBEStep?)
+	func stepsController(vc: QBEStepsViewController, showSuggestionsForStep: QBEStep, atView: NSView?)
 }
 
 class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {

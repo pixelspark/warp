@@ -35,10 +35,7 @@ internal extension NSViewController {
 		
 		if let vc = self.storyboard?.instantiateControllerWithIdentifier("tipController") as? QBETipViewController {
 			vc.message = message
-			let popover = NSPopover()
-			popover.contentViewController = vc
-			popover.behavior = NSPopoverBehavior.Transient
-			popover.showRelativeToRect(atView.bounds, ofView: atView, preferredEdge: NSMaxYEdge)
+			self.presentViewController(vc, asPopoverRelativeToRect: atView.bounds, ofView: atView, preferredEdge: NSMaxYEdge, behavior: NSPopoverBehavior.Transient)
 		}
 	}
 }
@@ -554,42 +551,34 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 			calculate()
 			
 			// Show a tip if there are alternatives
+			// FIXME: Only works when the toolbar item has a view, and that blocks autovalidation... so disabled for now
 			if steps.count > 1 {
 				QBESettings.sharedInstance.once("suggestionsTip") {
-					if let toolbar = self.view.window?.toolbar {
-						for item in toolbar.items {
-							if let ti = item as? NSToolbarItem where ti.action == Selector("showSuggestions:") {
-								if let button = ti.view as? NSButton {
-									self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, click here.", comment: "Tip for suggestions button"), atView: button)
-								}
-							}
-						}
-					}
+					self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, click on the newly added step.", comment: "Tip for suggestions button"), atView: self.stepsViewController!.view)
 				}
 			}
 		}
 	}
 	
-	@IBAction func showSuggestions(sender: NSObject) {
+	func stepsController(vc: QBEStepsViewController, showSuggestionsForStep step: QBEStep, atView: NSView?) {
+		self.showSuggestionsForStep(step, atView: atView ?? self.stepsViewController?.view ?? self.view)
+	}
+	
+	private func showSuggestionsForStep(step: QBEStep, atView: NSView) {
 		QBEAssertMainThread()
 		
-		let sendingView: NSView
-		if let ti = sender as? NSToolbarItem {
-			sendingView = ti.view ?? self.view
-		}
-		else if let vw = sender as? NSView {
-			sendingView = vw
-		}
-		else {
-			sendingView = self.view
-		}
-		
-		if let alternatives = currentStep?.alternatives where alternatives.count > 0 {
+		if let alternatives = step.alternatives where alternatives.count > 0 {
 			if let sv = self.storyboard?.instantiateControllerWithIdentifier("suggestions") as? QBESuggestionsViewController {
 				sv.delegate = self
 				sv.suggestions = Array(alternatives)
-				self.presentViewController(sv, asPopoverRelativeToRect: sendingView.bounds, ofView: sendingView, preferredEdge: NSMinYEdge, behavior: NSPopoverBehavior.Semitransient)
+				self.presentViewController(sv, asPopoverRelativeToRect: atView.bounds, ofView: atView, preferredEdge: NSMinYEdge, behavior: NSPopoverBehavior.Semitransient)
 			}
+		}
+	}
+	
+	@IBAction func showSuggestions(sender: NSObject) {
+		if let s = currentStep {
+			showSuggestionsForStep(s, atView: self.stepsViewController?.view ?? self.view)
 		}
 	}
 	

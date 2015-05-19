@@ -94,6 +94,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 			if let tv = sv as? QBEResizableTabletView {
 				tv.selected = (tv == view)
 				if tv == view {
+					self.window?.makeFirstResponder(tv.tabletController.view)
 					delegate?.documentView(self, didSelectTablet: tv.tabletController)
 				}
 			}

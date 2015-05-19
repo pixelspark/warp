@@ -1121,6 +1121,11 @@ CA
                                         <action selector="exportFile:" target="6f7-a7-6o1" id="fzC-Od-uUm"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="58A66CDB-C539-48F9-875C-790A62D93359" label="Alternatives" paletteLabel="Show alternatives" tag="-1" image="ChangeIcon" id="FIb-De-h7B">
+                                    <connections>
+                                        <action selector="showSuggestions:" target="6f7-a7-6o1" id="vEM-eL-BsV"/>
+                                    </connections>
+                                </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="63411011-AB43-4F4F-949B-CA1E1E0CF7DB" label="Calculate" paletteLabel="Calculate" image="BigIcon" id="OzT-DI-1G1">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="32" height="32"/>
@@ -1140,22 +1145,6 @@ CA
                                         <action selector="setFullWorkingSet:" target="6f7-a7-6o1" id="pJO-7z-peH"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="0BEC5DFF-DB48-4C73-96D3-311D651560AD" label="Alternatives" paletteLabel="Show alternatives" image="ChangeIcon" id="xJa-5Q-4SE">
-                                    <nil key="toolTip"/>
-                                    <size key="minSize" width="32" height="32"/>
-                                    <size key="maxSize" width="32" height="32"/>
-                                    <button key="view" id="gi2-Ku-Aru">
-                                        <rect key="frame" x="23" y="14" width="32" height="32"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                        <buttonCell key="cell" type="bevel" bezelStyle="rounded" image="ChangeIcon" imagePosition="overlaps" alignment="center" imageScaling="proportionallyDown" inset="2" id="l96-Qw-TRb">
-                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                            <font key="font" metaFont="system"/>
-                                        </buttonCell>
-                                        <connections>
-                                            <action selector="showSuggestions:" target="6f7-a7-6o1" id="hBI-LF-iqo"/>
-                                        </connections>
-                                    </button>
-                                </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="uPf-Qt-XpM"/>
@@ -1164,7 +1153,6 @@ CA
                                 <toolbarItem reference="OzT-DI-1G1"/>
                                 <toolbarItem reference="qY2-Sw-ffx"/>
                                 <toolbarItem reference="wdl-hf-yLn"/>
-                                <toolbarItem reference="xJa-5Q-4SE"/>
                                 <toolbarItem reference="ZRd-bD-OPv"/>
                             </defaultToolbarItems>
                         </toolbar>
@@ -1449,34 +1437,21 @@ CA
         <scene sceneID="Fm8-kC-hUX">
             <objects>
                 <viewController storyboardIdentifier="suggestions" id="TDg-0B-lyo" customClass="QBESuggestionsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="y6U-4M-OI9">
+                    <view key="view" focusRingType="none" id="y6U-4M-OI9">
                         <rect key="frame" x="0.0" y="0.0" width="358" height="314"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aWK-mn-gan">
-                                <rect key="frame" x="278" y="3" width="76" height="32"/>
-                                <buttonCell key="cell" type="push" title="Apply" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="fMr-YO-xzR">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                    <string key="keyEquivalent" base64-UTF8="YES">
-DQ
-</string>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="chooseSuggestion:" target="TDg-0B-lyo" id="0gx-Mw-rhp"/>
-                                </connections>
-                            </button>
-                            <scrollView autohidesScrollers="YES" horizontalLineScroll="36" horizontalPageScroll="10" verticalLineScroll="36" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EGb-hU-fkL">
-                                <rect key="frame" x="10" y="41" width="338" height="263"/>
-                                <clipView key="contentView" id="1sO-PC-Eiu">
+                            <scrollView focusRingType="none" autohidesScrollers="YES" horizontalLineScroll="36" horizontalPageScroll="10" verticalLineScroll="36" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EGb-hU-fkL">
+                                <rect key="frame" x="7" y="7" width="344" height="300"/>
+                                <clipView key="contentView" focusRingType="none" drawsBackground="NO" id="1sO-PC-Eiu">
                                     <rect key="frame" x="1" y="0.0" width="238" height="134"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="34" id="LRg-Y6-Q5v">
+                                        <tableView focusRingType="none" appearanceType="vibrantLight" verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="34" id="LRg-Y6-Q5v">
                                             <rect key="frame" x="0.0" y="0.0" width="336" height="36"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
-                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                             <tableColumns>
                                                 <tableColumn identifier="suggestionIcon" editable="NO" width="64" minWidth="10" maxWidth="3.4028234663852886e+38" id="Omh-1D-vEL">
@@ -1487,7 +1462,7 @@ DQ
                                                     </tableHeaderCell>
                                                     <imageCell key="dataCell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="cEK-F4-Smh"/>
                                                 </tableColumn>
-                                                <tableColumn identifier="suggestionLabel" width="266" minWidth="40" maxWidth="1000" id="pgO-DP-Hm6">
+                                                <tableColumn identifier="suggestionLabel" width="272" minWidth="40" maxWidth="1000" id="pgO-DP-Hm6">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -1507,25 +1482,23 @@ DQ
                                             </connections>
                                         </tableView>
                                     </subviews>
-                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    <nil key="backgroundColor"/>
                                 </clipView>
-                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="NUm-sZ-uER">
+                                <scroller key="horizontalScroller" hidden="YES" appearanceType="vibrantLight" verticalHuggingPriority="750" horizontal="YES" id="NUm-sZ-uER">
                                     <rect key="frame" x="1" y="119" width="223" height="15"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
-                                <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="EfV-Hf-BUG">
+                                <scroller key="verticalScroller" hidden="YES" appearanceType="vibrantLight" verticalHuggingPriority="750" horizontal="NO" id="EfV-Hf-BUG">
                                     <rect key="frame" x="224" y="17" width="15" height="102"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="EGb-hU-fkL" firstAttribute="leading" secondItem="y6U-4M-OI9" secondAttribute="leading" constant="10" id="6x0-1e-74k"/>
-                            <constraint firstAttribute="trailing" secondItem="EGb-hU-fkL" secondAttribute="trailing" constant="10" id="M3l-3Q-Sob"/>
-                            <constraint firstAttribute="trailing" secondItem="aWK-mn-gan" secondAttribute="trailing" constant="10" id="PUQ-lS-HSn"/>
-                            <constraint firstItem="EGb-hU-fkL" firstAttribute="top" secondItem="y6U-4M-OI9" secondAttribute="top" constant="10" id="g75-0w-x8X"/>
-                            <constraint firstItem="aWK-mn-gan" firstAttribute="top" secondItem="EGb-hU-fkL" secondAttribute="bottom" constant="10" id="gyz-HJ-6Ai"/>
-                            <constraint firstAttribute="bottom" secondItem="aWK-mn-gan" secondAttribute="bottom" constant="10" id="hBz-hd-VfW"/>
+                            <constraint firstItem="EGb-hU-fkL" firstAttribute="leading" secondItem="y6U-4M-OI9" secondAttribute="leading" constant="7" id="6x0-1e-74k"/>
+                            <constraint firstAttribute="trailing" secondItem="EGb-hU-fkL" secondAttribute="trailing" constant="7" id="M3l-3Q-Sob"/>
+                            <constraint firstItem="EGb-hU-fkL" firstAttribute="top" secondItem="y6U-4M-OI9" secondAttribute="top" constant="7" id="g75-0w-x8X"/>
+                            <constraint firstAttribute="bottom" secondItem="EGb-hU-fkL" secondAttribute="bottom" constant="7" id="ir6-9W-tqP"/>
                         </constraints>
                     </view>
                     <connections>
