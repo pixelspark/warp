@@ -738,8 +738,8 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		let alias = self.sql.aliasFor(.Select)
-		let colNames = columns.map({self.sql.dialect.columnIdentifier($0, table: alias)}).implode(", ") ?? ""
+		let alias = self.sql.asSubquery.alias
+		let colNames = columns.map({self.sql.dialect.columnIdentifier($0, table: nil)}).implode(", ") ?? ""
 		return apply(self.sql.sqlSelect(colNames), resultingColumns: columns)
 	}
 	
