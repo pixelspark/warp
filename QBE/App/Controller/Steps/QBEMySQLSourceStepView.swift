@@ -91,31 +91,33 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 			
 			tableNames = []
 			tableView?.reloadData()
-			if let database = s.database, let db = QBEMySQLConnection(database: database) {
-				// Update list of databases
-				db.databases({(dbs) in
-					QBEAsyncMain {
-						self.databaseNames = dbs
-						self.databaseField?.reloadData()
-					}
-					
-					db.tables({(ts) in
+			QBEAsyncBackground {
+				if let database = s.database, let db = QBEMySQLConnection(database: database) {
+					// Update list of databases
+					db.databases({(dbs) in
 						QBEAsyncMain {
-							self.tableNames = ts
-							self.tableView?.reloadData()
-							
-							// Select current table
-							if self.tableNames != nil {
-								let currentTable = s.tableName
-								for i in 0..<self.tableNames!.count {
-									if self.tableNames![i]==currentTable {
-										self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
+							self.databaseNames = dbs
+							self.databaseField?.reloadData()
+						}
+						
+						db.tables({(ts) in
+							QBEAsyncMain {
+								self.tableNames = ts
+								self.tableView?.reloadData()
+								
+								// Select current table
+								if self.tableNames != nil {
+									let currentTable = s.tableName
+									for i in 0..<self.tableNames!.count {
+										if self.tableNames![i]==currentTable {
+											self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
+										}
 									}
 								}
 							}
-						}
+						})
 					})
-				})
+				}
 			}
 		}
 	}

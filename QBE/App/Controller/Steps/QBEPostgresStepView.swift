@@ -92,30 +92,32 @@ internal class QBEPostgresStepView: NSViewController, NSTableViewDataSource, NST
 			tableNames = []
 			tableView?.reloadData()
 			if let database = s.database {
-				// Update list of databases
-				database.databases({(dbs) in
-					QBEAsyncMain {
-						self.databaseNames = dbs
-						self.databaseField?.reloadData()
-					}
-					
-					database.tables({(ts) in
+				QBEAsyncBackground {
+					// Update list of databases
+					database.databases({(dbs) in
 						QBEAsyncMain {
-							self.tableNames = ts
-							self.tableView?.reloadData()
-							
-							// Select current table
-							if self.tableNames != nil {
-								let currentTable = s.tableName
-								for i in 0..<self.tableNames!.count {
-									if self.tableNames![i]==currentTable {
-										self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
+							self.databaseNames = dbs
+							self.databaseField?.reloadData()
+						}
+						
+						database.tables({(ts) in
+							QBEAsyncMain {
+								self.tableNames = ts
+								self.tableView?.reloadData()
+								
+								// Select current table
+								if self.tableNames != nil {
+									let currentTable = s.tableName
+									for i in 0..<self.tableNames!.count {
+										if self.tableNames![i]==currentTable {
+											self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
+										}
 									}
 								}
 							}
-						}
+						})
 					})
-				})
+				}
 			}
 		}
 	}
