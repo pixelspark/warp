@@ -28,6 +28,14 @@ private class QBEPostgresDialect: QBEStandardSQLDialect {
 		return super.aggregationToSQL(aggregation, alias: alias)
 	}
 	
+	private override func binaryToSQL(type: QBEBinary, first: String, second: String) -> String? {
+		switch type {
+			case .MatchesRegex: return "(\(forceStringExpression(second)) ~* \(forceStringExpression(first)))"
+			case .MatchesRegexStrict: return "(\(forceStringExpression(second)) ~ \(forceStringExpression(first)))"
+			default: return super.binaryToSQL(type, first: first, second: second)
+		}
+	}
+	
 	private override func forceStringExpression(expression: String) -> String {
 		return "CAST(\(expression) AS VARCHAR)"
 	}
