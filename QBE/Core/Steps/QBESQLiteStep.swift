@@ -553,13 +553,14 @@ class QBESQLiteSourceStep: QBEStep {
 	
 	private func switchDatabase() {
 		self.db = nil
-		self.tableName = nil
 		
 		if let url = file?.url {
 			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
 			
-			if let first = self.db?.tableNames?.first {
-				self.tableName = first
+			if self.tableName == nil {
+				if let first = self.db?.tableNames?.first {
+					self.tableName = first
+				}
 			}
 		}
 	}
@@ -594,6 +595,11 @@ class QBESQLiteSourceStep: QBEStep {
 		let b = aDecoder.decodeObjectForKey("fileBookmark") as? NSData
 		self.file = QBEFileReference.create(u, b)
 		super.init(coder: aDecoder)
+		
+		if let url = u {
+			url.startAccessingSecurityScopedResource()
+			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
+		}
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
