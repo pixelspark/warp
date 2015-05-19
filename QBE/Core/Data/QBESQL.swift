@@ -58,6 +58,9 @@ protocol QBESQLDialect {
 	/** Returns a column identifier for the given QBEColumn. **/
 	func columnIdentifier(column: QBEColumn, table: String?) -> String
 	
+	/** Returns the identifier that represents all columns in the given table (e.g. "table.*" or just "*". **/
+	func allColumnsIdentifier(table: String?) -> String
+	
 	func tableIdentifier(table: String) -> String
 	
 	/** Transforms the given expression to a SQL string. The inputValue parameter determines the return value of the
@@ -105,6 +108,13 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	
 	func tableIdentifier(table: String) -> String {
 		return "\(identifierQualifier)\(table.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape))\(identifierQualifier)"
+	}
+	
+	func allColumnsIdentifier(table: String?) -> String {
+		if let t = table {
+			return "\(tableIdentifier(t)).*"
+		}
+		return "*"
 	}
 	
 	private func literalString(str: String) -> String {
@@ -578,12 +588,26 @@ class QBESQLData: NSObject, QBEData {
 			
 			// Check if the other data set is a compatible SQL data set
 			if let rightSQL = rightData as? QBESQLData where isCompatibleWith(rightSQL) {
-				// Generate a join expression
+				// Get SQL from right dataset
 				let rightQuery = rightSQL.sql.sqlSelect(nil).sql
+				let leftAlias = self.sql.aliasFor(.Join)
 				let rightAlias = "F\(rightQuery.hash)"
-				if let es = sql.dialect.expressionToSQL(expression, alias: self.sql.aliasFor(.Join), foreignAlias: rightAlias, inputValue: nil) {
-					return apply(self.sql.sqlJoin("LEFT JOIN (\(rightQuery)) AS \(sql.dialect.tableIdentifier(rightAlias)) ON \(es)"), resultingColumns: columns)
+				
+				// Which columns?
+				let leftColumns = self.columns
+				let rightColumns = rightSQL.columns.filter({!leftColumns.contains($0)})
+				if rightColumns.count > 0 {
+					let rightSelects = rightColumns.map({return self.sql.dialect.columnIdentifier($0, table: rightAlias)}).implode(", ")!
+					let selects = "\(sql.dialect.allColumnsIdentifier(leftAlias)), \(rightSelects)"
+					
+					// Generate a join expression
+					if let es = sql.dialect.expressionToSQL(expression, alias: leftAlias, foreignAlias: rightAlias, inputValue: nil) {
+						return apply(self.sql
+							.sqlJoin("LEFT JOIN (\(rightQuery)) AS \(sql.dialect.tableIdentifier(rightAlias)) ON \(es)")
+							.sqlSelect(selects), resultingColumns: leftColumns + rightColumns)
+					}
 				}
+				return self
 			}
 			return fallback().join(join)
 		}
