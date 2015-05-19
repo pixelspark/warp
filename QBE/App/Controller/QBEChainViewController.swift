@@ -281,6 +281,9 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 		stepsChanged()
 		updateView()
 		calculate()
+		
+		undo?.prepareWithInvocationTarget(self).addStep(step)
+		undo?.setActionName(NSLocalizedString("Remove step", comment: ""))
 	}
 	
 	func stepsController(vc: QBEStepsViewController, didMoveStep: QBEStep, afterStep: QBEStep?) {
@@ -332,6 +335,12 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 	
 	func stepsController(vc: QBEStepsViewController, didInsertStep step: QBEStep, afterStep: QBEStep?) {
 		chain?.insertStep(step, afterStep: afterStep)
+		stepsChanged()
+	}
+	
+	// Used for undo for remove step
+	@objc func addStep(step: QBEStep) {
+		chain?.insertStep(step, afterStep: nil)
 		stepsChanged()
 	}
 	
@@ -439,7 +448,7 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 			chain?.head = step
 		}
 		
-		(undo?.prepareWithInvocationTarget(self) as? QBEChainViewController)?.removeStep(step)
+		undo?.prepareWithInvocationTarget(self).removeStep(step)
 		undo?.setActionName(String(format: NSLocalizedString("Add step '%@'", comment: ""), step.explain(locale, short: true)))
 		
 		updateView()
@@ -657,6 +666,9 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 			popStep()
 			remove(stepToRemove)
 			calculate()
+			
+			undo?.prepareWithInvocationTarget(self).addStep(stepToRemove)
+			undo?.setActionName(NSLocalizedString("Remove step", comment: ""))
 		}
 	}
 	

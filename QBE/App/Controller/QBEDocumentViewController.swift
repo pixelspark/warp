@@ -13,7 +13,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		self.documentView.removeAllTablets()
 		if let d = document {
 			for tablet in d.tablets {
-				self.addTablet(tablet)
+				self.addTablet(tablet, undo: false)
 			}
 		}
 	} }
@@ -24,7 +24,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 	
 	func chainViewDidClose(view: QBEChainViewController) {
 		if let t = view.chain?.tablet {
-			removeTablet(t)
+			removeTablet(t, undo: true)
 		}
 	}
 	
@@ -46,35 +46,53 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		formulaFieldCallback = callback
 	}
 	
-	func removeTablet(tablet: QBETablet) {
+	func removeTablet(tablet: QBETablet, undo: Bool) {
 		assert(tablet.document == document, "tablet should belong to our document")
 
 		document?.removeTablet(tablet)
 		self.configurator?.configure(nil, delegate: nil)
 		documentView.removeTablet(tablet)
 		
-		(undoManager?.prepareWithInvocationTarget(self) as? QBEDocumentViewController)?.addTablet(tablet, atLocation: nil)
-		undoManager?.setActionName(NSLocalizedString("Remove tablet", comment: ""))
+		// Register undo operation
+		if undo {
+			if let um = undoManager {
+				let target: AnyObject = um.prepareWithInvocationTarget(self)
+				target.addTablet(tablet, undo: false)
+				um.setActionName(NSLocalizedString("Remove tablet", comment: ""))
+			}
+		}
 	}
 	
-	func addTablet(tablet: QBETablet, atLocation location: CGPoint? = nil) {
-		// Check if this tablet is also in the document
-		if let d = document where tablet.document != document {
-			d.addTablet(tablet)
-		}
-		
+	private var defaultTabletFrame: CGRect { get {
+		let vr = self.workspaceView.documentVisibleRect
+		let defaultWidth: CGFloat = vr.size.width * 0.619 * self.workspaceView.magnification
+		let defaultHeight: CGFloat = vr.size.height * 0.619 * self.workspaceView.magnification
+		return CGRectMake(vr.origin.x + (vr.size.width - defaultWidth) / 2, vr.origin.y + (vr.size.height - defaultHeight) / 2, defaultWidth, defaultHeight)
+	} }
+	
+	func addTablet(tablet: QBETablet, atLocation location: CGPoint?, undo: Bool) {
 		// By default, tablets get a size that (when at 100% zoom) fills about 61% horizontally/vertically
 		if tablet.frame == nil {
-			let vr = self.workspaceView.documentVisibleRect
-			let defaultWidth: CGFloat = vr.size.width * 0.619 * self.workspaceView.magnification
-			let defaultHeight: CGFloat = vr.size.height * 0.619 * self.workspaceView.magnification
-			tablet.frame = CGRectMake(vr.origin.x + (vr.size.width - defaultWidth) / 2, vr.origin.y + (vr.size.height - defaultHeight) / 2, defaultWidth, defaultHeight)
+			tablet.frame = defaultTabletFrame
 		}
 		
 		if let l = location {
 			tablet.frame = tablet.frame!.centeredAt(l)
 		}
 		
+		self.addTablet(tablet, undo: undo)
+	}
+	
+	@objc func addTablet(tablet: QBETablet, undo: Bool) {
+		// Check if this tablet is also in the document
+		if let d = document where tablet.document != document {
+			d.addTablet(tablet)
+		}
+		
+		if tablet.frame == nil {
+			tablet.frame = defaultTabletFrame
+		}
+
 		if let tabletController = self.storyboard?.instantiateControllerWithIdentifier("chain") as? QBEChainViewController {
 			tabletController.delegate = self
 
@@ -84,6 +102,15 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 			
 			documentView.addTablet(tabletController)
 			documentView.selectTablet(tablet)
+		}
+		
+		// Register undo operation
+		if undo {
+			if let um = undoManager {
+				let target: AnyObject = um.prepareWithInvocationTarget(self)
+				target.removeTablet(tablet, undo: false)
+				um.setActionName(NSLocalizedString("Add tablet", comment: ""))
+			}
 		}
 	}
 	
@@ -110,7 +137,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		let pboard = NSPasteboard.generalPasteboard()
 		if let data = pboard.dataForType(QBEStep.dragType) {
 			if let step = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEStep {
-				self.addTablet(QBETablet(chain: QBEChain(head: step)))
+				self.addTablet(QBETablet(chain: QBEChain(head: step)), undo: true)
 			}
 		}
 		else {
@@ -144,7 +171,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 					let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue ?? "")}), readOnly: false)
 					let s = QBERasterStep(raster: raster)
 					let tablet = QBETablet(chain: QBEChain(head: s))
-					addTablet(tablet)
+					addTablet(tablet, undo: true)
 				}
 			}
 		}
@@ -187,7 +214,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 			QBEAsyncMain {
 				if sourceStep != nil {
 					let tablet = QBETablet(chain: QBEChain(head: sourceStep))
-					self.addTablet(tablet, atLocation: atLocation)
+					self.addTablet(tablet, atLocation: atLocation, undo: true)
 				}
 				else {
 					let alert = NSAlert()
@@ -216,17 +243,17 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 	}
 	
 	@IBAction func addTabletFromPresto(sender: NSObject) {
-		self.addTablet(QBETablet(chain: QBEChain(head: QBEPrestoSourceStep())))
+		self.addTablet(QBETablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true)
 	}
 	
 	@IBAction func addTabletFromMySQL(sender: NSObject) {
 		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", password: "", database: "test", tableName: "test")
-		self.addTablet(QBETablet(chain: QBEChain(head: s)))
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true)
 	}
 	
 	@IBAction func addTabletFromPostgres(sender: NSObject) {
 		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", password: "", database: "postgres", tableName: "")
-		self.addTablet(QBETablet(chain: QBEChain(head: s)))
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true)
 	}
 	
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
