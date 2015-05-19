@@ -591,7 +591,7 @@ class QBESQLData: NSObject, QBEData {
 				// Get SQL from right dataset
 				let rightQuery = rightSQL.sql.sqlSelect(nil).sql
 				let leftAlias = self.sql.aliasFor(.Join)
-				let rightAlias = "F\(rightQuery.hash)"
+				let rightAlias = "F\(abs(rightQuery.hash))"
 				
 				// Which columns?
 				let leftColumns = self.columns
