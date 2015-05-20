@@ -607,7 +607,7 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 				var insertAfter: QBEColumn? = nil
 				if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 					let firstSelectedColumn = selectedColumns.firstIndex
-					if firstSelectedColumn != NSNotFound {
+					if firstSelectedColumn != NSNotFound && firstSelectedColumn < cols.count {
 						insertAfter = cols[firstSelectedColumn]
 					}
 				}
