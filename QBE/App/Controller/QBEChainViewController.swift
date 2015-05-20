@@ -920,19 +920,7 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 	}
 	
 	@IBAction func removeDuplicateRows(sender: NSObject) {
-		pushStep(QBEDistinctStep(previous: self.currentStep))
-	}
-	
-	@IBAction func goBackForward(sender: NSObject) {
-		if let segment = sender as? NSSegmentedControl {
-			if segment.selectedSegment == 0 {
-				self.goBack(sender)
-			}
-			else if segment.selectedSegment == 1 {
-				self.goForward(sender)
-			}
-			segment.selectedSegment = -1
-		}
+		suggestSteps([QBEDistinctStep(previous: self.currentStep)])
 	}
 	
 	@IBAction func goBack(sender: NSObject) {
