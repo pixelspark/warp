@@ -632,7 +632,7 @@ class QBESQLData: NSObject, QBEData {
 		for targetColumn in columns {
 			if calculations[targetColumn] != nil {
 				let expression = calculations[targetColumn]!.prepare()
-				if let expressionString = sql.dialect.expressionToSQL(expression, alias: sql.alias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: nil)) {
+				if let expressionString = sql.dialect.expressionToSQL(expression, alias: sql.asSubquery.alias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sql.asSubquery.alias)) {
 					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil))")
 				}
 				else {
@@ -647,7 +647,7 @@ class QBESQLData: NSObject, QBEData {
 		// New columns are added at the end
 		for (targetColumn, expression) in calculations {
 			if !columns.contains(targetColumn) {
-				if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sql.alias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sql.alias)) {
+				if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sql.asSubquery.alias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sql.asSubquery.alias)) {
 					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil))")
 				}
 				else {
