@@ -43,7 +43,20 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		finished = !parser._parseRecord()
 		
 		if hasHeaders {
-			_columnNames = row.map({QBEColumn($0.stringValue ?? "")})
+			// Load column names, avoiding duplicate names
+			let columnNames = row.map({QBEColumn($0.stringValue ?? "")})
+			_columnNames = []
+			
+			for columnName in columnNames {
+				if _columnNames.contains(columnName) {
+					let count = _columnNames.reduce(0, combine: { (n, item) in return n + (item == columnName ? 1 : 0) })
+					_columnNames.append(QBEColumn("\(columnName.name)_\(QBEColumn.defaultColumnForIndex(count).name)"))
+				}
+				else {
+					_columnNames.append(columnName)
+				}
+			}
+			
 			rows.removeAll(keepCapacity: true)
 		}
 		else {
