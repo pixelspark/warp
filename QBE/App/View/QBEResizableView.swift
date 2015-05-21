@@ -89,6 +89,7 @@ private class QBEResizerView: NSView {
 		let downPoint: NSPoint
 		var downRect: NSRect
 		let downAnchor: QBEAnchor
+		var moved = false
 	}
 	
 	private let inset: CGFloat = 10.0
@@ -186,6 +187,7 @@ private class QBEResizerView: NSView {
 			if newFrame.size.width > 50 && newFrame.size.height > 50 {
 				self.superview?.frame = newFrame
 				self.frame = self.superview!.bounds
+				resizingSession!.moved = true
 			}
 		}
 		
@@ -202,7 +204,7 @@ private class QBEResizerView: NSView {
 		if let theEvent = event, let rs = resizingSession {
 			let locationInView = self.convertPoint(theEvent.locationInWindow, fromView: nil)
 			let locationInSuperView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
-			resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: rs.downAnchor)
+			resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: rs.downAnchor, moved: rs.moved)
 		}
 
 		
@@ -269,7 +271,12 @@ private class QBEResizerView: NSView {
 		let closestAnchor = anchorForPoint(locationInView)
 		let realAnchor = visibleAnchors.contains(closestAnchor) ? closestAnchor : .None
 		
-		resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: realAnchor)
+		// Order view to front
+		if let sv = superview, psv = sv.superview {
+			psv.addSubview(sv)
+		}
+		
+		resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: realAnchor, moved: false)
 		setNeedsDisplayInRect(self.bounds)
 		NSCursor.closedHandCursor().push()
 	}
@@ -288,18 +295,15 @@ private class QBEResizerView: NSView {
 			}
 		}
 		else {
-			if let r = resizingSession where locationInSuperView != resizingSession?.downPoint {
-				updateSize(theEvent)
-				
-				if let p = superview as? QBEResizableView {
-					p.delegate?.resizableView(p, changedFrameTo: p.frame)
+			if let r = resizingSession {
+				if r.moved {
+					if let p = superview as? QBEResizableView {
+						p.delegate?.resizableView(p, changedFrameTo: p.frame)
+					}
 				}
 			}
-			else {
-				if let sv = superview, psv = sv.superview {
-					psv.addSubview(sv)
-				}
 				
+			if resizingSession == nil || !resizingSession!.moved {
 				if let p = superview as? QBEResizableView {
 					if !p.selected {
 						p.delegate?.resizableViewWasSelected(p)
