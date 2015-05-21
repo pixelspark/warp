@@ -368,6 +368,11 @@ func ==(lhs: QBESQLiteDatabase, rhs: QBESQLiteDatabase) -> Bool {
 }
 
 internal class QBESQLiteDialect: QBEStandardSQLDialect {
+	// SQLite does not support column names with '"' in them.
+	override func columnIdentifier(column: QBEColumn, table: String?) -> String {
+		return super.columnIdentifier(QBEColumn(column.name.stringByReplacingOccurrencesOfString("\"", withString: "", options: NSStringCompareOptions.allZeros, range: nil)), table: table)
+	}
+	
 	override func binaryToSQL(type: QBEBinary, first: String, second: String) -> String? {
 		let result: String?
 		switch type {
