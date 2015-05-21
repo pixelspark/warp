@@ -1,7 +1,7 @@
 import Foundation
 import Cocoa
 
-class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate {
+@objc class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate {
 	private var documentView: QBEDocumentView!
 	private var configurator: QBEConfiguratorViewController? = nil
 	@IBOutlet var addTabletMenu: NSMenu!
@@ -46,6 +46,10 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		formulaFieldCallback = callback
 	}
 	
+	@objc func removeTablet(tablet: QBETablet) {
+		removeTablet(tablet, undo: false)
+	}
+	
 	func removeTablet(tablet: QBETablet, undo: Bool) {
 		assert(tablet.document == document, "tablet should belong to our document")
 
@@ -56,8 +60,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		// Register undo operation
 		if undo {
 			if let um = undoManager {
-				let target: AnyObject = um.prepareWithInvocationTarget(self)
-				target.addTablet(tablet, undo: false)
+				um.registerUndoWithTarget(self, selector: Selector("readdTablet:"), object: tablet)
 				um.setActionName(NSLocalizedString("Remove tablet", comment: ""))
 			}
 		}
@@ -81,6 +84,10 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		}
 		
 		self.addTablet(tablet, undo: undo)
+	}
+	
+	@objc func readdTablet(tablet: QBETablet) {
+		self.addTablet(tablet, undo: false)
 	}
 	
 	@objc func addTablet(tablet: QBETablet, undo: Bool) {
@@ -107,8 +114,7 @@ class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocu
 		// Register undo operation
 		if undo {
 			if let um = undoManager {
-				let target: AnyObject = um.prepareWithInvocationTarget(self)
-				target.removeTablet(tablet, undo: false)
+				um.registerUndoWithTarget(self, selector: Selector("removeTablet:"), object: tablet)
 				um.setActionName(NSLocalizedString("Add tablet", comment: ""))
 			}
 		}

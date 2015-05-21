@@ -40,7 +40,7 @@ internal extension NSViewController {
 	}
 }
 
-class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget {
+@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget {
 	var suggestions: QBEFuture<[QBEStep]>?
 	let calculator: QBECalculator = QBECalculator()
 	var dataViewController: QBEDataViewController?
@@ -445,7 +445,7 @@ class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBED
 			chain?.head = step
 		}
 		
-		undo?.prepareWithInvocationTarget(self).removeStep(step)
+		undo?.prepareWithInvocationTarget(self).remove(step)
 		undo?.setActionName(String(format: NSLocalizedString("Add step '%@'", comment: ""), step.explain(locale, short: true)))
 		
 		updateView()

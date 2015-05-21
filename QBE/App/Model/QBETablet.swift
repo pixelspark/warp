@@ -30,7 +30,7 @@ private class QBERectangle: NSObject, NSSecureCoding {
 
 /** A 'tablet' is a user-defined working item that represents tabular data and (possibly in the future) other forms of
 data. Currently a tablet is always comprised of a QBEChain that calculates data. **/
-class QBETablet: NSObject, NSSecureCoding {
+@objc class QBETablet: NSObject, NSSecureCoding {
 	weak internal(set) var document: QBEDocument? = nil
 	var frame: CGRect? = nil
 	
