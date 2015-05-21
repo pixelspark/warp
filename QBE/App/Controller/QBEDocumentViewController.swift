@@ -243,12 +243,15 @@ import Cocoa
 	@IBAction func addTabletFromFile(sender: NSObject) {
 		let no = NSOpenPanel()
 		no.canChooseFiles = true
+		no.allowsMultipleSelection = true
 		no.allowedFileTypes = QBEFactory.sharedInstance.fileTypesForReading
 		
 		no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result==NSFileHandlingPanelOKButton {
-				if let url = no.URLs[0] as? NSURL {
-					self.addTabletFromURL(url)
+				for u in no.URLs {
+					if let url = u as? NSURL {
+						self.addTabletFromURL(url)
+					}
 				}
 			}
 		})
