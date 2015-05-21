@@ -143,11 +143,17 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 		}
 	}
 	
+	override func viewDidDisappear() {
+		collectionView?.removeObserver(self, forKeyPath: "selectionIndexes")
+		collectionView?.unbind(NSContentBinding)
+		super.viewDidDisappear()
+	}
+	
 	override func viewWillAppear() {
 		collectionView?.itemPrototype = QBEStepsItem(nibName: "QBEStepsItem", bundle: nil)
 		//collectionView?.content = steps
 		collectionView?.bind(NSContentBinding, toObject: self, withKeyPath: "steps", options: nil)
-		collectionView.addObserver(self, forKeyPath: "selectionIndexes", options: NSKeyValueObservingOptions.New, context: nil)
+		collectionView?.addObserver(self, forKeyPath: "selectionIndexes", options: NSKeyValueObservingOptions.New, context: nil)
 		update()
 	}
 }

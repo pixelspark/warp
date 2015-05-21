@@ -16,6 +16,11 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	private var numberCell: MBTableGridCell!
 	private let DefaultColumnWidth = 100.0
 	
+	deinit {
+		self.tableView?.dataSource = nil
+		self.tableView?.delegate = nil
+	}
+	
 	var calculating: Bool = false { didSet {
 		update()
 	} }
@@ -294,6 +299,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		self.tableView?.delegate = self
 		self.tableView?.reloadData()
 		super.viewWillAppear()
+	}
+	
+	override func viewWillDisappear() {
+		self.tableView?.dataSource = nil
+		self.tableView?.delegate = nil
+		super.viewWillDisappear()
 	}
 	
 	override func viewDidLoad() {

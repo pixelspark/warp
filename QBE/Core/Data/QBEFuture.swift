@@ -40,8 +40,8 @@ internal func QBEAsyncBackground(block: () -> ()) {
 	dispatch_async(gq, block)
 }
 
-protocol QBEJobDelegate {
-	func job(job: QBEJob, didProgress: Double)
+@objc protocol QBEJobDelegate {
+	func job(job: AnyObject, didProgress: Double)
 }
 
 /** The QBEJob interface provides access to an object that can be used to track the progress of, and cancel, a single 
@@ -60,7 +60,7 @@ class QBEJob {
 	private var progressComponents: [Int: Double] = [:]
 	/* FIXME: delegate needs to be weak (but then QBEJobDelegate needs to be @objc, which in turn requires QBEJob to be 
 	NSObject subclass, which crashes the compiler... */
-	var delegate: QBEJobDelegate?
+	weak var delegate: QBEJobDelegate?
 	
 	func reportProgress(progress: Double, forKey: Int) {
 		if progress < 0.0 || progress > 1.0 {
@@ -192,6 +192,9 @@ private class QBEBatch<T>: QBEJob {
 		return cached != nil
 	} }
 	
+	/** 
+	Called by a producer to return the result of a job. This method will call all callbacks on the waiting list (on the
+	main thread) and subsequently empty the waiting list. Enqueue can only be called once on a batch. */
 	private func satisfy(value: T) {
 		assert(cached == nil, "QBEBatch.satisfy called with cached!=nil")
 		assert(!satisfied, "QBEBatch already satisfied")
@@ -205,7 +208,8 @@ private class QBEBatch<T>: QBEJob {
 		waitingList = []
 	}
 	
-	/* Expire is like cancel, only the waiting consumers are not removed from the waiting list. This allows a job to 
+	/**
+	Expire is like cancel, only the waiting consumers are not removed from the waiting list. This allows a job to
 	return a partial result (by calling the callback while job.cancelled is already true) */
 	func expire() {
 		if !satisfied {
@@ -213,6 +217,8 @@ private class QBEBatch<T>: QBEJob {
 		}
 	}
 	
+	/**
+	Cancel this job and remove all waiting listeners (they will never be called back). */
 	override func cancel() {
 		if !satisfied {
 			waitingList.removeAll(keepCapacity: false)

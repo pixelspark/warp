@@ -21,7 +21,19 @@ internal extension String {
 		}
 	}
 	
-	/** 
+	static func randomStringWithLength (len : Int) -> String {
+		let letters : NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+		var randomString : NSMutableString = NSMutableString(capacity: len)
+		let length = UInt32 (letters.length)
+		
+		for i in 0..<len {
+			let r = arc4random_uniform(length)
+			randomString.appendFormat("%C", letters.characterAtIndex(Int(r)))
+		}
+		return String(randomString)
+	}
+	
+	/**
 	Calculates the Levenshtein (edit) distance between this string and another string. */
 	func levenshteinDistance(toString: String) -> Int {
 		// create character arrays

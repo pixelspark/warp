@@ -91,14 +91,14 @@ class QBECalculator {
 				maxInputRows = inputRowsForExample(sourceStep)
 				let maxOutputRows = desiredExampleRows
 				QBELog("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
-				currentData = QBEFuture<QBEData>({(job, callback) in
+				currentData = QBEFuture<QBEData>({ [unowned self] (job, callback) in
 					sourceStep.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
 				})
 			}
 			
 			// Set up calculation for the raster
 			let startTime = NSDate.timeIntervalSinceReferenceDate()
-			currentRaster = QBEFuture<QBERaster>({(job: QBEJob?, callback: QBEFuture<QBERaster>.Callback) in
+			currentRaster = QBEFuture<QBERaster>({ [unowned self] (job: QBEJob?, callback: QBEFuture<QBERaster>.Callback) in
 				if let cd = self.currentData {
 					cd.get({ (data: QBEData) -> () in
 						data.raster(job, callback: callback)
@@ -107,7 +107,7 @@ class QBECalculator {
 			})
 			
 			// Wait for the raster to arrive so we can indicate the calculation has ended
-			currentRaster!.get({(r) in
+			currentRaster!.get({[unowned self] (r) in
 				self.calculationInProgressForStep = nil
 			})
 			

@@ -41,10 +41,10 @@ internal extension NSViewController {
 }
 
 @objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget {
-	var suggestions: QBEFuture<[QBEStep]>?
-	let calculator: QBECalculator = QBECalculator()
-	var dataViewController: QBEDataViewController?
-	var stepsViewController: QBEStepsViewController?
+	private var suggestions: QBEFuture<[QBEStep]>?
+	private let calculator: QBECalculator = QBECalculator()
+	private var dataViewController: QBEDataViewController?
+	private var stepsViewController: QBEStepsViewController?
 	private var outletDropView: QBEOutletDropView!
 	
 	@IBOutlet var outletView: QBEOutletView!
@@ -257,7 +257,7 @@ internal extension NSViewController {
 		self.view.window?.update() // So that the 'cancel calculation' toolbar button autovalidates
 	}
 	
-	func job(job: QBEJob, didProgress: Double) {
+	@objc func job(job: AnyObject, didProgress: Double) {
 		self.dataViewController?.progress = didProgress
 	}
 	

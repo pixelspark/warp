@@ -57,10 +57,22 @@ import Cocoa
 		self.configurator?.configure(nil, delegate: nil)
 		documentView.removeTablet(tablet)
 		
-		// Register undo operation
+		for cvc in self.childViewControllers {
+			if let child = cvc as? QBEChainViewController {
+				if child.chain?.tablet == tablet {
+					child.removeFromParentViewController()
+				}
+			}
+		}
+		
+		self.view.window?.makeFirstResponder(self.documentView)
+		
+		// Register undo operation. Do not retain the QBETablet but instead serialize, so all caches are properly destroyed.
 		if undo {
+			let data = NSKeyedArchiver.archivedDataWithRootObject(tablet)
+			
 			if let um = undoManager {
-				um.registerUndoWithTarget(self, selector: Selector("readdTablet:"), object: tablet)
+				um.registerUndoWithTarget(self, selector: Selector("addTabletFromArchivedData:"), object: data)
 				um.setActionName(NSLocalizedString("Remove tablet", comment: ""))
 			}
 		}
@@ -86,8 +98,10 @@ import Cocoa
 		self.addTablet(tablet, undo: undo)
 	}
 	
-	@objc func readdTablet(tablet: QBETablet) {
-		self.addTablet(tablet, undo: false)
+	@objc func addTabletFromArchivedData(data: NSData) {
+		if let t = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBETablet {
+			self.addTablet(t, undo: false)
+		}
 	}
 	
 	@objc func addTablet(tablet: QBETablet, undo: Bool) {
@@ -109,14 +123,6 @@ import Cocoa
 			
 			documentView.addTablet(tabletController)
 			documentView.selectTablet(tablet)
-		}
-		
-		// Register undo operation
-		if undo {
-			if let um = undoManager {
-				um.registerUndoWithTarget(self, selector: Selector("removeTablet:"), object: tablet)
-				um.setActionName(NSLocalizedString("Add tablet", comment: ""))
-			}
 		}
 	}
 	

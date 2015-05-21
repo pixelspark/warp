@@ -48,7 +48,7 @@ class QBEStreamData: QBEData {
 		
 		let s = source.clone()
 		var appender: QBESink! = nil
-		appender = { (rows, hasNext) -> () in
+		appender = {[unowned self] (rows, hasNext) -> () in
 			let cancelled = job?.cancelled ?? false
 			if hasNext && !cancelled {
 				QBEAsyncBackground {
