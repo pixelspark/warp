@@ -112,10 +112,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	func resizableViewWasSelected(view: QBEResizableView) {
 		flowchartView.selectedArrow = nil
 		selectView(view as? QBEResizableTabletView)
-		zoomToView(view as! QBEResizableTabletView)
 	}
 	
 	func resizableViewWasDoubleClicked(view: QBEResizableView) {
+		zoomToView(view as! QBEResizableTabletView)
 	}
 	
 	func resizableView(view: QBEResizableView, changedFrameTo frame: CGRect) {
