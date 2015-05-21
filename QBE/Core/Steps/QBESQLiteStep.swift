@@ -30,7 +30,7 @@ internal class QBESQLiteResult {
 		// If there are parameters, bind them
 		var ret = true
 		
-		dispatch_sync(QBESQLiteDatabase.sharedQueue) {
+		dispatch_sync(self.db.queue) {
 			if let p = parameters {
 				var i = 0
 				for value in p {
@@ -190,7 +190,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 	internal var url: String?
 	let db: COpaquePointer
 	
-	class var sharedQueue : dispatch_queue_t {
+	private class var sharedQueue : dispatch_queue_t {
 		struct Static {
 			static var onceToken : dispatch_once_t = 0
 			static var instance : dispatch_queue_t? = nil
@@ -202,13 +202,40 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 		return Static.instance!
 	}
 	
+	private var ownQueue : dispatch_queue_t {
+		struct Static {
+			static var onceToken : dispatch_once_t = 0
+			static var instance : dispatch_queue_t? = nil
+		}
+		dispatch_once(&Static.onceToken) {
+			Static.instance = dispatch_queue_create("QBESQLiteDatabase.Queue", DISPATCH_QUEUE_SERIAL)
+			dispatch_set_target_queue(Static.instance, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
+		}
+		return Static.instance!
+	}
+	
+	private var queue: dispatch_queue_t { get {
+		switch sqlite3_threadsafe() {
+			case 0:
+				/* SQLite was compiled without any form of thread-safety, so all requests to it need to go through the 
+				shared SQLite queue */
+				return QBESQLiteDatabase.sharedQueue
+			
+			default:
+				/* SQLite is (at least) thread safe (i.e. a single connection may be used by a single thread; concurrently
+				other threads may use different connections). */
+				return ownQueue
+		}
+	} }
+	
+	
 	private var lastError: String {
 		 return String.fromCString(sqlite3_errmsg(self.db)) ?? ""
 	}
 	
 	private func perform(op: () -> Int32) -> Bool {
 		var ret: Bool = true
-		dispatch_sync(QBESQLiteDatabase.sharedQueue) {
+		dispatch_sync(queue) {
 			let code = op()
 			if code != SQLITE_OK && code != SQLITE_DONE && code != SQLITE_ROW {
 				QBELog("SQLite error \(code): \(self.lastError)")
