@@ -235,7 +235,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 	
 	private func perform(op: () -> Int32) -> Bool {
 		var ret: Bool = true
-		dispatch_sync(queue) {
+		dispatch_sync(queue) {() -> () in
 			let code = op()
 			if code != SQLITE_OK && code != SQLITE_DONE && code != SQLITE_ROW {
 				QBELog("SQLite error \(code): \(self.lastError)")
@@ -364,7 +364,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 }
 
 func ==(lhs: QBESQLiteDatabase, rhs: QBESQLiteDatabase) -> Bool {
-	return lhs.url == rhs.url && lhs.url != nil && rhs.url != nil
+	return lhs.db == rhs.db || (lhs.url == rhs.url && lhs.url != nil && rhs.url != nil)
 }
 
 internal class QBESQLiteDialect: QBEStandardSQLDialect {
@@ -494,9 +494,20 @@ class QBESQLiteCachedData: QBEProxyData {
 	private let locale: QBELocale?
 	let cacheJob: QBEJob
 	
+	private class var sharedCacheDatabase : QBESQLiteDatabase {
+		struct Static {
+			static var onceToken : dispatch_once_t = 0
+			static var instance : QBESQLiteDatabase? = nil
+		}
+		dispatch_once(&Static.onceToken) {
+			Static.instance = QBESQLiteDatabase(path: "", readOnly: false)
+		}
+		return Static.instance!
+	}
+	
 	init(source: QBEData, locale: QBELocale?) {
-		database = QBESQLiteDatabase(path: "", readOnly: false)!
-		tableName = "cache"
+		database = QBESQLiteCachedData.sharedCacheDatabase
+		tableName = "cache_\(String.randomStringWithLength(32))"
 		self.locale = locale
 		cacheJob = QBEJob()
 		super.init(data: source)
@@ -504,8 +515,8 @@ class QBESQLiteCachedData: QBEProxyData {
 		let dialect = database.dialect
 		
 		// Create a table to cache this dataset
-		QBEAsyncBackground {
-			source.columnNames { (columns) -> () in
+		QBEAsyncBackground { [unowned self] () -> () in
+			source.columnNames { [unowned self] (columns) -> () in
 				let columnSpec = columns.map({(column) -> String in
 					let colString = dialect.columnIdentifier(column, table: nil)
 					return "\(colString) VARCHAR"
@@ -514,11 +525,9 @@ class QBESQLiteCachedData: QBEProxyData {
 				let sql = "CREATE TABLE \(dialect.tableIdentifier(self.tableName)) (\(columnSpec))"
 				if let q = self.database.query(sql) {
 					q.run()
-					
 					self.stream = source.stream()
 					
 					// We do not need to wait for this cached data to be written to disk
-					let dialect = self.database.dialect
 					self.database.query("PRAGMA synchronous = OFF")?.run()
 					self.database.query("PRAGMA journal_mode = MEMORY")?.run()
 					self.database.query("BEGIN TRANSACTION")?.run()
@@ -535,6 +544,7 @@ class QBESQLiteCachedData: QBEProxyData {
 	
 	deinit {
 		cacheJob.cancel()
+		self.database.query("DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName))")
 	}
 	
 	private func ingest(rows: ArraySlice<QBETuple>, hasMore: Bool) {
@@ -555,7 +565,7 @@ class QBESQLiteCachedData: QBEProxyData {
 			// Swap out the original source with our new cached source
 			QBELog("Done caching, swapping out")
 			self.database.query("END TRANSACTION")?.run()
-			self.data.columnNames({ (columns) -> () in
+			self.data.columnNames({[unowned self] (columns) -> () in
 				self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: columns, locale: self.locale)
 				self.isCached = true
 			})
