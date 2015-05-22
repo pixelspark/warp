@@ -445,9 +445,6 @@ internal extension NSViewController {
 			chain?.head = step
 		}
 		
-		undo?.prepareWithInvocationTarget(self).remove(step)
-		undo?.setActionName(String(format: NSLocalizedString("Add step '%@'", comment: ""), step.explain(locale, short: true)))
-		
 		updateView()
 		stepsChanged()
 	}
