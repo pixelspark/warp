@@ -1,6 +1,6 @@
 import Cocoa
 
-protocol QBEArrow: NSObjectProtocol {
+@objc protocol QBEArrow: NSObjectProtocol {
 	var sourceFrame: CGRect { get }
 	var targetFrame: CGRect { get }
 }

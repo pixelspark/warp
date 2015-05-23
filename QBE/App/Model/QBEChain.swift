@@ -1,7 +1,20 @@
 import Foundation
 
+struct QBEDependency: Hashable, Equatable {
+	let step: QBEStep
+	let dependsOn: QBEChain
+	
+	var hashValue: Int { get {
+		return step.hashValue ^ dependsOn.hashValue
+	} }
+}
+
+func ==(lhs: QBEDependency, rhs: QBEDependency) -> Bool {
+	return lhs.step == rhs.step && lhs.dependsOn == rhs.dependsOn
+}
+
 protocol QBEChainDependent: NSObjectProtocol {
-	var dependencies: Set<QBEChain> { get }
+	var dependencies: Set<QBEDependency> { get }
 }
 
 /** QBEChain represents a chain of steps, leading to a result data set. **/
@@ -27,8 +40,8 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 		return true
 	}
 	
-	var dependencies: Set<QBEChain> { get {
-		var deps: Set<QBEChain> = []
+	var dependencies: Set<QBEDependency> { get {
+		var deps: Set<QBEDependency> = []
 		
 		for s in steps {
 			if let sd = s as? QBEChainDependent {
@@ -40,7 +53,7 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 	} }
 	
 	var isPartOfDependencyLoop: Bool { get {
-		return dependencies.contains(self)
+		return Array(dependencies).map({$0.dependsOn}).contains(self)
 	} }
 	
 	var steps: [QBEStep] { get {

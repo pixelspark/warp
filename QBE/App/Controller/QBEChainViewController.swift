@@ -114,7 +114,7 @@ internal extension NSViewController {
 	func receiveDropFromOutlet(draggedObject: AnyObject?) {
 		if let myChain = chain {
 			if let otherChain = draggedObject as? QBEChain {
-				if otherChain == myChain || otherChain.dependencies.contains(myChain) {
+				if otherChain == myChain || Array(otherChain.dependencies).map({$0.dependsOn}).contains(myChain) {
 					// This would introduce a loop, don't do anything.
 				}
 				else {

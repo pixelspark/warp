@@ -219,8 +219,31 @@ import Cocoa
 		self.workspaceView.magnifyToFitRect(wantsZoomToView.frame)
 	}
 	
-	func documentView(view: QBEDocumentView, didSelectTablet: QBEChainViewController?) {
-		if let tv = didSelectTablet {
+	func documentView(view: QBEDocumentView, didSelectArrow arrow: QBEArrow?) {
+		if let ta = arrow as? QBETabletArrow {
+			if let fromStep = ta.fromStep, let fromTablet = ta.from {
+				findAndSelectStep(fromStep, inChain: fromTablet.chain)
+			}
+		}
+	}
+	
+	func findAndSelectStep(step: QBEStep, inChain chain: QBEChain) {
+		if let tablet = chain.tablet {
+			for cvc in self.childViewControllers {
+				if let child = cvc as? QBEChainViewController {
+					if child.chain?.tablet == tablet {
+						documentView.selectTablet(tablet)
+						child.view.superview?.orderFront()
+						didSelectTablet(child)
+						child.currentStep = step
+					}
+				}
+			}
+		}
+	}
+	
+	private func didSelectTablet(tabletViewController: QBEChainViewController?) {
+		if let tv = tabletViewController {
 			self.setFormula(QBEValue.InvalidValue, callback: nil)
 			tv.tabletWasSelected()
 		}
@@ -228,6 +251,10 @@ import Cocoa
 			self.setFormula(QBEValue.InvalidValue, callback: nil)
 			self.configurator?.configure(nil, delegate: nil)
 		}
+	}
+	
+	func documentView(view: QBEDocumentView, didSelectTablet tablet: QBEChainViewController?) {
+		didSelectTablet(tablet)
 	}
 	
 	private func addTabletFromURL(url: NSURL, atLocation: CGPoint? = nil) {

@@ -63,6 +63,10 @@ internal extension CGPoint {
 }
 
 internal extension NSView {
+	func orderFront() {
+		self.superview?.addSubview(self)
+	}
+	
 	func addSubview(view: NSView, animated: Bool) {
 		if !animated {
 			self.addSubview(view)

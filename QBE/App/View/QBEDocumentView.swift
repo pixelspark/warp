@@ -4,16 +4,19 @@ import Cocoa
 	func documentView(view: QBEDocumentView, didReceiveFiles: [String], atLocation: CGPoint)
 	func documentView(view: QBEDocumentView, didReceiveChain: QBEChain, atLocation: CGPoint)
 	func documentView(view: QBEDocumentView, didSelectTablet: QBEChainViewController?)
+	func documentView(view: QBEDocumentView, didSelectArrow: QBEArrow?)
 	func documentView(view: QBEDocumentView, wantsZoomToView: NSView)
 }
 
 class QBETabletArrow: NSObject, QBEArrow {
-	private weak var from: QBETablet?
-	private weak var to: QBETablet?
+	private(set) weak var from: QBETablet?
+	private(set) weak var to: QBETablet?
+	private(set) weak var fromStep: QBEStep?
 	
-	init(from: QBETablet, to: QBETablet) {
+	init(from: QBETablet, to: QBETablet, fromStep: QBEStep) {
 		self.from = from
 		self.to = to
+		self.fromStep = fromStep
 	}
 	
 	var sourceFrame: CGRect { get {
@@ -98,6 +101,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	
 	func flowchartView(view: QBEFlowchartView, didSelectArrow: QBEArrow?) {
 		selectView(nil)
+		delegate?.documentView(self, didSelectArrow: didSelectArrow)
 	}
 	
 	private func selectView(view: QBEResizableTabletView?) {
@@ -193,8 +197,8 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		for va in subviews {
 			if let sourceChain = (va as? QBEResizableTabletView)?.tabletController.chain {
 				for dep in sourceChain.dependencies {
-					if let s = sourceChain.tablet, let t = dep.tablet {
-						arrows.append(QBETabletArrow(from: s, to: t))
+					if let s = sourceChain.tablet, let t = dep.dependsOn.tablet {
+						arrows.append(QBETabletArrow(from: s, to: t, fromStep: dep.step))
 					}
 				}
 			}

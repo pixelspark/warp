@@ -24,9 +24,9 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		super.encodeWithCoder(coder)
 	}
 	
-	var dependencies: Set<QBEChain> { get {
+	var dependencies: Set<QBEDependency> { get {
 		if let r = right {
-			return [r]
+			return [QBEDependency(step: self, dependsOn: r)]
 		}
 		return []
 	} }
