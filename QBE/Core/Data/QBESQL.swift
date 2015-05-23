@@ -628,11 +628,13 @@ class QBESQLData: NSObject, QBEData {
 		var targetFound = false
 		var newColumns = columns
 		
+		let sourceSQL = sql
+		
 		// Re-calculate existing columns first
 		for targetColumn in columns {
 			if calculations[targetColumn] != nil {
 				let expression = calculations[targetColumn]!.prepare()
-				if let expressionString = sql.dialect.expressionToSQL(expression, alias: sql.asSubquery.alias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sql.asSubquery.alias)) {
+				if let expressionString = sql.dialect.expressionToSQL(expression, alias: sourceSQL.alias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sourceSQL.alias)) {
 					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil))")
 				}
 				else {
@@ -640,14 +642,14 @@ class QBESQLData: NSObject, QBEData {
 				}
 			}
 			else {
-				values.append(sql.dialect.columnIdentifier(targetColumn, table: sql.alias))
+				values.append(sql.dialect.columnIdentifier(targetColumn, table: sourceSQL.alias))
 			}
 		}
 		
 		// New columns are added at the end
 		for (targetColumn, expression) in calculations {
 			if !columns.contains(targetColumn) {
-				if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sql.asSubquery.alias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sql.asSubquery.alias)) {
+				if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sourceSQL.alias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sourceSQL.alias)) {
 					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil))")
 				}
 				else {
@@ -658,7 +660,7 @@ class QBESQLData: NSObject, QBEData {
 		}
 		
 		if let valueString = values.implode(", ") {
-			return apply(sql.sqlSelect(valueString), resultingColumns: newColumns)
+			return apply(sourceSQL.sqlSelect(valueString), resultingColumns: newColumns)
 		}
 		return QBERasterData()
     }
