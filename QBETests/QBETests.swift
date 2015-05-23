@@ -181,8 +181,8 @@ class QBETests: XCTestCase {
 			b.raster(job, callback: { (bRaster) -> () in
 				let equal = aRaster.compare(bRaster)
 				if !equal {
-					QBELog("A: \(aRaster.debugDescription)")
-					QBELog("B: \(bRaster.debugDescription)")
+					job.log("A: \(aRaster.debugDescription)")
+					job.log("B: \(bRaster.debugDescription)")
 				}
 				callback(equal)
 			})

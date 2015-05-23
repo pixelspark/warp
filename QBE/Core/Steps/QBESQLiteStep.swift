@@ -565,7 +565,7 @@ class QBESQLiteCachedData: QBEProxyData {
 		
 		if !hasMore {
 			// Swap out the original source with our new cached source
-			QBELog("Done caching, swapping out")
+			self.cacheJob.log("Done caching, swapping out")
 			self.database.query("END TRANSACTION")?.run()
 			self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
 				self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: columns, locale: self.locale)

@@ -133,7 +133,7 @@ class QBEJob {
 			block()
 			let d = CFAbsoluteTimeGetCurrent() - t
 			
-			QBELog("QBETime\t\(description)\t\(items) \(itemType):\t\(round(10*Double(items)/d)/10) \(itemType)/s")
+			log("\(description)\t\(items) \(itemType):\t\(round(10*Double(items)/d)/10) \(itemType)/s")
 			self.reportTime(description, time: d)
 		#else
 			block()
@@ -147,7 +147,7 @@ class QBEJob {
 	func reportProgress(progress: Double, forKey: Int) {
 		if progress < 0.0 || progress > 1.0 {
 			// Ignore spurious progress reports
-			QBELog("Ignoring spurious progress report \(progress) for key \(forKey)")
+			log("Ignoring spurious progress report \(progress) for key \(forKey)")
 		}
 		
 		QBEAsyncMain {
@@ -180,7 +180,22 @@ class QBEJob {
 		self.cancelled = true
 	}
 	
+	/** 
+	Print a message to the debug log. The message is sent to the console asynchronously (but ordered) and preprended
+	with the 'job ID'. No messages will be logged when not compiled in debug mode. */
+	func log(message: String, file: StaticString = __FILE__, line: UWord = __LINE__) {
+		#if DEBUG
+			let id = self.jobID
+			dispatch_async(dispatch_get_main_queue()) {
+				println("[\(id)] \(message)")
+			}
+		#endif
+	}
+	
 	#if DEBUG
+	private static var jobCounter = 0
+	private let jobID = jobCounter++
+	
 	private var timeComponents: [String: Double] = [:]
 	
 	func reportTime(component: String, time: Double) {
@@ -193,9 +208,7 @@ class QBEJob {
 	
 		let tcs = timeComponents
 		let addr = unsafeAddressOf(self).debugDescription
-		QBEAsyncMain {
-			QBELog("Job: \(addr) \(tcs)")
-		}
+		log("\(tcs)")
 	}
 	#endif
 }
@@ -231,7 +244,7 @@ class QBEFuture<T> {
 			if let tl = timeLimit {
 				// Set a timer to cancel this job
 				dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(tl * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
-					QBELog("Job timed out after \(tl) seconds")
+					batch.log("Timed out after \(tl) seconds")
 					batch.expire()
 				}
 			}
