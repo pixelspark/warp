@@ -47,8 +47,10 @@ internal enum QBEAnchor {
 		let sourcePoint = fromAnchor.pointInBounds(from, inset: 0.0)
 		let targetPoint = toAnchor.pointInBounds(to, inset: 0.0)
 		
+		let overlaps = CGRectIntersectsRect(from, to)
+		
 		// Anchors opposite to each other: two bends
-		if fromAnchor.mirror == toAnchor {
+		if !overlaps && fromAnchor.mirror == toAnchor {
 			if fromAnchor == .North || toAnchor == .North {
 				// Meet in the middle vertically
 				return [CGPointMake(sourcePoint.x, (sourcePoint.y + targetPoint.y) / 2), CGPointMake(targetPoint.x, (sourcePoint.y + targetPoint.y) / 2)]
@@ -117,6 +119,12 @@ internal enum QBEAnchor {
 			}
 				// Target overlaps the source vertically (from anchor = EAST in most cases)
 			else {
+				let closestFrom = to.center.x > from.center.x ? QBEAnchor.West : QBEAnchor.East
+				let closestTo = to.center.y > from.center.y ? QBEAnchor.South : QBEAnchor.North
+				
+				if !from.contains(closestFrom.pointInBounds(to)) && !to.contains(closestTo.pointInBounds(from)) {
+					return (closestTo, closestFrom)
+				}
 				return (.None, .None)
 			}
 		}
