@@ -24,7 +24,7 @@ class QBEOutletDropView: NSView {
 	override func draggingEntered(sender: NSDraggingInfo) -> NSDragOperation {
 		isDraggingOver = true
 		setNeedsDisplayInRect(self.bounds)
-		return delegate != nil ? NSDragOperation.Generic : NSDragOperation.None
+		return delegate != nil ? NSDragOperation.Private : NSDragOperation.None
 	}
 	
 	override func draggingExited(sender: NSDraggingInfo?) {

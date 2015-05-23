@@ -2,6 +2,7 @@ import Cocoa
 
 @objc protocol QBEDocumentViewDelegate: NSObjectProtocol {
 	func documentView(view: QBEDocumentView, didReceiveFiles: [String], atLocation: CGPoint)
+	func documentView(view: QBEDocumentView, didReceiveChain: QBEChain, atLocation: CGPoint)
 	func documentView(view: QBEDocumentView, didSelectTablet: QBEChainViewController?)
 	func documentView(view: QBEDocumentView, wantsZoomToView: NSView)
 }
@@ -34,21 +35,24 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		flowchartView.frame = self.bounds
 		flowchartView.delegate = self
 		addSubview(flowchartView)
-
-		/*self.addConstraint(NSLayoutConstraint(item: flowchartView, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0))
-		self.addConstraint(NSLayoutConstraint(item: flowchartView, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0.0))
-		self.addConstraint(NSLayoutConstraint(item: flowchartView, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0))
-		self.addConstraint(NSLayoutConstraint(item: flowchartView, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0))*/
 		
-		registerForDraggedTypes([NSFilenamesPboardType])
+		registerForDraggedTypes([NSFilenamesPboardType, QBEOutletView.dragType])
 	}
 	
 	override func draggingEntered(sender: NSDraggingInfo) -> NSDragOperation {
-		return NSDragOperation.Copy
+		let pboard = sender.draggingPasteboard()
+		
+		if let files: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
+			return NSDragOperation.Copy
+		}
+		else if let outlet = pboard.dataForType(QBEOutletView.dragType) {
+			return NSDragOperation.Link
+		}
+		return NSDragOperation.None
 	}
 	
 	override func draggingUpdated(sender: NSDraggingInfo) -> NSDragOperation {
-		return NSDragOperation.Copy
+		return draggingEntered(sender)
 	}
 	
 	override func prepareForDragOperation(sender: NSDraggingInfo) -> Bool {
@@ -59,11 +63,19 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		subviews.each({($0 as? QBEResizableTabletView)?.removeFromSuperview()})
 	}
 	
-	override func performDragOperation(sender: NSDraggingInfo) -> Bool {
-		let pboard = sender.draggingPasteboard()
+	override func performDragOperation(draggingInfo: NSDraggingInfo) -> Bool {
+		let pboard = draggingInfo.draggingPasteboard()
 		
-		if let files: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
-			delegate?.documentView(self, didReceiveFiles: files, atLocation: self.convertPoint(sender.draggingLocation(), fromView: nil))
+		if let outlet = pboard.dataForType(QBEOutletView.dragType) {
+			if let ov = draggingInfo.draggingSource() as? QBEOutletView {
+				if let draggedChain = ov.draggedObject as? QBEChain {
+					delegate?.documentView(self, didReceiveChain: draggedChain, atLocation: self.convertPoint(draggingInfo.draggingLocation(), fromView: nil))
+					return true
+				}
+			}
+		}
+		else if let files: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
+			delegate?.documentView(self, didReceiveFiles: files, atLocation: self.convertPoint(draggingInfo.draggingLocation(), fromView: nil))
 		}
 		return true
 	}

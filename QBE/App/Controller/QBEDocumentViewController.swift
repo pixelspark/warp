@@ -197,6 +197,13 @@ import Cocoa
 		NSMenu.popUpContextMenu(self.addTabletMenu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.view)
 	}
 	
+	func documentView(view: QBEDocumentView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
+		QBEAssertMainThread()
+		
+		let tablet = QBETablet(chain: QBEChain(head: QBECloneStep(chain: chain)))
+		self.addTablet(tablet, atLocation: atLocation, undo: true)
+	}
+	
 	func documentView(view: QBEDocumentView, didReceiveFiles files: [String], atLocation: CGPoint) {
 		var offset: CGPoint = CGPointMake(0,0)
 		for file in files {

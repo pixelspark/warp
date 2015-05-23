@@ -55,7 +55,8 @@ class QBEFactory {
 		QBESortStep.className(): "SortIcon",
 		QBEMySQLSourceStep.className(): "MySQLIcon",
 		QBEPostgresSourceStep.className(): "PostgresIcon",
-		QBEJoinStep.className(): "JoinIcon"
+		QBEJoinStep.className(): "JoinIcon",
+		QBECloneStep.className(): "CloneIcon"
 	]
 	
 	var fileExtensionsForWriting: [String] { get {
