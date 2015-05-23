@@ -29,6 +29,39 @@ internal extension CGPoint {
 	}
 }
 
+@IBDesignable class QBEBorderedView: NSView {
+	@IBInspectable var leftBorder: Bool = false
+	@IBInspectable var topBorder: Bool = false
+	@IBInspectable var rightBorder: Bool = false
+	@IBInspectable var bottomBorder: Bool = false
+	@IBInspectable var backgroundColor: NSColor = NSColor.controlBackgroundColor()
+	@IBInspectable var borderColor: NSColor = NSColor.controlDarkShadowColor()
+	
+	override func drawRect(dirtyRect: NSRect) {
+		backgroundColor.set()
+		NSRectFill(self.bounds)
+		
+		borderColor.setStroke()
+		let bounds = self.bounds
+		
+		if leftBorder {
+			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y, 1, bounds.size.height))
+		}
+		
+		if rightBorder {
+			NSRectFill(CGRectMake(bounds.origin.x + bounds.size.width, bounds.origin.y, 1, bounds.size.height))
+		}
+		
+		if topBorder {
+			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y, bounds.size.width, 1))
+		}
+		
+		if bottomBorder {
+			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y + bounds.size.height, bounds.size.width, 1))
+		}
+	}
+}
+
 internal extension NSView {
 	func addSubview(view: NSView, animated: Bool) {
 		if !animated {

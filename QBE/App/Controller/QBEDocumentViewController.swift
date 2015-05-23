@@ -7,6 +7,7 @@ import Cocoa
 	@IBOutlet var addTabletMenu: NSMenu!
 	@IBOutlet var workspaceView: NSScrollView!
 	@IBOutlet var formulaField: NSTextField!
+	@IBOutlet var welcomeLabel: NSTextField!
 	private var formulaFieldCallback: ((QBEValue) -> ())?
 	
 	var document: QBEDocument? { didSet {
@@ -66,6 +67,7 @@ import Cocoa
 		}
 		
 		self.view.window?.makeFirstResponder(self.documentView)
+		self.welcomeLabel.hidden = (document?.tablets.count ?? 0) != 0
 		
 		// Register undo operation. Do not retain the QBETablet but instead serialize, so all caches are properly destroyed.
 		if undo {
@@ -124,6 +126,8 @@ import Cocoa
 			documentView.addTablet(tabletController)
 			documentView.selectTablet(tablet)
 		}
+		
+		self.welcomeLabel.hidden = (document?.tablets.count ?? 0) != 0
 	}
 	
 	@IBAction func zoomToAll(sender: NSObject) {
