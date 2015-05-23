@@ -7,7 +7,7 @@ class QBEFileWriter: NSObject {
 		self.locale = locale
 	}
 	
-	func writeData(data: QBEData, toFile: NSURL, job: QBEJob?, callback: () -> ()) {
+	func writeData(data: QBEData, toFile: NSURL, job: QBEJob, callback: () -> ()) {
 		fatalError("Must be subclassed")
 	}
 }

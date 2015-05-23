@@ -13,7 +13,7 @@ class QBEStep: NSObject {
 	/** Creates a data object representing the result of an 'example' calculation of the result of this QBEStep. The
 	maxInputRows parameter defines the maximum number of input rows a source step should generate. The maxOutputRows
 	parameter defines the maximum number of rows a step should strive to produce. **/
-	func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+	func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
 		if let p = self.previous {
 			self.previous?.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: {(data) in
 				self.apply(data, job: job, callback: callback)
@@ -25,7 +25,7 @@ class QBEStep: NSObject {
 		}
 	}
 	
-	func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
+	func fullData(job: QBEJob, callback: (QBEData) -> ()) {
 		if let p = self.previous {
 			p.fullData(job, callback: {(data) in
 				self.apply(data, job: job, callback: callback)
@@ -70,7 +70,7 @@ class QBEStep: NSObject {
 		return NSLocalizedString("Unknown step", comment: "")
 	}
 	
-	func apply(data: QBEData, job: QBEJob? = nil, callback: (QBEData) -> ()) {
+	func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
 		fatalError("Child class of QBEStep should implement apply()")
 	}
 	

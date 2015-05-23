@@ -47,7 +47,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return nil
 	}
 	
-	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
+	override func fullData(job: QBEJob, callback: (QBEData) -> ()) {
 		if let p = previous {
 			p.fullData(job) {(leftData) -> () in
 				if let r = self.right, let h = r.head {
@@ -73,7 +73,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
 		if let p = previous {
 			p.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftData) -> () in
 				if let r = self.right, let h = r.head {

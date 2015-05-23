@@ -82,6 +82,8 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 	}
 	
 	private func updateView() {
+		let job = QBEJob(.UserInitiated)
+		
 		if let s = step {
 			self.userField?.stringValue = s.user ?? ""
 			self.passwordField?.stringValue = s.password ?? ""
@@ -91,7 +93,7 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 			
 			tableNames = []
 			tableView?.reloadData()
-			QBEAsyncBackground {
+			job.async {
 				if let database = s.database, let db = QBEMySQLConnection(database: database) {
 					// Update list of databases
 					db.databases({(dbs) in

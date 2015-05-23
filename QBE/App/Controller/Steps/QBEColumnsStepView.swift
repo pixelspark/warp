@@ -32,16 +32,17 @@ internal class QBEColumnsStepView: NSViewController, NSTableViewDataSource, NSTa
 	}
 	
 	private func updateColumns() {
+		let job = QBEJob(.UserInitiated)
 		if let s = step {
 			if let previous = s.previous {
-				previous.exampleData(nil, maxInputRows: 100, maxOutputRows: 100, callback: { (data) -> () in
-					data.columnNames({(columns) in
+				previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
+					data.columnNames(job) {(columns) in
 						QBEAsyncMain {
 							self.columnNames = columns
 							self.updateView()
 						}
-					})
-				})
+					}
+				}
 			}
 			else {
 				columnNames.removeAll()

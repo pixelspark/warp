@@ -122,9 +122,11 @@ internal extension NSViewController {
 					calculator.currentRaster?.get({(raster) in
 						let myColumns = raster.columnNames
 						
-						otherChain.head?.fullData(nil, callback: { (otherData) -> () in
-							otherData.columnNames({ (otherColumns) -> () in
+						let job = QBEJob(.UserInitiated)
+						otherChain.head?.fullData(job) { (otherData) -> () in
+							otherData.columnNames(job) { (otherColumns) -> () in
 								let overlappingColumns = Set(myColumns).intersect(Set(otherColumns))
+								
 								QBEAsyncMain {
 									var joinSteps: [QBEJoinStep] = []
 									
@@ -144,8 +146,8 @@ internal extension NSViewController {
 										self.calculate()
 									}
 								}
-							})
-						})
+							}
+						}
 					})
 				}
 			}
@@ -165,8 +167,10 @@ internal extension NSViewController {
 	private func presentData(data: QBEData?) {
 		if let d = data {
 			if let dataView = self.dataViewController {
-				QBEAsyncBackground {
-					d.raster(nil, callback: { (raster) -> () in
+				let job = QBEJob(.UserInitiated)
+				
+				job.async {
+					d.raster(job, callback: { (raster) -> () in
 						QBEAsyncMain {
 							self.presentRaster(raster)
 						}
@@ -369,7 +373,7 @@ internal extension NSViewController {
 		
 		calculator.currentRaster?.get({(raster) in
 			self.suggestions = QBEFuture<[QBEStep]>({(job, callback) -> () in
-				QBEAsyncBackground {
+				job.async {
 					let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
 					callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)}))
 				}
@@ -599,7 +603,9 @@ internal extension NSViewController {
 	
 	@IBAction func addEmptyColumn(sender: NSObject) {
 		calculator.currentData?.get({(data) in
-			data.columnNames({(cols) in
+			let job = QBEJob(.UserInitiated)
+			
+			data.columnNames(job) {(cols) in
 				// If a column is selected, insert the new column right after it
 				var insertAfter: QBEColumn? = nil
 				if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
@@ -612,7 +618,7 @@ internal extension NSViewController {
 				let step = QBECalculateStep(previous: self.currentStep, targetColumn: QBEColumn.defaultColumnForIndex(cols.count), function: QBELiteralExpression(QBEValue.EmptyValue), insertAfter: insertAfter)
 				self.pushStep(step)
 				self.calculate()
-			})
+			}
 		})
 	}
 	
@@ -952,14 +958,15 @@ internal extension NSViewController {
 		
 		ns.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result == NSFileHandlingPanelOKButton {
+				let job = QBEJob(.UserInitiated)
 				// What type of file are we exporting?
-				QBEAsyncBackground {
+				job.async {
 					if let cs = self.currentStep {
-						cs.fullData(nil, callback: {(data: QBEData) -> () in
+						cs.fullData(job, callback: {(data: QBEData) -> () in
 							if let url = ns.URL, let ext = url.pathExtension {
 								// Get the file writer for this type
 								if let writer = QBEFactory.sharedInstance.fileWriterForType(ext, locale: self.locale, title: title) {
-									writer.writeData(data, toFile: url, job: nil, callback: {
+									writer.writeData(data, toFile: url, job: job, callback: {
 										QBEAsyncMain {
 											let alert = NSAlert()
 											alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")

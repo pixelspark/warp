@@ -42,12 +42,13 @@ internal class QBEPivotStepView: NSViewController, NSTableViewDelegate, NSTableV
 		super.viewWillAppear()
 	
 		if let sourceStep = self.step?.previous {
-			sourceStep.exampleData(nil, maxInputRows: 100, maxOutputRows: 100, callback: { (exData: QBEData) -> () in
-				exData.columnNames({ (columns: [QBEColumn]) -> () in
+			let job = QBEJob(.UserInitiated)
+			sourceStep.exampleData(job, maxInputRows: 100, maxOutputRows: 100, callback: { (exData: QBEData) -> () in
+				exData.columnNames(job) { (columns: [QBEColumn]) -> () in
 					QBEAsyncMain {
 						self.sourceColumns = columns
 					}
-				})
+				}
 			})
 		}
 		else {

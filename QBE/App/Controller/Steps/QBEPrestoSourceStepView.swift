@@ -46,26 +46,28 @@ internal class QBEPrestoSourceStepView: NSViewController, NSTableViewDataSource,
 	}
 	
 	private func updateView() {
+		let job = QBEJob(.UserInitiated)
+		
 		if let s = step {
 			urlField?.stringValue = s.url ?? ""
 			catalogField?.stringValue = s.catalogName ?? ""
 			schemaField?.stringValue = s.schemaName ?? ""
 			
-			s.catalogNames({ (catalogs) -> () in
+			s.catalogNames(job) { (catalogs) -> () in
 				QBEAsyncMain {
 					self.catalogNames = Array(catalogs)
 					self.catalogField?.reloadData()
 				}
-			})
+			}
 			
-			s.schemaNames({ (schemas) -> () in
+			s.schemaNames(job) { (schemas) -> () in
 				QBEAsyncMain {
 					self.schemaNames = Array(schemas)
 					self.schemaField?.reloadData()
 				}
-			})
+			}
 			
-			s.tableNames({ (names) -> () in
+			s.tableNames(job) { (names) -> () in
 				QBEAsyncMain {
 					self.tableNames = Array(names)
 					self.tableView?.reloadData()
@@ -80,7 +82,7 @@ internal class QBEPrestoSourceStepView: NSViewController, NSTableViewDataSource,
 						}
 					}
 				}
-			})
+			}
 		}
 	}
 	

@@ -52,10 +52,12 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 		QBEAssertMainThread()
 		
 		if let s = step {
+			let job = QBEJob(.UserInitiated)
 			self.insertAfterField?.stringValue = s.insertAfter?.name ?? ""
 			self.existingColumns = nil
-			s.exampleData(nil, maxInputRows: 100, maxOutputRows: 100) { (d) in
-				d.columnNames {(cns) in
+			
+			s.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (d) in
+				d.columnNames(job) {(cns) in
 					self.existingColumns = cns
 					
 					QBEAsyncMain {

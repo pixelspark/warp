@@ -39,16 +39,16 @@ class QBEFlattenStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
+	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
 		/* If a column is set to put a row identifier in, but there is no expression, fill in an expression that uses the
 		value in the first column. */
 		if rowIdentifier == nil && rowColumn != nil {
-			data.columnNames({ (columns) -> () in
+			data.columnNames(job) { (columns) -> () in
 				if let firstColumn = columns.first {
 					let ri = QBESiblingExpression(columnName: firstColumn)
 					callback(data.flatten(self.valueColumn, columnNameTo: self.colColumn, rowIdentifier: ri, to: self.rowColumn))
 				}
-			})
+			}
 		}
 		else {
 			callback(data.flatten(valueColumn, columnNameTo: colColumn, rowIdentifier: rowIdentifier, to: rowColumn))

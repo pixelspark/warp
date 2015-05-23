@@ -412,12 +412,12 @@ class QBEMySQLStream: QBEStream {
 		return resultStream!
 	}
 	
-	func fetch(consumer: QBESink, job: QBEJob?) {
-		return stream().fetch(consumer, job: job)
+	func fetch(job: QBEJob, consumer: QBESink) {
+		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columnNames(callback: ([QBEColumn]) -> ()) {
-		return stream().columnNames(callback)
+	func columnNames(job: QBEJob, callback: ([QBEColumn]) -> ()) {
+		return stream().columnNames(job, callback: callback)
 	}
 	
 	func clone() -> QBEStream {
@@ -481,8 +481,8 @@ class QBEMySQLSourceStep: QBEStep {
 		return nil
 	} }
 	
-	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
-		QBEAsyncBackground {
+	override func fullData(job: QBEJob, callback: (QBEData) -> ()) {
+		job.async {
 			if let s = self.database {
 				callback(QBECoalescedData(QBEMySQLData(database: s, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale)))
 			}
@@ -492,7 +492,7 @@ class QBEMySQLSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
 		self.fullData(job, callback: { (fd) -> () in
 			callback(fd.random(maxInputRows))
 		})

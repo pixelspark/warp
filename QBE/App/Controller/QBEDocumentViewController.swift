@@ -220,7 +220,9 @@ import Cocoa
 	}
 	
 	private func addTabletFromURL(url: NSURL, atLocation: CGPoint? = nil) {
-		QBEAsyncBackground {
+		let job = QBEJob(.UserInitiated)
+		
+		job.async {
 			let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url)
 			
 			QBEAsyncMain {

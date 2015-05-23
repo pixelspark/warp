@@ -43,18 +43,20 @@ internal class QBESortStepView: NSViewController, NSTableViewDataSource, NSTable
 	}
 	
 	private func updateColumns() {
+		let job = QBEJob(.UserInitiated)
+		
 		if let s = step {
 			if let previous = s.previous {
-				previous.exampleData(nil, maxInputRows: 100, maxOutputRows: 100, callback: { (data) -> () in
-					data.columnNames({(columns) in
+				previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
+					data.columnNames(job) {(columns) in
 						QBEAsyncMain {
 							self.addButton?.removeAllItems()
 							self.addButton?.addItemWithTitle(NSLocalizedString("Add sorting criterion...", comment: ""))
 							self.addButton?.addItemsWithTitles(columns.map({return $0.name}))
 							self.updateView()
 						}
-					})
-				})
+					}
+				}
 			}
 			else {
 				self.addButton?.removeAllItems()

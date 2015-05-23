@@ -509,14 +509,16 @@ class QBESQLiteCachedData: QBEProxyData {
 		database = QBESQLiteCachedData.sharedCacheDatabase
 		tableName = "cache_\(String.randomStringWithLength(32))"
 		self.locale = locale
-		cacheJob = QBEJob()
+		cacheJob = QBEJob(.UserInitiated)
 		super.init(data: source)
 		
 		let dialect = database.dialect
 		
 		// Create a table to cache this dataset
-		QBEAsyncBackground { [unowned self] () -> () in
-			source.columnNames { [unowned self] (columns) -> () in
+		let job = QBEJob(.UserInitiated)
+		
+		job.async { [unowned self] () -> () in
+			source.columnNames(self.cacheJob) { [unowned self] (columns) -> () in
 				let columnSpec = columns.map({(column) -> String in
 					let colString = dialect.columnIdentifier(column, table: nil)
 					return "\(colString) VARCHAR"
@@ -536,7 +538,7 @@ class QBESQLiteCachedData: QBEProxyData {
 					let values = columns.map({(m) -> String in return "?"}).implode(",") ?? ""
 					self.insertStatement = self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName)) VALUES (\(values))")
 					
-					self.stream?.fetch(self.ingest, job: self.cacheJob)
+					self.stream?.fetch(self.cacheJob, consumer: self.ingest)
 				}
 			}
 		}
@@ -550,10 +552,10 @@ class QBESQLiteCachedData: QBEProxyData {
 	private func ingest(rows: ArraySlice<QBETuple>, hasMore: Bool) {
 		assert(!isCached, "Cannot ingest more rows after data has already been cached")
 		if hasMore && !cacheJob.cancelled {
-			self.stream?.fetch(self.ingest, job: cacheJob)
+			self.stream?.fetch(cacheJob, consumer: self.ingest)
 		}
 		
-		QBETime("SQLite insert", rows.count, "rows", cacheJob) {
+		cacheJob.time("SQLite insert", items: rows.count, itemType: "rows") {
 			if let statement = self.insertStatement {
 				for row in rows {
 					statement.run(parameters: row)
@@ -565,10 +567,10 @@ class QBESQLiteCachedData: QBEProxyData {
 			// Swap out the original source with our new cached source
 			QBELog("Done caching, swapping out")
 			self.database.query("END TRANSACTION")?.run()
-			self.data.columnNames({[unowned self] (columns) -> () in
+			self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
 				self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: columns, locale: self.locale)
 				self.isCached = true
-			})
+			}
 		}
 	}
 }

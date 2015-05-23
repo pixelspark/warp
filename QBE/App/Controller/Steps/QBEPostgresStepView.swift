@@ -82,6 +82,8 @@ internal class QBEPostgresStepView: NSViewController, NSTableViewDataSource, NST
 	}
 	
 	private func updateView() {
+		let job = QBEJob(.UserInitiated)
+		
 		if let s = step {
 			self.userField?.stringValue = s.user ?? ""
 			self.passwordField?.stringValue = s.password ?? ""
@@ -92,7 +94,7 @@ internal class QBEPostgresStepView: NSViewController, NSTableViewDataSource, NST
 			tableNames = []
 			tableView?.reloadData()
 			if let database = s.database {
-				QBEAsyncBackground {
+				job.async {
 					// Update list of databases
 					database.databases({(dbs) in
 						QBEAsyncMain {

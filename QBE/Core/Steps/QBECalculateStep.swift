@@ -38,17 +38,17 @@ class QBECalculateStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
+	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
 		let result = data.calculate([targetColumn: function])
 		if let after = insertAfter {
 			// Reorder columns in the result set so that targetColumn is inserted after insertAfter
-			data.columnNames({(var cns: [QBEColumn]) in
+			data.columnNames(job) {(var cns: [QBEColumn]) in
 				cns.remove(self.targetColumn)
 				if let idx = find(cns, after) {
 					cns.insert(self.targetColumn, atIndex: idx+1)
 				}
 				callback(result.selectColumns(cns))
-			})
+			}
 		}
 		else {
 			callback(result)

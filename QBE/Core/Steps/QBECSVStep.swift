@@ -68,13 +68,13 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		templateRow = Array<QBEValue>(count: _columnNames.count, repeatedValue: QBEValue.InvalidValue)
 	}
 	
-	func columnNames(callback: ([QBEColumn]) -> ()) {
+	func columnNames(job: QBEJob, callback: ([QBEColumn]) -> ()) {
 		callback(_columnNames)
 	}
 	
-	func fetch(consumer: QBESink, job: QBEJob?) {
+	func fetch(job: QBEJob, consumer: QBESink) {
 		dispatch_async(queue) {
-			QBETime("Parse CSV", QBEStreamDefaultBatchSize, "row", job) {
+			job.time("Parse CSV", items: QBEStreamDefaultBatchSize, itemType: "row") {
 				var fetched = 0
 				while !self.finished && (fetched < QBEStreamDefaultBatchSize) {
 					self.finished = !self.parser._parseRecord()
@@ -84,7 +84,7 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 				// Calculate progress
 				self.rowsRead += fetched
 				let progress = Double(self.parser.totalBytesRead) / Double(self.totalBytes)
-				job?.reportProgress(progress, forKey: self.hashValue);
+				job.reportProgress(progress, forKey: self.hashValue);
 			}
 			
 			let r = ArraySlice(self.rows)
@@ -135,7 +135,7 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 		// Not used
 	}
 	
-	override func writeData(data: QBEData, toFile file: NSURL, job: QBEJob?, callback: () -> ()) {
+	override func writeData(data: QBEData, toFile file: NSURL, job: QBEJob, callback: () -> ()) {
 		let stream = data.stream()
 
 		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
@@ -148,7 +148,7 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 			}
 			
 			// Write column headers
-			stream.columnNames { (columnNames) -> () in
+			stream.columnNames(job) { (columnNames) -> () in
 				for col in columnNames {
 					csvOut.writeField(col.name)
 				}
@@ -158,12 +158,12 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 				cb = { (rows: ArraySlice<QBETuple>, hasNext: Bool) -> () in
 					// We want the next row, so fetch it while we start writing this one.
 					if hasNext {
-						QBEAsyncBackground {
-							stream.fetch(cb!, job: nil)
+						job.async {
+							stream.fetch(job, consumer: cb!)
 						}
 					}
 					
-					QBETime("Write CSV", rows.count, "rows") {
+					job.time("Write CSV", items: rows.count, itemType: "rows") {
 						for row in rows {
 							for cell in row {
 								csvOut.writeField(self.locale.localStringFor(cell))
@@ -179,7 +179,7 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 					}
 				}
 				
-				stream.fetch(cb!, job: nil)
+				stream.fetch(job, consumer: cb!)
 			}
 		}
 	}

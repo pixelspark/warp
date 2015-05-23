@@ -62,8 +62,8 @@ class QBEColumnsStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
-		data.columnNames({ (existingColumns) -> () in
+	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
+		data.columnNames(job) { (existingColumns) -> () in
 			let columns = existingColumns.filter({column -> Bool in
 				for c in self.columnNames {
 					if c == column {
@@ -74,7 +74,7 @@ class QBEColumnsStep: QBEStep {
 			}) ?? []
 			
 			callback(data.selectColumns(columns))
-		})
+		}
 	}
 	
 	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
@@ -149,8 +149,8 @@ class QBESortColumnsStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
-		data.columnNames({ (existingColumns) -> () in
+	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
+		data.columnNames(job) { (existingColumns) -> () in
 			let columnSet = Set(existingColumns)
 			var newColumns = existingColumns
 			var sortColumns = self.sortColumns
@@ -179,6 +179,6 @@ class QBESortColumnsStep: QBEStep {
 			// The re-ordering operation may never drop or add columns (even if specified columns do not exist)
 			assert(newColumns.count == existingColumns.count, "Re-ordering operation resulted in loss of columns")
 			callback(data.selectColumns(newColumns))
-		})
+		}
 	}
 }

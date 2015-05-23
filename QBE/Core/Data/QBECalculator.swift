@@ -98,7 +98,7 @@ class QBECalculator {
 			
 			// Set up calculation for the raster
 			let startTime = NSDate.timeIntervalSinceReferenceDate()
-			currentRaster = QBEFuture<QBERaster>({ [unowned self] (job: QBEJob?, callback: QBEFuture<QBERaster>.Callback) in
+			currentRaster = QBEFuture<QBERaster>({ [unowned self] (job: QBEJob, callback: QBEFuture<QBERaster>.Callback) in
 				if let cd = self.currentData {
 					cd.get({ (data: QBEData) -> () in
 						data.raster(job, callback: callback)

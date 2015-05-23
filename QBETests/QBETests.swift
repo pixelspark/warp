@@ -176,9 +176,9 @@ class QBETests: XCTestCase {
 		XCTAssert(z! > 16.406 && z! < 16.408, "NormalInverse should results that are equal to those of NORM.INV.N in Excel")
 	}
 	
-	func compareData(a: QBEData, b: QBEData, callback: (Bool) -> ()) {
-		a.raster(nil, callback: { (aRaster) -> () in
-			b.raster(nil, callback: { (bRaster) -> () in
+	func compareData(job: QBEJob, _ a: QBEData, _ b: QBEData, callback: (Bool) -> ()) {
+		a.raster(job, callback: { (aRaster) -> () in
+			b.raster(job, callback: { (bRaster) -> () in
 				let equal = aRaster.compare(bRaster)
 				if !equal {
 					QBELog("A: \(aRaster.debugDescription)")
@@ -198,16 +198,17 @@ class QBETests: XCTestCase {
 		
 		let inData = QBERasterData(raster: raster)
 		let inOptData = QBECoalescedData(inData)
+		let job = QBEJob(.UserInitiated)
 		
-		compareData(inData.limit(2).limit(1), b: inOptData.limit(2).limit(1)) { (equal) -> () in
+		compareData(job, inData.limit(2).limit(1), inOptData.limit(2).limit(1)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for limit(2).limit(1) should equal normal result")
 		}
 		
-		compareData(inData.offset(2).offset(1), b: inOptData.offset(2).offset(1)) { (equal) -> () in
+		compareData(job, inData.offset(2).offset(1), inOptData.offset(2).offset(1)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for offset(2).offset(1) should equal normal result")
 		}
 		
-		compareData(inData.offset(3), b: inOptData.offset(2).offset(1)) { (equal) -> () in
+		compareData(job, inData.offset(3), inOptData.offset(2).offset(1)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for offset(2).offset(1) should equal offset(3)")
 		}
 		
@@ -221,24 +222,24 @@ class QBETests: XCTestCase {
 			QBEOrder(expression: QBESiblingExpression(columnName: "c"), ascending: true, numeric: true)
 		]
 		
-		compareData(inData.sort(aSorts).sort(bSorts), b: inData.sort(bSorts + aSorts)) { (equal) -> () in
+		compareData(job, inData.sort(aSorts).sort(bSorts), inData.sort(bSorts + aSorts)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for sort().sort() should equal normal result")
 		}
 		
-		compareData(inData.sort(aSorts).sort(bSorts), b: inOptData.sort(aSorts).sort(bSorts)) { (equal) -> () in
+		compareData(job, inData.sort(aSorts).sort(bSorts), inOptData.sort(aSorts).sort(bSorts)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for sort().sort() should equal normal result")
 		}
 		
 		// Verify coalesced transpose
-		compareData(inData.transpose().transpose(), b: inOptData.transpose().transpose()) { (equal) -> () in
+		compareData(job, inData.transpose().transpose(), inOptData.transpose().transpose()) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for transpose().transpose() should equal normal result")
 		}
 		
-		compareData(inData.transpose().transpose().transpose(), b: inOptData.transpose().transpose().transpose()) { (equal) -> () in
+		compareData(job, inData.transpose().transpose().transpose(), inOptData.transpose().transpose().transpose()) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for transpose().transpose().transpose() should equal normal result")
 		}
 		
-		compareData(inData, b: inOptData.transpose().transpose()) { (equal) -> () in
+		compareData(job, inData, inOptData.transpose().transpose()) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for transpose().transpose() should equal original result")
 		}
 	}
@@ -254,6 +255,8 @@ class QBETests: XCTestCase {
 	}
 	
 	func testQBEDataImplementations() {
+		let job = QBEJob(.UserInitiated)
+		
 		var d: [[QBEValue]] = []
 		for i in 0..<1000 {
 			d.append([QBEValue(i), QBEValue(i+1), QBEValue(i+2)])
@@ -261,20 +264,20 @@ class QBETests: XCTestCase {
 		
 		// Test the raster data implementation (the tests below are valid for all QBEData implementations)
 		let data = QBERasterData(data: d, columnNames: [QBEColumn("X"), QBEColumn("Y"), QBEColumn("Z")])
-		data.limit(5).raster(nil) { (r) -> () in
+		data.limit(5).raster(job) { (r) -> () in
 			XCTAssert(r.rowCount == 5, "Limit actually works")
 		}
 		
-		data.offset(5).raster(nil) { (r) -> () in
+		data.offset(5).raster(job) { (r) -> () in
 			XCTAssert(r.rowCount == 1000 - 5, "Offset actually works")
 		}
 		
-		data.selectColumns(["THIS_DOESNT_EXIST"]).columnNames { (r) -> () in
+		data.selectColumns(["THIS_DOESNT_EXIST"]).columnNames(job) { (r) -> () in
 			XCTAssert(r.count == 0, "Selecting an invalid column returns a set without columns")
 		}
 		
 		// Repeatedly transpose and check whether the expected number of rows and columns results
-		data.raster(nil) { (r) -> () in
+		data.raster(job) { (r) -> () in
 			let rowsBefore = r.rowCount
 			let columnsBefore = r.columnCount
 			
@@ -284,7 +287,7 @@ class QBETests: XCTestCase {
 					td = td.transpose()
 				}
 			
-				td.raster(nil) { (s) -> () in
+				td.raster(job) { (s) -> () in
 					XCTAssert(s.rowCount == columnsBefore-1, "Row count matches")
 					XCTAssert(s.columnCount == rowsBefore+1, "Column count matches")
 				}
@@ -293,28 +296,59 @@ class QBETests: XCTestCase {
 		
 		// Test an empty raster
 		let emptyRasterData = QBERasterData(data: [], columnNames: [])
-		emptyRasterData.limit(5).raster(nil) {(r) -> () in
+		emptyRasterData.limit(5).raster(job) {(r) -> () in
 			XCTAssert(r.rowCount == 0, "Limit works when number of rows > available rows")
 		}
 		
-		emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).raster(nil) { (r) -> () in
+		emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).raster(job) { (r) -> () in
 			XCTAssert(r.columnNames.count == 0, "Selecting an invalid column works properly in empty raster")
 		}
 	}
 	
     func testQBERaster() {
+		let job = QBEJob(.UserInitiated)
+		
 		var d: [[QBEValue]] = []
 		for i in 0...1000 {
 			d.append([QBEValue(i), QBEValue(i+1), QBEValue(i+2)])
 		}
 		
 		let rasterData = QBERasterData(data: d, columnNames: [QBEColumn("X"), QBEColumn("Y"), QBEColumn("Z")])
-		rasterData.raster(nil) { (raster) -> () in
+		rasterData.raster(job) { (raster) -> () in
 			XCTAssert(raster.indexOfColumnWithName("X")==0, "First column has index 0")
 			XCTAssert(raster.indexOfColumnWithName("x")==0, "Column names should be case-insensitive")
 			XCTAssert(raster.rowCount == 1001, "Row count matches")
 			XCTAssert(raster.columnCount == 3, "Column count matches")
 		}
     }
-    
+	
+	func testThreading() {
+		let data = Array<Int>(0...5000000)
+		let expectFinish = self.expectationWithDescription("Parallel map finishes in time")
+		
+		let future = data.parallel(
+			map: { (slice: ArraySlice<Int>) -> (ArraySlice<Int>) in
+				//println("Worker \(slice)")
+				return slice.map({return $0 * 2})
+			},
+			reduce: {(s, r) -> Int in
+				var greatest = r
+				for number in s {
+					greatest = (greatest == nil || number > greatest) ? number : greatest
+				}
+				return greatest ?? 0
+			}
+		)
+		
+		future.get {(result) in
+			XCTAssert(result != nil && result! == 10000000, "Parallel M/R delivers the correct result")
+			expectFinish.fulfill()
+		}
+		
+		self.waitForExpectationsWithTimeout(5.0, handler: { (err) -> Void in
+			if let e = err {
+				println("Error=\(err)")
+			}
+		})
+	}
 }
