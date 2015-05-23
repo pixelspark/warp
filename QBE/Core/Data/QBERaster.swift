@@ -465,6 +465,7 @@ class QBERasterData: NSObject, QBEData {
 					var templateRow = QBERow(Array<QBEValue>(count: leftColumns.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: leftColumns + rightColumnsInResult)
 					
 					// Perform carthesian product (slow!)
+					// TODO: paralellize
 					/* TODO: A 'batch filter' approach, where for a subset of rows (±256?) we create a big OR expression
 					to look up all related records in the right table. On this smaller result set, we perform the carthesian
 					product below to find out which belongs to which. This allows outsourcing a lot of work to the database

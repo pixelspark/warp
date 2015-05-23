@@ -95,8 +95,6 @@ class QBEJob {
 	private(set) var cancelled: Bool = false
 	private let queue: dispatch_queue_t
 	private var progressComponents: [Int: Double] = [:]
-	/* FIXME: delegate needs to be weak (but then QBEJobDelegate needs to be @objc, which in turn requires QBEJob to be 
-	NSObject subclass, which crashes the compiler... */
 	weak var delegate: QBEJobDelegate?
 	
 	init(_ qos: QBEQoS) {

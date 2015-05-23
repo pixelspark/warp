@@ -552,7 +552,6 @@ internal extension NSViewController {
 			calculate()
 			
 			// Show a tip if there are alternatives
-			// FIXME: Only works when the toolbar item has a view, and that blocks autovalidation... so disabled for now
 			if steps.count > 1 {
 				QBESettings.sharedInstance.once("suggestionsTip") {
 					self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, click on the newly added step.", comment: "Tip for suggestions button"), atView: self.stepsViewController!.view)
