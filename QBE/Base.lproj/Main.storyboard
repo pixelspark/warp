@@ -1183,7 +1183,7 @@ CA
                                     <segue destination="0w0-v5-aaU" kind="embed" identifier="configurator" id="Zzv-k8-sKq"/>
                                 </connections>
                             </containerView>
-                            <visualEffectView appearanceType="vibrantLight" blendingMode="behindWindow" material="titlebar" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
+                            <visualEffectView appearanceType="vibrantLight" blendingMode="behindWindow" material="light" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
                                 <rect key="frame" x="0.0" y="0.0" width="688" height="806"/>
                                 <subviews>
                                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
@@ -1756,7 +1756,7 @@ Gw
         <scene sceneID="FDq-LH-cOQ">
             <objects>
                 <viewController id="0w0-v5-aaU" customClass="QBEConfiguratorViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <visualEffectView key="view" appearanceType="vibrantLight" blendingMode="behindWindow" material="light" state="followsWindowActiveState" id="Q8k-9S-FpY">
+                    <visualEffectView key="view" appearanceType="vibrantLight" blendingMode="behindWindow" material="titlebar" state="followsWindowActiveState" id="Q8k-9S-FpY">
                         <rect key="frame" x="0.0" y="0.0" width="260" height="611"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <subviews>
