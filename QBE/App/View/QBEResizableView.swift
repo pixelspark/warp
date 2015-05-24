@@ -136,8 +136,8 @@ private class QBEResizerView: NSView {
 		
 		// Draw the bounding box
 		let selected = (self.superview as! QBEResizableView).selected
-		let borderColor = selected ? NSColor.blueColor() : NSColor.clearColor()
-		CGContextSetLineWidth(context, 1.0)
+		let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.5) : NSColor.clearColor()
+		CGContextSetLineWidth(context, 2.0)
 		CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
 		CGContextAddRect(context, self.bounds.inset(inset))
 		CGContextStrokePath(context)

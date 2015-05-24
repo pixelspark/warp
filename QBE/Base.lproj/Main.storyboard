@@ -1087,7 +1087,7 @@ CA
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowCollectionBehavior key="collectionBehavior" fullScreenPrimary="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-                        <rect key="contentRect" x="149" y="180" width="1345" height="806"/>
+                        <rect key="contentRect" x="183" y="108" width="1345" height="806"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
                         <toolbar key="toolbar" implicitIdentifier="2EBAC5BC-9FAB-4475-8666-2326836DC6DE" displayMode="iconOnly" sizeMode="small" id="Mya-2b-t6F">
                             <allowedToolbarItems>
@@ -1250,9 +1250,11 @@ CA
                                     <constraint firstAttribute="trailing" secondItem="aXH-7Y-wRY" secondAttribute="trailing" constant="5" id="7Jr-9R-feu"/>
                                     <constraint firstItem="jQq-6i-09S" firstAttribute="top" secondItem="aXH-7Y-wRY" secondAttribute="bottom" constant="5" id="7fu-Cq-wWS"/>
                                     <constraint firstItem="jQq-6i-09S" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" id="LKx-RT-kcb"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="400" id="XdR-b9-Uvy"/>
                                     <constraint firstItem="aXH-7Y-wRY" firstAttribute="top" secondItem="cDc-rh-vev" secondAttribute="top" constant="4" id="YOt-XL-ORB"/>
                                     <constraint firstAttribute="trailing" secondItem="jQq-6i-09S" secondAttribute="trailing" id="mVG-Ay-4SU"/>
                                     <constraint firstItem="aXH-7Y-wRY" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" constant="4" id="nWo-2B-W5G"/>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="pNc-En-NPW"/>
                                     <constraint firstAttribute="bottom" secondItem="jQq-6i-09S" secondAttribute="bottom" id="u08-oa-2yI"/>
                                 </constraints>
                             </visualEffectView>
