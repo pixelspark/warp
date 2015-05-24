@@ -9,6 +9,7 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
 	var tableView: MBTableGrid?
+	@IBOutlet var fullDataIndicatorView: NSImageView!
 	@IBOutlet var progressView: NSProgressIndicator!
 	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
@@ -20,6 +21,10 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		self.tableView?.dataSource = nil
 		self.tableView?.delegate = nil
 	}
+	
+	var hasFullData: Bool = false { didSet {
+		fullDataIndicatorView.hidden = !hasFullData
+	} }
 	
 	var calculating: Bool = false { didSet {
 		update()
@@ -197,6 +202,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 		
 		if let tv = tableView {
+			
 			if let r = raster {
 				for i in 0..<r.columnCount {
 					let cn = r.columnNames[i]

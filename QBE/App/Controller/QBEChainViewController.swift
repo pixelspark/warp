@@ -190,8 +190,9 @@ internal extension NSViewController {
 	private func presentRaster(raster: QBERaster?) {
 		if let dataView = self.dataViewController {
 			dataView.raster = raster
+			dataView.hasFullData = (raster != nil && useFullData)
 			
-			if raster != nil && raster!.rowCount > 0 {
+			if raster != nil && raster!.rowCount > 0 && !useFullData {
 				QBESettings.sharedInstance.once("workingSetTip") {
 					if let toolbar = self.view.window?.toolbar {
 						for item in toolbar.items {

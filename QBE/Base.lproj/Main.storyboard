@@ -1342,7 +1342,7 @@ CA
                                     <segue destination="Ww8-Sq-VTz" kind="embed" identifier="steps" id="Muu-a2-euC"/>
                                 </connections>
                             </containerView>
-                            <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="WZZ-hS-HjA">
+                            <button toolTip="Close and remove this card" horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="WZZ-hS-HjA">
                                 <rect key="frame" x="1066" y="411" width="16" height="16"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="16" id="6B6-wz-kn2"/>
@@ -1356,7 +1356,7 @@ CA
                                     <action selector="removeTablet:" target="DXE-ii-MK8" id="O8E-7n-lsI"/>
                                 </connections>
                             </button>
-                            <customView translatesAutoresizingMaskIntoConstraints="NO" id="W1j-vX-x7J" customClass="QBEOutletView" customModule="Warp" customModuleProvider="target">
+                            <customView toolTip="Drag this to another table in order to link data" translatesAutoresizingMaskIntoConstraints="NO" id="W1j-vX-x7J" customClass="QBEOutletView" customModule="Warp" customModuleProvider="target">
                                 <rect key="frame" x="1039" y="409" width="20" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="20" id="P0Z-T6-ZMi"/>
@@ -1442,13 +1442,24 @@ CA
                                     <constraint firstAttribute="width" constant="120" id="yeg-tW-UHn"/>
                                 </constraints>
                             </progressIndicator>
+                            <imageView hidden="YES" toolTip="This data set has been fully calculated" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="t3T-zZ-xns">
+                                <rect key="frame" x="0.0" y="371" width="40" height="24"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="40" id="fAP-V5-WV4"/>
+                                    <constraint firstAttribute="height" constant="24" id="nya-v9-FgI"/>
+                                </constraints>
+                                <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyUpOrDown" image="BigIcon" id="0Ho-rN-QQg"/>
+                            </imageView>
                         </subviews>
                         <constraints>
                             <constraint firstAttribute="centerX" secondItem="ckd-Aw-A1T" secondAttribute="centerX" id="7Bc-Vt-so9"/>
+                            <constraint firstItem="t3T-zZ-xns" firstAttribute="top" secondItem="qWX-f7-1Jq" secondAttribute="top" id="MX1-bv-PfD"/>
                             <constraint firstAttribute="centerY" secondItem="ckd-Aw-A1T" secondAttribute="centerY" id="gg9-n6-AAV"/>
+                            <constraint firstItem="t3T-zZ-xns" firstAttribute="leading" secondItem="qWX-f7-1Jq" secondAttribute="leading" id="kEb-sy-9u1"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="fullDataIndicatorView" destination="t3T-zZ-xns" id="Z6m-p6-qt9"/>
                         <outlet property="progressView" destination="ckd-Aw-A1T" id="VLb-Ny-mnn"/>
                     </connections>
                 </viewController>
