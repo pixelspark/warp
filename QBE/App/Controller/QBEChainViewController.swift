@@ -673,7 +673,7 @@ internal extension NSViewController {
 					let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
 					
 					QBEAsyncMain {
-						self.pushStep(QBESortStep(previous: self.currentStep, orders: [order]))
+						self.suggestSteps([QBESortStep(previous: self.currentStep, orders: [order])])
 					}
 				}
 			}
