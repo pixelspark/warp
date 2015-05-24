@@ -862,7 +862,7 @@
 						DevelopmentTeam = 2T2T7HAA8S;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
-								enabled = 0;
+								enabled = 1;
 							};
 							com.apple.iCloud = {
 								enabled = 0;
