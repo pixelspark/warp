@@ -3,15 +3,21 @@ import Foundation
 class QBECalculateStep: QBEStep {
 	var function: QBEExpression
 	var targetColumn: QBEColumn
-	var insertAfter: QBEColumn? = nil
+	var insertRelativeTo: QBEColumn? = nil
+	var insertBefore: Bool = false
 	
 	required init(coder aDecoder: NSCoder) {
 		function = (aDecoder.decodeObjectForKey("function") as? QBEExpression) ?? QBEIdentityExpression()
 		targetColumn = QBEColumn((aDecoder.decodeObjectForKey("targetColumn") as? String) ?? "")
 		
 		if let after = aDecoder.decodeObjectForKey("insertAfter") as? String {
-			insertAfter = QBEColumn(after)
+			insertRelativeTo = QBEColumn(after)
 		}
+		
+		/* Older versions of Warp do not encode this key and assume insert after (hence the relative column is coded as 
+		'insertAfter'). As decodeBoolForKey defaults to false for keys it cannot find, this is the expected behaviour. */
+		self.insertBefore = aDecoder.decodeBoolForKey("insertBefore")
+		
 		super.init(coder: aDecoder)
 	}
 	
@@ -27,31 +33,48 @@ class QBECalculateStep: QBEStep {
 	override func encodeWithCoder(coder: NSCoder) {
 		coder.encodeObject(function, forKey: "function")
 		coder.encodeObject(targetColumn.name, forKey: "targetColumn")
-		coder.encodeObject(insertAfter?.name, forKey: "insertAfter")
+		coder.encodeObject(insertRelativeTo?.name, forKey: "insertAfter")
+		coder.encodeBool(insertBefore, forKey: "insertBefore")
 		super.encodeWithCoder(coder)
 	}
 	
-	required init(previous: QBEStep?, targetColumn: QBEColumn, function: QBEExpression, insertAfter: QBEColumn? = nil) {
+	required init(previous: QBEStep?, targetColumn: QBEColumn, function: QBEExpression, insertRelativeTo: QBEColumn? = nil, insertBefore: Bool = false) {
 		self.function = function
 		self.targetColumn = targetColumn
-		self.insertAfter = insertAfter
+		self.insertRelativeTo = insertRelativeTo
+		self.insertBefore = insertBefore
 		super.init(previous: previous)
 	}
 	
 	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
 		let result = data.calculate([targetColumn: function])
-		if let after = insertAfter {
+		if let relativeTo = insertRelativeTo {
 			// Reorder columns in the result set so that targetColumn is inserted after insertAfter
 			data.columnNames(job) {(var cns: [QBEColumn]) in
 				cns.remove(self.targetColumn)
-				if let idx = find(cns, after) {
-					cns.insert(self.targetColumn, atIndex: idx+1)
+				if let idx = find(cns, relativeTo) {
+					if self.insertBefore {
+						cns.insert(self.targetColumn, atIndex: idx)
+					}
+					else {
+						cns.insert(self.targetColumn, atIndex: idx+1)
+					}
 				}
 				callback(result.selectColumns(cns))
 			}
 		}
 		else {
-			callback(result)
+			// If the column is to be added at the beginning, shuffle columns around (the default is to add at the end
+			if insertRelativeTo == nil && insertBefore {
+				data.columnNames(job) {(var cns: [QBEColumn]) in
+					cns.remove(self.targetColumn)
+					cns.insert(self.targetColumn, atIndex: 0)
+					callback(result.selectColumns(cns))
+				}
+			}
+			else {
+				callback(result)
+			}
 		}
 	}
 	
@@ -77,8 +100,9 @@ class QBECalculateStep: QBEStep {
 			}
 			
 			if !dependsOnPrevious {
-				let after = self.insertAfter ?? p.insertAfter
-				return QBEStepMerge.Advised(QBECalculateStep(previous: previous, targetColumn: targetColumn, function: function, insertAfter: after))
+				let relativeTo = self.insertRelativeTo ?? p.insertRelativeTo
+				let before = self.insertBefore ?? p.insertBefore
+				return QBEStepMerge.Advised(QBECalculateStep(previous: previous, targetColumn: targetColumn, function: function, insertRelativeTo: relativeTo, insertBefore: before))
 			}
 		}
 		

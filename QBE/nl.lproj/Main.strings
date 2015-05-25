@@ -12,7 +12,7 @@
 "1tx-W0-xDw.title" = "Lower";
 
 /* Class = "NSMenuItem"; title = "Randomly select rows..."; ObjectID = "21p-in-cPl"; */
-"21p-in-cPl.title" = "Filter willekeurig rijen";
+"21p-in-cPl.title" = "Kies willekeurig rijen";
 
 /* Class = "NSTextFieldCell"; title = "Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label "; ObjectID = "285-uI-onn"; */
 "285-uI-onn.title" = "Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label ";
@@ -55,9 +55,6 @@
 
 /* Class = "NSToolbarItem"; paletteLabel = "Add file"; ObjectID = "51V-E9-1Wy"; */
 "51V-E9-1Wy.paletteLabel" = "Add file";
-
-/* Class = "NSMenuItem"; title = "Add new empty column"; ObjectID = "59s-by-P6W"; */
-"59s-by-P6W.title" = "Voeg een nieuwe, lege kolom toe";
 
 /* Class = "NSMenuItem"; title = "Edit"; ObjectID = "5QF-Oa-p0T"; */
 "5QF-Oa-p0T.title" = "Wijzig";
@@ -632,4 +629,9 @@
 "W1j-vX-x7J.ibShadowedToolTip" = "Sleep dit naar een andere tabel om gegevens te koppelen";
 
 "kZg-eL-T5Y.title" = "Ontwikkelaars-tools...";
+
+"znd-jz-mvh.title" = "Voeg een nieuwe kolom toe aan linkerkant";
+"59s-by-P6W.title" = "Voeg een nieuwe kolom toe aan het begin";
+"F4q-u1-YIk.title" = "Voeg een nieuwe kolom toe aan de rechterkant";
+"YU4-V1-d4V.title" = "Voeg een nieuwe kolom toe aan het einde";
 

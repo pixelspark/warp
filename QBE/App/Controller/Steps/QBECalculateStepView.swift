@@ -6,6 +6,7 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 	@IBOutlet var targetColumnNameField: NSTextField?
 	@IBOutlet var formulaField: NSTextField?
 	@IBOutlet var insertAfterField: NSComboBox!
+	@IBOutlet var insertPositionPopup: NSPopUpButton!
 	var existingColumns: [QBEColumn]?
 	let step: QBECalculateStep?
 	
@@ -53,7 +54,8 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 		
 		if let s = step {
 			let job = QBEJob(.UserInitiated)
-			self.insertAfterField?.stringValue = s.insertAfter?.name ?? ""
+			self.insertAfterField?.stringValue = s.insertRelativeTo?.name ?? ""
+			self.insertPositionPopup.selectItemWithTag(s.insertBefore ? 1 : 0)
 			self.existingColumns = nil
 			
 			s.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (d) in
@@ -93,10 +95,21 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 	
 	@IBAction func update(sender: NSObject) {
 		if let s = step {
+			if sender == insertPositionPopup {
+				if let position = insertPositionPopup.selectedItem {
+					let before = position.tag == 1
+					if s.insertBefore != before {
+						s.insertBefore = before
+						delegate?.suggestionsView(self, previewStep: s)
+						return
+					}
+				}
+			}
+			
 			if sender == insertAfterField {
 				let after = insertAfterField.stringValue
-				if after != s.insertAfter?.name {
-					s.insertAfter = after.isEmpty ? nil : QBEColumn(after)
+				if after != s.insertRelativeTo?.name {
+					s.insertRelativeTo = after.isEmpty ? nil : QBEColumn(after)
 				}
 				delegate?.suggestionsView(self, previewStep: s)
 				return

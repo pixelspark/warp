@@ -666,13 +666,13 @@ CA
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Rows" id="USh-4J-mhp">
                                     <items>
-                                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="Qd1-7c-QpC">
+                                        <menuItem title="Keep only selected rows" keyEquivalent="s" id="zxu-sF-VWl">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
-                                                <action selector="transposeData:" target="Ady-hI-5gd" id="zdd-dH-g4B"/>
+                                                <action selector="selectRows:" target="Ady-hI-5gd" id="Vg2-7t-0sB"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="0Dp-rC-xCW"/>
+                                        <menuItem isSeparatorItem="YES" id="iTD-Us-nM9"/>
                                         <menuItem title="Remove row(s)" id="bP3-jR-pV3">
                                             <string key="keyEquivalent" base64-UTF8="YES">
 CA
@@ -688,10 +688,10 @@ CA
                                                 <action selector="removeDuplicateRows:" target="Ady-hI-5gd" id="RQx-hH-lkS"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Keep only selected rows" keyEquivalent="s" id="zxu-sF-VWl">
+                                        <menuItem title="Limit to a specified number of rows..." keyEquivalent="l" id="TxF-Ed-uJa">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
-                                                <action selector="selectRows:" target="Ady-hI-5gd" id="Vg2-7t-0sB"/>
+                                                <action selector="limitRows:" target="Ady-hI-5gd" id="2xt-ga-mSd"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Combine rows by aggregating selected cells" keyEquivalent="a" id="T5M-6C-O6U">
@@ -700,8 +700,14 @@ CA
                                                 <action selector="aggregateRowsByCells:" target="Ady-hI-5gd" id="Tqr-T9-EHd"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Randomly select rows..." keyEquivalent="r" id="21p-in-cPl">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <connections>
+                                                <action selector="randomlySelectRows:" target="Ady-hI-5gd" id="ejq-Vh-tsl"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="TKS-Eg-OdV"/>
-                                        <menuItem title="Sort rows on selected column(s)" keyEquivalent="l" id="lWV-Af-fdF">
+                                        <menuItem title="Sort rows on selected column(s)" keyEquivalent="o" id="lWV-Af-fdF">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
                                                 <action selector="sortRows:" target="Ady-hI-5gd" id="UOG-tp-n6I"/>
@@ -713,19 +719,6 @@ CA
                                                 <action selector="reverseSortRows:" target="Ady-hI-5gd" id="zUh-Z7-ghr"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="ykg-qT-Nzg"/>
-                                        <menuItem title="Limit to a specified number of rows..." keyEquivalent="l" id="TxF-Ed-uJa">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                                            <connections>
-                                                <action selector="limitRows:" target="Ady-hI-5gd" id="2xt-ga-mSd"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Randomly select rows..." keyEquivalent="r" id="21p-in-cPl">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                                            <connections>
-                                                <action selector="randomlySelectRows:" target="Ady-hI-5gd" id="ejq-Vh-tsl"/>
-                                            </connections>
-                                        </menuItem>
                                     </items>
                                 </menu>
                             </menuItem>
@@ -733,10 +726,28 @@ CA
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Columns" id="9sC-KT-ikn">
                                     <items>
-                                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="vAL-Mr-hZQ">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
+                                        <menuItem title="Add new column to the left" keyEquivalent="" id="znd-jz-mvh">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                                             <connections>
-                                                <action selector="transposeData:" target="Ady-hI-5gd" id="7af-yJ-cQu"/>
+                                                <action selector="addColumnToLeft:" target="Ady-hI-5gd" id="2SY-wy-P4M"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Add new column at the beginning" alternate="YES" keyEquivalent="" id="59s-by-P6W">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="addColumnAtBeginning:" target="Ady-hI-5gd" id="LmV-P2-qGU"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Add new column to the right" keyEquivalent="" id="F4q-u1-YIk">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="addColumnToRight:" target="Ady-hI-5gd" id="k64-V5-UlO"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Add new column at the end" alternate="YES" keyEquivalent="" id="YU4-V1-d4V">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="addColumnAtEnd:" target="Ady-hI-5gd" id="AJz-fz-PF9"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="uR9-s2-uyO"/>
@@ -744,28 +755,15 @@ CA
                                             <string key="keyEquivalent" base64-UTF8="YES">
 CA
 </string>
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                                             <connections>
                                                 <action selector="removeColumns:" target="Ady-hI-5gd" id="Tmy-hE-6X8"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Keep only selected column(s)" keyEquivalent="s" id="7LD-D5-QvZ">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                                             <connections>
                                                 <action selector="selectColumns:" target="Ady-hI-5gd" id="IPU-Cj-jv2"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="Q6R-jb-5hp"/>
-                                        <menuItem title="Calculate new column..." keyEquivalent="c" id="FAo-Q2-Pil">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
-                                            <connections>
-                                                <action selector="addColumn:" target="Ady-hI-5gd" id="6bv-zz-7UB"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Add new empty column" keyEquivalent="n" id="59s-by-P6W">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
-                                            <connections>
-                                                <action selector="addEmptyColumn:" target="Ady-hI-5gd" id="NQf-xv-2Lo"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -789,6 +787,13 @@ CA
                                             <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                             <connections>
                                                 <action selector="addDebugStep:" target="Ady-hI-5gd" id="dY9-qB-qAh"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="0Dp-rC-xCW"/>
+                                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="Qd1-7c-QpC">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <connections>
+                                                <action selector="transposeData:" target="Ady-hI-5gd" id="zdd-dH-g4B"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -1390,7 +1395,6 @@ CA
                     <connections>
                         <outlet property="addStepMenu" destination="TbW-HU-EDH" id="Mvr-tx-vGF"/>
                         <outlet property="outletView" destination="W1j-vX-x7J" id="eoj-aU-N87"/>
-                        <segue destination="OvS-H1-pU0" kind="sheet" identifier="addColumn" id="djH-Ex-vc1"/>
                     </connections>
                 </viewController>
                 <customObject id="Izd-TK-t8f" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
@@ -1550,119 +1554,6 @@ CA
                 <customObject id="hZp-iq-JdD" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="936" y="887"/>
-        </scene>
-        <!--Add Column View Controller-->
-        <scene sceneID="c4P-Dw-LPh">
-            <objects>
-                <viewController id="OvS-H1-pU0" customClass="QBEAddColumnViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="odg-bA-gCm">
-                        <rect key="frame" x="0.0" y="0.0" width="551" height="245"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                        <subviews>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="ygl-u6-exP">
-                                <rect key="frame" x="203" y="41" width="338" height="136"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="136" id="iJ3-PU-RrQ"/>
-                                </constraints>
-                                <textFieldCell key="cell" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="I9D-NI-Rrp">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                                <connections>
-                                    <binding destination="OvS-H1-pU0" name="value" keyPath="self.columnFormula" id="Tos-Nf-gge"/>
-                                </connections>
-                            </textField>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="1ze-2d-21G">
-                                <rect key="frame" x="487" y="3" width="60" height="32"/>
-                                <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="9Ao-UW-eYs">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                    <string key="keyEquivalent" base64-UTF8="YES">
-DQ
-</string>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="confirm:" target="OvS-H1-pU0" id="YA7-MJ-Bn3"/>
-                                </connections>
-                            </button>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="zy3-tV-pwQ">
-                                <rect key="frame" x="406" y="3" width="83" height="32"/>
-                                <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="v37-se-rGc">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                    <string key="keyEquivalent" base64-UTF8="YES">
-Gw
-</string>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="cancel:" target="OvS-H1-pU0" id="hHf-8g-36m"/>
-                                </connections>
-                            </button>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4ZF-ng-u0b">
-                                <rect key="frame" x="8" y="187" width="535" height="48"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="48" id="vmk-4k-dNW"/>
-                                </constraints>
-                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="In order to add a column, enter a name for the new column, as well as a formula to fill the column's cells with." id="2ec-tA-j4r">
-                                    <font key="font" metaFont="systemBold"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="huH-Gh-J6p">
-                                <rect key="frame" x="10" y="155" width="164" height="22"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="22" id="2ly-he-0WH"/>
-                                </constraints>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="Column name" drawsBackground="YES" id="qB6-Wk-dah">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                                <connections>
-                                    <binding destination="OvS-H1-pU0" name="value" keyPath="self.columnName" id="IjJ-V1-KNs"/>
-                                </connections>
-                            </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aQ2-bK-kL9">
-                                <rect key="frame" x="182" y="160" width="13" height="17"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="=" id="NlX-O5-M9i">
-                                    <font key="font" metaFont="systemBold"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                        </subviews>
-                        <constraints>
-                            <constraint firstAttribute="bottom" secondItem="zy3-tV-pwQ" secondAttribute="bottom" constant="10" id="0K2-iz-EPy"/>
-                            <constraint firstItem="huH-Gh-J6p" firstAttribute="top" secondItem="ygl-u6-exP" secondAttribute="top" id="7NV-WV-d4o"/>
-                            <constraint firstItem="huH-Gh-J6p" firstAttribute="leading" secondItem="odg-bA-gCm" secondAttribute="leading" constant="10" id="CPT-H6-dha"/>
-                            <constraint firstItem="aQ2-bK-kL9" firstAttribute="leading" secondItem="huH-Gh-J6p" secondAttribute="trailing" constant="10" id="MgY-JJ-mgm"/>
-                            <constraint firstItem="1ze-2d-21G" firstAttribute="leading" secondItem="zy3-tV-pwQ" secondAttribute="trailing" constant="10" id="Mlu-yl-V0W"/>
-                            <constraint firstAttribute="bottom" secondItem="1ze-2d-21G" secondAttribute="bottom" constant="10" id="TeZ-WW-IYT"/>
-                            <constraint firstItem="4ZF-ng-u0b" firstAttribute="top" secondItem="odg-bA-gCm" secondAttribute="top" constant="10" id="Z1b-q5-DCR"/>
-                            <constraint firstItem="zy3-tV-pwQ" firstAttribute="top" secondItem="ygl-u6-exP" secondAttribute="bottom" constant="10" id="b3T-tb-ohk"/>
-                            <constraint firstItem="ygl-u6-exP" firstAttribute="leading" secondItem="odg-bA-gCm" secondAttribute="leading" constant="203" id="bvr-id-Pk4"/>
-                            <constraint firstItem="ygl-u6-exP" firstAttribute="leading" secondItem="aQ2-bK-kL9" secondAttribute="trailing" constant="10" id="diV-DU-72Q"/>
-                            <constraint firstItem="1ze-2d-21G" firstAttribute="top" secondItem="ygl-u6-exP" secondAttribute="bottom" constant="10" id="gx0-RR-rAv"/>
-                            <constraint firstAttribute="trailing" secondItem="4ZF-ng-u0b" secondAttribute="trailing" constant="10" id="ibj-8v-xD6"/>
-                            <constraint firstAttribute="trailing" secondItem="1ze-2d-21G" secondAttribute="trailing" constant="10" id="rnq-WO-czA"/>
-                            <constraint firstItem="ygl-u6-exP" firstAttribute="top" secondItem="4ZF-ng-u0b" secondAttribute="bottom" constant="10" id="sVF-Dc-eEu"/>
-                            <constraint firstItem="4ZF-ng-u0b" firstAttribute="leading" secondItem="odg-bA-gCm" secondAttribute="leading" constant="10" id="tIt-Iw-uH0"/>
-                            <constraint firstItem="ygl-u6-exP" firstAttribute="top" secondItem="aQ2-bK-kL9" secondAttribute="top" id="tyM-5s-yqk"/>
-                            <constraint firstAttribute="trailing" secondItem="ygl-u6-exP" secondAttribute="trailing" constant="10" id="vTE-KS-gsz"/>
-                            <constraint firstItem="huH-Gh-J6p" firstAttribute="top" secondItem="ygl-u6-exP" secondAttribute="top" id="xCE-So-YE3"/>
-                        </constraints>
-                    </view>
-                    <connections>
-                        <outlet property="columnFormulaField" destination="ygl-u6-exP" id="Bnx-hf-qrm"/>
-                        <outlet property="columnNameField" destination="huH-Gh-J6p" id="qWb-Pe-Wq3"/>
-                    </connections>
-                </viewController>
-                <customObject id="mVo-1D-gei" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-                <userDefaultsController id="dwr-GU-0iP"/>
-            </objects>
-            <point key="canvasLocation" x="1032.5" y="1620.5"/>
         </scene>
         <!--Tip View Controller-->
         <scene sceneID="ITy-71-tQC">

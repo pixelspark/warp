@@ -595,10 +595,6 @@ internal extension NSViewController {
 		}
 	}
 	
-	@IBAction func addColumn(sender: NSObject) {
-		self.performSegueWithIdentifier("addColumn", sender: sender)
-	}
-	
 	@IBAction func setFullWorkingSet(sender: NSObject) {
 		useFullData = true
 	}
@@ -607,25 +603,74 @@ internal extension NSViewController {
 		useFullData = false
 	}
 	
-	@IBAction func addEmptyColumn(sender: NSObject) {
-		calculator.currentData?.get({(data) in
+	private func addColumnBeforeAfterCurrent(before: Bool) {
+		calculator.currentData?.get {(data) in
 			let job = QBEJob(.UserInitiated)
 			
 			data.columnNames(job) {(cols) in
-				// If a column is selected, insert the new column right after it
-				var insertAfter: QBEColumn? = nil
 				if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-					let firstSelectedColumn = selectedColumns.firstIndex
-					if firstSelectedColumn != NSNotFound && firstSelectedColumn < cols.count {
-						insertAfter = cols[firstSelectedColumn]
+					let name = QBEColumn.defaultColumnForIndex(cols.count)
+					if before {
+						let firstSelectedColumn = selectedColumns.firstIndex
+						if firstSelectedColumn != NSNotFound {
+							let insertRelative = cols[firstSelectedColumn]
+							let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertRelative, insertBefore: true)
+							self.pushStep(step)
+							self.calculate()
+						}
+						else {
+							return
+						}
+					}
+					else {
+						let lastSelectedColumn = selectedColumns.lastIndex
+						if lastSelectedColumn != NSNotFound && lastSelectedColumn < cols.count {
+							let insertAfter = cols[lastSelectedColumn]
+							let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertAfter, insertBefore: false)
+							self.pushStep(step)
+							self.calculate()
+						}
+						else {
+							return
+						}
 					}
 				}
-				
-				let step = QBECalculateStep(previous: self.currentStep, targetColumn: QBEColumn.defaultColumnForIndex(cols.count), function: QBELiteralExpression(QBEValue.EmptyValue), insertAfter: insertAfter)
+			}
+		}
+	}
+	
+	@IBAction func addColumnToRight(sender: NSObject) {
+		addColumnBeforeAfterCurrent(false)
+	}
+	
+	@IBAction func addColumnToLeft(sender: NSObject) {
+		addColumnBeforeAfterCurrent(true)
+	}
+	
+	@IBAction func addColumnAtEnd(sender: NSObject) {
+		calculator.currentData?.get {(data) in
+			let job = QBEJob(.UserInitiated)
+			
+			data.columnNames(job) {(cols) in
+				let name = QBEColumn.defaultColumnForIndex(cols.count)
+				let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: false)
 				self.pushStep(step)
 				self.calculate()
 			}
-		})
+		}
+	}
+	
+	@IBAction func addColumnAtBeginning(sender: NSObject) {
+		calculator.currentData?.get {(data) in
+			let job = QBEJob(.UserInitiated)
+			
+			data.columnNames(job) {(cols) in
+				let name = QBEColumn.defaultColumnForIndex(cols.count)
+				let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: true)
+				self.pushStep(step)
+				self.calculate()
+			}
+		}
 	}
 	
 	private func remove(stepToRemove: QBEStep) {
@@ -850,10 +895,16 @@ internal extension NSViewController {
 			}
 			return false
 		}
-		else if item.action()==Selector("addColumn:") {
+		else if item.action()==Selector("addColumnAtEnd:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("addEmptyColumn:") {
+		else if item.action()==Selector("addColumnAtBeginning:") {
+			return currentStep != nil
+		}
+		else if item.action()==Selector("addColumnToLeft:") {
+			return currentStep != nil
+		}
+		else if item.action()==Selector("addColumnToRight:") {
 			return currentStep != nil
 		}
 		else if item.action()==Selector("exportFile:") {
@@ -1007,10 +1058,6 @@ internal extension NSViewController {
 			dataViewController?.delegate = self
 			dataViewController?.locale = locale
 			calculate()
-		}
-		else if segue.identifier=="addColumn" {
-			let sv = segue.destinationController as? QBEAddColumnViewController
-			sv?.delegate = self
 		}
 		else if segue.identifier=="steps" {
 			stepsViewController = segue.destinationController as? QBEStepsViewController
