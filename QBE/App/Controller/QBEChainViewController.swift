@@ -145,6 +145,12 @@ internal extension NSViewController {
 										self.currentStep = firstJoin
 										self.calculate()
 									}
+									else {
+										let js = QBEJoinStep(previous: nil)
+										js.right = otherChain
+										js.condition = QBELiteralExpression(QBEValue(false))
+										self.suggestSteps([js])
+									}
 								}
 							}
 						}
