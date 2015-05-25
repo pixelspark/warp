@@ -12,6 +12,8 @@
 		651521851B130453007BCDFF /* QBEDebugStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651521841B130453007BCDFF /* QBEDebugStep.swift */; };
 		6515218C1B130BBF007BCDFF /* QBEDebugStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6515218B1B130BBF007BCDFF /* QBEDebugStepView.swift */; };
 		6515218D1B131297007BCDFF /* QBEDebugStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6515218F1B131297007BCDFF /* QBEDebugStepView.xib */; };
+		651521931B13B5D6007BCDFF /* QBEXMLStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651521921B13B5D6007BCDFF /* QBEXMLStep.swift */; };
+		651521991B13B92D007BCDFF /* TCMXMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 651521981B13B92D007BCDFF /* TCMXMLWriter.m */; };
 		651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 651988E51A0F9C30003463AA /* CHCSVParser.m */; };
 		651BEB111AC2B0FA00B1CCC0 /* ltqnorm.c in Sources */ = {isa = PBXBuildFile; fileRef = 651BEB0F1AC2B0FA00B1CCC0 /* ltqnorm.c */; };
 		651BEB121AC2B0FA00B1CCC0 /* ltqnorm.c in Sources */ = {isa = PBXBuildFile; fileRef = 651BEB0F1AC2B0FA00B1CCC0 /* ltqnorm.c */; };
@@ -280,6 +282,9 @@
 		6515218B1B130BBF007BCDFF /* QBEDebugStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDebugStepView.swift; sourceTree = "<group>"; };
 		6515218E1B131297007BCDFF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEDebugStepView.xib; sourceTree = "<group>"; };
 		651521911B131299007BCDFF /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEDebugStepView.strings; sourceTree = "<group>"; };
+		651521921B13B5D6007BCDFF /* QBEXMLStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEXMLStep.swift; sourceTree = "<group>"; };
+		651521971B13B92D007BCDFF /* TCMXMLWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TCMXMLWriter.h; path = Libraries/TCMXMLWriter/TCMXML/TCMXMLWriter.h; sourceTree = "<group>"; };
+		651521981B13B92D007BCDFF /* TCMXMLWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TCMXMLWriter.m; path = Libraries/TCMXMLWriter/TCMXML/TCMXMLWriter.m; sourceTree = "<group>"; };
 		651988E41A0F9C30003463AA /* CHCSVParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CHCSVParser.h; path = Libraries/CHCSVParser/CHCSVParser.h; sourceTree = "<group>"; };
 		651988E51A0F9C30003463AA /* CHCSVParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CHCSVParser.m; path = Libraries/CHCSVParser/CHCSVParser.m; sourceTree = "<group>"; };
 		651988E81A0FAA3F003463AA /* QBEObjectiveCBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QBEObjectiveCBridge.h; path = QBE/QBEObjectiveCBridge.h; sourceTree = "<group>"; };
@@ -484,6 +489,8 @@
 		651988E71A0F9C39003463AA /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				651521971B13B92D007BCDFF /* TCMXMLWriter.h */,
+				651521981B13B92D007BCDFF /* TCMXMLWriter.m */,
 				65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */,
 				6548F2331A8673BF00FE8EF2 /* extension-functions.c */,
 				651BEB0F1AC2B0FA00B1CCC0 /* ltqnorm.c */,
@@ -691,6 +698,7 @@
 				65A526BF1B0A5BED00CCF3E3 /* QBEPostgresStep.swift */,
 				65994A9A1B10B525005DD56B /* QBECloneStep.swift */,
 				651521841B130453007BCDFF /* QBEDebugStep.swift */,
+				651521921B13B5D6007BCDFF /* QBEXMLStep.swift */,
 			);
 			path = Steps;
 			sourceTree = "<group>";
@@ -1036,6 +1044,7 @@
 				65A0DFD71AF299F30005C50F /* QBEValue.swift in Sources */,
 				65A0DFBF1AF299F30005C50F /* QBEFunction.swift in Sources */,
 				651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */,
+				651521931B13B5D6007BCDFF /* QBEXMLStep.swift in Sources */,
 				65A0DF861AF299C20005C50F /* QBEDocumentViewController.swift in Sources */,
 				65884A461B076C4E003A5BF1 /* QBEJoinStepView.swift in Sources */,
 				65CD95201AC9E80300557C9E /* QBEObjectiveCBridge.m in Sources */,
@@ -1069,6 +1078,7 @@
 				65A0DFE91AF299F30005C50F /* QBEPivotStep.swift in Sources */,
 				65A0DFD11AF299F30005C50F /* QBEStep.swift in Sources */,
 				65A0DF821AF299C20005C50F /* QBEConfiguratorViewController.swift in Sources */,
+				651521991B13B92D007BCDFF /* TCMXMLWriter.m in Sources */,
 				65A0DFE31AF299F30005C50F /* QBEFlattenStep.swift in Sources */,
 				65A0DF8E1AF299C20005C50F /* QBEWindowController.swift in Sources */,
 				65884A241AFDF23E003A5BF1 /* QBEAnchor.swift in Sources */,
@@ -1415,6 +1425,7 @@
 					"/Applications/Xcode-beta.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
 					"$(SRCROOT)/Libraries/MySQL/include",
 					"$(SRCROOT)/Libraries/PostgreSQL/include",
+					"$(SRCROOT)/Libraries/TCMXMLWriter/TCXML",
 				);
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Libraries/MySQL";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
@@ -1463,6 +1474,7 @@
 					"/Applications/Xcode-beta.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
 					"$(SRCROOT)/Libraries/MySQL/include",
 					"$(SRCROOT)/Libraries/PostgreSQL/include",
+					"$(SRCROOT)/Libraries/TCMXMLWriter/TCXML",
 				);
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/Libraries/MySQL";
 				LLVM_LTO = YES;

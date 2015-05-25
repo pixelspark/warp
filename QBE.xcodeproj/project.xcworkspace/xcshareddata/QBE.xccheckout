@@ -18,6 +18,8 @@
 		<string>github.com:pixelspark/mbtablegrid.git</string>
 		<key>A5F18CC216C059F29632AA08FA9E5DF3898315E3</key>
 		<string>/Volumes/code/qbe.git</string>
+		<key>EE61EABCF181C4E4998F7E1EA6B7D0AAED720562</key>
+		<string>github.com:monkeydom/TCMXMLWriter.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>QBE.xcodeproj</string>
@@ -31,6 +33,8 @@
 		<string>../..Libraries/MBTableGrid</string>
 		<key>A5F18CC216C059F29632AA08FA9E5DF3898315E3</key>
 		<string>../..</string>
+		<key>EE61EABCF181C4E4998F7E1EA6B7D0AAED720562</key>
+		<string>../../Libraries/TCXMLWriter/</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>/Volumes/code/qbe.git</string>
@@ -71,6 +75,14 @@
 			<string>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</string>
 			<key>IDESourceControlWCCName</key>
 			<string>swift-parser-generator</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>EE61EABCF181C4E4998F7E1EA6B7D0AAED720562</string>
+			<key>IDESourceControlWCCName</key>
+			<string>TCXMLWriter</string>
 		</dict>
 	</array>
 </dict>

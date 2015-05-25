@@ -8,9 +8,10 @@ class QBEFactory {
 	static let sharedInstance = QBEFactory()
 	
 	private let fileWriters: [String: QBEFileWriter.Type] = [
+		"tsv": QBECSVWriter.self,
+		"xml": QBEXMLWriter.self,
 		"html": QBEHTMLWriter.self,
-		"csv": QBECSVWriter.self,
-		"tsv": QBECSVWriter.self
+		"csv": QBECSVWriter.self
 	]
 	
 	private let fileReaders: [String: QBEFileReaderCreator] = [

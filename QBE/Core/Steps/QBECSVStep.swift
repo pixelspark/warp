@@ -148,7 +148,7 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 			}
 			
 			// Write column headers
-			stream.columnNames(job) { (columnNames) -> () in
+			stream.columnNames(job) { [unowned self] (columnNames) -> () in
 				for col in columnNames {
 					csvOut.writeField(col.name)
 				}

@@ -451,6 +451,19 @@ struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 	}
 }
 
+extension NSDate {
+	/**
+	Returns an ISO-8601 formatted string of this date. Source code snipped from 
+	http://stackoverflow.com/questions/16254575/how-do-i-get-iso-8601-date-in-ios*/
+	var iso8601FormattedDate: String { get {
+		let dateFormatter = NSDateFormatter()
+		let enUSPosixLocale = NSLocale(localeIdentifier: "en_US_POSIX")
+		dateFormatter.locale = enUSPosixLocale
+		dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+		return dateFormatter.stringFromDate(self)
+	} }
+}
+
 /** QBEValue is used to represent all values in data sets. Although QBEValue can represent values of different types,
 values of different types can usually easily be converted to another type. QBEValue closely models the way values are
 handled in Excel and SQL (striving for a greatest common denominator where possible). QBEValue supports four data types

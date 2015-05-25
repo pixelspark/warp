@@ -7,3 +7,6 @@
 [submodule "Libraries/Alamofire"]
 	path = Libraries/Alamofire
 	url = https://github.com/Alamofire/Alamofire
+[submodule "Libraries/TCMXMLWriter"]
+	path = Libraries/TCMXMLWriter
+	url = git@github.com:monkeydom/TCMXMLWriter.git
