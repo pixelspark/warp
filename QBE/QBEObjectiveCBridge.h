@@ -3,6 +3,8 @@
 
 #import "CHCSVParser.h"
 #import <MBTableGrid/MBTableGrid.h>
+#import <MBTableGrid/MBTableGridHeaderView.h>
+#import <MBTableGrid/MBTableGridFooterView.h>
 #import <MBTableGrid/MBTableGridCell.h>
 #import "sqlite3.h"
 #import "mysql.h"

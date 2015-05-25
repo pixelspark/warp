@@ -11,6 +11,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	var tableView: MBTableGrid?
 	@IBOutlet var fullDataIndicatorView: NSImageView!
 	@IBOutlet var progressView: NSProgressIndicator!
+	@IBOutlet var columnContextMenu: NSMenu!
 	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
 	private var textCell: MBTableGridCell!
@@ -222,6 +223,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
+		if item.action() == Selector("addColumnBeforeSelectedColumn:") ||
+			item.action() == Selector("addColumnAfterSelectedColumn:") ||
+			item.action() == Selector("removeSelectedColumn:") ||
+			item.action() == Selector("keepSelectedColumn:") {
+			return true
+		}
 		return false
 	}
 	
@@ -284,6 +291,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Horizontal)
 			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Vertical)
 			self.tableView!.awakeFromNib()
+			self.tableView!.columnHeaderView.menu = self.columnContextMenu
 			self.view.addSubview(tableView!)
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0));
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0));

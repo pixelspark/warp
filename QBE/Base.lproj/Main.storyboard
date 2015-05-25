@@ -1471,10 +1471,43 @@ CA
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="columnContextMenu" destination="ZtX-Re-5cz" id="yu5-fo-zX6"/>
                         <outlet property="fullDataIndicatorView" destination="t3T-zZ-xns" id="Z6m-p6-qt9"/>
                         <outlet property="progressView" destination="ckd-Aw-A1T" id="VLb-Ny-mnn"/>
                     </connections>
                 </viewController>
+                <menu title="Columns" id="ZtX-Re-5cz" userLabel="Columns context menu">
+                    <items>
+                        <menuItem title="Add new column to the left" keyEquivalent="" id="sMD-YK-zsD">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                            <connections>
+                                <action selector="addColumnToLeft:" target="PUg-Ve-SLp" id="itl-4B-SEB"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Add new column to the right" keyEquivalent="" id="Tbb-3w-O02">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                            <connections>
+                                <action selector="addColumnToRight:" target="PUg-Ve-SLp" id="Rsu-cM-tcT"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem isSeparatorItem="YES" id="38R-9V-jBR"/>
+                        <menuItem title="Remove selected column(s)" id="ETe-Gw-5UG">
+                            <string key="keyEquivalent" base64-UTF8="YES">
+CA
+</string>
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                            <connections>
+                                <action selector="removeColumns:" target="PUg-Ve-SLp" id="5gj-9j-Hmv"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Keep only selected column(s)" keyEquivalent="s" id="fkg-Il-kVZ">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                            <connections>
+                                <action selector="selectColumns:" target="PUg-Ve-SLp" id="Lxb-wO-icm"/>
+                            </connections>
+                        </menuItem>
+                    </items>
+                </menu>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="33.5" y="1897.5"/>
@@ -1675,7 +1708,7 @@ CA
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="32" id="K7m-EF-Wam"/>
                                 </constraints>
-                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="A MULTI MULTI MULTI A MULTI MULTI MULTI A MULTI MULTI MULTI A MULTI MULTI" id="Ka3-eI-kA6">
+                                <textFieldCell key="cell" lineBreakMode="charWrapping" truncatesLastVisibleLine="YES" sendsActionOnEndEditing="YES" title="A MULTI MULTI MULTI A MULTI MULTI MULTI A MULTI MULTI MULTI A MULTI MULTI" id="Ka3-eI-kA6">
                                     <font key="font" metaFont="systemBold"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
