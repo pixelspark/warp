@@ -670,6 +670,10 @@ internal extension NSViewController {
 		}
 	}
 	
+	@IBAction func addDebugStep(sender: NSObject) {
+		suggestSteps([QBEDebugStep(previous: self.currentStep)])
+	}
+	
 	private func sortRows(ascending: Bool) {
 		if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 			let firstSelectedColumn = selectedColumns.firstIndex
@@ -817,6 +821,9 @@ internal extension NSViewController {
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action()==Selector("transposeData:") {
+			return currentStep != nil
+		}
+		else if item.action()==Selector("addDebugStep:") {
 			return currentStep != nil
 		}
 		else if item.action()==Selector("aggregateRowsByCells:") {

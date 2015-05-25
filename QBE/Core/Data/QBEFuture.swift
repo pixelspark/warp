@@ -68,11 +68,15 @@ internal extension Array {
 
 enum QBEQoS {
 	case UserInitiated
+	case Background
 	
 	var qosClass: dispatch_qos_class_t {
 		switch self {
 			case .UserInitiated:
 				return QOS_CLASS_USER_INITIATED
+			
+			case .Background:
+				return QOS_CLASS_BACKGROUND
 		}
 	}
 }
@@ -211,12 +215,13 @@ class QBEJob {
 	#endif
 }
 
-/** QBEFuture represents a result of a (potentially expensive) calculation. Code that needs the result of the
+/** 
+QBEFuture represents a result of a (potentially expensive) calculation. Code that needs the result of the
 operation express their interest by enqueuing a callback with the get() function. The callback gets called immediately
 if the result of the calculation was available in cache, or as soon as the result has been calculated. 
 
 The calculation itself is done by the 'producer' block. When the producer block is changed, the cached result is 
-invalidated (pre-registered callbacks may still receive the stale result when it has been calculated). **/
+invalidated (pre-registered callbacks may still receive the stale result when it has been calculated). */
 class QBEFuture<T> {
 	typealias Callback = QBEBatch<T>.Callback
 	typealias Producer = (QBEJob, Callback) -> ()

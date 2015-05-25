@@ -324,7 +324,7 @@ class QBECSVSourceStep: QBEStep {
 				let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders, locale: locale)
 				cachedData = QBEStreamData(source: s)
 				if useCaching {
-					cachedData = QBESQLiteCachedData(source: cachedData!, locale: locale)
+					cachedData = QBESQLiteCachedData(source: cachedData!)
 				}
 				cachedData = QBECoalescedData(cachedData!)
 				callback(cachedData!)

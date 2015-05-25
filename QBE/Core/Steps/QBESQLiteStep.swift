@@ -93,23 +93,21 @@ internal class QBESQLiteResult {
 		return (0..<count).map({QBEColumn(String.fromCString(sqlite3_column_name(self.resultSet, $0))!)})
 	} }
 
-	func sequence(locale: QBELocale?) -> SequenceOf<QBETuple> {
-		return SequenceOf<QBETuple>(QBESQLiteResultSequence(result: self, locale: locale))
+	func sequence() -> SequenceOf<QBETuple> {
+		return SequenceOf<QBETuple>(QBESQLiteResultSequence(result: self))
 	}
 }
 
 internal class QBESQLiteResultSequence: SequenceType {
 	let result: QBESQLiteResult
-	let locale: QBELocale?
 	typealias Generator = QBESQLiteResultGenerator
 	
-	init(result: QBESQLiteResult, locale: QBELocale?) {
-		self.locale = locale
+	init(result: QBESQLiteResult) {
 		self.result = result
 	}
 	
 	func generate() -> Generator {
-		return QBESQLiteResultGenerator(self.result, locale: self.locale)
+		return QBESQLiteResultGenerator(self.result)
 	}
 }
 
@@ -117,11 +115,9 @@ internal class QBESQLiteResultGenerator: GeneratorType {
 	typealias Element = QBETuple
 	let result: QBESQLiteResult
 	var lastStatus: Int32 = SQLITE_OK
-	var locale: QBELocale?
 	
-	init(_ result: QBESQLiteResult, locale: QBELocale?) {
+	init(_ result: QBESQLiteResult) {
 		self.result = result
-		self.locale = locale
 	}
 	
 	func next() -> Element? {
@@ -170,9 +166,6 @@ internal class QBESQLiteResultGenerator: GeneratorType {
 				
 			case SQLITE_TEXT:
 				if let string = String.fromCString(UnsafePointer<CChar>(sqlite3_column_text(self.result.resultSet, Int32(idx)))) {
-					if let l = self.locale {
-						return l.valueForLocalString(string)
-					}
 					return QBEValue(string)
 				}
 				else {
@@ -354,7 +347,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 	var tableNames: [String]? { get {
 		if let names = query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name ASC") {
 			var nameStrings: [String] = []
-			for name in names.sequence(nil) {
+			for name in names.sequence() {
 				nameStrings.append(name[0].stringValue!)
 			}
 			return nameStrings
@@ -431,23 +424,21 @@ internal class QBESQLiteDialect: QBEStandardSQLDialect {
 
 class QBESQLiteData: QBESQLData {
 	private let db: QBESQLiteDatabase
-	private let locale: QBELocale?
 
-	private convenience init(db: QBESQLiteDatabase, tableName: String, locale: QBELocale?) {
+	private convenience init(db: QBESQLiteDatabase, tableName: String) {
 		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName))"
 		let result = db.query(query)
 		
-		self.init(db: db, fragment: QBESQLFragment(table: tableName, dialect: db.dialect), columns: result?.columnNames ?? [], locale: locale)
+		self.init(db: db, fragment: QBESQLFragment(table: tableName, dialect: db.dialect), columns: result?.columnNames ?? [])
 	}
 	
-	private init(db: QBESQLiteDatabase, fragment: QBESQLFragment, columns: [QBEColumn], locale: QBELocale?) {
+	private init(db: QBESQLiteDatabase, fragment: QBESQLFragment, columns: [QBEColumn]) {
 		self.db = db
-		self.locale = locale
 		super.init(fragment: fragment, columns: columns)
 	}
 	
 	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
-		return QBESQLiteData(db: self.db, fragment: fragment, columns: resultingColumns, locale: locale)
+		return QBESQLiteData(db: self.db, fragment: fragment, columns: resultingColumns)
 	}
 	
 	override func stream() -> QBEStream {
@@ -472,7 +463,7 @@ class QBESQLiteStream: QBESequenceStream {
 	init?(data: QBESQLiteData) {
 		self.data = data
 		if let result = data.db.query(data.sql.sqlSelect(nil).sql) {
-			super.init(SequenceOf<QBETuple>(result.sequence(data.locale)), columnNames: result.columnNames)
+			super.init(SequenceOf<QBETuple>(result.sequence()), columnNames: result.columnNames)
 		}
 		else {
 			super.init(SequenceOf<QBETuple>([]), columnNames: [])
@@ -485,13 +476,18 @@ class QBESQLiteStream: QBESequenceStream {
 	}
 }
 
+/** 
+Cache a given QBEData data set in a SQLite table. Loading the data set into SQLite is performed asynchronously in the
+background, and the SQLite-cached data set is swapped with the original one at completion transparently. The cache is
+placed in a shared, temporary 'cache' database (sharedCacheDatabase) so that cached tables can efficiently be joined by
+SQLite. Users of this class can set a completion callback if they want to wait until caching has finished. */
 class QBESQLiteCachedData: QBEProxyData {
 	private let database: QBESQLiteDatabase
 	private let tableName: String
 	private var stream: QBEStream?
 	private var insertStatement: QBESQLiteResult?
 	private(set) var isCached: Bool = false
-	private let locale: QBELocale?
+	private var completion: ((QBESQLiteCachedData) -> ())? = nil
 	let cacheJob: QBEJob
 	
 	private class var sharedCacheDatabase : QBESQLiteDatabase {
@@ -505,19 +501,17 @@ class QBESQLiteCachedData: QBEProxyData {
 		return Static.instance!
 	}
 	
-	init(source: QBEData, locale: QBELocale?) {
+	init(source: QBEData, job: QBEJob? = nil, completion: ((QBESQLiteCachedData) -> ())? = nil) {
+		self.completion = completion
 		database = QBESQLiteCachedData.sharedCacheDatabase
 		tableName = "cache_\(String.randomStringWithLength(32))"
-		self.locale = locale
-		cacheJob = QBEJob(.UserInitiated)
+		cacheJob = job ?? QBEJob(.Background)
 		super.init(data: source)
 		
 		let dialect = database.dialect
 		
-		// Create a table to cache this dataset
-		let job = QBEJob(.UserInitiated)
-		
-		job.async { [unowned self] () -> () in
+		// Start caching
+		cacheJob.async { [unowned self] () -> () in
 			source.columnNames(self.cacheJob) { [unowned self] (columns) -> () in
 				let columnSpec = columns.map({(column) -> String in
 					let colString = dialect.columnIdentifier(column, table: nil)
@@ -568,8 +562,10 @@ class QBESQLiteCachedData: QBEProxyData {
 			self.cacheJob.log("Done caching, swapping out")
 			self.database.query("END TRANSACTION")?.run()
 			self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
-				self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: columns, locale: self.locale)
+				self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: columns)
 				self.isCached = true
+				self.completion?(self)
+				self.completion = nil
 			}
 		}
 	}
@@ -619,7 +615,7 @@ class QBESQLiteSourceStep: QBEStep {
 	
 	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
 		if let d = db {
-			callback(QBECoalescedData(QBESQLiteData(db: d, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale)))
+			callback(QBECoalescedData(QBESQLiteData(db: d, tableName: self.tableName ?? "")))
 		}
 		else {
 			callback(QBERasterData())

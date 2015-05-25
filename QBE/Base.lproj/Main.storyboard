@@ -785,6 +785,12 @@ CA
                                                 <action selector="flatten:" target="Ady-hI-5gd" id="fyP-TI-xwT"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Developer tools..." alternate="YES" keyEquivalent="D" id="kZg-eL-T5Y">
+                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="addDebugStep:" target="Ady-hI-5gd" id="dY9-qB-qAh"/>
+                                            </connections>
+                                        </menuItem>
                                     </items>
                                 </menu>
                             </menuItem>
