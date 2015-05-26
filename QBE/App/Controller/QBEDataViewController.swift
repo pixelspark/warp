@@ -214,9 +214,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 						tv.resizeColumnWithIndex(UInt(i), width: Float(self.DefaultColumnWidth))
 					}
 				}
+				tv.reloadData()
 			}
-			
-			tv.reloadData()
+
 			updateFormulaField()
 			tv.needsDisplay = true
 		}
