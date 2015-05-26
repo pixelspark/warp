@@ -899,6 +899,7 @@ CA
                                                     <sliderCell key="cell" state="on" alignment="left" maxValue="10000" doubleValue="500" tickMarkPosition="below" numberOfTickMarks="5" sliderType="linear" id="diE-Hv-uZf"/>
                                                     <connections>
                                                         <action selector="valuesChanged:" target="nyj-Qm-GSe" id="zcc-Hb-61g"/>
+                                                        <outlet property="nextKeyView" destination="bSO-LK-FLV" id="VvW-QP-puv"/>
                                                     </connections>
                                                 </slider>
                                                 <slider verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yyU-94-16h">
@@ -906,6 +907,7 @@ CA
                                                     <sliderCell key="cell" state="on" alignment="left" maxValue="10" doubleValue="1.5" tickMarkPosition="below" numberOfTickMarks="10" sliderType="linear" id="t12-cT-Ps2"/>
                                                     <connections>
                                                         <action selector="valuesChanged:" target="nyj-Qm-GSe" id="vgp-bi-r7F"/>
+                                                        <outlet property="nextKeyView" destination="O8b-W3-f6a" id="f0w-oB-jRz"/>
                                                     </connections>
                                                 </slider>
                                                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="MAk-Zj-IjV">
@@ -990,6 +992,7 @@ CA
                                                     <connections>
                                                         <action selector="valuesChanged:" target="nyj-Qm-GSe" id="giP-nw-AHR"/>
                                                         <outlet property="dataSource" destination="nyj-Qm-GSe" id="1SP-oG-3Cu"/>
+                                                        <outlet property="nextKeyView" destination="yyU-94-16h" id="She-uL-5El"/>
                                                     </connections>
                                                 </comboBox>
                                                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="hIg-u5-wBg">
@@ -1021,6 +1024,7 @@ CA
                                                     <connections>
                                                         <binding destination="UfJ-Kh-gyi" name="value" keyPath="values.defaultSeparator" id="qBm-f2-6WS"/>
                                                         <outlet property="dataSource" destination="nyj-Qm-GSe" id="l55-K0-Map"/>
+                                                        <outlet property="nextKeyView" destination="cDt-pe-gP5" id="i20-rL-3gE"/>
                                                     </connections>
                                                 </comboBox>
                                             </subviews>

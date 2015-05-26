@@ -31,6 +31,7 @@
                     </textFieldCell>
                     <connections>
                         <action selector="update:" target="-2" id="C4R-6T-OiB"/>
+                        <outlet property="nextKeyView" destination="Eiq-b9-9fF" id="enl-Z7-C7h"/>
                     </connections>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7Gk-Da-qcr">
@@ -80,6 +81,7 @@
                         <action selector="update:" target="-2" id="gG4-qJ-cOh"/>
                         <outlet property="dataSource" destination="-2" id="PMY-ML-DyK"/>
                         <outlet property="delegate" destination="-2" id="TSR-ol-Nh1"/>
+                        <outlet property="nextKeyView" destination="iqQ-o4-2zq" id="bYT-RD-JXX"/>
                     </connections>
                 </comboBox>
                 <popUpButton focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="Eiq-b9-9fF">
@@ -101,6 +103,9 @@
                             <action selector="update:" target="-2" id="UcP-3Z-UMh"/>
                         </connections>
                     </popUpButtonCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="pMH-wh-uQC" id="nOa-w7-0gU"/>
+                    </connections>
                 </popUpButton>
             </subviews>
             <constraints>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7519.1" systemVersion="14C109" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14D131" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7519.1"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7706"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBECSVStepView" customModule="Warp" customModuleProvider="target">
@@ -51,6 +51,7 @@
                     </buttonCell>
                     <connections>
                         <action selector="update:" target="-2" id="O1s-X0-TKH"/>
+                        <outlet property="nextKeyView" destination="2Ej-3W-0m1" id="LaR-2G-epy"/>
                     </connections>
                 </button>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="2Ej-3W-0m1">
@@ -61,6 +62,7 @@
                     </buttonCell>
                     <connections>
                         <action selector="update:" target="-2" id="ijq-c9-Tzw"/>
+                        <outlet property="nextKeyView" destination="lyj-Zf-mlb" id="aCI-c0-00U"/>
                     </connections>
                 </button>
                 <comboBox focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Gqc-VY-pgW">
@@ -76,6 +78,7 @@
                     <connections>
                         <action selector="update:" target="-2" id="3yL-jA-oxh"/>
                         <outlet property="dataSource" destination="-2" id="Gt1-w3-Ivo"/>
+                        <outlet property="nextKeyView" destination="nIp-FI-Wyq" id="ODy-GY-3C6"/>
                     </connections>
                 </comboBox>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="lyj-Zf-mlb">
@@ -86,6 +89,7 @@
                     </buttonCell>
                     <connections>
                         <action selector="trashCache:" target="-2" id="jN7-Wz-QmE"/>
+                        <outlet property="nextKeyView" destination="sIC-TG-WUk" id="W77-qn-eC0"/>
                     </connections>
                 </button>
                 <progressIndicator horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" displayedWhenStopped="NO" bezeled="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="xuh-sC-wB2">
@@ -103,6 +107,7 @@
                     </buttonCell>
                     <connections>
                         <action selector="chooseFile:" target="-2" id="AoW-a1-ixY"/>
+                        <outlet property="nextKeyView" destination="Gqc-VY-pgW" id="1kc-jg-OMS"/>
                     </connections>
                 </button>
                 <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="sIC-TG-WUk">
@@ -112,6 +117,9 @@
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="LQL-w0-doC" id="L7b-ZS-Z3a"/>
+                    </connections>
                 </textField>
             </subviews>
             <constraints>
