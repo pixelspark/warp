@@ -7,6 +7,7 @@
 #import <MBTableGrid/MBTableGridHeaderView.h>
 #import <MBTableGrid/MBTableGridFooterView.h>
 #import <MBTableGrid/MBTableGridCell.h>
+#import <MBTableGrid/MBTableGridHeaderCell.h>
 
 #import "sqlite3.h"
 #import "mysql.h"

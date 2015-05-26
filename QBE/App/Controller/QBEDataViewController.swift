@@ -292,6 +292,8 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Vertical)
 			self.tableView!.awakeFromNib()
 			self.tableView!.columnHeaderView.menu = self.columnContextMenu
+			self.tableView!.rowHeaderView.headerCell?.labelFont = NSFont.userFixedPitchFontOfSize(10.0)
+			self.tableView!.columnHeaderView.headerCell?.labelFont = NSFont.userFixedPitchFontOfSize(10.0)
 			self.view.addSubview(tableView!)
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0));
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0));
