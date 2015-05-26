@@ -34,7 +34,7 @@
 		<key>A5F18CC216C059F29632AA08FA9E5DF3898315E3</key>
 		<string>../..</string>
 		<key>EE61EABCF181C4E4998F7E1EA6B7D0AAED720562</key>
-		<string>../../Libraries/TCXMLWriter/</string>
+		<string>../../Libraries/TCXMLWriter</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>/Volumes/code/qbe.git</string>

@@ -137,9 +137,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	func resizableView(view: QBEResizableView, changedFrameTo frame: CGRect) {
 		if let tv = view as? QBEResizableTabletView {
 			if let tablet = tv.tabletController.chain?.tablet {
+				let sizeChanged = tablet.frame == nil || tablet.frame!.size.width != frame.size.width || tablet.frame!.size.height != frame.size.height
 				tablet.frame = frame
 				tabletsChanged()
-				if tv.selected {
+				if tv.selected && sizeChanged {
 					tv.scrollRectToVisible(tv.bounds)
 				}
 			}
