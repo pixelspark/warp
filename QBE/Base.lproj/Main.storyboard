@@ -1277,7 +1277,7 @@ CA
                             </containerView>
                         </subviews>
                         <holdingPriorities>
-                            <real value="250"/>
+                            <real value="125"/>
                             <real value="250"/>
                         </holdingPriorities>
                     </splitView>
