@@ -111,7 +111,7 @@
                         <outlet property="nextKeyView" destination="hhy-f3-mNI" id="bKb-Ui-acM"/>
                     </connections>
                 </comboBox>
-                <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qU9-vM-QTK">
+                <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qU9-vM-QTK">
                     <rect key="frame" x="5" y="5" width="312" height="266"/>
                     <clipView key="contentView" id="DkK-35-YIx">
                         <rect key="frame" x="1" y="0.0" width="238" height="134"/>
@@ -124,7 +124,7 @@
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                 <tableColumns>
-                                    <tableColumn identifier="tableName" editable="NO" width="297" minWidth="40" maxWidth="1000" id="4ZW-IL-XJP">
+                                    <tableColumn identifier="tableName" editable="NO" width="220" minWidth="40" maxWidth="1000" id="4ZW-IL-XJP">
                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
                                             <font key="font" metaFont="smallSystem"/>
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
