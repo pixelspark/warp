@@ -16,6 +16,7 @@ import Cocoa
 			for tablet in d.tablets {
 				self.addTablet(tablet, undo: false)
 			}
+			self.zoomToAll()
 		}
 	} }
 	
@@ -130,10 +131,14 @@ import Cocoa
 		self.welcomeLabel.hidden = (document?.tablets.count ?? 0) != 0
 	}
 	
-	@IBAction func zoomToAll(sender: NSObject) {
+	private func zoomToAll() {
 		if let ab = documentView.boundsOfAllTablets {
 			self.workspaceView.magnifyToFitRect(ab)
 		}
+	}
+
+	@IBAction func zoomToAll(sender: NSObject) {
+		zoomToAll()
 	}
 	
 	@IBAction func zoomSelection(sender: NSObject) {
