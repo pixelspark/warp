@@ -1184,28 +1184,19 @@ CA
         <scene sceneID="QgJ-tc-ecA">
             <objects>
                 <viewController id="y5B-O8-QaO" customClass="QBEDocumentViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="SPa-zj-m3R">
-                        <rect key="frame" x="0.0" y="0.0" width="948" height="806"/>
-                        <autoresizingMask key="autoresizingMask"/>
+                    <splitView key="view" dividerStyle="thin" vertical="YES" id="Lf1-Y5-idv">
+                        <rect key="frame" x="0.0" y="0.0" width="913" height="569"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <subviews>
-                            <containerView appearanceType="aqua" translatesAutoresizingMaskIntoConstraints="NO" id="P5v-FZ-cCC">
-                                <rect key="frame" x="688" y="0.0" width="260" height="806"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="260" id="VvV-oj-FjD"/>
-                                    <constraint firstAttribute="width" constant="260" id="lqJ-Y3-fdQ"/>
-                                </constraints>
-                                <connections>
-                                    <segue destination="0w0-v5-aaU" kind="embed" identifier="configurator" id="Zzv-k8-sKq"/>
-                                </connections>
-                            </containerView>
-                            <visualEffectView appearanceType="vibrantLight" blendingMode="behindWindow" material="light" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
-                                <rect key="frame" x="0.0" y="0.0" width="688" height="806"/>
+                            <visualEffectView appearanceType="vibrantLight" blendingMode="behindWindow" material="light" state="followsWindowActiveState" id="cDc-rh-vev">
+                                <rect key="frame" x="0.0" y="0.0" width="658" height="569"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <subviews>
                                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
-                                        <rect key="frame" x="0.0" y="0.0" width="688" height="775"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="658" height="538"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
-                                                <rect key="frame" x="108" y="375" width="473" height="34"/>
+                                                <rect key="frame" x="93" y="256" width="473" height="34"/>
                                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="Drag files here or click '+' to add data" id="Zpo-PO-ycL">
                                                     <font key="font" size="28" name=".HelveticaNeueDeskInterface-Regular"/>
                                                     <color key="textColor" name="tertiaryLabelColor" catalog="System" colorSpace="catalog"/>
@@ -1213,13 +1204,13 @@ CA
                                                 </textFieldCell>
                                             </textField>
                                             <scrollView wantsLayer="YES" appearanceType="aqua" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab">
-                                                <rect key="frame" x="0.0" y="0.0" width="688" height="775"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="658" height="538"/>
                                                 <clipView key="contentView" drawsBackground="NO" id="883-xW-r8t">
                                                     <rect key="frame" x="1" y="1" width="166" height="79"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CDw-5V-yTY">
-                                                            <rect key="frame" x="26" y="-23" width="59" height="70"/>
+                                                            <rect key="frame" x="23" y="47" width="87" height="139"/>
                                                         </view>
                                                     </subviews>
                                                 </clipView>
@@ -1246,7 +1237,7 @@ CA
                                         </constraints>
                                     </customView>
                                     <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aXH-7Y-wRY">
-                                        <rect key="frame" x="4" y="780" width="679" height="22"/>
+                                        <rect key="frame" x="4" y="543" width="649" height="22"/>
                                         <constraints>
                                             <constraint firstAttribute="height" relation="lessThanOrEqual" constant="88" id="RPW-Rw-mYG"/>
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="mj6-WW-mxC"/>
@@ -1258,6 +1249,7 @@ CA
                                         </textFieldCell>
                                         <connections>
                                             <action selector="updateFromFormulaField:" target="y5B-O8-QaO" id="EWH-EM-LVP"/>
+                                            <outlet property="nextKeyView" destination="P5v-FZ-cCC" id="P7y-fz-Zml"/>
                                         </connections>
                                     </textField>
                                 </subviews>
@@ -1273,17 +1265,22 @@ CA
                                     <constraint firstAttribute="bottom" secondItem="jQq-6i-09S" secondAttribute="bottom" id="u08-oa-2yI"/>
                                 </constraints>
                             </visualEffectView>
+                            <containerView appearanceType="aqua" id="P5v-FZ-cCC">
+                                <rect key="frame" x="659" y="0.0" width="254" height="569"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="240" id="VvV-oj-FjD"/>
+                                </constraints>
+                                <connections>
+                                    <segue destination="0w0-v5-aaU" kind="embed" identifier="configurator" id="Zzv-k8-sKq"/>
+                                </connections>
+                            </containerView>
                         </subviews>
-                        <constraints>
-                            <constraint firstAttribute="bottom" secondItem="P5v-FZ-cCC" secondAttribute="bottom" id="D33-Ns-uJA"/>
-                            <constraint firstItem="P5v-FZ-cCC" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="trailing" id="OFp-qo-sOL"/>
-                            <constraint firstItem="cDc-rh-vev" firstAttribute="leading" secondItem="SPa-zj-m3R" secondAttribute="leading" id="RAj-bt-gZI"/>
-                            <constraint firstItem="cDc-rh-vev" firstAttribute="top" secondItem="SPa-zj-m3R" secondAttribute="top" id="aTk-0k-cUB"/>
-                            <constraint firstItem="P5v-FZ-cCC" firstAttribute="top" secondItem="SPa-zj-m3R" secondAttribute="top" id="jeP-va-QMg"/>
-                            <constraint firstAttribute="trailing" secondItem="P5v-FZ-cCC" secondAttribute="trailing" id="qB4-aZ-a7Y"/>
-                            <constraint firstAttribute="bottom" secondItem="cDc-rh-vev" secondAttribute="bottom" id="xbk-We-98m"/>
-                        </constraints>
-                    </view>
+                        <holdingPriorities>
+                            <real value="250"/>
+                            <real value="250"/>
+                        </holdingPriorities>
+                    </splitView>
                     <connections>
                         <outlet property="addTabletMenu" destination="TbW-HU-EDH" id="7Tq-aG-xZQ"/>
                         <outlet property="formulaField" destination="aXH-7Y-wRY" id="5yp-Gm-e1V"/>
@@ -1329,7 +1326,7 @@ CA
                     </items>
                 </menu>
             </objects>
-            <point key="canvasLocation" x="803" y="-211"/>
+            <point key="canvasLocation" x="867.5" y="-76.5"/>
         </scene>
         <!--Chain view controller-->
         <scene sceneID="4qG-DD-elD">
