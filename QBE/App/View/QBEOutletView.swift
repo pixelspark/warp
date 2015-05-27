@@ -211,22 +211,24 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 			let minDimension = min(self.bounds.size.width, self.bounds.size.height)
 			let square = CGRectInset(CGRectMake((self.bounds.size.width - minDimension) / 2, (self.bounds.size.height - minDimension) / 2, minDimension, minDimension), 3.0, 3.0)
 			
-			// Draw the outer ring (always visible, dimmed if no dragging item set)
-			let baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: draggedObject == nil ? 0.5 : 1.0)
-			baseColor.setStroke()
-			CGContextSetLineWidth(context, 3.0)
-			CGContextStrokeEllipseInRect(context, square)
-			
-			// Draw the inner circle (if the outlet is connected)
-			if connected || dragLineWindow !== nil {
-				if dragLineWindow !== nil {
-					NSColor.blueColor().setFill()
+			if !isinf(square.origin.x) && !isinf(square.origin.y) {
+				// Draw the outer ring (always visible, dimmed if no dragging item set)
+				let baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: draggedObject == nil ? 0.5 : 1.0)
+				baseColor.setStroke()
+				CGContextSetLineWidth(context, 3.0)
+				CGContextStrokeEllipseInRect(context, square)
+				
+				// Draw the inner circle (if the outlet is connected)
+				if connected || dragLineWindow !== nil {
+					if dragLineWindow !== nil {
+						NSColor.blueColor().setFill()
+					}
+					else {
+						baseColor.setFill()
+					}
+					let connectedSquare = CGRectInset(square, 3.0, 3.0)
+					CGContextFillEllipseInRect(context, connectedSquare)
 				}
-				else {
-					baseColor.setFill()
-				}
-				let connectedSquare = CGRectInset(square, 3.0, 3.0)
-				CGContextFillEllipseInRect(context, connectedSquare)
 			}
 			
 			CGContextRestoreGState(context)
