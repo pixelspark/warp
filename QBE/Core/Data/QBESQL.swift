@@ -628,13 +628,14 @@ class QBESQLData: NSObject, QBEData {
 		var targetFound = false
 		var newColumns = columns
 		
-		let sourceSQL = sql
+		let sourceSQL = sql.asSubquery
+		let sourceAlias = sourceSQL.alias
 		
 		// Re-calculate existing columns first
 		for targetColumn in columns {
 			if calculations[targetColumn] != nil {
 				let expression = calculations[targetColumn]!.prepare()
-				if let expressionString = sql.dialect.expressionToSQL(expression, alias: sourceSQL.alias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sourceSQL.alias)) {
+				if let expressionString = sql.dialect.expressionToSQL(expression, alias: sourceAlias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sourceAlias)) {
 					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil))")
 				}
 				else {
@@ -642,14 +643,14 @@ class QBESQLData: NSObject, QBEData {
 				}
 			}
 			else {
-				values.append(sql.dialect.columnIdentifier(targetColumn, table: sourceSQL.alias))
+				values.append(sql.dialect.columnIdentifier(targetColumn, table: sourceAlias))
 			}
 		}
 		
 		// New columns are added at the end
 		for (targetColumn, expression) in calculations {
 			if !columns.contains(targetColumn) {
-				if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sourceSQL.alias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sourceSQL.alias)) {
+				if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sourceAlias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sourceAlias)) {
 					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil))")
 				}
 				else {
