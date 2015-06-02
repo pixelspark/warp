@@ -28,11 +28,11 @@ class QBERasterStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
-		callback(staticFullData)
+	override func fullData(job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(QBEFallible(staticFullData))
 	}
 	
-	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
-		callback(staticExampleData.limit(min(maxInputRows, maxOutputRows)))
+	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(QBEFallible(staticExampleData.limit(min(maxInputRows, maxOutputRows))))
 	}
 }

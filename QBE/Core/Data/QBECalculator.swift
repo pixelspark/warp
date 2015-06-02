@@ -10,8 +10,8 @@ private struct QBEStepPerformance {
 /** The QBECalculator class coordinates execution of steps. In particular, it models the performance of steps and can
 estimate the number of input rows required to arrive at a certain number of output rows (e.g. in example calculations). **/
 class QBECalculator {
-	internal var currentData: QBEFuture<QBEData>?
-	internal var currentRaster: QBEFuture<QBERaster>?
+	internal var currentData: QBEFuture<QBEFallible<QBEData>>?
+	internal var currentRaster: QBEFuture<QBEFallible<QBERaster>>?
 	
 	/** Statistical level of certainty that is used when calculating upper limits **/
 	internal var certainty = 0.95
@@ -85,24 +85,33 @@ class QBECalculator {
 			
 			// Set up calculation for the data object
 			if fullData {
-				currentData = QBEFuture<QBEData>(sourceStep.fullData)
+				currentData = QBEFuture<QBEFallible<QBEData>>(sourceStep.fullData)
 			}
 			else {
 				maxInputRows = inputRowsForExample(sourceStep)
 				let maxOutputRows = desiredExampleRows
 				QBELog("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
-				currentData = QBEFuture<QBEData>({ [unowned self] (job, callback) in
+				currentData = QBEFuture<QBEFallible<QBEData>>({ [unowned self] (job, callback) in
 					sourceStep.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
 				})
 			}
 			
 			// Set up calculation for the raster
 			let startTime = NSDate.timeIntervalSinceReferenceDate()
-			currentRaster = QBEFuture<QBERaster>({ [unowned self] (job: QBEJob, callback: QBEFuture<QBERaster>.Callback) in
+			currentRaster = QBEFuture<QBEFallible<QBERaster>>({ [unowned self] (job: QBEJob, callback: QBEFuture<QBEFallible<QBERaster>>.Callback) in
 				if let cd = self.currentData {
-					cd.get({ (data: QBEData) -> () in
-						data.raster(job, callback: callback)
+					cd.get({ (data: QBEFallible<QBEData>) -> () in
+						switch data {
+							case .Success(let d):
+								d.value.raster(job, callback: {callback(QBEFallible($0))})
+							
+							case .Failure(let s):
+								callback(.Failure(s))
+						}
 					})
+				}
+				else {
+					callback(.Failure(NSLocalizedString("No data available.", comment: "")))
 				}
 			})
 			
@@ -113,21 +122,27 @@ class QBECalculator {
 			
 			// Record extra information when calculating an example result
 			if !fullData {
-				currentRaster!.get {[unowned self] (r) in
-					let duration = NSDate.timeIntervalSinceReferenceDate() - startTime
-					let index = unsafeAddressOf(sourceStep).distanceTo(nil)
-					
-					// Record performance information for example execution
-					var perf = self.stepPerformance[index] ?? QBEStepPerformance()
-					if r.rowCount > 0 {
-						perf.inputAmplificationFactor.add(Double(r.rowCount) / Double(maxInputRows))
-						perf.timePerInputRow.add(duration / Double(maxInputRows))
+				currentRaster!.get {[unowned self] (raster) in
+					switch raster {
+						case .Success(let r):
+							let duration = NSDate.timeIntervalSinceReferenceDate() - startTime
+							let index = unsafeAddressOf(sourceStep).distanceTo(nil)
+							
+							// Record performance information for example execution
+							var perf = self.stepPerformance[index] ?? QBEStepPerformance()
+							if r.value.rowCount > 0 {
+								perf.inputAmplificationFactor.add(Double(r.value.rowCount) / Double(maxInputRows))
+								perf.timePerInputRow.add(duration / Double(maxInputRows))
+							}
+							else {
+								perf.emptyCount++
+							}
+							perf.executionCount++
+							self.stepPerformance[index] = perf
+						
+						case .Failure(let e):
+							break;
 					}
-					else {
-						perf.emptyCount++
-					}
-					perf.executionCount++
-					self.stepPerformance[index] = perf
 				}
 			}
 		}

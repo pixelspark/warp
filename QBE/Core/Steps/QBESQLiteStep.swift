@@ -613,18 +613,18 @@ class QBESQLiteSourceStep: QBEStep {
 		return String(format: NSLocalizedString("Load table %@ from SQLite-database '%@'", comment: ""), self.tableName ?? "", self.file?.url?.lastPathComponent ?? "")
 	}
 	
-	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
+	override func fullData(job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
 		if let d = db {
-			callback(QBECoalescedData(QBESQLiteData(db: d, tableName: self.tableName ?? "")))
+			callback(QBEFallible(QBECoalescedData(QBESQLiteData(db: d, tableName: self.tableName ?? ""))))
 		}
 		else {
-			callback(QBERasterData())
+			callback(.Failure(NSLocalizedString("a SQLite database could not be found.", comment: "")))
 		}
 	}
 	
-	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
 		self.fullData(job, callback: { (fd) -> () in
-			callback(fd.random(maxInputRows))
+			callback(fd.use({$0.random(maxInputRows)}))
 		})
 	}
 	

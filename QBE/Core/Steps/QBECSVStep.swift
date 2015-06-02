@@ -317,7 +317,7 @@ class QBECSVSourceStep: QBEStep {
 		return false
 	} }
 	
-	override func fullData(job: QBEJob?, callback: (QBEData) -> ()) {
+	override func fullData(job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
 		if cachedData == nil {
 			if let url = file?.url {
 				let locale = QBEAppDelegate.sharedInstance.locale
@@ -327,17 +327,17 @@ class QBECSVSourceStep: QBEStep {
 					cachedData = QBESQLiteCachedData(source: cachedData!)
 				}
 				cachedData = QBECoalescedData(cachedData!)
-				callback(cachedData!)
+				callback(QBEFallible(cachedData!))
 			}
 		}
 		else {
-			callback(cachedData!)
+			callback(QBEFallible(cachedData!))
 		}
 	}
 	
-	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
 		self.fullData(job, callback: { (fullData) -> () in
-			callback(fullData.limit(maxInputRows))
+			callback(fullData.use({$0.limit(maxInputRows)}))
 		})
 	}
 	

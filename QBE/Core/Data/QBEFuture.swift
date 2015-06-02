@@ -82,6 +82,42 @@ enum QBEQoS {
 }
 
 /** 
+FIXME: QBEBox exists to prevent the "Unimplemented IR generation feature non-fixed multi-payload enum layout" error. */
+final class QBEBox<T> {
+	let value: T
+	
+	init(_ value: T) {
+		self.value = value
+	}
+}
+
+/** 
+QBEFallible<T> represents the outcome of an operation that can either fail (with an error message) or succeed (returning an
+instance of T). */
+enum QBEFallible<T> {
+	case Success(QBEBox<T>)
+	case Failure(String)
+	
+	init(_ value: T) {
+		self = .Success(QBEBox<T>(value))
+	}
+	
+	/** 
+	If the result is successful, execute `block` on its return value, and return the (fallible) return value of that block
+	(if any). Otherwise return a new, failed result with the error message of this result. This can be used to chain 
+	operations on fallible operations, propagating the error once an operation fails. */
+	func use<P>(@noescape block: T -> P) -> QBEFallible<P> {
+		switch self {
+			case Success(let box):
+				return .Success(QBEBox<P>(block(box.value)))
+			
+			case Failure(let errString):
+				return .Failure(errString)
+		}
+	}
+}
+
+/**
 A QBEJob represents a single asynchronous calculation. QBEJob tracks the progress and cancellation status of a single
 'job'. It is generally passed along to all functions that also accept an asynchronous callback. The QBEJob object should 
 never be stored by these functions. It should be passed on by the functions to any other asynchronous operations that 

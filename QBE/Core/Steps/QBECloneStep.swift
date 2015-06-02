@@ -33,27 +33,25 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return NSLocalizedString("Cloned data", comment: "")
 	}
 	
-	override func fullData(job: QBEJob, callback: (QBEData) -> ()) {
+	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		if let r = self.right, let h = r.head {
 			h.fullData(job, callback: callback)
 		}
 		else {
-			// FIXME: error message instead of empty data
-			callback(QBERasterData())
+			callback(.Failure(NSLocalizedString("Clone step cannot find the original to clone from.", comment: "")))
 		}
 	}
 	
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
 		if let r = self.right, let h = r.head {
 			h.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
 		}
 		else {
-			// FIXME: error message instead of empty data
-			callback(QBERasterData())
+			callback(.Failure(NSLocalizedString("Clone step cannot find the original to clone from.", comment: "")))
 		}
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		fatalError("QBECloneStep.apply should not be used")
 	}
 }

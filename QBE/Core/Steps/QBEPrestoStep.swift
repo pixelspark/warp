@@ -330,19 +330,19 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	override func fullData(job: QBEJob, callback: (QBEData) -> ()) {
+	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		if let d = db, tableName = self.tableName {
 			QBEPrestoData.tableData(job, db: d, tableName: tableName, callback: { (data) -> () in
 				if let d = data {
-					callback(d)
+					callback(QBEFallible(d))
 				}
 				else {
-					callback(QBERasterData())
+					callback(.Failure(NSLocalizedString("Could not obtain a list of tables from the Presto database.", comment: "")))
 				}
 			})
 		}
 		else {
-			callback(QBERasterData())
+			callback(.Failure(NSLocalizedString("No database and/or table name have been set.", comment: "")))
 		}
 	}
 	
@@ -373,9 +373,9 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
 		self.fullData(job, callback: { (fd) -> () in
-			callback(fd.random(maxInputRows))
+			callback(fd.use({$0.random(maxInputRows)}))
 		})
 	}
 }

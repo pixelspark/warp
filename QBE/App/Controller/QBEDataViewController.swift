@@ -12,6 +12,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	@IBOutlet var fullDataIndicatorView: NSImageView!
 	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var columnContextMenu: NSMenu!
+	@IBOutlet var errorLabel: NSTextField!
 	weak var delegate: QBEDataViewDelegate?
 	var locale: QBELocale!
 	private var textCell: MBTableGridCell!
@@ -35,9 +36,18 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		update()
 	} }
 	
+	// When an error message is set, no raster can be set (and vice-versa)
+	var errorMessage: String? { didSet {
+		if errorMessage != nil {
+			raster = nil
+		}
+		update()
+	} }
+	
 	var raster: QBERaster? {
 		didSet {
 			if raster != nil {
+				errorMessage = nil
 				calculating = false
 			}
 			update()
@@ -186,7 +196,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		// Set visibility
 		let hasNoData = (raster==nil)
 		
+		errorLabel.hidden = errorMessage == nil
+		errorLabel.stringValue = errorMessage ?? ""
+		
+		tableView?.hidden = errorMessage != nil
 		tableView?.layer?.opacity = (hasNoData || calculating) ? 0.5 : 1.0;
+		
 		progressView?.hidden = !calculating
 		progressView?.indeterminate = progress <= 0.0
 		progressView?.doubleValue = progress
@@ -203,7 +218,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 		
 		if let tv = tableView {
-			
 			if let r = raster {
 				for i in 0..<r.columnCount {
 					let cn = r.columnNames[i]

@@ -526,20 +526,20 @@ class QBEPostgresSourceStep: QBEStep {
 		return nil
 		} }
 	
-	override func fullData(job: QBEJob, callback: (QBEData) -> ()) {
+	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		job.async {
 			if let s = self.database {
-				callback(QBECoalescedData(QBEPostgresData(database: s, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale)))
+				callback(QBEFallible(QBECoalescedData(QBEPostgresData(database: s, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale))))
 			}
 			else {
-				callback(QBERasterData())
+				callback(.Failure(NSLocalizedString("Could not connect to the PostgreSQL database.", comment: "")))
 			}
 		}
 	}
 	
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
 		self.fullData(job, callback: { (fd) -> () in
-			callback(fd.random(maxInputRows))
+			callback(fd.use({$0.random(maxInputRows)}))
 		})
 	}
 }

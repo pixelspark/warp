@@ -13,27 +13,25 @@ class QBEStep: NSObject {
 	/** Creates a data object representing the result of an 'example' calculation of the result of this QBEStep. The
 	maxInputRows parameter defines the maximum number of input rows a source step should generate. The maxOutputRows
 	parameter defines the maximum number of rows a step should strive to produce. **/
-	func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+	func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
 		if let p = self.previous {
 			self.previous?.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: {(data) in
 				self.apply(data, job: job, callback: callback)
 			})
 		}
 		else {
-			// TODO set an error message
-			callback(QBERasterData())
+			callback(.Failure(NSLocalizedString("This step requires a previous step, but none was found.", comment: "")))
 		}
 	}
 	
-	func fullData(job: QBEJob, callback: (QBEData) -> ()) {
+	func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		if let p = self.previous {
 			p.fullData(job, callback: {(data) in
 				self.apply(data, job: job, callback: callback)
 			})
 		}
 		else {
-			// TODO: set an error message
-			callback(QBERasterData())
+			callback(.Failure(NSLocalizedString("This step requires a previous step, but none was found.", comment: "")))
 		}
 	}
 	
@@ -70,7 +68,7 @@ class QBEStep: NSObject {
 		return NSLocalizedString("Unknown step", comment: "")
 	}
 	
-	func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
+	func apply(data: QBEFallible<QBEData>, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		fatalError("Child class of QBEStep should implement apply()")
 	}
 	
@@ -207,8 +205,8 @@ func == (lhs: QBEFileReference, rhs: QBEFileReference) -> Bool {
 /** The transpose step implements a row-column switch. It has no configuration and relies on the QBEData transpose()
 implementation to do the actual work. **/
 class QBETransposeStep: QBEStep {
-	override func apply(data: QBEData, job: QBEJob? = nil, callback: (QBEData) -> ()) {
-		callback(data.transpose())
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob? = nil, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(data.use({$0.transpose()}))
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {

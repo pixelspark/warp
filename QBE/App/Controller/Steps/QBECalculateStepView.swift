@@ -58,13 +58,19 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 			self.insertPositionPopup.selectItemWithTag(s.insertBefore ? 1 : 0)
 			self.existingColumns = nil
 			
-			s.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (d) in
-				d.columnNames(job) {(cns) in
-					self.existingColumns = cns
-					
-					QBEAsyncMain {
-						self.insertAfterField?.reloadData()
-					}
+			s.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
+				switch data {
+					case .Success(let d):
+						d.value.columnNames(job) {(cns) in
+							self.existingColumns = cns
+							
+							QBEAsyncMain {
+								self.insertAfterField?.reloadData()
+							}
+						}
+				
+					case .Failure(let errorMessage):
+						break
 				}
 			}
 		

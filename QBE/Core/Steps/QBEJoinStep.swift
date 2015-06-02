@@ -47,59 +47,70 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return nil
 	}
 	
-	override func fullData(job: QBEJob, callback: (QBEData) -> ()) {
+	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		if let p = previous {
 			p.fullData(job) {(leftData) -> () in
 				if let r = self.right, let h = r.head {
 					h.fullData(job) { (rightData) -> () in
-						if let j = self.join(rightData) {
-							callback(leftData.join(j))
-						}
-						else {
-							// FIXME: error message instead of empty data
-							callback(QBERasterData())
+						switch rightData {
+							case .Success(let rd):
+								if let j = self.join(rd.value) {
+									callback(leftData.use({$0.join(j)}))
+								}
+								else {
+									callback(.Failure(NSLocalizedString("Not all information was available to perform the join.", comment: "")))
+								}
+							
+							case .Failure(_):
+								callback(rightData)
 						}
 					}
 				}
 				else {
-					// FIXME: error message instead of empty data
-					callback(QBERasterData())
+					callback(.Failure(NSLocalizedString("The data to join with was not found.", comment: "")))
 				}
 			}
 		}
 		else {
-			// FIXME: error message instead of empty data
-			callback(QBERasterData())
+			callback(.Failure(NSLocalizedString("A join step was not placed after another step.", comment: "")))
 		}
 	}
 	
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEData) -> ()) {
+	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
 		if let p = previous {
 			p.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftData) -> () in
-				if let r = self.right, let h = r.head {
-					h.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightData) -> () in
-						if let j = self.join(rightData) {
-							callback(leftData.join(j))
+				switch leftData {
+					case .Success(let ld):
+						if let r = self.right, let h = r.head {
+							h.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightData) -> () in
+								switch rightData {
+									case .Success(let rd):
+										if let j = self.join(rd.value) {
+											callback(QBEFallible(ld.value.join(j)))
+										}
+										else {
+											callback(.Failure(NSLocalizedString("Not all information was available to perform the join.", comment: "")))
+										}
+									
+									case .Failure(_):
+										callback(rightData)
+								}
+							})
 						}
 						else {
-							// FIXME: error message instead of empty data
-							callback(QBERasterData())
+							callback(.Failure(NSLocalizedString("The data to join with was not found.", comment: "")))
 						}
-					})
-				}
-				else {
-					// FIXME: error message instead of empty data
-					callback(QBERasterData())
+					case .Failure(_):
+						callback(leftData)
 				}
 			}
 		}
 		else {
-			// FIXME: error message instead of empty data
-			callback(QBERasterData())
+			callback(.Failure(NSLocalizedString("A join step was not placed after another step.", comment: "")))
 		}
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
 		fatalError("QBEJoinStep.apply should not be used")
 	}
 }

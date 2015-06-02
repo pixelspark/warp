@@ -87,7 +87,7 @@ class QBEPivotStep: QBEStep {
 		}
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
 		fixupColumnNames()
 		var rowGroups = toDictionary(rows, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
 		let colGroups = toDictionary(columns, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
@@ -96,12 +96,12 @@ class QBEPivotStep: QBEStep {
 		}
 		
 		let values = toDictionary(aggregates, { ($0.targetColumnName, $0) })
-		let resultData = data.aggregate(rowGroups, values: values)
+		let resultData = data.use({$0.aggregate(rowGroups, values: values)})
 		if columns.count == 0 {
 			callback(resultData)
 		}
 		else {
-			let pivotedData = resultData.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumnName}))
+			let pivotedData = resultData.use({$0.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumnName}))})
 			callback(pivotedData)
 		}
 	}

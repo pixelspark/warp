@@ -46,35 +46,41 @@ class QBECalculateStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
-		let result = data.calculate([targetColumn: function])
-		if let relativeTo = insertRelativeTo {
-			// Reorder columns in the result set so that targetColumn is inserted after insertAfter
-			data.columnNames(job) {(var cns: [QBEColumn]) in
-				cns.remove(self.targetColumn)
-				if let idx = find(cns, relativeTo) {
-					if self.insertBefore {
-						cns.insert(self.targetColumn, atIndex: idx)
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		switch data {
+			case .Success(let d):
+				let result = d.value.calculate([targetColumn: function])
+				if let relativeTo = insertRelativeTo {
+					// Reorder columns in the result set so that targetColumn is inserted after insertAfter
+					d.value.columnNames(job) {(var cns: [QBEColumn]) in
+						cns.remove(self.targetColumn)
+						if let idx = find(cns, relativeTo) {
+							if self.insertBefore {
+								cns.insert(self.targetColumn, atIndex: idx)
+							}
+							else {
+								cns.insert(self.targetColumn, atIndex: idx+1)
+							}
+						}
+						callback(QBEFallible(result.selectColumns(cns)))
+					}
+				}
+				else {
+					// If the column is to be added at the beginning, shuffle columns around (the default is to add at the end
+					if insertRelativeTo == nil && insertBefore {
+						d.value.columnNames(job) {(var cns: [QBEColumn]) in
+							cns.remove(self.targetColumn)
+							cns.insert(self.targetColumn, atIndex: 0)
+							callback(QBEFallible(result.selectColumns(cns)))
+						}
 					}
 					else {
-						cns.insert(self.targetColumn, atIndex: idx+1)
+						callback(QBEFallible(result))
 					}
 				}
-				callback(result.selectColumns(cns))
-			}
-		}
-		else {
-			// If the column is to be added at the beginning, shuffle columns around (the default is to add at the end
-			if insertRelativeTo == nil && insertBefore {
-				data.columnNames(job) {(var cns: [QBEColumn]) in
-					cns.remove(self.targetColumn)
-					cns.insert(self.targetColumn, atIndex: 0)
-					callback(result.selectColumns(cns))
-				}
-			}
-			else {
-				callback(result)
-			}
+			
+			case .Failure(_):
+				callback(data)
 		}
 	}
 	

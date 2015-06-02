@@ -129,9 +129,9 @@ class QBEFilterStep: QBEStep {
 		return QBEStepMerge.Impossible
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
 		if let c = condition {
-			callback(data.filter(c))
+			callback(data.use({$0.filter(c)}))
 		}
 		else {
 			callback(data)
@@ -164,8 +164,8 @@ class QBELimitStep: QBEStep {
 		coder.encodeInt(Int32(numberOfRows), forKey: "numberOfRows")
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
-		callback(data.limit(numberOfRows))
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(data.use({$0.limit(numberOfRows)}))
 	}
 	
 	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
@@ -201,8 +201,8 @@ class QBEOffsetStep: QBEStep {
 		coder.encodeInt(Int32(numberOfRows), forKey: "numberOfRows")
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
-		callback(data.offset(numberOfRows))
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(data.use({$0.offset(numberOfRows)}))
 	}
 }
 
@@ -226,8 +226,8 @@ class QBERandomStep: QBELimitStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
-		callback(data.random(numberOfRows))
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(data.use({$0.random(numberOfRows)}))
 	}
 }
 
@@ -251,7 +251,7 @@ class QBEDistinctStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEData) -> ()) {
-		callback(data.distinct())
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(data.use({$0.distinct()}))
 	}
 }

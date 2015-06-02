@@ -62,18 +62,24 @@ class QBEColumnsStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
-		data.columnNames(job) { (existingColumns) -> () in
-			let columns = existingColumns.filter({column -> Bool in
-				for c in self.columnNames {
-					if c == column {
-						return self.select
-					}
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		switch data {
+			case .Success(let d):
+				d.value.columnNames(job) { (existingColumns) -> () in
+					let columns = existingColumns.filter({column -> Bool in
+						for c in self.columnNames {
+							if c == column {
+								return self.select
+							}
+						}
+						return !self.select
+					}) ?? []
+					
+					callback(data.use({$0.selectColumns(columns)}))
 				}
-				return !self.select
-			}) ?? []
 			
-			callback(data.selectColumns(columns))
+			case .Failure(_):
+				callback(data)
 		}
 	}
 	
@@ -149,36 +155,42 @@ class QBESortColumnsStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
-		data.columnNames(job) { (existingColumns) -> () in
-			let columnSet = Set(existingColumns)
-			var newColumns = existingColumns
-			var sortColumns = self.sortColumns
-			
-			/* Remove the dragged columns from their existing location. If they do not exist, remove them from the 
-			set of dragged columns. */
-			for dragged in self.sortColumns {
-				if columnSet.contains(dragged) {
-					newColumns.remove(dragged)
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		switch data {
+			case .Success(let d):
+				d.value.columnNames(job) { (existingColumns) -> () in
+					let columnSet = Set(existingColumns)
+					var newColumns = existingColumns
+					var sortColumns = self.sortColumns
+					
+					/* Remove the dragged columns from their existing location. If they do not exist, remove them from the
+					set of dragged columns. */
+					for dragged in self.sortColumns {
+						if columnSet.contains(dragged) {
+							newColumns.remove(dragged)
+						}
+						else {
+							// Dragging a column that doesn't exist! Ignore
+							sortColumns.remove(dragged)
+						}
+					}
+					
+					// If we have an insertion point for the set of reordered columns, insert them there
+					if let before = self.before, let newIndex = find(newColumns, before) {
+						newColumns.splice(self.sortColumns, atIndex: newIndex)
+					}
+					else {
+						// Just append at the end. Happens when self.before is nil or the column indicated in self.before doesn't exist
+						sortColumns.each({newColumns.append($0)})
+					}
+					
+					// The re-ordering operation may never drop or add columns (even if specified columns do not exist)
+					assert(newColumns.count == existingColumns.count, "Re-ordering operation resulted in loss of columns")
+					callback(QBEFallible(d.value.selectColumns(newColumns)))
 				}
-				else {
-					// Dragging a column that doesn't exist! Ignore
-					sortColumns.remove(dragged)
-				}
-			}
 			
-			// If we have an insertion point for the set of reordered columns, insert them there
-			if let before = self.before, let newIndex = find(newColumns, before) {
-				newColumns.splice(self.sortColumns, atIndex: newIndex)
-			}
-			else {
-				// Just append at the end. Happens when self.before is nil or the column indicated in self.before doesn't exist
-				sortColumns.each({newColumns.append($0)})
-			}
-			
-			// The re-ordering operation may never drop or add columns (even if specified columns do not exist)
-			assert(newColumns.count == existingColumns.count, "Re-ordering operation resulted in loss of columns")
-			callback(data.selectColumns(newColumns))
+			case .Failure(_):
+				callback(data)
 		}
 	}
 }

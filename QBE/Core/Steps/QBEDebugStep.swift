@@ -44,22 +44,34 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 		return self.type.description
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		switch type {
 			case .None:
 				callback(data)
 			
 			case .Rasterize:
-				data.raster(job, callback: { (raster) -> () in
-					callback(QBERasterData(raster: raster))
-				})
+				switch data {
+					case .Success(let d):
+						d.value.raster(job, callback: { (raster) -> () in
+							callback(QBEFallible(QBERasterData(raster: raster)))
+						})
+					
+					case .Failure(_):
+						callback(data)
+				}
 			
 			case .Cache:
-				/* Make sure the QBESQLiteCachedData object stays around until completion by capturing it in the 
-				completion callback. Under normal circumstances the object will not keep references to itself and would
-				be released automatically without this trick, because we don't store it. */
-				var x: QBESQLiteCachedData? = nil
-				x = QBESQLiteCachedData(source: data, job: job, completion: {(_) in callback(x!)})
+				switch data {
+					case .Success(let d):
+						/* Make sure the QBESQLiteCachedData object stays around until completion by capturing it in the
+						completion callback. Under normal circumstances the object will not keep references to itself 
+						and would be released automatically without this trick, because we don't store it. */
+						var x: QBESQLiteCachedData? = nil
+						x = QBESQLiteCachedData(source: d.value, job: job, completion: {(_) in callback(QBEFallible(x!))})
+					
+					case .Failure(_):
+						callback(data)
+				}
 			}
 	}
 }

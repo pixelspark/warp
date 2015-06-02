@@ -119,39 +119,41 @@ internal extension NSViewController {
 				}
 				else {
 					// Generate sensible joins
-					calculator.currentRaster?.get({(raster) in
-						let myColumns = raster.columnNames
-						
-						let job = QBEJob(.UserInitiated)
-						otherChain.head?.fullData(job) { (otherData) -> () in
-							otherData.columnNames(job) { (otherColumns) -> () in
-								let overlappingColumns = Set(myColumns).intersect(Set(otherColumns))
-								
-								QBEAsyncMain {
-									var joinSteps: [QBEJoinStep] = []
+					calculator.currentRaster?.get({(r) -> ()in
+						r.use { (raster) -> () in
+							let myColumns = raster.columnNames
+							
+							let job = QBEJob(.UserInitiated)
+							otherChain.head?.fullData(job) { (otherData) -> () in
+								otherData.use({$0.columnNames(job) { (otherColumns) -> () in
+									let overlappingColumns = Set(myColumns).intersect(Set(otherColumns))
 									
-									// Create a join step for each column name that appears both left and right
-									for overlappingColumn in overlappingColumns {
-										let joinStep = QBEJoinStep(previous: nil)
-										joinStep.right = otherChain
-										joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: overlappingColumn), second: QBEForeignExpression(columnName: overlappingColumn), type: QBEBinary.Equal)
-										joinSteps.append(joinStep)
+									QBEAsyncMain {
+										var joinSteps: [QBEJoinStep] = []
+										
+										// Create a join step for each column name that appears both left and right
+										for overlappingColumn in overlappingColumns {
+											let joinStep = QBEJoinStep(previous: nil)
+											joinStep.right = otherChain
+											joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: overlappingColumn), second: QBEForeignExpression(columnName: overlappingColumn), type: QBEBinary.Equal)
+											joinSteps.append(joinStep)
+										}
+										
+										if let firstJoin = joinSteps.first {
+											firstJoin.alternatives = joinSteps.filter({return $0 != firstJoin})
+											self.chain?.insertStep(firstJoin, afterStep: self.currentStep)
+											self.stepsChanged()
+											self.currentStep = firstJoin
+											self.calculate()
+										}
+										else {
+											let js = QBEJoinStep(previous: nil)
+											js.right = otherChain
+											js.condition = QBELiteralExpression(QBEValue(false))
+											self.suggestSteps([js])
+										}
 									}
-									
-									if let firstJoin = joinSteps.first {
-										firstJoin.alternatives = joinSteps.filter({return $0 != firstJoin})
-										self.chain?.insertStep(firstJoin, afterStep: self.currentStep)
-										self.stepsChanged()
-										self.currentStep = firstJoin
-										self.calculate()
-									}
-									else {
-										let js = QBEJoinStep(previous: nil)
-										js.right = otherChain
-										js.condition = QBELiteralExpression(QBEValue(false))
-										self.suggestSteps([js])
-									}
-								}
+								}})
 							}
 						}
 					})
@@ -171,6 +173,8 @@ internal extension NSViewController {
 	/** Present the given data set in the data grid. This is called by currentStep.didSet as well as previewStep.didSet.
 	The data from the previewed step takes precedence. **/
 	private func presentData(data: QBEData?) {
+		QBEAssertMainThread()
+		
 		if let d = data {
 			if let dataView = self.dataViewController {
 				let job = QBEJob(.UserInitiated)
@@ -191,6 +195,22 @@ internal extension NSViewController {
 	
 	func tabletWasSelected() {
 		delegate?.chainView(self, configureStep: currentStep, delegate: self)
+	}
+	
+	private func presentRaster(fallibleRaster: QBEFallible<QBERaster>) {
+		QBEAssertMainThread()
+		
+		switch fallibleRaster {
+			case .Success(let raster):
+				self.presentRaster(raster.value)
+				self.useFullData = false
+			
+			case .Failure(let errorMessage):
+				self.presentRaster(nil)
+				self.useFullData = false
+				self.dataViewController?.calculating = false
+				self.dataViewController?.errorMessage = errorMessage
+		}
 	}
 	
 	private func presentRaster(raster: QBERaster?) {
@@ -258,12 +278,12 @@ internal extension NSViewController {
 		self.presentData(nil)
 		dataViewController?.calculating = calculator.calculating
 		
-		let job = calculator.currentRaster?.get({(raster) in
+		let job = calculator.currentRaster?.get { (fallibleRaster) -> () in
 			QBEAsyncMain {
-				self.presentRaster(raster)
+				self.presentRaster(fallibleRaster)
 				self.useFullData = false
 			}
-		})
+		}
 		job?.delegate = self
 		self.view.window?.update() // So that the 'cancel calculation' toolbar button autovalidates
 	}
@@ -378,20 +398,22 @@ internal extension NSViewController {
 	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
 		suggestions?.cancel()
 		
-		calculator.currentRaster?.get({(raster) in
-			self.suggestions = QBEFuture<[QBEStep]>({(job, callback) -> () in
-				job.async {
-					let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
-					callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)}))
-				}
-			}, timeLimit: 5.0)
-			
-			self.suggestions!.get({(steps) -> () in
-				QBEAsyncMain {
-					self.suggestSteps(steps)
-				}
-			})
-		})
+		calculator.currentRaster?.get { (fallibleRaster) -> () in
+			fallibleRaster.use { (raster) -> () in
+				self.suggestions = QBEFuture<[QBEStep]>({(job, callback) -> () in
+					job.async {
+						let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
+						callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)}))
+					}
+				}, timeLimit: 5.0)
+				
+				self.suggestions!.get({(steps) -> () in
+					QBEAsyncMain {
+						self.suggestSteps(steps)
+					}
+				})
+			}
+		}
 		return false
 	}
 	
@@ -604,34 +626,36 @@ internal extension NSViewController {
 	}
 	
 	private func addColumnBeforeAfterCurrent(before: Bool) {
-		calculator.currentData?.get {(data) in
-			let job = QBEJob(.UserInitiated)
-			
-			data.columnNames(job) {(cols) in
-				if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-					let name = QBEColumn.defaultColumnForIndex(cols.count)
-					if before {
-						let firstSelectedColumn = selectedColumns.firstIndex
-						if firstSelectedColumn != NSNotFound {
-							let insertRelative = cols[firstSelectedColumn]
-							let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertRelative, insertBefore: true)
-							self.pushStep(step)
-							self.calculate()
+		calculator.currentData?.get { (d) -> () in
+			d.use { (data) -> () in
+				let job = QBEJob(.UserInitiated)
+				
+				data.columnNames(job) {(cols) in
+					if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
+						let name = QBEColumn.defaultColumnForIndex(cols.count)
+						if before {
+							let firstSelectedColumn = selectedColumns.firstIndex
+							if firstSelectedColumn != NSNotFound {
+								let insertRelative = cols[firstSelectedColumn]
+								let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertRelative, insertBefore: true)
+								self.pushStep(step)
+								self.calculate()
+							}
+							else {
+								return
+							}
 						}
 						else {
-							return
-						}
-					}
-					else {
-						let lastSelectedColumn = selectedColumns.lastIndex
-						if lastSelectedColumn != NSNotFound && lastSelectedColumn < cols.count {
-							let insertAfter = cols[lastSelectedColumn]
-							let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertAfter, insertBefore: false)
-							self.pushStep(step)
-							self.calculate()
-						}
-						else {
-							return
+							let lastSelectedColumn = selectedColumns.lastIndex
+							if lastSelectedColumn != NSNotFound && lastSelectedColumn < cols.count {
+								let insertAfter = cols[lastSelectedColumn]
+								let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertAfter, insertBefore: false)
+								self.pushStep(step)
+								self.calculate()
+							}
+							else {
+								return
+							}
 						}
 					}
 				}
@@ -651,12 +675,12 @@ internal extension NSViewController {
 		calculator.currentData?.get {(data) in
 			let job = QBEJob(.UserInitiated)
 			
-			data.columnNames(job) {(cols) in
+			data.use({$0.columnNames(job) {(cols) in
 				let name = QBEColumn.defaultColumnForIndex(cols.count)
 				let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: false)
 				self.pushStep(step)
 				self.calculate()
-			}
+			}})
 		}
 	}
 	
@@ -664,12 +688,12 @@ internal extension NSViewController {
 		calculator.currentData?.get {(data) in
 			let job = QBEJob(.UserInitiated)
 			
-			data.columnNames(job) {(cols) in
+			data.use({$0.columnNames(job) {(cols) in
 				let name = QBEColumn.defaultColumnForIndex(cols.count)
 				let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: true)
 				self.pushStep(step)
 				self.calculate()
-			}
+			}})
 		}
 	}
 	
@@ -723,13 +747,15 @@ internal extension NSViewController {
 		if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 			let firstSelectedColumn = selectedColumns.firstIndex
 			if firstSelectedColumn != NSNotFound {
-				calculator.currentRaster?.get {(raster) in
-					let columnName = raster.columnNames[firstSelectedColumn]
-					let expression = QBESiblingExpression(columnName: columnName)
-					let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
-					
-					QBEAsyncMain {
-						self.suggestSteps([QBESortStep(previous: self.currentStep, orders: [order])])
+				calculator.currentRaster?.get {(r) -> () in
+					r.use { (raster) -> () in
+						let columnName = raster.columnNames[firstSelectedColumn]
+						let expression = QBESiblingExpression(columnName: columnName)
+						let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
+						
+						QBEAsyncMain {
+							self.suggestSteps([QBESortStep(previous: self.currentStep, orders: [order])])
+						}
 					}
 				}
 			}
@@ -755,26 +781,28 @@ internal extension NSViewController {
 	private func selectColumns(remove: Bool) {
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			// Get the names of the columns to remove
-			calculator.currentRaster?.get({(raster) in
-				var namesToRemove: [QBEColumn] = []
-				var namesToSelect: [QBEColumn] = []
-				
-				for i in 0..<raster.columnNames.count {
-					if colsToRemove.containsIndex(i) {
-						namesToRemove.append(raster.columnNames[i])
+			calculator.currentRaster?.get { (raster) -> () in
+				raster.use { (r) -> () in
+					var namesToRemove: [QBEColumn] = []
+					var namesToSelect: [QBEColumn] = []
+					
+					for i in 0..<r.columnNames.count {
+						if colsToRemove.containsIndex(i) {
+							namesToRemove.append(r.columnNames[i])
+						}
+						else {
+							namesToSelect.append(r.columnNames[i])
+						}
 					}
-					else {
-						namesToSelect.append(raster.columnNames[i])
+					
+					QBEAsyncMain {
+						self.suggestSteps([
+							QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: !remove),
+							QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: remove)
+						])
 					}
 				}
-				
-				QBEAsyncMain {
-					self.suggestSteps([
-						QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: !remove),
-						QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: remove)
-					])
-				}
-			})
+			}
 		}
 	}
 	
@@ -789,35 +817,37 @@ internal extension NSViewController {
 	@IBAction func removeRows(sender: NSObject) {
 		if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				calculator.currentRaster?.get({(raster) in
-					// Invert the selection
-					let selectedToKeep = NSMutableIndexSet()
-					let selectedToRemove = NSMutableIndexSet()
-					for index in 0..<raster.rowCount {
-						if !rowsToRemove.containsIndex(index) {
-							selectedToKeep.addIndex(index)
+				calculator.currentRaster?.get { (r) -> () in
+					r.use { (raster) -> () in
+						// Invert the selection
+						let selectedToKeep = NSMutableIndexSet()
+						let selectedToRemove = NSMutableIndexSet()
+						for index in 0..<raster.rowCount {
+							if !rowsToRemove.containsIndex(index) {
+								selectedToKeep.addIndex(index)
+							}
+							else {
+								selectedToRemove.addIndex(index)
+							}
 						}
-						else {
-							selectedToRemove.addIndex(index)
+						
+						var relevantColumns = Set<QBEColumn>()
+						for columnIndex in 0..<raster.columnCount {
+							if selectedColumns.containsIndex(columnIndex) {
+								relevantColumns.insert(raster.columnNames[columnIndex])
+							}
+						}
+						
+						// Find suggestions for keeping the other rows
+						let keepSuggestions = QBERowsStep.suggest(selectedToKeep, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: true)
+						var removeSuggestions = QBERowsStep.suggest(selectedToRemove, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: false)
+						removeSuggestions.extend(keepSuggestions)
+						
+						QBEAsyncMain {
+							self.suggestSteps(removeSuggestions)
 						}
 					}
-					
-					var relevantColumns = Set<QBEColumn>()
-					for columnIndex in 0..<raster.columnCount {
-						if selectedColumns.containsIndex(columnIndex) {
-							relevantColumns.insert(raster.columnNames[columnIndex])
-						}
-					}
-					
-					// Find suggestions for keeping the other rows
-					let keepSuggestions = QBERowsStep.suggest(selectedToKeep, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: true)
-					var removeSuggestions = QBERowsStep.suggest(selectedToRemove, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: false)
-					removeSuggestions.extend(keepSuggestions)
-					
-					QBEAsyncMain {
-						self.suggestSteps(removeSuggestions)
-					}
-				})
+				}
 			}
 		}
 	}
@@ -825,20 +855,22 @@ internal extension NSViewController {
 	@IBAction func aggregateRowsByCells(sender: NSObject) {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				calculator.currentRaster?.get({(raster) in
-					var relevantColumns = Set<QBEColumn>()
-					for columnIndex in 0..<raster.columnCount {
-						if selectedColumns.containsIndex(columnIndex) {
-							relevantColumns.insert(raster.columnNames[columnIndex])
+				calculator.currentRaster?.get { (fallibleRaster) -> ()in
+					fallibleRaster.use { (raster) -> () in
+						var relevantColumns = Set<QBEColumn>()
+						for columnIndex in 0..<raster.columnCount {
+							if selectedColumns.containsIndex(columnIndex) {
+								relevantColumns.insert(raster.columnNames[columnIndex])
+							}
+						}
+						
+						let suggestions = QBEPivotStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep)
+						
+						QBEAsyncMain {
+							self.suggestSteps(suggestions)
 						}
 					}
-					
-					let suggestions = QBEPivotStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep)
-					
-					QBEAsyncMain {
-						self.suggestSteps(suggestions)
-					}
-				})
+				}
 			}
 		}
 	}
@@ -846,20 +878,22 @@ internal extension NSViewController {
 	@IBAction func selectRows(sender: NSObject) {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				calculator.currentRaster?.get({(raster) in
-					var relevantColumns = Set<QBEColumn>()
-					for columnIndex in 0..<raster.columnCount {
-						if selectedColumns.containsIndex(columnIndex) {
-							relevantColumns.insert(raster.columnNames[columnIndex])
+				calculator.currentRaster?.get { (fallibleRaster) -> () in
+					fallibleRaster.use { (raster) -> () in
+						var relevantColumns = Set<QBEColumn>()
+						for columnIndex in 0..<raster.columnCount {
+							if selectedColumns.containsIndex(columnIndex) {
+								relevantColumns.insert(raster.columnNames[columnIndex])
+							}
+						}
+						
+						let suggestions = QBERowsStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: true)
+						
+						QBEAsyncMain {
+							self.suggestSteps(suggestions)
 						}
 					}
-					
-					let suggestions = QBERowsStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: true)
-					
-					QBEAsyncMain {
-						self.suggestSteps(suggestions)
-					}
-				})
+				}
 			}
 		}
 	}
@@ -1026,20 +1060,30 @@ internal extension NSViewController {
 				// What type of file are we exporting?
 				job.async {
 					if let cs = self.currentStep {
-						cs.fullData(job, callback: {(data: QBEData) -> () in
-							if let url = ns.URL, let ext = url.pathExtension {
-								// Get the file writer for this type
-								if let writer = QBEFactory.sharedInstance.fileWriterForType(ext, locale: self.locale, title: title) {
-									writer.writeData(data, toFile: url, job: job, callback: {
-										QBEAsyncMain {
-											let alert = NSAlert()
-											alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
-											alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
+						cs.fullData(job) { (fallibleData: QBEFallible<QBEData>) -> () in
+							switch fallibleData {
+								case .Success(let data):
+									if let url = ns.URL, let ext = url.pathExtension {
+										// Get the file writer for this type
+										if let writer = QBEFactory.sharedInstance.fileWriterForType(ext, locale: self.locale, title: title) {
+											writer.writeData(data.value, toFile: url, job: job, callback: {
+												QBEAsyncMain {
+													let alert = NSAlert()
+													alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
+													alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
+												}
+											})
 										}
-									})
-								}
+									}
+								
+								case .Failure(let errorMessage):
+									QBEAsyncMain {
+										let alert = NSAlert()
+										alert.messageText = errorMessage
+										alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
+									}
 							}
-						})
+						}
 					}
 				}
 			}

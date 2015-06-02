@@ -39,19 +39,28 @@ class QBEFlattenStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEData) -> ()) {
+	override func apply(data: QBEFallible<QBEData>, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		/* If a column is set to put a row identifier in, but there is no expression, fill in an expression that uses the
 		value in the first column. */
 		if rowIdentifier == nil && rowColumn != nil {
-			data.columnNames(job) { (columns) -> () in
-				if let firstColumn = columns.first {
-					let ri = QBESiblingExpression(columnName: firstColumn)
-					callback(data.flatten(self.valueColumn, columnNameTo: self.colColumn, rowIdentifier: ri, to: self.rowColumn))
-				}
+			switch data {
+				case .Success(let d):
+					d.value.columnNames(job) { (columns) -> () in
+						if let firstColumn = columns.first {
+							let ri = QBESiblingExpression(columnName: firstColumn)
+							callback(QBEFallible(d.value.flatten(self.valueColumn, columnNameTo: self.colColumn, rowIdentifier: ri, to: self.rowColumn)))
+						}
+						else {
+							callback(.Failure(NSLocalizedString("The data set that is to be flattened contained no rows.", comment: "")))
+						}
+					}
+				
+				case .Failure(_):
+					callback(data)
 			}
 		}
 		else {
-			callback(data.flatten(valueColumn, columnNameTo: colColumn, rowIdentifier: rowIdentifier, to: rowColumn))
+			callback(data.use({$0.flatten(valueColumn, columnNameTo: colColumn, rowIdentifier: rowIdentifier, to: rowColumn)}))
 		}
 	}
 }
