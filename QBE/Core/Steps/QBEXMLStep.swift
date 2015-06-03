@@ -37,37 +37,51 @@ class QBEXMLWriter: QBEFileWriter, NSStreamDelegate {
 				
 				// Fetch column names
 				stream.columnNames(job) { (columnNames) -> () in
-					writer.openTag("grid")
-					
-					// Write first row with column names
-					writer.tag("row") {
-						for cn in columnNames {
-							writer.tag("cell", contentText: cn.name)
-						}
-					}
-					
-					// Fetch rows in batches and write rows to XML
-					var sink: QBESink? = nil
-					sink = {[unowned self] (rows: ArraySlice<QBETuple>, hasMore: Bool) -> () in
-						// Write rows
-						for row in rows {
+					switch columnNames {
+						case .Success(let cns):
+							writer.openTag("grid")
+							
+							// Write first row with column names
 							writer.tag("row") {
-								for cell in row {
-									writer.tag("cell", contentText: cell.stringValue)
+								for cn in cns.value {
+									writer.tag("cell", contentText: cn.name)
 								}
 							}
-						}
-						
-						if hasMore {
+							
+							// Fetch rows in batches and write rows to XML
+							var sink: QBESink? = nil
+							sink = {[unowned self] (rows: QBEFallible<ArraySlice<QBETuple>>, hasMore: Bool) -> () in
+								switch rows {
+								case .Success(let rs):
+									// Write rows
+									for row in rs.value {
+										writer.tag("row") {
+											for cell in row {
+												writer.tag("cell", contentText: cell.stringValue)
+											}
+										}
+									}
+									
+									if hasMore {
+										stream.fetch(job, consumer: sink!)
+									}
+									else {
+										writer.closeLastTag()
+										callback()
+									}
+									
+								case .Failure(_):
+									// TODO forward error through callback
+									callback()
+								}
+							}
+							
 							stream.fetch(job, consumer: sink!)
-						}
-						else {
-							writer.closeLastTag()
+							
+						case .Failure(_):
+							// TODO: forward error to callback
 							callback()
-						}
 					}
-					
-					stream.fetch(job, consumer: sink!)
 				}
 			}
 		}

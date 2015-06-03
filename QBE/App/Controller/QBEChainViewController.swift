@@ -119,44 +119,48 @@ internal extension NSViewController {
 				}
 				else {
 					// Generate sensible joins
-					calculator.currentRaster?.get({(r) -> ()in
+					calculator.currentRaster?.get { (r) -> () in
 						r.use { (raster) -> () in
 							let myColumns = raster.columnNames
 							
 							let job = QBEJob(.UserInitiated)
-							otherChain.head?.fullData(job) { (otherData) -> () in
-								otherData.use({$0.columnNames(job) { (otherColumns) -> () in
-									let overlappingColumns = Set(myColumns).intersect(Set(otherColumns))
-									
-									QBEAsyncMain {
-										var joinSteps: [QBEJoinStep] = []
-										
-										// Create a join step for each column name that appears both left and right
-										for overlappingColumn in overlappingColumns {
-											let joinStep = QBEJoinStep(previous: nil)
-											joinStep.right = otherChain
-											joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: overlappingColumn), second: QBEForeignExpression(columnName: overlappingColumn), type: QBEBinary.Equal)
-											joinSteps.append(joinStep)
-										}
-										
-										if let firstJoin = joinSteps.first {
-											firstJoin.alternatives = joinSteps.filter({return $0 != firstJoin})
-											self.chain?.insertStep(firstJoin, afterStep: self.currentStep)
-											self.stepsChanged()
-											self.currentStep = firstJoin
-											self.calculate()
-										}
-										else {
-											let js = QBEJoinStep(previous: nil)
-											js.right = otherChain
-											js.condition = QBELiteralExpression(QBEValue(false))
-											self.suggestSteps([js])
+							otherChain.head?.fullData(job) { (otherDataFallible) -> () in
+								otherDataFallible.use { (otherData) -> () in
+									otherData.columnNames(job) { (otherColumnsFallible) -> () in
+										otherColumnsFallible.use { (otherColumns) -> () in
+											let overlappingColumns = Set(myColumns).intersect(Set(otherColumns))
+											
+											QBEAsyncMain {
+												var joinSteps: [QBEJoinStep] = []
+												
+												// Create a join step for each column name that appears both left and right
+												for overlappingColumn in overlappingColumns {
+													let joinStep = QBEJoinStep(previous: nil)
+													joinStep.right = otherChain
+													joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: overlappingColumn), second: QBEForeignExpression(columnName: overlappingColumn), type: QBEBinary.Equal)
+													joinSteps.append(joinStep)
+												}
+												
+												if let firstJoin = joinSteps.first {
+													firstJoin.alternatives = joinSteps.filter({return $0 != firstJoin})
+													self.chain?.insertStep(firstJoin, afterStep: self.currentStep)
+													self.stepsChanged()
+													self.currentStep = firstJoin
+													self.calculate()
+												}
+												else {
+													let js = QBEJoinStep(previous: nil)
+													js.right = otherChain
+													js.condition = QBELiteralExpression(QBEValue(false))
+													self.suggestSteps([js])
+												}
+											}
 										}
 									}
-								}})
+								}
 							}
 						}
-					})
+					}
 				}
 			}
 		}
@@ -630,31 +634,33 @@ internal extension NSViewController {
 			d.use { (data) -> () in
 				let job = QBEJob(.UserInitiated)
 				
-				data.columnNames(job) {(cols) in
-					if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-						let name = QBEColumn.defaultColumnForIndex(cols.count)
-						if before {
-							let firstSelectedColumn = selectedColumns.firstIndex
-							if firstSelectedColumn != NSNotFound {
-								let insertRelative = cols[firstSelectedColumn]
-								let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertRelative, insertBefore: true)
-								self.pushStep(step)
-								self.calculate()
+				data.columnNames(job) { (columnNamesFallible) -> () in
+					columnNamesFallible.use { (cols) -> () in
+						if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
+							let name = QBEColumn.defaultColumnForIndex(cols.count)
+							if before {
+								let firstSelectedColumn = selectedColumns.firstIndex
+								if firstSelectedColumn != NSNotFound {
+									let insertRelative = cols[firstSelectedColumn]
+									let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertRelative, insertBefore: true)
+									self.pushStep(step)
+									self.calculate()
+								}
+								else {
+									return
+								}
 							}
 							else {
-								return
-							}
-						}
-						else {
-							let lastSelectedColumn = selectedColumns.lastIndex
-							if lastSelectedColumn != NSNotFound && lastSelectedColumn < cols.count {
-								let insertAfter = cols[lastSelectedColumn]
-								let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertAfter, insertBefore: false)
-								self.pushStep(step)
-								self.calculate()
-							}
-							else {
-								return
+								let lastSelectedColumn = selectedColumns.lastIndex
+								if lastSelectedColumn != NSNotFound && lastSelectedColumn < cols.count {
+									let insertAfter = cols[lastSelectedColumn]
+									let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertAfter, insertBefore: false)
+									self.pushStep(step)
+									self.calculate()
+								}
+								else {
+									return
+								}
 							}
 						}
 					}
@@ -664,36 +670,50 @@ internal extension NSViewController {
 	}
 	
 	@IBAction func addColumnToRight(sender: NSObject) {
+		QBEAssertMainThread()
 		addColumnBeforeAfterCurrent(false)
 	}
 	
 	@IBAction func addColumnToLeft(sender: NSObject) {
+		QBEAssertMainThread()
 		addColumnBeforeAfterCurrent(true)
 	}
 	
 	@IBAction func addColumnAtEnd(sender: NSObject) {
+		QBEAssertMainThread()
+		
 		calculator.currentData?.get {(data) in
 			let job = QBEJob(.UserInitiated)
 			
-			data.use({$0.columnNames(job) {(cols) in
-				let name = QBEColumn.defaultColumnForIndex(cols.count)
-				let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: false)
-				self.pushStep(step)
-				self.calculate()
-			}})
+			data.use {$0.columnNames(job) {(columnsFallible) in
+				columnsFallible.use { (cols) -> () in
+					QBEAsyncMain {
+						let name = QBEColumn.defaultColumnForIndex(cols.count)
+						let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: false)
+						self.pushStep(step)
+						self.calculate()
+					}
+				}
+			}}
 		}
 	}
 	
 	@IBAction func addColumnAtBeginning(sender: NSObject) {
+		QBEAssertMainThread()
+		
 		calculator.currentData?.get {(data) in
 			let job = QBEJob(.UserInitiated)
 			
-			data.use({$0.columnNames(job) {(cols) in
-				let name = QBEColumn.defaultColumnForIndex(cols.count)
-				let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: true)
-				self.pushStep(step)
-				self.calculate()
-			}})
+			data.use {$0.columnNames(job) {(columnsFallible) in
+				columnsFallible.use { (cols) -> () in
+					QBEAsyncMain {
+						let name = QBEColumn.defaultColumnForIndex(cols.count)
+						let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: true)
+						self.pushStep(step)
+						self.calculate()
+					}
+				}
+			}}
 		}
 	}
 	

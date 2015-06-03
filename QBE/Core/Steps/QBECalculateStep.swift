@@ -52,26 +52,35 @@ class QBECalculateStep: QBEStep {
 				let result = d.value.calculate([targetColumn: function])
 				if let relativeTo = insertRelativeTo {
 					// Reorder columns in the result set so that targetColumn is inserted after insertAfter
-					d.value.columnNames(job) {(var cns: [QBEColumn]) in
-						cns.remove(self.targetColumn)
-						if let idx = find(cns, relativeTo) {
-							if self.insertBefore {
-								cns.insert(self.targetColumn, atIndex: idx)
+					d.value.columnNames(job) { (columnNames) in
+						columnNames.use { (var cns) -> () in
+							cns.remove(self.targetColumn)
+							if let idx = find(cns, relativeTo) {
+								if self.insertBefore {
+									cns.insert(self.targetColumn, atIndex: idx)
+								}
+								else {
+									cns.insert(self.targetColumn, atIndex: idx+1)
+								}
 							}
-							else {
-								cns.insert(self.targetColumn, atIndex: idx+1)
-							}
+							callback(QBEFallible(result.selectColumns(cns)))
 						}
-						callback(QBEFallible(result.selectColumns(cns)))
 					}
 				}
 				else {
 					// If the column is to be added at the beginning, shuffle columns around (the default is to add at the end
 					if insertRelativeTo == nil && insertBefore {
-						d.value.columnNames(job) {(var cns: [QBEColumn]) in
-							cns.remove(self.targetColumn)
-							cns.insert(self.targetColumn, atIndex: 0)
-							callback(QBEFallible(result.selectColumns(cns)))
+						d.value.columnNames(job) { (var columnNames: QBEFallible<[QBEColumn]>) -> () in
+							switch columnNames {
+								case .Success(let cns):
+									var columns = cns.value
+									columns.remove(self.targetColumn)
+									columns.insert(self.targetColumn, atIndex: 0)
+									callback(QBEFallible(result.selectColumns(columns)))
+								
+								case .Failure(let error):
+									callback(.Failure(error))
+							}
 						}
 					}
 					else {

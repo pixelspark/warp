@@ -551,11 +551,11 @@ class QBESQLData: NSObject, QBEData {
 		return QBEStreamData(source: self.stream())
 	}
 	
-	func columnNames(job: QBEJob, callback: ([QBEColumn]) -> ()) {
-		callback(columns)
+	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+		callback(QBEFallible(columns))
 	}
 	
-	func raster(job: QBEJob, callback: (QBERaster) -> ()) {
+	func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ()) {
 		job.async {
 			QBEStreamData(source: self.stream()).raster(job, callback: callback)
 		}
@@ -726,14 +726,15 @@ class QBESQLData: NSObject, QBEData {
 		return apply(sql.sqlOrder(randomFunction).sqlLimit("\(numberOfRows)"), resultingColumns: columns)
 	}
 	
-	func unique(expression: QBEExpression, job: QBEJob, callback: (Set<QBEValue>) -> ()) {
+	func unique(expression: QBEExpression, job: QBEJob, callback: (QBEFallible<Set<QBEValue>>) -> ()) {
 		if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sql.aliasFor(.Select), foreignAlias: nil, inputValue: nil) {
 			let data = apply(self.sql.sqlSelect("DISTINCT \(expressionString) AS _value"), resultingColumns: ["_value"])
 			
-			data.raster(job, callback: { (raster) -> () in
-				let values = Set<QBEValue>(raster.raster.map({$0[0]}))
-				callback(values)
-			})
+			data.raster(job) { (raster) -> () in
+				raster.use {(r) -> () in
+					callback(QBEFallible(Set<QBEValue>(r.raster.map({$0[0]}))))
+				}
+			}
 		}
 		else {
 			return fallback().unique(expression, job: job, callback: callback)

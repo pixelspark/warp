@@ -103,7 +103,7 @@ class QBECalculator {
 					cd.get({ (data: QBEFallible<QBEData>) -> () in
 						switch data {
 							case .Success(let d):
-								d.value.raster(job, callback: {callback(QBEFallible($0))})
+								d.value.raster(job, callback: callback)
 							
 							case .Failure(let s):
 								callback(.Failure(s))

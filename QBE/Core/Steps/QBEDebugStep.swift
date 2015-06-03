@@ -53,7 +53,7 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 				switch data {
 					case .Success(let d):
 						d.value.raster(job, callback: { (raster) -> () in
-							callback(QBEFallible(QBERasterData(raster: raster)))
+							callback(raster.use({QBERasterData(raster: $0)}))
 						})
 					
 					case .Failure(_):

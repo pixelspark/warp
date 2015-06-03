@@ -46,36 +46,41 @@ internal class QBEMySQLResult: SequenceType, GeneratorType {
 	private(set) var columnTypes: [MYSQL_FIELD] = []
 	private(set) var finished = false
 	
-	init?(_ result: UnsafeMutablePointer<MYSQL_RES>, connection: QBEMySQLConnection) {
-		self.result = result
-		self.connection = connection
-		
+	static func create(result: UnsafeMutablePointer<MYSQL_RES>, connection: QBEMySQLConnection) -> QBEFallible<QBEMySQLResult> {
 		// Get column names from result set
-		var failed = false
+		var resultSet: QBEFallible<QBEMySQLResult> = .Failure("Unknown error")
+		
 		dispatch_sync(QBEMySQLConnection.sharedQueue) {
+			let realResult = QBEMySQLResult(result: result, connection: connection)
+			
 			let colCount = mysql_field_count(connection.connection)
 			for colIndex in 0..<colCount {
-				let column = mysql_fetch_field(self.result)
+				let column = mysql_fetch_field(result)
 				if column != nil {
 					if let name = NSString(bytes: column.memory.name, length: Int(column.memory.name_length), encoding: NSUTF8StringEncoding) {
-						self.columnNames.append(QBEColumn(String(name)))
-						self.columnTypes.append(column.memory)
+						realResult.columnNames.append(QBEColumn(String(name)))
+						realResult.columnTypes.append(column.memory)
 					}
 					else {
-						failed = true
+						resultSet = .Failure(NSLocalizedString("The MySQL data contains an invalid column name.", comment: ""))
 						return
 					}
 				}
 				else {
-					failed = true
+					resultSet = .Failure(NSLocalizedString("MySQL returned an invalid column.", comment: ""))
 					return
 				}
 			}
+			
+			resultSet = QBEFallible(realResult)
 		}
 		
-		if failed {
-			return nil
-		}
+		return resultSet
+	}
+	
+	private init(result: UnsafeMutablePointer<MYSQL_RES>, connection: QBEMySQLConnection) {
+		self.result = result
+		self.connection = connection
 	}
 	
 	func finish() {
@@ -203,6 +208,35 @@ class QBEMySQLDatabase {
 	func isCompatible(other: QBEMySQLDatabase) -> Bool {
 		return self.host == other.host && self.user == other.user && self.password == other.password && self.port == other.port
 	}
+	
+	func connect() -> QBEFallible<QBEMySQLConnection> {
+		let connection = QBEMySQLConnection(database: self, connection: mysql_init(nil))
+		
+		if !connection.perform({ () -> Int32 in
+			mysql_real_connect(connection.connection,
+				self.host.cStringUsingEncoding(NSUTF8StringEncoding)!,
+				self.user.cStringUsingEncoding(NSUTF8StringEncoding)!,
+				self.password.cStringUsingEncoding(NSUTF8StringEncoding)!,
+				nil,
+				UInt32(self.port),
+				UnsafePointer<Int8>(nil),
+				UInt(0)
+			)
+			return Int32(mysql_errno(connection.connection))
+		}) {
+			return .Failure(connection.lastError)
+		}
+		
+		if let dbn = database.cStringUsingEncoding(NSUTF8StringEncoding) where !database.isEmpty {
+			if !connection.perform({() -> Int32 in
+				return mysql_select_db(connection.connection, dbn)
+			}) {
+				return .Failure(connection.lastError)
+			}
+		}
+		
+		return QBEFallible(connection)
+	}
 }
 
 /**
@@ -233,29 +267,9 @@ internal class QBEMySQLConnection {
 		return Static.instance!
 	}
 	
-	init?(database: QBEMySQLDatabase) {
+	private init(database: QBEMySQLDatabase, connection: UnsafeMutablePointer<MYSQL>) {
 		self.database = database
-		self.connection = nil
-		
-		self.perform({() -> Int32 in
-			self.connection = mysql_init(nil)
-			mysql_real_connect(self.connection,
-				self.database.host.cStringUsingEncoding(NSUTF8StringEncoding)!,
-				self.database.user.cStringUsingEncoding(NSUTF8StringEncoding)!,
-				self.database.password.cStringUsingEncoding(NSUTF8StringEncoding)!,
-				nil,
-				UInt32(self.database.port),
-				UnsafePointer<Int8>(nil),
-				UInt(0)
-			)
-			return Int32(mysql_errno(self.connection))
-		})
-		
-		if let dbn = database.database.cStringUsingEncoding(NSUTF8StringEncoding) where !database.database.isEmpty {
-			self.perform({() -> Int32 in
-				return mysql_select_db(self.connection, dbn)
-			})
-		}
+		self.connection = connection
 	}
 	
 	deinit {
@@ -266,33 +280,42 @@ internal class QBEMySQLConnection {
 		}
 	}
 	
-	func clone() -> QBEMySQLConnection? {
-		return QBEMySQLConnection(database: self.database)
+	func clone() -> QBEFallible<QBEMySQLConnection> {
+		return self.database.connect()
 	}
 	
-	func databases(callback: ([String]) -> ()) {
-		if let r = self.query("SHOW DATABASES") {
-			var dbs: [String] = []
-			while let d = r.row() {
-				if let name = d[0].stringValue {
-					dbs.append(name)
+	func databases(callback: (QBEFallible<[String]>) -> ()) {
+		let resultFallible = self.query("SHOW DATABASES")
+		switch resultFallible {
+			case .Success(let result):
+				var dbs: [String] = []
+				while let d = result.value.row() {
+					if let name = d[0].stringValue {
+						dbs.append(name)
+					}
 				}
-			}
+				
+				callback(QBEFallible(dbs))
 			
-			callback(dbs)
+			case .Failure(let error):
+				callback(.Failure(error))
 		}
 	}
 	
-	func tables(callback: ([String]) -> ()) {
-		if let r = self.query("SHOW TABLES") {
-			var dbs: [String] = []
-			while let d = r.row() {
-				if let name = d[0].stringValue {
-					dbs.append(name)
+	func tables(callback: (QBEFallible<[String]>) -> ()) {
+		let fallibleResult = self.query("SHOW TABLES")
+		switch fallibleResult {
+			case .Success(let result):
+				var dbs: [String] = []
+				while let d = result.value.row() {
+					if let name = d[0].stringValue {
+						dbs.append(name)
+					}
 				}
-			}
+				callback(QBEFallible(dbs))
 			
-			callback(dbs)
+			case .Failure(let error):
+				callback(.Failure(error))
 		}
 	}
 	
@@ -305,12 +328,18 @@ internal class QBEMySQLConnection {
 				QBELog("MySQL perform error: \(message)")
 				success = false
 			}
-			success = true
+			else {
+				success = true
+			}
 		}
 		return success
 	}
 	
-	func query(sql: String) -> QBEMySQLResult? {
+	private var lastError: String { get {
+		return String(CString: mysql_error(self.connection), encoding: NSUTF8StringEncoding) ?? "(unknown)"
+	} }
+	
+	func query(sql: String) -> QBEFallible<QBEMySQLResult> {
 		if self.result != nil && !self.result!.finished {
 			fatalError("Cannot start a query when the previous result is not finished yet")
 		}
@@ -321,11 +350,13 @@ internal class QBEMySQLConnection {
 		#endif
 
 		if self.perform({return mysql_query(self.connection, sql.cStringUsingEncoding(NSUTF8StringEncoding)!)}) {
-			let result = QBEMySQLResult(mysql_use_result(self.connection), connection: self)
-			self.result = result
+			let result = QBEMySQLResult.create(mysql_use_result(self.connection), connection: self)
+			result.use({self.result = $0})
 			return result
 		}
-		return nil
+		else {
+			return .Failure(self.lastError)
+		}
 	}
 }
 
@@ -335,12 +366,26 @@ class QBEMySQLData: QBESQLData {
 	private let database: QBEMySQLDatabase
 	private let locale: QBELocale?
 	
-	private convenience init(database: QBEMySQLDatabase, tableName: String, locale: QBELocale?) {
+	static func create(#database: QBEMySQLDatabase, tableName: String, locale: QBELocale?) -> QBEFallible<QBEMySQLData> {
 		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName)) LIMIT 1"
-		let result = QBEMySQLConnection(database: database)?.query(query)
-		result?.finish() // We're not interested in that one row we just requested, just the column names
 		
-		self.init(database: database, table: tableName, columns: result?.columnNames ?? [], locale: locale)
+		let fallibleConnection = database.connect()
+		switch fallibleConnection {
+			case .Success(let connection):
+				let fallibleResult = connection.value.query(query)
+				
+				switch fallibleResult {
+					case .Success(let result):
+						result.value.finish() // We're not interested in that one row we just requested, just the column names
+						return QBEFallible(QBEMySQLData(database: database, table: tableName, columns: result.value.columnNames, locale: locale))
+					
+					case .Failure(let error):
+						return .Failure(error)
+				}
+			
+			case .Failure(let error):
+				return .Failure(error)
+		}
 	}
 	
 	private init(database: QBEMySQLDatabase, fragment: QBESQLFragment, columns: [QBEColumn], locale: QBELocale?) {
@@ -360,11 +405,11 @@ class QBEMySQLData: QBESQLData {
 	}
 	
 	override func stream() -> QBEStream {
-		return QBEMySQLStream(data: self) ?? QBEEmptyStream()
+		return QBEMySQLStream(data: self)
 	}
 	
-	private func result() -> QBEMySQLResult? {
-		return QBEMySQLConnection(database: self.database)?.query(self.sql.sqlSelect(nil).sql)
+	private func result() -> QBEFallible<QBEMySQLResult> {
+		return self.database.connect().use { $0.query(self.sql.sqlSelect(nil).sql) }
 	}
 	
 	override func isCompatibleWith(other: QBESQLData) -> Bool {
@@ -390,8 +435,8 @@ private class QBEMySQLResultStream: QBESequenceStream {
 	}
 }
 
-/** Stream that lazily queries and streams results from a MySQL query.
-*/
+/** 
+Stream that lazily queries and streams results from a MySQL query. */
 class QBEMySQLStream: QBEStream {
 	private var resultStream: QBEStream?
 	private let data: QBEMySQLData
@@ -402,13 +447,15 @@ class QBEMySQLStream: QBEStream {
 	
 	private func stream() -> QBEStream {
 		if resultStream == nil {
-			if let rs = data.result() {
-				resultStream = QBEMySQLResultStream(result: rs)
-			}
-			else {
-				resultStream = QBEEmptyStream()
+			switch data.result() {
+				case .Success(let result):
+					resultStream = QBEMySQLResultStream(result: result.value)
+				
+				case .Failure(let error):
+					resultStream = QBEErrorStream(error)
 			}
 		}
+		
 		return resultStream!
 	}
 	
@@ -416,7 +463,7 @@ class QBEMySQLStream: QBEStream {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columnNames(job: QBEJob, callback: ([QBEColumn]) -> ()) {
+	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
 		return stream().columnNames(job, callback: callback)
 	}
 	
@@ -484,7 +531,8 @@ class QBEMySQLSourceStep: QBEStep {
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		job.async {
 			if let s = self.database {
-				callback(QBEFallible(QBECoalescedData(QBEMySQLData(database: s, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale))))
+				let md = QBEMySQLData.create(database: s, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale)
+				callback(md.use { QBECoalescedData($0) })
 			}
 			else {
 				callback(.Failure(NSLocalizedString("Could not connect to the MySQL database.", comment: "")))

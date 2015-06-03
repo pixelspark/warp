@@ -91,12 +91,24 @@ final class QBEBox<T> {
 	}
 }
 
+typealias QBEError = String
+
 /** 
 QBEFallible<T> represents the outcome of an operation that can either fail (with an error message) or succeed (returning an
 instance of T). */
 enum QBEFallible<T> {
 	case Success(QBEBox<T>)
-	case Failure(String)
+	case Failure(QBEError)
+	
+	init<P>(_ other: QBEFallible<P>) {
+		switch other {
+			case .Success(let s):
+				self = .Success(QBEBox<T>(s.value as! T))
+			
+			case .Failure(let e):
+				self = .Failure(e)
+		}
+	}
 	
 	init(_ value: T) {
 		self = .Success(QBEBox<T>(value))
@@ -113,6 +125,16 @@ enum QBEFallible<T> {
 			
 			case Failure(let errString):
 				return .Failure(errString)
+		}
+	}
+	
+	func use<P>(@noescape block: T -> QBEFallible<P>) -> QBEFallible<P> {
+		switch self {
+		case Success(let box):
+			return block(box.value)
+			
+		case Failure(let errString):
+			return .Failure(errString)
 		}
 	}
 }

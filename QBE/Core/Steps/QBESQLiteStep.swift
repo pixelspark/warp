@@ -487,7 +487,7 @@ class QBESQLiteCachedData: QBEProxyData {
 	private var stream: QBEStream?
 	private var insertStatement: QBESQLiteResult?
 	private(set) var isCached: Bool = false
-	private var completion: ((QBESQLiteCachedData) -> ())? = nil
+	private var completion: ((QBEFallible<QBESQLiteCachedData>) -> ())? = nil
 	let cacheJob: QBEJob
 	
 	private class var sharedCacheDatabase : QBESQLiteDatabase {
@@ -501,7 +501,7 @@ class QBESQLiteCachedData: QBEProxyData {
 		return Static.instance!
 	}
 	
-	init(source: QBEData, job: QBEJob? = nil, completion: ((QBESQLiteCachedData) -> ())? = nil) {
+	init(source: QBEData, job: QBEJob? = nil, completion: ((QBEFallible<QBESQLiteCachedData>) -> ())? = nil) {
 		self.completion = completion
 		database = QBESQLiteCachedData.sharedCacheDatabase
 		tableName = "cache_\(String.randomStringWithLength(32))"
@@ -513,26 +513,32 @@ class QBESQLiteCachedData: QBEProxyData {
 		// Start caching
 		cacheJob.async { [unowned self] () -> () in
 			source.columnNames(self.cacheJob) { [unowned self] (columns) -> () in
-				let columnSpec = columns.map({(column) -> String in
-					let colString = dialect.columnIdentifier(column, table: nil)
-					return "\(colString) VARCHAR"
-				}).implode(", ")!
-				
-				let sql = "CREATE TABLE \(dialect.tableIdentifier(self.tableName)) (\(columnSpec))"
-				if let q = self.database.query(sql) {
-					q.run()
-					self.stream = source.stream()
+				switch columns {
+					case .Success(let cns):
+						let columnSpec = cns.value.map({(column) -> String in
+							let colString = dialect.columnIdentifier(column, table: nil)
+							return "\(colString) VARCHAR"
+						}).implode(", ")!
+						
+						let sql = "CREATE TABLE \(dialect.tableIdentifier(self.tableName)) (\(columnSpec))"
+						if let q = self.database.query(sql) {
+							q.run()
+							self.stream = source.stream()
+							
+							// We do not need to wait for this cached data to be written to disk
+							self.database.query("PRAGMA synchronous = OFF")?.run()
+							self.database.query("PRAGMA journal_mode = MEMORY")?.run()
+							self.database.query("BEGIN TRANSACTION")?.run()
+							
+							// Prepare the insert-statement
+							let values = cns.value.map({(m) -> String in return "?"}).implode(",") ?? ""
+							self.insertStatement = self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName)) VALUES (\(values))")
+							
+							self.stream?.fetch(self.cacheJob, consumer: self.ingest)
+						}
 					
-					// We do not need to wait for this cached data to be written to disk
-					self.database.query("PRAGMA synchronous = OFF")?.run()
-					self.database.query("PRAGMA journal_mode = MEMORY")?.run()
-					self.database.query("BEGIN TRANSACTION")?.run()
-					
-					// Prepare the insert-statement
-					let values = columns.map({(m) -> String in return "?"}).implode(",") ?? ""
-					self.insertStatement = self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName)) VALUES (\(values))")
-					
-					self.stream?.fetch(self.cacheJob, consumer: self.ingest)
+					case .Failure(let error):
+						completion?(.Failure(error))
 				}
 			}
 		}
@@ -543,30 +549,45 @@ class QBESQLiteCachedData: QBEProxyData {
 		self.database.query("DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName))")
 	}
 	
-	private func ingest(rows: ArraySlice<QBETuple>, hasMore: Bool) {
+	private func ingest(rows: QBEFallible<ArraySlice<QBETuple>>, hasMore: Bool) {
 		assert(!isCached, "Cannot ingest more rows after data has already been cached")
-		if hasMore && !cacheJob.cancelled {
-			self.stream?.fetch(cacheJob, consumer: self.ingest)
-		}
 		
-		cacheJob.time("SQLite insert", items: rows.count, itemType: "rows") {
-			if let statement = self.insertStatement {
-				for row in rows {
-					statement.run(parameters: row)
+		switch rows {
+			case .Success(let r):
+				if hasMore && !cacheJob.cancelled {
+					self.stream?.fetch(cacheJob, consumer: self.ingest)
 				}
-			}
-		}
-		
-		if !hasMore {
-			// Swap out the original source with our new cached source
-			self.cacheJob.log("Done caching, swapping out")
-			self.database.query("END TRANSACTION")?.run()
-			self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
-				self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: columns)
-				self.isCached = true
-				self.completion?(self)
+				
+				cacheJob.time("SQLite insert", items: r.value.count, itemType: "rows") {
+					if let statement = self.insertStatement {
+						for row in r.value {
+							statement.run(parameters: row)
+						}
+					}
+				}
+				
+				if !hasMore {
+					// Swap out the original source with our new cached source
+					self.cacheJob.log("Done caching, swapping out")
+					self.database.query("END TRANSACTION")?.run()
+					self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
+						switch columns {
+							case .Success(let cns):
+								self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: cns.value)
+								self.isCached = true
+								self.completion?(QBEFallible(self))
+								self.completion = nil
+							
+							case .Failure(let error):
+								self.completion?(.Failure(error))
+								self.completion = nil
+						}
+					}
+				}
+			
+			case .Failure(let errMessage):
+				self.completion?(.Failure(errMessage))
 				self.completion = nil
-			}
 		}
 	}
 }

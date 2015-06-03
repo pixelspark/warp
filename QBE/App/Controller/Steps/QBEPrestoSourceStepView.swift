@@ -53,31 +53,37 @@ internal class QBEPrestoSourceStepView: NSViewController, NSTableViewDataSource,
 			catalogField?.stringValue = s.catalogName ?? ""
 			schemaField?.stringValue = s.schemaName ?? ""
 			
-			s.catalogNames(job) { (catalogs) -> () in
-				QBEAsyncMain {
-					self.catalogNames = Array(catalogs)
-					self.catalogField?.reloadData()
+			s.catalogNames(job) { (catalogsFallible) -> () in
+				catalogsFallible.use {(catalogs) in
+					QBEAsyncMain {
+						self.catalogNames = Array(catalogs)
+						self.catalogField?.reloadData()
+					}
 				}
 			}
 			
-			s.schemaNames(job) { (schemas) -> () in
-				QBEAsyncMain {
-					self.schemaNames = Array(schemas)
-					self.schemaField?.reloadData()
+			s.schemaNames(job) { (schemasFallible) -> () in
+				schemasFallible.use { (schemas) in
+					QBEAsyncMain {
+						self.schemaNames = Array(schemas)
+						self.schemaField?.reloadData()
+					}
 				}
 			}
 			
-			s.tableNames(job) { (names) -> () in
-				QBEAsyncMain {
-					self.tableNames = Array(names)
-					self.tableView?.reloadData()
-					
-					if self.tableNames != nil {
-						let currentTable = s.tableName
-						for i in 0..<self.tableNames!.count {
-							if self.tableNames![i]==currentTable {
-								self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
-								break
+			s.tableNames(job) { (namesFallible) -> () in
+				namesFallible.use { (names) in
+					QBEAsyncMain {
+						self.tableNames = Array(names)
+						self.tableView?.reloadData()
+						
+						if self.tableNames != nil {
+							let currentTable = s.tableName
+							for i in 0..<self.tableNames!.count {
+								if self.tableNames![i]==currentTable {
+									self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
+									break
+								}
 							}
 						}
 					}

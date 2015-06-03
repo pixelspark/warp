@@ -62,7 +62,15 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 				switch data {
 					case .Success(let d):
 						d.value.columnNames(job) {(cns) in
-							self.existingColumns = cns
+							switch cns {
+								case .Success(let e):
+									self.existingColumns = e.value
+								
+								case .Failure(_):
+									// Error is ignored
+									self.existingColumns = nil
+									break;
+							}
 							
 							QBEAsyncMain {
 								self.insertAfterField?.reloadData()

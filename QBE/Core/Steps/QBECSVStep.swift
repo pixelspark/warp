@@ -68,8 +68,8 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		templateRow = Array<QBEValue>(count: _columnNames.count, repeatedValue: QBEValue.InvalidValue)
 	}
 	
-	func columnNames(job: QBEJob, callback: ([QBEColumn]) -> ()) {
-		callback(_columnNames)
+	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+		callback(QBEFallible(_columnNames))
 	}
 	
 	func fetch(job: QBEJob, consumer: QBESink) {
@@ -89,7 +89,7 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 			
 			let r = ArraySlice(self.rows)
 			self.rows.removeAll(keepCapacity: true)
-			consumer(r, !self.finished)
+			consumer(QBEFallible(r), !self.finished)
 		}
 	}
 	
@@ -149,38 +149,52 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 			
 			// Write column headers
 			stream.columnNames(job) { [unowned self] (columnNames) -> () in
-				for col in columnNames {
-					csvOut.writeField(col.name)
-				}
-				csvOut.finishLine()
-				
-				var cb: QBESink? = nil
-				cb = { (rows: ArraySlice<QBETuple>, hasNext: Bool) -> () in
-					// We want the next row, so fetch it while we start writing this one.
-					if hasNext {
-						job.async {
-							stream.fetch(job, consumer: cb!)
+				switch columnNames {
+					case .Success(let cns):
+						for col in cns.value {
+							csvOut.writeField(col.name)
 						}
-					}
-					
-					job.time("Write CSV", items: rows.count, itemType: "rows") {
-						for row in rows {
-							for cell in row {
-								csvOut.writeField(self.locale.localStringFor(cell))
+						csvOut.finishLine()
+						
+						var cb: QBESink? = nil
+						cb = { (rows: QBEFallible<ArraySlice<QBETuple>>, hasNext: Bool) -> () in
+							switch rows {
+								case .Success(let rs):
+									// We want the next row, so fetch it while we start writing this one.
+									if hasNext {
+										job.async {
+											stream.fetch(job, consumer: cb!)
+										}
+									}
+									
+									job.time("Write CSV", items: rs.value.count, itemType: "rows") {
+										for row in rs.value {
+											for cell in row {
+												csvOut.writeField(self.locale.localStringFor(cell))
+											}
+											csvOut.finishLine()
+										}
+									}
+									
+									if !hasNext {
+										self.writeFooter(outStream)
+										csvOut.closeStream()
+										callback()
+									}
+								
+								case .Failure(let error):
+									// TODO: forward error to callback
+									callback()
 							}
-							csvOut.finishLine()
 						}
-					}
-					
-					if !hasNext {
-						self.writeFooter(outStream)
-						csvOut.closeStream()
-						callback()
-					}
-				}
+						
+						stream.fetch(job, consumer: cb!)
 				
-				stream.fetch(job, consumer: cb!)
+				case .Failure(let error):
+					// TODO: forward error to callback
+					callback()
 			}
+		}
 		}
 	}
 }

@@ -46,12 +46,18 @@ class QBEFlattenStep: QBEStep {
 			switch data {
 				case .Success(let d):
 					d.value.columnNames(job) { (columns) -> () in
-						if let firstColumn = columns.first {
-							let ri = QBESiblingExpression(columnName: firstColumn)
-							callback(QBEFallible(d.value.flatten(self.valueColumn, columnNameTo: self.colColumn, rowIdentifier: ri, to: self.rowColumn)))
-						}
-						else {
-							callback(.Failure(NSLocalizedString("The data set that is to be flattened contained no rows.", comment: "")))
+						switch columns {
+							case .Success(let cs):
+								if let firstColumn = cs.value.first {
+									let ri = QBESiblingExpression(columnName: firstColumn)
+									callback(QBEFallible(d.value.flatten(self.valueColumn, columnNameTo: self.colColumn, rowIdentifier: ri, to: self.rowColumn)))
+								}
+								else {
+									callback(.Failure(NSLocalizedString("The data set that is to be flattened contained no rows.", comment: "")))
+								}
+							
+							case .Failure(let error):
+								callback(.Failure(error))
 						}
 					}
 				

@@ -229,7 +229,7 @@ protocol QBEData {
 	func filter(condition: QBEExpression) -> QBEData
 	
 	/** Returns a set of all unique result values in this data set for the given expression. **/
-	func unique(expression: QBEExpression, job: QBEJob, callback: (Set<QBEValue>) -> ())
+	func unique(expression: QBEExpression, job: QBEJob, callback: (QBEFallible<Set<QBEValue>>) -> ())
 	
 	/* Select only the columns from the data set that are in the array, in the order specified. If a column named in the 
 	array does not exist, it is ignored. */
@@ -254,10 +254,10 @@ protocol QBEData {
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData
 	
 	/** An in-memory representation (QBERaster) of the data set. **/
-	func raster(job: QBEJob, callback: (QBERaster) -> ())
+	func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ())
 	
 	/** Returns the names of the columns in the data set. The list of column names is ordered. **/
-	func columnNames(job: QBEJob, callback: ([QBEColumn]) -> ())
+	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ())
 	
 	/** Sort the dataset in the indicates ways. The sorts are applied in-order, e.g. the dataset is sorted by the first
 	order specified, in case of ties by the second, et cetera. If there are ties and there is no further order to sort by,
@@ -283,13 +283,13 @@ class QBEProxyData: NSObject, QBEData {
 	func random(numberOfRows: Int) -> QBEData { return data.random(numberOfRows) }
 	func distinct() -> QBEData { return data.distinct() }
 	func filter(condition: QBEExpression) -> QBEData { return data.filter(condition) }
-	func unique(expression: QBEExpression,  job: QBEJob, callback: (Set<QBEValue>) -> ()) { return data.unique(expression, job: job, callback: callback) }
+	func unique(expression: QBEExpression,  job: QBEJob, callback: (QBEFallible<Set<QBEValue>>) -> ()) { return data.unique(expression, job: job, callback: callback) }
 	func selectColumns(columns: [QBEColumn]) -> QBEData { return data.selectColumns(columns) }
 	func aggregate(groups: [QBEColumn: QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData { return data.aggregate(groups, values: values) }
 	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData { return data.pivot(horizontal, vertical: vertical, values: values) }
 	func stream() -> QBEStream { return data.stream() }
-	func raster(job: QBEJob, callback: (QBERaster) -> ()) { return data.raster(job, callback: callback) }
-	func columnNames(job: QBEJob, callback: ([QBEColumn]) -> ()) { return data.columnNames(job, callback: callback) }
+	func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ()) { return data.raster(job, callback: callback) }
+	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) { return data.columnNames(job, callback: callback) }
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
 	func offset(numberOfRows: Int) -> QBEData { return data.offset(numberOfRows) }
 	func sort(by: [QBEOrder]) -> QBEData { return data.sort(by) }
@@ -503,7 +503,7 @@ enum QBECoalescedData: QBEData {
 		}
 	}
 	
-	func unique(expression: QBEExpression, job: QBEJob, callback: (Set<QBEValue>) -> ()) {
+	func unique(expression: QBEExpression, job: QBEJob, callback: (QBEFallible<Set<QBEValue>>) -> ()) {
 		return data.unique(expression, job: job, callback: callback)
 	}
 	
@@ -558,11 +558,11 @@ enum QBECoalescedData: QBEData {
 		return data.stream()
 	}
 	
-	func raster(job: QBEJob, callback: (QBERaster) -> ()) {
+	func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ()) {
 		return data.raster(job, callback: callback)
 	}
 	
-	func columnNames(job: QBEJob, callback: ([QBEColumn]) -> ()) {
+	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
 		return data.columnNames(job, callback: callback)
 	}
 	

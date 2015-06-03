@@ -177,15 +177,27 @@ class QBETests: XCTestCase {
 	}
 	
 	func compareData(job: QBEJob, _ a: QBEData, _ b: QBEData, callback: (Bool) -> ()) {
-		a.raster(job, callback: { (aRaster) -> () in
-			b.raster(job, callback: { (bRaster) -> () in
-				let equal = aRaster.compare(bRaster)
-				if !equal {
-					job.log("A: \(aRaster.debugDescription)")
-					job.log("B: \(bRaster.debugDescription)")
-				}
-				callback(equal)
-			})
+		a.raster(job, callback: { (aRasterFallible) -> () in
+			switch aRasterFallible {
+				case .Success(let aRaster):
+					b.raster(job, callback: { (bRasterFallible) -> () in
+						switch bRasterFallible {
+							case .Success(let bRaster):
+								let equal = aRaster.value.compare(bRaster.value)
+								if !equal {
+									job.log("A: \(aRaster.value.debugDescription)")
+									job.log("B: \(bRaster.value.debugDescription)")
+								}
+								callback(equal)
+							
+							case .Failure(let error):
+								XCTFail(error)
+						}
+					})
+				
+				case .Failure(let error):
+					XCTFail(error)
+			}
 		})
 	}
 	
@@ -262,47 +274,58 @@ class QBETests: XCTestCase {
 			d.append([QBEValue(i), QBEValue(i+1), QBEValue(i+2)])
 		}
 		
+		func assertRaster(raster: QBEFallible<QBERaster>, message: String, condition: (QBERaster) -> Bool) {
+			switch raster {
+				case .Success(let r):
+					XCTAssertTrue(condition(r.value), message)
+				
+				case .Failure(let error):
+					XCTFail("\(message) failed: \(error)")
+			}
+		}
+		
 		// Test the raster data implementation (the tests below are valid for all QBEData implementations)
 		let data = QBERasterData(data: d, columnNames: [QBEColumn("X"), QBEColumn("Y"), QBEColumn("Z")])
-		data.limit(5).raster(job) { (r) -> () in
-			XCTAssert(r.rowCount == 5, "Limit actually works")
-		}
-		
-		data.offset(5).raster(job) { (r) -> () in
-			XCTAssert(r.rowCount == 1000 - 5, "Offset actually works")
-		}
+		data.limit(5).raster(job) { assertRaster($0, "Limit actually works") { $0.rowCount == 5 } }
+		data.offset(5).raster(job) { assertRaster($0, "Offset actually works", { $0.rowCount == 1000 - 5 }) }
 		
 		data.selectColumns(["THIS_DOESNT_EXIST"]).columnNames(job) { (r) -> () in
-			XCTAssert(r.count == 0, "Selecting an invalid column returns a set without columns")
+			switch r {
+				case .Success(let cns):
+					XCTAssert(cns.value.count == 0, "Selecting an invalid column returns a set without columns")
+				
+				case .Failure(let error):
+					XCTFail(error)
+			}
 		}
 		
 		// Repeatedly transpose and check whether the expected number of rows and columns results
 		data.raster(job) { (r) -> () in
-			let rowsBefore = r.rowCount
-			let columnsBefore = r.columnCount
+			switch r {
+				case .Success(let raster):
+					let rowsBefore = raster.value.rowCount
+					let columnsBefore = raster.value.columnCount
+					
+					self.measureBlock {
+						var td: QBEData = data
+						for i in 1...11 {
+							td = td.transpose()
+						}
+						
+						td.raster(job) { assertRaster($0, "Row count matches") { $0.rowCount == columnsBefore - 1 } }
+						td.raster(job) { assertRaster($0, "Column count matches") { $0.columnCount == rowsBefore + 1 } }
+					}
 			
-			self.measureBlock {
-				var td: QBEData = data
-				for i in 1...11 {
-					td = td.transpose()
-				}
-			
-				td.raster(job) { (s) -> () in
-					XCTAssert(s.rowCount == columnsBefore-1, "Row count matches")
-					XCTAssert(s.columnCount == rowsBefore+1, "Column count matches")
-				}
+				case .Failure(let error):
+					XCTFail(error)
 			}
+			
 		}
 		
 		// Test an empty raster
 		let emptyRasterData = QBERasterData(data: [], columnNames: [])
-		emptyRasterData.limit(5).raster(job) {(r) -> () in
-			XCTAssert(r.rowCount == 0, "Limit works when number of rows > available rows")
-		}
-		
-		emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).raster(job) { (r) -> () in
-			XCTAssert(r.columnNames.count == 0, "Selecting an invalid column works properly in empty raster")
-		}
+		emptyRasterData.limit(5).raster(job) { assertRaster($0, "Limit works when number of rows > available rows") { $0.rowCount == 0 } }
+		emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).raster(job) { assertRaster($0, "Selecting an invalid column works properly in empty raster") { $0.columnNames.count == 0 } }
 	}
 	
     func testQBERaster() {
@@ -315,10 +338,16 @@ class QBETests: XCTestCase {
 		
 		let rasterData = QBERasterData(data: d, columnNames: [QBEColumn("X"), QBEColumn("Y"), QBEColumn("Z")])
 		rasterData.raster(job) { (raster) -> () in
-			XCTAssert(raster.indexOfColumnWithName("X")==0, "First column has index 0")
-			XCTAssert(raster.indexOfColumnWithName("x")==0, "Column names should be case-insensitive")
-			XCTAssert(raster.rowCount == 1001, "Row count matches")
-			XCTAssert(raster.columnCount == 3, "Column count matches")
+			switch raster {
+				case .Success(let r):
+					XCTAssert(r.value.indexOfColumnWithName("X")==0, "First column has index 0")
+					XCTAssert(r.value.indexOfColumnWithName("x")==0, "Column names should be case-insensitive")
+					XCTAssert(r.value.rowCount == 1001, "Row count matches")
+					XCTAssert(r.value.columnCount == 3, "Column count matches")
+				
+				case .Failure(let error):
+					XCTFail(error)
+			}
 		}
     }
 	
