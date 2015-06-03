@@ -35,7 +35,8 @@ class QBEFactory {
 		QBEMySQLSourceStep.className(): {QBEMySQLSourceStepView(step: $0, delegate: $1)},
 		QBEJoinStep.className(): {QBEJoinStepView(step: $0, delegate: $1)},
 		QBEPostgresSourceStep.className(): {QBEPostgresStepView(step: $0, delegate: $1)},
-		QBEDebugStep.className(): {QBEDebugStepView(step: $0, delegate: $1)}
+		QBEDebugStep.className(): {QBEDebugStepView(step: $0, delegate: $1)},
+		QBERenameStep.className(): {QBERenameStepView(step: $0, delegate: $1)}
 	]
 	
 	private let stepIcons = [
@@ -59,7 +60,8 @@ class QBEFactory {
 		QBEPostgresSourceStep.className(): "PostgresIcon",
 		QBEJoinStep.className(): "JoinIcon",
 		QBECloneStep.className(): "CloneIcon",
-		QBEDebugStep.className(): "DebugIcon"
+		QBEDebugStep.className(): "DebugIcon",
+		QBERenameStep.className(): "RenameIcon"
 	]
 	
 	var fileExtensionsForWriting: [String] { get {

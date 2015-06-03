@@ -629,6 +629,10 @@ internal extension NSViewController {
 		useFullData = false
 	}
 	
+	@IBAction func renameColumn(sender: NSObject) {
+		suggestSteps([QBERenameStep(previous: nil)])
+	}
+	
 	private func addColumnBeforeAfterCurrent(before: Bool) {
 		calculator.currentData?.get { (d) -> () in
 			d.use { (data) -> () in
@@ -938,6 +942,12 @@ internal extension NSViewController {
 			return false
 		}
 		else if item.action()==Selector("removeColumns:") {
+			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
+				return colsToRemove.count > 0 && currentStep != nil
+			}
+			return false
+		}
+		else if item.action()==Selector("renameColumn:") {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
 			}
