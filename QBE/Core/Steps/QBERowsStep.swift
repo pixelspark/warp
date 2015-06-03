@@ -129,12 +129,12 @@ class QBEFilterStep: QBEStep {
 		return QBEStepMerge.Impossible
 	}
 	
-	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
 		if let c = condition {
-			callback(data.use({$0.filter(c)}))
+			callback(QBEFallible(data.filter(c)))
 		}
 		else {
-			callback(data)
+			callback(QBEFallible(data))
 		}
 	}
 }
@@ -164,8 +164,8 @@ class QBELimitStep: QBEStep {
 		coder.encodeInt(Int32(numberOfRows), forKey: "numberOfRows")
 	}
 	
-	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(data.use({$0.limit(numberOfRows)}))
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(QBEFallible(data.limit(numberOfRows)))
 	}
 	
 	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
@@ -201,8 +201,8 @@ class QBEOffsetStep: QBEStep {
 		coder.encodeInt(Int32(numberOfRows), forKey: "numberOfRows")
 	}
 	
-	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(data.use({$0.offset(numberOfRows)}))
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(QBEFallible(data.offset(numberOfRows)))
 	}
 }
 
@@ -226,8 +226,8 @@ class QBERandomStep: QBELimitStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(data.use({$0.random(numberOfRows)}))
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(QBEFallible(data.random(numberOfRows)))
 	}
 }
 
@@ -251,7 +251,7 @@ class QBEDistinctStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(data.use({$0.distinct()}))
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(QBEFallible(data.distinct()))
 	}
 }

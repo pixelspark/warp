@@ -34,7 +34,7 @@ class QBESortStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEFallible<QBEData>, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(data.use({$0.sort(orders)}))
+	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(QBEFallible(data.sort(orders)))
 	}
 }

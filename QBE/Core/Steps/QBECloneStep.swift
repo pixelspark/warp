@@ -51,7 +51,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func apply(data: QBEFallible<QBEData>, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		fatalError("QBECloneStep.apply should not be used")
 	}
 }

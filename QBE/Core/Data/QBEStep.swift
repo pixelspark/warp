@@ -16,7 +16,13 @@ class QBEStep: NSObject {
 	func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
 		if let p = self.previous {
 			self.previous?.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: {(data) in
-				self.apply(data, job: job, callback: callback)
+				switch data {
+					case .Success(let d):
+						self.apply(d.value, job: job, callback: callback)
+					
+					case .Failure(let error):
+						callback(.Failure(error))
+				}
 			})
 		}
 		else {
@@ -27,7 +33,13 @@ class QBEStep: NSObject {
 	func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		if let p = self.previous {
 			p.fullData(job, callback: {(data) in
-				self.apply(data, job: job, callback: callback)
+				switch data {
+					case .Success(let d):
+						self.apply(d.value, job: job, callback: callback)
+					
+					case .Failure(let error):
+						callback(.Failure(error))
+				}
 			})
 		}
 		else {
@@ -68,7 +80,7 @@ class QBEStep: NSObject {
 		return NSLocalizedString("Unknown step", comment: "")
 	}
 	
-	func apply(data: QBEFallible<QBEData>, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		fatalError("Child class of QBEStep should implement apply()")
 	}
 	
@@ -205,8 +217,8 @@ func == (lhs: QBEFileReference, rhs: QBEFileReference) -> Bool {
 /** The transpose step implements a row-column switch. It has no configuration and relies on the QBEData transpose()
 implementation to do the actual work. **/
 class QBETransposeStep: QBEStep {
-	override func apply(data: QBEFallible<QBEData>, job: QBEJob? = nil, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(data.use({$0.transpose()}))
+	override func apply(data: QBEData, job: QBEJob? = nil, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(QBEFallible(data.transpose()))
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
