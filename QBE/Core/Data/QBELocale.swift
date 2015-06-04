@@ -1,21 +1,21 @@
 import Foundation
 
 /** The default dialect for formulas reflects the English version of Excel closely. **/
-class QBELocale: NSObject {
+struct QBELocale {
 	typealias QBELanguage = String
 	
-	let decimalSeparator = "."
-	let stringQualifier: Character = "\""
-	let stringQualifierEscape = "\"\""
-	let argumentSeparator = ";"
-	let currentCellIdentifier = "RC"
-	let csvFieldSeparator = ";"
-	let csvLineSeparator = "\r\n"
-	let csvStringQualifier = "\""
-	let csvStringEscaper = "\"\""
-	let commonFieldSeparators = [";",",","|","\t"]
+	var decimalSeparator = "."
+	var stringQualifier: Character = "\""
+	var stringQualifierEscape = "\"\""
+	var argumentSeparator = ";"
+	var currentCellIdentifier = "RC"
+	var csvFieldSeparator = ";"
+	var csvLineSeparator = "\r\n"
+	var csvStringQualifier = "\""
+	var csvStringEscaper = "\"\""
+	var commonFieldSeparators = [";",",","|","\t"]
 	var numberFormatter: NSNumberFormatter
-	let constants: [QBEValue: String]
+	var constants: [QBEValue: String]
 	private let functions: [String: QBEFunction]
 	
 	static let languages: [QBELanguage: String] = [

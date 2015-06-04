@@ -122,7 +122,7 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 
 	required init(locale: QBELocale, title: String? = nil) {
 		self.newLineCharacter = "\r\n"
-		let separator = QBESettings.sharedInstance.defaultFieldSeparator
+		let separator = locale.csvFieldSeparator
 		self.separatorCharacter = separator.utf16[separator.utf16.startIndex]
 		super.init(locale: locale, title: title)
 	}
@@ -213,12 +213,11 @@ class QBEHTMLWriter: QBECSVWriter {
 				let parts = template.componentsSeparatedByString("$$$CSV$$$")
 				header = parts[0]
 				footer = parts[1]
-				let separatorString = ","
-				let separatorCharacter = separatorString.utf16[separatorString.utf16.startIndex]
 				
-				let locale = QBELocale()
+				var locale = QBELocale()
 				locale.numberFormatter.perMillSymbol = ""
 				locale.numberFormatter.decimalSeparator = "."
+				locale.csvFieldSeparator = ","
 				super.init(locale: locale, title: title)
 				return
 			}
