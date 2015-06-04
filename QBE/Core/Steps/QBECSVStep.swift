@@ -148,7 +148,8 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 			}
 			
 			// Write column headers
-			stream.columnNames(job) { [unowned self] (columnNames) -> () in
+			let locale = self.locale
+			stream.columnNames(job) { (columnNames) -> () in
 				switch columnNames {
 					case .Success(let cns):
 						for col in cns.value {
@@ -170,7 +171,7 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 									job.time("Write CSV", items: rs.value.count, itemType: "rows") {
 										for row in rs.value {
 											for cell in row {
-												csvOut.writeField(self.locale.localStringFor(cell))
+												csvOut.writeField(locale.localStringFor(cell))
 											}
 											csvOut.finishLine()
 										}
