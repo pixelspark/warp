@@ -349,7 +349,6 @@
 		65884A3E1B049250003A5BF1 /* QBEJoinStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEJoinStep.swift; sourceTree = "<group>"; };
 		65884A451B076C4E003A5BF1 /* QBEJoinStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEJoinStepView.swift; sourceTree = "<group>"; };
 		65884A4D1B076CB6003A5BF1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEJoinStepView.xib; sourceTree = "<group>"; };
-		65884A501B076CBD003A5BF1 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEJoinStepView.strings; sourceTree = "<group>"; };
 		65894A0A1A67036200B0C161 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBELimitStepView.xib; sourceTree = "<group>"; };
 		65917ADC1AF611F300FDA58A /* QBEViewExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEViewExtensions.swift; sourceTree = "<group>"; };
 		65917AE31AF6B29400FDA58A /* QBEFlowchartView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFlowchartView.swift; sourceTree = "<group>"; };
@@ -438,6 +437,7 @@
 		65CD95CA1ACEB62500557C9E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
 		65CD95CE1ACEB65400557C9E /* Base */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = Base; path = QBE/Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		65CD95D01ACEB68000557C9E /* Warp.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Warp.entitlements; path = ../../Warp.entitlements; sourceTree = "<group>"; };
+		65D81CDD1B20BA6200C0688E /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEJoinStepView.strings; sourceTree = "<group>"; };
 		65DBA5621A798F31004CDF36 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEPivotStepView.xib; sourceTree = "<group>"; };
 		65DBA5661A798F35004CDF36 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBERandomStepView.xib; sourceTree = "<group>"; };
 		65DBA5691A798F41004CDF36 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBECSVStepView.xib; sourceTree = "<group>"; };
@@ -1261,7 +1261,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				65884A4D1B076CB6003A5BF1 /* Base */,
-				65884A501B076CBD003A5BF1 /* nl */,
+				65D81CDD1B20BA6200C0688E /* nl */,
 			);
 			name = QBEJoinStepView.xib;
 			path = QBE;
