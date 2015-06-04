@@ -363,6 +363,7 @@ internal enum QBESQLFragmentType {
 	case Order
 	case Limit
 	case Select
+	case Union
 	
 	var precedingType: QBESQLFragmentType? {
 		switch self {
@@ -374,6 +375,7 @@ internal enum QBESQLFragmentType {
 		case .Order: return .Having
 		case .Limit: return .Order
 		case .Select: return .Limit
+		case .Union: return .Select
 		}
 	}
 }
@@ -454,6 +456,10 @@ internal class QBESQLFragment {
 		return advance(QBESQLFragmentType.Select, part: part)
 	}
 	
+	func sqlUnion(part: String?) -> QBESQLFragment {
+		return advance(QBESQLFragmentType.Union, part: part)
+	}
+	
 	var asSubquery: QBESQLFragment { get {
 		return QBESQLFragment(query: self.sqlSelect(nil).sql, dialect: dialect)
 	} }
@@ -504,6 +510,9 @@ internal class QBESQLFragment {
 				
 				case .Select:
 					fullPart = "SELECT \(p) \(source.sql)"
+				
+				case .Union:
+					fullPart = "(\(source.sql)) UNION (\(p))";
 				
 				case .From:
 					fatalError("Cannot advance to FROM with a part")
@@ -572,6 +581,23 @@ class QBESQLData: NSObject, QBEData {
 	
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData {
 		return fallback().flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to)
+	}
+	
+	func union(data: QBEData) -> QBEData {
+		if let rightSQL = data as? QBESQLData where isCompatibleWith(rightSQL) {
+			// Find out what columns we will end up with
+			var cols = self.columns
+			for rightColumn in rightSQL.columns {
+				if !cols.contains(rightColumn) {
+					cols.append(rightColumn)
+				}
+			}
+			
+			return apply(self.sql.sqlUnion(rightSQL.sql.sqlSelect(nil).sql), resultingColumns: cols)
+		}
+		else {
+			return fallback().union(data)
+		}
 	}
 	
 	func join(join: QBEJoin) -> QBEData {

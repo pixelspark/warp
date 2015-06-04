@@ -61,7 +61,8 @@ class QBEFactory {
 		QBEJoinStep.className(): "JoinIcon",
 		QBECloneStep.className(): "CloneIcon",
 		QBEDebugStep.className(): "DebugIcon",
-		QBERenameStep.className(): "RenameIcon"
+		QBERenameStep.className(): "RenameIcon",
+		QBEMergeStep.className(): "MergeIcon"
 	]
 	
 	var fileExtensionsForWriting: [String] { get {

@@ -93,6 +93,11 @@ class QBEStreamData: QBEData {
 		return fallback().distinct()
 	}
 	
+	func union(data: QBEData) -> QBEData {
+		// TODO: this can be implemented efficiently as a streaming operation
+		return fallback().union(data)
+	}
+	
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData {
 		return QBEStreamData(source: QBEFlattenTransformer(source: source, valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
 	}

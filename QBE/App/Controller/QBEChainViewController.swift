@@ -128,32 +128,36 @@ internal extension NSViewController {
 								otherDataFallible.use { (otherData) -> () in
 									otherData.columnNames(job) { (otherColumnsFallible) -> () in
 										otherColumnsFallible.use { (otherColumns) -> () in
-											let overlappingColumns = Set(myColumns).intersect(Set(otherColumns))
+											let mySet = Set(myColumns)
+											let otherSet = Set(otherColumns)
 											
 											QBEAsyncMain {
-												var joinSteps: [QBEJoinStep] = []
+												var joinSteps: [QBEStep] = []
 												
-												// Create a join step for each column name that appears both left and right
-												for overlappingColumn in overlappingColumns {
-													let joinStep = QBEJoinStep(previous: nil)
-													joinStep.right = otherChain
-													joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: overlappingColumn), second: QBEForeignExpression(columnName: overlappingColumn), type: QBEBinary.Equal)
-													joinSteps.append(joinStep)
-												}
-												
-												if let firstJoin = joinSteps.first {
-													firstJoin.alternatives = joinSteps.filter({return $0 != firstJoin})
-													self.chain?.insertStep(firstJoin, afterStep: self.currentStep)
-													self.stepsChanged()
-													self.currentStep = firstJoin
-													self.calculate()
+												// If the other data set contains exactly the same columns as we do, or one is a subset of the other, propose a merge
+												if !mySet.isDisjointWith(otherSet) {
+													let overlappingColumns = mySet.intersect(otherSet)
+													
+													// Create a join step for each column name that appears both left and right
+													for overlappingColumn in overlappingColumns {
+														let joinStep = QBEJoinStep(previous: nil)
+														joinStep.right = otherChain
+														joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: overlappingColumn), second: QBEForeignExpression(columnName: overlappingColumn), type: QBEBinary.Equal)
+														joinSteps.append(joinStep)
+													}
+													
+													joinSteps.append(QBEMergeStep(previous: nil, with: otherChain))
 												}
 												else {
-													let js = QBEJoinStep(previous: nil)
-													js.right = otherChain
-													js.condition = QBELiteralExpression(QBEValue(false))
-													self.suggestSteps([js])
+													if joinSteps.count == 0 {
+														let js = QBEJoinStep(previous: nil)
+														js.right = otherChain
+														js.condition = QBELiteralExpression(QBEValue(false))
+														joinSteps.append(js)
+													}
 												}
+
+												self.suggestSteps(joinSteps)
 											}
 										}
 									}

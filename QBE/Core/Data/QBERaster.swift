@@ -448,6 +448,51 @@ class QBERasterData: NSObject, QBEData {
 		return fallback().flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowColumn)
 	}
 	
+	func union(data: QBEData) -> QBEData {
+		return applyAsynchronous("union") {(job: QBEJob, leftRaster: QBERaster, callback: (QBEFallible<QBERaster>) -> ()) in
+			data.raster(job) { (rightRasterFallible) in
+				switch rightRasterFallible {
+					case .Success(let rightRaster):
+						var newData: [QBETuple] = []
+						
+						// Determine result raster columns
+						var columns = leftRaster.columnNames
+						for rightColumn in rightRaster.value.columnNames {
+							if !columns.contains(rightColumn) {
+								columns.append(rightColumn)
+							}
+						}
+					
+						// Fill in the data from the left side
+						let fillRight = Array<QBEValue>(count: columns.count - leftRaster.columnCount, repeatedValue: QBEValue.EmptyValue)
+						for row in leftRaster.raster {
+							var rowClone = row
+							rowClone.extend(fillRight)
+							newData.append(rowClone)
+						}
+					
+						// Fill in data from the right side
+						let indices = rightRaster.value.columnNames.map({return find(columns, $0)})
+						let empty = Array<QBEValue>(count: columns.count, repeatedValue: QBEValue.EmptyValue)
+						for row in rightRaster.value.raster {
+							var rowClone = empty
+							for sourceIndex in 0..<row.count {
+								if let destinationIndex = indices[sourceIndex] {
+									rowClone[destinationIndex] = row[sourceIndex]
+								}
+							}
+							newData.append(rowClone)
+						}
+					
+						callback(QBEFallible(QBERaster(data: newData, columnNames: columns)))
+					
+					case .Failure(let error):
+						callback(.Failure(error))
+				}
+			}
+		}
+	}
+	
 	func join(join: QBEJoin) -> QBEData {
 		return applyAsynchronous("join") {(job: QBEJob, leftRaster: QBERaster, callback: (QBEFallible<QBERaster>) -> ()) in
 			switch join {
