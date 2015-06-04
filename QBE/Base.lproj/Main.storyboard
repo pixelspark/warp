@@ -1345,8 +1345,8 @@ CA
                             <containerView canDrawConcurrently="YES" focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
                                 <rect key="frame" x="0.0" y="0.0" width="1089" height="401"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="KeW-J3-VQO"/>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="400" id="uiJ-1d-vdA"/>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="100" id="KeW-J3-VQO"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="100" id="uiJ-1d-vdA"/>
                                 </constraints>
                                 <connections>
                                     <outlet property="menu" destination="c1B-ct-Sxw" id="135-Bb-7YY"/>
@@ -1357,6 +1357,7 @@ CA
                                 <rect key="frame" x="0.0" y="401" width="1032" height="35"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="35" id="ZXJ-2N-vw4"/>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="78" id="nMT-0Q-ueW"/>
                                 </constraints>
                                 <connections>
                                     <segue destination="Ww8-Sq-VTz" kind="embed" identifier="steps" id="Muu-a2-euC"/>

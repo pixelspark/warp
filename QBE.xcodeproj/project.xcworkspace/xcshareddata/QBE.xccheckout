@@ -7,7 +7,7 @@
 	<key>IDESourceControlProjectIdentifier</key>
 	<string>D833A390-2985-4CB6-8462-A69C0B82753D</string>
 	<key>IDESourceControlProjectName</key>
-	<string>QBE</string>
+	<string>project</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</key>
@@ -22,19 +22,19 @@
 		<string>github.com:monkeydom/TCMXMLWriter.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>QBE.xcodeproj</string>
+	<string>QBE.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA</key>
-		<string>../..Libraries/swift-parser-generator</string>
+		<string>../..Libraries/swift-parser-generator/</string>
 		<key>67620B5EFA902936DF04070AF595B76AB0333747</key>
-		<string>../..Libraries/Alamofire</string>
+		<string>../..Libraries/Alamofire/</string>
 		<key>8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E</key>
-		<string>../..Libraries/MBTableGrid</string>
+		<string>../..Libraries/MBTableGrid/</string>
 		<key>A5F18CC216C059F29632AA08FA9E5DF3898315E3</key>
 		<string>../..</string>
 		<key>EE61EABCF181C4E4998F7E1EA6B7D0AAED720562</key>
-		<string>../../Libraries/TCXMLWriter</string>
+		<string>../..Libraries/TCMXMLWriter/</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>/Volumes/code/qbe.git</string>
@@ -82,7 +82,7 @@
 			<key>IDESourceControlWCCIdentifierKey</key>
 			<string>EE61EABCF181C4E4998F7E1EA6B7D0AAED720562</string>
 			<key>IDESourceControlWCCName</key>
-			<string>TCXMLWriter</string>
+			<string>TCMXMLWriter</string>
 		</dict>
 	</array>
 </dict>
