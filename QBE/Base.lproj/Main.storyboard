@@ -763,7 +763,7 @@ CA
                                         <menuItem title="Keep only selected column(s)" keyEquivalent="s" id="7LD-D5-QvZ">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                                             <connections>
-                                                <action selector="renameColumn:" target="Ady-hI-5gd" id="YKf-lE-FfI"/>
+                                                <action selector="selectColumns:" target="Ady-hI-5gd" id="Xrf-1b-MNM"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Rename column(s)" keyEquivalent="r" id="3AR-Yw-6Tv">
