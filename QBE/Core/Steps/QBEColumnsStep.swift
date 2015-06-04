@@ -84,12 +84,11 @@ class QBEColumnsStep: QBEStep {
 	}
 	
 	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
-		if let p = prior as? QBEColumnsStep {
+		if let p = prior as? QBEColumnsStep where p.select && self.select {
 			// This step can ony be a further subset of the columns selected by the prior
 			return QBEStepMerge.Advised(self)
 		}
 		else if let p = prior as? QBECalculateStep {
-			// If the previous step is a calculation that is not in this selection, remove it
 			let contained = contains(columnNames, p.targetColumn)
 			if (select && !contained) || (!select && contained) {
 				let newColumns = columnNames.filter({$0 != p.targetColumn})
