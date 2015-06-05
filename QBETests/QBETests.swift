@@ -113,6 +113,7 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEFormula(formula: "6/(1-3/4)", locale: locale) == nil, "Formula needs to start with equals sign")
 		XCTAssert(QBEFormula(formula: "=6/(1-3/4)±", locale: locale) == nil, "Formula needs to ignore any garbage near the end of a formula")
 		XCTAssert(QBEFormula(formula: "=6/(1-3/4)+[@colRef]", locale: locale) != nil, "Formula in default dialect with column ref")
+		XCTAssert(QBEFormula(formula: "=6/(1-3/4)+[#colRef]", locale: locale) != nil, "Formula in default dialect with foreign ref")
 		XCTAssert(QBEFormula(formula: "=6/(1-3/4)+[@colRef]&\"stringLit\"", locale: locale) != nil, "Formula in default dialect with string literal")
 		
 		for ws in [" ","\t", " \t", "\r", "\n", "\r\n"] {
@@ -284,11 +285,42 @@ class QBETests: XCTestCase {
 			}
 		}
 		
-		// Test the raster data implementation (the tests below are valid for all QBEData implementations)
 		let data = QBERasterData(data: d, columnNames: [QBEColumn("X"), QBEColumn("Y"), QBEColumn("Z")])
+		
+		// Limit
 		data.limit(5).raster(job) { assertRaster($0, "Limit actually works") { $0.rowCount == 5 } }
+		
+		// Offset
 		data.offset(5).raster(job) { assertRaster($0, "Offset actually works", { $0.rowCount == 1000 - 5 }) }
 		
+		// Distinct
+		data.distinct().raster(job) {
+			assertRaster($0, "Distinct removes no columns", { $0.columnCount == 3 })
+			assertRaster($0, "Distinct removes no rows when they are all unique", { $0.rowCount == 1000 })
+		}
+		
+		// Union
+		let secondData = QBERasterData(data: d, columnNames: [QBEColumn("X"), QBEColumn("B"), QBEColumn("C")])
+		data.union(secondData).raster(job) {
+			assertRaster($0, "Union creates the proper number of columns", { $0.columnCount == 5 })
+			assertRaster($0, "Union creates the proper number of rows", { $0.rowCount == 2000 })
+		}
+		data.union(data).raster(job) {
+			assertRaster($0, "Union creates the proper number of columns in self-union scenario", { $0.columnCount == 3 })
+			assertRaster($0, "Union creates the proper number of rows in self-union scenario", { $0.rowCount == 2000 })
+		}
+		
+		// Join
+		data.join(QBEJoin.LeftJoin(secondData, QBEBinaryExpression(first: QBESiblingExpression(columnName: "X"), second: QBEForeignExpression(columnName: "X"), type: .Equal))).raster(job) {
+			assertRaster($0, "Join returns the appropriate number of rows in a one-to-one scenario", { $0.rowCount == 1000 })
+			assertRaster($0, "Join returns the appropriate number of columns", { $0.columnCount == 5 })
+		}
+		data.join(QBEJoin.LeftJoin(data, QBEBinaryExpression(first: QBESiblingExpression(columnName: "X"), second: QBEForeignExpression(columnName: "X"), type: .Equal))).raster(job) {
+			assertRaster($0, "Join returns the appropriate number of rows in a self-join one-to-one scenario", { $0.rowCount == 1000 })
+			assertRaster($0, "Join returns the appropriate number of columns in a self-join", { $0.columnCount == 3 })
+		}
+		
+		// Select columns
 		data.selectColumns(["THIS_DOESNT_EXIST"]).columnNames(job) { (r) -> () in
 			switch r {
 				case .Success(let cns):
@@ -299,7 +331,7 @@ class QBETests: XCTestCase {
 			}
 		}
 		
-		// Repeatedly transpose and check whether the expected number of rows and columns results
+		// Transpose (repeatedly transpose and see if we end up with the initial value)
 		data.raster(job) { (r) -> () in
 			switch r {
 				case .Success(let raster):
@@ -322,7 +354,7 @@ class QBETests: XCTestCase {
 			
 		}
 		
-		// Test an empty raster
+		// Empty raster behavior
 		let emptyRasterData = QBERasterData(data: [], columnNames: [])
 		emptyRasterData.limit(5).raster(job) { assertRaster($0, "Limit works when number of rows > available rows") { $0.rowCount == 0 } }
 		emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).raster(job) { assertRaster($0, "Selecting an invalid column works properly in empty raster") { $0.columnNames.count == 0 } }
