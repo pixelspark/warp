@@ -66,8 +66,6 @@ class QBERenameStep: QBEStep {
 						newColumns.append(oldName)
 					}
 				}
-				
-				job.log("RENAME \(self.renames):\r\n\t\(calculations)\r\n\t\(newColumns)")
 				return data.calculate(calculations).selectColumns(newColumns)
 			})
 		}
