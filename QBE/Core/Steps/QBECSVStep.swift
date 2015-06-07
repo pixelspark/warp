@@ -241,52 +241,40 @@ class QBEHTMLWriter: QBECSVWriter {
 }
 
 class QBECSVSourceStep: QBEStep {
-	private var cachedData: QBEData?
+	private var cachedData: QBEFuture<QBEFallible<QBEData>>?
 	
 	var file: QBEFileReference? { didSet {
 		if let o = oldValue, let f = file where o == f {
 			return;
 		}
-		cachedData = nil;
+		cachedData = nil
+		isCached = false
 		self.useCaching = self.cachingAllowed
 	} }
 	
 	var fieldSeparator: unichar { didSet {
 		if oldValue != fieldSeparator {
-			cachedData = nil;
+			cachedData = nil
+			isCached = false
 		}
 	} }
 	
 	var hasHeaders: Bool { didSet {
 		if oldValue != hasHeaders {
-			cachedData = nil;
+			cachedData = nil
+			isCached = false
 		}
 	} }
 	
 	var useCaching: Bool { didSet {
 		if oldValue != useCaching {
-			if let d = cachedData as? QBESQLiteCachedData {
-				d.cacheJob.cancel()
-			}
-			cachedData = nil;
+			cachedData?.cancel()
+			cachedData = nil
+			isCached = false
 		}
 	} }
 	
-	var isCached: Bool { get {
-		if useCaching {
-			if let d = cachedData as? QBESQLiteCachedData {
-				return d.isCached
-			}
-		}
-		return false
-	} }
-	
-	var cacheJob: QBEJob? { get {
-		if useCaching, let d = cachedData as? QBESQLiteCachedData {
-			return d.cacheJob
-		}
-		return nil
-	} }
+	var isCached = false
 	
 	init(url: NSURL) {
 		let defaultSeparator = QBESettings.sharedInstance.defaultFieldSeparator
@@ -331,28 +319,58 @@ class QBECSVSourceStep: QBEStep {
 		return false
 	} }
 	
-	override func fullData(job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		if cachedData == nil {
-			if let url = file?.url {
-				let locale = QBEAppDelegate.sharedInstance.locale
-				let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders, locale: locale)
-				cachedData = QBEStreamData(source: s)
-				if useCaching {
-					cachedData = QBESQLiteCachedData(source: cachedData!)
-				}
-				cachedData = QBECoalescedData(cachedData!)
-				callback(QBEFallible(cachedData!))
-			}
+	private func sourceData() -> QBEFallible<QBEData> {
+		if let url = file?.url {
+			let locale = QBEAppDelegate.sharedInstance.locale
+			let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders, locale: locale)
+			return QBEFallible(QBEStreamData(source: s))
 		}
 		else {
-			callback(QBEFallible(cachedData!))
+			return .Failure(NSLocalizedString("The location of the CSV source file is invalid.", comment: ""))
 		}
 	}
 	
-	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
-		self.fullData(job, callback: { (fullData) -> () in
-			callback(fullData.use({$0.limit(maxInputRows)}))
-		})
+	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		if cachedData == nil {
+			switch sourceData() {
+				case .Success(let data):
+					if useCaching {
+						self.cachedData = QBEFuture<QBEFallible<QBEData>>({ [weak self] (job, cb) -> () in
+							let cached = QBESQLiteCachedData(source: data.value)
+							cached.cacheJob.addObserver(job)
+							cached.completion = {(result) -> () in
+								cb(result.use {(d) -> QBEData in
+									self?.isCached = true
+									return QBECoalescedData(d)
+								})
+							}
+						})
+					}
+					else {
+						self.cachedData = QBEFuture<QBEFallible<QBEData>>({ [unowned self] (job, cb) -> () in
+							cb(QBEFallible(QBECoalescedData(data.value)))
+						})
+					}
+				
+				case .Failure(let error):
+					callback(.Failure(error))
+					return
+			}
+		}
+		
+		let j = cachedData!.get(callback)
+		j.addObserver(job)
+	}
+	
+	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
+		if isCached {
+			self.fullData(job, callback: { (fullData) -> () in
+				callback(fullData.use({$0.limit(maxInputRows)}))
+			})
+		}
+		else {
+			callback(sourceData().use{ $0.limit(maxInputRows) })
+		}
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
@@ -395,7 +413,8 @@ class QBECSVSourceStep: QBEStep {
 	func updateCache(callback: (() -> ())? = nil) {
 		cachedData = nil
 		if useCaching && cachingAllowed {
-			self.fullData(nil, callback: { (data) -> () in
+			let job = QBEJob(.UserInitiated)
+			self.fullData(job, callback: { (data) -> () in
 				if let c = callback {
 					c()
 				}

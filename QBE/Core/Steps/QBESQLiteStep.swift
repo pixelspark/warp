@@ -512,7 +512,7 @@ class QBESQLiteCachedData: QBEProxyData {
 	private var stream: QBEStream?
 	private var insertStatement: QBESQLiteResult?
 	private(set) var isCached: Bool = false
-	private var completion: ((QBEFallible<QBESQLiteCachedData>) -> ())? = nil
+	var completion: ((QBEFallible<QBESQLiteCachedData>) -> ())? = nil
 	let cacheJob: QBEJob
 	
 	private class var sharedCacheDatabase : QBESQLiteDatabase {
@@ -522,6 +522,12 @@ class QBESQLiteCachedData: QBEProxyData {
 		}
 		dispatch_once(&Static.onceToken) {
 			Static.instance = QBESQLiteDatabase(path: "", readOnly: false)
+			Static.instance!.query("PRAGMA synchronous = OFF").use {(r) -> () in
+				r.run()
+				Static.instance!.query("PRAGMA journal_mode = MEMORY").use {(s) -> () in
+					s.run()
+				}
+			}
 		}
 		return Static.instance!
 	}
@@ -536,8 +542,8 @@ class QBESQLiteCachedData: QBEProxyData {
 		let dialect = database.dialect
 		
 		// Start caching
-		cacheJob.async { [unowned self] () -> () in
-			source.columnNames(self.cacheJob) { [unowned self] (columns) -> () in
+		cacheJob.async {
+			source.columnNames(self.cacheJob) { (columns) -> () in
 				switch columns {
 					case .Success(let cns):
 						let columnSpec = cns.value.map({(column) -> String in
@@ -551,31 +557,13 @@ class QBESQLiteCachedData: QBEProxyData {
 								createQuery.value.run()
 								self.stream = source.stream()
 							
-								// We do not need to wait for this cached data to be written to disk
-								let preparation =
-									self.database.query("PRAGMA synchronous = OFF").use {(r) -> () in
-										r.run()
-										self.database.query("PRAGMA journal_mode = MEMORY").use {(s) -> () in
-											s.run()
-											self.database.query("BEGIN TRANSACTION").use {(t) -> () in
-												t.run()
-											}
-										}
-									}
-								
-								switch preparation {
-									case .Success(_):
-										// Prepare the insert-statement
-										let values = cns.value.map({(m) -> String in return "?"}).implode(",") ?? ""
-										switch self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName)) VALUES (\(values))") {
-											case .Success(let insertStatement):
-												self.insertStatement = insertStatement.value
-												self.stream?.fetch(self.cacheJob, consumer: self.ingest)
-												
-											case .Failure(let error):
-												completion?(.Failure(error))
-										}
-									
+								// Prepare the insert-statement
+								let values = cns.value.map({(m) -> String in return "?"}).implode(",") ?? ""
+								switch self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName)) VALUES (\(values))") {
+									case .Success(let insertStatement):
+										self.insertStatement = insertStatement.value
+										self.stream?.fetch(self.cacheJob, consumer: self.ingest)
+										
 									case .Failure(let error):
 										completion?(.Failure(error))
 								}
@@ -616,26 +604,18 @@ class QBESQLiteCachedData: QBEProxyData {
 				if !hasMore {
 					// Swap out the original source with our new cached source
 					self.cacheJob.log("Done caching, swapping out")
-					switch self.database.query("END TRANSACTION") {
-						case .Success(let endStatement):
-							endStatement.value.run()
-						
-							self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
-								switch columns {
-									case .Success(let cns):
-										self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: cns.value)
-										self.isCached = true
-										self.completion?(QBEFallible(self))
-										self.completion = nil
-										
-									case .Failure(let error):
-										self.completion?(.Failure(error))
-										self.completion = nil
-								}
-							}
-						
-						case .Failure(let error):
-							self.completion?(.Failure(error))
+					self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
+						switch columns {
+							case .Success(let cns):
+								self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: cns.value)
+								self.isCached = true
+								self.completion?(QBEFallible(self))
+								self.completion = nil
+								
+							case .Failure(let error):
+								self.completion?(.Failure(error))
+								self.completion = nil
+						}
 					}
 				}
 			

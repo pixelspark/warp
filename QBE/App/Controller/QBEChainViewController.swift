@@ -292,7 +292,7 @@ internal extension NSViewController {
 				self.useFullData = false
 			}
 		}
-		job?.delegate = self
+		job?.addObserver(self)
 		self.view.window?.update() // So that the 'cancel calculation' toolbar button autovalidates
 	}
 	

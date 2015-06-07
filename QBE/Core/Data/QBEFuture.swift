@@ -139,6 +139,14 @@ enum QBEFallible<T> {
 	}
 }
 
+private class QBEWeak<T: AnyObject> {
+	private(set) weak var value: T?
+	
+	init(_ value: T?) {
+		self.value = value
+	}
+}
+
 /**
 A QBEJob represents a single asynchronous calculation. QBEJob tracks the progress and cancellation status of a single
 'job'. It is generally passed along to all functions that also accept an asynchronous callback. The QBEJob object should 
@@ -153,11 +161,11 @@ is the average progress of all components.
 When used with QBEFuture, a job represents a single attempt at the calculation of a future. The 'producer' callback of a 
 QBEFuture receives the QBEJob object and should use it to check whether calculation of the future is still necessary (or
 the job has been cancelled) and report progress information. */
-class QBEJob {
+class QBEJob: QBEJobDelegate {
 	private(set) var cancelled: Bool = false
 	private let queue: dispatch_queue_t
 	private var progressComponents: [Int: Double] = [:]
-	weak var delegate: QBEJobDelegate?
+	private var observers: [QBEWeak<QBEJobDelegate>] = []
 	
 	init(_ qos: QBEQoS) {
 		self.queue = dispatch_get_global_queue(qos.qosClass, 0)
@@ -200,6 +208,10 @@ class QBEJob {
 		#endif
 	}
 	
+	func addObserver(observer: QBEJobDelegate) {
+		self.observers.append(QBEWeak(observer))
+	}
+	
 	/** 
 	Inform anyone waiting on this job that a particular sub-task has progressed. Progress needs to be between 0...1,
 	where 1 means 'complete'. Callers of this function should generate a sufficiently unique key that identifies the sub-
@@ -212,7 +224,9 @@ class QBEJob {
 		
 		QBEAsyncMain {
 			self.progressComponents[forKey] = progress
-			self.delegate?.job(self, didProgress: self.progress)
+			for observer in self.observers {
+				observer.value?.job(self, didProgress: self.progress)
+			}
 			return
 		}
 	}
@@ -238,6 +252,10 @@ class QBEJob {
 	cancelled. */
 	func cancel() {
 		self.cancelled = true
+	}
+	
+	@objc func job(job: AnyObject, didProgress: Double) {
+		self.reportProgress(didProgress, forKey: unsafeAddressOf(job).hashValue)
 	}
 	
 	/** 

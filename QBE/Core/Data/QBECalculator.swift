@@ -100,7 +100,7 @@ class QBECalculator {
 			let startTime = NSDate.timeIntervalSinceReferenceDate()
 			currentRaster = QBEFuture<QBEFallible<QBERaster>>({ [unowned self] (job: QBEJob, callback: QBEFuture<QBEFallible<QBERaster>>.Callback) in
 				if let cd = self.currentData {
-					cd.get({ (data: QBEFallible<QBEData>) -> () in
+					let dataJob = cd.get({ (data: QBEFallible<QBEData>) -> () in
 						switch data {
 							case .Success(let d):
 								d.value.raster(job, callback: callback)
@@ -109,6 +109,7 @@ class QBECalculator {
 								callback(.Failure(s))
 						}
 					})
+					dataJob.addObserver(job)
 				}
 				else {
 					callback(.Failure(NSLocalizedString("No data available.", comment: "")))
