@@ -39,14 +39,17 @@ class QBECalculator {
 	constraints set for examples (e.g. desired number of rows, maximum execution time). The estimates are based on 
 	information on previous executions (time per input row, amplification factor). If there is no information, a default
 	is used with an exponentially increasing number of input rows. **/
-	private func inputRowsForExample(step: QBEStep) -> Int {
+	private func inputRowsForExample(step: QBEStep, maximumTime: Double) -> Int {
+		if maximumTime <= 0 {
+			return 0
+		}
+		
 		let index = unsafeAddressOf(step).distanceTo(nil)
 		var inputRows = desiredExampleRows
 		
 		if let performance = stepPerformance[index] {
-			// Check if there is sensible data on performance or not
+			// If we have no data on amplification, we have to guess... double on each execution
 			if performance.emptyCount == performance.executionCount {
-				// We haven't ever received any rows for this step. Double the number of input rows for each execution
 				inputRows = inputRows * Int(pow(Double(2.0), Double(performance.executionCount)))
 			}
 			else {
@@ -56,17 +59,17 @@ class QBECalculator {
 					// If the source step amplifies input by two, request calculation with half the number of input rows
 					inputRows = Int(Double(desiredExampleRows) / upperAmp)
 				}
-				
-				// Check to see if the newly calculated number of needed input rows would create a time-consuming calculation
-				let (lowerTime, upperTime) = performance.timePerInputRow.sample.confidenceInterval(certainty)
-				if upperTime > 0 {
-					let upperEstimatedTime = Double(inputRows) * upperTime
-					if upperEstimatedTime > maximumExampleTime {
-						/* With `certainty` we would exceed the maximum time set for examples. Set the number of input 
-						rows to a value that would, with `certainty`, uses the full time. */
-						let i = Int(maximumExampleTime / upperTime)
-						inputRows = i
-					}
+			}
+			
+			// Check to see if the newly calculated number of needed input rows would create a time-consuming calculation
+			let (lowerTime, upperTime) = performance.timePerInputRow.sample.confidenceInterval(certainty)
+			if upperTime > 0 {
+				let upperEstimatedTime = Double(inputRows) * upperTime
+				if upperEstimatedTime > maximumTime {
+					/* With `certainty` we would exceed the maximum time set for examples. Set the number of input 
+					rows to a value that would, with `certainty`, uses the full time. */
+					let i = Int(maximumTime / upperTime)
+					inputRows = i
 				}
 			}
 		}
@@ -76,7 +79,55 @@ class QBECalculator {
 		return inputRows
 	}
 	
-	func calculate(sourceStep: QBEStep, fullData: Bool) {
+	/** 
+	Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have been
+	returned. The given callback is called as soon as the last calculation round has finished. */
+	func calculateExample(sourceStep: QBEStep, var maximumTime: Double? = nil, callback: () -> ()) {
+		if maximumTime == nil {
+			maximumTime = maximumExampleTime
+		}
+		
+		let startTime = NSDate.timeIntervalSinceReferenceDate()
+		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime!)
+		let maxOutputRows = desiredExampleRows
+		self.calculate(sourceStep, fullData: false, maximumTime: maximumTime!)
+		
+		// Record extra information when calculating an example result
+		currentRaster!.get {[unowned self] (raster) in
+			switch raster {
+			case .Success(let r):
+				let duration = NSDate.timeIntervalSinceReferenceDate() - startTime
+
+				// Record performance information for example execution
+				let index = unsafeAddressOf(sourceStep).distanceTo(nil)
+				var perf = self.stepPerformance[index] ?? QBEStepPerformance()
+				perf.timePerInputRow.add(duration / Double(maxInputRows))
+				if r.value.rowCount > 0 {
+					perf.inputAmplificationFactor.add(Double(r.value.rowCount) / Double(maxInputRows))
+				}
+				else {
+					perf.emptyCount++
+				}
+				perf.executionCount++
+				self.stepPerformance[index] = perf
+				
+				/* If we got zero rows, but there is stil time left, just try again. In many cases the back-end
+				is much faster than we think and we have plenty of time left to fill in our time budget. */
+				if r.value.rowCount < self.desiredExampleRows && (maximumTime! - duration) > duration && maxInputRows < self.maximumExampleInputRows {
+					QBELog("Example took \(duration), we still have \(maximumTime! - duration) left, starting another (longer) calculation")
+					self.calculateExample(sourceStep, maximumTime: maximumTime! - duration, callback: callback)
+				}
+				else {
+					callback()
+				}
+				
+			case .Failure(let e):
+				break;
+			}
+		}
+	}
+	
+	func calculate(sourceStep: QBEStep, fullData: Bool, maximumTime: Double? = nil) {
 		if sourceStep != calculationInProgressForStep || currentData?.cancelled ?? false || currentRaster?.cancelled ?? false {
 			currentData?.cancel()
 			currentRaster?.cancel()
@@ -88,7 +139,7 @@ class QBECalculator {
 				currentData = QBEFuture<QBEFallible<QBEData>>(sourceStep.fullData)
 			}
 			else {
-				maxInputRows = inputRowsForExample(sourceStep)
+				maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime ?? maximumExampleTime)
 				let maxOutputRows = desiredExampleRows
 				QBELog("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
 				currentData = QBEFuture<QBEFallible<QBEData>>({ [unowned self] (job, callback) in
@@ -97,7 +148,6 @@ class QBECalculator {
 			}
 			
 			// Set up calculation for the raster
-			let startTime = NSDate.timeIntervalSinceReferenceDate()
 			currentRaster = QBEFuture<QBEFallible<QBERaster>>({ [unowned self] (job: QBEJob, callback: QBEFuture<QBEFallible<QBERaster>>.Callback) in
 				if let cd = self.currentData {
 					let dataJob = cd.get({ (data: QBEFallible<QBEData>) -> () in
@@ -120,32 +170,6 @@ class QBECalculator {
 			currentRaster!.get({[unowned self] (r) in
 				self.calculationInProgressForStep = nil
 			})
-			
-			// Record extra information when calculating an example result
-			if !fullData {
-				currentRaster!.get {[unowned self] (raster) in
-					switch raster {
-						case .Success(let r):
-							let duration = NSDate.timeIntervalSinceReferenceDate() - startTime
-							let index = unsafeAddressOf(sourceStep).distanceTo(nil)
-							
-							// Record performance information for example execution
-							var perf = self.stepPerformance[index] ?? QBEStepPerformance()
-							if r.value.rowCount > 0 {
-								perf.inputAmplificationFactor.add(Double(r.value.rowCount) / Double(maxInputRows))
-								perf.timePerInputRow.add(duration / Double(maxInputRows))
-							}
-							else {
-								perf.emptyCount++
-							}
-							perf.executionCount++
-							self.stepPerformance[index] = perf
-						
-						case .Failure(let e):
-							break;
-					}
-				}
-			}
 		}
 	}
 	

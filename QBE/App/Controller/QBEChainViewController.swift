@@ -263,8 +263,18 @@ internal extension NSViewController {
 					calculator.maximumExampleTime = QBESettings.sharedInstance.exampleMaximumTime
 					
 					let sourceStep = previewStep ?? s
-					calculator.calculate(sourceStep, fullData: useFullData)
-					refreshData()
+					if useFullData {
+						calculator.calculate(sourceStep, fullData: useFullData)
+						refreshData()
+					}
+					else {
+						calculator.calculateExample(sourceStep) {
+							QBEAsyncMain {
+								self.refreshData()
+							}
+						}
+						self.refreshData()
+					}
 				}
 				else {
 					calculator.cancel()
