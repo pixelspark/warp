@@ -624,7 +624,7 @@ class QBESQLData: NSObject, QBEData {
 				let leftColumns = self.columns
 				let rightColumns = rightSQL.columns.filter({!leftColumns.contains($0)})
 				if rightColumns.count > 0 {
-					let rightSelects = rightColumns.map({return self.sql.dialect.columnIdentifier($0, table: rightAlias)}).implode(", ")!
+					let rightSelects = rightColumns.map({return self.sql.dialect.columnIdentifier($0, table: rightAlias) + " AS " + self.sql.dialect.columnIdentifier($0, table: nil)}).implode(", ")!
 					let selects = "\(sql.dialect.allColumnsIdentifier(leftAlias)), \(rightSelects)"
 					
 					// Generate a join expression
