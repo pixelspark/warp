@@ -57,7 +57,7 @@ internal class QBESQLiteSourceStepView: NSViewController, NSTableViewDataSource,
 			
 			tableNames = []
 			if let db = s.db {
-				tableNames = db.tableNames
+				db.tableNames.use {(tns) in tableNames = tns }
 			}
 			
 			tableView?.reloadData()

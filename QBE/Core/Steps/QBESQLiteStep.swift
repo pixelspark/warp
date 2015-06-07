@@ -6,18 +6,20 @@ internal class QBESQLiteResult {
 	let resultSet: COpaquePointer
 	let db: QBESQLiteDatabase
 	
+	static func create(sql: String, db: QBESQLiteDatabase) -> QBEFallible<QBESQLiteResult> {
+		var resultSet: COpaquePointer = nil
+		QBELog("SQL \(sql)")
+		if !db.perform({sqlite3_prepare_v2(db.db, sql, -1, &resultSet, nil)}) {
+			return .Failure(db.lastError)
+		}
+		else {
+			return QBEFallible(QBESQLiteResult(resultSet: resultSet, db: db))
+		}
+	}
+	
 	init(resultSet: COpaquePointer, db: QBESQLiteDatabase) {
 		self.resultSet = resultSet
 		self.db = db
-	}
-	
-	init?(sql: String, db: QBESQLiteDatabase) {
-		self.db = db
-		self.resultSet = nil
-		QBELog("SQL \(sql)")
-		if !self.db.perform({sqlite3_prepare_v2(self.db.db, sql, -1, &self.resultSet, nil)}) {
-			return nil
-		}
 	}
 	
 	deinit {
@@ -340,19 +342,20 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 		perform({sqlite3_close(self.db)})
 	}
 	
-	func query(sql: String) -> QBESQLiteResult? {
-		return QBESQLiteResult(sql: sql, db: self)
+	func query(sql: String) -> QBEFallible<QBESQLiteResult> {
+		return QBESQLiteResult.create(sql, db: self)
 	}
 	
-	var tableNames: [String]? { get {
-		if let names = query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name ASC") {
+	var tableNames: QBEFallible<[String]> { get {
+		let names = query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name ASC")
+		
+		return names.use({(ns) -> [String] in
 			var nameStrings: [String] = []
-			for name in names.sequence() {
+			for name in ns.sequence() {
 				nameStrings.append(name[0].stringValue!)
 			}
 			return nameStrings
-		}
-		return nil
+		})
 	} }
 }
 
@@ -424,12 +427,16 @@ internal class QBESQLiteDialect: QBEStandardSQLDialect {
 
 class QBESQLiteData: QBESQLData {
 	private let db: QBESQLiteDatabase
-
-	private convenience init(db: QBESQLiteDatabase, tableName: String) {
+	
+	static func create(db: QBESQLiteDatabase, tableName: String) -> QBEFallible<QBESQLiteData> {
 		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName))"
-		let result = db.query(query)
-		
-		self.init(db: db, fragment: QBESQLFragment(table: tableName, dialect: db.dialect), columns: result?.columnNames ?? [])
+		switch db.query(query) {
+			case .Success(let result):
+				return QBEFallible(QBESQLiteData(db: db, fragment: QBESQLFragment(table: tableName, dialect: db.dialect), columns: result.value.columnNames))
+				
+			case .Failure(let error):
+				return .Failure(error)
+		}
 	}
 	
 	private init(db: QBESQLiteDatabase, fragment: QBESQLFragment, columns: [QBEColumn]) {
@@ -445,6 +452,10 @@ class QBESQLiteData: QBESQLData {
 		return QBESQLiteStream(data: self) ?? QBEEmptyStream()
 	}
 	
+	private func result() -> QBEFallible<QBESQLiteResult> {
+		return self.db.query(self.sql.sqlSelect(nil).sql)
+	}
+	
 	override func isCompatibleWith(other: QBESQLData) -> Bool {
 		if let os = other as? QBESQLiteData {
 			return os.db == self.db
@@ -453,30 +464,44 @@ class QBESQLiteData: QBESQLData {
 	}
 }
 
-/** 
-QBESQLiteStream provides a stream of records from a SQLite result set. Because SQLite result can only be accessed once
-sequentially, cloning of this stream requires re-executing the query.
-*/
-class QBESQLiteStream: QBESequenceStream {
+/**
+Stream that lazily queries and streams results from an SQLite query. */
+class QBESQLiteStream: QBEStream {
+	private var resultStream: QBEStream?
 	private let data: QBESQLiteData
 	
-	init?(data: QBESQLiteData) {
+	init(data: QBESQLiteData) {
 		self.data = data
-		if let result = data.db.query(data.sql.sqlSelect(nil).sql) {
-			super.init(SequenceOf<QBETuple>(result.sequence()), columnNames: result.columnNames)
-		}
-		else {
-			super.init(SequenceOf<QBETuple>([]), columnNames: [])
-			return nil
-		}
 	}
 	
-	override func clone() -> QBEStream {
-		return QBESQLiteStream(data: self.data) ?? QBEEmptyStream()
+	private func stream() -> QBEStream {
+		if resultStream == nil {
+			switch data.result() {
+				case .Success(let result):
+					resultStream = QBESequenceStream(SequenceOf<QBETuple>(result.value.sequence()), columnNames: result.value.columnNames)
+					
+				case .Failure(let error):
+					resultStream = QBEErrorStream(error)
+			}
+		}
+		
+		return resultStream!
+	}
+	
+	func fetch(job: QBEJob, consumer: QBESink) {
+		return stream().fetch(job, consumer: consumer)
+	}
+	
+	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+		return stream().columnNames(job, callback: callback)
+	}
+	
+	func clone() -> QBEStream {
+		return QBESQLiteStream(data: data)
 	}
 }
 
-/** 
+/**
 Cache a given QBEData data set in a SQLite table. Loading the data set into SQLite is performed asynchronously in the
 background, and the SQLite-cached data set is swapped with the original one at completion transparently. The cache is
 placed in a shared, temporary 'cache' database (sharedCacheDatabase) so that cached tables can efficiently be joined by
@@ -521,20 +546,42 @@ class QBESQLiteCachedData: QBEProxyData {
 						}).implode(", ")!
 						
 						let sql = "CREATE TABLE \(dialect.tableIdentifier(self.tableName)) (\(columnSpec))"
-						if let q = self.database.query(sql) {
-							q.run()
-							self.stream = source.stream()
+						switch self.database.query(sql) {
+							case .Success(let createQuery):
+								createQuery.value.run()
+								self.stream = source.stream()
 							
-							// We do not need to wait for this cached data to be written to disk
-							self.database.query("PRAGMA synchronous = OFF")?.run()
-							self.database.query("PRAGMA journal_mode = MEMORY")?.run()
-							self.database.query("BEGIN TRANSACTION")?.run()
+								// We do not need to wait for this cached data to be written to disk
+								let preparation =
+									self.database.query("PRAGMA synchronous = OFF").use {(r) -> () in
+										r.run()
+										self.database.query("PRAGMA journal_mode = MEMORY").use {(s) -> () in
+											s.run()
+											self.database.query("BEGIN TRANSACTION").use {(t) -> () in
+												t.run()
+											}
+										}
+									}
+								
+								switch preparation {
+									case .Success(_):
+										// Prepare the insert-statement
+										let values = cns.value.map({(m) -> String in return "?"}).implode(",") ?? ""
+										switch self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName)) VALUES (\(values))") {
+											case .Success(let insertStatement):
+												self.insertStatement = insertStatement.value
+												self.stream?.fetch(self.cacheJob, consumer: self.ingest)
+												
+											case .Failure(let error):
+												completion?(.Failure(error))
+										}
+									
+									case .Failure(let error):
+										completion?(.Failure(error))
+								}
 							
-							// Prepare the insert-statement
-							let values = cns.value.map({(m) -> String in return "?"}).implode(",") ?? ""
-							self.insertStatement = self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName)) VALUES (\(values))")
-							
-							self.stream?.fetch(self.cacheJob, consumer: self.ingest)
+							case .Failure(let error):
+								completion?(.Failure(error))
 						}
 					
 					case .Failure(let error):
@@ -569,19 +616,26 @@ class QBESQLiteCachedData: QBEProxyData {
 				if !hasMore {
 					// Swap out the original source with our new cached source
 					self.cacheJob.log("Done caching, swapping out")
-					self.database.query("END TRANSACTION")?.run()
-					self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
-						switch columns {
-							case .Success(let cns):
-								self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: cns.value)
-								self.isCached = true
-								self.completion?(QBEFallible(self))
-								self.completion = nil
-							
-							case .Failure(let error):
-								self.completion?(.Failure(error))
-								self.completion = nil
-						}
+					switch self.database.query("END TRANSACTION") {
+						case .Success(let endStatement):
+							endStatement.value.run()
+						
+							self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
+								switch columns {
+									case .Success(let cns):
+										self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: cns.value)
+										self.isCached = true
+										self.completion?(QBEFallible(self))
+										self.completion = nil
+										
+									case .Failure(let error):
+										self.completion?(.Failure(error))
+										self.completion = nil
+								}
+							}
+						
+						case .Failure(let error):
+							self.completion?(.Failure(error))
 					}
 				}
 			
@@ -619,8 +673,8 @@ class QBESQLiteSourceStep: QBEStep {
 			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
 			
 			if self.tableName == nil {
-				if let first = self.db?.tableNames?.first {
-					self.tableName = first
+				self.db?.tableNames.use {(tns) in
+					self.tableName = tns.first
 				}
 			}
 		}
@@ -636,7 +690,7 @@ class QBESQLiteSourceStep: QBEStep {
 	
 	override func fullData(job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
 		if let d = db {
-			callback(QBEFallible(QBECoalescedData(QBESQLiteData(db: d, tableName: self.tableName ?? ""))))
+			callback(QBESQLiteData.create(d, tableName: self.tableName ?? "").use({return QBECoalescedData($0)}))
 		}
 		else {
 			callback(.Failure(NSLocalizedString("a SQLite database could not be found.", comment: "")))
