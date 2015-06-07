@@ -1,6 +1,6 @@
 import Foundation
 
-class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegate {
+class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegate, NSTabViewDelegate {
 	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var formulaField: NSTextField?
 	@IBOutlet var tabView: NSTabView!
@@ -66,6 +66,10 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 		self.step?.condition = QBEBinaryExpression(first: first, second: second, type: currentType)
 	}
 	
+	func tabView(tabView: NSTabView, didSelectTabViewItem tabViewItem: NSTabViewItem?) {
+		updateView()
+	}
+	
 	/**
 	Returns whether the currently set join is 'simple' (e.g. only based on a comparison of two columns). This requires the
 	join condition to be a binary expression with on either side a column reference. */
@@ -76,12 +80,19 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 					return true
 				}
 				
+				if let left = c.second as? QBEForeignExpression, let right = c.first as? QBESiblingExpression {
+					return true
+				}
+				
 				if c.isConstant {
 					let constantValue = c.apply(QBERow(), foreign: nil, inputValue: nil)
 					if !constantValue.isValid || constantValue == QBEValue.BoolValue(false) {
 						return true
 					}
 				}
+			}
+			else {
+				return true
 			}
 		}
 		return false
