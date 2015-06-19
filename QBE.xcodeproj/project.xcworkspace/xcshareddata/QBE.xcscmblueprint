@@ -1,0 +1,51 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "A5F18CC216C059F29632AA08FA9E5DF3898315E3",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "EE61EABCF181C4E4998F7E1EA6B7D0AAED720562" : 0,
+    "8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E" : 0,
+    "A5F18CC216C059F29632AA08FA9E5DF3898315E3" : 0,
+    "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA" : 0,
+    "67620B5EFA902936DF04070AF595B76AB0333747" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "D833A390-2985-4CB6-8462-A69C0B82753D",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "EE61EABCF181C4E4998F7E1EA6B7D0AAED720562" : "QBE\/Libraries\/TCMXMLWriter\/",
+    "8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E" : "QBE\/Libraries\/MBTableGrid\/",
+    "A5F18CC216C059F29632AA08FA9E5DF3898315E3" : "QBE\/",
+    "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA" : "QBE\/Libraries\/swift-parser-generator\/",
+    "67620B5EFA902936DF04070AF595B76AB0333747" : "QBE\/Libraries\/Alamofire\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "QBE",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 203,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "QBE.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:pixelspark\/swift-parser-generator.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/Alamofire\/Alamofire",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "67620B5EFA902936DF04070AF595B76AB0333747"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:pixelspark\/mbtablegrid.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "\/Volumes\/code\/qbe.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A5F18CC216C059F29632AA08FA9E5DF3898315E3"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:monkeydom\/TCMXMLWriter.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "EE61EABCF181C4E4998F7E1EA6B7D0AAED720562"
+    }
+  ]
+}

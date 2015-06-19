@@ -45,7 +45,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 		
 		if let cv = self.collectionView {
 			// Update current selection
-			var indexSet = NSMutableIndexSet()
+			let indexSet = NSMutableIndexSet()
 			
 			for itemNumber in 0..<cv.content.count {
 				if let step = cv.content[itemNumber] as? QBEStep {
@@ -119,7 +119,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 		return false
 	}
 	
-	override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>) {
+	override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [NSObject : AnyObject]?, context: UnsafeMutablePointer<Void>) {
 		if ignoreSelection {
 			return
 		}

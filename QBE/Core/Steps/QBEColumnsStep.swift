@@ -7,7 +7,6 @@ class QBEColumnsStep: QBEStep {
 	init(previous: QBEStep?, columnNames: [QBEColumn], select: Bool) {
 		self.columnNames = columnNames
 		self.select = select
-		let columnNameStrings = columnNames.map({$0.name})
 		super.init(previous: previous)
 	}
 	
@@ -66,7 +65,7 @@ class QBEColumnsStep: QBEStep {
 		data.columnNames(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
 				case .Success(let existingColumns):
-					let columns = existingColumns.value.filter({column -> Bool in
+					let columns = existingColumns.filter({column -> Bool in
 						for c in self.columnNames {
 							if c == column {
 								return self.select
@@ -75,7 +74,7 @@ class QBEColumnsStep: QBEStep {
 						return !self.select
 					}) ?? []
 					
-					callback(QBEFallible(data.selectColumns(columns)))
+					callback(.Success(data.selectColumns(columns)))
 				
 				case .Failure(let error):
 					callback(.Failure(error))
@@ -89,7 +88,7 @@ class QBEColumnsStep: QBEStep {
 			return QBEStepMerge.Advised(self)
 		}
 		else if let p = prior as? QBECalculateStep {
-			let contained = contains(columnNames, p.targetColumn)
+			let contained = columnNames.contains(p.targetColumn)
 			if (select && !contained) || (!select && contained) {
 				let newColumns = columnNames.filter({$0 != p.targetColumn})
 				if newColumns.count == 0 {
@@ -129,7 +128,7 @@ class QBESortColumnsStep: QBEStep {
 			return String(format: NSLocalizedString("Place column %@ %@", comment: ""), sortColumns[0].name, destination)
 		}
 		else {
-			let names = sortColumns.map({return $0.name}).implode(", ")!
+			let names = sortColumns.map({it in return it.name}).implode(", ")
 			return String(format: NSLocalizedString("Place columns %@ %@", comment: ""), names, destination)
 		}
 	}
@@ -158,8 +157,8 @@ class QBESortColumnsStep: QBEStep {
 		data.columnNames(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
 				case .Success(let existingColumns):
-					let columnSet = Set(existingColumns.value)
-					var newColumns = existingColumns.value
+					let columnSet = Set(existingColumns)
+					var newColumns = existingColumns
 					var sortColumns = self.sortColumns
 					
 					/* Remove the dragged columns from their existing location. If they do not exist, remove them from the
@@ -175,7 +174,7 @@ class QBESortColumnsStep: QBEStep {
 					}
 					
 					// If we have an insertion point for the set of reordered columns, insert them there
-					if let before = self.before, let newIndex = find(newColumns, before) {
+					if let before = self.before, let newIndex = newColumns.indexOf(before) {
 						newColumns.splice(self.sortColumns, atIndex: newIndex)
 					}
 					else {
@@ -184,8 +183,8 @@ class QBESortColumnsStep: QBEStep {
 					}
 					
 					// The re-ordering operation may never drop or add columns (even if specified columns do not exist)
-					assert(newColumns.count == existingColumns.value.count, "Re-ordering operation resulted in loss of columns")
-					callback(QBEFallible(data.selectColumns(newColumns)))
+					assert(newColumns.count == existingColumns.count, "Re-ordering operation resulted in loss of columns")
+					callback(.Success(data.selectColumns(newColumns)))
 				
 				case .Failure(let error):
 					callback(.Failure(error))

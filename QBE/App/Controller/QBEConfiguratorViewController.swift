@@ -6,7 +6,6 @@ class QBEConfiguratorViewController: NSViewController {
 	
 	func configure(step: QBEStep?, delegate: QBESuggestionsViewDelegate?) {
 		if let s = step {
-			let className = s.className
 			let stepView = QBEFactory.sharedInstance.viewForStep(s.self, delegate: delegate!)
 			self.contentView = stepView
 			self.titleLabel?.hidden = false
@@ -35,9 +34,9 @@ class QBEConfiguratorViewController: NSViewController {
 					vc.view.frame = cv.bounds
 					self.configuratorView?.addSubview(vc.view)
 					
-					cv.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[CTRL_VIEW]|", options: NSLayoutFormatOptions.allZeros, metrics: nil, views: ["CTRL_VIEW": vc.view]))
+					cv.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[CTRL_VIEW]|", options: NSLayoutFormatOptions(), metrics: nil, views: ["CTRL_VIEW": vc.view]))
 					
-					cv.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[CTRL_VIEW]|", options: NSLayoutFormatOptions.allZeros, metrics: nil, views: ["CTRL_VIEW": vc.view]))
+					cv.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[CTRL_VIEW]|", options: NSLayoutFormatOptions(), metrics: nil, views: ["CTRL_VIEW": vc.view]))
 				}
 			}
 		}

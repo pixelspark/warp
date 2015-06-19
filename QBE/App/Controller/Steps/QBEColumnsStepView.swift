@@ -82,7 +82,7 @@ internal class QBEColumnsStepView: NSViewController, NSTableViewDataSource, NSTa
 			}
 			else {
 				if let s = step {
-					return NSNumber(bool: find(s.columnNames, columnNames[row]) != nil)
+					return NSNumber(bool: s.columnNames.indexOf(columnNames[row]) != nil)
 				}
 			}
 		}

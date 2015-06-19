@@ -212,10 +212,9 @@ import Cocoa
 	func documentView(view: QBEDocumentView, didReceiveFiles files: [String], atLocation: CGPoint) {
 		var offset: CGPoint = CGPointMake(0,0)
 		for file in files {
-			if let url = NSURL(fileURLWithPath: file) {
-				addTabletFromURL(url, atLocation: atLocation.offsetBy(offset))
-				offset = offset.offsetBy(CGPointMake(25,-25))
-			}
+			let url = NSURL(fileURLWithPath: file)
+			addTabletFromURL(url, atLocation: atLocation.offsetBy(offset))
+			offset = offset.offsetBy(CGPointMake(25,-25))
 		}
 	}
 	
@@ -293,10 +292,8 @@ import Cocoa
 		
 		no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result==NSFileHandlingPanelOKButton {
-				for u in no.URLs {
-					if let url = u as? NSURL {
-						self.addTabletFromURL(url)
-					}
+				for url in no.URLs {
+					self.addTabletFromURL(url)
 				}
 			}
 		})

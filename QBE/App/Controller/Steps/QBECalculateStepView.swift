@@ -61,10 +61,10 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 			s.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
 				switch data {
 					case .Success(let d):
-						d.value.columnNames(job) {(cns) in
+						d.columnNames(job) {(cns) in
 							switch cns {
 								case .Success(let e):
-									self.existingColumns = e.value
+									self.existingColumns = e
 								
 								case .Failure(_):
 									// Error is ignored
@@ -77,27 +77,27 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 							}
 						}
 				
-					case .Failure(let errorMessage):
+					case .Failure(_):
 						break
 				}
 			}
 		
-			let f = s.function.toFormula(self.delegate?.locale ?? QBELocale())
-			let fullFormula = "="+f
+			let f = s.function.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
+			let fullFormula = f
 			if let parsed = QBEFormula(formula: fullFormula, locale: (self.delegate?.locale ?? QBELocale())) {
 				let ma = NSMutableAttributedString(string: fullFormula, attributes: [
 					NSForegroundColorAttributeName: NSColor.blackColor(),
 					NSFontAttributeName: NSFont.systemFontOfSize(13)
 				])
 				
-				for fragment in parsed.fragments.sorted({return $0.length > $1.length}) {
-					if let literal = fragment.expression as? QBELiteralExpression {
+				for fragment in parsed.fragments.sort({return $0.length > $1.length}) {
+					if fragment.expression is QBELiteralExpression {
 						ma.addAttributes([NSForegroundColorAttributeName: NSColor.blueColor()], range: NSMakeRange(fragment.start, fragment.length))
 					}
-					else if let literal = fragment.expression as? QBESiblingExpression {
+					else if fragment.expression is QBESiblingExpression {
 						ma.addAttributes([NSForegroundColorAttributeName: NSColor(red: 0.0, green: 0.5, blue: 0.0, alpha: 1.0)], range: NSMakeRange(fragment.start, fragment.length))
 					}
-					else if let literal = fragment.expression as? QBEIdentityExpression {
+					else if fragment.expression is QBEIdentityExpression {
 						ma.addAttributes([NSForegroundColorAttributeName: NSColor(red: 0.8, green: 0.5, blue: 0.0, alpha: 1.0)], range: NSMakeRange(fragment.start, fragment.length))
 					}
 				}

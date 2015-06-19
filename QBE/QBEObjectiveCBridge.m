@@ -9,6 +9,8 @@ void SQLiteUDFDestroy(void* context) {
 	CFBridgingRelease(context);
 }
 
+sqlite3_destructor_type sqlite3_transient_destructor = SQLITE_TRANSIENT;
+
 /** Create a SQLite user-defined function with the given (Swift) callback as implementing function. We actually register
 SQLiteUDFCaller as the function handler with SQLite. SQLiteUDFCaller will look up the Swift callback (to which a pointer
 has been stored as 'user data' in the SQLite function context) and execute it. 

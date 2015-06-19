@@ -15,14 +15,14 @@ class QBEChainView: NSView {
 }
 
 protocol QBEChainViewDelegate: NSObjectProtocol {
-	/** Called when the chain view wants the delegate to present a configurator for a step. **/
+	/** Called when the chain view wants the delegate to present a configurator for a step. */
 	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESuggestionsViewDelegate)
 	
 	/** Called when the chain view has a value it wants to present for editing (e.g. in a formula bar). The callback
-	 can be called (possibly multiple times) to change the value. If the callback is nil, the value is not changeable. **/
+	 can be called (possibly multiple times) to change the value. If the callback is nil, the value is not changeable. */
 	func chainView(view: QBEChainViewController, editValue: QBEValue, callback: ((QBEValue) -> ())?)
 	
-	/** Called when the user closes a chain view **/
+	/** Called when the user closes a chain view */
 	func chainViewDidClose(view: QBEChainViewController)
 	
 	/** Called when the chain has changed */
@@ -35,7 +35,7 @@ internal extension NSViewController {
 		
 		if let vc = self.storyboard?.instantiateControllerWithIdentifier("tipController") as? QBETipViewController {
 			vc.message = message
-			self.presentViewController(vc, asPopoverRelativeToRect: atView.bounds, ofView: atView, preferredEdge: NSMaxYEdge, behavior: NSPopoverBehavior.Transient)
+			self.presentViewController(vc, asPopoverRelativeToRect: atView.bounds, ofView: atView, preferredEdge: NSRectEdge.MaxY, behavior: NSPopoverBehavior.Transient)
 		}
 	}
 }
@@ -47,7 +47,7 @@ internal extension NSViewController {
 	private var stepsViewController: QBEStepsViewController?
 	private var outletDropView: QBEOutletDropView!
 	
-	@IBOutlet var outletView: QBEOutletView!
+	var outletView: QBEOutletView!
 	@IBOutlet var suggestionsButton: NSButton!
 	weak var delegate: QBEChainViewDelegate?
 	
@@ -179,12 +179,12 @@ internal extension NSViewController {
 	}
 	
 	/** Present the given data set in the data grid. This is called by currentStep.didSet as well as previewStep.didSet.
-	The data from the previewed step takes precedence. **/
+	The data from the previewed step takes precedence. */
 	private func presentData(data: QBEData?) {
 		QBEAssertMainThread()
 		
 		if let d = data {
-			if let dataView = self.dataViewController {
+			if self.dataViewController != nil {
 				let job = QBEJob(.UserInitiated)
 				
 				job.async {
@@ -210,7 +210,7 @@ internal extension NSViewController {
 		
 		switch fallibleRaster {
 			case .Success(let raster):
-				self.presentRaster(raster.value)
+				self.presentRaster(raster)
 				self.useFullData = false
 			
 			case .Failure(let errorMessage):
@@ -230,8 +230,8 @@ internal extension NSViewController {
 				QBESettings.sharedInstance.once("workingSetTip") {
 					if let toolbar = self.view.window?.toolbar {
 						for item in toolbar.items {
-							if let ti = item as? NSToolbarItem where ti.action == Selector("setFullWorkingSet:") {
-								if let vw = ti.view {
+							if item.action == Selector("setFullWorkingSet:") {
+								if let vw = item.view {
 									self.showTip(NSLocalizedString("By default, Warp shows you a small part of the data. Using this button, you can calculate the full result.",comment: "Working set selector tip"), atView: vw)
 								}
 							}
@@ -618,7 +618,7 @@ internal extension NSViewController {
 			if let sv = self.storyboard?.instantiateControllerWithIdentifier("suggestions") as? QBESuggestionsViewController {
 				sv.delegate = self
 				sv.suggestions = Array(alternatives)
-				self.presentViewController(sv, asPopoverRelativeToRect: atView.bounds, ofView: atView, preferredEdge: NSMinYEdge, behavior: NSPopoverBehavior.Semitransient)
+				self.presentViewController(sv, asPopoverRelativeToRect: atView.bounds, ofView: atView, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Semitransient)
 			}
 		}
 	}
@@ -703,7 +703,7 @@ internal extension NSViewController {
 		calculator.currentData?.get {(data) in
 			let job = QBEJob(.UserInitiated)
 			
-			data.use {$0.columnNames(job) {(columnsFallible) in
+			data.maybe {$0.columnNames(job) {(columnsFallible) in
 				columnsFallible.use { (cols) -> () in
 					QBEAsyncMain {
 						let name = QBEColumn.defaultColumnForIndex(cols.count)
@@ -722,8 +722,8 @@ internal extension NSViewController {
 		calculator.currentData?.get {(data) in
 			let job = QBEJob(.UserInitiated)
 			
-			data.use {$0.columnNames(job) {(columnsFallible) in
-				columnsFallible.use { (cols) -> () in
+			data.maybe {$0.columnNames(job) {(columnsFallible) in
+				columnsFallible.maybe { (cols) -> () in
 					QBEAsyncMain {
 						let name = QBEColumn.defaultColumnForIndex(cols.count)
 						let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: true)
@@ -1041,7 +1041,7 @@ internal extension NSViewController {
 		}
 		else if item.action()==Selector("paste:") {
 			let pboard = NSPasteboard.generalPasteboard()
-			if let data = pboard.dataForType(QBEStep.dragType) {
+			if pboard.dataForType(QBEStep.dragType) != nil {
 				return true
 			}
 			return false
@@ -1110,10 +1110,18 @@ internal extension NSViewController {
 									if let url = ns.URL, let ext = url.pathExtension {
 										// Get the file writer for this type
 										if let writer = QBEFactory.sharedInstance.fileWriterForType(ext, locale: self.locale, title: title) {
-											writer.writeData(data.value, toFile: url, job: job, callback: {
+											writer.writeData(data, toFile: url, job: job, callback: {(result) -> () in
 												QBEAsyncMain {
 													let alert = NSAlert()
-													alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
+													
+													switch result {
+														case .Success():
+															alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
+														
+														case .Failure(let e):
+															alert.messageText = String(format: NSLocalizedString("The data could not be saved to '%@': %@.", comment: ""), url.absoluteString ?? "", e)
+													}
+													
 													alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
 												}
 											})

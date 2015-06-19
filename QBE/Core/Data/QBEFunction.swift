@@ -3,7 +3,7 @@ import Foundation
 /** QBEArity represents the 'arity' of a function (the number of arguments a function requires or supports). The arity
 of a function can either be 'fixed' (a function with an arity of '1' is called unary, a function with arity '2' is a 
 binary), constrained ('between x and y') or anything. Functions that can take any number of arguments can also be used
-as aggregating functions (if they are adhere to the property that (e.g.) SUM(1;2;3;4) == SUM(SUM(1;2);SUM(3;4)). **/
+as aggregating functions (if they are adhere to the property that (e.g.) SUM(1;2;3;4) == SUM(SUM(1;2);SUM(3;4)). */
 enum QBEArity: Equatable {
 	case Fixed(Int)
 	case Between(Int, Int)
@@ -37,7 +37,7 @@ func ==(lhs: QBEArity, rhs: QBEArity) -> Bool {
 /** A QBEFunction takes a list of QBEValue arguments (which may be empty) and returns a single QBEValue. QBEFunctions 
 each have a unique identifier (used for serializing), display names (which are localized), and arity (which indicates
 which number of arguments is allowed) and an implementation. QBEFunctions may also be implemented in other ways in other
-ways (e.g. by compilation to SQL). Functions that have 'any' arity can be considered to be aggregation functions. **/
+ways (e.g. by compilation to SQL). Functions that have 'any' arity can be considered to be aggregation functions. */
 enum QBEFunction: String {
 	case Uppercase = "upper"
 	case Lowercase = "lower"
@@ -94,7 +94,7 @@ enum QBEFunction: String {
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
 	is deterministic and all arguments are constants, it is automatically replaced with a literal expression containing
-	its constant result). **/
+	its constant result). */
 	func prepare(args: [QBEExpression]) -> QBEExpression {
 		var prepared = args.map({$0.prepare()})
 		
@@ -109,12 +109,14 @@ enum QBEFunction: String {
 			
 			case .And:
 				// Insert arguments that are Ands themselves in this and
-				prepared = prepared.flatMap({
-					if let a = $0 as? QBEFunctionExpression where a.type == QBEFunction.And {
+				prepared = prepared.mapMany {(item) -> [QBEExpression] in
+					if let a = item as? QBEFunctionExpression where a.type == QBEFunction.And {
 						return a.arguments
 					}
-					return [$0]
-				})
+					else {
+						return [item]
+					}
+				}
 				
 				// If at least one of the arguments to an AND is a constant false, then this And always evaluates to false
 				for p in prepared {
@@ -125,7 +127,7 @@ enum QBEFunction: String {
 			
 			case .Or:
 				// Insert arguments that are Ors themselves in this and
-				prepared = prepared.flatMap({
+				prepared = prepared.mapMany({
 					if let a = $0 as? QBEFunctionExpression where a.type == QBEFunction.Or {
 						return a.arguments
 					}
@@ -205,7 +207,7 @@ enum QBEFunction: String {
 	
 	/** Returns true if this function is guaranteed to return the same result when called multiple times in succession
 	with the exact same set of arguments. Functions that depend on/return randomness or the current date/time are not
-	 deterministic. **/
+	 deterministic. */
 	var isDeterministic: Bool { get {
 		switch self {
 			case .RandomItem: return false
@@ -298,13 +300,17 @@ enum QBEFunction: String {
 			return QBEValue.InvalidValue
 			
 		case .Absolute:
-			return arguments[0].absolute()
+			return arguments[0].absolute
 			
 		case .Identity:
 			return arguments[0]
 			
 		case .And:
 			for a in arguments {
+				if !a.isValid {
+					return QBEValue.InvalidValue
+				}
+				
 				if a != QBEValue(true) {
 					return QBEValue(false)
 				}
@@ -313,7 +319,7 @@ enum QBEFunction: String {
 			
 		case .Coalesce:
 			for a in arguments {
-				if a != QBEValue.EmptyValue && a != QBEValue.InvalidValue {
+				if a.isValid && !a.isEmpty {
 					return a
 				}
 			}
@@ -326,12 +332,18 @@ enum QBEFunction: String {
 			return QBEValue.InvalidValue
 		
 		case .Or:
-		for a in arguments {
-			if a == QBEValue(true) {
-				return QBEValue(true)
+			for a in arguments {
+				if !a.isValid {
+					return QBEValue.InvalidValue
+				}
 			}
-		}
-		return QBEValue(false)
+			
+			for a in arguments {
+				if a == QBEValue(true) {
+					return QBEValue(true)
+				}
+			}
+			return QBEValue(false)
 			
 		case .Xor:
 			if let a = arguments[0].boolValue {
@@ -364,7 +376,7 @@ enum QBEFunction: String {
 			return QBEValue.InvalidValue
 			
 		case .IfError:
-			return (arguments[0] == QBEValue.InvalidValue) ? arguments[1] : arguments[0]
+			return (!arguments[0].isValid) ? arguments[1] : arguments[0]
 			
 		case .Cos:
 			if let d = arguments[0].doubleValue {
@@ -453,7 +465,7 @@ enum QBEFunction: String {
 		case .Left:
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
-					if count(s) >= idx {
+					if s.characters.count >= idx {
 						let index = advance(s.startIndex, idx)
 						return QBEValue(s.substringToIndex(index))
 					}
@@ -464,7 +476,7 @@ enum QBEFunction: String {
 		case .Right:
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
-					if count(s) >= idx {
+					if s.characters.count >= idx {
 						let index = advance(s.endIndex, -idx)
 						return QBEValue(s.substringFromIndex(index))
 					}
@@ -476,7 +488,7 @@ enum QBEFunction: String {
 			if let s = arguments[0].stringValue {
 				if let start = arguments[1].intValue {
 					if let length = arguments[2].intValue {
-						let sourceLength = count(s)
+						let sourceLength = s.characters.count
 						if sourceLength >= start {
 							let index = advance(s.startIndex, start)
 							let end = sourceLength >= (start+length) ? advance(index, length) : s.endIndex
@@ -490,7 +502,7 @@ enum QBEFunction: String {
 			
 		case .Length:
 			if let s = arguments[0].stringValue {
-				return QBEValue(count(s))
+				return QBEValue(s.characters.count)
 			}
 			return QBEValue.InvalidValue
 			
@@ -498,7 +510,7 @@ enum QBEFunction: String {
 			// Count only counts the number of numeric values
 			var count = 0
 			arguments.each({
-				if let d = $0.doubleValue {
+				if let _ = $0.doubleValue {
 					count++
 				}
 			})
@@ -538,7 +550,7 @@ enum QBEFunction: String {
 			return sum
 		
 		case .Average:
-			var sum = QBEFunction.Sum.apply(arguments)
+			let sum = QBEFunction.Sum.apply(arguments)
 			return sum / QBEValue(arguments.count)
 			
 		case .Min:
@@ -610,7 +622,7 @@ enum QBEFunction: String {
 						return QBEValue.InvalidValue
 					}
 					
-					return QBEValue(Int.random(lower: bottom, upper: top+1))
+					return QBEValue(Int.random(bottom, upper: top+1))
 				}
 			}
 			return QBEValue.InvalidValue

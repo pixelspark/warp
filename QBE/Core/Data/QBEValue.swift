@@ -21,12 +21,25 @@ internal extension String {
 		}
 	}
 	
+	func toInt(base: Int = 10) -> Int? {
+		if self.isEmpty || self.hasPrefix(" ") {
+			return nil
+		}
+		
+		return self.withCString() { p -> Int? in
+			var end: UnsafeMutablePointer<Int8> = nil
+			let b = Int32(base)
+			let result = strtol(p, &end, b)
+			return end.memory != 0 ? nil : result
+		}
+	}
+	
 	static func randomStringWithLength (len : Int) -> String {
 		let letters : NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-		var randomString : NSMutableString = NSMutableString(capacity: len)
+		let randomString : NSMutableString = NSMutableString(capacity: len)
 		let length = UInt32 (letters.length)
 		
-		for i in 0..<len {
+		for _ in 0..<len {
 			let r = arc4random_uniform(length)
 			randomString.appendFormat("%C", letters.characterAtIndex(Int(r)))
 		}
@@ -37,12 +50,12 @@ internal extension String {
 	Calculates the Levenshtein (edit) distance between this string and another string. */
 	func levenshteinDistance(toString: String) -> Int {
 		// create character arrays
-		let a = Array(self)
-		let b = Array(toString)
+		let a = Array(self.characters)
+		let b = Array(toString.characters)
 		
 		// initialize matrix of size |a|+1 * |b|+1 to zero
 		var dist = [[Int]]()
-		for row in 0...a.count {
+		for _ in 0...a.count {
 			dist.append([Int](count: b.count + 1, repeatedValue: 0))
 		}
 		
@@ -76,7 +89,7 @@ internal extension String {
 	func histogram() -> [Character: Int] {
 		var histogram = Dictionary<Character, Int>()
 		
-		for ch in self {
+		for ch in self.characters {
 			let old: Int = histogram[ch] ?? 0
 			histogram[ch] = old+1
 		}
@@ -85,17 +98,21 @@ internal extension String {
 	}
 	
 	func replace(pattern: String, withTemplate replacement: String, caseSensitive: Bool = true) -> String? {
-		if let re = NSRegularExpression(pattern: pattern, options: (caseSensitive ? NSRegularExpressionOptions.allZeros: NSRegularExpressionOptions.CaseInsensitive), error: nil) {
-			let range = NSMakeRange(0, count(self))
-			return re.stringByReplacingMatchesInString(self, options: NSMatchingOptions.allZeros, range: range, withTemplate: replacement)
+		do {
+			let re = try NSRegularExpression(pattern: pattern, options: (caseSensitive ? NSRegularExpressionOptions(): NSRegularExpressionOptions.CaseInsensitive))
+			let range = NSMakeRange(0, self.characters.count)
+			return re.stringByReplacingMatchesInString(self, options: NSMatchingOptions(), range: range, withTemplate: replacement)
+		} catch _ {
 		}
 		return nil
 	}
 	
 	func matches(pattern: String, caseSensitive: Bool = true) -> Bool? {
-		if let re = NSRegularExpression(pattern: pattern, options: (caseSensitive ? NSRegularExpressionOptions.allZeros : NSRegularExpressionOptions.CaseInsensitive), error: nil) {
-			let range = NSMakeRange(0, count(self))
-			return re.rangeOfFirstMatchInString(self, options: NSMatchingOptions.allZeros, range: range).location != NSNotFound
+		do {
+			let re = try NSRegularExpression(pattern: pattern, options: (caseSensitive ? NSRegularExpressionOptions() : NSRegularExpressionOptions.CaseInsensitive))
+			let range = NSMakeRange(0, self.characters.count)
+			return re.rangeOfFirstMatchInString(self, options: NSMatchingOptions(), range: range).location != NSNotFound
+		} catch _ {
 		}
 		return nil
 	}
@@ -109,21 +126,39 @@ internal extension ArraySlice {
 	}
 }
 
-internal extension Array {
-	func implode<C: ExtensibleCollectionType>(separator: C) -> C? {
-		if Element.self is C.Type {
-			return Swift.join(separator, unsafeBitCast(self, [C].self))
-		}
-		
-		return nil
+internal extension SequenceType {
+	func implode(separator: String) -> String {
+		return separator.join(self.map { return String($0) })
 	}
-	
-	func each(call: (Element) -> ()) {
+}
+
+internal extension CollectionType {
+	func each(@noescape call: (Generator.Element) -> ()) {
 		for item in self {
 			call(item)
 		}
 	}
 	
+	func mapMany(@noescape block: (Generator.Element) -> [Generator.Element]) -> [Generator.Element] {
+		var result: [Generator.Element] = []
+		self.each { (item) in
+			result.extend(block(item))
+		}
+		return result
+	}
+	
+	static func filterNils(array: [Generator.Element?]) -> [Generator.Element] {
+		return array.filter { $0 != nil }.map { $0! }
+	}
+	
+	var optionals: [Generator.Element?] {
+		get {
+			return self.map { return Optional($0) }
+		}
+	}
+}
+
+internal extension Array {
 	mutating func remove <U: Equatable> (element: U) {
 		let anotherSelf = self
 		removeAll(keepCapacity: true)
@@ -134,6 +169,15 @@ internal extension Array {
 				self.append(current)
 			}
 		}
+	}
+	
+	func contains<T: Equatable>(value: T) -> Bool {
+		for i in self {
+			if (i as? T) == value {
+				return true
+			}
+		}
+		return false
 	}
 	
 	mutating func removeObjectsAtIndexes(indexes: NSIndexSet, offset: Int) {
@@ -150,25 +194,6 @@ internal extension Array {
 		}
 		
 		return items
-	}
-	
-	func contains<T: Equatable>(value: T) -> Bool {
-		for i in self {
-			if (i as? T) == value {
-				return true
-			}
-		}
-		return false
-	}
-	
-	static func filterNils(array: [T?]) -> [T] {
-		return array.filter { $0 != nil }.map { $0! }
-	}
-	
-	var optionals: [T?] {
-		get {
-			return self.map { return Optional($0) }
-		}
 	}
 }
 
@@ -271,27 +296,19 @@ internal extension Int32 {
 
 internal extension UInt {
 	static func random(lower: UInt = min, upper: UInt = max) -> UInt {
-		switch (__WORDSIZE) {
-			case 32: return UInt(UInt32.random(lower: UInt32(lower), upper: UInt32(upper)))
-			case 64: return UInt(UInt64.random(lower: UInt64(lower), upper: UInt64(upper)))
-			default: return lower
-		}
+		return UInt(UInt64.random(UInt64(lower), upper: UInt64(upper)))
 	}
 }
 
 internal extension Int {
 	static func random(lower: Int = min, upper: Int = max) -> Int {
-		switch (__WORDSIZE) {
-			case 32: return Int(Int32.random(lower: Int32(lower), upper: Int32(upper)))
-			case 64: return Int(Int64.random(lower: Int64(lower), upper: Int64(upper)))
-			default: return lower
-		}
+		return Int(Int64.random(Int64(lower), upper: Int64(upper)))
 	}
 }
 
 internal extension Double {
 	static func random() -> Double {
-		return Double(Int64.random(lower: 0, upper: Int64.max)) / Double(Int64.max)
+		return Double(Int64.random(0, upper: Int64.max)) / Double(Int64.max)
 	}
 }
 
@@ -347,7 +364,7 @@ struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 		var adjustedIndex = index
 		let existingValue = self.values[key]
 		if existingValue != nil {
-			let existingIndex = find(self.keys, key)!
+			let existingIndex = self.keys.indexOf(key)!
 
 			if existingIndex < index {
 				adjustedIndex--
@@ -365,7 +382,7 @@ struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 	}
 	
 	/** Keeps only the keys present in the 'keys' parameter and puts them in the specified order. The 'keys' parameter is
-	not allowed to contain keys that do not exist in the ordered dictionary, or contain the same key twice. **/
+	not allowed to contain keys that do not exist in the ordered dictionary, or contain the same key twice. */
 	mutating func filterAndOrder(keyOrder: [KeyType]) {
 		var newKeySet = Set<KeyType>()
 		for k in keyOrder {
@@ -392,13 +409,13 @@ struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 	}
 	
 	mutating func orderKey(key: KeyType, toIndex: Int) {
-		precondition(find(self.keys, key) != nil, "key to be ordered must exist")
+		precondition(self.keys.indexOf(key) != nil, "key to be ordered must exist")
 		self.keys.remove(key)
 		self.keys.splice([key], atIndex: toIndex)
 	}
 	
 	mutating func orderKey(key: KeyType, beforeKey: KeyType) {
-		if let newIndex = find(self.keys, beforeKey) {
+		if let newIndex = self.keys.indexOf(beforeKey) {
 			orderKey(key, toIndex: newIndex)
 		}
 		else {
@@ -452,8 +469,7 @@ struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 }
 
 extension NSDate {
-	/**
-	Returns an ISO-8601 formatted string of this date. Source code snipped from 
+	/**	Returns an ISO-8601 formatted string of this date. Source code snipped from
 	http://stackoverflow.com/questions/16254575/how-do-i-get-iso-8601-date-in-ios*/
 	var iso8601FormattedDate: String { get {
 		let dateFormatter = NSDateFormatter()
@@ -467,19 +483,34 @@ extension NSDate {
 /** QBEValue is used to represent all values in data sets. Although QBEValue can represent values of different types,
 values of different types can usually easily be converted to another type. QBEValue closely models the way values are
 handled in Excel and SQL (striving for a greatest common denominator where possible). QBEValue supports four data types
-(string, integer, boolean and double) and two special types: 'empty' indicates a value that is intentionally empty (but
-should not trigger an error and is for instance equal to an empty string and 0 in some calculations) and 'invalid' (which
-represents the result of an invalid operation and should trigger subsequent operations on the value to also return 
-'invalid'). 
+(string, integer, boolean and double) and two special types: 
 
-Note that while QBEValue is an enum, it cannot be encoded using NSCoding. Wrap QBETuple inside QBEValueCoder before 
-encoding or decoding using NSCoding. **/
-internal enum QBEValue: Hashable, DebugPrintable {
+- 'empty' indicates a value that is intentionally empty. It should however not trigger an error (e.g. it is possible to
+  compare values with empty, and empty == empty). Functions may however return invalid values if one of their parameters
+  is an empty value. The empty value is best compared with NULL in SQL (although usually in SQL any operator applied to
+  NULL yields another NULL as result).
+
+- 'invalid' reprsesents the result of an invalid operation and should trigger subsequent operations on the value to also
+  return 'invalid'. This type is best compared with NaN (not a number); or the result of (1/0) in SQL. It is impossible
+  to create a value of type Double with a NaN (e.g. QBEValue(1.0/0.0) will return QBEValue.InvalidValue).
+
+Note that Excel does not have an 'empty' type (instead it treats empty cells as if they contain an empty string) and 
+represents invalid types differently.
+
+In general, values can be freely converted between types. A function that needs an integer as a parameter should also 
+accept strings that are integers (e.g. it should call .intValue on the value and not care whether the actual value was a
+string). Functions should always deal separately with empty and invalid values. Numeric operators also implicitly convert
+between values. Operators should not be designed to have behaviour dependent on the type (e.g. string concatenation should
+not be overloaded on the '+' operator, but should be implemented as a different operation).
+
+Note that as QBEValue is an enum, it cannot be encoded using NSCoding. Wrap QBETuple inside QBEValueCoder before
+encoding or decoding using NSCoding. */
+internal enum QBEValue: Hashable, CustomDebugStringConvertible {
 	case StringValue(String)
 	case IntValue(Int)
 	case BoolValue(Bool)
 	case DoubleValue(Double)
-	case EmptyValue		// Any empty value that has no specific type. Equivalent to "" (empty string)
+	case EmptyValue		// Any empty value that has no specific type. Use to indicate deliberately missing values (much like NULL in SQL).
 	case InvalidValue	// The result of any invalid operation (e.g. division by zero). Treat as NaN
 	
 	init(_ value: String) {
@@ -507,6 +538,9 @@ internal enum QBEValue: Hashable, DebugPrintable {
 		return self.stringValue?.hashValue ?? 0
 	}}
 	
+	/** The string representation of the value. String, integer, boolean and double values can be represented as a string.
+	For numeric types, the Swift locale is used. Boolean values are represented as "1" and "0". The empty and invalid 
+	value type do not have a string representation, as they require separate handling. */
 	var stringValue: String? { get {
 		switch self {
 		case .StringValue(let s): return s
@@ -518,6 +552,9 @@ internal enum QBEValue: Hashable, DebugPrintable {
 		}
 	} }
 	
+	/** The double representation of the value. Empty and invalid values require special handling and therefore have no
+	double representation. Booleans are represented as 1.0 or 0.0. Strings only have a double representation if they are
+	 properly formatted double or integer literals. */
 	var doubleValue: Double? { get {
 		switch self {
 			case .StringValue(let s): return s.toDouble()
@@ -529,9 +566,12 @@ internal enum QBEValue: Hashable, DebugPrintable {
 		}
 	} }
 	
+	/** The integer representation of the value. Empty and invalid values require special handling and therefore have no
+	integer representation. Booleans are represented as 1 or 0. Strings only have a double representation if they are
+	properly formatted integer literals. */
 	var intValue: Int? { get {
 		switch self {
-			case .StringValue(let s): return s.toInt()
+			case .StringValue(let s): return Int(s)
 			case .IntValue(let i): return i
 			case .BoolValue(let b): return b.toInt()
 			case .DoubleValue(let d): return Int(d)
@@ -540,12 +580,16 @@ internal enum QBEValue: Hashable, DebugPrintable {
 		}
 	} }
 	
+	/** The boolean representation of the value. Empty and invalid values require special handling and therefore have no
+	boolean representation. A string is represented as 'true' if (after parsing it as an integer) it equals 1, and false
+	in all other cases. An integer 1 is equal to true, and false in all other cases. A double value cannot be represented
+	as a boolean. */
 	var boolValue: Bool? { get {
 		switch self {
-		case .StringValue(let s): return s.toInt() == 1
+		case .StringValue(let s): return Int(s) == 1
 		case .IntValue(let i): return i == 1
 		case .BoolValue(let b): return b
-		case .DoubleValue(let d): return nil
+		case .DoubleValue(_): return nil
 		case .EmptyValue: return nil
 		case .InvalidValue: return nil
 		}
@@ -562,10 +606,11 @@ internal enum QBEValue: Hashable, DebugPrintable {
 		}
 	} }
 	
-	func absolute() -> QBEValue {
+	var absolute: QBEValue { get {
 		return (self < QBEValue(0)) ? -self : self
-	}
+	} }
 	
+	/** Returns true if this value is an invalid value. None of the other value types are considered to be 'invalid'. */
 	var isValid: Bool { get {
 		switch self {
 			case .InvalidValue: return false
@@ -573,6 +618,8 @@ internal enum QBEValue: Hashable, DebugPrintable {
 		}
 	} }
 	
+	/** Returns true if this value is an empty value, and false otherwise. Note that an empty string is not considered
+	'empty', nor is any integer, boolean or double value. The invalid value is not empty either. */
 	var isEmpty: Bool { get {
 		switch self {
 			case .EmptyValue:
@@ -592,8 +639,8 @@ value cell (e.g. during aggregation) to later be unpacked again.
 
 Using ',' as separator, '$0' as separator escape and '$1' as escape-escape, packing the array ["a","b,", "c$"] leads to
 the following pack string: "a,b$0,c$1". Unpacking the pack string "$0$0$0,$1$0,," leads to the array [",,,", "$,","",""].
-**/
-class QBEPack {
+*/
+struct QBEPack {
 	static let Separator = ","
 	static let Escape = "$"
 	static let SeparatorEscape = "$0"
@@ -641,7 +688,7 @@ class QBEPack {
 	} }
 }
 
-/** QBEValueCoder implements encoding for QBEValue (which cannot implement it as it is an enum). **/
+/** QBEValueCoder implements encoding for QBEValue (which cannot implement it as it is an enum). */
 class QBEValueCoder: NSObject, NSSecureCoding {
 	let value: QBEValue
 	
@@ -653,7 +700,7 @@ class QBEValueCoder: NSObject, NSSecureCoding {
 		self.value = value
 	}
 	
-	required init(coder aDecoder: NSCoder) {
+	required init?(coder aDecoder: NSCoder) {
 		let t = aDecoder.decodeIntForKey("type")
 		switch t {
 			case 1: value = .StringValue((aDecoder.decodeObjectForKey("value") as? String) ?? "")
@@ -905,7 +952,7 @@ infix operator ±±= {
 
 func ~~= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
 	if let l = lhs.stringValue, r = rhs.stringValue {
-		return QBEValue.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions.allZeros, range: nil, locale: nil) != nil)
+		return QBEValue.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions(), range: nil, locale: nil) != nil)
 	}
 	return QBEValue.InvalidValue
 }

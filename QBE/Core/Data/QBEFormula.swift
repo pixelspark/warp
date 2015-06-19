@@ -54,7 +54,7 @@ private func matchLiteralInsensitive(string:String) -> ParserRule {
 	return {(parser: Parser, reader: Reader) -> Bool in
 		let pos = reader.position
 		
-		for ch in string {
+		for ch in string.characters {
 			let flag = (String(ch).caseInsensitiveCompare(String(reader.read())) == NSComparisonResult.OrderedSame)
 
 			if !flag {
@@ -67,7 +67,7 @@ private func matchLiteralInsensitive(string:String) -> ParserRule {
 }
 
 /** The ~~ operator is a variant of the ~ operator that allows whitespace in between (a ~ b means: a followed by b, whereas
-a ~~ b means: a followed by b with whitespace allowed in between). **/
+a ~~ b means: a followed by b with whitespace allowed in between). */
 private let matchWhitespace: ParserRule = (" " | "\t" | "\r\n" | "\r" | "\n")*
 
 infix operator  ~~ {associativity left precedence 10}
@@ -100,7 +100,7 @@ private struct QBECall {
 
 /** QBEFormula parses formulas written down in an Excel-like syntax (e.g. =SUM(SQRT(1+2/3);IF(1>2;3;4))) as a QBEExpression
 that can be used to calculate values. Like in Excel, the language used for the formulas (e.g. for function names) depends
-on the user's preference and is therefore variable (QBELocale implements this). **/
+on the user's preference and is therefore variable (QBELocale implements this). */
 class QBEFormula: Parser {
 	struct Fragment {
 		let start: Int
@@ -139,7 +139,7 @@ class QBEFormula: Parser {
 	}
 	
 	private func pushInt() {
-		annotate(stack.push(QBELiteralExpression(QBEValue(self.text.toInt()!))))
+		annotate(stack.push(QBELiteralExpression(QBEValue(Int(self.text)!))))
 	}
 	
 	private func pushDouble() {
@@ -278,8 +278,7 @@ class QBEFormula: Parser {
 		would also match  (parser is dumb) */
 		var functionRules: [ParserRule] = []
 		let functionNames = QBEFunction.allFunctions
-			.map({return self.locale.nameForFunction($0) ?? ""})
-			.sorted({(a,b) in return count(a) > count(b)})
+			.map({return self.locale.nameForFunction($0) ?? ""}).sort({(a,b) in return a.characters.count > b.characters.count})
 		
 		functionNames.each({(functionName) in
 			if !functionName.isEmpty {
@@ -288,7 +287,7 @@ class QBEFormula: Parser {
 		})
 		
 		// String literals & constants
-		add_named_rule("arguments",			rule: (("(" ~~ matchList(^"logic" => pushArgument, literal(locale.argumentSeparator)) ~~ ")")))
+		add_named_rule("arguments",			rule: (("(" ~~ matchList(^"logic" => pushArgument, separator: literal(locale.argumentSeparator)) ~~ ")")))
 		add_named_rule("unaryFunction",		rule: ((matchAnyFrom(functionRules) => pushCall) ~~ ^"arguments") => popCall)
 		add_named_rule("constant",			rule: matchAnyFrom(locale.constants.values.array.map({matchLiteralInsensitive($0)})) => pushConstant)
 		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~  ((matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
@@ -326,7 +325,7 @@ class QBEFormula: Parser {
 		add_named_rule("equal", rule: ("=" ~~ ^"concatenation") => pushEqual)
 		add_named_rule("notEqual", rule: ("<>" ~~ ^"concatenation") => pushNotEqual)
 		add_named_rule("logic", rule: ^"concatenation" ~~ (^"greater" | ^"greaterEqual" | ^"lesser" | ^"lesserEqual" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict" | ^"matchesRegex" | ^"matchesRegexStrict" )*)
-		let formula = matchWhitespace ~ "=" ~~ (^"logic")*!*
+		let formula = matchWhitespace ~~ (^"logic")*!*
 		start_rule = formula
 	}
 }

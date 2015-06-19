@@ -8,24 +8,24 @@ private struct QBEStepPerformance {
 }
 
 /** The QBECalculator class coordinates execution of steps. In particular, it models the performance of steps and can
-estimate the number of input rows required to arrive at a certain number of output rows (e.g. in example calculations). **/
+estimate the number of input rows required to arrive at a certain number of output rows (e.g. in example calculations). */
 class QBECalculator {
 	internal var currentData: QBEFuture<QBEFallible<QBEData>>?
 	internal var currentRaster: QBEFuture<QBEFallible<QBERaster>>?
 	
-	/** Statistical level of certainty that is used when calculating upper limits **/
+	/** Statistical level of certainty that is used when calculating upper limits */
 	internal var certainty = 0.95
 	
-	/** The desired number of example rows; the number of rows should with `certainty` be below this limit **/
+	/** The desired number of example rows; the number of rows should with `certainty` be below this limit */
 	internal var desiredExampleRows = 500
 	
-	/** The absolute maximum number of input rows for an example calculation **/
+	/** The absolute maximum number of input rows for an example calculation */
 	internal var maximumExampleInputRows = 25000
 	
-	/** The absolute minimum number of input rows for an example calculation **/
+	/** The absolute minimum number of input rows for an example calculation */
 	internal var minimumExampleInputRows = 256
 	
-	/** The time that example calculation must not exceed with `certainty` **/
+	/** The time that example calculation must not exceed with `certainty` */
 	internal var maximumExampleTime = 1.5
 	
 	private var calculationInProgressForStep: QBEStep? = nil
@@ -38,13 +38,13 @@ class QBECalculator {
 	/** Returns the number of input rows that should be set as a limit in an example calculation in order to meet the
 	constraints set for examples (e.g. desired number of rows, maximum execution time). The estimates are based on 
 	information on previous executions (time per input row, amplification factor). If there is no information, a default
-	is used with an exponentially increasing number of input rows. **/
+	is used with an exponentially increasing number of input rows. */
 	private func inputRowsForExample(step: QBEStep, maximumTime: Double) -> Int {
 		if maximumTime <= 0 {
 			return 0
 		}
 		
-		let index = unsafeAddressOf(step).distanceTo(nil)
+		let index = unsafeAddressOf(step).hashValue
 		var inputRows = desiredExampleRows
 		
 		if let performance = stepPerformance[index] {
@@ -54,7 +54,7 @@ class QBECalculator {
 			}
 			else {
 				// Calculate the lower and upper estimate for the amplification factor (result rows / input rows).
-				let (lowerAmp, upperAmp) = performance.inputAmplificationFactor.sample.confidenceInterval(certainty)
+				let (_, upperAmp) = performance.inputAmplificationFactor.sample.confidenceInterval(certainty)
 				if upperAmp > 0 {
 					// If the source step amplifies input by two, request calculation with half the number of input rows
 					inputRows = Int(Double(desiredExampleRows) / upperAmp)
@@ -62,7 +62,7 @@ class QBECalculator {
 			}
 			
 			// Check to see if the newly calculated number of needed input rows would create a time-consuming calculation
-			let (lowerTime, upperTime) = performance.timePerInputRow.sample.confidenceInterval(certainty)
+			let (_, upperTime) = performance.timePerInputRow.sample.confidenceInterval(certainty)
 			if upperTime > 0 {
 				let upperEstimatedTime = Double(inputRows) * upperTime
 				if upperEstimatedTime > maximumTime {
@@ -79,31 +79,27 @@ class QBECalculator {
 		return inputRows
 	}
 	
-	/** 
-	Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have been
-	returned. The given callback is called as soon as the last calculation round has finished. */
-	func calculateExample(sourceStep: QBEStep, var maximumTime: Double? = nil, callback: () -> ()) {
-		if maximumTime == nil {
-			maximumTime = maximumExampleTime
-		}
+	/** Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have 
+	been returned. The given callback is called as soon as the last calculation round has finished. */
+	func calculateExample(sourceStep: QBEStep, maximumTime: Double? = nil, callback: () -> ()) {
+		let maxTime = maximumTime ?? maximumExampleTime
 		
 		let startTime = NSDate.timeIntervalSinceReferenceDate()
-		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime!)
-		let maxOutputRows = desiredExampleRows
-		self.calculate(sourceStep, fullData: false, maximumTime: maximumTime!)
+		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maxTime)
+		self.calculate(sourceStep, fullData: false, maximumTime: maxTime)
 		
 		// Record extra information when calculating an example result
 		currentRaster!.get {[unowned self] (raster) in
 			switch raster {
 			case .Success(let r):
-				let duration = NSDate.timeIntervalSinceReferenceDate() - startTime
+				let duration = Double(NSDate.timeIntervalSinceReferenceDate()) - startTime
 
 				// Record performance information for example execution
-				let index = unsafeAddressOf(sourceStep).distanceTo(nil)
+				let index = unsafeAddressOf(sourceStep).hashValue
 				var perf = self.stepPerformance[index] ?? QBEStepPerformance()
 				perf.timePerInputRow.add(duration / Double(maxInputRows))
-				if r.value.rowCount > 0 {
-					perf.inputAmplificationFactor.add(Double(r.value.rowCount) / Double(maxInputRows))
+				if r.rowCount > 0 {
+					perf.inputAmplificationFactor.add(Double(r.rowCount) / Double(maxInputRows))
 				}
 				else {
 					perf.emptyCount++
@@ -113,15 +109,15 @@ class QBECalculator {
 				
 				/* If we got zero rows, but there is stil time left, just try again. In many cases the back-end
 				is much faster than we think and we have plenty of time left to fill in our time budget. */
-				if r.value.rowCount < self.desiredExampleRows && (maximumTime! - duration) > duration && maxInputRows < self.maximumExampleInputRows {
-					QBELog("Example took \(duration), we still have \(maximumTime! - duration) left, starting another (longer) calculation")
-					self.calculateExample(sourceStep, maximumTime: maximumTime! - duration, callback: callback)
+				if r.rowCount < self.desiredExampleRows && (maxTime - duration) > duration && maxInputRows < self.maximumExampleInputRows {
+					QBELog("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
+					self.calculateExample(sourceStep, maximumTime: maxTime - duration, callback: callback)
 				}
 				else {
 					callback()
 				}
 				
-			case .Failure(let e):
+			case .Failure(_):
 				break;
 			}
 		}
@@ -142,7 +138,7 @@ class QBECalculator {
 				maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime ?? maximumExampleTime)
 				let maxOutputRows = desiredExampleRows
 				QBELog("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
-				currentData = QBEFuture<QBEFallible<QBEData>>({ [unowned self] (job, callback) in
+				currentData = QBEFuture<QBEFallible<QBEData>>({ (job, callback) in
 					sourceStep.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
 				})
 			}
@@ -153,7 +149,7 @@ class QBECalculator {
 					let dataJob = cd.get({ (data: QBEFallible<QBEData>) -> () in
 						switch data {
 							case .Success(let d):
-								d.value.raster(job, callback: callback)
+								d.raster(job, callback: callback)
 							
 							case .Failure(let s):
 								callback(.Failure(s))

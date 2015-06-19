@@ -59,7 +59,7 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 		}
 	}
 	
-	private func setSimpleCondition(#sibling: QBEColumn?, foreign: QBEColumn?) {
+	private func setSimpleCondition(sibling sibling: QBEColumn?, foreign: QBEColumn?) {
 		let currentType = (self.step?.condition as? QBEBinaryExpression)?.type ?? QBEBinary.Equal
 		let first: QBEExpression = (foreign != nil) ? QBEForeignExpression(columnName: foreign!) : QBELiteralExpression(QBEValue.InvalidValue)
 		let second: QBEExpression = (sibling != nil) ? QBESiblingExpression(columnName: sibling!) : QBELiteralExpression(QBEValue.InvalidValue)
@@ -76,11 +76,11 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 	var isSimple: Bool { get {
 		if let s = step {
 			if let c = s.condition as? QBEBinaryExpression {
-				if let left = c.first as? QBEForeignExpression, let right = c.second as? QBESiblingExpression {
+				if c.first is QBEForeignExpression && c.second is QBESiblingExpression {
 					return true
 				}
 				
-				if let left = c.second as? QBEForeignExpression, let right = c.first as? QBESiblingExpression {
+				if c.second is QBEForeignExpression && c.first is QBESiblingExpression {
 					return true
 				}
 				
@@ -126,7 +126,7 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 	internal override func viewWillAppear() {
 		super.viewWillAppear()
 		if let s = step {
-			self.formulaField?.stringValue = "=" + (s.condition?.toFormula(self.delegate?.locale ?? QBELocale()) ?? "")
+			self.formulaField?.stringValue = (s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? "")
 			self.tabView.selectTabViewItemAtIndex(isSimple ? 0 : 1)
 		}
 		updateView()
@@ -147,7 +147,7 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 			}
 			
 			if let f = s.condition {
-				self.formulaField?.stringValue = "="+f.toFormula(self.delegate?.locale ?? QBELocale())
+				self.formulaField?.stringValue = f.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
 			}
 			
 			// Fetch own sibling columns
@@ -156,11 +156,11 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 				s.previous?.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
 					switch data {
 					case .Success(let d):
-						d.value.columnNames(job) {(cns) in
+						d.columnNames(job) { (cns) in
 							QBEAsyncMain {
 								switch cns {
 								case .Success(let e):
-									self.existingOwnColumns = e.value
+									self.existingOwnColumns = e
 									
 								case .Failure(_):
 									self.existingOwnColumns = []
@@ -170,7 +170,7 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 							}
 						}
 						
-					case .Failure(let errorMessage):
+					case .Failure(_):
 						break
 					}
 				}
@@ -179,11 +179,11 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 				s.right?.head?.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
 					switch data {
 					case .Success(let d):
-						d.value.columnNames(job) {(cns) in
+						d.columnNames(job) { (cns) in
 							QBEAsyncMain {
 								switch cns {
 								case .Success(let e):
-									self.existingForeignColumns = e.value
+									self.existingForeignColumns = e
 									
 								case .Failure(_):
 									self.existingForeignColumns = []
@@ -193,7 +193,7 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 							}
 						}
 						
-					case .Failure(let errorMessage):
+					case .Failure(_):
 						break
 					}
 				}
@@ -213,7 +213,7 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 	@IBAction func updateFromComplexView(sender: NSObject) {
 		if let s = step {
 			// Set formula
-			let oldFormula = "=" + (s.condition?.toFormula(self.delegate?.locale ?? QBELocale()) ?? "");
+			let oldFormula = s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? ""
 			if let f = self.formulaField?.stringValue {
 				if f != oldFormula {
 					if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale()))?.root {

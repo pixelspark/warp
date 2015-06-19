@@ -1,7 +1,5 @@
 import Foundation
 
-private let SQLITE_TRANSIENT = sqlite3_destructor_type(COpaquePointer(bitPattern:-1))
-
 internal class QBESQLiteResult {
 	let resultSet: COpaquePointer
 	let db: QBESQLiteDatabase
@@ -13,7 +11,7 @@ internal class QBESQLiteResult {
 			return .Failure(db.lastError)
 		}
 		else {
-			return QBEFallible(QBESQLiteResult(resultSet: resultSet, db: db))
+			return .Success(QBESQLiteResult(resultSet: resultSet, db: db))
 		}
 	}
 	
@@ -27,7 +25,7 @@ internal class QBESQLiteResult {
 	}
 	
 	/** Run is used to execute statements that do not return data (e.g. UPDATE, INSERT, DELETE, etc.). It can optionally
-	be fed with parameters which will be bound before query execution. **/
+	be fed with parameters which will be bound before query execution. */
 	func run(parameters: [QBEValue]? = nil) -> Bool {
 		// If there are parameters, bind them
 		var ret = true
@@ -40,7 +38,7 @@ internal class QBESQLiteResult {
 					switch value {
 						case .StringValue(let s):
 							// This, apparently, is super-slow, because Swift needs to convert its string to UTF-8.
-							result = sqlite3_bind_text(self.resultSet, CInt(i+1), s, -1, SQLITE_TRANSIENT)
+							result = sqlite3_bind_text(self.resultSet, CInt(i+1), s, -1, sqlite3_transient_destructor)
 						
 						case .IntValue(let x):
 							result = sqlite3_bind_int64(self.resultSet, CInt(i+1), sqlite3_int64(x))
@@ -95,8 +93,8 @@ internal class QBESQLiteResult {
 		return (0..<count).map({QBEColumn(String.fromCString(sqlite3_column_name(self.resultSet, $0))!)})
 	} }
 
-	func sequence() -> SequenceOf<QBETuple> {
-		return SequenceOf<QBETuple>(QBESQLiteResultSequence(result: self))
+	func sequence() -> AnySequence<QBETuple> {
+		return AnySequence<QBETuple>(QBESQLiteResultSequence(result: self))
 	}
 }
 
@@ -158,7 +156,6 @@ internal class QBESQLiteResultGenerator: GeneratorType {
 			case SQLITE_INTEGER:
 				// Booleans are represented as integers, but boolean columns are declared as BOOL columns
 				let intValue = Int(sqlite3_column_int64(self.result.resultSet, Int32(idx)))
-				var bool = false
 				if let type = String.fromCString(sqlite3_column_decltype(self.result.resultSet, Int32(idx))) {
 					if type.hasPrefix("BOOL") {
 						return QBEValue(intValue != 0)
@@ -268,7 +265,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 				sqlite3_result_null(context)
 				
 			case .StringValue(let s):
-				sqlite3_result_text(context, s, -1, SQLITE_TRANSIENT)
+				sqlite3_result_text(context, s, -1, sqlite3_transient_destructor)
 				
 			case .IntValue(let s):
 				sqlite3_result_int64(context, Int64(s))
@@ -320,7 +317,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 	init?(path: String, readOnly: Bool = false) {
 		let flags = readOnly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
 		self.db = nil
-		self.url = NSURL(fileURLWithPath: path)?.absoluteString
+		self.url = NSURL(fileURLWithPath: path).absoluteString
 		super.init(dialect: QBESQLiteDialect())
 		
 		if !perform({sqlite3_open_v2(path, &self.db, flags, nil) }) {
@@ -366,14 +363,14 @@ func ==(lhs: QBESQLiteDatabase, rhs: QBESQLiteDatabase) -> Bool {
 internal class QBESQLiteDialect: QBEStandardSQLDialect {
 	// SQLite does not support column names with '"' in them.
 	override func columnIdentifier(column: QBEColumn, table: String?) -> String {
-		return super.columnIdentifier(QBEColumn(column.name.stringByReplacingOccurrencesOfString("\"", withString: "", options: NSStringCompareOptions.allZeros, range: nil)), table: table)
+		return super.columnIdentifier(QBEColumn(column.name.stringByReplacingOccurrencesOfString("\"", withString: "", options: NSStringCompareOptions(), range: nil)), table: table)
 	}
 	
 	override func binaryToSQL(type: QBEBinary, first: String, second: String) -> String? {
 		let result: String?
 		switch type {
 			/** For 'contains string', the default implementation uses "a LIKE '%b%'" syntax. Using INSTR is probably a
-			bit faster on SQLite. **/
+			bit faster on SQLite. */
 			case .ContainsString: result = "INSTR(LOWER(\(second)), LOWER(\(first)))>0"
 			case .ContainsStringStrict: result = "INSTR(\(second), \(first))>0"
 			case .MatchesRegex: result = nil // Force usage of UDF here, SQLite does not implement (a REGEXP p)
@@ -432,7 +429,7 @@ class QBESQLiteData: QBESQLData {
 		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName))"
 		switch db.query(query) {
 			case .Success(let result):
-				return QBEFallible(QBESQLiteData(db: db, fragment: QBESQLFragment(table: tableName, dialect: db.dialect), columns: result.value.columnNames))
+				return .Success(QBESQLiteData(db: db, fragment: QBESQLFragment(table: tableName, dialect: db.dialect), columns: result.columnNames))
 				
 			case .Failure(let error):
 				return .Failure(error)
@@ -478,7 +475,7 @@ class QBESQLiteStream: QBEStream {
 		if resultStream == nil {
 			switch data.result() {
 				case .Success(let result):
-					resultStream = QBESequenceStream(SequenceOf<QBETuple>(result.value.sequence()), columnNames: result.value.columnNames)
+					resultStream = QBESequenceStream(AnySequence<QBETuple>(result.sequence()), columnNames: result.columnNames)
 					
 				case .Failure(let error):
 					resultStream = QBEErrorStream(error)
@@ -520,11 +517,12 @@ class QBESQLiteCachedData: QBEProxyData {
 			static var onceToken : dispatch_once_t = 0
 			static var instance : QBESQLiteDatabase? = nil
 		}
+		
 		dispatch_once(&Static.onceToken) {
 			Static.instance = QBESQLiteDatabase(path: "", readOnly: false)
-			Static.instance!.query("PRAGMA synchronous = OFF").use {(r) -> () in
+			Static.instance!.query("PRAGMA synchronous = OFF").require {(r) -> () in
 				r.run()
-				Static.instance!.query("PRAGMA journal_mode = MEMORY").use {(s) -> () in
+				Static.instance!.query("PRAGMA journal_mode = MEMORY").require {(s) -> () in
 					s.run()
 				}
 			}
@@ -546,22 +544,22 @@ class QBESQLiteCachedData: QBEProxyData {
 			source.columnNames(self.cacheJob) { (columns) -> () in
 				switch columns {
 					case .Success(let cns):
-						let columnSpec = cns.value.map({(column) -> String in
+						let columnSpec = cns.map({(column) -> String in
 							let colString = dialect.columnIdentifier(column, table: nil)
 							return "\(colString) VARCHAR"
-						}).implode(", ")!
+						}).implode(", ")
 						
 						let sql = "CREATE TABLE \(dialect.tableIdentifier(self.tableName)) (\(columnSpec))"
 						switch self.database.query(sql) {
 							case .Success(let createQuery):
-								createQuery.value.run()
+								createQuery.run()
 								self.stream = source.stream()
 							
 								// Prepare the insert-statement
-								let values = cns.value.map({(m) -> String in return "?"}).implode(",") ?? ""
+								let values = cns.map({(m) -> String in return "?"}).implode(",") ?? ""
 								switch self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName)) VALUES (\(values))") {
 									case .Success(let insertStatement):
-										self.insertStatement = insertStatement.value
+										self.insertStatement = insertStatement
 										self.stream?.fetch(self.cacheJob, consumer: self.ingest)
 										
 									case .Failure(let error):
@@ -593,10 +591,10 @@ class QBESQLiteCachedData: QBEProxyData {
 					self.stream?.fetch(cacheJob, consumer: self.ingest)
 				}
 				
-				cacheJob.time("SQLite insert", items: r.value.count, itemType: "rows") {
+				cacheJob.time("SQLite insert", items: r.count, itemType: "rows") {
 					if let statement = self.insertStatement {
-						for row in r.value {
-							statement.run(parameters: row)
+						for row in r {
+							statement.run(row)
 						}
 					}
 				}
@@ -607,9 +605,9 @@ class QBESQLiteCachedData: QBEProxyData {
 					self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
 						switch columns {
 							case .Success(let cns):
-								self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: cns.value)
+								self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: cns)
 								self.isCached = true
-								self.completion?(QBEFallible(self))
+								self.completion?(.Success(self))
 								self.completion = nil
 								
 							case .Failure(let error):
@@ -653,7 +651,7 @@ class QBESQLiteSourceStep: QBEStep {
 			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
 			
 			if self.tableName == nil {
-				self.db?.tableNames.use {(tns) in
+				self.db?.tableNames.maybe {(tns) in
 					self.tableName = tns.first
 				}
 			}

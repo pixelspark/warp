@@ -45,10 +45,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	override func draggingEntered(sender: NSDraggingInfo) -> NSDragOperation {
 		let pboard = sender.draggingPasteboard()
 		
-		if let files: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
+		if let _: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
 			return NSDragOperation.Copy
 		}
-		else if let outlet = pboard.dataForType(QBEOutletView.dragType) {
+		else if let _ = pboard.dataForType(QBEOutletView.dragType) {
 			return NSDragOperation.Link
 		}
 		return NSDragOperation.None
@@ -69,7 +69,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	override func performDragOperation(draggingInfo: NSDraggingInfo) -> Bool {
 		let pboard = draggingInfo.draggingPasteboard()
 		
-		if let outlet = pboard.dataForType(QBEOutletView.dragType) {
+		if let _ = pboard.dataForType(QBEOutletView.dragType) {
 			if let ov = draggingInfo.draggingSource() as? QBEOutletView {
 				if let draggedChain = ov.draggedObject as? QBEChain {
 					delegate?.documentView(self, didReceiveChain: draggedChain, atLocation: self.convertPoint(draggingInfo.draggingLocation(), fromView: nil))
@@ -257,7 +257,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	}
 	
 	/** This view needs to be able to be first responder, so that QBEDocumentViewCOntroller can respond to first 
-	responder actions even when there are no children selected. **/
+	responder actions even when there are no children selected. */
 	override var acceptsFirstResponder: Bool { get { return true } }
 }
 

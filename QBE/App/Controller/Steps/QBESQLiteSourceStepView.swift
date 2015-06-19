@@ -38,9 +38,8 @@ internal class QBESQLiteSourceStepView: NSViewController, NSTableViewDataSource,
 			no.allowedFileTypes = ["org.sqlite.v3"]
 			
 			no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
-				if result==NSFileHandlingPanelOKButton {
-					if let url = no.URLs[0] as? NSURL {
-						var error: NSError?
+				if result == NSFileHandlingPanelOKButton {
+					if let url = no.URL {
 						s.file = QBEFileReference.URL(url)
 						self.delegate?.suggestionsView(self, previewStep: s)
 					}
@@ -57,7 +56,7 @@ internal class QBESQLiteSourceStepView: NSViewController, NSTableViewDataSource,
 			
 			tableNames = []
 			if let db = s.db {
-				db.tableNames.use {(tns) in tableNames = tns }
+				db.tableNames.maybe {(tns) in tableNames = tns }
 			}
 			
 			tableView?.reloadData()

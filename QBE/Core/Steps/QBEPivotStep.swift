@@ -89,20 +89,20 @@ class QBEPivotStep: QBEStep {
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
 		fixupColumnNames()
-		var rowGroups = toDictionary(rows, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
-		let colGroups = toDictionary(columns, { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
+		var rowGroups = toDictionary(rows, transformer: { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
+		let colGroups = toDictionary(columns, transformer: { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
 		for (k, v) in colGroups {
 			rowGroups[k] = v
 		}
 		
-		let values = toDictionary(aggregates, { ($0.targetColumnName, $0) })
+		let values = toDictionary(aggregates, transformer: { ($0.targetColumnName, $0) })
 		let resultData = data.aggregate(rowGroups, values: values)
 		if columns.count == 0 {
-			callback(QBEFallible(resultData))
+			callback(.Success(resultData))
 		}
 		else {
 			let pivotedData = resultData.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumnName}))
-			callback(QBEFallible(pivotedData))
+			callback(.Success(pivotedData))
 		}
 	}
 	
@@ -127,7 +127,7 @@ class QBEPivotStep: QBEStep {
 				step.aggregates.append(QBEAggregation(map: QBESiblingExpression(columnName: column), reduce: fun, targetColumnName: column))
 			}
 			
-			for (sameColumn, sameValue) in sameValues {
+			for (sameColumn, _) in sameValues {
 				step.rows.append(sameColumn)
 			}
 			

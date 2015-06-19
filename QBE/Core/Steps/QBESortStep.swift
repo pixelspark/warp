@@ -35,6 +35,6 @@ class QBESortStep: QBEStep {
 	}
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(QBEFallible(data.sort(orders)))
+		callback(.Success(data.sort(orders)))
 	}
 }

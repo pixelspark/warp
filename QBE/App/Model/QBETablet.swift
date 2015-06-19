@@ -7,7 +7,7 @@ private class QBERectangle: NSObject, NSSecureCoding {
 		self.rect = rect
 	}
 	
-	@objc required init(coder aDecoder: NSCoder) {
+	@objc required init?(coder aDecoder: NSCoder) {
 		rect = CGRect(
 			x: aDecoder.decodeDoubleForKey("x") ?? Double.NaN,
 			y: aDecoder.decodeDoubleForKey("y") ?? Double.NaN,
@@ -29,7 +29,7 @@ private class QBERectangle: NSObject, NSSecureCoding {
 }
 
 /** A 'tablet' is a user-defined working item that represents tabular data and (possibly in the future) other forms of
-data. Currently a tablet is always comprised of a QBEChain that calculates data. **/
+data. Currently a tablet is always comprised of a QBEChain that calculates data. */
 @objc class QBETablet: NSObject, NSSecureCoding {
 	weak internal(set) var document: QBEDocument? = nil
 	var frame: CGRect? = nil
@@ -45,7 +45,7 @@ data. Currently a tablet is always comprised of a QBEChain that calculates data.
 		self.chain.tablet = self
 	}
 	
-	required init(coder aDecoder: NSCoder) {
+	required init?(coder aDecoder: NSCoder) {
 		if let c = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "chain") as? QBEChain {
 			chain = c
 		}
@@ -72,12 +72,12 @@ data. Currently a tablet is always comprised of a QBEChain that calculates data.
 	
 	/** This method is called right before a document is saved to disk using encodeWithCoder. Steps that reference
 	external files should take the opportunity to create security bookmarks to these files (as required by Apple's
-	App Sandbox) and store them. **/
+	App Sandbox) and store them. */
 	func willSaveToDocument(atURL: NSURL) {
 		self.chain.willSaveToDocument(atURL)
 	}
 	
-	/** This method is called right after a document has been loaded from disk. **/
+	/** This method is called right after a document has been loaded from disk. */
 	func didLoadFromDocument(atURL: NSURL) {
 		self.chain.didLoadFromDocument(atURL)
 	}

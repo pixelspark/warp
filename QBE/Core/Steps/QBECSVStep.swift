@@ -1,6 +1,6 @@
 import Foundation
 
-class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
+final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	let parser: CHCSVParser
 	let url: NSURL
 
@@ -25,9 +25,12 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		
 		// Get total file size
 		if let p = url.path {
-			var error: NSError?
-			if let attributes = NSFileManager.defaultManager().attributesOfItemAtPath(p, error: &error) {
+			do {
+				let attributes = try NSFileManager.defaultManager().attributesOfItemAtPath(p)
 				totalBytes = (attributes[NSFileSize] as? NSNumber)?.integerValue ?? 0
+			}
+			catch {
+				totalBytes = 0
 			}
 		}
 		
@@ -69,7 +72,7 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 	
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
-		callback(QBEFallible(_columnNames))
+		callback(.Success(_columnNames))
 	}
 	
 	func fetch(job: QBEJob, consumer: QBESink) {
@@ -89,7 +92,7 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 			
 			let r = ArraySlice(self.rows)
 			self.rows.removeAll(keepCapacity: true)
-			consumer(QBEFallible(r), !self.finished)
+			consumer(.Success(r), !self.finished)
 		}
 	}
 	
@@ -116,15 +119,18 @@ class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 }
 
-class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
+class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 	var separatorCharacter: UInt16
 	var newLineCharacter: String?
+	let locale: QBELocale
+	let title: String?
 
-	required init(locale: QBELocale, title: String? = nil) {
+	required init(locale: QBELocale, title: String?) {
 		self.newLineCharacter = "\r\n"
 		let separator = locale.csvFieldSeparator
 		self.separatorCharacter = separator.utf16[separator.utf16.startIndex]
-		super.init(locale: locale, title: title)
+		self.locale = locale
+		self.title = title
 	}
 	
 	func writeHeader(toStream: NSOutputStream) {
@@ -135,7 +141,7 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 		// Not used
 	}
 	
-	override func writeData(data: QBEData, toFile file: NSURL, job: QBEJob, callback: () -> ()) {
+	func writeData(data: QBEData, toFile file: NSURL, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
 		let stream = data.stream()
 
 		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
@@ -151,49 +157,47 @@ class QBECSVWriter: QBEFileWriter, NSStreamDelegate {
 			let locale = self.locale
 			stream.columnNames(job) { (columnNames) -> () in
 				switch columnNames {
-					case .Success(let cns):
-						for col in cns.value {
-							csvOut.writeField(col.name)
-						}
-						csvOut.finishLine()
-						
-						var cb: QBESink? = nil
-						cb = { (rows: QBEFallible<ArraySlice<QBETuple>>, hasNext: Bool) -> () in
-							switch rows {
-								case .Success(let rs):
-									// We want the next row, so fetch it while we start writing this one.
-									if hasNext {
-										job.async {
-											stream.fetch(job, consumer: cb!)
-										}
+				case .Success(let cns):
+					for col in cns {
+						csvOut.writeField(col.name)
+					}
+					csvOut.finishLine()
+					
+					var cb: QBESink? = nil
+					cb = { (rows: QBEFallible<ArraySlice<QBETuple>>, hasNext: Bool) -> () in
+						switch rows {
+							case .Success(let rs):
+								// We want the next row, so fetch it while we start writing this one.
+								if hasNext {
+									job.async {
+										stream.fetch(job, consumer: cb!)
 									}
-									
-									job.time("Write CSV", items: rs.value.count, itemType: "rows") {
-										for row in rs.value {
-											for cell in row {
-												csvOut.writeField(locale.localStringFor(cell))
-											}
-											csvOut.finishLine()
-										}
-									}
-									
-									if !hasNext {
-										self.writeFooter(outStream)
-										csvOut.closeStream()
-										callback()
-									}
+								}
 								
-								case .Failure(let error):
-									// TODO: forward error to callback
-									callback()
-							}
+								job.time("Write CSV", items: rs.count, itemType: "rows") {
+									for row in rs {
+										for cell in row {
+											csvOut.writeField(locale.localStringFor(cell))
+										}
+										csvOut.finishLine()
+									}
+								}
+								
+								if !hasNext {
+									self.writeFooter(outStream)
+									csvOut.closeStream()
+									callback(.Success())
+								}
+							
+							case .Failure(let e):
+								callback(.Failure(e))
 						}
-						
-						stream.fetch(job, consumer: cb!)
-				
-				case .Failure(let error):
-					// TODO: forward error to callback
-					callback()
+					}
+					
+					stream.fetch(job, consumer: cb!)
+			
+			case .Failure(let e):
+				callback(.Failure(e))
 			}
 		}
 		}
@@ -207,9 +211,8 @@ class QBEHTMLWriter: QBECSVWriter {
 	required init(locale: QBELocale, title: String? = nil) {
 		// Get pivot template from resources
 		if let path = NSBundle.mainBundle().pathForResource("pivot", ofType: "html") {
-			var error: NSError? = nil
-			if let template = NSString(contentsOfFile: path, encoding: NSUTF8StringEncoding, error: &error) {
-				let template = template.stringByReplacingOccurrencesOfString("$$$TITLE$$$", withString: title ?? "")
+			do {
+				let template = try NSString(contentsOfFile: path, encoding: NSUTF8StringEncoding).stringByReplacingOccurrencesOfString("$$$TITLE$$$", withString: title ?? "")
 				let parts = template.componentsSeparatedByString("$$$CSV$$$")
 				header = parts[0]
 				footer = parts[1]
@@ -221,10 +224,17 @@ class QBEHTMLWriter: QBECSVWriter {
 				super.init(locale: locale, title: title)
 				return
 			}
+			catch _ {
+				header = ""
+				footer = ""
+				super.init(locale: locale, title: title)
+			}
 		}
-		header = ""
-		footer = ""
-		super.init(locale: locale, title: title)
+		else {
+			header = ""
+			footer = ""
+			super.init(locale: locale, title: title)
+		}
 	}
 	
 	override func writeHeader(toStream: NSOutputStream) {
@@ -304,16 +314,19 @@ class QBECSVSourceStep: QBEStep {
 		self.file?.url?.stopAccessingSecurityScopedResource()
 	}
 	
-	/** Get size of the selected file to determine whether caching should be enabled by default **/
+	/** Get size of the selected file to determine whether caching should be enabled by default */
 	private var cachingAllowed: Bool { get {
-		var error: NSError?
 		if let url = self.file?.url {
-			if let attributes = NSFileManager.defaultManager().attributesOfItemAtPath(url.path!, error: &error) {
+			do {
+				let attributes = try NSFileManager.defaultManager().attributesOfItemAtPath(url.path!)
 				if let size = attributes[NSFileSize] as? NSNumber {
 					/* SQLite files are often a bit larger than the source CSV. If we are allowed to cache 1.5x the
 					original file size, then proceed by caching the CSV in SQLite */
 					return QBESettings.sharedInstance.shouldCacheFile(ofEstimatedSize: Int(size) * 3 / 2, atLocation: url)
 				}
+			}
+			catch {
+				return false
 			}
 		}
 		return false
@@ -323,7 +336,7 @@ class QBECSVSourceStep: QBEStep {
 		if let url = file?.url {
 			let locale = QBEAppDelegate.sharedInstance.locale
 			let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders, locale: locale)
-			return QBEFallible(QBEStreamData(source: s))
+			return .Success(QBEStreamData(source: s))
 		}
 		else {
 			return .Failure(NSLocalizedString("The location of the CSV source file is invalid.", comment: ""))
@@ -336,7 +349,7 @@ class QBECSVSourceStep: QBEStep {
 				case .Success(let data):
 					if useCaching {
 						self.cachedData = QBEFuture<QBEFallible<QBEData>>({ [weak self] (job, cb) -> () in
-							let cached = QBESQLiteCachedData(source: data.value)
+							let cached = QBESQLiteCachedData(source: data)
 							cached.cacheJob.addObserver(job)
 							cached.completion = {(result) -> () in
 								cb(result.use {(d) -> QBEData in
@@ -347,8 +360,8 @@ class QBECSVSourceStep: QBEStep {
 						})
 					}
 					else {
-						self.cachedData = QBEFuture<QBEFallible<QBEData>>({ [unowned self] (job, cb) -> () in
-							cb(QBEFallible(QBECoalescedData(data.value)))
+						self.cachedData = QBEFuture<QBEFallible<QBEData>>({ (job, cb) -> () in
+							cb(.Success(QBECoalescedData(data)))
 						})
 					}
 				

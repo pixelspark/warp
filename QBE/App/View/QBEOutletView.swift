@@ -40,7 +40,7 @@ class QBEOutletDropView: NSView {
 	override func performDragOperation(draggingInfo: NSDraggingInfo) -> Bool {
 		let pboard = draggingInfo.draggingPasteboard()
 		
-		if let data = pboard.dataForType(QBEOutletView.dragType) {
+		if let _ = pboard.dataForType(QBEOutletView.dragType) {
 			if let ov = draggingInfo.draggingSource() as? QBEOutletView {
 				delegate?.receiveDropFromOutlet(ov.draggedObject)
 				return true
@@ -131,7 +131,7 @@ private class QBELaceWindow: NSWindow {
 	
 	init() {
 		laceView = QBELaceView(frame: NSZeroRect)
-		super.init(contentRect: NSZeroRect, styleMask: NSBorderlessWindowMask, backing: NSBackingStoreType.Buffered, defer: false)
+		super.init(contentRect: NSZeroRect, styleMask: NSBorderlessWindowMask, backing: NSBackingStoreType.Buffered, `defer`: false)
 		backgroundColor = NSColor.clearColor()
 		releasedWhenClosed = false
 		opaque = false
@@ -199,7 +199,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 			let pboardItem = NSPasteboardItem()
 			pboardItem.setData("[dragged outlet]".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false), forType: QBEOutletView.dragType)
 			let dragItem = NSDraggingItem(pasteboardWriter: pboardItem)
-			self.beginDraggingSessionWithItems([dragItem] as [AnyObject], event: theEvent, source: self)
+			self.beginDraggingSessionWithItems([dragItem] as [NSDraggingItem], event: theEvent, source: self)
 		}
 	}
 	

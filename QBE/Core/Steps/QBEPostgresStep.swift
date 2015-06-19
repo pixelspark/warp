@@ -109,7 +109,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 			}
 			else {
 				let status = PQresultStatus(result)
-				if status.value != PGRES_TUPLES_OK.value {
+				if status.rawValue != PGRES_TUPLES_OK.rawValue {
 					resultFallible = .Failure(connection.lastError)
 				}
 				
@@ -136,7 +136,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 					}
 				}
 				
-				resultFallible = QBEFallible(QBEPostgresResult(connection: connection, result: result, columnNames: columnNames, columnTypes: columnTypes))
+				resultFallible = .Success(QBEPostgresResult(connection: connection, result: result, columnNames: columnNames, columnTypes: columnTypes))
 			}
 		}
 		
@@ -159,7 +159,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 			/* A new query cannot be started before all results from the previous one have been fetched, because packets
 			will get out of order. */
 			var n = 0
-			while let x = self.row() {
+			while let _ = self.row() {
 				++n
 			}
 			
@@ -194,7 +194,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 			
 			// Because we are in single-row mode, each result set should only contain a single tuple.
 			if self.result != nil {
-				if PQntuples(self.result) == 1 && PQresultStatus(self.result).value == PGRES_SINGLE_TUPLE.value {
+				if PQntuples(self.result) == 1 && PQresultStatus(self.result).rawValue == PGRES_SINGLE_TUPLE.rawValue {
 					rowData = []
 					rowData!.reserveCapacity(self.columnNames.count)
 					
@@ -230,7 +230,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 				}
 				else {
 					self.finished = true
-					if PQresultStatus(self.result).value != PGRES_TUPLES_OK.value {
+					if PQresultStatus(self.result).rawValue != PGRES_TUPLES_OK.rawValue {
 						let status = String(CString: PQresStatus(PQresultStatus(self.result)), encoding: NSUTF8StringEncoding) ?? "(unknown status)"
 						let error = String(CString: PQresultErrorMessage(self.result), encoding: NSUTF8StringEncoding) ?? "(unknown error)"
 						QBELog("PostgreSQL no result: \(status) \(error)")
@@ -307,16 +307,16 @@ class QBEPostgresDatabase {
 		
 		let connection = PQconnectdb(url)
 		
-		switch PQstatus(connection).value {
-			case CONNECTION_OK.value:
-				return QBEFallible(QBEPostgresConnection(database: self, connection: connection))
+		switch PQstatus(connection).rawValue {
+			case CONNECTION_OK.rawValue:
+				return .Success(QBEPostgresConnection(database: self, connection: connection))
 			
-			case CONNECTION_BAD.value:
+			case CONNECTION_BAD.rawValue:
 				let error = String(CString:  PQerrorMessage(connection), encoding: NSUTF8StringEncoding) ?? "(unknown error)"
 				return .Failure(error)
 				
 			default:
-				return .Failure(String(format: NSLocalizedString("Unknown connection status: %d", comment: ""), PQstatus(connection).value))
+				return .Failure(String(format: NSLocalizedString("Unknown connection status: %d", comment: ""), PQstatus(connection).rawValue))
 		}
 	}
 }
@@ -388,7 +388,7 @@ internal class QBEPostgresConnection {
 			let result = QBEPostgresResult.create(self)
 			switch result {
 				case .Success(let r):
-					self.result = r.value
+					self.result = r
 				
 				case .Failure(_):
 					self.result = nil
@@ -406,7 +406,7 @@ class QBEPostgresData: QBESQLData {
 	private let database: QBEPostgresDatabase
 	private let locale: QBELocale?
 	
-	static func create(#database: QBEPostgresDatabase, tableName: String, locale: QBELocale?) -> QBEFallible<QBEPostgresData> {
+	static func create(database database: QBEPostgresDatabase, tableName: String, locale: QBELocale?) -> QBEFallible<QBEPostgresData> {
 		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName)) LIMIT 1"
 		return database.connect().use {
 			$0.query(query).use {(result) -> QBEPostgresData in
@@ -457,7 +457,7 @@ QBEPostgresStream provides a stream of records from a PostgreSQL result set. Bec
 sequentially, cloning of this stream requires re-executing the query. */
 private class QBEPostgresResultStream: QBESequenceStream {
 	init(result: QBEPostgresResult) {
-		super.init(SequenceOf<QBETuple>(result), columnNames: result.columnNames)
+		super.init(AnySequence<QBETuple>(result), columnNames: result.columnNames)
 	}
 	
 	override func clone() -> QBEStream {
@@ -479,7 +479,7 @@ class QBEPostgresStream: QBEStream {
 		if resultStream == nil {
 			switch data.result() {
 				case .Success(let rs):
-					resultStream = QBEPostgresResultStream(result: rs.value)
+					resultStream = QBEPostgresResultStream(result: rs)
 				
 				case .Failure(let error):
 					resultStream = QBEErrorStream(error)

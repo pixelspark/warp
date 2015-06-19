@@ -1,18 +1,18 @@
 import Foundation
 
 /** A QBESink is a function used as a callback in response to QBEStream.fetch. It receives a set of rows from the stream
-as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). **/
+as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). */
 typealias QBESink = (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()
 
-/** The default number of rows that a QBEStream will send to a consumer upon request through QBEStream.fetch. **/
+/** The default number of rows that a QBEStream will send to a consumer upon request through QBEStream.fetch. */
 let QBEStreamDefaultBatchSize = 256
 
 /** QBEStream represents a data set that can be streamed (consumed in batches). This allows for efficient processing of
 data sets for operations that do not require memory (e.g. a limit or filter can be performed almost statelessly). The 
 stream implements a single method (fetch) that allows batch fetching of result rows. The size of the batches are defined
-by the stream (for now). **/
+by the stream (for now). */
 protocol QBEStream {
-	/** The column names associated with the rows produced by this stream. **/
+	/** The column names associated with the rows produced by this stream. */
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ())
 	
 	/** 
@@ -26,13 +26,13 @@ protocol QBEStream {
 	func fetch(job: QBEJob, consumer: QBESink)
 	
 	/** Create a copy of this stream. The copied stream is reset to the initial position (e.g. will return the first row
-	of the data set during the first call to fetch on the copy). **/
+	of the data set during the first call to fetch on the copy). */
 	func clone() -> QBEStream
 }
 
 /** QBEStreamData is an implementation of QBEData that performs data operations on a stream. QBEStreamData will consume 
 the whole stream and proxy to a raster-based implementation for operations that cannot efficiently be performed on a 
-stream. **/
+stream. */
 class QBEStreamData: QBEData {
 	let source: QBEStream
 	
@@ -42,7 +42,7 @@ class QBEStreamData: QBEData {
 	
 	/** The fallback data object implements data operators not implemented here. Because QBERasterData is the fallback
 	for QBEStreamData and the other way around, neither should call the fallback for an operation it implements itself,
-	and at least one of the classes has to implement each operation. **/
+	and at least one of the classes has to implement each operation. */
 	private func fallback() -> QBEData {
 		return QBERasterData(future: raster)
 	}
@@ -52,7 +52,7 @@ class QBEStreamData: QBEData {
 		
 		let s = source.clone()
 		var appender: QBESink! = nil
-		appender = {[unowned self] (rows, hasNext) -> () in
+		appender = { (rows, hasNext) -> () in
 			switch rows {
 			case .Success(let r):
 				// If the stream indicates there are more rows, fetch them
@@ -63,7 +63,7 @@ class QBEStreamData: QBEData {
 				}
 				
 				// Append the rows to our buffered raster
-				data.extend(r.value)
+				data.extend(r)
 				
 				if !hasNext {
 					s.columnNames(job) { (columnNames) -> () in
@@ -179,7 +179,7 @@ class QBEErrorStream: QBEStream {
 A stream that never produces any data (but doesn't return errors either). */
 class QBEEmptyStream: QBEStream {
 	func fetch(job: QBEJob, consumer: QBESink) {
-		consumer(QBEFallible([]), false)
+		consumer(.Success([]), false)
 	}
 	
 	func clone() -> QBEStream {
@@ -187,18 +187,18 @@ class QBEEmptyStream: QBEStream {
 	}
 	
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
-		callback(QBEFallible([]))
+		callback(.Success([]))
 	}
 }
 
 /** 
 A stream that sources from a Swift generator of QBETuple. */
 class QBESequenceStream: QBEStream {
-	private let sequence: SequenceOf<QBETuple>
-	private var generator: GeneratorOf<QBETuple>
+	private let sequence: AnySequence<QBETuple>
+	private var generator: AnyGenerator<QBETuple>
 	private let columns: [QBEColumn]
 	
-	init(_ sequence: SequenceOf<QBETuple>, columnNames: [QBEColumn]) {
+	init(_ sequence: AnySequence<QBETuple>, columnNames: [QBEColumn]) {
 		self.sequence = sequence
 		self.generator = sequence.generate()
 		self.columns = columnNames
@@ -210,7 +210,7 @@ class QBESequenceStream: QBEStream {
 			var rows :[QBETuple] = []
 			rows.reserveCapacity(QBEStreamDefaultBatchSize)
 			
-			for i in 0..<QBEStreamDefaultBatchSize {
+			for _ in 0..<QBEStreamDefaultBatchSize {
 				if let next = self.generator.next() {
 					rows.append(next)
 				}
@@ -220,12 +220,12 @@ class QBESequenceStream: QBEStream {
 				}
 			}
 			
-			consumer(QBEFallible(ArraySlice(rows)), !done)
+			consumer(.Success(ArraySlice(rows)), !done)
 		}
 	}
 	
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
-		callback(QBEFallible(self.columns))
+		callback(.Success(self.columns))
 	}
 	
 	func clone() -> QBEStream {
@@ -235,7 +235,7 @@ class QBESequenceStream: QBEStream {
 
 /** A QBETransformer is a stream that provides data from an other stream, and applies a transformation step in between.
 This class needs to be subclassed before it does any real work (in particular, the transform and clone methods should be
-overridden). **/
+overridden). */
 private class QBETransformer: NSObject, QBEStream {
 	let source: QBEStream
 	var stopped = false
@@ -251,7 +251,7 @@ private class QBETransformer: NSObject, QBEStream {
 	/** Perform the stream transformation on the given set of rows. The function should call the callback exactly once
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
-	transform has been found already). **/
+	transform has been found already). */
 	private func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
 		fatalError("QBETransformer.transform should be implemented in a subclass")
 	}
@@ -261,7 +261,7 @@ private class QBETransformer: NSObject, QBEStream {
 			source.fetch(job) { (fallibleRows, hasNext) -> () in
 				switch fallibleRows {
 					case .Success(let rows):
-						self.transform(rows.value, hasNext: hasNext, job: job, callback: { (transformedRows, shouldStop) -> () in
+						self.transform(rows, hasNext: hasNext, job: job, callback: { (transformedRows, shouldStop) -> () in
 							self.stopped = shouldStop
 							consumer(transformedRows, !self.stopped && hasNext)
 						})
@@ -273,7 +273,7 @@ private class QBETransformer: NSObject, QBEStream {
 		}
 	}
 	
-	/** Returns a clone of the transformer. It should also clone the source stream. **/
+	/** Returns a clone of the transformer. It should also clone the source stream. */
 	private func clone() -> QBEStream {
 		fatalError("Should be implemented by subclass")
 	}
@@ -332,7 +332,7 @@ private class QBEFlattenTransformer: QBETransformer {
 	}
 	
 	private override func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
-		callback(QBEFallible(columnNames))
+		callback(.Success(columnNames))
 	}
 	
 	private override func clone() -> QBEStream {
@@ -351,12 +351,12 @@ private class QBEFlattenTransformer: QBETransformer {
 				job.time("flatten", items: self.columnNames.count * rows.count, itemType: "cells") {
 					for row in rows {
 						if self.writeRowIdentifier {
-							templateRow[0] = self.rowIdentifier!.apply(QBERow(row, columnNames: originalColumns.value), foreign: nil, inputValue: nil)
+							templateRow[0] = self.rowIdentifier!.apply(QBERow(row, columnNames: originalColumns), foreign: nil, inputValue: nil)
 						}
 						
-						for columnIndex in 0..<originalColumns.value.count {
+						for columnIndex in 0..<originalColumns.count {
 							if self.writeColumnIdentifier {
-								templateRow[self.writeRowIdentifier ? 1 : 0] = QBEValue(originalColumns.value[columnIndex].name)
+								templateRow[self.writeRowIdentifier ? 1 : 0] = QBEValue(originalColumns[columnIndex].name)
 							}
 							
 							templateRow[valueIndex] = row[columnIndex]
@@ -364,7 +364,7 @@ private class QBEFlattenTransformer: QBETransformer {
 						}
 					}
 				}
-				callback(QBEFallible(ArraySlice(newRows)), false)
+				callback(.Success(ArraySlice(newRows)), false)
 				
 			case .Failure(let error):
 				callback(.Failure(error), false)
@@ -387,11 +387,11 @@ private class QBEFilterTransformer: QBETransformer {
 			switch columnNames {
 			case .Success(let cns):
 				job.time("Stream filter", items: rows.count, itemType: "row") {
-					let newRows = rows.filter({(row) -> Bool in
-						return self.condition.apply(QBERow(row, columnNames: cns.value), foreign: nil, inputValue: nil) == QBEValue.BoolValue(true)
-					})
+					let newRows = Array(rows.filter({(row) -> Bool in
+						return self.condition.apply(QBERow(row, columnNames: cns), foreign: nil, inputValue: nil) == QBEValue.BoolValue(true)
+					}))
 					
-					callback(QBEFallible(newRows), false)
+					callback(.Success(ArraySlice(newRows)), false)
 				}
 				
 			case .Failure(let error):
@@ -406,7 +406,7 @@ private class QBEFilterTransformer: QBETransformer {
 }
 
 /** The QBERandomTransformer randomly samples the specified amount of rows from a stream. It uses reservoir sampling to
-achieve this. **/
+achieve this. */
 private class QBERandomTransformer: QBETransformer {
 	var sample: [QBETuple] = []
 	let sampleSize: Int
@@ -442,7 +442,7 @@ private class QBERandomTransformer: QBETransformer {
 				for i in 0..<rows.count {
 					/* The chance of choosing an item starts out at (1/s) and ends at (1/N), where s is the sample size and N
 					is the number of actual input rows. */
-					let probability = Int.random(lower: 0, upper: self.samplesSeen+i)
+					let probability = Int.random(0, upper: self.samplesSeen+i)
 					if probability < self.sampleSize {
 						// Place this sample in the list at the randomly chosen position
 						self.sample[probability] = rows[i]
@@ -455,11 +455,11 @@ private class QBERandomTransformer: QBETransformer {
 		
 		if hasNext {
 			// More input is coming from the source, do not return our sample yet
-			callback(QBEFallible([]), false)
+			callback(.Success([]), false)
 		}
 		else {
 			// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
-			callback(QBEFallible(ArraySlice(sample)), true)
+			callback(.Success(ArraySlice(sample)), true)
 		}
 	}
 	
@@ -468,7 +468,7 @@ private class QBERandomTransformer: QBETransformer {
 	}
 }
 
-/** The QBEOffsetTransformer skips the first specified number of rows passed through a stream. **/
+/** The QBEOffsetTransformer skips the first specified number of rows passed through a stream. */
 private class QBEOffsetTransformer: QBETransformer {
 	var position = 0
 	let offset: Int
@@ -481,15 +481,15 @@ private class QBEOffsetTransformer: QBETransformer {
 	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
 		if position > offset {
 			position += rows.count
-			callback(QBEFallible(rows), false)
+			callback(.Success(rows), false)
 		}
 		else {
 			let rest = offset - position
 			if rest > rows.count {
-				callback(QBEFallible([]), false)
+				callback(.Success([]), false)
 			}
 			else {
-				callback(QBEFallible(rows[rest..<rows.count]), false)
+				callback(.Success(rows[rest..<rows.count]), false)
 			}
 		}
 	}
@@ -500,7 +500,7 @@ private class QBEOffsetTransformer: QBETransformer {
 }
 
 /** The QBELimitTransformer limits the number of rows passed through a stream. It effectively stops pumping data from the
-source stream to the consuming stream when the limit is reached. **/
+source stream to the consuming stream when the limit is reached. */
 private class QBELimitTransformer: QBETransformer {
 	var position = 0
 	let limit: Int
@@ -513,14 +513,14 @@ private class QBELimitTransformer: QBETransformer {
 	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
 		if (position+rows.count) < limit {
 			position += rows.count
-			callback(QBEFallible(rows), false)
+			callback(.Success(rows), false)
 		}
 		else if position < limit {
 			let n = limit - position
-			callback(QBEFallible(rows[0..<n]), true)
+			callback(.Success(rows[0..<n]), true)
 		}
 		else {
-			callback(QBEFallible([]), true)
+			callback(.Success([]), true)
 		}
 	}
 	
@@ -544,7 +544,7 @@ private class QBEColumnsTransformer: QBETransformer {
 			case .Success(let cns):
 				self.ensureIndexes(job) {
 					callback(self.indexes!.use({(idxs) in
-						return idxs.map({return cns.value[$0]})
+						return idxs.map({return cns[$0]})
 					}))
 				}
 				
@@ -564,13 +564,13 @@ private class QBEColumnsTransformer: QBETransformer {
 					
 					for row in rows {
 						var newRow: QBETuple = []
-						newRow.reserveCapacity(idxs.value.count)
-						for idx in idxs.value {
+						newRow.reserveCapacity(idxs.count)
+						for idx in idxs {
 							newRow.append(row[idx])
 						}
 						result.append(newRow)
 					}
-					callback(QBEFallible(ArraySlice(result)), false)
+					callback(.Success(ArraySlice(result)), false)
 				
 				case .Failure(let error):
 					callback(.Failure(error), false)
@@ -585,12 +585,12 @@ private class QBEColumnsTransformer: QBETransformer {
 				switch sourceColumnNames {
 					case .Success(let sourceCols):
 						for column in self.columns {
-							if let idx = find(sourceCols.value, column) {
+							if let idx = sourceCols.indexOf(column) {
 								idxs.append(idx)
 							}
 						}
 						
-						self.indexes = QBEFallible(idxs)
+						self.indexes = .Success(idxs)
 						callback()
 					
 					case .Failure(let error):
@@ -629,20 +629,20 @@ private class QBECalculateTransformer: QBETransformer {
 			source.columnNames(job) { (columnNames) -> () in
 				switch columnNames {
 				case .Success(let cns):
-					var columns = cns.value
+					var columns = cns
 					var indices = Dictionary<QBEColumn, Int>()
 					
 					// Create newly calculated columns
-					for (targetColumn, formula) in self.calculations {
-						var columnIndex = find(cns.value, targetColumn) ?? -1
+					for (targetColumn, _) in self.calculations {
+						var columnIndex = cns.indexOf(targetColumn) ?? -1
 						if columnIndex == -1 {
 							columns.append(targetColumn)
 							columnIndex = columns.count-1
 						}
 						indices[targetColumn] = columnIndex
 					}
-					self.indices = QBEFallible(indices)
-					self.columns = QBEFallible(columns)
+					self.indices = .Success(indices)
+					self.columns = .Success(columns)
 					
 				case .Failure(let error):
 					self.columns = .Failure(error)
@@ -663,28 +663,28 @@ private class QBECalculateTransformer: QBETransformer {
 		}
 	}
 	
-	private override func transform(var rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
 		self.ensureIndexes(job) {
 			job.time("Calculate", items: rows.count, itemType: "row") {
 				switch self.columns! {
 				case .Success(let cns):
 					switch self.indices! {
 					case .Success(let idcs):
-						let newData = rows.map({ (var row: QBETuple) -> QBETuple in
-							for n in 0..<max(0, cns.value.count - row.count) {
+						let newData = Array(rows.map({ (var row: QBETuple) -> QBETuple in
+							for _ in 0..<max(0, cns.count - row.count) {
 								row.append(QBEValue.EmptyValue)
 							}
 							
 							for (targetColumn, formula) in self.calculations {
-								let columnIndex = idcs.value[targetColumn]!
+								let columnIndex = idcs[targetColumn]!
 								let inputValue: QBEValue = row[columnIndex]
-								let newValue = formula.apply(QBERow(row, columnNames: cns.value), foreign: nil, inputValue: inputValue)
+								let newValue = formula.apply(QBERow(row, columnNames: cns), foreign: nil, inputValue: inputValue)
 								row[columnIndex] = newValue
 							}
 							return row
-						})
+						}))
 						
-						callback(QBEFallible(newData), false)
+						callback(.Success(ArraySlice(newData)), false)
 						
 					case .Failure(let error):
 						callback(.Failure(error), false)

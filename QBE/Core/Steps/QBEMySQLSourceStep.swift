@@ -2,7 +2,7 @@ import Foundation
 
 /** 
 Implementation of the MySQL 'SQL dialect'. Only deviatons from the standard dialect are implemented here. */
-private class QBEMySQLDialect: QBEStandardSQLDialect {
+private final class QBEMySQLDialect: QBEStandardSQLDialect {
 	override var identifierQualifier: String { get { return  "`" } }
 	override var identifierQualifierEscape: String { get { return  "\\`" } }
 	
@@ -36,7 +36,7 @@ private class QBEMySQLDialect: QBEStandardSQLDialect {
 	}
 }
 
-internal class QBEMySQLResult: SequenceType, GeneratorType {
+internal final class QBEMySQLResult: SequenceType, GeneratorType {
 	typealias Element = QBETuple
 	typealias Generator = QBEMySQLResult
 	
@@ -54,7 +54,7 @@ internal class QBEMySQLResult: SequenceType, GeneratorType {
 			let realResult = QBEMySQLResult(result: result, connection: connection)
 			
 			let colCount = mysql_field_count(connection.connection)
-			for colIndex in 0..<colCount {
+			for _ in 0..<colCount {
 				let column = mysql_fetch_field(result)
 				if column != nil {
 					if let name = NSString(bytes: column.memory.name, length: Int(column.memory.name_length), encoding: NSUTF8StringEncoding) {
@@ -72,7 +72,7 @@ internal class QBEMySQLResult: SequenceType, GeneratorType {
 				}
 			}
 			
-			resultSet = QBEFallible(realResult)
+			resultSet = .Success(realResult)
 		}
 		
 		return resultSet
@@ -92,7 +92,7 @@ internal class QBEMySQLResult: SequenceType, GeneratorType {
 			/* A new query cannot be started before all results from the previous one have been fetched, because packets
 			will get out of order. */
 			var n = 0
-			while let x = self.row() {
+			while self.row() != nil {
 				++n
 			}
 			
@@ -141,12 +141,12 @@ internal class QBEMySQLResult: SequenceType, GeneratorType {
 						// Is this a numeric field?
 						let type = self.columnTypes[cn]
 						if (Int32(type.flags) & NUM_FLAG) != 0 {
-							if type.type.value == MYSQL_TYPE_TINY.value
-								|| type.type.value == MYSQL_TYPE_SHORT.value
-								|| type.type.value == MYSQL_TYPE_LONG.value
-								|| type.type.value == MYSQL_TYPE_INT24.value
-								|| type.type.value == MYSQL_TYPE_LONGLONG.value {
-									if let str = String(CString: val, encoding: NSUTF8StringEncoding), let nt = str.toInt() {
+							if type.type.rawValue == MYSQL_TYPE_TINY.rawValue
+								|| type.type.rawValue == MYSQL_TYPE_SHORT.rawValue
+								|| type.type.rawValue == MYSQL_TYPE_LONG.rawValue
+								|| type.type.rawValue == MYSQL_TYPE_INT24.rawValue
+								|| type.type.rawValue == MYSQL_TYPE_LONGLONG.rawValue {
+									if let str = String(CString: val, encoding: NSUTF8StringEncoding), let nt = Int(str) {
 										rowData!.append(QBEValue.IntValue(nt))
 									}
 									else {
@@ -235,7 +235,7 @@ class QBEMySQLDatabase {
 			}
 		}
 		
-		return QBEFallible(connection)
+		return .Success(connection)
 	}
 }
 
@@ -289,13 +289,13 @@ internal class QBEMySQLConnection {
 		switch resultFallible {
 			case .Success(let result):
 				var dbs: [String] = []
-				while let d = result.value.row() {
+				while let d = result.row() {
 					if let name = d[0].stringValue {
 						dbs.append(name)
 					}
 				}
 				
-				callback(QBEFallible(dbs))
+				callback(.Success(dbs))
 			
 			case .Failure(let error):
 				callback(.Failure(error))
@@ -307,12 +307,12 @@ internal class QBEMySQLConnection {
 		switch fallibleResult {
 			case .Success(let result):
 				var dbs: [String] = []
-				while let d = result.value.row() {
+				while let d = result.row() {
 					if let name = d[0].stringValue {
 						dbs.append(name)
 					}
 				}
-				callback(QBEFallible(dbs))
+				callback(.Success(dbs))
 			
 			case .Failure(let error):
 				callback(.Failure(error))
@@ -351,8 +351,7 @@ internal class QBEMySQLConnection {
 
 		if self.perform({return mysql_query(self.connection, sql.cStringUsingEncoding(NSUTF8StringEncoding)!)}) {
 			let result = QBEMySQLResult.create(mysql_use_result(self.connection), connection: self)
-			result.use({self.result = $0})
-			return result
+			return result.use({self.result = $0; return .Success($0)})
 		}
 		else {
 			return .Failure(self.lastError)
@@ -362,22 +361,22 @@ internal class QBEMySQLConnection {
 
 /** 
 Represents the result of a MySQL query as a QBEData object. */
-class QBEMySQLData: QBESQLData {
+final class QBEMySQLData: QBESQLData {
 	private let database: QBEMySQLDatabase
 	private let locale: QBELocale?
 	
-	static func create(#database: QBEMySQLDatabase, tableName: String, locale: QBELocale?) -> QBEFallible<QBEMySQLData> {
+	static func create(database database: QBEMySQLDatabase, tableName: String, locale: QBELocale?) -> QBEFallible<QBEMySQLData> {
 		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName)) LIMIT 1"
 		
 		let fallibleConnection = database.connect()
 		switch fallibleConnection {
 			case .Success(let connection):
-				let fallibleResult = connection.value.query(query)
+				let fallibleResult = connection.query(query)
 				
 				switch fallibleResult {
 					case .Success(let result):
-						result.value.finish() // We're not interested in that one row we just requested, just the column names
-						return QBEFallible(QBEMySQLData(database: database, table: tableName, columns: result.value.columnNames, locale: locale))
+						result.finish() // We're not interested in that one row we just requested, just the column names
+						return .Success(QBEMySQLData(database: database, table: tableName, columns: result.columnNames, locale: locale))
 					
 					case .Failure(let error):
 						return .Failure(error)
@@ -425,9 +424,9 @@ class QBEMySQLData: QBESQLData {
 /**
 QBEMySQLStream provides a stream of records from a MySQL result set. Because SQLite result can only be accessed once
 sequentially, cloning of this stream requires re-executing the query. */
-private class QBEMySQLResultStream: QBESequenceStream {
+private final class QBEMySQLResultStream: QBESequenceStream {
 	init(result: QBEMySQLResult) {
-		super.init(SequenceOf<QBETuple>(result), columnNames: result.columnNames)
+		super.init(AnySequence<QBETuple>(result), columnNames: result.columnNames)
 	}
 	
 	override func clone() -> QBEStream {
@@ -437,7 +436,7 @@ private class QBEMySQLResultStream: QBESequenceStream {
 
 /** 
 Stream that lazily queries and streams results from a MySQL query. */
-class QBEMySQLStream: QBEStream {
+final class QBEMySQLStream: QBEStream {
 	private var resultStream: QBEStream?
 	private let data: QBEMySQLData
 	
@@ -449,7 +448,7 @@ class QBEMySQLStream: QBEStream {
 		if resultStream == nil {
 			switch data.result() {
 				case .Success(let result):
-					resultStream = QBEMySQLResultStream(result: result.value)
+					resultStream = QBEMySQLResultStream(result: result)
 				
 				case .Failure(let error):
 					resultStream = QBEErrorStream(error)

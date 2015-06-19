@@ -25,7 +25,7 @@ import Cocoa
 	
 	private func setup() {
 		self.addToolTipRect(frame, owner: self, userData: nil)
-		self.addTrackingArea(NSTrackingArea(rect: frame, options: NSTrackingAreaOptions.MouseEnteredAndExited | NSTrackingAreaOptions.ActiveInActiveApp, owner: self, userInfo: nil))
+		self.addTrackingArea(NSTrackingArea(rect: frame, options: [NSTrackingAreaOptions.MouseEnteredAndExited, NSTrackingAreaOptions.ActiveInActiveApp], owner: self, userInfo: nil))
 	}
 	
 	override func mouseEntered(theEvent: NSEvent) {

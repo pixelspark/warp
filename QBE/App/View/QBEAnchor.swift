@@ -42,7 +42,7 @@ internal enum QBEAnchor {
 	}
 	
 	/** Calculate the location of the bend points of a flowchart arrow between two rectangles, starting and ending at the
-		specified anchor. **/
+		specified anchor. */
 	static func bendpointsBetween(from: CGRect, fromAnchor: QBEAnchor, to: CGRect, toAnchor: QBEAnchor) -> [CGPoint] {
 		let sourcePoint = fromAnchor.pointInBounds(from, inset: 0.0)
 		let targetPoint = toAnchor.pointInBounds(to, inset: 0.0)
@@ -66,7 +66,7 @@ internal enum QBEAnchor {
 	}
 	
 	/** Determines the anchors that should be used for drawing a flowchart arrow between two rectangles. Returns a tuple
-		of the (sourceAnchor, targetAnchor). **/
+		of the (sourceAnchor, targetAnchor). */
 	static func anchorsForArrow(from: CGRect, to: CGRect) -> (QBEAnchor, QBEAnchor) {
 		let fromXStart = from.origin.x
 		let fromXEnd = from.origin.x + from.size.width
@@ -143,9 +143,6 @@ internal enum QBEAnchor {
 		case .SouthWest: return CGRectMake(rect.origin.x + horizontal, rect.origin.y + vertical, rect.size.width - horizontal, rect.size.height - vertical)
 			
 		case .None: return CGRectMake(rect.origin.x + horizontal, rect.origin.y + vertical, rect.size.width, rect.size.height)
-			
-		default:
-			return rect
 		}
 	}
 	

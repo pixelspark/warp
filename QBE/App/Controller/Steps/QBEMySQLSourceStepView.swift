@@ -56,8 +56,8 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 				changed = true
 			}
 			
-			if let u = self.portField?.stringValue where u.toInt() != s.port {
-				s.port = u.toInt()
+			if let u = self.portField?.stringValue where Int(u) != s.port {
+				s.port = Int(u)
 				changed = true
 			}
 			
@@ -96,27 +96,29 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 			job.async {
 				if let database = s.database {
 					let dbFallible = database.connect()
-					dbFallible.use { (db) in
-						// Update list of databases
-						db.databases { (dbs) -> () in
-							dbs.use { (databaseNames) -> () in
-								QBEAsyncMain {
-									self.databaseNames = databaseNames
-									self.databaseField?.reloadData()
-								}
-								
-								db.tables {(ts) -> () in
-									ts.use { (tableNames) -> () in
-										QBEAsyncMain {
-											self.tableNames = tableNames
-											self.tableView?.reloadData()
-											
-											// Select current table
-											if self.tableNames != nil {
-												let currentTable = s.tableName
-												for i in 0..<self.tableNames!.count {
-													if self.tableNames![i]==currentTable {
-														self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
+					switch dbFallible {
+						case .Success(let db):
+							// Update list of databases
+							db.databases { (dbs) -> () in
+								dbs.use { (databaseNames) -> () in
+									QBEAsyncMain {
+										self.databaseNames = databaseNames
+										self.databaseField?.reloadData()
+									}
+									
+									db.tables {(ts) -> () in
+										ts.use { (tableNames) -> () in
+											QBEAsyncMain {
+												self.tableNames = tableNames
+												self.tableView?.reloadData()
+												
+												// Select current table
+												if self.tableNames != nil {
+													let currentTable = s.tableName
+													for i in 0..<self.tableNames!.count {
+														if self.tableNames![i]==currentTable {
+															self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
+														}
 													}
 												}
 											}
@@ -124,7 +126,9 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 									}
 								}
 							}
-						}
+
+						case .Failure(_):
+							break;
 					}
 				}
 			}

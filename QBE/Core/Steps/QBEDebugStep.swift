@@ -47,7 +47,7 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		switch type {
 			case .None:
-				callback(QBEFallible(data))
+				callback(.Success(data))
 			
 			case .Rasterize:
 				data.raster(job, callback: { (raster) -> () in
@@ -59,7 +59,7 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 				completion callback. Under normal circumstances the object will not keep references to itself 
 				and would be released automatically without this trick, because we don't store it. */
 				var x: QBESQLiteCachedData? = nil
-				x = QBESQLiteCachedData(source: data, job: job, completion: {(_) in callback(QBEFallible(x!))})
+				x = QBESQLiteCachedData(source: data, job: job, completion: {(_) in callback(.Success(x!))})
 			}
 	}
 }

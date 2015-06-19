@@ -3,7 +3,7 @@
 
 #import "CHCSVParser.h"
 #import "TCMXMLWriter.h"
-#import <MBTableGrid/MBTableGrid.h>
+#import "MBTableGrid.h"
 #import <MBTableGrid/MBTableGridHeaderView.h>
 #import <MBTableGrid/MBTableGridFooterView.h>
 #import <MBTableGrid/MBTableGridCell.h>
@@ -17,6 +17,8 @@
 /** This function registers the SQLite user-defined functions (UDF) for mathematical operations, as implemented in
  extension-functions.c. It needs to be defined here so it can be called from Swift. **/
 int RegisterExtensionFunctions(sqlite3 *db);
+
+sqlite3_destructor_type sqlite3_transient_destructor;
 
 /** These functions allow for the creation of Swift user-defined functions in SQLite. The functions are implemented in
 QBEObjectiveCBridge.m. **/

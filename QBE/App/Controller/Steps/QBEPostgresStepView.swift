@@ -56,8 +56,8 @@ internal class QBEPostgresStepView: NSViewController, NSTableViewDataSource, NST
 				changed = true
 			}
 			
-			if let u = self.portField?.stringValue where u.toInt() != s.port {
-				s.port = u.toInt()
+			if let u = self.portField?.stringValue where Int(u) != s.port {
+				s.port = Int(u)
 				changed = true
 			}
 			

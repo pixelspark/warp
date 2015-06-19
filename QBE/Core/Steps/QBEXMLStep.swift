@@ -1,14 +1,15 @@
 import Foundation
 
-class QBEXMLWriter: QBEFileWriter, NSStreamDelegate {
+class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 	let title: String?
+	let locale: QBELocale
 	
 	required init(locale: QBELocale, title: String? = nil) {
 		self.title = title
-		super.init(locale: locale, title: title)
+		self.locale = locale
 	}
 	
-	override func writeData(data: QBEData, toFile file: NSURL, job: QBEJob, callback: () -> ()) {
+	func writeData(data: QBEData, toFile file: NSURL, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
 		let stream = data.stream()
 		
 		if let writer = TCMXMLWriter(options: UInt(TCMXMLWriterOptionPrettyPrinted), fileURL: file) {
@@ -43,18 +44,18 @@ class QBEXMLWriter: QBEFileWriter, NSStreamDelegate {
 							
 							// Write first row with column names
 							writer.tag("row") {
-								for cn in cns.value {
+								for cn in cns {
 									writer.tag("cell", contentText: cn.name)
 								}
 							}
 							
 							// Fetch rows in batches and write rows to XML
 							var sink: QBESink? = nil
-							sink = {[unowned self] (rows: QBEFallible<ArraySlice<QBETuple>>, hasMore: Bool) -> () in
+							sink = { (rows: QBEFallible<ArraySlice<QBETuple>>, hasMore: Bool) -> () in
 								switch rows {
 								case .Success(let rs):
 									// Write rows
-									for row in rs.value {
+									for row in rs {
 										writer.tag("row") {
 											for cell in row {
 												writer.tag("cell", contentText: cell.stringValue)
@@ -67,20 +68,18 @@ class QBEXMLWriter: QBEFileWriter, NSStreamDelegate {
 									}
 									else {
 										writer.closeLastTag()
-										callback()
+										callback(.Success())
 									}
 									
-								case .Failure(_):
-									// TODO forward error through callback
-									callback()
+								case .Failure(let e):
+									callback(.Failure(e))
 								}
 							}
 							
 							stream.fetch(job, consumer: sink!)
 							
-						case .Failure(_):
-							// TODO: forward error to callback
-							callback()
+						case .Failure(let e):
+							callback(.Failure(e))
 					}
 				}
 			}

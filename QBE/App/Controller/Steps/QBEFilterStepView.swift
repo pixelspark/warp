@@ -27,17 +27,17 @@ class QBEFilterStepView: NSViewController {
 	internal override func viewWillAppear() {
 		super.viewWillAppear()
 		if let s = step {
-			self.formulaField?.stringValue = "=" + (s.condition?.toFormula(self.delegate?.locale ?? QBELocale()) ?? "")
+			self.formulaField?.stringValue = (s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? "")
 		}
 	}
 	
 	@IBAction func update(sender: NSObject) {
 		if let s = step {
-			let oldFormula = "=" + (s.condition?.toFormula(self.delegate?.locale ?? QBELocale()) ?? "");
+			let oldFormula = s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? ""
 			if let f = self.formulaField?.stringValue {
 				if f != oldFormula {
 					if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale()))?.root {
-						self.formulaField?.stringValue = "="+parsed.toFormula(self.delegate?.locale ?? QBELocale())
+						self.formulaField?.stringValue = parsed.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
 						s.condition = parsed
 					}
 					else {

@@ -5,14 +5,14 @@ private class QBEPrestoSQLDialect: QBEStandardSQLDialect {
 	override func unaryToSQL(type: QBEFunction, var args: [String]) -> String? {
 		switch type {
 		case .Concat:
-			/** Presto doesn't support CONCAT'ing more than two arguments. Therefore, we need to nest them. **/
+			/** Presto doesn't support CONCAT'ing more than two arguments. Therefore, we need to nest them. */
 			if args.count == 1 {
 				return args.first!
 			}
 			if args.count > 1 {
 				var sql = args.last
 				args.removeLast()
-				for a in reverse(args) {
+				for a in Array(args.reverse()) {
 					sql = "CONCAT(\(a), \(sql))"
 				}
 				return sql
@@ -63,7 +63,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 		self.columnsFuture = QBEFuture<QBEFallible<[QBEColumn]>>(c)
 	}
 	
-	/** Request the next batch of result data from Presto. **/
+	/** Request the next batch of result data from Presto. */
 	private func request(job: QBEJob, callback: () -> ()) {
 		if stopped {
 			callback()
@@ -93,7 +93,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 			}
 			
 			job.log("Presto requesting \(endpoint)")
-			Alamofire.request(request).responseJSON(options: NSJSONReadingOptions.allZeros, completionHandler: { (request, response, data, error) -> Void in
+			Alamofire.request(request).responseJSON(options: NSJSONReadingOptions(), completionHandler: { (request, response, data, error) -> Void in
 				if let res = response {
 					// Status code 503 means that we should wait a bit
 					if res.statusCode == 503 {
@@ -149,7 +149,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 										}
 									}
 								}
-								self.columns = QBEFallible(newColumns)
+								self.columns = .Success(newColumns)
 							}
 						}
 							
@@ -166,7 +166,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 											else if let value = cell as? String {
 												templateRow.append(QBEValue(value))
 											}
-											else if let value = cell as? NSNull {
+											else if cell is NSNull {
 												templateRow.append(QBEValue.EmptyValue)
 											}
 											else {
@@ -212,7 +212,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 		request(job) {
 			let rows = self.buffer
 			self.buffer.removeAll(keepCapacity: true)
-			consumer(QBEFallible(ArraySlice(rows)), !self.stopped)
+			consumer(.Success(ArraySlice(rows)), !self.stopped)
 		}
 	}
 	
@@ -340,7 +340,7 @@ class QBEPrestoSourceStep: QBEStep {
 	func catalogNames(job: QBEJob, callback: (QBEFallible<Set<String>>) -> ()) {
 		if let d = db {
 			QBEStreamData(source: d.query("SHOW CATALOGS")).unique(QBESiblingExpression(columnName: QBEColumn("Catalog")), job: job) { (catalogNamesFallible) -> () in
-				callback(catalogNamesFallible.use({(tn) -> (Set<String>) in return Set(map(tn, {return $0.stringValue ?? ""})) }))
+				callback(catalogNamesFallible.use({(tn) -> (Set<String>) in return Set(tn.map({return $0.stringValue ?? ""})) }))
 			}
 		}
 		else {
@@ -351,7 +351,7 @@ class QBEPrestoSourceStep: QBEStep {
 	func schemaNames(job: QBEJob, callback: (QBEFallible<Set<String>>) -> ()) {
 		if let stream = db?.query("SHOW SCHEMAS") {
 			QBEStreamData(source: stream).unique(QBESiblingExpression(columnName: QBEColumn("Schema")), job: job, callback: { (schemaNamesFallible) -> () in
-				callback(schemaNamesFallible.use({(sn) in Set(map(sn, {return $0.stringValue ?? ""})) }))
+				callback(schemaNamesFallible.use({(sn) in Set(sn.map({return $0.stringValue ?? ""})) }))
 			})
 		}
 	}
@@ -359,7 +359,7 @@ class QBEPrestoSourceStep: QBEStep {
 	func tableNames(job: QBEJob, callback: (QBEFallible<Set<String>>) -> ()) {
 		if let stream = db?.query("SHOW TABLES") {
 			QBEStreamData(source: stream).unique(QBESiblingExpression(columnName: QBEColumn("Table")), job: job, callback: { (tableNamesFallible) -> () in
-				callback(tableNamesFallible.use({(tn) in Set(map(tn, {return $0.stringValue ?? ""})) }))
+				callback(tableNamesFallible.use({(tn) in Set(tn.map({return $0.stringValue ?? ""})) }))
 			})
 		}
 	}

@@ -54,7 +54,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 					h.fullData(job) { (rightData) -> () in
 						switch rightData {
 							case .Success(let rd):
-								if let j = self.join(rd.value) {
+								if let j = self.join(rd) {
 									callback(leftData.use({$0.join(j)}))
 								}
 								else {
@@ -85,8 +85,8 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 							h.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightData) -> () in
 								switch rightData {
 									case .Success(let rd):
-										if let j = self.join(rd.value) {
-											callback(QBEFallible(ld.value.join(j)))
+										if let j = self.join(rd) {
+											callback(.Success(ld.join(j)))
 										}
 										else {
 											callback(.Failure(NSLocalizedString("Not all information was available to perform the join.", comment: "")))
@@ -155,7 +155,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 					h.fullData(job) { (rightData) -> () in
 						switch rightData {
 							case .Success(let rd):
-								callback(leftData.use {$0.union(rd.value)})
+								callback(leftData.use {$0.union(rd)})
 								
 							case .Failure(_):
 								callback(rightData)
@@ -181,7 +181,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 						h.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightData) -> () in
 							switch rightData {
 								case .Success(let rd):
-									callback(QBEFallible(ld.value.union(rd.value)))
+									callback(.Success(ld.union(rd)))
 									
 								case .Failure(_):
 									callback(rightData)

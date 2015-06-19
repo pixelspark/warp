@@ -18,11 +18,11 @@ struct QBERow {
 	}
 	
 	func indexOfColumnWithName(name: QBEColumn) -> Int? {
-		return find(columnNames, name)
+		return columnNames.indexOf(name)
 	}
 	
 	subscript(column: QBEColumn) -> QBEValue? {
-		if let i = find(columnNames, column) {
+		if let i = columnNames.indexOf(column) {
 			return values[i]
 		}
 		return nil
@@ -31,8 +31,8 @@ struct QBERow {
 
 /** QBEColumn represents a column (identifier) in a QBEData dataset. Column names in QBEData are case-insensitive when
 compared, but do retain case. There cannot be two or more columns in a QBEData dataset that are equal to each other when
-compared case-insensitively. **/
-struct QBEColumn: StringLiteralConvertible, Hashable, DebugPrintable {
+compared case-insensitively. */
+struct QBEColumn: StringLiteralConvertible, Hashable, CustomDebugStringConvertible {
 	typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
 	typealias UnicodeScalarLiteralType = StringLiteralType
 	
@@ -62,12 +62,12 @@ struct QBEColumn: StringLiteralConvertible, Hashable, DebugPrintable {
 		return "QBEColumn(\(name))"
 	} }
 	
-	/** Return Excel-style column name for column at a given index (starting at 0). **/
+	/** Return Excel-style column name for column at a given index (starting at 0). */
 	static func defaultColumnForIndex(var index: Int) -> QBEColumn {
 		let x = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
 		var str: String = ""
 		
-		do {
+		repeat {
 			let i = ((index) % 26)
 			str = x[i] + str
 			index -= i
@@ -78,7 +78,7 @@ struct QBEColumn: StringLiteralConvertible, Hashable, DebugPrintable {
 	
 	func newName(accept: (QBEColumn) -> Bool) -> QBEColumn {
 		var i = 0
-		do {
+		repeat {
 			let newName = QBEColumn("\(self.name)_\(QBEColumn.defaultColumnForIndex(i).name)")
 			let accepted = accept(newName)
 			if accepted {
@@ -89,7 +89,7 @@ struct QBEColumn: StringLiteralConvertible, Hashable, DebugPrintable {
 	}
 }
 
-/** Column names retain case, but they are compared case-insensitively **/
+/** Column names retain case, but they are compared case-insensitively */
 func == (lhs: QBEColumn, rhs: QBEColumn) -> Bool {
 	return lhs.name.caseInsensitiveCompare(rhs.name) == NSComparisonResult.OrderedSame
 }
@@ -98,7 +98,7 @@ func != (lhs: QBEColumn, rhs: QBEColumn) -> Bool {
 	return !(lhs == rhs)
 }
 
-/** This helper function can be used to create a lazily-computed variable. **/
+/** This helper function can be used to create a lazily-computed variable. */
 func memoize<T>(result: () -> T) -> () -> T {
 	var cached: T? = nil
 	
@@ -113,7 +113,7 @@ func memoize<T>(result: () -> T) -> () -> T {
 	}
 }
 
-/** Specification of a sort **/
+/** Specification of a sort */
 class QBEOrder: NSObject, NSCoding {
 	var expression: QBEExpression?
 	var ascending: Bool = true
@@ -125,7 +125,7 @@ class QBEOrder: NSObject, NSCoding {
 		self.numeric = numeric
 	}
 	
-	required init(coder aDecoder: NSCoder) {
+	required init?(coder aDecoder: NSCoder) {
 		self.expression = (aDecoder.decodeObjectForKey("expression") as? QBEExpression) ?? nil
 		self.ascending = aDecoder.decodeBoolForKey("ascending")
 		self.numeric = aDecoder.decodeBoolForKey("numeric")
@@ -141,7 +141,7 @@ class QBEOrder: NSObject, NSCoding {
 /** Specification of an aggregation. The map expression generates values (it is called for each item and included in the
 set if it is non-empty). The reduce function receives the mapped items as arguments and reduces them to a single value.
 Note that the reduce function can be called multiple times with different sets (e.g. reduce(reduce(a,b), reduce(c,d)) 
-should be equal to reduce(a,b,c,d). **/
+should be equal to reduce(a,b,c,d). */
 class QBEAggregation: NSObject, NSCoding {
 	var map: QBEExpression
 	var reduce: QBEFunction
@@ -153,7 +153,7 @@ class QBEAggregation: NSObject, NSCoding {
 		self.targetColumnName = targetColumnName
 	}
 	
-	required init(coder: NSCoder) {
+	required init?(coder: NSCoder) {
 		targetColumnName = QBEColumn((coder.decodeObjectForKey("targetColumnName") as? String) ?? "")
 		map = (coder.decodeObjectForKey("map") as? QBEExpression) ?? QBEIdentityExpression()
 		if let rawReduce = coder.decodeObjectForKey("reduce") as? String {
@@ -172,8 +172,7 @@ class QBEAggregation: NSObject, NSCoding {
 }
 
 enum QBEJoin {
-	/** 
-	In a left join, rows of the 'left'  table match with a row in the 'right' table if the join condition returns
+	/** In a left join, rows of the 'left'  table match with a row in the 'right' table if the join condition returns
 	true. The result set will contain all columns from the left table, and all columns in the right table that do not
 	appear in the left table. The following rules determine which rows appear in the result set:
 	
@@ -187,20 +186,17 @@ enum QBEJoin {
 	case LeftJoin(QBEData, QBEExpression)
 }
 
-/** 
-QBEData represents a data set. A data set consists of a set of column names (QBEColumn) and rows that each have a
+/** QBEData represents a data set. A data set consists of a set of column names (QBEColumn) and rows that each have a
 value for all columns in the data set. Values are represented as QBEValue. QBEData supports various data manipulation
 operations. The exact semantics of the operations are described here, but QBEData does not implement the operations. 
 Internally, QBEData may be represented as a two-dimensional array of QBEValue, which may or may not include the column
-names ('column header row'). Data manipulations do not operate on the column header row unless explicitly stated otherwise.
-*/
+names ('column header row'). Data manipulations do not operate on the column header row unless explicitly stated otherwise. */
 protocol QBEData {
 	/** Transpose the data set, e.g. columns become rows and vice versa. In the full raster (including column names), a
-	cell at [x][y] will end up at position [y][x]. **/
+	cell at [x][y] will end up at position [y][x]. */
 	func transpose() -> QBEData
 	
-	/** 
-	For each row, compute the given expressions and put the result in the desired columns. If that column does not
+	/** For each row, compute the given expressions and put the result in the desired columns. If that column does not
 	yet exist in the data set, it is created and appended as last column. The order of existing columns remains intact.
 	If the column already exists, the column's values are overwritten by the results of the calculation. Note that in this
 	case the old value in the column is an input value to the formula (this value is QBEValue.EmptyValue in the case where
@@ -211,88 +207,73 @@ protocol QBEData {
 	happened. */
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData
 	
-	/** 
-	Limit the number of rows in the data set to the specified number of rows. The number of rows does not include
+	/** Limit the number of rows in the data set to the specified number of rows. The number of rows does not include
 	column headers. */
 	func limit(numberOfRows: Int) -> QBEData
 	
-	/** 
-	Skip the specified number of rows in the data set. The number of rows does not include column headers. The number
+	/** Skip the specified number of rows in the data set. The number of rows does not include column headers. The number
 	of rows cannot be negative (but can be zero, in which case offset is a no-op). */
 	func offset(numberOfRows: Int) -> QBEData
 	
-	/** 
-	Randomly select the indicated amount of rows from the source data set, using sampling without replacement. If the
+	/** Randomly select the indicated amount of rows from the source data set, using sampling without replacement. If the
 	number of rows specified is greater than the number of rows available in the set, the resulting data set will contain
 	all rows of the original data set. */
 	func random(numberOfRows: Int) -> QBEData
 	
-	/** 
-	Returns a dataset with only unique rows from the data set. */
+	/** Returns a dataset with only unique rows from the data set. */
 	func distinct() -> QBEData
 	
-	/** 
-	Selects only those rows from the data set for which the supplied expression evaluates to a value that equals
+	/** Selects only those rows from the data set for which the supplied expression evaluates to a value that equals
 	QBEValue.BoolValue(true). */
 	func filter(condition: QBEExpression) -> QBEData
 	
-	/** 
-	Returns a set of all unique result values in this data set for the given expression. */
+	/** Returns a set of all unique result values in this data set for the given expression. */
 	func unique(expression: QBEExpression, job: QBEJob, callback: (QBEFallible<Set<QBEValue>>) -> ())
 	
-	/**
-	Select only the columns from the data set that are in the array, in the order specified. If a column named in the
+	/** Select only the columns from the data set that are in the array, in the order specified. If a column named in the
 	array does not exist, it is ignored. */
 	func selectColumns(columns: [QBEColumn]) -> QBEData
 	
-	/** 
-	Aggregate data in this set. The 'groups' parameter defines different aggregation 'buckets'. Items are mapped in
+	/** Aggregate data in this set. The 'groups' parameter defines different aggregation 'buckets'. Items are mapped in
 	into each bucket. Subsequently, the aggregations specified in the 'values' parameter are run on each bucket 
 	separately. The resulting data set starts with the group identifier columns, followed by the aggregation results. */
 	func aggregate(groups: [QBEColumn: QBEExpression], values: [QBEColumn: QBEAggregation]) -> QBEData
 	
 	func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData
 	
-	/** Request streaming of the data contained in this dataset to the specified callback. **/
+	/** Request streaming of the data contained in this dataset to the specified callback. */
 	func stream() -> QBEStream
 	
-	/** 
-	Flattens a data set. For each cell in the source data set, a row is generated that contains the following columns
+	/** Flattens a data set. For each cell in the source data set, a row is generated that contains the following columns
 	(in the following order):
 	- A column containing the original column's name (if columnNameTo is non-nil)
-	- A column containing the result of applying the rowIdentifier expression on the original row (if rowIdentifier is 
+	- A column containing the result of applying the rowIdentifier expression on the original row (if rowIdentifier is
 	  non-nil AND the to parameter is non-nil)
 	- The original cell value */
 	func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData
 	
-	/** 
-	Returns an in-memory representation (QBERaster) of the data set. */
+	/** Returns an in-memory representation (QBERaster) of the data set. */
 	func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ())
 	
-	/** 
-	Returns the names of the columns in the data set. The list of column names is ordered. */
+	/** Returns the names of the columns in the data set. The list of column names is ordered. */
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ())
 	
-	/** 
-	Sort the dataset in the indicates ways. The sorts are applied in-order, e.g. the dataset is sorted by the first
+	/** Sort the dataset in the indicates ways. The sorts are applied in-order, e.g. the dataset is sorted by the first
 	order specified, in case of ties by the second, et cetera. If there are ties and there is no further order to sort by,
 	ordering is unspecified. If no orders are specified, sort is a no-op. */
 	func sort(by: [QBEOrder]) -> QBEData
 	
-	/** 
-	Perform the specified join operation on this data set and return the resulting data. */
+	/** Perform the specified join operation on this data set and return the resulting data. */
 	func join(join: QBEJoin) -> QBEData
 	
-	/**
-	Combine all rows from the first data set with all rows from the second data set in no particular order. Duplicate
+	/**	Combine all rows from the first data set with all rows from the second data set in no particular order. Duplicate
 	rows are retained (i.e. this works like SQL's UNION ALL, not UNION). The resulting data set contains the union of
 	columns from both data sets (no duplicates). Rows have empty values inserted for values of columns not present in
 	the source data set. */
 	func union(data: QBEData) -> QBEData
 }
 
-/** 
-Utility class that allows for easy swapping of QBEData objects. This can for instance be used to swap-in a cached
+/** Utility class that allows for easy swapping of QBEData objects. This can for instance be used to swap-in a cached
 version of a particular data object. */
 class QBEProxyData: NSObject, QBEData {
 	var data: QBEData
@@ -329,7 +310,7 @@ optimizations (e.g. coalescing multiple data operations into a single SQL statem
 Technically, QBECoalescedData represents a QBEData coupled with a data operation that is deferred (e.g.
 QBECoalescedData.Limiting(data, 10) means it should eventually be equivalent to the result of data.limit(10)). Operations
 on QBECoalescedData will either cause the deferred operation to be executed (before the new one is applied) or to combine
-the deferred operation with the newly applied operation.**/
+the deferred operation with the newly applied operation. */
 enum QBECoalescedData: QBEData {
 	case None(QBEData)
 	case Limiting(QBEData, Int)
@@ -346,7 +327,7 @@ enum QBECoalescedData: QBEData {
 		self = QBECoalescedData.None(data)
 	}
 	
-	/** Applies the deferred operation represented by this coalesced data object and returns the result. **/
+	/** Applies the deferred operation represented by this coalesced data object and returns the result. */
 	var data: QBEData { get {
 		switch self {
 			case .Limiting(let data, let numberOfRows):
@@ -381,7 +362,7 @@ enum QBECoalescedData: QBEData {
 		}
 	} }
 	
-	/** data.transpose().transpose() is equivalent to data. **/
+	/** data.transpose().transpose() is equivalent to data. */
 	func transpose() -> QBEData {
 		switch self {
 		case .Transposing(let data):
@@ -392,7 +373,7 @@ enum QBECoalescedData: QBEData {
 		}
 	}
 
-	/** No optimzations are currently done on joins. **/
+	/** No optimzations are currently done on joins. */
 	func join(join: QBEJoin) -> QBEData {
 		return QBECoalescedData.None(data.join(join))
 	}
@@ -400,8 +381,7 @@ enum QBECoalescedData: QBEData {
 	/** Combine calculations under the following circumstances:
 	- calculate(A: x).calculate(B: y) is equivalent to calculate(A: x, B: y) if y does not depend on A and A!=B
 	- calculate(A: x).calculate(A: y) is equivalent to calculate(A: y) if x is an identity expression (e.g. just returns
-	  the content A had before the calculation)
-	**/
+	  the content A had before the calculation) */
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
 		var newCalculations = OrderedDictionary<QBEColumn, QBEExpression>()
 		
@@ -435,14 +415,14 @@ enum QBECoalescedData: QBEData {
 			if let se = newCalculations[targetColumn] as? QBESiblingExpression where se.columnName == targetColumn {
 				// The old calculation is just an identity one, it can safely be overwritten
 			}
-			else if let se = newCalculations[targetColumn] as? QBEIdentityExpression {
+			else if newCalculations[targetColumn] is QBEIdentityExpression {
 				// The old calculation is just an identity one, it can safely be overwritten
 			}
 			else {
 				// Iterate over all column dependencies of the new expression
 				expression.visit({ (subexpression) -> () in
 					if let se = subexpression as? QBESiblingExpression {
-						if let existing = newCalculations[se.columnName] {
+						if newCalculations[se.columnName] != nil {
 							dependsOnCurrent = true
 						}
 					}
@@ -473,7 +453,7 @@ enum QBECoalescedData: QBEData {
 		return result
 	}
 	
-	/** data.limit(x).limit(y) is equivalent to data.limit(min(x,y)) **/
+	/** data.limit(x).limit(y) is equivalent to data.limit(min(x,y)) */
 	func limit(numberOfRows: Int) -> QBEData {
 		switch self {
 			case .Limiting(let data, let nr):
@@ -489,10 +469,10 @@ enum QBECoalescedData: QBEData {
 	}
 	
 	/** data.distinct().distinct() is equivalent to data.distinct() (after the first distinct(), there are only distinct
-	rows left). **/
+	rows left). */
 	func distinct() -> QBEData {
 		switch self {
-			case .Distincting(let data):
+			case .Distincting(_):
 				return self
 			
 			default:
@@ -503,8 +483,7 @@ enum QBECoalescedData: QBEData {
 	/** This function relies on the following axioms:
 		- data.filter(a).filter(b) is equivalent to data.filter(QBEFunctionExpression(a,b,QBEFunction.And)) 
 		- data.filter(e) is equivalent to an empty data set if e is a constant expression evaluating to false
-		- data.filter(e) is equivalent to data if e is a constant expression evaluating to true
-	**/
+		- data.filter(e) is equivalent to data if e is a constant expression evaluating to true */
 	func filter(condition: QBEExpression) -> QBEData {
 		let prepared = condition.prepare()
 		if prepared.isConstant {
@@ -536,8 +515,8 @@ enum QBECoalescedData: QBEData {
 		- data.selectColumns(a).selectColumns(b) is equivalent to data.selectColumns(c), where c is b without any columns
 		  that are not contained in a (selectColumns is specified to ignore any column names that do not exist).
 		- data.selectColumns(a) is equivalent to an empty data set if a is empty
-		- data.calculate().selectColumns() can be combined: calculations that result into columns that are not selected are not included
-	**/
+		- data.calculate().selectColumns() can be combined: calculations that result into columns that are not selected 
+		  are not included */
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
 		if columns.count == 0 {
 			return QBERasterData()
@@ -599,7 +578,7 @@ enum QBECoalescedData: QBEData {
 		return QBECoalescedData.None(self.data.union(data))
 	}
 	
-	/** data.offset(x).offset(y) is equivalent to data.offset(x+y).**/
+	/** data.offset(x).offset(y) is equivalent to data.offset(x+y).*/
 	func offset(numberOfRows: Int) -> QBEData {
 		assert(numberOfRows > 0)
 		
@@ -613,7 +592,7 @@ enum QBECoalescedData: QBEData {
 	}
 	
 	/** - data.sort([a,b]).sort([c,d]) is equivalent to data.sort([c,d, a,b]) 
-		- data.sort([]) is equivalent to data. **/
+		- data.sort([]) is equivalent to data. */
 	func sort(orders: [QBEOrder]) -> QBEData {
 		if orders.count == 0 {
 			return self

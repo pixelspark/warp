@@ -32,7 +32,7 @@ class QBEFlattenStepView: NSViewController {
 		super.viewWillAppear()
 		if let s = step {
 			if let ri = s.rowIdentifier {
-				self.rowIdentifierField?.stringValue = "=" + (ri.toFormula(self.delegate?.locale ?? QBELocale()) ?? "")
+				self.rowIdentifierField?.stringValue = (ri.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? "")
 			}
 			else {
 				self.rowIdentifierField?.stringValue = ""
@@ -68,11 +68,11 @@ class QBEFlattenStepView: NSViewController {
 				}
 			}
 			
-			let oldFormula = "=" + (s.rowIdentifier?.toFormula(self.delegate?.locale ?? QBELocale()) ?? "");
+			let oldFormula = (s.rowIdentifier?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)) ?? ""
 			if let f = self.rowIdentifierField?.stringValue {
 				if f != oldFormula {
 					if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale()))?.root {
-						self.rowIdentifierField?.stringValue = "="+parsed.toFormula(self.delegate?.locale ?? QBELocale())
+						self.rowIdentifierField?.stringValue = parsed.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
 						s.rowIdentifier = parsed
 					}
 					else {

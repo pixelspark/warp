@@ -17,7 +17,7 @@ protocol QBEChainDependent: NSObjectProtocol {
 	var dependencies: Set<QBEDependency> { get }
 }
 
-/** QBEChain represents a chain of steps, leading to a result data set. **/
+/** QBEChain represents a chain of steps, leading to a result data set. */
 class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 	static let dragType = "nl.pixelspark.Warp.Chain"
 	
@@ -28,7 +28,7 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 		self.head = head
 	}
 	
-	required init(coder aDecoder: NSCoder) {
+	required init?(coder aDecoder: NSCoder) {
 		head = aDecoder.decodeObjectOfClass(QBEStep.self, forKey: "head") as? QBEStep
 	}
 	
@@ -65,7 +65,7 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 			current = current!.previous
 		}
 		
-		return s.reverse()
+		return Array(s.reverse())
 	} }
 	
 	func insertStep(step: QBEStep, afterStep: QBEStep?) {
@@ -93,12 +93,12 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 	
 	/** This method is called right before a document is saved to disk using encodeWithCoder. Steps that reference
 	external files should take the opportunity to create security bookmarks to these files (as required by Apple's
-	App Sandbox) and store them. **/
+	App Sandbox) and store them. */
 	func willSaveToDocument(atURL: NSURL) {
 		self.steps.each({$0.willSaveToDocument(atURL)})
 	}
 	
-	/** This method is called right after a document has been loaded from disk. **/
+	/** This method is called right after a document has been loaded from disk. */
 	func didLoadFromDocument(atURL: NSURL) {
 		self.steps.each({$0.didLoadFromDocument(atURL)})
 	}

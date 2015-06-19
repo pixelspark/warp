@@ -110,7 +110,7 @@ internal class QBEPivotStepView: NSViewController, NSTableViewDelegate, NSTableV
 	
 	internal func tableView(tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableViewDropOperation) -> NSDragOperation {
 		let pboard = info.draggingPasteboard()
-		if let data = pboard.dataForType(dragType) {
+		if pboard.dataForType(dragType) != nil {
 			// Dragging from self is disallowed
 			if info.draggingSource() as? NSTableView == tableView {
 				return NSDragOperation.None

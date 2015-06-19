@@ -74,12 +74,13 @@ class QBEFactory {
 	} }
 	
 	func stepForReadingFile(atURL: NSURL) -> QBEStep? {
-		var error: NSError?
-		if let type = NSWorkspace.sharedWorkspace().typeOfFile(atURL.path!, error: &error) {
+		do {
+			let type = try NSWorkspace.sharedWorkspace().typeOfFile(atURL.path!)
 			if let creator = fileReaders[type] {
 				return creator(url: atURL)
 			}
 		}
+		catch { }
 		return nil
 	}
 	

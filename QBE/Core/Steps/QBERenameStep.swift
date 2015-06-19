@@ -45,7 +45,7 @@ class QBERenameStep: QBEStep {
 	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		// If we have nothing to rename, bypass this step
 		if self.renames.count == 0 {
-			callback(QBEFallible(data))
+			callback(.Success(data))
 			return
 		}
 		

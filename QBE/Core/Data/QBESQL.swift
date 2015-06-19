@@ -33,51 +33,51 @@ implementations provided by QBERaster/QBEStream. There are two problems associat
 
 - The DBMS may use a different locale than the application. Care is taken not to rely too much on locale-dependent parts.
 
-Even with the measures above in place, there may still be differences between our reference implementation and SQL. **/
+Even with the measures above in place, there may still be differences between our reference implementation and SQL. */
 
 /** Classes that implement QBESQLDialect provide SQL generating classes with tools to build SQL queries in a particular
 dialect. The standard dialect (implemented in QBEStandardSQLDialect) sticks as closely to the SQL92 standard (to implement
-a particular dialect, the standard dialect should be subclassed and should only implement the exceptions). **/
+a particular dialect, the standard dialect should be subclassed and should only implement the exceptions). */
 protocol QBESQLDialect {
-	/** The string that starts and ends a string literal. **/
+	/** The string that starts and ends a string literal. */
 	var stringQualifier: String { get }
 	
-	/** The escape character used inside string literals to escape special characters. Usually '\' **/
+	/** The escape character used inside string literals to escape special characters. Usually '\' */
 	var stringEscape: String { get }
 	
 	/** The string that is used to escape occurrences of the string qualifier in a literal. All occurrences are replaced
-	with the escape qualifier before the string is inserted in SQL. **/
+	with the escape qualifier before the string is inserted in SQL. */
 	var stringQualifierEscape: String { get }
 	
-	/** The string that is used to start and end identifiers (e.g. table or column names) in SQL. **/
+	/** The string that is used to start and end identifiers (e.g. table or column names) in SQL. */
 	var identifierQualifier: String { get }
 	
-	/** The string that is used to escape the identifier qualifier in identifiers that contain it. **/
+	/** The string that is used to escape the identifier qualifier in identifiers that contain it. */
 	var identifierQualifierEscape: String { get }
 	
-	/** Returns a column identifier for the given QBEColumn. **/
+	/** Returns a column identifier for the given QBEColumn. */
 	func columnIdentifier(column: QBEColumn, table: String?) -> String
 	
-	/** Returns the identifier that represents all columns in the given table (e.g. "table.*" or just "*". **/
+	/** Returns the identifier that represents all columns in the given table (e.g. "table.*" or just "*". */
 	func allColumnsIdentifier(table: String?) -> String
 	
 	func tableIdentifier(table: String) -> String
 	
 	/** Transforms the given expression to a SQL string. The inputValue parameter determines the return value of the
-	QBEIdentitiyExpression. The function may return nil for expressions it cannot successfully transform to SQL. **/
+	QBEIdentitiyExpression. The function may return nil for expressions it cannot successfully transform to SQL. */
 	func expressionToSQL(formula: QBEExpression, alias: String, foreignAlias: String?, inputValue: String?) -> String?
 	
 	func unaryToSQL(type: QBEFunction, args: [String]) -> String?
 	func binaryToSQL(type: QBEBinary, first: String, second: String) -> String?
 	
 	/** Transforms the given aggregation to an aggregation description that can be incldued as part of a GROUP BY 
-	statement. The function may return nil for aggregations it cannot represent or transform to SQL. **/
+	statement. The function may return nil for aggregations it cannot represent or transform to SQL. */
 	func aggregationToSQL(aggregation: QBEAggregation, alias: String) -> String?
 	
-	/** Create an expression that forces the specified expression to a numeric type (DOUBLE or INT in SQL). **/
+	/** Create an expression that forces the specified expression to a numeric type (DOUBLE or INT in SQL). */
 	func forceNumericExpression(expression: String) -> String
 	
-	/** Create an expression that forces the specified expression to a string type (e.g. VARCHAR or TEXT in SQL). **/
+	/** Create an expression that forces the specified expression to a string type (e.g. VARCHAR or TEXT in SQL). */
 	func forceStringExpression(expression: String) -> String
 }
 
@@ -138,10 +138,10 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			return valueToSQL(result)
 		}
 		
-		if let f = formula as? QBELiteralExpression {
+		if formula is QBELiteralExpression {
 			fatalError("This code is unreachable since literals should always be constant")
 		}
-		else if let f = formula as? QBEIdentityExpression {
+		else if formula is QBEIdentityExpression {
 			return inputValue ?? "???"
 		}
 		else if let f = formula as? QBESiblingExpression {
@@ -203,7 +203,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	}
 
 	internal func unaryToSQL(type: QBEFunction, args: [String]) -> String? {
-		let value = args.implode(", ") ?? ""
+		let value = ", ".join(args)
 		switch type {
 			case .Identity: return value
 			case .Negate: return "-\(value)"
@@ -353,7 +353,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	}
 }
 
-/** Logical fragments in an SQL statement, in order of logical execution. **/
+/** Logical fragments in an SQL statement, in order of logical execution. */
 internal enum QBESQLFragmentType {
 	case From
 	case Join
@@ -392,7 +392,7 @@ in higher performance. Another issue is that indexes can often not be used to ac
 combining operations in a single query, they stay 'closer' to the original table, and the chance we can use an available
 index is higher.
 
-Note that QBESQLFragment is not concerned with filling in the actual fragments - that is the job of QBESQLData. **/
+Note that QBESQLFragment is not concerned with filling in the actual fragments - that is the job of QBESQLData. */
 internal class QBESQLFragment {
 	let type: QBESQLFragmentType
 	let sql: String
@@ -422,7 +422,7 @@ internal class QBESQLFragment {
 	  
 	let fragment = QBESQLFragment(table: "test", dialect: ...)
 	let newFragment = fragment.sqlOrder(dialect.columnIdentifier("col", table: fragment.aliasFor(.Order)) + " ASC")
-	**/
+	*/
 	func aliasFor(part: QBESQLFragmentType) -> String {
 		return advance(part, part: nil).alias
 	}
@@ -536,7 +536,7 @@ internal class QBESQLFragment {
 should return the data represented by this data set. This class needs to be subclassed to be able to actually fetch the
 data (a subclass implements the raster function to return the fetched data, preferably the stream function to return a
 stream of results, and the apply function, to make sure any operations on the data set return a data set of the same
-subclassed type). See QBESQLite for an implementation example. **/
+subclassed type). See QBESQLite for an implementation example. */
 class QBESQLData: NSObject, QBEData {
     internal let sql: QBESQLFragment
 	var columns: [QBEColumn]
@@ -561,7 +561,7 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
-		callback(QBEFallible(columns))
+		callback(.Success(columns))
 	}
 	
 	func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ()) {
@@ -570,7 +570,7 @@ class QBESQLData: NSObject, QBEData {
 		}
 	}
 	
-	/** Transposition is difficult in SQL, and therefore left to QBERasterData. **/
+	/** Transposition is difficult in SQL, and therefore left to QBERasterData. */
     func transpose() -> QBEData {
 		return fallback().transpose()
     }
@@ -624,7 +624,7 @@ class QBESQLData: NSObject, QBEData {
 				let leftColumns = self.columns
 				let rightColumns = rightSQL.columns.filter({!leftColumns.contains($0)})
 				if rightColumns.count > 0 {
-					let rightSelects = rightColumns.map({return self.sql.dialect.columnIdentifier($0, table: rightAlias) + " AS " + self.sql.dialect.columnIdentifier($0, table: nil)}).implode(", ")!
+					let rightSelects = rightColumns.map({return self.sql.dialect.columnIdentifier($0, table: rightAlias) + " AS " + self.sql.dialect.columnIdentifier($0, table: nil)}).implode(", ")
 					let selects = "\(sql.dialect.allColumnsIdentifier(leftAlias)), \(rightSelects)"
 					
 					// Generate a join expression
@@ -651,7 +651,6 @@ class QBESQLData: NSObject, QBEData {
 	
 	func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
 		var values: [String] = []
-		var targetFound = false
 		var newColumns = columns
 		
 		let sourceSQL = sql.asSubquery
@@ -686,10 +685,8 @@ class QBESQLData: NSObject, QBEData {
 			}
 		}
 		
-		if let valueString = values.implode(", ") {
-			return apply(sourceSQL.sqlSelect(valueString), resultingColumns: newColumns)
-		}
-		return QBERasterData()
+		let valueString = values.implode(", ")
+		return apply(sourceSQL.sqlSelect(valueString), resultingColumns: newColumns)
     }
 	
 	func sort(by: [QBEOrder]) -> QBEData {
@@ -718,10 +715,8 @@ class QBESQLData: NSObject, QBEData {
 			return fallback().sort(by)
 		}
 		
-		if let orderClause = sqlOrders.implode(", ") {
-			return apply(sql.sqlOrder(orderClause), resultingColumns: columns)
-		}
-		return self
+		let orderClause = sqlOrders.implode(", ")
+		return apply(sql.sqlOrder(orderClause), resultingColumns: columns)
 	}
 	
 	func distinct() -> QBEData {
@@ -758,7 +753,7 @@ class QBESQLData: NSObject, QBEData {
 			
 			data.raster(job) { (raster) -> () in
 				raster.use {(r) -> () in
-					callback(QBEFallible(Set<QBEValue>(r.raster.map({$0[0]}))))
+					callback(.Success(Set<QBEValue>(r.raster.map({$0[0]}))))
 				}
 			}
 		}
@@ -768,8 +763,7 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		let alias = self.sql.asSubquery.alias
-		let colNames = columns.map({self.sql.dialect.columnIdentifier($0, table: nil)}).implode(", ") ?? ""
+		let colNames = columns.map { self.sql.dialect.columnIdentifier($0, table: nil) }.implode(", ")
 		return apply(self.sql.sqlSelect(colNames), resultingColumns: columns)
 	}
 	
@@ -801,8 +795,9 @@ class QBESQLData: NSObject, QBEData {
 			}
 		}
 		
-		let selectString = select.implode(", ") ?? ""
-		if groupBy.count>0, let groupString = groupBy.implode(", ") {
+		let selectString = select.implode(", ")
+		if groupBy.count>0 {
+			let groupString = groupBy.implode(", ")
 			return apply(sql.sqlGroup(groupString).sqlSelect(selectString), resultingColumns: resultingColumns)
 		}
 		else {

@@ -37,7 +37,7 @@ class QBEFlowchartView: NSView {
 	}
 	
 	override func hitTest(aPoint: NSPoint) -> NSView? {
-		if let a = arrowAtPoint(convertPoint(aPoint, fromView: superview)) {
+		if let _ = arrowAtPoint(convertPoint(aPoint, fromView: superview)) {
 			return self
 		}
 		return super.hitTest(aPoint)
@@ -47,14 +47,14 @@ class QBEFlowchartView: NSView {
 	
 	@IBAction func delete(sender: NSObject) {
 		/// FIXME implement
-		println("Delete \(selectedArrow)")
+		Swift.print("Delete \(selectedArrow)")
 	}
 	
 	private func arrowAtPoint(point: CGPoint) -> QBEArrow? {
 		// Select an arrow?
 		for arrow in arrows {
 			let path = pathForArrow(arrow)
-			let strokedPath = CGPathCreateCopyByStrokingPath(path, nil, 16.0, kCGLineCapButt, kCGLineJoinMiter, 0.5)
+			let strokedPath = CGPathCreateCopyByStrokingPath(path, nil, 16.0, CGLineCap.Butt, CGLineJoin.Miter, 0.5)
 			if CGPathContainsPoint(strokedPath, nil, point, true) {
 				return arrow
 			}

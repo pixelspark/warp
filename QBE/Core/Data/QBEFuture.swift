@@ -3,7 +3,7 @@ import Foundation
 internal func QBELog(message: String, file: StaticString = __FILE__, line: UWord = __LINE__) {
 	#if DEBUG
 		dispatch_async(dispatch_get_main_queue()) {
-			println(message)
+			print(message)
 		}
 	#endif
 }
@@ -12,13 +12,13 @@ internal func QBEAssertMainThread(file: StaticString = __FILE__, line: UWord = _
 	assert(NSThread.isMainThread(), "Code at \(file):\(line) must run on main thread!")
 }
 
-/** Runs the given block of code asynchronously on the main queue. **/
+/** Runs the given block of code asynchronously on the main queue. */
 internal func QBEAsyncMain(block: () -> ()) {
 	dispatch_async(dispatch_get_main_queue(), block)
 }
 
 internal extension Array {
-	func parallel<T, ResultType>(#map: ((ArraySlice<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> QBEFuture<ResultType?> {
+	func parallel<T, ResultType>(map map: ((ArraySlice<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> QBEFuture<ResultType?> {
 		let chunkSize = QBEStreamDefaultBatchSize
 		
 		return QBEFuture<ResultType?>({ (job, completion) -> () in
@@ -81,60 +81,67 @@ enum QBEQoS {
 	}
 }
 
-/** 
-FIXME: QBEBox exists to prevent the "Unimplemented IR generation feature non-fixed multi-payload enum layout" error. */
-final class QBEBox<T> {
-	let value: T
-	
-	init(_ value: T) {
-		self.value = value
-	}
-}
+public typealias QBEError = String
 
-typealias QBEError = String
-
-/** 
-QBEFallible<T> represents the outcome of an operation that can either fail (with an error message) or succeed (returning an
-instance of T). */
-enum QBEFallible<T> {
-	case Success(QBEBox<T>)
+/** QBEFallible<T> represents the outcome of an operation that can either fail (with an error message) or succeed 
+(returning an instance of T). */
+public enum QBEFallible<T> {
+	case Success(T)
 	case Failure(QBEError)
 	
 	init<P>(_ other: QBEFallible<P>) {
 		switch other {
 			case .Success(let s):
-				self = .Success(QBEBox<T>(s.value as! T))
+				self = .Success(s as! T)
 			
 			case .Failure(let e):
 				self = .Failure(e)
 		}
 	}
 	
-	init(_ value: T) {
-		self = .Success(QBEBox<T>(value))
-	}
-	
-	/** 
-	If the result is successful, execute `block` on its return value, and return the (fallible) return value of that block
+	/** If the result is successful, execute `block` on its return value, and return the (fallible) return value of that block
 	(if any). Otherwise return a new, failed result with the error message of this result. This can be used to chain 
 	operations on fallible operations, propagating the error once an operation fails. */
+	@warn_unused_result(message="Deal with potential failure returned by .use, .require to force success or .maybe to ignore failure.")
 	func use<P>(@noescape block: T -> P) -> QBEFallible<P> {
 		switch self {
-			case Success(let box):
-				return .Success(QBEBox<P>(block(box.value)))
+			case Success(let value):
+				return .Success(block(value))
 			
 			case Failure(let errString):
 				return .Failure(errString)
 		}
 	}
 	
+	@warn_unused_result(message="Deal with potential failure returned by .use, .require to force success or .maybe to ignore failure.")
 	func use<P>(@noescape block: T -> QBEFallible<P>) -> QBEFallible<P> {
 		switch self {
 		case Success(let box):
-			return block(box.value)
+			return block(box)
 			
 		case Failure(let errString):
 			return .Failure(errString)
+		}
+	}
+	
+	/** If this result is a success, execute the block with its value. Otherwise cause a fatal error.  */
+	func require(@noescape block: T -> Void) {
+		switch self {
+		case Success(let value):
+			block(value)
+			
+		case Failure(let errString):
+			fatalError("Cannot continue with failure: \(errString)")
+		}
+	}
+	
+	func maybe(@noescape block: T -> Void) {
+		switch self {
+		case Success(let value):
+			block(value)
+			
+		case Failure(let errString):
+			QBELog("Silently ignoring failure: \(errString)")
 		}
 	}
 }
@@ -147,8 +154,7 @@ private class QBEWeak<T: AnyObject> {
 	}
 }
 
-/**
-A QBEJob represents a single asynchronous calculation. QBEJob tracks the progress and cancellation status of a single
+/** A QBEJob represents a single asynchronous calculation. QBEJob tracks the progress and cancellation status of a single
 'job'. It is generally passed along to all functions that also accept an asynchronous callback. The QBEJob object should 
 never be stored by these functions. It should be passed on by the functions to any other asynchronous operations that 
 belong to the same job. The QBEJob has an associated dispatch queue in which any asynchronous operations that belong to
@@ -175,9 +181,8 @@ class QBEJob: QBEJobDelegate {
 		self.queue = queue
 	}
 	
-	/** 
-	Shorthand function to run a block asynchronously in the queue associated with this job. Because async() will often be
-	called with an 'expensive' block, it also checks the jobs cancellation status. If the job is cancelled, the block 
+	/** Shorthand function to run a block asynchronously in the queue associated with this job. Because async() will often
+	be called with an 'expensive' block, it also checks the jobs cancellation status. If the job is cancelled, the block
 	will not be executed, nor will any timing information be reported. */
 	func async(block: () -> ()) {
 		if cancelled {
@@ -186,11 +191,10 @@ class QBEJob: QBEJobDelegate {
 		dispatch_async(queue, block)
 	}
 	
-	/** 
-	Records the time taken to execute the given block and writes it to the console. In release builds, the block is simply
-	called and no timing information is gathered. Because time() will often be called with an 'expensive' block, it also
-	checks the jobs cancellation status. If the job is cancelled, the block will not be executed, nor will any timing 
-	information be reported. */
+	/** Records the time taken to execute the given block and writes it to the console. In release builds, the block is 
+	simply called and no timing information is gathered. Because time() will often be called with an 'expensive' block, 
+	it also checks the jobs cancellation status. If the job is cancelled, the block will not be executed, nor will any 
+	timing information be reported. */
 	func time(description: String, items: Int, itemType: String, @noescape block: () -> ()) {
 		if cancelled {
 			return
@@ -212,8 +216,7 @@ class QBEJob: QBEJobDelegate {
 		self.observers.append(QBEWeak(observer))
 	}
 	
-	/** 
-	Inform anyone waiting on this job that a particular sub-task has progressed. Progress needs to be between 0...1,
+	/** Inform anyone waiting on this job that a particular sub-task has progressed. Progress needs to be between 0...1,
 	where 1 means 'complete'. Callers of this function should generate a sufficiently unique key that identifies the sub-
 	operation in the job of which the progress is reported (e.g. use '.hash' on an object private to the subtask). */
 	func reportProgress(progress: Double, forKey: Int) {
@@ -231,14 +234,13 @@ class QBEJob: QBEJobDelegate {
 		}
 	}
 	
-	/** 
-	Returns the estimated progress of the job by multiplying the reported progress for each component. The progress is
+	/** Returns the estimated progress of the job by multiplying the reported progress for each component. The progress is
 	represented as a double between 0...1 (where 1 means 'complete'). Progress is not guaranteed to monotonically increase
 	or to ever reach 1. */
 	var progress: Double { get {
 		var sumProgress = 0.0;
 		var items = 0;
-		for (k, p) in self.progressComponents {
+		for (_, p) in self.progressComponents {
 			sumProgress += p
 			items++
 		}
@@ -246,8 +248,7 @@ class QBEJob: QBEJobDelegate {
 		return items > 0 ? (sumProgress / Double(items)) : 0.0;
 	} }
 	
-	/** 
-	Marks this job as 'cancelled'. Any blocking operation running in this job should periodically check the cancelled
+	/** Marks this job as 'cancelled'. Any blocking operation running in this job should periodically check the cancelled
 	status, and abort if the job was cancelled. Calling cancel() does not guarantee that any operations are actually
 	cancelled. */
 	func cancel() {
@@ -258,14 +259,13 @@ class QBEJob: QBEJobDelegate {
 		self.reportProgress(didProgress, forKey: unsafeAddressOf(job).hashValue)
 	}
 	
-	/** 
-	Print a message to the debug log. The message is sent to the console asynchronously (but ordered) and preprended
+	/** Print a message to the debug log. The message is sent to the console asynchronously (but ordered) and prepended
 	with the 'job ID'. No messages will be logged when not compiled in debug mode. */
 	func log(message: String, file: StaticString = __FILE__, line: UWord = __LINE__) {
 		#if DEBUG
 			let id = self.jobID
 			dispatch_async(dispatch_get_main_queue()) {
-				println("[\(id)] \(message)")
+				print("[\(id)] \(message)")
 			}
 		#endif
 	}
@@ -285,14 +285,12 @@ class QBEJob: QBEJobDelegate {
 		}
 	
 		let tcs = timeComponents
-		let addr = unsafeAddressOf(self).debugDescription
 		log("\(tcs)")
 	}
 	#endif
 }
 
-/** 
-QBEFuture represents a result of a (potentially expensive) calculation. Code that needs the result of the
+/** QBEFuture represents a result of a (potentially expensive) calculation. Code that needs the result of the
 operation express their interest by enqueuing a callback with the get() function. The callback gets called immediately
 if the result of the calculation was available in cache, or as soon as the result has been calculated. 
 
@@ -332,12 +330,12 @@ class QBEFuture<T> {
 	}
 	
 	/** Abort calculating the result (if calculation is in progress). Registered callbacks will not be called (when 
-	callbacks are already being called, this will be finished).**/
+	callbacks are already being called, this will be finished).*/
 	func cancel() {
 		batch?.cancel()
 	}
 	
-	/** Abort calculating the result (if calculation is in progress). Registered callbacks may still be called. **/
+	/** Abort calculating the result (if calculation is in progress). Registered callbacks may still be called. */
 	func expire() {
 		batch?.expire()
 	}
@@ -346,8 +344,7 @@ class QBEFuture<T> {
 		return batch?.cancelled ?? false
 	} }
 	
-	/** 
-	Request the result of this future. There are three scenarios:
+	/** Request the result of this future. There are three scenarios:
 	- The future has not yet been calculated. In this case, calculation will start in the queue specified in the `queue`
 	  variable. The callback will be enqueued to receive the result as soon as the calculation finishes. 
 	- Calculation of the future is in progress. The callback will be enqueued on a waiting list, and will be called as 
@@ -370,7 +367,7 @@ class QBEFuture<T> {
 	}
 }
 
-private class QBEBatch<T>: QBEJob {
+class QBEBatch<T>: QBEJob {
 	typealias Callback = (T) -> ()
 	
 	private var cached: T? = nil
@@ -384,8 +381,7 @@ private class QBEBatch<T>: QBEJob {
 		super.init(queue: queue)
 	}
 	
-	/** 
-	Called by a producer to return the result of a job. This method will call all callbacks on the waiting list (on the
+	/** Called by a producer to return the result of a job. This method will call all callbacks on the waiting list (on the
 	main thread) and subsequently empty the waiting list. Enqueue can only be called once on a batch. */
 	private func satisfy(value: T) {
 		assert(cached == nil, "QBEBatch.satisfy called with cached!=nil")
@@ -400,8 +396,7 @@ private class QBEBatch<T>: QBEJob {
 		waitingList = []
 	}
 	
-	/**
-	Expire is like cancel, only the waiting consumers are not removed from the waiting list. This allows a job to
+	/** Expire is like cancel, only the waiting consumers are not removed from the waiting list. This allows a job to
 	return a partial result (by calling the callback while job.cancelled is already true) */
 	func expire() {
 		if !satisfied {
@@ -409,8 +404,7 @@ private class QBEBatch<T>: QBEJob {
 		}
 	}
 	
-	/**
-	Cancel this job and remove all waiting listeners (they will never be called back). */
+	/** Cancel this job and remove all waiting listeners (they will never be called back). */
 	override func cancel() {
 		if !satisfied {
 			waitingList.removeAll(keepCapacity: false)

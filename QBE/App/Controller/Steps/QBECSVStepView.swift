@@ -52,7 +52,7 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 	
 	@IBAction func trashCache(sender: NSObject) {
 		if let s = step {
-			s.updateCache(callback: {
+			s.updateCache({
 				self.updateView()
 			})
 		}
@@ -84,11 +84,9 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 			
 			no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 				if result==NSFileHandlingPanelOKButton {
-					if let url = no.URLs[0] as? NSURL {
-						var error: NSError?
-						s.file = QBEFileReference.URL(url)
-						self.delegate?.suggestionsView(self, previewStep: s)
-					}
+					let url = no.URLs[0]
+					s.file = QBEFileReference.URL(url)
+					self.delegate?.suggestionsView(self, previewStep: s)
 				}
 				self.updateView()
 			})

@@ -2,7 +2,7 @@ import Foundation
 
 /** QBESettings stores application-wide settings, primarily user preferences. These settings are currently stored in OS X
 user defaults, but in the future may also be saved to iCloud or any other place. No security-sensitive information (e.g.
-passwords) should be stored using QBESettings. **/
+passwords) should be stored using QBESettings. */
 class QBESettings {
 	static let sharedInstance = QBESettings()
 	private let defaults: NSUserDefaults
@@ -13,6 +13,15 @@ class QBESettings {
 		#if DEBUG
 			resetOnces()
 		#endif
+	}
+	
+	var monospaceFont: Bool {
+		get {
+			return defaults.boolForKey("monospaceFont") ?? false
+		}
+		set {
+			defaults.setBool(newValue, forKey: "monospaceFont")
+		}
 	}
 	
 	var locale: QBELocale.QBELanguage {
@@ -59,23 +68,23 @@ class QBESettings {
 	bases its decision on the amount of disk space free in the target location (and allows any file to be cached to
 	only use a particular fraction of it). In the future, it may use preferences exposed to the user. The result of this
 	function should be used to set the default preference for caching in steps that allow the user to toggle caching.
-	Caching explicitly requested by the user should be disabled anyway if this function returns false. **/
+	Caching explicitly requested by the user should be disabled anyway if this function returns false. */
 	func shouldCacheFile(ofEstimatedSize size: Int, atLocation: NSURL) -> Bool {
 		// Let's find out how much disk space is left in the proposed cache location
-		var error: NSError?
-		if let attrs = NSFileManager.defaultManager().attributesOfFileSystemForPath(atLocation.path!, error: &error) {
+		do {
+			let attrs = try NSFileManager.defaultManager().attributesOfFileSystemForPath(atLocation.path!)
 			if let freeSpace = attrs[NSFileSystemFreeSize] as? NSNumber {
 				let freeSize = Double(size) / Double(freeSpace)
 				if freeSize < 0.8 {
 					return true
 				}
 			}
-		}
+		} catch {}
 		return false
 	}
 	
 	/** Call the provided callback only when this function has not been called before with the same key. This can be used
-	to show the user certain things (such as tips) only once. **/
+	to show the user certain things (such as tips) only once. */
 	func once(key: String, callback: () -> ()) {
 		let onceKey = "once.\(key)"
 		if !defaults.boolForKey(onceKey) {
@@ -88,10 +97,9 @@ class QBESettings {
 		/* In debug builds, all keys starting with "once." are removed, to re-enable all 'once' actions such as
 		first-time tips. */
 		let dict = defaults.dictionaryRepresentation()
-		for (key, value) in dict {
-			let keyString = key.description
-			if let r = keyString.rangeOfString("once.", options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) where r.startIndex==keyString.startIndex {
-				defaults.removeObjectForKey(keyString)
+		for (key, _) in dict {
+			if let r = key.rangeOfString("once.", options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) where r.startIndex==key.startIndex {
+				defaults.removeObjectForKey(key)
 			}
 		}
 	}

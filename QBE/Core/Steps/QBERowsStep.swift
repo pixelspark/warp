@@ -111,7 +111,7 @@ class QBEFilterStep: QBEStep {
 						combinedCondition = QBEFunctionExpression(arguments: args, type: QBEFunction.And)
 					}
 					else {
-						var args: [QBEExpression] = [p.condition!, myCondition]
+						let args: [QBEExpression] = [p.condition!, myCondition]
 						combinedCondition = QBEFunctionExpression(arguments: args, type: QBEFunction.And)
 					}
 					
@@ -131,10 +131,10 @@ class QBEFilterStep: QBEStep {
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
 		if let c = condition {
-			callback(QBEFallible(data.filter(c)))
+			callback(.Success(data.filter(c)))
 		}
 		else {
-			callback(QBEFallible(data))
+			callback(.Success(data))
 		}
 	}
 }
@@ -165,7 +165,7 @@ class QBELimitStep: QBEStep {
 	}
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(QBEFallible(data.limit(numberOfRows)))
+		callback(.Success(data.limit(numberOfRows)))
 	}
 	
 	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
@@ -202,7 +202,7 @@ class QBEOffsetStep: QBEStep {
 	}
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(QBEFallible(data.offset(numberOfRows)))
+		callback(.Success(data.offset(numberOfRows)))
 	}
 }
 
@@ -227,7 +227,7 @@ class QBERandomStep: QBELimitStep {
 	}
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(QBEFallible(data.random(numberOfRows)))
+		callback(.Success(data.random(numberOfRows)))
 	}
 }
 
@@ -252,6 +252,6 @@ class QBEDistinctStep: QBEStep {
 	}
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(QBEFallible(data.distinct()))
+		callback(.Success(data.distinct()))
 	}
 }

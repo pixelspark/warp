@@ -49,7 +49,7 @@ class QBEResizableView: NSView {
 		if let cv = contentView {
 			let pt = convertPoint(aPoint, fromView: superview)
 			let ht = cv.hitTest(pt)
-			if let collectionView = ht as? NSCollectionView {
+			if let _ = ht as? NSCollectionView {
 				return self.resizerView
 			}
 		}
@@ -63,8 +63,8 @@ class QBEResizableView: NSView {
 	}
 	
 	override func updateTrackingAreas() {
-		self.trackingAreas.each({(t) in self.removeTrackingArea(t as! NSTrackingArea)})
-		addTrackingArea(NSTrackingArea(rect: self.bounds, options: NSTrackingAreaOptions.MouseEnteredAndExited | NSTrackingAreaOptions.ActiveInKeyWindow, owner: self, userInfo: nil))
+		self.trackingAreas.each({(t) in self.removeTrackingArea(t)})
+		addTrackingArea(NSTrackingArea(rect: self.bounds, options: [NSTrackingAreaOptions.MouseEnteredAndExited, NSTrackingAreaOptions.ActiveInKeyWindow], owner: self, userInfo: nil))
 	}
 	
 	override func mouseEntered(theEvent: NSEvent) {
@@ -131,51 +131,52 @@ private class QBEResizerView: NSView {
 	}
 	
 	override func drawRect(dirtyRect: NSRect) {
-		let context = NSGraphicsContext.currentContext()?.CGContext
-		CGContextSaveGState(context)
-		
-		// Draw the bounding box
-		let selected = (self.superview as! QBEResizableView).selected
-		let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.5) : NSColor.clearColor()
-		CGContextSetLineWidth(context, 2.0)
-		CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
-		CGContextAddRect(context, self.bounds.inset(inset))
-		CGContextStrokePath(context)
-		
-		// Create the gradient to paint the anchor points.
-		let activeColors: [CGFloat] = [
-			0.4, 0.8, 1.0, 1.0,
-			0.0, 0.0, 1.0, 1.0
-		];
-		
-		let inactiveColors: [CGFloat] = [
-			0.4, 0.4, 0.4, 0.5,
-			0.8, 0.8, 0.8, 0.5
-		];
-		
-		let baseSpace = CGColorSpaceCreateDeviceRGB();
-		let gradient = CGGradientCreateWithColorComponents(baseSpace, selected ? activeColors: inactiveColors, nil, 2);
-		
-		// (4) Set up the stroke for drawing the border of each of the anchor points.
-		CGContextSetLineWidth(context, 1);
-		CGContextSetShadow(context, CGSizeMake(0.5, 0.5), 1);
-		CGContextSetStrokeColorWithColor(context, NSColor.whiteColor().CGColor);
-		
-		if !hide {
-			// Fill each anchor point using the gradient, then stroke the border.
-			for anchor in visibleAnchors {
-				let currPoint = anchor.frameInBounds(self.bounds, withInset: inset)
-				CGContextSaveGState(context)
-				CGContextAddEllipseInRect(context, currPoint)
-				CGContextClip(context)
-				let startPoint = CGPointMake(CGRectGetMidX(currPoint), CGRectGetMinY(currPoint))
-				let endPoint = CGPointMake(CGRectGetMidX(currPoint), CGRectGetMaxY(currPoint))
-				CGContextDrawLinearGradient(context, gradient, startPoint, endPoint, 0)
-				CGContextRestoreGState(context)
-				CGContextStrokeEllipseInRect(context, CGRectInset(currPoint, 1, 1))
+		if let context = NSGraphicsContext.currentContext()?.CGContext {
+			CGContextSaveGState(context)
+			
+			// Draw the bounding box
+			let selected = (self.superview as! QBEResizableView).selected
+			let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.5) : NSColor.clearColor()
+			CGContextSetLineWidth(context, 2.0)
+			CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
+			CGContextAddRect(context, self.bounds.inset(inset))
+			CGContextStrokePath(context)
+			
+			// Create the gradient to paint the anchor points.
+			let activeColors: [CGFloat] = [
+				0.4, 0.8, 1.0, 1.0,
+				0.0, 0.0, 1.0, 1.0
+			];
+			
+			let inactiveColors: [CGFloat] = [
+				0.4, 0.4, 0.4, 0.5,
+				0.8, 0.8, 0.8, 0.5
+			];
+			
+			let baseSpace = CGColorSpaceCreateDeviceRGB();
+			if let gradient = CGGradientCreateWithColorComponents(baseSpace, selected ? activeColors: inactiveColors, nil, 2) {
+				// (4) Set up the stroke for drawing the border of each of the anchor points.
+				CGContextSetLineWidth(context, 1);
+				CGContextSetShadow(context, CGSizeMake(0.5, 0.5), 1);
+				CGContextSetStrokeColorWithColor(context, NSColor.whiteColor().CGColor);
+				
+				if !hide {
+					// Fill each anchor point using the gradient, then stroke the border.
+					for anchor in visibleAnchors {
+						let currPoint = anchor.frameInBounds(self.bounds, withInset: inset)
+						CGContextSaveGState(context)
+						CGContextAddEllipseInRect(context, currPoint)
+						CGContextClip(context)
+						let startPoint = CGPointMake(CGRectGetMidX(currPoint), CGRectGetMinY(currPoint))
+						let endPoint = CGPointMake(CGRectGetMidX(currPoint), CGRectGetMaxY(currPoint))
+						CGContextDrawLinearGradient(context, gradient, startPoint, endPoint, CGGradientDrawingOptions.DrawsAfterEndLocation)
+						CGContextRestoreGState(context)
+						CGContextStrokeEllipseInRect(context, CGRectInset(currPoint, 1, 1))
+					}
+				}
 			}
+			CGContextRestoreGState(context)
 		}
-		CGContextRestoreGState(context)
 	}
 	
 	private func updateSize(theEvent: NSEvent) {
@@ -203,7 +204,6 @@ private class QBEResizerView: NSView {
 		}
 		
 		if let theEvent = event, let rs = resizingSession {
-			let locationInView = self.convertPoint(theEvent.locationInWindow, fromView: nil)
 			let locationInSuperView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
 			resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: rs.downAnchor, moved: rs.moved)
 		}
@@ -225,9 +225,6 @@ private class QBEResizerView: NSView {
 		let dy = locationInView.y
 		
 		let insetWithMargin = inset * 2
-		
-		let horizontalMargin = self.bounds.width - 2 * insetWithMargin
-		let verticalMargin = self.bounds.height - 2 * insetWithMargin
 		
 		// What anchor are we dragging?
 		if dx < insetWithMargin {
@@ -287,9 +284,6 @@ private class QBEResizerView: NSView {
 	}
 	
 	override func mouseUp(theEvent: NSEvent) {
-		let locationInView = self.convertPoint(theEvent.locationInWindow, fromView: nil)
-		let locationInSuperView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
-		
 		if theEvent.clickCount > 1 {
 			if let p = superview as? QBEResizableView {
 				p.delegate?.resizableViewWasDoubleClicked(p)

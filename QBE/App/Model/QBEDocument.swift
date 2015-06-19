@@ -6,8 +6,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	override init () {
 	}
 	
-	required init(coder aDecoder: NSCoder) {
-		let raster = QBERaster()
+	required init?(coder aDecoder: NSCoder) {
 		if let head = (aDecoder.decodeObjectOfClass(QBEStep.self, forKey: "head") as? QBEStep) {
 			let legacyTablet = QBETablet(chain: QBEChain(head: head))
 			tablets.append(legacyTablet)
@@ -43,7 +42,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	}
 	
 	override func makeWindowControllers() {
-		let storyboard = NSStoryboard(name: "Main", bundle: nil)!
+		let storyboard = NSStoryboard(name: "Main", bundle: nil)
 		let windowController = storyboard.instantiateControllerWithIdentifier("Document Window Controller") as! NSWindowController
 		self.addWindowController(windowController)
 	}
@@ -56,26 +55,24 @@ class QBEDocument: NSDocument, NSSecureCoding {
 		return true
 	}
 	
-	override func dataOfType(typeName: String, error outError: NSErrorPointer) -> NSData? {
+	override func dataOfType(typeName: String) throws -> NSData {
 		return NSKeyedArchiver.archivedDataWithRootObject(self)
 	}
 	
-	override func writeToURL(url: NSURL, ofType typeName: String, error outError: NSErrorPointer) -> Bool {
+	override func writeToURL(url: NSURL, ofType typeName: String) throws {
 		self.tablets.each({$0.willSaveToDocument(url)})
-		return super.writeToURL(url, ofType: typeName, error: outError)
+		try super.writeToURL(url, ofType: typeName)
 	}
 	
-	override func readFromURL(url: NSURL, ofType typeName: String, error outError: NSErrorPointer) -> Bool {
-		let r = super.readFromURL(url, ofType: typeName, error: outError)
+	override func readFromURL(url: NSURL, ofType typeName: String) throws {
+		try super.readFromURL(url, ofType: typeName)
 		self.tablets.each({$0.didLoadFromDocument(url)})
-		return r
 	}
 	
-	override func readFromData(data: NSData, ofType typeName: String, error outError: NSErrorPointer) -> Bool {
+	override func readFromData(data: NSData, ofType typeName: String) throws {
 		if let x = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEDocument {
 			tablets = x.tablets
 			tablets.each({$0.document = self})
 		}
-		return true
 	}
 }

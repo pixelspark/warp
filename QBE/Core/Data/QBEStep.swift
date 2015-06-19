@@ -6,19 +6,19 @@ next. Steps work on two datasets: the 'example' data set (which is used to let t
 the 'full' data (which is the full dataset on which the final data operations are run). 
 
 Subclasses of QBEStep implement the data manipulation in the apply function, and should implement the description method
-as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. **/
+as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. */
 class QBEStep: NSObject {
 	static let dragType = "nl.pixelspark.Warp.Step"
 	
 	/** Creates a data object representing the result of an 'example' calculation of the result of this QBEStep. The
 	maxInputRows parameter defines the maximum number of input rows a source step should generate. The maxOutputRows
-	parameter defines the maximum number of rows a step should strive to produce. **/
+	parameter defines the maximum number of rows a step should strive to produce. */
 	func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
 		if let p = self.previous {
-			self.previous?.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: {(data) in
+			p.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: {(data) in
 				switch data {
 					case .Success(let d):
-						self.apply(d.value, job: job, callback: callback)
+						self.apply(d, job: job, callback: callback)
 					
 					case .Failure(let error):
 						callback(.Failure(error))
@@ -35,7 +35,7 @@ class QBEStep: NSObject {
 			p.fullData(job, callback: {(data) in
 				switch data {
 					case .Success(let d):
-						self.apply(d.value, job: job, callback: callback)
+						self.apply(d, job: job, callback: callback)
 					
 					case .Failure(let error):
 						callback(.Failure(error))
@@ -75,7 +75,7 @@ class QBEStep: NSObject {
 	}
 	
 	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific
-	configuration of the step. **/
+	configuration of the step. */
 	func explain(locale: QBELocale, short: Bool = false) -> String {
 		return NSLocalizedString("Unknown step", comment: "")
 	}
@@ -86,15 +86,15 @@ class QBEStep: NSObject {
 	
 	/** This method is called right before a document is saved to disk using encodeWithCoder. Steps that reference 
 	external files should take the opportunity to create security bookmarks to these files (as required by Apple's
-	App Sandbox) and store them. **/
+	App Sandbox) and store them. */
 	func willSaveToDocument(atURL: NSURL) {
 	}
 	
-	/** This method is called right after a document has been loaded from disk. **/
+	/** This method is called right after a document has been loaded from disk. */
 	func didLoadFromDocument(atURL: NSURL) {
 	}
 
-	/** Returns whether this step can be merged with the specified previous step. **/
+	/** Returns whether this step can be merged with the specified previous step. */
 	func mergeWith(prior: QBEStep) -> QBEStepMerge {
 		return QBEStepMerge.Impossible
 	}
@@ -114,7 +114,7 @@ on all file references inside didLoadFromDocument. In addition they should store
 property when serializing a file reference (in encodeWithCoder).
 
 On non-sandbox builds, QBEFileReference will not be able to resolve bookmarks to URLs, and it will return the original URL
-(which will allow regular unlimited access). **/
+(which will allow regular unlimited access). */
 enum QBEFileReference {
 	case Bookmark(NSData)
 	case ResolvedBookmark(NSData, NSURL)
@@ -142,47 +142,53 @@ enum QBEFileReference {
 	func bookmark(relativeToDocument: NSURL) -> QBEFileReference? {
 		switch self {
 		case .URL(let u):
-			var error: NSError? = nil
-			if let bookmark = u.bookmarkDataWithOptions(NSURLBookmarkCreationOptions.WithSecurityScope, includingResourceValuesForKeys: nil, relativeToURL: nil, error: &error) {
-				if let resolved = NSURL(byResolvingBookmarkData: bookmark, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil, error: &error) {
+			do {
+				let bookmark = try u.bookmarkDataWithOptions(NSURLBookmarkCreationOptions.WithSecurityScope, includingResourceValuesForKeys: nil, relativeToURL: nil)
+				do {
+					let resolved = try NSURL(byResolvingBookmarkData: bookmark, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil)
 					return QBEFileReference.ResolvedBookmark(bookmark, resolved)
 				}
-				else {
+				catch let error as NSError {
 					QBELog("Failed to resolve just-created bookmark: \(error)")
 				}
 			}
-			else {
+			catch let error as NSError {
 				QBELog("Could not create bookmark for url \(u): \(error)")
 			}
 			return self
 			
-		case .Bookmark(let b):
+		case .Bookmark(_):
 			return self
 			
-		case .ResolvedBookmark(let b, let u):
+		case .ResolvedBookmark(_,_):
 			return self
 		}
 	}
 	
 	func resolve(relativeToDocument: NSURL) -> QBEFileReference? {
 		switch self {
-		case .URL(let u):
+		case .URL(_):
 			return self
 			
 		case .ResolvedBookmark(let b, let oldURL):
-			var error: NSError? = nil
-			if let u = NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil, error: &error) {
+			do {
+				let u = try NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil)
 				return QBEFileReference.ResolvedBookmark(b, u)
 			}
-			QBELog("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(relativeToDocument): \(error)")
+			catch let error as NSError {
+				QBELog("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(relativeToDocument): \(error)")
+			}
+			
 			return self
 			
 		case .Bookmark(let b):
-			var error: NSError? = nil
-			if let u = NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil, error: &error) {
+			do {
+				let u = try NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil)
 				return QBEFileReference.ResolvedBookmark(b, u)
 			}
-			QBELog("Could not resolve secure bookmark \(b): \(error)")
+			catch let error as NSError {
+				QBELog("Could not resolve secure bookmark \(b): \(error)")
+			}
 			return self
 		}
 	}
@@ -215,10 +221,10 @@ func == (lhs: QBEFileReference, rhs: QBEFileReference) -> Bool {
 }
 
 /** The transpose step implements a row-column switch. It has no configuration and relies on the QBEData transpose()
-implementation to do the actual work. **/
+implementation to do the actual work. */
 class QBETransposeStep: QBEStep {
 	override func apply(data: QBEData, job: QBEJob? = nil, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(QBEFallible(data.transpose()))
+		callback(.Success(data.transpose()))
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
@@ -226,7 +232,7 @@ class QBETransposeStep: QBEStep {
 	}
 	
 	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
-		if let t = prior as? QBETransposeStep {
+		if prior is QBETransposeStep {
 			return QBEStepMerge.Cancels
 		}
 		return QBEStepMerge.Impossible

@@ -53,7 +53,7 @@ class QBECalculateStep: QBEStep {
 			data.columnNames(job) { (columnNames) in
 				columnNames.use { (var cns) -> () in
 					cns.remove(self.targetColumn)
-					if let idx = find(cns, relativeTo) {
+					if let idx = cns.indexOf(relativeTo) {
 						if self.insertBefore {
 							cns.insert(self.targetColumn, atIndex: idx)
 						}
@@ -61,20 +61,20 @@ class QBECalculateStep: QBEStep {
 							cns.insert(self.targetColumn, atIndex: idx+1)
 						}
 					}
-					callback(QBEFallible(result.selectColumns(cns)))
+					callback(.Success(result.selectColumns(cns)))
 				}
 			}
 		}
 		else {
 			// If the column is to be added at the beginning, shuffle columns around (the default is to add at the end
 			if insertRelativeTo == nil && insertBefore {
-				data.columnNames(job) { (var columnNames: QBEFallible<[QBEColumn]>) -> () in
+				data.columnNames(job) { (columnNames: QBEFallible<[QBEColumn]>) -> () in
 					switch columnNames {
 						case .Success(let cns):
-							var columns = cns.value
+							var columns = cns
 							columns.remove(self.targetColumn)
 							columns.insert(self.targetColumn, atIndex: 0)
-							callback(QBEFallible(result.selectColumns(columns)))
+							callback(.Success(result.selectColumns(columns)))
 						
 						case .Failure(let error):
 							callback(.Failure(error))
@@ -82,7 +82,7 @@ class QBECalculateStep: QBEStep {
 				}
 			}
 			else {
-				callback(QBEFallible(result))
+				callback(.Success(result))
 			}
 		}
 	}
@@ -102,7 +102,7 @@ class QBECalculateStep: QBEStep {
 							dependsOnPrevious = true
 						}
 					}
-					else if let i = expr as? QBEIdentityExpression {
+					else if expr is QBEIdentityExpression {
 						dependsOnPrevious = true
 					}
 				})
@@ -120,9 +120,7 @@ class QBECalculateStep: QBEStep {
 	
 	class func suggest(change fromValue: QBEValue, toValue: QBEValue, inRaster: QBERaster, row: Int, column: Int, locale: QBELocale, job: QBEJob?) -> [QBEExpression] {
 		var suggestions: [QBEExpression] = []
-		if fromValue != toValue {
-			let targetColumn = inRaster.columnNames[column]
-			
+		if fromValue != toValue {			
 			// Was a formula typed in?
 			if let f = QBEFormula(formula: toValue.stringValue ?? "", locale: locale) {
 				suggestions.append(f.root)

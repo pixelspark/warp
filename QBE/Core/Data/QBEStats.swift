@@ -10,15 +10,15 @@ struct QBENormalDistribution: QBEDistribution {
 	}
 }
 
-/** Represents a set of values samples from a stochastic variable. **/
-class QBESample {
+/** Represents a set of values samples from a stochastic variable. */
+struct QBESample {
 	typealias ValueType = Double
 	let mean: ValueType
 	let stdev: ValueType
 	let sum: ValueType
 	let n: Int
 	
-	convenience init(_ values: [ValueType]) {
+	init(_ values: [ValueType]) {
 		self.init(values: values)
 	}
 	
@@ -38,7 +38,7 @@ class QBESample {
 	}
 	
 	/** Returns a confidence interval in which a value from the population falls with 90% probability, based on this
-	sample. **/
+	sample. */
 	func confidenceInterval(confidenceLevel: ValueType, distribution: QBEDistribution = QBENormalDistribution()) -> (ValueType, ValueType) {
 		let margin = (1.0 - confidenceLevel) / 2.0
 		let deviates = distribution.inverse(1.0 - margin) - distribution.inverse(margin)
@@ -46,7 +46,7 @@ class QBESample {
 	}
 }
 
-/** Represents a moving sample of a variable. **/
+/** Represents a moving sample of a variable. */
 class QBEMoving: NSObject, NSCoding {
 	typealias ValueType = Double
 	private(set) var values: [ValueType?]
@@ -59,7 +59,7 @@ class QBEMoving: NSObject, NSCoding {
 		trim()
 	}
 	
-	required init(coder: NSCoder) {
+	required init?(coder: NSCoder) {
 		self.values = (coder.decodeObjectForKey("values") as? [ValueType] ?? []).optionals
 		self.size = coder.decodeIntegerForKey("size")
 		super.init()

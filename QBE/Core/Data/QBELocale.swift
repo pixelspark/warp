@@ -1,6 +1,6 @@
 import Foundation
 
-/** The default dialect for formulas reflects the English version of Excel closely. **/
+/** The default dialect for formulas reflects the English version of Excel closely. */
 struct QBELocale {
 	typealias QBELanguage = String
 	
@@ -178,7 +178,7 @@ struct QBELocale {
 		return nil
 	}
 	
-	/** Return a string representation of the value in the user's locale. **/
+	/** Return a string representation of the value in the user's locale. */
 	func localStringFor(value: QBEValue) -> String {
 		switch value {
 			case .StringValue(let s):

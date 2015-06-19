@@ -150,7 +150,7 @@ internal class QBESortStepView: NSViewController, NSTableViewDataSource, NSTable
 		if let data = pboard.dataForType(QBESortStepViewItemType) {
 			if let rowIndexes = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? NSIndexSet {
 				if let s = step {
-					var movedItems = s.orders.objectsAtIndexes(rowIndexes)
+					let movedItems = s.orders.objectsAtIndexes(rowIndexes)
 					movedItems.each({s.orders.remove($0)})
 					s.orders.splice(movedItems, atIndex: min(s.orders.count, row))
 				}
@@ -167,8 +167,8 @@ internal class QBESortStepView: NSViewController, NSTableViewDataSource, NSTable
 				let order = s.orders[row]
 				
 				if identifier == "formula" {
-					if let formulaString = order.expression?.toFormula(self.delegate?.locale ?? QBELocale()) {
-						return "=" + formulaString
+					if let formulaString = order.expression?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) {
+						return formulaString
 					}
 				}
 				else if identifier == "ascending" {

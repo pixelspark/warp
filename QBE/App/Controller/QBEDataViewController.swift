@@ -193,6 +193,8 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	private func update() {
 		QBEAssertMainThread()
+		updateFonts()
+		
 		// Set visibility
 		let hasNoData = (raster==nil)
 		
@@ -247,8 +249,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
-		let cols = NSColor.controlAlternatingRowBackgroundColors()
-		return cols[0] as! NSColor
+		return NSColor.controlAlternatingRowBackgroundColors()[0]
 		//return (cols[Int(rowIndex) % cols.count] as? NSColor)!
 	}
 	
@@ -289,13 +290,21 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		updateFormulaField()
 	}
 	
+	private func updateFonts() {
+		let monospace = QBESettings.sharedInstance.monospaceFont
+		let font = monospace ? NSFont.userFixedPitchFontOfSize(10.0) : NSFont.userFontOfSize(11.0)
+		self.textCell.font = font
+		self.numberCell.font = font
+		if let tv = self.tableView {
+			tv.rowHeaderView.headerCell?.labelFont = font
+			tv.columnHeaderView.headerCell?.labelFont = font
+		}
+	}
+	
 	override func awakeFromNib() {
 		self.textCell = MBTableGridCell(textCell: "")
 		self.numberCell = MBTableGridCell(textCell: "")
-		self.numberCell.alignment = NSTextAlignment.RightTextAlignment
-		
-		self.textCell.font = NSFont.userFixedPitchFontOfSize(10.0)
-		self.numberCell.font = NSFont.userFixedPitchFontOfSize(10.0)
+		self.numberCell.alignment = NSTextAlignment.Right
 		
 		self.view.focusRingType = NSFocusRingType.None
 		if self.tableView == nil {
@@ -306,20 +315,17 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Vertical)
 			self.tableView!.awakeFromNib()
 			self.tableView!.columnHeaderView.menu = self.columnContextMenu
-			self.tableView!.rowHeaderView.headerCell?.labelFont = NSFont.userFixedPitchFontOfSize(10.0)
-			self.tableView!.columnHeaderView.headerCell?.labelFont = NSFont.userFixedPitchFontOfSize(10.0)
 			self.view.addSubview(tableView!)
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0));
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0));
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0));
 			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0.0));
 			
-			for v in self.tableView!.subviews {
-				if let vw = v as? NSView {
-					vw.focusRingType = NSFocusRingType.None
-				}
+			for vw in self.tableView!.subviews {
+				vw.focusRingType = NSFocusRingType.None
 			}
 		}
+		updateFonts()
 		super.awakeFromNib()
 	}
 	

@@ -33,7 +33,7 @@ internal class QBERandomStepView: NSViewController {
 	
 	@IBAction func update(sender: NSObject) {
 		if let s = step {
-			s.numberOfRows = (numberOfRowsField?.stringValue ?? "1").toInt() ?? 1
+			s.numberOfRows = numberOfRowsField?.stringValue.toInt() ?? 1
 			delegate?.suggestionsView(self, previewStep: s)
 		}
 	}
