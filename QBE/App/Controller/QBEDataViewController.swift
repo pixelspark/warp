@@ -292,7 +292,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	private func updateFonts() {
 		let monospace = QBESettings.sharedInstance.monospaceFont
-		let font = monospace ? NSFont.userFixedPitchFontOfSize(10.0) : NSFont.userFontOfSize(11.0)
+		let font = monospace ? NSFont.userFixedPitchFontOfSize(10.0) : NSFont.userFontOfSize(12.0)
 		self.textCell.font = font
 		self.numberCell.font = font
 		if let tv = self.tableView {
