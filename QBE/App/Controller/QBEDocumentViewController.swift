@@ -34,10 +34,25 @@ import Cocoa
 	}
 	
 	func chainViewDidChangeChain(view: QBEChainViewController) {
+		if workspaceView.zoomedView == nil {
+			documentView.resizeDocument()
+		}
 		documentView.reloadData()
 	}
 	
 	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESuggestionsViewDelegate) {
+		if let ch = view.chain {
+			if let tablet = ch.tablet {
+				for cvc in self.childViewControllers {
+					if let child = cvc as? QBEChainViewController {
+						if child.chain?.tablet == tablet {
+							documentView.selectTablet(tablet, notifyDelegate: false)
+							child.view.superview?.orderFront()
+						}
+					}
+				}
+			}
+		}
 		self.configurator?.configure(configureStep, delegate: delegate)
 	}
 	
@@ -153,6 +168,7 @@ import Cocoa
 	private func zoomToAll() {
 		if let ab = documentView.boundsOfAllTablets {
 			if self.workspaceView.zoomedView != nil {
+				documentView.resizeDocument()
 				self.workspaceView.zoom(nil)
 			}
 			else {

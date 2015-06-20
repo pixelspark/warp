@@ -83,12 +83,12 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		return true
 	}
 	
-	func selectTablet(tablet: QBETablet?) {
+	func selectTablet(tablet: QBETablet?, notifyDelegate: Bool = true) {
 		if let t = tablet {
 			for sv in subviews {
 				if let tv = sv as? QBEResizableTabletView {
 					if tv.tabletController.chain?.tablet == t {
-						selectView(tv)
+						selectView(tv, notifyDelegate: notifyDelegate)
 						return
 					}
 				}
@@ -104,20 +104,24 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		delegate?.documentView(self, didSelectArrow: didSelectArrow)
 	}
 	
-	private func selectView(view: QBEResizableTabletView?) {
+	private func selectView(view: QBEResizableTabletView?, notifyDelegate: Bool = true) {
 		// Deselect other views
 		for sv in subviews {
 			if let tv = sv as? QBEResizableTabletView {
 				tv.selected = (tv == view)
 				if tv == view {
 					self.window?.makeFirstResponder(tv.tabletController.view)
-					delegate?.documentView(self, didSelectTablet: tv.tabletController)
+					if notifyDelegate {
+						delegate?.documentView(self, didSelectTablet: tv.tabletController)
+					}
 				}
 			}
 		}
 		
 		if view == nil {
-			delegate?.documentView(self, didSelectTablet: nil)
+			if notifyDelegate {
+				delegate?.documentView(self, didSelectTablet: nil)
+			}
 		}
 	}
 	
@@ -163,8 +167,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		tabletsChanged()
 	}
 	
-	// Call whenever tablets are added/removed or resized
-	private func tabletsChanged() {
+	func resizeDocument() {
 		if let contentSize = boundsOfAllTablets {
 			// Determine new size of the document
 			let margin: CGFloat = 500.0
@@ -191,7 +194,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 			self.frame = CGRectMake(0, 0, newBounds.size.width, newBounds.size.height)
 			self.scrollRectToVisible(newVisible)
 		}
-		
+	}
+	
+	// Call whenever tablets are added/removed or resized
+	private func tabletsChanged() {
 		self.flowchartView.frame = self.bounds
 		// Update flowchart
 		var arrows: [QBEArrow] = []

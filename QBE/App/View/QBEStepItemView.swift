@@ -85,7 +85,7 @@ import Cocoa
 		if self.selected {
 			return super.hitTest(aPoint)
 		}
-		return self
+		return self.frame.contains(aPoint) ? self : nil
 	}
 	
 	private func update() {
