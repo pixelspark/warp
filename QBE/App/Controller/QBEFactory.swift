@@ -9,6 +9,8 @@ class QBEFactory {
 	
 	private let fileWriters: [String: QBEFileWriter.Type] = [
 		"tsv": QBECSVWriter.self,
+		"txt": QBECSVWriter.self,
+		"tab": QBECSVWriter.self,
 		"xml": QBEXMLWriter.self,
 		"html": QBEHTMLWriter.self,
 		"csv": QBECSVWriter.self
@@ -16,6 +18,9 @@ class QBEFactory {
 	
 	private let fileReaders: [String: QBEFileReaderCreator] = [
 		"public.comma-separated-values-text": {(url) in return QBECSVSourceStep(url: url)},
+		"public.delimited-values-text": {(url) in return QBECSVSourceStep(url: url)},
+		"public.tab-separated-values-text": {(url) in return QBECSVSourceStep(url: url)},
+		"public.text": {(url) in return QBECSVSourceStep(url: url)},
 		"org.sqlite.v3": {(url) in return QBESQLiteSourceStep(url: url)}
 	]
 	
