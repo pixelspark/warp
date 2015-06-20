@@ -5,10 +5,13 @@ import Cocoa
 	private var documentView: QBEDocumentView!
 	private var configurator: QBEConfiguratorViewController? = nil
 	@IBOutlet var addTabletMenu: NSMenu!
-	@IBOutlet var workspaceView: NSScrollView!
+	@IBOutlet var workspaceView: QBEWorkspaceView!
 	@IBOutlet var formulaField: NSTextField!
 	@IBOutlet var welcomeLabel: NSTextField!
+	@IBOutlet var documentAreaView: NSView!
 	private var formulaFieldCallback: ((QBEValue) -> ())?
+	
+	private var zoomedView: (NSView, CGRect)? = nil
 	
 	var document: QBEDocument? { didSet {
 		self.documentView.removeAllTablets()
@@ -85,7 +88,15 @@ import Cocoa
 		let vr = self.workspaceView.documentVisibleRect
 		let defaultWidth: CGFloat = vr.size.width * 0.619 * self.workspaceView.magnification
 		let defaultHeight: CGFloat = vr.size.height * 0.619 * self.workspaceView.magnification
-		return CGRectMake(vr.origin.x + (vr.size.width - defaultWidth) / 2, vr.origin.y + (vr.size.height - defaultHeight) / 2, defaultWidth, defaultHeight)
+		
+		// If this is not the first view, place it to the right of all other views
+		if let ab = documentView.boundsOfAllTablets {
+			return CGRectMake(ab.origin.x + ab.size.width + 10, ab.origin.y + ((ab.size.height - defaultHeight) / 2), defaultWidth, defaultHeight)
+		}
+		else {
+			// If this is the first view, just center it in the visible rect
+			return CGRectMake(vr.origin.x + (vr.size.width - defaultWidth) / 2, vr.origin.y + (vr.size.height - defaultHeight) / 2, defaultWidth, defaultHeight)
+		}
 	} }
 	
 	func addTablet(tablet: QBETablet, atLocation location: CGPoint?, undo: Bool) {
@@ -108,32 +119,45 @@ import Cocoa
 	}
 	
 	@objc func addTablet(tablet: QBETablet, undo: Bool) {
-		// Check if this tablet is also in the document
-		if let d = document where tablet.document != document {
-			d.addTablet(tablet)
-		}
-		
-		if tablet.frame == nil {
-			tablet.frame = defaultTabletFrame
-		}
-
-		if let tabletController = self.storyboard?.instantiateControllerWithIdentifier("chain") as? QBEChainViewController {
-			tabletController.delegate = self
-
-			self.addChildViewController(tabletController)
-			tabletController.chain = tablet.chain
-			tabletController.view.frame = tablet.frame!
+		self.workspaceView.zoom(nil) {
+			// Check if this tablet is also in the document
+			if let d = self.document where tablet.document != self.document {
+				d.addTablet(tablet)
+			}
 			
-			documentView.addTablet(tabletController)
-			documentView.selectTablet(tablet)
+			if tablet.frame == nil {
+				tablet.frame = self.defaultTabletFrame
+			}
+
+			if let tabletController = self.storyboard?.instantiateControllerWithIdentifier("chain") as? QBEChainViewController {
+				tabletController.delegate = self
+
+				self.addChildViewController(tabletController)
+				tabletController.chain = tablet.chain
+				tabletController.view.frame = tablet.frame!
+				
+				self.documentView.addTablet(tabletController) {
+					self.documentView.selectTablet(tablet)
+					
+					// Either undo zooming, or make the newly added view the zoomed view
+					if (self.document?.tablets.count ?? 0 == 1) {
+						self.workspaceView.zoom(tabletController.view.superview)
+					}
+				}
+			}
+			
+			self.welcomeLabel.hidden = (self.document?.tablets.count ?? 0) != 0
 		}
-		
-		self.welcomeLabel.hidden = (document?.tablets.count ?? 0) != 0
 	}
 	
 	private func zoomToAll() {
 		if let ab = documentView.boundsOfAllTablets {
-			self.workspaceView.magnifyToFitRect(ab)
+			if self.workspaceView.zoomedView != nil {
+				self.workspaceView.zoom(nil)
+			}
+			else {
+				self.workspaceView.magnifyToFitRect(ab)
+			}
 		}
 	}
 
@@ -141,9 +165,13 @@ import Cocoa
 		zoomToAll()
 	}
 	
+	func documentView(view: QBEDocumentView, wantsZoomToView: NSView) {
+		workspaceView.zoom(wantsZoomToView)
+	}
+	
 	@IBAction func zoomSelection(sender: NSObject) {
-		if let selected = documentView.selectedTablet, f = selected.frame {
-			self.workspaceView.magnifyToFitRect(f)
+		if let selectedView = documentView.selectedTabletController?.view.superview {
+			workspaceView.zoom(selectedView)
 		}
 	}
 	
@@ -218,11 +246,6 @@ import Cocoa
 		}
 	}
 	
-	func documentView(view: QBEDocumentView, wantsZoomToView: NSView) {
-		//self.workspaceView.setMagnification(1.0, centeredAtPoint: wantsZoomToTablet.view.frame.center)
-		self.workspaceView.magnifyToFitRect(wantsZoomToView.frame)
-	}
-	
 	func documentView(view: QBEDocumentView, didSelectArrow arrow: QBEArrow?) {
 		if let ta = arrow as? QBETabletArrow {
 			if let fromStep = ta.fromStep, let fromTablet = ta.from {
@@ -255,6 +278,7 @@ import Cocoa
 			self.setFormula(QBEValue.InvalidValue, callback: nil)
 			self.configurator?.configure(nil, delegate: nil)
 		}
+		self.view.window?.update()
 	}
 	
 	func documentView(view: QBEDocumentView, didSelectTablet tablet: QBEChainViewController?) {
@@ -355,7 +379,7 @@ import Cocoa
 		if item.action() == Selector("showSuggestions:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
 		if item.action() == Selector("exportFile:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
 		if item.action() == Selector("zoomToAll:") { return documentView.boundsOfAllTablets != nil }
-		if item.action() == Selector("zoomSelection:") { return documentView.boundsOfAllTablets != nil }
+		if item.action() == Selector("zoomSelection:") { return documentView.selectedTablet != nil }
 		if item.action() == Selector("delete:") { return true }
 		if item.action() == Selector("paste:") {
 			let pboard = NSPasteboard.generalPasteboard()

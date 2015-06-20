@@ -626,13 +626,13 @@ CA
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="PYa-SM-ZQg"/>
-                                        <menuItem title="Zoom to all" id="iyV-Df-S2D">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                        <menuItem title="Zoom to all" keyEquivalent=" " id="iyV-Df-S2D">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
                                                 <action selector="zoomToAll:" target="Ady-hI-5gd" id="QHz-dD-gmz"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Zoom to selection" id="v55-av-755">
+                                        <menuItem title="Zoom to selection" keyEquivalent=" " id="v55-av-755">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="zoomSelection:" target="Ady-hI-5gd" id="0rI-wd-4pc"/>
@@ -1245,7 +1245,7 @@ CA
                                 <rect key="frame" x="0.0" y="0.0" width="658" height="569"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <subviews>
-                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
+                                    <customView wantsLayer="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
                                         <rect key="frame" x="0.0" y="0.0" width="658" height="538"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
@@ -1256,14 +1256,14 @@ CA
                                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                 </textFieldCell>
                                             </textField>
-                                            <scrollView wantsLayer="YES" appearanceType="aqua" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab">
+                                            <scrollView wantsLayer="YES" appearanceType="aqua" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
                                                 <rect key="frame" x="0.0" y="0.0" width="658" height="538"/>
                                                 <clipView key="contentView" drawsBackground="NO" id="883-xW-r8t">
                                                     <rect key="frame" x="1" y="1" width="166" height="79"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CDw-5V-yTY">
-                                                            <rect key="frame" x="23" y="47" width="87" height="139"/>
+                                                            <rect key="frame" x="77" y="-15" width="9" height="184"/>
                                                         </view>
                                                     </subviews>
                                                 </clipView>
@@ -1336,6 +1336,7 @@ CA
                     </splitView>
                     <connections>
                         <outlet property="addTabletMenu" destination="TbW-HU-EDH" id="7Tq-aG-xZQ"/>
+                        <outlet property="documentAreaView" destination="jQq-6i-09S" id="Xm4-KA-YGm"/>
                         <outlet property="formulaField" destination="aXH-7Y-wRY" id="5yp-Gm-e1V"/>
                         <outlet property="welcomeLabel" destination="OEa-fZ-fMo" id="12i-vW-1Oe"/>
                         <outlet property="workspaceView" destination="Q9G-71-Jab" id="Sm4-KA-YGm"/>

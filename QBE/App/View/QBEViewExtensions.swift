@@ -67,7 +67,7 @@ internal extension NSView {
 		self.superview?.addSubview(self)
 	}
 	
-	func addSubview(view: NSView, animated: Bool) {
+	func addSubview(view: NSView, animated: Bool, completion: (() -> ())? = nil) {
 		if !animated {
 			self.addSubview(view)
 			return
@@ -76,9 +76,11 @@ internal extension NSView {
 		let duration = 0.35
 		view.wantsLayer = true
 		self.addSubview(view)
+		view.scrollRectToVisible(view.bounds)
 		
 		CATransaction.begin()
 		CATransaction.setAnimationDuration(duration)
+		CATransaction.setCompletionBlock(completion)
 		let ta = CABasicAnimation(keyPath: "transform")
 		
 		// Scale, but centered in the middle of the view

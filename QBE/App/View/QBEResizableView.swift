@@ -24,6 +24,7 @@ class QBEResizableView: NSView {
 		self.layer?.shadowOpacity = 0.3
 		
 		resizerView = QBEResizerView(frame: self.bounds)
+		resizerView.autoresizingMask = [NSAutoresizingMaskOptions.ViewHeightSizable, NSAutoresizingMaskOptions.ViewWidthSizable]
 		resizerView.hide = true
 		addSubview(resizerView)
 	}
@@ -38,6 +39,8 @@ class QBEResizableView: NSView {
 		if let c = contentView {
 			c.removeFromSuperview()
 			resizerView.contentView = contentView
+			c.frame = self.bounds.inset(self.resizerView.inset)
+			c.autoresizingMask = [NSAutoresizingMaskOptions.ViewHeightSizable, NSAutoresizingMaskOptions.ViewWidthSizable]
 			self.addSubview(c, positioned: NSWindowOrderingMode.Below, relativeTo: resizerView)
 		}
 		else {
@@ -104,7 +107,7 @@ class QBEResizableView: NSView {
 }
 
 
-private class QBEResizerView: NSView {
+internal class QBEResizerView: NSView {
 	private struct ResizingSession {
 		let downPoint: NSPoint
 		var downRect: NSRect
@@ -112,9 +115,9 @@ private class QBEResizerView: NSView {
 		var moved = false
 	}
 	
-	private let inset: CGFloat = 10.0
+	let inset: CGFloat = 10.0
 	private var resizingSession: ResizingSession? = nil
-	private var visibleAnchors: Set<QBEAnchor> = [/*.South, .North, .East, .West,*/ .SouthEast, .SouthWest, .NorthEast, .NorthWest];
+	private var visibleAnchors: Set<QBEAnchor> = [.South, .North, .East, .West, .SouthEast, .SouthWest, .NorthEast, .NorthWest];
 	
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
@@ -137,17 +140,9 @@ private class QBEResizerView: NSView {
 		return resizingSession != nil
 	} }
 	
-	private override func hitTest(aPoint: NSPoint) -> NSView? {
+	internal override func hitTest(aPoint: NSPoint) -> NSView? {
 		let pt = convertPoint(aPoint, fromView: superview)
 		return self.bounds.contains(pt) && !self.bounds.inset(inset).contains(pt) ? self : nil
-		
-		/*for anchor in visibleAnchors {
-			let frame = anchor.frameInBounds(self.bounds, withInset: inset)
-			if frame.contains(pt) {
-				return self
-			}
-		}
-		return nil*/
 	}
 	
 	private func updateSize(theEvent: NSEvent) {
@@ -168,8 +163,6 @@ private class QBEResizerView: NSView {
 	}
 	
 	private func update(event: NSEvent?) {
-		self.contentView?.frame = self.bounds.inset(self.inset)
-		
 		if let p = superview as? QBEResizableView {
 			p.delegate?.resizableView(p, changedFrameTo: p.frame)
 		}
@@ -182,11 +175,13 @@ private class QBEResizerView: NSView {
 		self.window?.invalidateCursorRectsForView(self)
 	}
 	
-	private override func resetCursorRects() {
-		for anchor in visibleAnchors {
-			let frame = anchor.frameInBounds(self.bounds, withInset: inset)
-			if let c = anchor.cursor {
-				self.addCursorRect(frame, cursor: c)
+	override func resetCursorRects() {
+		if canResize {
+			for anchor in visibleAnchors {
+				let frame = anchor.frameInBounds(self.bounds, withInset: inset)
+				if let c = anchor.cursor {
+					self.addCursorRect(frame, cursor: c)
+				}
 			}
 		}
 	}
@@ -233,20 +228,48 @@ private class QBEResizerView: NSView {
 		}
 	}
 	
-	override func mouseDown(theEvent: NSEvent) {
-		let locationInView = self.convertPoint(theEvent.locationInWindow, fromView: nil)
-		let locationInSuperView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
-		
-		let closestAnchor = anchorForPoint(locationInView)
-		let realAnchor = visibleAnchors.contains(closestAnchor) ? closestAnchor : .None
-		
-		// Order view to front
-		if let sv = superview, psv = sv.superview {
-			psv.addSubview(sv)
+	var canResize: Bool { get {
+		// Find scroll view, if it is in zoomed mode we cannot resize
+		var sv: NSView? = self
+		while let svx = sv where !(svx is QBEWorkspaceView) {
+			sv = svx.superview
 		}
 		
-		resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: realAnchor, moved: false)
-		setNeedsDisplayInRect(self.bounds)
+		if let workspace = sv as? QBEWorkspaceView {
+			return workspace.zoomedView == nil
+		}
+		
+		return true
+	} }
+	
+	override func mouseDown(theEvent: NSEvent) {
+		if canResize {
+			let locationInView = self.convertPoint(theEvent.locationInWindow, fromView: nil)
+			let locationInSuperView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
+			
+			let closestAnchor = anchorForPoint(locationInView)
+			let realAnchor = visibleAnchors.contains(closestAnchor) ? closestAnchor : .None
+			
+			// Order view to front
+			if let sv = superview, psv = sv.superview {
+				psv.addSubview(sv)
+			}
+			
+			resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: realAnchor, moved: false)
+			setNeedsDisplayInRect(self.bounds)
+		}
+	}
+	
+	override func drawRect(dirtyRect: NSRect) {
+		if let context = NSGraphicsContext.currentContext()?.CGContext {
+			// Draw the bounding box
+			let selected = (self.superview as! QBEResizableView).selected
+			let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.5) : NSColor.clearColor()
+			CGContextSetLineWidth(context, 2.0)
+			CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
+			CGContextAddRect(context, self.bounds.inset(inset))
+			CGContextStrokePath(context)
+		}
 	}
 	
 	override func mouseDragged(theEvent: NSEvent) {

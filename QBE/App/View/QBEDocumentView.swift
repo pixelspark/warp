@@ -245,13 +245,13 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		tabletsChanged()
 	}
 	
-	func addTablet(tabletController: QBEChainViewController) {
+	func addTablet(tabletController: QBEChainViewController, completion: (() -> ())? = nil) {
 		if let tablet = tabletController.chain?.tablet {
 			let resizer = QBEResizableTabletView(frame: tablet.frame!, controller: tabletController)
 			resizer.contentView = tabletController.view
 			resizer.delegate = self
 		
-			self.addSubview(resizer, animated: true)
+			self.addSubview(resizer, animated: true, completion: completion)
 			tabletsChanged()
 		}
 	}
@@ -271,5 +271,55 @@ private class QBEResizableTabletView: QBEResizableView {
 	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
+	}
+}
+
+class QBEWorkspaceView: NSScrollView {
+	private var oldZoomedRect: NSRect? = nil
+	private(set) var zoomedView: NSView? = nil
+	
+	func zoom(view: NSView?, completion: (() -> ())? = nil) {
+		let zoom = {() -> () in
+			if let zv = view {
+				self.zoomedView = zv
+				self.magnification = 1.0
+				self.oldZoomedRect = zv.frame
+				self.hasHorizontalScroller = false
+				self.hasVerticalScroller = false
+				
+				NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+					ac.duration = 0.3
+					zv.animator().frame = self.documentVisibleRect
+					}, completionHandler: completion)
+			}
+			else {
+				self.zoomedView = nil
+				self.hasHorizontalScroller = true
+				self.hasVerticalScroller = true
+				completion?()
+			}
+		}
+		
+		// Un-zoom the old view (if any)
+		if let old = zoomedView, oldRect = self.oldZoomedRect {
+			NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+				ac.duration = 0.3
+				old.animator().frame = oldRect
+				}, completionHandler: zoom)
+			oldZoomedRect = nil
+		}
+		else {
+			zoom()
+		}
+	}
+	
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+	}
+	
+	override func scrollWheel(theEvent: NSEvent) {
+		if zoomedView == nil {
+			super.scrollWheel(theEvent)
+		}
 	}
 }
