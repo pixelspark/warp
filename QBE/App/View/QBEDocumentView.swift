@@ -31,6 +31,7 @@ class QBETabletArrow: NSObject, QBEArrow {
 internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDelegate {
 	@IBOutlet weak var delegate: QBEDocumentViewDelegate?
 	var flowchartView: QBEFlowchartView!
+	private var draggingOver: Bool = false
 	
 	override init(frame frameRect: NSRect) {
 		flowchartView = QBEFlowchartView(frame: frameRect)
@@ -46,9 +47,13 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		let pboard = sender.draggingPasteboard()
 		
 		if let _: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
+			draggingOver = true
+			setNeedsDisplayInRect(self.bounds)
 			return NSDragOperation.Copy
 		}
 		else if let _ = pboard.dataForType(QBEOutletView.dragType) {
+			draggingOver = true
+			setNeedsDisplayInRect(self.bounds)
 			return NSDragOperation.Link
 		}
 		return NSDragOperation.None
@@ -56,6 +61,26 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	
 	override func draggingUpdated(sender: NSDraggingInfo) -> NSDragOperation {
 		return draggingEntered(sender)
+	}
+	
+	override func draggingExited(sender: NSDraggingInfo?) {
+		draggingOver = false
+		setNeedsDisplayInRect(self.bounds)
+	}
+	
+	override func draggingEnded(sender: NSDraggingInfo?) {
+		draggingOver = false
+		setNeedsDisplayInRect(self.bounds)
+	}
+	
+	override func drawRect(dirtyRect: NSRect) {
+		if draggingOver {
+			NSColor.blueColor().colorWithAlphaComponent(0.15).set()
+		}
+		else {
+			NSColor.clearColor().set()
+		}
+		NSRectFill(self.bounds)
 	}
 	
 	override func prepareForDragOperation(sender: NSDraggingInfo) -> Bool {
