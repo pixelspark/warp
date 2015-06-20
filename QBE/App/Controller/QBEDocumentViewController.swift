@@ -168,11 +168,15 @@ import Cocoa
 	private func zoomToAll() {
 		if let ab = documentView.boundsOfAllTablets {
 			if self.workspaceView.zoomedView != nil {
-				documentView.resizeDocument()
-				self.workspaceView.zoom(nil)
+				self.workspaceView.zoom(nil) {
+					self.documentView.resizeDocument()
+				}
 			}
 			else {
-				self.workspaceView.magnifyToFitRect(ab)
+				NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+					ac.duration = 0.3
+					self.workspaceView.animator().magnifyToFitRect(ab)
+				}, completionHandler: nil)
 			}
 		}
 	}
@@ -183,11 +187,13 @@ import Cocoa
 	
 	func documentView(view: QBEDocumentView, wantsZoomToView: NSView) {
 		workspaceView.zoom(wantsZoomToView)
+		documentView.reloadData()
 	}
 	
 	@IBAction func zoomSelection(sender: NSObject) {
 		if let selectedView = documentView.selectedTabletController?.view.superview {
 			workspaceView.zoom(selectedView)
+			documentView.reloadData()
 		}
 	}
 	
@@ -412,5 +418,6 @@ import Cocoa
 		documentView = QBEDocumentView(frame: initialDocumentSize)
 		documentView.delegate = self
 		self.workspaceView.documentView = documentView
+		documentView.resizeDocument()
 	}
 }

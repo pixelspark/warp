@@ -193,32 +193,33 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	}
 	
 	func resizeDocument() {
-		if let contentSize = boundsOfAllTablets {
-			// Determine new size of the document
-			let margin: CGFloat = 500.0
-			var newBounds = contentSize.rectByInsetting(dx: -margin, dy: -margin)
-			let offset = CGPointMake(-newBounds.origin.x, -newBounds.origin.y)
-			newBounds.offset(dx: offset.x, dy: offset.y)
-			
-			// Translate the 'visible rect' (just like we will translate tablets)
-			let newVisible = self.visibleRect.rectByOffsetting(dx: offset.x, dy: offset.y)
-			
-			// Move all tablets
-			for vw in subviews {
-				if let tv = vw as? QBEResizableTabletView {
-					if let tablet = tv.tabletController.chain?.tablet {
-						if let tabletFrame = tablet.frame {
-							tablet.frame = tabletFrame.rectByOffsetting(dx: offset.x, dy: offset.y)
-							tv.frame = tablet.frame!
-						}
+		let parentSize = self.superview?.bounds ?? CGRectMake(0,0,500,500)
+		let contentMinSize = boundsOfAllTablets ?? parentSize
+		
+		// Determine new size of the document
+		let margin: CGFloat = 500
+		var newBounds = contentMinSize.rectByInsetting(dx: -margin, dy: -margin)
+		let offset = CGPointMake(-newBounds.origin.x, -newBounds.origin.y)
+		newBounds.offset(dx: offset.x, dy: offset.y)
+		
+		// Translate the 'visible rect' (just like we will translate tablets)
+		let newVisible = self.visibleRect.rectByOffsetting(dx: offset.x, dy: offset.y)
+		
+		// Move all tablets
+		for vw in subviews {
+			if let tv = vw as? QBEResizableTabletView {
+				if let tablet = tv.tabletController.chain?.tablet {
+					if let tabletFrame = tablet.frame {
+						tablet.frame = tabletFrame.rectByOffsetting(dx: offset.x, dy: offset.y)
+						tv.frame = tablet.frame!
 					}
 				}
 			}
-			
-			// Set new document bounds and scroll to the 'old' location in the new coordinate system
-			self.frame = CGRectMake(0, 0, newBounds.size.width, newBounds.size.height)
-			self.scrollRectToVisible(newVisible)
 		}
+		
+		// Set new document bounds and scroll to the 'old' location in the new coordinate system
+		self.frame = CGRectMake(0, 0, newBounds.size.width, newBounds.size.height)
+		self.scrollRectToVisible(newVisible)
 	}
 	
 	// Call whenever tablets are added/removed or resized
@@ -313,31 +314,55 @@ class QBEWorkspaceView: NSScrollView {
 		let zoom = {() -> () in
 			if let zv = view {
 				self.zoomedView = zv
-				self.magnification = 1.0
 				self.oldZoomedRect = zv.frame
 				self.hasHorizontalScroller = false
 				self.hasVerticalScroller = false
 				
+				// Approximate the document visible rectangle at magnification 1.0, to smoothen the animation
+				let oldMagnification = self.magnification
+				self.magnification = 1.0
+				let visibleRect = self.documentVisibleRect
+				self.magnification = oldMagnification
+
 				NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+					self.animator().magnification = 1.0
 					ac.duration = 0.3
-					zv.animator().frame = self.documentVisibleRect
+					zv.animator().frame = visibleRect
+				}) {
+					// Final adjustment
+					zv.frame = self.documentVisibleRect
+					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+						ac.duration = 0.1
+						zv.animator().frame = self.documentVisibleRect.inset(-11.0)
 					}, completionHandler: completion)
+				}
 			}
 			else {
-				self.zoomedView = nil
+				self.oldZoomedRect = nil
 				self.hasHorizontalScroller = true
 				self.hasVerticalScroller = true
-				completion?()
+				
+				if let oldView = self.zoomedView {
+					self.zoomedView = nil
+					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+						ac.duration = 0.3
+						oldView.animator().scrollRectToVisible(oldView.bounds)
+					}, completionHandler: completion)
+				}
+				else {
+					completion?()
+				}
 			}
 		}
 		
 		// Un-zoom the old view (if any)
-		if let old = zoomedView, oldRect = self.oldZoomedRect {
+		if let old = self.zoomedView, oldRect = self.oldZoomedRect {
+			old.autoresizingMask = NSAutoresizingMaskOptions.ViewNotSizable
 			NSAnimationContext.runAnimationGroup({ (ac) -> Void in
 				ac.duration = 0.3
 				old.animator().frame = oldRect
-				}, completionHandler: zoom)
-			oldZoomedRect = nil
+			}, completionHandler: zoom)
+			
 		}
 		else {
 			zoom()
