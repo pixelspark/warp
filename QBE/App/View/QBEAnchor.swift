@@ -165,7 +165,7 @@ internal enum QBEAnchor {
 	}
 	
 	var cursor: NSCursor? { get {
-		/*switch self {
+		switch self {
 		case .North: return NSCursor.resizeUpCursor()
 		case .South: return NSCursor.resizeDownCursor()
 		case .East: return NSCursor.resizeRightCursor()
@@ -174,8 +174,7 @@ internal enum QBEAnchor {
 		case .SouthEast: return NSCursor.resizeRightCursor()
 		case .NorthWest: return NSCursor.resizeLeftCursor()
 		case .SouthWest: return NSCursor.resizeLeftCursor()
-		default: return NSCursor.dragCopyCursor()
-		}*/
-		return NSCursor.closedHandCursor()
+		default: return NSCursor.openHandCursor()
+		}
 	} }
 }

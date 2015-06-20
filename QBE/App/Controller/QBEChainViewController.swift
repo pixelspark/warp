@@ -48,7 +48,6 @@ internal extension NSViewController {
 	private var outletDropView: QBEOutletDropView!
 	
 	var outletView: QBEOutletView!
-	@IBOutlet var suggestionsButton: NSButton!
 	weak var delegate: QBEChainViewDelegate?
 	
 	@IBOutlet var addStepMenu: NSMenu?
@@ -573,10 +572,6 @@ internal extension NSViewController {
 	
 	private func updateView() {
 		QBEAssertMainThread()
-		
-		self.suggestionsButton?.hidden = currentStep == nil
-		self.suggestionsButton?.enabled = currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
-		
 		self.view.window?.update()
 	}
 	

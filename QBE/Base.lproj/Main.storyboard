@@ -1231,7 +1231,7 @@ CA
                 </windowController>
                 <customObject id="6f7-a7-6o1" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-556.5" y="-183"/>
+            <point key="canvasLocation" x="-488.5" y="-47"/>
         </scene>
         <!--Document View Controller-->
         <scene sceneID="QgJ-tc-ecA">
@@ -1492,7 +1492,7 @@ CA
                     </items>
                 </menu>
             </objects>
-            <point key="canvasLocation" x="33.5" y="1298"/>
+            <point key="canvasLocation" x="-574.5" y="866"/>
         </scene>
         <!--Data view controller-->
         <scene sceneID="BjY-ZD-Y7M">
@@ -1577,7 +1577,7 @@ CA
                 </menu>
                 <customObject id="PUg-Ve-SLp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="33.5" y="1897.5"/>
+            <point key="canvasLocation" x="453.5" y="1005.5"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -1631,7 +1631,7 @@ CA
                                     <nil key="backgroundColor"/>
                                 </clipView>
                                 <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="NUm-sZ-uER">
-                                    <rect key="frame" x="1" y="119" width="223" height="15"/>
+                                    <rect key="frame" x="1" y="283" width="342" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="EfV-Hf-BUG">
@@ -1653,7 +1653,7 @@ CA
                 </viewController>
                 <customObject id="hZp-iq-JdD" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="936" y="887"/>
+            <point key="canvasLocation" x="1512" y="-947"/>
         </scene>
         <!--Tip View Controller-->
         <scene sceneID="ITy-71-tQC">
@@ -1696,7 +1696,7 @@ CA
                 </viewController>
                 <customObject id="5qC-lz-geN" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="738" y="1999"/>
+            <point key="canvasLocation" x="1498" y="-649.5"/>
         </scene>
         <!--Steps view controller-->
         <scene sceneID="zxO-hf-1cr">
@@ -1760,7 +1760,7 @@ CA
                     </items>
                 </menu>
             </objects>
-            <point key="canvasLocation" x="1065.5" y="1289"/>
+            <point key="canvasLocation" x="465.5" y="664"/>
         </scene>
         <!--Configurator View Controller-->
         <scene sceneID="FDq-LH-cOQ">
@@ -1802,7 +1802,7 @@ CA
                 </viewController>
                 <customObject id="BkC-vb-PKi" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1541" y="-60.5"/>
+            <point key="canvasLocation" x="1661" y="-76.5"/>
         </scene>
     </scenes>
     <resources>

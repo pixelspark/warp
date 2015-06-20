@@ -47,17 +47,13 @@ class QBEResizableView: NSView {
 	
 	override func hitTest(aPoint: NSPoint) -> NSView? {
 		if let cv = contentView {
+			// Make the background of an NSCollectionView grabbable for dragging
 			let pt = convertPoint(aPoint, fromView: superview)
 			let ht = cv.hitTest(pt)
 			if let _ = ht as? NSCollectionView {
 				return self.resizerView
 			}
 		}
-		
-		if !selected {
-			return self.frame.contains(aPoint) ? self.resizerView : nil
-		}
-		
 
 		return super.hitTest(aPoint)
 	}
@@ -67,12 +63,36 @@ class QBEResizableView: NSView {
 		addTrackingArea(NSTrackingArea(rect: self.bounds, options: [NSTrackingAreaOptions.MouseEnteredAndExited, NSTrackingAreaOptions.ActiveInKeyWindow], owner: self, userInfo: nil))
 	}
 	
+	override func resetCursorRects() {
+		// Find NSCollectionView children and show a grab cursor for them
+		findGrabbableViews(self)
+	}
+	
+	private func findGrabbableViews(parent: NSView) {
+		let down = (NSEvent.pressedMouseButtons() & (1 << 0)) != 0
+		
+		parent.subviews.each { (subview) -> () in
+			if subview is NSCollectionView {
+				self.addCursorRect(subview.convertRect(subview.bounds, toView: self), cursor: down ? NSCursor.closedHandCursor() : NSCursor.openHandCursor())
+			}
+			findGrabbableViews(subview)
+		}
+	}
+	
 	override func mouseEntered(theEvent: NSEvent) {
 		self.resizerView.hide = false
 	}
 	
 	override func mouseExited(theEvent: NSEvent) {
 		self.resizerView.hide = true
+	}
+	
+	override func mouseDown(theEvent: NSEvent) {
+		self.window?.invalidateCursorRectsForView(self)
+	}
+	
+	override func mouseUp(theEvent: NSEvent) {
+		self.window?.invalidateCursorRectsForView(self)
 	}
 
 	override func drawRect(dirtyRect: NSRect) {
@@ -130,55 +150,6 @@ private class QBEResizerView: NSView {
 		return nil*/
 	}
 	
-	override func drawRect(dirtyRect: NSRect) {
-		if let context = NSGraphicsContext.currentContext()?.CGContext {
-			CGContextSaveGState(context)
-			
-			// Draw the bounding box
-			let selected = (self.superview as! QBEResizableView).selected
-			let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.5) : NSColor.clearColor()
-			CGContextSetLineWidth(context, 2.0)
-			CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
-			CGContextAddRect(context, self.bounds.inset(inset))
-			CGContextStrokePath(context)
-			
-			// Create the gradient to paint the anchor points.
-			let activeColors: [CGFloat] = [
-				0.4, 0.8, 1.0, 1.0,
-				0.0, 0.0, 1.0, 1.0
-			];
-			
-			let inactiveColors: [CGFloat] = [
-				0.4, 0.4, 0.4, 0.5,
-				0.8, 0.8, 0.8, 0.5
-			];
-			
-			let baseSpace = CGColorSpaceCreateDeviceRGB();
-			if let gradient = CGGradientCreateWithColorComponents(baseSpace, selected ? activeColors: inactiveColors, nil, 2) {
-				// (4) Set up the stroke for drawing the border of each of the anchor points.
-				CGContextSetLineWidth(context, 1);
-				CGContextSetShadow(context, CGSizeMake(0.5, 0.5), 1);
-				CGContextSetStrokeColorWithColor(context, NSColor.whiteColor().CGColor);
-				
-				if !hide {
-					// Fill each anchor point using the gradient, then stroke the border.
-					for anchor in visibleAnchors {
-						let currPoint = anchor.frameInBounds(self.bounds, withInset: inset)
-						CGContextSaveGState(context)
-						CGContextAddEllipseInRect(context, currPoint)
-						CGContextClip(context)
-						let startPoint = CGPointMake(CGRectGetMidX(currPoint), CGRectGetMinY(currPoint))
-						let endPoint = CGPointMake(CGRectGetMidX(currPoint), CGRectGetMaxY(currPoint))
-						CGContextDrawLinearGradient(context, gradient, startPoint, endPoint, CGGradientDrawingOptions.DrawsAfterEndLocation)
-						CGContextRestoreGState(context)
-						CGContextStrokeEllipseInRect(context, CGRectInset(currPoint, 1, 1))
-					}
-				}
-			}
-			CGContextRestoreGState(context)
-		}
-	}
-	
 	private func updateSize(theEvent: NSEvent) {
 		if let rs = resizingSession {
 			let locationInView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
@@ -208,16 +179,16 @@ private class QBEResizerView: NSView {
 			resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: rs.downAnchor, moved: rs.moved)
 		}
 
-		
-		// Set cursor rects
-		self.resetCursorRects()
+		self.window?.invalidateCursorRectsForView(self)
+	}
+	
+	private override func resetCursorRects() {
 		for anchor in visibleAnchors {
 			let frame = anchor.frameInBounds(self.bounds, withInset: inset)
 			if let c = anchor.cursor {
 				self.addCursorRect(frame, cursor: c)
 			}
 		}
-		self.window?.invalidateCursorRectsForView(self)
 	}
 	
 	private func anchorForPoint(locationInView: CGPoint) -> QBEAnchor {
@@ -276,7 +247,6 @@ private class QBEResizerView: NSView {
 		
 		resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: realAnchor, moved: false)
 		setNeedsDisplayInRect(self.bounds)
-		NSCursor.closedHandCursor().push()
 	}
 	
 	override func mouseDragged(theEvent: NSEvent) {
