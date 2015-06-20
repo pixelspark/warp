@@ -76,6 +76,7 @@ import Cocoa
 		document?.removeTablet(tablet)
 		self.configurator?.configure(nil, delegate: nil)
 		documentView.removeTablet(tablet)
+		workspaceView.zoom(nil)
 		
 		for cvc in self.childViewControllers {
 			if let child = cvc as? QBEChainViewController {
