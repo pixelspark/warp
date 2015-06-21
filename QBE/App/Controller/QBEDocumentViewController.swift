@@ -154,11 +154,6 @@ import Cocoa
 				
 				self.documentView.addTablet(tabletController) {
 					self.documentView.selectTablet(tablet)
-					
-					// Either undo zooming, or make the newly added view the zoomed view
-					if (self.document?.tablets.count ?? 0 == 1) {
-						self.workspaceView.zoom(tabletController.view.superview)
-					}
 				}
 			}
 			
