@@ -22,10 +22,22 @@ struct QBERow {
 	}
 	
 	subscript(column: QBEColumn) -> QBEValue? {
-		if let i = columnNames.indexOf(column) {
-			return values[i]
+		get {
+			if let i = columnNames.indexOf(column) {
+				return values[i]
+			}
+			return nil
 		}
-		return nil
+	}
+	
+	mutating func setValue(value: QBEValue, forColumn column: QBEColumn) {
+		if let i = columnNames.indexOf(column) {
+			values[i] = value
+		}
+		else {
+			columnNames.append(column)
+			values.append(value)
+		}
 	}
 }
 

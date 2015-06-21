@@ -17,6 +17,75 @@ internal func QBEAsyncMain(block: () -> ()) {
 	dispatch_async(dispatch_get_main_queue(), block)
 }
 
+internal extension dispatch_semaphore_t {
+	/** Acquire the semaphore, run block while holding the semaphore, release it afterwards. */
+	func use(timeout: dispatch_time_t = DISPATCH_TIME_FOREVER, @noescape block: () -> ()) {
+		dispatch_semaphore_wait(self, timeout)
+		block()
+		dispatch_semaphore_signal(self)
+	}
+}
+
+internal extension SequenceType {
+	typealias Element = Generator.Element
+	
+	/** Iterate over the items in this array, and call the 'each' block for each element. At most `maxConcurrent` calls
+	to `each` may be 'in flight' concurrently. After each has been called and called back for each of the items, the
+	completion block is called. */
+	func eachConcurrently(maxConcurrent maxConcurrent: Int, maxPerSecond: Int?, each: (Element, () -> ()) -> (), completion: () -> ()) {
+		var iterator = self.generate()
+		var outstanding = 0
+		
+		func eachTimed(element: Element) {
+			let start = CFAbsoluteTimeGetCurrent()
+			each(element, {
+				let end = CFAbsoluteTimeGetCurrent()
+				advance(end - start)
+			})
+		}
+		
+		func advance(duration: Double) {
+			// There are more elements, call the each function on the next one
+			if let next = iterator.next() {
+				/* If we can make at most x requests per second, each request should take at least
+				1/x seconds if we would be executing these requests serially. Because we have n
+				concurrent requests, each request needs to take at least n/x seconds. */
+				if let mrps = maxPerSecond {
+					let minimumTime = Double(maxConcurrent) / Double(mrps)
+					if minimumTime > duration {
+						dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64((minimumTime - duration) * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+							eachTimed(next)
+						}
+						return
+					}
+				}
+				eachTimed(next)
+			}
+			else {
+				outstanding--
+				// No elements left to call each for, but there may be some elements in flight. The last one calls completion
+				if outstanding == 0 {
+					completion()
+				}
+			}
+		}
+		
+		// Call `each` for at most maxConcurrent items
+		var atLeastOne = false
+		for _ in 0..<maxConcurrent {
+			if let next = iterator.next() {
+				atLeastOne = true
+				outstanding++
+				eachTimed(next)
+			}
+		}
+		
+		if !atLeastOne {
+			completion()
+		}
+	}
+}
+
 internal extension Array {
 	func parallel<T, ResultType>(map map: ((ArraySlice<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> QBEFuture<ResultType?> {
 		let chunkSize = QBEStreamDefaultBatchSize
@@ -168,8 +237,8 @@ When used with QBEFuture, a job represents a single attempt at the calculation o
 QBEFuture receives the QBEJob object and should use it to check whether calculation of the future is still necessary (or
 the job has been cancelled) and report progress information. */
 class QBEJob: QBEJobDelegate {
+	let queue: dispatch_queue_t
 	private(set) var cancelled: Bool = false
-	private let queue: dispatch_queue_t
 	private var progressComponents: [Int: Double] = [:]
 	private var observers: [QBEWeak<QBEJobDelegate>] = []
 	

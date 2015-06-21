@@ -368,7 +368,9 @@
 "agt-UL-0e3.title" = "Gebruik standaard";
 
 /* Class = "NSMenu"; title = "Analyze"; ObjectID = "bCT-hI-Iv5"; */
-"bCT-hI-Iv5.title" = "Tabel";
+"bCT-hI-Iv5.title" = "Extra";
+
+"fdh-ox-BKw.title" = "Gegevens crawlen...";
 
 /* Class = "NSMenuItem"; title = "Remove selected row(s)"; ObjectID = "bP3-jR-pV3"; */
 "bP3-jR-pV3.title" = "Verwijder geselecteerde rij(en)";

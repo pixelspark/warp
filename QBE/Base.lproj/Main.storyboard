@@ -776,13 +776,19 @@ CA
                                     </items>
                                 </menu>
                             </menuItem>
-                            <menuItem title="Table" id="OMj-Te-YTh">
+                            <menuItem title="Tools" id="OMj-Te-YTh">
                                 <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="Table" id="bCT-hI-Iv5">
+                                <menu key="submenu" title="Tools" id="bCT-hI-Iv5">
                                     <items>
                                         <menuItem title="Make pivot table..." keyEquivalent="d" id="Mg0-TA-h4E">
                                             <connections>
                                                 <action selector="pivot:" target="Ady-hI-5gd" id="Cw3-1m-cKZ"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Crawl data..." id="fdh-ox-BKw">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="crawl:" target="Ady-hI-5gd" id="9Pk-ZZ-CZq"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Make columnar..." keyEquivalent="D" id="OG0-83-x0Z">

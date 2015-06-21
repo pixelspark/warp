@@ -69,7 +69,7 @@ class QBEStreamData: QBEData {
 					s.columnNames(job) { (columnNames) -> () in
 						callback(columnNames.use {(cns) in
 							return QBERaster(data: data, columnNames: cns, readOnly: true)
-							})
+						})
 					}
 				}
 				

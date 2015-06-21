@@ -935,6 +935,9 @@ internal extension NSViewController {
 		if item.action()==Selector("transposeData:") {
 			return currentStep != nil
 		}
+		else if item.action()==Selector("crawl:") {
+			return currentStep != nil
+		}
 		else if item.action()==Selector("addDebugStep:") {
 			return currentStep != nil
 		}
@@ -1082,6 +1085,10 @@ internal extension NSViewController {
 	
 	@IBAction func flatten(sender: NSObject) {
 		suggestSteps([QBEFlattenStep(previous: currentStep)])
+	}
+	
+	@IBAction func crawl(sender: NSObject) {
+		suggestSteps([QBECrawlStep(previous: currentStep)])
 	}
 	
 	@IBAction func pivot(sender: NSObject) {
