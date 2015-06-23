@@ -261,12 +261,50 @@ import Cocoa
 	}
 	
 	func documentView(view: QBEDocumentView, didReceiveFiles files: [String], atLocation: CGPoint) {
-		var offset: CGPoint = CGPointMake(0,0)
+		// Gather file paths
+		var tabletsAdded: [QBETablet] = []
+		
 		for file in files {
-			let url = NSURL(fileURLWithPath: file)
-			addTabletFromURL(url, atLocation: atLocation.offsetBy(offset))
-			offset = offset.offsetBy(CGPointMake(25,-25))
+			var isDirectory: ObjCBool = false
+			NSFileManager.defaultManager().fileExistsAtPath(file, isDirectory: &isDirectory)
+			if isDirectory {
+				// Find the contents of the directory, and add.
+				if let enumerator = NSFileManager.defaultManager().enumeratorAtPath(file) {
+					for child in enumerator {
+						if let childName = child as? String {
+							// Skip UNIX hidden files (e.g. .DS_Store).
+							// TODO: check Finder 'hidden' bit here like so: http://stackoverflow.com/questions/1140235/is-the-file-hidden
+							if !childName.lastPathComponent.hasPrefix(".") {
+								let childPath = file.stringByAppendingPathComponent(childName)
+								
+								// Is  the enumerated item a directory? Then ignore it, the enumerator already recurses
+								var isChildDirectory: ObjCBool = false
+								NSFileManager.defaultManager().fileExistsAtPath(childPath, isDirectory: &isChildDirectory)
+								if !isChildDirectory {
+									if let t = addTabletFromURL(NSURL(fileURLWithPath: childPath)) {
+										tabletsAdded.append(t)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			else {
+				if let t = addTabletFromURL(NSURL(fileURLWithPath: file)) {
+					tabletsAdded.append(t)
+				}
+			}
 		}
+		
+		// Zoom to all newly added tablets
+		var allRect = CGRectZero
+		for tablet in tabletsAdded {
+			if let f = tablet.frame {
+				allRect = CGRectUnion(allRect, f)
+			}
+		}
+		self.workspaceView.magnifyToFitRect(allRect)
 	}
 	
 	func documentView(view: QBEDocumentView, didSelectArrow arrow: QBEArrow?) {
@@ -308,26 +346,23 @@ import Cocoa
 		didSelectTablet(tablet)
 	}
 	
-	private func addTabletFromURL(url: NSURL, atLocation: CGPoint? = nil) {
-		let job = QBEJob(.UserInitiated)
+	private func addTabletFromURL(url: NSURL, atLocation: CGPoint? = nil) -> QBETablet? {
+		QBEAssertMainThread()
+		let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url)
 		
-		job.async {
-			let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url)
-			
-			QBEAsyncMain {
-				if sourceStep != nil {
-					let tablet = QBETablet(chain: QBEChain(head: sourceStep))
-					self.addTablet(tablet, atLocation: atLocation, undo: true)
-				}
-				else {
-					let alert = NSAlert()
-					alert.messageText = NSLocalizedString("Unknown file format: ", comment: "") + (url.pathExtension ?? "")
-					alert.alertStyle = NSAlertStyle.WarningAlertStyle
-					alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: NSModalResponse) -> Void in
-						// Do nothing...
-					})
-				}
-			}
+		if sourceStep != nil {
+			let tablet = QBETablet(chain: QBEChain(head: sourceStep))
+			self.addTablet(tablet, atLocation: atLocation, undo: true)
+			return tablet
+		}
+		else {
+			let alert = NSAlert()
+			alert.messageText = String(format: NSLocalizedString("Unknown file type '%@'.'", comment: ""), (url.pathExtension ?? ""))
+			alert.alertStyle = NSAlertStyle.WarningAlertStyle
+			alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: NSModalResponse) -> Void in
+				// Do nothing...
+			})
+			return nil
 		}
 	}
 	
