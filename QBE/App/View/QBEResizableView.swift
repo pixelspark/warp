@@ -236,7 +236,7 @@ internal class QBEResizerView: NSView {
 		}
 		
 		if let workspace = sv as? QBEWorkspaceView {
-			return workspace.zoomedView == nil
+			return workspace.magnifiedView == nil
 		}
 		
 		return true

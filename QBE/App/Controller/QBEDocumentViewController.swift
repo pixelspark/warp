@@ -34,7 +34,7 @@ import Cocoa
 	}
 	
 	func chainViewDidChangeChain(view: QBEChainViewController) {
-		if workspaceView.zoomedView == nil {
+		if workspaceView.magnifiedView == nil {
 			documentView.resizeDocument()
 		}
 		documentView.reloadData()
@@ -76,7 +76,7 @@ import Cocoa
 		document?.removeTablet(tablet)
 		self.configurator?.configure(nil, delegate: nil)
 		documentView.removeTablet(tablet)
-		workspaceView.zoom(nil)
+		workspaceView.magnifyView(nil)
 		
 		for cvc in self.childViewControllers {
 			if let child = cvc as? QBEChainViewController {
@@ -135,7 +135,7 @@ import Cocoa
 	}
 	
 	@objc func addTablet(tablet: QBETablet, undo: Bool) {
-		self.workspaceView.zoom(nil) {
+		self.workspaceView.magnifyView(nil) {
 			// Check if this tablet is also in the document
 			if let d = self.document where tablet.document != self.document {
 				d.addTablet(tablet)
@@ -168,8 +168,8 @@ import Cocoa
 	
 	private func zoomToAll() {
 		if let ab = documentView.boundsOfAllTablets {
-			if self.workspaceView.zoomedView != nil {
-				self.workspaceView.zoom(nil) {
+			if self.workspaceView.magnifiedView != nil {
+				self.workspaceView.magnifyView(nil) {
 					self.documentView.resizeDocument()
 				}
 			}
@@ -187,13 +187,13 @@ import Cocoa
 	}
 	
 	func documentView(view: QBEDocumentView, wantsZoomToView: NSView) {
-		workspaceView.zoom(wantsZoomToView)
+		workspaceView.zoomView(wantsZoomToView)
 		documentView.reloadData()
 	}
 	
 	@IBAction func zoomSelection(sender: NSObject) {
 		if let selectedView = documentView.selectedTabletController?.view.superview {
-			workspaceView.zoom(selectedView)
+			workspaceView.zoomView(selectedView)
 			documentView.reloadData()
 		}
 	}

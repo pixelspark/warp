@@ -224,6 +224,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	
 	// Call whenever tablets are added/removed or resized
 	private func tabletsChanged() {
+		resizeDocument()
 		self.flowchartView.frame = self.bounds
 		// Update flowchart
 		var arrows: [QBEArrow] = []
@@ -308,12 +309,37 @@ private class QBEResizableTabletView: QBEResizableView {
 
 class QBEWorkspaceView: NSScrollView {
 	private var oldZoomedRect: NSRect? = nil
-	private(set) var zoomedView: NSView? = nil
+	private(set) var magnifiedView: NSView? = nil
 	
-	func zoom(view: NSView?, completion: (() -> ())? = nil) {
+	func zoomView(view: NSView, completion: (() -> ())? = nil) {
+		// First just try to magnify to the tablet
+		if self.magnification < 1.0 {
+			NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+				ac.duration = 0.3
+				self.animator().magnifyToFitRect(view.frame)
+			}, completionHandler: {
+				// If the tablet is too large, we are still zoomed out a bit. Force zoom in by zooming in on a part of the tablet
+				if self.magnification < 1.0 {
+					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+						ac.duration = 0.3
+						let maxSize = self.bounds
+						let frame = view.frame
+						let zoomedHeight = min(maxSize.size.height, frame.size.height)
+						let zoom = CGRectMake(frame.origin.x, frame.origin.y + (frame.size.height - zoomedHeight), min(maxSize.size.width, frame.size.width), zoomedHeight)
+						self.animator().magnifyToFitRect(zoom)
+					}, completionHandler: completion)
+				}
+			})
+		}
+		else {
+			self.magnifyView(view, completion: completion)
+		}
+	}
+	
+	func magnifyView(view: NSView?, completion: (() -> ())? = nil) {
 		let zoom = {() -> () in
 			if let zv = view {
-				self.zoomedView = zv
+				self.magnifiedView = zv
 				self.oldZoomedRect = zv.frame
 				self.hasHorizontalScroller = false
 				self.hasVerticalScroller = false
@@ -342,8 +368,8 @@ class QBEWorkspaceView: NSScrollView {
 				self.hasHorizontalScroller = true
 				self.hasVerticalScroller = true
 				
-				if let oldView = self.zoomedView {
-					self.zoomedView = nil
+				if let oldView = self.magnifiedView {
+					self.magnifiedView = nil
 					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
 						ac.duration = 0.3
 						oldView.animator().scrollRectToVisible(oldView.bounds)
@@ -356,7 +382,7 @@ class QBEWorkspaceView: NSScrollView {
 		}
 		
 		// Un-zoom the old view (if any)
-		if let old = self.zoomedView, oldRect = self.oldZoomedRect {
+		if let old = self.magnifiedView, oldRect = self.oldZoomedRect {
 			old.autoresizingMask = NSAutoresizingMaskOptions.ViewNotSizable
 			NSAnimationContext.runAnimationGroup({ (ac) -> Void in
 				ac.duration = 0.3
@@ -374,8 +400,11 @@ class QBEWorkspaceView: NSScrollView {
 	}
 	
 	override func scrollWheel(theEvent: NSEvent) {
-		if zoomedView == nil {
+		if magnifiedView == nil {
 			super.scrollWheel(theEvent)
+		}
+		else {
+			self.magnifyView(nil)
 		}
 	}
 }
