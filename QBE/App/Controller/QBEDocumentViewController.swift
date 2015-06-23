@@ -87,7 +87,7 @@ import Cocoa
 		}
 		
 		self.view.window?.makeFirstResponder(self.documentView)
-		self.welcomeLabel.hidden = (document?.tablets.count ?? 0) != 0
+		updateView()
 		
 		// Register undo operation. Do not retain the QBETablet but instead serialize, so all caches are properly destroyed.
 		if undo {
@@ -156,9 +156,14 @@ import Cocoa
 					self.documentView.selectTablet(tablet)
 				}
 			}
-			
-			self.welcomeLabel.hidden = (self.document?.tablets.count ?? 0) != 0
+			self.updateView()
 		}
+	}
+	
+	private func updateView () {
+		self.workspaceView.hasHorizontalScroller = (self.document?.tablets.count ?? 0) > 0
+		self.workspaceView.hasVerticalScroller = (self.document?.tablets.count ?? 0) > 0
+		self.welcomeLabel.hidden = (self.document?.tablets.count ?? 0) != 0
 	}
 	
 	private func zoomToAll() {
