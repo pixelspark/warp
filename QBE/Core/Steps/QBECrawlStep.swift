@@ -108,8 +108,6 @@ class QBECrawlStream: QBEStream {
 					switch rows {
 					case .Success(let rows):
 						var outRows: [QBETuple] = []
-						let items = rows.count
-						var progress = 0.0
 						
 						Array(rows).eachConcurrently(maxConcurrent: self.crawler.maxConcurrentRequests, maxPerSecond: self.crawler.maxRequestsPerSecond, each: { (tuple, callback) -> () in
 							// Check if we should continue
@@ -117,10 +115,6 @@ class QBECrawlStream: QBEStream {
 								callback()
 								return
 							}
-							
-							// Keep progress
-							progress += 1.0 / Double(items)
-							job.reportProgress(progress, forKey: unsafeAddressOf(self).hashValue)
 							
 							job.async {
 								// Find out what URL we need to fetch
