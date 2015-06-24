@@ -14,6 +14,7 @@
 		6515218D1B131297007BCDFF /* QBEDebugStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6515218F1B131297007BCDFF /* QBEDebugStepView.xib */; };
 		651521931B13B5D6007BCDFF /* QBEXMLStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651521921B13B5D6007BCDFF /* QBEXMLStep.swift */; };
 		651521991B13B92D007BCDFF /* TCMXMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 651521981B13B92D007BCDFF /* TCMXMLWriter.m */; };
+		651648B51B3B466F001E50BC /* QBEViewFilterCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651648B41B3B466F001E50BC /* QBEViewFilterCell.swift */; };
 		6518BFC41B26DE7C009E311F /* libmariadbclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */; };
 		651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 651988E51A0F9C30003463AA /* CHCSVParser.m */; };
 		651BEB111AC2B0FA00B1CCC0 /* ltqnorm.c in Sources */ = {isa = PBXBuildFile; fileRef = 651BEB0F1AC2B0FA00B1CCC0 /* ltqnorm.c */; };
@@ -297,6 +298,7 @@
 		651521921B13B5D6007BCDFF /* QBEXMLStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEXMLStep.swift; sourceTree = "<group>"; };
 		651521971B13B92D007BCDFF /* TCMXMLWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TCMXMLWriter.h; path = Libraries/TCMXMLWriter/TCMXML/TCMXMLWriter.h; sourceTree = "<group>"; };
 		651521981B13B92D007BCDFF /* TCMXMLWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TCMXMLWriter.m; path = Libraries/TCMXMLWriter/TCMXML/TCMXMLWriter.m; sourceTree = "<group>"; };
+		651648B41B3B466F001E50BC /* QBEViewFilterCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEViewFilterCell.swift; sourceTree = "<group>"; };
 		651988E41A0F9C30003463AA /* CHCSVParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CHCSVParser.h; path = Libraries/CHCSVParser/CHCSVParser.h; sourceTree = "<group>"; };
 		651988E51A0F9C30003463AA /* CHCSVParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CHCSVParser.m; path = Libraries/CHCSVParser/CHCSVParser.m; sourceTree = "<group>"; };
 		651988E81A0FAA3F003463AA /* QBEObjectiveCBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QBEObjectiveCBridge.h; path = QBE/QBEObjectiveCBridge.h; sourceTree = "<group>"; };
@@ -671,6 +673,7 @@
 				65917AE31AF6B29400FDA58A /* QBEFlowchartView.swift */,
 				65884A231AFDF23E003A5BF1 /* QBEAnchor.swift */,
 				65884A381AFFA9D9003A5BF1 /* QBEOutletView.swift */,
+				651648B41B3B466F001E50BC /* QBEViewFilterCell.swift */,
 			);
 			name = View;
 			path = App/View;
@@ -1130,6 +1133,7 @@
 				65A0E01C1AF29A750005C50F /* QBEPrestoSourceStepView.swift in Sources */,
 				65A0DFD41AF299F30005C50F /* QBEStream.swift in Sources */,
 				65A0DFF21AF299F30005C50F /* QBERowsStep.swift in Sources */,
+				651648B51B3B466F001E50BC /* QBEViewFilterCell.swift in Sources */,
 				65A526B21B08E77300CCF3E3 /* QBEFileWriter.swift in Sources */,
 				65A0DF841AF299C20005C50F /* QBEDataViewController.swift in Sources */,
 				65A0DFC51AF299F30005C50F /* QBELocale.swift in Sources */,

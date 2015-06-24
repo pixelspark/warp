@@ -248,6 +248,15 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return false
 	}
 	
+	func tableGrid(aTableGrid: MBTableGrid!, footerCellForColumn columnIndex: UInt) -> NSCell! {
+		if let r = raster where Int(columnIndex) < r.columnNames.count {
+			let filterCell = QBEViewFilterCell(raster: r, column: r.columnNames[Int(columnIndex)])
+			filterCell.selected = aTableGrid.selectedColumnIndexes.containsIndex(Int(columnIndex))
+			return filterCell
+		}
+		return nil
+	}
+	
 	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
 		return NSColor.controlAlternatingRowBackgroundColors()[0]
 		//return (cols[Int(rowIndex) % cols.count] as? NSColor)!
