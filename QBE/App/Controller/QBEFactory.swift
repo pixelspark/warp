@@ -93,7 +93,7 @@ class QBEFactory {
 	
 	func fileWriterForType(type: String, locale: QBELocale, title: String) -> QBEFileWriter? {
 		if let c = fileWriters[type] {
-			return c(locale: locale, title: title)
+			return c.init(locale: locale, title: title)
 		}
 		return nil
 	}

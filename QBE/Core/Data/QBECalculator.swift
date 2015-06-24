@@ -109,13 +109,15 @@ class QBECalculator {
 				
 				/* If we got zero rows, but there is stil time left, just try again. In many cases the back-end
 				is much faster than we think and we have plenty of time left to fill in our time budget. */
-				if r.rowCount < self.desiredExampleRows && (maxTime - duration) > duration && maxInputRows < self.maximumExampleInputRows {
+				let maxExampleRows = self.maximumExampleInputRows
+				if r.rowCount < self.desiredExampleRows && (maxTime - duration) > duration && (maxInputRows < maxExampleRows) {
 					QBELog("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
 					self.calculateExample(sourceStep, maximumTime: maxTime - duration, callback: callback)
 				}
 				else {
 					callback()
 				}
+				break;
 				
 			case .Failure(_):
 				break;
