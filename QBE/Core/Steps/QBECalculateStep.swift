@@ -95,7 +95,7 @@ class QBECalculateStep: QBEStep {
 			// If this function is not constant, it may depend on another column
 			if !function.isConstant {
 				// Check whether this calculation overwrites the previous result, or depends on its outcome
-				self.function.visit({(expr) in
+				self.function.visit({(expr) -> () in
 					if let col  = expr as? QBESiblingExpression {
 						if col.columnName == p.targetColumn {
 							// This expression depends on the column produced by the previous one, hence it cannot overwrite it

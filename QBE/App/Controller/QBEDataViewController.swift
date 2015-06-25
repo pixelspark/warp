@@ -5,6 +5,7 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool
 	func dataView(view: QBEDataViewController, didOrderColumns: [QBEColumn], toIndex: Int) -> Bool
 	func dataView(view: QBEDataViewController, didSelectValue: QBEValue, changeable: Bool)
+	func dataView(view: QBEDataViewController, filterControllerForColumn: QBEColumn, callback: (NSViewController) -> ())
 }
 
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
@@ -250,11 +251,26 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func tableGrid(aTableGrid: MBTableGrid!, footerCellForColumn columnIndex: UInt) -> NSCell! {
 		if let r = raster where Int(columnIndex) < r.columnNames.count {
-			let filterCell = QBEViewFilterCell(raster: r, column: r.columnNames[Int(columnIndex)])
+			let filterCell = QBEFilterCell(raster: r, column: r.columnNames[Int(columnIndex)])
 			filterCell.selected = aTableGrid.selectedColumnIndexes.containsIndex(Int(columnIndex))
 			return filterCell
 		}
 		return nil
+	}
+	
+	func tableGrid(aTableGrid: MBTableGrid!, footerCellClicked cell: NSCell!, forColumn columnIndex: UInt, withEvent theEvent: NSEvent!) {
+		if let r = raster where Int(columnIndex) < r.columnNames.count {
+			self.delegate?.dataView(self, filterControllerForColumn: r.columnNames[Int(columnIndex)]) { (viewFilterController) in
+				let pv = NSPopover()
+				pv.behavior = NSPopoverBehavior.Semitransient
+				pv.contentViewController = viewFilterController
+				
+				let columnRect = aTableGrid.rectOfColumn(columnIndex)
+				let footerHeight = aTableGrid.columnFooterView.frame.size.height
+				let filterRect = CGRectMake(columnRect.origin.x, aTableGrid.frame.size.height - footerHeight, columnRect.size.width, footerHeight)
+				pv.showRelativeToRect(filterRect, ofView: aTableGrid, preferredEdge: NSRectEdge.MaxY)
+			}
+		}
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {

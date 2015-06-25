@@ -81,12 +81,12 @@ class QBECalculator {
 	
 	/** Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have 
 	been returned. The given callback is called as soon as the last calculation round has finished. */
-	func calculateExample(sourceStep: QBEStep, maximumTime: Double? = nil, callback: () -> ()) {
+	func calculateExample(sourceStep: QBEStep, maximumTime: Double? = nil,  columnFilters: [QBEColumn:QBEFilterSet]? = nil, callback: () -> ()) {
 		let maxTime = maximumTime ?? maximumExampleTime
 		
 		let startTime = NSDate.timeIntervalSinceReferenceDate()
 		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maxTime)
-		self.calculate(sourceStep, fullData: false, maximumTime: maxTime)
+		self.calculate(sourceStep, fullData: false, maximumTime: maxTime, columnFilters: columnFilters)
 		
 		// Record extra information when calculating an example result
 		currentRaster!.get {[unowned self] (raster) in
@@ -112,7 +112,7 @@ class QBECalculator {
 				let maxExampleRows = self.maximumExampleInputRows
 				if r.rowCount < self.desiredExampleRows && (maxTime - duration) > duration && (maxInputRows < maxExampleRows) {
 					QBELog("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
-					self.calculateExample(sourceStep, maximumTime: maxTime - duration, callback: callback)
+					self.calculateExample(sourceStep, maximumTime: maxTime - duration, columnFilters: columnFilters, callback: callback)
 				}
 				else {
 					callback()
@@ -125,7 +125,7 @@ class QBECalculator {
 		}
 	}
 	
-	func calculate(sourceStep: QBEStep, fullData: Bool, maximumTime: Double? = nil) {
+	func calculate(sourceStep: QBEStep, fullData: Bool, maximumTime: Double? = nil, columnFilters: [QBEColumn:QBEFilterSet]? = nil) {
 		if sourceStep != calculationInProgressForStep || currentData?.cancelled ?? false || currentRaster?.cancelled ?? false {
 			currentData?.cancel()
 			currentRaster?.cancel()
@@ -151,7 +151,30 @@ class QBECalculator {
 					let dataJob = cd.get({ (data: QBEFallible<QBEData>) -> () in
 						switch data {
 							case .Success(let d):
-								d.raster(job, callback: callback)
+								// At this point, we know which columns will be available. We should now add the view filters (if any)
+								if let filters = columnFilters where filters.count > 0 {
+									d.columnNames(job, callback: { (fallibleColumns) -> () in
+										switch fallibleColumns {
+										case .Success(let columnNames):
+											var filteredData = d
+											for column in columnNames {
+												if let columnFilter = filters[column] {
+													let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(QBESiblingExpression(columnName: column))
+													filteredData = filteredData.filter(filterExpression)
+												}
+											}
+											
+											filteredData.raster(job, callback: callback)
+											
+										case .Failure(let e):
+											callback(.Failure(e))
+										}
+									})
+									
+								}
+								else {
+									d.raster(job, callback: callback)
+								}
 							
 							case .Failure(let s):
 								callback(.Failure(s))

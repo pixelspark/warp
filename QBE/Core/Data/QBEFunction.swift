@@ -6,6 +6,7 @@ binary), constrained ('between x and y') or anything. Functions that can take an
 as aggregating functions (if they are adhere to the property that (e.g.) SUM(1;2;3;4) == SUM(SUM(1;2);SUM(3;4)). */
 enum QBEArity: Equatable {
 	case Fixed(Int)
+	case AtLeast(Int)
 	case Between(Int, Int)
 	case Any
 	
@@ -13,6 +14,9 @@ enum QBEArity: Equatable {
 		switch self {
 		case .Fixed(let i):
 			return count == i
+			
+		case .AtLeast(let i):
+			return count >= i
 		
 		case .Between(let a, let b):
 			return count >= a && count <= b
@@ -91,6 +95,7 @@ enum QBEFunction: String {
 	case Items = "items"
 	case Levenshtein = "levenshtein"
 	case URLEncode = "urlencode"
+	case In = "in"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -204,6 +209,7 @@ enum QBEFunction: String {
 			case .Items: return NSLocalizedString("number of items", comment: "")
 			case .Levenshtein: return NSLocalizedString("text similarity", comment: "")
 			case .URLEncode: return NSLocalizedString("url encode", comment: "")
+			case .In: return NSLocalizedString("contains", comment: "")
 		}
 	}
 	
@@ -277,6 +283,7 @@ enum QBEFunction: String {
 		case .Items: return QBEArity.Fixed(1)
 		case .Levenshtein: return QBEArity.Fixed(2)
 		case .URLEncode: return QBEArity.Fixed(1)
+		case .In: return QBEArity.Any
 		}
 	} }
 	
@@ -701,6 +708,20 @@ enum QBEFunction: String {
 				return QBEValue(enc)
 			}
 			return QBEValue.InvalidValue
+			
+		case .In:
+			if arguments.count < 2 {
+				return QBEValue.InvalidValue
+			}
+			else {
+				let needle = arguments[0]
+				for hay in 1..<arguments.count {
+					if needle == arguments[hay] {
+						return QBEValue(true)
+					}
+				}
+				return QBEValue(false)
+			}
 		}
 	}
 	
@@ -708,7 +729,7 @@ enum QBEFunction: String {
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
-		Levenshtein, URLEncode
+		Levenshtein, URLEncode, In
 	]
 }
 

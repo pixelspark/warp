@@ -40,12 +40,13 @@ internal extension NSViewController {
 	}
 }
 
-@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget {
+@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate {
 	private var suggestions: QBEFuture<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator()
 	private var dataViewController: QBEDataViewController?
 	private var stepsViewController: QBEStepsViewController?
 	private var outletDropView: QBEOutletDropView!
+	private var viewFilters: [QBEColumn:QBEFilterSet] = [:]
 	
 	var outletView: QBEOutletView!
 	weak var delegate: QBEChainViewDelegate?
@@ -177,6 +178,39 @@ internal extension NSViewController {
 		view.draggedObject = self.chain
 	}
 	
+	@IBAction func clearAllFilters(sender: NSObject) {
+		self.viewFilters.removeAll()
+		calculate()
+	}
+	
+	@IBAction func makeAllFiltersPermanent(sender: NSObject) {
+		var args: [QBEExpression] = []
+		
+		for (column, filterSet) in self.viewFilters {
+			args.append(filterSet.expression.expressionReplacingIdentityReferencesWith(QBESiblingExpression(columnName: column)))
+		}
+		
+		self.viewFilters.removeAll()
+		suggestSteps([QBEFilterStep(previous: currentStep, condition: QBEFunctionExpression(arguments: args, type: QBEFunction.And))])
+	}
+	
+	func filterView(view: QBEFilterViewController, applyFilter filter: QBEFilterSet?, permanent: Bool) {
+		QBEAssertMainThread()
+		
+		if let c = view.column {
+			if permanent {
+				if let realFilter = filter?.expression.expressionReplacingIdentityReferencesWith(QBESiblingExpression(columnName: c)) {
+					self.suggestSteps([QBEFilterStep(previous: currentStep, condition: realFilter)])
+				}
+			}
+			else {
+				// If filter is nil, the filter is removed from the set of view filters
+				self.viewFilters[c] = filter
+				calculate()
+			}
+		}
+	}
+	
 	/** Present the given data set in the data grid. This is called by currentStep.didSet as well as previewStep.didSet.
 	The data from the previewed step takes precedence. */
 	private func presentData(data: QBEData?) {
@@ -262,12 +296,14 @@ internal extension NSViewController {
 					calculator.maximumExampleTime = QBESettings.sharedInstance.exampleMaximumTime
 					
 					let sourceStep = previewStep ?? s
+					
+					// Start calculation
 					if useFullData {
-						calculator.calculate(sourceStep, fullData: useFullData)
+						calculator.calculate(sourceStep, fullData: useFullData, maximumTime: nil, columnFilters: self.viewFilters)
 						refreshData()
 					}
 					else {
-						calculator.calculateExample(sourceStep) {
+						calculator.calculateExample(sourceStep, maximumTime: nil, columnFilters: self.viewFilters) {
 							QBEAsyncMain {
 								self.refreshData()
 							}
@@ -432,6 +468,23 @@ internal extension NSViewController {
 			}
 		}
 		return false
+	}
+	
+	func dataView(view: QBEDataViewController, filterControllerForColumn column: QBEColumn, callback: (NSViewController) -> ()) {
+		if let filterViewController = self.storyboard?.instantiateControllerWithIdentifier("filterView") as? QBEFilterViewController {
+			self.calculator.currentData?.get { (data) -> () in
+				data.maybe { (d) in
+					filterViewController.data = d
+					filterViewController.column = column
+					filterViewController.delegate = self
+					
+					if let filterSet = self.viewFilters[column] {
+						filterViewController.filter = filterSet
+					}
+					callback(filterViewController)
+				}
+			}
+		}
 	}
 	
 	private func stepsChanged() {
@@ -934,6 +987,12 @@ internal extension NSViewController {
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action()==Selector("transposeData:") {
 			return currentStep != nil
+		}
+		else if item.action()==Selector("clearAllFilters:") {
+			return self.viewFilters.count > 0
+		}
+		else if item.action()==Selector("makeAllFiltersPermanent:") {
+			return self.viewFilters.count > 0
 		}
 		else if item.action()==Selector("crawl:") {
 			return currentStep != nil

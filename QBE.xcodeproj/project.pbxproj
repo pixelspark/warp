@@ -14,7 +14,7 @@
 		6515218D1B131297007BCDFF /* QBEDebugStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6515218F1B131297007BCDFF /* QBEDebugStepView.xib */; };
 		651521931B13B5D6007BCDFF /* QBEXMLStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651521921B13B5D6007BCDFF /* QBEXMLStep.swift */; };
 		651521991B13B92D007BCDFF /* TCMXMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 651521981B13B92D007BCDFF /* TCMXMLWriter.m */; };
-		651648B51B3B466F001E50BC /* QBEViewFilterCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651648B41B3B466F001E50BC /* QBEViewFilterCell.swift */; };
+		651648B51B3B466F001E50BC /* QBEFilterCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651648B41B3B466F001E50BC /* QBEFilterCell.swift */; };
 		6518BFC41B26DE7C009E311F /* libmariadbclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */; };
 		651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 651988E51A0F9C30003463AA /* CHCSVParser.m */; };
 		651BEB111AC2B0FA00B1CCC0 /* ltqnorm.c in Sources */ = {isa = PBXBuildFile; fileRef = 651BEB0F1AC2B0FA00B1CCC0 /* ltqnorm.c */; };
@@ -155,6 +155,7 @@
 		65E3C2F71A062E5E007BB3C8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 65E3C2F61A062E5E007BB3C8 /* Images.xcassets */; };
 		65E3C2FA1A062E5E007BB3C8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65E3C2F81A062E5E007BB3C8 /* Main.storyboard */; };
 		65E3C3061A062E5E007BB3C8 /* QBETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E3C3051A062E5E007BB3C8 /* QBETests.swift */; };
+		65E846D81B37E4A500397F88 /* QBEFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */; };
 		65F3867D1A6B1DFB00C83810 /* SwiftParser.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 652872921A5D16C200C155FA /* SwiftParser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65F4E2671A683B3600BB57B8 /* QBECalculateStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65F4E2691A683B3600BB57B8 /* QBECalculateStepView.xib */; };
@@ -298,7 +299,7 @@
 		651521921B13B5D6007BCDFF /* QBEXMLStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEXMLStep.swift; sourceTree = "<group>"; };
 		651521971B13B92D007BCDFF /* TCMXMLWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TCMXMLWriter.h; path = Libraries/TCMXMLWriter/TCMXML/TCMXMLWriter.h; sourceTree = "<group>"; };
 		651521981B13B92D007BCDFF /* TCMXMLWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TCMXMLWriter.m; path = Libraries/TCMXMLWriter/TCMXML/TCMXMLWriter.m; sourceTree = "<group>"; };
-		651648B41B3B466F001E50BC /* QBEViewFilterCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEViewFilterCell.swift; sourceTree = "<group>"; };
+		651648B41B3B466F001E50BC /* QBEFilterCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFilterCell.swift; sourceTree = "<group>"; };
 		651988E41A0F9C30003463AA /* CHCSVParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CHCSVParser.h; path = Libraries/CHCSVParser/CHCSVParser.h; sourceTree = "<group>"; };
 		651988E51A0F9C30003463AA /* CHCSVParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CHCSVParser.m; path = Libraries/CHCSVParser/CHCSVParser.m; sourceTree = "<group>"; };
 		651988E81A0FAA3F003463AA /* QBEObjectiveCBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QBEObjectiveCBridge.h; path = QBE/QBEObjectiveCBridge.h; sourceTree = "<group>"; };
@@ -462,6 +463,7 @@
 		65E3C2FF1A062E5E007BB3C8 /* QBETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QBETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E3C3041A062E5E007BB3C8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		65E3C3051A062E5E007BB3C8 /* QBETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QBETests.swift; sourceTree = "<group>"; };
+		65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFilterViewController.swift; sourceTree = "<group>"; };
 		65F4E2681A683B3600BB57B8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBECalculateStepView.xib; sourceTree = "<group>"; };
 		65FC52221B1F8FB8007A1266 /* QBERenameStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERenameStep.swift; sourceTree = "<group>"; };
 		65FC522A1B1F97E5007A1266 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBERenameStepView.xib; sourceTree = "<group>"; };
@@ -633,6 +635,7 @@
 				65A0DF721AF299C20005C50F /* QBESettingsViewController.swift */,
 				65A0DF731AF299C20005C50F /* QBEStepsViewController.swift */,
 				65A0DF741AF299C20005C50F /* QBESuggestionsViewController.swift */,
+				65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */,
 				65A0DF751AF299C20005C50F /* QBEWindowController.swift */,
 				65A0DFFF1AF29A750005C50F /* Steps */,
 			);
@@ -673,7 +676,7 @@
 				65917AE31AF6B29400FDA58A /* QBEFlowchartView.swift */,
 				65884A231AFDF23E003A5BF1 /* QBEAnchor.swift */,
 				65884A381AFFA9D9003A5BF1 /* QBEOutletView.swift */,
-				651648B41B3B466F001E50BC /* QBEViewFilterCell.swift */,
+				651648B41B3B466F001E50BC /* QBEFilterCell.swift */,
 			);
 			name = View;
 			path = App/View;
@@ -1119,6 +1122,7 @@
 				65A9817D1AF357C2006BACA7 /* QBEStepItemView.swift in Sources */,
 				65A0DFE91AF299F30005C50F /* QBEPivotStep.swift in Sources */,
 				65A0DFD11AF299F30005C50F /* QBEStep.swift in Sources */,
+				65E846D81B37E4A500397F88 /* QBEFilterViewController.swift in Sources */,
 				65A0DF821AF299C20005C50F /* QBEConfiguratorViewController.swift in Sources */,
 				651521991B13B92D007BCDFF /* TCMXMLWriter.m in Sources */,
 				65A0DFE31AF299F30005C50F /* QBEFlattenStep.swift in Sources */,
@@ -1133,7 +1137,7 @@
 				65A0E01C1AF29A750005C50F /* QBEPrestoSourceStepView.swift in Sources */,
 				65A0DFD41AF299F30005C50F /* QBEStream.swift in Sources */,
 				65A0DFF21AF299F30005C50F /* QBERowsStep.swift in Sources */,
-				651648B51B3B466F001E50BC /* QBEViewFilterCell.swift in Sources */,
+				651648B51B3B466F001E50BC /* QBEFilterCell.swift in Sources */,
 				65A526B21B08E77300CCF3E3 /* QBEFileWriter.swift in Sources */,
 				65A0DF841AF299C20005C50F /* QBEDataViewController.swift in Sources */,
 				65A0DFC51AF299F30005C50F /* QBELocale.swift in Sources */,

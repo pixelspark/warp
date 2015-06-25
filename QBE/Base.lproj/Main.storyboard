@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="8121.17" systemVersion="14D131" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="8121.20" systemVersion="14D131" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8121.17"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8121.20"/>
         <capability name="box content view" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
@@ -649,6 +649,21 @@ CA
                                                 <action selector="cancelCalculation:" target="Ady-hI-5gd" id="2WI-cj-dlz"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="XZR-zT-kd0"/>
+                                        <menuItem title="Clear all filters" id="CcJ-5P-Kf9">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+CA
+</string>
+                                            <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="clearAllFilters:" target="Ady-hI-5gd" id="Q4V-kA-y49"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Add current filters as a step" keyEquivalent="F" id="HqL-9Y-nH9">
+                                            <connections>
+                                                <action selector="makeAllFiltersPermanent:" target="Ady-hI-5gd" id="38E-7H-DVb"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="XEY-Yx-6bd"/>
                                         <menuItem title="Show alternatives for this step..." keyEquivalent="1" id="dvK-sd-ynK">
                                             <connections>
@@ -714,7 +729,7 @@ CA
                                                 <action selector="sortRows:" target="Ady-hI-5gd" id="UOG-tp-n6I"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Reverse sort rows on selected column(s)" alternate="YES" keyEquivalent="l" id="Yk7-iC-znO">
+                                        <menuItem title="Reverse sort rows on selected column(s)" alternate="YES" keyEquivalent="o" id="Yk7-iC-znO">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
                                             <connections>
                                                 <action selector="reverseSortRows:" target="Ady-hI-5gd" id="zUh-Z7-ghr"/>
@@ -1262,7 +1277,7 @@ CA
                                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                 </textFieldCell>
                                             </textField>
-                                            <scrollView wantsLayer="YES" appearanceType="aqua" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
+                                            <scrollView wantsLayer="YES" appearanceType="aqua" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
                                                 <rect key="frame" x="0.0" y="0.0" width="658" height="538"/>
                                                 <clipView key="contentView" drawsBackground="NO" id="883-xW-r8t">
                                                     <rect key="frame" x="1" y="1" width="166" height="79"/>
@@ -1274,11 +1289,11 @@ CA
                                                     </subviews>
                                                 </clipView>
                                                 <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="yGo-BT-qNR">
-                                                    <rect key="frame" x="1" y="80" width="166" height="15"/>
+                                                    <rect key="frame" x="-100" y="-100" width="166" height="15"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                 </scroller>
                                                 <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="YRu-mE-eWT">
-                                                    <rect key="frame" x="167" y="1" width="15" height="79"/>
+                                                    <rect key="frame" x="-100" y="-100" width="15" height="79"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                 </scroller>
                                                 <connections>
@@ -1586,6 +1601,178 @@ CA
             </objects>
             <point key="canvasLocation" x="453.5" y="1005.5"/>
         </scene>
+        <!--Filter View Controller-->
+        <scene sceneID="jSa-al-ugw">
+            <objects>
+                <viewController storyboardIdentifier="filterView" id="b2I-Z7-8eG" customClass="QBEFilterViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="YDj-cW-oqb">
+                        <rect key="frame" x="0.0" y="0.0" width="383" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <searchField wantsLayer="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DkD-yl-npe">
+                                <rect key="frame" x="7" y="272" width="285" height="21"/>
+                                <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" usesSingleLineMode="YES" bezelStyle="round" id="xuC-cm-acx">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </searchFieldCell>
+                                <connections>
+                                    <action selector="searchChanged:" target="b2I-Z7-8eG" id="mfX-YS-rUL"/>
+                                    <outlet property="nextKeyView" destination="bYQ-uH-ziK" id="UIQ-ar-41K"/>
+                                </connections>
+                            </searchField>
+                            <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DGZ-ci-0Uv">
+                                <rect key="frame" x="7" y="35" width="369" height="230"/>
+                                <clipView key="contentView" id="pzE-ch-gni">
+                                    <rect key="frame" x="1" y="1" width="367" height="228"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="none" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="bYQ-uH-ziK">
+                                            <rect key="frame" x="0.0" y="0.0" width="367" height="19"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <size key="intercellSpacing" width="3" height="2"/>
+                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
+                                            <tableColumns>
+                                                <tableColumn identifier="selected" width="40" minWidth="40" maxWidth="1000" id="Pr8-uI-9O6">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
+                                                        <font key="font" metaFont="smallSystem"/>
+                                                        <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                                        <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
+                                                    </tableHeaderCell>
+                                                    <buttonCell key="dataCell" type="check" bezelStyle="regularSquare" imagePosition="only" alignment="center" state="mixed" allowsMixedState="YES" inset="2" id="4rL-6t-IYI">
+                                                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                                        <font key="font" metaFont="system"/>
+                                                    </buttonCell>
+                                                </tableColumn>
+                                                <tableColumn identifier="value" editable="NO" width="321" minWidth="40" maxWidth="1000" id="eBr-Dn-68H">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
+                                                        <font key="font" metaFont="smallSystem"/>
+                                                        <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                                        <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
+                                                    </tableHeaderCell>
+                                                    <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" title="Text Cell" id="MVF-op-Ndo">
+                                                        <font key="font" metaFont="system"/>
+                                                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                    </textFieldCell>
+                                                </tableColumn>
+                                            </tableColumns>
+                                            <connections>
+                                                <outlet property="dataSource" destination="b2I-Z7-8eG" id="vmG-wc-Fi5"/>
+                                                <outlet property="delegate" destination="b2I-Z7-8eG" id="Sw7-n4-9tR"/>
+                                            </connections>
+                                        </tableView>
+                                    </subviews>
+                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </clipView>
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="qYM-4S-zjG">
+                                    <rect key="frame" x="1" y="1" width="0.0" height="16"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                                <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="Dbi-Vq-cxE">
+                                    <rect key="frame" x="224" y="17" width="15" height="102"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                                <connections>
+                                    <outlet property="nextKeyView" destination="smA-uG-2Fy" id="Q1s-ZK-2P7"/>
+                                </connections>
+                            </scrollView>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Pln-Wg-cdf">
+                                <rect key="frame" x="1" y="0.0" width="73" height="32"/>
+                                <buttonCell key="cell" type="push" title="Clear" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="vyq-z0-c4W">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="clearFilter:" target="b2I-Z7-8eG" id="SWb-93-s8b"/>
+                                    <outlet property="nextKeyView" destination="Ipu-1p-CsV" id="wgI-9V-KFf"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="smA-uG-2Fy">
+                                <rect key="frame" x="293" y="265" width="47" height="32"/>
+                                <buttonCell key="cell" type="push" bezelStyle="rounded" image="NSAddTemplate" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="n1k-Qo-QKD">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="selectAll:" target="b2I-Z7-8eG" id="yWK-kF-4qG"/>
+                                    <outlet property="nextKeyView" destination="uox-g6-gJF" id="FUn-Va-XVJ"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="uox-g6-gJF">
+                                <rect key="frame" x="335" y="265" width="47" height="32"/>
+                                <buttonCell key="cell" type="push" bezelStyle="rounded" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="QGS-xn-oFi">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="selectNone:" target="b2I-Z7-8eG" id="RED-0h-oMq"/>
+                                    <outlet property="nextKeyView" destination="Pln-Wg-cdf" id="VTE-2O-ZYf"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ipu-1p-CsV">
+                                <rect key="frame" x="168" y="0.0" width="145" height="32"/>
+                                <buttonCell key="cell" type="push" title="Add filter as step" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="sp9-G6-DmO">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="addFilterAsStep:" target="b2I-Z7-8eG" id="51D-UF-SEr"/>
+                                    <outlet property="nextKeyView" destination="DkD-yl-npe" id="4aP-O1-5bA"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="k5O-Fa-0je">
+                                <rect key="frame" x="306" y="0.0" width="76" height="32"/>
+                                <buttonCell key="cell" type="push" title="Apply" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="arA-kF-Iax">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="applyFilter:" target="b2I-Z7-8eG" id="Mb3-D5-hhC"/>
+                                    <outlet property="nextKeyView" destination="DkD-yl-npe" id="GVc-R8-2WK"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="smA-uG-2Fy" firstAttribute="leading" secondItem="DkD-yl-npe" secondAttribute="trailing" constant="7" id="3bc-Nm-78J"/>
+                            <constraint firstItem="uox-g6-gJF" firstAttribute="top" secondItem="YDj-cW-oqb" secondAttribute="top" constant="7" id="6Hh-DL-krP"/>
+                            <constraint firstAttribute="trailing" secondItem="uox-g6-gJF" secondAttribute="trailing" constant="7" id="6aO-W1-cYu"/>
+                            <constraint firstAttribute="bottom" secondItem="Ipu-1p-CsV" secondAttribute="bottom" constant="7" id="7Pr-C3-gPb"/>
+                            <constraint firstItem="DGZ-ci-0Uv" firstAttribute="top" secondItem="uox-g6-gJF" secondAttribute="bottom" constant="7" id="DXR-Rp-a7A"/>
+                            <constraint firstAttribute="trailing" secondItem="DGZ-ci-0Uv" secondAttribute="trailing" constant="7" id="G88-Xe-kvv"/>
+                            <constraint firstItem="Pln-Wg-cdf" firstAttribute="leading" secondItem="YDj-cW-oqb" secondAttribute="leading" constant="7" id="GRO-Pm-jio"/>
+                            <constraint firstItem="smA-uG-2Fy" firstAttribute="top" secondItem="YDj-cW-oqb" secondAttribute="top" constant="7" id="I9f-l5-yGL"/>
+                            <constraint firstAttribute="bottom" secondItem="k5O-Fa-0je" secondAttribute="bottom" constant="7" id="Jhr-vZ-K1I"/>
+                            <constraint firstItem="k5O-Fa-0je" firstAttribute="leading" secondItem="Ipu-1p-CsV" secondAttribute="trailing" constant="5" id="Raj-XH-fab"/>
+                            <constraint firstItem="DkD-yl-npe" firstAttribute="top" secondItem="YDj-cW-oqb" secondAttribute="top" constant="7" id="Uqf-mM-HP3"/>
+                            <constraint firstItem="DGZ-ci-0Uv" firstAttribute="top" secondItem="smA-uG-2Fy" secondAttribute="bottom" constant="7" id="W9f-2d-kSR"/>
+                            <constraint firstItem="Pln-Wg-cdf" firstAttribute="top" secondItem="DGZ-ci-0Uv" secondAttribute="bottom" constant="7" id="akH-a2-kLW"/>
+                            <constraint firstItem="k5O-Fa-0je" firstAttribute="top" secondItem="DGZ-ci-0Uv" secondAttribute="bottom" constant="7" id="du6-BR-EGr"/>
+                            <constraint firstItem="DkD-yl-npe" firstAttribute="leading" secondItem="YDj-cW-oqb" secondAttribute="leading" constant="7" id="fkH-LI-2H9"/>
+                            <constraint firstItem="DGZ-ci-0Uv" firstAttribute="leading" secondItem="YDj-cW-oqb" secondAttribute="leading" constant="7" id="gfs-SX-vpF"/>
+                            <constraint firstAttribute="trailing" secondItem="k5O-Fa-0je" secondAttribute="trailing" constant="7" id="h69-cF-cOT"/>
+                            <constraint firstItem="DGZ-ci-0Uv" firstAttribute="top" secondItem="DkD-yl-npe" secondAttribute="bottom" constant="7" id="kgK-x4-4MJ"/>
+                            <constraint firstItem="uox-g6-gJF" firstAttribute="leading" secondItem="smA-uG-2Fy" secondAttribute="trailing" constant="7" id="reT-2R-psC"/>
+                            <constraint firstAttribute="bottom" secondItem="Pln-Wg-cdf" secondAttribute="bottom" constant="7" id="rn4-wV-jau"/>
+                            <constraint firstItem="Ipu-1p-CsV" firstAttribute="top" secondItem="DGZ-ci-0Uv" secondAttribute="bottom" constant="7" id="t5Q-G8-o70"/>
+                        </constraints>
+                        <connections>
+                            <outlet property="nextKeyView" destination="DkD-yl-npe" id="8J2-uS-Q8J"/>
+                        </connections>
+                    </view>
+                    <connections>
+                        <outlet property="searchField" destination="DkD-yl-npe" id="9qw-sA-YUb"/>
+                        <outlet property="valueList" destination="bYQ-uH-ziK" id="HdK-lH-qEm"/>
+                    </connections>
+                </viewController>
+                <customObject id="euC-zX-PI9" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1080.5" y="953"/>
+        </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
             <objects>
@@ -1774,11 +1961,11 @@ CA
             <objects>
                 <viewController id="0w0-v5-aaU" customClass="QBEConfiguratorViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <visualEffectView key="view" appearanceType="vibrantLight" blendingMode="behindWindow" state="followsWindowActiveState" id="Q8k-9S-FpY">
-                        <rect key="frame" x="0.0" y="0.0" width="260" height="611"/>
+                        <rect key="frame" x="0.0" y="0.0" width="260" height="608"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <subviews>
                             <textField hidden="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5LD-r2-LYf" userLabel="Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label">
-                                <rect key="frame" x="1" y="557" width="258" height="51"/>
+                                <rect key="frame" x="1" y="554" width="258" height="51"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="32" id="K7m-EF-Wam"/>
                                 </constraints>
@@ -1789,7 +1976,7 @@ CA
                                 </textFieldCell>
                             </textField>
                             <customView autoresizesSubviews="NO" canDrawConcurrently="YES" appearanceType="aqua" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="095-ZA-NPs">
-                                <rect key="frame" x="0.0" y="0.0" width="260" height="554"/>
+                                <rect key="frame" x="0.0" y="0.0" width="260" height="551"/>
                             </customView>
                         </subviews>
                         <constraints>
@@ -1809,7 +1996,7 @@ CA
                 </viewController>
                 <customObject id="BkC-vb-PKi" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1661" y="-76.5"/>
+            <point key="canvasLocation" x="1661" y="-75"/>
         </scene>
     </scenes>
     <resources>
@@ -1818,6 +2005,7 @@ CA
         <image name="CloseIcon" width="26" height="26"/>
         <image name="ExportIcon" width="26" height="26"/>
         <image name="NSAddTemplate" width="11" height="11"/>
+        <image name="NSRemoveTemplate" width="11" height="11"/>
         <image name="StopIcon" width="26" height="26"/>
         <image name="TipIcon" width="32" height="32"/>
         <image name="ZoomInIcon" width="26" height="26"/>

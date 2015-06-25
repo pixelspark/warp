@@ -51,8 +51,24 @@ class QBEExpression: NSObject, NSCoding {
 	
 	/** Requests that callback be called on self, and visit() forwarded to all children. This can be used to implement
 	dependency searches, etc. */
-	func visit(callback: (QBEExpression) -> ()) {
-		callback(self)
+	func visit(@noescape callback: (QBEExpression) -> (QBEExpression)) -> QBEExpression {
+		return callback(self)
+	}
+	
+	@nonobjc final func visit(@noescape callback: (QBEExpression) -> ()) {
+		self.visit { (e) -> QBEExpression in
+			callback(e)
+			return e
+		}
+	}
+	
+	final func expressionReplacingIdentityReferencesWith(newExpression: QBEExpression) -> QBEExpression {
+		return visit { (oldExpression) in
+			if oldExpression is QBEIdentityExpression {
+				return newExpression
+			}
+			return oldExpression
+		}
 	}
 	
 	/** Calculate the result of this expression for the given row, columns and current input value. */
@@ -253,10 +269,11 @@ final class QBEBinaryExpression: QBEExpression {
 		return optimized
 	}
 	
-	override func visit(callback: (QBEExpression) -> ()) {
-		callback(self)
-		first.visit(callback)
-		second.visit(callback)
+	override func visit(@noescape callback: (QBEExpression) -> (QBEExpression)) -> QBEExpression {
+		let first = self.first.visit(callback)
+		let second = self.second.visit(callback)
+		let newSelf = QBEBinaryExpression(first: first, second: second, type: self.type)
+		return callback(newSelf)
 	}
 	
 	override func explain(locale: QBELocale) -> String {
@@ -396,9 +413,9 @@ final class QBEFunctionExpression: QBEExpression {
 		return true
 	} }
 	
-	override func visit(callback: (QBEExpression) -> ()) {
-		callback(self)
-		arguments.each({$0.visit(callback)})
+	override func visit(@noescape callback: (QBEExpression) -> (QBEExpression)) -> QBEExpression {
+		let newArguments = arguments.map({$0.visit(callback)})
+		return callback(QBEFunctionExpression(arguments: newArguments, type: self.type))
 	}
 	
 	override func prepare() -> QBEExpression {
@@ -598,4 +615,31 @@ final class QBEForeignExpression: QBEExpression {
 		// TODO: implement when we are going to implement foreign suggestions
 		return []
 	}
+}
+
+class QBEFilterSet: NSObject, NSCoding {
+	var selectedValues: Set<QBEValue> = []
+	
+	override init() {
+	}
+	
+	required init?(coder aDecoder: NSCoder) {
+		if let v = aDecoder.decodeObjectForKey("selectedValues") as? [QBEValueCoder] {
+			selectedValues = Set(v.map({return $0.value}))
+		}
+	}
+	
+	func encodeWithCoder(aCoder: NSCoder) {
+		aCoder.encodeObject(Array<QBEValueCoder>(selectedValues.map({return QBEValueCoder($0)})), forKey: "selectedValues")
+	}
+	
+	/** Returns an expression representing this filter. The source column is represented as QBEIdentityExpression. */
+	var expression: QBEExpression { get {
+		var args: [QBEExpression] = [QBEIdentityExpression()]
+		for value in selectedValues {
+			args.append(QBELiteralExpression(value))
+		}
+		
+		return QBEFunctionExpression(arguments: args, type: QBEFunction.In)
+	} }
 }

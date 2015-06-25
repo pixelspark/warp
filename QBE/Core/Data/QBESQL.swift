@@ -301,6 +301,16 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Items: return nil
 			case .Levenshtein: return nil
 			case .URLEncode: return nil
+			
+			case .In:
+				// TODO: maybe we can use 'a IN (b,c,d)' syntax? Is it faster?
+				let first = args[0]
+				var conditions: [String] = []
+				for item in 1..<args.count {
+					let otherItem = args[item]
+					conditions.append("(\(first)=\(otherItem))")
+				}
+				return "(" + conditions.implode(" OR ") + ")"
 		}
 	}
 	

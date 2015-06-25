@@ -370,7 +370,8 @@ import Cocoa
 		let no = NSOpenPanel()
 		no.canChooseFiles = true
 		no.allowsMultipleSelection = true
-		no.allowedFileTypes = QBEFactory.sharedInstance.fileTypesForReading
+		no.allowedFileTypes?.append("public.text")
+		//	= NSArray(arrayLiteral: "public.text") // QBEFactory.sharedInstance.fileTypesForReading
 		
 		no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result==NSFileHandlingPanelOKButton {
