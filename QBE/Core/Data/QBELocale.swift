@@ -93,7 +93,7 @@ struct QBELocale {
 			"NTH": QBEFunction.Nth,
 			"ITEMS": QBEFunction.Items,
 			"SIMILARITY": QBEFunction.Levenshtein,
-			"URLENCODE": QBEFunction.URLEncode,
+			"ENCODEURL": QBEFunction.URLEncode,
 			"IN": QBEFunction.In
 		],
 		
@@ -146,7 +146,7 @@ struct QBELocale {
 			"NDE": QBEFunction.Nth,
 			"ITEMS": QBEFunction.Items,
 			"GELIJKENIS": QBEFunction.Levenshtein,
-			"URL.CODEER": QBEFunction.URLEncode,
+			"URL.CODEREN": QBEFunction.URLEncode,
 			"IN": QBEFunction.In
 		]
 	]
