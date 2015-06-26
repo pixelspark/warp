@@ -283,7 +283,7 @@ enum QBEFunction: String {
 		case .Items: return QBEArity.Fixed(1)
 		case .Levenshtein: return QBEArity.Fixed(2)
 		case .URLEncode: return QBEArity.Fixed(1)
-		case .In: return QBEArity.Any
+		case .In: return QBEArity.AtLeast(2)
 		}
 	} }
 	

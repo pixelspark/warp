@@ -94,7 +94,9 @@ struct QBELocale {
 			"ITEMS": QBEFunction.Items,
 			"SIMILARITY": QBEFunction.Levenshtein,
 			"ENCODEURL": QBEFunction.URLEncode,
-			"IN": QBEFunction.In
+			"IN": QBEFunction.In,
+			"SMALL": QBEFunction.Min,
+			"LARGE": QBEFunction.Max
 		],
 		
 		"nl": [
@@ -147,7 +149,9 @@ struct QBELocale {
 			"ITEMS": QBEFunction.Items,
 			"GELIJKENIS": QBEFunction.Levenshtein,
 			"URL.CODEREN": QBEFunction.URLEncode,
-			"IN": QBEFunction.In
+			"IN": QBEFunction.In,
+			"KLEINSTE": QBEFunction.Min,
+			"GROOTSTE": QBEFunction.Max
 		]
 	]
 	
