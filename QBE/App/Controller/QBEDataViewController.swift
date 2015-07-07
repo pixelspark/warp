@@ -358,6 +358,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 				vw.focusRingType = NSFocusRingType.None
 			}
 		}
+		
+		// Move the full data indicator on top of the table grid, which was only just added
+		self.view.addSubview(self.fullDataIndicatorView)
 		updateFonts()
 		super.awakeFromNib()
 	}
