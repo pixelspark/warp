@@ -1,8 +1,6 @@
 import Cocoa
 
 @objc protocol QBEDocumentViewDelegate: NSObjectProtocol {
-	func documentView(view: QBEDocumentView, didReceiveFiles: [String], atLocation: CGPoint)
-	func documentView(view: QBEDocumentView, didReceiveChain: QBEChain, atLocation: CGPoint)
 	func documentView(view: QBEDocumentView, didSelectTablet: QBEChainViewController?)
 	func documentView(view: QBEDocumentView, didSelectArrow: QBEArrow?)
 	func documentView(view: QBEDocumentView, wantsZoomToView: NSView)
@@ -39,48 +37,6 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		flowchartView.frame = self.bounds
 		flowchartView.delegate = self
 		addSubview(flowchartView)
-		
-		registerForDraggedTypes([NSFilenamesPboardType, QBEOutletView.dragType])
-	}
-	
-	override func draggingEntered(sender: NSDraggingInfo) -> NSDragOperation {
-		let pboard = sender.draggingPasteboard()
-		
-		if let _: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
-			draggingOver = true
-			setNeedsDisplayInRect(self.bounds)
-			return NSDragOperation.Copy
-		}
-		else if let _ = pboard.dataForType(QBEOutletView.dragType) {
-			draggingOver = true
-			setNeedsDisplayInRect(self.bounds)
-			return NSDragOperation.Link
-		}
-		return NSDragOperation.None
-	}
-	
-	override func draggingUpdated(sender: NSDraggingInfo) -> NSDragOperation {
-		return draggingEntered(sender)
-	}
-	
-	override func draggingExited(sender: NSDraggingInfo?) {
-		draggingOver = false
-		setNeedsDisplayInRect(self.bounds)
-	}
-	
-	override func draggingEnded(sender: NSDraggingInfo?) {
-		draggingOver = false
-		setNeedsDisplayInRect(self.bounds)
-	}
-	
-	override func drawRect(dirtyRect: NSRect) {
-		if draggingOver {
-			NSColor.blueColor().colorWithAlphaComponent(0.15).set()
-		}
-		else {
-			NSColor.clearColor().set()
-		}
-		NSRectFill(self.bounds)
 	}
 	
 	override func prepareForDragOperation(sender: NSDraggingInfo) -> Bool {
@@ -89,23 +45,6 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	
 	func removeAllTablets() {
 		subviews.each({($0 as? QBEResizableTabletView)?.removeFromSuperview()})
-	}
-	
-	override func performDragOperation(draggingInfo: NSDraggingInfo) -> Bool {
-		let pboard = draggingInfo.draggingPasteboard()
-		
-		if let _ = pboard.dataForType(QBEOutletView.dragType) {
-			if let ov = draggingInfo.draggingSource() as? QBEOutletView {
-				if let draggedChain = ov.draggedObject as? QBEChain {
-					delegate?.documentView(self, didReceiveChain: draggedChain, atLocation: self.convertPoint(draggingInfo.draggingLocation(), fromView: nil))
-					return true
-				}
-			}
-		}
-		else if let files: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
-			delegate?.documentView(self, didReceiveFiles: files, atLocation: self.convertPoint(draggingInfo.draggingLocation(), fromView: nil))
-		}
-		return true
 	}
 	
 	func selectTablet(tablet: QBETablet?, notifyDelegate: Bool = true) {
@@ -307,7 +246,7 @@ private class QBEResizableTabletView: QBEResizableView {
 	}
 }
 
-class QBEWorkspaceView: NSScrollView {
+class QBEScrollView: NSScrollView {
 	private var oldZoomedRect: NSRect? = nil
 	private(set) var magnifiedView: NSView? = nil
 	
@@ -406,5 +345,86 @@ class QBEWorkspaceView: NSScrollView {
 		else {
 			self.magnifyView(nil)
 		}
+	}
+}
+
+protocol QBEWorkspaceViewDelegate: NSObjectProtocol {
+	func workspaceView(view: QBEWorkspaceView, didReceiveFiles: [String], atLocation: CGPoint)
+	func workspaceView(view: QBEWorkspaceView, didReceiveChain: QBEChain, atLocation: CGPoint)
+}
+
+class QBEWorkspaceView: QBEScrollView {
+	private var draggingOver: Bool = false
+	weak var delegate: QBEWorkspaceViewDelegate? = nil
+	
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+	}
+	
+	override func awakeFromNib() {
+		registerForDraggedTypes([NSFilenamesPboardType, QBEOutletView.dragType])
+	}
+	
+	override func draggingEntered(sender: NSDraggingInfo) -> NSDragOperation {
+		let pboard = sender.draggingPasteboard()
+		
+		if let _: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
+			draggingOver = true
+			setNeedsDisplayInRect(self.bounds)
+			return NSDragOperation.Copy
+		}
+		else if let _ = pboard.dataForType(QBEOutletView.dragType) {
+			draggingOver = true
+			setNeedsDisplayInRect(self.bounds)
+			return NSDragOperation.Link
+		}
+		return NSDragOperation.None
+	}
+	
+	override func draggingUpdated(sender: NSDraggingInfo) -> NSDragOperation {
+		return draggingEntered(sender)
+	}
+	
+	override func draggingExited(sender: NSDraggingInfo?) {
+		draggingOver = false
+		setNeedsDisplayInRect(self.bounds)
+	}
+	
+	override func draggingEnded(sender: NSDraggingInfo?) {
+		draggingOver = false
+		setNeedsDisplayInRect(self.bounds)
+	}
+	
+	override func drawRect(dirtyRect: NSRect) {
+		if draggingOver {
+			NSColor.blueColor().colorWithAlphaComponent(0.15).set()
+		}
+		else {
+			NSColor.clearColor().set()
+		}
+		NSRectFill(dirtyRect)
+	}
+	
+	override func prepareForDragOperation(sender: NSDraggingInfo) -> Bool {
+		return true
+	}
+	
+	override func performDragOperation(draggingInfo: NSDraggingInfo) -> Bool {
+		let pboard = draggingInfo.draggingPasteboard()
+		let pointInWorkspace = self.convertPoint(draggingInfo.draggingLocation(), fromView: nil)
+		let pointInDocument = self.convertPoint(pointInWorkspace, toView: self.documentView as? NSView)
+		
+		if let _ = pboard.dataForType(QBEOutletView.dragType) {
+			if let ov = draggingInfo.draggingSource() as? QBEOutletView {
+				if let draggedChain = ov.draggedObject as? QBEChain {
+					delegate?.workspaceView(self, didReceiveChain: draggedChain, atLocation: pointInDocument)
+					return true
+				}
+			}
+		}
+		else if let files: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
+			delegate?.workspaceView(self, didReceiveFiles: files, atLocation: pointInDocument)
+		}
+		return true
 	}
 }

@@ -1,7 +1,7 @@
 import Foundation
 import Cocoa
 
-@objc class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate {
+@objc class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate {
 	private var documentView: QBEDocumentView!
 	private var configurator: QBEConfiguratorViewController? = nil
 	@IBOutlet var addTabletMenu: NSMenu!
@@ -253,14 +253,14 @@ import Cocoa
 		NSMenu.popUpContextMenu(self.addTabletMenu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.view)
 	}
 	
-	func documentView(view: QBEDocumentView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
+	func workspaceView(view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
 		QBEAssertMainThread()
 		
 		let tablet = QBETablet(chain: QBEChain(head: QBECloneStep(chain: chain)))
 		self.addTablet(tablet, atLocation: atLocation, undo: true)
 	}
 	
-	func documentView(view: QBEDocumentView, didReceiveFiles files: [String], atLocation: CGPoint) {
+	func workspaceView(view: QBEWorkspaceView, didReceiveFiles files: [String], atLocation: CGPoint) {
 		// Gather file paths
 		var tabletsAdded: [QBETablet] = []
 		
@@ -454,6 +454,7 @@ import Cocoa
 		
 		documentView = QBEDocumentView(frame: initialDocumentSize)
 		documentView.delegate = self
+		self.workspaceView.delegate = self
 		self.workspaceView.documentView = documentView
 		documentView.resizeDocument()
 	}

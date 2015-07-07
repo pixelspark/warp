@@ -1262,7 +1262,7 @@ CA
                         <rect key="frame" x="0.0" y="0.0" width="913" height="569"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <subviews>
-                            <visualEffectView wantsLayer="YES" appearanceType="vibrantLight" blendingMode="behindWindow" state="followsWindowActiveState" id="cDc-rh-vev">
+                            <visualEffectView wantsLayer="YES" blendingMode="behindWindow" state="followsWindowActiveState" id="cDc-rh-vev">
                                 <rect key="frame" x="0.0" y="0.0" width="658" height="569"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <subviews>
