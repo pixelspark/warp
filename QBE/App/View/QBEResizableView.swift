@@ -19,6 +19,8 @@ class QBEResizableView: NSView {
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 		self.wantsLayer = true
+		self.layer?.opaque = true
+		self.layer?.drawsAsynchronously = true
 		self.layer?.shadowRadius = 4.0
 		self.layer?.shadowColor = NSColor.shadowColor().CGColor
 		self.layer?.shadowOpacity = 0.3
@@ -122,6 +124,7 @@ internal class QBEResizerView: NSView {
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 		self.wantsLayer = true
+		self.layer?.drawsAsynchronously = true
 	}
 	
 	required init?(coder: NSCoder) {
@@ -150,7 +153,7 @@ internal class QBEResizerView: NSView {
 			let locationInView = superview!.superview!.convertPoint(theEvent.locationInWindow, fromView: nil)
 			
 			let delta = (Int(locationInView.x - rs.downPoint.x), Int(locationInView.y - rs.downPoint.y))
-			let newFrame = rs.downAnchor.offset(rs.downRect, horizontal: CGFloat(delta.0), vertical: CGFloat(delta.1))
+			let newFrame = rs.downAnchor.offset(rs.downRect, horizontal: CGFloat(delta.0), vertical: CGFloat(delta.1)).rounded
 			let minSize = self.contentView!.fittingSize
 			if newFrame.size.width >= minSize.width && newFrame.size.height > minSize.height {
 				self.superview?.frame = newFrame

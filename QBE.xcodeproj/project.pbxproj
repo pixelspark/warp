@@ -841,19 +841,11 @@
 		65E3C3021A062E5E007BB3C8 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				65E3C3041A062E5E007BB3C8 /* Info.plist */,
 				65E3C3051A062E5E007BB3C8 /* QBETests.swift */,
-				65E3C3031A062E5E007BB3C8 /* Supporting Files */,
 			);
 			name = Tests;
 			path = QBETests;
-			sourceTree = "<group>";
-		};
-		65E3C3031A062E5E007BB3C8 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				65E3C3041A062E5E007BB3C8 /* Info.plist */,
-			);
-			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

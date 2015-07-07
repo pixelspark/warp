@@ -332,8 +332,16 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		self.numberCell.alignment = NSTextAlignment.Right
 		
 		self.view.focusRingType = NSFocusRingType.None
+		self.view.layerContentsRedrawPolicy = NSViewLayerContentsRedrawPolicy.OnSetNeedsDisplay
+		self.view.wantsLayer = true
+		self.view.layer?.opaque = true
+		
 		if self.tableView == nil {
 			self.tableView = MBTableGrid(frame: view.frame)
+			self.tableView!.wantsLayer = true
+			self.tableView!.layer?.opaque = true
+			self.tableView!.layer?.drawsAsynchronously = true
+			self.tableView!.layerContentsRedrawPolicy = NSViewLayerContentsRedrawPolicy.OnSetNeedsDisplay
 			self.tableView!.focusRingType = NSFocusRingType.None
 			self.tableView!.translatesAutoresizingMaskIntoConstraints = false
 			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Horizontal)

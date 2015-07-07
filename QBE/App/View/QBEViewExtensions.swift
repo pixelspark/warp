@@ -17,6 +17,10 @@ internal extension CGRect {
 	func centeredAt(point: CGPoint) -> CGRect {
 		return CGRectMake(point.x - self.size.width/2, point.y - self.size.height/2, self.size.width, self.size.height)
 	}
+	
+	var rounded: CGRect { get {
+		return CGRectMake(round(self.origin.x), round(self.origin.y), round(self.size.width), round(self.size.height))
+	} }
 }
 
 internal extension CGPoint {
