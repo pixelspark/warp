@@ -61,7 +61,7 @@ class QBEOutletDropView: NSView {
 			NSColor.clearColor().set()
 		}
 		
-		NSRectFill(self.bounds)
+		NSRectFill(dirtyRect)
 	}
 	
 	override var acceptsFirstResponder: Bool { get { return false } }
