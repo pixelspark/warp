@@ -139,7 +139,7 @@ class QBEStreamData: QBEData {
 	}
 	
 	func join(join: QBEJoin) -> QBEData {
-		return fallback().join(join)
+		return QBEStreamData(source: QBEJoinTransformer(source: source, join: join))
 	}
 	
 	func filter(condition: QBEExpression) -> QBEData {
@@ -699,5 +699,123 @@ private class QBECalculateTransformer: QBETransformer {
 	
 	private override func clone() -> QBEStream {
 		return QBECalculateTransformer(source: source.clone(), calculations: calculations)
+	}
+}
+
+/** The QBEJoinTransformer can perform joins between a stream on the left side and an arbitrary data set on the right
+side. For each chunk of rows from the left side (streamed), it will call filter() on the right side data set to obtain
+a set that contains at least all rows necessary to join the rows in the chunk. It will then perform the join on the rows
+in the chunk and stream out that result. 
+
+This is memory-efficient for joins that have a 1:1 relationship between left and right, or joins where rows from the left
+side all map to the same row on the right side (m:n where m>n). It breaks down for joins where a single row on the left 
+side maps to a high number of rows on the right side (m:n where n>>m). However, there is no good alternative for such 
+joins apart from performing it in-database (which will be tried before QBEJoinTransformer is put to work). */
+private class QBEJoinTransformer: QBETransformer {
+	let join: QBEJoin
+	private var leftColumnNames: QBEFuture<QBEFallible<[QBEColumn]>>
+	private var columnNamesCached: QBEFallible<[QBEColumn]>? = nil
+	private var isIneffectiveJoin: Bool = false
+	
+	init(source: QBEStream, join: QBEJoin) {
+		self.leftColumnNames = QBEFuture(source.columnNames)
+		self.join = join
+		super.init(source: source)
+	}
+	
+	private override func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+		if let c = self.columnNamesCached {
+			callback(c)
+		}
+		else {
+			self.getColumnNames(job, callback: { (c) -> () in
+				self.columnNamesCached = c
+				callback(c)
+			})
+		}
+	}
+	
+	private func getColumnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+		self.leftColumnNames.queue = job.queue
+		self.leftColumnNames.get { (leftColumnsFallible) in
+			switch leftColumnsFallible {
+			case .Success(let leftColumns):
+				switch self.join {
+					case .LeftJoin(let rightData, _):
+						rightData.columnNames(job) { (rightColumnsFallible) -> () in
+							switch rightColumnsFallible {
+							case .Success(let rightColumns):
+								// Only new columns from the right side will be added
+								let rightColumnsInResult = rightColumns.filter({return !leftColumns.contains($0)})
+								self.isIneffectiveJoin = rightColumnsInResult.count == 0
+								callback(.Success(leftColumns + rightColumnsInResult))
+								
+							case .Failure(let e):
+								callback(.Failure(e))
+							}
+						}
+				}
+				
+				case .Failure(let e):
+					callback(.Failure(e))
+			}
+		}
+	}
+	
+	private override func clone() -> QBEStream {
+		return QBEJoinTransformer(source: self.source.clone(), join: self.join)
+	}
+	
+	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+		self.leftColumnNames.queue = job.queue
+		self.leftColumnNames.get { (leftColumnNamesFallible) in
+			switch leftColumnNamesFallible {
+			case .Success(let leftColumnNames):
+				// The columnNames function checks whether this join will actually add columns to the result.
+				self.columnNames(job) { (columnNamesFallible) -> () in
+					switch columnNamesFallible {
+					case .Success(_):
+						// Do we have any new columns at all?
+						if self.isIneffectiveJoin {
+							callback(.Success(rows), hasNext)
+						}
+						else {
+							// We need to do work
+							switch self.join {
+							case .LeftJoin(let foreignData, let joinExpression):
+								// Create a filter expression that fetches all rows that we could possibly match to our own rows
+								var foreignFilters: [QBEExpression] = []
+								for row in rows {
+									foreignFilters.append(joinExpression.expressionForForeignFiltering(QBERow(row, columnNames: leftColumnNames)))
+								}
+								let foreignFilter = QBEFunctionExpression(arguments: foreignFilters, type: QBEFunction.Or)
+								QBELog("Streaming join: \(foreignFilter.toFormula(QBELocale(language: QBESettings.sharedInstance.locale), topLevel: true))")
+								
+								// Find relevant rows from the foreign data set
+								foreignData.filter(foreignFilter).raster(job, callback: { (foreignRasterFallible) -> () in
+									switch foreignRasterFallible {
+										case .Success(let foreignRaster):
+											// Perform the actual join using our own set of rows and the raster of possible matches from the foreign table
+											let ourRaster = QBERaster(data: Array(rows), columnNames: leftColumnNames, readOnly: true)
+											let joinedRaster = ourRaster.leftJoin(joinExpression, raster: foreignRaster)
+											let joinedTuples = ArraySlice<QBETuple>(joinedRaster.raster)
+											callback(.Success(joinedTuples), hasNext)
+										
+										case .Failure(let e):
+											callback(.Failure(e), false)
+									}
+								})
+							}
+						}
+					
+					case .Failure(let e):
+						callback(.Failure(e), false)
+					}
+				}
+				
+			case .Failure(let e):
+				callback(.Failure(e), false)
+			}
+		}
 	}
 }

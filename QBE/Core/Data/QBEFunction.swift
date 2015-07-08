@@ -132,7 +132,7 @@ enum QBEFunction: String {
 				}
 			
 			case .Or:
-				// Insert arguments that are Ors themselves in this and
+				// Insert arguments that are Ors themselves in this or
 				prepared = prepared.mapMany({
 					if let a = $0 as? QBEFunctionExpression where a.type == QBEFunction.Or {
 						return a.arguments
@@ -144,6 +144,75 @@ enum QBEFunction: String {
 				for p in prepared {
 					if p.isConstant && p.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue.BoolValue(true) {
 						return QBELiteralExpression(QBEValue.BoolValue(true))
+					}
+				}
+				
+				// If this OR consists of (x = y) pairs where x is the same column (or foreign, this can be translated to an IN(x, y1, y2, ..)
+				var columnExpression: QBEColumnReferencingExpression? = nil
+				var valueExpressions: [QBEExpression] = []
+				var binaryType: QBEBinary? = nil
+				let allowedBinaryTypes = [QBEBinary.Equal]
+				
+				for p in prepared {
+					if let binary = p as? QBEBinaryExpression where allowedBinaryTypes.contains(binary.type) && (binaryType == nil || binaryType == binary.type) {
+						binaryType = binary.type
+						
+						// See if one of the sides of this binary expression is a column reference
+						let column: QBEColumnReferencingExpression?
+						let value: QBEExpression?
+						if binary.first is QBEColumnReferencingExpression {
+							column = binary.first as? QBEColumnReferencingExpression
+							value = binary.second
+						}
+						else if binary.second is QBEColumnReferencingExpression {
+							column = binary.second as? QBEColumnReferencingExpression
+							value = binary.first
+						}
+						else {
+							column = nil
+							value = nil
+						}
+						
+						if let c = column, let v = value {
+							// is this column referencing expression the same
+							valueExpressions.append(v)
+							if let ce = columnExpression {
+								let sameType = (c is QBESiblingExpression && columnExpression is QBESiblingExpression) ||
+									(c is QBEForeignExpression && columnExpression is QBEForeignExpression)
+								if sameType && c.columnName != ce.columnName {
+									columnExpression = nil
+									break;
+								}
+							}
+							else {
+								columnExpression = c
+							}
+						}
+						else {
+							// Some other constant, break for now
+							// TODO: create an OR(IN(); other stuff) expression
+							columnExpression = nil
+							break
+						}
+					}
+					else {
+						columnExpression = nil
+						break
+					}
+				}
+				
+				if let ce = columnExpression as? QBEExpression, let bt = binaryType where valueExpressions.count > 1 {
+					valueExpressions.insert(ce, atIndex: 0)
+
+					switch bt {
+						case .Equal:
+							return QBEFunctionExpression(arguments: valueExpressions, type: QBEFunction.In)
+						
+						case .NotEqual:
+							return QBEFunctionExpression(arguments: valueExpressions, type: QBEFunction.NotIn)
+						
+						default:
+							fatalError("Cannot produce an IN()-like expression for this binary type")
 					}
 				}
 		
@@ -210,6 +279,7 @@ enum QBEFunction: String {
 			case .Levenshtein: return NSLocalizedString("text similarity", comment: "")
 			case .URLEncode: return NSLocalizedString("url encode", comment: "")
 			case .In: return NSLocalizedString("contains", comment: "")
+			case .NotIn: return NSLocalizedString("does not contain", comment: "")
 		}
 	}
 	
@@ -284,6 +354,7 @@ enum QBEFunction: String {
 		case .Levenshtein: return QBEArity.Fixed(2)
 		case .URLEncode: return QBEArity.Fixed(1)
 		case .In: return QBEArity.AtLeast(2)
+		case .NotIn: return QBEArity.AtLeast(2)
 		}
 	} }
 	

@@ -303,14 +303,15 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .URLEncode: return nil
 			
 			case .In:
-				// TODO: maybe we can use 'a IN (b,c,d)' syntax? Is it faster?
+				// Not all databases might support IN with arbitrary values. If so, generate OR(a=x; a=y; ..)
 				let first = args[0]
 				var conditions: [String] = []
 				for item in 1..<args.count {
 					let otherItem = args[item]
-					conditions.append("(\(first)=\(otherItem))")
+					conditions.append(otherItem)
 				}
-				return "(" + conditions.implode(" OR ") + ")"
+				return "(\(first) IN (" + conditions.implode(", ") + "))"
+			
 		}
 	}
 	

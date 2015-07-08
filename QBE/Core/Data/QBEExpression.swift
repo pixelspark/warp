@@ -62,6 +62,24 @@ class QBEExpression: NSObject, NSCoding {
 		}
 	}
 	
+	/** Returns a version of this expression that can be used to find matching rows in a foreign table. It replaces all
+	occurences of QBEForeignExpression with QBESiblingExpression, and replaces instances QBESiblingExpression with the
+	corresponding values from the row given. */
+	final func expressionForForeignFiltering(row: QBERow) -> QBEExpression {
+		return visit { (oldExpression) in
+			if let old = oldExpression as? QBESiblingExpression {
+				return QBELiteralExpression(old.apply(row, foreign: nil, inputValue: nil))
+			}
+			else if let old = oldExpression as? QBEForeignExpression {
+				return QBESiblingExpression(columnName: old.columnName)
+			}
+			else {
+				return oldExpression
+			}
+		}
+	}
+	
+	/** Returns this expression with all occurences of QBEIdentityExpression replaced with the given new expression. */
 	final func expressionReplacingIdentityReferencesWith(newExpression: QBEExpression) -> QBEExpression {
 		return visit { (oldExpression) in
 			if oldExpression is QBEIdentityExpression {
@@ -537,8 +555,12 @@ final class QBEFunctionExpression: QBEExpression {
 	}
 }
 
+protocol QBEColumnReferencingExpression {
+	var columnName: QBEColumn { get }
+}
+
 /** The QBESiblingExpression evaluates to the value of a cell in a particular column on the same row as the current value. */
-final class QBESiblingExpression: QBEExpression {
+final class QBESiblingExpression: QBEExpression, QBEColumnReferencingExpression {
 	var columnName: QBEColumn
 	
 	init(columnName: QBEColumn) {
@@ -581,7 +603,7 @@ final class QBESiblingExpression: QBEExpression {
 
 /** The QBEForeignExpression evaluates to the value of a cell in a particular column in the foreign row. This is used to 
 evaluate whether two rows should be matched up in a join. If no foreign row is given, this expression gives an error. */
-final class QBEForeignExpression: QBEExpression {
+final class QBEForeignExpression: QBEExpression, QBEColumnReferencingExpression {
 	var columnName: QBEColumn
 	
 	init(columnName: QBEColumn) {
