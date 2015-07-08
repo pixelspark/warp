@@ -96,6 +96,7 @@ enum QBEFunction: String {
 	case Levenshtein = "levenshtein"
 	case URLEncode = "urlencode"
 	case In = "in"
+	case NotIn = "notIn"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -106,10 +107,18 @@ enum QBEFunction: String {
 		
 		switch self {
 			case .Not:
-				// NOT(a=b) should be replaced with simply a!=b
 				if args.count == 1 {
+					// NOT(a=b) should be replaced with simply a!=b
 					if let a = args[0] as? QBEBinaryExpression where a.type == QBEBinary.Equal {
-						return QBEBinaryExpression(first: a.first, second: a.second, type: QBEBinary.NotEqual)
+						return QBEBinaryExpression(first: a.first, second: a.second, type: QBEBinary.NotEqual).prepare()
+					}
+					// Not(In(..)) should be written as NotIn(..)
+					else if let a = args[0] as? QBEFunctionExpression where a.type == QBEFunction.In {
+						return QBEFunctionExpression(arguments: a.arguments, type: QBEFunction.NotIn).prepare()
+					}
+					// Not(Not(..)) cancels out
+					else if let a = args[0] as? QBEFunctionExpression where a.type == QBEFunction.Not && a.arguments.count == 1 {
+						return a.arguments[0].prepare()
 					}
 				}
 			
@@ -793,6 +802,20 @@ enum QBEFunction: String {
 				}
 				return QBEValue(false)
 			}
+			
+		case .NotIn:
+			if arguments.count < 2 {
+				return QBEValue.InvalidValue
+			}
+			else {
+				let needle = arguments[0]
+				for hay in 1..<arguments.count {
+					if needle == arguments[hay] {
+						return QBEValue(false)
+					}
+				}
+				return QBEValue(true)
+			}
 		}
 	}
 	
@@ -800,7 +823,7 @@ enum QBEFunction: String {
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
-		Levenshtein, URLEncode, In
+		Levenshtein, URLEncode, In, NotIn, Not
 	]
 }
 

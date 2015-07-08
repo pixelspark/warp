@@ -95,6 +95,7 @@ struct QBELocale {
 			"SIMILARITY": QBEFunction.Levenshtein,
 			"ENCODEURL": QBEFunction.URLEncode,
 			"IN": QBEFunction.In,
+			"NOT.IN": QBEFunction.NotIn,
 			"SMALL": QBEFunction.Min,
 			"LARGE": QBEFunction.Max
 		],
@@ -150,6 +151,7 @@ struct QBELocale {
 			"GELIJKENIS": QBEFunction.Levenshtein,
 			"URL.CODEREN": QBEFunction.URLEncode,
 			"IN": QBEFunction.In,
+			"NIET.IN": QBEFunction.NotIn,
 			"KLEINSTE": QBEFunction.Min,
 			"GROOTSTE": QBEFunction.Max
 		]

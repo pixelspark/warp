@@ -312,6 +312,15 @@ class QBEStandardSQLDialect: QBESQLDialect {
 				}
 				return "(\(first) IN (" + conditions.implode(", ") + "))"
 			
+			case .NotIn:
+				// Not all databases might support NOT IN with arbitrary values. If so, generate AND(a<>x; a<>y; ..)
+				let first = args[0]
+				var conditions: [String] = []
+				for item in 1..<args.count {
+					let otherItem = args[item]
+					conditions.append(otherItem)
+				}
+				return "(\(first) NOT IN (" + conditions.implode(", ") + "))"
 		}
 	}
 	
