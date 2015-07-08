@@ -238,16 +238,24 @@ QBEFuture receives the QBEJob object and should use it to check whether calculat
 the job has been cancelled) and report progress information. */
 class QBEJob: QBEJobDelegate {
 	let queue: dispatch_queue_t
+	let parentJob: QBEJob?
 	private(set) var cancelled: Bool = false
 	private var progressComponents: [Int: Double] = [:]
 	private var observers: [QBEWeak<QBEJobDelegate>] = []
 	
 	init(_ qos: QBEQoS) {
 		self.queue = dispatch_get_global_queue(qos.qosClass, 0)
+		self.parentJob = nil
+	}
+	
+	init(parent: QBEJob) {
+		self.parentJob = parent
+		self.queue = parent.queue
 	}
 	
 	private init(queue: dispatch_queue_t) {
 		self.queue = queue
+		self.parentJob = nil
 	}
 	
 	/** Shorthand function to run a block asynchronously in the queue associated with this job. Because async() will often
@@ -257,6 +265,11 @@ class QBEJob: QBEJobDelegate {
 		if cancelled {
 			return
 		}
+		
+		if let p = parentJob where p.cancelled {
+			return
+		}
+		
 		dispatch_async(queue, block)
 	}
 	
@@ -266,6 +279,10 @@ class QBEJob: QBEJobDelegate {
 	timing information be reported. */
 	func time(description: String, items: Int, itemType: String, @noescape block: () -> ()) {
 		if cancelled {
+			return
+		}
+		
+		if let p = parentJob where p.cancelled {
 			return
 		}
 		
@@ -296,9 +313,13 @@ class QBEJob: QBEJobDelegate {
 		
 		QBEAsyncMain {
 			self.progressComponents[forKey] = progress
+			let currentProgress = self.progress
 			for observer in self.observers {
-				observer.value?.job(self, didProgress: self.progress)
+				observer.value?.job(self, didProgress: currentProgress)
 			}
+			
+			// Report our progress back up to our parent
+			self.parentJob?.reportProgress(currentProgress, forKey: unsafeAddressOf(self).hashValue)
 			return
 		}
 	}
@@ -369,7 +390,6 @@ class QBEFuture<T> {
 	typealias Callback = QBEBatch<T>.Callback
 	typealias Producer = (QBEJob, Callback) -> ()
 	private var batch: QBEBatch<T>?
-	var queue: dispatch_queue_t? = nil
 	
 	var calculating: Bool { get {
 		return batch != nil
@@ -421,11 +441,19 @@ class QBEFuture<T> {
 	- The future has already been calculated. In this case the callback is called immediately with the result.
 	
 	Note that the callback may not make any assumptions about the queue or thread it is being called from. Callees should
-	therefore not block. */
-	func get(callback: Callback) -> QBEJob {
+	therefore not block. 
+	
+	The get() function performs work in its own QBEJob.	If a job is set as parameter, this job will be a child of the 
+	given job, and will use its preferred queue. Otherwise it will perform the work in the user initiated QoS concurrent
+	queue. This function always returns its own child QBEJob. */
+	func get(job: QBEJob? = nil, _ callback: Callback) -> QBEJob {
 		if batch == nil {
-			let q = queue ?? dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
-			batch = QBEBatch<T>(queue: q)
+			if let j = job {
+				batch = QBEBatch<T>(parent: j)
+			}
+			else {
+				batch = QBEBatch<T>(queue: dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
+			}
 			batch!.enqueue(callback)
 			calculate()
 		}
@@ -438,7 +466,6 @@ class QBEFuture<T> {
 
 class QBEBatch<T>: QBEJob {
 	typealias Callback = (T) -> ()
-	
 	private var cached: T? = nil
 	private var waitingList: [Callback] = []
 	
@@ -448,6 +475,10 @@ class QBEBatch<T>: QBEJob {
 	
 	override init(queue: dispatch_queue_t) {
 		super.init(queue: queue)
+	}
+	
+	override init(parent: QBEJob) {
+		super.init(parent: parent)
 	}
 	
 	/** Called by a producer to return the result of a job. This method will call all callbacks on the waiting list (on the
@@ -479,6 +510,7 @@ class QBEBatch<T>: QBEJob {
 			waitingList.removeAll(keepCapacity: false)
 			cancelled = true
 		}
+		super.cancel()
 	}
 	
 	func enqueue(callback: Callback) {

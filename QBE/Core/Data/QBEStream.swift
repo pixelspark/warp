@@ -736,8 +736,7 @@ private class QBEJoinTransformer: QBETransformer {
 	}
 	
 	private func getColumnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
-		self.leftColumnNames.queue = job.queue
-		self.leftColumnNames.get { (leftColumnsFallible) in
+		self.leftColumnNames.get(job) { (leftColumnsFallible) in
 			switch leftColumnsFallible {
 			case .Success(let leftColumns):
 				switch self.join {
@@ -767,8 +766,7 @@ private class QBEJoinTransformer: QBETransformer {
 	}
 	
 	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
-		self.leftColumnNames.queue = job.queue
-		self.leftColumnNames.get { (leftColumnNamesFallible) in
+		self.leftColumnNames.get(job) { (leftColumnNamesFallible) in
 			switch leftColumnNamesFallible {
 			case .Success(let leftColumnNames):
 				// The columnNames function checks whether this join will actually add columns to the result.
@@ -789,7 +787,6 @@ private class QBEJoinTransformer: QBETransformer {
 									foreignFilters.append(joinExpression.expressionForForeignFiltering(QBERow(row, columnNames: leftColumnNames)))
 								}
 								let foreignFilter = QBEFunctionExpression(arguments: foreignFilters, type: QBEFunction.Or)
-								QBELog("Streaming join: \(foreignFilter.toFormula(QBELocale(language: QBESettings.sharedInstance.locale), topLevel: true))")
 								
 								// Find relevant rows from the foreign data set
 								foreignData.filter(foreignFilter).raster(job, callback: { (foreignRasterFallible) -> () in

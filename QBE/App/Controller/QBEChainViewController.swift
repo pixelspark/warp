@@ -460,11 +460,11 @@ internal extension NSViewController {
 					}
 				}, timeLimit: 5.0)
 				
-				self.suggestions!.get({(steps) -> () in
+				self.suggestions!.get {(steps) -> () in
 					QBEAsyncMain {
 						self.suggestSteps(steps)
 					}
-				})
+				}
 			}
 		}
 		return false

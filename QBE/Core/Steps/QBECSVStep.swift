@@ -371,8 +371,7 @@ class QBECSVSourceStep: QBEStep {
 			}
 		}
 		
-		let j = cachedData!.get(callback)
-		j.addObserver(job)
+		cachedData!.get(job, callback)
 	}
 	
 	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {

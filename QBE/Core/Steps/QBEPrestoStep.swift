@@ -217,7 +217,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 	}
 	
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
-		self.columnsFuture.get(callback)
+		self.columnsFuture.get(job, callback)
 	}
 	
 	func clone() -> QBEStream {

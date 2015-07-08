@@ -148,7 +148,7 @@ class QBECalculator {
 			// Set up calculation for the raster
 			currentRaster = QBEFuture<QBEFallible<QBERaster>>({ [unowned self] (job: QBEJob, callback: QBEFuture<QBEFallible<QBERaster>>.Callback) in
 				if let cd = self.currentData {
-					let dataJob = cd.get({ (data: QBEFallible<QBEData>) -> () in
+					let dataJob = cd.get { (data: QBEFallible<QBEData>) -> () in
 						switch data {
 							case .Success(let d):
 								// At this point, we know which columns will be available. We should now add the view filters (if any)
@@ -179,7 +179,7 @@ class QBECalculator {
 							case .Failure(let s):
 								callback(.Failure(s))
 						}
-					})
+					}
 					dataJob.addObserver(job)
 				}
 				else {
@@ -188,9 +188,9 @@ class QBECalculator {
 			})
 			
 			// Wait for the raster to arrive so we can indicate the calculation has ended
-			currentRaster!.get({[unowned self] (r) in
+			currentRaster!.get { [unowned self] (r) in
 				self.calculationInProgressForStep = nil
-			})
+			}
 		}
 	}
 	
