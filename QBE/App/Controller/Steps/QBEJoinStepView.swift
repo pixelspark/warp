@@ -6,6 +6,7 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 	@IBOutlet var tabView: NSTabView!
 	@IBOutlet var foreignComboBox: NSComboBox!
 	@IBOutlet var siblingComboBox: NSComboBox!
+	@IBOutlet var joinTypeBox: NSPopUpButton!
 	let step: QBEJoinStep?
 	
 	private var existingOwnColumns: [QBEColumn] = []
@@ -134,6 +135,11 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 	
 	private func updateView() {
 		if let s = step {
+			switch s.joinType {
+				case .LeftJoin: self.joinTypeBox.selectItemWithTag(0)
+				case .InnerJoin: self.joinTypeBox.selectItemWithTag(1)
+			}
+			
 			// Populate the 'simple' view
 			siblingComboBox.enabled = isSimple
 			foreignComboBox.enabled = isSimple
@@ -198,6 +204,26 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 					}
 				}
 			}
+		}
+	}
+	
+	@IBAction func updateFromJoinTypeSelector(sender: NSObject) {
+		let newJoinType: QBEJoinType
+		switch self.joinTypeBox.selectedTag() {
+		case 0:
+			newJoinType = .LeftJoin
+			
+		case 1:
+			newJoinType = .InnerJoin
+			
+		default:
+			newJoinType = .LeftJoin
+		}
+		
+		if let s = self.step?.joinType where s != newJoinType {
+			self.step?.joinType = newJoinType
+			delegate?.suggestionsView(self, previewStep: self.step)
+			updateView()
 		}
 	}
 	

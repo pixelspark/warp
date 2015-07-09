@@ -170,7 +170,15 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 		return true
 	}
 	
+	internal func innerJoin(expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
+		self.carthesianProduct(true, expression: expression, raster: rightRaster, job: job, callback: callback)
+	}
+	
 	internal func leftJoin(expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
+		self.carthesianProduct(false, expression: expression, raster: rightRaster, job: job, callback: callback)
+	}
+	
+	private func carthesianProduct(inner: Bool, expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
 		let rightColumns = rightRaster.columnNames
 		
 		// Which columns are going to show up in the result set?
@@ -192,10 +200,11 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 		let templateRow = QBERow(Array<QBEValue>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
 		
 		// Perform carthesian product (slow, so in parallel)
+		// TODO: implement hash-joins (for equi-join expressions, e.g. a=b) and/or sort-merge join strategy
 		let future = self.raster.parallel(
 			map: { (chunk) -> ([QBETuple]) in
 				var newData: [QBETuple] = []
-				job?.time("leftJoin", items: chunk.count * rightRaster.rowCount, itemType: "pairs") {
+				job?.time("carthesianProduct", items: chunk.count * rightRaster.rowCount, itemType: "pairs") {
 					var myTemplateRow = templateRow
 					
 					for leftTuple in chunk {
@@ -214,8 +223,9 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 							}
 						}
 						
-						// If there was no matching row in the right table, we need to add the left row regardless
-						if !foundRightMatch {
+						/* If there was no matching row in the right table, we need to add the left row regardless if this
+						is a left (non-inner) join */
+						if !inner && !foundRightMatch {
 							myTemplateRow.values.removeAll(keepCapacity: true)
 							myTemplateRow.values.extend(leftRow.values)
 							rightIndicesInResult.each({(Int) -> () in myTemplateRow.values.append(QBEValue.EmptyValue)})
@@ -559,18 +569,23 @@ class QBERasterData: NSObject, QBEData {
 	
 	func join(join: QBEJoin) -> QBEData {
 		return applyAsynchronous("join") {(job: QBEJob, leftRaster: QBERaster, callback: (QBEFallible<QBERaster>) -> ()) in
-			switch join {
-			case .LeftJoin(let rightData, let expression):
-				rightData.raster(job) { (rightRasterFallible) in
-					switch rightRasterFallible {
-						case .Success(let rightRaster):
-							leftRaster.leftJoin(expression, raster: rightRaster, job: job) { (raster) in
+			join.foreignData.raster(job) { (rightRasterFallible) in
+				switch rightRasterFallible {
+					case .Success(let rightRaster):
+						switch join.type {
+						case .LeftJoin:
+							leftRaster.leftJoin(join.expression, raster: rightRaster, job: job) { (raster) in
 								callback(.Success(raster))
 							}
-						
-						case .Failure(let error):
-							callback(.Failure(error))
-					}
+							
+						case .InnerJoin:
+							leftRaster.innerJoin(join.expression, raster: rightRaster, job: job) { (raster) in
+								callback(.Success(raster))
+							}
+						}
+					
+					case .Failure(let error):
+						callback(.Failure(error))
 				}
 			}
 		}

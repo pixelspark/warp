@@ -79,6 +79,9 @@ protocol QBESQLDialect {
 	
 	/** Create an expression that forces the specified expression to a string type (e.g. VARCHAR or TEXT in SQL). */
 	func forceStringExpression(expression: String) -> String
+	
+	/** Returns the SQL name for the indicates join type, or nil if that join type is not supported */
+	func joinType(type: QBEJoinType) -> String?
 }
 
 class QBESQLDatabase {
@@ -122,6 +125,13 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			return "\(tableIdentifier(t, database: database)).*"
 		}
 		return "*"
+	}
+	
+	func joinType(type: QBEJoinType) -> String? {
+		switch type {
+		case .InnerJoin: return "INNER JOIN"
+		case .LeftJoin: return "LEFT JOIN"
+		}
 	}
 	
 	private func literalString(str: String) -> String {
@@ -639,41 +649,48 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func join(join: QBEJoin) -> QBEData {
-		switch join {
-		case .LeftJoin(var rightData, let expression):
-			// We need to 'unpack' coalesced data to get to the actual data
-			while rightData is QBEProxyData || rightData is QBECoalescedData {
-				if let rd = rightData as? QBECoalescedData {
-					rightData = rd.data
-				}
-				else if let rd = rightData as? QBEProxyData {
-					rightData = rd.data
-				}
-			}
-			
-			// Check if the other data set is a compatible SQL data set
-			if let rightSQL = rightData as? QBESQLData where isCompatibleWith(rightSQL) {
-				// Get SQL from right dataset
-				let rightQuery = rightSQL.sql.sqlSelect(nil).sql
-				let leftAlias = self.sql.aliasFor(.Join)
-				let rightAlias = "F\(abs(rightQuery.hash))"
-				
-				// Which columns?
-				let leftColumns = self.columns
-				let rightColumns = rightSQL.columns.filter({!leftColumns.contains($0)})
-				if rightColumns.count > 0 {
-					let rightSelects = rightColumns.map({return self.sql.dialect.columnIdentifier($0, table: rightAlias, database: nil) + " AS " + self.sql.dialect.columnIdentifier($0, table: nil, database: nil)}).implode(", ")
-					let selects = "\(sql.dialect.allColumnsIdentifier(leftAlias, database: nil)), \(rightSelects)"
-					
-					// Generate a join expression
-					if let es = sql.dialect.expressionToSQL(expression, alias: leftAlias, foreignAlias: rightAlias, inputValue: nil) {
-						return apply(self.sql
-							.sqlJoin("LEFT JOIN (\(rightQuery)) AS \(sql.dialect.tableIdentifier(rightAlias, database: nil)) ON \(es)")
-							.sqlSelect(selects), resultingColumns: leftColumns + rightColumns)
+		if let sqlJoinType = sql.dialect.joinType(join.type) {
+			switch join.type {
+			case .LeftJoin, .InnerJoin:
+				// We need to 'unpack' coalesced data to get to the actual data
+				var rightData = join.foreignData
+				while rightData is QBEProxyData || rightData is QBECoalescedData {
+					if let rd = rightData as? QBECoalescedData {
+						rightData = rd.data
+					}
+					else if let rd = rightData as? QBEProxyData {
+						rightData = rd.data
 					}
 				}
-				return self
+				
+				// Check if the other data set is a compatible SQL data set
+				if let rightSQL = rightData as? QBESQLData where isCompatibleWith(rightSQL) {
+					// Get SQL from right dataset
+					let rightQuery = rightSQL.sql.sqlSelect(nil).sql
+					let leftAlias = self.sql.aliasFor(.Join)
+					let rightAlias = "F\(abs(rightQuery.hash))"
+					
+					// Which columns?
+					let leftColumns = self.columns
+					let rightColumns = rightSQL.columns.filter({!leftColumns.contains($0)})
+					if rightColumns.count > 0 {
+						let rightSelects = rightColumns.map({return self.sql.dialect.columnIdentifier($0, table: rightAlias, database: nil) + " AS " + self.sql.dialect.columnIdentifier($0, table: nil, database: nil)}).implode(", ")
+						let selects = "\(sql.dialect.allColumnsIdentifier(leftAlias, database: nil)), \(rightSelects)"
+						
+						// Generate a join expression
+						if let es = sql.dialect.expressionToSQL(join.expression, alias: leftAlias, foreignAlias: rightAlias, inputValue: nil) {
+							return apply(self.sql
+								.sqlJoin("\(sqlJoinType) (\(rightQuery)) AS \(sql.dialect.tableIdentifier(rightAlias, database: nil)) ON \(es)")
+								.sqlSelect(selects), resultingColumns: leftColumns + rightColumns)
+						}
+					}
+					return self
+				}
+				return fallback().join(join)
 			}
+		}
+		else {
+			// The join type is not supported in this database
 			return fallback().join(join)
 		}
 	}

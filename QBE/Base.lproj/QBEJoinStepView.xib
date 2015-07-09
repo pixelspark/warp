@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14D131" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8152.3" systemVersion="14E46" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7706"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8152.3"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBEJoinStepView" customModule="Warp" customModuleProvider="target">
             <connections>
                 <outlet property="foreignComboBox" destination="lyv-cS-L5Q" id="YFK-N4-Wn6"/>
                 <outlet property="formulaField" destination="7j3-bC-IeT" id="CXg-Mw-DX3"/>
+                <outlet property="joinTypeBox" destination="V4p-tF-Rlh" id="h8u-LB-fsH"/>
                 <outlet property="siblingComboBox" destination="ScK-UH-d1Q" id="4bk-yb-7eM"/>
                 <outlet property="tabView" destination="XNQ-DU-ELx" id="H74-ns-aUH"/>
                 <outlet property="view" destination="4KZ-pM-TZ9" id="ehi-mA-xZu"/>
@@ -16,20 +17,20 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customView placeholderIntrinsicWidth="376" placeholderIntrinsicHeight="249" id="4KZ-pM-TZ9">
-            <rect key="frame" x="0.0" y="0.0" width="347" height="302"/>
+            <rect key="frame" x="0.0" y="0.0" width="245" height="462"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <tabView translatesAutoresizingMaskIntoConstraints="NO" id="XNQ-DU-ELx">
-                    <rect key="frame" x="-2" y="-5" width="351" height="308"/>
+                    <rect key="frame" x="-2" y="56" width="249" height="385"/>
                     <font key="font" metaFont="system"/>
                     <tabViewItems>
-                        <tabViewItem label="Simple" identifier="1" id="fal-j0-qja">
+                        <tabViewItem label="Columns" identifier="1" id="fal-j0-qja">
                             <view key="view" id="QUK-Cb-1QE">
-                                <rect key="frame" x="10" y="33" width="331" height="262"/>
+                                <rect key="frame" x="10" y="33" width="229" height="339"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
                                     <comboBox focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ScK-UH-d1Q">
-                                        <rect key="frame" x="0.0" y="216" width="334" height="26"/>
+                                        <rect key="frame" x="0.0" y="293" width="232" height="26"/>
                                         <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" focusRingType="none" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="waC-oW-t8E">
                                             <font key="font" metaFont="system"/>
                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -42,7 +43,7 @@
                                         </connections>
                                     </comboBox>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="dw1-7i-uM5">
-                                        <rect key="frame" x="-2" y="245" width="335" height="17"/>
+                                        <rect key="frame" x="-2" y="322" width="233" height="17"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="91g-Db-UOu"/>
                                         </constraints>
@@ -53,7 +54,7 @@
                                         </textFieldCell>
                                     </textField>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yub-2X-kNn">
-                                        <rect key="frame" x="-2" y="193" width="335" height="17"/>
+                                        <rect key="frame" x="-2" y="270" width="233" height="17"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="M50-9g-hN5"/>
                                         </constraints>
@@ -64,7 +65,7 @@
                                         </textFieldCell>
                                     </textField>
                                     <comboBox focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="lyv-cS-L5Q">
-                                        <rect key="frame" x="0.0" y="164" width="334" height="26"/>
+                                        <rect key="frame" x="0.0" y="241" width="232" height="26"/>
                                         <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" focusRingType="none" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="8kD-0D-f11">
                                             <font key="font" metaFont="system"/>
                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -93,13 +94,13 @@
                                 </constraints>
                             </view>
                         </tabViewItem>
-                        <tabViewItem label="Advanced" identifier="2" id="AC2-kR-7RV">
-                            <view key="view" id="RTl-Et-a6o">
-                                <rect key="frame" x="10" y="33" width="331" height="262"/>
+                        <tabViewItem label="Formula" identifier="2" id="AC2-kR-7RV">
+                            <view key="view" misplaced="YES" id="RTl-Et-a6o">
+                                <rect key="frame" x="10" y="33" width="229" height="209"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
-                                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="e52-Ks-i8L">
-                                        <rect key="frame" x="-2" y="245" width="335" height="17"/>
+                                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="e52-Ks-i8L">
+                                        <rect key="frame" x="-2" y="192" width="335" height="17"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="cpu-G4-soB"/>
                                         </constraints>
@@ -109,8 +110,8 @@
                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                         </textFieldCell>
                                     </textField>
-                                    <textField horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="7j3-bC-IeT">
-                                        <rect key="frame" x="0.0" y="0.0" width="331" height="240"/>
+                                    <textField horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7j3-bC-IeT">
+                                        <rect key="frame" x="0.0" y="-53" width="331" height="240"/>
                                         <constraints>
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="240" id="XER-8J-x6w"/>
                                         </constraints>
@@ -140,14 +141,63 @@
                         <outlet property="delegate" destination="-2" id="qbU-o0-8Bt"/>
                     </connections>
                 </tabView>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ttv-Z4-BvC">
+                    <rect key="frame" x="3" y="440" width="239" height="17"/>
+                    <constraints>
+                        <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="EIN-np-RO9"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Match rows using:" id="QH5-e1-yYs">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="V4p-tF-Rlh">
+                    <rect key="frame" x="3" y="2" width="240" height="26"/>
+                    <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" id="Oss-tq-Z1Z">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="EBU-uy-qgW">
+                            <items>
+                                <menuItem title="Include once (left join)" id="HRz-nn-Iw6"/>
+                                <menuItem title="Do not include (inner join)" tag="1" id="ilU-y0-80I">
+                                    <modifierMask key="keyEquivalentModifierMask"/>
+                                </menuItem>
+                            </items>
+                        </menu>
+                        <connections>
+                            <action selector="updateFromJoinTypeSelector:" target="-2" id="DVF-Du-d3j"/>
+                        </connections>
+                    </popUpButtonCell>
+                </popUpButton>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DAW-6n-hmR">
+                    <rect key="frame" x="3" y="31" width="239" height="17"/>
+                    <constraints>
+                        <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="uPf-sx-qYo"/>
+                    </constraints>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="When a row has no matches:" id="59D-2d-J4F">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
             </subviews>
             <constraints>
+                <constraint firstItem="ttv-Z4-BvC" firstAttribute="top" secondItem="4KZ-pM-TZ9" secondAttribute="top" constant="5" id="5QH-ZH-eBa"/>
+                <constraint firstItem="V4p-tF-Rlh" firstAttribute="top" secondItem="DAW-6n-hmR" secondAttribute="bottom" constant="5" id="6ql-Zw-QPn"/>
                 <constraint firstItem="XNQ-DU-ELx" firstAttribute="leading" secondItem="4KZ-pM-TZ9" secondAttribute="leading" constant="5" id="HWP-oM-Pga"/>
-                <constraint firstItem="XNQ-DU-ELx" firstAttribute="top" secondItem="4KZ-pM-TZ9" secondAttribute="top" constant="5" id="jqh-Av-evh"/>
-                <constraint firstAttribute="bottom" secondItem="XNQ-DU-ELx" secondAttribute="bottom" constant="5" id="k9H-tn-6Ki"/>
+                <constraint firstItem="DAW-6n-hmR" firstAttribute="top" secondItem="XNQ-DU-ELx" secondAttribute="bottom" constant="18" id="QBH-Dn-XRg"/>
+                <constraint firstAttribute="trailing" secondItem="ttv-Z4-BvC" secondAttribute="trailing" constant="5" id="S9G-iG-V9m"/>
+                <constraint firstAttribute="trailing" secondItem="DAW-6n-hmR" secondAttribute="trailing" constant="5" id="V6F-sS-H65"/>
+                <constraint firstAttribute="bottom" secondItem="V4p-tF-Rlh" secondAttribute="bottom" constant="5" id="WUS-jn-gih"/>
+                <constraint firstItem="ttv-Z4-BvC" firstAttribute="leading" secondItem="4KZ-pM-TZ9" secondAttribute="leading" constant="5" id="akf-IN-Qo8"/>
+                <constraint firstAttribute="trailing" secondItem="V4p-tF-Rlh" secondAttribute="trailing" constant="5" id="jqM-HG-iIg"/>
                 <constraint firstAttribute="trailing" secondItem="XNQ-DU-ELx" secondAttribute="trailing" constant="5" id="kgm-1Z-Wb2"/>
+                <constraint firstItem="DAW-6n-hmR" firstAttribute="leading" secondItem="4KZ-pM-TZ9" secondAttribute="leading" constant="5" id="kyx-0y-l8f"/>
+                <constraint firstItem="V4p-tF-Rlh" firstAttribute="leading" secondItem="4KZ-pM-TZ9" secondAttribute="leading" constant="5" id="mQh-sm-aI6"/>
+                <constraint firstItem="XNQ-DU-ELx" firstAttribute="top" secondItem="ttv-Z4-BvC" secondAttribute="bottom" constant="5" id="oDd-h0-aoQ"/>
             </constraints>
-            <point key="canvasLocation" x="316.5" y="423"/>
+            <point key="canvasLocation" x="203.5" y="339"/>
         </customView>
     </objects>
 </document>

@@ -1,6 +1,11 @@
 
 "4lg-Yc-Ql5.title" = "Voorwaarde:";
-"AC2-kR-7RV.label" = "Geavanceerd";
+"AC2-kR-7RV.label" = "Formule";
 "MNU-lX-ppJ.title" = "Eigen kolom:";
 "N88-So-gQJ.title" = "Vreemde kolom:";
-"fal-j0-qja.label" = "Eenvoudig";
+"fal-j0-qja.label" = "Kolommen";
+
+"59D-2d-J4F.title" = "Rijen zonder matches:";
+"QH5-e1-yYs.title" = "Match rijen op basis van:";
+"HRz-nn-Iw6.title" = "Tenminste één keer tonen (left join)";
+"ilU-y0-80I.title" = "Niet tonen (inner join)";

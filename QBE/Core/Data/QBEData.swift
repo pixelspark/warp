@@ -183,7 +183,7 @@ class QBEAggregation: NSObject, NSCoding {
 	}
 }
 
-enum QBEJoin {
+enum QBEJoinType: String {
 	/** In a left join, rows of the 'left'  table match with a row in the 'right' table if the join condition returns
 	true. The result set will contain all columns from the left table, and all columns in the right table that do not
 	appear in the left table. The following rules determine which rows appear in the result set:
@@ -195,7 +195,23 @@ enum QBEJoin {
 	- If a row in the left table matches with more than one row in the right table, the left row is repeated for each
 	  match in the result table; for each repeated row, the columns only present in the right table are filled with the
 	  data from the matching right row. */
-	case LeftJoin(QBEData, QBEExpression)
+	case LeftJoin = "left"
+	
+	/** The inner join is similar to the left join, except that when a row in the left table has no matches in the right
+	 table, it will be omitted in the result set. This type of join will not add any NULLs to the result set in any case. */
+	case InnerJoin = "inner"
+}
+
+struct QBEJoin {
+	let type: QBEJoinType
+	let foreignData: QBEData
+	let expression: QBEExpression
+	
+	init(type: QBEJoinType, foreignData: QBEData, expression: QBEExpression) {
+		self.type = type
+		self.foreignData = foreignData
+		self.expression = expression
+	}
 }
 
 /** QBEData represents a data set. A data set consists of a set of column names (QBEColumn) and rows that each have a

@@ -2,15 +2,19 @@ import Foundation
 
 class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	weak var right: QBEChain?
+	var joinType: QBEJoinType
 	var condition: QBEExpression?
 	
 	override init(previous: QBEStep?) {
+		joinType = .LeftJoin
 		super.init(previous: previous)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
 		right = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "right") as? QBEChain
 		condition = aDecoder.decodeObjectOfClass(QBEExpression.self, forKey: "condition") as? QBEExpression
+		joinType = QBEJoinType(rawValue: aDecoder.decodeObjectOfClass(NSString.self, forKey: "joinType") as? String ?? "") ?? .LeftJoin
+		
 		super.init(coder: aDecoder)
 	}
 	
@@ -21,6 +25,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	override func encodeWithCoder(coder: NSCoder) {
 		coder.encodeObject(right, forKey: "right")
 		coder.encodeObject(condition, forKey: "condition")
+		coder.encodeObject(NSString(UTF8String: joinType.rawValue), forKey: "joinType")
 		super.encodeWithCoder(coder)
 	}
 	
@@ -42,7 +47,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	
 	private func join(right: QBEData) -> QBEJoin? {
 		if let c = condition {
-			return QBEJoin.LeftJoin(right, c)
+			return QBEJoin(type: joinType, foreignData: right, expression: c)
 		}
 		return nil
 	}

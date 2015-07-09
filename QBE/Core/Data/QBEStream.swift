@@ -742,20 +742,20 @@ private class QBEJoinTransformer: QBETransformer {
 		self.leftColumnNames.get(job) { (leftColumnsFallible) in
 			switch leftColumnsFallible {
 			case .Success(let leftColumns):
-				switch self.join {
-					case .LeftJoin(let rightData, _):
-						rightData.columnNames(job) { (rightColumnsFallible) -> () in
-							switch rightColumnsFallible {
-							case .Success(let rightColumns):
-								// Only new columns from the right side will be added
-								let rightColumnsInResult = rightColumns.filter({return !leftColumns.contains($0)})
-								self.isIneffectiveJoin = rightColumnsInResult.count == 0
-								callback(.Success(leftColumns + rightColumnsInResult))
-								
-							case .Failure(let e):
-								callback(.Failure(e))
-							}
+				switch self.join.type {
+				case .LeftJoin, .InnerJoin:
+					self.join.foreignData.columnNames(job) { (rightColumnsFallible) -> () in
+						switch rightColumnsFallible {
+						case .Success(let rightColumns):
+							// Only new columns from the right side will be added
+							let rightColumnsInResult = rightColumns.filter({return !leftColumns.contains($0)})
+							self.isIneffectiveJoin = rightColumnsInResult.count == 0
+							callback(.Success(leftColumns + rightColumnsInResult))
+							
+						case .Failure(let e):
+							callback(.Failure(e))
 						}
+					}
 				}
 				
 				case .Failure(let e):
@@ -782,32 +782,41 @@ private class QBEJoinTransformer: QBETransformer {
 						}
 						else {
 							// We need to do work
-							switch self.join {
-							case .LeftJoin(let foreignData, let joinExpression):
-								// Create a filter expression that fetches all rows that we could possibly match to our own rows
-								var foreignFilters: [QBEExpression] = []
-								for row in rows {
-									foreignFilters.append(joinExpression.expressionForForeignFiltering(QBERow(row, columnNames: leftColumnNames)))
-								}
-								let foreignFilter = QBEFunctionExpression(arguments: foreignFilters, type: QBEFunction.Or)
-								
-								// Find relevant rows from the foreign data set
-								foreignData.filter(foreignFilter).raster(job, callback: { (foreignRasterFallible) -> () in
-									switch foreignRasterFallible {
-										case .Success(let foreignRaster):
-											// Perform the actual join using our own set of rows and the raster of possible matches from the foreign table
-											let ourRaster = QBERaster(data: Array(rows), columnNames: leftColumnNames, readOnly: true)
-											job.log("leftJoin \(ourRaster.rowCount) # \(foreignRaster.rowCount)")
-											ourRaster.leftJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
-												let joinedTuples = ArraySlice<QBETuple>(joinedRaster.raster)
-												callback(.Success(joinedTuples), hasNext)
-											}
-										
-										case .Failure(let e):
-											callback(.Failure(e), false)
-									}
-								})
+							let foreignData = self.join.foreignData
+							let joinExpression = self.join.expression
+							
+							// Create a filter expression that fetches all rows that we could possibly match to our own rows
+							var foreignFilters: [QBEExpression] = []
+							for row in rows {
+								foreignFilters.append(joinExpression.expressionForForeignFiltering(QBERow(row, columnNames: leftColumnNames)))
 							}
+							let foreignFilter = QBEFunctionExpression(arguments: foreignFilters, type: QBEFunction.Or)
+							
+							// Find relevant rows from the foreign data set
+							foreignData.filter(foreignFilter).raster(job, callback: { (foreignRasterFallible) -> () in
+								switch foreignRasterFallible {
+								case .Success(let foreignRaster):
+									// Perform the actual join using our own set of rows and the raster of possible matches from the foreign table
+									let ourRaster = QBERaster(data: Array(rows), columnNames: leftColumnNames, readOnly: true)
+									
+									switch self.join.type {
+									case .LeftJoin:
+										ourRaster.leftJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
+											let joinedTuples = ArraySlice<QBETuple>(joinedRaster.raster)
+											callback(.Success(joinedTuples), hasNext)
+										}
+										
+									case .InnerJoin:
+										ourRaster.innerJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
+											let joinedTuples = ArraySlice<QBETuple>(joinedRaster.raster)
+											callback(.Success(joinedTuples), hasNext)
+										}
+									}
+								
+								case .Failure(let e):
+									callback(.Failure(e), false)
+								}
+							})
 						}
 					
 					case .Failure(let e):
