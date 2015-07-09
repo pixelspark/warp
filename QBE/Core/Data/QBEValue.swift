@@ -186,8 +186,8 @@ internal extension Array {
 		}
 	}
 	
-	func objectsAtIndexes(indexes: NSIndexSet) -> [T] {
-		var items: [T] = []
+	func objectsAtIndexes(indexes: NSIndexSet) -> [Element] {
+		var items: [Element] = []
 		
 		indexes.enumerateIndexesUsingBlock {(idx, stop) -> () in
 			items.append(self[idx])
