@@ -191,7 +191,9 @@ internal extension NSViewController {
 		}
 		
 		self.viewFilters.removeAll()
-		suggestSteps([QBEFilterStep(previous: currentStep, condition: QBEFunctionExpression(arguments: args, type: QBEFunction.And))])
+		if args.count > 0 {
+			suggestSteps([QBEFilterStep(previous: currentStep, condition: args.count > 1 ? QBEFunctionExpression(arguments: args, type: QBEFunction.And) : args[0])])
+		}
 	}
 	
 	func filterView(view: QBEFilterViewController, applyFilter filter: QBEFilterSet?, permanent: Bool) {
