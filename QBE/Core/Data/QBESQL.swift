@@ -488,6 +488,16 @@ internal class QBESQLFragment {
 		return advance(QBESQLFragmentType.Union, part: part)
 	}
 	
+	/** Add a WHERE or HAVING clause with the given SQL for the condition part, depending on the state the query is 
+	currently in. This can be used to add another filter to the query without creating a new subquery layer, only for
+	conditions for which WHERE and HAVING have the same effect. */
+	func sqlWhereOrHaving(part: String?) -> QBESQLFragment {
+		if self.type == .Group || self.type == .Where {
+			return sqlHaving(part)
+		}
+		return sqlWhere(part)
+	}
+	
 	var asSubquery: QBESQLFragment { get {
 		return QBESQLFragment(query: self.sqlSelect(nil).sql, dialect: dialect)
 	} }
@@ -763,7 +773,7 @@ class QBESQLData: NSObject, QBEData {
 	
 	func filter(condition: QBEExpression) -> QBEData {
 		if let expressionString = sql.dialect.expressionToSQL(condition.prepare(), alias: sql.aliasFor(.Where), foreignAlias: nil,inputValue: nil) {
-			return apply(sql.sqlWhere(expressionString), resultingColumns: columns)
+			return apply(sql.sqlWhereOrHaving(expressionString), resultingColumns: columns)
 		}
 		else {
 			return fallback().filter(condition)
