@@ -199,7 +199,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		// Set visibility
 		let hasNoData = (raster==nil)
 		
-		errorLabel.hidden = errorMessage == nil
+		errorLabel.hidden = calculating || errorMessage == nil
 		errorLabel.stringValue = errorMessage ?? ""
 		
 		tableView?.hidden = errorMessage != nil
