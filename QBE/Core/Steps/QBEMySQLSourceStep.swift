@@ -19,7 +19,7 @@ private final class QBEMySQLDialect: QBEStandardSQLDialect {
 		// For QBEFunction.Count, we should count numeric values only. In MySQL this can be done using REGEXP
 		if aggregation.reduce == QBEFunction.Count {
 			if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
-				return "SUM(CASE WHEN \(expressionSQL) REGEXP '^[[:digit:]]+$') THEN 1 ELSE 0 END)"
+				return "SUM(CASE WHEN (\(expressionSQL) REGEXP '^[[:digit:]]+$') THEN 1 ELSE 0 END)"
 			}
 			return nil
 		}
