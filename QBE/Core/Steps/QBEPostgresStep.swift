@@ -407,7 +407,7 @@ class QBEPostgresData: QBESQLData {
 	private let locale: QBELocale?
 	
 	static func create(database database: QBEPostgresDatabase, tableName: String, locale: QBELocale?) -> QBEFallible<QBEPostgresData> {
-		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName)) LIMIT 1"
+		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, database: database.database)) LIMIT 1"
 		return database.connect().use {
 			$0.query(query).use {(result) -> QBEPostgresData in
 				result.finish() // We're not interested in that one row we just requested, just the column names
@@ -425,7 +425,7 @@ class QBEPostgresData: QBESQLData {
 	private init(database: QBEPostgresDatabase, table: String, columns: [QBEColumn], locale: QBELocale?) {
 		self.database = database
 		self.locale = locale
-		super.init(table: table, dialect: database.dialect, columns: columns)
+		super.init(table: table, database: database.database, dialect: database.dialect, columns: columns)
 	}
 	
 	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {

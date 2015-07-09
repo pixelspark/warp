@@ -362,8 +362,8 @@ func ==(lhs: QBESQLiteDatabase, rhs: QBESQLiteDatabase) -> Bool {
 
 internal class QBESQLiteDialect: QBEStandardSQLDialect {
 	// SQLite does not support column names with '"' in them.
-	override func columnIdentifier(column: QBEColumn, table: String?) -> String {
-		return super.columnIdentifier(QBEColumn(column.name.stringByReplacingOccurrencesOfString("\"", withString: "", options: NSStringCompareOptions(), range: nil)), table: table)
+	override func columnIdentifier(column: QBEColumn, table: String?, database: String?) -> String {
+		return super.columnIdentifier(QBEColumn(column.name.stringByReplacingOccurrencesOfString("\"", withString: "", options: NSStringCompareOptions(), range: nil)), table: table, database: database)
 	}
 	
 	override func binaryToSQL(type: QBEBinary, first: String, second: String) -> String? {
@@ -426,10 +426,10 @@ class QBESQLiteData: QBESQLData {
 	private let db: QBESQLiteDatabase
 	
 	static func create(db: QBESQLiteDatabase, tableName: String) -> QBEFallible<QBESQLiteData> {
-		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName))"
+		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, database: nil))"
 		switch db.query(query) {
 			case .Success(let result):
-				return .Success(QBESQLiteData(db: db, fragment: QBESQLFragment(table: tableName, dialect: db.dialect), columns: result.columnNames))
+				return .Success(QBESQLiteData(db: db, fragment: QBESQLFragment(table: tableName, database: nil, dialect: db.dialect), columns: result.columnNames))
 				
 			case .Failure(let error):
 				return .Failure(error)
@@ -545,11 +545,12 @@ class QBESQLiteCachedData: QBEProxyData {
 				switch columns {
 					case .Success(let cns):
 						let columnSpec = cns.map({(column) -> String in
-							let colString = dialect.columnIdentifier(column, table: nil)
+							
+							let colString = dialect.columnIdentifier(column, table: nil, database: nil)
 							return "\(colString) VARCHAR"
 						}).implode(", ")
 						
-						let sql = "CREATE TABLE \(dialect.tableIdentifier(self.tableName)) (\(columnSpec))"
+						let sql = "CREATE TABLE \(dialect.tableIdentifier(self.tableName, database: nil)) (\(columnSpec))"
 						switch self.database.query(sql) {
 							case .Success(let createQuery):
 								createQuery.run()
@@ -557,7 +558,7 @@ class QBESQLiteCachedData: QBEProxyData {
 							
 								// Prepare the insert-statement
 								let values = cns.map({(m) -> String in return "?"}).implode(",") ?? ""
-								switch self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName)) VALUES (\(values))") {
+								switch self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName, database: nil)) VALUES (\(values))") {
 									case .Success(let insertStatement):
 										self.insertStatement = insertStatement
 										self.stream?.fetch(self.cacheJob, consumer: self.ingest)
@@ -579,7 +580,7 @@ class QBESQLiteCachedData: QBEProxyData {
 	
 	deinit {
 		cacheJob.cancel()
-		self.database.query("DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName))")
+		self.database.query("DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName, database: nil))")
 	}
 	
 	private func ingest(rows: QBEFallible<ArraySlice<QBETuple>>, hasMore: Bool) {
@@ -605,7 +606,7 @@ class QBESQLiteCachedData: QBEProxyData {
 					self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
 						switch columns {
 							case .Success(let cns):
-								self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, dialect: self.database.dialect), columns: cns)
+								self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, database: nil, dialect: self.database.dialect), columns: cns)
 								self.isCached = true
 								self.completion?(.Success(self))
 								self.completion = nil

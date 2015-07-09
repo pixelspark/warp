@@ -366,7 +366,7 @@ final class QBEMySQLData: QBESQLData {
 	private let locale: QBELocale?
 	
 	static func create(database database: QBEMySQLDatabase, tableName: String, locale: QBELocale?) -> QBEFallible<QBEMySQLData> {
-		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName)) LIMIT 1"
+		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, database: database.database)) LIMIT 1"
 		
 		let fallibleConnection = database.connect()
 		switch fallibleConnection {
@@ -396,7 +396,7 @@ final class QBEMySQLData: QBESQLData {
 	private init(database: QBEMySQLDatabase, table: String, columns: [QBEColumn], locale: QBELocale?) {
 		self.database = database
 		self.locale = locale
-		super.init(table: table, dialect: database.dialect, columns: columns)
+		super.init(table: table, database: database.database, dialect: database.dialect, columns: columns)
 	}
 	
 	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {

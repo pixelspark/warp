@@ -250,10 +250,10 @@ private class QBEPrestoData: QBESQLData {
 	private let db: QBEPrestoDatabase
 	
 	class func tableData(job: QBEJob, db: QBEPrestoDatabase, tableName: String, callback: (QBEFallible<QBEPrestoData>) -> ()) {
-		let sql = "SELECT * FROM \(db.dialect.tableIdentifier(tableName))"
+		let sql = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, database: nil))"
 		
 		db.query(sql).columnNames(job) { (columns) -> () in
-			callback(columns.use({return QBEPrestoData(db: db, fragment: QBESQLFragment(table: tableName, dialect: db.dialect), columns: $0)}))
+			callback(columns.use({return QBEPrestoData(db: db, fragment: QBESQLFragment(table: tableName, database: nil, dialect: db.dialect), columns: $0)}))
 		}
 	}
 	
