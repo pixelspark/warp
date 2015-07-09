@@ -48,36 +48,39 @@ class QBEStreamData: QBEData {
 	}
 
 	func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ()) {
-		var data: [QBETuple] = []
-		
 		let s = source.clone()
-		var appender: QBESink! = nil
-		appender = { (rows, hasNext) -> () in
-			switch rows {
-			case .Success(let r):
-				// If the stream indicates there are more rows, fetch them
-				if hasNext && !job.cancelled {
-					job.async {
-						s.fetch(job, consumer: appender)
+		
+		job.async {
+			var data: [QBETuple] = []
+			
+			var appender: QBESink! = nil
+			appender = { (rows, hasNext) -> () in
+				switch rows {
+				case .Success(let r):
+					// If the stream indicates there are more rows, fetch them
+					if hasNext && !job.cancelled {
+						job.async {
+							s.fetch(job, consumer: appender)
+						}
 					}
-				}
-				
-				// Append the rows to our buffered raster
-				data.extend(r)
-				
-				if !hasNext {
-					s.columnNames(job) { (columnNames) -> () in
-						callback(columnNames.use {(cns) in
-							return QBERaster(data: data, columnNames: cns, readOnly: true)
-						})
+					
+					// Append the rows to our buffered raster
+					data.extend(r)
+					
+					if !hasNext {
+						s.columnNames(job) { (columnNames) -> () in
+							callback(columnNames.use {(cns) in
+								return QBERaster(data: data, columnNames: cns, readOnly: true)
+							})
+						}
 					}
+					
+				case .Failure(let errorMessage):
+					callback(.Failure(errorMessage))
 				}
-				
-			case .Failure(let errorMessage):
-				callback(.Failure(errorMessage))
 			}
+			s.fetch(job, consumer: appender)
 		}
-		s.fetch(job, consumer: appender)
 	}
 	
 	func transpose() -> QBEData {
@@ -794,9 +797,11 @@ private class QBEJoinTransformer: QBETransformer {
 										case .Success(let foreignRaster):
 											// Perform the actual join using our own set of rows and the raster of possible matches from the foreign table
 											let ourRaster = QBERaster(data: Array(rows), columnNames: leftColumnNames, readOnly: true)
-											let joinedRaster = ourRaster.leftJoin(joinExpression, raster: foreignRaster)
-											let joinedTuples = ArraySlice<QBETuple>(joinedRaster.raster)
-											callback(.Success(joinedTuples), hasNext)
+											job.log("leftJoin \(ourRaster.rowCount) # \(foreignRaster.rowCount)")
+											ourRaster.leftJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
+												let joinedTuples = ArraySlice<QBETuple>(joinedRaster.raster)
+												callback(.Success(joinedTuples), hasNext)
+											}
 										
 										case .Failure(let e):
 											callback(.Failure(e), false)

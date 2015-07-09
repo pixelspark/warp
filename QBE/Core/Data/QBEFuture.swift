@@ -88,15 +88,17 @@ internal extension SequenceType {
 
 internal extension Array {
 	func parallel<T, ResultType>(map map: ((ArraySlice<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> QBEFuture<ResultType?> {
-		let chunkSize = QBEStreamDefaultBatchSize
+		let chunkSize = QBEStreamDefaultBatchSize/8
 		
 		return QBEFuture<ResultType?>({ (job, completion) -> () in
 			let group = dispatch_group_create()
 			var buffer: [T] = []
+			var finishedItems = 0
 			
 			// Chunk the contents of the array and dispatch jobs that map each chunk
 			for i in stride(from: 0, to: self.count, by: chunkSize) {
 				let view = self[i...min(i+chunkSize, self.count-1)]
+				let count: Int = view.count
 				
 				dispatch_group_async(group, job.queue) {
 					// Check whether we still need to process this chunk
@@ -109,6 +111,9 @@ internal extension Array {
 					
 					// Dispatch a block that adds our result (synchronously) to the intermediate result buffer
 					dispatch_group_async(group, dispatch_get_main_queue()) {
+						finishedItems += count
+						let p = Double(finishedItems) / Double(self.count)
+						job.reportProgress(p, forKey: 1)
 						buffer.append(workerOutput)
 					}
 				}
@@ -309,6 +314,7 @@ class QBEJob: QBEJobDelegate {
 		if progress < 0.0 || progress > 1.0 {
 			// Ignore spurious progress reports
 			log("Ignoring spurious progress report \(progress) for key \(forKey)")
+			return
 		}
 		
 		QBEAsyncMain {

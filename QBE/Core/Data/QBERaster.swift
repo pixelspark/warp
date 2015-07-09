@@ -170,7 +170,7 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 		return true
 	}
 	
-	internal func leftJoin(expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil) -> QBERaster {
+	internal func leftJoin(expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
 		let rightColumns = rightRaster.columnNames
 		
 		// Which columns are going to show up in the result set?
@@ -178,7 +178,8 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 		
 		// If no columns from the right table will ever show up, we don't have to do the join
 		if rightColumnsInResult.count == 0 {
-			return self
+			callback(self)
+			return
 		}
 		
 		// Create a list of indices of the columns from the right table that need to be copied over
@@ -188,43 +189,49 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 		
 		// Start joining rows
 		let joinExpression = expression.prepare()
-		var newData: [QBETuple] = []
-		var templateRow = QBERow(Array<QBEValue>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
+		let templateRow = QBERow(Array<QBEValue>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
 		
-		// Perform carthesian product (slow!)
-		// TODO: paralellize
-		/* TODO: A 'batch filter' approach, where for a subset of rows (±256?) we create a big OR expression
-		to look up all related records in the right table. On this smaller result set, we perform the carthesian
-		product below to find out which belongs to which. This allows outsourcing a lot of work to the database
-		in case the right dataset is the database, at the expense of some duplicate rows transmitted. This
-		might even be implemented as a stream so we can throw away the left rows after they're joined. */
-		for leftRowNumber in 0..<self.rowCount {
-			let leftRow = QBERow(self[leftRowNumber], columnNames: self.columnNames)
-			var foundRightMatch = false
-			
-			for rightRowNumber in 0..<rightRaster.rowCount {
-				let rightRow = QBERow(rightRaster[rightRowNumber], columnNames: rightColumns)
-				
-				if joinExpression.apply(leftRow, foreign: rightRow, inputValue: nil) == QBEValue.BoolValue(true) {
-					templateRow.values.removeAll(keepCapacity: true)
-					templateRow.values.extend(leftRow.values)
-					templateRow.values.extend(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
-					newData.append(templateRow.values)
-					foundRightMatch = true
+		// Perform carthesian product (slow, so in parallel)
+		let future = self.raster.parallel(
+			map: { (chunk) -> ([QBETuple]) in
+				var newData: [QBETuple] = []
+				job?.time("leftJoin", items: chunk.count * rightRaster.rowCount, itemType: "pairs") {
+					var myTemplateRow = templateRow
+					
+					for leftTuple in chunk {
+						let leftRow = QBERow(leftTuple, columnNames: self.columnNames)
+						var foundRightMatch = false
+						
+						for rightTuple in rightRaster.raster {
+							let rightRow = QBERow(rightTuple, columnNames: rightColumns)
+							
+							if joinExpression.apply(leftRow, foreign: rightRow, inputValue: nil) == QBEValue.BoolValue(true) {
+								myTemplateRow.values.removeAll(keepCapacity: true)
+								myTemplateRow.values.extend(leftRow.values)
+								myTemplateRow.values.extend(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
+								newData.append(myTemplateRow.values)
+								foundRightMatch = true
+							}
+						}
+						
+						// If there was no matching row in the right table, we need to add the left row regardless
+						if !foundRightMatch {
+							myTemplateRow.values.removeAll(keepCapacity: true)
+							myTemplateRow.values.extend(leftRow.values)
+							rightIndicesInResult.each({(Int) -> () in myTemplateRow.values.append(QBEValue.EmptyValue)})
+							newData.append(myTemplateRow.values)
+						}
+					}
 				}
-			}
-			
-			// If there was no matching row in the right table, we need to add the left row regardless
-			if !foundRightMatch {
-				templateRow.values.removeAll(keepCapacity: true)
-				templateRow.values.extend(leftRow.values)
-				rightIndicesInResult.each({(Int) -> () in templateRow.values.append(QBEValue.EmptyValue)})
-				newData.append(templateRow.values)
-			}
-			
-			job?.reportProgress(Double(leftRowNumber) / Double(self.rowCount), forKey: self.hash)
+				return newData
+			},
+			reduce: { (a: [QBETuple], b: [QBETuple]?) -> ([QBETuple]) in
+				return a
+			})
+		
+		future.get(job) { (newData: [QBETuple]?) -> () in
+			callback(QBERaster(data: newData ?? [], columnNames: templateRow.columnNames, readOnly: true))
 		}
-		return QBERaster(data: newData, columnNames: templateRow.columnNames, readOnly: true)
 	}
 	
 	/** Finds out whether a set of columns exists for which the indicates rows all have the same value. Returns a
@@ -557,7 +564,9 @@ class QBERasterData: NSObject, QBEData {
 				rightData.raster(job) { (rightRasterFallible) in
 					switch rightRasterFallible {
 						case .Success(let rightRaster):
-							callback(.Success(leftRaster.leftJoin(expression, raster: rightRaster)))
+							leftRaster.leftJoin(expression, raster: rightRaster, job: job) { (raster) in
+								callback(.Success(raster))
+							}
 						
 						case .Failure(let error):
 							callback(.Failure(error))
