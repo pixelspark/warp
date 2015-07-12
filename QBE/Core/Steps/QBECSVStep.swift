@@ -101,6 +101,9 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 	
 	func parser(parser: CHCSVParser, didEndLine line: UInt) {
+		while row.count < _columnNames.count {
+			row.append(QBEValue.EmptyValue)
+		}
 		rows.append(row)
 	}
 	
