@@ -6,6 +6,7 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 	func dataView(view: QBEDataViewController, didOrderColumns: [QBEColumn], toIndex: Int) -> Bool
 	func dataView(view: QBEDataViewController, didSelectValue: QBEValue, changeable: Bool)
 	func dataView(view: QBEDataViewController, filterControllerForColumn: QBEColumn, callback: (NSViewController) -> ())
+	func dataView(view: QBEDataViewController, hasFilterForColumn: QBEColumn) -> Bool
 }
 
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
@@ -254,7 +255,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func tableGrid(aTableGrid: MBTableGrid!, footerCellForColumn columnIndex: UInt) -> NSCell! {
 		if let r = raster where Int(columnIndex) < r.columnNames.count {
-			let filterCell = QBEFilterCell(raster: r, column: r.columnNames[Int(columnIndex)])
+			let cn = r.columnNames[Int(columnIndex)]
+			let filterCell = QBEFilterCell(raster: r, column: cn)
+			filterCell.active = delegate?.dataView(self, hasFilterForColumn: cn) ?? false
 			filterCell.selected = aTableGrid.selectedColumnIndexes.containsIndex(Int(columnIndex))
 			return filterCell
 		}

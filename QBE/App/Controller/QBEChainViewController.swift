@@ -472,6 +472,10 @@ internal extension NSViewController {
 		return false
 	}
 	
+	func dataView(view: QBEDataViewController, hasFilterForColumn column: QBEColumn) -> Bool {
+		return self.viewFilters[column] != nil
+	}
+	
 	func dataView(view: QBEDataViewController, filterControllerForColumn column: QBEColumn, callback: (NSViewController) -> ()) {
 		if let filterViewController = self.storyboard?.instantiateControllerWithIdentifier("filterView") as? QBEFilterViewController {
 			self.calculator.currentData?.get { (data) -> () in

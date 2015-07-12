@@ -4,6 +4,7 @@ internal class QBEFilterCell: NSButtonCell {
 	let raster: QBERaster
 	let column: QBEColumn
 	var selected: Bool = false
+	var active: Bool = false
 	
 	private var cached: [Int]? = nil
 	
@@ -60,7 +61,7 @@ internal class QBEFilterCell: NSButtonCell {
 		
 		nonZeroValues.sortInPlace({return $0 > $1})
 		
-		NSColor.windowBackgroundColor().set()
+		active ? NSColor.selectedMenuItemColor().set() : NSColor.windowBackgroundColor().set()
 		NSRectFill(cellFrame)
 		
 		// Draw the bar code
