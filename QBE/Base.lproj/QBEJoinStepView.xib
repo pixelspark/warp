@@ -95,12 +95,12 @@
                             </view>
                         </tabViewItem>
                         <tabViewItem label="Formula" identifier="2" id="AC2-kR-7RV">
-                            <view key="view" misplaced="YES" id="RTl-Et-a6o">
-                                <rect key="frame" x="10" y="33" width="229" height="209"/>
+                            <view key="view" id="RTl-Et-a6o">
+                                <rect key="frame" x="10" y="33" width="229" height="339"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
-                                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="e52-Ks-i8L">
-                                        <rect key="frame" x="-2" y="192" width="335" height="17"/>
+                                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="e52-Ks-i8L">
+                                        <rect key="frame" x="-2" y="322" width="233" height="17"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="cpu-G4-soB"/>
                                         </constraints>
@@ -110,8 +110,8 @@
                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                         </textFieldCell>
                                     </textField>
-                                    <textField horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7j3-bC-IeT">
-                                        <rect key="frame" x="0.0" y="-53" width="331" height="240"/>
+                                    <textField horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="7j3-bC-IeT">
+                                        <rect key="frame" x="0.0" y="0.0" width="229" height="317"/>
                                         <constraints>
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="240" id="XER-8J-x6w"/>
                                         </constraints>
