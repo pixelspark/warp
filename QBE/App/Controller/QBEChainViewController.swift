@@ -717,8 +717,11 @@ internal extension NSViewController {
 								if firstSelectedColumn != NSNotFound {
 									let insertRelative = cols[firstSelectedColumn]
 									let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertRelative, insertBefore: true)
-									self.pushStep(step)
-									self.calculate()
+									
+									QBEAsyncMain {
+										self.pushStep(step)
+										self.calculate()
+									}
 								}
 								else {
 									return
@@ -729,8 +732,11 @@ internal extension NSViewController {
 								if lastSelectedColumn != NSNotFound && lastSelectedColumn < cols.count {
 									let insertAfter = cols[lastSelectedColumn]
 									let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertAfter, insertBefore: false)
-									self.pushStep(step)
-									self.calculate()
+
+									QBEAsyncMain {
+										self.pushStep(step)
+										self.calculate()
+									}
 								}
 								else {
 									return
