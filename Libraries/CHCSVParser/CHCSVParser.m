@@ -216,7 +216,7 @@ NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
     NSUInteger reloadPortion = stringLength / 3;
     if (reloadPortion < 10) { reloadPortion = 10; }
     
-    if ([_stream hasBytesAvailable] && _nextIndex+reloadPortion >= stringLength) {
+    if (/*[_stream hasBytesAvailable] && */_nextIndex+reloadPortion >= stringLength) {
         // read more from the stream
         uint8_t buffer[CHUNK_SIZE];
         NSInteger readBytes = [_stream read:buffer maxLength:CHUNK_SIZE];
@@ -239,7 +239,7 @@ NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
                 break;
             }
         };
-        
+		
         [_stringBuffer replaceBytesInRange:NSMakeRange(0, readLength) withBytes:NULL length:0];
     }
 }
