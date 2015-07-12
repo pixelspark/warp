@@ -34,7 +34,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	} }
 	
 	var progress: Double = 0.0 { didSet {
-		update()
+		updateProgress()
 	} }
 	
 	// When an error message is set, no raster can be set (and vice-versa)
@@ -192,10 +192,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return "\(rowIndex+1)";
 	}
 	
-	private func update() {
-		QBEAssertMainThread()
-		updateFonts()
-		
+	private func updateProgress() {
 		// Set visibility
 		let hasNoData = (raster==nil)
 		
@@ -219,6 +216,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		else {
 			progressView?.stopAnimation(nil)
 		}
+	}
+	
+	private func update() {
+		QBEAssertMainThread()
+		updateFonts()
+		updateProgress()
 		
 		if let tv = tableView {
 			if let r = raster {
