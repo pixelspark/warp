@@ -29,6 +29,9 @@
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>csv</string>
+				<string>txt</string>
+				<string>tab</string>
+				<string>tsv</string>
 			</array>
 			<key>CFBundleTypeMIMETypes</key>
 			<array>

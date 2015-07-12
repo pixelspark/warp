@@ -21,6 +21,7 @@ class QBEFactory {
 		"public.delimited-values-text": {(url) in return QBECSVSourceStep(url: url)},
 		"public.tab-separated-values-text": {(url) in return QBECSVSourceStep(url: url)},
 		"public.text": {(url) in return QBECSVSourceStep(url: url)},
+		"public.plain-text": {(url) in return QBECSVSourceStep(url: url)},
 		"org.sqlite.v3": {(url) in return QBESQLiteSourceStep(url: url)}
 	]
 	
