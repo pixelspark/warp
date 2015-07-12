@@ -513,15 +513,20 @@ private class QBELimitTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+		// We haven't reached the limit yet, not even after streaming this chunk
 		if (position+rows.count) < limit {
 			position += rows.count
+			job.reportProgress(Double(position) / Double(limit), forKey: unsafeAddressOf(self).hashValue)
 			callback(.Success(rows), false)
 		}
+		// We will reach the limit before streaming this full chunk, split it and call it a day
 		else if position < limit {
 			let n = limit - position
+			job.reportProgress(1.0, forKey: unsafeAddressOf(self).hashValue)
 			callback(.Success(rows[0..<n]), true)
 		}
+		// The limit has already been met fully
 		else {
 			callback(.Success([]), true)
 		}
