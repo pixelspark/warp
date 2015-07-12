@@ -1531,7 +1531,7 @@ CA
                                     <constraint firstAttribute="width" constant="120" id="yeg-tW-UHn"/>
                                 </constraints>
                             </progressIndicator>
-                            <imageView hidden="YES" toolTip="This data set has been fully calculated" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="t3T-zZ-xns">
+                            <imageView hidden="YES" toolTip="This data set has been fully calculated" wantsLayer="YES" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="t3T-zZ-xns">
                                 <rect key="frame" x="0.0" y="371" width="40" height="24"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="40" id="fAP-V5-WV4"/>
@@ -1539,7 +1539,7 @@ CA
                                 </constraints>
                                 <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyUpOrDown" image="BigIcon" id="0Ho-rN-QQg"/>
                             </imageView>
-                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="4AO-tB-W5z">
+                            <textField wantsLayer="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="4AO-tB-W5z">
                                 <rect key="frame" x="5" y="191" width="657" height="14"/>
                                 <textFieldCell key="cell" lineBreakMode="truncatingMiddle" sendsActionOnEndEditing="YES" alignment="center" title="Error message" id="t55-IC-h3X">
                                     <font key="font" metaFont="smallSystem"/>
