@@ -4,7 +4,8 @@ import Foundation
 struct QBELocale {
 	typealias QBELanguage = String
 	
-	var decimalSeparator = "."
+	var decimalSeparator: String
+	var groupingSeparator: String
 	var stringQualifier: Character = "\""
 	var stringQualifierEscape = "\"\""
 	var argumentSeparator = ";"
@@ -41,6 +42,16 @@ struct QBELocale {
 			QBEValue.EmptyValue: "LEEG",
 			QBEValue.InvalidValue: "FOUT"
 		]
+	]
+	
+	private static let decimalSeparators: [QBELanguage: String] = [
+		"en": ".",
+		"nl": ","
+	]
+	
+	private static let groupingSeparators: [QBELanguage: String] = [
+		"en": ",",
+		"nl": "."
 	]
 	
 	private static let allFunctions: [QBELanguage: [String: QBEFunction]] = [
@@ -160,7 +171,12 @@ struct QBELocale {
 	init(language: QBELanguage = QBELocale.defaultLanguage) {
 		functions = QBELocale.allFunctions[language] ?? QBELocale.allFunctions[QBELocale.defaultLanguage]!
 		constants = QBELocale.allConstants[language] ?? QBELocale.allConstants[QBELocale.defaultLanguage]!
+		self.decimalSeparator = QBELocale.decimalSeparators[language]!
+		self.groupingSeparator = QBELocale.groupingSeparators[language]!
+		
 		numberFormatter = NSNumberFormatter()
+		numberFormatter.decimalSeparator = self.decimalSeparator
+		numberFormatter.groupingSeparator = self.groupingSeparator
 		numberFormatter.numberStyle = NSNumberFormatterStyle.DecimalStyle
 	}
 	
@@ -211,22 +227,56 @@ struct QBELocale {
 		}
 	}
 	
-	func valueForLocalString(value: String) -> QBEValue {
+	static func stringForExchangedValue(value: QBEValue) -> String {
+		switch value {
+			case .DoubleValue(let d):
+				return d.toString()
+			
+			case .IntValue(let i):
+				return i.toString()
+			
+			default:
+				return value.stringValue ?? ""
+		}
+	}
+	
+	/** Return the QBEValue for the given string in 'universal'  format (e.g. as used in exchangeable files). This uses
+	 the C locale (decimal separator is '.'). */
+	static func valueForExchangedString(value: String) -> QBEValue {
 		if value.isEmpty {
 			return QBEValue.EmptyValue
 		}
 		
 		// Can this string be interpreted as a number?
+		if let n = value.toDouble() {
+			if let i = value.toInt() where Double(i) == n {
+				// This number is an integer
+				return QBEValue.IntValue(i)
+			}
+			else {
+				return QBEValue.DoubleValue(n)
+			}
+		}
+		
+		return QBEValue.StringValue(value)
+	}
+	
+	/** Return the QBEValue for the given string in the user's locale (e.g. as presented and entered in the UI). This is
+	a bit slower than the valueForExchangedString function (NSNumberFormatter.numberFromString is slower but accepts more
+	formats than strtod_l, which is used in our String.toDouble implementation). */
+	func valueForLocalString(value: String) -> QBEValue {
+		if value.isEmpty {
+			return QBEValue.EmptyValue
+		}
+		
 		if let n = numberFormatter.numberFromString(value) {
 			if n.isEqualToNumber(NSNumber(integer: n.integerValue)) {
-				// This number is an integer
 				return QBEValue.IntValue(n.integerValue)
 			}
 			else {
 				return QBEValue.DoubleValue(n.doubleValue)
 			}
 		}
-		
 		return QBEValue.StringValue(value)
 	}
 	

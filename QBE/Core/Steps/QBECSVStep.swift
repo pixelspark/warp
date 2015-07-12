@@ -15,9 +15,9 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	
 	let hasHeaders: Bool
 	let fieldSeparator: unichar
-	let locale: QBELocale
+	let locale: QBELocale?
 	
-	init(url: NSURL, fieldSeparator: unichar, hasHeaders: Bool, locale: QBELocale) {
+	init(url: NSURL, fieldSeparator: unichar, hasHeaders: Bool, locale: QBELocale?) {
 		self.url = url
 		self.hasHeaders = hasHeaders
 		self.fieldSeparator = fieldSeparator
@@ -108,7 +108,7 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 	
 	func parser(parser: CHCSVParser, didReadField field: String, atIndex index: Int) {
-		let value = locale.valueForLocalString(field)
+		let value = locale != nil ? locale!.valueForLocalString(field) : QBELocale.valueForExchangedString(field)
 		if index >= row.count {
 			row.append(value)
 		}
@@ -272,6 +272,13 @@ class QBECSVSourceStep: QBEStep {
 		}
 	} }
 	
+	var interpretLanguage: QBELocale.QBELanguage? { didSet {
+		if oldValue != interpretLanguage {
+			cachedData = nil
+			isCached = false
+		}
+	} }
+	
 	var hasHeaders: Bool { didSet {
 		if oldValue != hasHeaders {
 			cachedData = nil
@@ -296,6 +303,7 @@ class QBECSVSourceStep: QBEStep {
 		self.fieldSeparator = defaultSeparator.utf16[defaultSeparator.utf16.startIndex]
 		self.hasHeaders = true
 		self.useCaching = false
+		self.interpretLanguage = nil
 		
 		super.init(previous: nil)
 		self.useCaching = self.cachingAllowed
@@ -310,6 +318,7 @@ class QBECSVSourceStep: QBEStep {
 		self.fieldSeparator = separator.utf16[separator.utf16.startIndex]
 		self.hasHeaders = aDecoder.decodeBoolForKey("hasHeaders")
 		self.useCaching = aDecoder.decodeBoolForKey("useCaching")
+		self.interpretLanguage = aDecoder.decodeObjectForKey("interpretLanguage") as? QBELocale.QBELanguage
 		super.init(coder: aDecoder)
 	}
 	
@@ -337,7 +346,7 @@ class QBECSVSourceStep: QBEStep {
 	
 	private func sourceData() -> QBEFallible<QBEData> {
 		if let url = file?.url {
-			let locale = QBEAppDelegate.sharedInstance.locale
+			let locale: QBELocale? = (interpretLanguage != nil) ? QBELocale(language: interpretLanguage!) : nil
 			let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders, locale: locale)
 			return .Success(QBEStreamData(source: s))
 		}
@@ -397,6 +406,7 @@ class QBECSVSourceStep: QBEStep {
 		coder.encodeBool(useCaching, forKey: "useCaching")
 		coder.encodeObject(self.file?.url, forKey: "fileURL")
 		coder.encodeObject(self.file?.bookmark, forKey: "fileBookmark")
+		coder.encodeObject(self.interpretLanguage, forKey: "intepretLanguage")
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
