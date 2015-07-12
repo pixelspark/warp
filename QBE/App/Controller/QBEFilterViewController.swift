@@ -8,14 +8,11 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	@IBOutlet var searchField: NSSearchField?
 	@IBOutlet var valueList: NSTableView?
 	@IBOutlet var progressBar: NSProgressIndicator!
+	private var lastSearch: String? = nil
 	weak var delegate: QBEFilterViewDelegate?
 	
-	var data: QBEData? { didSet {
-		reloadData()
-	} }
-	var column: QBEColumn? { didSet {
-		reloadData()
-	} }
+	var data: QBEData?
+	var column: QBEColumn?
 	
 	private var reloadJob: QBEJob? = nil
 	private var values: [QBEValue] = []
@@ -51,6 +48,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		if let d = data, let c = column {
 			var filteredData = d
 			if let search = searchField?.stringValue where !search.isEmpty {
+				lastSearch = search
 				filteredData = filteredData.filter(QBEBinaryExpression(first: QBELiteralExpression(QBEValue(search)), second: QBESiblingExpression(columnName: c), type: QBEBinary.MatchesRegex))
 			}
 			
@@ -119,7 +117,9 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	}
 	
 	@IBAction func searchChanged(sender: NSObject) {
-		reloadData()
+		if let search = searchField?.stringValue where !search.isEmpty && search != lastSearch {
+			reloadData()
+		}
 	}
 	
 	@IBAction func addFilterAsStep(sender: NSObject) {
@@ -142,6 +142,11 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		filter.selectedValues.subtractInPlace(values)
 		self.valueList?.reloadData()
 		filterChanged()
+	}
+	
+	override func viewWillAppear() {
+		self.reloadData()
+		super.viewWillAppear()
 	}
 	
 	@IBAction func clearFilter(sender: NSObject) {
