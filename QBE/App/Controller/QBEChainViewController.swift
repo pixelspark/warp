@@ -480,14 +480,16 @@ internal extension NSViewController {
 		if let filterViewController = self.storyboard?.instantiateControllerWithIdentifier("filterView") as? QBEFilterViewController {
 			self.calculator.currentData?.get { (data) -> () in
 				data.maybe { (d) in
-					filterViewController.data = d
-					filterViewController.column = column
-					filterViewController.delegate = self
-					
-					if let filterSet = self.viewFilters[column] {
-						filterViewController.filter = filterSet
+					QBEAsyncMain {
+						filterViewController.data = d
+						filterViewController.column = column
+						filterViewController.delegate = self
+						
+						if let filterSet = self.viewFilters[column] {
+							filterViewController.filter = filterSet
+						}
+						callback(filterViewController)
 					}
-					callback(filterViewController)
 				}
 			}
 		}

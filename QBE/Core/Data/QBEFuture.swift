@@ -439,6 +439,18 @@ class QBEFuture<T> {
 		return batch?.cancelled ?? false
 	} }
 	
+	/** Returns the result of the current calculation run, or nil if that calculation hasn't started yet or is still
+	 running. Use get() to start a calculation and await the result. */
+	var result: T? { get {
+		return batch?.cached ?? nil
+	} }
+	
+	/** Invalidate the cached result for this future (callbacks that are already enqueued on that batch will stil get
+	called). */
+	func invalidate() {
+		self.batch = nil
+	}
+	
 	/** Request the result of this future. There are three scenarios:
 	- The future has not yet been calculated. In this case, calculation will start in the queue specified in the `queue`
 	  variable. The callback will be enqueued to receive the result as soon as the calculation finishes. 
@@ -495,7 +507,7 @@ class QBEBatch<T>: QBEJob {
 		
 		cached = value
 		for waiting in waitingList {
-			QBEAsyncMain {
+			self.async {
 				waiting(value)
 			}
 		}
@@ -522,7 +534,7 @@ class QBEBatch<T>: QBEJob {
 	func enqueue(callback: Callback) {
 		assert(!cancelled, "Cannot enqueue on a QBEFuture that is cancelled")
 		if satisfied {
-			QBEAsyncMain {
+			self.async {
 				callback(self.cached!)
 			}
 		}
