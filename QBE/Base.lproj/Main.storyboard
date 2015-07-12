@@ -1220,7 +1220,7 @@ CA
                                     <size key="minSize" width="32" height="32"/>
                                     <size key="maxSize" width="32" height="32"/>
                                     <button key="view" id="8y0-qO-v96">
-                                        <rect key="frame" x="23" y="14" width="32" height="32"/>
+                                        <rect key="frame" x="13" y="14" width="32" height="32"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                         <buttonCell key="cell" type="bevel" bezelStyle="rounded" image="BigIcon" imagePosition="overlaps" alignment="center" imageScaling="proportionallyDown" inset="2" id="f3b-xk-pOw">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1736,12 +1736,20 @@ DQ
                                     <outlet property="nextKeyView" destination="DkD-yl-npe" id="GVc-R8-2WK"/>
                                 </connections>
                             </button>
+                            <progressIndicator maxValue="1000" doubleValue="500" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="NdH-hh-fsp">
+                                <rect key="frame" x="141" y="140" width="100" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="18" id="Oh4-tI-hQx"/>
+                                    <constraint firstAttribute="width" constant="100" id="uO0-m2-wxF"/>
+                                </constraints>
+                            </progressIndicator>
                         </subviews>
                         <constraints>
                             <constraint firstItem="smA-uG-2Fy" firstAttribute="leading" secondItem="DkD-yl-npe" secondAttribute="trailing" constant="7" id="3bc-Nm-78J"/>
                             <constraint firstItem="uox-g6-gJF" firstAttribute="top" secondItem="YDj-cW-oqb" secondAttribute="top" constant="7" id="6Hh-DL-krP"/>
                             <constraint firstAttribute="trailing" secondItem="uox-g6-gJF" secondAttribute="trailing" constant="7" id="6aO-W1-cYu"/>
                             <constraint firstAttribute="bottom" secondItem="Ipu-1p-CsV" secondAttribute="bottom" constant="7" id="7Pr-C3-gPb"/>
+                            <constraint firstItem="NdH-hh-fsp" firstAttribute="centerY" secondItem="YDj-cW-oqb" secondAttribute="centerY" id="9VB-CL-e6G"/>
                             <constraint firstItem="DGZ-ci-0Uv" firstAttribute="top" secondItem="uox-g6-gJF" secondAttribute="bottom" constant="7" id="DXR-Rp-a7A"/>
                             <constraint firstAttribute="trailing" secondItem="DGZ-ci-0Uv" secondAttribute="trailing" constant="7" id="G88-Xe-kvv"/>
                             <constraint firstItem="Pln-Wg-cdf" firstAttribute="leading" secondItem="YDj-cW-oqb" secondAttribute="leading" constant="7" id="GRO-Pm-jio"/>
@@ -1759,12 +1767,14 @@ DQ
                             <constraint firstItem="uox-g6-gJF" firstAttribute="leading" secondItem="smA-uG-2Fy" secondAttribute="trailing" constant="7" id="reT-2R-psC"/>
                             <constraint firstAttribute="bottom" secondItem="Pln-Wg-cdf" secondAttribute="bottom" constant="7" id="rn4-wV-jau"/>
                             <constraint firstItem="Ipu-1p-CsV" firstAttribute="top" secondItem="DGZ-ci-0Uv" secondAttribute="bottom" constant="7" id="t5Q-G8-o70"/>
+                            <constraint firstItem="NdH-hh-fsp" firstAttribute="centerX" secondItem="YDj-cW-oqb" secondAttribute="centerX" id="ymd-7n-G2u"/>
                         </constraints>
                         <connections>
                             <outlet property="nextKeyView" destination="DkD-yl-npe" id="8J2-uS-Q8J"/>
                         </connections>
                     </view>
                     <connections>
+                        <outlet property="progressBar" destination="NdH-hh-fsp" id="Bwt-Pf-FjJ"/>
                         <outlet property="searchField" destination="DkD-yl-npe" id="9qw-sA-YUb"/>
                         <outlet property="valueList" destination="bYQ-uH-ziK" id="HdK-lH-qEm"/>
                     </connections>
