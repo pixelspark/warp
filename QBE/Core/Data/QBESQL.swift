@@ -318,6 +318,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Items: return nil
 			case .Levenshtein: return nil
 			case .URLEncode: return nil
+			case .Capitalize: return nil
 			
 			case .In:
 				// Not all databases might support IN with arbitrary values. If so, generate OR(a=x; a=y; ..)

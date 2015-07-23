@@ -108,7 +108,8 @@ struct QBELocale {
 			"IN": QBEFunction.In,
 			"NOT.IN": QBEFunction.NotIn,
 			"SMALL": QBEFunction.Min,
-			"LARGE": QBEFunction.Max
+			"LARGE": QBEFunction.Max,
+			"PROPER": QBEFunction.Capitalize
 		],
 		
 		"nl": [
@@ -164,7 +165,8 @@ struct QBELocale {
 			"IN": QBEFunction.In,
 			"NIET.IN": QBEFunction.NotIn,
 			"KLEINSTE": QBEFunction.Min,
-			"GROOTSTE": QBEFunction.Max
+			"GROOTSTE": QBEFunction.Max,
+			"BEGINLETTERS": QBEFunction.Capitalize
 		]
 	]
 	

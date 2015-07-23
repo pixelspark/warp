@@ -97,6 +97,7 @@ enum QBEFunction: String {
 	case URLEncode = "urlencode"
 	case In = "in"
 	case NotIn = "notIn"
+	case Capitalize = "capitalize"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -289,6 +290,7 @@ enum QBEFunction: String {
 			case .URLEncode: return NSLocalizedString("url encode", comment: "")
 			case .In: return NSLocalizedString("contains", comment: "")
 			case .NotIn: return NSLocalizedString("does not contain", comment: "")
+			case .Capitalize: return NSLocalizedString("capitalize", comment: "")
 		}
 	}
 	
@@ -364,6 +366,7 @@ enum QBEFunction: String {
 		case .URLEncode: return QBEArity.Fixed(1)
 		case .In: return QBEArity.AtLeast(2)
 		case .NotIn: return QBEArity.AtLeast(2)
+		case .Capitalize: return QBEArity.Fixed(1)
 		}
 	} }
 	
@@ -816,6 +819,12 @@ enum QBEFunction: String {
 				}
 				return QBEValue(true)
 			}
+			
+		case .Capitalize:
+			if let s = arguments[0].stringValue {
+				return QBEValue.StringValue(s.capitalizedString)
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
@@ -823,7 +832,7 @@ enum QBEFunction: String {
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
-		Levenshtein, URLEncode, In, NotIn, Not
+		Levenshtein, URLEncode, In, NotIn, Not, Capitalize
 	]
 }
 

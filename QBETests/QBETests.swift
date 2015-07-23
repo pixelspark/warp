@@ -367,6 +367,24 @@ class QBETests: XCTestCase {
 				
 			case .Coalesce:
 				XCTAssert(QBEFunction.Coalesce.apply([QBEValue.InvalidValue, QBEValue.InvalidValue, QBEValue(1337)]) == QBEValue(1337), "Coalesce")
+				
+			case .Capitalize:
+				XCTAssert(QBEFunction.Capitalize.apply([QBEValue("tommy van DER vorst")]) == QBEValue("Tommy Van Der Vorst"), "Capitalize")
+				
+			case .URLEncode:
+				// FIXME: URLEncode should probably also encode slashes, right?
+				XCTAssert(QBEFunction.URLEncode.apply([QBEValue("tommy%/van DER vorst")]) == QBEValue("tommy%25/van%20DER%20vorst"), "URLEncode")
+				
+			case .In:
+				XCTAssert(QBEFunction.In.apply([QBEValue(1), QBEValue(1), QBEValue(2)]) == QBEValue.BoolValue(true), "In")
+				XCTAssert(QBEFunction.In.apply([QBEValue(1), QBEValue(3), QBEValue(2)]) == QBEValue.BoolValue(false), "In")
+				
+			case .NotIn:
+				XCTAssert(QBEFunction.NotIn.apply([QBEValue(1), QBEValue(2), QBEValue(2)]) == QBEValue.BoolValue(true), "NotIn")
+				XCTAssert(QBEFunction.NotIn.apply([QBEValue(1), QBEValue(1), QBEValue(2)]) == QBEValue.BoolValue(false), "NotIn")
+				
+			/*default:
+				XCTFail("Test missing for function: \(fun)")*/
 			}
 		}
 		
@@ -522,11 +540,11 @@ class QBETests: XCTestCase {
 		}
 		
 		// Join
-		data.join(QBEJoin.LeftJoin(secondData, QBEBinaryExpression(first: QBESiblingExpression(columnName: "X"), second: QBEForeignExpression(columnName: "X"), type: .Equal))).raster(job) {
+		data.join(QBEJoin(type: .LeftJoin, foreignData: secondData, expression: QBEBinaryExpression(first: QBESiblingExpression(columnName: "X"), second: QBEForeignExpression(columnName: "X"), type: .Equal))).raster(job) {
 			assertRaster($0, message: "Join returns the appropriate number of rows in a one-to-one scenario", condition: { $0.rowCount == 1000 })
 			assertRaster($0, message: "Join returns the appropriate number of columns", condition: { $0.columnCount == 5 })
 		}
-		data.join(QBEJoin.LeftJoin(data, QBEBinaryExpression(first: QBESiblingExpression(columnName: "X"), second: QBEForeignExpression(columnName: "X"), type: .Equal))).raster(job) {
+		data.join(QBEJoin(type: .LeftJoin, foreignData: data, expression: QBEBinaryExpression(first: QBESiblingExpression(columnName: "X"), second: QBEForeignExpression(columnName: "X"), type: .Equal))).raster(job) {
 			assertRaster($0, message: "Join returns the appropriate number of rows in a self-join one-to-one scenario", condition: { $0.rowCount == 1000 })
 			assertRaster($0, message: "Join returns the appropriate number of columns in a self-join", condition: { $0.columnCount == 3 })
 		}
