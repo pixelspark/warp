@@ -201,6 +201,7 @@ import Cocoa
 	@IBAction func updateFromFormulaField(sender: NSObject) {
 		if let fc = formulaFieldCallback {
 			fc(locale.valueForLocalString(formulaField.stringValue))
+			formulaFieldCallback = nil
 		}
 	}
 	

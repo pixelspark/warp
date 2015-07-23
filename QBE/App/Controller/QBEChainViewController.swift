@@ -428,9 +428,9 @@ internal extension NSViewController {
 	}
 	
 	func dataView(view: QBEDataViewController, didSelectValue: QBEValue, changeable: Bool) {
-		delegate?.chainView(self, editValue: didSelectValue, callback: changeable ? {(v) -> () in
+		delegate?.chainView(self, editValue: didSelectValue, callback: changeable ? { [weak self] (v) -> () in
 			QBEAssertMainThread()
-			self.dataViewController?.changeSelectedValue(v)
+			self?.dataViewController?.changeSelectedValue(v)
 		} : nil)
 	}
 	
