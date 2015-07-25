@@ -140,7 +140,35 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 					else {
 						// Is this a numeric field?
 						let type = self.columnTypes[cn]
-						if (Int32(type.flags) & NUM_FLAG) != 0 {
+						if type.type.rawValue == MYSQL_TYPE_TIME.rawValue ||
+						 type.type.rawValue == MYSQL_TYPE_DATE.rawValue ||
+						 type.type.rawValue == MYSQL_TYPE_DATETIME.rawValue ||
+						 type.type.rawValue == MYSQL_TYPE_TIMESTAMP.rawValue {
+							
+							/* Only MySQL TIMESTAMP values are actual dates in UTC. The rest can be anything, in any time
+							zone, so we cannot convert these to QBEValue.DateValue. */
+							if let str = String(CString: val, encoding: NSUTF8StringEncoding) {
+								if type.type.rawValue == MYSQL_TYPE_TIMESTAMP.rawValue {
+									// Datetime string is formatted as YYYY-MM-dd HH:mm:ss and is in UTC
+									let dateFormatter = NSDateFormatter()
+									dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+									dateFormatter.timeZone = NSTimeZone(abbreviation: "UTC")
+									if let d = dateFormatter.dateFromString(str) {
+										rowData!.append(QBEValue(d))
+									}
+									else {
+										rowData!.append(QBEValue.InvalidValue)
+									}
+								}
+								else {
+									rowData!.append(QBEValue.StringValue(str))
+								}
+							}
+							else {
+								rowData!.append(QBEValue.InvalidValue)
+							}
+						}
+						else if (Int32(type.flags) & NUM_FLAG) != 0 {
 							if type.type.rawValue == MYSQL_TYPE_TINY.rawValue
 								|| type.type.rawValue == MYSQL_TYPE_SHORT.rawValue
 								|| type.type.rawValue == MYSQL_TYPE_LONG.rawValue
@@ -235,6 +263,18 @@ class QBEMySQLDatabase {
 			}
 		}
 		
+		/* Use UTF-8 for any textual data that is sent or received in this connection
+		(see https://dev.mysql.com/doc/refman/5.0/en/charset-connection.html) */
+		connection.query("SET NAMES 'utf8' ").maybe { (res) -> () in
+			// We're not using the response from this query
+			res.finish()
+		}
+		
+		// Use UTC for any dates that are sent and received in this connection
+		connection.query("SET time_zone = '+00:00' ").maybe { (res) -> () in
+			// We're not using the response from this query
+			res.finish()
+		}
 		return .Success(connection)
 	}
 }
