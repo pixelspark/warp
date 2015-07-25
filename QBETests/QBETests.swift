@@ -411,6 +411,27 @@ class QBETests: XCTestCase {
 			case .ToExcelDate:
 				XCTAssert(QBEFunction.ToExcelDate.apply([QBEValue(NSDate(timeIntervalSince1970: 0.0))]) == QBEValue(25569.0), "ToExcelDate")
 				XCTAssert(QBEFunction.ToExcelDate.apply([QBEValue(NSDate(timeIntervalSinceReferenceDate: 459547172))]).doubleValue!.approximates(42210.8330092593, epsilon: 0.01), "ToExcelDate")
+				
+			case .UTCDate:
+				XCTAssert(QBEFunction.UTCDate.apply([QBEValue(2001), QBEValue(1), QBEValue(1)]) == QBEValue.DateValue(0.0), "UTCDate")
+				
+			case .UTCYear:
+				XCTAssert(QBEFunction.UTCYear.apply([QBEValue.DateValue(0)]) == QBEValue(2001), "UTCYear")
+				
+			case .UTCMonth:
+				XCTAssert(QBEFunction.UTCMonth.apply([QBEValue.DateValue(0)]) == QBEValue(1), "UTCMonth")
+				
+			case .UTCDay:
+				XCTAssert(QBEFunction.UTCDay.apply([QBEValue.DateValue(0)]) == QBEValue(1), "UTCDay")
+				
+			case .UTCHour:
+				XCTAssert(QBEFunction.UTCHour.apply([QBEValue.DateValue(0)]) == QBEValue(0), "UTCHour")
+				
+			case .UTCMinute:
+				XCTAssert(QBEFunction.UTCMinute.apply([QBEValue.DateValue(0)]) == QBEValue(0), "UTCMinute")
+				
+			case .UTCSecond:
+				XCTAssert(QBEFunction.UTCSecond.apply([QBEValue.DateValue(0)]) == QBEValue(0), "UTCSecond")
 			}
 		}
 		

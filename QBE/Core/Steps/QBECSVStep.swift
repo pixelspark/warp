@@ -220,7 +220,7 @@ class QBEHTMLWriter: QBECSVWriter {
 				header = parts[0]
 				footer = parts[1]
 				
-				var locale = QBELocale()
+				let locale = QBELocale()
 				locale.numberFormatter.perMillSymbol = ""
 				locale.numberFormatter.decimalSeparator = "."
 				locale.csvFieldSeparator = ","

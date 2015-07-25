@@ -1,7 +1,7 @@
 import Foundation
 
 /** The default dialect for formulas reflects the English version of Excel closely. */
-struct QBELocale {
+class QBELocale {
 	typealias QBELanguage = String
 	
 	var decimalSeparator: String
@@ -17,6 +17,8 @@ struct QBELocale {
 	var commonFieldSeparators = [";",",","|","\t"]
 	var numberFormatter: NSNumberFormatter
 	var dateFormatter: NSDateFormatter
+	var timeZone: NSTimeZone
+	var calendar: NSCalendar
 	var constants: [QBEValue: String]
 	private let functions: [String: QBEFunction]
 	
@@ -118,7 +120,14 @@ struct QBELocale {
 			"TO.ISO8601": QBEFunction.ToLocalISO8601,
 			"FROM.ISO8601": QBEFunction.FromISO8601,
 			"TO.EXCELDATE": QBEFunction.ToExcelDate,
-			"FROM.EXCELDATE": QBEFunction.FromExcelDate
+			"FROM.EXCELDATE": QBEFunction.FromExcelDate,
+			"DATE.UTC": QBEFunction.UTCDate,
+			"YEAR.UTC": QBEFunction.UTCYear,
+			"MONTH.UTC": QBEFunction.UTCMonth,
+			"DAY.UTC": QBEFunction.UTCDay,
+			"HOUR.UTC": QBEFunction.UTCHour,
+			"MINUTE.UTC": QBEFunction.UTCMinute,
+			"SECOND.UTC": QBEFunction.UTCSecond
 		],
 		
 		"nl": [
@@ -183,7 +192,14 @@ struct QBELocale {
 			"NAAR.ISO8601": QBEFunction.ToLocalISO8601,
 			"VAN.ISO8601": QBEFunction.FromISO8601,
 			"NAAR.EXCELDATUM": QBEFunction.ToExcelDate,
-			"VAN.EXCELDATUM": QBEFunction.FromExcelDate
+			"VAN.EXCELDATUM": QBEFunction.FromExcelDate,
+			"DATUM.UTC": QBEFunction.UTCDate,
+			"JAAR.UTC": QBEFunction.UTCYear,
+			"MAAND.UTC": QBEFunction.UTCMonth,
+			"DAG.UTC": QBEFunction.UTCDay,
+			"UUR.UTC": QBEFunction.UTCHour,
+			"MINUUT.UTC": QBEFunction.UTCMinute,
+			"SECONDE.UTC": QBEFunction.UTCSecond
 		]
 	]
 	
@@ -198,9 +214,16 @@ struct QBELocale {
 		numberFormatter.groupingSeparator = self.groupingSeparator
 		numberFormatter.numberStyle = NSNumberFormatterStyle.DecimalStyle
 		
+		/* Currently, we always use the user's current calendar, regardless of the locale set. In the future, we might 
+		also provide locales that set a particular time zone (e.g. a 'UTC locale'). */
+		calendar = NSCalendar.autoupdatingCurrentCalendar()
+		timeZone = calendar.timeZone
+		
 		dateFormatter = NSDateFormatter()
 		dateFormatter.dateStyle = NSDateFormatterStyle.MediumStyle
 		dateFormatter.timeStyle = NSDateFormatterStyle.MediumStyle
+		dateFormatter.timeZone = timeZone
+		dateFormatter.calendar = calendar
 	}
 	
 	func functionWithName(name: String) -> QBEFunction? {

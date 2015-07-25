@@ -106,6 +106,13 @@ enum QBEFunction: String {
 	case ToUTCISO8601 = "toUTCISO8601"
 	case FromExcelDate = "fromExcelDate"
 	case ToExcelDate = "toExcelDate"
+	case UTCDate = "date"
+	case UTCDay = "day"
+	case UTCMonth = "month"
+	case UTCYear = "year"
+	case UTCMinute = "minute"
+	case UTCHour = "hour"
+	case UTCSecond = "second"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -307,6 +314,13 @@ enum QBEFunction: String {
 			case .ToUTCISO8601: return NSLocalizedString("to ISO-8601 formatted date in UTC", comment: "")
 			case .ToExcelDate: return NSLocalizedString("to Excel timestamp", comment: "")
 			case .FromExcelDate: return NSLocalizedString("from Excel timestamp", comment: "")
+			case .UTCDate: return NSLocalizedString("make a date (in UTC)", comment: "")
+			case .UTCDay: return NSLocalizedString("day in month (in UTC) of date", comment: "")
+			case .UTCMonth: return NSLocalizedString("month (in UTC) of", comment: "")
+			case .UTCYear: return NSLocalizedString("year (in UTC) of date", comment: "")
+			case .UTCMinute: return NSLocalizedString("minute (in UTC) of time", comment: "")
+			case .UTCHour: return NSLocalizedString("hour (in UTC) of time", comment: "")
+			case .UTCSecond: return NSLocalizedString("seconds (in UTC) of time", comment: "")
 		}
 	}
 	
@@ -392,6 +406,13 @@ enum QBEFunction: String {
 		case .ToUTCISO8601: return QBEArity.Fixed(1)
 		case .ToExcelDate: return QBEArity.Fixed(1)
 		case .FromExcelDate: return QBEArity.Fixed(1)
+		case .UTCDate: return QBEArity.Fixed(3)
+		case .UTCDay: return QBEArity.Fixed(1)
+		case .UTCMonth: return QBEArity.Fixed(1)
+		case .UTCYear: return QBEArity.Fixed(1)
+		case .UTCMinute: return QBEArity.Fixed(1)
+		case .UTCHour: return QBEArity.Fixed(1)
+		case .UTCSecond: return QBEArity.Fixed(1)
 		}
 	} }
 	
@@ -895,6 +916,48 @@ enum QBEFunction: String {
 				return QBEValue(x)
 			}
 			return QBEValue.InvalidValue
+			
+		case .UTCDate:
+			if let year = arguments[0].intValue, let month = arguments[1].intValue, let day = arguments[2].intValue {
+				return QBEValue(NSDate.startOfGregorianDateInUTC(year, month: month, day: day))
+			}
+			return QBEValue.InvalidValue
+			
+		case .UTCDay:
+			if let date = arguments[0].dateValue {
+				return QBEValue(date.gregorianComponentsInUTC.day)
+			}
+			return QBEValue.InvalidValue
+
+		case .UTCMonth:
+			if let date = arguments[0].dateValue {
+				return QBEValue(date.gregorianComponentsInUTC.month)
+			}
+			return QBEValue.InvalidValue
+
+		case .UTCYear:
+			if let date = arguments[0].dateValue {
+				return QBEValue(date.gregorianComponentsInUTC.year)
+			}
+			return QBEValue.InvalidValue
+
+		case .UTCHour:
+			if let date = arguments[0].dateValue {
+				return QBEValue(date.gregorianComponentsInUTC.hour)
+			}
+			return QBEValue.InvalidValue
+
+		case .UTCMinute:
+			if let date = arguments[0].dateValue {
+				return QBEValue(date.gregorianComponentsInUTC.minute)
+			}
+			return QBEValue.InvalidValue
+
+		case .UTCSecond:
+			if let date = arguments[0].dateValue {
+				return QBEValue(date.gregorianComponentsInUTC.second)
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
@@ -903,7 +966,7 @@ enum QBEFunction: String {
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
 		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
-		ToUTCISO8601, ToExcelDate, FromExcelDate
+		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond
 	]
 }
 

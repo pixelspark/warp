@@ -494,6 +494,40 @@ extension NSDate {
 		return calendar.dateFromComponents(comps)!
 	} }
 	
+	/** Returns the time at which the indicated Gregorian date starts in the UTC timezone. */
+	static func startOfGregorianDateInUTC(year: Int, month: Int, day: Int) -> NSDate {
+		let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
+		let comps = NSDateComponents()
+		comps.year = year
+		comps.month = month
+		comps.day = day
+		comps.hour = 0
+		comps.minute = 0
+		comps.second = 0
+		calendar.timeZone = NSTimeZone(abbreviation: "UTC")!
+		return calendar.dateFromComponents(comps)!
+	}
+
+	static func startOfLocalDate(locale: QBELocale, year: Int, month: Int, day: Int) -> NSDate {
+		let comps = NSDateComponents()
+		comps.year = year
+		comps.month = month
+		comps.day = day
+		comps.hour = 0
+		comps.minute = 0
+		comps.second = 0
+		return locale.calendar.dateFromComponents(comps)!
+	}
+	
+	func localComponents(locale: QBELocale) -> NSDateComponents {
+		return locale.calendar.componentsInTimeZone(locale.timeZone, fromDate: self)
+	}
+	
+	var gregorianComponentsInUTC: NSDateComponents { get {
+		let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
+		return calendar.componentsInTimeZone(NSTimeZone(abbreviation: "UTC")!, fromDate: self)
+	} }
+	
 	func fullDaysTo(otherDate: NSDate) -> Int {
 		let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
 		let  components = calendar.components(NSCalendarUnit.Day, fromDate: self, toDate: otherDate, options: [])
