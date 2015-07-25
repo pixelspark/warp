@@ -214,6 +214,9 @@ final class QBELiteralExpression: QBEExpression {
 			// FIXME: needs to use decimalSeparator from locale
 			return "\(d)"
 			
+		case .DateValue(let d):
+			return "@\(d)"
+			
 		case .BoolValue(let b):
 			return locale.constants[QBEValue(b)]!
 			

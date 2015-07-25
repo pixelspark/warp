@@ -469,14 +469,29 @@ struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 }
 
 extension NSDate {
-	/**	Returns an ISO-8601 formatted string of this date. Source code snipped from
-	http://stackoverflow.com/questions/16254575/how-do-i-get-iso-8601-date-in-ios*/
-	var iso8601FormattedDate: String { get {
+	static func fromISO8601FormattedDate(date: String) -> NSDate? {
 		let dateFormatter = NSDateFormatter()
-		let enUSPosixLocale = NSLocale(localeIdentifier: "en_US_POSIX")
-		dateFormatter.locale = enUSPosixLocale
+		dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+		return dateFormatter.dateFromString(date)
+	}
+	
+	/**	Returns an ISO-8601 formatted string of this date, in the locally preferred timezone. Should only be used for 
+	 presentational purposes. */
+	var iso8601FormattedLocalDate: String { get {
+		let dateFormatter = NSDateFormatter()
 		dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
 		return dateFormatter.stringFromDate(self)
+	} }
+	
+	var iso8601FormattedUTCDate: String { get {
+		let formatter = NSDateFormatter()
+		formatter.timeZone = NSTimeZone(abbreviation: "UTC")
+		formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+		return formatter.stringFromDate(self)
+	} }
+	
+	var unixTime: Double { get {
+		return self.timeIntervalSince1970
 	} }
 }
 
@@ -504,12 +519,18 @@ between values. Operators should not be designed to have behaviour dependent on 
 not be overloaded on the '+' operator, but should be implemented as a different operation).
 
 Note that as QBEValue is an enum, it cannot be encoded using NSCoding. Wrap QBETuple inside QBEValueCoder before
-encoding or decoding using NSCoding. */
+encoding or decoding using NSCoding. 
+
+Dates are represented as a DateValue, which contains the number of seconds that have passed since a reference date (set 
+to 2001-01-01T00:00:00Z in UTC, which is also what NSDate uses). A date cannot 'automatically' be converted to a numeric
+or string value. Only for debugging purposes it will be displayed as an ISO8601 formatted date in UTC.
+*/
 internal enum QBEValue: Hashable, CustomDebugStringConvertible {
 	case StringValue(String)
 	case IntValue(Int)
 	case BoolValue(Bool)
 	case DoubleValue(Double)
+	case DateValue(Double) // Number of seconds passed since 2001-01-01T00:00:00Z (=UTC) (what NSDate uses)
 	case EmptyValue		// Any empty value that has no specific type. Use to indicate deliberately missing values (much like NULL in SQL).
 	case InvalidValue	// The result of any invalid operation (e.g. division by zero). Treat as NaN
 	
@@ -534,6 +555,10 @@ internal enum QBEValue: Hashable, CustomDebugStringConvertible {
 		self = .BoolValue(value)
 	}
 	
+	init(_ value: NSDate) {
+		self = .DateValue(value.timeIntervalSinceReferenceDate)
+	}
+	
 	var hashValue: Int { get  {
 		return self.stringValue?.hashValue ?? 0
 	}}
@@ -547,6 +572,7 @@ internal enum QBEValue: Hashable, CustomDebugStringConvertible {
 		case .IntValue(let i): return i.toString()
 		case .BoolValue(let b): return b.toString()
 		case .DoubleValue(let d): return d.toString()
+		case .DateValue(let d): return NSDate(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate
 		case .EmptyValue: return nil
 		case .InvalidValue: return nil
 		}
@@ -561,8 +587,21 @@ internal enum QBEValue: Hashable, CustomDebugStringConvertible {
 			case .IntValue(let i): return i.toDouble()
 			case .BoolValue(let b): return b.toDouble()
 			case .DoubleValue(let d): return d
+			case .DateValue(_): return nil
 			case .EmptyValue: return nil
 			case .InvalidValue: return nil
+		}
+	} }
+	
+	/** Returns the date represented by this value. String or numeric values are never interpreted as a date, because
+	in general we don't know in which time zone they are. */
+	var dateValue: NSDate? { get {
+		switch self {
+			case
+				.DateValue(let d): return NSDate(timeIntervalSinceReferenceDate: d)
+			
+			default:
+				return nil
 		}
 	} }
 	
@@ -575,6 +614,7 @@ internal enum QBEValue: Hashable, CustomDebugStringConvertible {
 			case .IntValue(let i): return i
 			case .BoolValue(let b): return b.toInt()
 			case .DoubleValue(let d): return Int(d)
+			case .DateValue(_): return nil
 			case .EmptyValue: return nil
 			case .InvalidValue: return nil
 		}
@@ -589,6 +629,7 @@ internal enum QBEValue: Hashable, CustomDebugStringConvertible {
 		case .StringValue(let s): return Int(s) == 1
 		case .IntValue(let i): return i == 1
 		case .BoolValue(let b): return b
+		case .DateValue(_): return nil
 		case .DoubleValue(_): return nil
 		case .EmptyValue: return nil
 		case .InvalidValue: return nil
@@ -601,6 +642,7 @@ internal enum QBEValue: Hashable, CustomDebugStringConvertible {
 		case .IntValue(let i): return "QBEValue.Int(\(i))"
 		case .BoolValue(let b): return "QBEValue.Bool(\(b))"
 		case .DoubleValue(let d): return "QBEValue.Double(\(d))"
+		case .DateValue(let d): return "QBEValue.DateValue(\(NSDate(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate)))"
 		case .EmptyValue: return "QBEValue.Empty"
 		case .InvalidValue: return "QBEValue.Invalid"
 		}
@@ -707,6 +749,7 @@ class QBEValueCoder: NSObject, NSSecureCoding {
 			case 2: value = .IntValue(aDecoder.decodeIntegerForKey("value"))
 			case 3: value = .BoolValue(aDecoder.decodeBoolForKey("value"))
 			case 4: value = .DoubleValue(aDecoder.decodeDoubleForKey("value"))
+			case 7: value = .DateValue(aDecoder.decodeDoubleForKey("value"))
 			case 5: value = .EmptyValue
 			case 6: value = .InvalidValue
 			default: value = .EmptyValue
@@ -729,6 +772,10 @@ class QBEValueCoder: NSObject, NSSecureCoding {
 			
 		case .DoubleValue(let d):
 			coder.encodeInt(4, forKey: "type")
+			coder.encodeDouble(d, forKey: "value")
+			
+		case .DateValue(let d):
+			coder.encodeInt(7, forKey: "type")
 			coder.encodeDouble(d, forKey: "value")
 			
 		case .EmptyValue:

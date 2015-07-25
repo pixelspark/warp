@@ -98,6 +98,12 @@ enum QBEFunction: String {
 	case In = "in"
 	case NotIn = "notIn"
 	case Capitalize = "capitalize"
+	case Now = "now"
+	case FromUnixTime = "fromUnix"
+	case ToUnixTime = "toUnix"
+	case FromISO8601 = "fromISO8601"
+	case ToLocalISO8601 = "toLocalISO8601"
+	case ToUTCISO8601 = "toUTCISO8601"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -291,6 +297,12 @@ enum QBEFunction: String {
 			case .In: return NSLocalizedString("contains", comment: "")
 			case .NotIn: return NSLocalizedString("does not contain", comment: "")
 			case .Capitalize: return NSLocalizedString("capitalize", comment: "")
+			case .Now: return NSLocalizedString("current time", comment: "")
+			case .FromUnixTime: return NSLocalizedString("interpret UNIX timestamp", comment: "")
+			case .ToUnixTime: return NSLocalizedString("to UNIX timestamp", comment: "")
+			case .FromISO8601: return NSLocalizedString("interpret ISO-8601 formatted date", comment: "")
+			case .ToLocalISO8601: return NSLocalizedString("to ISO-8601 formatted date in local timezone", comment: "")
+			case .ToUTCISO8601: return NSLocalizedString("to ISO-8601 formatted date in UTC", comment: "")
 		}
 	}
 	
@@ -302,6 +314,7 @@ enum QBEFunction: String {
 			case .RandomItem: return false
 			case .RandomBetween: return false
 			case .Random: return false
+			case .Now: return false
 			default: return true
 		}
 	} }
@@ -367,6 +380,12 @@ enum QBEFunction: String {
 		case .In: return QBEArity.AtLeast(2)
 		case .NotIn: return QBEArity.AtLeast(2)
 		case .Capitalize: return QBEArity.Fixed(1)
+		case .Now: return QBEArity.Fixed(0)
+		case .FromUnixTime: return QBEArity.Fixed(1)
+		case .ToUnixTime: return QBEArity.Fixed(1)
+		case .FromISO8601: return QBEArity.Fixed(1)
+		case .ToLocalISO8601: return QBEArity.Fixed(1)
+		case .ToUTCISO8601: return QBEArity.Fixed(1)
 		}
 	} }
 	
@@ -825,6 +844,39 @@ enum QBEFunction: String {
 				return QBEValue.StringValue(s.capitalizedString)
 			}
 			return QBEValue.InvalidValue
+			
+		case .Now:
+			return QBEValue(NSDate())
+			
+		case .FromUnixTime:
+			if let s = arguments[0].doubleValue {
+				return QBEValue(NSDate(timeIntervalSince1970: s))
+			}
+			return QBEValue.InvalidValue
+			
+		case .ToUnixTime:
+			if let d = arguments[0].dateValue {
+				return QBEValue(d.timeIntervalSince1970)
+			}
+			return QBEValue.InvalidValue
+			
+		case .FromISO8601:
+			if let s = arguments[0].stringValue, d = NSDate.fromISO8601FormattedDate(s) {
+				return QBEValue(d)
+			}
+			return QBEValue.InvalidValue
+			
+		case .ToLocalISO8601:
+			if let d = arguments[0].dateValue {
+				return QBEValue(d.iso8601FormattedLocalDate)
+			}
+			return QBEValue.InvalidValue
+			
+		case .ToUTCISO8601:
+			if let d = arguments[0].dateValue {
+				return QBEValue(d.iso8601FormattedUTCDate)
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
@@ -832,7 +884,7 @@ enum QBEFunction: String {
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
-		Levenshtein, URLEncode, In, NotIn, Not, Capitalize
+		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601, ToUTCISO8601
 	]
 }
 

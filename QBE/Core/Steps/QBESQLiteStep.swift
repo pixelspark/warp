@@ -46,6 +46,9 @@ internal class QBESQLiteResult {
 						case .DoubleValue(let d):
 							result = sqlite3_bind_double(self.resultSet, CInt(i+1), d)
 						
+						case .DateValue(let d):
+							result = sqlite3_bind_double(self.resultSet, CInt(i+1), d)
+						
 						case .BoolValue(let b):
 							result = sqlite3_bind_int(self.resultSet, CInt(i+1), b ? 1 : 0)
 						
@@ -272,7 +275,10 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 				
 			case .DoubleValue(let d):
 				sqlite3_result_double(context, d)
-				
+			
+			case .DateValue(let d):
+				sqlite3_result_double(context, d)
+			
 			case .BoolValue(let b):
 				sqlite3_result_int64(context, b ? 1 : 0)
 		}

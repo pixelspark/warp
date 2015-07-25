@@ -382,9 +382,27 @@ class QBETests: XCTestCase {
 			case .NotIn:
 				XCTAssert(QBEFunction.NotIn.apply([QBEValue(1), QBEValue(2), QBEValue(2)]) == QBEValue.BoolValue(true), "NotIn")
 				XCTAssert(QBEFunction.NotIn.apply([QBEValue(1), QBEValue(1), QBEValue(2)]) == QBEValue.BoolValue(false), "NotIn")
+			
+			case .ToUnixTime:
+				let d = NSDate()
+				XCTAssert(QBEFunction.ToUnixTime.apply([QBEValue(d)]) == QBEValue(d.timeIntervalSince1970), "ToUnixTime")
+				let epoch = NSDate(timeIntervalSince1970: 0)
+				XCTAssert(QBEFunction.ToUnixTime.apply([QBEValue(epoch)]) == QBEValue(0), "ToUnixTime")
 				
-			/*default:
-				XCTFail("Test missing for function: \(fun)")*/
+			case .FromUnixTime:
+				XCTAssert(QBEFunction.FromUnixTime.apply([QBEValue(0)]) == QBEValue(NSDate(timeIntervalSince1970: 0)), "FromUnixTime")
+				
+			case .Now:
+				break
+				
+			case .FromISO8601:
+				XCTAssert(QBEFunction.FromISO8601.apply([QBEValue("1970-01-01T00:00:00Z")]) == QBEValue(NSDate(timeIntervalSince1970: 0)), "FromISO8601")
+				
+			case .ToLocalISO8601:
+				break
+				
+			case .ToUTCISO8601:
+				XCTAssert(QBEFunction.ToUTCISO8601.apply([QBEValue(NSDate(timeIntervalSince1970: 0))]) == QBEValue("1970-01-01T00:00:00Z"), "ToUTCISO8601")
 			}
 		}
 		

@@ -18,7 +18,7 @@ class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 				writer.tag("status", contentText: "ok")
 				
 				writer.tag("meta") {
-					writer.tag("generated", contentText: NSDate().iso8601FormattedDate)
+					writer.tag("generated", contentText: NSDate().iso8601FormattedUTCDate)
 					writer.tag("system", contentText: "Warp")
 					writer.tag("domain", contentText: NSHost.currentHost().name ?? "localhost")
 					writer.tag("input", contentText: "")

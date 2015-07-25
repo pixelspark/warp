@@ -16,6 +16,7 @@ struct QBELocale {
 	var csvStringEscaper = "\"\""
 	var commonFieldSeparators = [";",",","|","\t"]
 	var numberFormatter: NSNumberFormatter
+	var dateFormatter: NSDateFormatter
 	var constants: [QBEValue: String]
 	private let functions: [String: QBEFunction]
 	
@@ -109,7 +110,13 @@ struct QBELocale {
 			"NOT.IN": QBEFunction.NotIn,
 			"SMALL": QBEFunction.Min,
 			"LARGE": QBEFunction.Max,
-			"PROPER": QBEFunction.Capitalize
+			"PROPER": QBEFunction.Capitalize,
+			"NOW": QBEFunction.Now,
+			"TO.UNIX": QBEFunction.ToUnixTime,
+			"FROM.UNIX": QBEFunction.FromUnixTime,
+			"TO.ISO8601.UTC": QBEFunction.ToUTCISO8601,
+			"TO.ISO8601": QBEFunction.ToLocalISO8601,
+			"FROM.ISO8601": QBEFunction.FromISO8601
 		],
 		
 		"nl": [
@@ -166,7 +173,13 @@ struct QBELocale {
 			"NIET.IN": QBEFunction.NotIn,
 			"KLEINSTE": QBEFunction.Min,
 			"GROOTSTE": QBEFunction.Max,
-			"BEGINLETTERS": QBEFunction.Capitalize
+			"BEGINLETTERS": QBEFunction.Capitalize,
+			"NU": QBEFunction.Now,
+			"NAAR.UNIX": QBEFunction.ToUnixTime,
+			"VAN.UNIX": QBEFunction.FromUnixTime,
+			"NAAR.ISO8601.UTC": QBEFunction.ToUTCISO8601,
+			"NAAR.ISO8601": QBEFunction.ToLocalISO8601,
+			"VAN.ISO8601": QBEFunction.FromISO8601
 		]
 	]
 	
@@ -180,6 +193,10 @@ struct QBELocale {
 		numberFormatter.decimalSeparator = self.decimalSeparator
 		numberFormatter.groupingSeparator = self.groupingSeparator
 		numberFormatter.numberStyle = NSNumberFormatterStyle.DecimalStyle
+		
+		dateFormatter = NSDateFormatter()
+		dateFormatter.dateStyle = NSDateFormatterStyle.MediumStyle
+		dateFormatter.timeStyle = NSDateFormatterStyle.MediumStyle
 	}
 	
 	func functionWithName(name: String) -> QBEFunction? {
@@ -223,6 +240,9 @@ struct QBELocale {
 			
 			case .InvalidValue:
 				return ""
+			
+			case .DateValue(let d):
+				return dateFormatter.stringFromDate(NSDate(timeIntervalSinceReferenceDate: d))
 			
 			case .EmptyValue:
 				return ""
@@ -302,6 +322,9 @@ struct QBELocale {
 				
 			case .InvalidValue:
 				break
+				
+			case .DateValue(let d):
+				line += NSDate(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate
 				
 			case .EmptyValue:
 				break

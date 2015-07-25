@@ -320,6 +320,14 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .URLEncode: return nil
 			case .Capitalize: return nil
 			
+			// TODO: date function can probably be implemented in SQL
+			case .Now: return nil
+			case .ToUTCISO8601: return nil
+			case .FromUnixTime: return nil
+			case .ToUnixTime: return nil
+			case .ToLocalISO8601: return nil
+			case .FromISO8601: return nil
+			
 			case .In:
 				// Not all databases might support IN with arbitrary values. If so, generate OR(a=x; a=y; ..)
 				let first = args[0]
@@ -353,7 +361,10 @@ class QBEStandardSQLDialect: QBESQLDialect {
 				
 			case .IntValue(let i):
 				return "\(i)"
-				
+			
+			case .DateValue(let d):
+				return "\(d)"
+			
 			case .BoolValue(let b):
 				return b ? "(1=1)" : "(1=0)"
 				
