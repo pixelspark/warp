@@ -327,6 +327,8 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .ToUnixTime: return nil
 			case .ToLocalISO8601: return nil
 			case .FromISO8601: return nil
+			case .FromExcelDate: return nil
+			case .ToExcelDate: return nil
 			
 			case .In:
 				// Not all databases might support IN with arbitrary values. If so, generate OR(a=x; a=y; ..)

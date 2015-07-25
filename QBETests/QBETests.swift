@@ -403,6 +403,14 @@ class QBETests: XCTestCase {
 				
 			case .ToUTCISO8601:
 				XCTAssert(QBEFunction.ToUTCISO8601.apply([QBEValue(NSDate(timeIntervalSince1970: 0))]) == QBEValue("1970-01-01T00:00:00Z"), "ToUTCISO8601")
+				
+			case .FromExcelDate:
+				XCTAssert(QBEFunction.FromExcelDate.apply([QBEValue(25569.0)]) == QBEValue(NSDate(timeIntervalSince1970: 0.0)), "FromExcelDate")
+				XCTAssert(QBEFunction.FromExcelDate.apply([QBEValue(42210.8330092593)]) == QBEValue(NSDate(timeIntervalSinceReferenceDate: 459547172.0)), "FromExcelDate")
+				
+			case .ToExcelDate:
+				XCTAssert(QBEFunction.ToExcelDate.apply([QBEValue(NSDate(timeIntervalSince1970: 0.0))]) == QBEValue(25569.0), "ToExcelDate")
+				XCTAssert(QBEFunction.ToExcelDate.apply([QBEValue(NSDate(timeIntervalSinceReferenceDate: 459547172))]).doubleValue!.approximates(42210.8330092593, epsilon: 0.01), "ToExcelDate")
 			}
 		}
 		

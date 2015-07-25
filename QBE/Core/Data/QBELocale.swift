@@ -116,7 +116,9 @@ struct QBELocale {
 			"FROM.UNIX": QBEFunction.FromUnixTime,
 			"TO.ISO8601.UTC": QBEFunction.ToUTCISO8601,
 			"TO.ISO8601": QBEFunction.ToLocalISO8601,
-			"FROM.ISO8601": QBEFunction.FromISO8601
+			"FROM.ISO8601": QBEFunction.FromISO8601,
+			"TO.EXCELDATE": QBEFunction.ToExcelDate,
+			"FROM.EXCELDATE": QBEFunction.FromExcelDate
 		],
 		
 		"nl": [
@@ -179,7 +181,9 @@ struct QBELocale {
 			"VAN.UNIX": QBEFunction.FromUnixTime,
 			"NAAR.ISO8601.UTC": QBEFunction.ToUTCISO8601,
 			"NAAR.ISO8601": QBEFunction.ToLocalISO8601,
-			"VAN.ISO8601": QBEFunction.FromISO8601
+			"VAN.ISO8601": QBEFunction.FromISO8601,
+			"NAAR.EXCELDATUM": QBEFunction.ToExcelDate,
+			"VAN.EXCELDATUM": QBEFunction.FromExcelDate
 		]
 	]
 	

@@ -104,6 +104,8 @@ enum QBEFunction: String {
 	case FromISO8601 = "fromISO8601"
 	case ToLocalISO8601 = "toLocalISO8601"
 	case ToUTCISO8601 = "toUTCISO8601"
+	case FromExcelDate = "fromExcelDate"
+	case ToExcelDate = "toExcelDate"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -303,6 +305,8 @@ enum QBEFunction: String {
 			case .FromISO8601: return NSLocalizedString("interpret ISO-8601 formatted date", comment: "")
 			case .ToLocalISO8601: return NSLocalizedString("to ISO-8601 formatted date in local timezone", comment: "")
 			case .ToUTCISO8601: return NSLocalizedString("to ISO-8601 formatted date in UTC", comment: "")
+			case .ToExcelDate: return NSLocalizedString("to Excel timestamp", comment: "")
+			case .FromExcelDate: return NSLocalizedString("from Excel timestamp", comment: "")
 		}
 	}
 	
@@ -386,6 +390,8 @@ enum QBEFunction: String {
 		case .FromISO8601: return QBEArity.Fixed(1)
 		case .ToLocalISO8601: return QBEArity.Fixed(1)
 		case .ToUTCISO8601: return QBEArity.Fixed(1)
+		case .ToExcelDate: return QBEArity.Fixed(1)
+		case .FromExcelDate: return QBEArity.Fixed(1)
 		}
 	} }
 	
@@ -877,6 +883,18 @@ enum QBEFunction: String {
 				return QBEValue(d.iso8601FormattedUTCDate)
 			}
 			return QBEValue.InvalidValue
+			
+		case .ToExcelDate:
+			if let d = arguments[0].dateValue, let e = d.excelDate {
+				return QBEValue(e)
+			}
+			return QBEValue.InvalidValue
+			
+		case .FromExcelDate:
+			if let d = arguments[0].doubleValue, let x = NSDate.fromExcelDate(d) {
+				return QBEValue(x)
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
@@ -884,7 +902,8 @@ enum QBEFunction: String {
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
-		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601, ToUTCISO8601
+		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
+		ToUTCISO8601, ToExcelDate, FromExcelDate
 	]
 }
 
