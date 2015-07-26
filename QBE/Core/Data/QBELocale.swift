@@ -134,7 +134,10 @@ class QBELocale {
 			"MINUTE.UTC": QBEFunction.UTCMinute,
 			"SECOND.UTC": QBEFunction.UTCSecond,
 			"DURATION": QBEFunction.Duration,
-			"AFTER": QBEFunction.After
+			"AFTER": QBEFunction.After,
+			"NEGATE": QBEFunction.Negate,
+			"FLOOR": QBEFunction.Floor,
+			"CEILING": QBEFunction.Ceiling
 		],
 		
 		"nl": [
@@ -208,7 +211,10 @@ class QBELocale {
 			"MINUUT.UTC": QBEFunction.UTCMinute,
 			"SECONDE.UTC": QBEFunction.UTCSecond,
 			"TIJDSDUUR": QBEFunction.Duration,
-			"NA": QBEFunction.After
+			"NA": QBEFunction.After,
+			"OMKEREN": QBEFunction.Negate,
+			"AFRONDEN.BOVEN": QBEFunction.Ceiling,
+			"AFRONDEN.BENEDEN": QBEFunction.Floor
 		]
 	]
 	

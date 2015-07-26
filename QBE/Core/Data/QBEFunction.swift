@@ -137,6 +137,8 @@ enum QBEFunction: String {
 	case UTCSecond = "second"
 	case Duration = "duration"
 	case After = "after"
+	case Ceiling = "ceiling"
+	case Floor = "floor"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -347,6 +349,8 @@ enum QBEFunction: String {
 			case .UTCSecond: return NSLocalizedString("seconds (in UTC) of time", comment: "")
 			case .Duration: return NSLocalizedString("number of seconds that passed between dates", comment: "")
 			case .After: return NSLocalizedString("date after a number of seconds has passed after date", comment: "")
+			case .Floor: return NSLocalizedString("round down to integer", comment: "")
+			case .Ceiling: return NSLocalizedString("round up to integer", comment: "")
 		}
 	}
 	
@@ -495,6 +499,11 @@ enum QBEFunction: String {
 				QBEParameter(name: NSLocalizedString("number", comment: ""), exampleValue: QBEValue(3.1337)),
 				QBEParameter(name: NSLocalizedString("decimals", comment: ""), exampleValue: QBEValue(2))
 			]
+			
+		case .Ceiling, .Floor:
+			return [
+				QBEParameter(name: NSLocalizedString("number", comment: ""), exampleValue: QBEValue(3.1337))
+			]
 		
 		case .Sin, .Cos, .Tan, .Sinh, .Cosh, .Tanh, .Exp, .Ln, .Log, .Acos, .Asin, .Atan:
 			return [QBEParameter(name: NSLocalizedString("number", comment: ""), exampleValue: QBEValue(M_PI_4))]
@@ -502,7 +511,7 @@ enum QBEFunction: String {
 		case .Sqrt:
 			return [QBEParameter(name: NSLocalizedString("number", comment: ""), exampleValue: QBEValue(144))]
 			
-		case .Sign, .Absolute:
+		case .Sign, .Absolute, .Negate:
 			return [QBEParameter(name: NSLocalizedString("number", comment: ""), exampleValue: QBEValue(-1337))]
 			
 		case .Sum, .Count, .CountAll, .Average, .Min, .Max, .RandomItem:
@@ -558,7 +567,14 @@ enum QBEFunction: String {
 		case .Now, .Random:
 			return []
 			
-		default: return nil
+		case .Identity:
+			return [QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("horse"))]
+			
+		case .Coalesce:
+			return [
+				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue.InvalidValue),
+				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("horse"))
+			]
 		}
 	} }
 	
@@ -636,6 +652,8 @@ enum QBEFunction: String {
 		case .UTCSecond: return QBEArity.Fixed(1)
 		case .Duration: return QBEArity.Fixed(2)
 		case .After: return QBEArity.Fixed(2)
+		case .Ceiling: return QBEArity.Fixed(1)
+		case .Floor: return QBEArity.Fixed(1)
 		}
 	} }
 	
@@ -1193,6 +1211,18 @@ enum QBEFunction: String {
 				return QBEValue(NSDate(timeInterval: duration, sinceDate: start))
 			}
 			return QBEValue.InvalidValue
+			
+		case .Floor:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(floor(d))
+			}
+			return QBEValue.InvalidValue
+			
+		case .Ceiling:
+			if let d = arguments[0].doubleValue {
+				return QBEValue(ceil(d))
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
@@ -1202,7 +1232,7 @@ enum QBEFunction: String {
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
 		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
-		Duration, After, Xor
+		Duration, After, Xor, Floor, Ceiling
 	]
 }
 

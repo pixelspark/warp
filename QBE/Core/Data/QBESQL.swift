@@ -339,6 +339,9 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Duration: return nil
 			case .After: return nil
 			
+			case .Floor: return "FLOOR(\(args[0]))"
+			case .Ceiling: return "CEIL(\(args[0]))"
+			
 			case .In:
 				// Not all databases might support IN with arbitrary values. If so, generate OR(a=x; a=y; ..)
 				let first = args[0]
