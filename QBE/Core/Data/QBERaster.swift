@@ -236,6 +236,9 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 				return newData
 			},
 			reduce: { (a: [QBETuple], b: [QBETuple]?) -> ([QBETuple]) in
+				if let br = b {
+					return br + a
+				}
 				return a
 			})
 		

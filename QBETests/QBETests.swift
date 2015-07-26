@@ -600,7 +600,9 @@ class QBETests: XCTestCase {
 		
 		// Join
 		data.join(QBEJoin(type: .LeftJoin, foreignData: secondData, expression: QBEBinaryExpression(first: QBESiblingExpression(columnName: "X"), second: QBEForeignExpression(columnName: "X"), type: .Equal))).raster(job) {
-			assertRaster($0, message: "Join returns the appropriate number of rows in a one-to-one scenario", condition: { $0.rowCount == 1000 })
+			assertRaster($0, message: "Join returns the appropriate number of rows in a one-to-one scenario", condition: { (x) in
+				x.rowCount == 1000
+			})
 			assertRaster($0, message: "Join returns the appropriate number of columns", condition: { $0.columnCount == 5 })
 		}
 		data.join(QBEJoin(type: .LeftJoin, foreignData: data, expression: QBEBinaryExpression(first: QBESiblingExpression(columnName: "X"), second: QBEForeignExpression(columnName: "X"), type: .Equal))).raster(job) {
@@ -680,12 +682,11 @@ class QBETests: XCTestCase {
 				//println("Worker \(slice)")
 				return Array(slice.map({return $0 * 2}))
 			},
-			reduce: {(s, r) -> Int in
-				var greatest = r
+			reduce: {(s, var r: Int?) -> (Int) in
 				for number in s {
-					greatest = (greatest == nil || number > greatest) ? number : greatest
+					r = (r == nil || number > r) ? number : r
 				}
-				return greatest ?? 0
+				return r ?? 0
 			}
 		)
 		
