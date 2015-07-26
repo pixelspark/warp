@@ -143,6 +143,8 @@
 		65A7FC5B1A667F860019B747 /* QBESQLiteSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65A7FC5D1A667F860019B747 /* QBESQLiteSourceStepView.xib */; };
 		65A9817D1AF357C2006BACA7 /* QBEStepItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A9817C1AF357C2006BACA7 /* QBEStepItemView.swift */; };
 		65C4F3A71A992A6C00197CF4 /* QBEFilterStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65C4F3A91A992A6C00197CF4 /* QBEFilterStepView.xib */; };
+		65CD70651B650DD2008AF5C3 /* QBEReferenceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */; };
+		65CD706C1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD706B1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift */; };
 		65CD95201AC9E80300557C9E /* QBEObjectiveCBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 65CD951F1AC9E80300557C9E /* QBEObjectiveCBridge.m */; };
 		65CD95CB1ACEB62500557C9E /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 65CD95C91ACEB62500557C9E /* Credits.rtf */; };
 		65CD95D31ACEB68000557C9E /* Warp.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 65CD95D01ACEB68000557C9E /* Warp.entitlements */; };
@@ -448,6 +450,8 @@
 		65A9817C1AF357C2006BACA7 /* QBEStepItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEStepItemView.swift; sourceTree = "<group>"; };
 		65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
 		65C4F3A81A992A6C00197CF4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEFilterStepView.xib; sourceTree = "<group>"; };
+		65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEReferenceViewController.swift; sourceTree = "<group>"; };
+		65CD706B1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "QBEFormula+SyntaxColoring.swift"; sourceTree = "<group>"; };
 		65CD951F1AC9E80300557C9E /* QBEObjectiveCBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = QBEObjectiveCBridge.m; path = QBE/QBEObjectiveCBridge.m; sourceTree = "<group>"; };
 		65CD95C81ACEB60C00557C9E /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = nl; path = QBE/nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		65CD95CA1ACEB62500557C9E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
@@ -638,6 +642,7 @@
 				65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */,
 				65A0DF751AF299C20005C50F /* QBEWindowController.swift */,
 				65A0DFFF1AF29A750005C50F /* Steps */,
+				65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */,
 			);
 			name = Controller;
 			path = App/Controller;
@@ -677,6 +682,7 @@
 				65884A231AFDF23E003A5BF1 /* QBEAnchor.swift */,
 				65884A381AFFA9D9003A5BF1 /* QBEOutletView.swift */,
 				651648B41B3B466F001E50BC /* QBEFilterCell.swift */,
+				65CD706B1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift */,
 			);
 			name = View;
 			path = App/View;
@@ -1103,6 +1109,7 @@
 				65A0DFDD1AF299F30005C50F /* QBEColumnsStep.swift in Sources */,
 				65A0E01A1AF29A750005C50F /* QBEPivotStepView.swift in Sources */,
 				65884A3F1B049250003A5BF1 /* QBEJoinStep.swift in Sources */,
+				65CD70651B650DD2008AF5C3 /* QBEReferenceViewController.swift in Sources */,
 				65A0E0201AF29A750005C50F /* QBESortStepView.swift in Sources */,
 				65A0DF801AF299C20005C50F /* QBEChainViewController.swift in Sources */,
 				65A0DFB31AF299F30005C50F /* QBECalculator.swift in Sources */,
@@ -1124,6 +1131,7 @@
 				65A0DFC21AF299F30005C50F /* QBEFuture.swift in Sources */,
 				65A0DFCE1AF299F30005C50F /* QBEStats.swift in Sources */,
 				65A0DF8C1AF299C20005C50F /* QBESuggestionsViewController.swift in Sources */,
+				65CD706C1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift in Sources */,
 				65A0DFE61AF299F30005C50F /* QBEMySQLSourceStep.swift in Sources */,
 				65A0DF881AF299C20005C50F /* QBESettingsViewController.swift in Sources */,
 				65A0E01C1AF29A750005C50F /* QBEPrestoSourceStepView.swift in Sources */,

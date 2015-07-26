@@ -20,7 +20,7 @@ class QBELocale {
 	var timeZone: NSTimeZone
 	var calendar: NSCalendar
 	var constants: [QBEValue: String]
-	private let functions: [String: QBEFunction]
+	let functions: [String: QBEFunction]
 	
 	static let languages: [QBELanguage: String] = [
 		"nl": NSLocalizedString("Dutch", comment: ""),
@@ -55,6 +55,11 @@ class QBELocale {
 	private static let groupingSeparators: [QBELanguage: String] = [
 		"en": ",",
 		"nl": "."
+	]
+	
+	private static let argumentSeparators: [QBELanguage: String] = [
+		"en": ";",
+		"nl": ";"
 	]
 	
 	private static let allFunctions: [QBELanguage: [String: QBEFunction]] = [
@@ -212,6 +217,7 @@ class QBELocale {
 		constants = QBELocale.allConstants[language] ?? QBELocale.allConstants[QBELocale.defaultLanguage]!
 		self.decimalSeparator = QBELocale.decimalSeparators[language]!
 		self.groupingSeparator = QBELocale.groupingSeparators[language]!
+		self.argumentSeparator = QBELocale.argumentSeparators[language]!
 		
 		numberFormatter = NSNumberFormatter()
 		numberFormatter.decimalSeparator = self.decimalSeparator

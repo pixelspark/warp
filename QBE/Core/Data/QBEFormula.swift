@@ -115,6 +115,7 @@ class QBEFormula: Parser {
 	private var stack = QBEStack<QBEExpression>()
 	private var callStack = QBEStack<QBECall>()
 	let locale: QBELocale
+	let originalText: String
 	var fragments: [Fragment] = []
 	
 	var root: QBEExpression {
@@ -124,6 +125,7 @@ class QBEFormula: Parser {
 	}
 	
 	init?(formula: String, locale: QBELocale) {
+		self.originalText = formula
 		self.locale = locale
 		self.fragments = []
 		super.init()
@@ -143,12 +145,22 @@ class QBEFormula: Parser {
 	}
 	
 	private func pushDouble() {
-		annotate(stack.push(QBELiteralExpression(QBEValue(self.text.toDouble()!))))
+		if let n = self.locale.numberFormatter.numberFromString(self.text) {
+			annotate(stack.push(QBELiteralExpression(QBEValue.DoubleValue(n.doubleValue))))
+		}
+		else {
+			annotate(stack.push(QBELiteralExpression(QBEValue.InvalidValue)))
+		}
 	}
 	
 	private func pushTimestamp() {
 		let ts = self.text.substringFromIndex(advance(self.text.startIndex, 1))
-		annotate(stack.push(QBELiteralExpression(QBEValue.DateValue(ts.toDouble()!))))
+		if let n = self.locale.numberFormatter.numberFromString(ts) {
+			annotate(stack.push(QBELiteralExpression(QBEValue.DateValue(n.doubleValue))))
+		}
+		else {
+			annotate(stack.push(QBELiteralExpression(QBEValue.InvalidValue)))
+		}
 	}
 	
 	private func pushString() {
@@ -304,7 +316,7 @@ class QBEFormula: Parser {
 		add_named_rule("subexpression",		rule: (("(" ~~ (^"logic") ~~ ")")))
 		
 		// Number literals
-		add_named_rule("digits",			rule: ("0"-"9")+)
+		add_named_rule("digits",			rule: (("0"-"9") | locale.groupingSeparator)+)
 		add_named_rule("integerNumber",		rule: (^"digits") => pushInt)
 		add_named_rule("percentagePostfix", rule: (literal("%") => pushPercentagePostfix)/~)
 		add_named_rule("timestamp",			rule: ("@" ~ ^"digits" ~ (locale.decimalSeparator ~ ^"digits")/~) => pushTimestamp)

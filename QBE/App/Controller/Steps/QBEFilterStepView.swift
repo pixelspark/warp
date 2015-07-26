@@ -29,6 +29,20 @@ class QBEFilterStepView: NSViewController {
 		if let s = step {
 			self.formulaField?.stringValue = (s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? "")
 		}
+		
+		NSNotificationCenter.defaultCenter().addObserverForName(QBEReferenceViewController.notificationName, object: nil, queue: NSOperationQueue.mainQueue()) { (notification) -> Void in
+			let current = self.formulaField?.stringValue ?? ""
+			if let rawName = notification.object as? String, let function = QBEFunction(rawValue: rawName) {
+				if let localName = QBEAppDelegate.sharedInstance.locale.nameForFunction(function) {
+					self.formulaField?.stringValue = "\(current)\(localName)()"
+				}
+			}
+		}
+	}
+	
+	override func viewWillDisappear() {
+		super.viewWillDisappear()
+		NSNotificationCenter.defaultCenter().removeObserver(self)
 	}
 	
 	@IBAction func update(sender: NSObject) {

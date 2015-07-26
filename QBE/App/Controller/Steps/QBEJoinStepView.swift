@@ -130,6 +130,16 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 			self.formulaField?.stringValue = (s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? "")
 			self.tabView.selectTabViewItemAtIndex(isSimple ? 0 : 1)
 		}
+		
+		NSNotificationCenter.defaultCenter().addObserverForName(QBEReferenceViewController.notificationName, object: nil, queue: NSOperationQueue.mainQueue()) { (notification) -> Void in
+			let current = self.formulaField?.stringValue ?? ""
+			if let rawName = notification.object as? String, let function = QBEFunction(rawValue: rawName) {
+				if let localName = QBEAppDelegate.sharedInstance.locale.nameForFunction(function) {
+					self.formulaField?.stringValue = "\(current)\(localName)()"
+				}
+			}
+		}
+		
 		updateView()
 	}
 	
@@ -153,7 +163,10 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 			}
 			
 			if let f = s.condition {
-				self.formulaField?.stringValue = f.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
+				let formula = f.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
+				if let parsed = QBEFormula(formula: formula, locale: self.delegate?.locale ?? QBELocale()) {
+					self.formulaField?.attributedStringValue = parsed.syntaxColoredFormula
+				}
 			}
 			
 			// Fetch own sibling columns
@@ -264,5 +277,6 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 		self.siblingComboBox.dataSource = nil
 		self.foreignComboBox.delegate = nil
 		self.siblingComboBox.delegate = nil
+		NSNotificationCenter.defaultCenter().removeObserver(self)
 	}
 }

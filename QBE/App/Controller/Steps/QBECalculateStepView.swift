@@ -35,6 +35,20 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 			self.targetColumnNameField?.stringValue = s.targetColumn.name
 			updateView()
 		}
+		
+		NSNotificationCenter.defaultCenter().addObserverForName(QBEReferenceViewController.notificationName, object: nil, queue: NSOperationQueue.mainQueue()) { (notification) -> Void in
+			let current = self.formulaField?.stringValue ?? ""
+			if let rawName = notification.object as? String, let function = QBEFunction(rawValue: rawName) {
+				if let localName = QBEAppDelegate.sharedInstance.locale.nameForFunction(function) {
+					self.formulaField?.stringValue = "\(current)\(localName)()"
+				}
+			}
+		}
+	}
+	
+	override func viewWillDisappear() {
+		NSNotificationCenter.defaultCenter().removeObserver(self)
+		super.viewWillDisappear()
 	}
 	
 	func comboBox(aComboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> AnyObject {
@@ -85,24 +99,7 @@ internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSC
 			let f = s.function.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
 			let fullFormula = f
 			if let parsed = QBEFormula(formula: fullFormula, locale: (self.delegate?.locale ?? QBELocale())) {
-				let ma = NSMutableAttributedString(string: fullFormula, attributes: [
-					NSForegroundColorAttributeName: NSColor.blackColor(),
-					NSFontAttributeName: NSFont.systemFontOfSize(13)
-				])
-				
-				for fragment in parsed.fragments.sort({return $0.length > $1.length}) {
-					if fragment.expression is QBELiteralExpression {
-						ma.addAttributes([NSForegroundColorAttributeName: NSColor.blueColor()], range: NSMakeRange(fragment.start, fragment.length))
-					}
-					else if fragment.expression is QBESiblingExpression {
-						ma.addAttributes([NSForegroundColorAttributeName: NSColor(red: 0.0, green: 0.5, blue: 0.0, alpha: 1.0)], range: NSMakeRange(fragment.start, fragment.length))
-					}
-					else if fragment.expression is QBEIdentityExpression {
-						ma.addAttributes([NSForegroundColorAttributeName: NSColor(red: 0.8, green: 0.5, blue: 0.0, alpha: 1.0)], range: NSMakeRange(fragment.start, fragment.length))
-					}
-				}
-			
-				self.formulaField?.attributedStringValue = ma
+				self.formulaField?.attributedStringValue = parsed.syntaxColoredFormula
 			}
 		}
 	}

@@ -211,11 +211,10 @@ final class QBELiteralExpression: QBEExpression {
 			return "\(locale.stringQualifier)\(escaped)\(locale.stringQualifier)"
 			
 		case .DoubleValue(let d):
-			// FIXME: needs to use decimalSeparator from locale
-			return "\(d)"
+			return locale.numberFormatter.stringFromNumber(NSNumber(double: d)) ?? ""
 			
 		case .DateValue(let d):
-			return "@\(d)"
+			return "@" + (locale.numberFormatter.stringFromNumber(NSNumber(double: d)) ?? "")
 			
 		case .BoolValue(let b):
 			return locale.constants[QBEValue(b)]!
