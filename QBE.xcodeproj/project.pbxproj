@@ -636,13 +636,13 @@
 				65A0DF6F1AF299C20005C50F /* QBEConfiguratorViewController.swift */,
 				65A0DF701AF299C20005C50F /* QBEDataViewController.swift */,
 				65A0DF711AF299C20005C50F /* QBEDocumentViewController.swift */,
+				65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */,
+				65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */,
 				65A0DF721AF299C20005C50F /* QBESettingsViewController.swift */,
 				65A0DF731AF299C20005C50F /* QBEStepsViewController.swift */,
 				65A0DF741AF299C20005C50F /* QBESuggestionsViewController.swift */,
-				65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */,
 				65A0DF751AF299C20005C50F /* QBEWindowController.swift */,
 				65A0DFFF1AF29A750005C50F /* Steps */,
-				65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */,
 			);
 			name = Controller;
 			path = App/Controller;

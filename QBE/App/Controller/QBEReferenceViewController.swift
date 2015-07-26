@@ -29,6 +29,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 	}
 	
 	override func viewWillAppear() {
+		self.view.window?.titlebarAppearsTransparent = true
 		locale = QBEAppDelegate.sharedInstance.locale
 		reloadData()
 		super.viewWillAppear()
