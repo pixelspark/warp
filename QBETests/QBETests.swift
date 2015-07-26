@@ -432,6 +432,18 @@ class QBETests: XCTestCase {
 				
 			case .UTCSecond:
 				XCTAssert(QBEFunction.UTCSecond.apply([QBEValue.DateValue(0)]) == QBEValue(0), "UTCSecond")
+				
+			case .Duration:
+				let start = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1337.0))
+				let end = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1346.0))
+				XCTAssert(QBEFunction.Duration.apply([start, end]) == QBEValue(9.0), "Duration")
+				XCTAssert(QBEFunction.Duration.apply([end, start]) == QBEValue(-9.0), "Duration")
+				
+			case .After:
+				let start = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1337.0))
+				let end = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1346.0))
+				XCTAssert(QBEFunction.After.apply([start, QBEValue(9.0)]) == end, "After")
+				XCTAssert(QBEFunction.After.apply([end, QBEValue(-9.0)]) == start, "After")
 			}
 		}
 		
@@ -682,7 +694,7 @@ class QBETests: XCTestCase {
 			expectFinish.fulfill()
 		}
 		
-		self.waitForExpectationsWithTimeout(5.0, handler: { (err) -> Void in
+		self.waitForExpectationsWithTimeout(15.0, handler: { (err) -> Void in
 			print("Error=\(err)")
 		})
 	}

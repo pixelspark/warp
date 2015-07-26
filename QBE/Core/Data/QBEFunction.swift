@@ -113,6 +113,8 @@ enum QBEFunction: String {
 	case UTCMinute = "minute"
 	case UTCHour = "hour"
 	case UTCSecond = "second"
+	case Duration = "duration"
+	case After = "after"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -321,6 +323,8 @@ enum QBEFunction: String {
 			case .UTCMinute: return NSLocalizedString("minute (in UTC) of time", comment: "")
 			case .UTCHour: return NSLocalizedString("hour (in UTC) of time", comment: "")
 			case .UTCSecond: return NSLocalizedString("seconds (in UTC) of time", comment: "")
+			case .Duration: return NSLocalizedString("number of seconds that passed between dates", comment: "")
+			case .After: return NSLocalizedString("date after a number of seconds has passed after date", comment: "")
 		}
 	}
 	
@@ -413,6 +417,8 @@ enum QBEFunction: String {
 		case .UTCMinute: return QBEArity.Fixed(1)
 		case .UTCHour: return QBEArity.Fixed(1)
 		case .UTCSecond: return QBEArity.Fixed(1)
+		case .Duration: return QBEArity.Fixed(2)
+		case .After: return QBEArity.Fixed(2)
 		}
 	} }
 	
@@ -958,6 +964,18 @@ enum QBEFunction: String {
 				return QBEValue(date.gregorianComponentsInUTC.second)
 			}
 			return QBEValue.InvalidValue
+			
+		case .Duration:
+			if let start = arguments[0].dateValue, let end = arguments[1].dateValue {
+				return QBEValue(end.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate)
+			}
+			return QBEValue.InvalidValue
+			
+		case .After:
+			if let start = arguments[0].dateValue, let duration = arguments[1].doubleValue {
+				return QBEValue(NSDate(timeInterval: duration, sinceDate: start))
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
@@ -966,7 +984,8 @@ enum QBEFunction: String {
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
 		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
-		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond
+		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
+		Duration, After
 	]
 }
 

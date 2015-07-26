@@ -127,7 +127,9 @@ class QBELocale {
 			"DAY.UTC": QBEFunction.UTCDay,
 			"HOUR.UTC": QBEFunction.UTCHour,
 			"MINUTE.UTC": QBEFunction.UTCMinute,
-			"SECOND.UTC": QBEFunction.UTCSecond
+			"SECOND.UTC": QBEFunction.UTCSecond,
+			"DURATION": QBEFunction.Duration,
+			"AFTER": QBEFunction.After
 		],
 		
 		"nl": [
@@ -199,7 +201,9 @@ class QBELocale {
 			"DAG.UTC": QBEFunction.UTCDay,
 			"UUR.UTC": QBEFunction.UTCHour,
 			"MINUUT.UTC": QBEFunction.UTCMinute,
-			"SECONDE.UTC": QBEFunction.UTCSecond
+			"SECONDE.UTC": QBEFunction.UTCSecond,
+			"TIJDSDUUR": QBEFunction.Duration,
+			"NA": QBEFunction.After
 		]
 	]
 	

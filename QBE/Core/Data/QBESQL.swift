@@ -336,6 +336,8 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .UTCYear: return nil
 			case .UTCMonth: return nil
 			case .UTCDate: return nil
+			case .Duration: return nil
+			case .After: return nil
 			
 			case .In:
 				// Not all databases might support IN with arbitrary values. If so, generate OR(a=x; a=y; ..)
