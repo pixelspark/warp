@@ -27,7 +27,14 @@ class QBEFilterStepView: NSViewController {
 	internal override func viewWillAppear() {
 		super.viewWillAppear()
 		if let s = step {
-			self.formulaField?.stringValue = (s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? "")
+			let formula = (s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? "")
+			let locale = self.delegate?.locale ?? QBELocale()
+			if let parsed = QBEFormula(formula: formula, locale: locale) {
+				self.formulaField?.attributedStringValue = parsed.syntaxColoredFormula
+			}
+			else {
+				self.formulaField?.stringValue = formula
+			}
 		}
 		
 		NSNotificationCenter.defaultCenter().addObserverForName(QBEReferenceViewController.notificationName, object: nil, queue: NSOperationQueue.mainQueue()) { (notification) -> Void in
@@ -50,9 +57,9 @@ class QBEFilterStepView: NSViewController {
 			let oldFormula = s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? ""
 			if let f = self.formulaField?.stringValue {
 				if f != oldFormula {
-					if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale()))?.root {
-						self.formulaField?.stringValue = parsed.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
-						s.condition = parsed
+					if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale())) {
+						self.formulaField?.attributedStringValue = parsed.syntaxColoredFormula
+						s.condition = parsed.root
 					}
 					else {
 						// TODO this should be a bit more informative

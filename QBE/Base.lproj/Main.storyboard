@@ -1672,7 +1672,7 @@ CA
                                     </subviews>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </clipView>
-                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="qYM-4S-zjG">
+                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="qYM-4S-zjG">
                                     <rect key="frame" x="1" y="213" width="367" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
@@ -2115,7 +2115,7 @@ DQ
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </clipView>
                                 <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="bfd-AV-hq2">
-                                    <rect key="frame" x="1" y="170" width="435" height="16"/>
+                                    <rect key="frame" x="1" y="165" width="626" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="sai-pz-csX">
