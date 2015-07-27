@@ -444,6 +444,12 @@ class QBETests: XCTestCase {
 				let end = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1346.0))
 				XCTAssert(QBEFunction.After.apply([start, QBEValue(9.0)]) == end, "After")
 				XCTAssert(QBEFunction.After.apply([end, QBEValue(-9.0)]) == start, "After")
+				
+			case .Ceiling:
+				XCTAssert(QBEFunction.Ceiling.apply([QBEValue(1.337)]) == QBEValue(2), "Ceiling")
+				
+			case .Floor:
+				XCTAssert(QBEFunction.Floor.apply([QBEValue(1.337)]) == QBEValue(1), "Floor")
 			}
 		}
 		
