@@ -403,9 +403,8 @@ internal class QBEMySQLConnection {
 Represents the result of a MySQL query as a QBEData object. */
 final class QBEMySQLData: QBESQLData {
 	private let database: QBEMySQLDatabase
-	private let locale: QBELocale?
 	
-	static func create(database database: QBEMySQLDatabase, tableName: String, locale: QBELocale?) -> QBEFallible<QBEMySQLData> {
+	static func create(database database: QBEMySQLDatabase, tableName: String) -> QBEFallible<QBEMySQLData> {
 		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, database: database.database)) LIMIT 1"
 		
 		let fallibleConnection = database.connect()
@@ -416,7 +415,7 @@ final class QBEMySQLData: QBESQLData {
 				switch fallibleResult {
 					case .Success(let result):
 						result.finish() // We're not interested in that one row we just requested, just the column names
-						return .Success(QBEMySQLData(database: database, table: tableName, columns: result.columnNames, locale: locale))
+						return .Success(QBEMySQLData(database: database, table: tableName, columns: result.columnNames))
 					
 					case .Failure(let error):
 						return .Failure(error)
@@ -427,20 +426,18 @@ final class QBEMySQLData: QBESQLData {
 		}
 	}
 	
-	private init(database: QBEMySQLDatabase, fragment: QBESQLFragment, columns: [QBEColumn], locale: QBELocale?) {
+	private init(database: QBEMySQLDatabase, fragment: QBESQLFragment, columns: [QBEColumn]) {
 		self.database = database
-		self.locale = locale
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(database: QBEMySQLDatabase, table: String, columns: [QBEColumn], locale: QBELocale?) {
+	private init(database: QBEMySQLDatabase, table: String, columns: [QBEColumn]) {
 		self.database = database
-		self.locale = locale
 		super.init(table: table, database: database.database, dialect: database.dialect, columns: columns)
 	}
 	
 	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
-		return QBEMySQLData(database: self.database, fragment: fragment, columns: resultingColumns, locale: locale)
+		return QBEMySQLData(database: self.database, fragment: fragment, columns: resultingColumns)
 	}
 	
 	override func stream() -> QBEStream {
@@ -570,7 +567,7 @@ class QBEMySQLSourceStep: QBEStep {
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		job.async {
 			if let s = self.database {
-				let md = QBEMySQLData.create(database: s, tableName: self.tableName ?? "", locale: QBEAppDelegate.sharedInstance.locale)
+				let md = QBEMySQLData.create(database: s, tableName: self.tableName ?? "")
 				callback(md.use { QBECoalescedData($0) })
 			}
 			else {

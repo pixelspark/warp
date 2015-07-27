@@ -702,7 +702,9 @@ class QBETests: XCTestCase {
 		}
 		
 		self.waitForExpectationsWithTimeout(15.0, handler: { (err) -> Void in
-			print("Error=\(err)")
+			if let e = err {
+				print("Error=\(e)")
+			}
 		})
 	}
 }
