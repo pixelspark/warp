@@ -171,25 +171,113 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 	}
 	
 	internal func innerJoin(expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
-		self.carthesianProduct(true, expression: expression, raster: rightRaster, job: job, callback: callback)
+		self.hashOrCarthesianJoin(true, expression: expression, raster: rightRaster, job: job, callback: callback)
 	}
 	
 	internal func leftJoin(expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
-		self.carthesianProduct(false, expression: expression, raster: rightRaster, job: job, callback: callback)
+		self.hashOrCarthesianJoin(false, expression: expression, raster: rightRaster, job: job, callback: callback)
 	}
 	
-	private func carthesianProduct(inner: Bool, expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
-		let rightColumns = rightRaster.columnNames
-		
-		// Which columns are going to show up in the result set?
-		let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
-		
+	private func hashOrCarthesianJoin(inner: Bool, expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
 		// If no columns from the right table will ever show up, we don't have to do the join
+		let rightColumns = rightRaster.columnNames
+		let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
 		if rightColumnsInResult.count == 0 {
 			callback(self)
 			return
 		}
 		
+		if let hc = QBEHashComparison(expression: expression) where hc.comparisonOperator == QBEBinary.Equal {
+			// This join can be performed as a hash join
+			self.hashJoin(inner, comparison: hc, raster: rightRaster, job: job, callback: callback)
+		}
+		else {
+			self.carthesianProduct(inner, expression: expression, raster: rightRaster, job: job, callback: callback)
+		}
+	}
+	
+	/** Performs a join of this data set with a foreign data set based on a hash comparison. The function will first 
+	build a hash map that maps hash values of the comparison's rightExpression to row numbers in the right data set. It
+	will then iterate over all rows in the own data table, calculate the hash, and (using the hash table) find the 
+	corresponding rows on the right. While the carthesianProduct implementation needs to perform m*n comparisons, this 
+	function needs to calculate m+n hashes and perform m look-ups (hash-table assumed to be log n). Performance is 
+	therefore much better on larger data sets (m+n+log n compared to m*n) */
+	private func hashJoin(inner: Bool, comparison: QBEHashComparison, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
+		assert(comparison.comparisonOperator == QBEBinary.Equal, "hashJoin does not (yet) support hash joins based on non-equality")
+
+		// Prepare a template row for the result
+		let rightColumns = rightRaster.columnNames
+		let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
+		let templateRow = QBERow(Array<QBEValue>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
+		
+		// Create a list of indices of the columns from the right table that need to be copied over
+		let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.indexOf($0)! })
+		let rightIndicesInResultSet = NSMutableIndexSet()
+		rightIndicesInResult.each({rightIndicesInResultSet.addIndex($0)})
+		
+		// Build the hash map of the foreign table
+		var rightHash: [QBEValue: [Int]] = [:]
+		for rowNumber in 0..<rightRaster.raster.count {
+			let row = QBERow(rightRaster.raster[rowNumber], columnNames: rightColumns)
+			let hash = comparison.rightExpression.apply(row, foreign: nil, inputValue: nil)
+			if let existing = rightHash[hash] {
+				rightHash[hash] = existing + [rowNumber]
+			}
+			else {
+				rightHash[hash] = [rowNumber]
+			}
+		}
+		
+		// Iterate over the rows on the left side and join rows from the right side using the hash table
+		let future = self.raster.parallel(
+			map: { (chunk) -> ([QBETuple]) in
+				var newData: [QBETuple] = []
+				job?.time("hashJoin", items: chunk.count, itemType: "rows") {
+					var myTemplateRow = templateRow
+					
+					for leftTuple in chunk {
+						let leftRow = QBERow(leftTuple, columnNames: self.columnNames)
+						let hash = comparison.leftExpression.apply(leftRow, foreign: nil, inputValue: nil)
+						if let rightMatches = rightHash[hash] {
+							for rightRowNumber in rightMatches {
+								let rightRow = QBERow(rightRaster.raster[rightRowNumber], columnNames: rightColumns)
+								myTemplateRow.values.removeAll(keepCapacity: true)
+								myTemplateRow.values.extend(leftRow.values)
+								myTemplateRow.values.extend(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
+								newData.append(myTemplateRow.values)
+							}
+						}
+						else {
+							/* If there was no matching row in the right table, we need to add the left row regardless if this
+							is a left (non-inner) join */
+							if !inner {
+								myTemplateRow.values.removeAll(keepCapacity: true)
+								myTemplateRow.values.extend(leftRow.values)
+								rightIndicesInResult.each({(Int) -> () in myTemplateRow.values.append(QBEValue.EmptyValue)})
+								newData.append(myTemplateRow.values)
+							}
+						}
+					}
+				}
+				return newData
+			},
+			reduce: { (a: [QBETuple], b: [QBETuple]?) -> ([QBETuple]) in
+				if let br = b {
+					return br + a
+				}
+				return a
+		})
+		
+		future.get(job) { (newData: [QBETuple]?) -> () in
+			callback(QBERaster(data: newData ?? [], columnNames: templateRow.columnNames, readOnly: true))
+		}
+	}
+	
+	private func carthesianProduct(inner: Bool, expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
+		// Which columns are going to show up in the result set?
+		let rightColumns = rightRaster.columnNames
+		let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
+
 		// Create a list of indices of the columns from the right table that need to be copied over
 		let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.indexOf($0)! })
 		let rightIndicesInResultSet = NSMutableIndexSet()
@@ -200,7 +288,6 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 		let templateRow = QBERow(Array<QBEValue>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
 		
 		// Perform carthesian product (slow, so in parallel)
-		// TODO: implement hash-joins (for equi-join expressions, e.g. a=b) and/or sort-merge join strategy
 		let future = self.raster.parallel(
 			map: { (chunk) -> ([QBETuple]) in
 				var newData: [QBETuple] = []

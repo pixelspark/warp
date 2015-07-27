@@ -62,33 +62,6 @@ class QBEExpression: NSObject, NSCoding {
 		}
 	}
 	
-	/** Returns a version of this expression that can be used to find matching rows in a foreign table. It replaces all
-	occurences of QBEForeignExpression with QBESiblingExpression, and replaces instances QBESiblingExpression with the
-	corresponding values from the row given. */
-	final func expressionForForeignFiltering(row: QBERow) -> QBEExpression {
-		return visit { (oldExpression) in
-			if let old = oldExpression as? QBESiblingExpression {
-				return QBELiteralExpression(old.apply(row, foreign: nil, inputValue: nil))
-			}
-			else if let old = oldExpression as? QBEForeignExpression {
-				return QBESiblingExpression(columnName: old.columnName)
-			}
-			else {
-				return oldExpression
-			}
-		}
-	}
-	
-	/** Returns this expression with all occurences of QBEIdentityExpression replaced with the given new expression. */
-	final func expressionReplacingIdentityReferencesWith(newExpression: QBEExpression) -> QBEExpression {
-		return visit { (oldExpression) in
-			if oldExpression is QBEIdentityExpression {
-				return newExpression
-			}
-			return oldExpression
-		}
-	}
-	
 	/** Calculate the result of this expression for the given row, columns and current input value. */
 	func apply(row: QBERow, foreign: QBERow?, inputValue: QBEValue?) -> QBEValue {
 		fatalError("A QBEExpression was called that isn't implemented")
@@ -666,4 +639,82 @@ class QBEFilterSet: NSObject, NSCoding {
 		
 		return QBEFunctionExpression(arguments: args, type: QBEFunction.In)
 	} }
+}
+
+/** Functions defined on QBEExpression that rely on knowledge of its subclasses should be in this extension. */
+extension QBEExpression {
+	/** Returns a version of this expression that can be used to find matching rows in a foreign table. It replaces all
+	occurences of QBEForeignExpression with QBESiblingExpression, and replaces instances QBESiblingExpression with the
+	corresponding values from the row given. */
+	final func expressionForForeignFiltering(row: QBERow) -> QBEExpression {
+		return visit { (oldExpression) in
+			if let old = oldExpression as? QBESiblingExpression {
+				return QBELiteralExpression(old.apply(row, foreign: nil, inputValue: nil))
+			}
+			else if let old = oldExpression as? QBEForeignExpression {
+				return QBESiblingExpression(columnName: old.columnName)
+			}
+			else {
+				return oldExpression
+			}
+		}
+	}
+	
+	/** Returns a version of this expression where all foreign references have been replaced by sibling references. The
+	expression is not allowed to contain sibling references (in wich case this function will return nil) */
+	final func expressionForForeignFiltering() -> QBEExpression? {
+		var error = false
+		
+		let result = visit { (oldExpression) -> (QBEExpression) in
+			if  oldExpression is QBESiblingExpression {
+				error = true
+				return oldExpression
+			}
+			else if let old = oldExpression as? QBEForeignExpression {
+				return QBESiblingExpression(columnName: old.columnName)
+			}
+			else {
+				return oldExpression
+			}
+		}
+		
+		if error {
+			return nil
+		}
+		return result
+	}
+	
+	/** Returns this expression with all occurences of QBEIdentityExpression replaced with the given new expression. */
+	final func expressionReplacingIdentityReferencesWith(newExpression: QBEExpression) -> QBEExpression {
+		return visit { (oldExpression) in
+			if oldExpression is QBEIdentityExpression {
+				return newExpression
+			}
+			return oldExpression
+		}
+	}
+	
+	/** Returns whether this expression depends on sibling columns (e.g. contains a QBESiblingExpression somewhere in 
+	its tree). */
+	var dependsOnSiblings: Bool { get {
+		var depends = false
+		visit { (expression) -> () in
+			if expression is QBESiblingExpression {
+				depends = true
+			}
+		}
+		return depends
+	} }
+
+	/** Returns whether this expression depends on foreign columns (e.g. contains a QBEForeignExpression somewhere in
+	its tree). */
+	var dependsOnForeign: Bool { get {
+		var depends = false
+		visit { (expression) -> () in
+			if expression is QBEForeignExpression {
+				depends = true
+			}
+		}
+		return depends
+		} }
 }

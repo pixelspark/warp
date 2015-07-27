@@ -202,6 +202,9 @@ enum QBEJoinType: String {
 	case InnerJoin = "inner"
 }
 
+/** QBEJoin represents a join of an unknown data set with a known, foreign data set based on a row matching expression. 
+The expression should reference both columns from the source table (sibling references) as well as columns in the foreign
+database (foreign references). */
 struct QBEJoin {
 	let type: QBEJoinType
 	let foreignData: QBEData
@@ -211,6 +214,59 @@ struct QBEJoin {
 		self.type = type
 		self.foreignData = foreignData
 		self.expression = expression
+	}
+}
+
+/** QBEHashComparison represents a comparison between rows in two tables, in which the expression on either side of the 
+comparison can be used as a hash. This can be used to implement hash joins (the result of the expression for the left
+side can be calculated and used as an index into a hash tables of results for rows on the right side). 
+
+Note that neither the left nor the right expression is allowed to contain foreign references; sibling references refer to
+columns in the left resp. right side data set. */
+internal struct QBEHashComparison {
+	let leftExpression: QBEExpression
+	let rightExpression: QBEExpression
+	let comparisonOperator: QBEBinary
+	
+	init(leftExpression: QBEExpression, rightExpression: QBEExpression, comparisonOperator: QBEBinary) {
+		assert(!leftExpression.dependsOnForeign, "left side of a QBEHashComparison should not depend on foreign columns")
+		assert(!rightExpression.dependsOnForeign, "right side of a QBEHashComparison should not depend on foreign columns")
+		self.leftExpression = leftExpression
+		self.rightExpression = rightExpression
+		self.comparisonOperator = comparisonOperator
+	}
+	
+	/** Attempts to transform the given expression to a hash comparison by factoring the given expression into a comparison
+	 between two expressions where one exclusively depends on the source table (ony sibling references) and the other 
+	exclusively depends on the foreign table (only foreign references). */
+	init?(expression: QBEExpression) {
+		if expression.dependsOnForeign && expression.dependsOnSiblings {
+			/* If this expression is a binary expression where one side depends only on siblings and the other side only 
+			depends on foreigns, then we can transform this into a hash comparison. */
+			if let binary = expression as? QBEBinaryExpression {
+				self.comparisonOperator = binary.type
+				if !binary.first.dependsOnSiblings && binary.second.dependsOnSiblings {
+					self.leftExpression = binary.second
+					self.rightExpression = binary.first.expressionForForeignFiltering()!
+				}
+				else if binary.first.dependsOnSiblings && !binary.second.dependsOnSiblings {
+					self.leftExpression = binary.first
+					self.rightExpression = binary.second.expressionForForeignFiltering()!
+				}
+				else {
+					return nil
+				}
+			}
+			else {
+				// TODO: this can be made more smart; e.g. AND(a=Fa; b=Fb) can become (a,b)=(Fa,Fb)
+				// Also, we should support ORs and INs by returning multiple hash comparisons.
+				return nil
+			}
+		}
+		else {
+			// This expression just uses data from one side; it cannot be represented as a hash comparison
+			return nil
+		}
 	}
 }
 
