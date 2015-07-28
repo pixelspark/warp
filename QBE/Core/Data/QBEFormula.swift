@@ -343,7 +343,7 @@ class QBEFormula: Parser {
 		add_named_rule("equal", rule: ("=" ~~ ^"concatenation") => pushEqual)
 		add_named_rule("notEqual", rule: ("<>" ~~ ^"concatenation") => pushNotEqual)
 		add_named_rule("logic", rule: ^"concatenation" ~~ (^"greater" | ^"greaterEqual" | ^"lesser" | ^"lesserEqual" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict" | ^"matchesRegex" | ^"matchesRegexStrict" )*)
-		let formula = matchWhitespace ~~ (^"logic")*!*
+		let formula = ("=")/~ ~~ matchWhitespace ~~ (^"logic")*!*
 		start_rule = formula
 	}
 }
