@@ -137,7 +137,8 @@ class QBELocale {
 			"AFTER": QBEFunction.After,
 			"NEGATE": QBEFunction.Negate,
 			"FLOOR": QBEFunction.Floor,
-			"CEILING": QBEFunction.Ceiling
+			"CEILING": QBEFunction.Ceiling,
+			"RANDSTRING": QBEFunction.RandomString
 		],
 		
 		"nl": [
@@ -214,7 +215,8 @@ class QBELocale {
 			"NA": QBEFunction.After,
 			"OMKEREN": QBEFunction.Negate,
 			"AFRONDEN.BOVEN": QBEFunction.Ceiling,
-			"AFRONDEN.BENEDEN": QBEFunction.Floor
+			"AFRONDEN.BENEDEN": QBEFunction.Floor,
+			"ASELECTTEKST": QBEFunction.RandomString
 		]
 	]
 	

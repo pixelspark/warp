@@ -56,6 +56,7 @@ class QBETests: XCTestCase {
 			XCTAssert(result.isSupersetOf(expectedValues) && expectedValues.isSupersetOf(result), "Sequence \(formula) returns \(expectedValues), got \(result)")
 		}
 		
+		checkSequence("[AB]{2}", ["AA","AB","BA","BB"])
 		checkSequence("test", ["test"])
 		checkSequence("(foo)bar", ["foobar"])
 		checkSequence("foo?bar", ["bar", "foobar"])
@@ -473,6 +474,9 @@ class QBETests: XCTestCase {
 				
 			case .Floor:
 				XCTAssert(QBEFunction.Floor.apply([QBEValue(1.337)]) == QBEValue(1), "Floor")
+				
+			case .RandomString:
+				XCTAssert(QBEFunction.RandomString.apply([QBEValue("[0-9]")]).stringValue!.characters.count == 1, "RandomString")
 			}
 		}
 		

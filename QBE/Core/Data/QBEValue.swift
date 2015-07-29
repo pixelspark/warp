@@ -159,6 +159,10 @@ internal extension CollectionType {
 }
 
 internal extension Array {
+	var randomElement: Element? { get {
+		return (self.count > 0) ? self[Int.random(0, upper: self.count - 1)] : nil
+	} }
+	
 	mutating func remove <U: Equatable> (element: U) {
 		let anotherSelf = self
 		removeAll(keepCapacity: true)
@@ -207,6 +211,10 @@ internal extension Bool {
 	func toString() -> String {
 		return self ? "1" : "0"
 	}
+	
+	static var random: Bool { get {
+		return Double.random() > 0.5
+	} }
 	
 	func toDouble() -> Double {
 		return self ? 1.0 : 0.0;

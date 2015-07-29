@@ -339,6 +339,8 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .Duration: return nil
 			case .After: return nil
 			
+			case .RandomString: return nil
+			
 			case .Floor: return "FLOOR(\(args[0]))"
 			case .Ceiling: return "CEIL(\(args[0]))"
 			

@@ -139,6 +139,7 @@ enum QBEFunction: String {
 	case After = "after"
 	case Ceiling = "ceiling"
 	case Floor = "floor"
+	case RandomString = "randomString"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -351,6 +352,7 @@ enum QBEFunction: String {
 			case .After: return NSLocalizedString("date after a number of seconds has passed after date", comment: "")
 			case .Floor: return NSLocalizedString("round down to integer", comment: "")
 			case .Ceiling: return NSLocalizedString("round up to integer", comment: "")
+			case .RandomString: return NSLocalizedString("random string with pattern", comment: "")
 		}
 	}
 	
@@ -362,6 +364,7 @@ enum QBEFunction: String {
 			case .RandomItem: return false
 			case .RandomBetween: return false
 			case .Random: return false
+			case .RandomString: return false
 			case .Now: return false
 			default: return true
 		}
@@ -575,6 +578,9 @@ enum QBEFunction: String {
 				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue.InvalidValue),
 				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("horse"))
 			]
+			
+		case RandomString:
+			return [QBEParameter(name: NSLocalizedString("pattern", comment: ""), exampleValue: QBEValue("[0-9]{4}[A-Z]{2}"))]
 		}
 	} }
 	
@@ -654,6 +660,7 @@ enum QBEFunction: String {
 		case .After: return QBEArity.Fixed(2)
 		case .Ceiling: return QBEArity.Fixed(1)
 		case .Floor: return QBEArity.Fixed(1)
+		case .RandomString: return QBEArity.Fixed(1)
 		}
 	} }
 	
@@ -1223,6 +1230,12 @@ enum QBEFunction: String {
 				return QBEValue(ceil(d))
 			}
 			return QBEValue.InvalidValue
+			
+		case .RandomString:
+			if let p = arguments[0].stringValue, let sequencer = QBESequencer(p) {
+				return sequencer.randomValue ?? QBEValue.EmptyValue
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
@@ -1232,7 +1245,7 @@ enum QBEFunction: String {
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
 		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
-		Duration, After, Xor, Floor, Ceiling
+		Duration, After, Xor, Floor, Ceiling, RandomString
 	]
 }
 
