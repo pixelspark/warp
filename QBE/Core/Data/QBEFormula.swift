@@ -1,91 +1,85 @@
 import Foundation
 import SwiftParser
 
-private struct QBEStack<T> {
-	var items = [T]()
-
-	mutating func push(item: T) -> T {
-		items.append(item)
-		return item
-	}
-	
-	mutating func pop() -> T {
-		return items.removeLast()
-	}
-	
-	var head: T { get {
-		return items.last!
-	} }
-}
-
-private func matchAnyCharacterExcept(characters: [Character]) -> ParserRule {
-	return {(parser: Parser, reader: Reader) -> Bool in
-		let pos = reader.position
-		let ch = reader.read()
-		for exceptedCharacter in characters {
-			if ch==exceptedCharacter {
-				reader.seek(pos)
+internal extension Parser {
+	static func matchAnyCharacterExcept(characters: [Character]) -> ParserRule {
+		return {(parser: Parser, reader: Reader) -> Bool in
+			if reader.eof() {
 				return false
 			}
-		}
-		return true
-	}
-}
-
-private func matchAnyFrom(rules: [ParserRule]) -> ParserRule {
-	return {(parser: Parser, reader: Reader) -> Bool in
-		let pos = reader.position
-		for rule in rules {
-			if(rule(parser: parser, reader: reader)) {
-				return true
+			
+			let pos = reader.position
+			let ch = reader.read()
+			for exceptedCharacter in characters {
+				if ch==exceptedCharacter {
+					reader.seek(pos)
+					return false
+				}
 			}
-			reader.seek(pos)
+			return true
 		}
-		
-		return false
 	}
-}
 
-private func matchList(item: ParserRule, separator: ParserRule) -> ParserRule {
-	return (item ~~ separator)* ~~ item/~
-}
-
-private func matchLiteralInsensitive(string:String) -> ParserRule {
-	return {(parser: Parser, reader: Reader) -> Bool in
-		let pos = reader.position
-		
-		for ch in string.characters {
-			let flag = (String(ch).caseInsensitiveCompare(String(reader.read())) == NSComparisonResult.OrderedSame)
-
-			if !flag {
+	static func matchAnyFrom(rules: [ParserRule]) -> ParserRule {
+		return {(parser: Parser, reader: Reader) -> Bool in
+			let pos = reader.position
+			for rule in rules {
+				if(rule(parser: parser, reader: reader)) {
+					return true
+				}
 				reader.seek(pos)
-				return false
 			}
+			
+			return false
 		}
-		return true
 	}
+
+	static func matchList(item: ParserRule, separator: ParserRule) -> ParserRule {
+		return (item ~~ separator)* ~~ item/~
+	}
+
+	static func matchLiteralInsensitive(string:String) -> ParserRule {
+		return {(parser: Parser, reader: Reader) -> Bool in
+			let pos = reader.position
+			
+			for ch in string.characters {
+				let flag = (String(ch).caseInsensitiveCompare(String(reader.read())) == NSComparisonResult.OrderedSame)
+
+				if !flag {
+					reader.seek(pos)
+					return false
+				}
+			}
+			return true
+		}
+	}
+	
+	/** The ~~ operator is a variant of the ~ operator that allows whitespace in between (a ~ b means: a followed by b, whereas
+	a ~~ b means: a followed by b with whitespace allowed in between). */
+	static let matchWhitespace: ParserRule = (" " | "\t" | "\r\n" | "\r" | "\n")*
 }
 
-/** The ~~ operator is a variant of the ~ operator that allows whitespace in between (a ~ b means: a followed by b, whereas
-a ~~ b means: a followed by b with whitespace allowed in between). */
-private let matchWhitespace: ParserRule = (" " | "\t" | "\r\n" | "\r" | "\n")*
+/** Generate a parser rule that matches the given parser rule at least once, but possibly more */
+internal postfix func ++ (left: ParserRule) -> ParserRule {
+	return left ~~ left*
+}
 
 infix operator  ~~ {associativity left precedence 10}
-private func ~~ (left: String, right: String) -> ParserRule {
+internal func ~~ (left: String, right: String) -> ParserRule {
 	return literal(left) ~~ literal(right)
 }
 
-private func ~~ (left: String, right: ParserRule) -> ParserRule {
+internal func ~~ (left: String, right: ParserRule) -> ParserRule {
 	return literal(left) ~~ right
 }
 
-private func ~~ (left: ParserRule, right: String) -> ParserRule {
+internal func ~~ (left: ParserRule, right: String) -> ParserRule {
 	return left ~~ literal(right)
 }
 
-private func ~~ (left : ParserRule, right: ParserRule) -> ParserRule {
+internal func ~~ (left : ParserRule, right: ParserRule) -> ParserRule {
 	return {(parser: Parser, reader: Reader) -> Bool in
-		return left(parser: parser, reader: reader) && matchWhitespace(parser: parser, reader: reader) && right(parser: parser, reader: reader)
+		return left(parser: parser, reader: reader) && Parser.matchWhitespace(parser: parser, reader: reader) && right(parser: parser, reader: reader)
 	}
 }
 
@@ -299,20 +293,20 @@ class QBEFormula: Parser {
 		
 		functionNames.each({(functionName) in
 			if !functionName.isEmpty {
-				functionRules.append(matchLiteralInsensitive(functionName))
+				functionRules.append(Parser.matchLiteralInsensitive(functionName))
 			}
 		})
 		
 		// String literals & constants
-		add_named_rule("arguments",			rule: (("(" ~~ matchList(^"logic" => pushArgument, separator: literal(locale.argumentSeparator)) ~~ ")")))
-		add_named_rule("unaryFunction",		rule: ((matchAnyFrom(functionRules) => pushCall) ~~ ^"arguments") => popCall)
-		add_named_rule("constant",			rule: matchAnyFrom(locale.constants.values.array.map({matchLiteralInsensitive($0)})) => pushConstant)
-		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~  ((matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
+		add_named_rule("arguments",			rule: (("(" ~~ Parser.matchList(^"logic" => pushArgument, separator: literal(locale.argumentSeparator)) ~~ ")")))
+		add_named_rule("unaryFunction",		rule: ((Parser.matchAnyFrom(functionRules) => pushCall) ~~ ^"arguments") => popCall)
+		add_named_rule("constant",			rule: Parser.matchAnyFrom(locale.constants.values.array.map({Parser.matchLiteralInsensitive($0)})) => pushConstant)
+		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~  ((Parser.matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
 		
 		add_named_rule("currentCell",		rule: literal(locale.currentCellIdentifier) => pushIdentity)
 		
-		add_named_rule("sibling",			rule: "[@" ~  (matchAnyCharacterExcept(["]"])+ => pushSibling) ~ "]")
-		add_named_rule("foreign",			rule: "[#" ~  (matchAnyCharacterExcept(["]"])+ => pushForeign) ~ "]")
+		add_named_rule("sibling",			rule: "[@" ~  (Parser.matchAnyCharacterExcept(["]"])+ => pushSibling) ~ "]")
+		add_named_rule("foreign",			rule: "[#" ~  (Parser.matchAnyCharacterExcept(["]"])+ => pushForeign) ~ "]")
 		add_named_rule("subexpression",		rule: (("(" ~~ (^"logic") ~~ ")")))
 		
 		// Number literals
@@ -343,7 +337,7 @@ class QBEFormula: Parser {
 		add_named_rule("equal", rule: ("=" ~~ ^"concatenation") => pushEqual)
 		add_named_rule("notEqual", rule: ("<>" ~~ ^"concatenation") => pushNotEqual)
 		add_named_rule("logic", rule: ^"concatenation" ~~ (^"greater" | ^"greaterEqual" | ^"lesser" | ^"lesserEqual" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict" | ^"matchesRegex" | ^"matchesRegexStrict" )*)
-		let formula = ("=")/~ ~~ matchWhitespace ~~ (^"logic")*!*
+		let formula = ("=")/~ ~~ Parser.matchWhitespace ~~ (^"logic")*!*
 		start_rule = formula
 	}
 }

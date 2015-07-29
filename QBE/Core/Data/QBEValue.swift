@@ -1121,3 +1121,22 @@ prefix func - (lhs: QBEValue) -> QBEValue {
 		return QBEValue.InvalidValue
 	}
 }
+
+internal struct QBEStack<T> {
+	var items = [T]()
+	
+	mutating func push(item: T) -> T {
+		items.append(item)
+		return item
+	}
+	
+	mutating func pop() -> T {
+		return items.removeLast()
+	}
+	
+	var head: T {
+		get {
+			return items.last!
+		}
+	}
+}

@@ -49,6 +49,29 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEColumn.defaultColumnForIndex(1)==QBEColumn("B"), "Generation of column names")
 	}
 	
+	func testSequencer() {
+		func checkSequence(formula: String, _ expected: [String]) {
+			let expectedValues = Set(expected.map { return QBEValue($0) })
+			let result = Set(Array(QBESequencer(formula)!.root!))
+			XCTAssert(result.isSupersetOf(expectedValues) && expectedValues.isSupersetOf(result), "Sequence \(formula) returns \(expectedValues), got \(result)")
+		}
+		
+		checkSequence("test", ["test"])
+		checkSequence("(foo)bar", ["foobar"])
+		checkSequence("foo?bar", ["bar", "foobar"])
+		checkSequence("[abc][\\[]", ["a[", "b[", "c["])
+		checkSequence("[1-4]", ["1", "2", "3", "4"])
+		checkSequence("[abc]", ["a", "b", "c"])
+		checkSequence("[abc][def]", ["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"])
+		checkSequence("[abc]|[def]", ["a","b","c","d","e","f"])
+		
+		XCTAssert(QBESequencer("'") == nil, "Do not parse everything")
+		XCTAssert(Array(QBESequencer("[A-Z][a-z]")!.root!).count == 26*26, "Sequence <A-Z><a-z> should generate 26 items")
+		XCTAssert(Array(QBESequencer("[abc]|[def]")!.root!).count == 6, "Sequence [abc]|[def] should generate 6 items")
+		XCTAssert(Array(QBESequencer("([abc]|[def])")!.root!).count == 6, "Sequence ([abc]|[def]) should generate 6 items")
+		XCTAssert(Array(QBESequencer("([abc]|[def])[xyz]")!.root!).count == 6 * 3, "Sequence ([abc]|[def])[xyz] should generate 6*3 items")
+	}
+	
 	func testArithmetic() {
 		// Strings
 		XCTAssert(QBEValue("hello") == QBEValue("hello"), "String equality")

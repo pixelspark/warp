@@ -157,6 +157,8 @@
 		65E3C2FA1A062E5E007BB3C8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65E3C2F81A062E5E007BB3C8 /* Main.storyboard */; };
 		65E3C3061A062E5E007BB3C8 /* QBETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E3C3051A062E5E007BB3C8 /* QBETests.swift */; };
 		65E846D81B37E4A500397F88 /* QBEFilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */; };
+		65EC6BE11B6907B4008757B1 /* QBESequencer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EC6BE01B6907B4008757B1 /* QBESequencer.swift */; };
+		65EC6BE51B691457008757B1 /* QBESequencer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EC6BE01B6907B4008757B1 /* QBESequencer.swift */; };
 		65F3867D1A6B1DFB00C83810 /* SwiftParser.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 652872921A5D16C200C155FA /* SwiftParser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65F4E2671A683B3600BB57B8 /* QBECalculateStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65F4E2691A683B3600BB57B8 /* QBECalculateStepView.xib */; };
@@ -467,6 +469,7 @@
 		65E3C3041A062E5E007BB3C8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		65E3C3051A062E5E007BB3C8 /* QBETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QBETests.swift; sourceTree = "<group>"; };
 		65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFilterViewController.swift; sourceTree = "<group>"; };
+		65EC6BE01B6907B4008757B1 /* QBESequencer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBESequencer.swift; path = ../Steps/QBESequencer.swift; sourceTree = "<group>"; };
 		65F4E2681A683B3600BB57B8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBECalculateStepView.xib; sourceTree = "<group>"; };
 		65FC52221B1F8FB8007A1266 /* QBERenameStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERenameStep.swift; sourceTree = "<group>"; };
 		65FC522A1B1F97E5007A1266 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBERenameStepView.xib; sourceTree = "<group>"; };
@@ -713,6 +716,7 @@
 				65A0DFA41AF299F30005C50F /* QBEStep.swift */,
 				65A0DFA51AF299F30005C50F /* QBEStream.swift */,
 				65A0DFA61AF299F30005C50F /* QBEValue.swift */,
+				65EC6BE01B6907B4008757B1 /* QBESequencer.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -1143,6 +1147,7 @@
 				65A0DF7E1AF299C20005C50F /* QBEAppDelegate.swift in Sources */,
 				65A0DF901AF299C20005C50F /* QBEChain.swift in Sources */,
 				65A526CC1B0A5C8700CCF3E3 /* QBEPostgresStepView.swift in Sources */,
+				65EC6BE11B6907B4008757B1 /* QBESequencer.swift in Sources */,
 				65A0DFF81AF299F30005C50F /* QBESQLiteStep.swift in Sources */,
 				65884A311AFF50BF003A5BF1 /* QBESettings.swift in Sources */,
 			);
@@ -1179,6 +1184,7 @@
 				65D4C2201B0FD8FB009B638E /* CHCSVParser.m in Sources */,
 				65A0DFCF1AF299F30005C50F /* QBEStats.swift in Sources */,
 				65A0DFC31AF299F30005C50F /* QBEFuture.swift in Sources */,
+				65EC6BE51B691457008757B1 /* QBESequencer.swift in Sources */,
 				65A0DFF91AF299F30005C50F /* QBESQLiteStep.swift in Sources */,
 				65A0DFB41AF299F30005C50F /* QBECalculator.swift in Sources */,
 				65A0DFF01AF299F30005C50F /* QBERasterStep.swift in Sources */,
