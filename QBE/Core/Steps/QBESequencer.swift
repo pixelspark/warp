@@ -16,6 +16,11 @@ The sequencer will return any possible combination, e.g. [abc][def] will lead to
 */
 class QBESequencer: Parser {
 	private let reservedCharacters: [Character] = ["[", "]", "(", ")", "-", "\\", "'", "|", "?", "{", "}"]
+	private let specialCharacters: [Character: Character] = [
+		"t": "\t",
+		"n": "\n",
+		"r": "\r"
+	]
 	private var stack = QBEStack<QBEValueSequence>()
 	
 	init?(_ formula: String) {
@@ -55,18 +60,26 @@ class QBESequencer: Parser {
 	
 	private func pushValue() {
 		if let r = stack.head as? QBEValueSetSequence {
-			r.values.insert(QBEValue(self.text))
+			r.values.insert(QBEValue(unescape(self.text)))
 		}
 		else {
 			fatalError("Not supported!")
 		}
 	}
 	
-	private func pushString() {
-		var text = self.text
+	private func unescape(var text: String) -> String {
 		for reserved in reservedCharacters {
 			text = text.stringByReplacingOccurrencesOfString("\\\(reserved)", withString: String(reserved))
 		}
+		
+		for (specialBefore, specialAfter) in specialCharacters {
+			text = text.stringByReplacingOccurrencesOfString("\\\(specialBefore)", withString: String(specialAfter))
+		}
+		return text
+	}
+	
+	private func pushString() {
+		let text = unescape(self.text)
 		stack.push(QBEValueSetSequence(Set([QBEValue(text)])))
 	}
 	
@@ -102,10 +115,11 @@ class QBESequencer: Parser {
 	
 	override func rules() {
 		let reservedCharactersRule = Parser.matchAnyFrom(reservedCharacters.map({ return Parser.matchLiteralInsensitive(String($0)) }))
-		let escapes = Parser.matchLiteralInsensitive("\\") ~~ reservedCharactersRule
+		let specialCharactersRule = Parser.matchAnyFrom(specialCharacters.keys.map({ return Parser.matchLiteralInsensitive(String($0)) }))
+		let escapes = Parser.matchLiteralInsensitive("\\") ~~ (reservedCharactersRule | specialCharactersRule)
 		
 		add_named_rule("number", rule: (("0" - "9")++))
-		add_named_rule("escapedCharacter", rule: "\\" ~~ (Parser.matchAnyCharacterExcept([]) => pushValue))
+		add_named_rule("escapedCharacter", rule: escapes => pushValue)
 		add_named_rule("character", rule: (Parser.matchAnyCharacterExcept(reservedCharacters) => pushValue))
 		add_named_rule("string", rule: ((Parser.matchAnyCharacterExcept(reservedCharacters) | escapes)++ => pushString))
 		add_named_rule("charRange", rule: (^"character" ~~ "-" ~~ ^"character") => pushRange)

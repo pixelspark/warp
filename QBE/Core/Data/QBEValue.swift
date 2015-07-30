@@ -170,7 +170,8 @@ internal extension CollectionType {
 
 internal extension Array {
 	var randomElement: Element? { get {
-		return (self.count > 0) ? self[Int.random(0, upper: self.count)] : nil
+		let idx = Int(arc4random_uniform(UInt32(self.count)))
+		return (self.count > 0) ? self[idx] : nil
 	} }
 	
 	mutating func remove <U: Equatable> (element: U) {
