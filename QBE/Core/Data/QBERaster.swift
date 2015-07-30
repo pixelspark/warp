@@ -747,6 +747,7 @@ class QBERasterData: NSObject, QBEData {
 					let result = value.map.apply(QBERow(row, columnNames: r.columnNames), foreign: nil, inputValue: nil)
 					if var bag = currentIndex.values![column] {
 						bag.append(result)
+						currentIndex.values![column] = bag
 					}
 					else {
 						currentIndex.values![column] = [result]
