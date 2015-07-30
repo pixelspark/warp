@@ -15,6 +15,7 @@ formula "[abc]" will generate values "a", "b" and "c". The syntax is as follows:
 The sequencer will return any possible combination, e.g. [abc][def] will lead to a sequence of the values ad,ae,af...cf.
 */
 class QBESequencer: Parser {
+	private let reservedCharacters: [Character] = ["[", "]", "(", ")", "-", "\\", "'", "|", "?", "{", "}"]
 	private var stack = QBEStack<QBEValueSequence>()
 	
 	init?(_ formula: String) {
@@ -62,7 +63,11 @@ class QBESequencer: Parser {
 	}
 	
 	private func pushString() {
-		stack.push(QBEValueSetSequence(Set([QBEValue(self.text)])))
+		var text = self.text
+		for reserved in reservedCharacters {
+			text = text.stringByReplacingOccurrencesOfString("\\\(reserved)", withString: String(reserved))
+		}
+		stack.push(QBEValueSetSequence(Set([QBEValue(text)])))
 	}
 	
 	private func pushMaybe() {
@@ -96,12 +101,13 @@ class QBESequencer: Parser {
 	}
 	
 	override func rules() {
-		let reservedCharacters: [Character] = ["[", "]", "(", ")", "-", "\\", "'", "|", "?", "{", "}"]
+		let reservedCharactersRule = Parser.matchAnyFrom(reservedCharacters.map({ return Parser.matchLiteralInsensitive(String($0)) }))
+		let escapes = Parser.matchLiteralInsensitive("\\") ~~ reservedCharactersRule
 		
 		add_named_rule("number", rule: (("0" - "9")++))
 		add_named_rule("escapedCharacter", rule: "\\" ~~ (Parser.matchAnyCharacterExcept([]) => pushValue))
 		add_named_rule("character", rule: (Parser.matchAnyCharacterExcept(reservedCharacters) => pushValue))
-		add_named_rule("string", rule: ((Parser.matchAnyCharacterExcept(reservedCharacters)++) => pushString))
+		add_named_rule("string", rule: ((Parser.matchAnyCharacterExcept(reservedCharacters) | escapes)++ => pushString))
 		add_named_rule("charRange", rule: (^"character" ~~ "-" ~~ ^"character") => pushRange)
 		add_named_rule("charSpec", rule: (^"charRange" | ^"escapedCharacter" | ^"character")*)
 		
