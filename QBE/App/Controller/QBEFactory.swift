@@ -43,7 +43,8 @@ class QBEFactory {
 		QBEPostgresSourceStep.className(): {QBEPostgresStepView(step: $0, delegate: $1)},
 		QBEDebugStep.className(): {QBEDebugStepView(step: $0, delegate: $1)},
 		QBERenameStep.className(): {QBERenameStepView(step: $0, delegate: $1)},
-		QBECrawlStep.className(): {QBECrawlStepView(step: $0, delegate: $1)}
+		QBECrawlStep.className(): {QBECrawlStepView(step: $0, delegate: $1)},
+		QBESequencerStep.className(): {QBESequencerStepView(step: $0, delegate: $1)}
 	]
 	
 	private let stepIcons = [
@@ -70,7 +71,8 @@ class QBEFactory {
 		QBEDebugStep.className(): "DebugIcon",
 		QBERenameStep.className(): "RenameIcon",
 		QBEMergeStep.className(): "MergeIcon",
-		QBECrawlStep.className(): "CrawlIcon"
+		QBECrawlStep.className(): "CrawlIcon",
+		QBESequencerStep.className(): "SequenceIcon"
 	]
 	
 	var fileExtensionsForWriting: [String] { get {

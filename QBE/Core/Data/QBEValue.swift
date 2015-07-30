@@ -1,5 +1,15 @@
 import Foundation
 
+internal extension NSCoder {
+	func encodeString(string: String, forKey: String) {
+		self.encodeObject(string, forKey: forKey)
+	}
+	
+	func decodeStringForKey(key: String) -> String? {
+		return self.decodeObjectOfClass(NSString.self, forKey: key) as? String
+	}
+}
+
 internal extension String {
 	var urlEncoded: String { get {
 		return self.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
@@ -160,7 +170,7 @@ internal extension CollectionType {
 
 internal extension Array {
 	var randomElement: Element? { get {
-		return (self.count > 0) ? self[Int.random(0, upper: self.count - 1)] : nil
+		return (self.count > 0) ? self[Int.random(0, upper: self.count)] : nil
 	} }
 	
 	mutating func remove <U: Equatable> (element: U) {

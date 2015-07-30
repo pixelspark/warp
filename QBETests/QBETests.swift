@@ -55,7 +55,7 @@ class QBETests: XCTestCase {
 			let result = Set(Array(QBESequencer(formula)!.root!))
 			XCTAssert(result.isSupersetOf(expectedValues) && expectedValues.isSupersetOf(result), "Sequence \(formula) returns \(expectedValues), got \(result)")
 		}
-		
+
 		checkSequence("[AB]{2}", ["AA","AB","BA","BB"])
 		checkSequence("test", ["test"])
 		checkSequence("(foo)bar", ["foobar"])
@@ -65,9 +65,12 @@ class QBETests: XCTestCase {
 		checkSequence("[abc]", ["a", "b", "c"])
 		checkSequence("[abc][def]", ["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"])
 		checkSequence("[abc]|[def]", ["a","b","c","d","e","f"])
+		checkSequence("[A-E]{2}", ["AA","AB","AC","AD","AE","BA","BB","BC","BD","BE","CA","CB","CC","CD","CE","DA","DB","DC","DD","DE","EA","EB","EC","ED","EE"])
 		
 		XCTAssert(QBESequencer("'") == nil, "Do not parse everything")
-		XCTAssert(Array(QBESequencer("[A-Z][a-z]")!.root!).count == 26*26, "Sequence <A-Z><a-z> should generate 26 items")
+		XCTAssert(Array(QBESequencer("[A-C]{2}")!.root!).count == 3*3, "Sequence [A-C]{2} delivers 3*3 items")
+		XCTAssert(Array(QBESequencer("[A-Z]{2}")!.root!).count == 26*26, "Sequence [A-Z]{2} delivers 26*26 items")
+		XCTAssert(Array(QBESequencer("[A-Z][a-z]")!.root!).count == 26*26, "Sequence <A-Z><a-z> should generate 26*26 items")
 		XCTAssert(Array(QBESequencer("[abc]|[def]")!.root!).count == 6, "Sequence [abc]|[def] should generate 6 items")
 		XCTAssert(Array(QBESequencer("([abc]|[def])")!.root!).count == 6, "Sequence ([abc]|[def]) should generate 6 items")
 		XCTAssert(Array(QBESequencer("([abc]|[def])[xyz]")!.root!).count == 6 * 3, "Sequence ([abc]|[def])[xyz] should generate 6*3 items")

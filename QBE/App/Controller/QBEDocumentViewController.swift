@@ -367,6 +367,12 @@ import Cocoa
 		}
 	}
 	
+	@IBAction func addSequencerTablet(sender: NSObject) {
+		let chain = QBEChain(head: QBESequencerStep(pattern: "[A-Z]{4}", column: QBEColumn(NSLocalizedString("Value", comment: ""))))
+		let tablet = QBETablet(chain: chain)
+		self.addTablet(tablet, undo: true)
+	}
+	
 	@IBAction func addTabletFromFile(sender: NSObject) {
 		let no = NSOpenPanel()
 		no.canChooseFiles = true
@@ -429,6 +435,7 @@ import Cocoa
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action() == Selector("addButtonClicked:") { return true }
+		if item.action() == Selector("addSequencerTablet:") { return true }
 		if item.action() == Selector("addTabletFromFile:") { return true }
 		if item.action() == Selector("addTabletFromPresto:") { return true }
 		if item.action() == Selector("addTabletFromMySQL:") { return true }
