@@ -1,65 +1,5 @@
 import Foundation
 
-/** Description of a function parameter. */
-struct QBEParameter {
-	let name: String
-	let exampleValue: QBEValue
-}
-
-/** QBEArity represents the 'arity' of a function (the number of arguments a function requires or supports). The arity
-of a function can either be 'fixed' (a function with an arity of '1' is called unary, a function with arity '2' is a 
-binary), constrained ('between x and y') or anything. Functions that can take any number of arguments can also be used
-as aggregating functions (if they are adhere to the property that (e.g.) SUM(1;2;3;4) == SUM(SUM(1;2);SUM(3;4)). */
-enum QBEArity: Equatable {
-	case Fixed(Int)
-	case AtLeast(Int)
-	case Between(Int, Int)
-	case Any
-	
-	func valid(count: Int) -> Bool {
-		switch self {
-		case .Fixed(let i):
-			return count == i
-			
-		case .AtLeast(let i):
-			return count >= i
-		
-		case .Between(let a, let b):
-			return count >= a && count <= b
-			
-		case .Any:
-			return true
-		}
-	}
-	
-	var explanation: String { get {
-		switch self {
-			case .Fixed(let i):
-				return String(format: NSLocalizedString("exactly %d", comment: ""), i)
-			
-			case .AtLeast(let i):
-				return String(format: NSLocalizedString("at least %d", comment: ""), i)
-			
-			case .Between(let a, let b):
-				return String(format: NSLocalizedString("between %d and %d", comment: ""), a, b)
-			
-			case .Any:
-				return String(format: NSLocalizedString("zero or more", comment: ""))
-		}
-	} }
-}
-
-func ==(lhs: QBEArity, rhs: QBEArity) -> Bool {
-	switch (lhs, rhs) {
-		case (.Any, .Any):
-			return true
-		case (.Fixed(let lf), .Fixed(let rf)):
-			return lf == rf
-		default:
-			return false
-	}
-}
-
 /** A QBEFunction takes a list of QBEValue arguments (which may be empty) and returns a single QBEValue. QBEFunctions 
 each have a unique identifier (used for serializing), display names (which are localized), and arity (which indicates
 which number of arguments is allowed) and an implementation. QBEFunctions may also be implemented in other ways in other
@@ -1347,5 +1287,65 @@ enum QBEBinary: String {
 		case .MatchesRegexStrict:
 			return left ±±= right
 		}
+	}
+}
+
+/** Description of a function parameter. */
+struct QBEParameter {
+	let name: String
+	let exampleValue: QBEValue
+}
+
+/** QBEArity represents the 'arity' of a function (the number of arguments a function requires or supports). The arity
+of a function can either be 'fixed' (a function with an arity of '1' is called unary, a function with arity '2' is a
+binary), constrained ('between x and y') or anything. Functions that can take any number of arguments can also be used
+as aggregating functions (if they are adhere to the property that (e.g.) SUM(1;2;3;4) == SUM(SUM(1;2);SUM(3;4)). */
+enum QBEArity: Equatable {
+	case Fixed(Int)
+	case AtLeast(Int)
+	case Between(Int, Int)
+	case Any
+	
+	func valid(count: Int) -> Bool {
+		switch self {
+		case .Fixed(let i):
+			return count == i
+			
+		case .AtLeast(let i):
+			return count >= i
+			
+		case .Between(let a, let b):
+			return count >= a && count <= b
+			
+		case .Any:
+			return true
+		}
+	}
+	
+	var explanation: String { get {
+		switch self {
+		case .Fixed(let i):
+			return String(format: NSLocalizedString("exactly %d", comment: ""), i)
+			
+		case .AtLeast(let i):
+			return String(format: NSLocalizedString("at least %d", comment: ""), i)
+			
+		case .Between(let a, let b):
+			return String(format: NSLocalizedString("between %d and %d", comment: ""), a, b)
+			
+		case .Any:
+			return String(format: NSLocalizedString("zero or more", comment: ""))
+		}
+		} }
+}
+
+func ==(lhs: QBEArity, rhs: QBEArity) -> Bool {
+	switch (lhs, rhs) {
+	case (.Any, .Any):
+		return true
+	case (.Fixed(let lf), .Fixed(let rf)):
+		return lf == rf
+	default:
+		return false
 	}
 }

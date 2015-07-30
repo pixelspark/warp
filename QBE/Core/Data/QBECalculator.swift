@@ -1,12 +1,5 @@
 import Foundation
 
-private struct QBEStepPerformance {
-	var inputAmplificationFactor: QBEMoving = QBEMoving(size: 10)
-	var timePerInputRow: QBEMoving = QBEMoving(size: 10)
-	var executionCount: Int = 0
-	var emptyCount: Int = 0
-}
-
 /** The QBECalculator class coordinates execution of steps. In particular, it models the performance of steps and can
 estimate the number of input rows required to arrive at a certain number of output rows (e.g. in example calculations). */
 class QBECalculator {
@@ -201,4 +194,11 @@ class QBECalculator {
 		currentRaster = nil
 		calculationInProgressForStep = nil
 	}
+}
+
+private struct QBEStepPerformance {
+	var inputAmplificationFactor: QBEMoving = QBEMoving(size: 10)
+	var timePerInputRow: QBEMoving = QBEMoving(size: 10)
+	var executionCount: Int = 0
+	var emptyCount: Int = 0
 }

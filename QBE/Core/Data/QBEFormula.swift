@@ -1,97 +1,6 @@
 import Foundation
 import SwiftParser
 
-internal extension Parser {
-	static func matchAnyCharacterExcept(characters: [Character]) -> ParserRule {
-		return {(parser: Parser, reader: Reader) -> Bool in
-			if reader.eof() {
-				return false
-			}
-			
-			let pos = reader.position
-			let ch = reader.read()
-			for exceptedCharacter in characters {
-				if ch==exceptedCharacter {
-					reader.seek(pos)
-					return false
-				}
-			}
-			return true
-		}
-	}
-
-	static func matchAnyFrom(rules: [ParserRule]) -> ParserRule {
-		return {(parser: Parser, reader: Reader) -> Bool in
-			let pos = reader.position
-			for rule in rules {
-				if(rule(parser: parser, reader: reader)) {
-					return true
-				}
-				reader.seek(pos)
-			}
-			
-			return false
-		}
-	}
-
-	static func matchList(item: ParserRule, separator: ParserRule) -> ParserRule {
-		return (item ~~ separator)* ~~ item/~
-	}
-
-	static func matchLiteralInsensitive(string:String) -> ParserRule {
-		return {(parser: Parser, reader: Reader) -> Bool in
-			let pos = reader.position
-			
-			for ch in string.characters {
-				let flag = (String(ch).caseInsensitiveCompare(String(reader.read())) == NSComparisonResult.OrderedSame)
-
-				if !flag {
-					reader.seek(pos)
-					return false
-				}
-			}
-			return true
-		}
-	}
-	
-	/** The ~~ operator is a variant of the ~ operator that allows whitespace in between (a ~ b means: a followed by b, whereas
-	a ~~ b means: a followed by b with whitespace allowed in between). */
-	static let matchWhitespace: ParserRule = (" " | "\t" | "\r\n" | "\r" | "\n")*
-}
-
-/** Generate a parser rule that matches the given parser rule at least once, but possibly more */
-internal postfix func ++ (left: ParserRule) -> ParserRule {
-	return left ~~ left*
-}
-
-infix operator  ~~ {associativity left precedence 10}
-internal func ~~ (left: String, right: String) -> ParserRule {
-	return literal(left) ~~ literal(right)
-}
-
-internal func ~~ (left: String, right: ParserRule) -> ParserRule {
-	return literal(left) ~~ right
-}
-
-internal func ~~ (left: ParserRule, right: String) -> ParserRule {
-	return left ~~ literal(right)
-}
-
-internal func ~~ (left : ParserRule, right: ParserRule) -> ParserRule {
-	return {(parser: Parser, reader: Reader) -> Bool in
-		return left(parser: parser, reader: reader) && Parser.matchWhitespace(parser: parser, reader: reader) && right(parser: parser, reader: reader)
-	}
-}
-
-private struct QBECall {
-	let function: QBEFunction
-	var args: [QBEExpression] = []
-	
-	init(function: QBEFunction) {
-		self.function = function
-	}
-}
-
 /** QBEFormula parses formulas written down in an Excel-like syntax (e.g. =SUM(SQRT(1+2/3);IF(1>2;3;4))) as a QBEExpression
 that can be used to calculate values. Like in Excel, the language used for the formulas (e.g. for function names) depends
 on the user's preference and is therefore variable (QBELocale implements this). */
@@ -339,5 +248,96 @@ class QBEFormula: Parser {
 		add_named_rule("logic", rule: ^"concatenation" ~~ (^"greater" | ^"greaterEqual" | ^"lesser" | ^"lesserEqual" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict" | ^"matchesRegex" | ^"matchesRegexStrict" )*)
 		let formula = ("=")/~ ~~ Parser.matchWhitespace ~~ (^"logic")*!*
 		start_rule = formula
+	}
+}
+
+internal extension Parser {
+	static func matchAnyCharacterExcept(characters: [Character]) -> ParserRule {
+		return {(parser: Parser, reader: Reader) -> Bool in
+			if reader.eof() {
+				return false
+			}
+			
+			let pos = reader.position
+			let ch = reader.read()
+			for exceptedCharacter in characters {
+				if ch==exceptedCharacter {
+					reader.seek(pos)
+					return false
+				}
+			}
+			return true
+		}
+	}
+	
+	static func matchAnyFrom(rules: [ParserRule]) -> ParserRule {
+		return {(parser: Parser, reader: Reader) -> Bool in
+			let pos = reader.position
+			for rule in rules {
+				if(rule(parser: parser, reader: reader)) {
+					return true
+				}
+				reader.seek(pos)
+			}
+			
+			return false
+		}
+	}
+	
+	static func matchList(item: ParserRule, separator: ParserRule) -> ParserRule {
+		return (item ~~ separator)* ~~ item/~
+	}
+	
+	static func matchLiteralInsensitive(string:String) -> ParserRule {
+		return {(parser: Parser, reader: Reader) -> Bool in
+			let pos = reader.position
+			
+			for ch in string.characters {
+				let flag = (String(ch).caseInsensitiveCompare(String(reader.read())) == NSComparisonResult.OrderedSame)
+				
+				if !flag {
+					reader.seek(pos)
+					return false
+				}
+			}
+			return true
+		}
+	}
+	
+	/** The ~~ operator is a variant of the ~ operator that allows whitespace in between (a ~ b means: a followed by b, whereas
+	a ~~ b means: a followed by b with whitespace allowed in between). */
+	static let matchWhitespace: ParserRule = (" " | "\t" | "\r\n" | "\r" | "\n")*
+}
+
+/** Generate a parser rule that matches the given parser rule at least once, but possibly more */
+internal postfix func ++ (left: ParserRule) -> ParserRule {
+	return left ~~ left*
+}
+
+infix operator  ~~ {associativity left precedence 10}
+internal func ~~ (left: String, right: String) -> ParserRule {
+	return literal(left) ~~ literal(right)
+}
+
+internal func ~~ (left: String, right: ParserRule) -> ParserRule {
+	return literal(left) ~~ right
+}
+
+internal func ~~ (left: ParserRule, right: String) -> ParserRule {
+	return left ~~ literal(right)
+}
+
+internal func ~~ (left : ParserRule, right: ParserRule) -> ParserRule {
+	return {(parser: Parser, reader: Reader) -> Bool in
+		return left(parser: parser, reader: reader) && Parser.matchWhitespace(parser: parser, reader: reader) && right(parser: parser, reader: reader)
+	}
+}
+
+private struct QBECall {
+	let function: QBEFunction
+	var args: [QBEExpression] = []
+	
+	init(function: QBEFunction) {
+		self.function = function
 	}
 }
