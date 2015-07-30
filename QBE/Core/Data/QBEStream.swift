@@ -57,23 +57,23 @@ class QBEStreamData: QBEData {
 			appender = { (rows, hasNext) -> () in
 				switch rows {
 				case .Success(let r):
-					// If the stream indicates there are more rows, fetch them
-					if hasNext && !job.cancelled {
-						job.async {
-							s.fetch(job, consumer: appender)
-						}
-					}
-					
 					// Append the rows to our buffered raster
 					data.extend(r)
 					
 					if !hasNext {
 						s.columnNames(job) { (columnNames) -> () in
-							callback(columnNames.use {(cns) in
+							callback(columnNames.use {(cns) -> QBERaster in
 								return QBERaster(data: data, columnNames: cns, readOnly: true)
 							})
 						}
 					}
+					// If the stream indicates there are more rows, fetch them
+					else {
+						job.async {
+							s.fetch(job, consumer: appender)
+						}
+					}
+					
 					
 				case .Failure(let errorMessage):
 					callback(.Failure(errorMessage))
@@ -262,6 +262,10 @@ private class QBETransformer: NSObject, QBEStream {
 	private func fetch(job: QBEJob, consumer: QBESink) {
 		if !stopped {
 			source.fetch(job) { (fallibleRows, hasNext) -> () in
+				if !hasNext {
+					self.stopped = true
+				}
+				
 				switch fallibleRows {
 					case .Success(let rows):
 						self.transform(rows, hasNext: hasNext, job: job, callback: { (transformedRows, shouldStop) -> () in
