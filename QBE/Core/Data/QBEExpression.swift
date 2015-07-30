@@ -465,7 +465,7 @@ final class QBEFunctionExpression: QBEExpression {
 			if let f = fromValue?.apply(row, foreign: nil, inputValue: inputValue) {
 				// Check whether one of the unary functions can transform the input value to the output value
 				for op in QBEFunction.allFunctions {
-					if(op.arity.valid(1)) {
+					if(op.arity.valid(1) && op.isDeterministic) {
 						if op.apply([f]) == toValue {
 							suggestions.append(QBEFunctionExpression(arguments: [from], type: op))
 						}
