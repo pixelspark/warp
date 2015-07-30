@@ -196,7 +196,7 @@ private class QBERepeatGenerator: QBEValueGenerator {
 		for _ in 0..<count {
 			let gen = sequence.generate()
 			self.generators.append(gen)
-			values.append(gen.next() ?? QBEValue(""))
+			values.append(gen.next() ?? QBEValue.InvalidValue)
 		}
 		self.generators[self.generators.count-1] = sequence.generate()
 	}
@@ -211,12 +211,13 @@ private class QBERepeatGenerator: QBEValueGenerator {
 				break
 			}
 			else {
-				generators[index] = sequence.generate()
-				// And do not break, go on to increment next (carry)
-				
 				if index == 0 {
 					return nil
 				}
+				
+				generators[index] = sequence.generate()
+				values[index] = generators[index].next() ?? QBEValue.InvalidValue
+				// And do not break, go on to increment next (carry)
 			}
 		}
 		
