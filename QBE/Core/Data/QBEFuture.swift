@@ -12,6 +12,16 @@ internal func QBEAssertMainThread(file: StaticString = __FILE__, line: UWord = _
 	assert(NSThread.isMainThread(), "Code at \(file):\(line) must run on main thread!")
 }
 
+internal func QBEOnce<P, R>(block: ((P) -> (R))) -> ((P) -> (R)) {
+	var run = false
+	
+	return {(p: P) -> (R) in
+		assert(!run, "callback called twice!")
+		run = true
+		return block(p)
+	}
+}
+
 /** Runs the given block of code asynchronously on the main queue. */
 internal func QBEAsyncMain(block: () -> ()) {
 	dispatch_async(dispatch_get_main_queue(), block)
@@ -502,7 +512,7 @@ class QBEBatch<T>: QBEJob {
 	/** Called by a producer to return the result of a job. This method will call all callbacks on the waiting list (on the
 	main thread) and subsequently empty the waiting list. Enqueue can only be called once on a batch. */
 	private func satisfy(value: T) {
-		assert(cached == nil, "QBEBatch.satisfy called with cached!=nil")
+		assert(cached == nil, "QBEBatch.satisfy called with cached!=nil: \(cached) \(value)")
 		assert(!satisfied, "QBEBatch already satisfied")
 		
 		cached = value

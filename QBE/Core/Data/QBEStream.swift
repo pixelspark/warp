@@ -261,7 +261,7 @@ private class QBETransformer: NSObject, QBEStream {
 	
 	private func fetch(job: QBEJob, consumer: QBESink) {
 		if !stopped {
-			source.fetch(job) { (fallibleRows, hasNext) -> () in
+			source.fetch(job, consumer: QBEOnce { (fallibleRows, hasNext) -> () in
 				if !hasNext {
 					self.stopped = true
 				}
@@ -276,7 +276,7 @@ private class QBETransformer: NSObject, QBEStream {
 					case .Failure(let error):
 						consumer(.Failure(error), false)
 				}
-			}
+			})
 		}
 	}
 	
