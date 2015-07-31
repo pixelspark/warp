@@ -200,11 +200,14 @@ class QBESequenceStream: QBEStream {
 	private let sequence: AnySequence<QBETuple>
 	private var generator: AnyGenerator<QBETuple>
 	private let columns: [QBEColumn]
+	private var position: Int = 0
+	private var rowCount: Int? = nil // nil = number of rows is yet unknown
 	
-	init(_ sequence: AnySequence<QBETuple>, columnNames: [QBEColumn]) {
+	init(_ sequence: AnySequence<QBETuple>, columnNames: [QBEColumn], rowCount: Int? = nil) {
 		self.sequence = sequence
 		self.generator = sequence.generate()
 		self.columns = columnNames
+		self.rowCount = rowCount
 	}
 	
 	func fetch(job: QBEJob, consumer: QBESink) {
@@ -222,7 +225,10 @@ class QBESequenceStream: QBEStream {
 					break
 				}
 			}
-			
+			position += rows.count
+			if let rc = rowCount {
+				job.reportProgress(Double(position) / Double(rc), forKey: unsafeAddressOf(self).hashValue)
+			}
 			consumer(.Success(ArraySlice(rows)), !done)
 		}
 	}
@@ -232,7 +238,7 @@ class QBESequenceStream: QBEStream {
 	}
 	
 	func clone() -> QBEStream {
-		return QBESequenceStream(self.sequence, columnNames: self.columns)
+		return QBESequenceStream(self.sequence, columnNames: self.columns, rowCount: self.rowCount)
 	}
 }
 

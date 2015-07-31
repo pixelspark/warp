@@ -1,21 +1,5 @@
 import Foundation
 
-private class QBESequencerRowGenerator: GeneratorType {
-	let source: AnyGenerator<QBEValue>
-	typealias Element = QBETuple
-	
-	init(source: AnySequence<QBEValue>) {
-		self.source = source.generate()
-	}
-	
-	func next() -> QBETuple? {
-		if let n = source.next() {
-			return [n]
-		}
-		return nil
-	}
-}
-
 class QBESequencerStep: QBEStep {
 	var pattern: String
 	var column: QBEColumn
@@ -46,10 +30,8 @@ class QBESequencerStep: QBEStep {
 	}
 	
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
-		if let sequencer = QBESequencer(self.pattern), let root = sequencer.root {
-			callback(.Success(QBEStreamData(source: QBESequenceStream(AnySequence<QBETuple>({ () -> QBESequencerRowGenerator in
-				return QBESequencerRowGenerator(source: root)
-			}), columnNames: [self.column]))))
+		if let sequencer = QBESequencer(self.pattern) {
+			callback(.Success(QBEStreamData(source: sequencer.stream(self.column))))
 		}
 	}
 	

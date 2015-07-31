@@ -136,6 +136,12 @@ class QBESequencer: Parser {
 		
 		start_rule = ^"alternatives"
 	}
+	
+	func stream(column: QBEColumn) -> QBEStream {
+		return QBESequenceStream(AnySequence<QBETuple>({ () -> QBESequencerRowGenerator in
+			return QBESequencerRowGenerator(source: self.root!)
+		}), columnNames: [column], rowCount: stack.head.count)
+	}
 }
 
 private class QBEValueGenerator: AnyGenerator<QBEValue> {
@@ -166,6 +172,11 @@ private class QBEValueSequence: SequenceType {
 	func generate() -> QBEValueGenerator {
 		return QBEValueGenerator()
 	}
+	
+	/** The number of elements this sequence will generate */
+	var count: Int { get {
+		return 0
+	} }
 }
 
 private class QBEValueSetSequence: QBEValueSequence {
@@ -185,6 +196,10 @@ private class QBEValueSetSequence: QBEValueSequence {
 	override func generate() -> Generator {
 		return QBEProxyValueGenerator(values.generate())
 	}
+	
+	override var count: Int { get {
+		return values.count
+	} }
 }
 
 private class QBEMaybeGenerator: QBEValueGenerator {
@@ -248,24 +263,30 @@ private class QBERepeatGenerator: QBEValueGenerator {
 
 private class QBERepeatSequence: QBEValueSequence {
 	let sequence: QBEValueSequence
-	let count: Int
+	let repeatCount: Int
 	
 	init(_ sequence: QBEValueSequence, count: Int) {
 		self.sequence = sequence
-		self.count = count
+		self.repeatCount = count
 	}
 	
 	private override func random() -> QBEValue? {
 		var str = QBEValue("")
-		for _ in 0..<count {
+		for _ in 0..<repeatCount {
 			str = str & (self.sequence.random() ?? QBEValue.InvalidValue)
 		}
 		return str
 	}
 	
 	private override func generate() -> QBEValueGenerator {
-		return QBERepeatGenerator(sequence, count: count)
+		return QBERepeatGenerator(sequence, count: repeatCount)
 	}
+	
+	
+	override var count: Int { get {
+		return Int(pow(Double(sequence.count), Double(repeatCount)))
+	} }
+	
 }
 
 private class QBEMaybeSequence: QBEValueSequence {
@@ -285,6 +306,10 @@ private class QBEMaybeSequence: QBEValueSequence {
 	private override func generate() -> QBEValueGenerator {
 		return QBEMaybeGenerator(sequence)
 	}
+	
+	override var count: Int { get {
+		return 2
+	} }
 }
 
 private class QBECombinatorGenerator: QBEValueGenerator {
@@ -357,6 +382,10 @@ private class QBECombinatorSequence: QBEValueSequence {
 	override func generate() -> QBEValueGenerator {
 		return QBECombinatorGenerator(left: self.left, right: self.right)
 	}
+	
+	override var count: Int { get {
+		return left.count * right.count
+	} }
 }
 
 private class QBEAfterSequence: QBEValueSequence {
@@ -377,5 +406,25 @@ private class QBEAfterSequence: QBEValueSequence {
 	
 	override func generate() -> QBEValueGenerator {
 		return QBEAfterGenerator(first: self.first, then: self.then)
+	}
+	
+	override var count: Int { get {
+		return 1
+	} }
+}
+
+private class QBESequencerRowGenerator: GeneratorType {
+	let source: AnyGenerator<QBEValue>
+	typealias Element = QBETuple
+	
+	init(source: AnySequence<QBEValue>) {
+		self.source = source.generate()
+	}
+	
+	func next() -> QBETuple? {
+		if let n = source.next() {
+			return [n]
+		}
+		return nil
 	}
 }
