@@ -170,6 +170,7 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEFormula(formula: "6/ 2", locale: locale) != nil, "Parse whitespace around binary operator: right side")
 		XCTAssert(QBEFormula(formula: "6 / 2", locale: locale) != nil, "Parse whitespace around binary operator: both sides")
 		XCTAssert(QBEFormula(formula: "6 /2", locale: locale) != nil, "Parse whitespace around binary operator: left side")
+		XCTAssert(QBEFormula(formula: "(6>=2)>3", locale: locale) != nil, "Parse greater than or equals, while at the same time parsing greater than")
 		
 		XCTAssert(QBEFormula(formula: "6/(1-3/4)", locale: locale) != nil, "Formula in default dialect")
 		XCTAssert(QBEFormula(formula: "6/(1-3/4)±", locale: locale) == nil, "Formula needs to ignore any garbage near the end of a formula")
