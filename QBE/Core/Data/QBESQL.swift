@@ -338,6 +338,10 @@ class QBEStandardSQLDialect: QBESQLDialect {
 			case .UTCDate: return nil
 			case .Duration: return nil
 			case .After: return nil
+			/* TODO: Some databases probaby support date parsing and formatting with non-Unicode format strings; 
+			implement that by translating the format strings */
+			case .ToUnicodeDateString: return nil
+			case .FromUnicodeDateString: return nil
 			
 			case .RandomString: return nil
 			

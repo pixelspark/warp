@@ -80,6 +80,8 @@ enum QBEFunction: String {
 	case Ceiling = "ceiling"
 	case Floor = "floor"
 	case RandomString = "randomString"
+	case FromUnicodeDateString = "fromUnicodeDateString"
+	case ToUnicodeDateString = "toUnicodeDateString"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -293,6 +295,8 @@ enum QBEFunction: String {
 			case .Floor: return NSLocalizedString("round down to integer", comment: "")
 			case .Ceiling: return NSLocalizedString("round up to integer", comment: "")
 			case .RandomString: return NSLocalizedString("random string with pattern", comment: "")
+			case .ToUnicodeDateString: return NSLocalizedString("write date in format", comment: "")
+			case .FromUnicodeDateString: return NSLocalizedString("read date in format", comment: "")
 		}
 	}
 	
@@ -521,6 +525,12 @@ enum QBEFunction: String {
 			
 		case RandomString:
 			return [QBEParameter(name: NSLocalizedString("pattern", comment: ""), exampleValue: QBEValue("[0-9]{4}[A-Z]{2}"))]
+			
+		case .FromUnicodeDateString:
+			return [QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("1988-08-11")), QBEParameter(name: NSLocalizedString("format", comment: ""), exampleValue: QBEValue("yyyy-MM-dd"))]
+			
+		case .ToUnicodeDateString:
+			return [QBEParameter(name: NSLocalizedString("date", comment: ""), exampleValue: QBEValue(NSDate())), QBEParameter(name: NSLocalizedString("format", comment: ""), exampleValue: QBEValue("yyyy-MM-dd"))]
 		}
 	} }
 	
@@ -601,6 +611,8 @@ enum QBEFunction: String {
 		case .Ceiling: return QBEArity.Fixed(1)
 		case .Floor: return QBEArity.Fixed(1)
 		case .RandomString: return QBEArity.Fixed(1)
+		case .ToUnicodeDateString: return QBEArity.Fixed(2)
+		case .FromUnicodeDateString: return QBEArity.Fixed(2)
 		}
 	} }
 	
@@ -1176,6 +1188,26 @@ enum QBEFunction: String {
 				return sequencer.randomValue ?? QBEValue.EmptyValue
 			}
 			return QBEValue.InvalidValue
+			
+		case .ToUnicodeDateString:
+			if let d = arguments[0].dateValue, let format = arguments[1].stringValue {
+				let formatter = NSDateFormatter()
+				formatter.dateFormat = format
+				formatter.timeZone = NSTimeZone(abbreviation: "UTC")
+				return QBEValue.StringValue(formatter.stringFromDate(d))
+			}
+			return QBEValue.InvalidValue
+			
+		case .FromUnicodeDateString:
+			if let d = arguments[0].stringValue, let format = arguments[1].stringValue {
+				let formatter = NSDateFormatter()
+				formatter.dateFormat = format
+				formatter.timeZone = NSTimeZone(abbreviation: "UTC")
+				if let date = formatter.dateFromString(d) {
+					return QBEValue(date)
+				}
+			}
+			return QBEValue.InvalidValue
 		}
 	}
 	
@@ -1185,7 +1217,7 @@ enum QBEFunction: String {
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
 		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
-		Duration, After, Xor, Floor, Ceiling, RandomString
+		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString
 	]
 }
 

@@ -138,7 +138,9 @@ class QBELocale {
 			"NEGATE": QBEFunction.Negate,
 			"FLOOR": QBEFunction.Floor,
 			"CEILING": QBEFunction.Ceiling,
-			"RANDSTRING": QBEFunction.RandomString
+			"RANDSTRING": QBEFunction.RandomString,
+			"WRITE.DATE": QBEFunction.ToUnicodeDateString,
+			"READ.DATE": QBEFunction.FromUnicodeDateString
 		],
 		
 		"nl": [
@@ -216,7 +218,9 @@ class QBELocale {
 			"OMKEREN": QBEFunction.Negate,
 			"AFRONDEN.BOVEN": QBEFunction.Ceiling,
 			"AFRONDEN.BENEDEN": QBEFunction.Floor,
-			"ASELECTTEKST": QBEFunction.RandomString
+			"ASELECTTEKST": QBEFunction.RandomString,
+			"SCHRIJF.DATUM": QBEFunction.ToUnicodeDateString,
+			"LEES.DATUM": QBEFunction.FromUnicodeDateString
 		]
 	]
 	

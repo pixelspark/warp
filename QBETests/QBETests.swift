@@ -480,6 +480,12 @@ class QBETests: XCTestCase {
 				
 			case .RandomString:
 				XCTAssert(QBEFunction.RandomString.apply([QBEValue("[0-9]")]).stringValue!.characters.count == 1, "RandomString")
+				
+			case .ToUnicodeDateString:
+				XCTAssert(QBEFunction.ToUnicodeDateString.apply([QBEValue.DateValue(460226561.0), QBEValue("yyy-MM-dd")]) == QBEValue("2015-08-02"), "ToUnicodeDateString")
+				
+			case .FromUnicodeDateString:
+				XCTAssert(QBEFunction.FromUnicodeDateString.apply([QBEValue("1988-08-11"), QBEValue("yyyy-MM-dd")]) == QBEValue(NSDate.fromISO8601FormattedDate("1988-08-11T00:00:00Z")!), "FromUnicodeDateString")
 			}
 		}
 		
