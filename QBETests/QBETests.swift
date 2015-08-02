@@ -201,6 +201,28 @@ class QBETests: XCTestCase {
 		XCTAssert(!QBEFunctionExpression(arguments: [], type: QBEFunction.RandomItem).isConstant, "Non-deterministic function expression should not be constant")
 		
 		XCTAssert(!QBEBinaryExpression(first: QBELiteralExpression(QBEValue(13.45)), second: QBEFunctionExpression(arguments: [], type: QBEFunction.RandomItem), type: QBEBinary.Equal).isConstant, "Binary operator applied to at least one non-constant expression should not be constant itself")
+		
+		
+		let locale = QBELocale(language: QBELocale.defaultLanguage)
+		
+		let a = QBEFormula(formula: "([@x]+1)>([@x]+1)", locale: locale)!.root.prepare()
+		XCTAssert(a is QBELiteralExpression && a.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue.BoolValue(false), "Equivalence is optimized away for '>' operator in x+1 > x+1")
+		
+		let b = QBEFormula(formula: "(1+[@x])>([@x]+1)", locale: locale)!.root.prepare()
+		XCTAssert(b is QBELiteralExpression && b.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue.BoolValue(false), "Equivalence is optimized away for '>' operator in x+1 > 1+x")
+		
+		let c = QBEFormula(formula: "(1+[@x])>=([@x]+1)", locale: locale)!.root.prepare()
+		XCTAssert(c is QBELiteralExpression && c.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue.BoolValue(true), "Equivalence is optimized away for '>=' operator in x+1 > 1+x")
+		
+		let d = QBEFormula(formula: "(1+[@x])<>([@x]+1)", locale: locale)!.root.prepare()
+		XCTAssert(d is QBELiteralExpression && d.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue.BoolValue(false), "Equivalence is optimized away for '<>' operator in x+1 > x+2")
+		
+		let f = QBEFormula(formula: "(1+[@x])<>([@x]+2)", locale: locale)!.root.prepare()
+		XCTAssert(f is QBEBinaryExpression, "Equivalence is NOT optimized away for '<>' operator in x+1 > x+2")
+		
+		// Optimizer is not smart enough to do the following
+		//let e = QBEFormula(formula: "(1+2+[@x])>(2+[@x]+1)", locale: locale)!.root.prepare()
+		//XCTAssert(e is QBELiteralExpression && e.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue.BoolValue(false), "Equivalence is optimized away for '>' operator in 1+2+x > 2+x+1")
 	}
 	
 	func testFunctions() {

@@ -49,6 +49,12 @@ class QBEExpression: NSObject, NSCoding {
 		return ""
 	}
 	
+	/** Return true if, under all circumstances, this expression will return a result that is equal to the result returned
+	by the other expression (QBEValue equality). */
+	func isEquivalentTo(expression: QBEExpression) -> Bool {
+		return false
+	}
+	
 	/** Requests that callback be called on self, and visit() forwarded to all children. This can be used to implement
 	dependency searches, etc. */
 	func visit(@noescape callback: (QBEExpression) -> (QBEExpression)) -> QBEExpression {
@@ -215,6 +221,13 @@ final class QBELiteralExpression: QBEExpression {
 		}
 		return []
 	}
+	
+	override func isEquivalentTo(expression: QBEExpression) -> Bool {
+		if let otherLiteral = expression as? QBELiteralExpression {
+			return otherLiteral.value == self.value
+		}
+		return false
+	}
 }
 
 /** The QBEIdentityExpression returns whatever value was set to the inputValue parameter during evaluation. This value
@@ -239,6 +252,10 @@ class QBEIdentityExpression: QBEExpression {
 	override func apply(row: QBERow, foreign: QBERow?, inputValue: QBEValue?) -> QBEValue {
 		return inputValue ?? QBEValue.InvalidValue
 	}
+	
+	override func isEquivalentTo(expression: QBEExpression) -> Bool {
+		return expression is QBEIdentityExpression
+	}
 }
 
 /** QBEBinaryExpression evaluates to the result of applying a particular binary operator to two operands, which are 
@@ -255,6 +272,23 @@ final class QBEBinaryExpression: QBEExpression {
 	override func prepare() -> QBEExpression {
 		let firstOptimized = first.prepare()
 		let secondOptimized = second.prepare()
+		
+		/* If first and second operand are equivalent, the result of '==' or '<>' is always known (even when the operands 
+		are not constant, e.g. sibling or foreign references) */
+		if firstOptimized.isEquivalentTo(secondOptimized) {
+			switch self.type {
+				case .Equal, .LesserEqual, .GreaterEqual:
+					return QBELiteralExpression(QBEValue.BoolValue(true))
+
+				case .NotEqual, .Greater, .Lesser:
+					return QBELiteralExpression(QBEValue.BoolValue(false))
+				
+				default:
+					break;
+			}
+		}
+		
+		// If the first and second operand are constant, the result of the binary expression can likely be precalculated
 		let optimized = QBEBinaryExpression(first: firstOptimized, second: secondOptimized, type: self.type)
 		if optimized.isConstant {
 			return QBELiteralExpression(optimized.apply(QBERow(), foreign: nil, inputValue: nil))
@@ -384,6 +418,20 @@ final class QBEBinaryExpression: QBEExpression {
 		
 		return suggestions
 	}
+	
+	override func isEquivalentTo(expression: QBEExpression) -> Bool {
+		if let otherBinary = expression as? QBEBinaryExpression {
+			if otherBinary.type == self.type && otherBinary.first.isEquivalentTo(self.first) && otherBinary.second.isEquivalentTo(self.second) {
+				return true
+			}
+			// A <> B is equivalent to B = A, so in these cases the binary expression is equivalent
+			else if let mirror = self.type.mirror where otherBinary.type == mirror && otherBinary.first.isEquivalentTo(self.second) && otherBinary.second.isEquivalentTo(self.first) {
+				return true
+			}
+		}
+		
+		return false
+	}
 }
 
 /** QBEFunctionExpression evaluates to the result of applying a function to a given set of arguments. The set of arguments
@@ -456,6 +504,15 @@ final class QBEFunctionExpression: QBEExpression {
 	override func apply(row: QBERow, foreign: QBERow?, inputValue: QBEValue?) -> QBEValue {
 		let vals = arguments.map({$0.apply(row, foreign: foreign, inputValue: inputValue)})
 		return self.type.apply(vals)
+	}
+	
+	override func isEquivalentTo(expression: QBEExpression) -> Bool {
+		if let otherFunction = expression as? QBEFunctionExpression {
+			if otherFunction.type == self.type && self.arguments == otherFunction.arguments && self.type.isDeterministic {
+				return true
+			}
+		}
+		return false
 	}
 	
 	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
@@ -574,6 +631,13 @@ final class QBESiblingExpression: QBEExpression, QBEColumnReferencingExpression 
 		}
 		return s
 	}
+	
+	override func isEquivalentTo(expression: QBEExpression) -> Bool {
+		if let otherSibling = expression as? QBESiblingExpression {
+			return otherSibling.columnName == self.columnName
+		}
+		return false
+	}
 }
 
 /** The QBEForeignExpression evaluates to the value of a cell in a particular column in the foreign row. This is used to 
@@ -611,6 +675,13 @@ final class QBEForeignExpression: QBEExpression, QBEColumnReferencingExpression 
 	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
 		// TODO: implement when we are going to implement foreign suggestions
 		return []
+	}
+	
+	override func isEquivalentTo(expression: QBEExpression) -> Bool {
+		if let otherForeign = expression as? QBEForeignExpression {
+			return otherForeign.columnName == self.columnName
+		}
+		return false
 	}
 }
 

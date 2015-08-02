@@ -303,8 +303,11 @@ enum QBEFunction: String {
 	}
 	
 	/** Returns true if this function is guaranteed to return the same result when called multiple times in succession
-	with the exact same set of arguments. Functions that depend on/return randomness or the current date/time are not
-	 deterministic. */
+	with the exact same set of arguments, between different evaluations of the bigger expression it is part of, as well 
+	as within a single expression (e.g. NOW() is not deterministic because it will return different values between
+	excutions of the expression as a whole, whereas RANDOM() is non-deterministic because its value may even differ within
+	a single executions). As a rule, functions that depend on/return randomness or the current date/time are not
+	deterministic. */
 	var isDeterministic: Bool { get {
 		switch self {
 			case .RandomItem: return false
@@ -1233,6 +1236,9 @@ enum QBEFunction: String {
 	]
 }
 
+/** Represents a function that operates on two operands. Binary operators are treated differently from 'normal' functions
+because they have a special place in formula syntax, and they have certain special properties (e.g. some can be 'mirrorred':
+a>=b can be mirrorred to b<a). Otherwise, SUM(a;b) and a+b are equivalent. */
 enum QBEBinary: String {
 	case Addition = "add"
 	case Subtraction = "sub"
@@ -1277,6 +1283,31 @@ enum QBEBinary: String {
 	func toFormula(locale: QBELocale) -> String {
 		return self.explain(locale)
 	}
+	
+	/** Returns whether this operator is guaranteed to return the same result when its operands are swapped. */
+	var isCommutative: Bool { get {
+		switch self {
+		case .Equal, .NotEqual, .Addition, .Multiplication: return true
+		default: return false
+		}
+	} }
+	
+	/** The binary operator that is equivalent to this one given that the parameters are swapped (e.g. for a<b the mirror
+	operator is '>=', since b>=a is equivalent to a<b). */
+	var mirror: QBEBinary? { get {
+		// These operators don't care about what comes first or second at all
+		if isCommutative {
+			return self
+		}
+		
+		switch self {
+		case .Greater: return .LesserEqual
+		case .Lesser: return .GreaterEqual
+		case .GreaterEqual: return .Lesser
+		case .LesserEqual: return .Greater
+		default: return nil
+		}
+	} }
 	
 	func apply(left: QBEValue, _ right: QBEValue) -> QBEValue {
 		switch self {
