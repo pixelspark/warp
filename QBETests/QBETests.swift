@@ -52,7 +52,9 @@ class QBETests: XCTestCase {
 	func testSequencer() {
 		func checkSequence(formula: String, _ expected: [String]) {
 			let expectedValues = Set(expected.map { return QBEValue($0) })
-			let result = Set(Array(QBESequencer(formula)!.root!))
+			let sequencer = QBESequencer(formula)!
+			let result = Set(Array(sequencer.root!))
+			XCTAssert(result.count == sequencer.cardinality, "Expected number of items matches with the actual number of items for sequence \(formula)")
 			XCTAssert(result.isSupersetOf(expectedValues) && expectedValues.isSupersetOf(result), "Sequence \(formula) returns \(expectedValues), got \(result)")
 		}
 
@@ -74,6 +76,8 @@ class QBETests: XCTestCase {
 		XCTAssert(Array(QBESequencer("[abc]|[def]")!.root!).count == 6, "Sequence [abc]|[def] should generate 6 items")
 		XCTAssert(Array(QBESequencer("([abc]|[def])")!.root!).count == 6, "Sequence ([abc]|[def]) should generate 6 items")
 		XCTAssert(Array(QBESequencer("([abc]|[def])[xyz]")!.root!).count == 6 * 3, "Sequence ([abc]|[def])[xyz] should generate 6*3 items")
+		
+		XCTAssert(QBESequencer("([0-9]{2}\\-[A-Z]{3}\\-[0-9])|([A-Z]{2}\\-[A-Z]{2}\\-[0-9]{2})")!.cardinality == 63273600,"Cardinality of a complicated sequencer expression is correct")
 	}
 	
 	func testArithmetic() {

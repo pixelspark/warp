@@ -6,6 +6,7 @@ internal class QBESequencerStepView: NSViewController {
 	@IBOutlet var targetColumnNameField: NSTextField?
 	@IBOutlet var formulaField: NSTextField?
 	@IBOutlet var exampleField: NSTextField?
+	@IBOutlet var cardinalityField: NSTextField?
 	
 	var existingColumns: [QBEColumn]?
 	let step: QBESequencerStep?
@@ -46,9 +47,11 @@ internal class QBESequencerStepView: NSViewController {
 			
 			if let sequencer = QBESequencer(s.pattern) {
 				exampleField?.stringValue = sequencer.randomValue?.stringValue ?? ""
+				cardinalityField?.stringValue = delegate?.locale.localStringFor(QBEValue.IntValue(sequencer.cardinality)) ?? ""
 			}
 			else {
 				exampleField?.stringValue = ""
+				cardinalityField?.stringValue = ""
 			}
 		}
 	}

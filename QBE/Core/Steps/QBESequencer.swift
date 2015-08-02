@@ -42,6 +42,12 @@ class QBESequencer: Parser {
 		}
 	}
 	
+	var cardinality: Int {
+		get {
+			return stack.head.cardinality
+		}
+	}
+	
 	private func pushFollowing() {
 		let r = stack.pop()
 		let l = stack.pop()
@@ -131,7 +137,7 @@ class QBESequencer: Parser {
 		add_named_rule("repeat", rule: ^"maybe" ~~ (Parser.matchLiteralInsensitive("{") ~~ (^"number" => pushRepeat) ~~ Parser.matchLiteralInsensitive("}"))/~)
 		
 		add_named_rule("following", rule: ^"repeat" ~~ ((^"repeat") => pushFollowing)*)
-		add_named_rule("alternatives", rule: ^"following" ~~ (("|" ~ ^"following") => pushAfter)*)
+		add_named_rule("alternatives", rule: ^"following" ~~ (("|" ~~ ^"following") => pushAfter)*)
 		add_named_rule("subsequence", rule: "(" ~~ ^"alternatives" ~~ ")")
 		
 		start_rule = ^"alternatives"
@@ -140,7 +146,7 @@ class QBESequencer: Parser {
 	func stream(column: QBEColumn) -> QBEStream {
 		return QBESequenceStream(AnySequence<QBETuple>({ () -> QBESequencerRowGenerator in
 			return QBESequencerRowGenerator(source: self.root!)
-		}), columnNames: [column], rowCount: stack.head.count)
+		}), columnNames: [column], rowCount: stack.head.cardinality)
 	}
 }
 
@@ -174,7 +180,7 @@ private class QBEValueSequence: SequenceType {
 	}
 	
 	/** The number of elements this sequence will generate */
-	var count: Int { get {
+	var cardinality: Int { get {
 		return 0
 	} }
 }
@@ -197,7 +203,7 @@ private class QBEValueSetSequence: QBEValueSequence {
 		return QBEProxyValueGenerator(values.generate())
 	}
 	
-	override var count: Int { get {
+	override var cardinality: Int { get {
 		return values.count
 	} }
 }
@@ -283,8 +289,8 @@ private class QBERepeatSequence: QBEValueSequence {
 	}
 	
 	
-	override var count: Int { get {
-		return Int(pow(Double(sequence.count), Double(repeatCount)))
+	override var cardinality: Int { get {
+		return Int(pow(Double(sequence.cardinality), Double(repeatCount)))
 	} }
 	
 }
@@ -307,7 +313,7 @@ private class QBEMaybeSequence: QBEValueSequence {
 		return QBEMaybeGenerator(sequence)
 	}
 	
-	override var count: Int { get {
+	override var cardinality: Int { get {
 		return 2
 	} }
 }
@@ -383,8 +389,8 @@ private class QBECombinatorSequence: QBEValueSequence {
 		return QBECombinatorGenerator(left: self.left, right: self.right)
 	}
 	
-	override var count: Int { get {
-		return left.count * right.count
+	override var cardinality: Int { get {
+		return left.cardinality * right.cardinality
 	} }
 }
 
@@ -398,18 +404,20 @@ private class QBEAfterSequence: QBEValueSequence {
 	}
 	
 	private override func random() -> QBEValue? {
-		if let a = first.random(), b = then.random() {
-			return a & b
+		if Bool.random {
+			return first.random()
 		}
-		return nil
+		else {
+			return then.random()
+		}
 	}
 	
 	override func generate() -> QBEValueGenerator {
 		return QBEAfterGenerator(first: self.first, then: self.then)
 	}
 	
-	override var count: Int { get {
-		return 1
+	override var cardinality: Int { get {
+		return first.cardinality + then.cardinality
 	} }
 }
 
