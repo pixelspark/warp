@@ -126,7 +126,8 @@ class QBECrawlStream: QBEStream {
 									request.cachePolicy = .ReturnCacheDataElseLoad
 									
 									let startTime = CFAbsoluteTimeGetCurrent()
-									Alamofire.request(request).responseString(encoding: NSUTF8StringEncoding) { (request, response, data, error) -> Void in
+									Alamofire.request(request).responseString(encoding: NSUTF8StringEncoding) { (request, response, result) -> Void in
+										let data = result.value
 										let duration = CFAbsoluteTimeGetCurrent() - startTime
 										
 										// Store results in the row
@@ -139,7 +140,7 @@ class QBECrawlStream: QBEStream {
 										}
 										
 										if let errorColumn = self.crawler.targetErrorColumn {
-											row.setValue(error != nil ? QBEValue(error!.description) : QBEValue.EmptyValue, forColumn: errorColumn)
+											row.setValue(result.isFailure ? QBEValue(result.error!.description) : QBEValue.EmptyValue, forColumn: errorColumn)
 										}
 										
 										if let timeColumn = self.crawler.targetResponseTimeColumn {

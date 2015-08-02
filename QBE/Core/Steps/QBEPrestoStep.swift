@@ -93,7 +93,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 			}
 			
 			job.log("Presto requesting \(endpoint)")
-			Alamofire.request(request).responseJSON(options: NSJSONReadingOptions(), completionHandler: { (request, response, data, error) -> Void in
+			Alamofire.request(request).responseJSON(options: [], completionHandler: { (request, response, data) -> Void in
 				if let res = response {
 					// Status code 503 means that we should wait a bit
 					if res.statusCode == 503 {
@@ -111,14 +111,14 @@ private class QBEPrestoStream: NSObject, QBEStream {
 						return
 					}
 				
-					if let e = error {
+					if let e = data.error {
 						job.log("Presto request error: \(e)")
 						self.stopped = true
 						return
 					}
 					
 					// Let's see if the response got something useful
-					if let d = data as? [String: AnyObject] {
+					if let d = data.value as? [String: AnyObject] {
 						// Get progress data from response
 						if let stats = d["stats"] as? [String: AnyObject] {
 							if let completedSplits = stats["completedSplits"] as? Int,
