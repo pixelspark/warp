@@ -715,19 +715,19 @@
 			children = (
 				65A0DF9A1AF299F30005C50F /* QBECalculator.swift */,
 				65A0DF9B1AF299F30005C50F /* QBEData.swift */,
+				6548CDF01B6E7536001CFABA /* QBEDate.swift */,
 				65A0DF9C1AF299F30005C50F /* QBEExpression.swift */,
 				65A0DF9D1AF299F30005C50F /* QBEFormula.swift */,
 				65A0DF9E1AF299F30005C50F /* QBEFunction.swift */,
 				65A0DF9F1AF299F30005C50F /* QBEFuture.swift */,
 				65A0DFA01AF299F30005C50F /* QBELocale.swift */,
 				65A0DFA11AF299F30005C50F /* QBERaster.swift */,
+				65EC6BE01B6907B4008757B1 /* QBESequencer.swift */,
 				65A0DFA21AF299F30005C50F /* QBESQL.swift */,
 				65A0DFA31AF299F30005C50F /* QBEStats.swift */,
 				65A0DFA41AF299F30005C50F /* QBEStep.swift */,
 				65A0DFA51AF299F30005C50F /* QBEStream.swift */,
 				65A0DFA61AF299F30005C50F /* QBEValue.swift */,
-				65EC6BE01B6907B4008757B1 /* QBESequencer.swift */,
-				6548CDF01B6E7536001CFABA /* QBEDate.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";

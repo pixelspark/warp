@@ -367,6 +367,9 @@ class QBEStandardSQLDialect: QBESQLDialect {
 					conditions.append(otherItem)
 				}
 				return "(\(first) NOT IN (" + conditions.implode(", ") + "))"
+			
+			case .Power:
+				return "POW(\(args[0]), \(args[1]))"
 		}
 	}
 	

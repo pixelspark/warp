@@ -140,7 +140,8 @@ class QBELocale {
 			"CEILING": QBEFunction.Ceiling,
 			"RANDSTRING": QBEFunction.RandomString,
 			"WRITE.DATE": QBEFunction.ToUnicodeDateString,
-			"READ.DATE": QBEFunction.FromUnicodeDateString
+			"READ.DATE": QBEFunction.FromUnicodeDateString,
+			"POWER": QBEFunction.Power
 		],
 		
 		"nl": [
@@ -220,7 +221,8 @@ class QBELocale {
 			"AFRONDEN.BENEDEN": QBEFunction.Floor,
 			"ASELECTTEKST": QBEFunction.RandomString,
 			"SCHRIJF.DATUM": QBEFunction.ToUnicodeDateString,
-			"LEES.DATUM": QBEFunction.FromUnicodeDateString
+			"LEES.DATUM": QBEFunction.FromUnicodeDateString,
+			"MACHT": QBEFunction.Power
 		]
 	]
 	

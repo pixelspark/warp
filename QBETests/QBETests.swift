@@ -486,6 +486,9 @@ class QBETests: XCTestCase {
 				
 			case .FromUnicodeDateString:
 				XCTAssert(QBEFunction.FromUnicodeDateString.apply([QBEValue("1988-08-11"), QBEValue("yyyy-MM-dd")]) == QBEValue(NSDate.fromISO8601FormattedDate("1988-08-11T00:00:00Z")!), "FromUnicodeDateString")
+				
+			case .Power:
+				XCTAssert(QBEFunction.Power.apply([QBEValue(2), QBEValue(0)]) == QBEValue(1), "Power")
 			}
 		}
 		
