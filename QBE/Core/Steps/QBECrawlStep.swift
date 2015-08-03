@@ -222,12 +222,9 @@ class QBECrawlStep: QBEStep {
 		self.crawler.targetBodyColumn = QBEColumn(NSLocalizedString("Result", comment: ""))
 		super.init(previous: previous)
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Crawl data", comment: "")
-		}
-		return NSLocalizedString("For each row, fetch a web page", comment: "")
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(NSLocalizedString("For each row, fetch a web page", comment: ""))])
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {

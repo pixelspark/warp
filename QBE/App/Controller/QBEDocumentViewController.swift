@@ -3,7 +3,7 @@ import Cocoa
 
 @objc class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate {
 	private var documentView: QBEDocumentView!
-	private var configurator: QBEConfiguratorViewController? = nil
+	private var sentenceEditor: QBESentenceViewController? = nil
 	@IBOutlet var addTabletMenu: NSMenu!
 	@IBOutlet var workspaceView: QBEWorkspaceView!
 	@IBOutlet var formulaField: NSTextField!
@@ -53,7 +53,7 @@ import Cocoa
 				}
 			}
 		}
-		self.configurator?.configure(configureStep, delegate: delegate)
+		self.sentenceEditor?.configure(configureStep, delegate: delegate)
 	}
 	
 	func chainView(view: QBEChainViewController, editValue: QBEValue, callback: ((QBEValue) -> ())?) {
@@ -74,7 +74,7 @@ import Cocoa
 		assert(tablet.document == document, "tablet should belong to our document")
 
 		document?.removeTablet(tablet)
-		self.configurator?.configure(nil, delegate: nil)
+		self.sentenceEditor?.configure(nil, delegate: nil)
 		documentView.removeTablet(tablet)
 		workspaceView.magnifyView(nil)
 		
@@ -338,7 +338,7 @@ import Cocoa
 		}
 		else {
 			self.setFormula(QBEValue.InvalidValue, callback: nil)
-			self.configurator?.configure(nil, delegate: nil)
+			self.sentenceEditor?.configure(nil, delegate: nil)
 		}
 		self.view.window?.update()
 	}
@@ -404,8 +404,8 @@ import Cocoa
 	}
 	
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
-		if segue.identifier == "configurator" {
-			self.configurator = segue.destinationController as? QBEConfiguratorViewController
+		if segue.identifier == "sentence" {
+			self.sentenceEditor = segue.destinationController as? QBESentenceViewController
 		}
 	}
 	

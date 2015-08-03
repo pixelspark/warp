@@ -76,8 +76,12 @@ class QBEStep: NSObject {
 	
 	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific
 	configuration of the step. */
-	func explain(locale: QBELocale, short: Bool = false) -> String {
-		return NSLocalizedString("Unknown step", comment: "")
+	final func explain(locale: QBELocale) -> String {
+		return sentence(locale).stringValue
+	}
+
+	func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([])
 	}
 	
 	func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
@@ -226,9 +230,9 @@ class QBETransposeStep: QBEStep {
 	override func apply(data: QBEData, job: QBEJob? = nil, callback: (QBEFallible<QBEData>) -> ()) {
 		callback(.Success(data.transpose()))
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		return NSLocalizedString("Switch rows/columns", comment: "")
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(NSLocalizedString("Switch rows/columns", comment: ""))])
 	}
 	
 	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
@@ -237,4 +241,97 @@ class QBETransposeStep: QBEStep {
 		}
 		return QBEStepMerge.Impossible
 	}
+}
+
+protocol QBESentenceToken: NSObjectProtocol {
+	var label: String { get }
+	var isToken: Bool { get }
+}
+
+class QBESentenceOptions: NSObject, QBESentenceToken {
+	typealias Callback = (String) -> ()
+	private(set) var options: [String: String]
+	private(set) var value: String
+	private let callback: Callback
+
+	var label: String { get {
+		return options[value] ?? ""
+	} }
+
+	init(options: [String: String], value: String, callback: Callback) {
+		self.options = options
+		self.value = value
+		self.callback = callback
+	}
+
+	var isToken: Bool { get { return true } }
+
+	func select(key: String) {
+		assert(options[key] != nil, "Selecting an invalid option")
+		callback(key)
+	}
+}
+
+class QBESentenceText: NSObject, QBESentenceToken {
+	let label: String
+
+	init(_ label: String) {
+		self.label = label
+	}
+
+	var isToken: Bool { get { return false } }
+}
+
+class QBESentenceTextInput: NSObject, QBESentenceToken {
+	typealias Callback = (String) -> (Bool)
+	let label: String
+	let callback: Callback
+
+	init(value: String, callback: Callback) {
+		self.label = value
+		self.callback = callback
+	}
+
+	func change(newValue: String) -> Bool {
+		return callback(newValue)
+	}
+
+	var isToken: Bool { get { return true } }
+}
+
+class QBESentenceFormula: NSObject, QBESentenceToken {
+	typealias Callback = (QBEExpression) -> ()
+	let expression: QBEExpression
+	let locale: QBELocale
+	let callback: Callback
+
+	init(expression: QBEExpression, locale: QBELocale, callback: Callback) {
+		self.expression = expression
+		self.locale = locale
+		self.callback = callback
+	}
+
+	func change(newValue: QBEExpression) {
+		callback(newValue)
+	}
+
+	var label: String {
+		get {
+			return expression.toFormula(self.locale, topLevel: true)
+		}
+	}
+
+	var isToken: Bool { get { return true } }
+}
+
+class QBESentence {
+	private(set) var tokens: [QBESentenceToken]
+
+	init(_ tokens: [QBESentenceToken]) {
+		self.tokens = tokens
+	}
+
+	var stringValue: String { get {
+		return self.tokens.map({ return $0.label }).implode(" ")
+	} }
 }

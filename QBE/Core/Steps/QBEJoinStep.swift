@@ -35,14 +35,9 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 		return []
 	} }
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short || condition == nil {
-			return NSLocalizedString("Join data", comment: "")
-		}
-		else {
-			return String(format: NSLocalizedString("Join data: %@", comment: ""), condition!.explain(locale))
-		}
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(String(format: NSLocalizedString("Join data: %@", comment: ""), condition!.explain(locale)))])
 	}
 	
 	private func join(right: QBEData) -> QBEJoin? {
@@ -147,10 +142,10 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 			return [QBEDependency(step: self, dependsOn: r)]
 		}
 		return []
-		} }
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		return NSLocalizedString("Merge data", comment: "")
+	} }
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(NSLocalizedString("Merge data", comment: ""))])
 	}
 	
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {

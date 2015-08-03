@@ -22,7 +22,7 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="KuM-Sv-zCp">
-                    <rect key="frame" x="5" y="517" width="312" height="22"/>
+                    <rect key="frame" x="5" y="512" width="312" height="22"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="LFG-r4-4dr">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -34,7 +34,7 @@
                     </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FZW-2o-nGC">
-                    <rect key="frame" x="5" y="409" width="312" height="22"/>
+                    <rect key="frame" x="5" y="404" width="312" height="22"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="uG5-pt-d8c">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -46,7 +46,7 @@
                     </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ma3-E6-aDT">
-                    <rect key="frame" x="5" y="463" width="312" height="22"/>
+                    <rect key="frame" x="5" y="458" width="312" height="22"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="RTH-rF-CCq">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -58,7 +58,7 @@
                     </connections>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="YSp-Cy-H4b">
-                    <rect key="frame" x="3" y="382" width="316" height="17"/>
+                    <rect key="frame" x="3" y="377" width="316" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Password:" id="ZC9-Xu-buY">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -66,7 +66,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5v4-1i-nBc">
-                    <rect key="frame" x="3" y="328" width="316" height="17"/>
+                    <rect key="frame" x="3" y="323" width="316" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Database:" id="Mwl-cc-EgW">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -74,7 +74,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="4SH-8K-QLQ">
-                    <rect key="frame" x="3" y="490" width="316" height="17"/>
+                    <rect key="frame" x="3" y="485" width="316" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Port:" id="nNf-hy-CZp">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -82,7 +82,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="f55-YM-KXL">
-                    <rect key="frame" x="3" y="436" width="316" height="17"/>
+                    <rect key="frame" x="3" y="431" width="316" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="User name:" id="VeM-0x-U4U">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -90,7 +90,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="j0M-3r-bnh">
-                    <rect key="frame" x="3" y="544" width="316" height="17"/>
+                    <rect key="frame" x="3" y="539" width="316" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Host name or IP address:" id="ba8-5H-p0p">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -98,7 +98,7 @@
                     </textFieldCell>
                 </textField>
                 <comboBox verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aUV-dd-J0C">
-                    <rect key="frame" x="5" y="299" width="315" height="26"/>
+                    <rect key="frame" x="5" y="294" width="315" height="26"/>
                     <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="8Vb-KV-7dH">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -112,13 +112,13 @@
                     </connections>
                 </comboBox>
                 <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qU9-vM-QTK">
-                    <rect key="frame" x="5" y="5" width="312" height="266"/>
+                    <rect key="frame" x="5" y="5" width="312" height="261"/>
                     <clipView key="contentView" id="DkK-35-YIx">
-                        <rect key="frame" x="1" y="0.0" width="238" height="134"/>
+                        <rect key="frame" x="1" y="1" width="310" height="259"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="none" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="hhy-f3-mNI">
-                                <rect key="frame" x="0.0" y="0.0" width="223" height="19"/>
+                                <rect key="frame" x="0.0" y="0.0" width="310" height="259"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -159,7 +159,7 @@
                     </scroller>
                 </scrollView>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="rHA-Ve-FeO">
-                    <rect key="frame" x="3" y="276" width="316" height="17"/>
+                    <rect key="frame" x="3" y="271" width="316" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Table:" id="aX7-FR-NWg">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -167,7 +167,7 @@
                     </textFieldCell>
                 </textField>
                 <secureTextField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="xmd-Fa-b5J">
-                    <rect key="frame" x="5" y="355" width="312" height="22"/>
+                    <rect key="frame" x="5" y="350" width="312" height="22"/>
                     <secureTextFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesSingleLineMode="YES" id="tjt-uT-GNB">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -217,7 +217,7 @@
                 <constraint firstItem="aUV-dd-J0C" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="orR-Iw-jyn"/>
                 <constraint firstItem="FZW-2o-nGC" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="qTX-GW-jvv"/>
                 <constraint firstAttribute="trailing" secondItem="ma3-E6-aDT" secondAttribute="trailing" constant="5" id="tlf-1q-Ogm"/>
-                <constraint firstItem="j0M-3r-bnh" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="5" id="uRZ-Uy-WUn"/>
+                <constraint firstItem="j0M-3r-bnh" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="10" id="uRZ-Uy-WUn"/>
                 <constraint firstItem="YSp-Cy-H4b" firstAttribute="top" secondItem="FZW-2o-nGC" secondAttribute="bottom" constant="10" id="xTa-NR-WSu"/>
                 <constraint firstAttribute="trailing" secondItem="YSp-Cy-H4b" secondAttribute="trailing" constant="5" id="yUS-cI-69r"/>
             </constraints>

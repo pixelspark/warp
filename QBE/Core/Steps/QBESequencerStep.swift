@@ -21,12 +21,26 @@ class QBESequencerStep: QBEStep {
 		self.column = column
 		super.init(previous: nil)
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Generate a sequence", comment: "")
-		}
-		return String(format: NSLocalizedString("Generate a sequence using pattern '%@'", comment: ""), self.pattern)
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		let sequencer = QBESequencer(self.pattern)
+
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("Generate a sequence using pattern", comment: "")),
+			QBESentenceTextInput(value: self.pattern, callback: { [weak self] (pattern) -> (Bool) in
+				self?.pattern = pattern
+				return true
+			}),
+			QBESentenceText(String(format: NSLocalizedString("(for example: '%@')", comment: ""), locale.localStringFor(sequencer?.randomValue ?? QBEValue.InvalidValue))),
+			QBESentenceText(NSLocalizedString("and place in column", comment: "")),
+			QBESentenceTextInput(value: self.column.name, callback: { [weak self] (name) -> (Bool) in
+				if !name.isEmpty {
+					self?.column = QBEColumn(name)
+					return true
+				}
+				return false
+			})
+		])
 	}
 	
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {

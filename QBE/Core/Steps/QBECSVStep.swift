@@ -408,12 +408,8 @@ class QBECSVSourceStep: QBEStep {
 		coder.encodeObject(self.file?.bookmark, forKey: "fileBookmark")
 		coder.encodeObject(self.interpretLanguage, forKey: "intepretLanguage")
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Load CSV", comment: "")
-		}
-		
+
+	private func explanation(locale: QBELocale) -> String {
 		if let f = file {
 			switch f {
 				case .URL(let u):
@@ -424,6 +420,10 @@ class QBECSVSourceStep: QBEStep {
 			}
 		}
 		return NSLocalizedString("Load CSV", comment: "")
+	}
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
 	override func willSaveToDocument(atURL: NSURL) {

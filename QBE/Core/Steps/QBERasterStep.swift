@@ -18,9 +18,9 @@ class QBERasterStep: QBEStep {
 		staticFullData = staticExampleData
 		super.init(coder: aDecoder)
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		return NSLocalizedString("Data table", comment: "")
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(NSLocalizedString("Data table", comment: ""))])
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {

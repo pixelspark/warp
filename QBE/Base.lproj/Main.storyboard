@@ -1264,19 +1264,17 @@ CA
         <scene sceneID="QgJ-tc-ecA">
             <objects>
                 <viewController id="y5B-O8-QaO" customClass="QBEDocumentViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <splitView key="view" wantsLayer="YES" dividerStyle="thin" vertical="YES" id="Lf1-Y5-idv">
-                        <rect key="frame" x="0.0" y="0.0" width="913" height="569"/>
+                    <customView key="view" id="MOi-0T-6QH">
+                        <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <subviews>
-                            <visualEffectView wantsLayer="YES" blendingMode="behindWindow" state="followsWindowActiveState" id="cDc-rh-vev">
-                                <rect key="frame" x="0.0" y="0.0" width="658" height="569"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <visualEffectView misplaced="YES" blendingMode="behindWindow" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
                                 <subviews>
-                                    <customView wantsLayer="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
-                                        <rect key="frame" x="0.0" y="0.0" width="658" height="538"/>
+                                    <customView wantsLayer="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
+                                        <rect key="frame" x="0.0" y="-500" width="700" height="444"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
-                                                <rect key="frame" x="93" y="256" width="473" height="34"/>
+                                                <rect key="frame" x="114" y="209" width="473" height="34"/>
                                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="Drag files here or click '+' to add data" id="Zpo-PO-ycL">
                                                     <font key="font" size="28" name=".HelveticaNeueDeskInterface-Regular"/>
                                                     <color key="textColor" name="tertiaryLabelColor" catalog="System" colorSpace="catalog"/>
@@ -1284,13 +1282,13 @@ CA
                                                 </textFieldCell>
                                             </textField>
                                             <scrollView wantsLayer="YES" appearanceType="aqua" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
-                                                <rect key="frame" x="0.0" y="0.0" width="658" height="538"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="700" height="444"/>
                                                 <clipView key="contentView" drawsBackground="NO" id="883-xW-r8t">
-                                                    <rect key="frame" x="1" y="1" width="166" height="79"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="700" height="444"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CDw-5V-yTY">
-                                                            <rect key="frame" x="77" y="-15" width="9" height="184"/>
+                                                            <rect key="frame" x="18" y="169" width="177" height="68"/>
                                                         </view>
                                                     </subviews>
                                                 </clipView>
@@ -1308,16 +1306,26 @@ CA
                                             </scrollView>
                                         </subviews>
                                         <constraints>
-                                            <constraint firstItem="Q9G-71-Jab" firstAttribute="top" secondItem="jQq-6i-09S" secondAttribute="top" id="8Fh-D6-mp7"/>
                                             <constraint firstAttribute="centerX" secondItem="OEa-fZ-fMo" secondAttribute="centerX" id="TS5-LT-Eij"/>
+                                            <constraint firstItem="Q9G-71-Jab" firstAttribute="top" secondItem="jQq-6i-09S" secondAttribute="top" id="WVy-1V-7Wc"/>
                                             <constraint firstAttribute="trailing" secondItem="Q9G-71-Jab" secondAttribute="trailing" id="Xd2-zB-Kep"/>
                                             <constraint firstAttribute="bottom" secondItem="Q9G-71-Jab" secondAttribute="bottom" id="YjE-Fw-cYl"/>
                                             <constraint firstItem="Q9G-71-Jab" firstAttribute="leading" secondItem="jQq-6i-09S" secondAttribute="leading" id="kQB-F9-JGW"/>
                                             <constraint firstAttribute="centerY" secondItem="OEa-fZ-fMo" secondAttribute="centerY" constant="4" id="v8g-g5-hb7"/>
                                         </constraints>
                                     </customView>
-                                    <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aXH-7Y-wRY">
-                                        <rect key="frame" x="4" y="543" width="650" height="22"/>
+                                    <containerView misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
+                                        <rect key="frame" x="4" y="-26" width="692" height="22"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="250" id="Spn-Np-XcJ"/>
+                                            <constraint firstAttribute="height" constant="22" id="xfu-7p-qw7"/>
+                                        </constraints>
+                                        <connections>
+                                            <segue destination="dZx-NB-Ues" kind="embed" identifier="sentence" id="Ewg-eX-ShA"/>
+                                        </connections>
+                                    </containerView>
+                                    <textField verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="aXH-7Y-wRY">
+                                        <rect key="frame" x="4" y="-52" width="692" height="22"/>
                                         <constraints>
                                             <constraint firstAttribute="height" relation="lessThanOrEqual" constant="88" id="RPW-Rw-mYG"/>
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="mj6-WW-mxC"/>
@@ -1329,38 +1337,32 @@ CA
                                         </textFieldCell>
                                         <connections>
                                             <action selector="updateFromFormulaField:" target="y5B-O8-QaO" id="EWH-EM-LVP"/>
-                                            <outlet property="nextKeyView" destination="P5v-FZ-cCC" id="P7y-fz-Zml"/>
                                         </connections>
                                     </textField>
                                 </subviews>
                                 <constraints>
-                                    <constraint firstAttribute="trailing" secondItem="aXH-7Y-wRY" secondAttribute="trailing" constant="4" id="7Jr-9R-feu"/>
-                                    <constraint firstItem="jQq-6i-09S" firstAttribute="top" secondItem="aXH-7Y-wRY" secondAttribute="bottom" constant="5" id="7fu-Cq-wWS"/>
-                                    <constraint firstItem="jQq-6i-09S" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" id="LKx-RT-kcb"/>
+                                    <constraint firstItem="jQq-6i-09S" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" id="6II-69-NmR"/>
+                                    <constraint firstItem="JGk-n3-nvK" firstAttribute="top" secondItem="cDc-rh-vev" secondAttribute="top" constant="4" id="EwX-a9-Fk5"/>
+                                    <constraint firstItem="aXH-7Y-wRY" firstAttribute="top" secondItem="JGk-n3-nvK" secondAttribute="bottom" constant="4" id="UWP-JL-oNc"/>
+                                    <constraint firstItem="aXH-7Y-wRY" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" constant="4" id="Wy5-7L-fPm"/>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="400" id="XdR-b9-Uvy"/>
-                                    <constraint firstItem="aXH-7Y-wRY" firstAttribute="top" secondItem="cDc-rh-vev" secondAttribute="top" constant="4" id="YOt-XL-ORB"/>
-                                    <constraint firstAttribute="trailing" secondItem="jQq-6i-09S" secondAttribute="trailing" id="mVG-Ay-4SU"/>
-                                    <constraint firstItem="aXH-7Y-wRY" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" constant="4" id="nWo-2B-W5G"/>
+                                    <constraint firstAttribute="trailing" secondItem="aXH-7Y-wRY" secondAttribute="trailing" constant="4" id="Zg4-gI-Gnw"/>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="pNc-En-NPW"/>
-                                    <constraint firstAttribute="bottom" secondItem="jQq-6i-09S" secondAttribute="bottom" id="u08-oa-2yI"/>
+                                    <constraint firstItem="JGk-n3-nvK" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" constant="4" id="sJw-Wk-WPz"/>
+                                    <constraint firstAttribute="bottom" secondItem="jQq-6i-09S" secondAttribute="bottom" id="t7R-WV-Ubb"/>
+                                    <constraint firstAttribute="trailing" secondItem="JGk-n3-nvK" secondAttribute="trailing" constant="4" id="tL1-Xt-pEb"/>
+                                    <constraint firstItem="jQq-6i-09S" firstAttribute="top" secondItem="aXH-7Y-wRY" secondAttribute="bottom" constant="4" id="xdE-fs-Nqs"/>
+                                    <constraint firstAttribute="trailing" secondItem="jQq-6i-09S" secondAttribute="trailing" id="z6k-ez-qQa"/>
                                 </constraints>
                             </visualEffectView>
-                            <containerView appearanceType="aqua" id="P5v-FZ-cCC">
-                                <rect key="frame" x="659" y="0.0" width="254" height="569"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="240" id="VvV-oj-FjD"/>
-                                </constraints>
-                                <connections>
-                                    <segue destination="0w0-v5-aaU" kind="embed" identifier="configurator" id="Zzv-k8-sKq"/>
-                                </connections>
-                            </containerView>
                         </subviews>
-                        <holdingPriorities>
-                            <real value="125"/>
-                            <real value="250"/>
-                        </holdingPriorities>
-                    </splitView>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="cDc-rh-vev" secondAttribute="trailing" id="Hfd-U4-Pba"/>
+                            <constraint firstItem="cDc-rh-vev" firstAttribute="top" secondItem="MOi-0T-6QH" secondAttribute="top" id="HtB-YF-Wvi"/>
+                            <constraint firstItem="cDc-rh-vev" firstAttribute="leading" secondItem="MOi-0T-6QH" secondAttribute="leading" id="amq-cC-Tps"/>
+                            <constraint firstAttribute="bottom" secondItem="cDc-rh-vev" secondAttribute="bottom" id="fnX-JS-30c"/>
+                        </constraints>
+                    </customView>
                     <connections>
                         <outlet property="addTabletMenu" destination="TbW-HU-EDH" id="7Tq-aG-xZQ"/>
                         <outlet property="documentAreaView" destination="jQq-6i-09S" id="Xm4-KA-YGm"/>
@@ -1415,7 +1417,7 @@ CA
                     </items>
                 </menu>
             </objects>
-            <point key="canvasLocation" x="867.5" y="-76.5"/>
+            <point key="canvasLocation" x="867" y="-77"/>
         </scene>
         <!--Chain view controller-->
         <scene sceneID="4qG-DD-elD">
@@ -1980,48 +1982,6 @@ DQ
             </objects>
             <point key="canvasLocation" x="465.5" y="664"/>
         </scene>
-        <!--Configurator View Controller-->
-        <scene sceneID="FDq-LH-cOQ">
-            <objects>
-                <viewController id="0w0-v5-aaU" customClass="QBEConfiguratorViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <visualEffectView key="view" appearanceType="vibrantLight" blendingMode="behindWindow" state="followsWindowActiveState" id="Q8k-9S-FpY">
-                        <rect key="frame" x="0.0" y="0.0" width="260" height="608"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <subviews>
-                            <textField hidden="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5LD-r2-LYf" userLabel="Multiline Label Multiline Label Multiline Label Multiline Label Multiline Label">
-                                <rect key="frame" x="1" y="554" width="258" height="51"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="32" id="K7m-EF-Wam"/>
-                                </constraints>
-                                <textFieldCell key="cell" lineBreakMode="charWrapping" truncatesLastVisibleLine="YES" sendsActionOnEndEditing="YES" title="A MULTI MULTI MULTI A MULTI MULTI MULTI A MULTI MULTI MULTI A MULTI MULTI" id="Ka3-eI-kA6">
-                                    <font key="font" metaFont="systemBold"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <customView autoresizesSubviews="NO" canDrawConcurrently="YES" appearanceType="aqua" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="095-ZA-NPs">
-                                <rect key="frame" x="0.0" y="0.0" width="260" height="551"/>
-                            </customView>
-                        </subviews>
-                        <constraints>
-                            <constraint firstItem="095-ZA-NPs" firstAttribute="leading" secondItem="Q8k-9S-FpY" secondAttribute="leading" id="7eM-O7-QCu"/>
-                            <constraint firstAttribute="trailing" secondItem="5LD-r2-LYf" secondAttribute="trailing" constant="3" id="Lrb-cC-qLP"/>
-                            <constraint firstItem="095-ZA-NPs" firstAttribute="top" secondItem="5LD-r2-LYf" secondAttribute="bottom" constant="3" id="Xd6-Nb-Exq"/>
-                            <constraint firstItem="5LD-r2-LYf" firstAttribute="leading" secondItem="Q8k-9S-FpY" secondAttribute="leading" constant="3" id="fUZ-ms-5o4"/>
-                            <constraint firstItem="5LD-r2-LYf" firstAttribute="top" secondItem="Q8k-9S-FpY" secondAttribute="top" constant="3" id="ht7-a0-JPA"/>
-                            <constraint firstAttribute="trailing" secondItem="095-ZA-NPs" secondAttribute="trailing" id="mcV-Xq-oeO"/>
-                            <constraint firstAttribute="bottom" secondItem="095-ZA-NPs" secondAttribute="bottom" id="n6D-OT-xQg"/>
-                        </constraints>
-                    </visualEffectView>
-                    <connections>
-                        <outlet property="configuratorView" destination="095-ZA-NPs" id="Pwj-dT-ayh"/>
-                        <outlet property="titleLabel" destination="5LD-r2-LYf" id="4bS-oH-EEf"/>
-                    </connections>
-                </viewController>
-                <customObject id="BkC-vb-PKi" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1661" y="-75"/>
-        </scene>
         <!--Window Controller-->
         <scene sceneID="iOf-rM-czB">
             <objects>
@@ -2183,12 +2143,68 @@ DQ
             </objects>
             <point key="canvasLocation" x="904" y="-1418"/>
         </scene>
+        <!--Sentence View Controller-->
+        <scene sceneID="Pcn-Xl-fFm">
+            <objects>
+                <viewController id="dZx-NB-Ues" customClass="QBESentenceViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="OmE-kA-pRl">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="22"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <tokenField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi">
+                                <rect key="frame" x="-2" y="0.0" width="412" height="22"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="sHi-T4-777"/>
+                                </constraints>
+                                <tokenFieldCell key="cell" selectable="YES" focusRingType="none" alignment="left" allowsEditingTextAttributes="YES" id="D1b-0t-j6u">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </tokenFieldCell>
+                                <connections>
+                                    <outlet property="delegate" destination="dZx-NB-Ues" id="uUB-tA-fbP"/>
+                                </connections>
+                            </tokenField>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CCw-Hx-VEJ">
+                                <rect key="frame" x="406" y="-7" width="50" height="33"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="38" id="pY0-sW-1qB"/>
+                                </constraints>
+                                <buttonCell key="cell" type="push" bezelStyle="rounded" image="NSActionTemplate" imagePosition="only" alignment="center" borderStyle="border" inset="2" id="fv9-yb-Lps">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="configure:" target="dZx-NB-Ues" id="u3d-g9-7ru"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="CCw-Hx-VEJ" secondAttribute="trailing" id="07T-Jd-DZz"/>
+                            <constraint firstItem="CCw-Hx-VEJ" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="104-tr-vGe"/>
+                            <constraint firstItem="fpC-FX-udi" firstAttribute="leading" secondItem="OmE-kA-pRl" secondAttribute="leading" id="EiS-qj-N3o"/>
+                            <constraint firstItem="fpC-FX-udi" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="TWE-fa-8LF"/>
+                            <constraint firstAttribute="bottom" secondItem="fpC-FX-udi" secondAttribute="bottom" id="gPC-1h-m9y"/>
+                            <constraint firstItem="CCw-Hx-VEJ" firstAttribute="leading" secondItem="fpC-FX-udi" secondAttribute="trailing" constant="4" id="nv3-C8-oEt"/>
+                            <constraint firstAttribute="bottom" secondItem="CCw-Hx-VEJ" secondAttribute="bottom" id="uBh-I7-BQb"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="configureButton" destination="CCw-Hx-VEJ" id="jfB-DM-OFQ"/>
+                        <outlet property="tokenField" destination="fpC-FX-udi" id="U0E-WD-N6v"/>
+                    </connections>
+                </viewController>
+                <customObject id="XoF-0a-53S" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="867" y="340"/>
+        </scene>
     </scenes>
     <resources>
         <image name="BigIcon" width="26" height="26"/>
         <image name="ChangeIcon" width="26" height="26"/>
         <image name="CloseIcon" width="26" height="26"/>
         <image name="ExportIcon" width="26" height="26"/>
+        <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
         <image name="StopIcon" width="26" height="26"/>

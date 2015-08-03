@@ -21,13 +21,8 @@ class QBECalculateStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Calculate column", comment: "Short name for calculate step")
-		}
-		else {
-			return String(format: NSLocalizedString("Calculate column %@ as %@", comment: ""), targetColumn.name, function.explain(locale))
-		}
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(String(format: NSLocalizedString("Calculate column %@ as %@", comment: ""), targetColumn.name, function.explain(locale)))])
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {

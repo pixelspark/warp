@@ -74,23 +74,24 @@ class QBERowsStep: NSObject {
 }
 
 class QBEFilterStep: QBEStep {
-	var condition: QBEExpression?
+	var condition: QBEExpression
 	
 	init(previous: QBEStep?, condition: QBEExpression) {
 		self.condition = condition
 		super.init(previous: previous)
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Select rows", comment: "")
-		}
-		
-		return String(format: NSLocalizedString("Select rows where %@", comment: ""), (condition?.explain(locale)) ?? "")
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("Select rows where", comment: "")),
+			QBESentenceFormula(expression: condition, locale: locale, callback: {[weak self] (expr) in
+				self?.condition = expr
+			})
+		])
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		condition = (aDecoder.decodeObjectForKey("condition") as? QBEExpression)
+		condition = (aDecoder.decodeObjectForKey("condition") as? QBEExpression) ?? QBELiteralExpression(QBEValue.BoolValue(true))
 		super.init(coder: aDecoder)
 	}
 	
@@ -103,39 +104,24 @@ class QBEFilterStep: QBEStep {
 		if let p = prior as? QBEFilterStep {
 			// This filter step can be AND'ed with the previous
 			let combinedCondition: QBEExpression
-			
-			if let myCondition = self.condition {
-				if let otherCondition = p.condition {
-					if let rootAnd = otherCondition as? QBEFunctionExpression where rootAnd.type == QBEFunction.And {
-						let args: [QBEExpression] = rootAnd.arguments + [myCondition]
-						combinedCondition = QBEFunctionExpression(arguments: args, type: QBEFunction.And)
-					}
-					else {
-						let args: [QBEExpression] = [p.condition!, myCondition]
-						combinedCondition = QBEFunctionExpression(arguments: args, type: QBEFunction.And)
-					}
-					
-					return QBEStepMerge.Possible(QBEFilterStep(previous: nil, condition: combinedCondition))
-				}
-				else {
-					return QBEStepMerge.Advised(self)
-				}
+
+			if let rootAnd = p.condition as? QBEFunctionExpression where rootAnd.type == QBEFunction.And {
+				let args: [QBEExpression] = rootAnd.arguments + [self.condition]
+				combinedCondition = QBEFunctionExpression(arguments: args, type: QBEFunction.And)
 			}
 			else {
-				return QBEStepMerge.Advised(p)
+				let args: [QBEExpression] = [p.condition, self.condition]
+				combinedCondition = QBEFunctionExpression(arguments: args, type: QBEFunction.And)
 			}
+			
+			return QBEStepMerge.Possible(QBEFilterStep(previous: nil, condition: combinedCondition))
 		}
 		
 		return QBEStepMerge.Impossible
 	}
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		if let c = condition {
-			callback(.Success(data.filter(c)))
-		}
-		else {
-			callback(.Success(data))
-		}
+		callback(.Success(data.filter(condition)))
 	}
 }
 
@@ -146,12 +132,19 @@ class QBELimitStep: QBEStep {
 		self.numberOfRows = numberOfRows
 		super.init(previous: previous)
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("First rows", comment: "")
-		}
-		return String(format: NSLocalizedString("Select the first %d rows", comment: ""), numberOfRows)
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("Select the first", comment: "")),
+			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
+				if let x = locale.valueForLocalString(newValue).intValue {
+					self.numberOfRows = x
+					return true
+				}
+				return false
+			}),
+			QBESentenceText(NSLocalizedString(self.numberOfRows > 1 ? "rows" : "row", comment: ""))
+		])
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -184,11 +177,18 @@ class QBEOffsetStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Skip rows", comment: "")
-		}
-		return String(format: NSLocalizedString("Skip the first %d rows", comment: ""), numberOfRows)
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("Skip the first", comment: "")),
+			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
+				if let x = locale.valueForLocalString(newValue).intValue {
+					self.numberOfRows = x
+					return true
+				}
+				return false
+			}),
+			QBESentenceText(NSLocalizedString(self.numberOfRows > 1 ? "rows" : "row", comment: ""))
+			])
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -211,11 +211,18 @@ class QBERandomStep: QBELimitStep {
 		super.init(previous: previous, numberOfRows: numberOfRows)
 	}
 	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Random rows", comment: "")
-		}
-		return String(format: NSLocalizedString("Randomly select %d rows", comment: ""), numberOfRows)
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("Randomly select", comment: "")),
+			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
+				if let x = locale.valueForLocalString(newValue).intValue {
+					self.numberOfRows = x
+					return true
+				}
+				return false
+			}),
+			QBESentenceText(NSLocalizedString(self.numberOfRows > 1 ? "rows" : "row", comment: ""))
+			])
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -235,12 +242,11 @@ class QBEDistinctStep: QBEStep {
 	override init(previous: QBEStep?) {
 		super.init(previous: previous)
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Unique rows", comment: "")
-		}
-		return NSLocalizedString("Remove duplicate rows", comment: "")
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("Remove duplicate rows", comment: ""))
+		])
 	}
 	
 	required init(coder aDecoder: NSCoder) {

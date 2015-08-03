@@ -163,7 +163,6 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	
 	// Call whenever tablets are added/removed or resized
 	private func tabletsChanged() {
-		resizeDocument()
 		self.flowchartView.frame = self.bounds
 		// Update flowchart
 		var arrows: [QBEArrow] = []

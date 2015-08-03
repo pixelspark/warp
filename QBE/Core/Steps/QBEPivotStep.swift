@@ -45,8 +45,8 @@ class QBEPivotStep: QBEStep {
 		coder.encodeObject(aggregates, forKey: "aggregates")
 	}
 	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if !short && aggregates.count == 1 {
+	private func explanation(locale: QBELocale) -> String {
+		if aggregates.count == 1 {
 			let aggregation = aggregates[0]
 			if rows.count != 1 || columns.count != 0 {
 				return String(format: NSLocalizedString("Pivot: %@ of %@", comment: "Pivot with 1 aggregate"),
@@ -63,6 +63,10 @@ class QBEPivotStep: QBEStep {
 		}
 		
 		return NSLocalizedString("Pivot data", comment: "")
+	}
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
 	private func fixupColumnNames() {

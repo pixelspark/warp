@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="7706" systemVersion="14D131" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8164.2" systemVersion="14E46" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="7706"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8164.2"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBEPrestoSourceStepView">
@@ -20,13 +20,13 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CAk-lx-YVO">
-                    <rect key="frame" x="5" y="90" width="263" height="397"/>
+                    <rect key="frame" x="5" y="90" width="263" height="392"/>
                     <clipView key="contentView" id="woS-nj-QJp">
-                        <rect key="frame" x="1" y="0.0" width="238" height="134"/>
+                        <rect key="frame" x="1" y="1" width="261" height="390"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="02C-MW-r2O">
-                                <rect key="frame" x="0.0" y="0.0" width="261" height="19"/>
+                                <rect key="frame" x="0.0" y="0.0" width="261" height="390"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -67,7 +67,7 @@
                     </scroller>
                 </scrollView>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="KEa-Sx-L3z">
-                    <rect key="frame" x="3" y="492" width="267" height="17"/>
+                    <rect key="frame" x="3" y="487" width="267" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Table:" id="rfQ-Sb-kv9">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -75,7 +75,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bUm-Cv-xpb">
-                    <rect key="frame" x="3" y="596" width="267" height="17"/>
+                    <rect key="frame" x="3" y="591" width="267" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Catalog:" id="egB-4K-CZZ">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -83,7 +83,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="sL9-sj-abz">
-                    <rect key="frame" x="3" y="544" width="267" height="17"/>
+                    <rect key="frame" x="3" y="539" width="267" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Schema:" id="rpc-XS-nD0">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -91,7 +91,7 @@
                     </textFieldCell>
                 </textField>
                 <comboBox verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="LpZ-pY-bAk">
-                    <rect key="frame" x="5" y="515" width="266" height="26"/>
+                    <rect key="frame" x="5" y="510" width="266" height="26"/>
                     <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="o3D-eq-LRn">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -105,7 +105,7 @@
                     </connections>
                 </comboBox>
                 <comboBox verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="lMq-Ii-Iw6">
-                    <rect key="frame" x="5" y="567" width="266" height="26"/>
+                    <rect key="frame" x="5" y="562" width="266" height="26"/>
                     <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="Dgc-il-xEA">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -119,7 +119,7 @@
                     </connections>
                 </comboBox>
                 <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="qLg-cO-cXU">
-                    <rect key="frame" x="5" y="623" width="263" height="22"/>
+                    <rect key="frame" x="5" y="618" width="263" height="22"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="ner-22-tyX">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -131,7 +131,7 @@
                     </connections>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="b0b-pg-bOH">
-                    <rect key="frame" x="3" y="650" width="267" height="17"/>
+                    <rect key="frame" x="3" y="645" width="267" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Presto server URL:" id="Xqe-hd-9ba">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -169,7 +169,7 @@
                 <constraint firstAttribute="trailing" secondItem="bUm-Cv-xpb" secondAttribute="trailing" constant="5" id="TqG-J4-HYt"/>
                 <constraint firstItem="sL9-sj-abz" firstAttribute="top" secondItem="lMq-Ii-Iw6" secondAttribute="bottom" constant="10" id="Wvh-oX-tu9"/>
                 <constraint firstItem="LpZ-pY-bAk" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="gVf-8a-9if"/>
-                <constraint firstItem="b0b-pg-bOH" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="5" id="iav-ZJ-axZ"/>
+                <constraint firstItem="b0b-pg-bOH" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="10" id="iav-ZJ-axZ"/>
                 <constraint firstItem="CAk-lx-YVO" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="j4O-bh-LjY"/>
                 <constraint firstAttribute="trailing" secondItem="qLg-cO-cXU" secondAttribute="trailing" constant="5" id="jTZ-bu-FKC"/>
                 <constraint firstAttribute="trailing" secondItem="sL9-sj-abz" secondAttribute="trailing" constant="5" id="lgS-Tm-F3e"/>

@@ -303,16 +303,16 @@ class QBEPrestoSourceStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Presto table", comment: "")
-		}
-		
+	private func explanation(locale: QBELocale) -> String {
 		if let tn = tableName {
 			return String(format: NSLocalizedString("Table '%@' from Presto server",comment: ""), tn)
 		}
 		
 		return NSLocalizedString("Table from Presto server", comment: "")
+	}
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
 	private func switchDatabase() {

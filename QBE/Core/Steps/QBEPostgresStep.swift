@@ -555,12 +555,11 @@ class QBEPostgresSourceStep: QBEStep {
 		coder.encodeInt(Int32(port ?? 0), forKey: "port")
 		coder.encodeString(schemaName ?? "", forKey: "schema")
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("PostgreSQL table", comment: "")
-		}
-		return String(format: NSLocalizedString("Load table %@ from PostgreSQL database", comment: ""), self.tableName ?? "")
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([
+			QBESentenceText(String(format: NSLocalizedString("Load table %@ from PostgreSQL database", comment: ""), self.tableName ?? ""))
+		])
 	}
 	
 	internal var database: QBEPostgresDatabase? { get {

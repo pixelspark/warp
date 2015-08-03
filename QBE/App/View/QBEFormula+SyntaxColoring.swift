@@ -2,8 +2,7 @@ import  Cocoa
 
 extension QBEFormula {
 	var syntaxColoredFormula: NSAttributedString { get {
-		let regularFont = NSFont.systemFontOfSize(NSFont.systemFontSizeForControlSize(NSControlSize.RegularControlSize))
-		let boldFont = NSFont.boldSystemFontOfSize(NSFont.systemFontSizeForControlSize(NSControlSize.RegularControlSize))
+		let regularFont = NSFont.userFixedPitchFontOfSize(NSFont.systemFontSizeForControlSize(NSControlSize.RegularControlSize))!
 		
 		let ma = NSMutableAttributedString(string: self.originalText, attributes: [
 			NSForegroundColorAttributeName: NSColor.blackColor(),
@@ -37,7 +36,7 @@ extension QBEFormula {
 			}
 			else if fragment.expression is QBEFunctionExpression {
 				ma.addAttributes([
-					NSFontAttributeName: boldFont
+					NSFontAttributeName: regularFont,
 				], range: NSMakeRange(fragment.start, fragment.length))
 			}
 		}

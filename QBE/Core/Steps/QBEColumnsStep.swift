@@ -10,11 +10,7 @@ class QBEColumnsStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Select columns", comment: "")
-		}
-		
+	private func explanation(locale: QBELocale) -> String {
 		if select {
 			if columnNames.count == 0 {
 				return NSLocalizedString("Select all columns", comment: "")
@@ -46,7 +42,11 @@ class QBEColumnsStep: QBEStep {
 			}
 		}
 	}
-	
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(self.explanation(locale))])
+	}
+
 	required init(coder aDecoder: NSCoder) {
 		select = aDecoder.decodeBoolForKey("select")
 		let names = (aDecoder.decodeObjectForKey("columnNames") as? [String]) ?? []
@@ -114,11 +114,7 @@ class QBESortColumnsStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("Sort columns", comment: "")
-		}
-		
+	private func explanation(locale: QBELocale) -> String {
 		let destination = before != nil ? String(format: NSLocalizedString("before %@", comment: ""), before!.name) : NSLocalizedString("at the end", comment: "")
 		
 		if sortColumns.count > 5 {
@@ -131,6 +127,10 @@ class QBESortColumnsStep: QBEStep {
 			let names = sortColumns.map({it in return it.name}).implode(", ")
 			return String(format: NSLocalizedString("Place columns %@ %@", comment: ""), names, destination)
 		}
+	}
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
 	required init(coder aDecoder: NSCoder) {

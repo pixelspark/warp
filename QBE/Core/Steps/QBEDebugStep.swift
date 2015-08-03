@@ -1,10 +1,10 @@
 import Foundation
 
 class QBEDebugStep: QBEStep, NSSecureCoding {
-	enum QBEDebugType: Int {
-		case None = 0
-		case Rasterize = 1
-		case Cache = 2
+	enum QBEDebugType: String {
+		case None = "none"
+		case Rasterize = "rasterize"
+		case Cache = "cache"
 		
 		var description: String { get {
 			switch self {
@@ -25,9 +25,23 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 	override init(previous: QBEStep?) {
 		super.init(previous: previous)
 	}
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([
+			QBESentenceOptions(options: [
+				QBEDebugType.None.rawValue: QBEDebugType.None.description,
+				QBEDebugType.Rasterize.rawValue: QBEDebugType.Rasterize.description,
+				QBEDebugType.Cache.rawValue: QBEDebugType.Cache.description
+			], value: self.type.rawValue, callback: { [weak self] (newType) -> () in
+				if let x = QBEDebugType(rawValue: newType) {
+					self?.type = x
+				}
+			})
+		])
+	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.type = QBEDebugType(rawValue: aDecoder.decodeIntegerForKey("type")) ?? QBEDebugType.None
+		self.type = QBEDebugType(rawValue: aDecoder.decodeStringForKey("type") ?? "") ?? QBEDebugType.None
 		super.init(coder: aDecoder)
 	}
 	
@@ -36,12 +50,8 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeInteger(self.type.rawValue, forKey: "type")
+		coder.encodeString(self.type.rawValue, forKey: "type")
 		super.encodeWithCoder(coder)
-	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		return self.type.description
 	}
 	
 	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {

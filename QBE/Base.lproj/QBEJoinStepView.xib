@@ -21,16 +21,16 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <tabView translatesAutoresizingMaskIntoConstraints="NO" id="XNQ-DU-ELx">
-                    <rect key="frame" x="-2" y="56" width="249" height="385"/>
+                    <rect key="frame" x="-2" y="56" width="249" height="380"/>
                     <font key="font" metaFont="system"/>
                     <tabViewItems>
                         <tabViewItem label="Columns" identifier="1" id="fal-j0-qja">
                             <view key="view" id="QUK-Cb-1QE">
-                                <rect key="frame" x="10" y="33" width="229" height="339"/>
+                                <rect key="frame" x="10" y="33" width="229" height="334"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
                                     <comboBox focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ScK-UH-d1Q">
-                                        <rect key="frame" x="0.0" y="293" width="232" height="26"/>
+                                        <rect key="frame" x="0.0" y="288" width="232" height="26"/>
                                         <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" focusRingType="none" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="waC-oW-t8E">
                                             <font key="font" metaFont="system"/>
                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -43,7 +43,7 @@
                                         </connections>
                                     </comboBox>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="dw1-7i-uM5">
-                                        <rect key="frame" x="-2" y="322" width="233" height="17"/>
+                                        <rect key="frame" x="-2" y="317" width="233" height="17"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="91g-Db-UOu"/>
                                         </constraints>
@@ -54,7 +54,7 @@
                                         </textFieldCell>
                                     </textField>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yub-2X-kNn">
-                                        <rect key="frame" x="-2" y="270" width="233" height="17"/>
+                                        <rect key="frame" x="-2" y="265" width="233" height="17"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="M50-9g-hN5"/>
                                         </constraints>
@@ -65,7 +65,7 @@
                                         </textFieldCell>
                                     </textField>
                                     <comboBox focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="lyv-cS-L5Q">
-                                        <rect key="frame" x="0.0" y="241" width="232" height="26"/>
+                                        <rect key="frame" x="0.0" y="236" width="232" height="26"/>
                                         <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" focusRingType="none" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="8kD-0D-f11">
                                             <font key="font" metaFont="system"/>
                                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -142,7 +142,7 @@
                     </connections>
                 </tabView>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ttv-Z4-BvC">
-                    <rect key="frame" x="3" y="440" width="239" height="17"/>
+                    <rect key="frame" x="3" y="435" width="239" height="17"/>
                     <constraints>
                         <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="EIN-np-RO9"/>
                     </constraints>
@@ -183,7 +183,7 @@
                 </textField>
             </subviews>
             <constraints>
-                <constraint firstItem="ttv-Z4-BvC" firstAttribute="top" secondItem="4KZ-pM-TZ9" secondAttribute="top" constant="5" id="5QH-ZH-eBa"/>
+                <constraint firstItem="ttv-Z4-BvC" firstAttribute="top" secondItem="4KZ-pM-TZ9" secondAttribute="top" constant="10" id="5QH-ZH-eBa"/>
                 <constraint firstItem="V4p-tF-Rlh" firstAttribute="top" secondItem="DAW-6n-hmR" secondAttribute="bottom" constant="5" id="6ql-Zw-QPn"/>
                 <constraint firstItem="XNQ-DU-ELx" firstAttribute="leading" secondItem="4KZ-pM-TZ9" secondAttribute="leading" constant="5" id="HWP-oM-Pga"/>
                 <constraint firstItem="DAW-6n-hmR" firstAttribute="top" secondItem="XNQ-DU-ELx" secondAttribute="bottom" constant="18" id="QBH-Dn-XRg"/>

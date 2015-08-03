@@ -27,10 +27,12 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 			return [QBEDependency(step: self, dependsOn: r)]
 		}
 		return []
-		} }
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		return NSLocalizedString("Cloned data", comment: "")
+	} }
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("Cloned data", comment: ""))
+		])
 	}
 	
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {

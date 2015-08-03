@@ -27,24 +27,17 @@ class QBEFactory {
 	
 	private let stepViews: Dictionary<String, QBEStepViewCreator> = [
 		QBESQLiteSourceStep.className(): {QBESQLiteSourceStepView(step: $0, delegate: $1)},
-		QBELimitStep.className(): {QBELimitStepView(step: $0, delegate: $1)},
-		QBEOffsetStep.className(): {QBEOffsetStepView(step: $0, delegate: $1)},
-		QBERandomStep.className(): {QBERandomStepView(step: $0, delegate: $1)},
 		QBECalculateStep.className(): {QBECalculateStepView(step: $0, delegate: $1)},
 		QBEPivotStep.className(): {QBEPivotStepView(step: $0, delegate: $1)},
 		QBECSVSourceStep.className(): {QBECSVStepView(step: $0, delegate: $1)},
-		QBEFilterStep.className(): {QBEFilterStepView(step: $0, delegate: $1)},
-		QBEFlattenStep.className(): {QBEFlattenStepView(step: $0, delegate: $1)},
 		QBEPrestoSourceStep.className(): {QBEPrestoSourceStepView(step: $0, delegate: $1)},
 		QBEColumnsStep.className(): {QBEColumnsStepView(step: $0, delegate: $1)},
 		QBESortStep.className(): {QBESortStepView(step: $0, delegate: $1)},
 		QBEMySQLSourceStep.className(): {QBEMySQLSourceStepView(step: $0, delegate: $1)},
 		QBEJoinStep.className(): {QBEJoinStepView(step: $0, delegate: $1)},
 		QBEPostgresSourceStep.className(): {QBEPostgresStepView(step: $0, delegate: $1)},
-		QBEDebugStep.className(): {QBEDebugStepView(step: $0, delegate: $1)},
 		QBERenameStep.className(): {QBERenameStepView(step: $0, delegate: $1)},
-		QBECrawlStep.className(): {QBECrawlStepView(step: $0, delegate: $1)},
-		QBESequencerStep.className(): {QBESequencerStepView(step: $0, delegate: $1)}
+		QBECrawlStep.className(): {QBECrawlStepView(step: $0, delegate: $1)}
 	]
 	
 	private let stepIcons = [
@@ -100,7 +93,11 @@ class QBEFactory {
 		}
 		return nil
 	}
-	
+
+	func hasViewForStep(step: QBEStep) -> Bool {
+		return stepViews[step.self.className] != nil
+	}
+
 	func viewForStep(step: QBEStep, delegate: QBESuggestionsViewDelegate) -> NSViewController? {
 		if let creator = stepViews[step.self.className] {
 			return creator(step: step, delegate: delegate)

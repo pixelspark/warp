@@ -12,7 +12,7 @@ class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NST
 	
 	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if tableColumn?.identifier == "suggestionLabel" {
-			return suggestions?[row].explain(delegate?.locale ?? QBELocale(), short: false)
+			return suggestions?[row].explain(delegate?.locale ?? QBELocale())
 		}
 		else if tableColumn?.identifier == "suggestionIcon" {
 			if let suggestedStep = suggestions?[row] {

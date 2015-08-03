@@ -7,20 +7,9 @@ class QBERenameStep: QBEStep {
 		self.renames = renames
 		super.init(previous: previous)
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if !short {
-			if renames.count == 1 {
-				for (old, nw) in renames {
-					return String(format: NSLocalizedString("Rename column %@ to %@", comment: ""), old.name, nw.name)
-				}
-			}
-			else if renames.count > 1 {
-				return String(format: NSLocalizedString("Rename %d columns", comment: ""), renames.count)
-			}
-		}
-		
-		return NSLocalizedString("Rename columns", comment: "")
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(NSLocalizedString("Rename columns", comment: ""))])
 	}
 	
 	required init(coder aDecoder: NSCoder) {

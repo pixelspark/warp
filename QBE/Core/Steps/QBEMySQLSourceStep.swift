@@ -545,12 +545,9 @@ class QBEMySQLSourceStep: QBEStep {
 		coder.encodeObject(databaseName, forKey: "database")
 		coder.encodeInt(Int32(port ?? 0), forKey: "port")
 	}
-	
-	override func explain(locale: QBELocale, short: Bool) -> String {
-		if short {
-			return NSLocalizedString("MySQL table", comment: "")
-		}
-		return String(format: NSLocalizedString("Load table %@ from MySQL database", comment: ""), self.tableName ?? "")
+
+	override func sentence(locale: QBELocale) -> QBESentence {
+		return QBESentence([QBESentenceText(String(format: NSLocalizedString("Load table %@ from MySQL database", comment: ""), self.tableName ?? ""))])
 	}
 	
 	internal var database: QBEMySQLDatabase? { get {
