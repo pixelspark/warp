@@ -54,6 +54,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 	private let columnNames: [QBEColumn]
 	private let columnTypes: [Oid]
 	private(set) var finished = false
+	private(set) var error: String? = nil
 	
 	/* The following lists OIDs for PostgreSQL system types. This was generated using the following query on a vanilla
 	Postgres installation (much less hassle than using the pg_type.h header...):
@@ -109,8 +110,9 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 			}
 			else {
 				let status = PQresultStatus(result)
-				if status.rawValue != PGRES_TUPLES_OK.rawValue {
+				if status.rawValue != PGRES_TUPLES_OK.rawValue && status.rawValue != PGRES_SINGLE_TUPLE.rawValue && status.rawValue != PGRES_COMMAND_OK.rawValue {
 					resultFallible = .Failure(connection.lastError)
+					return
 				}
 				
 				var columnNames: [QBEColumn] = []
@@ -233,6 +235,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 					if PQresultStatus(self.result).rawValue != PGRES_TUPLES_OK.rawValue {
 						let status = String(CString: PQresStatus(PQresultStatus(self.result)), encoding: NSUTF8StringEncoding) ?? "(unknown status)"
 						let error = String(CString: PQresultErrorMessage(self.result), encoding: NSUTF8StringEncoding) ?? "(unknown error)"
+						self.error = error
 						QBELog("PostgreSQL no result: \(status) \(error)")
 					}
 				}
@@ -247,6 +250,15 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 		}
 		return rowData
 	}
+}
+
+struct QBEPostgresTableName {
+	let schema: String
+	let table: String
+
+	var displayName: String { get {
+		return "\(schema).\(table)"
+	} }
 }
 
 class QBEPostgresDatabase {
@@ -284,14 +296,14 @@ class QBEPostgresDatabase {
 		})
 	}
 	
-	func tables(callback: (QBEFallible<[String]>) -> ()) {
-		let sql = "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog'  AND schemaname != 'information_schema'"
+	func tables(callback: (QBEFallible<[QBEPostgresTableName]>) -> ()) {
+		let sql = "SELECT schemaname, tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog'  AND schemaname != 'information_schema'"
 		callback(self.connect().use {
-			$0.query(sql).use { (result) -> [String] in
-				var dbs: [String] = []
+			$0.query(sql).use { (result) -> [QBEPostgresTableName] in
+				var dbs: [QBEPostgresTableName] = []
 				while let d = result.row() {
-					if let name = d[0].stringValue {
-						dbs.append(name)
+					if let tableName = d[1].stringValue, let schemaName = d[0].stringValue {
+						dbs.append(QBEPostgresTableName(schema: schemaName, table: tableName))
 					}
 				}
 				return dbs
@@ -405,13 +417,13 @@ Represents the result of a PostgreSQL query as a QBEData object. */
 class QBEPostgresData: QBESQLData {
 	private let database: QBEPostgresDatabase
 	private let locale: QBELocale?
-	
-	static func create(database database: QBEPostgresDatabase, tableName: String, locale: QBELocale?) -> QBEFallible<QBEPostgresData> {
-		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, database: database.database)) LIMIT 1"
+
+	static func create(database database: QBEPostgresDatabase, tableName: String, schemaName: String, locale: QBELocale?) -> QBEFallible<QBEPostgresData> {
+		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, schema: schemaName, database: database.database)) LIMIT 1"
 		return database.connect().use {
 			$0.query(query).use {(result) -> QBEPostgresData in
 				result.finish() // We're not interested in that one row we just requested, just the column names
-				return QBEPostgresData(database: database, table: tableName, columns: result.columnNames, locale: locale)
+				return QBEPostgresData(database: database, schema: schemaName, table: tableName, columns: result.columnNames, locale: locale)
 			}
 		}
 	}
@@ -422,10 +434,10 @@ class QBEPostgresData: QBESQLData {
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(database: QBEPostgresDatabase, table: String, columns: [QBEColumn], locale: QBELocale?) {
+	private init(database: QBEPostgresDatabase, schema: String, table: String, columns: [QBEColumn], locale: QBELocale?) {
 		self.database = database
 		self.locale = locale
-		super.init(table: table, database: database.database, dialect: database.dialect, columns: columns)
+		super.init(table: table, schema: schema, database: database.database, dialect: database.dialect, columns: columns)
 	}
 	
 	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
@@ -508,15 +520,17 @@ class QBEPostgresSourceStep: QBEStep {
 	var user: String?
 	var password: String?
 	var databaseName: String?
+	var schemaName: String?
 	var port: Int?
 	
-	init(host: String, port: Int, user: String, password: String, database: String, tableName: String) {
+	init(host: String, port: Int, user: String, password: String, database: String,  schemaName: String, tableName: String) {
 		self.host = host
 		self.user = user
 		self.password = password
 		self.port = port
 		self.databaseName = database
 		self.tableName = tableName
+		self.schemaName = schemaName
 		super.init(previous: nil)
 	}
 	
@@ -527,6 +541,7 @@ class QBEPostgresSourceStep: QBEStep {
 		self.user = (aDecoder.decodeObjectForKey("user") as? String) ?? ""
 		self.password = (aDecoder.decodeObjectForKey("password") as? String) ?? ""
 		self.port = Int(aDecoder.decodeIntForKey("port"))
+		self.schemaName = aDecoder.decodeStringForKey("schema") ?? ""
 		super.init(coder: aDecoder)
 	}
 	
@@ -538,6 +553,7 @@ class QBEPostgresSourceStep: QBEStep {
 		coder.encodeObject(password, forKey: "password")
 		coder.encodeObject(databaseName, forKey: "database")
 		coder.encodeInt(Int32(port ?? 0), forKey: "port")
+		coder.encodeString(schemaName ?? "", forKey: "schema")
 	}
 	
 	override func explain(locale: QBELocale, short: Bool) -> String {
@@ -560,8 +576,8 @@ class QBEPostgresSourceStep: QBEStep {
 	
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		job.async {
-			if let s = self.database, let tn = self.tableName {
-				callback(QBEPostgresData.create(database: s, tableName: tn, locale: QBEAppDelegate.sharedInstance.locale).use({return QBECoalescedData($0)}))
+			if let s = self.database, let tn = self.tableName where !tn.isEmpty {
+				callback(QBEPostgresData.create(database: s, tableName: tn, schemaName: self.schemaName ?? "public", locale: QBEAppDelegate.sharedInstance.locale).use({return QBECoalescedData($0)}))
 			}
 			else {
 				callback(.Failure(NSLocalizedString("No database or table selected for PostgreSQL.", comment: "")))

@@ -3,7 +3,7 @@ import Cocoa
 
 internal class QBEPostgresStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate, NSComboBoxDelegate, NSComboBoxDataSource {
 	let step: QBEPostgresSourceStep?
-	var tableNames: [String]?
+	var tableNames: [QBEPostgresTableName]?
 	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var tableView: NSTableView?
 	@IBOutlet var userField: NSTextField?
@@ -111,9 +111,9 @@ internal class QBEPostgresStepView: NSViewController, NSTableViewDataSource, NST
 										
 										// Select current table
 										if self.tableNames != nil {
-											let currentTable = s.tableName
 											for i in 0..<self.tableNames!.count {
-												if self.tableNames![i]==currentTable {
+												let tn = self.tableNames![i]
+												if tn.table == s.tableName && tn.schema == s.schemaName {
 													self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
 												}
 											}
@@ -132,8 +132,9 @@ internal class QBEPostgresStepView: NSViewController, NSTableViewDataSource, NST
 		let selection = tableView?.selectedRow ?? -1
 		if tableNames != nil && selection >= 0 && selection < tableNames!.count {
 			let selectedName = tableNames![selection]
-			if step?.tableName != selectedName {
-				step?.tableName = selectedName
+			if step?.tableName != selectedName.table || step?.schemaName != selectedName.schema {
+				step?.tableName = selectedName.table
+				step?.schemaName = selectedName.schema
 				delegate?.suggestionsView(self, previewStep: step)
 			}
 		}
@@ -144,6 +145,13 @@ internal class QBEPostgresStepView: NSViewController, NSTableViewDataSource, NST
 	}
 	
 	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
-		return tableNames?[row] ?? ""
+		if let identifier = tableColumn?.identifier {
+			switch identifier {
+				case "schemaName": return tableNames?[row].schema ?? ""
+				case "tableName": return tableNames?[row].table ?? ""
+				default: fatalError("Invalid table column identifier")
+			}
+		}
+		return nil
 	}
 }

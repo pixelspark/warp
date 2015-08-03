@@ -56,12 +56,12 @@ protocol QBESQLDialect {
 	var identifierQualifierEscape: String { get }
 	
 	/** Returns a column identifier for the given QBEColumn. */
-	func columnIdentifier(column: QBEColumn, table: String?, database: String?) -> String
+	func columnIdentifier(column: QBEColumn, table: String?, schema: String?, database: String?) -> String
 	
 	/** Returns the identifier that represents all columns in the given table (e.g. "table.*" or just "*". */
-	func allColumnsIdentifier(table: String?, database: String?) -> String
+	func allColumnsIdentifier(table: String?, schema: String?, database: String?) -> String
 	
-	func tableIdentifier(table: String, database: String?) -> String
+	func tableIdentifier(table: String, schema: String?, database: String?) -> String
 	
 	/** Transforms the given expression to a SQL string. The inputValue parameter determines the return value of the
 	QBEIdentitiyExpression. The function may return nil for expressions it cannot successfully transform to SQL. */
@@ -99,9 +99,9 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	var identifierQualifierEscape: String { get { return "\\\"" } }
 	var stringEscape: String { get { return "\\" } }
 	
-	func columnIdentifier(column: QBEColumn, table: String? = nil, database: String? = nil) -> String {
+	func columnIdentifier(column: QBEColumn, table: String? = nil, schema: String? = nil, database: String? = nil) -> String {
 		if let t = table {
-			let ti = tableIdentifier(t, database: database)
+			let ti = tableIdentifier(t, schema: schema, database: database)
 			return "\(ti).\(identifierQualifier)\(column.name.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape))\(identifierQualifier)"
 		}
 		else {
@@ -109,20 +109,22 @@ class QBEStandardSQLDialect: QBESQLDialect {
 		}
 	}
 	
-	func tableIdentifier(table: String, database: String?) -> String {
-		let prefix: String
-		if let d = database {
-			prefix = "\(identifierQualifier)\(d.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape))\(identifierQualifier)."
+	func tableIdentifier(table: String, schema: String?, database: String?) -> String {
+		var prefix: String = ""
+		if let d = database?.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape) {
+			prefix = "\(identifierQualifier)\(d)\(identifierQualifier)."
 		}
-		else {
-			prefix = ""
+
+		if let s = schema?.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape) {
+			prefix = prefix + "\(identifierQualifier)\(s)\(identifierQualifier)."
 		}
+
 		return "\(prefix)\(identifierQualifier)\(table.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape))\(identifierQualifier)"
 	}
 	
-	func allColumnsIdentifier(table: String?, database: String? = nil) -> String {
+	func allColumnsIdentifier(table: String?, schema: String? = nil, database: String? = nil) -> String {
 		if let t = table {
-			return "\(tableIdentifier(t, database: database)).*"
+			return "\(tableIdentifier(t, schema: schema, database: database)).*"
 		}
 		return "*"
 	}
@@ -479,15 +481,15 @@ internal class QBESQLFragment {
 		self.alias = alias
 	}
 	
-	convenience init(table: String, database: String?, dialect: QBESQLDialect) {
-		self.init(type: .From, sql: "FROM \(dialect.tableIdentifier(table, database: database))", dialect: dialect, alias: table)
+	convenience init(table: String, schema: String?, database: String?, dialect: QBESQLDialect) {
+		self.init(type: .From, sql: "FROM \(dialect.tableIdentifier(table,  schema: schema, database: database))", dialect: dialect, alias: table)
 	}
 	
 	convenience init(query: String, dialect: QBESQLDialect) {
 		let alias = "T\(abs(query.hash))"
 		
 		// TODO: can use WITH..AS syntax here for DBMS'es that work better with that
-		self.init(type: .From, sql: "FROM (\(query)) AS \(dialect.tableIdentifier(alias, database: nil))", dialect: dialect, alias: alias)
+		self.init(type: .From, sql: "FROM (\(query)) AS \(dialect.tableIdentifier(alias, schema: nil, database: nil))", dialect: dialect, alias: alias)
 	}
 	
 	/** 
@@ -634,8 +636,8 @@ class QBESQLData: NSObject, QBEData {
 		self.columns = columns
     }
 	
-	internal init(table: String, database: String, dialect: QBESQLDialect, columns: [QBEColumn]) {
-		self.sql = QBESQLFragment(table: table, database: database, dialect: dialect)
+	internal init(table: String, schema: String?, database: String, dialect: QBESQLDialect, columns: [QBEColumn]) {
+		self.sql = QBESQLFragment(table: table, schema: schema, database: database, dialect: dialect)
 		self.columns = columns
 	}
 	
@@ -709,13 +711,13 @@ class QBESQLData: NSObject, QBEData {
 					let leftColumns = self.columns
 					let rightColumns = rightSQL.columns.filter({!leftColumns.contains($0)})
 					if rightColumns.count > 0 {
-						let rightSelects = rightColumns.map({return self.sql.dialect.columnIdentifier($0, table: rightAlias, database: nil) + " AS " + self.sql.dialect.columnIdentifier($0, table: nil, database: nil)}).implode(", ")
-						let selects = "\(sql.dialect.allColumnsIdentifier(leftAlias, database: nil)), \(rightSelects)"
+						let rightSelects = rightColumns.map({return self.sql.dialect.columnIdentifier($0, table: rightAlias, schema: nil, database: nil) + " AS " + self.sql.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil)}).implode(", ")
+						let selects = "\(sql.dialect.allColumnsIdentifier(leftAlias, schema: nil, database: nil)), \(rightSelects)"
 						
 						// Generate a join expression
 						if let es = sql.dialect.expressionToSQL(join.expression, alias: leftAlias, foreignAlias: rightAlias, inputValue: nil) {
 							return apply(self.sql
-								.sqlJoin("\(sqlJoinType) (\(rightQuery)) AS \(sql.dialect.tableIdentifier(rightAlias, database: nil)) ON \(es)")
+								.sqlJoin("\(sqlJoinType) (\(rightQuery)) AS \(sql.dialect.tableIdentifier(rightAlias, schema: nil, database: nil)) ON \(es)")
 								.sqlSelect(selects), resultingColumns: leftColumns + rightColumns)
 						}
 					}
@@ -750,23 +752,23 @@ class QBESQLData: NSObject, QBEData {
 		for targetColumn in columns {
 			if calculations[targetColumn] != nil {
 				let expression = calculations[targetColumn]!.prepare()
-				if let expressionString = sql.dialect.expressionToSQL(expression, alias: sourceAlias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sourceAlias, database: nil)) {
-					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil, database: nil))")
+				if let expressionString = sql.dialect.expressionToSQL(expression, alias: sourceAlias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sourceAlias, schema: nil, database: nil)) {
+					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil, schema: nil, database: nil))")
 				}
 				else {
 					return fallback().calculate(calculations)
 				}
 			}
 			else {
-				values.append(sql.dialect.columnIdentifier(targetColumn, table: sourceAlias, database: nil))
+				values.append(sql.dialect.columnIdentifier(targetColumn, table: sourceAlias, schema: nil, database: nil))
 			}
 		}
 		
 		// New columns are added at the end
 		for (targetColumn, expression) in calculations {
 			if !columns.contains(targetColumn) {
-				if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sourceAlias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sourceAlias, database: nil)) {
-					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil, database: nil))")
+				if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sourceAlias, foreignAlias: nil, inputValue: sql.dialect.columnIdentifier(targetColumn, table: sourceAlias, schema: nil, database: nil)) {
+					values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil, schema: nil, database: nil))")
 				}
 				else {
 					return fallback().calculate(calculations)
@@ -853,7 +855,7 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		let colNames = columns.map { self.sql.dialect.columnIdentifier($0, table: nil, database: nil) }.implode(", ")
+		let colNames = columns.map { self.sql.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) }.implode(", ")
 		return apply(self.sql.sqlSelect(colNames), resultingColumns: columns)
 	}
 	
@@ -865,7 +867,7 @@ class QBESQLData: NSObject, QBEData {
 		let alias = sql.aliasFor(.Group)
 		for (column, expression) in groups {
 			if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: alias, foreignAlias: nil, inputValue: nil) {
-				select.append("\(expressionString) AS \(sql.dialect.columnIdentifier(column, table: nil, database: nil))")
+				select.append("\(expressionString) AS \(sql.dialect.columnIdentifier(column, table: nil, schema: nil, database: nil))")
 				groupBy.append("\(expressionString)")
 				resultingColumns.append(column)
 			}
@@ -876,7 +878,7 @@ class QBESQLData: NSObject, QBEData {
 		
 		for (column, aggregation) in values {
 			if let aggregationSQL = sql.dialect.aggregationToSQL(aggregation, alias: alias) {
-				select.append("\(aggregationSQL) AS \(sql.dialect.columnIdentifier(column, table: nil, database: nil))")
+				select.append("\(aggregationSQL) AS \(sql.dialect.columnIdentifier(column, table: nil, schema: nil, database: nil))")
 				resultingColumns.append(column)
 			}
 			else {

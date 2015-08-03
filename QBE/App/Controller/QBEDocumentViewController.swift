@@ -399,7 +399,7 @@ import Cocoa
 	}
 	
 	@IBAction func addTabletFromPostgres(sender: NSObject) {
-		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", password: "", database: "postgres", tableName: "")
+		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", password: "", database: "postgres", schemaName: "public", tableName: "")
 		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true)
 	}
 	
