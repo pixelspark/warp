@@ -541,7 +541,7 @@ class QBEBatch<T>: QBEJob {
 	func enqueue(callback: Callback) {
 		assert(!cancelled, "Cannot enqueue on a QBEFuture that is cancelled")
 		if satisfied {
-			self.async {
+			dispatch_async(self.queue) {
 				callback(self.cached!)
 			}
 		}
