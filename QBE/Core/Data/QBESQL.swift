@@ -651,7 +651,7 @@ class QBESQLData: NSObject, QBEData {
 	
 	func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ()) {
 		job.async {
-			QBEStreamData(source: self.stream()).raster(job, callback: callback)
+			QBEStreamData(source: self.stream()).raster(job, callback: QBEOnce(callback))
 		}
 	}
 	
@@ -850,7 +850,7 @@ class QBESQLData: NSObject, QBEData {
 			}
 		}
 		else {
-			return fallback().unique(expression, job: job, callback: callback)
+			return fallback().unique(expression, job: job, callback: QBEOnce(callback))
 		}
 	}
 	

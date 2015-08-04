@@ -14,12 +14,16 @@ internal func QBEAssertMainThread(file: StaticString = __FILE__, line: UWord = _
 
 internal func QBEOnce<P, R>(block: ((P) -> (R))) -> ((P) -> (R)) {
 	var run = false
-	
+
+	#if DEBUG
 	return {(p: P) -> (R) in
 		assert(!run, "callback called twice!")
 		run = true
 		return block(p)
 	}
+	#else
+		return block
+	#endif
 }
 
 /** Runs the given block of code asynchronously on the main queue. */
@@ -406,16 +410,13 @@ class QBEFuture<T> {
 	typealias Callback = QBEBatch<T>.Callback
 	typealias Producer = (QBEJob, Callback) -> ()
 	private var batch: QBEBatch<T>?
-	
-	var calculating: Bool { get {
-		return batch != nil
-	} }
+	private var onceToken: dispatch_once_t = 0
 	
 	let producer: Producer
 	let timeLimit: Double?
 	
 	init(_ producer: Producer, timeLimit: Double? = nil)  {
-		self.producer = producer
+		self.producer = QBEOnce(producer)
 		self.timeLimit = timeLimit
 	}
 	
@@ -455,12 +456,6 @@ class QBEFuture<T> {
 		return batch?.cached ?? nil
 	} }
 	
-	/** Invalidate the cached result for this future (callbacks that are already enqueued on that batch will stil get
-	called). */
-	func invalidate() {
-		self.batch = nil
-	}
-	
 	/** Request the result of this future. There are three scenarios:
 	- The future has not yet been calculated. In this case, calculation will start in the queue specified in the `queue`
 	  variable. The callback will be enqueued to receive the result as soon as the calculation finishes. 
@@ -475,18 +470,20 @@ class QBEFuture<T> {
 	given job, and will use its preferred queue. Otherwise it will perform the work in the user initiated QoS concurrent
 	queue. This function always returns its own child QBEJob. */
 	func get(job: QBEJob? = nil, _ callback: Callback) -> QBEJob {
-		if batch == nil {
+		var first = false
+		dispatch_once(&onceToken) {
+			first = true
 			if let j = job {
-				batch = QBEBatch<T>(parent: j)
+				self.batch = QBEBatch<T>(parent: j)
 			}
 			else {
-				batch = QBEBatch<T>(queue: dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
+				self.batch = QBEBatch<T>(queue: dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
 			}
-			batch!.enqueue(callback)
-			calculate()
 		}
-		else {
-			batch!.enqueue(callback)
+
+		batch!.enqueue(callback)
+		if(first) {
+			calculate()
 		}
 		return batch!
 	}

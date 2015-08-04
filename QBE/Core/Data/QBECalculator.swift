@@ -89,28 +89,30 @@ class QBECalculator {
 
 				// Record performance information for example execution
 				let index = unsafeAddressOf(sourceStep).hashValue
-				var perf = self.stepPerformance[index] ?? QBEStepPerformance()
-				perf.timePerInputRow.add(duration / Double(maxInputRows))
-				if r.rowCount > 0 {
-					perf.inputAmplificationFactor.add(Double(r.rowCount) / Double(maxInputRows))
-				}
-				else {
-					perf.emptyCount++
-				}
-				perf.executionCount++
-				self.stepPerformance[index] = perf
+
+				QBEAsyncMain {
+					var perf = self.stepPerformance[index] ?? QBEStepPerformance()
+					perf.timePerInputRow.add(duration / Double(maxInputRows))
+					if r.rowCount > 0 {
+						perf.inputAmplificationFactor.add(Double(r.rowCount) / Double(maxInputRows))
+					}
+					else {
+						perf.emptyCount++
+					}
+					perf.executionCount++
+					self.stepPerformance[index] = perf
 				
-				/* If we got zero rows, but there is stil time left, just try again. In many cases the back-end
-				is much faster than we think and we have plenty of time left to fill in our time budget. */
-				let maxExampleRows = self.maximumExampleInputRows
-				if r.rowCount < self.desiredExampleRows && (maxTime - duration) > duration && (maxInputRows < maxExampleRows) {
-					QBELog("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
-					self.calculateExample(sourceStep, maximumTime: maxTime - duration, columnFilters: columnFilters, callback: callback)
+					/* If we got zero rows, but there is stil time left, just try again. In many cases the back-end
+					is much faster than we think and we have plenty of time left to fill in our time budget. */
+					let maxExampleRows = self.maximumExampleInputRows
+					if r.rowCount < self.desiredExampleRows && (maxTime - duration) > duration && (maxInputRows < maxExampleRows) {
+						QBELog("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
+						self.calculateExample(sourceStep, maximumTime: maxTime - duration, columnFilters: columnFilters, callback: callback)
+					}
+					else {
+						callback()
+					}
 				}
-				else {
-					callback()
-				}
-				break;
 				
 			case .Failure(_):
 				break;
