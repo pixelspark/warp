@@ -268,7 +268,9 @@ class QBESentenceOptions: NSObject, QBESentenceToken {
 
 	func select(key: String) {
 		assert(options[key] != nil, "Selecting an invalid option")
-		callback(key)
+		if key != value {
+			callback(key)
+		}
 	}
 }
 
@@ -293,7 +295,10 @@ class QBESentenceTextInput: NSObject, QBESentenceToken {
 	}
 
 	func change(newValue: String) -> Bool {
-		return callback(newValue)
+		if label != newValue {
+			return callback(newValue)
+		}
+		return true
 	}
 
 	var isToken: Bool { get { return true } }
@@ -317,7 +322,32 @@ class QBESentenceFormula: NSObject, QBESentenceToken {
 
 	var label: String {
 		get {
-			return expression.toFormula(self.locale, topLevel: true)
+			return expression.explain(self.locale, topLevel: true)
+		}
+	}
+
+	var isToken: Bool { get { return true } }
+}
+
+class QBESentenceFile: NSObject, QBESentenceToken {
+	typealias Callback = (QBEFileReference) -> ()
+	let file: QBEFileReference?
+	let allowedFileTypes: [String]
+	let callback: Callback
+
+	init(file: QBEFileReference?, allowedFileTypes: [String], callback: Callback) {
+		self.file = file
+		self.callback = callback
+		self.allowedFileTypes = allowedFileTypes
+	}
+
+	func change(newValue: QBEFileReference) {
+		callback(newValue)
+	}
+
+	var label: String {
+		get {
+			return file?.url?.lastPathComponent ?? NSLocalizedString("(no file)", comment: "")
 		}
 	}
 

@@ -22,7 +22,20 @@ class QBECalculateStep: QBEStep {
 	}
 	
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([QBESentenceText(String(format: NSLocalizedString("Calculate column %@ as %@", comment: ""), targetColumn.name, function.explain(locale)))])
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("Calculate column", comment: "")),
+			QBESentenceTextInput(value: self.targetColumn.name, callback: { [weak self] (newName) -> (Bool) in
+				if !newName.isEmpty {
+					self?.targetColumn = QBEColumn(newName)
+					return true
+				}
+				return false
+			}),
+			QBESentenceText(NSLocalizedString("as", comment: "")),
+			QBESentenceFormula(expression: self.function, locale: locale, callback: { [weak self] (newExpression) -> () in
+				self?.function = newExpression
+			})
+		])
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {

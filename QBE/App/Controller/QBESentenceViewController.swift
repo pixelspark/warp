@@ -93,7 +93,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			borderView.frame = NSMakeRect(0, 0, 250, 111+2+8)
 			let textField = NSTextField(frame: NSMakeRect(8, 8, 250 - 2*8, 111))
 			textField.font = NSFont.userFixedPitchFontOfSize(NSFont.systemFontSize())
-			if let formula = QBEFormula(formula: inputToken.expression.toFormula(locale), locale: locale) {
+			if let formula = QBEFormula(formula: inputToken.expression.toFormula(locale, topLevel: true), locale: locale) {
 				textField.attributedStringValue = formula.syntaxColoredFormula
 			}
 			textField.delegate = self
@@ -107,11 +107,44 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			menu.addItem(NSMenuItem(title: NSLocalizedString("OK", comment: ""), action: Selector("dismissInputEditor:"), keyEquivalent: ""))
 			return menu
 		}
+		else if let inputToken = representedObject as? QBESentenceFile {
+			self.editingToken = inputToken
+
+			let menu = NSMenu()
+			menu.addItem(NSMenuItem(title: NSLocalizedString("Select file...", comment: ""), action: Selector("selectFile:"), keyEquivalent: ""))
+			let showItem = NSMenuItem(title: NSLocalizedString("Show in Finder", comment: ""), action: Selector("showFileInFinder:"), keyEquivalent: "")
+			showItem.enabled = inputToken.file != nil
+			menu.addItem(showItem)
+			return menu
+		}
 		return nil
 	}
 
-	@IBAction func dismissInputEditor(sender: NSObject) {
+	@IBAction func showFileInFinder(sender: NSObject) {
+		if let token = editingToken as? QBESentenceFile, let file = token.file?.url {
+			NSWorkspace.sharedWorkspace().activateFileViewerSelectingURLs([file])
+		}
+	}
 
+	@IBAction func selectFile(sender: NSObject) {
+		if let token = editingToken as? QBESentenceFile, let s = editingStep {
+			let no = NSOpenPanel()
+			no.canChooseFiles = true
+			no.allowedFileTypes = token.allowedFileTypes
+
+			no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
+				if result==NSFileHandlingPanelOKButton {
+					let url = no.URLs[0]
+					token.change(QBEFileReference.URL(url))
+					self.delegate?.suggestionsView(self, previewStep: s)
+					self.updateView()
+				}
+			})
+		}
+	}
+
+	@IBAction func dismissInputEditor(sender: NSObject) {
+		// Do nothing
 	}
 
 	private func showPopoverAtToken(viewController: NSViewController) {

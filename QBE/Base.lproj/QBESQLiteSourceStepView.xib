@@ -6,7 +6,6 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBESQLiteSourceStepView" customModule="Warp" customModuleProvider="target">
             <connections>
-                <outlet property="fileField" destination="Rtg-OZ-Sdd" id="aHo-bM-cZN"/>
                 <outlet property="tableView" destination="4Fv-nk-fsa" id="547-0S-hyV"/>
                 <outlet property="view" destination="N3O-Vz-R4I" id="OQA-nl-j9l"/>
             </connections>
@@ -18,13 +17,13 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="IHc-7T-Was">
-                    <rect key="frame" x="5" y="5" width="252" height="224"/>
+                    <rect key="frame" x="5" y="5" width="252" height="278"/>
                     <clipView key="contentView" id="ESR-W0-gSz">
-                        <rect key="frame" x="1" y="1" width="250" height="222"/>
+                        <rect key="frame" x="1" y="1" width="250" height="276"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="4Fv-nk-fsa">
-                                <rect key="frame" x="0.0" y="0.0" width="250" height="222"/>
+                                <rect key="frame" x="0.0" y="0.0" width="250" height="276"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -65,59 +64,21 @@
                     </scroller>
                 </scrollView>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="wRI-J0-mZu">
-                    <rect key="frame" x="3" y="234" width="256" height="17"/>
+                    <rect key="frame" x="3" y="288" width="256" height="17"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Table:" id="YZF-WN-4qp">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Imt-Mp-aWl">
-                    <rect key="frame" x="3" y="288" width="256" height="17"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="File:" id="8bk-ho-JKf">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Rtg-OZ-Sdd">
-                    <rect key="frame" x="5" y="261" width="159" height="22"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" enabled="NO" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="3dW-MF-Taq">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                    <connections>
-                        <outlet property="nextKeyView" destination="a7K-CK-9JD" id="UEl-rn-a1j"/>
-                    </connections>
-                </textField>
-                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="a7K-CK-9JD">
-                    <rect key="frame" x="163" y="255" width="100" height="32"/>
-                    <buttonCell key="cell" type="push" title="Choose..." bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="JyH-S0-xg4">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="system"/>
-                    </buttonCell>
-                    <connections>
-                        <action selector="chooseFile:" target="-2" id="WFN-Uy-qIj"/>
-                        <outlet property="nextKeyView" destination="4Fv-nk-fsa" id="wrS-qP-gtm"/>
-                    </connections>
-                </button>
             </subviews>
             <constraints>
                 <constraint firstItem="wRI-J0-mZu" firstAttribute="leading" secondItem="N3O-Vz-R4I" secondAttribute="leading" constant="5" id="061-xd-d2u"/>
-                <constraint firstItem="Imt-Mp-aWl" firstAttribute="top" secondItem="N3O-Vz-R4I" secondAttribute="top" constant="10" id="2F7-kb-f9m"/>
-                <constraint firstItem="a7K-CK-9JD" firstAttribute="leading" secondItem="Rtg-OZ-Sdd" secondAttribute="trailing" constant="5" id="3b6-mM-VF6"/>
                 <constraint firstItem="IHc-7T-Was" firstAttribute="top" secondItem="wRI-J0-mZu" secondAttribute="bottom" constant="5" id="5bC-VO-mzS"/>
-                <constraint firstAttribute="trailing" secondItem="Imt-Mp-aWl" secondAttribute="trailing" constant="5" id="8LE-3R-dSn"/>
-                <constraint firstItem="wRI-J0-mZu" firstAttribute="top" secondItem="Rtg-OZ-Sdd" secondAttribute="bottom" constant="10" id="JK5-pJ-dXB"/>
-                <constraint firstItem="Rtg-OZ-Sdd" firstAttribute="centerY" secondItem="a7K-CK-9JD" secondAttribute="centerY" id="Kh3-1m-Iye"/>
-                <constraint firstItem="Rtg-OZ-Sdd" firstAttribute="top" secondItem="Imt-Mp-aWl" secondAttribute="bottom" constant="5" id="Nrd-ZA-5CL"/>
                 <constraint firstAttribute="bottom" secondItem="IHc-7T-Was" secondAttribute="bottom" constant="5" id="PuU-OD-wc6"/>
                 <constraint firstAttribute="trailing" secondItem="IHc-7T-Was" secondAttribute="trailing" constant="5" id="VBJ-bO-kLD"/>
+                <constraint firstItem="wRI-J0-mZu" firstAttribute="top" secondItem="N3O-Vz-R4I" secondAttribute="top" constant="10" id="fdQ-CS-NYN"/>
                 <constraint firstAttribute="trailing" secondItem="wRI-J0-mZu" secondAttribute="trailing" constant="5" id="hac-3e-k8D"/>
-                <constraint firstItem="Imt-Mp-aWl" firstAttribute="leading" secondItem="N3O-Vz-R4I" secondAttribute="leading" constant="5" id="nun-om-3dl"/>
-                <constraint firstAttribute="trailing" secondItem="a7K-CK-9JD" secondAttribute="trailing" constant="5" id="sKX-zP-JTg"/>
-                <constraint firstItem="Rtg-OZ-Sdd" firstAttribute="leading" secondItem="N3O-Vz-R4I" secondAttribute="leading" constant="5" id="xb3-TW-cIx"/>
                 <constraint firstItem="IHc-7T-Was" firstAttribute="leading" secondItem="N3O-Vz-R4I" secondAttribute="leading" constant="5" id="zxG-qG-84U"/>
             </constraints>
             <point key="canvasLocation" x="561" y="289.5"/>

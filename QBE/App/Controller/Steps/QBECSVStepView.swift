@@ -10,7 +10,6 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 	@IBOutlet var cacheButton: NSButton?
 	@IBOutlet var cacheUpdateButton: NSButton?
 	@IBOutlet var cacheProgress: NSProgressIndicator?
-	@IBOutlet var fileField: NSTextField?
 	
 	let step: QBECSVSourceStep?
 	private let languages: [QBELocale.QBELanguage]
@@ -86,7 +85,6 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 			hasHeadersButton?.state = s.hasHeaders ? NSOnState : NSOffState
 			cacheButton?.state = s.useCaching ? NSOnState : NSOffState
 			cacheUpdateButton?.enabled = s.useCaching && s.isCached
-			fileField?.stringValue = s.file?.url?.lastPathComponent ?? ""
 			languageField.selectItemAtIndex((self.languages.indexOf(s.interpretLanguage ?? "") ?? -1) + 1)
 			
 			let testValue = QBEValue.DoubleValue(1110819.88)
@@ -104,23 +102,6 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 			else {
 				cacheProgress?.stopAnimation(nil)
 			}
-		}
-	}
-	
-	@IBAction func chooseFile(sender: NSObject) {
-		if let s = step {
-			let no = NSOpenPanel()
-			no.canChooseFiles = true
-			no.allowedFileTypes = ["public.comma-separated-values-text"]
-			
-			no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
-				if result==NSFileHandlingPanelOKButton {
-					let url = no.URLs[0]
-					s.file = QBEFileReference.URL(url)
-					self.delegate?.suggestionsView(self, previewStep: s)
-				}
-				self.updateView()
-			})
 		}
 	}
 	

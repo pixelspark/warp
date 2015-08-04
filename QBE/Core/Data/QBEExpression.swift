@@ -10,7 +10,7 @@ internal let QBEExpressions: [QBEExpression.Type] = [
 
 /** A QBEExpression is a 'formula' that evaluates to a certain QBEValue given a particular context. */
 class QBEExpression: NSObject, NSCoding {
-	func explain(locale: QBELocale) -> String {
+	func explain(locale: QBELocale, topLevel: Bool = true) -> String {
 		return "??"
 	}
 	
@@ -179,7 +179,7 @@ final class QBELiteralExpression: QBEExpression {
 		super.init(coder: aDecoder)
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, topLevel: Bool) -> String {
 		return locale.localStringFor(value)
 	}
 	
@@ -237,7 +237,7 @@ class QBEIdentityExpression: QBEExpression {
 		super.init()
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, topLevel: Bool) -> String {
 		return NSLocalizedString("current value", comment: "")
 	}
 
@@ -303,8 +303,8 @@ final class QBEBinaryExpression: QBEExpression {
 		return callback(newSelf)
 	}
 	
-	override func explain(locale: QBELocale) -> String {
-		return "(" + second.explain(locale) + " " + type.explain(locale) + " " + first.explain(locale) + ")"
+	override func explain(locale: QBELocale, topLevel: Bool) -> String {
+		return (topLevel ? "": "(") + second.explain(locale, topLevel: false) + " " + type.explain(locale) + " " + first.explain(locale, topLevel: false) + (topLevel ? "": ")")
 	}
 	
 	override func toFormula(locale: QBELocale, topLevel: Bool) -> String {
@@ -463,8 +463,8 @@ final class QBEFunctionExpression: QBEExpression {
 		return self.type.prepare(arguments)
 	}
 	
-	override func explain(locale: QBELocale) -> String {
-		let argumentsList = arguments.map({$0.explain(locale)}).implode(", ") ?? ""
+	override func explain(locale: QBELocale, topLevel: Bool) -> String {
+		let argumentsList = arguments.map({$0.explain(locale, topLevel: false)}).implode(", ") ?? ""
 		return "\(type.explain(locale))(\(argumentsList))"
 	}
 	
@@ -600,7 +600,7 @@ final class QBESiblingExpression: QBEExpression, QBEColumnReferencingExpression 
 		super.init()
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, topLevel: Bool) -> String {
 		return NSLocalizedString("value in column", comment: "")+" "+columnName.name
 	}
 	
@@ -650,7 +650,7 @@ final class QBEForeignExpression: QBEExpression, QBEColumnReferencingExpression 
 		super.init()
 	}
 	
-	override func explain(locale: QBELocale) -> String {
+	override func explain(locale: QBELocale, topLevel: Bool) -> String {
 		return String(format: NSLocalizedString("value in foreign column %@", comment: ""), columnName.name)
 	}
 	
