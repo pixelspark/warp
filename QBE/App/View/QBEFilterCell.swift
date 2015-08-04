@@ -33,7 +33,7 @@ internal class QBEFilterCell: NSButtonCell {
 				for row in raster.raster {
 					let value = row[index]
 					let hash: Int
-					if case .DoubleValue(let i) = value {
+					if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
 						hash = Int(abs(i))
 					}
 					else {
