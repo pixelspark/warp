@@ -122,7 +122,7 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 			// Interpretation language
 			let languageSelection = self.languageField.indexOfSelectedItem
 			let languageID: QBELocale.QBELanguage?
-			if languageSelection == 0 {
+			if languageSelection <= 0 {
 				languageID = nil
 			}
 			else {
