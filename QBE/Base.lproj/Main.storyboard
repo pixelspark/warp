@@ -1283,13 +1283,13 @@ CA
                                                 </textFieldCell>
                                             </textField>
                                             <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
-                                                <rect key="frame" x="0.0" y="30" width="700" height="470"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                                 <clipView key="contentView" drawsBackground="NO" id="883-xW-r8t">
-                                                    <rect key="frame" x="0.0" y="0.0" width="700" height="470"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CDw-5V-yTY">
-                                                            <rect key="frame" x="-73" y="51" width="101" height="48"/>
+                                                            <rect key="frame" x="25" y="-32" width="11" height="35"/>
                                                         </view>
                                                     </subviews>
                                                 </clipView>
@@ -1305,33 +1305,15 @@ CA
                                                     <outlet property="menu" destination="AA5-ar-r3l" id="1Zd-S6-3bm"/>
                                                 </connections>
                                             </scrollView>
-                                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aXH-7Y-wRY">
-                                                <rect key="frame" x="4" y="4" width="692" height="22"/>
-                                                <constraints>
-                                                    <constraint firstAttribute="height" relation="lessThanOrEqual" constant="88" id="RPW-Rw-mYG"/>
-                                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="mj6-WW-mxC"/>
-                                                </constraints>
-                                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" enabled="NO" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="Ppg-Ih-4BI">
-                                                    <font key="font" metaFont="fixedUser" size="11"/>
-                                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                                </textFieldCell>
-                                                <connections>
-                                                    <action selector="updateFromFormulaField:" target="y5B-O8-QaO" id="EWH-EM-LVP"/>
-                                                </connections>
-                                            </textField>
                                         </subviews>
                                         <constraints>
-                                            <constraint firstAttribute="bottom" secondItem="aXH-7Y-wRY" secondAttribute="bottom" constant="4" id="2el-y4-M7u"/>
-                                            <constraint firstItem="aXH-7Y-wRY" firstAttribute="top" secondItem="Q9G-71-Jab" secondAttribute="bottom" constant="4" id="A9L-Y0-6Jt"/>
+                                            <constraint firstAttribute="bottom" secondItem="Q9G-71-Jab" secondAttribute="bottom" id="7aa-DK-Pp4"/>
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="500" id="JRD-mz-j6r"/>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="SEv-Cu-kXe"/>
                                             <constraint firstAttribute="centerX" secondItem="OEa-fZ-fMo" secondAttribute="centerX" id="TS5-LT-Eij"/>
                                             <constraint firstItem="Q9G-71-Jab" firstAttribute="top" secondItem="jQq-6i-09S" secondAttribute="top" id="WVy-1V-7Wc"/>
                                             <constraint firstAttribute="trailing" secondItem="Q9G-71-Jab" secondAttribute="trailing" id="Xd2-zB-Kep"/>
-                                            <constraint firstItem="aXH-7Y-wRY" firstAttribute="leading" secondItem="jQq-6i-09S" secondAttribute="leading" constant="4" id="bIT-WI-vRU"/>
                                             <constraint firstItem="Q9G-71-Jab" firstAttribute="leading" secondItem="jQq-6i-09S" secondAttribute="leading" id="kQB-F9-JGW"/>
-                                            <constraint firstAttribute="trailing" secondItem="aXH-7Y-wRY" secondAttribute="trailing" constant="4" id="qWg-oV-HiI"/>
                                             <constraint firstAttribute="centerY" secondItem="OEa-fZ-fMo" secondAttribute="centerY" constant="4" id="v8g-g5-hb7"/>
                                         </constraints>
                                     </customView>
@@ -1369,7 +1351,6 @@ CA
                     <connections>
                         <outlet property="addTabletMenu" destination="TbW-HU-EDH" id="7Tq-aG-xZQ"/>
                         <outlet property="documentAreaView" destination="jQq-6i-09S" id="Xm4-KA-YGm"/>
-                        <outlet property="formulaField" destination="aXH-7Y-wRY" id="5yp-Gm-e1V"/>
                         <outlet property="welcomeLabel" destination="OEa-fZ-fMo" id="12i-vW-1Oe"/>
                         <outlet property="workspaceView" destination="Q9G-71-Jab" id="Sm4-KA-YGm"/>
                     </connections>
@@ -2150,12 +2131,12 @@ DQ
         <scene sceneID="Pcn-Xl-fFm">
             <objects>
                 <viewController id="dZx-NB-Ues" customClass="QBESentenceViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="OmE-kA-pRl">
+                    <view key="view" wantsLayer="YES" id="OmE-kA-pRl">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="22"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <tokenField focusRingType="none" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi">
-                                <rect key="frame" x="-2" y="0.0" width="412" height="22"/>
+                            <tokenField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi">
+                                <rect key="frame" x="2" y="0.0" width="408" height="22"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="sHi-T4-777"/>
                                 </constraints>
@@ -2168,7 +2149,7 @@ DQ
                                     <outlet property="delegate" destination="dZx-NB-Ues" id="uUB-tA-fbP"/>
                                 </connections>
                             </tokenField>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CCw-Hx-VEJ">
+                            <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CCw-Hx-VEJ">
                                 <rect key="frame" x="406" y="-6" width="50" height="32"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="38" id="pY0-sW-1qB"/>
@@ -2181,19 +2162,76 @@ DQ
                                     <action selector="configure:" target="dZx-NB-Ues" id="u3d-g9-7ru"/>
                                 </connections>
                             </button>
+                            <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="mNx-7S-KjA">
+                                <rect key="frame" x="-6" y="-6" width="50" height="32"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="38" id="npe-Lv-0RF"/>
+                                </constraints>
+                                <buttonCell key="cell" type="push" bezelStyle="rounded" image="NSGoLeftTemplate" imagePosition="only" alignment="center" borderStyle="border" inset="2" id="emi-J6-Edn">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="stopEditingFormula:" target="dZx-NB-Ues" id="ThN-wH-5Qi"/>
+                                </connections>
+                            </button>
+                            <textField hidden="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="aCY-no-oxp">
+                                <rect key="frame" x="0.0" y="0.0" width="412" height="22"/>
+                                <textFieldCell key="cell" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="DXS-Qd-knZ">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField hidden="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="6gv-87-jiQ">
+                                <rect key="frame" x="40" y="0.0" width="410" height="22"/>
+                                <textFieldCell key="cell" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="DsU-NU-I22">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <action selector="updateFromFormulaField:" target="dZx-NB-Ues" id="6km-dk-v1H"/>
+                                </connections>
+                            </textField>
                         </subviews>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="CCw-Hx-VEJ" secondAttribute="trailing" id="07T-Jd-DZz"/>
                             <constraint firstItem="CCw-Hx-VEJ" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="104-tr-vGe"/>
-                            <constraint firstItem="fpC-FX-udi" firstAttribute="leading" secondItem="OmE-kA-pRl" secondAttribute="leading" id="EiS-qj-N3o"/>
+                            <constraint firstItem="mNx-7S-KjA" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="3NL-NP-0eB"/>
+                            <constraint firstItem="6gv-87-jiQ" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="Cyg-xg-mvR"/>
+                            <constraint firstItem="fpC-FX-udi" firstAttribute="leading" secondItem="OmE-kA-pRl" secondAttribute="leading" constant="4" id="EiS-qj-N3o"/>
                             <constraint firstItem="fpC-FX-udi" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="TWE-fa-8LF"/>
+                            <constraint firstAttribute="trailing" secondItem="6gv-87-jiQ" secondAttribute="trailing" id="XVM-hQ-1re"/>
+                            <constraint firstItem="aCY-no-oxp" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="XXe-RY-53P"/>
+                            <constraint firstAttribute="bottom" secondItem="6gv-87-jiQ" secondAttribute="bottom" id="aEr-C7-7st"/>
+                            <constraint firstItem="aCY-no-oxp" firstAttribute="leading" secondItem="OmE-kA-pRl" secondAttribute="leading" id="bfa-b6-kj2"/>
+                            <constraint firstAttribute="bottom" secondItem="aCY-no-oxp" secondAttribute="bottom" id="cf0-fU-jGI"/>
+                            <constraint firstItem="mNx-7S-KjA" firstAttribute="leading" secondItem="OmE-kA-pRl" secondAttribute="leading" id="fR9-1g-b4h"/>
                             <constraint firstAttribute="bottom" secondItem="fpC-FX-udi" secondAttribute="bottom" id="gPC-1h-m9y"/>
                             <constraint firstItem="CCw-Hx-VEJ" firstAttribute="leading" secondItem="fpC-FX-udi" secondAttribute="trailing" constant="4" id="nv3-C8-oEt"/>
+                            <constraint firstItem="6gv-87-jiQ" firstAttribute="leading" secondItem="mNx-7S-KjA" secondAttribute="trailing" constant="2" id="ogv-ne-bIT"/>
                             <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="CCw-Hx-VEJ" secondAttribute="bottom" id="uBh-I7-BQb"/>
+                            <constraint firstItem="CCw-Hx-VEJ" firstAttribute="leading" secondItem="aCY-no-oxp" secondAttribute="trailing" id="xE2-J0-KT2"/>
                         </constraints>
+                        <animations>
+                            <caTransition key="subviews">
+                                <mutableData key="keyedArchiveRepresentation">
+YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKkHCBES
+EwsKGR9VJG51bGzUCQoLDA0ODxBWJGNsYXNzVHR5cGVXc3VidHlwZV8QEl9fQ0FDb2RpbmdDb250ZW50
+c4AIgAOAAoAEWmZyb21Cb3R0b21UcHVzaNIUCRUYWk5TLm9iamVjdHOiFheABYAGgAfSGhscHVokY2xh
+c3NuYW1lWCRjbGFzc2VzV05TQXJyYXmiHB5YTlNPYmplY3TSGhsgIVxDQVRyYW5zaXRpb26jIiMeXENB
+VHJhbnNpdGlvbltDQUFuaW1hdGlvbl8QD05TS2V5ZWRBcmNoaXZlctEmJ1Ryb290gAEACAARABoAIwAt
+ADIANwBBAEcAUABXAFwAZAB5AHsAfQB/AIEAjACRAJYAoQCkAKYAqACqAK8AugDDAMsAzgDXANwA6QDt
+APoBBgEYARsBIAAAAAAAAAIBAAAAAAAAACgAAAAAAAAAAAAAAAAAAAEiA
+</mutableData>
+                            </caTransition>
+                        </animations>
                     </view>
                     <connections>
+                        <outlet property="backButton" destination="mNx-7S-KjA" id="gZl-L1-9Gx"/>
                         <outlet property="configureButton" destination="CCw-Hx-VEJ" id="jfB-DM-OFQ"/>
+                        <outlet property="formulaField" destination="6gv-87-jiQ" id="FY2-we-s4o"/>
                         <outlet property="tokenField" destination="fpC-FX-udi" id="U0E-WD-N6v"/>
                     </connections>
                 </viewController>
@@ -2209,6 +2247,7 @@ DQ
         <image name="ExportIcon" width="26" height="26"/>
         <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSAddTemplate" width="11" height="11"/>
+        <image name="NSGoLeftTemplate" width="9" height="12"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
         <image name="StopIcon" width="26" height="26"/>
         <image name="TipIcon" width="32" height="32"/>

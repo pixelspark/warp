@@ -238,7 +238,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 				tv.reloadData()
 			}
 
-			updateFormulaField()
 			tv.needsDisplay = true
 		}
 	}

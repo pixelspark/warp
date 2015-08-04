@@ -2,10 +2,18 @@ import Cocoa
 
 class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate {
 	@IBOutlet var tokenField: NSTokenField!
+	@IBOutlet var formulaField: NSTextField!
+	@IBOutlet var backButton: NSButton!
 	@IBOutlet var configureButton: NSButton!
 	private var editingToken: QBESentenceToken? = nil
 	private var editingStep: QBEStep? = nil
+	private var editingFormula: QBEEditingFormula? = nil
 	private weak var delegate: QBESuggestionsViewDelegate? = nil
+
+	private struct QBEEditingFormula {
+		let value: QBEValue
+		var callback: ((QBEValue) -> ())?
+	}
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -168,7 +176,51 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
+	func startEditingValue(value: QBEValue, callback: ((QBEValue) -> ())) {
+		let tr = CATransition()
+		tr.duration = 0.3
+		tr.type =  self.editingFormula == nil ? kCATransitionReveal : kCATransitionFade
+		tr.subtype = kCATransitionFromBottom
+		tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+		self.view.layer?.addAnimation(tr, forKey: kCATransition)
+
+		if let locale = delegate?.locale where value.isValid {
+			self.editingFormula = QBEEditingFormula(value: value, callback: callback)
+			self.formulaField.stringValue = locale.localStringFor(value)
+		}
+		else {
+			self.editingFormula = nil
+		}
+		updateView()
+	}
+
+	@IBAction func updateFromFormulaField(sender: NSObject) {
+		if let fc = editingFormula?.callback, let locale = delegate?.locale {
+			fc(locale.valueForLocalString(formulaField.stringValue))
+			editingFormula?.callback = nil
+		}
+	}
+
+	@IBAction func stopEditingFormula(sender: NSObject) {
+		if self.editingFormula != nil {
+			self.editingFormula = nil
+			let tr = CATransition()
+			tr.duration = 0.3
+			tr.type = kCATransitionReveal
+			tr.subtype = kCATransitionFromLeft
+			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+			self.view.layer?.addAnimation(tr, forKey: kCATransition)
+			updateView()
+		}
+	}
+
 	private func updateView() {
+		let isEditingFormula = editingFormula != nil
+		self.formulaField.hidden = !isEditingFormula
+		self.backButton.hidden = !isEditingFormula
+		self.tokenField.hidden = isEditingFormula
+		self.configureButton.hidden = isEditingFormula
+
 		if let s = editingStep, let locale = delegate?.locale {
 			let sentence = s.sentence(locale)
 			tokenField.objectValue = sentence.tokens.map({ return $0 as! NSObject })
@@ -181,7 +233,15 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	func configure(step: QBEStep?, delegate: QBESuggestionsViewDelegate?) {
+		let tr = CATransition()
+		tr.duration = 0.3
+		tr.type = kCATransitionPush
+		tr.subtype = self.editingStep == nil ? kCATransitionFromTop : kCATransitionFromBottom
+		tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+		self.view.layer?.addAnimation(tr, forKey: kCATransition)
+
 		self.editingStep = step
+		self.editingFormula = nil
 		self.delegate = delegate
 		updateView()
 	}

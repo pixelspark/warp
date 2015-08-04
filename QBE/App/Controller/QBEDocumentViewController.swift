@@ -6,11 +6,8 @@ import Cocoa
 	private var sentenceEditor: QBESentenceViewController? = nil
 	@IBOutlet var addTabletMenu: NSMenu!
 	@IBOutlet var workspaceView: QBEWorkspaceView!
-	@IBOutlet var formulaField: NSTextField!
 	@IBOutlet var welcomeLabel: NSTextField!
 	@IBOutlet var documentAreaView: NSView!
-	private var formulaFieldCallback: ((QBEValue) -> ())?
-	
 	private var zoomedView: (NSView, CGRect)? = nil
 	
 	var document: QBEDocument? { didSet {
@@ -57,13 +54,9 @@ import Cocoa
 	}
 	
 	func chainView(view: QBEChainViewController, editValue: QBEValue, callback: ((QBEValue) -> ())?) {
-		setFormula(editValue, callback: callback)
-	}
-	
-	private func setFormula(value: QBEValue, callback: ((QBEValue) -> ())?) {
-		formulaField.enabled = callback != nil
-		formulaField.stringValue = value.stringValue ?? ""
-		formulaFieldCallback = callback
+		if let cb = callback {
+			self.sentenceEditor?.startEditingValue(editValue, callback: cb)
+		}
 	}
 	
 	@objc func removeTablet(tablet: QBETablet) {
@@ -198,13 +191,6 @@ import Cocoa
 		}
 	}
 	
-	@IBAction func updateFromFormulaField(sender: NSObject) {
-		if let fc = formulaFieldCallback {
-			fc(locale.valueForLocalString(formulaField.stringValue))
-			formulaFieldCallback = nil
-		}
-	}
-	
 	@IBAction func paste(sender: NSObject) {
 		// Pasting a step?
 		let pboard = NSPasteboard.generalPasteboard()
@@ -333,11 +319,11 @@ import Cocoa
 	
 	private func didSelectTablet(tabletViewController: QBEChainViewController?) {
 		if let tv = tabletViewController {
-			self.setFormula(QBEValue.InvalidValue, callback: nil)
+			//////self.setFormula(QBEValue.InvalidValue, callback: nil)
 			tv.tabletWasSelected()
 		}
 		else {
-			self.setFormula(QBEValue.InvalidValue, callback: nil)
+			//////self.setFormula(QBEValue.InvalidValue, callback: nil)
 			self.sentenceEditor?.configure(nil, delegate: nil)
 		}
 		self.view.window?.update()
