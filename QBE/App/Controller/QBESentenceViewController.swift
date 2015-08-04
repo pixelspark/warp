@@ -5,10 +5,20 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	@IBOutlet var formulaField: NSTextField!
 	@IBOutlet var backButton: NSButton!
 	@IBOutlet var configureButton: NSButton!
-	private var editingToken: QBESentenceToken? = nil
+
+	private var editingToken: QBEEditingToken? = nil
 	private var editingStep: QBEStep? = nil
 	private var editingFormula: QBEEditingFormula? = nil
 	private weak var delegate: QBESuggestionsViewDelegate? = nil
+
+	private struct QBEEditingToken {
+		let token: QBESentenceToken
+		var options: [String]? = nil
+
+		init(_ token: QBESentenceToken) {
+			self.token = token
+		}
+	}
 
 	private struct QBEEditingFormula {
 		let value: QBEValue
@@ -39,7 +49,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 	func control(control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
 		let text = control.stringValue
-		if let inputToken = editingToken as? QBESentenceTextInput, let s = editingStep {
+		if let inputToken = editingToken?.token as? QBESentenceTextInput, let s = editingStep {
 			if inputToken.change(text) {
 				self.delegate?.suggestionsView(self, previewStep: s)
 				updateView()
@@ -47,7 +57,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			}
 			return false
 		}
-		else if let inputToken = editingToken as? QBESentenceFormula, let s = editingStep, let locale = self.delegate?.locale {
+		else if let inputToken = editingToken?.token as? QBESentenceFormula, let s = editingStep, let locale = self.delegate?.locale {
 			if let formula = QBEFormula(formula: text, locale: locale) {
 				inputToken.change(formula.root)
 				self.delegate?.suggestionsView(self, previewStep: s)
@@ -64,7 +74,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		editingToken = nil
 
 		if let options = representedObject as? QBESentenceOptions {
-			editingToken = options
+			editingToken = QBEEditingToken(options)
 			let menu = NSMenu()
 			let keys = Array(options.options.keys)
 			var index = 0
@@ -78,8 +88,41 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			}
 			return menu
 		}
+		else if let options = representedObject as? QBESentenceList {
+			editingToken = QBEEditingToken(options)
+			let menu = NSMenu()
+			let loadingItem = NSMenuItem(title: NSLocalizedString("Loading...", comment: ""), action: Selector("dismissInputEditor:"), keyEquivalent: "")
+			loadingItem.enabled = false
+			menu.addItem(loadingItem)
+
+			options.optionsProvider { [weak self] (itemsFallible) in
+				QBEAsyncMain {
+					menu.removeAllItems()
+
+					switch itemsFallible {
+					case .Success(let items):
+						self?.editingToken?.options = items
+						var index = 0
+						for item in items {
+							let menuItem = NSMenuItem(title: item, action: Selector("selectListOption:"), keyEquivalent: "")
+							menuItem.tag = index
+							menu.addItem(menuItem)
+							index++
+						}
+
+					case .Failure(let e):
+						let errorItem = NSMenuItem(title: e, action: Selector("dismissInputEditor:"), keyEquivalent: "")
+						errorItem.enabled = false
+						menu.addItem(errorItem)
+						break
+					}
+				}
+			}
+
+			return menu
+		}
 		else if let inputToken = representedObject as? QBESentenceTextInput {
-			editingToken = inputToken
+			editingToken = QBEEditingToken(inputToken)
 			let borderView = NSView()
 			borderView.frame = NSMakeRect(0, 0, 250, 22+2+8)
 			let textField = NSTextField(frame: NSMakeRect(8, 8, 250 - 2*8, 22))
@@ -93,10 +136,11 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			let menu = NSMenu()
 			menu.addItem(item)
 			menu.addItem(NSMenuItem(title: NSLocalizedString("OK", comment: ""), action: Selector("dismissInputEditor:"), keyEquivalent: ""))
+
 			return menu
 		}
 		else if let inputToken = representedObject as? QBESentenceFormula, let locale = self.delegate?.locale {
-			editingToken = inputToken
+			editingToken = QBEEditingToken(inputToken)
 			let borderView = NSView()
 			borderView.frame = NSMakeRect(0, 0, 250, 111+2+8)
 			let textField = NSTextField(frame: NSMakeRect(8, 8, 250 - 2*8, 111))
@@ -116,7 +160,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			return menu
 		}
 		else if let inputToken = representedObject as? QBESentenceFile {
-			self.editingToken = inputToken
+			self.editingToken = QBEEditingToken(inputToken)
 
 			let menu = NSMenu()
 			menu.addItem(NSMenuItem(title: NSLocalizedString("Select file...", comment: ""), action: Selector("selectFile:"), keyEquivalent: ""))
@@ -129,13 +173,13 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func showFileInFinder(sender: NSObject) {
-		if let token = editingToken as? QBESentenceFile, let file = token.file?.url {
+		if let token = editingToken?.token as? QBESentenceFile, let file = token.file?.url {
 			NSWorkspace.sharedWorkspace().activateFileViewerSelectingURLs([file])
 		}
 	}
 
 	@IBAction func selectFile(sender: NSObject) {
-		if let token = editingToken as? QBESentenceFile, let s = editingStep {
+		if let token = editingToken?.token as? QBESentenceFile, let s = editingStep {
 			let no = NSOpenPanel()
 			no.canChooseFiles = true
 			no.allowedFileTypes = token.allowedFileTypes
@@ -164,7 +208,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func selectOption(sender: NSObject) {
-		if let options = editingToken as? QBESentenceOptions, let menuItem = sender as? NSMenuItem, let s = editingStep {
+		if let options = editingToken?.token as? QBESentenceOptions, let menuItem = sender as? NSMenuItem, let s = editingStep {
 			let keys = Array(options.options.keys)
 			if keys.count > menuItem.tag {
 				let value = keys[menuItem.tag]
@@ -174,6 +218,16 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			}
 			self.editingToken = nil
 		}
+	}
+
+	@IBAction func selectListOption(sender: NSObject) {
+		if let listToken = editingToken?.token as? QBESentenceList, let options = editingToken?.options, let menuItem = sender as? NSMenuItem, let s = editingStep {
+			let value = options[menuItem.tag]
+			listToken.select(value)
+			self.delegate?.suggestionsView(self, previewStep: s)
+			updateView()
+		}
+		self.editingToken = nil
 	}
 
 	func startEditingValue(value: QBEValue, callback: ((QBEValue) -> ())) {

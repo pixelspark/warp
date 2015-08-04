@@ -26,7 +26,6 @@ class QBEFactory {
 	]
 	
 	private let stepViews: Dictionary<String, QBEStepViewCreator> = [
-		QBESQLiteSourceStep.className(): {QBESQLiteSourceStepView(step: $0, delegate: $1)},
 		QBECalculateStep.className(): {QBECalculateStepView(step: $0, delegate: $1)},
 		QBEPivotStep.className(): {QBEPivotStepView(step: $0, delegate: $1)},
 		QBECSVSourceStep.className(): {QBECSVStepView(step: $0, delegate: $1)},

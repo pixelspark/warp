@@ -248,6 +248,33 @@ protocol QBESentenceToken: NSObjectProtocol {
 	var isToken: Bool { get }
 }
 
+class QBESentenceList: NSObject, QBESentenceToken {
+	typealias Callback = (String) -> ()
+	typealias ProviderCallback = (QBEFallible<[String]>) -> ()
+	typealias Provider = (ProviderCallback) -> ()
+	private(set) var optionsProvider: Provider
+	private(set) var value: String
+	private let callback: Callback
+
+	var label: String { get {
+		return value
+	} }
+
+	init(value: String, provider: Provider, callback: Callback) {
+		self.optionsProvider = provider
+		self.value = value
+		self.callback = callback
+	}
+
+	var isToken: Bool { get { return true } }
+
+	func select(key: String) {
+		if key != value {
+			callback(key)
+		}
+	}
+}
+
 class QBESentenceOptions: NSObject, QBESentenceToken {
 	typealias Callback = (String) -> ()
 	private(set) var options: [String: String]
