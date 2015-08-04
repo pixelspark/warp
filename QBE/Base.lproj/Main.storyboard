@@ -1265,31 +1265,31 @@ CA
             <objects>
                 <viewController id="y5B-O8-QaO" customClass="QBEDocumentViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <customView key="view" id="MOi-0T-6QH">
-                        <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
+                        <rect key="frame" x="0.0" y="0.0" width="700" height="530"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <subviews>
                             <visualEffectView blendingMode="behindWindow" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
-                                <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
+                                <rect key="frame" x="0.0" y="0.0" width="700" height="530"/>
                                 <subviews>
-                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
-                                        <rect key="frame" x="0.0" y="0.0" width="700" height="404"/>
+                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
+                                        <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                         <subviews>
-                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
-                                                <rect key="frame" x="114" y="189" width="473" height="34"/>
+                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
+                                                <rect key="frame" x="114" y="237" width="473" height="34"/>
                                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="Drag files here or click '+' to add data" id="Zpo-PO-ycL">
                                                     <font key="font" size="28" name=".HelveticaNeueDeskInterface-Regular"/>
                                                     <color key="textColor" name="tertiaryLabelColor" catalog="System" colorSpace="catalog"/>
                                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                 </textFieldCell>
                                             </textField>
-                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" ambiguous="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
-                                                <rect key="frame" x="0.0" y="30" width="700" height="374"/>
-                                                <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="883-xW-r8t">
-                                                    <rect key="frame" x="0.0" y="0.0" width="700" height="374"/>
+                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
+                                                <rect key="frame" x="0.0" y="30" width="700" height="470"/>
+                                                <clipView key="contentView" drawsBackground="NO" id="883-xW-r8t">
+                                                    <rect key="frame" x="0.0" y="0.0" width="700" height="470"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CDw-5V-yTY">
-                                                            <rect key="frame" x="83" y="174" width="181" height="52"/>
+                                                            <rect key="frame" x="-73" y="51" width="101" height="48"/>
                                                         </view>
                                                     </subviews>
                                                 </clipView>
@@ -1324,6 +1324,8 @@ CA
                                         <constraints>
                                             <constraint firstAttribute="bottom" secondItem="aXH-7Y-wRY" secondAttribute="bottom" constant="4" id="2el-y4-M7u"/>
                                             <constraint firstItem="aXH-7Y-wRY" firstAttribute="top" secondItem="Q9G-71-Jab" secondAttribute="bottom" constant="4" id="A9L-Y0-6Jt"/>
+                                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="500" id="JRD-mz-j6r"/>
+                                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="SEv-Cu-kXe"/>
                                             <constraint firstAttribute="centerX" secondItem="OEa-fZ-fMo" secondAttribute="centerX" id="TS5-LT-Eij"/>
                                             <constraint firstItem="Q9G-71-Jab" firstAttribute="top" secondItem="jQq-6i-09S" secondAttribute="top" id="WVy-1V-7Wc"/>
                                             <constraint firstAttribute="trailing" secondItem="Q9G-71-Jab" secondAttribute="trailing" id="Xd2-zB-Kep"/>
@@ -1333,11 +1335,10 @@ CA
                                             <constraint firstAttribute="centerY" secondItem="OEa-fZ-fMo" secondAttribute="centerY" constant="4" id="v8g-g5-hb7"/>
                                         </constraints>
                                     </customView>
-                                    <containerView canDrawConcurrently="YES" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
-                                        <rect key="frame" x="4" y="408" width="692" height="88"/>
+                                    <containerView canDrawConcurrently="YES" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
+                                        <rect key="frame" x="4" y="504" width="692" height="22"/>
                                         <constraints>
-                                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="250" id="Spn-Np-XcJ"/>
-                                            <constraint firstAttribute="height" relation="lessThanOrEqual" constant="88" id="d7T-n0-IYX"/>
+                                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="xfu-7p-qw7"/>
                                         </constraints>
                                         <connections>
@@ -2153,7 +2154,7 @@ DQ
                         <rect key="frame" x="0.0" y="0.0" width="450" height="22"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <tokenField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi">
+                            <tokenField focusRingType="none" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi">
                                 <rect key="frame" x="-2" y="0.0" width="412" height="22"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="sHi-T4-777"/>
