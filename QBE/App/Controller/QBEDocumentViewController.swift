@@ -54,7 +54,10 @@ import Cocoa
 	}
 	
 	func chainView(view: QBEChainViewController, editValue: QBEValue, callback: ((QBEValue) -> ())?) {
-		if let cb = callback {
+		if let cb = callback, let tablet = view.chain?.tablet {
+			self.sentenceEditor?.configure(view.currentStep, delegate: view)
+			documentView.selectTablet(tablet, notifyDelegate: false)
+			view.view.superview?.orderFront()
 			self.sentenceEditor?.startEditingValue(editValue, callback: cb)
 		}
 	}
