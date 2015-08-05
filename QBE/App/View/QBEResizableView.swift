@@ -267,6 +267,8 @@ internal class QBEResizerView: NSView {
 	
 	override func drawRect(dirtyRect: NSRect) {
 		if let context = NSGraphicsContext.currentContext()?.CGContext {
+			CGContextClearRect(context, dirtyRect)
+
 			// Draw the bounding box
 			let selected = (self.superview as! QBEResizableView).selected
 			let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.5) : NSColor.clearColor()
