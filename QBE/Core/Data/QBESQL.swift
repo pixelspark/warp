@@ -760,7 +760,7 @@ class QBESQLData: NSObject, QBEData {
 				}
 			}
 			else {
-				values.append(sql.dialect.columnIdentifier(targetColumn, table: sourceAlias, schema: nil, database: nil))
+				values.append("\(sql.dialect.columnIdentifier(targetColumn, table: sourceAlias, schema: nil, database: nil)) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil, schema: nil, database: nil))")
 			}
 		}
 		
