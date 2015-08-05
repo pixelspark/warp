@@ -286,7 +286,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	private func updateFormulaField() {
 		let selectedRows = tableView!.selectedRowIndexes
 		let selectedCols = tableView!.selectedColumnIndexes
-		
+
 		if selectedRows?.count > 1 || selectedCols?.count > 1 {
 			delegate?.dataView(self, didSelectValue: QBEValue.InvalidValue, changeable: false)
 		}
@@ -315,7 +315,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			}
 		}
 	}
-	
+
 	func tableGridDidChangeSelection(aNotification: NSNotification!) {
 		updateFormulaField()
 	}

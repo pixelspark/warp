@@ -231,13 +231,6 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	func startEditingValue(value: QBEValue, callback: ((QBEValue) -> ())) {
-		let tr = CATransition()
-		tr.duration = 0.3
-		tr.type = (self.editingFormula == nil) ? kCATransitionReveal : kCATransitionFade
-		tr.subtype = kCATransitionFromBottom
-		tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-		self.view.layer?.addAnimation(tr, forKey: kCATransition)
-
 		if let locale = delegate?.locale where value.isValid {
 			self.editingFormula = QBEEditingFormula(value: value, callback: callback)
 			self.formulaField.stringValue = locale.localStringFor(value)
@@ -287,17 +280,18 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	func configure(step: QBEStep?, delegate: QBESuggestionsViewDelegate?) {
-		if self.editingStep != step {
+		if self.editingStep != step || step == nil {
 			let tr = CATransition()
 			tr.duration = 0.3
 			tr.type = kCATransitionPush
 			tr.subtype = self.editingStep == nil ? kCATransitionFromTop : kCATransitionFromBottom
 			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
 			self.view.layer?.addAnimation(tr, forKey: kCATransition)
+
+			self.editingStep = step
+			self.editingFormula = nil
 		}
 
-		self.editingStep = step
-		self.editingFormula = nil
 		self.delegate = delegate
 		updateView()
 	}

@@ -2214,19 +2214,7 @@ DQ
                             <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="CCw-Hx-VEJ" secondAttribute="bottom" id="uBh-I7-BQb"/>
                             <constraint firstItem="CCw-Hx-VEJ" firstAttribute="leading" secondItem="aCY-no-oxp" secondAttribute="trailing" id="xE2-J0-KT2"/>
                         </constraints>
-                        <animations>
-                            <caTransition key="subviews">
-                                <mutableData key="keyedArchiveRepresentation">
-YnBsaXN0MDDUAQIDBAUGJCVYJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoKkHCBES
-EwsKGR9VJG51bGzUCQoLDA0ODxBWJGNsYXNzVHR5cGVXc3VidHlwZV8QEl9fQ0FDb2RpbmdDb250ZW50
-c4AIgAOAAoAEWmZyb21Cb3R0b21UcHVzaNIUCRUYWk5TLm9iamVjdHOiFheABYAGgAfSGhscHVokY2xh
-c3NuYW1lWCRjbGFzc2VzV05TQXJyYXmiHB5YTlNPYmplY3TSGhsgIVxDQVRyYW5zaXRpb26jIiMeXENB
-VHJhbnNpdGlvbltDQUFuaW1hdGlvbl8QD05TS2V5ZWRBcmNoaXZlctEmJ1Ryb290gAEACAARABoAIwAt
-ADIANwBBAEcAUABXAFwAZAB5AHsAfQB/AIEAjACRAJYAoQCkAKYAqACqAK8AugDDAMsAzgDXANwA6QDt
-APoBBgEYARsBIAAAAAAAAAIBAAAAAAAAACgAAAAAAAAAAAAAAAAAAAEiA
-</mutableData>
-                            </caTransition>
-                        </animations>
+                        <animations/>
                     </view>
                     <connections>
                         <outlet property="backButton" destination="mNx-7S-KjA" id="gZl-L1-9Gx"/>
