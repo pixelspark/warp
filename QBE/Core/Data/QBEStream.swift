@@ -52,9 +52,16 @@ class QBEStreamData: QBEData {
 		
 		job.async {
 			var data: [QBETuple] = []
+
+			/* The sink closure needs to reference itself to be able to request multiple batches from the stream. However
+			simply referencing creates a reference loop. To mitigate this, the closure is referenced inside an instance of
+			this helper class, which is then weakly referenced from the closure. */
+			class QBESinkHolder {
+				var sink: QBESink! = nil
+			}
 			
-			var appender: QBESink! = nil
-			appender = { (rows, hasNext) -> () in
+			let holder = QBESinkHolder()
+			holder.sink = { [weak holder] (rows, hasNext) -> () in
 				switch rows {
 				case .Success(let r):
 					// Append the rows to our buffered raster
@@ -69,17 +76,19 @@ class QBEStreamData: QBEData {
 					}
 					// If the stream indicates there are more rows, fetch them
 					else {
+						/* If we reference holder in the async block, it may be deleted before the block executes. 
+						Therefore make it a strong reference at this point */
+						let h = holder!
 						job.async {
-							s.fetch(job, consumer: appender)
+							s.fetch(job, consumer: h.sink)
 						}
 					}
-					
 					
 				case .Failure(let errorMessage):
 					callback(.Failure(errorMessage))
 				}
 			}
-			s.fetch(job, consumer: appender)
+			s.fetch(job, consumer: holder.sink)
 		}
 	}
 	
