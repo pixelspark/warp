@@ -48,50 +48,64 @@ class QBEStreamData: QBEData {
 	}
 
 	func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ()) {
-		let s = source.clone()
-		
-		job.async {
+		// This complicated dance is necessary because we need a sink function/closure reference itself...
+		class QBEStreamPuller {
+			let job: QBEJob
+			let stream: QBEStream
 			var data: [QBETuple] = []
+			var columnNames: [QBEColumn]
+			let callback: (QBEFallible<QBERaster>) -> ()
 
-			/* The sink closure needs to reference itself to be able to request multiple batches from the stream. However
-			simply referencing creates a reference loop. To mitigate this, the closure is referenced inside an instance of
-			this helper class, which is then weakly referenced from the closure. */
-			class QBESinkHolder {
-				var sink: QBESink! = nil
+			init(stream: QBEStream, job: QBEJob, columnNames: [QBEColumn], callback: (QBEFallible<QBERaster>) -> ()) {
+				self.columnNames = columnNames
+				self.callback = callback
+				self.stream = stream
+				self.job = job
+
 			}
-			
-			let holder = QBESinkHolder()
-			holder.sink = { [weak holder] (rows, hasNext) -> () in
+
+			func start() {
+				stream.fetch(job, consumer: self.sink)
+			}
+
+			func sink(rows: QBEFallible<ArraySlice<QBETuple>>, hasNext: Bool) {
 				switch rows {
 				case .Success(let r):
 					// Append the rows to our buffered raster
 					data.extend(r)
-					
+
 					if !hasNext {
-						s.columnNames(job) { (columnNames) -> () in
-							callback(columnNames.use {(cns) -> QBERaster in
-								return QBERaster(data: data, columnNames: cns, readOnly: true)
-							})
-						}
+						self.callback(.Success(QBERaster(data: data, columnNames: columnNames, readOnly: true)))
 					}
-					// If the stream indicates there are more rows, fetch them
 					else {
-						/* If we reference holder in the async block, it may be deleted before the block executes. 
-						Therefore make it a strong reference at this point */
-						let h = holder!
+						// If the stream indicates there are more rows, fetch them
 						job.async {
-							s.fetch(job, consumer: h.sink)
+							self.stream.fetch(self.job, consumer: self.sink)
+							return
 						}
 					}
-					
+
 				case .Failure(let errorMessage):
 					callback(.Failure(errorMessage))
 				}
 			}
-			s.fetch(job, consumer: holder.sink)
+		}
+
+		let s = source.clone()
+		job.async {
+			s.columnNames(job) { (columnNames) -> () in
+				switch columnNames {
+					case .Success(let cns):
+						let h = QBEStreamPuller(stream: s, job: job, columnNames: cns, callback: callback)
+						h.start()
+
+					case .Failure(let e):
+						callback(.Failure(e))
+				}
+			}
 		}
 	}
-	
+
 	func transpose() -> QBEData {
 		// This cannot be streamed
 		return fallback().transpose()
