@@ -860,6 +860,10 @@ class QBESQLData: NSObject, QBEData {
 	}
 	
 	func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
+		if groups.count == 0 && values.count == 0 {
+			return QBEStreamData(source: QBEEmptyStream())
+		}
+
 		var groupBy: [String] = []
 		var select: [String] = []
 		var resultingColumns: [QBEColumn] = []
