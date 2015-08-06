@@ -1,6 +1,6 @@
 import Foundation
 
-internal func QBELog(message: String, file: StaticString = __FILE__, line: UWord = __LINE__) {
+internal func QBELog(message: String, file: StaticString = __FILE__, line: UInt = __LINE__) {
 	#if DEBUG
 		dispatch_async(dispatch_get_main_queue()) {
 			print(message)
@@ -8,7 +8,7 @@ internal func QBELog(message: String, file: StaticString = __FILE__, line: UWord
 	#endif
 }
 
-internal func QBEAssertMainThread(file: StaticString = __FILE__, line: UWord = __LINE__) {
+internal func QBEAssertMainThread(file: StaticString = __FILE__, line: UInt = __LINE__) {
 	assert(NSThread.isMainThread(), "Code at \(file):\(line) must run on main thread!")
 }
 
@@ -377,7 +377,7 @@ class QBEJob: QBEJobDelegate {
 	
 	/** Print a message to the debug log. The message is sent to the console asynchronously (but ordered) and prepended
 	with the 'job ID'. No messages will be logged when not compiled in debug mode. */
-	func log(message: String, file: StaticString = __FILE__, line: UWord = __LINE__) {
+	func log(message: String, file: StaticString = __FILE__, line: UInt = __LINE__) {
 		#if DEBUG
 			let id = self.jobID
 			dispatch_async(dispatch_get_main_queue()) {

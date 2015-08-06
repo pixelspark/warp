@@ -566,13 +566,13 @@ internal extension NSCoder {
 }
 
 internal extension String {
-	var urlEncoded: String { get {
-		return self.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
-		} }
+	var urlEncoded: String? { get {
+		return self.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLPathAllowedCharacterSet())
+	} }
 	
-	var urlDecoded: String { get {
-		return self.stringByReplacingPercentEscapesUsingEncoding(NSUTF8StringEncoding)!
-		} }
+	var urlDecoded: String? { get {
+		return self.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLPathAllowedCharacterSet())
+	} }
 	
 	func toDouble() -> Double? {
 		if self.isEmpty || self.hasPrefix(" ") {

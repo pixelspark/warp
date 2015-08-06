@@ -1045,7 +1045,7 @@ enum QBEFunction: String {
 			return QBEValue.InvalidValue
 			
 		case .URLEncode:
-			if let s = arguments[0].stringValue, let enc = s.stringByAddingPercentEscapesUsingEncoding(NSUTF8StringEncoding) {
+			if let s = arguments[0].stringValue, let enc = s.urlEncoded {
 				return QBEValue(enc)
 			}
 			return QBEValue.InvalidValue

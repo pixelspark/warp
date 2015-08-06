@@ -261,11 +261,12 @@ import Cocoa
 				// Find the contents of the directory, and add.
 				if let enumerator = NSFileManager.defaultManager().enumeratorAtPath(file) {
 					for child in enumerator {
-						if let childName = child as? String {
+						if let cn = child as? String {
+							let childName = NSString(string: cn)
 							// Skip UNIX hidden files (e.g. .DS_Store).
 							// TODO: check Finder 'hidden' bit here like so: http://stackoverflow.com/questions/1140235/is-the-file-hidden
 							if !childName.lastPathComponent.hasPrefix(".") {
-								let childPath = file.stringByAppendingPathComponent(childName)
+								let childPath = NSString(string: file).stringByAppendingPathComponent(childName as String)
 								
 								// Is  the enumerated item a directory? Then ignore it, the enumerator already recurses
 								var isChildDirectory: ObjCBool = false
