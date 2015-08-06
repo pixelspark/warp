@@ -276,6 +276,12 @@ class QBEJob: QBEJobDelegate {
 		self.queue = queue
 		self.parentJob = nil
 	}
+
+	#if DEBUG
+	deinit {
+		log("Job deinit; \(timeComponents)")
+	}
+	#endif
 	
 	/** Shorthand function to run a block asynchronously in the queue associated with this job. Because async() will often
 	be called with an 'expensive' block, it also checks the jobs cancellation status. If the job is cancelled, the block
@@ -393,9 +399,6 @@ class QBEJob: QBEJobDelegate {
 		else {
 			timeComponents[component] = time
 		}
-	
-		let tcs = timeComponents
-		log("\(tcs)")
 	}
 	#endif
 }
