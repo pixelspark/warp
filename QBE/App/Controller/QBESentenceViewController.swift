@@ -266,7 +266,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		self.formulaField.hidden = !isEditingFormula
 		self.backButton.hidden = !isEditingFormula || self.editingStep == nil
 		self.tokenField.hidden = isEditingFormula || self.editingStep == nil
-		self.configureButton.hidden = isEditingFormula
+		self.configureButton.hidden = isEditingFormula || self.editingStep == nil
 
 		if let s = editingStep, let locale = delegate?.locale {
 			let sentence = s.sentence(locale)
@@ -294,6 +294,14 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 		self.delegate = delegate
 		updateView()
+
+		/* Check whether the window is visible before showing the tip, because this may get called early while setting
+		up views */
+		if let s = step where QBEFactory.sharedInstance.hasViewForStep(s) && (self.view.window?.visible == true) {
+			QBESettings.sharedInstance.showTip("sentenceView.configureButton") {
+				self.showTip(NSLocalizedString("Click here to change additional settings for this step.", comment: ""), atView: self.configureButton)
+			}
+		}
 	}
 
 	@IBAction func configure(sender: NSObject) {

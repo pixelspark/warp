@@ -14,6 +14,33 @@ class QBESettings {
 			resetOnces()
 		#endif
 	}
+
+	private var lastTip: NSDate? {
+		get {
+			let i = defaults.doubleForKey("lastTip")
+			return i > 0 ? NSDate(timeIntervalSinceReferenceDate: i) : nil
+		}
+		set {
+			if let d = newValue {
+				defaults.setDouble(d.timeIntervalSinceReferenceDate, forKey: "lastTip")
+			}
+		}
+	}
+
+	private let timeBetweenTips: NSTimeInterval = 30.0
+
+	/** Calls the given block if the last time this function was called more than `timeBetweenTips` seconds ago, and no
+	call to showTip or once has been made with the given key before. This is useful for ensuring that tip balloons don't 
+	show up to soon after each other. */
+	func showTip(onceKey: String, block: () -> ()) {
+		let last = self.lastTip
+		if last == nil || abs(last!.timeIntervalSinceNow) > timeBetweenTips {
+			once(onceKey) {
+				block()
+				self.lastTip = NSDate()
+			}
+		}
+	}
 	
 	var monospaceFont: Bool {
 		get {

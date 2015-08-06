@@ -262,7 +262,7 @@ internal extension NSViewController {
 			dataView.hasFullData = (raster != nil && useFullData)
 			
 			if raster != nil && raster!.rowCount > 0 && !useFullData {
-				QBESettings.sharedInstance.once("workingSetTip") {
+				QBESettings.sharedInstance.showTip("workingSetTip") {
 					if let toolbar = self.view.window?.toolbar {
 						for item in toolbar.items {
 							if item.action == Selector("setFullWorkingSet:") {
@@ -526,7 +526,7 @@ internal extension NSViewController {
 					step.previous = nil
 					
 					if let v = self.stepsViewController?.view {
-						QBESettings.sharedInstance.once("mergeAdvised") {
+						QBESettings.sharedInstance.showTip("mergeAdvised") {
 							self.showTip(NSLocalizedString("Warp has automatically combined your changes with the previous step.", comment: ""), atView: v)
 							return
 						}
@@ -538,7 +538,7 @@ internal extension NSViewController {
 					currentStep = cs.previous
 					remove(cs)
 					if let v = self.stepsViewController?.view {
-						QBESettings.sharedInstance.once("mergeCancelOut") {
+						QBESettings.sharedInstance.showTip("mergeCancelOut") {
 							self.showTip(NSLocalizedString("Your changes undo the previous step. Warp has therefore automatically removed the previous step.", comment: ""), atView: v)
 							return
 						}
@@ -656,7 +656,7 @@ internal extension NSViewController {
 			
 			// Show a tip if there are alternatives
 			if steps.count > 1 {
-				QBESettings.sharedInstance.once("suggestionsTip") {
+				QBESettings.sharedInstance.showTip("suggestionsTip") {
 					self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, click on the newly added step.", comment: "Tip for suggestions button"), atView: self.stepsViewController!.view)
 				}
 			}
