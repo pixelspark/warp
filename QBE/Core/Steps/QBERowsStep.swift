@@ -162,7 +162,7 @@ class QBELimitStep: QBEStep {
 	}
 	
 	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
-		if let p = prior as? QBELimitStep {
+		if let p = prior as? QBELimitStep where !(p is QBERandomStep) {
 			return QBEStepMerge.Advised(QBELimitStep(previous: nil, numberOfRows: min(self.numberOfRows, p.numberOfRows)))
 		}
 		return QBEStepMerge.Impossible
@@ -235,6 +235,10 @@ class QBERandomStep: QBELimitStep {
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
 		callback(.Success(data.random(numberOfRows)))
+	}
+
+	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+		return QBEStepMerge.Impossible
 	}
 }
 
