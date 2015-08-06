@@ -254,7 +254,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			let tr = CATransition()
 			tr.duration = 0.3
 			tr.type = kCATransitionReveal
-			tr.subtype = kCATransitionFromLeft
+			tr.subtype = kCATransitionFromRight
 			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
 			self.view.layer?.addAnimation(tr, forKey: kCATransition)
 			updateView()
