@@ -1,6 +1,6 @@
 import Foundation
 
-internal typealias QBEFilter = (QBERaster) -> (QBERaster)
+internal typealias QBEFilter = (QBERaster, QBEJob?) -> (QBERaster)
 
 /** QBERaster represents a mutable, in-memory dataset. It is stored as a simple array of QBERow, which in turn is an array 
 of QBEValue. Column names are stored separately. Each QBERow should contain the same number of values as there are columns
@@ -10,6 +10,8 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 	var raster: [[QBEValue]] = []
 	var columnNames: [QBEColumn] = []
 	let readOnly: Bool
+
+	static let progressReportRowInterval = 512
 	
 	override init() {
 		self.readOnly = false
@@ -412,7 +414,7 @@ class QBERasterData: NSObject, QBEData {
 				switch fallibleRaster {
 					case .Success(let r):
 						job.time(description ?? "raster apply", items: r.rowCount, itemType: "rows") {
-							cb(.Success(filter(r)))
+							cb(.Success(filter(r, job)))
 						}
 					
 					case .Failure(let error):
@@ -442,7 +444,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func transpose() -> QBEData {
-		return apply("transpose") {(r: QBERaster) -> QBERaster in
+		return apply("transpose") {(r: QBERaster, job) -> QBERaster in
 			// Find new column names (first column stays in place)
 			if r.columnNames.count > 0 {
 				var columns: [QBEColumn] = [r.columnNames[0]]
@@ -471,7 +473,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		return apply("selectColumns") {(r: QBERaster) -> QBERaster in
+		return apply("selectColumns") {(r: QBERaster, job) -> QBERaster in
 			var indexesToKeep: [Int] = []
 			var namesToKeep: [QBEColumn] = []
 			
@@ -515,7 +517,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func limit(numberOfRows: Int) -> QBEData {
-		return apply("limit") {(r: QBERaster) -> QBERaster in
+		return apply("limit") {(r: QBERaster, job) -> QBERaster in
 			var newData: [[QBEValue]] = []
 			
 			let resultingNumberOfRows = min(numberOfRows, r.rowCount)
@@ -528,7 +530,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func sort(by: [QBEOrder]) -> QBEData {
-		return apply("sort") {(r: QBERaster) -> QBERaster in
+		return apply("sort") {(r: QBERaster, job) -> QBERaster in
 			let columns = r.columnNames
 			
 			let newData = r.raster.sort({ (a, b) -> Bool in
@@ -579,7 +581,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 
 	func offset(numberOfRows: Int) -> QBEData {
-		return apply {(r: QBERaster) -> QBERaster in
+		return apply {(r: QBERaster, job) -> QBERaster in
 			var newData: [[QBEValue]] = []
 			
 			let skipRows = min(numberOfRows, r.rowCount)
@@ -594,7 +596,7 @@ class QBERasterData: NSObject, QBEData {
 	func filter(condition: QBEExpression) -> QBEData {
 		let optimizedCondition = condition.prepare()
 		
-		return apply {(r: QBERaster) -> QBERaster in
+		return apply {(r: QBERaster, job) -> QBERaster in
 			var newData: [QBETuple] = []
 			
 			for rowNumber in 0..<r.rowCount {
@@ -717,7 +719,7 @@ class QBERasterData: NSObject, QBEData {
 		}
 		#endif
 		
-		return apply {(r: QBERaster) -> QBERaster in
+		return apply {(r: QBERaster, job) -> QBERaster in
 			let index = QBEIndex()
 			
 			for rowNumber in 0..<r.rowCount {
@@ -753,6 +755,13 @@ class QBERasterData: NSObject, QBEData {
 						currentIndex.values![column] = [result]
 					}
 				}
+
+				if (rowNumber % QBERaster.progressReportRowInterval) == 0 {
+					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: unsafeAddressOf(self).hashValue)
+					if job?.cancelled == true {
+						return QBERaster()
+					}
+				}
 			}
 
 			// Generate output raster and column headers
@@ -777,7 +786,7 @@ class QBERasterData: NSObject, QBEData {
 			return self
 		}
 		
-		return apply {(r: QBERaster) -> QBERaster in
+		return apply {(r: QBERaster, job) -> QBERaster in
 			let horizontalIndexes = horizontal.map({r.indexOfColumnWithName($0)})
 			let verticalIndexes = vertical.map({r.indexOfColumnWithName($0)})
 			let valuesIndexes = values.map({r.indexOfColumnWithName($0)})
@@ -839,7 +848,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func distinct() -> QBEData {
-		return apply {(r: QBERaster) -> QBERaster in
+		return apply {(r: QBERaster, job) -> QBERaster in
 			var newData: Set<QBEHashableArray<QBEValue>> = []
 			r.raster.each({newData.insert(QBEHashableArray<QBEValue>($0))})
 			return QBERaster(data: newData.map({$0.row}), columnNames: r.columnNames, readOnly: true)
@@ -847,7 +856,7 @@ class QBERasterData: NSObject, QBEData {
 	}
 	
 	func random(numberOfRows: Int) -> QBEData {
-		return apply {(r: QBERaster) -> QBERaster in
+		return apply {(r: QBERaster, job) -> QBERaster in
 			var newData: [[QBEValue]] = []
 			
 			/* Random selection without replacement works like this: first we assign each row a random number. Then, we 
@@ -859,6 +868,13 @@ class QBERasterData: NSObject, QBEData {
 			
 			for rowNumber in 0..<resultNumberOfRows {
 				newData.append(r[randomlySortedIndices[rowNumber]])
+
+				if (rowNumber % QBERaster.progressReportRowInterval) == 0 {
+					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: unsafeAddressOf(self).hashValue)
+					if job?.cancelled == true {
+						return QBERaster()
+					}
+				}
 			}
 			
 			return QBERaster(data: newData, columnNames: r.columnNames, readOnly: true)
