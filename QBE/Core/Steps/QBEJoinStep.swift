@@ -37,7 +37,21 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	} }
 
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([QBESentenceText(String(format: NSLocalizedString("Join data: %@", comment: ""), condition!.explain(locale)))])
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("Join data on", comment: "")),
+			QBESentenceFormula(expression: self.condition ?? QBELiteralExpression(QBEValue.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
+				self?.condition = newExpression
+			}),
+			QBESentenceOptions(options: [
+				QBEJoinType.LeftJoin.rawValue: NSLocalizedString("including", comment: ""),
+				QBEJoinType.InnerJoin.rawValue: NSLocalizedString("ignoring", comment: "")
+			], value: self.joinType.rawValue, callback: { [weak self] (newJoinTypeName) -> () in
+				if let j = QBEJoinType(rawValue: newJoinTypeName) {
+					self?.joinType = j
+				}
+			}),
+			QBESentenceText(NSLocalizedString("rows without matches", comment: ""))
+		])
 	}
 	
 	private func join(right: QBEData) -> QBEJoin? {
