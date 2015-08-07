@@ -178,6 +178,34 @@ import Cocoa
 		}
 	}
 
+	@IBAction func selectPreviousTablet(sender: NSObject) {
+		cycleTablets(-1)
+	}
+
+	@IBAction func selectNextTablet(sender: NSObject) {
+		cycleTablets(1)
+	}
+
+	private func cycleTablets(offset: Int) {
+		if let d = self.document where d.tablets.count > 0 {
+			let currentTablet = documentView.selectedTablet ?? d.tablets[0]
+			if let index = d.tablets.indexOf(currentTablet) {
+				let nextIndex = (index+offset) % d.tablets.count
+				let nextTablet = d.tablets[nextIndex]
+				self.documentView.selectTablet(nextTablet)
+				if let selectedView = documentView.selectedTabletController?.view.superview {
+					if self.workspaceView.magnification != 1.0 {
+						self.workspaceView.zoomView(selectedView)
+					}
+					else {
+						self.workspaceView.animator().magnifyToFitRect(selectedView.frame)
+						//selectedView.scrollRectToVisible(selectedView.bounds)
+					}
+				}
+			}
+		}
+	}
+
 	@IBAction func zoomToAll(sender: NSObject) {
 		zoomToAll()
 	}
@@ -424,6 +452,8 @@ import Cocoa
 	}
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
+		if item.action() == Selector("selectNextTablet:") { return (self.document?.tablets.count > 0) ?? false }
+		if item.action() == Selector("selectPreviousTablet:") { return (self.document?.tablets.count > 0) ?? false }
 		if item.action() == Selector("addButtonClicked:") { return true }
 		if item.action() == Selector("addSequencerTablet:") { return true }
 		if item.action() == Selector("addTabletFromFile:") { return true }

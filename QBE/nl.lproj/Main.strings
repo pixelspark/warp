@@ -616,8 +616,10 @@
 "uPf-Qt-XpM.paletteLabel" = "Toon alles";
 "QnM-NS-IrF.label" = "Selectie";
 "QnM-NS-IrF.paletteLabel" = "Toon selectie";
-"v55-av-755.title" = "Toon selectie";
-"iyV-Df-S2D.title" = "Toon alles";
+"v55-av-755.title" = "Toon geselecteerde tabel";
+"iyV-Df-S2D.title" = "Ga naar volgende tabel";
+"vDq-Sq-t19.title" = "Ga naar vorige tabel";
+"Zqo-PK-tz6.title" = "Toon alle tabellen";
 "dyF-Ue-jgE.title" = "Stop berekenen";
 "qY2-Sw-ffx.title" = "Stop";
 "qY2-Sw-ffx.paletteLabel" = "Stop berekenen";

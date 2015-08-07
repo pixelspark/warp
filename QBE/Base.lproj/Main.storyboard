@@ -626,13 +626,31 @@ CA
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="PYa-SM-ZQg"/>
-                                        <menuItem title="Zoom to all" keyEquivalent=" " id="iyV-Df-S2D">
+                                        <menuItem title="Go to next table" id="iyV-Df-S2D">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+CQ
+</string>
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
-                                                <action selector="zoomToAll:" target="Ady-hI-5gd" id="QHz-dD-gmz"/>
+                                                <action selector="selectNextTablet:" target="Ady-hI-5gd" id="pmU-nW-Kek"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Zoom to selection" keyEquivalent=" " id="v55-av-755">
+                                        <menuItem title="Go to previous table" id="vDq-Sq-t19">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+GQ
+</string>
+                                            <modifierMask key="keyEquivalentModifierMask" shift="YES" control="YES"/>
+                                            <connections>
+                                                <action selector="selectPreviousTablet:" target="Ady-hI-5gd" id="aKv-Ft-K9m"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Zoom to all tables" keyEquivalent=" " id="Zqo-PK-tz6">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <connections>
+                                                <action selector="zoomToAll:" target="Ady-hI-5gd" id="EF5-h1-lky"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Zoom to selected table" keyEquivalent=" " id="v55-av-755">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="zoomSelection:" target="Ady-hI-5gd" id="0rI-wd-4pc"/>
@@ -1211,11 +1229,6 @@ CA
                                         <action selector="zoomSelection:" target="6f7-a7-6o1" id="NrX-OE-0uM"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="C32CAEDE-B9A1-49E9-8C7E-ABAE2BA30F3F" label="Export" paletteLabel="Export data" tag="-1" image="ExportIcon" id="A5A-19-saX">
-                                    <connections>
-                                        <action selector="exportFile:" target="6f7-a7-6o1" id="fzC-Od-uUm"/>
-                                    </connections>
-                                </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="58A66CDB-C539-48F9-875C-790A62D93359" label="Alternatives" paletteLabel="Show alternatives" tag="-1" image="ChangeIcon" id="FIb-De-h7B">
                                     <connections>
                                         <action selector="showSuggestions:" target="6f7-a7-6o1" id="vEM-eL-BsV"/>
@@ -1240,6 +1253,11 @@ CA
                                         <action selector="setFullWorkingSet:" target="6f7-a7-6o1" id="pJO-7z-peH"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="C32CAEDE-B9A1-49E9-8C7E-ABAE2BA30F3F" label="Export" paletteLabel="Export data" tag="-1" image="ExportIcon" id="A5A-19-saX">
+                                    <connections>
+                                        <action selector="exportFile:" target="6f7-a7-6o1" id="fzC-Od-uUm"/>
+                                    </connections>
+                                </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="uPf-Qt-XpM"/>
@@ -1248,6 +1266,7 @@ CA
                                 <toolbarItem reference="OzT-DI-1G1"/>
                                 <toolbarItem reference="qY2-Sw-ffx"/>
                                 <toolbarItem reference="wdl-hf-yLn"/>
+                                <toolbarItem reference="A5A-19-saX"/>
                                 <toolbarItem reference="ZRd-bD-OPv"/>
                             </defaultToolbarItems>
                         </toolbar>
