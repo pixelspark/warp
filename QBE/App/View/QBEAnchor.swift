@@ -156,18 +156,18 @@ internal enum QBEAnchor {
 		case .SouthEast: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + inset/2, inset, inset)
 		case .NorthEast: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + bounds.size.height - 1.5*inset, inset, inset)
 		case .NorthWest: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + bounds.size.height - 1.5*inset, inset, inset)
-		case .North: return CGRectMake(bounds.origin.x + (bounds.size.width - inset)/2, bounds.origin.y + inset/2, inset, inset)
-		case .South: return CGRectMake(bounds.origin.x + (bounds.size.width - inset)/2, bounds.origin.y + bounds.size.height - 1.5*inset, inset, inset)
-		case .West: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + (bounds.size.height - inset)/2, inset, inset)
-		case .East: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + (bounds.size.height - inset)/2, inset, inset)
+		case .North: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + inset/2, bounds.size.width - inset/2.0, inset)
+		case .South: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + bounds.size.height - 1.5*inset, bounds.size.width - inset/2.0, inset)
+		case .West: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + inset/2.0, inset, bounds.size.height - inset/2.0)
+		case .East: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + inset/2.0, inset, bounds.size.height - inset/2.0)
 		case .None: return CGRectZero
 		}
 	}
 	
 	var cursor: NSCursor? { get {
 		switch self {
-		case .North: return NSCursor.resizeUpCursor()
-		case .South: return NSCursor.resizeDownCursor()
+		case .North: return NSCursor.resizeDownCursor()
+		case .South: return NSCursor.resizeUpCursor()
 		case .East: return NSCursor.resizeRightCursor()
 		case .West: return NSCursor.resizeLeftCursor()
 		case .NorthEast: return NSCursor.resizeRightCursor()
