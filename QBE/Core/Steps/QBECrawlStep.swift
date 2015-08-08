@@ -224,7 +224,12 @@ class QBECrawlStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([QBESentenceText(NSLocalizedString("For each row, fetch a web page", comment: ""))])
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("For each row, fetch the web page at", comment: "")),
+			QBESentenceFormula(expression: self.crawler.urlExpression, locale: locale, callback: { [weak self] (newExpression) -> () in
+				self?.crawler.urlExpression = newExpression
+			})
+		])
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {

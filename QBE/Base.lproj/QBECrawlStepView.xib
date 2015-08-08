@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8164.2" systemVersion="14E46" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8173.3" systemVersion="14E46" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8164.2"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8173.3"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBECrawlStepView" customModule="Warp" customModuleProvider="target">
@@ -12,41 +12,15 @@
                 <outlet property="targetErrorField" destination="ZYa-Wz-CI9" id="Ijr-a1-6zD"/>
                 <outlet property="targetStatusField" destination="oEf-dJ-IYk" id="62X-bI-t5a"/>
                 <outlet property="targetTimeField" destination="ZOH-aE-ipZ" id="9Us-3h-R2o"/>
-                <outlet property="urlFormulaField" destination="iqQ-o4-2zq" id="kad-1L-oxR"/>
                 <outlet property="view" destination="6Hb-4o-yI3" id="0mF-NJ-pSh"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customView placeholderIntrinsicWidth="376" placeholderIntrinsicHeight="249" id="6Hb-4o-yI3">
-            <rect key="frame" x="0.0" y="0.0" width="315" height="519"/>
+            <rect key="frame" x="0.0" y="0.0" width="315" height="329"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="63c-ns-rN7">
-                    <rect key="frame" x="3" y="492" width="309" height="17"/>
-                    <constraints>
-                        <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="B7i-zm-y8v"/>
-                    </constraints>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="URL formula:" id="CZU-92-rVZ">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="iqQ-o4-2zq">
-                    <rect key="frame" x="5" y="329" width="305" height="158"/>
-                    <constraints>
-                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="100" id="ys1-0v-SlE"/>
-                    </constraints>
-                    <textFieldCell key="cell" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" allowsEditingTextAttributes="YES" id="OoF-w4-vpo">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                    <connections>
-                        <action selector="updateFromView:" target="-2" id="mFi-tu-5fb"/>
-                    </connections>
-                </textField>
                 <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="jRD-8P-gxb">
                     <rect key="frame" x="5" y="275" width="305" height="22"/>
                     <constraints>
@@ -209,7 +183,6 @@
                 <constraint firstItem="jRD-8P-gxb" firstAttribute="top" secondItem="gfL-tR-Ejb" secondAttribute="bottom" constant="5" id="B9N-Ur-SzP"/>
                 <constraint firstItem="lyh-OM-4W8" firstAttribute="leading" secondItem="6Hb-4o-yI3" secondAttribute="leading" constant="5" id="CvB-hz-IDc"/>
                 <constraint firstItem="ZOH-aE-ipZ" firstAttribute="top" secondItem="LMO-On-JZz" secondAttribute="bottom" constant="5" id="DD8-hD-dYA"/>
-                <constraint firstAttribute="trailing" secondItem="63c-ns-rN7" secondAttribute="trailing" constant="5" id="DOS-cf-Chl"/>
                 <constraint firstItem="Yju-4g-ZaU" firstAttribute="top" secondItem="ZOH-aE-ipZ" secondAttribute="bottom" constant="10" id="DXM-Mb-2Tz"/>
                 <constraint firstItem="gfL-tR-Ejb" firstAttribute="leading" secondItem="6Hb-4o-yI3" secondAttribute="leading" constant="5" id="Dzq-eN-2ZN"/>
                 <constraint firstItem="DOR-Nu-2ZN" firstAttribute="leading" secondItem="6Hb-4o-yI3" secondAttribute="leading" constant="5" id="FC6-vS-QuJ"/>
@@ -218,23 +191,17 @@
                 <constraint firstAttribute="trailing" secondItem="ZYa-Wz-CI9" secondAttribute="trailing" constant="5" id="JgC-BA-6PL"/>
                 <constraint firstItem="ZOH-aE-ipZ" firstAttribute="top" secondItem="LMO-On-JZz" secondAttribute="bottom" constant="5" id="M4o-Rj-XrX"/>
                 <constraint firstItem="DOR-Nu-2ZN" firstAttribute="top" secondItem="jRD-8P-gxb" secondAttribute="bottom" constant="10" id="NGu-H4-c43"/>
-                <constraint firstItem="63c-ns-rN7" firstAttribute="leading" secondItem="6Hb-4o-yI3" secondAttribute="leading" constant="5" id="NHh-3S-YKQ"/>
                 <constraint firstItem="oEf-dJ-IYk" firstAttribute="top" secondItem="lyh-OM-4W8" secondAttribute="bottom" constant="5" id="PxR-Ck-UCk"/>
-                <constraint firstItem="iqQ-o4-2zq" firstAttribute="top" secondItem="63c-ns-rN7" secondAttribute="bottom" constant="5" id="QeY-Jy-gIb"/>
                 <constraint firstAttribute="trailing" secondItem="lyh-OM-4W8" secondAttribute="trailing" constant="5" id="U9a-xt-iOl"/>
                 <constraint firstAttribute="trailing" secondItem="gfL-tR-Ejb" secondAttribute="trailing" constant="5" id="Uk8-dA-Z0c"/>
                 <constraint firstAttribute="trailing" secondItem="ZOH-aE-ipZ" secondAttribute="trailing" constant="5" id="VvF-Iu-Noy"/>
                 <constraint firstAttribute="trailing" secondItem="IUB-eB-2hu" secondAttribute="trailing" constant="5" id="W2I-xP-Aho"/>
                 <constraint firstItem="ZOH-aE-ipZ" firstAttribute="leading" secondItem="6Hb-4o-yI3" secondAttribute="leading" constant="5" id="ZAx-fd-UN2"/>
                 <constraint firstAttribute="trailing" secondItem="oEf-dJ-IYk" secondAttribute="trailing" constant="5" id="cDG-x9-DG0"/>
-                <constraint firstItem="63c-ns-rN7" firstAttribute="top" secondItem="6Hb-4o-yI3" secondAttribute="top" constant="10" id="dBX-79-755"/>
                 <constraint firstAttribute="bottom" secondItem="vXX-dB-cQv" secondAttribute="bottom" constant="5" id="dm6-y1-cA9"/>
                 <constraint firstAttribute="trailing" secondItem="DOR-Nu-2ZN" secondAttribute="trailing" constant="5" id="fC6-io-VNw"/>
-                <constraint firstItem="iqQ-o4-2zq" firstAttribute="leading" secondItem="6Hb-4o-yI3" secondAttribute="leading" constant="5" id="gnX-QF-5Nn"/>
-                <constraint firstItem="gfL-tR-Ejb" firstAttribute="top" secondItem="iqQ-o4-2zq" secondAttribute="bottom" constant="10" id="hfO-2C-XMq"/>
                 <constraint firstItem="LMO-On-JZz" firstAttribute="top" secondItem="oEf-dJ-IYk" secondAttribute="bottom" constant="10" id="iVC-a9-g1E"/>
                 <constraint firstAttribute="trailing" secondItem="jRD-8P-gxb" secondAttribute="trailing" constant="5" id="klq-9v-wH4"/>
-                <constraint firstItem="iqQ-o4-2zq" firstAttribute="top" secondItem="63c-ns-rN7" secondAttribute="bottom" constant="5" id="mq2-pt-yGD"/>
                 <constraint firstAttribute="trailing" secondItem="Yju-4g-ZaU" secondAttribute="trailing" constant="5" id="nSN-a5-zpY"/>
                 <constraint firstItem="oEf-dJ-IYk" firstAttribute="top" secondItem="lyh-OM-4W8" secondAttribute="bottom" constant="5" id="ndb-a7-6oL"/>
                 <constraint firstItem="LMO-On-JZz" firstAttribute="leading" secondItem="6Hb-4o-yI3" secondAttribute="leading" constant="5" id="pQ3-td-WAE"/>
@@ -246,8 +213,8 @@
                 <constraint firstAttribute="trailing" secondItem="Hls-Hh-u4R" secondAttribute="trailing" constant="5" id="tGv-GL-EnZ"/>
                 <constraint firstItem="Yju-4g-ZaU" firstAttribute="leading" secondItem="6Hb-4o-yI3" secondAttribute="leading" constant="5" id="wHT-Fc-3ek"/>
                 <constraint firstItem="vXX-dB-cQv" firstAttribute="leading" secondItem="6Hb-4o-yI3" secondAttribute="leading" constant="5" id="wRS-qX-LM1"/>
+                <constraint firstItem="gfL-tR-Ejb" firstAttribute="top" secondItem="6Hb-4o-yI3" secondAttribute="top" constant="10" id="yxZ-ii-Vcp"/>
                 <constraint firstItem="ZYa-Wz-CI9" firstAttribute="top" secondItem="DOR-Nu-2ZN" secondAttribute="bottom" constant="5" id="zLg-cf-h5X"/>
-                <constraint firstAttribute="trailing" secondItem="iqQ-o4-2zq" secondAttribute="trailing" constant="5" id="zYh-w7-4he"/>
             </constraints>
             <point key="canvasLocation" x="300.5" y="377.5"/>
         </customView>
