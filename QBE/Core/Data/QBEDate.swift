@@ -21,7 +21,7 @@ internal extension NSDate {
 		comps.second = 0
 		calendar.timeZone = NSTimeZone(abbreviation: "UTC")!
 		return calendar.dateFromComponents(comps)!
-		} }
+	} }
 	
 	/** Returns the time at which the indicated Gregorian date starts in the UTC timezone. */
 	static func startOfGregorianDateInUTC(year: Int, month: Int, day: Int) -> NSDate {
@@ -55,7 +55,7 @@ internal extension NSDate {
 	var gregorianComponentsInUTC: NSDateComponents { get {
 		let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
 		return calendar.componentsInTimeZone(NSTimeZone(abbreviation: "UTC")!, fromDate: self)
-		} }
+	} }
 	
 	func fullDaysTo(otherDate: NSDate) -> Int {
 		let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
@@ -84,7 +84,7 @@ internal extension NSDate {
 	time zone. ',999' translates to 23:59 and I'm in UTC+2 currently). */
 	var excelDate: Double? { get {
 		return self.timeIntervalSinceDate(NSDate.excelEpoch) / 86400.0
-		} }
+	} }
 	
 	static func fromExcelDate(date: Double) -> NSDate? {
 		let daysSinceEpoch = Int(floor(date))
@@ -108,9 +108,9 @@ internal extension NSDate {
 		formatter.timeZone = NSTimeZone(abbreviation: "UTC")
 		formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 		return formatter.stringFromDate(self)
-		} }
+	} }
 	
 	var unixTime: Double { get {
 		return self.timeIntervalSince1970
-		} }
+	} }
 }

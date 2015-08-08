@@ -17,6 +17,7 @@
 		651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 651988E51A0F9C30003463AA /* CHCSVParser.m */; };
 		651BEB111AC2B0FA00B1CCC0 /* ltqnorm.c in Sources */ = {isa = PBXBuildFile; fileRef = 651BEB0F1AC2B0FA00B1CCC0 /* ltqnorm.c */; };
 		6526F0121AD2A41800A92777 /* pivot.html in Resources */ = {isa = PBXBuildFile; fileRef = 6526F0101AD2A41800A92777 /* pivot.html */; };
+		652FB9E91B75F1090045943C /* QBEFormulaEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652FB9E81B75F1090045943C /* QBEFormulaEditorViewController.swift */; };
 		6531FBDE1ABD9A5800EBCF41 /* QBEDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = 6531FBDD1ABD9A5800EBCF41 /* QBEDocument.icns */; };
 		654297121AB98E6B000472E6 /* QBEMySQLSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 654297101AB98E6B000472E6 /* QBEMySQLSourceStepView.xib */; };
 		65436ED21B30C20600636299 /* libcrypto.0.9.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65436ED01B30C20600636299 /* libcrypto.0.9.8.dylib */; };
@@ -298,6 +299,7 @@
 		651BEB101AC2B0FA00B1CCC0 /* ltqnorm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ltqnorm.h; path = Libraries/ltqnorm.h; sourceTree = "<group>"; };
 		6526F0111AD2A41800A92777 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = QBE/Base.lproj/pivot.html; sourceTree = SOURCE_ROOT; };
 		6528728B1A5D16C200C155FA /* SwiftParser.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftParser.xcodeproj; path = "Libraries/swift-parser-generator/SwiftParser.xcodeproj"; sourceTree = "<group>"; };
+		652FB9E81B75F1090045943C /* QBEFormulaEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFormulaEditorViewController.swift; sourceTree = "<group>"; };
 		6531FBDD1ABD9A5800EBCF41 /* QBEDocument.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = QBEDocument.icns; path = ../../QBEDocument.icns; sourceTree = "<group>"; };
 		654296D81AB83123000472E6 /* config-win.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "config-win.h"; sourceTree = "<group>"; };
 		654296D91AB83123000472E6 /* dbug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dbug.h; sourceTree = "<group>"; };
@@ -613,6 +615,7 @@
 				65A0DF701AF299C20005C50F /* QBEDataViewController.swift */,
 				65A0DF711AF299C20005C50F /* QBEDocumentViewController.swift */,
 				65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */,
+				652FB9E81B75F1090045943C /* QBEFormulaEditorViewController.swift */,
 				65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */,
 				65A0DF6F1AF299C20005C50F /* QBESentenceViewController.swift */,
 				65A0DF721AF299C20005C50F /* QBESettingsViewController.swift */,
@@ -1075,6 +1078,7 @@
 				65A0DFEF1AF299F30005C50F /* QBERasterStep.swift in Sources */,
 				65A0DFC81AF299F30005C50F /* QBERaster.swift in Sources */,
 				65A0DF941AF299C20005C50F /* QBETablet.swift in Sources */,
+				652FB9E91B75F1090045943C /* QBEFormulaEditorViewController.swift in Sources */,
 				65A9817D1AF357C2006BACA7 /* QBEStepItemView.swift in Sources */,
 				65A0DFE91AF299F30005C50F /* QBEPivotStep.swift in Sources */,
 				65A0DFD11AF299F30005C50F /* QBEStep.swift in Sources */,

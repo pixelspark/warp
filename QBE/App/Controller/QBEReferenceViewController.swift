@@ -1,25 +1,25 @@
 import Cocoa
 
+protocol QBEReferenceViewDelegate: NSObjectProtocol {
+	func referenceView(view: QBEReferenceViewController, didSelectFunction: QBEFunction)
+}
+
 class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTableViewDelegate {
-	/** When a function is selected and 'inserted' from this reference view, a notification with the name given below is
-	sent. The 'object' of the NSNotification will contain the raw (internal) name of the selected QBEFunction (i.e. its
-	rawValue). */
-	static let notificationName = "nl.pixelspark.Warp.QBEFunctionName"
-	
-	@IBOutlet var searchField: NSSearchField?
-	@IBOutlet var valueList: NSTableView?
-	@IBOutlet var exampleLabel: NSTextField!
+	@IBOutlet private var searchField: NSSearchField?
+	@IBOutlet private var valueList: NSTableView?
+	@IBOutlet private var exampleLabel: NSTextField!
 	
 	private var locale: QBELocale?
 	private var functions: [String] = []
+	weak var delegate: QBEReferenceViewDelegate? = nil
 	
 	@IBAction func insertFormula(sender: NSObject) {
 		if let selectedRow = valueList?.selectedRow {
 			if selectedRow >= 0 && selectedRow < functions.count {
 				let selectedName = functions[selectedRow]
-				let function = locale!.functionWithName(selectedName)!
-				let n = NSNotification(name: QBEReferenceViewController.notificationName, object: function.rawValue)
-				NSNotificationCenter.defaultCenter().postNotification(n)
+				if let function = locale?.functionWithName(selectedName) {
+					delegate?.referenceView(self, didSelectFunction: function)
+				}
 			}
 		}
 	}
@@ -119,5 +119,15 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 	
 	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
 		return functions.count
+	}
+
+	@IBAction func didDoubleClickRow(sender: NSObject) {
+		insertFormula(sender)
+	}
+
+	override func awakeFromNib() {
+		super.awakeFromNib()
+		self.valueList?.doubleAction = Selector("didDoubleClickRow:")
+		self.valueList?.target = self
 	}
 }

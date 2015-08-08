@@ -1,6 +1,6 @@
 import Cocoa
 
-class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate {
+class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate, QBEFormulaEditorViewDelegate {
 	@IBOutlet var tokenField: NSTokenField!
 	@IBOutlet var formulaField: NSTextField!
 	@IBOutlet var backButton: NSButton!
@@ -139,25 +139,18 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 			return menu
 		}
-		else if let inputToken = representedObject as? QBESentenceFormula, let locale = self.delegate?.locale {
+		else if let inputToken = representedObject as? QBESentenceFormula {
 			editingToken = QBEEditingToken(inputToken)
-			let borderView = NSView()
-			borderView.frame = NSMakeRect(0, 0, 250, 111+2+8)
-			let textField = NSTextField(frame: NSMakeRect(8, 8, 250 - 2*8, 111))
-			textField.font = NSFont.userFixedPitchFontOfSize(NSFont.systemFontSize())
-			if let formula = QBEFormula(formula: inputToken.expression.toFormula(locale, topLevel: true), locale: locale) {
-				textField.attributedStringValue = formula.syntaxColoredFormula
-			}
-			textField.delegate = self
-			textField.autoresizingMask = []
-			borderView.addSubview(textField)
 
-			let item = NSMenuItem()
-			item.view = borderView
-			let menu = NSMenu()
-			menu.addItem(item)
-			menu.addItem(NSMenuItem(title: NSLocalizedString("OK", comment: ""), action: Selector("dismissInputEditor:"), keyEquivalent: ""))
-			return menu
+			/* We want to show a popover, but NSTokenField only lets us show a menu. So return an empty menu and 
+			asynchronously present a popover right at this location */
+			if let event = self.view.window?.currentEvent {
+				QBEAsyncMain {
+					self.editFormula(event)
+				}
+			}
+
+			return NSMenu()
 		}
 		else if let inputToken = representedObject as? QBESentenceFile {
 			self.editingToken = QBEEditingToken(inputToken)
@@ -307,6 +300,27 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	@IBAction func configure(sender: NSObject) {
 		if let s = self.editingStep, let stepView = QBEFactory.sharedInstance.viewForStep(s.self, delegate: delegate!) {
 			self.presentViewController(stepView, asPopoverRelativeToRect: configureButton.frame, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Semitransient)
+		}
+	}
+
+	func formulaEditor(view: QBEFormulaEditorViewController, didChangeExpression newExpression: QBEExpression?) {
+		if let inputToken = editingToken?.token as? QBESentenceFormula, let s = self.editingStep {
+			inputToken.change(newExpression ?? QBELiteralExpression(QBEValue.EmptyValue))
+			self.delegate?.suggestionsView(self, previewStep: s)
+			updateView()
+		}
+	}
+
+	func editFormula(sender: NSEvent) {
+		if let inputToken = editingToken?.token as? QBESentenceFormula, let locale = self.delegate?.locale {
+			if let editor = self.storyboard?.instantiateControllerWithIdentifier("formulaEditor") as? QBEFormulaEditorViewController {
+				editor.delegate = self
+				editor.startEditingExpression(inputToken.expression, locale: locale)
+				let windowRect = NSMakeRect(sender.locationInWindow.x + 5, sender.locationInWindow.y, 1, 1)
+				var viewRect = self.view.convertRect(windowRect, fromView: nil)
+				viewRect.origin.y = 0.0
+				self.presentViewController(editor, asPopoverRelativeToRect: viewRect, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
+			}
 		}
 	}
 }

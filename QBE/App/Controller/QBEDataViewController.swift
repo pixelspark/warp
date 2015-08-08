@@ -102,7 +102,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func tableGrid(aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> AnyObject! {
 		if let r = raster {
-			if columnIndex>=0 {
+			if columnIndex >= 0 && Int(columnIndex) < r.columnCount {
 				let x = r[Int(rowIndex), Int(columnIndex)]
 				return locale.localStringFor(x)
 			}
