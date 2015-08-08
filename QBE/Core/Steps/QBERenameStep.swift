@@ -9,7 +9,34 @@ class QBERenameStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([QBESentenceText(NSLocalizedString("Rename columns", comment: ""))])
+		if renames.count == 0 {
+			return QBESentence([QBESentenceText(NSLocalizedString("Rename columns", comment: ""))])
+		}
+		else if renames.count == 1 {
+			let rename = renames.first!
+			return QBESentence([
+				QBESentenceText(NSLocalizedString("Rename column", comment: "")),
+				QBESentenceTextInput(value: rename.0.name, callback: { [weak self] (newName) -> (Bool) in
+					if !newName.isEmpty {
+						let oldTo = self?.renames.removeValueForKey(rename.0)
+						self?.renames[QBEColumn(newName)] = oldTo
+						return true
+					}
+					return false
+				}),
+				QBESentenceText(NSLocalizedString("to", comment: "")),
+				QBESentenceTextInput(value: rename.1.name, callback: { [weak self] (newName) -> (Bool) in
+					if !newName.isEmpty {
+						self?.renames[rename.0] = QBEColumn(newName)
+						return true
+					}
+					return false
+				})
+			])
+		}
+		else {
+			return QBESentence([QBESentenceText(String(format: NSLocalizedString("Rename %d columns", comment: ""), renames.count))])
+		}
 	}
 	
 	required init(coder aDecoder: NSCoder) {
