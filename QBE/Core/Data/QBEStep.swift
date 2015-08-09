@@ -7,7 +7,7 @@ the 'full' data (which is the full dataset on which the final data operations ar
 
 Subclasses of QBEStep implement the data manipulation in the apply function, and should implement the description method
 as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. */
-class QBEStep: NSObject {
+class QBEStep: NSObject, NSCoding {
 	static let dragType = "nl.pixelspark.Warp.Step"
 	
 	/** Creates a data object representing the result of an 'example' calculation of the result of this QBEStep. The
@@ -243,6 +243,48 @@ class QBETransposeStep: QBEStep {
 	}
 }
 
+/** A sentence is a string of tokens that describe the action performed by a step in natural language, and allow for the
+configuration of that step. For example, a step that limits the number of rows in a result set may have a sentence like 
+"limit to [x] rows". In this case, the sentence consists of three tokens: a constant text ('limit to'), a configurable
+number token ('x') and another constant text ('rows'). */
+class QBESentence {
+	private(set) var tokens: [QBESentenceToken]
+
+	init(_ tokens: [QBESentenceToken]) {
+		self.tokens = tokens
+	}
+
+	static let formatStringTokenPlaceholder = "[#]"
+
+	/** Create a sentence based on a formatting string and a set of tokens. This allows for flexible localization of 
+	sentences. The format string may contain instances of '[#]' as placeholders for tokens. This is the preferred way
+	of constructing sentences, since it allows for proper localization (word order may be different between languages).*/
+	init(format: String, _ tokens: QBESentenceToken...) {
+		self.tokens = []
+
+		var startIndex = format.startIndex
+		for token in tokens {
+			if let nextToken = format.rangeOfString(QBESentence.formatStringTokenPlaceholder, options: [], range: Range(start: startIndex, end: format.endIndex)) {
+				let constantString = format.substringWithRange(Range(start: startIndex, end: nextToken.startIndex))
+				self.tokens.append(QBESentenceText(constantString))
+				self.tokens.append(token)
+				startIndex = nextToken.endIndex
+			}
+			else {
+				fatalError("There are more tokens than there can be placed in the format string '\(format)'")
+			}
+		}
+
+		if distance(startIndex, format.endIndex)>0 {
+			self.tokens.append(QBESentenceText(format.substringWithRange(Range(start: startIndex, end: format.endIndex))))
+		}
+	}
+
+	var stringValue: String { get {
+		return self.tokens.map({ return $0.label }).implode(" ")
+	} }
+}
+
 protocol QBESentenceToken: NSObjectProtocol {
 	var label: String { get }
 	var isToken: Bool { get }
@@ -379,16 +421,4 @@ class QBESentenceFile: NSObject, QBESentenceToken {
 	}
 
 	var isToken: Bool { get { return true } }
-}
-
-class QBESentence {
-	private(set) var tokens: [QBESentenceToken]
-
-	init(_ tokens: [QBESentenceToken]) {
-		self.tokens = tokens
-	}
-
-	var stringValue: String { get {
-		return self.tokens.map({ return $0.label }).implode(" ")
-	} }
 }

@@ -15,17 +15,15 @@ class QBESortStep: QBEStep {
 
 	override func sentence(locale: QBELocale) -> QBESentence {
 		if orders.count == 0 {
-			return QBESentence([
-				QBESentenceText(NSLocalizedString("Sort rows on", comment: "")),
+			return QBESentence(format: NSLocalizedString("Sort rows on [#]", comment: ""),
 				QBESentenceFormula(expression: QBELiteralExpression(QBEValue.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
 					self?.orders.append(QBEOrder(expression: newExpression, ascending: true, numeric: true))
 				})
-			])
+			)
 		}
 		if orders.count == 1 {
 			let order = orders[0]
-			return QBESentence([
-				QBESentenceText(NSLocalizedString("Sort rows on", comment: "")),
+			return QBESentence(format: NSLocalizedString("Sort rows on [#][#][#]", comment: ""),
 				QBESentenceFormula(expression: order.expression ?? QBELiteralExpression(.BoolValue(false)), locale: locale, callback: { (newExpression) -> () in
 					order.expression = newExpression
 				}),
@@ -41,7 +39,7 @@ class QBESortStep: QBEStep {
 				], value: order.ascending ? "ascending" : "descending", callback: { (newOrder) -> () in
 					order.ascending = (newOrder == "ascending")
 				})
-			])
+			)
 		}
 		else {
 			return QBESentence([

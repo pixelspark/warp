@@ -14,8 +14,7 @@ class QBEFlattenStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([
-			QBESentenceText(NSLocalizedString("For each cell, put its value in column", comment: "")),
+		return QBESentence(format: NSLocalizedString("For each cell, put its value in column [#], the column name in [#], and in [#] the result of [#]", comment: ""),
 			QBESentenceTextInput(value: self.valueColumn.name, callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {
 					self?.valueColumn = QBEColumn(newName)
@@ -23,7 +22,6 @@ class QBEFlattenStep: QBEStep {
 				}
 				return false
 			}),
-			QBESentenceText(NSLocalizedString(", the column name in", comment: "")),
 			QBESentenceTextInput(value: self.colColumn?.name ?? "", callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {
 					self?.colColumn = QBEColumn(newName)
@@ -33,7 +31,6 @@ class QBEFlattenStep: QBEStep {
 				}
 				return true
 			}),
-			QBESentenceText(NSLocalizedString(", and in", comment: "")),
 			QBESentenceTextInput(value: self.rowColumn?.name ?? "", callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {
 					self?.rowColumn = QBEColumn(newName)
@@ -43,11 +40,10 @@ class QBEFlattenStep: QBEStep {
 				}
 				return true
 			}),
-			QBESentenceText(NSLocalizedString("the result of", comment: "")),
 			QBESentenceFormula(expression: self.rowIdentifier ?? QBELiteralExpression(QBEValue("")), locale: locale, callback: { [weak self] (expression) -> () in
 				self?.rowIdentifier = expression
 			})
-		])
+		)
 	}
 	
 	required init(coder aDecoder: NSCoder) {

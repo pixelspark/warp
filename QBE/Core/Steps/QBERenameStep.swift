@@ -14,8 +14,7 @@ class QBERenameStep: QBEStep {
 		}
 		else if renames.count == 1 {
 			let rename = renames.first!
-			return QBESentence([
-				QBESentenceText(NSLocalizedString("Rename column", comment: "")),
+			return QBESentence(format: NSLocalizedString("Rename column [#] to [#]", comment: ""),
 				QBESentenceTextInput(value: rename.0.name, callback: { [weak self] (newName) -> (Bool) in
 					if !newName.isEmpty {
 						let oldTo = self?.renames.removeValueForKey(rename.0)
@@ -24,7 +23,6 @@ class QBERenameStep: QBEStep {
 					}
 					return false
 				}),
-				QBESentenceText(NSLocalizedString("to", comment: "")),
 				QBESentenceTextInput(value: rename.1.name, callback: { [weak self] (newName) -> (Bool) in
 					if !newName.isEmpty {
 						self?.renames[rename.0] = QBEColumn(newName)
@@ -32,7 +30,7 @@ class QBERenameStep: QBEStep {
 					}
 					return false
 				})
-			])
+			)
 		}
 		else {
 			return QBESentence([QBESentenceText(String(format: NSLocalizedString("Rename %d columns", comment: ""), renames.count))])

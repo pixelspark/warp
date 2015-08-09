@@ -134,17 +134,15 @@ class QBELimitStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([
-			QBESentenceText(NSLocalizedString("Select the first", comment: "")),
+		return QBESentence(format: NSLocalizedString(self.numberOfRows > 1 ? "Select the first [#] rows" : "Select row [#]", comment: ""),
 			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
 				if let x = locale.valueForLocalString(newValue).intValue {
 					self.numberOfRows = x
 					return true
 				}
 				return false
-			}),
-			QBESentenceText(NSLocalizedString(self.numberOfRows > 1 ? "rows" : "row", comment: ""))
-		])
+			})
+		)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -178,17 +176,15 @@ class QBEOffsetStep: QBEStep {
 	}
 	
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([
-			QBESentenceText(NSLocalizedString("Skip the first", comment: "")),
+		return QBESentence(format: NSLocalizedString( numberOfRows > 1 ? "Skip the first [#] rows" : "Skip row [#]", comment: ""),
 			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
 				if let x = locale.valueForLocalString(newValue).intValue {
 					self.numberOfRows = x
 					return true
 				}
 				return false
-			}),
-			QBESentenceText(NSLocalizedString(self.numberOfRows > 1 ? "rows" : "row", comment: ""))
-			])
+			})
+		)
 	}
 	
 	required init(coder aDecoder: NSCoder) {

@@ -2178,8 +2178,8 @@ DQ
                         <rect key="frame" x="0.0" y="0.0" width="450" height="22"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <tokenField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" misplaced="YES" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi">
-                                <rect key="frame" x="2" y="0.0" width="407" height="22"/>
+                            <tokenField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi">
+                                <rect key="frame" x="2" y="0.0" width="408" height="22"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="sHi-T4-777"/>
                                 </constraints>
@@ -2192,8 +2192,8 @@ DQ
                                     <outlet property="delegate" destination="dZx-NB-Ues" id="uUB-tA-fbP"/>
                                 </connections>
                             </tokenField>
-                            <button hidden="YES" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CCw-Hx-VEJ">
-                                <rect key="frame" x="405" y="-6" width="50" height="32"/>
+                            <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CCw-Hx-VEJ">
+                                <rect key="frame" x="406" y="-6" width="50" height="32"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="38" id="pY0-sW-1qB"/>
                                 </constraints>

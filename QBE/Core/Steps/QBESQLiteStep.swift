@@ -666,8 +666,7 @@ class QBESQLiteSourceStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([
-			QBESentenceText(NSLocalizedString("Load table", comment: "")),
+		return QBESentence(format: NSLocalizedString("Load table [#] from SQLite database [#]", comment: ""),
 			QBESentenceList(value: self.tableName ?? "", provider: { [weak self] (cb) -> () in
 				if let d = self?.db {
 					cb(d.tableNames)
@@ -675,11 +674,10 @@ class QBESQLiteSourceStep: QBEStep {
 			}, callback: { [weak self] (newTable) -> () in
 				self?.tableName = newTable
 			}),
-			QBESentenceText(NSLocalizedString("from SQLite database", comment: "")),
 			QBESentenceFile(file: self.file, allowedFileTypes: ["org.sqlite.v3"], callback: { [weak self] (newFile) -> () in
 				self?.file = newFile
 			})
-		])
+		)
 	}
 	
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {

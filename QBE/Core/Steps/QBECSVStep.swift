@@ -418,12 +418,11 @@ class QBECSVSourceStep: QBEStep {
 			"public.plain-text"
 		]
 
-		return QBESentence([
-			QBESentenceText(NSLocalizedString("Read CSV file", comment: "")),
+		return QBESentence(format: NSLocalizedString("Read CSV file [#]", comment: ""),
 			QBESentenceFile(file: self.file, allowedFileTypes: fileTypes, callback: { [weak self] (newFile) -> () in
 				self?.file = newFile
 			})
-		])
+		)
 	}
 	
 	override func willSaveToDocument(atURL: NSURL) {
