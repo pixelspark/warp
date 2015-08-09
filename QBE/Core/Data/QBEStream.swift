@@ -444,49 +444,16 @@ private class QBEFilterTransformer: QBETransformer {
 /** The QBERandomTransformer randomly samples the specified amount of rows from a stream. It uses reservoir sampling to
 achieve this. */
 private class QBERandomTransformer: QBETransformer {
-	var sample: [QBETuple] = []
-	let sampleSize: Int
-	var samplesSeen: Int = 0
+	var reservoir: QBEReservoir<QBETuple>
 	
 	init(source: QBEStream, numberOfRows: Int) {
-		sampleSize = numberOfRows
+		reservoir = QBEReservoir<QBETuple>(sampleSize: numberOfRows)
 		super.init(source: source)
 	}
 	
 	private override func transform(var rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
-		// Reservoir initial fill
-		if sample.count < sampleSize {
-			let length = sampleSize - sample.count
-			
-			job.time("Reservoir fill", items: min(length,rows.count), itemType: "rows") {
-				sample += rows[0..<min(length,rows.count)]
-				self.samplesSeen += min(length,rows.count)
-				
-				if length >= rows.count {
-					rows = []
-				}
-				else {
-					rows = rows[min(length,rows.count)..<rows.count]
-				}
-			}
-		}
-		
-		/* Reservoir replace (note: if the sample size is larger than the total number of samples we'll ever recieve,
-		this will never execute. We will return the full sample in that case below. */
-		if sample.count == sampleSize {
-			job.time("Reservoir replace", items: rows.count, itemType: "rows") {
-				for i in 0..<rows.count {
-					/* The chance of choosing an item starts out at (1/s) and ends at (1/N), where s is the sample size and N
-					is the number of actual input rows. */
-					let probability = Int.random(0, upper: self.samplesSeen+i)
-					if probability < self.sampleSize {
-						// Place this sample in the list at the randomly chosen position
-						self.sample[probability] = rows[i]
-					}
-				}
-				
-				self.samplesSeen += rows.count
-			}
+		job.time("Reservoir fill", items: rows.count, itemType: "rows") {
+			reservoir.add(rows)
 		}
 		
 		if hasNext {
@@ -495,12 +462,12 @@ private class QBERandomTransformer: QBETransformer {
 		}
 		else {
 			// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
-			callback(.Success(ArraySlice(sample)), true)
+			callback(.Success(ArraySlice(reservoir.sample)), true)
 		}
 	}
 	
 	private override func clone() -> QBEStream {
-		return QBERandomTransformer(source: source.clone(), numberOfRows: sampleSize)
+		return QBERandomTransformer(source: source.clone(), numberOfRows: reservoir.sampleSize)
 	}
 }
 
