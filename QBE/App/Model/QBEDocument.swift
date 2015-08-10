@@ -43,8 +43,14 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	
 	override func makeWindowControllers() {
 		let storyboard = NSStoryboard(name: "Main", bundle: nil)
-		let windowController = storyboard.instantiateControllerWithIdentifier("Document Window Controller") as! NSWindowController
-		self.addWindowController(windowController)
+
+		if !QBESettings.sharedInstance.once("tour", callback: { () -> () in
+			let ctr = storyboard.instantiateControllerWithIdentifier("tour") as! NSWindowController
+			self.addWindowController(ctr)
+		}) {
+			let windowController = storyboard.instantiateControllerWithIdentifier("Document Window Controller") as! NSWindowController
+			self.addWindowController(windowController)
+		}
 	}
 	
 	func encodeWithCoder(coder: NSCoder) {

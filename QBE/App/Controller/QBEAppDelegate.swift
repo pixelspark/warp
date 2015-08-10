@@ -25,7 +25,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate {
 	class var sharedInstance: QBEAppDelegate { get {
 		return NSApplication.sharedApplication().delegate as! QBEAppDelegate
 	} }
-	
+
 	func application(sender: NSApplication, openFile filename: String) -> Bool {
 		let dc = NSDocumentController.sharedDocumentController()
 		let u = NSURL(fileURLWithPath: filename)

@@ -1,0 +1,26 @@
+"tour.0.title" = "Welkom bij Warp!";
+"tour.0.description" = "Om zo snel mogelijk te kunnen beginnen met het analyseren van gegevens geven we je graag een rondleiding in Warp.";
+
+"tour.1.title" = "Voeg eerst wat data toe (zo groot als je wilt)";
+"tour.1.description" = "Je kunt databestanden slepen naar het Warpvenster, of je kunt op de plusknop rechtsboven klikken om een databestand toe te voegen.";
+
+"tour.2.title" = "In Warp zie je datasets als een tabel.";
+"tour.2.description" = "Bovenaan legt Warp uit wat er is gebeurd: 'Lees CSV'. Klik op de bestandsnaam om het bestand te vervangen door een andere.";
+
+"tour.3.title" = "Je kunt meer dan één dataset toevoegen.";
+"tour.3.description" = "Sleep simpelweg nog meer data naar het venster, of gebruik de plusknop. Ben je het overzicht kwijt, gebruik dan het vergrootglas linksboven.";
+
+"tour.4.title" = "Tijd om gegevens te koppelen!";
+"tour.4.description" = "Om gegevens te koppelen sleep je vanaf de cirkel rechtsboven in de ene tabel naar de andere tabel.";
+
+"tour.5.title" = "Of wil je misschien eerst wat gegevens bewerken?";
+"tour.5.description" = "In Warp kun je iedere waarde wijzigen door erop te klikken. Langere teksten kun je bovenaan in de formulebalk aanpassen.";
+
+"tour.6.title" = "Iedere bewerking die je doet wordt als rekenstap toegevoegd op de tabel.";
+"tour.6.description" = "Warp probeert te begrijpen wat je doet, en het te herhalen op alle waarden in dezelfde kolom. Klik op een stap als je toch iets anders bedoelde. Je kunt stappen altijd sorteren of verwijderen.";
+
+"tour.7.title" = "De finishing touch.";
+"tour.7.description"= "Aan de bovenkant van het scherm kun je op de blauwe blokjes klikken om iedere bewerking aan te passen.";
+
+"tour.8.title" = "Je bent er helemaal klaar voor!";
+"tour.8.description" = "Je kunt deze rondleiding opnieuw starten vanuit het Help-menu. We hopen dat je veel plezier aan Warp beleeft.";

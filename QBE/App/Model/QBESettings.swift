@@ -111,13 +111,15 @@ class QBESettings {
 	}
 	
 	/** Call the provided callback only when this function has not been called before with the same key. This can be used
-	to show the user certain things (such as tips) only once. */
-	func once(key: String, callback: () -> ()) {
+	to show the user certain things (such as tips) only once. Returns true if the block was executed. */
+	func once(key: String, callback: () -> ()) -> Bool {
 		let onceKey = "once.\(key)"
 		if !defaults.boolForKey(onceKey) {
 			defaults.setBool(true, forKey: onceKey)
 			callback()
+			return true
 		}
+		return false
 	}
 	
 	func resetOnces() {

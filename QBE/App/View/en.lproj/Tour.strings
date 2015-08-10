@@ -1,0 +1,26 @@
+"tour.0.title" = "Welcome to Warp!";
+"tour.0.description" = "To get you up to speed as fast as possible, we'd like to give you a quick tour of how to analyze data with Warp.";
+
+"tour.1.title" = "First, add some data (as large as you want)";
+"tour.1.description" = "You can drag any data file to the Warp window, or click the '+' button in the top right corner.";
+
+"tour.2.title" = "Data will show up in the Warp window as a table.";
+"tour.2.description" = "Near the top, Warp explains what it has done: 'Read CSV'. Click the file name to replace it with a different file.";
+
+"tour.3.title" = "You can add more than one data set.";
+"tour.3.description" = "Simply drag more data to the window, or use the '+' button. Click the 'zoom out' button in the top left to see all tables.";
+
+"tour.4.title" = "Time to link some data!";
+"tour.4.description" = "To link (join) data from one table to the other, drag from the circle at the top right of a table to another.";
+
+"tour.5.title" = "Or maybe you want to edit some data first?";
+"tour.5.description" = "In Warp, you can edit any value by double clicking it. Longer values can be edited with the text bar near the top.";
+
+"tour.6.title" = "For each edit you make, Warp adds a processing step to the table.";
+"tour.6.description" = "Warp will try to understand what you did, and repeat it to all values in the same column. Click a step if you wanted something different. You can always re-order or remove steps.";
+
+"tour.7.title" = "Let's fine-tune this.";
+"tour.7.description"= "Near the top of the window, you can click any of the blue rectangles to change Warp what to do. ";
+
+"tour.8.title" = "You're good to go!";
+"tour.8.description" = "You can always restart this tour from the Help menu. We hope you enjoy Warp as your go-to tool for data processing!";
