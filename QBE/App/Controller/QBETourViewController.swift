@@ -10,12 +10,44 @@ class QBETourWindowController: NSWindowController {
 	}
 }
 
-/** The tour controller will show image assets named "Tour@@" where '@@' is between 1 and the tourItemCount. It will fetch
-descriptive texts using NSLocalizedString on the Tour strings bundle. */
-class QBETourViewController: NSViewController {
-	static let tourPrefix = "Tour"
-	static let tourItemCount = 8
+/** The tour controller facilitates a 'guided tour' consisting of a slide show of images and texts. The images are named
+images included as resource with the app, and the texts are set in a strings file. 
 
+The tour is usually started at the point where normally a document view controller would be instantiated. The tour 
+controller keeps hold of the document while the tour is running, and will instantiate the normal document view controller
+afterwards. The following code snipped can be added to an NSDocument:
+
+override func makeWindowControllers() {
+	let storyboard = NSStoryboard(name: "Main", bundle: nil)
+
+	if tour {
+		let ctr = storyboard.instantiateControllerWithIdentifier("tour") as! NSWindowController
+		self.addWindowController(ctr)
+	}
+	else {
+		let windowController = storyboard.instantiateControllerWithIdentifier("Document Window Controller") as! NSWindowController
+		self.addWindowController(windowController)
+	}
+} */
+class QBETourViewController: NSViewController {
+	/** Prefix for the text strings in the tour. The strings table should contain strings for "prefix.#.title" and
+	"prefix.#.description", where '#' is the step number (starting at 0) and 'prefix' is the prefix set here. */
+	var tourStringsPrefix = "tour"
+
+	/** Tour images have a name prefixed with tourAssetPrefix, followed by the step number (e.g. Tour0, Tour1, ..) */
+	var tourAssetPrefix = "Tour"
+
+	/** The name of the strings table that contains the tour's texts */
+	var tourStringsTable = "Tour"
+
+	/* // The number of items in this tour */
+	var tourItemCount = 8
+
+	/** If a document is set, the tour controller will open it after the tour has finished, in its document view. If no
+	 document is set, the tour will just close. */
+	var document: QBEDocument? = nil
+
+	private var currentStep = 0
 	@IBOutlet var imageView: NSImageView!
 	@IBOutlet var textView: NSTextField!
 	@IBOutlet var subTextView: NSTextField!
@@ -23,9 +55,6 @@ class QBETourViewController: NSViewController {
 	@IBOutlet var pageLabel: NSTextField!
 	@IBOutlet var nextButton: NSButton!
 	@IBOutlet var skipButton: NSButton!
-
-	var document: QBEDocument? = nil
-	private var currentStep = 0
 
 	private func nextStep(animated: Bool) {
 		if animated {
@@ -55,27 +84,27 @@ class QBETourViewController: NSViewController {
 	}
 
 	private func updateView() {
-		pageLabel.hidden = currentStep == (QBETourViewController.tourItemCount) || currentStep == 0
+		pageLabel.hidden = currentStep == (tourItemCount) || currentStep == 0
 		skipButton.hidden = pageLabel.hidden
 
 		if currentStep == 0 {
 			nextButton.title = NSLocalizedString("Okay, show me!", comment: "")
 		}
-		else if currentStep == QBETourViewController.tourItemCount {
+		else if currentStep == tourItemCount {
 			nextButton.title = NSLocalizedString("Get started", comment: "")
 		}
 		else {
 			nextButton.title = NSLocalizedString("Got it!", comment: "")
 		}
 		
-		pageLabel.stringValue = currentStep > 0 ? String(format:NSLocalizedString("Step %d of %d", comment: ""), currentStep, QBETourViewController.tourItemCount - 1) : ""
-		imageView.image = NSImage(named: "Tour\(self.currentStep)")
-		textView.stringValue = NSLocalizedString("tour.\(currentStep).title", tableName: "Tour", bundle: NSBundle.mainBundle(), value: "", comment: "")
-		subTextView.stringValue = NSLocalizedString("tour.\(currentStep).description", tableName: "Tour", bundle: NSBundle.mainBundle(), value: "", comment: "")
+		pageLabel.stringValue = currentStep > 0 ? String(format:NSLocalizedString("Step %d of %d", comment: ""), currentStep, tourItemCount - 1) : ""
+		imageView.image = NSImage(named: "\(tourAssetPrefix)\(self.currentStep)")
+		textView.stringValue = NSLocalizedString("\(tourStringsPrefix).\(currentStep).title", tableName: self.tourStringsTable, bundle: NSBundle.mainBundle(), value: "", comment: "")
+		subTextView.stringValue = NSLocalizedString("\(tourStringsPrefix).\(currentStep).description", tableName: self.tourStringsTable, bundle: NSBundle.mainBundle(), value: "", comment: "")
 	}
 
 	@IBAction func next(sender: NSObject) {
-		if currentStep < QBETourViewController.tourItemCount {
+		if currentStep < tourItemCount {
 			nextStep(true)
 		}
 		else {
