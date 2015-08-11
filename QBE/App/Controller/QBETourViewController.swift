@@ -114,6 +114,7 @@ class QBETourViewController: NSViewController {
 
 	override func viewWillAppear() {
 		self.currentStep = 0
+		self.view.window?.center()
 		self.view.window?.titlebarAppearsTransparent = true
 		self.view.window?.titleVisibility = NSWindowTitleVisibility.Hidden
 		self.view.window?.movableByWindowBackground = true
