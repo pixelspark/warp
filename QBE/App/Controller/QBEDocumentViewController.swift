@@ -14,7 +14,7 @@ import Cocoa
 		self.documentView.removeAllTablets()
 		if let d = document {
 			for tablet in d.tablets {
-				self.addTablet(tablet, undo: false)
+				self.addTablet(tablet, undo: false, animated: false)
 			}
 			self.zoomToAll()
 		}
@@ -121,16 +121,16 @@ import Cocoa
 			tablet.frame = tablet.frame!.centeredAt(l)
 		}
 		
-		self.addTablet(tablet, undo: undo)
+		self.addTablet(tablet, undo: undo, animated: true)
 	}
 	
 	@objc func addTabletFromArchivedData(data: NSData) {
 		if let t = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBETablet {
-			self.addTablet(t, undo: false)
+			self.addTablet(t, undo: false, animated: true)
 		}
 	}
 	
-	@objc func addTablet(tablet: QBETablet, undo: Bool) {
+	@objc func addTablet(tablet: QBETablet, undo: Bool, animated: Bool) {
 		self.workspaceView.magnifyView(nil) {
 			// Check if this tablet is also in the document
 			if let d = self.document where tablet.document != self.document {
@@ -148,7 +148,7 @@ import Cocoa
 				tabletController.chain = tablet.chain
 				tabletController.view.frame = tablet.frame!
 				
-				self.documentView.addTablet(tabletController) {
+				self.documentView.addTablet(tabletController, animated: animated) {
 					self.documentView.selectTablet(tablet)
 				}
 			}
@@ -162,7 +162,7 @@ import Cocoa
 		self.welcomeLabel.hidden = (self.document?.tablets.count ?? 0) != 0
 	}
 	
-	private func zoomToAll() {
+	private func zoomToAll(animated: Bool = true) {
 		if let ab = documentView.boundsOfAllTablets {
 			if self.workspaceView.magnifiedView != nil {
 				self.workspaceView.magnifyView(nil) {
@@ -170,10 +170,15 @@ import Cocoa
 				}
 			}
 			else {
-				NSAnimationContext.runAnimationGroup({ (ac) -> Void in
-					ac.duration = 0.3
-					self.workspaceView.animator().magnifyToFitRect(ab)
-				}, completionHandler: nil)
+				if animated {
+					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+						ac.duration = 0.3
+						self.workspaceView.animator().magnifyToFitRect(ab)
+					}, completionHandler: nil)
+				}
+				else {
+					self.workspaceView.magnifyToFitRect(ab)
+				}
 			}
 		}
 	}
@@ -227,7 +232,7 @@ import Cocoa
 		let pboard = NSPasteboard.generalPasteboard()
 		if let data = pboard.dataForType(QBEStep.dragType) {
 			if let step = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEStep {
-				self.addTablet(QBETablet(chain: QBEChain(head: step)), undo: true)
+				self.addTablet(QBETablet(chain: QBEChain(head: step)), undo: true, animated: true)
 			}
 		}
 		else {
@@ -261,7 +266,7 @@ import Cocoa
 					let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue ?? "")}), readOnly: false)
 					let s = QBERasterStep(raster: raster)
 					let tablet = QBETablet(chain: QBEChain(head: s))
-					addTablet(tablet, undo: true)
+					addTablet(tablet, undo: true, animated: true)
 				}
 			}
 		}
@@ -388,7 +393,7 @@ import Cocoa
 	@IBAction func addSequencerTablet(sender: NSObject) {
 		let chain = QBEChain(head: QBESequencerStep(pattern: "[A-Z]{4}", column: QBEColumn(NSLocalizedString("Value", comment: ""))))
 		let tablet = QBETablet(chain: chain)
-		self.addTablet(tablet, undo: true)
+		self.addTablet(tablet, undo: true, animated: true)
 	}
 	
 	@IBAction func addTabletFromFile(sender: NSObject) {
@@ -408,17 +413,17 @@ import Cocoa
 	}
 	
 	@IBAction func addTabletFromPresto(sender: NSObject) {
-		self.addTablet(QBETablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true)
 	}
 	
 	@IBAction func addTabletFromMySQL(sender: NSObject) {
 		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", password: "", database: "test", tableName: "test")
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true)
 	}
 	
 	@IBAction func addTabletFromPostgres(sender: NSObject) {
 		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", password: "", database: "postgres", schemaName: "public", tableName: "")
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true)
 	}
 	
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
@@ -475,6 +480,11 @@ import Cocoa
 			}
 		}
 		return false
+	}
+
+	override func viewWillAppear() {
+		super.viewWillAppear()
+		self.zoomToAll(false)
 	}
 	
 	override func viewDidLoad() {

@@ -216,13 +216,13 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		tabletsChanged()
 	}
 	
-	func addTablet(tabletController: QBEChainViewController, completion: (() -> ())? = nil) {
+	func addTablet(tabletController: QBEChainViewController, animated: Bool = true, completion: (() -> ())? = nil) {
 		if let tablet = tabletController.chain?.tablet {
 			let resizer = QBEResizableTabletView(frame: tablet.frame!, controller: tabletController)
 			resizer.contentView = tabletController.view
 			resizer.delegate = self
 		
-			self.addSubview(resizer, animated: true, completion: completion)
+			self.addSubview(resizer, animated: animated, completion: completion)
 			tabletsChanged()
 		}
 	}
