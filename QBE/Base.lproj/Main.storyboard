@@ -1514,47 +1514,49 @@ CA
                     </connections>
                 </viewController>
                 <customObject id="0Jp-3X-LwR" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
-                <menu id="TbW-HU-EDH" userLabel="Add tablet menu">
-                    <items>
-                        <menuItem title="Load data from a file..." keyEquivalent="O" id="oO5-Wj-JT9">
-                            <connections>
-                                <action selector="addTabletFromFile:" target="0Jp-3X-LwR" id="Nyt-Jp-DnU"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem isSeparatorItem="YES" id="Aka-j6-jVL"/>
-                        <menuItem title="Load data from Presto..." id="PBU-iY-SYv">
-                            <modifierMask key="keyEquivalentModifierMask"/>
-                            <connections>
-                                <action selector="addTabletFromPresto:" target="0Jp-3X-LwR" id="0eO-Ap-ro3"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem title="Load data from MySQL..." id="l6x-MG-F5q">
-                            <modifierMask key="keyEquivalentModifierMask"/>
-                            <connections>
-                                <action selector="addTabletFromMySQL:" target="0Jp-3X-LwR" id="aGr-f2-Tjs"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem title="Load data from PostgreSQL..." id="Emm-Nr-CLs">
-                            <modifierMask key="keyEquivalentModifierMask"/>
-                            <connections>
-                                <action selector="addTabletFromPostgres:" target="0Jp-3X-LwR" id="EBs-Gl-VZi"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem isSeparatorItem="YES" id="jv5-SX-kJv"/>
-                        <menuItem title="Generate a sequence..." id="8id-Ln-KQq">
-                            <modifierMask key="keyEquivalentModifierMask"/>
-                            <connections>
-                                <action selector="addSequencerTablet:" target="0Jp-3X-LwR" id="TSj-UO-A0k"/>
-                            </connections>
-                        </menuItem>
-                    </items>
-                </menu>
                 <menu id="AA5-ar-r3l" userLabel="Workspace context menu">
                     <items>
                         <menuItem title="Paste" keyEquivalent="v" id="3tj-IE-VFf">
                             <connections>
                                 <action selector="paste:" target="0Jp-3X-LwR" id="kph-JM-Yyx"/>
                             </connections>
+                        </menuItem>
+                        <menuItem title="Add data" id="5Nv-qM-dTC">
+                            <menu key="submenu" title="Add data" id="TbW-HU-EDH" userLabel="Add tablet menu">
+                                <items>
+                                    <menuItem title="Load data from a file..." keyEquivalent="O" id="oO5-Wj-JT9">
+                                        <connections>
+                                            <action selector="addTabletFromFile:" target="0Jp-3X-LwR" id="Nyt-Jp-DnU"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem isSeparatorItem="YES" id="Aka-j6-jVL"/>
+                                    <menuItem title="Load data from Presto..." id="PBU-iY-SYv">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="addTabletFromPresto:" target="0Jp-3X-LwR" id="0eO-Ap-ro3"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem title="Load data from MySQL..." id="l6x-MG-F5q">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="addTabletFromMySQL:" target="0Jp-3X-LwR" id="aGr-f2-Tjs"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem title="Load data from PostgreSQL..." id="Emm-Nr-CLs">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="addTabletFromPostgres:" target="0Jp-3X-LwR" id="EBs-Gl-VZi"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem isSeparatorItem="YES" id="jv5-SX-kJv"/>
+                                    <menuItem title="Generate a sequence..." id="8id-Ln-KQq">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="addSequencerTablet:" target="0Jp-3X-LwR" id="TSj-UO-A0k"/>
+                                        </connections>
+                                    </menuItem>
+                                </items>
+                            </menu>
                         </menuItem>
                     </items>
                 </menu>
