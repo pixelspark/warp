@@ -125,6 +125,9 @@
 		65A0E01C1AF29A750005C50F /* QBEPrestoSourceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E0081AF29A750005C50F /* QBEPrestoSourceStepView.swift */; };
 		65A0E0201AF29A750005C50F /* QBESortStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E00A1AF29A750005C50F /* QBESortStepView.swift */; };
 		65A0E0261AF2B92A0005C50F /* QBEDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */; };
+		65A176931B8B9769004D4A21 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176911B8B9769004D4A21 /* dbfopen.c */; };
+		65A176981B8B97D9004D4A21 /* QBEDBFStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A176971B8B97D9004D4A21 /* QBEDBFStep.swift */; };
+		65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176991B8B9AC0004D4A21 /* safileio.c */; };
 		65A526B21B08E77300CCF3E3 /* QBEFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A526B11B08E77300CCF3E3 /* QBEFileWriter.swift */; };
 		65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A526B91B09BFDB00CCF3E3 /* libpq.a */; };
 		65A526BE1B09C0C300CCF3E3 /* QBEFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A526B11B08E77300CCF3E3 /* QBEFileWriter.swift */; };
@@ -419,6 +422,10 @@
 		65A0E0081AF29A750005C50F /* QBEPrestoSourceStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEPrestoSourceStepView.swift; sourceTree = "<group>"; };
 		65A0E00A1AF29A750005C50F /* QBESortStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESortStepView.swift; sourceTree = "<group>"; };
 		65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDocumentView.swift; sourceTree = "<group>"; };
+		65A176911B8B9769004D4A21 /* dbfopen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dbfopen.c; path = Libraries/Shapelib/dbfopen.c; sourceTree = "<group>"; };
+		65A176921B8B9769004D4A21 /* shapefil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = shapefil.h; path = Libraries/Shapelib/shapefil.h; sourceTree = "<group>"; };
+		65A176971B8B97D9004D4A21 /* QBEDBFStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDBFStep.swift; sourceTree = "<group>"; };
+		65A176991B8B9AC0004D4A21 /* safileio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = safileio.c; path = Libraries/Shapelib/safileio.c; sourceTree = "<group>"; };
 		65A526B11B08E77300CCF3E3 /* QBEFileWriter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFileWriter.swift; sourceTree = "<group>"; };
 		65A526B81B09BFDB00CCF3E3 /* libpq-fe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "libpq-fe.h"; sourceTree = "<group>"; };
 		65A526B91B09BFDB00CCF3E3 /* libpq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libpq.a; sourceTree = "<group>"; };
@@ -509,6 +516,9 @@
 		651988E71A0F9C39003463AA /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				65A176991B8B9AC0004D4A21 /* safileio.c */,
+				65A176911B8B9769004D4A21 /* dbfopen.c */,
+				65A176921B8B9769004D4A21 /* shapefil.h */,
 				65436ED41B30C21F00636299 /* libiconv.2.dylib */,
 				65436ED51B30C21F00636299 /* libssl.0.9.8.dylib */,
 				65436ED01B30C20600636299 /* libcrypto.0.9.8.dylib */,
@@ -732,6 +742,7 @@
 				65FC52221B1F8FB8007A1266 /* QBERenameStep.swift */,
 				6577799C1B36E47300B28AED /* QBECrawlStep.swift */,
 				65EC6BE61B69762C008757B1 /* QBESequencerStep.swift */,
+				65A176971B8B97D9004D4A21 /* QBEDBFStep.swift */,
 			);
 			path = Steps;
 			sourceTree = "<group>";
@@ -1064,6 +1075,7 @@
 				651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */,
 				651521931B13B5D6007BCDFF /* QBEXMLStep.swift in Sources */,
 				65A0DF861AF299C20005C50F /* QBEDocumentViewController.swift in Sources */,
+				65A176931B8B9769004D4A21 /* dbfopen.c in Sources */,
 				65884A461B076C4E003A5BF1 /* QBEJoinStepView.swift in Sources */,
 				65CD95201AC9E80300557C9E /* QBEObjectiveCBridge.m in Sources */,
 				65994A9B1B10B525005DD56B /* QBECloneStep.swift in Sources */,
@@ -1102,12 +1114,14 @@
 				65884A241AFDF23E003A5BF1 /* QBEAnchor.swift in Sources */,
 				6548CDF11B6E7536001CFABA /* QBEDate.swift in Sources */,
 				65A0E0181AF29A750005C50F /* QBEMySQLSourceStepView.swift in Sources */,
+				65A176981B8B97D9004D4A21 /* QBEDBFStep.swift in Sources */,
 				65A0DFC21AF299F30005C50F /* QBEFuture.swift in Sources */,
 				65A0DFCE1AF299F30005C50F /* QBEStats.swift in Sources */,
 				65A0DF8C1AF299C20005C50F /* QBESuggestionsViewController.swift in Sources */,
 				65CD706C1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift in Sources */,
 				65A0DFE61AF299F30005C50F /* QBEMySQLSourceStep.swift in Sources */,
 				65A0DF881AF299C20005C50F /* QBESettingsViewController.swift in Sources */,
+				65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */,
 				65A0E01C1AF29A750005C50F /* QBEPrestoSourceStepView.swift in Sources */,
 				65A0DFD41AF299F30005C50F /* QBEStream.swift in Sources */,
 				65A0DFF21AF299F30005C50F /* QBERowsStep.swift in Sources */,

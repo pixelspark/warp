@@ -15,6 +15,7 @@
 #import "mysql.h"
 #import "ltqnorm.h"
 #import "libpq-fe.h"
+#import "shapefil.h"
 
 /** This function registers the SQLite user-defined functions (UDF) for mathematical operations, as implemented in
  extension-functions.c. It needs to be defined here so it can be called from Swift. **/

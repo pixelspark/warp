@@ -22,7 +22,8 @@ class QBEFactory {
 		"public.tab-separated-values-text": {(url) in return QBECSVSourceStep(url: url)},
 		"public.text": {(url) in return QBECSVSourceStep(url: url)},
 		"public.plain-text": {(url) in return QBECSVSourceStep(url: url)},
-		"org.sqlite.v3": {(url) in return QBESQLiteSourceStep(url: url)}
+		"org.sqlite.v3": {(url) in return QBESQLiteSourceStep(url: url)},
+		"dbf": {(url) in return QBEDBFSourceStep(url: url)}
 	]
 	
 	private let stepViews: Dictionary<String, QBEStepViewCreator> = [
@@ -64,7 +65,8 @@ class QBEFactory {
 		QBERenameStep.className(): "RenameIcon",
 		QBEMergeStep.className(): "MergeIcon",
 		QBECrawlStep.className(): "CrawlIcon",
-		QBESequencerStep.className(): "SequenceIcon"
+		QBESequencerStep.className(): "SequenceIcon",
+		QBEDBFSourceStep.className(): "DBFIcon"
 	]
 	
 	var fileExtensionsForWriting: [String] { get {
@@ -80,6 +82,13 @@ class QBEFactory {
 			let type = try NSWorkspace.sharedWorkspace().typeOfFile(atURL.path!)
 			if let creator = fileReaders[type] {
 				return creator(url: atURL)
+			}
+
+			if let p = atURL.path {
+				let ext = NSString(string: p).pathExtension
+				if let creator = fileReaders[ext] {
+					return creator(url: atURL)
+				}
 			}
 		}
 		catch { }
