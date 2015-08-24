@@ -140,7 +140,7 @@ class QBECrawlStream: QBEStream {
 										}
 										
 										if let errorColumn = self.crawler.targetErrorColumn {
-											row.setValue(result.isFailure ? QBEValue(result.error!.description) : QBEValue.EmptyValue, forColumn: errorColumn)
+											row.setValue(result.isFailure ? QBEValue("\(result.error!)") : QBEValue.EmptyValue, forColumn: errorColumn)
 										}
 										
 										if let timeColumn = self.crawler.targetResponseTimeColumn {
