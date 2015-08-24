@@ -4,8 +4,7 @@ import Cocoa
 internal class QBECrawlStepView: NSViewController {
 	weak var delegate: QBESuggestionsViewDelegate?
 	let step: QBECrawlStep?
-	
-	@IBOutlet var urlFormulaField: NSTextField!
+
 	@IBOutlet var targetBodyField: NSTextField!
 	@IBOutlet var targetErrorField: NSTextField!
 	@IBOutlet var targetStatusField: NSTextField!
@@ -35,14 +34,6 @@ internal class QBECrawlStepView: NSViewController {
 	@IBAction func updateFromView(sender: NSObject) {
 		if let c = step?.crawler {
 			var changed = false
-			
-			let old = c.urlExpression.toFormula(delegate?.locale ?? QBELocale(), topLevel: true)
-			if self.urlFormulaField.stringValue != old {
-				if let f = QBEFormula(formula: self.urlFormulaField.stringValue, locale: delegate?.locale ?? QBELocale()) {
-					c.urlExpression = f.root
-					changed = true
-				}
-			}
 			
 			if targetBodyField.stringValue != (c.targetBodyColumn?.name ?? "") {
 				c.targetBodyColumn = !targetBodyField.stringValue.isEmpty ? QBEColumn(targetBodyField.stringValue) : nil
@@ -80,31 +71,24 @@ internal class QBECrawlStepView: NSViewController {
 		}
 	}
 	
-	private func updateFromCode() {
-		if let s = step {
-			self.urlFormulaField.stringValue = s.crawler.urlExpression.toFormula(delegate?.locale ?? QBELocale(), topLevel: true)
-		}
-		else {
-			self.urlFormulaField.stringValue = ""
-		}
-		
-		self.targetBodyField.stringValue = step?.crawler.targetBodyColumn?.name ?? ""
-		self.targetErrorField.stringValue = step?.crawler.targetErrorColumn?.name ?? ""
-		self.targetStatusField.stringValue = step?.crawler.targetStatusColumn?.name ?? ""
-		self.targetTimeField.stringValue = step?.crawler.targetResponseTimeColumn?.name ?? ""
+	private func updateFromCode() {		
+		self.targetBodyField?.stringValue = step?.crawler.targetBodyColumn?.name ?? ""
+		self.targetErrorField?.stringValue = step?.crawler.targetErrorColumn?.name ?? ""
+		self.targetStatusField?.stringValue = step?.crawler.targetStatusColumn?.name ?? ""
+		self.targetTimeField?.stringValue = step?.crawler.targetResponseTimeColumn?.name ?? ""
 		
 		if let mcp = step?.crawler.maxConcurrentRequests {
-			self.maxConcurrentField.integerValue = mcp
+			self.maxConcurrentField?.integerValue = mcp
 		}
 		else {
-			self.maxConcurrentField.stringValue = ""
+			self.maxConcurrentField?.stringValue = ""
 		}
 		
 		if let mrps = step?.crawler.maxRequestsPerSecond {
-			self.maxRequestsField.integerValue = mrps
+			self.maxRequestsField?.integerValue = mrps
 		}
 		else {
-			self.maxRequestsField.stringValue = ""
+			self.maxRequestsField?.stringValue = ""
 		}
 	}
 	
