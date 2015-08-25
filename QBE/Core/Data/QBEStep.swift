@@ -275,7 +275,7 @@ class QBESentence {
 			}
 		}
 
-		if distance(startIndex, format.endIndex)>0 {
+		if startIndex.distanceTo(format.endIndex) > 0 {
 			self.tokens.append(QBESentenceText(format.substringWithRange(Range(start: startIndex, end: format.endIndex))))
 		}
 	}

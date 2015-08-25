@@ -386,7 +386,8 @@ DBFOpenLL( const char * pszFilename, const char * pszAccess, SAHooks *psHooks )
     DBFHandle		psDBF;
     SAFile		pfCPG;
     unsigned char	*pabyBuf;
-    int			nFields, nHeadLen, iField, i;
+	int			nFields, nHeadLen, iField;
+	size_t i;
     char		*pszBasename, *pszFullname;
     int                 nBufSize = 500;
 
@@ -662,7 +663,8 @@ DBFCreateLL( const char * pszFilename, const char * pszCodePage, SAHooks *psHook
     DBFHandle	psDBF;
     SAFile	fp;
     char	*pszFullname, *pszBasename;
-    int		i, ldid = -1;
+    int		ldid = -1;
+	size_t	i = -1;
     char chZero = '\0';
 
 /* -------------------------------------------------------------------- */
@@ -1249,7 +1251,8 @@ static int DBFWriteAttribute(DBFHandle psDBF, int hEntity, int iField,
 			     void * pValue )
 
 {
-    int	       	i, j, nRetResult = TRUE;
+    int	       	i, nRetResult = TRUE;
+	size_t		j = TRUE;
     unsigned char	*pabyRec;
     char	szSField[400], szFormat[20];
 
@@ -1388,7 +1391,8 @@ DBFWriteAttributeDirectly(DBFHandle psDBF, int hEntity, int iField,
                               void * pValue )
 
 {
-    int	       		i, j;
+	int	       		i;
+	size_t			j;
     unsigned char	*pabyRec;
 
 /* -------------------------------------------------------------------- */
@@ -1658,7 +1662,7 @@ DBFGetNativeFieldType( DBFHandle psDBF, int iField )
 
 static void str_to_upper (char *string)
 {
-    int len;
+    size_t len;
     short i = -1;
 
     len = strlen (string);
@@ -2016,8 +2020,8 @@ DBFAlterFieldDefn( DBFHandle psDBF, int iField, const char * pszFieldName,
     int   iRecord;
     int   nOffset;
     int   nOldWidth;
-    int   nOldRecordLength;
-    int   nRecordOffset;
+    size_t   nOldRecordLength;
+    size_t   nRecordOffset;
     char* pszFInfo;
     char  chOldType;
     int   bIsNULL;

@@ -97,14 +97,14 @@ internal class QBEPostgresStepView: NSViewController, NSTableViewDataSource, NST
 				job.async {
 					// Update list of databases
 					database.databases({(dbs) -> () in
-						dbs.use { (databaseNames) -> () in
+						dbs.maybe { (databaseNames) -> () in
 							QBEAsyncMain {
 								self.databaseNames = databaseNames
 								self.databaseField?.reloadData()
 							}
 							
 							database.tables({(ts) -> () in
-								ts.use { (tableNames) -> () in
+								ts.maybe { (tableNames) -> () in
 									QBEAsyncMain {
 										self.tableNames = tableNames
 										self.tableView?.reloadData()

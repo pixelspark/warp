@@ -54,7 +54,7 @@ internal class QBEPrestoSourceStepView: NSViewController, NSTableViewDataSource,
 			schemaField?.stringValue = s.schemaName ?? ""
 			
 			s.catalogNames(job) { (catalogsFallible) -> () in
-				catalogsFallible.use {(catalogs) in
+				catalogsFallible.maybe {(catalogs) in
 					QBEAsyncMain {
 						self.catalogNames = Array(catalogs)
 						self.catalogField?.reloadData()
@@ -63,7 +63,7 @@ internal class QBEPrestoSourceStepView: NSViewController, NSTableViewDataSource,
 			}
 			
 			s.schemaNames(job) { (schemasFallible) -> () in
-				schemasFallible.use { (schemas) in
+				schemasFallible.maybe { (schemas) in
 					QBEAsyncMain {
 						self.schemaNames = Array(schemas)
 						self.schemaField?.reloadData()
@@ -72,7 +72,7 @@ internal class QBEPrestoSourceStepView: NSViewController, NSTableViewDataSource,
 			}
 			
 			s.tableNames(job) { (namesFallible) -> () in
-				namesFallible.use { (names) in
+				namesFallible.maybe { (names) in
 					QBEAsyncMain {
 						self.tableNames = Array(names)
 						self.tableView?.reloadData()

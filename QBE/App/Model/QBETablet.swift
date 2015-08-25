@@ -46,14 +46,14 @@ data. Currently a tablet is always comprised of a QBEChain that calculates data.
 	}
 	
 	required init?(coder aDecoder: NSCoder) {
-		if let c = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "chain") as? QBEChain {
+		if let c = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "chain") {
 			chain = c
 		}
 		else {
 			chain = QBEChain()
 		}
 		
-		if let rect = aDecoder.decodeObjectOfClass(QBERectangle.self, forKey: "frame") as? QBERectangle {
+		if let rect = aDecoder.decodeObjectOfClass(QBERectangle.self, forKey: "frame") {
 			frame = rect.rect
 		}
 		

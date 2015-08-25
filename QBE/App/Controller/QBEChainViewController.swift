@@ -120,14 +120,14 @@ internal extension NSViewController {
 				else {
 					// Generate sensible joins
 					calculator.currentRaster?.get { (r) -> () in
-						r.use { (raster) -> () in
+						r.maybe { (raster) -> () in
 							let myColumns = raster.columnNames
 							
 							let job = QBEJob(.UserInitiated)
 							otherChain.head?.fullData(job) { (otherDataFallible) -> () in
-								otherDataFallible.use { (otherData) -> () in
+								otherDataFallible.maybe { (otherData) -> () in
 									otherData.columnNames(job) { (otherColumnsFallible) -> () in
-										otherColumnsFallible.use { (otherColumns) -> () in
+										otherColumnsFallible.maybe { (otherColumns) -> () in
 											let mySet = Set(myColumns)
 											let otherSet = Set(otherColumns)
 											
@@ -454,7 +454,7 @@ internal extension NSViewController {
 		suggestions?.cancel()
 		
 		calculator.currentRaster?.get { (fallibleRaster) -> () in
-			fallibleRaster.use { (raster) -> () in
+			fallibleRaster.maybe { (raster) -> () in
 				self.suggestions = QBEFuture<[QBEStep]>({(job, callback) -> () in
 					job.async {
 						let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
@@ -705,11 +705,11 @@ internal extension NSViewController {
 	
 	private func addColumnBeforeAfterCurrent(before: Bool) {
 		calculator.currentData?.get { (d) -> () in
-			d.use { (data) -> () in
+			d.maybe { (data) -> () in
 				let job = QBEJob(.UserInitiated)
 				
 				data.columnNames(job) { (columnNamesFallible) -> () in
-					columnNamesFallible.use { (cols) -> () in
+					columnNamesFallible.maybe { (cols) -> () in
 						if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 							let name = QBEColumn.defaultColumnForIndex(cols.count)
 							if before {
@@ -766,7 +766,7 @@ internal extension NSViewController {
 			let job = QBEJob(.UserInitiated)
 			
 			data.maybe {$0.columnNames(job) {(columnsFallible) in
-				columnsFallible.use { (cols) -> () in
+				columnsFallible.maybe { (cols) -> () in
 					QBEAsyncMain {
 						let name = QBEColumn.defaultColumnForIndex(cols.count)
 						let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: false)
@@ -848,7 +848,7 @@ internal extension NSViewController {
 			let firstSelectedColumn = selectedColumns.firstIndex
 			if firstSelectedColumn != NSNotFound {
 				calculator.currentRaster?.get {(r) -> () in
-					r.use { (raster) -> () in
+					r.maybe { (raster) -> () in
 						let columnName = raster.columnNames[firstSelectedColumn]
 						let expression = QBESiblingExpression(columnName: columnName)
 						let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
@@ -882,7 +882,7 @@ internal extension NSViewController {
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			// Get the names of the columns to remove
 			calculator.currentRaster?.get { (raster) -> () in
-				raster.use { (r) -> () in
+				raster.maybe { (r) -> () in
 					var namesToRemove: [QBEColumn] = []
 					var namesToSelect: [QBEColumn] = []
 					
@@ -918,7 +918,7 @@ internal extension NSViewController {
 		if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 				calculator.currentRaster?.get { (r) -> () in
-					r.use { (raster) -> () in
+					r.maybe { (raster) -> () in
 						// Invert the selection
 						let selectedToKeep = NSMutableIndexSet()
 						let selectedToRemove = NSMutableIndexSet()
@@ -941,7 +941,7 @@ internal extension NSViewController {
 						// Find suggestions for keeping the other rows
 						let keepSuggestions = QBERowsStep.suggest(selectedToKeep, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: true)
 						var removeSuggestions = QBERowsStep.suggest(selectedToRemove, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: false)
-						removeSuggestions.extend(keepSuggestions)
+						removeSuggestions.appendContentsOf(keepSuggestions)
 						
 						QBEAsyncMain {
 							self.suggestSteps(removeSuggestions)
@@ -956,7 +956,7 @@ internal extension NSViewController {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 				calculator.currentRaster?.get { (fallibleRaster) -> ()in
-					fallibleRaster.use { (raster) -> () in
+					fallibleRaster.maybe { (raster) -> () in
 						var relevantColumns = Set<QBEColumn>()
 						for columnIndex in 0..<raster.columnCount {
 							if selectedColumns.containsIndex(columnIndex) {
@@ -979,7 +979,7 @@ internal extension NSViewController {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 				calculator.currentRaster?.get { (fallibleRaster) -> () in
-					fallibleRaster.use { (raster) -> () in
+					fallibleRaster.maybe { (raster) -> () in
 						var relevantColumns = Set<QBEColumn>()
 						for columnIndex in 0..<raster.columnCount {
 							if selectedColumns.containsIndex(columnIndex) {

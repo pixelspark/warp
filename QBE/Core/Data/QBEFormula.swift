@@ -57,7 +57,7 @@ class QBEFormula: Parser {
 	}
 	
 	private func pushTimestamp() {
-		let ts = self.text.substringFromIndex(advance(self.text.startIndex, 1))
+		let ts = self.text.substringFromIndex(self.text.startIndex.advancedBy(1))
 		if let n = self.locale.numberFormatter.numberFromString(ts) {
 			annotate(stack.push(QBELiteralExpression(QBEValue.DateValue(n.doubleValue))))
 		}
@@ -209,7 +209,7 @@ class QBEFormula: Parser {
 		// String literals & constants
 		add_named_rule("arguments",			rule: (("(" ~~ Parser.matchList(^"logic" => pushArgument, separator: literal(locale.argumentSeparator)) ~~ ")")))
 		add_named_rule("unaryFunction",		rule: ((Parser.matchAnyFrom(functionRules) => pushCall) ~~ ^"arguments") => popCall)
-		add_named_rule("constant",			rule: Parser.matchAnyFrom(locale.constants.values.array.map({Parser.matchLiteralInsensitive($0)})) => pushConstant)
+		add_named_rule("constant",			rule: Parser.matchAnyFrom(locale.constants.values.map({Parser.matchLiteralInsensitive($0)})) => pushConstant)
 		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~  ((Parser.matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
 		
 		add_named_rule("currentCell",		rule: literal(locale.currentCellIdentifier) => pushIdentity)

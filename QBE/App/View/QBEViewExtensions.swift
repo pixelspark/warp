@@ -47,7 +47,7 @@ internal extension CGPoint {
 		
 		borderColor.setStroke()
 		var bounds = self.bounds
-		bounds.intersect(dirtyRect)
+		bounds.intersectInPlace(dirtyRect)
 		
 		if leftBorder {
 			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y, 1, bounds.size.height))

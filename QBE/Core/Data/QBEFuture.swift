@@ -110,7 +110,7 @@ internal extension Array {
 			var finishedItems = 0
 			
 			// Chunk the contents of the array and dispatch jobs that map each chunk
-			for i in stride(from: 0, to: self.count, by: chunkSize) {
+			for i in 0.stride(to: self.count, by: chunkSize) {
 				let view = self[i..<min(i+chunkSize, self.count)]
 				let count: Int = view.count
 				

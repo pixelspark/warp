@@ -639,11 +639,10 @@ internal extension String {
 				if a[i-1] == b[j-1] {
 					dist[i][j] = dist[i-1][j-1]  // noop
 				} else {
-					dist[i][j] = min(
-						dist[i-1][j] + 1,  // deletion
-						dist[i][j-1] + 1,  // insertion
-						dist[i-1][j-1] + 1  // substitution
-					)
+					let deletion = dist[i-1][j] + 1
+					let insertion = dist[i][j-1] + 1
+					let substitution = dist[i-1][j-1] + 1
+					dist[i][j] = min(deletion, insertion, substitution)
 				}
 			}
 		}
@@ -693,7 +692,7 @@ internal extension ArraySlice {
 
 internal extension SequenceType {
 	func implode(separator: String) -> String {
-		return separator.join(self.map { return String($0) })
+		return self.map({ return String($0) }).joinWithSeparator(separator)
 	}
 }
 
@@ -707,7 +706,7 @@ internal extension CollectionType {
 	func mapMany(@noescape block: (Generator.Element) -> [Generator.Element]) -> [Generator.Element] {
 		var result: [Generator.Element] = []
 		self.each { (item) in
-			result.extend(block(item))
+			result.appendContentsOf(block(item))
 		}
 		return result
 	}
@@ -989,7 +988,7 @@ internal struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 	mutating func orderKey(key: KeyType, toIndex: Int) {
 		precondition(self.keys.indexOf(key) != nil, "key to be ordered must exist")
 		self.keys.remove(key)
-		self.keys.splice([key], atIndex: toIndex)
+		self.keys.insertContentsOf([key], at: toIndex)
 	}
 	
 	mutating func orderKey(key: KeyType, beforeKey: KeyType) {

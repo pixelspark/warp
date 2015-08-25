@@ -72,7 +72,7 @@ class QBEStreamData: QBEData {
 				switch rows {
 				case .Success(let r):
 					// Append the rows to our buffered raster
-					data.extend(r)
+					data.appendContentsOf(r)
 
 					if !hasNext {
 						self.callback(.Success(QBERaster(data: data, columnNames: columnNames, readOnly: true)))
@@ -451,7 +451,7 @@ private class QBERandomTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(var rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
 		job.time("Reservoir fill", items: rows.count, itemType: "rows") {
 			reservoir.add(rows)
 		}

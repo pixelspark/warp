@@ -137,19 +137,19 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		
 		// Determine new size of the document
 		let margin: CGFloat = 500
-		var newBounds = contentMinSize.rectByInsetting(dx: -margin, dy: -margin)
+		var newBounds = contentMinSize.insetBy(dx: -margin, dy: -margin)
 		let offset = CGPointMake(-newBounds.origin.x, -newBounds.origin.y)
-		newBounds.offset(dx: offset.x, dy: offset.y)
+		newBounds.offsetInPlace(dx: offset.x, dy: offset.y)
 		
 		// Translate the 'visible rect' (just like we will translate tablets)
-		let newVisible = self.visibleRect.rectByOffsetting(dx: offset.x, dy: offset.y)
+		let newVisible = self.visibleRect.offsetBy(dx: offset.x, dy: offset.y)
 		
 		// Move all tablets
 		for vw in subviews {
 			if let tv = vw as? QBEResizableTabletView {
 				if let tablet = tv.tabletController.chain?.tablet {
 					if let tabletFrame = tablet.frame {
-						tablet.frame = tabletFrame.rectByOffsetting(dx: offset.x, dy: offset.y)
+						tablet.frame = tabletFrame.offsetBy(dx: offset.x, dy: offset.y)
 						tv.frame = tablet.frame!
 					}
 				}

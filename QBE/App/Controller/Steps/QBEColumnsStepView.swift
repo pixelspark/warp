@@ -36,8 +36,8 @@ internal class QBEColumnsStepView: NSViewController, NSTableViewDataSource, NSTa
 		if let s = step {
 			if let previous = s.previous {
 				previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
-					data.use({$0.columnNames(job) {(columns) in
-						columns.use {(cns) in
+					data.maybe({$0.columnNames(job) {(columns) in
+						columns.maybe {(cns) in
 							QBEAsyncMain {
 								self.columnNames = cns
 								self.updateView()

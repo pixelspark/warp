@@ -386,9 +386,9 @@ final class QBEBinaryExpression: QBEExpression {
 					else if let targetString = toValue.stringValue, let fromString = f.stringValue {
 						if !targetString.isEmpty && !fromString.isEmpty && fromString.characters.count < targetString.characters.count {
 							// See if the target string shares a prefix with the source string
-							let targetPrefix = targetString.substringWithRange(targetString.startIndex..<advance(targetString.startIndex, fromString.characters.count))
+							let targetPrefix = targetString.substringWithRange(targetString.startIndex..<targetString.startIndex.advancedBy(fromString.characters.count))
 							if fromString == targetPrefix {
-								let postfix = targetString.substringWithRange(advance(targetString.startIndex, fromString.characters.count)..<targetString.endIndex)
+								let postfix = targetString.substringWithRange(targetString.startIndex.advancedBy(fromString.characters.count)..<targetString.endIndex)
 								print("'\(fromString)' => '\(targetString)' share prefix: '\(targetPrefix)' need postfix: '\(postfix)'")
 								
 								var postfixSuggestions: [QBEExpression] = []
@@ -399,9 +399,9 @@ final class QBEBinaryExpression: QBEExpression {
 							else {
 								// See if the target string shares a postfix with the source string
 								let prefixLength = targetString.characters.count - fromString.characters.count
-								let targetPostfix = targetString.substringWithRange(advance(targetString.startIndex, prefixLength)..<targetString.endIndex)
+								let targetPostfix = targetString.substringWithRange(targetString.startIndex.advancedBy(prefixLength)..<targetString.endIndex)
 								if fromString == targetPostfix {
-									let prefix = targetString.substringWithRange(targetString.startIndex..<advance(targetString.startIndex, prefixLength))
+									let prefix = targetString.substringWithRange(targetString.startIndex..<targetString.startIndex.advancedBy(prefixLength))
 									print("'\(fromString)' => '\(targetString)' share postfix: '\(targetPostfix)' need prefix: '\(prefix)'")
 									
 									var prefixSuggestions: [QBEExpression] = []
@@ -572,8 +572,8 @@ final class QBEFunctionExpression: QBEExpression {
 									suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Left))
 									suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Right))
 									
-									let start = QBELiteralExpression(QBEValue(distance(sourceString.startIndex, range.startIndex)))
-									let length = QBELiteralExpression(QBEValue(distance(range.startIndex, range.endIndex)))
+									let start = QBELiteralExpression(QBEValue(sourceString.startIndex.distanceTo(range.startIndex)))
+									let length = QBELiteralExpression(QBEValue(range.startIndex.distanceTo(range.endIndex)))
 									suggestions.append(QBEFunctionExpression(arguments: [from, start, length], type: QBEFunction.Mid))
 								}
 							}

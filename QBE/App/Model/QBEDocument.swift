@@ -7,7 +7,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	}
 	
 	required init?(coder aDecoder: NSCoder) {
-		if let head = (aDecoder.decodeObjectOfClass(QBEStep.self, forKey: "head") as? QBEStep) {
+		if let head = aDecoder.decodeObjectOfClass(QBEStep.self, forKey: "head") {
 			let legacyTablet = QBETablet(chain: QBEChain(head: head))
 			tablets.append(legacyTablet)
 		}

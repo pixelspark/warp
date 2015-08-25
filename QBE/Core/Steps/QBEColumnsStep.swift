@@ -175,7 +175,7 @@ class QBESortColumnsStep: QBEStep {
 					
 					// If we have an insertion point for the set of reordered columns, insert them there
 					if let before = self.before, let newIndex = newColumns.indexOf(before) {
-						newColumns.splice(self.sortColumns, atIndex: newIndex)
+						newColumns.insertContentsOf(self.sortColumns, at: newIndex)
 					}
 					else {
 						// Just append at the end. Happens when self.before is nil or the column indicated in self.before doesn't exist

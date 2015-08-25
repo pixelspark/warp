@@ -26,7 +26,7 @@ class QBECrawler: NSObject, NSSecureCoding {
 	}
 	
 	required init?(coder: NSCoder) {
-		let urlExpression = coder.decodeObjectOfClass(QBEExpression.self, forKey: "url") as? QBEExpression
+		let urlExpression = coder.decodeObjectOfClass(QBEExpression.self, forKey: "url")
 		let targetBodyColumn = coder.decodeObjectOfClass(NSString.self, forKey: "bodyColumn") as? String
 		let targetStatusColumn = coder.decodeObjectOfClass(NSString.self, forKey: "statusColumn") as? String
 		let targetResponseTimeColumn = coder.decodeObjectOfClass(NSString.self, forKey: "responseTimeColumn") as? String
@@ -208,7 +208,7 @@ class QBECrawlStep: QBEStep {
 	var crawler: QBECrawler
 	
 	required init(coder aDecoder: NSCoder) {
-		if let c = aDecoder.decodeObjectOfClass(QBECrawler.self, forKey: "crawler") as? QBECrawler {
+		if let c = aDecoder.decodeObjectOfClass(QBECrawler.self, forKey: "crawler") {
 			self.crawler = c
 		}
 		else {

@@ -244,8 +244,8 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 							for rightRowNumber in rightMatches {
 								let rightRow = QBERow(rightRaster.raster[rightRowNumber], columnNames: rightColumns)
 								myTemplateRow.values.removeAll(keepCapacity: true)
-								myTemplateRow.values.extend(leftRow.values)
-								myTemplateRow.values.extend(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
+								myTemplateRow.values.appendContentsOf(leftRow.values)
+								myTemplateRow.values.appendContentsOf(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
 								newData.append(myTemplateRow.values)
 							}
 						}
@@ -254,7 +254,7 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 							is a left (non-inner) join */
 							if !inner {
 								myTemplateRow.values.removeAll(keepCapacity: true)
-								myTemplateRow.values.extend(leftRow.values)
+								myTemplateRow.values.appendContentsOf(leftRow.values)
 								rightIndicesInResult.each({(Int) -> () in myTemplateRow.values.append(QBEValue.EmptyValue)})
 								newData.append(myTemplateRow.values)
 							}
@@ -305,8 +305,8 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 							
 							if joinExpression.apply(leftRow, foreign: rightRow, inputValue: nil) == QBEValue.BoolValue(true) {
 								myTemplateRow.values.removeAll(keepCapacity: true)
-								myTemplateRow.values.extend(leftRow.values)
-								myTemplateRow.values.extend(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
+								myTemplateRow.values.appendContentsOf(leftRow.values)
+								myTemplateRow.values.appendContentsOf(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
 								newData.append(myTemplateRow.values)
 								foundRightMatch = true
 							}
@@ -316,7 +316,7 @@ class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 						is a left (non-inner) join */
 						if !inner && !foundRightMatch {
 							myTemplateRow.values.removeAll(keepCapacity: true)
-							myTemplateRow.values.extend(leftRow.values)
+							myTemplateRow.values.appendContentsOf(leftRow.values)
 							rightIndicesInResult.each({(Int) -> () in myTemplateRow.values.append(QBEValue.EmptyValue)})
 							newData.append(myTemplateRow.values)
 						}
@@ -633,7 +633,7 @@ class QBERasterData: NSObject, QBEData {
 						let fillRight = Array<QBEValue>(count: columns.count - leftRaster.columnCount, repeatedValue: QBEValue.EmptyValue)
 						for row in leftRaster.raster {
 							var rowClone = row
-							rowClone.extend(fillRight)
+							rowClone.appendContentsOf(fillRight)
 							newData.append(rowClone)
 						}
 					

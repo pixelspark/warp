@@ -100,14 +100,14 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 						case .Success(let db):
 							// Update list of databases
 							db.databases { (dbs) -> () in
-								dbs.use { (databaseNames) -> () in
+								dbs.maybe { (databaseNames) -> () in
 									QBEAsyncMain {
 										self.databaseNames = databaseNames
 										self.databaseField?.reloadData()
 									}
 									
 									db.tables {(ts) -> () in
-										ts.use { (tableNames) -> () in
+										ts.maybe { (tableNames) -> () in
 											QBEAsyncMain {
 												self.tableNames = tableNames
 												self.tableView?.reloadData()

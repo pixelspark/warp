@@ -103,7 +103,7 @@ class QBEResizableView: NSView {
 	override func drawRect(dirtyRect: NSRect) {
 		NSColor.windowBackgroundColor().set()
 		var bounds = self.bounds.inset(self.resizerView.inset)
-		bounds.intersect(dirtyRect)
+		bounds.intersectInPlace(dirtyRect)
 		NSRectFill(bounds)
 	}
 	
@@ -275,7 +275,7 @@ internal class QBEResizerView: NSView {
 			CGContextSetLineWidth(context, 2.0)
 			CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
 			var bounds = self.bounds.inset(inset)
-			bounds.intersect(dirtyRect)
+			bounds.intersectInPlace(dirtyRect)
 			CGContextAddRect(context, bounds)
 			CGContextStrokePath(context)
 		}

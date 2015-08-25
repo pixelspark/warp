@@ -222,7 +222,7 @@ class QBEStandardSQLDialect: QBESQLDialect {
 	}
 
 	internal func unaryToSQL(type: QBEFunction, args: [String]) -> String? {
-		let value = ", ".join(args)
+		let value = args.joinWithSeparator(", ")
 		switch type {
 			case .Identity: return value
 			case .Negate: return "-\(value)"
@@ -844,9 +844,9 @@ class QBESQLData: NSObject, QBEData {
 			let data = apply(self.sql.sqlSelect("DISTINCT \(expressionString) AS _value"), resultingColumns: ["_value"])
 			
 			data.raster(job) { (raster) -> () in
-				raster.use {(r) -> () in
-					callback(.Success(Set<QBEValue>(r.raster.map({$0[0]}))))
-				}
+				callback(raster.use { r in
+					return Set<QBEValue>(r.raster.map({$0[0]}))
+				})
 			}
 		}
 		else {

@@ -817,7 +817,7 @@ enum QBEFunction: String {
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
 					if s.characters.count >= idx {
-						let index = advance(s.startIndex, idx)
+						let index = s.startIndex.advancedBy(idx)
 						return QBEValue(s.substringToIndex(index))
 					}
 				}
@@ -828,7 +828,7 @@ enum QBEFunction: String {
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
 					if s.characters.count >= idx {
-						let index = advance(s.endIndex, -idx)
+						let index = s.endIndex.advancedBy(-idx)
 						return QBEValue(s.substringFromIndex(index))
 					}
 				}
@@ -841,8 +841,8 @@ enum QBEFunction: String {
 					if let length = arguments[2].intValue {
 						let sourceLength = s.characters.count
 						if sourceLength >= start {
-							let index = advance(s.startIndex, start)
-							let end = sourceLength >= (start+length) ? advance(index, length) : s.endIndex
+							let index = s.startIndex.advancedBy(start)
+							let end = sourceLength >= (start+length) ? index.advancedBy(length) : s.endIndex
 							
 							return QBEValue(s.substringWithRange(Range(start: index, end: end)))
 						}
