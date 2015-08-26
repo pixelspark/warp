@@ -30,20 +30,13 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate {
 		let dc = NSDocumentController.sharedDocumentController()
 		let u = NSURL(fileURLWithPath: filename)
 		// What kind of file is this?
-		if let fileExtension = u.pathExtension {
-			if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, fileExtension, nil) {
-				let utiString = uti.takeUnretainedValue()
-				
-				if utiString == "public.comma-separated-values-text" {
-					// CSV file
-					let doc = QBEDocument()
-					doc.addTablet(QBETablet(chain: QBEChain(head: QBECSVSourceStep(url: u))))
-					dc.addDocument(doc)
-					doc.makeWindowControllers()
-					doc.showWindows()
-					return true
-				}
-			}
+		if let importStep = QBEFactory.sharedInstance.stepForReadingFile(u) {
+			let doc = QBEDocument()
+			doc.addTablet(QBETablet(chain: QBEChain(head: importStep)))
+			dc.addDocument(doc)
+			doc.makeWindowControllers()
+			doc.showWindows()
+			return true
 		}
 		
 		return false

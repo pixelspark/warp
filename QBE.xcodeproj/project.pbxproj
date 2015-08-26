@@ -216,6 +216,13 @@
 			remoteGlobalIDString = 65F1D3D0195039290077E785;
 			remoteInfo = SwiftParserTests;
 		};
+		652B26CB1B8E3F3500A2D38E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E4202FE01B667AA100C997FB;
+			remoteInfo = "Alamofire watchOS";
+		};
 		654AE1691AA5145E0022C533 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6528728B1A5D16C200C155FA /* SwiftParser.xcodeproj */;
@@ -618,6 +625,7 @@
 			children = (
 				65734BC51AB0380200D2C2F6 /* Alamofire.framework */,
 				65734BC71AB0380200D2C2F6 /* Alamofire.framework */,
+				652B26CC1B8E3F3500A2D38E /* Alamofire.framework */,
 				65734BC91AB0380200D2C2F6 /* Alamofire iOS Tests.xctest */,
 				65734BCB1AB0380200D2C2F6 /* Alamofire OSX Tests.xctest */,
 			);
@@ -980,6 +988,13 @@
 			fileType = wrapper.cfbundle;
 			path = SwiftParserTests.xctest;
 			remoteRef = 652872931A5D16C200C155FA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		652B26CC1B8E3F3500A2D38E /* Alamofire.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Alamofire.framework;
+			remoteRef = 652B26CB1B8E3F3500A2D38E /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		65734BC51AB0380200D2C2F6 /* Alamofire.framework */ = {
