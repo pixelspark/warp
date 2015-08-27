@@ -87,7 +87,7 @@ final class QBEDBFStream: NSObject, QBEStream {
 			}
 
 			self.position = end
-			consumer(.Success(ArraySlice(rows)), self.position < (self.recordCount-1))
+			consumer(.Success(Array(rows)), self.position < (self.recordCount-1))
 		}
 	}
 

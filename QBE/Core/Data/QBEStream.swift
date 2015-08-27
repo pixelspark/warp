@@ -2,7 +2,7 @@ import Foundation
 
 /** A QBESink is a function used as a callback in response to QBEStream.fetch. It receives a set of rows from the stream
 as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). */
-typealias QBESink = (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()
+typealias QBESink = (QBEFallible<Array<QBETuple>>, Bool) -> ()
 
 /** The default number of rows that a QBEStream will send to a consumer upon request through QBEStream.fetch. */
 let QBEStreamDefaultBatchSize = 256
@@ -68,7 +68,7 @@ class QBEStreamData: QBEData {
 				stream.fetch(job, consumer: self.sink)
 			}
 
-			func sink(rows: QBEFallible<ArraySlice<QBETuple>>, hasNext: Bool) {
+			func sink(rows: QBEFallible<Array<QBETuple>>, hasNext: Bool) {
 				switch rows {
 				case .Success(let r):
 					// Append the rows to our buffered raster
@@ -252,7 +252,7 @@ class QBESequenceStream: QBEStream {
 			if let rc = rowCount {
 				job.reportProgress(Double(position) / Double(rc), forKey: unsafeAddressOf(self).hashValue)
 			}
-			consumer(.Success(ArraySlice(rows)), !done)
+			consumer(.Success(Array(rows)), !done)
 		}
 	}
 	
@@ -284,7 +284,7 @@ private class QBETransformer: NSObject, QBEStream {
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). */
-	private func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private func transform(rows: Array<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<Array<QBETuple>>, Bool) -> ()) {
 		fatalError("QBETransformer.transform should be implemented in a subclass")
 	}
 	
@@ -375,7 +375,7 @@ private class QBEFlattenTransformer: QBETransformer {
 		return QBEFlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
 	}
 	
-	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private override func transform(rows: Array<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<Array<QBETuple>>, Bool) -> ()) {
 		prepare(job) {
 			switch self.originalColumns! {
 			case .Success(let originalColumns):
@@ -400,7 +400,7 @@ private class QBEFlattenTransformer: QBETransformer {
 						}
 					}
 				}
-				callback(.Success(ArraySlice(newRows)), false)
+				callback(.Success(Array(newRows)), false)
 				
 			case .Failure(let error):
 				callback(.Failure(error), false)
@@ -418,7 +418,7 @@ private class QBEFilterTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private override func transform(rows: Array<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<Array<QBETuple>>, Bool) -> ()) {
 		source.columnNames(job) { (columnNames) -> () in
 			switch columnNames {
 			case .Success(let cns):
@@ -427,7 +427,7 @@ private class QBEFilterTransformer: QBETransformer {
 						return self.condition.apply(QBERow(row, columnNames: cns), foreign: nil, inputValue: nil) == QBEValue.BoolValue(true)
 					}))
 					
-					callback(.Success(ArraySlice(newRows)), false)
+					callback(.Success(Array(newRows)), false)
 				}
 				
 			case .Failure(let error):
@@ -451,7 +451,7 @@ private class QBERandomTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private override func transform(rows: Array<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<Array<QBETuple>>, Bool) -> ()) {
 		job.time("Reservoir fill", items: rows.count, itemType: "rows") {
 			reservoir.add(rows)
 		}
@@ -462,7 +462,7 @@ private class QBERandomTransformer: QBETransformer {
 		}
 		else {
 			// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
-			callback(.Success(ArraySlice(reservoir.sample)), true)
+			callback(.Success(Array(reservoir.sample)), true)
 		}
 	}
 	
@@ -481,7 +481,7 @@ private class QBEOffsetTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private override func transform(rows: Array<QBETuple>, hasNext: Bool, job: QBEJob?, callback: (QBEFallible<Array<QBETuple>>, Bool) -> ()) {
 		if position > offset {
 			position += rows.count
 			callback(.Success(rows), false)
@@ -492,7 +492,7 @@ private class QBEOffsetTransformer: QBETransformer {
 				callback(.Success([]), false)
 			}
 			else {
-				callback(.Success(rows[rest..<rows.count]), false)
+				callback(.Success(Array(rows[rest..<rows.count])), false)
 			}
 		}
 	}
@@ -513,7 +513,7 @@ private class QBELimitTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private override func transform(rows: Array<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<Array<QBETuple>>, Bool) -> ()) {
 		// We haven't reached the limit yet, not even after streaming this chunk
 		if (position+rows.count) < limit {
 			position += rows.count
@@ -524,7 +524,7 @@ private class QBELimitTransformer: QBETransformer {
 		else if position < limit {
 			let n = limit - position
 			job.reportProgress(1.0, forKey: unsafeAddressOf(self).hashValue)
-			callback(.Success(rows[0..<n]), true)
+			callback(.Success(Array(rows[0..<n])), true)
 		}
 		// The limit has already been met fully
 		else {
@@ -562,7 +562,7 @@ private class QBEColumnsTransformer: QBETransformer {
 		}
 	}
 	
-	override private func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>,Bool) -> ()) {
+	override private func transform(rows: Array<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<Array<QBETuple>>,Bool) -> ()) {
 		ensureIndexes(job) {
 			assert(self.indexes != nil)
 			
@@ -578,7 +578,7 @@ private class QBEColumnsTransformer: QBETransformer {
 						}
 						result.append(newRow)
 					}
-					callback(.Success(ArraySlice(result)), false)
+					callback(.Success(Array(result)), false)
 				
 				case .Failure(let error):
 					callback(.Failure(error), false)
@@ -671,7 +671,7 @@ private class QBECalculateTransformer: QBETransformer {
 		}
 	}
 	
-	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private override func transform(rows: Array<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<Array<QBETuple>>, Bool) -> ()) {
 		self.ensureIndexes(job) {
 			job.time("Calculate", items: rows.count, itemType: "row") {
 				switch self.columns! {
@@ -692,7 +692,7 @@ private class QBECalculateTransformer: QBETransformer {
 							return row
 						}))
 						
-						callback(.Success(ArraySlice(newData)), false)
+						callback(.Success(Array(newData)), false)
 						
 					case .Failure(let error):
 						callback(.Failure(error), false)
@@ -773,7 +773,7 @@ private class QBEJoinTransformer: QBETransformer {
 		return QBEJoinTransformer(source: self.source.clone(), join: self.join)
 	}
 	
-	private override func transform(rows: ArraySlice<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<ArraySlice<QBETuple>>, Bool) -> ()) {
+	private override func transform(rows: Array<QBETuple>, hasNext: Bool, job: QBEJob, callback: (QBEFallible<Array<QBETuple>>, Bool) -> ()) {
 		self.leftColumnNames.get(job) { (leftColumnNamesFallible) in
 			switch leftColumnNamesFallible {
 			case .Success(let leftColumnNames):
@@ -807,13 +807,13 @@ private class QBEJoinTransformer: QBETransformer {
 									switch self.join.type {
 									case .LeftJoin:
 										ourRaster.leftJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
-											let joinedTuples = ArraySlice<QBETuple>(joinedRaster.raster)
+											let joinedTuples = Array<QBETuple>(joinedRaster.raster)
 											callback(.Success(joinedTuples), hasNext)
 										}
 										
 									case .InnerJoin:
 										ourRaster.innerJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
-											let joinedTuples = ArraySlice<QBETuple>(joinedRaster.raster)
+											let joinedTuples = Array<QBETuple>(joinedRaster.raster)
 											callback(.Success(joinedTuples), hasNext)
 										}
 									}

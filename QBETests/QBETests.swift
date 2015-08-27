@@ -750,7 +750,7 @@ class QBETests: XCTestCase {
 		let expectFinish = self.expectationWithDescription("Parallel map finishes in time")
 		
 		let future = data.parallel(
-			map: { (slice: ArraySlice<Int>) -> [Int] in
+			map: { (slice: Array<Int>) -> [Int] in
 				//println("Worker \(slice)")
 				return Array(slice.map({return $0 * 2}))
 			},

@@ -51,7 +51,7 @@ class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 							
 							// Fetch rows in batches and write rows to XML
 							var sink: QBESink? = nil
-							sink = { (rows: QBEFallible<ArraySlice<QBETuple>>, hasMore: Bool) -> () in
+							sink = { (rows: QBEFallible<Array<QBETuple>>, hasMore: Bool) -> () in
 								switch rows {
 								case .Success(let rs):
 									// Write rows

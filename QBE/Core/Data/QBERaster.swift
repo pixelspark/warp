@@ -914,7 +914,7 @@ private class QBERasterDataStream: NSObject, QBEStream {
 				case .Success(let raster):
 					if self.position < raster.rowCount {
 						let end = min(raster.rowCount, self.position + QBEStreamDefaultBatchSize)
-						let rows = raster.raster[self.position..<end]
+						let rows = Array(raster.raster[self.position..<end])
 						self.position = end
 						let hasNext = self.position < raster.rowCount
 						job.reportProgress(Double(self.position) / Double(raster.rowCount), forKey: self.hashValue)

@@ -101,7 +101,7 @@ internal extension SequenceType {
 }
 
 internal extension Array {
-	func parallel<T, ResultType>(map map: ((ArraySlice<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> QBEFuture<ResultType?> {
+	func parallel<T, ResultType>(map map: ((Array<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> QBEFuture<ResultType?> {
 		let chunkSize = QBEStreamDefaultBatchSize/8
 		
 		return QBEFuture<ResultType?>({ (job, completion) -> () in
@@ -111,7 +111,7 @@ internal extension Array {
 			
 			// Chunk the contents of the array and dispatch jobs that map each chunk
 			for i in 0.stride(to: self.count, by: chunkSize) {
-				let view = self[i..<min(i+chunkSize, self.count)]
+				let view = Array(self[i..<min(i+chunkSize, self.count)])
 				let count: Int = view.count
 				
 				dispatch_group_async(group, job.queue) {

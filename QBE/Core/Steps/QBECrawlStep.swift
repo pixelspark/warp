@@ -179,7 +179,7 @@ class QBECrawlStream: QBEStream {
 								}
 							}
 						}, completion: {
-							consumer(.Success(ArraySlice<QBETuple>(outRows)), hasMore)
+							consumer(.Success(Array<QBETuple>(outRows)), hasMore)
 						})
 						
 					case .Failure(let e):

@@ -589,7 +589,7 @@ class QBESQLiteCachedData: QBEProxyData {
 		self.database.query("DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName, schema: nil, database: nil))")
 	}
 	
-	private func ingest(rows: QBEFallible<ArraySlice<QBETuple>>, hasMore: Bool) {
+	private func ingest(rows: QBEFallible<Array<QBETuple>>, hasMore: Bool) {
 		assert(!isCached, "Cannot ingest more rows after data has already been cached")
 		
 		switch rows {
