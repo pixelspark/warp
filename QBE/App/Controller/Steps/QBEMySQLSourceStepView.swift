@@ -1,5 +1,6 @@
 import Foundation
 import Cocoa
+import WarpCore
 
 internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate, NSComboBoxDelegate, NSComboBoxDataSource {
 	let step: QBEMySQLSourceStep?

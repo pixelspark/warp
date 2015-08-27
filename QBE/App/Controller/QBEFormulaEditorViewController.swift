@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 protocol QBEFormulaEditorViewDelegate: NSObjectProtocol {
 	func formulaEditor(view: QBEFormulaEditorViewController, didChangeExpression: QBEExpression?)

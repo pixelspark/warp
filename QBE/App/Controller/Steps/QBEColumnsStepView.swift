@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 internal class QBEColumnsStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 	let step: QBEColumnsStep?

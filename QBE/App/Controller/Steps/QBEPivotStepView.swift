@@ -1,5 +1,6 @@
 import Foundation
 import Cocoa
+import WarpCore
 
 internal class QBEPivotStepView: NSViewController, NSTableViewDelegate, NSTableViewDataSource, NSMenuDelegate {
 	private let dragType = "nl.pixelspark.qbe.column"

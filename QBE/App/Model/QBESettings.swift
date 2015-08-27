@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 /** QBESettings stores application-wide settings, primarily user preferences. These settings are currently stored in OS X
 user defaults, but in the future may also be saved to iCloud or any other place. No security-sensitive information (e.g.

@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 protocol QBEFileWriter {
 	init(locale: QBELocale, title: String?)

@@ -1,5 +1,6 @@
 import Foundation
 import Cocoa
+import WarpCore
 
 class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 	@IBOutlet var separatorBox: NSComboBox?

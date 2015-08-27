@@ -1,5 +1,6 @@
 import Foundation
 import Cocoa
+import WarpCore
 
 internal class QBEPostgresStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate, NSComboBoxDelegate, NSComboBoxDataSource {
 	let step: QBEPostgresSourceStep?

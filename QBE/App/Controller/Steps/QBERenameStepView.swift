@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 internal class QBERenameStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 	let step: QBERenameStep?

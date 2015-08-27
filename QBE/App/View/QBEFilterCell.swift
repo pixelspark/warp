@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 internal class QBEFilterCell: NSButtonCell {
 	let raster: QBERaster

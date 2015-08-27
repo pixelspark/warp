@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 protocol QBEReferenceViewDelegate: NSObjectProtocol {
 	func referenceView(view: QBEReferenceViewController, didSelectFunction: QBEFunction)
@@ -101,7 +102,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 									default:
 										break
 								}
-								return parameterNames.implode(locale!.argumentSeparator + " ")
+								return parameterNames.joinWithSeparator(locale!.argumentSeparator + " ")
 							}
 							else {
 								return function.arity.explanation

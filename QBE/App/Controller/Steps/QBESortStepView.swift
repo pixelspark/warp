@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 internal class QBESortStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 	let step: QBESortStep?
@@ -151,7 +152,7 @@ internal class QBESortStepView: NSViewController, NSTableViewDataSource, NSTable
 			if let rowIndexes = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? NSIndexSet {
 				if let s = step {
 					let movedItems = s.orders.objectsAtIndexes(rowIndexes)
-					movedItems.each({s.orders.remove($0)})
+					movedItems.forEach { s.orders.remove($0) }
 					s.orders.insertContentsOf(movedItems, at: min(s.orders.count, row))
 				}
 			}

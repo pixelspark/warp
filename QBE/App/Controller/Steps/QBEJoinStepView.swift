@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegate, NSTabViewDelegate {
 	weak var delegate: QBESuggestionsViewDelegate?

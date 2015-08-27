@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 @objc protocol QBEDocumentViewDelegate: NSObjectProtocol {
 	func documentView(view: QBEDocumentView, didSelectTablet: QBEChainViewController?)
@@ -44,7 +45,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	}
 	
 	func removeAllTablets() {
-		subviews.each({($0 as? QBEResizableTabletView)?.removeFromSuperview()})
+		subviews.forEach { ($0 as? QBEResizableTabletView)?.removeFromSuperview() }
 	}
 	
 	func selectTablet(tablet: QBETablet?, notifyDelegate: Bool = true) {

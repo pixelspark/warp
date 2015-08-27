@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 @IBDesignable class QBEStepsItemView: NSView {
 	private var highlighted = false

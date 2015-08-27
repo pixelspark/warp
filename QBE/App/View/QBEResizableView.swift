@@ -64,7 +64,7 @@ class QBEResizableView: NSView {
 	}
 	
 	override func updateTrackingAreas() {
-		self.trackingAreas.each({(t) in self.removeTrackingArea(t)})
+		self.trackingAreas.forEach { self.removeTrackingArea($0) }
 		addTrackingArea(NSTrackingArea(rect: self.bounds, options: [NSTrackingAreaOptions.MouseEnteredAndExited, NSTrackingAreaOptions.ActiveInKeyWindow], owner: self, userInfo: nil))
 	}
 	
@@ -76,7 +76,7 @@ class QBEResizableView: NSView {
 	private func findGrabbableViews(parent: NSView) {
 		let down = (NSEvent.pressedMouseButtons() & (1 << 0)) != 0
 		
-		parent.subviews.each { (subview) -> () in
+		parent.subviews.forEach { (subview) -> () in
 			if subview is NSCollectionView {
 				self.addCursorRect(subview.convertRect(subview.bounds, toView: self), cursor: down ? NSCursor.closedHandCursor() : NSCursor.openHandCursor())
 			}

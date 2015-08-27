@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 class QBEDocument: NSDocument, NSSecureCoding {
 	private(set) var tablets: [QBETablet] = []
@@ -17,7 +18,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 		}
 		
 		super.init()
-		tablets.each({$0.document = self})
+		tablets.forEach { $0.document = self }
 	}
 	
 	func removeTablet(tablet: QBETablet) {
@@ -66,19 +67,19 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	}
 	
 	override func writeToURL(url: NSURL, ofType typeName: String) throws {
-		self.tablets.each({$0.willSaveToDocument(url)})
+		self.tablets.forEach { $0.willSaveToDocument(url) }
 		try super.writeToURL(url, ofType: typeName)
 	}
 	
 	override func readFromURL(url: NSURL, ofType typeName: String) throws {
 		try super.readFromURL(url, ofType: typeName)
-		self.tablets.each({$0.didLoadFromDocument(url)})
+		self.tablets.forEach { $0.didLoadFromDocument(url) }
 	}
 	
 	override func readFromData(data: NSData, ofType typeName: String) throws {
 		if let x = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEDocument {
 			tablets = x.tablets
-			tablets.each({$0.document = self})
+			tablets.forEach { $0.document = self }
 		}
 	}
 }

@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 struct QBEDependency: Hashable, Equatable {
 	let step: QBEStep
@@ -95,11 +96,11 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 	external files should take the opportunity to create security bookmarks to these files (as required by Apple's
 	App Sandbox) and store them. */
 	func willSaveToDocument(atURL: NSURL) {
-		self.steps.each({$0.willSaveToDocument(atURL)})
+		self.steps.forEach { $0.willSaveToDocument(atURL) }
 	}
 	
 	/** This method is called right after a document has been loaded from disk. */
 	func didLoadFromDocument(atURL: NSURL) {
-		self.steps.each({$0.didLoadFromDocument(atURL)})
+		self.steps.forEach { $0.didLoadFromDocument(atURL) }
 	}
 }

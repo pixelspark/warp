@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 internal class QBEPrestoSourceStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate, NSComboBoxDataSource, NSComboBoxDelegate {
 	let step: QBEPrestoSourceStep?

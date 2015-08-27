@@ -1,5 +1,6 @@
 import Foundation
 import Cocoa
+import WarpCore
 
 class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 	var suggestions: [QBEStep]?

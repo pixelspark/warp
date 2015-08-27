@@ -1,5 +1,6 @@
 import Cocoa
 import XCTest
+@testable import WarpCore
 
 class QBETests: XCTestCase {
     override func setUp() {
@@ -15,11 +16,11 @@ class QBETests: XCTestCase {
 		XCTAssert(moving.sample.n == 10, "QBEMoving should discard old samples properly")
 		XCTAssert(moving.sample.mean == 5.0, "Average of test sample should be exactly 5")
 		XCTAssert(moving.sample.stdev == 0.0, "Test sample has no deviations")
-		
+
 		let (lower, upper) = moving.sample.confidenceInterval(0.90)
 		XCTAssert(lower <= upper, "Test sample confidence interval must not be flipped")
 		XCTAssert(lower == 5.0 && upper == 5.0, "Test sample has confidence interval that is [5,5]")
-		
+
 		// Add a value to the moving average and try again
 		moving.add(100)
 		XCTAssert(moving.sample.n == 10, "QBEMoving should discard old samples properly")
@@ -28,9 +29,404 @@ class QBETests: XCTestCase {
 		let (lower2, upper2) = moving.sample.confidenceInterval(0.90)
 		XCTAssert(lower2 <= upper2, "Test sample confidence interval must not be flipped")
 		XCTAssert(lower2 < 5.0 && upper2 > 5.0, "Test sample has confidence interval that is wider")
-		
+
 		let (lower3, upper3) = moving.sample.confidenceInterval(0.95)
 		XCTAssert(lower3 < lower2 && upper3 > upper2, "A more confident interval is wider")
+	}
+
+	func testArithmetic() {
+		// Strings
+		XCTAssert(QBEValue("hello") == QBEValue("hello"), "String equality")
+		XCTAssert(QBEValue("hello") != QBEValue("HELLO"), "String equality is case sensitive")
+		XCTAssert(QBEValue(1337) == QBEValue("1337"), "Numbers are strings")
+		XCTAssert("Tommy".levenshteinDistance("tommy") == 1, "Levenshtein is case sensitive")
+		XCTAssert("Tommy".levenshteinDistance("Tomy") == 1, "Levenshtein recognizes deletes")
+		XCTAssert("Tommy".levenshteinDistance("ymmoT") == 4, "Levenshtein recognizes moves")
+		XCTAssert("Tommy".levenshteinDistance("TommyV") == 1, "Levenshtein recognizes adds")
+
+		// Booleans
+		XCTAssert(true.toDouble()==1.0, "True is double 1.0")
+		XCTAssert(false.toDouble()==0.0, "False is double 0.0")
+		XCTAssert(true.toInt()==1, "True is integer 1")
+		XCTAssert(false.toInt()==0, "False is integer 0")
+
+		// Invalid value
+		XCTAssert(QBEValue.InvalidValue != QBEValue.InvalidValue, "Invalid value does not equal itself")
+		XCTAssert(QBEValue.InvalidValue != QBEValue.EmptyValue, "Invalid value does not equal empty value")
+		XCTAssert(QBEValue.InvalidValue != QBEValue.BoolValue(false), "Invalid value does not equal false value")
+
+		// Empty value
+		XCTAssert(QBEValue.EmptyValue == QBEValue.EmptyValue, "Empty equals empty")
+		XCTAssert(QBEValue.EmptyValue != QBEValue.StringValue(""), "Empty does not equal empty string")
+		XCTAssert(QBEValue.EmptyValue != QBEValue.IntValue(0), "Empty does not equal zero integer")
+		XCTAssert(QBEValue.EmptyValue != QBEValue.BoolValue(false), "Empty does not equal false")
+
+		// Numeric operations
+		XCTAssert(QBEValue(12) * QBEValue(13) == QBEValue(156), "Integer multiplication")
+		XCTAssert(QBEValue(12.2) * QBEValue(13.3) == QBEValue(162.26), "Double multiplication")
+		XCTAssert(QBEValue(12) * QBEValue(13) == QBEValue(156), "Integer multiplication to double")
+		XCTAssert(QBEValue(12) / QBEValue(2) == QBEValue(6), "Integer division to double")
+		XCTAssert(!(QBEValue(10.0) / QBEValue(0)).isValid, "Division by zero")
+
+		// String operations
+		XCTAssert(QBEValue("1337") & QBEValue("h4x0r") == QBEValue("1337h4x0r"), "String string concatenation")
+
+		// Implicit conversions
+		XCTAssert((QBEValue(13) + QBEValue("37")) == QBEValue.IntValue(50), "Integer plus string results in integer")
+		XCTAssert(QBEValue("13") + QBEValue(37) == QBEValue.IntValue(50), "String plus integer results in integer")
+		XCTAssert(QBEValue("13") + QBEValue("37") == QBEValue.IntValue(50), "String plus integer results in integer")
+		XCTAssert(QBEValue(true) + QBEValue(true) == QBEValue.IntValue(2), "True + true == 2")
+		XCTAssert(!(QBEValue(1) + QBEValue.EmptyValue).isValid, "1 + Empty is not valid")
+		XCTAssert(!(QBEValue.EmptyValue + QBEValue.EmptyValue).isValid, "Empty + Empty is not valud")
+		XCTAssert(!(QBEValue(12) + QBEValue.InvalidValue).isValid, "Int + Invalid is not valid")
+
+		XCTAssert((QBEValue(13) - QBEValue("37")) == QBEValue.IntValue(-24), "Integer minus string results in integer")
+		XCTAssert(QBEValue("13") - QBEValue(37) == QBEValue.IntValue(-24), "String minus integer results in integer")
+		XCTAssert(QBEValue("13") - QBEValue("37") == QBEValue.IntValue(-24), "String minus integer results in integer")
+		XCTAssert(QBEValue(true) - QBEValue(true) == QBEValue.IntValue(0), "True + true == 2")
+		XCTAssert(!(QBEValue(1) - QBEValue.EmptyValue).isValid, "1 - Empty is not valid")
+		XCTAssert(!(QBEValue.EmptyValue - QBEValue.EmptyValue).isValid, "Empty - Empty is  ot valud")
+		XCTAssert(!(QBEValue(12) - QBEValue.InvalidValue).isValid, "Int - Invalid is not valid")
+
+		// Numeric comparisons
+		XCTAssert((QBEValue(12) < QBEValue(25)) == QBEValue(true), "Less than")
+		XCTAssert((QBEValue(12) > QBEValue(25)) == QBEValue(false), "Greater than")
+		XCTAssert((QBEValue(12) <= QBEValue(25)) == QBEValue(true), "Less than or equal")
+		XCTAssert((QBEValue(12) >= QBEValue(25)) == QBEValue(false), "Greater than or equal")
+		XCTAssert((QBEValue(12) <= QBEValue(12)) == QBEValue(true), "Less than or equal")
+		XCTAssert((QBEValue(12) >= QBEValue(12)) == QBEValue(true), "Greater than or equal")
+
+		// Equality
+		XCTAssert((QBEValue(12.0) == QBEValue(12)) == QBEValue(true), "Double == int")
+		XCTAssert((QBEValue(12) == QBEValue(12.0)) == QBEValue(true), "Int == double")
+		XCTAssert((QBEValue(12.0) != QBEValue(12)) == QBEValue(false), "Double != int")
+		XCTAssert((QBEValue(12) != QBEValue(12.0)) == QBEValue(false), "Int != double")
+		XCTAssert(QBEValue("12") == QBEValue(12), "String number is treated as number")
+		XCTAssert((QBEValue("12") + QBEValue("13")) == QBEValue(25), "String number is treated as number")
+		XCTAssert(QBEValue.EmptyValue == QBEValue.EmptyValue, "Empty equals empty")
+		XCTAssert(!(QBEValue.InvalidValue == QBEValue.InvalidValue), "Invalid value equals nothing")
+
+		// Inequality
+		XCTAssert(QBEValue.EmptyValue != QBEValue(0), "Empty is not equal to zero")
+		XCTAssert(QBEValue.EmptyValue != QBEValue(Double.NaN), "Empty is not equal to double NaN")
+		XCTAssert(QBEValue.EmptyValue != QBEValue(""), "Empty is not equal to empty string")
+		XCTAssert(QBEValue.InvalidValue != QBEValue.InvalidValue, "Invalid value inequals other invalid value")
+
+		// Packs
+		XCTAssert(QBEPack("a,b,c,d").count == 4, "Pack format parser works")
+		XCTAssert(QBEPack("a,b,c,d,").count == 5, "Pack format parser works")
+		XCTAssert(QBEPack("a,b$0,c$1$0,d$0$1").count == 4, "Pack format parser works")
+		XCTAssert(QBEPack(",").count == 2, "Pack format parser works")
+		XCTAssert(QBEPack("").count == 0, "Pack format parser works")
+		XCTAssert(QBEPack(["Tommy", "van$,der,Vorst"]).stringValue == "Tommy,van$1$0der$0Vorst", "Pack writer properly escapes")
+	}
+
+	func testFunctions() {
+		for fun in QBEFunction.allFunctions {
+			switch fun {
+
+			case .Xor:
+				XCTAssert(QBEFunction.Xor.apply([QBEValue(true), QBEValue(true)]) == QBEValue(false), "XOR(true, true)")
+				XCTAssert(QBEFunction.Xor.apply([QBEValue(true), QBEValue(false)]) == QBEValue(true), "XOR(true, false)")
+				XCTAssert(QBEFunction.Xor.apply([QBEValue(false), QBEValue(false)]) == QBEValue(false), "XOR(false, false)")
+
+			case .Identity:
+				XCTAssert(QBEFunction.Identity.apply([QBEValue(1.337)]) == QBEValue(1.337),"Identity")
+
+			case .Not:
+				XCTAssert(QBEFunction.Not.apply([QBEValue(false)]) == QBEValue(true), "Not")
+
+			case .And:
+				XCTAssert(QBEFunction.And.apply([QBEValue(true), QBEValue(true)]) == QBEValue(true), "AND(true, true)")
+				XCTAssert(!QBEFunction.And.apply([QBEValue(true), QBEValue.InvalidValue]).isValid, "AND(true, invalid)")
+				XCTAssert(QBEFunction.And.apply([QBEValue(true), QBEValue(false)]) == QBEValue(false), "AND(true, false)")
+				XCTAssert(QBEFunction.And.apply([QBEValue(false), QBEValue(false)]) == QBEValue(false), "AND(false, false)")
+
+			case .Lowercase:
+				XCTAssert(QBEFunction.Lowercase.apply([QBEValue("Tommy")]) == QBEValue("tommy"), "Lowercase")
+
+			case .Uppercase:
+				XCTAssert(QBEFunction.Uppercase.apply([QBEValue("Tommy")]) == QBEValue("TOMMY"), "Uppercase")
+
+			case .Absolute:
+				XCTAssert(QBEFunction.Absolute.apply([QBEValue(-1)]) == QBEValue(1), "Absolute")
+
+			case .Count:
+				XCTAssert(QBEFunction.Count.apply([]) == QBEValue(0), "Empty count returns zero")
+				XCTAssert(QBEFunction.Count.apply([QBEValue(1), QBEValue(1), QBEValue.InvalidValue, QBEValue.EmptyValue]) == QBEValue(2), "Count does not include invalid values and empty values")
+
+			case .Items:
+				XCTAssert(QBEFunction.Items.apply([QBEValue("")]) == QBEValue(0), "Empty count returns zero")
+				XCTAssert(QBEFunction.Items.apply([QBEValue("Foo,bar,baz")]) == QBEValue(3), "Count does not include invalid values and empty values")
+
+			case .CountAll:
+				XCTAssert(QBEFunction.CountAll.apply([QBEValue(1), QBEValue(1), QBEValue.InvalidValue, QBEValue.EmptyValue]) == QBEValue(4), "CountAll includes invalid values and empty values")
+
+			case .Negate:
+				XCTAssert(QBEFunction.Negate.apply([QBEValue(1337)]) == QBEValue(-1337), "Negate")
+
+			case .Or:
+				XCTAssert(QBEFunction.Or.apply([QBEValue(true), QBEValue(true)]) == QBEValue(true), "OR(true, true)")
+				XCTAssert(QBEFunction.Or.apply([QBEValue(true), QBEValue(false)]) == QBEValue(true), "OR(true, false)")
+				XCTAssert(QBEFunction.Or.apply([QBEValue(false), QBEValue(false)]) == QBEValue(false), "OR(false, false)")
+				XCTAssert(!QBEFunction.Or.apply([QBEValue(true), QBEValue.InvalidValue]).isValid, "OR(true, invalid)")
+
+			case .Acos:
+				XCTAssert(QBEFunction.Acos.apply([QBEValue(0.337)]) == QBEValue(acos(0.337)), "Acos")
+				XCTAssert(!QBEFunction.Acos.apply([QBEValue(1.337)]).isValid, "Acos")
+
+			case .Asin:
+				XCTAssert(QBEFunction.Asin.apply([QBEValue(0.337)]) == QBEValue(asin(0.337)), "Asin")
+				XCTAssert(!QBEFunction.Asin.apply([QBEValue(1.337)]).isValid, "Asin")
+
+			case .NormalInverse:
+				let ni = QBEFunction.NormalInverse.apply([QBEValue(0.25), QBEValue(42), QBEValue(4)])
+				XCTAssert(ni > QBEValue(39) && ni < QBEValue(40), "NormalInverse")
+
+			case .Atan:
+				XCTAssert(QBEFunction.Atan.apply([QBEValue(1.337)]) == QBEValue(atan(1.337)), "Atan")
+
+			case .Cosh:
+				XCTAssert(QBEFunction.Cosh.apply([QBEValue(1.337)]) == QBEValue(cosh(1.337)), "Cosh")
+
+			case .Sinh:
+				XCTAssert(QBEFunction.Sinh.apply([QBEValue(1.337)]) == QBEValue(sinh(1.337)), "Sinh")
+
+			case .Tanh:
+				XCTAssert(QBEFunction.Tanh.apply([QBEValue(1.337)]) == QBEValue(tanh(1.337)), "Tanh")
+
+			case .Cos:
+				XCTAssert(QBEFunction.Cos.apply([QBEValue(1.337)]) == QBEValue(cos(1.337)), "Cos")
+
+			case .Sin:
+				XCTAssert(QBEFunction.Sin.apply([QBEValue(1.337)]) == QBEValue(sin(1.337)), "Sin")
+
+			case .Tan:
+				XCTAssert(QBEFunction.Tan.apply([QBEValue(1.337)]) == QBEValue(tan(1.337)), "Tan")
+
+			case .Sqrt:
+				XCTAssert(QBEFunction.Sqrt.apply([QBEValue(1.337)]) == QBEValue(sqrt(1.337)), "Sqrt")
+				XCTAssert(!QBEFunction.Sqrt.apply([QBEValue(-1)]).isValid, "Sqrt")
+
+			case .Round:
+				XCTAssert(QBEFunction.Round.apply([QBEValue(1.337)]) == QBEValue(1), "Round")
+				XCTAssert(QBEFunction.Round.apply([QBEValue(1.337), QBEValue(2)]) == QBEValue(1.34), "Round")
+				XCTAssert(QBEFunction.Round.apply([QBEValue(0.5)]) == QBEValue(1), "Round")
+
+			case .Log:
+				XCTAssert(QBEFunction.Log.apply([QBEValue(1.337)]) == QBEValue(log10(1.337)), "Log")
+				XCTAssert(!QBEFunction.Log.apply([QBEValue(0)]).isValid, "Log")
+
+			case .Exp:
+				XCTAssert(QBEFunction.Exp.apply([QBEValue(1.337)]) == QBEValue(exp(1.337)), "Exp")
+				XCTAssert(QBEFunction.Exp.apply([QBEValue(0)]) == QBEValue(1), "Exp")
+
+			case .Ln:
+				XCTAssert(QBEFunction.Ln.apply([QBEValue(1.337)]) == QBEValue(log10(1.337) / log10(exp(1.0))), "Ln")
+				XCTAssert(!QBEFunction.Ln.apply([QBEValue(0)]).isValid, "Ln")
+
+			case .Concat:
+				XCTAssert(QBEFunction.Concat.apply([QBEValue(1), QBEValue("33"), QBEValue(false)]) == QBEValue("1330"), "Concat")
+
+			case .If:
+				XCTAssert(QBEFunction.If.apply([QBEValue(true), QBEValue(13), QBEValue(37)]) == QBEValue(13), "If")
+				XCTAssert(QBEFunction.If.apply([QBEValue(false), QBEValue(13), QBEValue(37)]) == QBEValue(37), "If")
+				XCTAssert(!QBEFunction.If.apply([QBEValue.InvalidValue, QBEValue(13), QBEValue(37)]).isValid, "If")
+
+			case .Left:
+				XCTAssert(QBEFunction.Left.apply([QBEValue(1337), QBEValue(3)]) == QBEValue(133), "Left")
+				XCTAssert(!QBEFunction.Left.apply([QBEValue(1337), QBEValue(5)]).isValid, "Left")
+
+			case .Right:
+				XCTAssert(QBEFunction.Right.apply([QBEValue(1337), QBEValue(3)]) == QBEValue(337), "Right")
+				XCTAssert(!QBEFunction.Right.apply([QBEValue(1337), QBEValue(5)]).isValid, "Right")
+
+			case .Mid:
+				XCTAssert(QBEFunction.Mid.apply([QBEValue(1337), QBEValue(3), QBEValue(1)]) == QBEValue(7), "Mid")
+				XCTAssert(QBEFunction.Mid.apply([QBEValue(1337), QBEValue(3), QBEValue(10)]) == QBEValue(7), "Mid")
+
+			case .Substitute:
+				XCTAssert(QBEFunction.Substitute.apply([QBEValue("foobar"), QBEValue("foo"), QBEValue("bar")]) == QBEValue("barbar"), "Substitute")
+
+			case .Length:
+				XCTAssert(QBEFunction.Length.apply([QBEValue("test")]) == QBEValue(4), "Length")
+
+			case .Sum:
+				XCTAssert(QBEFunction.Sum.apply([1,3,3,7].map({return QBEValue($0)})) == QBEValue(1+3+3+7), "Sum")
+				XCTAssert(QBEFunction.Sum.apply([]) == QBEValue(0), "Sum")
+
+			case .Min:
+				XCTAssert(QBEFunction.Min.apply([1,3,3,7].map({return QBEValue($0)})) == QBEValue(1), "Min")
+				XCTAssert(!QBEFunction.Min.apply([]).isValid, "Min")
+
+			case .Max:
+				XCTAssert(QBEFunction.Max.apply([1,3,3,7].map({return QBEValue($0)})) == QBEValue(7), "Max")
+				XCTAssert(!QBEFunction.Max.apply([]).isValid, "Max")
+
+			case .Average:
+				XCTAssert(QBEFunction.Average.apply([1,3,3,7].map({return QBEValue($0)})) == QBEValue((1.0+3.0+3.0+7.0)/4.0), "Average")
+				XCTAssert(!QBEFunction.Average.apply([]).isValid, "Average")
+
+			case .Trim:
+				XCTAssert(QBEFunction.Trim.apply([QBEValue("   trim  ")]) == QBEValue("trim"), "Trim")
+				XCTAssert(QBEFunction.Trim.apply([QBEValue("  ")]) == QBEValue(""), "Trim")
+
+			case .Choose:
+				XCTAssert(QBEFunction.Choose.apply([3,3,3,7].map({return QBEValue($0)})) == QBEValue(7), "Choose")
+				XCTAssert(!QBEFunction.Choose.apply([QBEValue(3)]).isValid, "Choose")
+
+			case .Random:
+				let rv = QBEFunction.Random.apply([])
+				XCTAssert(rv >= QBEValue(0.0) && rv <= QBEValue(1.0), "Random")
+
+			case .RandomBetween:
+				let rv = QBEFunction.RandomBetween.apply([QBEValue(-10), QBEValue(9)])
+				XCTAssert(rv >= QBEValue(-10.0) && rv <= QBEValue(9.0), "RandomBetween")
+
+			case .RandomItem:
+				let items = [1,3,3,7].map({return QBEValue($0)})
+				XCTAssert(items.contains(QBEFunction.RandomItem.apply(items)), "RandomItem")
+
+			case .Pack:
+				XCTAssert(QBEFunction.Pack.apply([QBEValue("He,llo"),QBEValue("World")]) == QBEValue(QBEPack(["He,llo", "World"]).stringValue), "Pack")
+
+			case .Split:
+				XCTAssert(QBEFunction.Split.apply([QBEValue("Hello#World"), QBEValue("#")]) == QBEValue("Hello,World"), "Split")
+
+			case .Nth:
+				XCTAssert(QBEFunction.Nth.apply([QBEValue("Foo,bar,baz"), QBEValue(3)]) == QBEValue("baz"), "Nth")
+
+			case .Sign:
+				XCTAssert(QBEFunction.Sign.apply([QBEValue(-1337)]) == QBEValue(-1), "Sign")
+				XCTAssert(QBEFunction.Sign.apply([QBEValue(0)]) == QBEValue(0), "Sign")
+				XCTAssert(QBEFunction.Sign.apply([QBEValue(1337)]) == QBEValue(1), "Sign")
+
+			case .IfError:
+				XCTAssert(QBEFunction.IfError.apply([QBEValue.InvalidValue, QBEValue(1337)]) == QBEValue(1337), "IfError")
+				XCTAssert(QBEFunction.IfError.apply([QBEValue(1336), QBEValue(1337)]) == QBEValue(1336), "IfError")
+
+			case .Levenshtein:
+				XCTAssert(QBEFunction.Levenshtein.apply([QBEValue("tommy"), QBEValue("tom")]) == QBEValue(2), "Levenshtein")
+
+			case .RegexSubstitute:
+				XCTAssert(QBEFunction.RegexSubstitute.apply([QBEValue("Tommy"), QBEValue("m+"), QBEValue("@")]) == QBEValue("To@y"), "RegexSubstitute")
+
+			case .Coalesce:
+				XCTAssert(QBEFunction.Coalesce.apply([QBEValue.InvalidValue, QBEValue.InvalidValue, QBEValue(1337)]) == QBEValue(1337), "Coalesce")
+
+			case .Capitalize:
+				XCTAssert(QBEFunction.Capitalize.apply([QBEValue("tommy van DER vorst")]) == QBEValue("Tommy Van Der Vorst"), "Capitalize")
+
+			case .URLEncode:
+				// FIXME: URLEncode should probably also encode slashes, right?
+				XCTAssert(QBEFunction.URLEncode.apply([QBEValue("tommy%/van DER vorst")]) == QBEValue("tommy%25/van%20DER%20vorst"), "URLEncode")
+
+			case .In:
+				XCTAssert(QBEFunction.In.apply([QBEValue(1), QBEValue(1), QBEValue(2)]) == QBEValue.BoolValue(true), "In")
+				XCTAssert(QBEFunction.In.apply([QBEValue(1), QBEValue(3), QBEValue(2)]) == QBEValue.BoolValue(false), "In")
+
+			case .NotIn:
+				XCTAssert(QBEFunction.NotIn.apply([QBEValue(1), QBEValue(2), QBEValue(2)]) == QBEValue.BoolValue(true), "NotIn")
+				XCTAssert(QBEFunction.NotIn.apply([QBEValue(1), QBEValue(1), QBEValue(2)]) == QBEValue.BoolValue(false), "NotIn")
+
+			case .ToUnixTime:
+				let d = NSDate()
+				XCTAssert(QBEFunction.ToUnixTime.apply([QBEValue(d)]) == QBEValue(d.timeIntervalSince1970), "ToUnixTime")
+				let epoch = NSDate(timeIntervalSince1970: 0)
+				XCTAssert(QBEFunction.ToUnixTime.apply([QBEValue(epoch)]) == QBEValue(0), "ToUnixTime")
+
+			case .FromUnixTime:
+				XCTAssert(QBEFunction.FromUnixTime.apply([QBEValue(0)]) == QBEValue(NSDate(timeIntervalSince1970: 0)), "FromUnixTime")
+
+			case .Now:
+				break
+
+			case .FromISO8601:
+				XCTAssert(QBEFunction.FromISO8601.apply([QBEValue("1970-01-01T00:00:00Z")]) == QBEValue(NSDate(timeIntervalSince1970: 0)), "FromISO8601")
+
+			case .ToLocalISO8601:
+				break
+
+			case .ToUTCISO8601:
+				XCTAssert(QBEFunction.ToUTCISO8601.apply([QBEValue(NSDate(timeIntervalSince1970: 0))]) == QBEValue("1970-01-01T00:00:00Z"), "ToUTCISO8601")
+
+			case .FromExcelDate:
+				XCTAssert(QBEFunction.FromExcelDate.apply([QBEValue(25569.0)]) == QBEValue(NSDate(timeIntervalSince1970: 0.0)), "FromExcelDate")
+				XCTAssert(QBEFunction.FromExcelDate.apply([QBEValue(42210.8330092593)]) == QBEValue(NSDate(timeIntervalSinceReferenceDate: 459547172.0)), "FromExcelDate")
+
+			case .ToExcelDate:
+				XCTAssert(QBEFunction.ToExcelDate.apply([QBEValue(NSDate(timeIntervalSince1970: 0.0))]) == QBEValue(25569.0), "ToExcelDate")
+				XCTAssert(QBEFunction.ToExcelDate.apply([QBEValue(NSDate(timeIntervalSinceReferenceDate: 459547172))]).doubleValue!.approximates(42210.8330092593, epsilon: 0.01), "ToExcelDate")
+
+			case .UTCDate:
+				XCTAssert(QBEFunction.UTCDate.apply([QBEValue(2001), QBEValue(1), QBEValue(1)]) == QBEValue.DateValue(0.0), "UTCDate")
+
+			case .UTCYear:
+				XCTAssert(QBEFunction.UTCYear.apply([QBEValue.DateValue(0)]) == QBEValue(2001), "UTCYear")
+
+			case .UTCMonth:
+				XCTAssert(QBEFunction.UTCMonth.apply([QBEValue.DateValue(0)]) == QBEValue(1), "UTCMonth")
+
+			case .UTCDay:
+				XCTAssert(QBEFunction.UTCDay.apply([QBEValue.DateValue(0)]) == QBEValue(1), "UTCDay")
+
+			case .UTCHour:
+				XCTAssert(QBEFunction.UTCHour.apply([QBEValue.DateValue(0)]) == QBEValue(0), "UTCHour")
+
+			case .UTCMinute:
+				XCTAssert(QBEFunction.UTCMinute.apply([QBEValue.DateValue(0)]) == QBEValue(0), "UTCMinute")
+
+			case .UTCSecond:
+				XCTAssert(QBEFunction.UTCSecond.apply([QBEValue.DateValue(0)]) == QBEValue(0), "UTCSecond")
+
+			case .Duration:
+				let start = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1337.0))
+				let end = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1346.0))
+				XCTAssert(QBEFunction.Duration.apply([start, end]) == QBEValue(9.0), "Duration")
+				XCTAssert(QBEFunction.Duration.apply([end, start]) == QBEValue(-9.0), "Duration")
+
+			case .After:
+				let start = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1337.0))
+				let end = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1346.0))
+				XCTAssert(QBEFunction.After.apply([start, QBEValue(9.0)]) == end, "After")
+				XCTAssert(QBEFunction.After.apply([end, QBEValue(-9.0)]) == start, "After")
+
+			case .Ceiling:
+				XCTAssert(QBEFunction.Ceiling.apply([QBEValue(1.337)]) == QBEValue(2), "Ceiling")
+
+			case .Floor:
+				XCTAssert(QBEFunction.Floor.apply([QBEValue(1.337)]) == QBEValue(1), "Floor")
+
+			case .RandomString:
+				XCTAssert(QBEFunction.RandomString.apply([QBEValue("[0-9]")]).stringValue!.characters.count == 1, "RandomString")
+
+			case .ToUnicodeDateString:
+				XCTAssert(QBEFunction.ToUnicodeDateString.apply([QBEValue.DateValue(460226561.0), QBEValue("yyy-MM-dd")]) == QBEValue("2015-08-02"), "ToUnicodeDateString")
+
+			case .FromUnicodeDateString:
+				XCTAssert(QBEFunction.FromUnicodeDateString.apply([QBEValue("1988-08-11"), QBEValue("yyyy-MM-dd")]) == QBEValue(NSDate.fromISO8601FormattedDate("1988-08-11T00:00:00Z")!), "FromUnicodeDateString")
+
+			case .Power:
+				XCTAssert(QBEFunction.Power.apply([QBEValue(2), QBEValue(0)]) == QBEValue(1), "Power")
+			}
+		}
+
+		// Binaries
+		XCTAssert(QBEBinary.ContainsString.apply(QBEValue("Tommy"), QBEValue("om"))==QBEValue(true), "Contains string operator should be case-insensitive")
+		XCTAssert(QBEBinary.ContainsString.apply(QBEValue("Tommy"), QBEValue("x"))==QBEValue(false), "Contains string operator should work")
+		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("Tom"))==QBEValue(true), "Strict contains string operator should work")
+		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("tom"))==QBEValue(false), "Strict contains string operator should be case-sensitive")
+		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("x"))==QBEValue(false), "Strict contains string operator should work")
+
+		// Split / nth
+		XCTAssert(QBEFunction.Split.apply([QBEValue("van der Vorst, Tommy"), QBEValue(" ")]).stringValue == "van,der,Vorst$0,Tommy", "Split works")
+		XCTAssert(QBEFunction.Nth.apply([QBEValue("van,der,Vorst$0,Tommy"), QBEValue(3)]).stringValue == "Vorst,", "Nth works")
+		XCTAssert(QBEFunction.Items.apply([QBEValue("van,der,Vorst$0,Tommy")]).intValue == 4, "Items works")
+		
+		// Stats
+		let z = QBEFunction.NormalInverse.apply([QBEValue(0.9), QBEValue(10), QBEValue(5)]).doubleValue
+		XCTAssert(z != nil, "NormalInverse should return a value under normal conditions")
+		XCTAssert(z! > 16.406 && z! < 16.408, "NormalInverse should results that are equal to those of NORM.INV.N in Excel")
 	}
 	
 	func testEmptyQBERaster() {
@@ -78,93 +474,6 @@ class QBETests: XCTestCase {
 		XCTAssert(Array(QBESequencer("([abc]|[def])[xyz]")!.root!).count == 6 * 3, "Sequence ([abc]|[def])[xyz] should generate 6*3 items")
 		
 		XCTAssert(QBESequencer("([0-9]{2}\\-[A-Z]{3}\\-[0-9])|([A-Z]{2}\\-[A-Z]{2}\\-[0-9]{2})")!.cardinality == 63273600,"Cardinality of a complicated sequencer expression is correct")
-	}
-	
-	func testArithmetic() {
-		// Strings
-		XCTAssert(QBEValue("hello") == QBEValue("hello"), "String equality")
-		XCTAssert(QBEValue("hello") != QBEValue("HELLO"), "String equality is case sensitive")
-		XCTAssert(QBEValue(1337) == QBEValue("1337"), "Numbers are strings")
-		XCTAssert("Tommy".levenshteinDistance("tommy") == 1, "Levenshtein is case sensitive")
-		XCTAssert("Tommy".levenshteinDistance("Tomy") == 1, "Levenshtein recognizes deletes")
-		XCTAssert("Tommy".levenshteinDistance("ymmoT") == 4, "Levenshtein recognizes moves")
-		XCTAssert("Tommy".levenshteinDistance("TommyV") == 1, "Levenshtein recognizes adds")
-		
-		// Booleans
-		XCTAssert(true.toDouble()==1.0, "True is double 1.0")
-		XCTAssert(false.toDouble()==0.0, "False is double 0.0")
-		XCTAssert(true.toInt()==1, "True is integer 1")
-		XCTAssert(false.toInt()==0, "False is integer 0")
-		
-		// Invalid value
-		XCTAssert(QBEValue.InvalidValue != QBEValue.InvalidValue, "Invalid value does not equal itself")
-		XCTAssert(QBEValue.InvalidValue != QBEValue.EmptyValue, "Invalid value does not equal empty value")
-		XCTAssert(QBEValue.InvalidValue != QBEValue.BoolValue(false), "Invalid value does not equal false value")
-		
-		// Empty value
-		XCTAssert(QBEValue.EmptyValue == QBEValue.EmptyValue, "Empty equals empty")
-		XCTAssert(QBEValue.EmptyValue != QBEValue.StringValue(""), "Empty does not equal empty string")
-		XCTAssert(QBEValue.EmptyValue != QBEValue.IntValue(0), "Empty does not equal zero integer")
-		XCTAssert(QBEValue.EmptyValue != QBEValue.BoolValue(false), "Empty does not equal false")
-
-		// Numeric operations
-		XCTAssert(QBEValue(12) * QBEValue(13) == QBEValue(156), "Integer multiplication")
-		XCTAssert(QBEValue(12.2) * QBEValue(13.3) == QBEValue(162.26), "Double multiplication")
-		XCTAssert(QBEValue(12) * QBEValue(13) == QBEValue(156), "Integer multiplication to double")
-		XCTAssert(QBEValue(12) / QBEValue(2) == QBEValue(6), "Integer division to double")
-		XCTAssert(!(QBEValue(10.0) / QBEValue(0)).isValid, "Division by zero")
-		
-		// String operations
-		XCTAssert(QBEValue("1337") & QBEValue("h4x0r") == QBEValue("1337h4x0r"), "String string concatenation")
-		
-		// Implicit conversions
-		XCTAssert((QBEValue(13) + QBEValue("37")) == QBEValue.IntValue(50), "Integer plus string results in integer")
-		XCTAssert(QBEValue("13") + QBEValue(37) == QBEValue.IntValue(50), "String plus integer results in integer")
-		XCTAssert(QBEValue("13") + QBEValue("37") == QBEValue.IntValue(50), "String plus integer results in integer")
-		XCTAssert(QBEValue(true) + QBEValue(true) == QBEValue.IntValue(2), "True + true == 2")
-		XCTAssert(!(QBEValue(1) + QBEValue.EmptyValue).isValid, "1 + Empty is not valid")
-		XCTAssert(!(QBEValue.EmptyValue + QBEValue.EmptyValue).isValid, "Empty + Empty is not valud")
-		XCTAssert(!(QBEValue(12) + QBEValue.InvalidValue).isValid, "Int + Invalid is not valid")
-		
-		XCTAssert((QBEValue(13) - QBEValue("37")) == QBEValue.IntValue(-24), "Integer minus string results in integer")
-		XCTAssert(QBEValue("13") - QBEValue(37) == QBEValue.IntValue(-24), "String minus integer results in integer")
-		XCTAssert(QBEValue("13") - QBEValue("37") == QBEValue.IntValue(-24), "String minus integer results in integer")
-		XCTAssert(QBEValue(true) - QBEValue(true) == QBEValue.IntValue(0), "True + true == 2")
-		XCTAssert(!(QBEValue(1) - QBEValue.EmptyValue).isValid, "1 - Empty is not valid")
-		XCTAssert(!(QBEValue.EmptyValue - QBEValue.EmptyValue).isValid, "Empty - Empty is  ot valud")
-		XCTAssert(!(QBEValue(12) - QBEValue.InvalidValue).isValid, "Int - Invalid is not valid")
-		
-		// Numeric comparisons
-		XCTAssert((QBEValue(12) < QBEValue(25)) == QBEValue(true), "Less than")
-		XCTAssert((QBEValue(12) > QBEValue(25)) == QBEValue(false), "Greater than")
-		XCTAssert((QBEValue(12) <= QBEValue(25)) == QBEValue(true), "Less than or equal")
-		XCTAssert((QBEValue(12) >= QBEValue(25)) == QBEValue(false), "Greater than or equal")
-		XCTAssert((QBEValue(12) <= QBEValue(12)) == QBEValue(true), "Less than or equal")
-		XCTAssert((QBEValue(12) >= QBEValue(12)) == QBEValue(true), "Greater than or equal")
-		
-		// Equality
-		XCTAssert((QBEValue(12.0) == QBEValue(12)) == QBEValue(true), "Double == int")
-		XCTAssert((QBEValue(12) == QBEValue(12.0)) == QBEValue(true), "Int == double")
-		XCTAssert((QBEValue(12.0) != QBEValue(12)) == QBEValue(false), "Double != int")
-		XCTAssert((QBEValue(12) != QBEValue(12.0)) == QBEValue(false), "Int != double")
-		XCTAssert(QBEValue("12") == QBEValue(12), "String number is treated as number")
-		XCTAssert((QBEValue("12") + QBEValue("13")) == QBEValue(25), "String number is treated as number")
-		XCTAssert(QBEValue.EmptyValue == QBEValue.EmptyValue, "Empty equals empty")
-		XCTAssert(!(QBEValue.InvalidValue == QBEValue.InvalidValue), "Invalid value equals nothing")
-		
-		// Inequality
-		XCTAssert(QBEValue.EmptyValue != QBEValue(0), "Empty is not equal to zero")
-		XCTAssert(QBEValue.EmptyValue != QBEValue(Double.NaN), "Empty is not equal to double NaN")
-		XCTAssert(QBEValue.EmptyValue != QBEValue(""), "Empty is not equal to empty string")
-		XCTAssert(QBEValue.InvalidValue != QBEValue.InvalidValue, "Invalid value inequals other invalid value")
-		
-		// Packs
-		XCTAssert(QBEPack("a,b,c,d").count == 4, "Pack format parser works")
-		XCTAssert(QBEPack("a,b,c,d,").count == 5, "Pack format parser works")
-		XCTAssert(QBEPack("a,b$0,c$1$0,d$0$1").count == 4, "Pack format parser works")
-		XCTAssert(QBEPack(",").count == 2, "Pack format parser works")
-		XCTAssert(QBEPack("").count == 0, "Pack format parser works")
-		XCTAssert(QBEPack(["Tommy", "van$,der,Vorst"]).stringValue == "Tommy,van$1$0der$0Vorst", "Pack writer properly escapes")
 	}
 	
 	func testFormulaParser() {
@@ -229,314 +538,6 @@ class QBETests: XCTestCase {
 		//XCTAssert(e is QBELiteralExpression && e.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue.BoolValue(false), "Equivalence is optimized away for '>' operator in 1+2+x > 2+x+1")
 	}
 	
-	func testFunctions() {
-		for fun in QBEFunction.allFunctions {
-			switch fun {
-				
-			case .Xor:
-				XCTAssert(QBEFunction.Xor.apply([QBEValue(true), QBEValue(true)]) == QBEValue(false), "XOR(true, true)")
-				XCTAssert(QBEFunction.Xor.apply([QBEValue(true), QBEValue(false)]) == QBEValue(true), "XOR(true, false)")
-				XCTAssert(QBEFunction.Xor.apply([QBEValue(false), QBEValue(false)]) == QBEValue(false), "XOR(false, false)")
-				
-			case .Identity:
-				XCTAssert(QBEFunction.Identity.apply([QBEValue(1.337)]) == QBEValue(1.337),"Identity")
-				
-			case .Not:
-				XCTAssert(QBEFunction.Not.apply([QBEValue(false)]) == QBEValue(true), "Not")
-				
-			case .And:
-				XCTAssert(QBEFunction.And.apply([QBEValue(true), QBEValue(true)]) == QBEValue(true), "AND(true, true)")
-				XCTAssert(!QBEFunction.And.apply([QBEValue(true), QBEValue.InvalidValue]).isValid, "AND(true, invalid)")
-				XCTAssert(QBEFunction.And.apply([QBEValue(true), QBEValue(false)]) == QBEValue(false), "AND(true, false)")
-				XCTAssert(QBEFunction.And.apply([QBEValue(false), QBEValue(false)]) == QBEValue(false), "AND(false, false)")
-			
-			case .Lowercase:
-				XCTAssert(QBEFunction.Lowercase.apply([QBEValue("Tommy")]) == QBEValue("tommy"), "Lowercase")
-			
-			case .Uppercase:
-				XCTAssert(QBEFunction.Uppercase.apply([QBEValue("Tommy")]) == QBEValue("TOMMY"), "Uppercase")
-			
-			case .Absolute:
-				XCTAssert(QBEFunction.Absolute.apply([QBEValue(-1)]) == QBEValue(1), "Absolute")
-				
-			case .Count:
-				XCTAssert(QBEFunction.Count.apply([]) == QBEValue(0), "Empty count returns zero")
-				XCTAssert(QBEFunction.Count.apply([QBEValue(1), QBEValue(1), QBEValue.InvalidValue, QBEValue.EmptyValue]) == QBEValue(2), "Count does not include invalid values and empty values")
-				
-			case .Items:
-				XCTAssert(QBEFunction.Items.apply([QBEValue("")]) == QBEValue(0), "Empty count returns zero")
-				XCTAssert(QBEFunction.Items.apply([QBEValue("Foo,bar,baz")]) == QBEValue(3), "Count does not include invalid values and empty values")
-				
-			case .CountAll:
-				XCTAssert(QBEFunction.CountAll.apply([QBEValue(1), QBEValue(1), QBEValue.InvalidValue, QBEValue.EmptyValue]) == QBEValue(4), "CountAll includes invalid values and empty values")
-				
-			case .Negate:
-				XCTAssert(QBEFunction.Negate.apply([QBEValue(1337)]) == QBEValue(-1337), "Negate")
-				
-			case .Or:
-				XCTAssert(QBEFunction.Or.apply([QBEValue(true), QBEValue(true)]) == QBEValue(true), "OR(true, true)")
-				XCTAssert(QBEFunction.Or.apply([QBEValue(true), QBEValue(false)]) == QBEValue(true), "OR(true, false)")
-				XCTAssert(QBEFunction.Or.apply([QBEValue(false), QBEValue(false)]) == QBEValue(false), "OR(false, false)")
-				XCTAssert(!QBEFunction.Or.apply([QBEValue(true), QBEValue.InvalidValue]).isValid, "OR(true, invalid)")
-				
-			case .Acos:
-				XCTAssert(QBEFunction.Acos.apply([QBEValue(0.337)]) == QBEValue(acos(0.337)), "Acos")
-				XCTAssert(!QBEFunction.Acos.apply([QBEValue(1.337)]).isValid, "Acos")
-				
-			case .Asin:
-				XCTAssert(QBEFunction.Asin.apply([QBEValue(0.337)]) == QBEValue(asin(0.337)), "Asin")
-				XCTAssert(!QBEFunction.Asin.apply([QBEValue(1.337)]).isValid, "Asin")
-				
-			case .NormalInverse:
-				let ni = QBEFunction.NormalInverse.apply([QBEValue(0.25), QBEValue(42), QBEValue(4)])
-				XCTAssert(ni > QBEValue(39) && ni < QBEValue(40), "NormalInverse")
-				
-			case .Atan:
-				XCTAssert(QBEFunction.Atan.apply([QBEValue(1.337)]) == QBEValue(atan(1.337)), "Atan")
-				
-			case .Cosh:
-				XCTAssert(QBEFunction.Cosh.apply([QBEValue(1.337)]) == QBEValue(cosh(1.337)), "Cosh")
-				
-			case .Sinh:
-				XCTAssert(QBEFunction.Sinh.apply([QBEValue(1.337)]) == QBEValue(sinh(1.337)), "Sinh")
-				
-			case .Tanh:
-				XCTAssert(QBEFunction.Tanh.apply([QBEValue(1.337)]) == QBEValue(tanh(1.337)), "Tanh")
-				
-			case .Cos:
-				XCTAssert(QBEFunction.Cos.apply([QBEValue(1.337)]) == QBEValue(cos(1.337)), "Cos")
-				
-			case .Sin:
-				XCTAssert(QBEFunction.Sin.apply([QBEValue(1.337)]) == QBEValue(sin(1.337)), "Sin")
-				
-			case .Tan:
-				XCTAssert(QBEFunction.Tan.apply([QBEValue(1.337)]) == QBEValue(tan(1.337)), "Tan")
-				
-			case .Sqrt:
-				XCTAssert(QBEFunction.Sqrt.apply([QBEValue(1.337)]) == QBEValue(sqrt(1.337)), "Sqrt")
-				XCTAssert(!QBEFunction.Sqrt.apply([QBEValue(-1)]).isValid, "Sqrt")
-				
-			case .Round:
-				XCTAssert(QBEFunction.Round.apply([QBEValue(1.337)]) == QBEValue(1), "Round")
-				XCTAssert(QBEFunction.Round.apply([QBEValue(1.337), QBEValue(2)]) == QBEValue(1.34), "Round")
-				XCTAssert(QBEFunction.Round.apply([QBEValue(0.5)]) == QBEValue(1), "Round")
-				
-			case .Log:
-				XCTAssert(QBEFunction.Log.apply([QBEValue(1.337)]) == QBEValue(log10(1.337)), "Log")
-				XCTAssert(!QBEFunction.Log.apply([QBEValue(0)]).isValid, "Log")
-				
-			case .Exp:
-				XCTAssert(QBEFunction.Exp.apply([QBEValue(1.337)]) == QBEValue(exp(1.337)), "Exp")
-				XCTAssert(QBEFunction.Exp.apply([QBEValue(0)]) == QBEValue(1), "Exp")
-				
-			case .Ln:
-				XCTAssert(QBEFunction.Ln.apply([QBEValue(1.337)]) == QBEValue(log10(1.337) / log10(exp(1.0))), "Ln")
-				XCTAssert(!QBEFunction.Ln.apply([QBEValue(0)]).isValid, "Ln")
-				
-			case .Concat:
-				XCTAssert(QBEFunction.Concat.apply([QBEValue(1), QBEValue("33"), QBEValue(false)]) == QBEValue("1330"), "Concat")
-				
-			case .If:
-				XCTAssert(QBEFunction.If.apply([QBEValue(true), QBEValue(13), QBEValue(37)]) == QBEValue(13), "If")
-				XCTAssert(QBEFunction.If.apply([QBEValue(false), QBEValue(13), QBEValue(37)]) == QBEValue(37), "If")
-				XCTAssert(!QBEFunction.If.apply([QBEValue.InvalidValue, QBEValue(13), QBEValue(37)]).isValid, "If")
-				
-			case .Left:
-				XCTAssert(QBEFunction.Left.apply([QBEValue(1337), QBEValue(3)]) == QBEValue(133), "Left")
-				XCTAssert(!QBEFunction.Left.apply([QBEValue(1337), QBEValue(5)]).isValid, "Left")
-				
-			case .Right:
-				XCTAssert(QBEFunction.Right.apply([QBEValue(1337), QBEValue(3)]) == QBEValue(337), "Right")
-				XCTAssert(!QBEFunction.Right.apply([QBEValue(1337), QBEValue(5)]).isValid, "Right")
-				
-			case .Mid:
-				XCTAssert(QBEFunction.Mid.apply([QBEValue(1337), QBEValue(3), QBEValue(1)]) == QBEValue(7), "Mid")
-				XCTAssert(QBEFunction.Mid.apply([QBEValue(1337), QBEValue(3), QBEValue(10)]) == QBEValue(7), "Mid")
-				
-			case .Substitute:
-				XCTAssert(QBEFunction.Substitute.apply([QBEValue("foobar"), QBEValue("foo"), QBEValue("bar")]) == QBEValue("barbar"), "Substitute")
-				
-			case .Length:
-				XCTAssert(QBEFunction.Length.apply([QBEValue("test")]) == QBEValue(4), "Length")
-				
-			case .Sum:
-				XCTAssert(QBEFunction.Sum.apply([1,3,3,7].map({return QBEValue($0)})) == QBEValue(1+3+3+7), "Sum")
-				XCTAssert(QBEFunction.Sum.apply([]) == QBEValue(0), "Sum")
-				
-			case .Min:
-				XCTAssert(QBEFunction.Min.apply([1,3,3,7].map({return QBEValue($0)})) == QBEValue(1), "Min")
-				XCTAssert(!QBEFunction.Min.apply([]).isValid, "Min")
-				
-			case .Max:
-				XCTAssert(QBEFunction.Max.apply([1,3,3,7].map({return QBEValue($0)})) == QBEValue(7), "Max")
-				XCTAssert(!QBEFunction.Max.apply([]).isValid, "Max")
-				
-			case .Average:
-				XCTAssert(QBEFunction.Average.apply([1,3,3,7].map({return QBEValue($0)})) == QBEValue((1.0+3.0+3.0+7.0)/4.0), "Average")
-				XCTAssert(!QBEFunction.Average.apply([]).isValid, "Average")
-				
-			case .Trim:
-				XCTAssert(QBEFunction.Trim.apply([QBEValue("   trim  ")]) == QBEValue("trim"), "Trim")
-				XCTAssert(QBEFunction.Trim.apply([QBEValue("  ")]) == QBEValue(""), "Trim")
-			
-			case .Choose:
-				XCTAssert(QBEFunction.Choose.apply([3,3,3,7].map({return QBEValue($0)})) == QBEValue(7), "Choose")
-				XCTAssert(!QBEFunction.Choose.apply([QBEValue(3)]).isValid, "Choose")
-				
-			case .Random:
-				let rv = QBEFunction.Random.apply([])
-				XCTAssert(rv >= QBEValue(0.0) && rv <= QBEValue(1.0), "Random")
-				
-			case .RandomBetween:
-				let rv = QBEFunction.RandomBetween.apply([QBEValue(-10), QBEValue(9)])
-				XCTAssert(rv >= QBEValue(-10.0) && rv <= QBEValue(9.0), "RandomBetween")
-				
-			case .RandomItem:
-				let items = [1,3,3,7].map({return QBEValue($0)})
-				XCTAssert(items.contains(QBEFunction.RandomItem.apply(items)), "RandomItem")
-				
-			case .Pack:
-				XCTAssert(QBEFunction.Pack.apply([QBEValue("He,llo"),QBEValue("World")]) == QBEValue(QBEPack(["He,llo", "World"]).stringValue), "Pack")
-				
-			case .Split:
-				XCTAssert(QBEFunction.Split.apply([QBEValue("Hello#World"), QBEValue("#")]) == QBEValue("Hello,World"), "Split")
-				
-			case .Nth:
-				XCTAssert(QBEFunction.Nth.apply([QBEValue("Foo,bar,baz"), QBEValue(3)]) == QBEValue("baz"), "Nth")
-			
-			case .Sign:
-				XCTAssert(QBEFunction.Sign.apply([QBEValue(-1337)]) == QBEValue(-1), "Sign")
-				XCTAssert(QBEFunction.Sign.apply([QBEValue(0)]) == QBEValue(0), "Sign")
-				XCTAssert(QBEFunction.Sign.apply([QBEValue(1337)]) == QBEValue(1), "Sign")
-				
-			case .IfError:
-				XCTAssert(QBEFunction.IfError.apply([QBEValue.InvalidValue, QBEValue(1337)]) == QBEValue(1337), "IfError")
-				XCTAssert(QBEFunction.IfError.apply([QBEValue(1336), QBEValue(1337)]) == QBEValue(1336), "IfError")
-				
-			case .Levenshtein:
-				XCTAssert(QBEFunction.Levenshtein.apply([QBEValue("tommy"), QBEValue("tom")]) == QBEValue(2), "Levenshtein")
-				
-			case .RegexSubstitute:
-				XCTAssert(QBEFunction.RegexSubstitute.apply([QBEValue("Tommy"), QBEValue("m+"), QBEValue("@")]) == QBEValue("To@y"), "RegexSubstitute")
-				
-			case .Coalesce:
-				XCTAssert(QBEFunction.Coalesce.apply([QBEValue.InvalidValue, QBEValue.InvalidValue, QBEValue(1337)]) == QBEValue(1337), "Coalesce")
-				
-			case .Capitalize:
-				XCTAssert(QBEFunction.Capitalize.apply([QBEValue("tommy van DER vorst")]) == QBEValue("Tommy Van Der Vorst"), "Capitalize")
-				
-			case .URLEncode:
-				// FIXME: URLEncode should probably also encode slashes, right?
-				XCTAssert(QBEFunction.URLEncode.apply([QBEValue("tommy%/van DER vorst")]) == QBEValue("tommy%25/van%20DER%20vorst"), "URLEncode")
-				
-			case .In:
-				XCTAssert(QBEFunction.In.apply([QBEValue(1), QBEValue(1), QBEValue(2)]) == QBEValue.BoolValue(true), "In")
-				XCTAssert(QBEFunction.In.apply([QBEValue(1), QBEValue(3), QBEValue(2)]) == QBEValue.BoolValue(false), "In")
-				
-			case .NotIn:
-				XCTAssert(QBEFunction.NotIn.apply([QBEValue(1), QBEValue(2), QBEValue(2)]) == QBEValue.BoolValue(true), "NotIn")
-				XCTAssert(QBEFunction.NotIn.apply([QBEValue(1), QBEValue(1), QBEValue(2)]) == QBEValue.BoolValue(false), "NotIn")
-			
-			case .ToUnixTime:
-				let d = NSDate()
-				XCTAssert(QBEFunction.ToUnixTime.apply([QBEValue(d)]) == QBEValue(d.timeIntervalSince1970), "ToUnixTime")
-				let epoch = NSDate(timeIntervalSince1970: 0)
-				XCTAssert(QBEFunction.ToUnixTime.apply([QBEValue(epoch)]) == QBEValue(0), "ToUnixTime")
-				
-			case .FromUnixTime:
-				XCTAssert(QBEFunction.FromUnixTime.apply([QBEValue(0)]) == QBEValue(NSDate(timeIntervalSince1970: 0)), "FromUnixTime")
-				
-			case .Now:
-				break
-				
-			case .FromISO8601:
-				XCTAssert(QBEFunction.FromISO8601.apply([QBEValue("1970-01-01T00:00:00Z")]) == QBEValue(NSDate(timeIntervalSince1970: 0)), "FromISO8601")
-				
-			case .ToLocalISO8601:
-				break
-				
-			case .ToUTCISO8601:
-				XCTAssert(QBEFunction.ToUTCISO8601.apply([QBEValue(NSDate(timeIntervalSince1970: 0))]) == QBEValue("1970-01-01T00:00:00Z"), "ToUTCISO8601")
-				
-			case .FromExcelDate:
-				XCTAssert(QBEFunction.FromExcelDate.apply([QBEValue(25569.0)]) == QBEValue(NSDate(timeIntervalSince1970: 0.0)), "FromExcelDate")
-				XCTAssert(QBEFunction.FromExcelDate.apply([QBEValue(42210.8330092593)]) == QBEValue(NSDate(timeIntervalSinceReferenceDate: 459547172.0)), "FromExcelDate")
-				
-			case .ToExcelDate:
-				XCTAssert(QBEFunction.ToExcelDate.apply([QBEValue(NSDate(timeIntervalSince1970: 0.0))]) == QBEValue(25569.0), "ToExcelDate")
-				XCTAssert(QBEFunction.ToExcelDate.apply([QBEValue(NSDate(timeIntervalSinceReferenceDate: 459547172))]).doubleValue!.approximates(42210.8330092593, epsilon: 0.01), "ToExcelDate")
-				
-			case .UTCDate:
-				XCTAssert(QBEFunction.UTCDate.apply([QBEValue(2001), QBEValue(1), QBEValue(1)]) == QBEValue.DateValue(0.0), "UTCDate")
-				
-			case .UTCYear:
-				XCTAssert(QBEFunction.UTCYear.apply([QBEValue.DateValue(0)]) == QBEValue(2001), "UTCYear")
-				
-			case .UTCMonth:
-				XCTAssert(QBEFunction.UTCMonth.apply([QBEValue.DateValue(0)]) == QBEValue(1), "UTCMonth")
-				
-			case .UTCDay:
-				XCTAssert(QBEFunction.UTCDay.apply([QBEValue.DateValue(0)]) == QBEValue(1), "UTCDay")
-				
-			case .UTCHour:
-				XCTAssert(QBEFunction.UTCHour.apply([QBEValue.DateValue(0)]) == QBEValue(0), "UTCHour")
-				
-			case .UTCMinute:
-				XCTAssert(QBEFunction.UTCMinute.apply([QBEValue.DateValue(0)]) == QBEValue(0), "UTCMinute")
-				
-			case .UTCSecond:
-				XCTAssert(QBEFunction.UTCSecond.apply([QBEValue.DateValue(0)]) == QBEValue(0), "UTCSecond")
-				
-			case .Duration:
-				let start = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1337.0))
-				let end = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1346.0))
-				XCTAssert(QBEFunction.Duration.apply([start, end]) == QBEValue(9.0), "Duration")
-				XCTAssert(QBEFunction.Duration.apply([end, start]) == QBEValue(-9.0), "Duration")
-				
-			case .After:
-				let start = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1337.0))
-				let end = QBEValue(NSDate(timeIntervalSinceReferenceDate: 1346.0))
-				XCTAssert(QBEFunction.After.apply([start, QBEValue(9.0)]) == end, "After")
-				XCTAssert(QBEFunction.After.apply([end, QBEValue(-9.0)]) == start, "After")
-				
-			case .Ceiling:
-				XCTAssert(QBEFunction.Ceiling.apply([QBEValue(1.337)]) == QBEValue(2), "Ceiling")
-				
-			case .Floor:
-				XCTAssert(QBEFunction.Floor.apply([QBEValue(1.337)]) == QBEValue(1), "Floor")
-				
-			case .RandomString:
-				XCTAssert(QBEFunction.RandomString.apply([QBEValue("[0-9]")]).stringValue!.characters.count == 1, "RandomString")
-				
-			case .ToUnicodeDateString:
-				XCTAssert(QBEFunction.ToUnicodeDateString.apply([QBEValue.DateValue(460226561.0), QBEValue("yyy-MM-dd")]) == QBEValue("2015-08-02"), "ToUnicodeDateString")
-				
-			case .FromUnicodeDateString:
-				XCTAssert(QBEFunction.FromUnicodeDateString.apply([QBEValue("1988-08-11"), QBEValue("yyyy-MM-dd")]) == QBEValue(NSDate.fromISO8601FormattedDate("1988-08-11T00:00:00Z")!), "FromUnicodeDateString")
-				
-			case .Power:
-				XCTAssert(QBEFunction.Power.apply([QBEValue(2), QBEValue(0)]) == QBEValue(1), "Power")
-			}
-		}
-		
-		// Binaries
-		XCTAssert(QBEBinary.ContainsString.apply(QBEValue("Tommy"), QBEValue("om"))==QBEValue(true), "Contains string operator should be case-insensitive")
-		XCTAssert(QBEBinary.ContainsString.apply(QBEValue("Tommy"), QBEValue("x"))==QBEValue(false), "Contains string operator should work")
-		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("Tom"))==QBEValue(true), "Strict contains string operator should work")
-		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("tom"))==QBEValue(false), "Strict contains string operator should be case-sensitive")
-		XCTAssert(QBEBinary.ContainsStringStrict.apply(QBEValue("Tommy"), QBEValue("x"))==QBEValue(false), "Strict contains string operator should work")
-		
-		// Split / nth
-		XCTAssert(QBEFunction.Split.apply([QBEValue("van der Vorst, Tommy"), QBEValue(" ")]).stringValue == "van,der,Vorst$0,Tommy", "Split works")
-		XCTAssert(QBEFunction.Nth.apply([QBEValue("van,der,Vorst$0,Tommy"), QBEValue(3)]).stringValue == "Vorst,", "Nth works")
-		XCTAssert(QBEFunction.Items.apply([QBEValue("van,der,Vorst$0,Tommy")]).intValue == 4, "Items works")
-		
-		// Stats
-		let z = QBEFunction.NormalInverse.apply([QBEValue(0.9), QBEValue(10), QBEValue(5)]).doubleValue
-		XCTAssert(z != nil, "NormalInverse should return a value under normal conditions")
-		XCTAssert(z! > 16.406 && z! < 16.408, "NormalInverse should results that are equal to those of NORM.INV.N in Excel")
-	}
-	
 	func compareData(job: QBEJob, _ a: QBEData, _ b: QBEData, callback: (Bool) -> ()) {
 		a.raster(job, callback: { (aRasterFallible) -> () in
 			switch aRasterFallible {
@@ -570,7 +571,7 @@ class QBETests: XCTestCase {
 		], columnNames: [QBEColumn("a"), QBEColumn("b"), QBEColumn("c")], readOnly: true)
 		
 		let inData = QBERasterData(raster: raster)
-		let inOptData = QBECoalescedData(inData)
+		let inOptData = inData.coalesced
 		let job = QBEJob(.UserInitiated)
 		
 		compareData(job, inData.limit(2).limit(1), inOptData.limit(2).limit(1)) { (equal) -> () in
@@ -623,7 +624,7 @@ class QBETests: XCTestCase {
 		let cols = ["A","B","C","D"].map({QBEColumn($0)})
 		let row = [1,3,4,6].map({QBEValue($0)})
 		QBEExpression.infer(nil, toValue: QBEValue(24), suggestions: &suggestions, level: 10, row: QBERow(row, columnNames: cols), column: 0, maxComplexity: Int.max, previousValues: [])
-		suggestions.each({QBELog($0.explain(locale))})
+		suggestions.forEach { QBELog($0.explain(locale)) }
 		XCTAssert(suggestions.count>0, "Can solve the 1-3-4-6 24 game.")
 	}
 	

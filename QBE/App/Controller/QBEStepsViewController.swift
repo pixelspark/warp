@@ -1,5 +1,6 @@
 import Foundation
 import Cocoa
+import WarpCore
 
 @objc protocol QBEStepsControllerDelegate: NSObjectProtocol {
 	func stepsController(vc: QBEStepsViewController, didSelectStep: QBEStep)

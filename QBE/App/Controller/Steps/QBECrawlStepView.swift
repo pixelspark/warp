@@ -1,5 +1,6 @@
 import Foundation
 import Cocoa
+import WarpCore
 
 internal class QBECrawlStepView: NSViewController {
 	weak var delegate: QBESuggestionsViewDelegate?

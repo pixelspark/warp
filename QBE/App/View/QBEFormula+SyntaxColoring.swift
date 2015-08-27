@@ -1,4 +1,5 @@
 import  Cocoa
+import WarpCore
 
 extension QBEFormula {
 	var syntaxColoredFormula: NSAttributedString { get {

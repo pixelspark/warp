@@ -13,7 +13,6 @@
 
 #import "sqlite3.h"
 #import "mysql.h"
-#import "ltqnorm.h"
 #import "libpq-fe.h"
 #import "shapefil.h"
 

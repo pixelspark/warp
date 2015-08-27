@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 class QBEFactory {
 	typealias QBEStepViewCreator = (step: QBEStep?, delegate: QBESuggestionsViewDelegate) -> NSViewController?

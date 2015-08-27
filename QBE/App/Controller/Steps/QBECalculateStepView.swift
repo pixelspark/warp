@@ -1,5 +1,6 @@
 import Foundation
 import Cocoa
+import WarpCore
 
 internal class QBECalculateStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegate {
 	weak var delegate: QBESuggestionsViewDelegate?

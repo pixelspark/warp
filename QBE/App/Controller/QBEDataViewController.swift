@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 protocol QBEDataViewDelegate: NSObjectProtocol {
 	// Returns true if the delegate has handled the change (e.g. converted it to a strutural one)
@@ -408,10 +409,10 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 					}
 				})
 				
-				rowData.append(colData.implode("\t") ?? "")
+				rowData.append(colData.joinWithSeparator("\t"))
 			}
 			
-			let tsv = rowData.implode("\r\n") ?? ""
+			let tsv = rowData.joinWithSeparator("\r\n")
 			let pasteboard = NSPasteboard.generalPasteboard()
 			pasteboard.clearContents()
 			pasteboard.declareTypes([NSPasteboardTypeTabularText, NSPasteboardTypeString], owner: nil)

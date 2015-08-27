@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate, QBEFormulaEditorViewDelegate {
 	@IBOutlet var tokenField: NSTokenField!

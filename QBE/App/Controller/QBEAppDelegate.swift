@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 @NSApplicationMain
 class QBEAppDelegate: NSObject, NSApplicationDelegate {

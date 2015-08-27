@@ -1,5 +1,6 @@
 import Foundation
 import Cocoa
+import WarpCore
 
 @objc class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate {
 	private var documentView: QBEDocumentView!

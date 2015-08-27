@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 	func suggestionsView(view: NSViewController, didSelectStep: QBEStep)

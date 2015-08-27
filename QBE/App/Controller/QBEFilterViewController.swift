@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 protocol QBEFilterViewDelegate: NSObjectProtocol {
 	func filterView(view: QBEFilterViewController, applyFilter: QBEFilterSet?, permanent: Bool)
