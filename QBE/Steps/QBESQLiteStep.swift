@@ -527,10 +527,15 @@ class QBESQLiteCachedData: QBEProxyData {
 		
 		dispatch_once(&Static.onceToken) {
 			Static.instance = QBESQLiteDatabase(path: "", readOnly: false)
-			Static.instance!.query("PRAGMA synchronous = OFF").require {(r) -> () in
-				r.run()
-				Static.instance!.query("PRAGMA journal_mode = MEMORY").require {(s) -> () in
-					s.run()
+			/** Because this database is created anew, we can set its encoding. As the code reading strings from SQLite
+			uses UTF-8, set the database's encoding to UTF-8 so that no unnecessary conversions have to take place. */
+			Static.instance!.query("PRAGMA encoding = \"UTF-8\"").require { e in
+				e.run()
+				Static.instance!.query("PRAGMA synchronous = OFF").require { r in
+					r.run()
+					Static.instance!.query("PRAGMA journal_mode = MEMORY").require { s in
+						s.run()
+					}
 				}
 			}
 		}
@@ -567,7 +572,12 @@ class QBESQLiteCachedData: QBEProxyData {
 								switch self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName, schema: nil, database: nil)) VALUES (\(values))") {
 									case .Success(let insertStatement):
 										self.insertStatement = insertStatement
-										self.stream?.fetch(self.cacheJob, consumer: self.ingest)
+										/** SQLite inserts are fastest when they are grouped in a transaction (see docs).
+										A transaction is started here and is ended in self.ingest. */
+										self.database.query("BEGIN").require { r in
+											r.run()
+											self.stream?.fetch(self.cacheJob, consumer: self.ingest)
+										}
 										
 									case .Failure(let error):
 										completion?(.Failure(error))
@@ -607,26 +617,35 @@ class QBESQLiteCachedData: QBEProxyData {
 				}
 				
 				if !hasMore {
-					// Swap out the original source with our new cached source
-					self.cacheJob.log("Done caching, swapping out")
-					self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
-						switch columns {
+					// First end the transaction started in init
+					self.database.query("COMMIT").require { c in
+						c.run()
+
+						// Swap out the original source with our new cached source
+						self.cacheJob.log("Done caching, swapping out")
+						self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
+							switch columns {
 							case .Success(let cns):
 								self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, schema: nil, database: nil, dialect: self.database.dialect), columns: cns)
 								self.isCached = true
 								self.completion?(.Success(self))
 								self.completion = nil
-								
+
 							case .Failure(let error):
 								self.completion?(.Failure(error))
 								self.completion = nil
+							}
 						}
 					}
 				}
 			
 			case .Failure(let errMessage):
-				self.completion?(.Failure(errMessage))
-				self.completion = nil
+				// Roll back the transaction that was started in init.
+				self.database.query("ROLLBACK").require { c in
+					c.run()
+					self.completion?(.Failure(errMessage))
+					self.completion = nil
+				}
 		}
 	}
 }
