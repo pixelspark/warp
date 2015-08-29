@@ -221,84 +221,84 @@ public enum QBEFunction: String {
 	public func explain(locale: QBELocale) -> String {
 		switch self {
 			// TODO: make tihs more detailed. E.g., "5 leftmost characters of" instead of just "leftmost characters"
-			case .Uppercase: return NSLocalizedString("uppercase", comment: "")
-			case .Lowercase: return NSLocalizedString("lowercase", comment:"")
-			case .Negate: return NSLocalizedString("-", comment:"")
-			case .Absolute: return NSLocalizedString("absolute", comment:"")
-			case .Identity: return NSLocalizedString("the", comment:"")
-			case .And: return NSLocalizedString("and", comment:"")
-			case .Or: return NSLocalizedString("or", comment:"")
-			case .If: return NSLocalizedString("if", comment: "")
-			case .Concat: return NSLocalizedString("concatenate", comment: "")
-			case .Cos: return NSLocalizedString("cose", comment:"")
-			case .Sin: return NSLocalizedString("sine", comment:"")
-			case .Tan: return NSLocalizedString("tangens", comment:"")
-			case .Cosh: return NSLocalizedString("cosine hyperbolic", comment:"")
-			case .Sinh: return NSLocalizedString("sine hyperbolic", comment:"")
-			case .Tanh: return NSLocalizedString("tangens hyperbolic", comment:"")
-			case .Acos: return NSLocalizedString("arc cosine", comment:"")
-			case .Asin: return NSLocalizedString("arc sine", comment:"")
-			case .Atan: return NSLocalizedString("arc tangens", comment:"")
-			case .Sqrt: return NSLocalizedString("square root", comment:"")
-			case .Left: return NSLocalizedString("leftmost characters", comment: "")
-			case .Right: return NSLocalizedString("rightmost characters", comment: "")
-			case .Length: return NSLocalizedString("length of text", comment: "")
-			case .Mid: return NSLocalizedString("substring", comment: "")
-			case .Log: return NSLocalizedString("logarithm", comment: "")
-			case .Not: return NSLocalizedString("not", comment: "")
-			case .Substitute: return NSLocalizedString("substitute", comment: "")
-			case .Xor: return NSLocalizedString("xor", comment: "")
-			case .Trim: return NSLocalizedString("trim spaces", comment: "")
-			case .Coalesce: return NSLocalizedString("first non-empty value", comment: "")
-			case .IfError: return NSLocalizedString("if error", comment: "")
-			case .Count: return NSLocalizedString("number of numeric values", comment: "")
-			case .Sum: return NSLocalizedString("sum", comment: "")
-			case .Average: return NSLocalizedString("average", comment: "")
-			case .Min: return NSLocalizedString("lowest", comment: "")
-			case .Max: return NSLocalizedString("highest", comment: "")
-			case .RandomItem: return NSLocalizedString("random item", comment: "")
-			case .CountAll: return NSLocalizedString("number of items", comment: "")
-			case .Pack: return NSLocalizedString("pack", comment: "")
-			case .Exp: return NSLocalizedString("e^", comment: "exponent function")
-			case .Ln: return NSLocalizedString("natural logarithm", comment: "ln")
-			case .Round: return NSLocalizedString("round", comment: "")
-			case .Choose: return NSLocalizedString("choose", comment: "")
-			case .RandomBetween: return NSLocalizedString("random number between", comment: "")
-			case .Random: return NSLocalizedString("random number between 0 and 1", comment: "")
-			case .RegexSubstitute: return NSLocalizedString("replace using pattern", comment: "")
-			case .NormalInverse: return NSLocalizedString("inverse normal", comment: "")
-			case .Sign: return NSLocalizedString("sign", comment: "")
-			case .Split: return NSLocalizedString("split", comment: "")
-			case .Nth: return NSLocalizedString("nth item", comment: "")
-			case .Items: return NSLocalizedString("number of items", comment: "")
-			case .Levenshtein: return NSLocalizedString("text similarity", comment: "")
-			case .URLEncode: return NSLocalizedString("url encode", comment: "")
-			case .In: return NSLocalizedString("contains", comment: "")
-			case .NotIn: return NSLocalizedString("does not contain", comment: "")
-			case .Capitalize: return NSLocalizedString("capitalize", comment: "")
-			case .Now: return NSLocalizedString("current time", comment: "")
-			case .FromUnixTime: return NSLocalizedString("interpret UNIX timestamp", comment: "")
-			case .ToUnixTime: return NSLocalizedString("to UNIX timestamp", comment: "")
-			case .FromISO8601: return NSLocalizedString("interpret ISO-8601 formatted date", comment: "")
-			case .ToLocalISO8601: return NSLocalizedString("to ISO-8601 formatted date in local timezone", comment: "")
-			case .ToUTCISO8601: return NSLocalizedString("to ISO-8601 formatted date in UTC", comment: "")
-			case .ToExcelDate: return NSLocalizedString("to Excel timestamp", comment: "")
-			case .FromExcelDate: return NSLocalizedString("from Excel timestamp", comment: "")
-			case .UTCDate: return NSLocalizedString("make a date (in UTC)", comment: "")
-			case .UTCDay: return NSLocalizedString("day in month (in UTC) of date", comment: "")
-			case .UTCMonth: return NSLocalizedString("month (in UTC) of", comment: "")
-			case .UTCYear: return NSLocalizedString("year (in UTC) of date", comment: "")
-			case .UTCMinute: return NSLocalizedString("minute (in UTC) of time", comment: "")
-			case .UTCHour: return NSLocalizedString("hour (in UTC) of time", comment: "")
-			case .UTCSecond: return NSLocalizedString("seconds (in UTC) of time", comment: "")
-			case .Duration: return NSLocalizedString("number of seconds that passed between dates", comment: "")
-			case .After: return NSLocalizedString("date after a number of seconds has passed after date", comment: "")
-			case .Floor: return NSLocalizedString("round down to integer", comment: "")
-			case .Ceiling: return NSLocalizedString("round up to integer", comment: "")
-			case .RandomString: return NSLocalizedString("random string with pattern", comment: "")
-			case .ToUnicodeDateString: return NSLocalizedString("write date in format", comment: "")
-			case .FromUnicodeDateString: return NSLocalizedString("read date in format", comment: "")
-			case .Power: return NSLocalizedString("to the power", comment: "")
+			case .Uppercase: return QBEText("uppercase")
+			case .Lowercase: return QBEText("lowercase")
+			case .Negate: return QBEText("-")
+			case .Absolute: return QBEText("absolute")
+			case .Identity: return QBEText("the")
+			case .And: return QBEText("and")
+			case .Or: return QBEText("or")
+			case .If: return QBEText("if")
+			case .Concat: return QBEText("concatenate")
+			case .Cos: return QBEText("cose")
+			case .Sin: return QBEText("sine")
+			case .Tan: return QBEText("tangens")
+			case .Cosh: return QBEText("cosine hyperbolic")
+			case .Sinh: return QBEText("sine hyperbolic")
+			case .Tanh: return QBEText("tangens hyperbolic")
+			case .Acos: return QBEText("arc cosine")
+			case .Asin: return QBEText("arc sine")
+			case .Atan: return QBEText("arc tangens")
+			case .Sqrt: return QBEText("square root")
+			case .Left: return QBEText("leftmost characters")
+			case .Right: return QBEText("rightmost characters")
+			case .Length: return QBEText("length of text")
+			case .Mid: return QBEText("substring")
+			case .Log: return QBEText("logarithm")
+			case .Not: return QBEText("not")
+			case .Substitute: return QBEText("substitute")
+			case .Xor: return QBEText("xor")
+			case .Trim: return QBEText("trim spaces")
+			case .Coalesce: return QBEText("first non-empty value")
+			case .IfError: return QBEText("if error")
+			case .Count: return QBEText("number of numeric values")
+			case .Sum: return QBEText("sum")
+			case .Average: return QBEText("average")
+			case .Min: return QBEText("lowest")
+			case .Max: return QBEText("highest")
+			case .RandomItem: return QBEText("random item")
+			case .CountAll: return QBEText("number of items")
+			case .Pack: return QBEText("pack")
+			case .Exp: return QBEText("e^")
+			case .Ln: return QBEText("natural logarithm")
+			case .Round: return QBEText("round")
+			case .Choose: return QBEText("choose")
+			case .RandomBetween: return QBEText("random number between")
+			case .Random: return QBEText("random number between 0 and 1")
+			case .RegexSubstitute: return QBEText("replace using pattern")
+			case .NormalInverse: return QBEText("inverse normal")
+			case .Sign: return QBEText("sign")
+			case .Split: return QBEText("split")
+			case .Nth: return QBEText("nth item")
+			case .Items: return QBEText("number of items")
+			case .Levenshtein: return QBEText("text similarity")
+			case .URLEncode: return QBEText("url encode")
+			case .In: return QBEText("contains")
+			case .NotIn: return QBEText("does not contain")
+			case .Capitalize: return QBEText("capitalize")
+			case .Now: return QBEText("current time")
+			case .FromUnixTime: return QBEText("interpret UNIX timestamp")
+			case .ToUnixTime: return QBEText("to UNIX timestamp")
+			case .FromISO8601: return QBEText("interpret ISO-8601 formatted date")
+			case .ToLocalISO8601: return QBEText("to ISO-8601 formatted date in local timezone")
+			case .ToUTCISO8601: return QBEText("to ISO-8601 formatted date in UTC")
+			case .ToExcelDate: return QBEText("to Excel timestamp")
+			case .FromExcelDate: return QBEText("from Excel timestamp")
+			case .UTCDate: return QBEText("make a date (in UTC)")
+			case .UTCDay: return QBEText("day in month (in UTC) of date")
+			case .UTCMonth: return QBEText("month (in UTC) of")
+			case .UTCYear: return QBEText("year (in UTC) of date")
+			case .UTCMinute: return QBEText("minute (in UTC) of time")
+			case .UTCHour: return QBEText("hour (in UTC) of time")
+			case .UTCSecond: return QBEText("seconds (in UTC) of time")
+			case .Duration: return QBEText("number of seconds that passed between dates")
+			case .After: return QBEText("date after a number of seconds has passed after date")
+			case .Floor: return QBEText("round down to integer")
+			case .Ceiling: return QBEText("round up to integer")
+			case .RandomString: return QBEText("random string with pattern")
+			case .ToUnicodeDateString: return QBEText("write date in format")
+			case .FromUnicodeDateString: return QBEText("read date in format")
+			case .Power: return QBEText("to the power")
 		}
 	}
 	
@@ -326,221 +326,221 @@ public enum QBEFunction: String {
 	/** Returns information about the parameters a function can receive.  */
 	public var parameters: [QBEParameter]? { get {
 		switch self {
-		case .Uppercase: return [QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("foo"))]
-		case .Lowercase: return [QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("FOO"))]
+		case .Uppercase: return [QBEParameter(name: QBEText("text"), exampleValue: QBEValue("foo"))]
+		case .Lowercase: return [QBEParameter(name: QBEText("text"), exampleValue: QBEValue("FOO"))]
 		
 		case .Left, .Right:
 			return [
-				QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("john doe")),
-				QBEParameter(name: NSLocalizedString("index", comment: ""), exampleValue: QBEValue.IntValue(3))
+				QBEParameter(name: QBEText("text"), exampleValue: QBEValue("john doe")),
+				QBEParameter(name: QBEText("index"), exampleValue: QBEValue.IntValue(3))
 			]
 			
 		case .Mid:
 			return [
-				QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("john doe")),
-				QBEParameter(name: NSLocalizedString("index", comment: ""), exampleValue: QBEValue.IntValue(5)),
-				QBEParameter(name: NSLocalizedString("length", comment: ""), exampleValue: QBEValue.IntValue(3))
+				QBEParameter(name: QBEText("text"), exampleValue: QBEValue("john doe")),
+				QBEParameter(name: QBEText("index"), exampleValue: QBEValue.IntValue(5)),
+				QBEParameter(name: QBEText("length"), exampleValue: QBEValue.IntValue(3))
 			]
 			
 		case .Not:
-			return [QBEParameter(name: NSLocalizedString("boolean", comment: ""), exampleValue: QBEValue.BoolValue(false))]
+			return [QBEParameter(name: QBEText("boolean"), exampleValue: QBEValue.BoolValue(false))]
 			
 		case .And, .Or, .Xor:
 			return [
-				QBEParameter(name: NSLocalizedString("boolean", comment: ""), exampleValue: QBEValue.BoolValue(false)),
-				QBEParameter(name: NSLocalizedString("boolean", comment: ""), exampleValue: QBEValue.BoolValue(true))
+				QBEParameter(name: QBEText("boolean"), exampleValue: QBEValue.BoolValue(false)),
+				QBEParameter(name: QBEText("boolean"), exampleValue: QBEValue.BoolValue(true))
 			]
 			
 		case .If:
 			return [
-				QBEParameter(name: NSLocalizedString("boolean", comment: ""), exampleValue: QBEValue.BoolValue(false)),
-				QBEParameter(name: NSLocalizedString("value if true", comment: ""), exampleValue: QBEValue(NSLocalizedString("yes", comment: ""))),
-				QBEParameter(name: NSLocalizedString("value if false", comment: ""), exampleValue: QBEValue(NSLocalizedString("no", comment: "")))
+				QBEParameter(name: QBEText("boolean"), exampleValue: QBEValue.BoolValue(false)),
+				QBEParameter(name: QBEText("value if true"), exampleValue: QBEValue(QBEText("yes"))),
+				QBEParameter(name: QBEText("value if false"), exampleValue: QBEValue(QBEText("no")))
 			]
 			
 		case .IfError:
 			return [
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue(1346)),
-				QBEParameter(name: NSLocalizedString("value if error", comment: ""), exampleValue: QBEValue(NSLocalizedString("(error)", comment: "")))
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue(1346)),
+				QBEParameter(name: QBEText("value if error"), exampleValue: QBEValue(QBEText("(error)")))
 			]
 		
 		case .Duration:
 			return [
-				QBEParameter(name: NSLocalizedString("start date", comment: ""), exampleValue: QBEValue(NSDate(timeIntervalSinceReferenceDate: 0.0))),
-				QBEParameter(name: NSLocalizedString("end date", comment: ""), exampleValue: QBEValue(NSDate()))
+				QBEParameter(name: QBEText("start date"), exampleValue: QBEValue(NSDate(timeIntervalSinceReferenceDate: 0.0))),
+				QBEParameter(name: QBEText("end date"), exampleValue: QBEValue(NSDate()))
 			]
 			
 		case .After:
 			return [
-				QBEParameter(name: NSLocalizedString("start date", comment: ""), exampleValue: QBEValue(NSDate())),
-				QBEParameter(name: NSLocalizedString("seconds", comment: ""), exampleValue: QBEValue(3600.0))
+				QBEParameter(name: QBEText("start date"), exampleValue: QBEValue(NSDate())),
+				QBEParameter(name: QBEText("seconds"), exampleValue: QBEValue(3600.0))
 			]
 			
 		case .Capitalize, .Length:
-			return [QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("john doe"))]
+			return [QBEParameter(name: QBEText("text"), exampleValue: QBEValue("john doe"))]
 			
 		case .URLEncode:
-			return [QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("warp [core]"))]
+			return [QBEParameter(name: QBEText("text"), exampleValue: QBEValue("warp [core]"))]
 			
 		case .Trim:
-			return [QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue(" warp core "))]
+			return [QBEParameter(name: QBEText("text"), exampleValue: QBEValue(" warp core "))]
 			
 		case .Split:
 			return [
-				QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("1337AB#12#C")),
-				QBEParameter(name: NSLocalizedString("separator", comment: ""), exampleValue: QBEValue("#"))
+				QBEParameter(name: QBEText("text"), exampleValue: QBEValue("1337AB#12#C")),
+				QBEParameter(name: QBEText("separator"), exampleValue: QBEValue("#"))
 			]
 			
 		case .Substitute:
 			return [
-				QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("warpcore")),
-				QBEParameter(name: NSLocalizedString("find", comment: ""), exampleValue: QBEValue("warp")),
-				QBEParameter(name: NSLocalizedString("replacement", comment: ""), exampleValue: QBEValue("transwarp"))
+				QBEParameter(name: QBEText("text"), exampleValue: QBEValue("warpcore")),
+				QBEParameter(name: QBEText("find"), exampleValue: QBEValue("warp")),
+				QBEParameter(name: QBEText("replacement"), exampleValue: QBEValue("transwarp"))
 			]
 			
 		case .RegexSubstitute:
 			return [
-				QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("1337AB")),
-				QBEParameter(name: NSLocalizedString("find", comment: ""), exampleValue: QBEValue("[0-9]+")),
-				QBEParameter(name: NSLocalizedString("replacement", comment: ""), exampleValue: QBEValue("#"))
+				QBEParameter(name: QBEText("text"), exampleValue: QBEValue("1337AB")),
+				QBEParameter(name: QBEText("find"), exampleValue: QBEValue("[0-9]+")),
+				QBEParameter(name: QBEText("replacement"), exampleValue: QBEValue("#"))
 			]
 			
 		case .UTCDay, .UTCYear, .UTCMonth, .UTCHour, .UTCMinute, .UTCSecond:
-			return [QBEParameter(name: NSLocalizedString("date", comment: ""), exampleValue: QBEValue(NSDate()))]
+			return [QBEParameter(name: QBEText("date"), exampleValue: QBEValue(NSDate()))]
 			
 		case .FromUnixTime:
-			return [QBEParameter(name: NSLocalizedString("UNIX timestamp", comment: ""), exampleValue: QBEValue.DoubleValue(NSDate().timeIntervalSince1970))]
+			return [QBEParameter(name: QBEText("UNIX timestamp"), exampleValue: QBEValue.DoubleValue(NSDate().timeIntervalSince1970))]
 			
 		case .FromISO8601:
-			return [QBEParameter(name: NSLocalizedString("UNIX timestamp", comment: ""), exampleValue: QBEValue.StringValue(NSDate().iso8601FormattedLocalDate))]
+			return [QBEParameter(name: QBEText("UNIX timestamp"), exampleValue: QBEValue.StringValue(NSDate().iso8601FormattedLocalDate))]
 		
 		case .FromExcelDate:
-			return [QBEParameter(name: NSLocalizedString("Excel timestamp", comment: ""), exampleValue: QBEValue.DoubleValue(NSDate().excelDate ?? 0))]
+			return [QBEParameter(name: QBEText("Excel timestamp"), exampleValue: QBEValue.DoubleValue(NSDate().excelDate ?? 0))]
 			
 		case .ToUnixTime, .ToUTCISO8601, .ToLocalISO8601, .ToExcelDate:
-			return [QBEParameter(name: NSLocalizedString("date", comment: ""), exampleValue: QBEValue(NSDate()))]
+			return [QBEParameter(name: QBEText("date"), exampleValue: QBEValue(NSDate()))]
 			
 		case .Levenshtein:
 			return [
-				QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("warp")),
-				QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("warpcore"))
+				QBEParameter(name: QBEText("text"), exampleValue: QBEValue("warp")),
+				QBEParameter(name: QBEText("text"), exampleValue: QBEValue("warpcore"))
 			]
 			
 		case .NormalInverse:
 			return [
-				QBEParameter(name: NSLocalizedString("p", comment: ""), exampleValue: QBEValue(0.5)),
-				QBEParameter(name: NSLocalizedString("mu", comment: ""), exampleValue: QBEValue(10)),
-				QBEParameter(name: NSLocalizedString("sigma", comment: ""), exampleValue: QBEValue(1))
+				QBEParameter(name: QBEText("p"), exampleValue: QBEValue(0.5)),
+				QBEParameter(name: QBEText("mu"), exampleValue: QBEValue(10)),
+				QBEParameter(name: QBEText("sigma"), exampleValue: QBEValue(1))
 			]
 		
 		case .UTCDate:
 			return [
-				QBEParameter(name: NSLocalizedString("year", comment: ""), exampleValue: QBEValue.IntValue(1988)),
-				QBEParameter(name: NSLocalizedString("month", comment: ""), exampleValue: QBEValue.IntValue(8)),
-				QBEParameter(name: NSLocalizedString("day", comment: ""), exampleValue: QBEValue.IntValue(11))
+				QBEParameter(name: QBEText("year"), exampleValue: QBEValue.IntValue(1988)),
+				QBEParameter(name: QBEText("month"), exampleValue: QBEValue.IntValue(8)),
+				QBEParameter(name: QBEText("day"), exampleValue: QBEValue.IntValue(11))
 			]
 			
 		case .RandomBetween:
 			return [
-				QBEParameter(name: NSLocalizedString("lower bound", comment: ""), exampleValue: QBEValue.IntValue(0)),
-				QBEParameter(name: NSLocalizedString("upper bound", comment: ""), exampleValue: QBEValue.IntValue(100))
+				QBEParameter(name: QBEText("lower bound"), exampleValue: QBEValue.IntValue(0)),
+				QBEParameter(name: QBEText("upper bound"), exampleValue: QBEValue.IntValue(100))
 			]
 		
 		case .Round:
 			return [
-				QBEParameter(name: NSLocalizedString("number", comment: ""), exampleValue: QBEValue(3.1337)),
-				QBEParameter(name: NSLocalizedString("decimals", comment: ""), exampleValue: QBEValue(2))
+				QBEParameter(name: QBEText("number"), exampleValue: QBEValue(3.1337)),
+				QBEParameter(name: QBEText("decimals"), exampleValue: QBEValue(2))
 			]
 			
 		case .Ceiling, .Floor:
 			return [
-				QBEParameter(name: NSLocalizedString("number", comment: ""), exampleValue: QBEValue(3.1337))
+				QBEParameter(name: QBEText("number"), exampleValue: QBEValue(3.1337))
 			]
 		
 		case .Sin, .Cos, .Tan, .Sinh, .Cosh, .Tanh, .Exp, .Ln, .Log, .Acos, .Asin, .Atan:
-			return [QBEParameter(name: NSLocalizedString("number", comment: ""), exampleValue: QBEValue(M_PI_4))]
+			return [QBEParameter(name: QBEText("number"), exampleValue: QBEValue(M_PI_4))]
 			
 		case .Sqrt:
-			return [QBEParameter(name: NSLocalizedString("number", comment: ""), exampleValue: QBEValue(144))]
+			return [QBEParameter(name: QBEText("number"), exampleValue: QBEValue(144))]
 			
 		case .Sign, .Absolute, .Negate:
-			return [QBEParameter(name: NSLocalizedString("number", comment: ""), exampleValue: QBEValue(-1337))]
+			return [QBEParameter(name: QBEText("number"), exampleValue: QBEValue(-1337))]
 			
 		case .Sum, .Count, .CountAll, .Average, .Min, .Max, .RandomItem:
 			return [
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue(1)),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue(2)),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue(3))
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue(1)),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue(2)),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue(3))
 			]
 			
 		case .Pack:
 			return [
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("horse")),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("correct")),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("battery")),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("staple"))
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("horse")),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("correct")),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("battery")),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("staple"))
 			]
 			
 		case .Choose:
 			return [
-				QBEParameter(name: NSLocalizedString("index", comment: ""), exampleValue: QBEValue.IntValue(2)),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("horse")),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("correct")),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("battery")),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("staple"))
+				QBEParameter(name: QBEText("index"), exampleValue: QBEValue.IntValue(2)),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("horse")),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("correct")),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("battery")),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("staple"))
 			]
 			
 		case .In, .NotIn:
 			return [
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("horse")),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("correct")),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("battery")),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("horse")),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("staple"))
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("horse")),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("correct")),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("battery")),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("horse")),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("staple"))
 			]
 			
 		case .Nth:
 			return [
-				QBEParameter(name: NSLocalizedString("pack", comment: ""), exampleValue: QBEValue(QBEPack(["correct","horse", "battery", "staple"]).stringValue)),
-				QBEParameter(name: NSLocalizedString("index", comment: ""), exampleValue: QBEValue.IntValue(2))
+				QBEParameter(name: QBEText("pack"), exampleValue: QBEValue(QBEPack(["correct","horse", "battery", "staple"]).stringValue)),
+				QBEParameter(name: QBEText("index"), exampleValue: QBEValue.IntValue(2))
 			]
 			
 		case .Items:
 			return [
-				QBEParameter(name: NSLocalizedString("pack", comment: ""), exampleValue: QBEValue(QBEPack(["correct","horse", "battery", "staple"]).stringValue))
+				QBEParameter(name: QBEText("pack"), exampleValue: QBEValue(QBEPack(["correct","horse", "battery", "staple"]).stringValue))
 			]
 			
 		case .Concat:
 			return [
-				QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("foo")),
-				QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("bar"))
+				QBEParameter(name: QBEText("text"), exampleValue: QBEValue("foo")),
+				QBEParameter(name: QBEText("text"), exampleValue: QBEValue("bar"))
 			]
 			
 		case .Now, .Random:
 			return []
 			
 		case .Identity:
-			return [QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("horse"))]
+			return [QBEParameter(name: QBEText("value"), exampleValue: QBEValue("horse"))]
 			
 		case .Coalesce:
 			return [
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue.InvalidValue),
-				QBEParameter(name: NSLocalizedString("value", comment: ""), exampleValue: QBEValue("horse"))
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue.InvalidValue),
+				QBEParameter(name: QBEText("value"), exampleValue: QBEValue("horse"))
 			]
 			
 		case RandomString:
-			return [QBEParameter(name: NSLocalizedString("pattern", comment: ""), exampleValue: QBEValue("[0-9]{4}[A-Z]{2}"))]
+			return [QBEParameter(name: QBEText("pattern"), exampleValue: QBEValue("[0-9]{4}[A-Z]{2}"))]
 			
 		case .FromUnicodeDateString:
-			return [QBEParameter(name: NSLocalizedString("text", comment: ""), exampleValue: QBEValue("1988-08-11")), QBEParameter(name: NSLocalizedString("format", comment: ""), exampleValue: QBEValue("yyyy-MM-dd"))]
+			return [QBEParameter(name: QBEText("text"), exampleValue: QBEValue("1988-08-11")), QBEParameter(name: QBEText("format"), exampleValue: QBEValue("yyyy-MM-dd"))]
 			
 		case .ToUnicodeDateString:
-			return [QBEParameter(name: NSLocalizedString("date", comment: ""), exampleValue: QBEValue(NSDate())), QBEParameter(name: NSLocalizedString("format", comment: ""), exampleValue: QBEValue("yyyy-MM-dd"))]
+			return [QBEParameter(name: QBEText("date"), exampleValue: QBEValue(NSDate())), QBEParameter(name: QBEText("format"), exampleValue: QBEValue("yyyy-MM-dd"))]
 			
 		case .Power:
 			return [
-				QBEParameter(name: NSLocalizedString("base", comment: ""), exampleValue: QBEValue.IntValue(2)),
-				QBEParameter(name: NSLocalizedString("exponent", comment: ""), exampleValue: QBEValue.IntValue(32))
+				QBEParameter(name: QBEText("base"), exampleValue: QBEValue.IntValue(2)),
+				QBEParameter(name: QBEText("exponent"), exampleValue: QBEValue.IntValue(32))
 			]
 		}
 	} }
@@ -1400,16 +1400,16 @@ public enum QBEArity: Equatable {
 	public var explanation: String { get {
 		switch self {
 		case .Fixed(let i):
-			return String(format: NSLocalizedString("exactly %d", comment: ""), i)
+			return String(format: QBEText("exactly %d"), i)
 			
 		case .AtLeast(let i):
-			return String(format: NSLocalizedString("at least %d", comment: ""), i)
+			return String(format: QBEText("at least %d"), i)
 			
 		case .Between(let a, let b):
-			return String(format: NSLocalizedString("between %d and %d", comment: ""), a, b)
+			return String(format: QBEText("between %d and %d"), a, b)
 			
 		case .Any:
-			return String(format: NSLocalizedString("zero or more", comment: ""))
+			return String(format: QBEText("zero or more"))
 		}
 	} }
 }

@@ -26,7 +26,7 @@ public class QBEStep: NSObject, NSCoding {
 			})
 		}
 		else {
-			callback(.Failure(NSLocalizedString("This step requires a previous step, but none was found.", comment: "")))
+			callback(.Failure(QBEText("This step requires a previous step, but none was found.")))
 		}
 	}
 	
@@ -43,7 +43,7 @@ public class QBEStep: NSObject, NSCoding {
 			})
 		}
 		else {
-			callback(.Failure(NSLocalizedString("This step requires a previous step, but none was found.", comment: "")))
+			callback(.Failure(QBEText("This step requires a previous step, but none was found.")))
 		}
 	}
 	
@@ -232,7 +232,7 @@ public class QBETransposeStep: QBEStep {
 	}
 
 	public override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([QBESentenceText(NSLocalizedString("Switch rows/columns", comment: ""))])
+		return QBESentence([QBESentenceText(QBEText("Switch rows/columns"))])
 	}
 	
 	public override func mergeWith(prior: QBEStep) -> QBEStepMerge {
@@ -416,7 +416,7 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 
 	public var label: String {
 		get {
-			return file?.url?.lastPathComponent ?? NSLocalizedString("(no file)", comment: "")
+			return file?.url?.lastPathComponent ?? QBEText("(no file)")
 		}
 	}
 

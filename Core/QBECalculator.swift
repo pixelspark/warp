@@ -181,7 +181,7 @@ public class QBECalculator {
 					dataJob.addObserver(job)
 				}
 				else {
-					callback(.Failure(NSLocalizedString("No data available.", comment: "")))
+					callback(.Failure(QBEText("No data available.")))
 				}
 			})
 			

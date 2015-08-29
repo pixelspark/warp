@@ -1,5 +1,10 @@
 import Foundation
 
+internal func QBEText(text: String) -> String {
+	let bundle = NSBundle(forClass: QBELocale.self)
+	return NSLocalizedString(text, tableName: nil, bundle: bundle, value: text, comment: "")
+}
+
 /** The default dialect for formulas reflects the English version of Excel closely. */
 public class QBELocale {
 	public typealias QBELanguage = String
@@ -23,8 +28,8 @@ public class QBELocale {
 	public let functions: [String: QBEFunction]
 	
 	public static let languages: [QBELanguage: String] = [
-		"nl": NSLocalizedString("Dutch", comment: ""),
-		"en": NSLocalizedString("English", comment: "")
+		"nl": QBEText("Dutch"),
+		"en": QBEText("English")
 	]
 	
 	public static let defaultLanguage: QBELanguage = "en"

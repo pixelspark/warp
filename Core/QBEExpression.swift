@@ -238,7 +238,7 @@ public class QBEIdentityExpression: QBEExpression {
 	}
 	
 	public override func explain(locale: QBELocale, topLevel: Bool) -> String {
-		return NSLocalizedString("current value", comment: "")
+		return QBEText("current value")
 	}
 
 	public override func toFormula(locale: QBELocale, topLevel: Bool) -> String {
@@ -601,7 +601,7 @@ public final class QBESiblingExpression: QBEExpression, QBEColumnReferencingExpr
 	}
 	
 	public override func explain(locale: QBELocale, topLevel: Bool) -> String {
-		return NSLocalizedString("value in column", comment: "")+" "+columnName.name
+		return String(format: QBEText("value in column %@"), columnName.name)
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
@@ -651,7 +651,7 @@ public final class QBEForeignExpression: QBEExpression, QBEColumnReferencingExpr
 	}
 	
 	public override func explain(locale: QBELocale, topLevel: Bool) -> String {
-		return String(format: NSLocalizedString("value in foreign column %@", comment: ""), columnName.name)
+		return String(format: QBEText("value in foreign column %@"), columnName.name)
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {

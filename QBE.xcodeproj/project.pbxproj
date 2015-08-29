@@ -57,6 +57,8 @@
 		652B275F1B8FB8C200A2D38E /* QBESortStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652B274B1B8FB8C200A2D38E /* QBESortStep.swift */; settings = {ASSET_TAGS = (); }; };
 		652B27601B8FB8C200A2D38E /* QBESQLiteStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652B274C1B8FB8C200A2D38E /* QBESQLiteStep.swift */; settings = {ASSET_TAGS = (); }; };
 		652B27611B8FB8C200A2D38E /* QBEXMLStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652B274D1B8FB8C200A2D38E /* QBEXMLStep.swift */; settings = {ASSET_TAGS = (); }; };
+		652B27641B903C1D00A2D38E /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 652B27661B903C1D00A2D38E /* Localizable.strings */; };
+		652B276A1B91952D00A2D38E /* AccessibilityImageDescriptions.strings in Resources */ = {isa = PBXBuildFile; fileRef = 652B276C1B91952D00A2D38E /* AccessibilityImageDescriptions.strings */; };
 		652FB9E91B75F1090045943C /* QBEFormulaEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 652FB9E81B75F1090045943C /* QBEFormulaEditorViewController.swift */; };
 		6531FBDE1ABD9A5800EBCF41 /* QBEDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = 6531FBDD1ABD9A5800EBCF41 /* QBEDocument.icns */; };
 		654297121AB98E6B000472E6 /* QBEMySQLSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 654297101AB98E6B000472E6 /* QBEMySQLSourceStepView.xib */; };
@@ -342,6 +344,10 @@
 		652B274B1B8FB8C200A2D38E /* QBESortStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBESortStep.swift; path = QBE/Steps/QBESortStep.swift; sourceTree = SOURCE_ROOT; };
 		652B274C1B8FB8C200A2D38E /* QBESQLiteStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBESQLiteStep.swift; path = QBE/Steps/QBESQLiteStep.swift; sourceTree = SOURCE_ROOT; };
 		652B274D1B8FB8C200A2D38E /* QBEXMLStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEXMLStep.swift; path = QBE/Steps/QBEXMLStep.swift; sourceTree = SOURCE_ROOT; };
+		652B27651B903C1D00A2D38E /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
+		652B27671B903C2000A2D38E /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
+		652B276B1B91952D00A2D38E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/AccessibilityImageDescriptions.strings; sourceTree = "<group>"; };
+		652B276D1B91953000A2D38E /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/AccessibilityImageDescriptions.strings; sourceTree = "<group>"; };
 		652FB9E81B75F1090045943C /* QBEFormulaEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFormulaEditorViewController.swift; sourceTree = "<group>"; };
 		6531FBDD1ABD9A5800EBCF41 /* QBEDocument.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = QBEDocument.icns; path = ../../QBEDocument.icns; sourceTree = "<group>"; };
 		654296D81AB83123000472E6 /* config-win.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "config-win.h"; sourceTree = "<group>"; };
@@ -584,6 +590,7 @@
 				652B27241B8FB7AF00A2D38E /* QBEStep.swift */,
 				652B27251B8FB7AF00A2D38E /* QBEStream.swift */,
 				652B27261B8FB7AF00A2D38E /* QBEValue.swift */,
+				652B27661B903C1D00A2D38E /* Localizable.strings */,
 			);
 			name = Core;
 			path = WarpCore;
@@ -841,6 +848,7 @@
 				65A0DF6B1AF299C20005C50F /* Controller */,
 				65A0DF761AF299C20005C50F /* Model */,
 				65A0DF7A1AF299C20005C50F /* View */,
+				652B276C1B91952D00A2D38E /* AccessibilityImageDescriptions.strings */,
 			);
 			name = App;
 			path = QBE;
@@ -1072,6 +1080,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				652B27641B903C1D00A2D38E /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1083,6 +1092,7 @@
 				65A526C51B0A5C4900CCF3E3 /* QBEPostgresStepView.xib in Resources */,
 				65734BE01AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib in Resources */,
 				659604CE1AB45F9300701758 /* QBEColumnsStepView.xib in Resources */,
+				652B276A1B91952D00A2D38E /* AccessibilityImageDescriptions.strings in Resources */,
 				65DBA5611A798F31004CDF36 /* QBEPivotStepView.xib in Resources */,
 				65FCB8DE1AB5A5420002C119 /* QBESortStepView.xib in Resources */,
 				6593B7341AA37AE200BE9726 /* Localizable.strings in Resources */,
@@ -1289,6 +1299,25 @@
 			);
 			name = pivot.html;
 			path = ../../../qbetest;
+			sourceTree = "<group>";
+		};
+		652B27661B903C1D00A2D38E /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				652B27651B903C1D00A2D38E /* Base */,
+				652B27671B903C2000A2D38E /* nl */,
+			);
+			name = Localizable.strings;
+			path = Core;
+			sourceTree = SOURCE_ROOT;
+		};
+		652B276C1B91952D00A2D38E /* AccessibilityImageDescriptions.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				652B276B1B91952D00A2D38E /* en */,
+				652B276D1B91953000A2D38E /* nl */,
+			);
+			name = AccessibilityImageDescriptions.strings;
 			sourceTree = "<group>";
 		};
 		654297101AB98E6B000472E6 /* QBEMySQLSourceStepView.xib */ = {
