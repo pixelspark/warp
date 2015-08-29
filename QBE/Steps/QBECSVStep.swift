@@ -17,6 +17,10 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	let hasHeaders: Bool
 	let fieldSeparator: unichar
 	let locale: QBELocale?
+
+	#if DEBUG
+	private var totalTime: NSTimeInterval = 0.0
+	#endif
 	
 	init(url: NSURL, fieldSeparator: unichar, hasHeaders: Bool, locale: QBELocale?) {
 		self.url = url
@@ -79,6 +83,9 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	func fetch(job: QBEJob, consumer: QBESink) {
 		dispatch_async(queue) {
 			job.time("Parse CSV", items: QBEStreamDefaultBatchSize, itemType: "row") {
+				#if DEBUG
+				let startTime = NSDate.timeIntervalSinceReferenceDate()
+				#endif
 				var fetched = 0
 				while !self.finished && (fetched < QBEStreamDefaultBatchSize) {
 					self.finished = !self.parser._parseRecord()
@@ -89,6 +96,9 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 				self.rowsRead += fetched
 				let progress = Double(self.parser.totalBytesRead) / Double(self.totalBytes)
 				job.reportProgress(progress, forKey: self.hashValue);
+				#if DEBUG
+				self.totalTime += (NSDate.timeIntervalSinceReferenceDate() - startTime)
+				#endif
 			}
 			
 			let r = Array(self.rows)
@@ -96,6 +106,14 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 			consumer(.Success(r), !self.finished)
 		}
 	}
+
+	#if DEBUG
+	deinit {
+		if self.totalTime > 0 {
+			QBELog("Read \(self.parser.totalBytesRead) in \(self.totalTime) ~= \((Double(self.parser.totalBytesRead) / 1024.0 / 1024.0)/self.totalTime) MiB/s")
+		}
+	}
+	#endif
 	
 	func parser(parser: CHCSVParser, didBeginLine line: UInt) {
 		row = templateRow
