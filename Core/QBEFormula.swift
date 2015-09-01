@@ -175,13 +175,7 @@ public class QBEFormula: Parser {
 	}
 	
 	private func popCall() {
-		var q = callStack.pop()
-		
-		// For some reason the parser doubly adds the last argument, remove it
-		assert(q.args.count != 1, "The parser doubly adds the last parameter to a function, so there cannot be just one argument")
-		if q.args.count > 0 {
-			q.args.removeLast()
-		}
+		let q = callStack.pop()
 		annotate(stack.push(QBEFunctionExpression(arguments: q.args, type: q.function)))
 	}
 	
@@ -285,7 +279,7 @@ internal extension Parser {
 	}
 	
 	static func matchList(item: ParserRule, separator: ParserRule) -> ParserRule {
-		return (item ~~ separator)* ~~ item/~
+		return item/~ ~~ (separator ~~ item)*
 	}
 	
 	static func matchLiteralInsensitive(string:String) -> ParserRule {
