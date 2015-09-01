@@ -875,7 +875,7 @@ public class QBESQLData: NSObject, QBEData {
 		var select: [String] = []
 		var resultingColumns: [QBEColumn] = []
 		
-		let alias = sql.aliasFor(.Group)
+		let alias = groups.count > 0 ? sql.aliasFor(.Group) : sql.aliasFor(.Select)
 		for (column, expression) in groups {
 			if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: alias, foreignAlias: nil, inputValue: nil) {
 				select.append("\(expressionString) AS \(sql.dialect.columnIdentifier(column, table: nil, schema: nil, database: nil))")
