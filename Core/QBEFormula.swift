@@ -20,6 +20,7 @@ public class QBEFormula: Parser {
 	let locale: QBELocale
 	public let originalText: String
 	public private(set) var fragments: [Fragment] = []
+	private var error: Bool = false
 	
 	public var root: QBEExpression {
 		get {
@@ -32,7 +33,7 @@ public class QBEFormula: Parser {
 		self.locale = locale
 		self.fragments = []
 		super.init()
-		if !self.parse(formula) {
+		if !self.parse(formula) || self.error {
 			return nil
 		}
 	}
@@ -48,11 +49,12 @@ public class QBEFormula: Parser {
 	}
 	
 	private func pushDouble() {
-		if let n = self.locale.numberFormatter.numberFromString(self.text) {
+		if let n = self.locale.numberFormatter.numberFromString(self.text.stringByReplacingOccurrencesOfString(self.locale.groupingSeparator, withString: "")) {
 			annotate(stack.push(QBELiteralExpression(QBEValue.DoubleValue(n.doubleValue))))
 		}
 		else {
 			annotate(stack.push(QBELiteralExpression(QBEValue.InvalidValue)))
+			error = true
 		}
 	}
 	

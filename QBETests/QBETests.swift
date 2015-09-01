@@ -480,6 +480,11 @@ class QBETests: XCTestCase {
 		let locale = QBELocale(language: QBELocale.defaultLanguage)
 		
 		// Test whether parsing goes right
+		XCTAssert(QBEFormula(formula: "1.337", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(1.337), "Parse decimal numbers")
+		XCTAssert(QBEFormula(formula: "1,337,338", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(1337338), "Parse numbers with thousand separators")
+		XCTAssert(QBEFormula(formula: "1337,338", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(1337338), "Parse numbers with thousand separators in the wrong place")
+		XCTAssert(QBEFormula(formula: "1.337.338", locale: locale)==nil, "Parse numbers with double decimal separators should fail")
+
 		XCTAssert(QBEFormula(formula: "6/ 2", locale: locale) != nil, "Parse whitespace around binary operator: right side")
 		XCTAssert(QBEFormula(formula: "6 / 2", locale: locale) != nil, "Parse whitespace around binary operator: both sides")
 		XCTAssert(QBEFormula(formula: "6 /2", locale: locale) != nil, "Parse whitespace around binary operator: left side")
@@ -507,10 +512,10 @@ class QBETests: XCTestCase {
 
 		XCTAssert(QBEFormula(formula: "fALse", locale: locale) != nil, "Constant names should be case-insensitive")
 		XCTAssert(QBEFormula(formula: "siN(1)", locale: locale) != nil, "Function names should be case-insensitive")
-		XCTAssert(QBEFormula(formula: "SIN(1)", locale: locale)?.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(sin(1.0)), "SIN(1)=sin(1)")
-		XCTAssert(QBEFormula(formula: "siN(1)", locale: locale)?.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(sin(1.0)), "siN(1)=sin(1)")
+		XCTAssert(QBEFormula(formula: "SIN(1)", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(sin(1.0)), "SIN(1)=sin(1)")
+		XCTAssert(QBEFormula(formula: "siN(1)", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(sin(1.0)), "siN(1)=sin(1)")
 		XCTAssert(QBEFormula(formula: "POWER(1;)", locale: locale) == nil, "Empty arguments are invalid")
-		XCTAssert(QBEFormula(formula: "POWER(2;4)", locale: locale)?.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(pow(2,4)), "POWER(2;4)==2^4")
+		XCTAssert(QBEFormula(formula: "POWER(2;4)", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(pow(2,4)), "POWER(2;4)==2^4")
 	}
 	
 	func testExpressions() {
