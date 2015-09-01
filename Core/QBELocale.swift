@@ -26,6 +26,7 @@ public class QBELocale {
 	public var calendar: NSCalendar
 	public var constants: [QBEValue: String]
 	public let functions: [String: QBEFunction]
+	public let postfixes: [String: QBEValue]
 	
 	public static let languages: [QBELanguage: String] = [
 		"nl": QBEText("Dutch"),
@@ -49,6 +50,41 @@ public class QBELocale {
 			QBEValue(3.141592654): "PI",
 			QBEValue.EmptyValue: "LEEG",
 			QBEValue.InvalidValue: "FOUT"
+		]
+	]
+
+	// Source: https://en.wikipedia.org/wiki/Metric_prefix
+	private static let allPostfixes: [QBELanguage: [String: QBEValue]] = [
+		"en": [
+			"da": QBEValue(10.0),
+			"h": QBEValue(100.0),
+			"k": QBEValue(1000.0),
+			"M": QBEValue(1000.0 * 1000.0),
+			"G": QBEValue(1000.0 * 1000.0 * 1000.0),
+			"T": QBEValue(1000.0 * 1000.0 * 1000.0 * 1000.0),
+			"P": QBEValue(1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0),
+			"E": QBEValue(1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0),
+			"Z": QBEValue(1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0),
+			"Y": QBEValue(1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0),
+
+			"d": QBEValue(0.1),
+			"c": QBEValue(0.1 * 0.1),
+			"m": QBEValue(0.1 * 0.1 * 0.1),
+			"µ": QBEValue(0.001 * 0.001),
+			"n": QBEValue(0.001 * 0.001 * 0.001),
+			"p": QBEValue(0.001 * 0.001 * 0.001 * 0.001),
+			"f": QBEValue(0.001 * 0.001 * 0.001 * 0.001 * 0.001),
+			"a": QBEValue(0.001 * 0.001 * 0.001 * 0.001 * 0.001 * 0.001),
+			"z": QBEValue(0.001 * 0.001 * 0.001 * 0.001 * 0.001 * 0.001 * 0.001),
+			"y": QBEValue(0.001 * 0.001 * 0.001 * 0.001 * 0.001 * 0.001 * 0.001 * 0.001),
+
+			"Ki": QBEValue(1024.0),
+			"Mi": QBEValue(1024.0 * 1024.0),
+			"Gi": QBEValue(1024.0 * 1024.0 * 1024.0),
+			"Ti": QBEValue(1024.0 * 1024.0 * 1024.0),
+			"%": QBEValue(0.01),
+			"‰": QBEValue(0.001),
+			"‱": QBEValue(0.0001)
 		]
 	]
 	
@@ -237,6 +273,7 @@ public class QBELocale {
 		self.decimalSeparator = QBELocale.decimalSeparators[language]!
 		self.groupingSeparator = QBELocale.groupingSeparators[language]!
 		self.argumentSeparator = QBELocale.argumentSeparators[language]!
+		self.postfixes = QBELocale.allPostfixes[language] ?? QBELocale.allPostfixes[QBELocale.defaultLanguage]!
 		
 		numberFormatter = NSNumberFormatter()
 		numberFormatter.decimalSeparator = self.decimalSeparator

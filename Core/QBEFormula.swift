@@ -118,10 +118,10 @@ public class QBEFormula: Parser {
 			}
 		}
 	}
-	
-	private func pushPercentagePostfix() {
+
+	private func pushPostfixMultiplier(factor: QBEValue) {
 		let a = stack.pop()
-		annotate(stack.push(QBEBinaryExpression(first: QBELiteralExpression(QBEValue(100)), second: a, type: QBEBinary.Division)))
+		annotate(stack.push(QBEBinaryExpression(first: QBELiteralExpression(factor), second: a, type: QBEBinary.Multiplication)))
 	}
 	
 	private func pushBinary(type: QBEBinary) {
@@ -201,6 +201,8 @@ public class QBEFormula: Parser {
 				functionRules.append(Parser.matchLiteralInsensitive(functionName))
 			}
 		}
+
+		let postfixRules = locale.postfixes.map { (postfix, multiplier) in return (literal(postfix) => { self.pushPostfixMultiplier(multiplier) }) }
 		
 		// String literals & constants
 		add_named_rule("arguments",			rule: (("(" ~~ Parser.matchList(^"logic" => pushArgument, separator: literal(locale.argumentSeparator)) ~~ ")")))
@@ -217,13 +219,13 @@ public class QBEFormula: Parser {
 		// Number literals
 		add_named_rule("digits",			rule: (("0"-"9") | locale.groupingSeparator)+)
 		add_named_rule("integerNumber",		rule: (^"digits") => pushInt)
-		add_named_rule("percentagePostfix", rule: (literal("%") => pushPercentagePostfix)/~)
+		add_named_rule("numberPostfix", rule: Parser.matchAnyFrom(postfixRules)/~)
 		add_named_rule("timestamp",			rule: ("@" ~ ^"digits" ~ (locale.decimalSeparator ~ ^"digits")/~) => pushTimestamp)
 		add_named_rule("doubleNumber",		rule: (^"digits" ~ (locale.decimalSeparator ~ ^"digits")/~) => pushDouble)
 		add_named_rule("negativeNumber",	rule: ("-" ~ ^"doubleNumber") => pushNegate)
-		add_named_rule("percentageNumber",  rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"percentagePostfix")
+		add_named_rule("postfixedNumber",  rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"numberPostfix")
 		
-		add_named_rule("value", rule: ^"percentageNumber" | ^"timestamp" | ^"stringLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"foreign" | ^"subexpression")
+		add_named_rule("value", rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"foreign" | ^"subexpression")
 		add_named_rule("exponent", rule: ^"value" ~~ (("^" ~~ ^"value") => pushPower)*)
 		
 		let factor = ^"exponent" ~~ ((("*" ~~ ^"exponent") => pushMultiplication) | (("/" ~~ ^"exponent") => pushDivision))*

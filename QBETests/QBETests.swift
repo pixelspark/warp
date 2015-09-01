@@ -484,6 +484,8 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEFormula(formula: "1,337,338", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(1337338), "Parse numbers with thousand separators")
 		XCTAssert(QBEFormula(formula: "1337,338", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(1337338), "Parse numbers with thousand separators in the wrong place")
 		XCTAssert(QBEFormula(formula: "1.337.338", locale: locale)==nil, "Parse numbers with double decimal separators should fail")
+		XCTAssert(QBEFormula(formula: "13%", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(0.13), "Parse percentages")
+		XCTAssert(QBEFormula(formula: "10Ki", locale: locale)!.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(10 * 1024), "Parse SI postfixes")
 
 		XCTAssert(QBEFormula(formula: "6/ 2", locale: locale) != nil, "Parse whitespace around binary operator: right side")
 		XCTAssert(QBEFormula(formula: "6 / 2", locale: locale) != nil, "Parse whitespace around binary operator: both sides")
