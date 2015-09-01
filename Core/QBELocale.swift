@@ -261,8 +261,8 @@ public class QBELocale {
 		}
 		else {
 			// Case insensitive function find (slower)
-			for (name, function) in functions {
-				if name.caseInsensitiveCompare(name) == NSComparisonResult.OrderedSame {
+			for (functionName, function) in functions {
+				if name.caseInsensitiveCompare(functionName) == NSComparisonResult.OrderedSame {
 					return function
 				}
 			}

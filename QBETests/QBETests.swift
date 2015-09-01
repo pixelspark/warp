@@ -507,6 +507,8 @@ class QBETests: XCTestCase {
 
 		XCTAssert(QBEFormula(formula: "fALse", locale: locale) != nil, "Constant names should be case-insensitive")
 		XCTAssert(QBEFormula(formula: "siN(1)", locale: locale) != nil, "Function names should be case-insensitive")
+		XCTAssert(QBEFormula(formula: "SIN(1)", locale: locale)?.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(sin(1.0)), "SIN(1)=sin(1)")
+		XCTAssert(QBEFormula(formula: "siN(1)", locale: locale)?.root.apply(QBERow(), foreign: nil, inputValue: nil) == QBEValue(sin(1.0)), "siN(1)=sin(1)")
 	}
 	
 	func testExpressions() {
