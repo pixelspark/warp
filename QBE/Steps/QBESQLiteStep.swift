@@ -619,7 +619,12 @@ class QBESQLiteCachedData: QBEProxyData {
 				if !hasMore {
 					// First end the transaction started in init
 					self.database.query("COMMIT").require { c in
-						c.run()
+						if !c.run() {
+							self.cacheJob.log("COMMIT of cached data failed \(self.database.lastError)! not swapping")
+							self.completion?(.Failure(self.database.lastError))
+							self.completion = nil
+							return
+						}
 
 						// Swap out the original source with our new cached source
 						self.cacheJob.log("Done caching, swapping out")
