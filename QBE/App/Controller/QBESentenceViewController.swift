@@ -290,8 +290,8 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		updateView()
 
 		/* Check whether the window is visible before showing the tip, because this may get called early while setting
-		up views */
-		if let s = step where QBEFactory.sharedInstance.hasViewForStep(s) && (self.view.window?.visible == true) {
+		up views, or while we are editing a formula (which occludes the configure button) */
+		if let s = step where QBEFactory.sharedInstance.hasViewForStep(s) && (self.view.window?.visible == true) && editingFormula == nil {
 			QBESettings.sharedInstance.showTip("sentenceView.configureButton") {
 				self.showTip(NSLocalizedString("Click here to change additional settings for this step.", comment: ""), atView: self.configureButton)
 			}
