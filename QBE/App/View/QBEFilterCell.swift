@@ -35,7 +35,7 @@ internal class QBEFilterCell: NSButtonCell {
 					let value = row[index]
 					let hash: Int
 					if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
-						hash = Int(abs(i))
+						hash = Int(fmod(abs(i), Double(Int.max-1)))
 					}
 					else {
 						hash = abs(value.stringValue?.hashValue ?? 0)

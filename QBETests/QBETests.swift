@@ -67,6 +67,8 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEValue(12) * QBEValue(13) == QBEValue(156), "Integer multiplication to double")
 		XCTAssert(QBEValue(12) / QBEValue(2) == QBEValue(6), "Integer division to double")
 		XCTAssert(!(QBEValue(10.0) / QBEValue(0)).isValid, "Division by zero")
+		XCTAssert(QBEValue(Double(Int.max)+1.0).intValue == nil, "Doubles that are too large to be converted to Int should not be representible as integer value")
+		XCTAssert(QBEValue(Double(Int.min)-1.0).intValue == nil, "Doubles that are too large negatively to be converted to Int should not be representible as integer value")
 
 		// String operations
 		XCTAssert(QBEValue("1337") & QBEValue("h4x0r") == QBEValue("1337h4x0r"), "String string concatenation")

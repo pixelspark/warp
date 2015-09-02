@@ -118,7 +118,9 @@ public enum QBEValue: Hashable, CustomDebugStringConvertible {
 			case .StringValue(let s): return Int(s)
 			case .IntValue(let i): return i
 			case .BoolValue(let b): return b.toInt()
-			case .DoubleValue(let d): return Int(d)
+			/* A double can be much larger or smaller than what can be stored in an integer. Swift will cause a fatal 
+			error if Int() is used to convert such a double to Int. Therefore return nil if the double is too large */
+			case .DoubleValue(let d): return (d < Double(Int.max) && d > Double(Int.min)) ? Int(d) : nil
 			case .DateValue(_): return nil
 			case .EmptyValue: return nil
 			case .InvalidValue: return nil
