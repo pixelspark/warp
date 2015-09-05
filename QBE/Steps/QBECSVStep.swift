@@ -143,131 +143,165 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 
 class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 	var separatorCharacter: UInt16
-	var newLineCharacter: String?
-	let locale: QBELocale
-	let title: String?
+	var newLineCharacter: String
+	var title: String?
+
+	class var fileTypes: Set<String> { get { return Set<String>(["csv", "tsv", "tab", "txt"]) } }
 
 	required init(locale: QBELocale, title: String?) {
-		self.newLineCharacter = "\r\n"
-		let separator = locale.csvFieldSeparator
-		self.separatorCharacter = separator.utf16[separator.utf16.startIndex]
-		self.locale = locale
+		self.newLineCharacter = locale.csvLineSeparator
+		self.separatorCharacter = locale.csvFieldSeparator.utf16[locale.csvFieldSeparator.utf16.startIndex]
 		self.title = title
 	}
-	
-	func writeHeader(toStream: NSOutputStream) {
-		// Not used
-	}
-	
-	func writeFooter(toStream: NSOutputStream) {
-		// Not used
-	}
-	
-	func writeData(data: QBEData, toFile file: NSURL, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
-		let stream = data.stream()
 
-		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
-			let csvOut = CHCSVWriter(outputStream: outStream, encoding: NSUTF8StringEncoding, delimiter: separatorCharacter)
-			writeHeader(outStream)
-			
-			// If a custom new line character is set, use that instead of the default
-			if let nl = newLineCharacter {
-				csvOut.newlineCharacter = nl
-			}
-			
-			// Write column headers
-			let locale = self.locale
-			stream.columnNames(job) { (columnNames) -> () in
-				switch columnNames {
-				case .Success(let cns):
-					for col in cns {
-						csvOut.writeField(col.name)
-					}
-					csvOut.finishLine()
-					
-					var cb: QBESink? = nil
-					cb = { (rows: QBEFallible<Array<QBETuple>>, hasNext: Bool) -> () in
-						switch rows {
-							case .Success(let rs):
-								// We want the next row, so fetch it while we start writing this one.
-								if hasNext {
-									job.async {
-										stream.fetch(job, consumer: cb!)
-									}
-								}
-								
-								job.time("Write CSV", items: rs.count, itemType: "rows") {
-									for row in rs {
-										for cell in row {
-											csvOut.writeField(locale.localStringFor(cell))
-										}
-										csvOut.finishLine()
-									}
-								}
-								
-								if !hasNext {
-									self.writeFooter(outStream)
-									csvOut.closeStream()
-									callback(.Success())
-								}
-							
-							case .Failure(let e):
-								callback(.Failure(e))
+	required init?(coder aDecoder: NSCoder) {
+		self.newLineCharacter = aDecoder.decodeStringForKey("newLine") ?? "\r\n"
+		let separatorString = aDecoder.decodeStringForKey("separator") ?? ","
+		separatorCharacter = separatorString.utf16[separatorString.utf16.startIndex]
+		self.title = aDecoder.decodeStringForKey("title")
+	}
+
+	func encodeWithCoder(aCoder: NSCoder) {
+		aCoder.encodeString(self.newLineCharacter, forKey: "newLine")
+		aCoder.encodeString("separator", forKey: String([self.separatorCharacter]))
+	}
+
+	class func explain(locale: QBELocale) -> String {
+		return NSLocalizedString("comma separated values (CSV) file", comment: "")
+	}
+
+	internal func writeData(data: QBEData, toStream: NSOutputStream, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		let stream = data.stream()
+		let csvOut = CHCSVWriter(outputStream: toStream, encoding: NSUTF8StringEncoding, delimiter: separatorCharacter)
+		csvOut.newlineCharacter = self.newLineCharacter
+
+		// Write column headers
+		stream.columnNames(job) { (columnNames) -> () in
+			switch columnNames {
+			case .Success(let cns):
+				for col in cns {
+					csvOut.writeField(col.name)
+				}
+				csvOut.finishLine()
+
+				var cb: QBESink? = nil
+				cb = { (rows: QBEFallible<Array<QBETuple>>, hasNext: Bool) -> () in
+					switch rows {
+					case .Success(let rs):
+						// We want the next row, so fetch it while we start writing this one.
+						if hasNext {
+							job.async {
+								stream.fetch(job, consumer: cb!)
+							}
 						}
+
+						job.time("Write CSV", items: rs.count, itemType: "rows") {
+							for row in rs {
+								for cell in row {
+									csvOut.writeField(locale.localStringFor(cell))
+								}
+								csvOut.finishLine()
+							}
+						}
+
+						if !hasNext {
+							callback(.Success())
+						}
+
+					case .Failure(let e):
+						callback(.Failure(e))
 					}
-					
-					stream.fetch(job, consumer: cb!)
-			
+				}
+
+				stream.fetch(job, consumer: cb!)
+
 			case .Failure(let e):
 				callback(.Failure(e))
 			}
 		}
+	}
+
+	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
+			outStream.open()
+			self.writeData(data, toStream: outStream, locale: locale, job: job, callback: { (result) in
+				outStream.close()
+				callback(result)
+			})
+		}
+		else {
+			callback(.Failure("Could not create output stream"))
 		}
 	}
 }
 
 class QBEHTMLWriter: QBECSVWriter {
-	let header: String
-	let footer: String
-	
-	required init(locale: QBELocale, title: String? = nil) {
-		// Get pivot template from resources
-		if let path = NSBundle.mainBundle().pathForResource("pivot", ofType: "html") {
-			do {
-				let template = try NSString(contentsOfFile: path, encoding: NSUTF8StringEncoding).stringByReplacingOccurrencesOfString("$$$TITLE$$$", withString: title ?? "")
-				let parts = template.componentsSeparatedByString("$$$CSV$$$")
-				header = parts[0]
-				footer = parts[1]
-				
-				let locale = QBELocale()
-				locale.numberFormatter.perMillSymbol = ""
-				locale.numberFormatter.decimalSeparator = "."
-				locale.csvFieldSeparator = ","
-				super.init(locale: locale, title: title)
-				return
+	override class var fileTypes: Set<String> { get { return Set<String>(["html", "htm"]) } }
+
+	required init?(coder aDecoder: NSCoder) {
+		super.init(coder: aDecoder)
+	}
+
+	required init(locale: QBELocale, title: String?) {
+		let locale = QBELocale()
+		locale.numberFormatter.perMillSymbol = ""
+		locale.numberFormatter.decimalSeparator = "."
+		locale.csvFieldSeparator = ","
+		super.init(locale: locale, title: title)
+	}
+
+	override class func explain(locale: QBELocale) -> String {
+		return NSLocalizedString("HTML pivot table", comment: "")
+	}
+
+	override func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
+			// Get pivot template from resources
+			if let path = NSBundle.mainBundle().pathForResource("pivot", ofType: "html") {
+				outStream.open()
+				do {
+					let template = try NSString(contentsOfFile: path, encoding: NSUTF8StringEncoding).stringByReplacingOccurrencesOfString("$$$TITLE$$$", withString: title ?? "")
+					let parts = template.componentsSeparatedByString("$$$CSV$$$")
+					let header = parts[0]
+					let footer = parts[1]
+
+					if let headerData = header.dataUsingEncoding(NSUTF8StringEncoding) {
+						outStream.write(UnsafePointer<UInt8>(headerData.bytes), maxLength: headerData.length)
+						super.writeData(data, toStream: outStream, locale: locale, job: job, callback: { (result) -> () in
+							switch result {
+							case .Success:
+								if let footerData = footer.dataUsingEncoding(NSUTF8StringEncoding) {
+									outStream.write(UnsafePointer<UInt8>(footerData.bytes), maxLength: footerData.length)
+									outStream.close()
+									callback(.Success())
+									return
+								}
+								else {
+									callback(.Failure("Could not convert footer to UTF-8 data"))
+								}
+
+							case .Failure(let e):
+								outStream.close()
+								callback(.Failure(e))
+							}
+						})
+					}
+					else {
+						outStream.close()
+						callback(.Failure("Could not convert header to UTF-8 data"))
+					}
+				}
+				catch let e as NSError {
+					outStream.close()
+					callback(.Failure(e.localizedDescription))
+				}
 			}
-			catch _ {
-				header = ""
-				footer = ""
-				super.init(locale: locale, title: title)
+			else {
+				callback(.Failure("Could not find template"))
 			}
 		}
 		else {
-			header = ""
-			footer = ""
-			super.init(locale: locale, title: title)
-		}
-	}
-	
-	override func writeHeader(toStream: NSOutputStream) {
-		if let data = header.dataUsingEncoding(NSUTF8StringEncoding) {
-			toStream.write(UnsafePointer<UInt8>(data.bytes), maxLength: data.length)
-		}
-	}
-	
-	override func writeFooter(toStream: NSOutputStream) {
-		if let data = footer.dataUsingEncoding(NSUTF8StringEncoding) {
-			toStream.write(UnsafePointer<UInt8>(data.bytes), maxLength: data.length)
+			callback(.Failure("Could not create output stream"))
 		}
 	}
 }

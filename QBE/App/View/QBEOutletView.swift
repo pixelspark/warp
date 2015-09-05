@@ -4,6 +4,27 @@ import Cocoa
 	func receiveDropFromOutlet(draggedObject: AnyObject?)
 }
 
+private extension NSPasteboard {
+	var pasteURL: NSURL? { get {
+		var pasteboardRef: Unmanaged<Pasteboard>? = nil
+		PasteboardCreate(self.name, &pasteboardRef)
+		if let realRef = pasteboardRef {
+			PasteboardSynchronize(realRef.takeUnretainedValue())
+			var pasteURL: Unmanaged<CFURL>? = nil
+			PasteboardCopyPasteLocation(realRef.takeUnretainedValue(), &pasteURL)
+			realRef.release()
+
+			if let realURL = pasteURL {
+				let url = realURL.takeUnretainedValue() as NSURL
+				realURL.release()
+				return url
+			}
+		}
+
+		return nil
+	} }
+}
+
 /**
 QBEOutletDropView provides a 'drop zone' for outlets. Set a delegate to accept objects received from dropped outlet 
 connections.
@@ -158,7 +179,7 @@ private class QBELaceWindow: NSWindow {
 	} }
 	
 	private func updateGeometry() {
-		if let s = source, frameInScreen = sourceScreenFrame {
+		if let s = source, frameInScreen = sourceScreenFrame where targetScreenPoint.x.isFinite && targetScreenPoint.y.isFinite {
 			let rect = CGRectMake(
 				min(frameInScreen.center.x, targetScreenPoint.x),
 				min(frameInScreen.center.y, targetScreenPoint.y),
@@ -175,15 +196,16 @@ private class QBELaceWindow: NSWindow {
 }
 
 @objc protocol QBEOutletViewDelegate: NSObjectProtocol {
-	optional func outletViewWillStartDragging(view: QBEOutletView)
-	optional func outletViewDidEndDragging(view: QBEOutletView)
+	func outletViewWillStartDragging(view: QBEOutletView)
+	func outletViewDidEndDragging(view: QBEOutletView)
+	func outletView(view: QBEOutletView, didDropAtURL: NSURL)
 }
 
 /** 
 QBEOutletView shows an 'outlet' from which an item can be dragged. Views that want to accept outlet drops need to accept
 the QBEOutletView.dragType dragging type. Upon receiving a dragged outlet, they should find the dragging source (which 
 will be the sending QBEOutletView) and then obtain the draggedObject from that view. */
-@IBDesignable class QBEOutletView: NSView, NSDraggingSource {
+@IBDesignable class QBEOutletView: NSView, NSDraggingSource, NSPasteboardItemDataProvider {
 	static let dragType = "nl.pixelspark.Warp.Outlet"
 	
 	@IBInspectable var connected: Bool = false { didSet { setNeedsDisplayInRect(self.bounds) } }
@@ -193,13 +215,29 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 	private var dragLineWindow: QBELaceWindow?
 	
 	override func mouseDown(theEvent: NSEvent) {
-		delegate?.outletViewWillStartDragging?(self)
+		delegate?.outletViewWillStartDragging(self)
 		
 		if draggedObject != nil {
 			let pboardItem = NSPasteboardItem()
 			pboardItem.setData("[dragged outlet]".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false), forType: QBEOutletView.dragType)
+
+			/* When this item is dragged to a finder window, promise to write a CSV file there. Our provideDataForType 
+			function is called as soon as the system actually wants us to write that file. */
+			pboardItem.setDataProvider(self, forTypes: [kPasteboardTypeFileURLPromise])
+			pboardItem.setString(kUTTypeCommaSeparatedText as String, forType: kPasteboardTypeFilePromiseContent)
+
 			let dragItem = NSDraggingItem(pasteboardWriter: pboardItem)
 			self.beginDraggingSessionWithItems([dragItem] as [NSDraggingItem], event: theEvent, source: self)
+		}
+	}
+
+	func pasteboard(pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: String) {
+		if type == kPasteboardTypeFileURLPromise {
+			// pasteURL is the directory to write something to. Now is a good time to pop up an export dialog
+			if let pu = pasteboard?.pasteURL {
+				self.delegate?.outletView(self, didDropAtURL: pu)
+				item.setString(pu.absoluteString, forType: kPasteboardTypeFileURLPromise)
+			}
 		}
 	}
 	
@@ -242,7 +280,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 	}
 	
 	func draggingSession(session: NSDraggingSession, sourceOperationMaskForDraggingContext context: NSDraggingContext) -> NSDragOperation {
-		return NSDragOperation.Link
+		return NSDragOperation.Copy
 	}
 	
 	func draggingSession(session: NSDraggingSession, willBeginAtPoint screenPoint: NSPoint) {
@@ -263,6 +301,6 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 		dragLineWindow = nil
 		setNeedsDisplayInRect(self.bounds)
 		NSCursor.closedHandCursor().pop()
-		self.delegate?.outletViewDidEndDragging?(self)
+		self.delegate?.outletViewDidEndDragging(self)
 	}
 }

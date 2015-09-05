@@ -59,7 +59,6 @@ internal extension NSViewController {
 			if useFullData {
 				calculate()
 			}
-			// TODO: Visually indicate what kind of selection is used
 		}
 	}
 	
@@ -174,7 +173,42 @@ internal extension NSViewController {
 	func outletViewDidEndDragging(view: QBEOutletView) {
 		view.draggedObject = nil
 	}
-	
+
+	private func exportToFile(url: NSURL) {
+		let writerType: QBEFileWriter.Type
+		if let ext = url.pathExtension {
+			writerType = QBEFactory.sharedInstance.fileWriterForType(ext) ?? QBECSVWriter.self
+		}
+		else {
+			writerType = QBECSVWriter.self
+		}
+
+		// FIXME: Provide choice for 'just once' exporting or to add a step
+		let title = self.chain?.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
+		let s = QBEExportStep(previous: nil, writer: writerType.init(locale: self.locale, title: title), file: QBEFileReference.URL(url))
+		chain?.insertStep(s, afterStep: self.currentStep)
+		self.currentStep = s
+		stepsChanged()
+	}
+
+	func outletView(view: QBEOutletView, didDropAtURL url: NSURL) {
+		if let isd = url.isDirectory where isd {
+			// Ask for a file rather than a directory
+			let no = NSSavePanel()
+			no.allowedFileTypes = Array(QBEFactory.sharedInstance.fileExtensionsForWriting)
+			no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
+				if result == NSFileHandlingPanelOKButton {
+					if let u = no.URL {
+						self.exportToFile(u)
+					}
+				}
+			})
+		}
+		else {
+			self.exportToFile(url)
+		}
+	}
+
 	func outletViewWillStartDragging(view: QBEOutletView) {
 		view.draggedObject = self.chain
 	}
@@ -1171,8 +1205,8 @@ internal extension NSViewController {
 	
 	@IBAction func exportFile(sender: NSObject) {
 		let ns = NSSavePanel()
-		ns.allowedFileTypes = QBEFactory.sharedInstance.fileExtensionsForWriting
-		let title = chain?.tablet?.document?.displayName ?? NSLocalizedString("Warp data", comment: "")
+		ns.allowedFileTypes = Array(QBEFactory.sharedInstance.fileExtensionsForWriting)
+		let title = chain?.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
 		
 		ns.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result == NSFileHandlingPanelOKButton {
@@ -1185,8 +1219,8 @@ internal extension NSViewController {
 								case .Success(let data):
 									if let url = ns.URL, let ext = url.pathExtension {
 										// Get the file writer for this type
-										if let writer = QBEFactory.sharedInstance.fileWriterForType(ext, locale: self.locale, title: title) {
-											writer.writeData(data, toFile: url, job: job, callback: {(result) -> () in
+										if let writer = QBEFactory.sharedInstance.fileWriterForType(ext)?.init(locale: self.locale, title: title) {
+											writer.writeData(data, toFile: url, locale: self.locale, job: job, callback: {(result) -> () in
 												QBEAsyncMain {
 													let alert = NSAlert()
 													
@@ -1261,4 +1295,16 @@ class QBETipViewController: NSViewController {
 	override func viewWillAppear() {
 		self.messageLabel?.stringValue = message
 	}
+}
+
+extension NSURL {
+	var isDirectory: Bool? { get {
+		if let p = self.path {
+			var isDirectory: ObjCBool = false
+			if NSFileManager.defaultManager().fileExistsAtPath(p, isDirectory: &isDirectory) {
+				return isDirectory.boolValue
+			}
+		}
+		return nil
+	} }
 }

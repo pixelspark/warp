@@ -33,7 +33,11 @@ data. Currently a tablet is always comprised of a QBEChain that calculates data.
 @objc class QBETablet: NSObject, NSSecureCoding {
 	weak internal(set) var document: QBEDocument? = nil
 	var frame: CGRect? = nil
-	
+
+	var displayName: String? { get {
+		return self.document?.displayName
+	} }
+
 	var chain: QBEChain { didSet {
 		assert(chain.tablet == nil, "chain must not be associated with another tablet already")
 		chain.tablet = self

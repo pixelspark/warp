@@ -403,11 +403,31 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 	public let file: QBEFileReference?
 	public let allowedFileTypes: [String]
 	public let callback: Callback
+	public let isDirectory: Bool
+	public let mustExist: Bool
+
+	public init(directory: QBEFileReference?, callback: Callback) {
+		self.allowedFileTypes = []
+		self.file = directory
+		self.callback = callback
+		self.isDirectory = true
+		self.mustExist = true
+	}
+
+	public init(saveFile file: QBEFileReference?, allowedFileTypes: [String], callback: Callback) {
+		self.file = file
+		self.callback = callback
+		self.allowedFileTypes = allowedFileTypes
+		self.isDirectory = false
+		self.mustExist = false
+	}
 
 	public init(file: QBEFileReference?, allowedFileTypes: [String], callback: Callback) {
 		self.file = file
 		self.callback = callback
 		self.allowedFileTypes = allowedFileTypes
+		self.isDirectory = false
+		self.mustExist = true
 	}
 
 	public func change(newValue: QBEFileReference) {
@@ -421,4 +441,19 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 	}
 
 	public var isToken: Bool { get { return true } }
+}
+
+/** Component that can write a data set to a file in a particular format. */
+public protocol QBEFileWriter: NSObjectProtocol, NSCoding {
+	/** A description of the type of file exported by instances of this file writer, e.g. "XML file". */
+	static func explain(locale: QBELocale) -> String
+
+	/** The UTIs and file extensions supported by this type of file writer. */
+	static var fileTypes: Set<String> { get }
+
+	/** Create a file writer with default settings for the given locale. */
+	init(locale: QBELocale, title: String?)
+
+	/** Write data to the given URL. The file writer calls back once after success or failure. */
+	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ())
 }

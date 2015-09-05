@@ -684,6 +684,21 @@ public extension String {
 	}
 }
 
+
+public extension SequenceType {
+	/** For each element in the sequence, evaluate block, and insert the returned tuple in a dictionary. If a particular
+	key appears more than once in a returned tuple, one of the values will end up in the dictionary, but which is not
+	defined. */
+	func mapDictionary<K, V>(@noescape block: (Generator.Element) -> (K, V)) -> [K:V] {
+		var dict: [K:V] = [:]
+		self.forEach { (element) -> () in
+			let v = block(element)
+			dict[v.0] = v.1
+		}
+		return dict
+	}
+}
+
 internal extension CollectionType {
 	func mapMany(@noescape block: (Generator.Element) -> [Generator.Element]) -> [Generator.Element] {
 		var result: [Generator.Element] = []

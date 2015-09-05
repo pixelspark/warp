@@ -157,7 +157,12 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			self.editingToken = QBEEditingToken(inputToken)
 
 			let menu = NSMenu()
-			menu.addItem(NSMenuItem(title: NSLocalizedString("Select file...", comment: ""), action: Selector("selectFile:"), keyEquivalent: ""))
+			if inputToken.isDirectory {
+				menu.addItem(NSMenuItem(title: NSLocalizedString("Select directory...", comment: ""), action: Selector("selectFile:"), keyEquivalent: ""))
+			}
+			else {
+				menu.addItem(NSMenuItem(title: NSLocalizedString("Select file...", comment: ""), action: Selector("selectFile:"), keyEquivalent: ""))
+			}
 			let showItem = NSMenuItem(title: NSLocalizedString("Show in Finder", comment: ""), action: Selector("showFileInFinder:"), keyEquivalent: "")
 			showItem.enabled = inputToken.file != nil
 			menu.addItem(showItem)
@@ -173,19 +178,42 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func selectFile(sender: NSObject) {
-		if let token = editingToken?.token as? QBESentenceFile, let s = editingStep {
-			let no = NSOpenPanel()
-			no.canChooseFiles = true
-			no.allowedFileTypes = token.allowedFileTypes
 
-			no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
-				if result==NSFileHandlingPanelOKButton {
-					let url = no.URLs[0]
-					token.change(QBEFileReference.URL(url))
-					self.delegate?.suggestionsView(self, previewStep: s)
-					self.updateView()
+		if let token = editingToken?.token as? QBESentenceFile, let s = editingStep {
+			if token.mustExist || token.isDirectory {
+				let no = NSOpenPanel()
+				if token.isDirectory {
+					no.canChooseDirectories = true
+					no.canCreateDirectories = true
 				}
-			})
+				else {
+					no.canChooseFiles = true
+					no.allowedFileTypes = token.allowedFileTypes
+				}
+
+				no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
+					if result==NSFileHandlingPanelOKButton {
+						let url = no.URLs[0]
+						token.change(QBEFileReference.URL(url))
+						self.delegate?.suggestionsView(self, previewStep: s)
+						self.updateView()
+					}
+				})
+
+			}
+			else {
+				let no = NSSavePanel()
+				no.allowedFileTypes = token.allowedFileTypes
+				no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
+					if result==NSFileHandlingPanelOKButton {
+						if let url = no.URL {
+							token.change(QBEFileReference.URL(url))
+							self.delegate?.suggestionsView(self, previewStep: s)
+							self.updateView()
+						}
+					}
+				})
+			}
 		}
 	}
 

@@ -576,6 +576,7 @@ NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
     NSCharacterSet *_illegalCharacters;
     
     NSUInteger _currentField;
+	BOOL _ownStream;
 }
 
 @synthesize newlineCharacter;
@@ -585,6 +586,7 @@ NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
 }
 
 - (instancetype)initForWritingToCSVFile:(NSString *)path {
+	_ownStream = TRUE;
     NSOutputStream *stream = [NSOutputStream outputStreamToFileAtPath:path append:NO];
 	self.newlineCharacter = @"\r\n";
     return [self initWithOutputStream:stream encoding:NSUTF8StringEncoding delimiter:COMMA];
@@ -595,6 +597,7 @@ NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
     if (self) {
         _stream = stream;
         _streamEncoding = encoding;
+		_ownStream = FALSE;
         
         if ([_stream streamStatus] == NSStreamStatusNotOpen) {
             [_stream open];
@@ -625,7 +628,9 @@ NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
 }
 
 - (void)dealloc {
-    [self closeStream];
+	if(_ownStream) {
+		[self closeStream];
+	}
 }
 
 - (void)_writeData:(NSData *)data {

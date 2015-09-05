@@ -3,18 +3,14 @@ import WarpCore
 
 class QBEFactory {
 	typealias QBEStepViewCreator = (step: QBEStep?, delegate: QBESuggestionsViewDelegate) -> NSViewController?
-	typealias QBEFileWriterCreator = (locale: QBELocale, title: String?) -> (QBEFileWriter?)
 	typealias QBEFileReaderCreator = (url: NSURL) -> QBEStep?
 	
 	static let sharedInstance = QBEFactory()
 	
-	private let fileWriters: [String: QBEFileWriter.Type] = [
-		"tsv": QBECSVWriter.self,
-		"txt": QBECSVWriter.self,
-		"tab": QBECSVWriter.self,
-		"xml": QBEXMLWriter.self,
-		"html": QBEHTMLWriter.self,
-		"csv": QBECSVWriter.self
+	let fileWriters: [QBEFileWriter.Type] = [
+		QBECSVWriter.self,
+		QBEXMLWriter.self,
+		QBEHTMLWriter.self
 	]
 	
 	private let fileReaders: [String: QBEFileReaderCreator] = [
@@ -67,11 +63,16 @@ class QBEFactory {
 		QBEMergeStep.className(): "MergeIcon",
 		QBECrawlStep.className(): "CrawlIcon",
 		QBESequencerStep.className(): "SequenceIcon",
-		QBEDBFSourceStep.className(): "DBFIcon"
+		QBEDBFSourceStep.className(): "DBFIcon",
+		QBEExportStep.className(): "ExportStepIcon"
 	]
 	
-	var fileExtensionsForWriting: [String] { get {
-		return [String](fileWriters.keys)
+	var fileExtensionsForWriting: Set<String> { get {
+		var exts = Set<String>()
+		for writer in fileWriters {
+			exts.unionInPlace(writer.fileTypes)
+		}
+		return exts
 	} }
 	
 	var fileTypesForReading: [String] { get {
@@ -96,9 +97,11 @@ class QBEFactory {
 		return nil
 	}
 	
-	func fileWriterForType(type: String, locale: QBELocale, title: String) -> QBEFileWriter? {
-		if let c = fileWriters[type] {
-			return c.init(locale: locale, title: title)
+	func fileWriterForType(type: String) -> QBEFileWriter.Type? {
+		for writer in fileWriters {
+			if writer.fileTypes.contains(type) {
+				return writer
+			}
 		}
 		return nil
 	}

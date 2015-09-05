@@ -2,15 +2,27 @@ import Foundation
 import WarpCore
 
 class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
-	let title: String?
-	let locale: QBELocale
-	
-	required init(locale: QBELocale, title: String? = nil) {
+	class var fileTypes: Set<String> { get { return Set<String>(["xml"]) } }
+
+	var title: String?
+
+	required init(locale: QBELocale, title: String?) {
 		self.title = title
-		self.locale = locale
+	}
+
+	required init?(coder aDecoder: NSCoder) {
+		self.title = aDecoder.decodeStringForKey("title")
+	}
+
+	func encodeWithCoder(aCoder: NSCoder) {
+		aCoder.encodeString(self.title ?? "", forKey: "title")
+	}
+
+	static func explain(locale: QBELocale) -> String {
+		return NSLocalizedString("XML file", comment: "")
 	}
 	
-	func writeData(data: QBEData, toFile file: NSURL, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
 		let stream = data.stream()
 		
 		if let writer = TCMXMLWriter(options: UInt(TCMXMLWriterOptionPrettyPrinted), fileURL: file) {

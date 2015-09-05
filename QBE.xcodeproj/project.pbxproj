@@ -75,6 +75,7 @@
 		65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
 		6548F2341A8673BF00FE8EF2 /* extension-functions.c in Sources */ = {isa = PBXBuildFile; fileRef = 6548F2331A8673BF00FE8EF2 /* extension-functions.c */; };
 		654AE1671AA514530022C533 /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 652872921A5D16C200C155FA /* SwiftParser.framework */; };
+		654C82931B9AE76F002B3F4A /* QBEExportStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654C82921B9AE76F002B3F4A /* QBEExportStep.swift */; settings = {ASSET_TAGS = (); }; };
 		65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65734BE01AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65734BE31AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib */; };
 		65776F101A6470BB00F7F82A /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 652872921A5D16C200C155FA /* SwiftParser.framework */; };
@@ -113,7 +114,6 @@
 		65A0E0261AF2B92A0005C50F /* QBEDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */; };
 		65A176931B8B9769004D4A21 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176911B8B9769004D4A21 /* dbfopen.c */; };
 		65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176991B8B9AC0004D4A21 /* safileio.c */; };
-		65A526B21B08E77300CCF3E3 /* QBEFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A526B11B08E77300CCF3E3 /* QBEFileWriter.swift */; };
 		65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A526B91B09BFDB00CCF3E3 /* libpq.a */; };
 		65A526C51B0A5C4900CCF3E3 /* QBEPostgresStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65A526C81B0A5C4900CCF3E3 /* QBEPostgresStepView.xib */; };
 		65A526CC1B0A5C8700CCF3E3 /* QBEPostgresStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A526CB1B0A5C8700CCF3E3 /* QBEPostgresStepView.swift */; };
@@ -395,6 +395,7 @@
 		65436ED41B30C21F00636299 /* libiconv.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.2.dylib; path = /usr/lib/libiconv.2.dylib; sourceTree = "<absolute>"; };
 		65436ED51B30C21F00636299 /* libssl.0.9.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.0.9.8.dylib; path = /usr/lib/libssl.0.9.8.dylib; sourceTree = "<absolute>"; };
 		6548F2331A8673BF00FE8EF2 /* extension-functions.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "extension-functions.c"; path = "Libraries/extension-functions.c"; sourceTree = "<group>"; };
+		654C82921B9AE76F002B3F4A /* QBEExportStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEExportStep.swift; path = QBE/Steps/QBEExportStep.swift; sourceTree = SOURCE_ROOT; };
 		65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Libraries/Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
 		65734BE21AB0E60A00D2C2F6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEPrestoSourceStepView.xib; sourceTree = "<group>"; };
 		65734BE51AB0E60D00D2C2F6 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEPrestoSourceStepView.strings; sourceTree = "<group>"; };
@@ -439,7 +440,6 @@
 		65A176911B8B9769004D4A21 /* dbfopen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dbfopen.c; path = Libraries/Shapelib/dbfopen.c; sourceTree = "<group>"; };
 		65A176921B8B9769004D4A21 /* shapefil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = shapefil.h; path = Libraries/Shapelib/shapefil.h; sourceTree = "<group>"; };
 		65A176991B8B9AC0004D4A21 /* safileio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = safileio.c; path = Libraries/Shapelib/safileio.c; sourceTree = "<group>"; };
-		65A526B11B08E77300CCF3E3 /* QBEFileWriter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFileWriter.swift; sourceTree = "<group>"; };
 		65A526B81B09BFDB00CCF3E3 /* libpq-fe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "libpq-fe.h"; sourceTree = "<group>"; };
 		65A526B91B09BFDB00CCF3E3 /* libpq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libpq.a; sourceTree = "<group>"; };
 		65A526C71B0A5C4900CCF3E3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEPostgresStepView.xib; sourceTree = "<group>"; };
@@ -700,7 +700,6 @@
 				65A0DF781AF299C20005C50F /* QBEDocument.swift */,
 				65A0DF791AF299C20005C50F /* QBETablet.swift */,
 				65884A301AFF50BF003A5BF1 /* QBESettings.swift */,
-				65A526B11B08E77300CCF3E3 /* QBEFileWriter.swift */,
 			);
 			name = Model;
 			path = App/Model;
@@ -757,6 +756,7 @@
 				652B274B1B8FB8C200A2D38E /* QBESortStep.swift */,
 				652B274C1B8FB8C200A2D38E /* QBESQLiteStep.swift */,
 				652B274D1B8FB8C200A2D38E /* QBEXMLStep.swift */,
+				654C82921B9AE76F002B3F4A /* QBEExportStep.swift */,
 			);
 			name = Steps;
 			path = QBE/Core/Steps;
@@ -1160,6 +1160,7 @@
 				65A0DF8A1AF299C20005C50F /* QBEStepsViewController.swift in Sources */,
 				651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */,
 				65A0DF861AF299C20005C50F /* QBEDocumentViewController.swift in Sources */,
+				654C82931B9AE76F002B3F4A /* QBEExportStep.swift in Sources */,
 				65A176931B8B9769004D4A21 /* dbfopen.c in Sources */,
 				65884A461B076C4E003A5BF1 /* QBEJoinStepView.swift in Sources */,
 				652B275D1B8FB8C200A2D38E /* QBERowsStep.swift in Sources */,
@@ -1205,7 +1206,6 @@
 				65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */,
 				65A0E01C1AF29A750005C50F /* QBEPrestoSourceStepView.swift in Sources */,
 				651648B51B3B466F001E50BC /* QBEFilterCell.swift in Sources */,
-				65A526B21B08E77300CCF3E3 /* QBEFileWriter.swift in Sources */,
 				65DC015E1B791307001D4298 /* QBETourViewController.swift in Sources */,
 				65A0DF841AF299C20005C50F /* QBEDataViewController.swift in Sources */,
 				65A0DF7E1AF299C20005C50F /* QBEAppDelegate.swift in Sources */,
@@ -1736,6 +1736,7 @@
 				652B26EC1B8F993900A2D38E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		65E3C2AF1A05222F007BB3C8 /* Build configuration list for PBXProject "QBE" */ = {
 			isa = XCConfigurationList;
