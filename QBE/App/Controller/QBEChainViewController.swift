@@ -183,6 +183,45 @@ internal extension NSViewController {
 			writerType = QBECSVWriter.self
 		}
 
+		/** let job = QBEJob(.UserInitiated)
+		// What type of file are we exporting?
+		job.async {
+		if let cs = self.currentStep {
+		cs.fullData(job) { (fallibleData: QBEFallible<QBEData>) -> () in
+		switch fallibleData {
+		case .Success(let data):
+		if let url = ns.URL, let ext = url.pathExtension {
+		// Get the file writer for this type
+		if let writer = QBEFactory.sharedInstance.fileWriterForType(ext)?.init(locale: self.locale, title: title) {
+		writer.writeData(data, toFile: url, locale: self.locale, job: job, callback: {(result) -> () in
+		QBEAsyncMain {
+		let alert = NSAlert()
+
+		switch result {
+		case .Success():
+		alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
+
+		case .Failure(let e):
+		alert.messageText = String(format: NSLocalizedString("The data could not be saved to '%@': %@.", comment: ""), url.absoluteString ?? "", e)
+		}
+
+		alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
+		}
+		})
+		}
+		}
+
+		case .Failure(let errorMessage):
+		QBEAsyncMain {
+		let alert = NSAlert()
+		alert.messageText = errorMessage
+		alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
+		}
+		}
+		}
+		}
+		}*/
+
 		// FIXME: Provide choice for 'just once' exporting or to add a step
 		let title = self.chain?.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
 		let s = QBEExportStep(previous: nil, writer: writerType.init(locale: self.locale, title: title), file: QBEFileReference.URL(url))
@@ -194,15 +233,18 @@ internal extension NSViewController {
 	func outletView(view: QBEOutletView, didDropAtURL url: NSURL) {
 		if let isd = url.isDirectory where isd {
 			// Ask for a file rather than a directory
-			let no = NSSavePanel()
-			no.allowedFileTypes = Array(QBEFactory.sharedInstance.fileExtensionsForWriting)
-			no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
-				if result == NSFileHandlingPanelOKButton {
-					if let u = no.URL {
-						self.exportToFile(u)
-					}
+			var exts: [String: String] = [:]
+			for ext in QBEFactory.sharedInstance.fileExtensionsForWriting {
+				let writer = QBEFactory.sharedInstance.fileWriterForType(ext)!
+				exts[ext] = writer.explain(ext, locale: self.locale)
+			}
+
+			let no = QBEFilePanel(allowedFileTypes: exts)
+			no.askForSaveFile(self.view.window!) { (fileFallible) in
+				fileFallible.maybe { (url) in
+					self.exportToFile(url)
 				}
-			})
+			}
 		}
 		else {
 			self.exportToFile(url)
@@ -1204,52 +1246,18 @@ internal extension NSViewController {
 	}
 	
 	@IBAction func exportFile(sender: NSObject) {
-		let ns = NSSavePanel()
-		ns.allowedFileTypes = Array(QBEFactory.sharedInstance.fileExtensionsForWriting)
-		let title = chain?.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
-		
-		ns.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
-			if result == NSFileHandlingPanelOKButton {
-				let job = QBEJob(.UserInitiated)
-				// What type of file are we exporting?
-				job.async {
-					if let cs = self.currentStep {
-						cs.fullData(job) { (fallibleData: QBEFallible<QBEData>) -> () in
-							switch fallibleData {
-								case .Success(let data):
-									if let url = ns.URL, let ext = url.pathExtension {
-										// Get the file writer for this type
-										if let writer = QBEFactory.sharedInstance.fileWriterForType(ext)?.init(locale: self.locale, title: title) {
-											writer.writeData(data, toFile: url, locale: self.locale, job: job, callback: {(result) -> () in
-												QBEAsyncMain {
-													let alert = NSAlert()
-													
-													switch result {
-														case .Success():
-															alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
-														
-														case .Failure(let e):
-															alert.messageText = String(format: NSLocalizedString("The data could not be saved to '%@': %@.", comment: ""), url.absoluteString ?? "", e)
-													}
-													
-													alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
-												}
-											})
-										}
-									}
-								
-								case .Failure(let errorMessage):
-									QBEAsyncMain {
-										let alert = NSAlert()
-										alert.messageText = errorMessage
-										alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
-									}
-							}
-						}
-					}
-				}
+		var exts: [String: String] = [:]
+		for ext in QBEFactory.sharedInstance.fileExtensionsForWriting {
+			let writer = QBEFactory.sharedInstance.fileWriterForType(ext)!
+			exts[ext] = writer.explain(ext, locale: self.locale)
+		}
+
+		let ns = QBEFilePanel(allowedFileTypes: exts)
+		ns.askForSaveFile(self.view.window!) { (urlFallible) -> () in
+			urlFallible.maybe { (url) in
+				self.exportToFile(url)
 			}
-		})
+		}
 	}
 	
 	override func viewWillAppear() {

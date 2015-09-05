@@ -280,6 +280,14 @@ public class QBESentence {
 		}
 	}
 
+	public func append(sentence: QBESentence) {
+		self.tokens.appendContentsOf(sentence.tokens)
+	}
+
+	public func append(token: QBESentenceToken) {
+		self.tokens.append(token)
+	}
+
 	public var stringValue: String { get {
 		return self.tokens.map({ return $0.label }).joinWithSeparator(" ")
 	} }
@@ -446,7 +454,7 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 /** Component that can write a data set to a file in a particular format. */
 public protocol QBEFileWriter: NSObjectProtocol, NSCoding {
 	/** A description of the type of file exported by instances of this file writer, e.g. "XML file". */
-	static func explain(locale: QBELocale) -> String
+	static func explain(fileExtension: String, locale: QBELocale) -> String
 
 	/** The UTIs and file extensions supported by this type of file writer. */
 	static var fileTypes: Set<String> { get }
@@ -456,4 +464,7 @@ public protocol QBEFileWriter: NSObjectProtocol, NSCoding {
 
 	/** Write data to the given URL. The file writer calls back once after success or failure. */
 	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ())
+
+	/** Returns a sentence for configuring this writer */
+	func sentence(locale: QBELocale) -> QBESentence?
 }

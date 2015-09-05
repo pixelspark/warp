@@ -118,6 +118,8 @@
 		65A526C51B0A5C4900CCF3E3 /* QBEPostgresStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65A526C81B0A5C4900CCF3E3 /* QBEPostgresStepView.xib */; };
 		65A526CC1B0A5C8700CCF3E3 /* QBEPostgresStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A526CB1B0A5C8700CCF3E3 /* QBEPostgresStepView.swift */; };
 		65A9817D1AF357C2006BACA7 /* QBEStepItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A9817C1AF357C2006BACA7 /* QBEStepItemView.swift */; };
+		65AAF4B01B9B2D9D004C79D3 /* QBEFilePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65AAF4AF1B9B2D9D004C79D3 /* QBEFilePanel.swift */; settings = {ASSET_TAGS = (); }; };
+		65AAF4B31B9B3679004C79D3 /* QBEFilePanelAccessoryView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65AAF4B51B9B3679004C79D3 /* QBEFilePanelAccessoryView.xib */; };
 		65CD70651B650DD2008AF5C3 /* QBEReferenceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */; };
 		65CD706C1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD706B1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift */; };
 		65CD95201AC9E80300557C9E /* QBEObjectiveCBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 65CD951F1AC9E80300557C9E /* QBEObjectiveCBridge.m */; };
@@ -451,6 +453,9 @@
 		65A52BA41B0A665200CCF3E3 /* postgres_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = postgres_ext.h; sourceTree = "<group>"; };
 		65A9817C1AF357C2006BACA7 /* QBEStepItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEStepItemView.swift; sourceTree = "<group>"; };
 		65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
+		65AAF4AF1B9B2D9D004C79D3 /* QBEFilePanel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFilePanel.swift; sourceTree = "<group>"; };
+		65AAF4B41B9B3679004C79D3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEFilePanelAccessoryView.xib; sourceTree = "<group>"; };
+		65AAF4B71B9B367A004C79D3 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEFilePanelAccessoryView.strings; sourceTree = "<group>"; };
 		65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEReferenceViewController.swift; sourceTree = "<group>"; };
 		65CD706B1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "QBEFormula+SyntaxColoring.swift"; sourceTree = "<group>"; };
 		65CD951F1AC9E80300557C9E /* QBEObjectiveCBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = QBEObjectiveCBridge.m; path = QBE/QBEObjectiveCBridge.m; sourceTree = "<group>"; };
@@ -728,6 +733,8 @@
 				65DC01631B791440001D4298 /* Tour.strings */,
 				65DC015B1B791290001D4298 /* Tour.xcassets */,
 				65CD95D01ACEB68000557C9E /* Warp.entitlements */,
+				65AAF4AF1B9B2D9D004C79D3 /* QBEFilePanel.swift */,
+				65AAF4B51B9B3679004C79D3 /* QBEFilePanelAccessoryView.xib */,
 			);
 			name = View;
 			path = App/View;
@@ -1093,6 +1100,7 @@
 				65734BE01AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib in Resources */,
 				659604CE1AB45F9300701758 /* QBEColumnsStepView.xib in Resources */,
 				652B276A1B91952D00A2D38E /* AccessibilityImageDescriptions.strings in Resources */,
+				65AAF4B31B9B3679004C79D3 /* QBEFilePanelAccessoryView.xib in Resources */,
 				65DBA5611A798F31004CDF36 /* QBEPivotStepView.xib in Resources */,
 				65FCB8DE1AB5A5420002C119 /* QBESortStepView.xib in Resources */,
 				6593B7341AA37AE200BE9726 /* Localizable.strings in Resources */,
@@ -1209,6 +1217,7 @@
 				65DC015E1B791307001D4298 /* QBETourViewController.swift in Sources */,
 				65A0DF841AF299C20005C50F /* QBEDataViewController.swift in Sources */,
 				65A0DF7E1AF299C20005C50F /* QBEAppDelegate.swift in Sources */,
+				65AAF4B01B9B2D9D004C79D3 /* QBEFilePanel.swift in Sources */,
 				652B27561B8FB8C200A2D38E /* QBEJoinStep.swift in Sources */,
 				65A0DF901AF299C20005C50F /* QBEChain.swift in Sources */,
 				652B275A1B8FB8C200A2D38E /* QBEPrestoStep.swift in Sources */,
@@ -1389,6 +1398,15 @@
 			name = QBEPostgresStepView.xib;
 			path = QBE;
 			sourceTree = SOURCE_ROOT;
+		};
+		65AAF4B51B9B3679004C79D3 /* QBEFilePanelAccessoryView.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				65AAF4B41B9B3679004C79D3 /* Base */,
+				65AAF4B71B9B367A004C79D3 /* nl */,
+			);
+			name = QBEFilePanelAccessoryView.xib;
+			sourceTree = "<group>";
 		};
 		65CD95C91ACEB62500557C9E /* Credits.rtf */ = {
 			isa = PBXVariantGroup;

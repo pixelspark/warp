@@ -67,14 +67,15 @@ class QBEExportStep: QBEStep {
 		var currentKey: String = ""
 		for writer in factory.fileWriters {
 			if let ext = writer.fileTypes.first {
-				options[ext] = writer.explain(locale)
+				let allExtensions = writer.fileTypes.joinWithSeparator(", ")
+				options[ext] = "\(writer.explain(ext, locale: locale)) (\(allExtensions.uppercaseString))"
 				if writer == self.writer?.dynamicType {
 					currentKey = ext
 				}
 			}
 		}
 
-		return QBESentence(format: NSLocalizedString("Export data as [#] to [#]", comment: ""),
+		let s = QBESentence(format: NSLocalizedString("Export data as [#] to [#]", comment: ""),
 			QBESentenceOptions(options: options, value: currentKey, callback: { [weak self] (newKey) -> () in
 				if let newType = factory.fileWriterForType(newKey) {
 					self?.writer = newType.init(locale: locale, title: "")
@@ -90,5 +91,10 @@ class QBEExportStep: QBEStep {
 				}
 			})
 		)
+
+		if let writerSentence = self.writer?.sentence(locale) {
+			s.append(writerSentence)
+		}
+		return s
 	}
 }

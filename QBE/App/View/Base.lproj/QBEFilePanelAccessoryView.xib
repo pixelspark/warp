@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8187.4" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8187.4"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="QBEFilePanelAccessoryView" customModule="Warp" customModuleProvider="target">
+            <connections>
+                <outlet property="popupButton" destination="cgj-d0-5NC" id="1pn-y2-X1v"/>
+                <outlet property="view" destination="c22-O7-iKe" id="4yF-4j-Tgt"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="c22-O7-iKe">
+            <rect key="frame" x="0.0" y="0.0" width="492" height="33"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="nSw-Nc-R66">
+                    <rect key="frame" x="6" y="8" width="57" height="17"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="File type" id="bjb-8k-4xn">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cgj-d0-5NC">
+                    <rect key="frame" x="67" y="3" width="420" height="26"/>
+                    <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="f1H-Bo-NDO" id="Y76-jR-9sb">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="menu"/>
+                        <menu key="menu" id="8Ek-ni-OLt">
+                            <items>
+                                <menuItem title="Item 1" state="on" id="f1H-Bo-NDO"/>
+                                <menuItem title="Item 2" id="i61-ZB-1mw"/>
+                                <menuItem title="Item 3" id="7u8-gT-H2a"/>
+                            </items>
+                        </menu>
+                    </popUpButtonCell>
+                    <connections>
+                        <action selector="didSelectType:" target="-2" id="Riw-TW-tjB"/>
+                    </connections>
+                </popUpButton>
+            </subviews>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="cgj-d0-5NC" secondAttribute="trailing" constant="8" id="5sY-z9-Cxp"/>
+                <constraint firstAttribute="bottom" secondItem="nSw-Nc-R66" secondAttribute="bottom" constant="8" id="75P-rW-TVQ"/>
+                <constraint firstItem="nSw-Nc-R66" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="8" id="Ag5-l2-IF3"/>
+                <constraint firstItem="cgj-d0-5NC" firstAttribute="leading" secondItem="nSw-Nc-R66" secondAttribute="trailing" constant="8" id="DwF-Bb-6Gj"/>
+                <constraint firstItem="nSw-Nc-R66" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="8" id="UAN-GM-S8f"/>
+                <constraint firstItem="cgj-d0-5NC" firstAttribute="centerY" secondItem="nSw-Nc-R66" secondAttribute="centerY" id="WLn-6r-NfA"/>
+            </constraints>
+            <point key="canvasLocation" x="556" y="278"/>
+        </customView>
+    </objects>
+</document>

@@ -18,8 +18,12 @@ class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 		aCoder.encodeString(self.title ?? "", forKey: "title")
 	}
 
-	static func explain(locale: QBELocale) -> String {
-		return NSLocalizedString("XML file", comment: "")
+	func sentence(locale: QBELocale) -> QBESentence? {
+		return nil
+	}
+
+	static func explain(fileExtension: String, locale: QBELocale) -> String {
+		return NSLocalizedString("XML", comment: "")
 	}
 	
 	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
@@ -77,7 +81,9 @@ class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 									}
 									
 									if hasMore {
-										stream.fetch(job, consumer: sink!)
+										job.async {
+											stream.fetch(job, consumer: sink!)
+										}
 									}
 									else {
 										writer.closeLastTag()

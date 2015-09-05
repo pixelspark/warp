@@ -163,11 +163,31 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 
 	func encodeWithCoder(aCoder: NSCoder) {
 		aCoder.encodeString(self.newLineCharacter, forKey: "newLine")
-		aCoder.encodeString("separator", forKey: String([self.separatorCharacter]))
+		aCoder.encodeString(String(Character(UnicodeScalar(separatorCharacter))), forKey: "separator")
 	}
 
-	class func explain(locale: QBELocale) -> String {
-		return NSLocalizedString("comma separated values (CSV) file", comment: "")
+	func sentence(locale: QBELocale) -> QBESentence? {
+		return QBESentence(format: NSLocalizedString("fields separated by [#]", comment: ""),
+			QBESentenceList(value: String(Character(UnicodeScalar(separatorCharacter))), provider: { (pc) -> () in
+				pc(.Success(locale.commonFieldSeparators))
+			},
+			callback: { (newValue) -> () in
+				self.separatorCharacter = newValue.utf16[newValue.utf16.startIndex]
+			})
+		)
+	}
+
+	class func explain(fileExtension: String, locale: QBELocale) -> String {
+		switch fileExtension {
+			case "csv", "txt":
+				return NSLocalizedString("Comma separated values", comment: "")
+
+			case "tsv", "tab":
+				return NSLocalizedString("Tab separated values", comment: "")
+
+			default:
+				return NSLocalizedString("Comma separated values", comment: "")
+		}
 	}
 
 	internal func writeData(data: QBEData, toStream: NSOutputStream, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
@@ -250,8 +270,8 @@ class QBEHTMLWriter: QBECSVWriter {
 		super.init(locale: locale, title: title)
 	}
 
-	override class func explain(locale: QBELocale) -> String {
-		return NSLocalizedString("HTML pivot table", comment: "")
+	override class func explain(fileExtension: String, locale: QBELocale) -> String {
+		return NSLocalizedString("Interactive pivot table", comment: "")
 	}
 
 	override func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
