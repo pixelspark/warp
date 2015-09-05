@@ -1,4 +1,3 @@
-"No data available." = "Geen gegevens beschikbaar.";
 "English" = "Engels";
 "Dutch" = "Nederlands";
 "current value" = "huidige waarde";
@@ -103,9 +102,6 @@
 "round down to integer" = "rond af naar beneden op geheel getal";
 "round up to integer" = "rond af naar boven op geheel getal";
 "random string with pattern" = "willekeurige tekst met patroon";
-"This step requires a previous step, but none was found." = "Deze stap kan alleen achter een andere stap worden geplaatst.";
-"Switch rows/columns" = "Verwissel rijen met kolommen";
-"(no file)" = "(geen bestand)";
 "pattern" = "patroon";
 "text similarity" = "tekstgelijkenis";
 "contains" = "bevat";

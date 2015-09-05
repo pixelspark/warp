@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 /** The QBECalculator class coordinates execution of steps. In particular, it models the performance of steps and can
 estimate the number of input rows required to arrive at a certain number of output rows (e.g. in example calculations). */
@@ -181,7 +182,7 @@ public class QBECalculator {
 					dataJob.addObserver(job)
 				}
 				else {
-					callback(.Failure(QBEText("No data available.")))
+					callback(.Failure(NSLocalizedString("No data available.", comment: "")))
 				}
 			})
 			
