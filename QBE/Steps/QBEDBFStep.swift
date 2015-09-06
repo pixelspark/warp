@@ -97,6 +97,98 @@ final class QBEDBFStream: NSObject, QBEStream {
 	}
 }
 
+class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
+	class func explain(fileExtension: String, locale: QBELocale) -> String {
+		return NSLocalizedString("dBase III", comment: "")
+	}
+
+	class var fileTypes: Set<String> { get {
+		return Set<String>(["dbf"])
+	} }
+
+	required init(locale: QBELocale, title: String?) {
+	}
+
+	func encodeWithCoder(aCoder: NSCoder) {
+	}
+
+	required init?(coder aDecoder: NSCoder) {
+	}
+
+	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		let stream = data.stream()
+
+		let handle = DBFCreate(file.fileSystemRepresentation)
+		var rowIndex = 0
+
+		// Write column headers
+		stream.columnNames(job) { (columnNames) -> () in
+			switch columnNames {
+			case .Success(let cns):
+				var fieldIndex = 0
+				for col in cns {
+					// make field
+					if let name = col.name.cStringUsingEncoding(NSUTF8StringEncoding) {
+						DBFAddField(handle, name, FTString, 255, 0)
+					}
+					else {
+						let name = "COL\(fieldIndex)"
+						DBFAddField(handle, name.cStringUsingEncoding(NSUTF8StringEncoding)!, FTString, 255, 0)
+					}
+					fieldIndex++
+				}
+
+				var cb: QBESink? = nil
+				cb = { (rows: QBEFallible<Array<QBETuple>>, hasNext: Bool) -> () in
+					switch rows {
+					case .Success(let rs):
+						// We want the next row, so fetch it while we start writing this one.
+						if hasNext {
+							job.async {
+								stream.fetch(job, consumer: cb!)
+							}
+						}
+
+						job.time("Write CSV", items: rs.count, itemType: "rows") {
+							for row in rs {
+								var cellIndex = 0
+								for cell in row {
+									if let s = cell.stringValue?.cStringUsingEncoding(NSUTF8StringEncoding) {
+										DBFWriteStringAttribute(handle, Int32(rowIndex), Int32(cellIndex), s)
+									}
+									else {
+										DBFWriteNULLAttribute(handle, Int32(rowIndex), Int32(cellIndex))
+									}
+									// write field
+									cellIndex++
+								}
+								rowIndex++
+							}
+						}
+
+						if !hasNext {
+							DBFClose(handle)
+							callback(.Success())
+						}
+
+					case .Failure(let e):
+						callback(.Failure(e))
+					}
+				}
+
+				stream.fetch(job, consumer: cb!)
+
+			case .Failure(let e):
+				callback(.Failure(e))
+			}
+		}
+	}
+
+	func sentence(locale: QBELocale) -> QBESentence? {
+		return nil
+	}
+}
+
 class QBEDBFSourceStep: QBEStep {
 	var file: QBEFileReference? { didSet {
 		if let o = oldValue, let f = file where o == f {

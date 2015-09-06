@@ -10,7 +10,8 @@ class QBEFactory {
 	let fileWriters: [QBEFileWriter.Type] = [
 		QBECSVWriter.self,
 		QBEXMLWriter.self,
-		QBEHTMLWriter.self
+		QBEHTMLWriter.self,
+		QBEDBFWriter.self
 	]
 	
 	private let fileReaders: [String: QBEFileReaderCreator] = [
