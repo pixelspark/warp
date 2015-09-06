@@ -2062,6 +2062,112 @@ DQ
             </objects>
             <point key="canvasLocation" x="1498" y="-649.5"/>
         </scene>
+        <!--Export View Controller-->
+        <scene sceneID="0nY-rF-gP4">
+            <objects>
+                <viewController storyboardIdentifier="exportEditor" id="iS1-yE-uTL" customClass="QBEExportViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="MhE-wZ-eUu">
+                        <rect key="frame" x="0.0" y="0.0" width="631" height="251"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <button horizontalHuggingPriority="1000" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="spx-0q-Goa">
+                                <rect key="frame" x="10" y="9" width="83" height="32"/>
+                                <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="GKK-Y5-Y5b">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="dismissController:" target="iS1-yE-uTL" id="FAP-sJ-1Z1"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="eXW-1M-iPr">
+                                <rect key="frame" x="526" y="9" width="95" height="32"/>
+                                <buttonCell key="cell" type="push" title="Run now" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="68C-Sa-h9M">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="exportOnce:" target="iS1-yE-uTL" id="J3j-5V-wB0"/>
+                                </connections>
+                            </button>
+                            <button horizontalHuggingPriority="1000" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Yg3-aO-RxE">
+                                <rect key="frame" x="89" y="9" width="114" height="32"/>
+                                <buttonCell key="cell" type="push" title="Add as step" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="MQx-KQ-iXd">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="addAsStep:" target="iS1-yE-uTL" id="WXg-at-xiL"/>
+                                </connections>
+                            </button>
+                            <containerView translatesAutoresizingMaskIntoConstraints="NO" id="ThT-0W-DWO">
+                                <rect key="frame" x="16" y="53" width="599" height="182"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="42" id="Yad-Ua-7Rd"/>
+                                </constraints>
+                                <connections>
+                                    <segue destination="dZx-NB-Ues" kind="embed" identifier="sentenceEditor" id="XPo-cR-lfW"/>
+                                </connections>
+                            </containerView>
+                            <progressIndicator hidden="YES" maxValue="1000" doubleValue="429" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="jgn-FJ-wUU">
+                                <rect key="frame" x="389" y="15" width="135" height="23"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="135" id="lWs-xo-mSB"/>
+                                </constraints>
+                            </progressIndicator>
+                            <button hidden="YES" horizontalHuggingPriority="1000" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="tEV-0c-iY6">
+                                <rect key="frame" x="199" y="9" width="188" height="32"/>
+                                <buttonCell key="cell" type="push" title="Continue in background" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="C24-Sv-YCP">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="continueInBackground:" target="iS1-yE-uTL" id="ifV-py-beJ"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="jgn-FJ-wUU" firstAttribute="leading" secondItem="tEV-0c-iY6" secondAttribute="trailing" constant="8" id="6ve-o9-JrY"/>
+                            <constraint firstAttribute="trailing" secondItem="ThT-0W-DWO" secondAttribute="trailing" constant="16" id="9bk-Ym-vSt"/>
+                            <constraint firstItem="Yg3-aO-RxE" firstAttribute="leading" secondItem="spx-0q-Goa" secondAttribute="trailing" constant="8" id="Al8-HS-0lH"/>
+                            <constraint firstItem="eXW-1M-iPr" firstAttribute="leading" secondItem="jgn-FJ-wUU" secondAttribute="trailing" constant="8" id="CAb-r9-JYa"/>
+                            <constraint firstItem="ThT-0W-DWO" firstAttribute="leading" secondItem="MhE-wZ-eUu" secondAttribute="leading" constant="16" id="Jay-Hm-IAU"/>
+                            <constraint firstAttribute="bottom" secondItem="Yg3-aO-RxE" secondAttribute="bottom" constant="16" id="P53-7K-nju"/>
+                            <constraint firstItem="jgn-FJ-wUU" firstAttribute="top" secondItem="ThT-0W-DWO" secondAttribute="bottom" constant="16" id="Pqf-AW-ae4"/>
+                            <constraint firstAttribute="bottom" secondItem="jgn-FJ-wUU" secondAttribute="bottom" constant="16" id="RAd-qC-zUR"/>
+                            <constraint firstItem="ThT-0W-DWO" firstAttribute="top" secondItem="MhE-wZ-eUu" secondAttribute="top" constant="16" id="Zib-4L-q8r"/>
+                            <constraint firstAttribute="bottom" secondItem="spx-0q-Goa" secondAttribute="bottom" constant="16" id="apH-hw-MBg"/>
+                            <constraint firstAttribute="trailing" secondItem="eXW-1M-iPr" secondAttribute="trailing" constant="16" id="cq5-0v-0kr"/>
+                            <constraint firstItem="Yg3-aO-RxE" firstAttribute="top" secondItem="ThT-0W-DWO" secondAttribute="bottom" constant="16" id="gOb-tM-sbL"/>
+                            <constraint firstAttribute="bottom" secondItem="tEV-0c-iY6" secondAttribute="bottom" constant="16" id="kYK-Lw-mFm"/>
+                            <constraint firstItem="tEV-0c-iY6" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Yg3-aO-RxE" secondAttribute="trailing" constant="8" id="lDa-YK-69C"/>
+                            <constraint firstItem="eXW-1M-iPr" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Yg3-aO-RxE" secondAttribute="trailing" id="tLg-ba-DZ7"/>
+                            <constraint firstItem="tEV-0c-iY6" firstAttribute="top" secondItem="ThT-0W-DWO" secondAttribute="bottom" constant="16" id="twl-5T-H9A"/>
+                            <constraint firstItem="spx-0q-Goa" firstAttribute="leading" secondItem="MhE-wZ-eUu" secondAttribute="leading" constant="16" id="wYD-yw-5JV"/>
+                            <constraint firstItem="jgn-FJ-wUU" firstAttribute="leading" secondItem="tEV-0c-iY6" secondAttribute="trailing" constant="8" id="ydj-Qv-aMb"/>
+                            <constraint firstAttribute="bottom" secondItem="eXW-1M-iPr" secondAttribute="bottom" constant="16" id="ywQ-cq-BdK"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="addAsStepButton" destination="Yg3-aO-RxE" id="m0j-77-v1R"/>
+                        <outlet property="backgroundButton" destination="tEV-0c-iY6" id="LjL-kr-XaL"/>
+                        <outlet property="exportButton" destination="eXW-1M-iPr" id="CMP-7I-Et0"/>
+                        <outlet property="progressView" destination="jgn-FJ-wUU" id="Eh9-5p-ZsJ"/>
+                    </connections>
+                </viewController>
+                <customObject id="VPB-E2-8ai" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1675.5" y="-243.5"/>
+        </scene>
         <!--Steps view controller-->
         <scene sceneID="zxO-hf-1cr">
             <objects>
@@ -2400,7 +2506,7 @@ DQ
                 </viewController>
                 <customObject id="XoF-0a-53S" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="867" y="340"/>
+            <point key="canvasLocation" x="1547" y="141"/>
         </scene>
     </scenes>
     <resources>
@@ -2417,4 +2523,7 @@ DQ
         <image name="ZoomInIcon" width="26" height="26"/>
         <image name="ZoomOutIcon" width="26" height="26"/>
     </resources>
+    <inferredMetricsTieBreakers>
+        <segue reference="XPo-cR-lfW"/>
+    </inferredMetricsTieBreakers>
 </document>

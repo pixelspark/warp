@@ -121,6 +121,7 @@
 		65AAF4BB1B9B3E90004C79D3 /* QBECalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65AAF4BA1B9B3E90004C79D3 /* QBECalculator.swift */; settings = {ASSET_TAGS = (); }; };
 		65AAF4BD1B9B3F10004C79D3 /* QBEStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65AAF4BC1B9B3F10004C79D3 /* QBEStep.swift */; settings = {ASSET_TAGS = (); }; };
 		65AAF4BF1B9B3F46004C79D3 /* QBESentence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65AAF4BE1B9B3F46004C79D3 /* QBESentence.swift */; settings = {ASSET_TAGS = (); }; };
+		65AAF4C11B9C2BE9004C79D3 /* QBEExportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65AAF4C01B9C2BE9004C79D3 /* QBEExportViewController.swift */; settings = {ASSET_TAGS = (); }; };
 		65CD70651B650DD2008AF5C3 /* QBEReferenceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */; };
 		65CD706C1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD706B1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift */; };
 		65CD95201AC9E80300557C9E /* QBEObjectiveCBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 65CD951F1AC9E80300557C9E /* QBEObjectiveCBridge.m */; };
@@ -458,6 +459,7 @@
 		65AAF4BA1B9B3E90004C79D3 /* QBECalculator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECalculator.swift; sourceTree = "<group>"; };
 		65AAF4BC1B9B3F10004C79D3 /* QBEStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEStep.swift; sourceTree = "<group>"; };
 		65AAF4BE1B9B3F46004C79D3 /* QBESentence.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESentence.swift; sourceTree = "<group>"; };
+		65AAF4C01B9C2BE9004C79D3 /* QBEExportViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEExportViewController.swift; sourceTree = "<group>"; };
 		65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEReferenceViewController.swift; sourceTree = "<group>"; };
 		65CD706B1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "QBEFormula+SyntaxColoring.swift"; sourceTree = "<group>"; };
 		65CD951F1AC9E80300557C9E /* QBEObjectiveCBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = QBEObjectiveCBridge.m; path = QBE/QBEObjectiveCBridge.m; sourceTree = "<group>"; };
@@ -678,11 +680,12 @@
 		65A0DF6B1AF299C20005C50F /* Controller */ = {
 			isa = PBXGroup;
 			children = (
-				65AAF4BA1B9B3E90004C79D3 /* QBECalculator.swift */,
 				65A0DF6D1AF299C20005C50F /* QBEAppDelegate.swift */,
+				65AAF4BA1B9B3E90004C79D3 /* QBECalculator.swift */,
 				65A0DF6E1AF299C20005C50F /* QBEChainViewController.swift */,
 				65A0DF701AF299C20005C50F /* QBEDataViewController.swift */,
 				65A0DF711AF299C20005C50F /* QBEDocumentViewController.swift */,
+				65AAF4C01B9C2BE9004C79D3 /* QBEExportViewController.swift */,
 				65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */,
 				652FB9E81B75F1090045943C /* QBEFormulaEditorViewController.swift */,
 				65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */,
@@ -1164,6 +1167,7 @@
 				657779A41B37032C00B28AED /* QBECrawlStepView.swift in Sources */,
 				65884A391AFFA9D9003A5BF1 /* QBEOutletView.swift in Sources */,
 				652B274F1B8FB8C200A2D38E /* QBECloneStep.swift in Sources */,
+				65AAF4C11B9C2BE9004C79D3 /* QBEExportViewController.swift in Sources */,
 				65A0E00C1AF29A750005C50F /* QBECalculateStepView.swift in Sources */,
 				65A0DF961AF299C20005C50F /* QBEResizableView.swift in Sources */,
 				652B27551B8FB8C200A2D38E /* QBEFlattenStep.swift in Sources */,

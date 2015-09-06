@@ -41,7 +41,7 @@ internal extension NSViewController {
 	}
 }
 
-@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate {
+@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate {
 	private var suggestions: QBEFuture<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator()
 	private var dataViewController: QBEDataViewController?
@@ -183,50 +183,20 @@ internal extension NSViewController {
 			writerType = QBECSVWriter.self
 		}
 
-		/** let job = QBEJob(.UserInitiated)
-		// What type of file are we exporting?
-		job.async {
-		if let cs = self.currentStep {
-		cs.fullData(job) { (fallibleData: QBEFallible<QBEData>) -> () in
-		switch fallibleData {
-		case .Success(let data):
-		if let url = ns.URL, let ext = url.pathExtension {
-		// Get the file writer for this type
-		if let writer = QBEFactory.sharedInstance.fileWriterForType(ext)?.init(locale: self.locale, title: title) {
-		writer.writeData(data, toFile: url, locale: self.locale, job: job, callback: {(result) -> () in
-		QBEAsyncMain {
-		let alert = NSAlert()
-
-		switch result {
-		case .Success():
-		alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
-
-		case .Failure(let e):
-		alert.messageText = String(format: NSLocalizedString("The data could not be saved to '%@': %@.", comment: ""), url.absoluteString ?? "", e)
-		}
-
-		alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
-		}
-		})
-		}
-		}
-
-		case .Failure(let errorMessage):
-		QBEAsyncMain {
-		let alert = NSAlert()
-		alert.messageText = errorMessage
-		alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
-		}
-		}
-		}
-		}
-		}*/
-
-		// FIXME: Provide choice for 'just once' exporting or to add a step
 		let title = self.chain?.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
-		let s = QBEExportStep(previous: nil, writer: writerType.init(locale: self.locale, title: title), file: QBEFileReference.URL(url))
-		chain?.insertStep(s, afterStep: self.currentStep)
-		self.currentStep = s
+		let s = QBEExportStep(previous: currentStep, writer: writerType.init(locale: self.locale, title: title), file: QBEFileReference.URL(url))
+
+		if let editorController = self.storyboard?.instantiateControllerWithIdentifier("exportEditor") as? QBEExportViewController {
+			editorController.step = s
+			editorController.delegate = self
+			editorController.locale = self.locale
+			self.presentViewControllerAsSheet(editorController)
+		}
+	}
+
+	func exportView(view: QBEExportViewController, didAddStep step: QBEExportStep) {
+		chain?.insertStep(step, afterStep: self.currentStep)
+		self.currentStep = step
 		stepsChanged()
 	}
 

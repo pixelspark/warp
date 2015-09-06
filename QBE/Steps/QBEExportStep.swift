@@ -2,8 +2,8 @@ import Foundation
 import WarpCore
 
 class QBEExportStep: QBEStep {
-	private var writer: QBEFileWriter? = nil
-	private var file: QBEFileReference? = nil
+	private(set) var writer: QBEFileWriter? = nil
+	private(set) var file: QBEFileReference? = nil
 
 	init(previous: QBEStep?, writer: QBEFileWriter, file: QBEFileReference) {
 		super.init(previous: previous)
