@@ -51,7 +51,7 @@ private class QBEStreamPuller {
 	private var outstandingWavefronts = 0
 	private var lastStartedWavefront = 0
 	private var lastSinkedWavefront = 0
-	private var earlyResults: [Int : (QBEFallible<[QBETuple]>, Bool)] = [:]
+	private var earlyResults: [Int : QBEFallible<[QBETuple]>] = [:]
 
 	init(stream: QBEStream, job: QBEJob, columnNames: [QBEColumn], callback: (QBEFallible<QBERaster>) -> ()) {
 		self.columnNames = columnNames
@@ -69,33 +69,29 @@ private class QBEStreamPuller {
 				self.lastStartedWavefront++
 				self.outstandingWavefronts++
 				let waveFrontId = self.lastStartedWavefront
+
 				self.job.async {
-					self.job.log("Start wf \(waveFrontId)")
 					self.stream.fetch(self.job, consumer: { (rows, hasNext) in
-						/** Some fetches may return earlier than others, but we need to reassemble them in the correct
-						order. Therefore we keep track of a 'wavefront ID'. If the last wavefront that was 'sinked' was
-						this wavefront's id minus one, we can sink this one directly. Otherwise we need to put it in a 
-						queue for later sinking. */
-						self.job.log("finish wf \(waveFrontId)")
 						dispatch_sync(self.queue) {
+							/** Some fetches may return earlier than others, but we need to reassemble them in the correct
+							order. Therefore we keep track of a 'wavefront ID'. If the last wavefront that was 'sinked' was
+							this wavefront's id minus one, we can sink this one directly. Otherwise we need to put it in a
+							queue for later sinking. */
 							if self.lastSinkedWavefront == waveFrontId-1 {
+								// This result arrives just in time (all predecessors have been received already). Sink it directly
 								self.lastSinkedWavefront = waveFrontId
-								self.job.log("Direct: \(waveFrontId)")
 								self.sink(rows, hasNext: hasNext)
 
-								// Maybe now we can sink an earlier result
-								while let (earlierRows, earlierHasNext) = self.earlyResults[self.lastSinkedWavefront+1] {
+								// Maybe now we can sink other results we already received, but were too early.
+								while let earlierRows = self.earlyResults[self.lastSinkedWavefront+1] {
 									self.earlyResults.removeValueForKey(self.lastSinkedWavefront+1)
 									self.lastSinkedWavefront++
-									self.job.log("Delayed: \(self.lastSinkedWavefront) \(earlierHasNext)")
-									self.sink(earlierRows, hasNext: earlierHasNext)
 									self.sink(earlierRows, hasNext: hasNext)
 								}
 							}
 							else {
-								self.job.log("Out-of-order: \(waveFrontId) but expecting \(self.lastSinkedWavefront+1)")
-								self.earlyResults[waveFrontId] = (rows, hasNext)
-								//self.lastSinkedWavefront = waveFrontId
+								// This result has arrived too early; store it so we can sink it as soon as all predecessors have arrived
+								self.earlyResults[waveFrontId] = rows
 							}
 						}
 					})
@@ -119,15 +115,17 @@ private class QBEStreamPuller {
 
 			if !hasNext {
 				if isLast {
-					self.job.log("Last job and !hasNext, stopping")
+					/* This was the last wavefront that was running, and there are no more rows according to the source 
+					stream. Therefore we are now done fetching all data from the stream. */
 					self.callback(.Success(QBERaster(data: self.data, columnNames: self.columnNames, readOnly: true)))
 				}
 				else {
-					self.job.log("!hasNext, but not last job; waiting")
+					/* There is no more data according to the stream, but several rows still have to come in as other
+					wavefronts are still running. The last one will turn off the lights, right now we can just wait. */
 				}
 			}
 			else {
-				// If the stream indicates there are more rows, fetch them
+				// If the stream indicates there are more rows, fetch them (start new wavefronts)
 				job.async {
 					self.start()
 					return

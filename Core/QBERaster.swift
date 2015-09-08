@@ -1,6 +1,6 @@
 import Foundation
 
-internal typealias QBEFilter = (QBERaster, QBEJob?) -> (QBERaster)
+internal typealias QBEFilter = (QBERaster, QBEJob?, Int) -> (QBERaster)
 
 /** QBERaster represents a mutable, in-memory dataset. It is stored as a simple array of QBERow, which in turn is an array 
 of QBEValue. Column names are stored separately. Each QBERow should contain the same number of values as there are columns
@@ -410,11 +410,14 @@ public class QBERasterData: NSObject, QBEData {
 		let ownFuture = self.future
 		
 		let newFuture = {(job: QBEJob, cb: QBEFuture<QBEFallible<QBERaster>>.Callback) -> () in
+			let progressKey = unsafeAddressOf(self).hashValue
+			job.reportProgress(0.0, forKey: progressKey)
+
 			ownFuture(job, {(fallibleRaster) in
 				switch fallibleRaster {
 					case .Success(let r):
 						job.time(description ?? "raster apply", items: r.rowCount, itemType: "rows") {
-							cb(.Success(filter(r, job)))
+							cb(.Success(filter(r, job, progressKey)))
 						}
 					
 					case .Failure(let error):
@@ -444,12 +447,19 @@ public class QBERasterData: NSObject, QBEData {
 	}
 	
 	public func transpose() -> QBEData {
-		return apply("transpose") {(r: QBERaster, job) -> QBERaster in
+		return apply("transpose") {(r: QBERaster, job, progressKey) -> QBERaster in
 			// Find new column names (first column stays in place)
 			if r.columnNames.count > 0 {
 				var columns: [QBEColumn] = [r.columnNames[0]]
 				for i in 0..<r.rowCount {
 					columns.append(QBEColumn(r[i, 0].stringValue ?? ""))
+
+					if (i % QBERaster.progressReportRowInterval) == 0 {
+						job?.reportProgress(Double(i) / Double(r.rowCount), forKey: progressKey)
+						if job?.cancelled == true {
+							return QBERaster()
+						}
+					}
 				}
 				
 				var newData: [[QBEValue]] = []
@@ -473,7 +483,7 @@ public class QBERasterData: NSObject, QBEData {
 	}
 	
 	public func selectColumns(columns: [QBEColumn]) -> QBEData {
-		return apply("selectColumns") {(r: QBERaster, job) -> QBERaster in
+		return apply("selectColumns") {(r: QBERaster, job, progressKey) -> QBERaster in
 			var indexesToKeep: [Int] = []
 			var namesToKeep: [QBEColumn] = []
 			
@@ -493,6 +503,13 @@ public class QBERasterData: NSObject, QBEData {
 					newRow.append(oldRow[i])
 				}
 				newData.append(newRow)
+
+				if (rowNumber % QBERaster.progressReportRowInterval) == 0 {
+					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
+					if job?.cancelled == true {
+						return QBERaster()
+					}
+				}
 			}
 			
 			return QBERaster(data: newData, columnNames: namesToKeep, readOnly: true)
@@ -517,7 +534,7 @@ public class QBERasterData: NSObject, QBEData {
 	}
 	
 	public func limit(numberOfRows: Int) -> QBEData {
-		return apply("limit") {(r: QBERaster, job) -> QBERaster in
+		return apply("limit") {(r: QBERaster, job, progressKey) -> QBERaster in
 			var newData: [[QBEValue]] = []
 			
 			let resultingNumberOfRows = min(numberOfRows, r.rowCount)
@@ -530,7 +547,7 @@ public class QBERasterData: NSObject, QBEData {
 	}
 	
 	public func sort(by: [QBEOrder]) -> QBEData {
-		return apply("sort") {(r: QBERaster, job) -> QBERaster in
+		return apply("sort") {(r: QBERaster, job, progressKey) -> QBERaster in
 			let columns = r.columnNames
 			
 			let newData = r.raster.sort({ (a, b) -> Bool in
@@ -572,21 +589,29 @@ public class QBERasterData: NSObject, QBEData {
 						}
 					}
 				}
-				
 				return false
 			})
-			
+
+			// FIXME: more detailed progress reporting
+			job?.reportProgress(1.0, forKey: progressKey)
 			return QBERaster(data: newData, columnNames: columns, readOnly: true)
 		}
 	}
 
 	public func offset(numberOfRows: Int) -> QBEData {
-		return apply {(r: QBERaster, job) -> QBERaster in
+		return apply {(r: QBERaster, job, progressKey) -> QBERaster in
 			var newData: [[QBEValue]] = []
 			
 			let skipRows = min(numberOfRows, r.rowCount)
 			for rowNumber in skipRows..<r.rowCount {
 				newData.append(r[rowNumber])
+
+				if (rowNumber % QBERaster.progressReportRowInterval) == 0 {
+					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
+					if job?.cancelled == true {
+						return QBERaster()
+					}
+				}
 			}
 			
 			return QBERaster(data: newData, columnNames: r.columnNames, readOnly: true)
@@ -596,13 +621,20 @@ public class QBERasterData: NSObject, QBEData {
 	public func filter(condition: QBEExpression) -> QBEData {
 		let optimizedCondition = condition.prepare()
 		
-		return apply {(r: QBERaster, job) -> QBERaster in
+		return apply {(r: QBERaster, job, progressKey) -> QBERaster in
 			var newData: [QBETuple] = []
 			
 			for rowNumber in 0..<r.rowCount {
 				let row = r[rowNumber]
 				if optimizedCondition.apply(QBERow(row, columnNames: r.columnNames), foreign: nil, inputValue: nil) == QBEValue.BoolValue(true) {
 					newData.append(row)
+				}
+
+				if (rowNumber % QBERaster.progressReportRowInterval) == 0 {
+					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
+					if job?.cancelled == true {
+						return QBERaster()
+					}
 				}
 			}
 			
@@ -719,7 +751,7 @@ public class QBERasterData: NSObject, QBEData {
 		}
 		#endif
 		
-		return apply {(r: QBERaster, job) -> QBERaster in
+		return apply("raster aggregate") {(r: QBERaster, job, progressKey) -> QBERaster in
 			let index = QBEIndex()
 			
 			for rowNumber in 0..<r.rowCount {
@@ -756,8 +788,9 @@ public class QBERasterData: NSObject, QBEData {
 					}
 				}
 
+				// Report progress
 				if (rowNumber % QBERaster.progressReportRowInterval) == 0 {
-					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: unsafeAddressOf(self).hashValue)
+					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
 					if job?.cancelled == true {
 						return QBERaster()
 					}
@@ -786,7 +819,7 @@ public class QBERasterData: NSObject, QBEData {
 			return self
 		}
 		
-		return apply {(r: QBERaster, job) -> QBERaster in
+		return apply {(r: QBERaster, job, progressKey) -> QBERaster in
 			let horizontalIndexes = horizontal.map({r.indexOfColumnWithName($0)})
 			let verticalIndexes = vertical.map({r.indexOfColumnWithName($0)})
 			let valuesIndexes = values.map({r.indexOfColumnWithName($0)})
@@ -842,21 +875,32 @@ public class QBERasterData: NSObject, QBEData {
 				rows.append(row)
 				row.removeAll(keepCapacity: true)
 			}
-			
+
+			// FIXME: more detailed progress reports
+			job?.reportProgress(1.0, forKey: progressKey)
 			return QBERaster(data: rows, columnNames: newColumnNames, readOnly: true)
 		}
 	}
 	
 	public func distinct() -> QBEData {
-		return apply {(r: QBERaster, job) -> QBERaster in
+		return apply {(r: QBERaster, job, progressKey) -> QBERaster in
 			var newData: Set<QBEHashableArray<QBEValue>> = []
-			r.raster.forEach({newData.insert(QBEHashableArray<QBEValue>($0))})
+			var rowNumber = 0
+			r.raster.forEach {
+				newData.insert(QBEHashableArray<QBEValue>($0))
+				rowNumber++
+				if (rowNumber % QBERaster.progressReportRowInterval) == 0 {
+					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
+				}
+				// FIXME: check job.cancelled
+			}
+			// FIXME: include newData.map in progress reporting
 			return QBERaster(data: newData.map({$0.row}), columnNames: r.columnNames, readOnly: true)
 		}
 	}
 	
 	public func random(numberOfRows: Int) -> QBEData {
-		return apply {(r: QBERaster, job) -> QBERaster in
+		return apply {(r: QBERaster, job, progressKey) -> QBERaster in
 			var newData: [[QBEValue]] = []
 			
 			/* Random selection without replacement works like this: first we assign each row a random number. Then, we 
@@ -870,7 +914,7 @@ public class QBERasterData: NSObject, QBEData {
 				newData.append(r[randomlySortedIndices[rowNumber]])
 
 				if (rowNumber % QBERaster.progressReportRowInterval) == 0 {
-					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: unsafeAddressOf(self).hashValue)
+					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
 					if job?.cancelled == true {
 						return QBERaster()
 					}
@@ -909,6 +953,7 @@ private class QBERasterDataStream: NSObject, QBEStream {
 	}
 	
 	func fetch(job: QBEJob, consumer: QBESink) {
+		job.reportProgress(0.0, forKey: self.hashValue)
 		self.raster.get { (fallibleRaster) in
 			switch fallibleRaster {
 				case .Success(let raster):
