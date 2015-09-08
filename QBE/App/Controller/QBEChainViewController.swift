@@ -373,6 +373,7 @@ internal extension NSViewController {
 	@IBAction func cancelCalculation(sender: NSObject) {
 		QBEAssertMainThread()
 		calculator.cancel()
+		self.useFullData = false
 		self.view.window?.update()
 	}
 	
