@@ -98,6 +98,9 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESuggestionsV
 											self.dismissController(sender)
 										})
 									}
+									else {
+										self.dismissController(sender)
+									}
 								}
 							})
 						}
