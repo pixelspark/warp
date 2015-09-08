@@ -89,6 +89,7 @@ private class QBEStreamPuller {
 									self.lastSinkedWavefront++
 									self.job.log("Delayed: \(self.lastSinkedWavefront) \(earlierHasNext)")
 									self.sink(earlierRows, hasNext: earlierHasNext)
+									self.sink(earlierRows, hasNext: hasNext)
 								}
 							}
 							else {
