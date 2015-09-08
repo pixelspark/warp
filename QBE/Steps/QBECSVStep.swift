@@ -340,59 +340,18 @@ class QBEHTMLWriter: QBECSVWriter {
 }
 
 class QBECSVSourceStep: QBEStep {
-	private var cachedData: QBEFuture<QBEFallible<QBEData>>?
-	
-	var file: QBEFileReference? { didSet {
-		if let o = oldValue, let f = file where o == f {
-			return;
-		}
-		cachedData = nil
-		isCached = false
-		self.useCaching = self.cachingAllowed
-	} }
-	
-	var fieldSeparator: unichar { didSet {
-		if oldValue != fieldSeparator {
-			cachedData = nil
-			isCached = false
-		}
-	} }
-	
-	var interpretLanguage: QBELocale.QBELanguage? { didSet {
-		if oldValue != interpretLanguage {
-			cachedData = nil
-			isCached = false
-		}
-	} }
-	
-	var hasHeaders: Bool { didSet {
-		if oldValue != hasHeaders {
-			cachedData = nil
-			isCached = false
-		}
-	} }
-	
-	var useCaching: Bool { didSet {
-		if oldValue != useCaching {
-			cachedData?.cancel()
-			cachedData = nil
-			isCached = false
-		}
-	} }
-	
-	var isCached = false
+	var file: QBEFileReference?
+	var fieldSeparator: unichar
+	var interpretLanguage: QBELocale.QBELanguage?
+	var hasHeaders: Bool
 	
 	init(url: NSURL) {
 		let defaultSeparator = QBESettings.sharedInstance.defaultFieldSeparator
-		
 		self.file = QBEFileReference.URL(url)
 		self.fieldSeparator = defaultSeparator.utf16[defaultSeparator.utf16.startIndex]
 		self.hasHeaders = true
-		self.useCaching = false
 		self.interpretLanguage = nil
-		
 		super.init(previous: nil)
-		self.useCaching = self.cachingAllowed
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -403,7 +362,6 @@ class QBECSVSourceStep: QBEStep {
 		let separator = (aDecoder.decodeObjectForKey("fieldSeparator") as? String) ?? ";"
 		self.fieldSeparator = separator.utf16[separator.utf16.startIndex]
 		self.hasHeaders = aDecoder.decodeBoolForKey("hasHeaders")
-		self.useCaching = aDecoder.decodeBoolForKey("useCaching")
 		self.interpretLanguage = aDecoder.decodeObjectForKey("interpretLanguage") as? QBELocale.QBELanguage
 		super.init(coder: aDecoder)
 	}
@@ -411,24 +369,6 @@ class QBECSVSourceStep: QBEStep {
 	deinit {
 		self.file?.url?.stopAccessingSecurityScopedResource()
 	}
-	
-	/** Get size of the selected file to determine whether caching should be enabled by default */
-	private var cachingAllowed: Bool { get {
-		if let url = self.file?.url {
-			do {
-				let attributes = try NSFileManager.defaultManager().attributesOfItemAtPath(url.path!)
-				if let size = attributes[NSFileSize] as? NSNumber {
-					/* SQLite files are often a bit larger than the source CSV. If we are allowed to cache 1.5x the
-					original file size, then proceed by caching the CSV in SQLite */
-					return QBESettings.sharedInstance.shouldCacheFile(ofEstimatedSize: Int(size) * 3 / 2, atLocation: url)
-				}
-			}
-			catch {
-				return false
-			}
-		}
-		return false
-	} }
 	
 	private func sourceData() -> QBEFallible<QBEData> {
 		if let url = file?.url {
@@ -442,45 +382,11 @@ class QBECSVSourceStep: QBEStep {
 	}
 	
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
-		if cachedData == nil {
-			switch sourceData() {
-				case .Success(let data):
-					if useCaching {
-						self.cachedData = QBEFuture<QBEFallible<QBEData>>({ [weak self] (job, cb) -> () in
-							let cached = QBESQLiteCachedData(source: data)
-							cached.cacheJob.addObserver(job)
-							cached.completion = {(result) -> () in
-								cb(result.use {(d) -> QBEData in
-									self?.isCached = true
-									return d.coalesced
-								})
-							}
-						})
-					}
-					else {
-						self.cachedData = QBEFuture<QBEFallible<QBEData>>({ (job, cb) -> () in
-							cb(.Success(data.coalesced))
-						})
-					}
-				
-				case .Failure(let error):
-					callback(.Failure(error))
-					return
-			}
-		}
-		
-		cachedData!.get(job, callback)
+		callback(sourceData())
 	}
 	
 	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
-		if isCached {
-			self.fullData(job, callback: { (fullData) -> () in
-				callback(fullData.use({$0.limit(maxInputRows)}))
-			})
-		}
-		else {
-			callback(sourceData().use{ $0.limit(maxInputRows) })
-		}
+		callback(sourceData().use{ $0.limit(maxInputRows) })
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
@@ -489,7 +395,6 @@ class QBECSVSourceStep: QBEStep {
 		let separator = String(Character(UnicodeScalar(fieldSeparator)))
 		coder.encodeObject(separator, forKey: "fieldSeparator")
 		coder.encodeBool(hasHeaders, forKey: "hasHeaders")
-		coder.encodeBool(useCaching, forKey: "useCaching")
 		coder.encodeObject(self.file?.url, forKey: "fileURL")
 		coder.encodeObject(self.file?.bookmark, forKey: "fileBookmark")
 		coder.encodeObject(self.interpretLanguage, forKey: "intepretLanguage")
@@ -518,17 +423,5 @@ class QBECSVSourceStep: QBEStep {
 	override func didLoadFromDocument(atURL: NSURL) {
 		self.file = self.file?.resolve(atURL)
 		self.file?.url?.startAccessingSecurityScopedResource()
-	}
-	
-	func updateCache(callback: (() -> ())? = nil) {
-		cachedData = nil
-		if useCaching && cachingAllowed {
-			let job = QBEJob(.UserInitiated)
-			self.fullData(job, callback: { (data) -> () in
-				if let c = callback {
-					c()
-				}
-			})
-		}
 	}
 }

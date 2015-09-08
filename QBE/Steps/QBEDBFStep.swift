@@ -195,11 +195,7 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 }
 
 class QBEDBFSourceStep: QBEStep {
-	var file: QBEFileReference? { didSet {
-		if let o = oldValue, let f = file where o == f {
-			return;
-		}
-	} }
+	var file: QBEFileReference?
 
 	init(url: NSURL) {
 		self.file = QBEFileReference.URL(url)

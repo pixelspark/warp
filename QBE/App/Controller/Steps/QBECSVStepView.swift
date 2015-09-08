@@ -8,9 +8,6 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 	@IBOutlet var hasHeadersButton: NSButton?
 	@IBOutlet var languageField: NSComboBox!
 	@IBOutlet var languageLabel: NSTextField!
-	@IBOutlet var cacheButton: NSButton?
-	@IBOutlet var cacheUpdateButton: NSButton?
-	@IBOutlet var cacheProgress: NSProgressIndicator?
 	
 	let step: QBECSVSourceStep?
 	private let languages: [QBELocale.QBELanguage]
@@ -70,22 +67,11 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 		}
 		return ""
 	}
-	
-	@IBAction func trashCache(sender: NSObject) {
-		if let s = step {
-			s.updateCache({
-				self.updateView()
-			})
-		}
-		updateView()
-	}
-	
+
 	private func updateView() {
 		if let s = step {
 			separatorField?.stringValue = String(Character(UnicodeScalar(s.fieldSeparator)))
 			hasHeadersButton?.state = s.hasHeaders ? NSOnState : NSOffState
-			cacheButton?.state = s.useCaching ? NSOnState : NSOffState
-			cacheUpdateButton?.enabled = s.useCaching && s.isCached
 			languageField.selectItemAtIndex((self.languages.indexOf(s.interpretLanguage ?? "") ?? -1) + 1)
 			
 			let testValue = QBEValue.DoubleValue(1110819.88)
@@ -95,13 +81,6 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 			}
 			else {
 				languageLabel.stringValue = String(format: NSLocalizedString("In this language, numbers look like this: %@", comment: ""), QBELocale.stringForExchangedValue(testValue))
-			}
-			
-			if s.useCaching && !s.isCached {
-				cacheProgress?.startAnimation(nil)
-			}
-			else {
-				cacheProgress?.stopAnimation(nil)
 			}
 		}
 	}
@@ -132,13 +111,6 @@ internal class QBECSVStepView: NSViewController, NSComboBoxDataSource {
 			
 			if s.interpretLanguage != languageID {
 				s.interpretLanguage = languageID
-				changed = true
-			}
-			
-			// Caching
-			let shouldCache = (cacheButton?.state == NSOnState)
-			if s.useCaching != shouldCache {
-				s.useCaching = shouldCache
 				changed = true
 			}
 			
