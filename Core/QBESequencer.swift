@@ -66,7 +66,7 @@ public class QBESequencer: Parser {
 	
 	private func pushValue() {
 		if let r = stack.head as? QBEValueSetSequence {
-			r.values.insert(QBEValue(unescape(self.text)))
+			r.values.append(QBEValue(unescape(self.text)))
 		}
 		else {
 			fatalError("Not supported!")
@@ -86,7 +86,7 @@ public class QBESequencer: Parser {
 	
 	private func pushString() {
 		let text = unescape(self.text)
-		stack.push(QBEValueSetSequence(Set([QBEValue(text)])))
+		stack.push(QBEValueSetSequence([QBEValue(text)]))
 	}
 	
 	private func pushMaybe() {
@@ -110,7 +110,7 @@ public class QBESequencer: Parser {
 			
 			if endChar > startChar {
 				for character in startChar...endChar {
-					r.values.insert(QBEValue(String(Character(UnicodeScalar(character)))))
+					r.values.append(QBEValue(String(Character(UnicodeScalar(character)))))
 				}
 			}
 		}
@@ -186,12 +186,12 @@ private class QBEValueSequence: SequenceType {
 }
 
 private class QBEValueSetSequence: QBEValueSequence {
-	var values: Set<QBEValue> = []
+	var values: [QBEValue] = []
 	
 	override init() {
 	}
 	
-	init(_ values: Set<QBEValue>) {
+	init(_ values: [QBEValue]) {
 		self.values = values
 	}
 	
