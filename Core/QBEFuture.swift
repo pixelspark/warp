@@ -516,42 +516,50 @@ public class QBEBatch<T>: QBEJob {
 	private func satisfy(value: T) {
 		assert(cached == nil, "QBEBatch.satisfy called with cached!=nil: \(cached) \(value)")
 		assert(!satisfied, "QBEBatch already satisfied")
-		
-		cached = value
-		for waiting in waitingList {
-			self.async {
-				waiting(value)
+
+		dispatch_sync(self.queue) {
+			self.cached = value
+			for waiting in self.waitingList {
+				self.async {
+					waiting(value)
+				}
 			}
+			self.waitingList = []
 		}
-		waitingList = []
 	}
 	
 	/** Expire is like cancel, only the waiting consumers are not removed from the waiting list. This allows a job to
 	return a partial result (by calling the callback while job.cancelled is already true) */
 	func expire() {
-		if !satisfied {
-			cancelled = true
+		dispatch_sync(self.queue) {
+			if !self.satisfied {
+				self.cancelled = true
+			}
 		}
 	}
 	
 	/** Cancel this job and remove all waiting listeners (they will never be called back). */
 	public override func cancel() {
-		if !satisfied {
-			waitingList.removeAll(keepCapacity: false)
-			cancelled = true
+		dispatch_sync(self.queue) {
+			if !self.satisfied {
+				self.waitingList.removeAll(keepCapacity: false)
+				self.cancelled = true
+			}
+			super.cancel()
 		}
-		super.cancel()
 	}
 	
 	func enqueue(callback: Callback) {
-		assert(!cancelled, "Cannot enqueue on a QBEFuture that is cancelled")
 		if satisfied {
 			dispatch_async(self.queue) { [unowned self] in
 				callback(self.cached!)
 			}
 		}
 		else {
-			waitingList.append(callback)
+			assert(!cancelled, "Cannot enqueue on a QBEFuture that is cancelled")
+			dispatch_sync(self.queue) {
+				self.waitingList.append(callback)
+			}
 		}
 	}
 }
