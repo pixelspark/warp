@@ -128,7 +128,7 @@ public class QBESequencer: Parser {
 		add_named_rule("escapedCharacter", rule: escapes => pushValue)
 		add_named_rule("character", rule: (Parser.matchAnyCharacterExcept(reservedCharacters) => pushValue))
 		add_named_rule("string", rule: ((Parser.matchAnyCharacterExcept(reservedCharacters) | escapes)++ => pushString))
-		add_named_rule("charRange", rule: (^"character" ~~ "-" ~~ ^"character") => pushRange)
+		add_named_rule("charRange", rule: (Parser.matchAnyCharacterExcept(reservedCharacters) ~~ "-" ~~ Parser.matchAnyCharacterExcept(reservedCharacters)) => pushRange)
 		add_named_rule("charSpec", rule: (^"charRange" | ^"escapedCharacter" | ^"character")*)
 		
 		add_named_rule("charset", rule: ((Parser.matchLiteralInsensitive("[") => pushCharset) ~~ ^"charSpec" ~~ "]"))
