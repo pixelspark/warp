@@ -505,6 +505,182 @@ class QBESQLiteStream: QBEStream {
 	}
 }
 
+class QBESQLiteWriterSession {
+	private let database: QBESQLiteDatabase
+	private let tableName: String
+	private let source: QBEData
+
+	private var job: QBEJob? = nil
+	private var stream: QBEStream?
+	private var insertStatement: QBESQLiteResult?
+	private var completion: ((QBEFallible<Void>) -> ())?
+
+	init(data source: QBEData, toDatabase database: QBESQLiteDatabase, tableName: String) {
+		self.database = database
+		self.tableName = tableName
+		self.source = source
+	}
+
+	func start(job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		let dialect = database.dialect
+		self.completion = callback
+		self.job = job
+
+		job.async {
+			self.source.columnNames(job) { (columns) -> () in
+				switch columns {
+				case .Success(let cns):
+					// Create SQL field specifications for the columns
+					let columnSpec = cns.map({ (column) -> String in
+						let colString = dialect.columnIdentifier(column, table: nil, schema: nil, database: nil)
+						return "\(colString) VARCHAR"
+					}).joinWithSeparator(", ")
+
+					// Create destination table
+					let sql = "CREATE TABLE \(dialect.tableIdentifier(self.tableName, schema: nil, database: nil)) (\(columnSpec))"
+					switch self.database.query(sql) {
+					case .Success(let createQuery):
+						createQuery.run()
+						self.stream = self.source.stream()
+
+						// Prepare the insert-statement
+						let values = cns.map({(m) -> String in return "?"}).joinWithSeparator(",")
+						switch self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName, schema: nil, database: nil)) VALUES (\(values))") {
+						case .Success(let insertStatement):
+							self.insertStatement = insertStatement
+							/** SQLite inserts are fastest when they are grouped in a transaction (see docs).
+							A transaction is started here and is ended in self.ingest. */
+							self.database.query("BEGIN").require { r in
+								r.run()
+								// TODO: use QBEStreamPuller to do this with more threads simultaneously
+								self.stream?.fetch(job, consumer: self.ingest)
+							}
+
+						case .Failure(let error):
+							callback(.Failure(error))
+						}
+
+					case .Failure(let error):
+						callback(.Failure(error))
+					}
+
+				case .Failure(let error):
+					callback(.Failure(error))
+				}
+			}
+		}
+	}
+
+	private func ingest(rows: QBEFallible<Array<QBETuple>>, hasMore: Bool) {
+		switch rows {
+		case .Success(let r):
+			if hasMore && !self.job!.cancelled {
+				self.stream?.fetch(self.job!, consumer: self.ingest)
+			}
+
+			job!.time("SQLite insert", items: r.count, itemType: "rows") {
+				if let statement = self.insertStatement {
+					for row in r {
+						statement.run(row)
+					}
+				}
+			}
+
+			if !hasMore {
+				// First end the transaction started in init
+				self.database.query("COMMIT").require { c in
+					if !c.run() {
+						self.job!.log("COMMIT of SQLite data failed \(self.database.lastError)! not swapping")
+						self.completion!(.Failure(self.database.lastError))
+						self.completion = nil
+						return
+					}
+					else {
+						self.completion!(.Success())
+						self.completion = nil
+					}
+				}
+			}
+
+		case .Failure(let errMessage):
+			// Roll back the transaction that was started in init.
+			self.database.query("ROLLBACK").require { c in
+				c.run()
+				self.completion!(.Failure(errMessage))
+				self.completion = nil
+			}
+		}
+	}
+}
+
+class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
+	enum Mode: String {
+		case Overwrite = "overwrite"
+		// TODO implement Append mode. Note however that the table structure might be different, so we need to deal with taht
+	}
+
+	var mode: Mode = .Overwrite
+	var tableName: String
+
+	static func explain(fileExtension: String, locale: QBELocale) -> String {
+		return NSLocalizedString("SQLite database", comment: "")
+	}
+
+	static var fileTypes: Set<String> { get { return Set(["sqlite"]) } }
+
+	required init(locale: QBELocale, title: String?) {
+		tableName = "data"
+	}
+
+	required init?(coder aDecoder: NSCoder) {
+		tableName = aDecoder.decodeStringForKey("tableName") ?? "data"
+		if let sm = aDecoder.decodeStringForKey("mode"), let m = Mode(rawValue: sm) {
+			mode = m
+		}
+	}
+
+	func encodeWithCoder(aCoder: NSCoder) {
+		aCoder.encodeString(tableName, forKey: "tableName")
+		aCoder.encodeString(mode.rawValue, forKey: "mode")
+	}
+
+	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		if let p = file.path, let database = QBESQLiteDatabase(path: p) {
+			// We must disable the WAL because the sandbox doesn't allow us to write to the WAL file (created separately)
+			database.query("PRAGMA journal_mode = MEMORY").require { s in
+				s.run()
+
+				switch mode {
+				case .Overwrite:
+					database.query("DROP TABLE IF EXISTS \(database.dialect.tableIdentifier(self.tableName, schema: nil, database: nil))").require { s in
+						s.run()
+						QBESQLiteWriterSession(data: data, toDatabase: database, tableName: self.tableName).start(job, callback: callback)
+					}
+				}
+			}
+		}
+		else {
+			callback(.Failure(NSLocalizedString("Could not write to SQLite database file", comment: "")));
+		}
+	}
+
+	func sentence(locale: QBELocale) -> QBESentence? {
+		let modeOptions = [
+			Mode.Overwrite.rawValue: NSLocalizedString("(over)write", comment: "")
+		];
+
+		return QBESentence(format: NSLocalizedString("[#] data to table [#]", comment: ""),
+			QBESentenceOptions(options: modeOptions, value: self.mode.rawValue, callback: { (newMode) -> () in
+				self.mode = Mode(rawValue: newMode)!
+			}),
+			QBESentenceTextInput(value: self.tableName, callback: { [weak self] (newTableName) -> (Bool) in
+				self?.tableName = newTableName
+				return true
+			})
+		)
+	}
+}
+
 /**
 Cache a given QBEData data set in a SQLite table. Loading the data set into SQLite is performed asynchronously in the
 background, and the SQLite-cached data set is swapped with the original one at completion transparently. The cache is
@@ -513,11 +689,8 @@ SQLite. Users of this class can set a completion callback if they want to wait u
 class QBESQLiteCachedData: QBEProxyData {
 	private let database: QBESQLiteDatabase
 	private let tableName: String
-	private var stream: QBEStream?
-	private var insertStatement: QBESQLiteResult?
 	private(set) var isCached: Bool = false
-	var completion: ((QBEFallible<QBESQLiteCachedData>) -> ())? = nil
-	let cacheJob: QBEJob
+	private let cacheJob: QBEJob
 	
 	private class var sharedCacheDatabase : QBESQLiteDatabase {
 		struct Static {
@@ -543,115 +716,36 @@ class QBESQLiteCachedData: QBEProxyData {
 	}
 	
 	init(source: QBEData, job: QBEJob? = nil, completion: ((QBEFallible<QBESQLiteCachedData>) -> ())? = nil) {
-		self.completion = completion
 		database = QBESQLiteCachedData.sharedCacheDatabase
 		tableName = "cache_\(String.randomStringWithLength(32))"
-		cacheJob = job ?? QBEJob(.Background)
+		self.cacheJob = job ?? QBEJob(.Background)
 		super.init(data: source)
 		
-		let dialect = database.dialect
-		
-		// Start caching
-		cacheJob.async {
-			source.columnNames(self.cacheJob) { (columns) -> () in
-				switch columns {
+		QBESQLiteWriterSession(data: source, toDatabase: database, tableName: tableName).start(cacheJob) { (result) -> () in
+			switch result {
+			case .Success:
+				// Swap out the original source with our new cached source
+				self.cacheJob.log("Done caching, swapping out")
+				self.data.columnNames(self.cacheJob) { [unowned self] (columns) -> () in
+					switch columns {
 					case .Success(let cns):
-						let columnSpec = cns.map({ (column) -> String in
-							let colString = dialect.columnIdentifier(column, table: nil, schema: nil, database: nil)
-							return "\(colString) VARCHAR"
-						}).joinWithSeparator(", ")
-						
-						let sql = "CREATE TABLE \(dialect.tableIdentifier(self.tableName, schema: nil, database: nil)) (\(columnSpec))"
-						switch self.database.query(sql) {
-							case .Success(let createQuery):
-								createQuery.run()
-								self.stream = source.stream()
-							
-								// Prepare the insert-statement
-								let values = cns.map({(m) -> String in return "?"}).joinWithSeparator(",")
-								switch self.database.query("INSERT INTO \(dialect.tableIdentifier(self.tableName, schema: nil, database: nil)) VALUES (\(values))") {
-									case .Success(let insertStatement):
-										self.insertStatement = insertStatement
-										/** SQLite inserts are fastest when they are grouped in a transaction (see docs).
-										A transaction is started here and is ended in self.ingest. */
-										self.database.query("BEGIN").require { r in
-											r.run()
-											self.stream?.fetch(self.cacheJob, consumer: self.ingest)
-										}
-										
-									case .Failure(let error):
-										completion?(.Failure(error))
-								}
-							
-							case .Failure(let error):
-								completion?(.Failure(error))
-						}
-					
+						self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, schema: nil, database: nil, dialect: self.database.dialect), columns: cns)
+						self.isCached = true
+						completion?(.Success(self))
+
 					case .Failure(let error):
 						completion?(.Failure(error))
+					}
 				}
+			case .Failure(let e):
+				completion?(.Failure(e))
 			}
 		}
 	}
-	
+
 	deinit {
 		cacheJob.cancel()
 		self.database.query("DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName, schema: nil, database: nil))")
-	}
-	
-	private func ingest(rows: QBEFallible<Array<QBETuple>>, hasMore: Bool) {
-		assert(!isCached, "Cannot ingest more rows after data has already been cached")
-		
-		switch rows {
-			case .Success(let r):
-				if hasMore && !cacheJob.cancelled {
-					self.stream?.fetch(cacheJob, consumer: self.ingest)
-				}
-				
-				cacheJob.time("SQLite insert", items: r.count, itemType: "rows") {
-					if let statement = self.insertStatement {
-						for row in r {
-							statement.run(row)
-						}
-					}
-				}
-				
-				if !hasMore {
-					// First end the transaction started in init
-					self.database.query("COMMIT").require { c in
-						if !c.run() {
-							self.cacheJob.log("COMMIT of cached data failed \(self.database.lastError)! not swapping")
-							self.completion?(.Failure(self.database.lastError))
-							self.completion = nil
-							return
-						}
-
-						// Swap out the original source with our new cached source
-						self.cacheJob.log("Done caching, swapping out")
-						self.data.columnNames(cacheJob) { [unowned self] (columns) -> () in
-							switch columns {
-							case .Success(let cns):
-								self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, schema: nil, database: nil, dialect: self.database.dialect), columns: cns)
-								self.isCached = true
-								self.completion?(.Success(self))
-								self.completion = nil
-
-							case .Failure(let error):
-								self.completion?(.Failure(error))
-								self.completion = nil
-							}
-						}
-					}
-				}
-			
-			case .Failure(let errMessage):
-				// Roll back the transaction that was started in init.
-				self.database.query("ROLLBACK").require { c in
-					c.run()
-					self.completion?(.Failure(errMessage))
-					self.completion = nil
-				}
-		}
 	}
 }
 
