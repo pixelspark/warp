@@ -6,6 +6,7 @@ estimate the number of input rows required to arrive at a certain number of outp
 public class QBECalculator {
 	public var currentData: QBEFuture<QBEFallible<QBEData>>?
 	public var currentRaster: QBEFuture<QBEFallible<QBERaster>>?
+	private var queue = dispatch_queue_create("nl.pixelspark.Warp.QBECalculator", DISPATCH_QUEUE_SERIAL)
 	
 	/** Statistical level of certainty that is used when calculating upper limits */
 	public var certainty = 0.95
@@ -40,39 +41,41 @@ public class QBECalculator {
 		if maximumTime <= 0 {
 			return 0
 		}
-		
-		let index = unsafeAddressOf(step).hashValue
-		var inputRows = desiredExampleRows
-		
-		if let performance = stepPerformance[index] {
-			// If we have no data on amplification, we have to guess... double on each execution
-			if performance.emptyCount == performance.executionCount {
-				inputRows = inputRows * Int(pow(Double(2.0), Double(performance.executionCount)))
-			}
-			else {
-				// Calculate the lower and upper estimate for the amplification factor (result rows / input rows).
-				let (_, upperAmp) = performance.inputAmplificationFactor.sample.confidenceInterval(certainty)
-				if upperAmp > 0 {
-					// If the source step amplifies input by two, request calculation with half the number of input rows
-					inputRows = Int(Double(desiredExampleRows) / upperAmp)
-				}
-			}
-			
-			// Check to see if the newly calculated number of needed input rows would create a time-consuming calculation
-			let (_, upperTime) = performance.timePerInputRow.sample.confidenceInterval(certainty)
-			if upperTime > 0 {
-				let upperEstimatedTime = Double(inputRows) * upperTime
-				if upperEstimatedTime > maximumTime {
-					/* With `certainty` we would exceed the maximum time set for examples. Set the number of input 
-					rows to a value that would, with `certainty`, uses the full time. */
-					let i = Int(maximumTime / upperTime)
-					inputRows = i
-				}
-			}
-		}
+		var inputRows = self.desiredExampleRows
 
-		// Make sure we never exceed the absolute limits
-		inputRows = min(maximumExampleInputRows, max(minimumExampleInputRows, inputRows))
+		dispatch_sync(queue) {
+			let index = unsafeAddressOf(step).hashValue
+			
+			if let performance = self.stepPerformance[index] {
+				// If we have no data on amplification, we have to guess... double on each execution
+				if performance.emptyCount == performance.executionCount {
+					inputRows = inputRows * Int(pow(Double(2.0), Double(performance.executionCount)))
+				}
+				else {
+					// Calculate the lower and upper estimate for the amplification factor (result rows / input rows).
+					let (_, upperAmp) = performance.inputAmplificationFactor.sample.confidenceInterval(self.certainty)
+					if upperAmp > 0 {
+						// If the source step amplifies input by two, request calculation with half the number of input rows
+						inputRows = Int(Double(self.desiredExampleRows) / upperAmp)
+					}
+				}
+				
+				// Check to see if the newly calculated number of needed input rows would create a time-consuming calculation
+				let (_, upperTime) = performance.timePerInputRow.sample.confidenceInterval(self.certainty)
+				if upperTime > 0 {
+					let upperEstimatedTime = Double(inputRows) * upperTime
+					if upperEstimatedTime > maximumTime {
+						/* With `certainty` we would exceed the maximum time set for examples. Set the number of input 
+						rows to a value that would, with `certainty`, uses the full time. */
+						let i = Int(maximumTime / upperTime)
+						inputRows = i
+					}
+				}
+			}
+
+			// Make sure we never exceed the absolute limits
+			inputRows = min(self.maximumExampleInputRows, max(self.minimumExampleInputRows, inputRows))
+		}
 		return inputRows
 	}
 	
@@ -93,8 +96,9 @@ public class QBECalculator {
 
 				// Record performance information for example execution
 				let index = unsafeAddressOf(sourceStep).hashValue
+				var startAnother = false
 
-				QBEAsyncMain {
+				dispatch_sync(self.queue) {
 					var perf = self.stepPerformance[index] ?? QBEStepPerformance()
 					perf.timePerInputRow.add(duration / Double(maxInputRows))
 					if r.rowCount > 0 {
@@ -111,11 +115,15 @@ public class QBECalculator {
 					let maxExampleRows = self.maximumExampleInputRows
 					if r.rowCount < self.desiredExampleRows && (maxTime - duration) > duration && (maxInputRows < maxExampleRows) {
 						QBELog("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
-						self.calculateExample(sourceStep, maximumTime: maxTime - duration, columnFilters: columnFilters, callback: callback)
+						startAnother = true
 					}
-					else {
-						callback()
-					}
+				}
+
+				if startAnother {
+					self.calculateExample(sourceStep, maximumTime: maxTime - duration, columnFilters: columnFilters, callback: callback)
+				}
+				else {
+					callback()
 				}
 				
 			case .Failure(_):

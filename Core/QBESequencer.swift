@@ -231,6 +231,7 @@ private class QBERepeatGenerator: QBEValueGenerator {
 	var generators: [QBEValueGenerator] = []
 	var values: [QBEValue] = []
 	let sequence: QBEValueSequence
+	var done = false
 	
 	init(_ sequence: QBEValueSequence, count: Int) {
 		self.sequence = sequence
@@ -243,6 +244,10 @@ private class QBERepeatGenerator: QBEValueGenerator {
 	}
 	
 	private override func next() -> QBEValue? {
+		if done {
+			return nil
+		}
+
 		// Increment
 		for i in 0..<generators.count {
 			let index = generators.count - i - 1
@@ -253,6 +258,7 @@ private class QBERepeatGenerator: QBEValueGenerator {
 			}
 			else {
 				if index == 0 {
+					done = true
 					return nil
 				}
 				

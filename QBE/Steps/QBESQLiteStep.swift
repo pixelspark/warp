@@ -192,7 +192,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 			static var instance : dispatch_queue_t? = nil
 		}
 		dispatch_once(&Static.onceToken) {
-			Static.instance = dispatch_queue_create("QBESQLiteDatabase.Queue", DISPATCH_QUEUE_SERIAL)
+			Static.instance = dispatch_queue_create("nl.pixelspark.Warp.QBESQLiteDatabase.Queue", DISPATCH_QUEUE_SERIAL)
 			dispatch_set_target_queue(Static.instance, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
 		}
 		return Static.instance!
@@ -204,7 +204,7 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 			static var instance : dispatch_queue_t? = nil
 		}
 		dispatch_once(&Static.onceToken) {
-			Static.instance = dispatch_queue_create("QBESQLiteDatabase.Queue", DISPATCH_QUEUE_SERIAL)
+			Static.instance = dispatch_queue_create("nl.pixelspark.Warp.QBESQLiteDatabase.Queue", DISPATCH_QUEUE_SERIAL)
 			dispatch_set_target_queue(Static.instance, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
 		}
 		return Static.instance!

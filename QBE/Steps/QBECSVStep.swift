@@ -7,9 +7,9 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 
 	private var _columnNames: [QBEColumn] = []
 	private var finished: Bool = false
-	private var templateRow: QBETuple = []
-	private var row: QBETuple = []
-	private var rows: [QBETuple] = []
+	private var templateRow: [String?] = []
+	private var row: [String?] = []
+	private var rows: [[String?]] = []
 	private var queue: dispatch_queue_t
 	private var rowsRead: Int = 0
 	private var totalBytes: Int = 0
@@ -52,7 +52,7 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 		
 		if hasHeaders {
 			// Load column names, avoiding duplicate names
-			let columnNames = row.map({QBEColumn($0.stringValue ?? "")})
+			let columnNames = row.map({QBEColumn($0 ?? "")})
 			_columnNames = []
 			
 			for columnName in columnNames {
@@ -73,7 +73,7 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 			}
 		}
 		
-		templateRow = Array<QBEValue>(count: _columnNames.count, repeatedValue: QBEValue.InvalidValue)
+		templateRow = Array<String?>(count: _columnNames.count, repeatedValue: nil)
 	}
 	
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
@@ -81,13 +81,13 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	}
 	
 	func fetch(job: QBEJob, consumer: QBESink) {
-		dispatch_async(queue) {
+		dispatch_sync(queue) {
 			job.time("Parse CSV", items: QBEStreamDefaultBatchSize, itemType: "row") {
 				#if DEBUG
 				let startTime = NSDate.timeIntervalSinceReferenceDate()
 				#endif
 				var fetched = 0
-				while !self.finished && (fetched < QBEStreamDefaultBatchSize) {
+				while !self.finished && (fetched < QBEStreamDefaultBatchSize) && !job.cancelled {
 					self.finished = !self.parser._parseRecord()
 					fetched++
 				}
@@ -103,7 +103,21 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 			
 			let r = Array(self.rows)
 			self.rows.removeAll(keepCapacity: true)
-			consumer(.Success(r), !self.finished)
+
+			job.async {
+				/* Convert the read string values to QBEValues. Do this asynchronously because QBELocale.valueForLocalString 
+				may take a lot of time, and we really want the CSV parser to continue meanwhile */
+				let v = r.map {(row: [String?]) -> [QBEValue] in
+					return row.map { (field: String?) -> QBEValue in
+						if let value = field {
+							return self.locale != nil ? self.locale!.valueForLocalString(value) : QBELocale.valueForExchangedString(value)
+						}
+						return QBEValue.EmptyValue
+					}
+				}
+
+				consumer(.Success(v), !self.finished)
+			}
 		}
 	}
 
@@ -121,18 +135,17 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 	
 	func parser(parser: CHCSVParser, didEndLine line: UInt) {
 		while row.count < _columnNames.count {
-			row.append(QBEValue.EmptyValue)
+			row.append(nil)
 		}
 		rows.append(row)
 	}
 	
 	func parser(parser: CHCSVParser, didReadField field: String, atIndex index: Int) {
-		let value = locale != nil ? locale!.valueForLocalString(field) : QBELocale.valueForExchangedString(field)
 		if index >= row.count {
-			row.append(value)
+			row.append(field)
 		}
 		else {
-			row[index] = value
+			row[index] = field
 		}
 	}
 	

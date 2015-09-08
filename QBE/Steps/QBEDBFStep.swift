@@ -4,6 +4,7 @@ import WarpCore
 final class QBEDBFStream: NSObject, QBEStream {
 	let url: NSURL
 
+	private var queue = dispatch_queue_create("nl.pixelspark.Warp.QBEDBFStream", DISPATCH_QUEUE_SERIAL)
 	private let handle: DBFHandle
 	private let recordCount: Int32
 	private let fieldCount: Int32
@@ -43,52 +44,56 @@ final class QBEDBFStream: NSObject, QBEStream {
 	}
 
 	func fetch(job: QBEJob, consumer: QBESink) {
-		columnNames(job) { (columnNames) -> () in
-			let end = min(self.recordCount-1, self.position + QBEStreamDefaultBatchSize - 1)
+		dispatch_async(self.queue) {
+			self.columnNames(job) { (columnNames) -> () in
+				let end = min(self.recordCount-1, self.position + QBEStreamDefaultBatchSize - 1)
 
-			var rows: [QBETuple] = []
-			for recordIndex in self.position...end {
-				if DBFIsRecordDeleted(self.handle, recordIndex) == 0 {
-					var row: QBETuple = []
-					for fieldIndex in 0..<self.fieldCount {
-						if DBFIsAttributeNULL(self.handle, recordIndex, fieldIndex) != 0 {
-							row.append(QBEValue.EmptyValue)
-						}
-						else {
-							switch self.types![Int(fieldIndex)].rawValue {
-								case FTString.rawValue:
-									if let s = String(CString: DBFReadStringAttribute(self.handle, recordIndex, fieldIndex), encoding: NSUTF8StringEncoding) {
-										row.append(QBEValue.StringValue(s))
-									}
-									else {
+				var rows: [QBETuple] = []
+				for recordIndex in self.position...end {
+					if DBFIsRecordDeleted(self.handle, recordIndex) == 0 {
+						var row: QBETuple = []
+						for fieldIndex in 0..<self.fieldCount {
+							if DBFIsAttributeNULL(self.handle, recordIndex, fieldIndex) != 0 {
+								row.append(QBEValue.EmptyValue)
+							}
+							else {
+								switch self.types![Int(fieldIndex)].rawValue {
+									case FTString.rawValue:
+										if let s = String(CString: DBFReadStringAttribute(self.handle, recordIndex, fieldIndex), encoding: NSUTF8StringEncoding) {
+											row.append(QBEValue.StringValue(s))
+										}
+										else {
+											row.append(QBEValue.InvalidValue)
+										}
+
+									case FTInteger.rawValue:
+										row.append(QBEValue.IntValue(Int(DBFReadIntegerAttribute(self.handle, recordIndex, fieldIndex))))
+
+									case FTDouble.rawValue:
+										row.append(QBEValue.DoubleValue(DBFReadDoubleAttribute(self.handle, recordIndex, fieldIndex)))
+
+									case FTInvalid.rawValue:
 										row.append(QBEValue.InvalidValue)
-									}
 
-								case FTInteger.rawValue:
-									row.append(QBEValue.IntValue(Int(DBFReadIntegerAttribute(self.handle, recordIndex, fieldIndex))))
+									case FTLogical.rawValue:
+										// TODO: this needs to be translated to a BoolValue. However, no idea how logical values are stored in DBF..
+										row.append(QBEValue.InvalidValue)
 
-								case FTDouble.rawValue:
-									row.append(QBEValue.DoubleValue(DBFReadDoubleAttribute(self.handle, recordIndex, fieldIndex)))
-
-								case FTInvalid.rawValue:
-									row.append(QBEValue.InvalidValue)
-
-								case FTLogical.rawValue:
-									// TODO: this needs to be translated to a BoolValue. However, no idea how logical values are stored in DBF..
-									row.append(QBEValue.InvalidValue)
-
-								default:
-									row.append(QBEValue.InvalidValue)
+									default:
+										row.append(QBEValue.InvalidValue)
+								}
 							}
 						}
-					}
 
-					rows.append(row)
+						rows.append(row)
+					}
+				}
+
+				self.position = end
+				job.async {
+					consumer(.Success(Array(rows)), self.position < (self.recordCount-1))
 				}
 			}
-
-			self.position = end
-			consumer(.Success(Array(rows)), self.position < (self.recordCount-1))
 		}
 	}
 

@@ -337,7 +337,7 @@ public class QBEJob: QBEJobDelegate {
 			log("Ignoring spurious progress report \(progress) for key \(forKey)")
 			return
 		}
-		
+
 		QBEAsyncMain {
 			self.progressComponents[forKey] = progress
 			let currentProgress = self.progress
@@ -347,7 +347,6 @@ public class QBEJob: QBEJobDelegate {
 			
 			// Report our progress back up to our parent
 			self.parentJob?.reportProgress(currentProgress, forKey: unsafeAddressOf(self).hashValue)
-			return
 		}
 	}
 	
@@ -394,11 +393,13 @@ public class QBEJob: QBEJobDelegate {
 	private var timeComponents: [String: Double] = [:]
 	
 	func reportTime(component: String, time: Double) {
-		if let t = timeComponents[component] {
-			timeComponents[component] = t + time
-		}
-		else {
-			timeComponents[component] = time
+		QBEAsyncMain {
+			if let t = self.timeComponents[component] {
+				self.timeComponents[component] = t + time
+			}
+			else {
+				self.timeComponents[component] = time
+			}
 		}
 	}
 	#endif
