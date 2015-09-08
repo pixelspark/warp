@@ -78,40 +78,24 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESuggestionsV
 		// What type of file are we exporting?
 		job.async {
 			if let cs = self.step {
-				cs.fullData(job) { (fallibleData: QBEFallible<QBEData>) -> () in
-					switch fallibleData {
-					case .Success(let data):
-						if let writer = cs.writer, let url = cs.file?.url {
-							writer.writeData(data, toFile: url, locale: self.locale ?? QBELocale(), job: job, callback: {(result) -> () in
-								QBEAsyncMain {
-									let alert = NSAlert()
+				cs.write(job) { (fallibleData: QBEFallible<QBEData>) -> () in
+					QBEAsyncMain {
+						let alert = NSAlert()
 
-									switch result {
-									case .Success():
-										alert.messageText = String(format: NSLocalizedString("The data has been successfully saved to '%@'.", comment: ""), url.absoluteString ?? "")
+						switch fallibleData {
+						case .Success(_):
+							self.dismissController(sender)
 
-									case .Failure(let e):
-										alert.messageText = String(format: NSLocalizedString("The data could not be saved to '%@': %@.", comment: ""), url.absoluteString ?? "", e)
-									}
-									if let w = alertWindow {
-										alert.beginSheetModalForWindow(w, completionHandler: { (_) -> () in
-											self.dismissController(sender)
-										})
-									}
-									else {
-										self.dismissController(sender)
-									}
-								}
-							})
-						}
-
-					case .Failure(let errorMessage):
-						QBEAsyncMain {
-							self.isExporting = true
+						case .Failure(let errorMessage):
+							self.isExporting = false
 							self.update()
-							let alert = NSAlert()
 							alert.messageText = errorMessage
-							alert.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
+							if let w = self.view.window where w.visible {
+								alert.beginSheetModalForWindow(w, completionHandler: nil)
+							}
+							else if let w = alertWindow {
+								alert.beginSheetModalForWindow(w, completionHandler: nil)
+							}
 						}
 					}
 				}

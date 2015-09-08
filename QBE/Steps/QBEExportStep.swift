@@ -29,31 +29,35 @@ class QBEExportStep: QBEStep {
 		self.file = self.file?.resolve(atURL)
 	}
 
-	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	func write(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		super.fullData(job) { (fallibleData) -> () in
 			switch fallibleData {
-				case .Success(let data):
-					if let w = self.writer, let url = self.file?.url {
-						job.async {
-							w.writeData(data, toFile: url, locale: QBELocale(), job: job, callback: { (result) -> () in
-								switch result {
-								case .Success:
-									callback(.Success(data))
+			case .Success(let data):
+				if let w = self.writer, let url = self.file?.url {
+					job.async {
+						w.writeData(data, toFile: url, locale: QBELocale(), job: job, callback: { (result) -> () in
+							switch result {
+							case .Success:
+								callback(.Success(data))
 
-								case .Failure(let e):
-									callback(.Failure(e))
-								}
-							})
-						}
+							case .Failure(let e):
+								callback(.Failure(e))
+							}
+						})
 					}
-					else {
-						callback(.Failure("Export is configured incorrectly, or not file to export to"))
-					}
+				}
+				else {
+					callback(.Failure("Export is configured incorrectly, or not file to export to"))
+				}
 
-				case .Failure(let e):
-					callback(.Failure(e))
+			case .Failure(let e):
+				callback(.Failure(e))
 			}
 		}
+	}
+
+	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		self.write(job, callback: callback)
 	}
 
 	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
