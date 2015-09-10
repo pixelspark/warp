@@ -110,6 +110,26 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 		return ""
 	}
+
+	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
+		if let r = raster {
+			if columnIndex >= 0 && Int(columnIndex) < r.columnCount {
+				let x = r[Int(rowIndex), Int(columnIndex)]
+
+				// Invalid values are colored red
+				if !x.isValid {
+					return NSColor.redColor().colorWithAlphaComponent(0.3)
+				}
+				else if x.isEmpty {
+					return NSColor.blackColor().colorWithAlphaComponent(0.05)
+				}
+
+				return NSColor.controlAlternatingRowBackgroundColors()[0]
+			}
+		}
+
+		return NSColor.controlAlternatingRowBackgroundColors()[0]
+	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, headerStringForColumn columnIndex: UInt) -> String! {
 		if(Int(columnIndex) >= raster?.columnNames.count) {
@@ -277,11 +297,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 				pv.showRelativeToRect(filterRect, ofView: aTableGrid, preferredEdge: NSRectEdge.MaxY)
 			}
 		}
-	}
-	
-	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
-		return NSColor.controlAlternatingRowBackgroundColors()[0]
-		//return (cols[Int(rowIndex) % cols.count] as? NSColor)!
 	}
 	
 	private func updateFormulaField() {
