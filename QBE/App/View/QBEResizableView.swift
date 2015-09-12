@@ -274,8 +274,7 @@ internal class QBEResizerView: NSView {
 			let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.5) : NSColor.clearColor()
 			CGContextSetLineWidth(context, 2.0)
 			CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
-			var bounds = self.bounds.inset(inset)
-			bounds.intersectInPlace(dirtyRect)
+			let bounds = self.bounds.inset(inset)
 			CGContextAddRect(context, bounds)
 			CGContextStrokePath(context)
 		}
