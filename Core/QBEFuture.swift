@@ -498,16 +498,19 @@ public class QBEBatch<T>: QBEJob {
 	public typealias Callback = (T) -> ()
 	private var cached: T? = nil
 	private var waitingList: [Callback] = []
+	private var ownQueue: dispatch_queue_t // Used for
 	
 	var satisfied: Bool { get {
 		return cached != nil
 	} }
 	
 	override init(queue: dispatch_queue_t) {
+		ownQueue = dispatch_queue_create("nl.pixelspark.Warp.QBEBatch", DISPATCH_QUEUE_SERIAL)
 		super.init(queue: queue)
 	}
 	
 	override init(parent: QBEJob) {
+		ownQueue = dispatch_queue_create("nl.pixelspark.Warp.QBEBatch", DISPATCH_QUEUE_SERIAL)
 		super.init(parent: parent)
 	}
 	
@@ -517,7 +520,7 @@ public class QBEBatch<T>: QBEJob {
 		assert(cached == nil, "QBEBatch.satisfy called with cached!=nil: \(cached) \(value)")
 		assert(!satisfied, "QBEBatch already satisfied")
 
-		dispatch_sync(self.queue) {
+		dispatch_sync(self.ownQueue) {
 			self.cached = value
 			for waiting in self.waitingList {
 				self.async {
@@ -531,7 +534,7 @@ public class QBEBatch<T>: QBEJob {
 	/** Expire is like cancel, only the waiting consumers are not removed from the waiting list. This allows a job to
 	return a partial result (by calling the callback while job.cancelled is already true) */
 	func expire() {
-		dispatch_sync(self.queue) {
+		dispatch_sync(self.ownQueue) {
 			if !self.satisfied {
 				self.cancelled = true
 			}
@@ -540,7 +543,7 @@ public class QBEBatch<T>: QBEJob {
 	
 	/** Cancel this job and remove all waiting listeners (they will never be called back). */
 	public override func cancel() {
-		dispatch_sync(self.queue) {
+		dispatch_sync(self.ownQueue) {
 			if !self.satisfied {
 				self.waitingList.removeAll(keepCapacity: false)
 				self.cancelled = true
@@ -551,13 +554,13 @@ public class QBEBatch<T>: QBEJob {
 	
 	func enqueue(callback: Callback) {
 		if satisfied {
-			dispatch_async(self.queue) { [unowned self] in
+			dispatch_async(self.ownQueue) { [unowned self] in
 				callback(self.cached!)
 			}
 		}
 		else {
 			assert(!cancelled, "Cannot enqueue on a QBEFuture that is cancelled")
-			dispatch_sync(self.queue) {
+			dispatch_sync(self.ownQueue) {
 				self.waitingList.append(callback)
 			}
 		}
