@@ -82,11 +82,39 @@ class QBEFlowchartView: NSView {
 	private func drawArrow(arrow: QBEArrow, context: CGContext) {
 		let color = (arrow === selectedArrow) ? NSColor.blueColor() : NSColor.grayColor()
 		color.set()
-		
-		CGContextSetFillColorWithColor(context, color.CGColor)
+
+		// Draw arrow line
 		CGContextSetStrokeColorWithColor(context, color.CGColor)
 		CGContextAddPath(context, pathForArrow(arrow))
 		CGContextStrokePath(context)
+
+		// Draw arrow head
+		let headLength: CGFloat = 6.0
+		let headWidth: CGFloat = 6.0
+
+		let (sourceAnchor, targetAnchor) = QBEAnchor.anchorsForArrow(arrow.sourceFrame, to: arrow.targetFrame)
+		if let firstBendpoint = QBEAnchor.bendpointsBetween(arrow.sourceFrame, fromAnchor: sourceAnchor, to: arrow.targetFrame, toAnchor: targetAnchor).first {
+			let targetPoint = sourceAnchor.pointInBounds(arrow.sourceFrame)
+			if targetPoint.distanceTo(firstBendpoint) > headLength {
+				let shaftDx = (targetPoint.x - firstBendpoint.x) / targetPoint.distanceTo(firstBendpoint)
+				let shaftDy = (targetPoint.y - firstBendpoint.y) / targetPoint.distanceTo(firstBendpoint)
+				let headBase = CGPointMake(targetPoint.x - headLength * shaftDx, targetPoint.y - headLength * shaftDy)
+
+				let deltaXWing = headWidth * shaftDx
+				let deltaYWing = headWidth * shaftDy
+				let leftWing = CGPointMake(headBase.x - deltaYWing, headBase.y + deltaXWing)
+				let rightWing = CGPointMake(headBase.x + deltaYWing, headBase.y - deltaXWing)
+
+				let head = CGPathCreateMutable()
+				CGPathMoveToPoint(head, nil, targetPoint.x, targetPoint.y)
+				CGPathAddLineToPoint(head, nil, leftWing.x, leftWing.y)
+				CGPathAddLineToPoint(head, nil, rightWing.x, rightWing.y)
+				CGPathAddLineToPoint(head, nil, targetPoint.x, targetPoint.y)
+				CGContextAddPath(context, head)
+				CGContextSetFillColorWithColor(context, color.CGColor)
+				CGContextFillPath(context)
+			}
+		}
 	}
 	
 	override func drawRect(dirtyRect: NSRect) {
