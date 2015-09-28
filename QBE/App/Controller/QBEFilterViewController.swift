@@ -9,6 +9,9 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	@IBOutlet var searchField: NSSearchField?
 	@IBOutlet var valueList: NSTableView?
 	@IBOutlet var progressBar: NSProgressIndicator!
+	@IBOutlet var addFilterButton: NSButton!
+	@IBOutlet var applyFilterButton: NSButton!
+	@IBOutlet var clearFilterButton: NSButton!
 	private var lastSearch: String? = nil
 	weak var delegate: QBEFilterViewDelegate?
 	
@@ -131,6 +134,10 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	
 	private func filterChanged() {
 		self.valueList?.reloadData()
+		let hasFilter = filter.selectedValues.count > 0
+		self.addFilterButton?.enabled = hasFilter
+		self.applyFilterButton?.enabled = hasFilter
+		self.clearFilterButton?.enabled = hasFilter
 	}
 	
 	@IBAction override func selectAll(sender: AnyObject?) {
@@ -147,6 +154,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	
 	override func viewWillAppear() {
 		self.reloadData()
+		self.filterChanged()
 		super.viewWillAppear()
 	}
 	

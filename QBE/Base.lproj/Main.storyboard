@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="8187.4" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8187.4"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
         <capability name="box content view" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
@@ -1934,6 +1934,9 @@ DQ
                         </connections>
                     </view>
                     <connections>
+                        <outlet property="addFilterButton" destination="Ipu-1p-CsV" id="tEJ-Oy-Ocm"/>
+                        <outlet property="applyFilterButton" destination="k5O-Fa-0je" id="8jD-Sj-HtN"/>
+                        <outlet property="clearFilterButton" destination="Pln-Wg-cdf" id="T2T-Nr-oNB"/>
                         <outlet property="progressBar" destination="NdH-hh-fsp" id="Bwt-Pf-FjJ"/>
                         <outlet property="searchField" destination="DkD-yl-npe" id="9qw-sA-YUb"/>
                         <outlet property="valueList" destination="bYQ-uH-ziK" id="HdK-lH-qEm"/>
