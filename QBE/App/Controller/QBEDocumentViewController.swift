@@ -157,10 +157,13 @@ import WarpCore
 		}
 	}
 	
-	private func updateView () {
+	private func updateView() {
 		self.workspaceView.hasHorizontalScroller = (self.document?.tablets.count ?? 0) > 0
 		self.workspaceView.hasVerticalScroller = (self.document?.tablets.count ?? 0) > 0
 		self.welcomeLabel.hidden = (self.document?.tablets.count ?? 0) != 0
+
+		// Apparently, starting in El Capitan, the label does not repaint itself automatically and stays in view after setting hidden=true
+		self.welcomeLabel.setNeedsDisplay()
 	}
 	
 	private func zoomToAll(animated: Bool = true) {
