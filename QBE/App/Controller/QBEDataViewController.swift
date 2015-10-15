@@ -307,9 +307,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			delegate?.dataView(self, didSelectValue: QBEValue.InvalidValue, changeable: false)
 		}
 		else {
-			if let r = raster {
-				let rowIndex = selectedRows!.firstIndex
-				let colIndex = selectedCols!.firstIndex
+			if let r = raster, let sr = selectedRows {
+				let rowIndex = sr.firstIndex
+				let colIndex = sr.firstIndex
 				if rowIndex >= 0 && colIndex >= 0 && rowIndex < r.rowCount && colIndex < r.columnCount {
 					let x = r[rowIndex, colIndex]
 					delegate?.dataView(self, didSelectValue: x, changeable: true)
