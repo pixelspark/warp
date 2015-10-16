@@ -10,3 +10,6 @@
 [submodule "Libraries/TCMXMLWriter"]
 	path = Libraries/TCMXMLWriter
 	url = git@github.com:monkeydom/TCMXMLWriter.git
+[submodule "Libraries/Rethink"]
+	path = Libraries/Rethink
+	url = https://github.com/pixelspark/rethink-swift

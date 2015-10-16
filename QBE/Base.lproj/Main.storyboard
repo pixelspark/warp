@@ -1590,6 +1590,12 @@ CA
                                             <action selector="addTabletFromPostgres:" target="0Jp-3X-LwR" id="EBs-Gl-VZi"/>
                                         </connections>
                                     </menuItem>
+                                    <menuItem title="Load data from RethinkDB..." id="Aqi-Ro-Cqz">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="addTabletFromRethinkDB:" target="0Jp-3X-LwR" id="lgs-Pi-S3l"/>
+                                        </connections>
+                                    </menuItem>
                                     <menuItem isSeparatorItem="YES" id="jv5-SX-kJv"/>
                                     <menuItem title="Generate a sequence..." id="8id-Ln-KQq">
                                         <modifierMask key="keyEquivalentModifierMask"/>

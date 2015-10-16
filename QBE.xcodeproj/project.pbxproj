@@ -110,6 +110,9 @@
 		65A0E01C1AF29A750005C50F /* QBEPrestoSourceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E0081AF29A750005C50F /* QBEPrestoSourceStepView.swift */; };
 		65A0E0201AF29A750005C50F /* QBESortStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E00A1AF29A750005C50F /* QBESortStepView.swift */; };
 		65A0E0261AF2B92A0005C50F /* QBEDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */; };
+		65A115041BCD96A6007BC661 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A115011BCD969A007BC661 /* Rethink.framework */; };
+		65A115051BCD96A6007BC661 /* Rethink.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65A115011BCD969A007BC661 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		65A115091BCD97C5007BC661 /* QBERethinkStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A115081BCD97C5007BC661 /* QBERethinkStep.swift */; settings = {ASSET_TAGS = (); }; };
 		65A176931B8B9769004D4A21 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176911B8B9769004D4A21 /* dbfopen.c */; };
 		65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176991B8B9AC0004D4A21 /* safileio.c */; };
 		65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A526B91B09BFDB00CCF3E3 /* libpq.a */; };
@@ -270,6 +273,27 @@
 			remoteGlobalIDString = F829C6B11A7A94F100A2CD59;
 			remoteInfo = "Alamofire OSX Tests";
 		};
+		65A115001BCD969A007BC661 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65A114F71BCD969A007BC661 /* Rethink.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65F739D11BC9502400B5E62D;
+			remoteInfo = Rethink;
+		};
+		65A115021BCD969A007BC661 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65A114F71BCD969A007BC661 /* Rethink.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65F739DB1BC9502400B5E62D;
+			remoteInfo = RethinkTests;
+		};
+		65A115061BCD96A6007BC661 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65A114F71BCD969A007BC661 /* Rethink.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 65F739D01BC9502400B5E62D;
+			remoteInfo = Rethink;
+		};
 		65E3C3001A062E5E007BB3C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65E3C2AC1A05222F007BB3C8 /* Project object */;
@@ -289,6 +313,7 @@
 				65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */,
 				652B26E91B8F993900A2D38E /* WarpCore.framework in CopyFiles */,
 				65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */,
+				65A115051BCD96A6007BC661 /* Rethink.framework in CopyFiles */,
 				65F3867D1A6B1DFB00C83810 /* SwiftParser.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -439,6 +464,8 @@
 		65A0E0081AF29A750005C50F /* QBEPrestoSourceStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEPrestoSourceStepView.swift; sourceTree = "<group>"; };
 		65A0E00A1AF29A750005C50F /* QBESortStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESortStepView.swift; sourceTree = "<group>"; };
 		65A0E0251AF2B92A0005C50F /* QBEDocumentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDocumentView.swift; sourceTree = "<group>"; };
+		65A114F71BCD969A007BC661 /* Rethink.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rethink.xcodeproj; path = Libraries/Rethink/Rethink.xcodeproj; sourceTree = "<group>"; };
+		65A115081BCD97C5007BC661 /* QBERethinkStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBERethinkStep.swift; path = QBE/Steps/QBERethinkStep.swift; sourceTree = SOURCE_ROOT; };
 		65A176911B8B9769004D4A21 /* dbfopen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dbfopen.c; path = Libraries/Shapelib/dbfopen.c; sourceTree = "<group>"; };
 		65A176921B8B9769004D4A21 /* shapefil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = shapefil.h; path = Libraries/Shapelib/shapefil.h; sourceTree = "<group>"; };
 		65A176991B8B9AC0004D4A21 /* safileio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = safileio.c; path = Libraries/Shapelib/safileio.c; sourceTree = "<group>"; };
@@ -509,6 +536,7 @@
 				6518BFC41B26DE7C009E311F /* libmariadbclient.a in Frameworks */,
 				65776F101A6470BB00F7F82A /* SwiftParser.framework in Frameworks */,
 				65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */,
+				65A115041BCD96A6007BC661 /* Rethink.framework in Frameworks */,
 				6510A7391A4D9832005633EF /* MBTableGrid.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -564,6 +592,7 @@
 				65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */,
 				6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */,
 				6528728B1A5D16C200C155FA /* SwiftParser.xcodeproj */,
+				65A114F71BCD969A007BC661 /* Rethink.xcodeproj */,
 				654296901AB80D09000472E6 /* MySQL */,
 				65A526B71B09BFDB00CCF3E3 /* PostgreSQL */,
 			);
@@ -770,6 +799,7 @@
 				652B274C1B8FB8C200A2D38E /* QBESQLiteStep.swift */,
 				652B274D1B8FB8C200A2D38E /* QBEXMLStep.swift */,
 				654C82921B9AE76F002B3F4A /* QBEExportStep.swift */,
+				65A115081BCD97C5007BC661 /* QBERethinkStep.swift */,
 			);
 			name = Steps;
 			path = QBE/Core/Steps;
@@ -809,6 +839,15 @@
 				65FCB8DC1AB5A5420002C119 /* QBESortStepView.xib */,
 			);
 			name = Steps;
+			sourceTree = "<group>";
+		};
+		65A114F81BCD969A007BC661 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				65A115011BCD969A007BC661 /* Rethink.framework */,
+				65A115031BCD969A007BC661 /* RethinkTests.xctest */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		65A526B71B09BFDB00CCF3E3 /* PostgreSQL */ = {
@@ -927,6 +966,7 @@
 				652872961A5D16CE00C155FA /* PBXTargetDependency */,
 				6510A7381A4D982E005633EF /* PBXTargetDependency */,
 				652B26E71B8F993900A2D38E /* PBXTargetDependency */,
+				65A115071BCD96A6007BC661 /* PBXTargetDependency */,
 			);
 			name = Warp;
 			productName = QBE;
@@ -1009,6 +1049,10 @@
 					ProjectRef = 6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */;
 				},
 				{
+					ProductGroup = 65A114F81BCD969A007BC661 /* Products */;
+					ProjectRef = 65A114F71BCD969A007BC661 /* Rethink.xcodeproj */;
+				},
+				{
 					ProductGroup = 6528728C1A5D16C200C155FA /* Products */;
 					ProjectRef = 6528728B1A5D16C200C155FA /* SwiftParser.xcodeproj */;
 				},
@@ -1084,6 +1128,20 @@
 			fileType = wrapper.cfbundle;
 			path = "Alamofire OSX Tests.xctest";
 			remoteRef = 65734BCA1AB0380200D2C2F6 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65A115011BCD969A007BC661 /* Rethink.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Rethink.framework;
+			remoteRef = 65A115001BCD969A007BC661 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65A115031BCD969A007BC661 /* RethinkTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = RethinkTests.xctest;
+			remoteRef = 65A115021BCD969A007BC661 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -1208,6 +1266,7 @@
 				65E846D81B37E4A500397F88 /* QBEFilterViewController.swift in Sources */,
 				65A0DF821AF299C20005C50F /* QBESentenceViewController.swift in Sources */,
 				651521991B13B92D007BCDFF /* TCMXMLWriter.m in Sources */,
+				65A115091BCD97C5007BC661 /* QBERethinkStep.swift in Sources */,
 				65AAF4BB1B9B3E90004C79D3 /* QBECalculator.swift in Sources */,
 				65A0DF8E1AF299C20005C50F /* QBEWindowController.swift in Sources */,
 				65884A241AFDF23E003A5BF1 /* QBEAnchor.swift in Sources */,
@@ -1290,6 +1349,11 @@
 			isa = PBXTargetDependency;
 			name = "Alamofire OSX Tests";
 			targetProxy = 65734BCF1AB0381500D2C2F6 /* PBXContainerItemProxy */;
+		};
+		65A115071BCD96A6007BC661 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Rethink;
+			targetProxy = 65A115061BCD96A6007BC661 /* PBXContainerItemProxy */;
 		};
 		65E3C3011A062E5E007BB3C8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

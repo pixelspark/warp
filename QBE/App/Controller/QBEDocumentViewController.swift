@@ -424,6 +424,11 @@ import WarpCore
 		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", password: "", database: "test", tableName: "test")
 		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true)
 	}
+
+	@IBAction func addTabletFromRethinkDB(sender: NSObject) {
+		let s = QBERethinkSourceStep(previous: nil)
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true)
+	}
 	
 	@IBAction func addTabletFromPostgres(sender: NSObject) {
 		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", password: "", database: "postgres", schemaName: "public", tableName: "")
@@ -468,6 +473,7 @@ import WarpCore
 		if item.action() == Selector("addTabletFromFile:") { return true }
 		if item.action() == Selector("addTabletFromPresto:") { return true }
 		if item.action() == Selector("addTabletFromMySQL:") { return true }
+		if item.action() == Selector("addTabletFromRethinkDB:") { return true }
 		if item.action() == Selector("addTabletFromPostgres:") { return true }
 		if item.action() == Selector("updateFromFormulaField:") { return true }
 		if item.action() == Selector("setFullWorkingSet:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
