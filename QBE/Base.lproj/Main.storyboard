@@ -1324,8 +1324,8 @@ CA
                                 </constraints>
                                 <animations/>
                             </view>
-                            <button verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bSO-LK-FLV">
-                                <rect key="frame" x="316" y="13" width="161" height="32"/>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bSO-LK-FLV">
+                                <rect key="frame" x="317" y="13" width="160" height="32"/>
                                 <animations/>
                                 <buttonCell key="cell" type="push" title="Reset first-time tips" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ZfB-ER-8HL">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1464,8 +1464,8 @@ CA
                                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
                                         <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                         <subviews>
-                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
-                                                <rect key="frame" x="114" y="237" width="473" height="34"/>
+                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
+                                                <rect key="frame" x="107" y="237" width="486" height="34"/>
                                                 <animations/>
                                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="Drag files here or click '+' to add data" id="Zpo-PO-ycL">
                                                     <font key="font" size="28" name=".HelveticaNeueDeskInterface-Regular"/>
@@ -1480,7 +1480,7 @@ CA
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CDw-5V-yTY">
-                                                            <rect key="frame" x="25" y="-32" width="11" height="35"/>
+                                                            <rect key="frame" x="161" y="-104" width="79" height="163"/>
                                                             <animations/>
                                                         </view>
                                                     </subviews>
@@ -1900,8 +1900,8 @@ CA
                                     <outlet property="nextKeyView" destination="smA-uG-2Fy" id="Q1s-ZK-2P7"/>
                                 </connections>
                             </scrollView>
-                            <button verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Pln-Wg-cdf">
-                                <rect key="frame" x="1" y="0.0" width="73" height="32"/>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Pln-Wg-cdf">
+                                <rect key="frame" x="1" y="0.0" width="72" height="32"/>
                                 <animations/>
                                 <buttonCell key="cell" type="push" title="Clear" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="vyq-z0-c4W">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -1936,8 +1936,8 @@ CA
                                     <outlet property="nextKeyView" destination="Pln-Wg-cdf" id="VTE-2O-ZYf"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ipu-1p-CsV">
-                                <rect key="frame" x="173" y="0.0" width="145" height="32"/>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ipu-1p-CsV">
+                                <rect key="frame" x="175" y="0.0" width="143" height="32"/>
                                 <animations/>
                                 <buttonCell key="cell" type="push" title="Add filter as step" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="sp9-G6-DmO">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -2151,8 +2151,8 @@ DQ
                         <rect key="frame" x="0.0" y="0.0" width="631" height="251"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <button horizontalHuggingPriority="1000" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="spx-0q-Goa">
-                                <rect key="frame" x="10" y="9" width="83" height="32"/>
+                            <button horizontalHuggingPriority="1000" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="spx-0q-Goa">
+                                <rect key="frame" x="10" y="9" width="82" height="32"/>
                                 <animations/>
                                 <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="GKK-Y5-Y5b">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -2165,8 +2165,8 @@ Gw
                                     <action selector="dismissController:" target="iS1-yE-uTL" id="FAP-sJ-1Z1"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eXW-1M-iPr">
-                                <rect key="frame" x="526" y="9" width="95" height="32"/>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="eXW-1M-iPr">
+                                <rect key="frame" x="529" y="9" width="92" height="32"/>
                                 <animations/>
                                 <buttonCell key="cell" type="push" title="Run now" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="68C-Sa-h9M">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -2179,8 +2179,8 @@ DQ
                                     <action selector="exportOnce:" target="iS1-yE-uTL" id="J3j-5V-wB0"/>
                                 </connections>
                             </button>
-                            <button horizontalHuggingPriority="1000" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Yg3-aO-RxE">
-                                <rect key="frame" x="89" y="9" width="114" height="32"/>
+                            <button horizontalHuggingPriority="1000" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Yg3-aO-RxE">
+                                <rect key="frame" x="88" y="9" width="112" height="32"/>
                                 <animations/>
                                 <buttonCell key="cell" type="push" title="Add as step" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="MQx-KQ-iXd">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -2203,15 +2203,15 @@ Gw
                                     <segue destination="dZx-NB-Ues" kind="embed" identifier="sentenceEditor" id="XPo-cR-lfW"/>
                                 </connections>
                             </containerView>
-                            <progressIndicator hidden="YES" misplaced="YES" maxValue="1000" doubleValue="429" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="jgn-FJ-wUU">
-                                <rect key="frame" x="389" y="15" width="135" height="23"/>
+                            <progressIndicator hidden="YES" wantsLayer="YES" maxValue="1000" doubleValue="429" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="jgn-FJ-wUU">
+                                <rect key="frame" x="392" y="15" width="135" height="23"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="135" id="lWs-xo-mSB"/>
                                 </constraints>
                                 <animations/>
                             </progressIndicator>
-                            <button hidden="YES" horizontalHuggingPriority="1000" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tEV-0c-iY6">
-                                <rect key="frame" x="199" y="9" width="188" height="32"/>
+                            <button hidden="YES" horizontalHuggingPriority="1000" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="tEV-0c-iY6">
+                                <rect key="frame" x="205" y="9" width="185" height="32"/>
                                 <animations/>
                                 <buttonCell key="cell" type="push" title="Continue in background" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="C24-Sv-YCP">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8164.2" systemVersion="14E46" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="8191" systemVersion="15A282b" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8164.2"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="8191"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBECalculateStepView" customModule="Warp" customModuleProvider="target">
@@ -19,6 +19,7 @@
             <subviews>
                 <comboBox focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pMH-wh-uQC">
                     <rect key="frame" x="130" y="6" width="183" height="26"/>
+                    <animations/>
                     <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" focusRingType="none" placeholderString="(all columns)" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="RIz-6v-SEe">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -36,6 +37,7 @@
                         <constraint firstAttribute="width" constant="120" id="8pn-cs-4vx"/>
                         <constraint firstAttribute="height" constant="21" id="uVk-x5-OfV"/>
                     </constraints>
+                    <animations/>
                     <popUpButtonCell key="cell" type="bevel" title="Insert after" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" focusRingType="none" imageScaling="proportionallyDown" inset="2" selectedItem="HbV-lu-9Mm" id="tgB-2V-CHM">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="menu"/>
@@ -62,6 +64,7 @@
                 <constraint firstItem="pMH-wh-uQC" firstAttribute="top" secondItem="6Hb-4o-yI3" secondAttribute="top" constant="10" id="ia9-2z-bMq"/>
                 <constraint firstAttribute="trailing" secondItem="pMH-wh-uQC" secondAttribute="trailing" constant="5" id="wl2-as-8am"/>
             </constraints>
+            <animations/>
             <point key="canvasLocation" x="300.5" y="139"/>
         </customView>
     </objects>

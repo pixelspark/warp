@@ -12,11 +12,13 @@ final class QBERethinkStream: NSObject, QBEStream {
 	private var firstResponse: ReResponse? = nil
 	private var waitingList: [QBESink] = []
 	private var ended = false
+	private var forcedColumns: [QBEColumn]? = nil
 
-	init(url: NSURL, query: ReQuery) {
+	init(url: NSURL, query: ReQuery, forceColumns: [QBEColumn]? = nil) {
 		self.url = url
 		self.query = query
 		self.connection = nil
+		self.forcedColumns = forceColumns
 		super.init()
 		self.connection = QBEFuture<QBEFallible<(ReConnection, [QBEColumn])>>({ [weak self] (job, callback) -> () in
 			R.connect(url) { (err, connection) in
@@ -126,8 +128,13 @@ final class QBERethinkStream: NSObject, QBEStream {
 	}
 
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
-		self.connection.get(job) { res in
-			callback(res.use { return $0.1 })
+		if let fc = self.forcedColumns {
+			callback(.Success(fc))
+		}
+		else {
+			self.connection.get(job) { res in
+				callback(res.use { return $0.1 })
+			}
 		}
 	}
 
@@ -226,7 +233,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 	}
 
 	func clone() -> QBEStream {
-		return QBERethinkStream(url: self.url, query: self.query)
+		return QBERethinkStream(url: self.url, query: self.query, forceColumns: self.forcedColumns)
 	}
 
 	deinit {
@@ -237,23 +244,25 @@ final class QBERethinkStream: NSObject, QBEStream {
 class QBERethinkData: QBEStreamData {
 	private let url: NSURL
 	private let query: ReQuerySequence
+	private let forceColumns: [QBEColumn]?
 
-	init(url: NSURL, query: ReQuerySequence) {
+	init(url: NSURL, query: ReQuerySequence, forceColumns: [QBEColumn]? = nil) {
 		self.url = url
 		self.query = query
-		super.init(source: QBERethinkStream(url: url, query: query))
+		self.forceColumns = forceColumns
+		super.init(source: QBERethinkStream(url: url, query: query, forceColumns: forceColumns))
 	}
 
 	override func limit(numberOfRows: Int) -> QBEData {
-		return QBERethinkData(url: self.url, query: self.query.limit(numberOfRows))
+		return QBERethinkData(url: self.url, query: self.query.limit(numberOfRows), forceColumns: forceColumns)
 	}
 
 	override func offset(numberOfRows: Int) -> QBEData {
-		return QBERethinkData(url: self.url, query: self.query.skip(numberOfRows))
+		return QBERethinkData(url: self.url, query: self.query.skip(numberOfRows), forceColumns: forceColumns)
 	}
 
 	override func random(numberOfRows: Int) -> QBEData {
-		return QBERethinkData(url: self.url, query: self.query.sample(numberOfRows))
+		return QBERethinkData(url: self.url, query: self.query.sample(numberOfRows), forceColumns: forceColumns)
 	}
 }
 
@@ -263,6 +272,7 @@ class QBERethinkSourceStep: QBEStep {
 	var server: String = "localhost"
 	var port: Int = 28015
 	var authenticationKey: String? = nil
+	var columns: [QBEColumn] = []
 
 	required override init(previous: QBEStep?) {
 		super.init(previous: nil)
@@ -274,12 +284,15 @@ class QBERethinkSourceStep: QBEStep {
 		self.server = aDecoder.decodeStringForKey("database") ?? "test"
 		self.port = max(1, min(65535, aDecoder.decodeIntegerForKey("port") ?? 28015));
 		self.authenticationKey = aDecoder.decodeStringForKey("authenticationKey")
+		let cols = (aDecoder.decodeObjectForKey("columns") as? [String]) ?? []
+		self.columns = cols.map { return QBEColumn($0) }
 		super.init(coder: aDecoder)
 	}
 
 	private var url: NSURL? { get {
-		if let u = self.authenticationKey {
-			return NSURL(string: "rethinkdb://\(u.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLUserAllowedCharacterSet())!)@\(self.server.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLHostAllowedCharacterSet())):\(self.port)")
+		if let u = self.authenticationKey where !u.isEmpty {
+			let urlString = "rethinkdb://\(u.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLUserAllowedCharacterSet())!)@\(self.server.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLHostAllowedCharacterSet())!):\(self.port)"
+			return NSURL(string: urlString)
 		}
 		else {
 			let urlString = "rethinkdb://\(self.server.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLHostAllowedCharacterSet())!):\(self.port)"
@@ -289,10 +302,10 @@ class QBERethinkSourceStep: QBEStep {
 
 	private func sourceData() -> QBEFallible<QBEData> {
 		if let u = url {
-			return .Success(QBERethinkData(url: u, query: R.db(self.database).table(self.table)))
+			return .Success(QBERethinkData(url: u, query: R.db(self.database).table(self.table), forceColumns: self.columns.count > 0 ? self.columns : nil))
 		}
 		else {
-			return .Failure(NSLocalizedString("The location of the Rethink database is invalid.", comment: ""))
+			return .Failure(NSLocalizedString("The location of the RethinkDB server is invalid.", comment: ""))
 		}
 	}
 
@@ -312,13 +325,14 @@ class QBERethinkSourceStep: QBEStep {
 		coder.encodeString(self.database, forKey: "database")
 		coder.encodeString(self.table, forKey: "table")
 		coder.encodeInteger(self.port, forKey: "port")
+		coder.encodeObject(NSArray(array: self.columns.map { return $0.name }), forKey: "columns")
 		if let s = self.authenticationKey {
 			coder.encodeString(s, forKey: "authenticationKey")
 		}
 	}
 
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence(format: NSLocalizedString("Read table [#] from database [#] at RethinkDB server [#] port [#]", comment: ""),
+		return QBESentence(format: NSLocalizedString("Read table [#] from database [#]", comment: ""),
 			QBESentenceList(value: self.table, provider: { pc in
 				R.connect(self.url!, callback: { (err, connection) in
 					if err != nil {
@@ -374,20 +388,6 @@ class QBERethinkSourceStep: QBEStep {
 				})
 			}, callback: { (newDatabase) -> () in
 				self.database = newDatabase
-			}),
-
-			QBESentenceTextInput(value: self.server, callback: { (s) -> (Bool) in
-				if s.isEmpty { return false }
-				self.server = s
-				return true
-			}),
-
-			QBESentenceTextInput(value: "\(self.port)", callback: { (s) -> (Bool) in
-				if let p = s.toInt() where p>0 && p<65536 {
-					self.port = p
-					return true
-				}
-				return false
 			})
 		)
 	}
