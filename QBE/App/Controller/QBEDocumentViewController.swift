@@ -385,7 +385,7 @@ import WarpCore
 		}
 		else {
 			let alert = NSAlert()
-			alert.messageText = String(format: NSLocalizedString("Unknown file type '%@'.'", comment: ""), (url.pathExtension ?? ""))
+			alert.messageText = String(format: NSLocalizedString("Unknown file type '%@'.", comment: ""), (url.pathExtension ?? ""))
 			alert.alertStyle = NSAlertStyle.WarningAlertStyle
 			alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: NSModalResponse) -> Void in
 				// Do nothing...
