@@ -17,11 +17,16 @@ class QBEFactory {
 	
 	private let fileReaders: [String: QBEFileReaderCreator] = [
 		"public.comma-separated-values-text": {(url) in return QBECSVSourceStep(url: url)},
+		"csv": {(url) in return QBECSVSourceStep(url: url)},
+		"tsv": {(url) in return QBECSVSourceStep(url: url)},
+		"txt": {(url) in return QBECSVSourceStep(url: url)},
+		"tab": {(url) in return QBECSVSourceStep(url: url)},
 		"public.delimited-values-text": {(url) in return QBECSVSourceStep(url: url)},
 		"public.tab-separated-values-text": {(url) in return QBECSVSourceStep(url: url)},
 		"public.text": {(url) in return QBECSVSourceStep(url: url)},
 		"public.plain-text": {(url) in return QBECSVSourceStep(url: url)},
 		"org.sqlite.v3": {(url) in return QBESQLiteSourceStep(url: url)},
+		"sqlite": {(url) in return QBESQLiteSourceStep(url: url)},
 		"dbf": {(url) in return QBEDBFSourceStep(url: url)}
 	]
 	
