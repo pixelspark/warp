@@ -900,12 +900,14 @@ internal extension NSViewController {
 			if firstSelectedColumn != NSNotFound {
 				calculator.currentRaster?.get {(r) -> () in
 					r.maybe { (raster) -> () in
-						let columnName = raster.columnNames[firstSelectedColumn]
-						let expression = QBESiblingExpression(columnName: columnName)
-						let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
-						
-						QBEAsyncMain {
-							self.suggestSteps([QBESortStep(previous: self.currentStep, orders: [order])])
+						if firstSelectedColumn < raster.columnCount {
+							let columnName = raster.columnNames[firstSelectedColumn]
+							let expression = QBESiblingExpression(columnName: columnName)
+							let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
+							
+							QBEAsyncMain {
+								self.suggestSteps([QBESortStep(previous: self.currentStep, orders: [order])])
+							}
 						}
 					}
 				}
