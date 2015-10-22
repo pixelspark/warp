@@ -12,13 +12,13 @@ final class QBERethinkStream: NSObject, QBEStream {
 	private var firstResponse: ReResponse? = nil
 	private var waitingList: [QBESink] = []
 	private var ended = false
-	private var forcedColumns: [QBEColumn]? = nil
+	private var columns: [QBEColumn]? = nil // A list of all columns in the result set, or nil if unknown
 
-	init(url: NSURL, query: ReQuery, forceColumns: [QBEColumn]? = nil) {
+	init(url: NSURL, query: ReQuery, columns: [QBEColumn]? = nil) {
 		self.url = url
 		self.query = query
 		self.connection = nil
-		self.forcedColumns = forceColumns
+		self.columns = columns
 		super.init()
 		self.connection = QBEFuture<QBEFallible<(ReConnection, [QBEColumn])>>({ [weak self] (job, callback) -> () in
 			R.connect(url) { (err, connection) in
@@ -70,8 +70,9 @@ final class QBERethinkStream: NSObject, QBEStream {
 									}
 									let columns = Array(colSet)
 									let result = (connection, columns)
+									s.continuation = cnt
+									//s.continueWith(cnt, job: job)
 									callback(.Success(result))
-									s.continueWith(cnt, job: job)
 							}
 						}
 					}
@@ -101,6 +102,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 				else if let c = continuation {
 					// Are there any callbacks waiting
 					if s.waitingList.count > 0 {
+						assert(s.continuation == nil, "there must not be an existing continuation")
 						s.continuation = nil
 						let firstWaiting = s.waitingList.removeFirst()
 						c { (response) in
@@ -128,7 +130,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 	}
 
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
-		if let fc = self.forcedColumns {
+		if let fc = self.columns {
 			callback(.Success(fc))
 		}
 		else {
@@ -217,7 +219,11 @@ final class QBERethinkStream: NSObject, QBEStream {
 
 				if let fr = self.firstResponse {
 					self.firstResponse = nil
+					self.continuation = nil
 					self.ingest(fr, consumer: consumer, job: job)
+				}
+				else if self.waitingList.count > 0 {
+					self.waitingList.append(consumer)
 				}
 				else if let cnt = self.continuation {
 					self.continuation = nil
@@ -233,36 +239,76 @@ final class QBERethinkStream: NSObject, QBEStream {
 	}
 
 	func clone() -> QBEStream {
-		return QBERethinkStream(url: self.url, query: self.query, forceColumns: self.forcedColumns)
-	}
-
-	deinit {
-		print("Stream deinit")
+		return QBERethinkStream(url: self.url, query: self.query, columns: self.columns)
 	}
 }
 
 class QBERethinkData: QBEStreamData {
 	private let url: NSURL
 	private let query: ReQuerySequence
-	private let forceColumns: [QBEColumn]?
+	private let columns: [QBEColumn]? // List of all columns in the result, or nil if unknown
 
-	init(url: NSURL, query: ReQuerySequence, forceColumns: [QBEColumn]? = nil) {
+	/** Create a data object with the result of the given query from the server at the given URL. If the array of column
+	names is set, the query *must* never return any other columns than the given columns (missing columns lead to empty
+	values). In order to guarantee this, add a .withFields(columns) to any query given to this constructor. */
+	init(url: NSURL, query: ReQuerySequence, columns: [QBEColumn]? = nil) {
 		self.url = url
 		self.query = query
-		self.forceColumns = forceColumns
-		super.init(source: QBERethinkStream(url: url, query: query, forceColumns: forceColumns))
+		self.columns = columns
+		super.init(source: QBERethinkStream(url: url, query: query, columns: columns))
 	}
 
 	override func limit(numberOfRows: Int) -> QBEData {
-		return QBERethinkData(url: self.url, query: self.query.limit(numberOfRows), forceColumns: forceColumns)
+		return QBERethinkData(url: self.url, query: self.query.limit(numberOfRows), columns: columns)
 	}
 
 	override func offset(numberOfRows: Int) -> QBEData {
-		return QBERethinkData(url: self.url, query: self.query.skip(numberOfRows), forceColumns: forceColumns)
+		return QBERethinkData(url: self.url, query: self.query.skip(numberOfRows), columns: columns)
 	}
 
 	override func random(numberOfRows: Int) -> QBEData {
-		return QBERethinkData(url: self.url, query: self.query.sample(numberOfRows), forceColumns: forceColumns)
+		return QBERethinkData(url: self.url, query: self.query.sample(numberOfRows), columns: columns)
+	}
+
+	override func distinct() -> QBEData {
+		return QBERethinkData(url: self.url, query: self.query.distinct(), columns: columns)
+	}
+
+	override func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+		// If the column names are known for this data set, simply return them
+		if let c = self.columns {
+			callback(.Success(c))
+			return
+		}
+
+		return super.columnNames(job, callback: callback)
+	}
+
+	override func selectColumns(columns: [QBEColumn]) -> QBEData {
+		return QBERethinkData(url: self.url, query: self.query.withFields(columns.map { return R.expr($0.name) }), columns: columns)
+	}
+
+	private func isCompatibleWith(data: QBERethinkData) -> Bool {
+		return data.url == self.url
+	}
+
+	override func union(data: QBEData) -> QBEData {
+		if let d = data as? QBERethinkData where self.isCompatibleWith(d) {
+			// Are the columns for the other data set known?
+			let resultingColumns: [QBEColumn]?
+			if let dc = d.columns, var oc = self.columns {
+				oc.appendContentsOf(dc)
+				resultingColumns = Array(Set(oc))
+			}
+			else {
+				resultingColumns = nil
+			}
+
+			return QBERethinkData(url: self.url, query: self.query.union(d.query), columns: resultingColumns)
+		}
+		else {
+			return super.union(data)
+		}
 	}
 }
 
@@ -280,8 +326,8 @@ class QBERethinkSourceStep: QBEStep {
 
 	required init(coder aDecoder: NSCoder) {
 		self.server = aDecoder.decodeStringForKey("server") ?? "localhost"
-		self.server = aDecoder.decodeStringForKey("table") ?? "test"
-		self.server = aDecoder.decodeStringForKey("database") ?? "test"
+		self.table = aDecoder.decodeStringForKey("table") ?? "test"
+		self.database = aDecoder.decodeStringForKey("database") ?? "test"
 		self.port = max(1, min(65535, aDecoder.decodeIntegerForKey("port") ?? 28015));
 		self.authenticationKey = aDecoder.decodeStringForKey("authenticationKey")
 		let cols = (aDecoder.decodeObjectForKey("columns") as? [String]) ?? []
@@ -302,7 +348,11 @@ class QBERethinkSourceStep: QBEStep {
 
 	private func sourceData() -> QBEFallible<QBEData> {
 		if let u = url {
-			return .Success(QBERethinkData(url: u, query: R.db(self.database).table(self.table), forceColumns: self.columns.count > 0 ? self.columns : nil))
+			var q: ReQuerySequence = R.db(self.database).table(self.table)
+			if self.columns.count > 0 {
+				q = q.withFields(self.columns.map { return R.expr($0.name) })
+			}
+			return .Success(QBERethinkData(url: u, query: q, columns: self.columns.count > 0 ? self.columns : nil))
 		}
 		else {
 			return .Failure(NSLocalizedString("The location of the RethinkDB server is invalid.", comment: ""))
