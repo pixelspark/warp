@@ -164,6 +164,7 @@ import WarpCore
 
 		// Apparently, starting in El Capitan, the label does not repaint itself automatically and stays in view after setting hidden=true
 		self.welcomeLabel.setNeedsDisplay()
+		self.view.setNeedsDisplayInRect(self.view.bounds)
 	}
 	
 	private func zoomToAll(animated: Bool = true) {
