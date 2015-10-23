@@ -2,11 +2,12 @@ import Cocoa
 import WarpCore
 
 @NSApplicationMain
-class QBEAppDelegate: NSObject, NSApplicationDelegate {
+class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
 	var locale: QBELocale!
 	
 	func applicationDidFinishLaunching(aNotification: NSNotification) {
 		applyDefaults()
+		NSUserNotificationCenter.defaultUserNotificationCenter().delegate = self
 		NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("defaultsChanged:"), name: NSUserDefaultsDidChangeNotification, object: nil)
 	}
 	
@@ -26,6 +27,11 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate {
 	class var sharedInstance: QBEAppDelegate { get {
 		return NSApplication.sharedApplication().delegate as! QBEAppDelegate
 	} }
+
+	/** This ensures that all our user notifications are shown at all times, even when the application is still frontmost. */
+	func userNotificationCenter(center: NSUserNotificationCenter, shouldPresentNotification notification: NSUserNotification) -> Bool {
+		return true
+	}
 
 	func application(sender: NSApplication, openFile filename: String) -> Bool {
 		let dc = NSDocumentController.sharedDocumentController()

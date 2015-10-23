@@ -17,6 +17,7 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESuggestionsV
 
 	private var sentenceEditor: QBESentenceViewController!
 	private var isExporting: Bool = false
+	private var notifyUser = false
 
 	@IBAction func addAsStep(sender: NSObject) {
 		if let s = self.step {
@@ -66,6 +67,7 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESuggestionsV
 	}
 
 	@IBAction func continueInBackground(sender: NSObject) {
+		self.notifyUser = true
 		self.dismissController(sender)
 	}
 
@@ -85,6 +87,16 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESuggestionsV
 						switch fallibleData {
 						case .Success(_):
 							self.dismissController(sender)
+							if self.notifyUser {
+								let un = NSUserNotification()
+								un.soundName = NSUserNotificationDefaultSoundName
+								un.deliveryDate = NSDate()
+								un.title = NSLocalizedString("Export completed", comment: "")
+								if let url = self.step?.file?.url?.lastPathComponent {
+									un.informativeText = String(format: NSLocalizedString("The data has been saved to '%@'", comment: ""), url)
+								}
+								NSUserNotificationCenter.defaultUserNotificationCenter().scheduleNotification(un)
+							}
 
 						case .Failure(let errorMessage):
 							self.isExporting = false
