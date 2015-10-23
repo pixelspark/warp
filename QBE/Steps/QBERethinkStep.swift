@@ -178,7 +178,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 							}
 
 							dispatch_async(self.queue) {
-								consumer(.Success(rows), continuation == nil)
+								consumer(.Success(rows), continuation != nil)
 								self.continueWith(continuation, job: job)
 							}
 
