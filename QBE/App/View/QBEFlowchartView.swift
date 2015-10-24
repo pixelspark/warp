@@ -66,7 +66,7 @@ class QBEFlowchartView: NSView {
 	private func pathForArrow(arrow: QBEArrow) -> CGPathRef {
 		let (sourceAnchor, targetAnchor) = QBEAnchor.anchorsForArrow(arrow.sourceFrame, to: arrow.targetFrame)
 		let sourcePoint = sourceAnchor.pointInBounds(arrow.sourceFrame)
-		let targetPoint = targetAnchor.pointInBounds(arrow.targetFrame)
+		let targetPoint = targetAnchor.pointInBounds(arrow.targetFrame, isDestination: true)
 		
 		// Draw the arrow
 		let p = CGPathCreateMutable()

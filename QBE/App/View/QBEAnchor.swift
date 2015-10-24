@@ -44,8 +44,8 @@ internal enum QBEAnchor {
 	/** Calculate the location of the bend points of a flowchart arrow between two rectangles, starting and ending at the
 		specified anchor. */
 	static func bendpointsBetween(from: CGRect, fromAnchor: QBEAnchor, to: CGRect, toAnchor: QBEAnchor) -> [CGPoint] {
-		let sourcePoint = fromAnchor.pointInBounds(from, inset: 0.0)
-		let targetPoint = toAnchor.pointInBounds(to, inset: 0.0)
+		let sourcePoint = fromAnchor.pointInBounds(from, isDestination: false)
+		let targetPoint = toAnchor.pointInBounds(to, isDestination: true)
 		
 		let overlaps = CGRectIntersectsRect(from, to)
 		
@@ -146,20 +146,24 @@ internal enum QBEAnchor {
 		}
 	}
 	
-	func pointInBounds(bounds: CGRect, inset: CGFloat = 0.0) -> CGPoint {
-		return self.frameInBounds(bounds, withInset: inset).center
+	func pointInBounds(bounds: CGRect, isDestination: Bool = false) -> CGPoint {
+		return self.frameInBounds(bounds, withInset: 0.0, isDestination: isDestination).center
 	}
-	
-	func frameInBounds(bounds: CGRect, withInset inset: CGFloat) -> CGRect {
+
+	/** Return the frame surrounding this anchor with the specified inset. If `isDestination` is set, the anchor is 
+	shifted a little to ensure that arrows going to and from an object do not overlap (this only affects non-corner
+	anchors, e.g. only north, south, east and west). */
+	func frameInBounds(bounds: CGRect, withInset inset: CGFloat, isDestination: Bool = false) -> CGRect {
+		let destOffset: CGFloat = isDestination ? 10.0 : -10.0
 		switch self {
 		case .SouthWest: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + inset/2, inset, inset)
 		case .SouthEast: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + inset/2, inset, inset)
 		case .NorthEast: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + bounds.size.height - 1.5*inset, inset, inset)
 		case .NorthWest: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + bounds.size.height - 1.5*inset, inset, inset)
-		case .North: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + inset/2, bounds.size.width - inset/2.0, inset)
-		case .South: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + bounds.size.height - 1.5*inset, bounds.size.width - inset/2.0, inset)
-		case .West: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + inset/2.0, inset, bounds.size.height - inset/2.0)
-		case .East: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + inset/2.0, inset, bounds.size.height - inset/2.0)
+		case .North: return CGRectMake(bounds.origin.x + inset/2 + destOffset, bounds.origin.y + inset/2, bounds.size.width - inset/2.0, inset)
+		case .South: return CGRectMake(bounds.origin.x + inset/2 + destOffset, bounds.origin.y + bounds.size.height - 1.5*inset, bounds.size.width - inset/2.0, inset)
+		case .West: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + inset/2.0 + destOffset, inset, bounds.size.height - inset/2.0)
+		case .East: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + inset/2.0 + destOffset, inset, bounds.size.height - inset/2.0)
 		case .None: return CGRectZero
 		}
 	}
