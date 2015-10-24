@@ -19,10 +19,6 @@ protocol QBEChainViewDelegate: NSObjectProtocol {
 	/** Called when the chain view wants the delegate to present a configurator for a step. */
 	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESuggestionsViewDelegate)
 	
-	/** Called when the chain view has a value it wants to present for editing (e.g. in a formula bar). The callback
-	 can be called (possibly multiple times) to change the value. If the callback is nil, the value is not changeable. */
-	func chainView(view: QBEChainViewController, editValue: QBEValue, callback: ((QBEValue) -> ())?)
-	
 	/** Called when the user closes a chain view */
 	func chainViewDidClose(view: QBEChainViewController)
 	
@@ -511,10 +507,6 @@ internal extension NSViewController {
 	}
 	
 	func dataView(view: QBEDataViewController, didSelectValue: QBEValue, changeable: Bool) {
-		delegate?.chainView(self, editValue: didSelectValue, callback: changeable ? { [weak self] (v) -> () in
-			QBEAssertMainThread()
-			self?.dataViewController?.changeSelectedValue(v)
-		} : nil)
 	}
 	
 	func dataView(view: QBEDataViewController, didOrderColumns columns: [QBEColumn], toIndex: Int) -> Bool {

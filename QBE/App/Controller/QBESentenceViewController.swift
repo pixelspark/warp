@@ -3,13 +3,10 @@ import WarpCore
 
 class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate, QBEFormulaEditorViewDelegate {
 	@IBOutlet var tokenField: NSTokenField!
-	@IBOutlet var formulaField: NSTextField!
-	@IBOutlet var backButton: NSButton!
 	@IBOutlet var configureButton: NSButton!
 
 	private var editingToken: QBEEditingToken? = nil
 	private var editingStep: QBEStep? = nil
-	private var editingFormula: QBEEditingFormula? = nil
 	private weak var delegate: QBESuggestionsViewDelegate? = nil
 
 	private struct QBEEditingToken {
@@ -252,43 +249,9 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		self.editingToken = nil
 	}
 
-	func startEditingValue(value: QBEValue, callback: ((QBEValue) -> ())) {
-		if let locale = delegate?.locale where value.isValid {
-			self.editingFormula = QBEEditingFormula(value: value, callback: callback)
-			self.formulaField.stringValue = locale.localStringFor(value)
-		}
-		else {
-			self.editingFormula = nil
-		}
-		updateView()
-	}
-
-	@IBAction func updateFromFormulaField(sender: NSObject) {
-		if let fc = editingFormula?.callback, let locale = delegate?.locale {
-			fc(locale.valueForLocalString(formulaField.stringValue))
-			editingFormula?.callback = nil
-		}
-	}
-
-	@IBAction func stopEditingFormula(sender: NSObject) {
-		if self.editingFormula != nil {
-			self.editingFormula = nil
-			let tr = CATransition()
-			tr.duration = 0.3
-			tr.type = kCATransitionReveal
-			tr.subtype = kCATransitionFromRight
-			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-			self.view.layer?.addAnimation(tr, forKey: kCATransition)
-			updateView()
-		}
-	}
-
 	private func updateView() {
-		let isEditingFormula = editingFormula != nil
-		self.formulaField.hidden = !isEditingFormula
-		self.backButton.hidden = !isEditingFormula || self.editingStep == nil
-		self.tokenField.hidden = isEditingFormula || self.editingStep == nil
-		self.configureButton.hidden = isEditingFormula || self.editingStep == nil
+		self.tokenField.hidden =  self.editingStep == nil
+		self.configureButton.hidden = self.editingStep == nil
 
 		if let s = editingStep, let locale = delegate?.locale {
 			let sentence = s.sentence(locale)
@@ -311,7 +274,6 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			self.view.layer?.addAnimation(tr, forKey: kCATransition)
 
 			self.editingStep = step
-			self.editingFormula = nil
 		}
 
 		self.delegate = delegate
@@ -319,7 +281,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 		/* Check whether the window is visible before showing the tip, because this may get called early while setting
 		up views, or while we are editing a formula (which occludes the configure button) */
-		if let s = step where QBEFactory.sharedInstance.hasViewForStep(s) && (self.view.window?.visible == true) && editingFormula == nil {
+		if let s = step where QBEFactory.sharedInstance.hasViewForStep(s) && (self.view.window?.visible == true) {
 			QBESettings.sharedInstance.showTip("sentenceView.configureButton") {
 				self.showTip(NSLocalizedString("Click here to change additional settings for this step.", comment: ""), atView: self.configureButton)
 			}
