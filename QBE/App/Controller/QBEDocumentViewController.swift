@@ -122,7 +122,7 @@ import WarpCore
 		}
 	}
 	
-	@objc func addTablet(tablet: QBETablet, undo: Bool, animated: Bool) {
+	@objc func addTablet(tablet: QBETablet, undo: Bool, animated: Bool, configureAfterAdding: Bool = false) {
 		self.workspaceView.magnifyView(nil) {
 			// Check if this tablet is also in the document
 			if let d = self.document where tablet.document != self.document {
@@ -142,6 +142,10 @@ import WarpCore
 				
 				self.documentView.addTablet(tabletController, animated: animated) {
 					self.documentView.selectTablet(tablet)
+
+					if configureAfterAdding {
+						self.sentenceEditor?.configure(self)
+					}
 				}
 			}
 			self.updateView()
@@ -409,22 +413,22 @@ import WarpCore
 	}
 	
 	@IBAction func addTabletFromPresto(sender: NSObject) {
-		self.addTablet(QBETablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true, configureAfterAdding: true)
 	}
 	
 	@IBAction func addTabletFromMySQL(sender: NSObject) {
 		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", password: "", database: "test", tableName: "test")
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true, configureAfterAdding: true)
 	}
 
 	@IBAction func addTabletFromRethinkDB(sender: NSObject) {
 		let s = QBERethinkSourceStep(previous: nil)
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true, configureAfterAdding: true)
 	}
 	
 	@IBAction func addTabletFromPostgres(sender: NSObject) {
 		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", password: "", database: "postgres", schemaName: "public", tableName: "")
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true, configureAfterAdding: true)
 	}
 	
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
