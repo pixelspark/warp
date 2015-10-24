@@ -316,7 +316,8 @@ class QBEPostgresDatabase {
 		let userEscaped = self.user.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLUserAllowedCharacterSet())!
 		let passwordEscaped = self.password.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLPasswordAllowedCharacterSet())!
 		let hostEscaped = self.host.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLHostAllowedCharacterSet())!
-		let url = "postgres://\(userEscaped):\(passwordEscaped)@\(hostEscaped):\(self.port)/\(self.database.urlEncoded)"
+		let databaseEscaped = self.database.urlEncoded ?? ""
+		let url = "postgres://\(userEscaped):\(passwordEscaped)@\(hostEscaped):\(self.port)/\(databaseEscaped)"
 		
 		let connection = PQconnectdb(url)
 		
@@ -558,9 +559,51 @@ class QBEPostgresSourceStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([
-			QBESentenceText(String(format: NSLocalizedString("Load table %@ from PostgreSQL database", comment: ""), self.tableName ?? ""))
-		])
+		let tableIdentifier = "\(self.schemaName ?? "").\(self.tableName ?? "")"
+
+		return QBESentence(format: NSLocalizedString("Load table [#] from PostgreSQL database [#]", comment: ""),
+			QBESentenceList(value: tableIdentifier, provider: { (callback) -> () in
+				if let d = self.database {
+					d.tables { tablesFallible in
+						switch tablesFallible {
+						case .Success(let tables):
+							callback(.Success(tables.map { return "\($0.schema).\($0.table)" }))
+
+						case .Failure(let e):
+							callback(.Failure(e))
+						}
+					}
+				}
+				else {
+					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
+				}
+			}, callback: { (newTable) -> () in
+					var components = newTable.characters.split(".")
+					if components.count == 2 {
+						self.schemaName = String(components.removeFirst())
+						self.tableName = String(components.removeFirst())
+					}
+			}),
+
+			QBESentenceList(value: self.databaseName ?? "", provider: { (callback) -> () in
+				if let d = self.database {
+					d.databases { dbFallible in
+						switch dbFallible {
+						case .Success(let dbs):
+							callback(.Success(dbs))
+
+						case .Failure(let e):
+							callback(.Failure(e))
+						}
+					}
+				}
+				else {
+					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
+				}
+				}, callback: { (newDatabase) -> () in
+					self.databaseName = newDatabase
+			})
+		)
 	}
 	
 	internal var database: QBEPostgresDatabase? { get {
@@ -580,7 +623,7 @@ class QBEPostgresSourceStep: QBEStep {
 				callback(QBEPostgresData.create(database: s, tableName: tn, schemaName: self.schemaName ?? "public", locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
 			}
 			else {
-				callback(.Failure(NSLocalizedString("No database or table selected for PostgreSQL.", comment: "")))
+				callback(.Failure(NSLocalizedString("No database or table selected", comment: "")))
 			}
 		}
 	}

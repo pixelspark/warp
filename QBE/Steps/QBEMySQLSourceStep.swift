@@ -548,7 +548,57 @@ class QBEMySQLSourceStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([QBESentenceText(String(format: NSLocalizedString("Load table %@ from MySQL database", comment: ""), self.tableName ?? ""))])
+		return QBESentence(format: NSLocalizedString("Load table [#] from MySQL database [#]", comment: ""),
+			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
+				if let d = self.database {
+					switch d.connect() {
+					case .Success(let con):
+						con.tables { tablesFallible in
+							switch tablesFallible {
+							case .Success(let tables):
+								callback(.Success(tables))
+
+							case .Failure(let e):
+								callback(.Failure(e))
+							}
+						}
+
+					case .Failure(let e):
+						callback(.Failure(e))
+					}
+				}
+				else {
+					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
+				}
+				}, callback: { (newTable) -> () in
+					self.tableName = newTable
+			}),
+
+			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
+				if let d = self.database {
+					switch d.connect() {
+					case .Success(let con):
+						con.databases { dbFallible in
+							switch dbFallible {
+								case .Success(let dbs):
+									callback(.Success(dbs))
+
+								case .Failure(let e):
+									callback(.Failure(e))
+							}
+						}
+
+					case .Failure(let e):
+						callback(.Failure(e))
+					}
+				}
+				else {
+					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
+				}
+			}, callback: { (newDatabase) -> () in
+				self.databaseName = newDatabase
+			})
+		)
 	}
 	
 	internal var database: QBEMySQLDatabase? { get {
