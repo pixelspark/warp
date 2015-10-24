@@ -104,7 +104,17 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		if row < values.count {
 			switch tableColumn?.identifier ?? "" {
 				case "value":
-					return QBEAppDelegate.sharedInstance.locale.localStringFor(values[row])
+					let value = values[row]
+					switch value {
+						case .EmptyValue:
+							return NSLocalizedString("(missing)", comment: "")
+
+						case .InvalidValue:
+							return NSLocalizedString("(error)", comment: "")
+
+						default:
+							return QBEAppDelegate.sharedInstance.locale.localStringFor(values[row])
+					}
 				
 				case "selected":
 					return NSNumber(bool: filter.selectedValues.contains(values[row]))
