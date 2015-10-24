@@ -112,59 +112,91 @@ internal extension NSViewController {
 	}
 	
 	func receiveDropFromOutlet(draggedObject: AnyObject?) {
-		if let myChain = chain {
-			if let otherChain = draggedObject as? QBEChain {
-				if otherChain == myChain || Array(otherChain.dependencies).map({$0.dependsOn}).contains(myChain) {
-					// This would introduce a loop, don't do anything.
-				}
-				else {
-					// Generate sensible joins
-					calculator.currentRaster?.get { (r) -> () in
-						r.maybe { (raster) -> () in
-							let myColumns = raster.columnNames
-							
-							let job = QBEJob(.UserInitiated)
-							otherChain.head?.fullData(job) { (otherDataFallible) -> () in
-								otherDataFallible.maybe { (otherData) -> () in
-									otherData.columnNames(job) { (otherColumnsFallible) -> () in
-										otherColumnsFallible.maybe { (otherColumns) -> () in
-											let mySet = Set(myColumns)
-											let otherSet = Set(otherColumns)
-											
-											QBEAsyncMain {
-												var joinSteps: [QBEStep] = []
-												
-												// If the other data set contains exactly the same columns as we do, or one is a subset of the other, propose a merge
-												if !mySet.isDisjointWith(otherSet) {
-													let overlappingColumns = mySet.intersect(otherSet)
-													
-													// Create a join step for each column name that appears both left and right
-													for overlappingColumn in overlappingColumns {
-														let joinStep = QBEJoinStep(previous: nil)
-														joinStep.right = otherChain
-														joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: overlappingColumn), second: QBEForeignExpression(columnName: overlappingColumn), type: QBEBinary.Equal)
-														joinSteps.append(joinStep)
-													}
-													
-													joinSteps.append(QBEMergeStep(previous: nil, with: otherChain))
-												}
-												else {
-													if joinSteps.count == 0 {
-														let js = QBEJoinStep(previous: nil)
-														js.right = otherChain
-														js.condition = QBELiteralExpression(QBEValue(false))
-														joinSteps.append(js)
-													}
-												}
+		// Present a drop down menu and add steps depending on the option selected by the user.
+		class QBEDropChainAction: NSObject {
+			let view: QBEChainViewController
+			let otherChain: QBEChain
 
-												self.suggestSteps(joinSteps)
+			init(view: QBEChainViewController, chain: QBEChain) {
+				self.otherChain = chain
+				self.view = view
+			}
+
+			@objc func unionChains(sender: AnyObject) {
+				self.view.suggestSteps([QBEMergeStep(previous: nil, with: self.otherChain)])
+			}
+
+			@objc func joinChains(sender: AnyObject) {
+				// Generate sensible join options
+				self.view.calculator.currentRaster?.get { (r) -> () in
+					r.maybe { (raster) -> () in
+						let myColumns = raster.columnNames
+
+						let job = QBEJob(.UserInitiated)
+						self.otherChain.head?.fullData(job) { (otherDataFallible) -> () in
+							otherDataFallible.maybe { (otherData) -> () in
+								otherData.columnNames(job) { (otherColumnsFallible) -> () in
+									otherColumnsFallible.maybe { (otherColumns) -> () in
+										let mySet = Set(myColumns)
+										let otherSet = Set(otherColumns)
+
+										QBEAsyncMain {
+											var joinSteps: [QBEStep] = []
+
+											// If the other data set contains exactly the same columns as we do, or one is a subset of the other, propose a merge
+											if !mySet.isDisjointWith(otherSet) {
+												let overlappingColumns = mySet.intersect(otherSet)
+
+												// Create a join step for each column name that appears both left and right
+												for overlappingColumn in overlappingColumns {
+													let joinStep = QBEJoinStep(previous: nil)
+													joinStep.right = self.otherChain
+													joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: overlappingColumn), second: QBEForeignExpression(columnName: overlappingColumn), type: QBEBinary.Equal)
+													joinSteps.append(joinStep)
+												}
 											}
+											else {
+												if joinSteps.count == 0 {
+													let js = QBEJoinStep(previous: nil)
+													js.right = self.otherChain
+													js.condition = QBELiteralExpression(QBEValue(false))
+													joinSteps.append(js)
+												}
+											}
+
+											self.view.suggestSteps(joinSteps)
 										}
 									}
 								}
 							}
 						}
 					}
+				}
+			}
+
+			func presentMenu() {
+				let dropMenu = NSMenu()
+				dropMenu.autoenablesItems = false
+				let joinItem = NSMenuItem(title: NSLocalizedString("Join data set to this data set", comment: ""), action: Selector("joinChains:"), keyEquivalent: "")
+				joinItem.target = self
+				dropMenu.addItem(joinItem)
+
+				let unionItem = NSMenuItem(title: NSLocalizedString("Append data set to this data set", comment: ""), action: Selector("unionChains:"), keyEquivalent: "")
+				unionItem.target = self
+				dropMenu.addItem(unionItem)
+
+				NSMenu.popUpContextMenu(dropMenu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.view.view)
+			}
+		}
+
+		if let myChain = chain {
+			if let otherChain = draggedObject as? QBEChain {
+				if otherChain == myChain || Array(otherChain.dependencies).map({$0.dependsOn}).contains(myChain) {
+					// This would introduce a loop, don't do anything.
+				}
+				else {
+					let ca = QBEDropChainAction(view: self, chain: otherChain)
+					ca.presentMenu()
 				}
 			}
 		}
