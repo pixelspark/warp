@@ -571,10 +571,10 @@ class QBESQLiteWriterSession {
 		}
 	}
 
-	private func ingest(rows: QBEFallible<Array<QBETuple>>, hasMore: Bool) {
+	private func ingest(rows: QBEFallible<Array<QBETuple>>, streamStatus: QBEStreamStatus) {
 		switch rows {
 		case .Success(let r):
-			if hasMore && !self.job!.cancelled {
+			if streamStatus == .HasMore && !self.job!.cancelled {
 				self.stream?.fetch(self.job!, consumer: self.ingest)
 			}
 
@@ -586,7 +586,7 @@ class QBESQLiteWriterSession {
 				}
 			}
 
-			if !hasMore {
+			if streamStatus == .Finished {
 				// First end the transaction started in init
 				self.database.query("COMMIT").require { c in
 					if !c.run() {

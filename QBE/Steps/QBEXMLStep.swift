@@ -68,7 +68,7 @@ class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 							
 							// Fetch rows in batches and write rows to XML
 							var sink: QBESink? = nil
-							sink = { (rows: QBEFallible<Array<QBETuple>>, hasMore: Bool) -> () in
+							sink = { (rows: QBEFallible<Array<QBETuple>>, streamStatus: QBEStreamStatus) -> () in
 								switch rows {
 								case .Success(let rs):
 									// Write rows
@@ -80,7 +80,7 @@ class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 										}
 									}
 									
-									if hasMore {
+									if streamStatus == .HasMore {
 										job.async {
 											stream.fetch(job, consumer: sink!)
 										}

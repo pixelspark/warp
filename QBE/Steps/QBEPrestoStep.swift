@@ -213,7 +213,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 		request(job) {
 			let rows = self.buffer
 			self.buffer.removeAll(keepCapacity: true)
-			consumer(.Success(Array(rows)), !self.stopped)
+			consumer(.Success(Array(rows)), self.stopped ? .Finished : .HasMore)
 		}
 	}
 	

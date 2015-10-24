@@ -963,14 +963,14 @@ private class QBERasterDataStream: NSObject, QBEStream {
 						self.position = end
 						let hasNext = self.position < raster.rowCount
 						job.reportProgress(Double(self.position) / Double(raster.rowCount), forKey: self.hashValue)
-						consumer(.Success(rows), hasNext)
+						consumer(.Success(rows), hasNext ? .HasMore : .Finished)
 					}
 					else {
-						consumer(.Success([]), false)
+						consumer(.Success([]), .Finished)
 					}
 				
 				case .Failure(let error):
-					consumer(.Failure(error), false)
+					consumer(.Failure(error), .Finished)
 			}
 		}
 	}

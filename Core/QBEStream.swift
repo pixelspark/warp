@@ -1,8 +1,13 @@
 import Foundation
 
+public enum QBEStreamStatus {
+	case HasMore
+	case Finished
+}
+
 /** A QBESink is a function used as a callback in response to QBEStream.fetch. It receives a set of rows from the stream
 as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). */
-public typealias QBESink = (QBEFallible<Array<QBETuple>>, Bool) -> ()
+public typealias QBESink = (QBEFallible<Array<QBETuple>>, QBEStreamStatus) -> ()
 
 /** The default number of rows that a QBEStream will send to a consumer upon request through QBEStream.fetch. */
 public let QBEStreamDefaultBatchSize = 256
@@ -71,7 +76,7 @@ private class QBEStreamPuller {
 				let waveFrontId = self.lastStartedWavefront
 
 				self.job.async {
-					self.stream.fetch(self.job, consumer: { (rows, hasNext) in
+					self.stream.fetch(self.job, consumer: { (rows, streamStatus) in
 						dispatch_sync(self.queue) {
 							/** Some fetches may return earlier than others, but we need to reassemble them in the correct
 							order. Therefore we keep track of a 'wavefront ID'. If the last wavefront that was 'sinked' was
@@ -80,13 +85,13 @@ private class QBEStreamPuller {
 							if self.lastSinkedWavefront == waveFrontId-1 {
 								// This result arrives just in time (all predecessors have been received already). Sink it directly
 								self.lastSinkedWavefront = waveFrontId
-								self.sink(rows, hasNext: hasNext)
+								self.sink(rows, hasNext: streamStatus == .HasMore)
 
 								// Maybe now we can sink other results we already received, but were too early.
 								while let earlierRows = self.earlyResults[self.lastSinkedWavefront+1] {
 									self.earlyResults.removeValueForKey(self.lastSinkedWavefront+1)
 									self.lastSinkedWavefront++
-									self.sink(earlierRows, hasNext: hasNext)
+									self.sink(earlierRows, hasNext: streamStatus == .HasMore)
 								}
 							}
 							else {
@@ -254,7 +259,7 @@ public class QBEErrorStream: QBEStream {
 	}
 	
 	public func fetch(job: QBEJob, consumer: QBESink) {
-		consumer(.Failure(self.error), false)
+		consumer(.Failure(self.error), .Finished)
 	}
 	
 	public func clone() -> QBEStream {
@@ -273,7 +278,7 @@ public class QBEEmptyStream: QBEStream {
 	}
 
 	public func fetch(job: QBEJob, consumer: QBESink) {
-		consumer(.Success([]), false)
+		consumer(.Success([]), .Finished)
 	}
 	
 	public func clone() -> QBEStream {
@@ -324,7 +329,7 @@ public class QBESequenceStream: QBEStream {
 				}
 
 				job.async {
-					consumer(.Success(Array(rows)), !done)
+					consumer(.Success(Array(rows)), done ? .Finished : .HasMore)
 				}
 			}
 		}
@@ -364,27 +369,27 @@ private class QBETransformer: NSObject, QBEStream {
 	
 	private func fetch(job: QBEJob, consumer: QBESink) {
 		if !stopped {
-			source.fetch(job, consumer: QBEOnce { (fallibleRows, hasNext) -> () in
-				if !hasNext {
+			source.fetch(job, consumer: QBEOnce { (fallibleRows, streamStatus) -> () in
+				if streamStatus == .Finished {
 					self.stopped = true
 				}
 				
 				switch fallibleRows {
 					case .Success(let rows):
-						self.transform(rows, hasNext: hasNext, job: job, callback: { (transformedRows, shouldContinue) -> () in
+						self.transform(rows, hasNext: streamStatus == .HasMore, job: job, callback: { (transformedRows, shouldContinue) -> () in
 							self.stopped = self.stopped || !shouldContinue
 							job.async {
-								consumer(transformedRows, !self.stopped && hasNext)
+								consumer(transformedRows, self.stopped ? .Finished : streamStatus)
 							}
 						})
 					
 					case .Failure(let error):
-						consumer(.Failure(error), false)
+						consumer(.Failure(error), .Finished)
 				}
 			})
 		}
 		else {
-			consumer(.Success([]), false)
+			consumer(.Success([]), .Finished)
 		}
 	}
 	

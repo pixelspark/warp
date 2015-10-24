@@ -189,7 +189,7 @@ class QBECrawlStream: QBEStream {
 				}
 				
 				case .Failure(let e):
-					consumer(.Failure(e), false)
+					consumer(.Failure(e), .Finished)
 			}
 		}
 	}

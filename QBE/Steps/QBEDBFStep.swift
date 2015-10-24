@@ -91,7 +91,7 @@ final class QBEDBFStream: NSObject, QBEStream {
 
 				self.position = end
 				job.async {
-					consumer(.Success(Array(rows)), self.position < (self.recordCount-1))
+					consumer(.Success(Array(rows)), (self.position < (self.recordCount-1)) ? .HasMore : .Finished)
 				}
 			}
 		}
@@ -144,11 +144,11 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 				}
 
 				var cb: QBESink? = nil
-				cb = { (rows: QBEFallible<Array<QBETuple>>, hasNext: Bool) -> () in
+				cb = { (rows: QBEFallible<Array<QBETuple>>, streamStatus: QBEStreamStatus) -> () in
 					switch rows {
 					case .Success(let rs):
 						// We want the next row, so fetch it while we start writing this one.
-						if hasNext {
+						if streamStatus == .HasMore {
 							job.async {
 								stream.fetch(job, consumer: cb!)
 							}
@@ -171,7 +171,7 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 							}
 						}
 
-						if !hasNext {
+						if streamStatus == .Finished {
 							DBFClose(handle)
 							callback(.Success())
 						}

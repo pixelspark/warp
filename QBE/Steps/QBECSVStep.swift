@@ -116,7 +116,7 @@ final class QBECSVStream: NSObject, QBEStream, CHCSVParserDelegate {
 					}
 				}
 
-				consumer(.Success(v), !self.finished)
+				consumer(.Success(v), self.finished ? .Finished : .HasMore)
 			}
 		}
 	}
@@ -218,11 +218,11 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 				csvOut.finishLine()
 
 				var cb: QBESink? = nil
-				cb = { (rows: QBEFallible<Array<QBETuple>>, hasNext: Bool) -> () in
+				cb = { (rows: QBEFallible<Array<QBETuple>>, streamStatus: QBEStreamStatus) -> () in
 					switch rows {
 					case .Success(let rs):
 						// We want the next row, so fetch it while we start writing this one.
-						if hasNext {
+						if streamStatus == .HasMore {
 							job.async {
 								stream.fetch(job, consumer: cb!)
 							}
@@ -237,7 +237,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 							}
 						}
 
-						if !hasNext {
+						if streamStatus == .Finished {
 							callback(.Success())
 						}
 

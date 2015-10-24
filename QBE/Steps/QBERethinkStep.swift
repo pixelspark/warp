@@ -119,7 +119,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 
 					// Done, empty the waiting list
 					s.waitingList.forEach {
-						$0(.Success([]), false)
+						$0(.Success([]), .Finished)
 					}
 					s.waitingList.removeAll()
 					s.firstResponse = nil
@@ -143,7 +143,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 	private func ingest(response: ReResponse, consumer: QBESink, job: QBEJob) {
 		switch response {
 			case .Error(let e):
-				consumer(.Failure(e), false)
+				consumer(.Failure(e), .Finished)
 
 			case .Rows(let docs, let continuation):
 				self.columnNames(job, callback: { (columnsFallible) -> () in
@@ -178,12 +178,12 @@ final class QBERethinkStream: NSObject, QBEStream {
 							}
 
 							dispatch_async(self.queue) {
-								consumer(.Success(rows), continuation != nil)
+								consumer(.Success(rows), continuation != nil ? .HasMore : .Finished)
 								self.continueWith(continuation, job: job)
 							}
 
 						case .Failure(let e):
-							consumer(.Failure(e), false)
+							consumer(.Failure(e), .Finished)
 					}
 				})
 
@@ -198,11 +198,11 @@ final class QBERethinkStream: NSObject, QBEStream {
 					self.ingest(ReResponse.Rows([av], nil), consumer: consumer, job: job)
 				}
 				else {
-					consumer(.Failure("Received single value: \(v)"), false)
+					consumer(.Failure("Received single value: \(v)"), .Finished)
 				}
 
 			case .Unknown:
-				consumer(.Failure("Unknown response received"), false)
+				consumer(.Failure("Unknown response received"), .Finished)
 		}
 	}
 
@@ -213,7 +213,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 					resFallible.maybe({ (connection, columns) -> Void in
 						connection.close()
 					})
-					consumer(.Success([]), false)
+					consumer(.Success([]), .Finished)
 					return
 				}
 
