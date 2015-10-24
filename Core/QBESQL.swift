@@ -508,7 +508,7 @@ public class QBESQLFragment {
 	let newFragment = fragment.sqlOrder(dialect.columnIdentifier("col", table: fragment.aliasFor(.Order)) + " ASC")
 	*/
 	func aliasFor(part: QBESQLFragmentType) -> String {
-		return advance(part, part: nil).alias
+		return advance(part, part: "X").alias
 	}
 	
 	// State transitions
