@@ -405,6 +405,86 @@ public class QBEJob: QBEJobDelegate {
 	#endif
 }
 
+/** A pthread-based recursive mutex lock. */
+public class QBEMutex {
+	private var mutex: pthread_mutex_t = pthread_mutex_t()
+
+	public init() {
+		var attr: pthread_mutexattr_t = pthread_mutexattr_t()
+		pthread_mutexattr_init(&attr)
+		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE)
+
+		let err = pthread_mutex_init(&self.mutex, &attr)
+		pthread_mutexattr_destroy(&attr)
+
+		switch err {
+		case 0:
+			// Success
+			break
+
+		case EAGAIN:
+			fatalError("Could not create mutex: EAGAIN (The system temporarily lacks the resources to create another mutex.)")
+
+		case EINVAL:
+				fatalError("Could not create mutex: invalid attributes")
+
+		case ENOMEM:
+			fatalError("Could not create mutex: no memory")
+
+		default:
+			fatalError("Could not create mutex, unspecified error \(err)")
+		}
+	}
+
+	private func lock() {
+		let ret = pthread_mutex_lock(&self.mutex)
+		switch ret {
+		case 0:
+			// Success
+			break
+
+		case EDEADLK:
+			fatalError("Could not lock mutex: a deadlock would have occurred")
+
+		case EINVAL:
+			fatalError("Could not lock mutex: the mutex is invalid")
+
+		default:
+			fatalError("Could not lock mutex: unspecified error \(ret)")
+		}
+	}
+
+	private func unlock() {
+		let ret = pthread_mutex_unlock(&self.mutex)
+		switch ret {
+		case 0:
+			// Success
+			break
+
+		case EPERM:
+			fatalError("Could not unlock mutex: thread does not hold this mutex")
+
+		case EINVAL:
+			fatalError("Could not unlock mutex: the mutex is invalid")
+
+		default:
+			fatalError("Could not unlock mutex: unspecified error \(ret)")
+		}
+	}
+
+	deinit {
+		pthread_mutex_destroy(&self.mutex)
+	}
+
+	/** Execute the given block while holding a lock to this mutex. */
+	public func locked<T>(@noescape block: () -> (T)) -> T {
+		self.lock()
+		let ret: T = block()
+		self.unlock()
+		return ret
+	}
+}
+
 /** QBEFuture represents a result of a (potentially expensive) calculation. Code that needs the result of the
 operation express their interest by enqueuing a callback with the get() function. The callback gets called immediately
 if the result of the calculation was available in cache, or as soon as the result has been calculated. 
@@ -415,7 +495,7 @@ public class QBEFuture<T> {
 	public typealias Callback = QBEBatch<T>.Callback
 	public typealias Producer = (QBEJob, Callback) -> ()
 	private var batch: QBEBatch<T>?
-	private var onceToken: dispatch_once_t = 0
+	private let mutex: QBEMutex = QBEMutex()
 	
 	let producer: Producer
 	let timeLimit: Double?
@@ -426,39 +506,49 @@ public class QBEFuture<T> {
 	}
 	
 	private func calculate() {
-		assert(batch != nil, "calculate() called without a current batch")
-		
-		if let batch = self.batch {
-			if let tl = timeLimit {
-				// Set a timer to cancel this job
-				dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(tl * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
-					batch.log("Timed out after \(tl) seconds")
-					batch.expire()
+		self.mutex.locked {
+			assert(batch != nil, "calculate() called without a current batch")
+			
+			if let batch = self.batch {
+				if let tl = timeLimit {
+					// Set a timer to cancel this job
+					dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(tl * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+						batch.log("Timed out after \(tl) seconds")
+						batch.expire()
+					}
 				}
+				producer(batch, batch.satisfy)
 			}
-			producer(batch, batch.satisfy)
 		}
 	}
 	
 	/** Abort calculating the result (if calculation is in progress). Registered callbacks will not be called (when 
 	callbacks are already being called, this will be finished).*/
 	public func cancel() {
-		batch?.cancel()
+		self.mutex.locked {
+			batch?.cancel()
+		}
 	}
 	
 	/** Abort calculating the result (if calculation is in progress). Registered callbacks may still be called. */
 	public func expire() {
-		batch?.expire()
+		self.mutex.locked {
+			batch?.expire()
+		}
 	}
 	
 	public var cancelled: Bool { get {
-		return batch?.cancelled ?? false
+		return self.mutex.locked { () -> Bool in
+			return batch?.cancelled ?? false
+		}
 	} }
 	
 	/** Returns the result of the current calculation run, or nil if that calculation hasn't started yet or is still
 	 running. Use get() to start a calculation and await the result. */
 	public var result: T? { get {
-		return batch?.cached ?? nil
+		return self.mutex.locked {
+			return batch?.cached ?? nil
+		}
 	} }
 	
 	/** Request the result of this future. There are three scenarios:
@@ -476,13 +566,15 @@ public class QBEFuture<T> {
 	queue. This function always returns its own child QBEJob. */
 	public func get(job: QBEJob? = nil, _ callback: Callback) -> QBEJob {
 		var first = false
-		dispatch_once(&onceToken) {
-			first = true
-			if let j = job {
-				self.batch = QBEBatch<T>(parent: j)
-			}
-			else {
-				self.batch = QBEBatch<T>(queue: dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
+		self.mutex.locked {
+			if self.batch == nil {
+				first = true
+				if let j = job {
+					self.batch = QBEBatch<T>(parent: j)
+				}
+				else {
+					self.batch = QBEBatch<T>(queue: dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
+				}
 			}
 		}
 
@@ -498,19 +590,17 @@ public class QBEBatch<T>: QBEJob {
 	public typealias Callback = (T) -> ()
 	private var cached: T? = nil
 	private var waitingList: [Callback] = []
-	private var ownQueue: dispatch_queue_t // Used for
+	private var mutex = QBEMutex()
 	
 	var satisfied: Bool { get {
 		return cached != nil
 	} }
 	
 	override init(queue: dispatch_queue_t) {
-		ownQueue = dispatch_queue_create("nl.pixelspark.Warp.QBEBatch", DISPATCH_QUEUE_SERIAL)
 		super.init(queue: queue)
 	}
 	
 	override init(parent: QBEJob) {
-		ownQueue = dispatch_queue_create("nl.pixelspark.Warp.QBEBatch", DISPATCH_QUEUE_SERIAL)
 		super.init(parent: parent)
 	}
 	
@@ -520,7 +610,7 @@ public class QBEBatch<T>: QBEJob {
 		assert(cached == nil, "QBEBatch.satisfy called with cached!=nil: \(cached) \(value)")
 		assert(!satisfied, "QBEBatch already satisfied")
 
-		dispatch_sync(self.ownQueue) {
+		self.mutex.locked {
 			self.cached = value
 			for waiting in self.waitingList {
 				self.async {
@@ -534,7 +624,7 @@ public class QBEBatch<T>: QBEJob {
 	/** Expire is like cancel, only the waiting consumers are not removed from the waiting list. This allows a job to
 	return a partial result (by calling the callback while job.cancelled is already true) */
 	func expire() {
-		dispatch_sync(self.ownQueue) {
+		self.mutex.locked {
 			if !self.satisfied {
 				self.cancelled = true
 			}
@@ -543,7 +633,7 @@ public class QBEBatch<T>: QBEJob {
 	
 	/** Cancel this job and remove all waiting listeners (they will never be called back). */
 	public override func cancel() {
-		dispatch_sync(self.ownQueue) {
+		self.mutex.locked {
 			if !self.satisfied {
 				self.waitingList.removeAll(keepCapacity: false)
 				self.cancelled = true
@@ -553,14 +643,14 @@ public class QBEBatch<T>: QBEJob {
 	}
 	
 	func enqueue(callback: Callback) {
-		if satisfied {
-			dispatch_async(self.ownQueue) { [unowned self] in
-				callback(self.cached!)
+		self.mutex.locked {
+			if satisfied {
+				dispatch_async(self.queue) { [unowned self] in
+					callback(self.cached!)
+				}
 			}
-		}
-		else {
-			assert(!cancelled, "Cannot enqueue on a QBEFuture that is cancelled")
-			dispatch_sync(self.ownQueue) {
+			else {
+				assert(!cancelled, "Cannot enqueue on a QBEFuture that is cancelled")
 				self.waitingList.append(callback)
 			}
 		}

@@ -6,7 +6,7 @@ estimate the number of input rows required to arrive at a certain number of outp
 public class QBECalculator {
 	public var currentData: QBEFuture<QBEFallible<QBEData>>?
 	public var currentRaster: QBEFuture<QBEFallible<QBERaster>>?
-	private var queue = dispatch_queue_create("nl.pixelspark.Warp.QBECalculator", DISPATCH_QUEUE_SERIAL)
+	private var mutex: QBEMutex = QBEMutex()
 	
 	/** Statistical level of certainty that is used when calculating upper limits */
 	public var certainty = 0.95
@@ -43,7 +43,7 @@ public class QBECalculator {
 		}
 		var inputRows = self.desiredExampleRows
 
-		dispatch_sync(queue) {
+		self.mutex.locked {
 			let index = unsafeAddressOf(step).hashValue
 			
 			if let performance = self.stepPerformance[index] {
@@ -98,7 +98,7 @@ public class QBECalculator {
 				let index = unsafeAddressOf(sourceStep).hashValue
 				var startAnother = false
 
-				dispatch_sync(self.queue) {
+				self.mutex.locked {
 					var perf = self.stepPerformance[index] ?? QBEStepPerformance()
 					perf.timePerInputRow.add(duration / Double(maxInputRows))
 					if r.rowCount > 0 {
