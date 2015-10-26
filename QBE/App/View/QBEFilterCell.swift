@@ -32,15 +32,17 @@ internal class QBEFilterCell: NSButtonCell {
 			var v = Array<Int>(count: stripes, repeatedValue: 0)
 			if let index = raster.indexOfColumnWithName(self.column) {
 				for row in raster.raster {
-					let value = row[index]
-					let hash: Int
-					if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
-						hash = Int(fmod(abs(i), Double(Int.max-1)))
+					if index < row.count {
+						let value = row[index]
+						let hash: Int
+						if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
+							hash = Int(fmod(abs(i), Double(Int.max-1)))
+						}
+						else {
+							hash = abs(value.stringValue?.hashValue ?? 0)
+						}
+						v[hash % stripes]++
 					}
-					else {
-						hash = abs(value.stringValue?.hashValue ?? 0)
-					}
-					v[hash % stripes]++
 				}
 			}
 			cached = v
