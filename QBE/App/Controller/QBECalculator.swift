@@ -22,7 +22,11 @@ public class QBECalculator {
 	
 	/** The time that example calculation must not exceed with `certainty` */
 	public var maximumExampleTime = 1.5
-	
+
+	/** The maximum number of attempts that should be made to obtain more rows while there is still time left within the 
+	given time limit */
+	public var maximumIterations = 10
+
 	private var calculationInProgressForStep: QBEStep? = nil
 	private var stepPerformance: [Int: QBEStepPerformance] = [:]
 	
@@ -81,7 +85,7 @@ public class QBECalculator {
 	
 	/** Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have 
 	been returned. The given callback is called as soon as the last calculation round has finished. */
-	public func calculateExample(sourceStep: QBEStep, maximumTime: Double? = nil,  columnFilters: [QBEColumn:QBEFilterSet]? = nil, callback: () -> ()) {
+	public func calculateExample(sourceStep: QBEStep, maximumTime: Double? = nil,  columnFilters: [QBEColumn:QBEFilterSet]? = nil, attempt: Int = 0, callback: () -> ()) {
 		let maxTime = maximumTime ?? maximumExampleTime
 		
 		let startTime = NSDate.timeIntervalSinceReferenceDate()
@@ -119,8 +123,8 @@ public class QBECalculator {
 					}
 				}
 
-				if startAnother {
-					self.calculateExample(sourceStep, maximumTime: maxTime - duration, columnFilters: columnFilters, callback: callback)
+				if startAnother && attempt < self.maximumIterations {
+					self.calculateExample(sourceStep, maximumTime: maxTime - duration, columnFilters: columnFilters, attempt: attempt + 1, callback: callback)
 				}
 				else {
 					callback()
