@@ -589,6 +589,17 @@ class QBETests: XCTestCase {
 		let inData = QBERasterData(raster: raster)
 		let inOptData = inData.coalesced
 		let job = QBEJob(.UserInitiated)
+
+		inData.filter(QBELiteralExpression(QBEValue(false))).raster(job) { rf in
+			switch rf {
+			case .Success(let r):
+				XCTAssert(r.columnNames.count > 0, "Data set that is filtered to be empty should still contains column names")
+
+			case .Failure(let e):
+				XCTFail(e)
+			}
+
+		}
 		
 		compareData(job, inData.limit(2).limit(1), inOptData.limit(2).limit(1)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for limit(2).limit(1) should equal normal result")

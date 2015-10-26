@@ -571,18 +571,13 @@ enum QBECoalescedData: QBEData {
 	}
 	
 	/** This function relies on the following axioms:
-		- data.filter(a).filter(b) is equivalent to data.filter(QBEFunctionExpression(a,b,QBEFunction.And)) 
-		- data.filter(e) is equivalent to an empty data set if e is a constant expression evaluating to false
+		- data.filter(a).filter(b) is equivalent to data.filter(QBEFunctionExpression(a,b,QBEFunction.And))
 		- data.filter(e) is equivalent to data if e is a constant expression evaluating to true */
 	func filter(condition: QBEExpression) -> QBEData {
 		let prepared = condition.prepare()
 		if prepared.isConstant {
 			let value = prepared.apply(QBERow(), foreign: nil, inputValue: nil)
-			if value == QBEValue.BoolValue(false) {
-				// This will never return any rows
-				return QBERasterData()
-			}
-			else if value == QBEValue.BoolValue(true) {
+			if value == QBEValue.BoolValue(true) {
 				// This filter operation will never filter out any rows
 				return self
 			}

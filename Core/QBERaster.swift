@@ -620,8 +620,21 @@ public class QBERasterData: NSObject, QBEData {
 	
 	public func filter(condition: QBEExpression) -> QBEData {
 		let optimizedCondition = condition.prepare()
-		
-		return apply {(r: QBERaster, job, progressKey) -> QBERaster in
+		if optimizedCondition.isConstant {
+			let constantValue = optimizedCondition.apply(QBERow(), foreign: nil, inputValue: nil)
+			if constantValue == QBEValue(false) {
+				// Never return any rows
+				return apply { (r: QBERaster, job, progressKey) -> QBERaster in
+					return QBERaster(data: [], columnNames: r.columnNames, readOnly: true)
+				}
+			}
+			else if constantValue == QBEValue(true) {
+				// Return all rows always
+				return self
+			}
+		}
+
+		return apply { (r: QBERaster, job, progressKey) -> QBERaster in
 			var newData: [QBETuple] = []
 			
 			for rowNumber in 0..<r.rowCount {

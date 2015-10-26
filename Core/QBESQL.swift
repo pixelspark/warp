@@ -833,6 +833,19 @@ public class QBESQLData: NSObject, QBEData {
 	}
 	
 	public func filter(condition: QBEExpression) -> QBEData {
+		let optimizedCondition = condition.prepare()
+		if optimizedCondition.isConstant {
+			let constantValue = optimizedCondition.apply(QBERow(), foreign: nil, inputValue: nil)
+			if constantValue == QBEValue(false) {
+				// Never return any rows
+				return QBERasterData(data: [], columnNames: self.columns)
+			}
+			else if constantValue == QBEValue(true) {
+				// Return all rows always
+				return self
+			}
+		}
+
 		if let expressionString = sql.dialect.expressionToSQL(condition.prepare(), alias: sql.aliasFor(.Where), foreignAlias: nil,inputValue: nil) {
 			return apply(sql.sqlWhereOrHaving(expressionString), resultingColumns: columns)
 		}
