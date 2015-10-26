@@ -20,8 +20,5 @@
 /* Class = "NSTextFieldCell"; title = "Port:"; ObjectID = "nNf-hy-CZp"; */
 "nNf-hy-CZp.title" = "Poort:";
 
-"Dsz-Vi-TPW.title" = "Schema";
-"Sri-lx-mi6.title" = "Tabel";
-
-"4ZW-IL-XJP.title" = "Schema";
-"TPz-zK-yFs.title" = "Tabel";
+"TPz-zK-yFs.headerCell.title" = "Tabel";
+"4ZW-IL-XJP.headerCell.title" = "Schema";
