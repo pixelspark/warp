@@ -262,6 +262,7 @@ public class QBEJob: QBEJobDelegate {
 	public private(set) var cancelled: Bool = false
 	private var progressComponents: [Int: Double] = [:]
 	private var observers: [QBEWeak<QBEJobDelegate>] = []
+	private let mutex = QBEMutex()
 	
 	public init(_ qos: QBEQoS) {
 		self.queue = dispatch_get_global_queue(qos.qosClass, 0)
@@ -325,7 +326,9 @@ public class QBEJob: QBEJobDelegate {
 	}
 	
 	public func addObserver(observer: QBEJobDelegate) {
-		self.observers.append(QBEWeak(observer))
+		mutex.locked {
+			self.observers.append(QBEWeak(observer))
+		}
 	}
 	
 	/** Inform anyone waiting on this job that a particular sub-task has progressed. Progress needs to be between 0...1,
@@ -354,21 +357,25 @@ public class QBEJob: QBEJobDelegate {
 	represented as a double between 0...1 (where 1 means 'complete'). Progress is not guaranteed to monotonically increase
 	or to ever reach 1. */
 	public var progress: Double { get {
-		var sumProgress = 0.0;
-		var items = 0;
-		for (_, p) in self.progressComponents {
-			sumProgress += p
-			items++
+		return mutex.locked {
+			var sumProgress = 0.0;
+			var items = 0;
+			for (_, p) in self.progressComponents {
+				sumProgress += p
+				items++
+			}
+			
+			return items > 0 ? (sumProgress / Double(items)) : 0.0;
 		}
-		
-		return items > 0 ? (sumProgress / Double(items)) : 0.0;
 	} }
 	
 	/** Marks this job as 'cancelled'. Any blocking operation running in this job should periodically check the cancelled
 	status, and abort if the job was cancelled. Calling cancel() does not guarantee that any operations are actually
 	cancelled. */
 	public func cancel() {
-		self.cancelled = true
+		mutex.locked {
+			self.cancelled = true
+		}
 	}
 	
 	@objc public func job(job: AnyObject, didProgress: Double) {
@@ -590,7 +597,6 @@ public class QBEBatch<T>: QBEJob {
 	public typealias Callback = (T) -> ()
 	private var cached: T? = nil
 	private var waitingList: [Callback] = []
-	private var mutex = QBEMutex()
 	
 	var satisfied: Bool { get {
 		return cached != nil
