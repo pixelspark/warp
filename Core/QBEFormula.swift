@@ -36,6 +36,7 @@ public class QBEFormula: Parser {
 		if !self.parse(formula) || self.error {
 			return nil
 		}
+		super.captures.removeAll(keepCapacity: false)
 	}
 	
 	private func annotate(expression: QBEExpression) {
@@ -202,7 +203,7 @@ public class QBEFormula: Parser {
 			}
 		}
 
-		let postfixRules = locale.postfixes.map { (postfix, multiplier) in return (literal(postfix) => { self.pushPostfixMultiplier(multiplier) }) }
+		let postfixRules = locale.postfixes.map { (postfix, multiplier) in return (literal(postfix) => { [unowned self] in self.pushPostfixMultiplier(multiplier) }) }
 		
 		// String literals & constants
 		add_named_rule("arguments",			rule: (("(" ~~ Parser.matchList(^"logic" => pushArgument, separator: literal(locale.argumentSeparator)) ~~ ")")))
@@ -235,8 +236,8 @@ public class QBEFormula: Parser {
 		// Comparisons
 		add_named_rule("containsString", rule: ("~=" ~~ ^"concatenation") => pushContainsString)
 		add_named_rule("containsStringStrict", rule: ("~~=" ~~ ^"concatenation") => pushContainsStringStrict)
-		add_named_rule("matchesRegex", rule: ("±=" ~~ ^"concatenation") => {self.pushBinary(QBEBinary.MatchesRegex)})
-		add_named_rule("matchesRegexStrict", rule: ("±±=" ~~ ^"concatenation") => {self.pushBinary(QBEBinary.MatchesRegexStrict)})
+		add_named_rule("matchesRegex", rule: ("±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(QBEBinary.MatchesRegex) })
+		add_named_rule("matchesRegexStrict", rule: ("±±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(QBEBinary.MatchesRegexStrict)})
 		add_named_rule("greater", rule: (">" ~~ ^"concatenation") => pushGreater)
 		add_named_rule("greaterEqual", rule: (">=" ~~ ^"concatenation") => pushGreaterEqual)
 		add_named_rule("lesser", rule: ("<" ~~ ^"concatenation") => pushLesser)
