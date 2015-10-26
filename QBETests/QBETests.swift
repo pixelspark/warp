@@ -476,6 +476,9 @@ class QBETests: XCTestCase {
 		XCTAssert(Array(QBESequencer("([abc]|[def])[xyz]")!.root!).count == 6 * 3, "Sequence ([abc]|[def])[xyz] should generate 6*3 items")
 		
 		XCTAssert(QBESequencer("([0-9]{2}\\-[A-Z]{3}\\-[0-9])|([A-Z]{2}\\-[A-Z]{2}\\-[0-9]{2})")!.cardinality == 63273600,"Cardinality of a complicated sequencer expression is correct")
+
+		// [a-z]{40} generates 4^40 items, which is much larger than Int.max, so cardinality cannot be reported.
+		XCTAssert(QBESequencer("[a-z]{40}")!.cardinality == nil, "Very large sequences should not have cardinality defined")
 	}
 	
 	func testFormulaParser() {

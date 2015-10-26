@@ -42,7 +42,7 @@ public class QBESequencer: Parser {
 		}
 	}
 	
-	public var cardinality: Int {
+	public var cardinality: Int? {
 		get {
 			return stack.head.cardinality
 		}
@@ -179,8 +179,9 @@ private class QBEValueSequence: SequenceType {
 		return QBEValueGenerator()
 	}
 	
-	/** The number of elements this sequence will generate */
-	var cardinality: Int { get {
+	/** The number of elements this sequence will generate. Nil indicates that the length of this sequence is unknown
+	(e.g. very large or infinite) */
+	var cardinality: Int? { get {
 		return 0
 	} }
 }
@@ -295,8 +296,15 @@ private class QBERepeatSequence: QBEValueSequence {
 	}
 	
 	
-	override var cardinality: Int { get {
-		return Int(pow(Double(sequence.cardinality), Double(repeatCount)))
+	override var cardinality: Int? { get {
+		if let base = sequence.cardinality {
+			let d = pow(Double(base), Double(repeatCount))
+			if d > Double(Int.max) {
+				return nil
+			}
+			return Int(d)
+		}
+		return nil
 	} }
 	
 }
@@ -395,8 +403,11 @@ private class QBECombinatorSequence: QBEValueSequence {
 		return QBECombinatorGenerator(left: self.left, right: self.right)
 	}
 	
-	override var cardinality: Int { get {
-		return left.cardinality * right.cardinality
+	override var cardinality: Int? { get {
+		if let l = left.cardinality, let r = right.cardinality {
+			return l * r
+		}
+		return nil
 	} }
 }
 
@@ -422,8 +433,11 @@ private class QBEAfterSequence: QBEValueSequence {
 		return QBEAfterGenerator(first: self.first, then: self.then)
 	}
 	
-	override var cardinality: Int { get {
-		return first.cardinality + then.cardinality
+	override var cardinality: Int? { get {
+		if let f = first.cardinality, let s = then.cardinality {
+			return f + s
+		}
+		return nil
 	} }
 }
 
