@@ -79,6 +79,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 					if notifyDelegate {
 						delegate?.documentView(self, didSelectTablet: tv.tabletController)
 					}
+					self.window?.update()
 				}
 			}
 		}
