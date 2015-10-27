@@ -89,30 +89,34 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		else if let options = representedObject as? QBESentenceList {
 			editingToken = QBEEditingToken(options)
 			let menu = NSMenu()
+			menu.autoenablesItems = false
 			let loadingItem = NSMenuItem(title: NSLocalizedString("Loading...", comment: ""), action: Selector("dismissInputEditor:"), keyEquivalent: "")
 			loadingItem.enabled = false
 			menu.addItem(loadingItem)
 
-			options.optionsProvider { [weak self] (itemsFallible) in
-				QBEAsyncMain {
-					menu.removeAllItems()
+			let queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+			dispatch_async(queue) {
+				options.optionsProvider { [weak self] (itemsFallible) in
+					QBEAsyncMain {
+						menu.removeAllItems()
 
-					switch itemsFallible {
-					case .Success(let items):
-						self?.editingToken?.options = items
-						var index = 0
-						for item in items {
-							let menuItem = NSMenuItem(title: item, action: Selector("selectListOption:"), keyEquivalent: "")
-							menuItem.tag = index
-							menu.addItem(menuItem)
-							index++
+						switch itemsFallible {
+						case .Success(let items):
+							self?.editingToken?.options = items
+							var index = 0
+							for item in items {
+								let menuItem = NSMenuItem(title: item, action: Selector("selectListOption:"), keyEquivalent: "")
+								menuItem.tag = index
+								menu.addItem(menuItem)
+								index++
+							}
+
+						case .Failure(let e):
+							let errorItem = NSMenuItem(title: e, action: Selector("dismissInputEditor:"), keyEquivalent: "")
+							errorItem.enabled = false
+							menu.addItem(errorItem)
+							break
 						}
-
-					case .Failure(let e):
-						let errorItem = NSMenuItem(title: e, action: Selector("dismissInputEditor:"), keyEquivalent: "")
-						errorItem.enabled = false
-						menu.addItem(errorItem)
-						break
 					}
 				}
 			}
