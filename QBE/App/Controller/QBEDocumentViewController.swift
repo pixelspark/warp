@@ -278,9 +278,37 @@ import WarpCore
 	
 	func workspaceView(view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
 		QBEAssertMainThread()
-		
-		let tablet = QBETablet(chain: QBEChain(head: QBECloneStep(chain: chain)))
-		self.addTablet(tablet, atLocation: atLocation, undo: true)
+
+		class QBEDropAction: NSObject {
+			private var chain: QBEChain
+			private var documentView: QBEDocumentViewController
+			private var location: CGPoint
+
+			init(chain: QBEChain, documentView: QBEDocumentViewController, location: CGPoint) {
+				self.chain = chain
+				self.documentView = documentView
+				self.location = location
+			}
+
+			@objc func addClone(sender: NSObject) {
+				let tablet = QBETablet(chain: QBEChain(head: QBECloneStep(chain: chain)))
+				self.documentView.addTablet(tablet, atLocation: location, undo: true)
+			}
+
+			func present() {
+				let menu = NSMenu()
+				menu.autoenablesItems = false
+
+				let cloneItem = NSMenuItem(title: NSLocalizedString("Create clone of data here", comment: ""), action: Selector("addClone:"), keyEquivalent: "")
+				cloneItem.target = self
+				menu.addItem(cloneItem)
+
+				NSMenu.popUpContextMenu(menu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.documentView.view)
+			}
+		}
+
+		let ac = QBEDropAction(chain: chain, documentView: self, location: atLocation)
+		ac.present()
 	}
 	
 	func workspaceView(view: QBEWorkspaceView, didReceiveFiles files: [String], atLocation: CGPoint) {
