@@ -238,26 +238,8 @@ class QBEMySQLDatabase: QBESQLDatabase {
 		return self.host == other.host && self.user == other.user && self.password == other.password && self.port == other.port
 	}
 
-	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
-		switch self.connect() {
-			case .Success(let con):
-				for query in sql {
-					switch con.query(query) {
-						case .Success(_):
-							break
-
-						case .Failure(let e):
-							callback(.Failure(e))
-							return
-					}
-				}
-
-			case .Failure(let e):
-				callback(.Failure(e))
-				return
-		}
-
-		callback(.Success())
+	func connect(callback: (QBEFallible<QBESQLConnection>) -> ()) {
+		callback(self.connect().use { return $0 })
 	}
 	
 	func connect() -> QBEFallible<QBEMySQLConnection> {
@@ -305,7 +287,7 @@ class QBEMySQLDatabase: QBESQLDatabase {
 /**
 Implements a connection to a MySQL database (corresponding to a MYSQL object in the MySQL library). The connection ensures
 that any operations are serialized (for now using a global queue for all MySQL operations). */
-internal class QBEMySQLConnection {
+internal class QBEMySQLConnection: QBESQLConnection {
 	private(set) var database: QBEMySQLDatabase
 	private var connection: UnsafeMutablePointer<MYSQL>
 	private(set) weak var result: QBEMySQLResult?
@@ -342,7 +324,22 @@ internal class QBEMySQLConnection {
 			}
 		}
 	}
-	
+
+	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		for query in sql {
+			switch self.query(query) {
+			case .Success(_):
+				break
+
+			case .Failure(let e):
+				callback(.Failure(e))
+				return
+			}
+		}
+
+		callback(.Success())
+	}
+
 	func clone() -> QBEFallible<QBEMySQLConnection> {
 		return self.database.connect()
 	}

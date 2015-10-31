@@ -312,24 +312,10 @@ class QBEPostgresDatabase: QBESQLDatabase {
 		})
 	}
 
-	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
-		switch self.connect() {
-			case .Success(let c):
-				for q in sql {
-					let res = c.query(q)
-					if case .Failure(let e) = res {
-						callback(.Failure(e))
-						return
-					}
-				}
-
-			case .Failure(let e):
-				callback(.Failure(e))
-		}
-
-		callback(.Success())
+	func connect(callback: (QBEFallible<QBESQLConnection>) -> ()) {
+		callback(self.connect().use { return $0 })
 	}
-	
+
 	func connect() -> QBEFallible<QBEPostgresConnection> {
 		let userEscaped = self.user.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLUserAllowedCharacterSet())!
 		let passwordEscaped = self.password.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLPasswordAllowedCharacterSet())!
@@ -356,7 +342,7 @@ class QBEPostgresDatabase: QBESQLDatabase {
 /**
 Implements a connection to a PostgreSQL database (corresponding to a MYSQL object in the PostgreSQL library). The connection ensures
 that any operations are serialized (for now using a global queue for all PostgreSQL operations). */
-internal class QBEPostgresConnection {
+internal class QBEPostgresConnection: QBESQLConnection {
 	private(set) var database: QBEPostgresDatabase
 	private var connection: COpaquePointer
 	private(set) weak var result: QBEPostgresResult?
@@ -380,7 +366,19 @@ internal class QBEPostgresConnection {
 	func clone() -> QBEFallible<QBEPostgresConnection> {
 		return self.database.connect()
 	}
-	
+
+	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		for q in sql {
+			let res = self.query(q)
+			if case .Failure(let e) = res {
+				callback(.Failure(e))
+				return
+			}
+		}
+
+		callback(.Success())
+	}
+
 	private func perform(block: () -> (Bool)) -> Bool {
 		var success: Bool = false
 		dispatch_sync(queue) {

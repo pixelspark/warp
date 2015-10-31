@@ -86,22 +86,25 @@ public protocol QBESQLDialect {
 
 public protocol QBESQLDatabase {
 	var dialect: QBESQLDialect { get }
+	func connect(callback: (QBEFallible<QBESQLConnection>) -> ())
+}
 
-	/** Perform the indicate SQL data definition commands in the order specified. The callback is called after the first
-	 error is encountered, or when all queries have been executed successfully. Depending on the support of the database,
-	wrapping in a transaction is possible by issuing 'START TRANSACTION'  and 'COMMIT'  commands. Whenever an error is
-	encountered, no further query processing should happen. */
+public protocol QBESQLConnection {
+	/** Serially perform the indicate SQL data definition commands in the order specified. The callback is called after 
+	the first error is encountered, or when all queries have been executed successfully. Depending on the support of the 
+	database, wrapping in a transaction is possible by issuing 'START TRANSACTION'  and 'COMMIT'  commands. Whenever an 
+	error is encountered, no further query processing should happen. */
 	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ())
 }
 
 public class QBESQLStore: QBEStore {
 	let database: QBESQLDatabase
-	let databaseName: String
+	let databaseName: String?
 	let tableName: String
 	let schemaName: String?
 	var dialect: QBESQLDialect { return database.dialect }
 
-	public init(database: QBESQLDatabase, databaseName: String, schemaName: String?, tableName: String) {
+	public init(database: QBESQLDatabase, databaseName: String?, schemaName: String?, tableName: String) {
 		self.database = database
 		self.databaseName = databaseName
 		self.tableName = tableName
@@ -115,13 +118,23 @@ public class QBESQLStore: QBEStore {
 		}
 
 		job.async {
-			switch mutation {
-			case .Drop:
-				self.database.run(["DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.databaseName))"], job: job, callback: callback)
+			self.database.connect({ (connectionFallible) -> () in
+				switch connectionFallible {
+					case .Success(let con):
+						switch mutation {
+						case .Drop:
+							con.run(["DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.databaseName))"], job: job, callback: callback)
 
-			case .Truncate:
-				self.database.run(["TRUNCATE TABLE \(self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.databaseName))"], job: job, callback: callback)
-			}
+						case .Truncate:
+							// TODO: MySQL supports TRUNCATE TABLE which supposedly is faster
+							con.run(["DELETE FROM \(self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.databaseName))"], job: job, callback: callback)
+
+						}
+
+					case .Failure(let e):
+						callback(.Failure(e))
+				}
+			})
 		}
 	}
 

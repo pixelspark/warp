@@ -3,9 +3,9 @@ import WarpCore
 
 private class QBESQLiteResult {
 	let resultSet: COpaquePointer
-	let db: QBESQLiteDatabase
+	let db: QBESQLiteConnection
 	
-	static func create(sql: String, db: QBESQLiteDatabase) -> QBEFallible<QBESQLiteResult> {
+	static func create(sql: String, db: QBESQLiteConnection) -> QBEFallible<QBESQLiteResult> {
 		var resultSet: COpaquePointer = nil
 		QBELog("SQL \(sql)")
 		if !db.perform({sqlite3_prepare_v2(db.db, sql, -1, &resultSet, nil)}) {
@@ -16,7 +16,7 @@ private class QBESQLiteResult {
 		}
 	}
 	
-	init(resultSet: COpaquePointer, db: QBESQLiteDatabase) {
+	init(resultSet: COpaquePointer, db: QBESQLiteConnection) {
 		self.resultSet = resultSet
 		self.db = db
 	}
@@ -182,41 +182,49 @@ private class QBESQLiteResultGenerator: GeneratorType {
 	}
 }
 
-private class QBESQLiteDatabase: QBESQLDatabase {
+private class QBESQLiteConnection: NSObject, QBESQLConnection {
 	var url: String?
 	let db: COpaquePointer
 	let dialect: QBESQLDialect = QBESQLiteDialect()
-	
-	private class var sharedQueue : dispatch_queue_t {
-		struct Static {
-			static var onceToken : dispatch_once_t = 0
-			static var instance : dispatch_queue_t? = nil
+
+	init?(path: String, readOnly: Bool = false) {
+		let flags = readOnly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
+		self.db = nil
+		let url = NSURL(fileURLWithPath: path)
+		self.url = url.absoluteString
+
+		super.init()
+
+		dispatch_set_target_queue(self.ownQueue, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
+
+		if !perform({sqlite3_open_v2(path, &self.db, flags, nil) }) {
+			return nil
 		}
-		dispatch_once(&Static.onceToken) {
-			Static.instance = dispatch_queue_create("nl.pixelspark.Warp.QBESQLiteDatabase.Queue", DISPATCH_QUEUE_SERIAL)
-			dispatch_set_target_queue(Static.instance, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
-		}
-		return Static.instance!
+
+		/* By default, SQLite does not implement various mathematical SQL functions such as SIN, COS, TAN, as well as
+		certain aggregates such as STDEV. RegisterExtensionFunctions plugs these into the database. */
+		RegisterExtensionFunctions(self.db)
+
+		/* Create the 'WARP_*' user-defined functions in SQLite. When called, it looks up the native implementation of a
+		QBEFunction/QBEBinary whose raw value name is equal to the first parameter. It applies the function to the other parameters
+		and returns the result to SQLite. */
+		SQLiteCreateFunction(self.db, QBESQLiteConnection.sqliteUDFFunctionName, -1, true, QBESQLiteConnection.sqliteUDFFunction)
+		SQLiteCreateFunction(self.db, QBESQLiteConnection.sqliteUDFBinaryName, 3, true, QBESQLiteConnection.sqliteUDFBinary)
+	}
+
+	deinit {
+		perform({sqlite3_close(self.db)})
 	}
 	
-	private var ownQueue : dispatch_queue_t {
-		struct Static {
-			static var onceToken : dispatch_once_t = 0
-			static var instance : dispatch_queue_t? = nil
-		}
-		dispatch_once(&Static.onceToken) {
-			Static.instance = dispatch_queue_create("nl.pixelspark.Warp.QBESQLiteDatabase.Queue", DISPATCH_QUEUE_SERIAL)
-			dispatch_set_target_queue(Static.instance, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
-		}
-		return Static.instance!
-	}
+	private static let sharedQueue = dispatch_queue_create("nl.pixelspark.Warp.QBESQLiteConnection.Queue", DISPATCH_QUEUE_SERIAL)
+	private let ownQueue : dispatch_queue_t = dispatch_queue_create("nl.pixelspark.Warp.QBESQLiteConnection.Queue", DISPATCH_QUEUE_SERIAL)
 	
 	private var queue: dispatch_queue_t { get {
 		switch sqlite3_threadsafe() {
 			case 0:
 				/* SQLite was compiled without any form of thread-safety, so all requests to it need to go through the 
 				shared SQLite queue */
-				return QBESQLiteDatabase.sharedQueue
+				return QBESQLiteConnection.sharedQueue
 			
 			default:
 				/* SQLite is (at least) thread safe (i.e. a single connection may be used by a single thread; concurrently
@@ -322,30 +330,6 @@ private class QBESQLiteDatabase: QBESQLDatabase {
 		sqliteResult(context, result: result)
 	}
 	
-	init?(path: String, readOnly: Bool = false) {
-		let flags = readOnly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
-		self.db = nil
-		self.url = NSURL(fileURLWithPath: path).absoluteString
-		
-		if !perform({sqlite3_open_v2(path, &self.db, flags, nil) }) {
-			return nil
-		}
-		
-		/* By default, SQLite does not implement various mathematical SQL functions such as SIN, COS, TAN, as well as 
-		certain aggregates such as STDEV. RegisterExtensionFunctions plugs these into the database. */
-		RegisterExtensionFunctions(self.db)
-		
-		/* Create the 'WARP_*' user-defined functions in SQLite. When called, it looks up the native implementation of a
-		QBEFunction/QBEBinary whose raw value name is equal to the first parameter. It applies the function to the other parameters
-		and returns the result to SQLite. */
-		SQLiteCreateFunction(self.db, QBESQLiteDatabase.sqliteUDFFunctionName, -1, true, QBESQLiteDatabase.sqliteUDFFunction)
-		SQLiteCreateFunction(self.db, QBESQLiteDatabase.sqliteUDFBinaryName, 3, true, QBESQLiteDatabase.sqliteUDFBinary)
-	}
-	
-	deinit {
-		perform({sqlite3_close(self.db)})
-	}
-	
 	func query(sql: String) -> QBEFallible<QBESQLiteResult> {
 		return QBESQLiteResult.create(sql, db: self)
 	}
@@ -380,7 +364,7 @@ private class QBESQLiteDatabase: QBESQLDatabase {
 	} }
 }
 
-private func ==(lhs: QBESQLiteDatabase, rhs: QBESQLiteDatabase) -> Bool {
+private func ==(lhs: QBESQLiteConnection, rhs: QBESQLiteConnection) -> Bool {
 	return lhs.db == rhs.db || (lhs.url == rhs.url && lhs.url != nil && rhs.url != nil)
 }
 
@@ -408,7 +392,7 @@ private class QBESQLiteDialect: QBEStandardSQLDialect {
 		/* If a binary expression cannot be represented in 'normal' SQL, we can always use the special UDF function to 
 		call into the native implementation */
 		if result == nil {
-			return "\(QBESQLiteDatabase.sqliteUDFBinaryName)('\(type.rawValue)',\(second), \(first))"
+			return "\(QBESQLiteConnection.sqliteUDFBinaryName)('\(type.rawValue)',\(second), \(first))"
 		}
 		return result
 	}
@@ -430,7 +414,7 @@ private class QBESQLiteDialect: QBEStandardSQLDialect {
 		/* If a function cannot be implemented in SQL, we should fall back to our special UDF function to call into the 
 		native implementation */
 		let value = args.joinWithSeparator(", ")
-		return "\(QBESQLiteDatabase.sqliteUDFFunctionName)('\(type.rawValue)',\(value))"
+		return "\(QBESQLiteConnection.sqliteUDFFunctionName)('\(type.rawValue)',\(value))"
 	}
 	
 	override func aggregationToSQL(aggregation: QBEAggregation, alias: String) -> String? {
@@ -447,9 +431,9 @@ private class QBESQLiteDialect: QBEStandardSQLDialect {
 }
 
 class QBESQLiteData: QBESQLData {
-	private let db: QBESQLiteDatabase
+	private let db: QBESQLiteConnection
 	
-	static private func create(db: QBESQLiteDatabase, tableName: String) -> QBEFallible<QBESQLiteData> {
+	static private func create(db: QBESQLiteConnection, tableName: String) -> QBEFallible<QBESQLiteData> {
 		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, schema: nil, database: nil))"
 		switch db.query(query) {
 			case .Success(let result):
@@ -460,7 +444,7 @@ class QBESQLiteData: QBESQLData {
 		}
 	}
 	
-	private init(db: QBESQLiteDatabase, fragment: QBESQLFragment, columns: [QBEColumn]) {
+	private init(db: QBESQLiteConnection, fragment: QBESQLFragment, columns: [QBEColumn]) {
 		self.db = db
 		super.init(fragment: fragment, columns: columns)
 	}
@@ -523,7 +507,7 @@ class QBESQLiteStream: QBEStream {
 }
 
 private class QBESQLiteWriterSession {
-	private let database: QBESQLiteDatabase
+	private let database: QBESQLiteConnection
 	private let tableName: String
 	private let source: QBEData
 
@@ -532,7 +516,7 @@ private class QBESQLiteWriterSession {
 	private var insertStatement: QBESQLiteResult?
 	private var completion: ((QBEFallible<Void>) -> ())?
 
-	init(data source: QBEData, toDatabase database: QBESQLiteDatabase, tableName: String) {
+	init(data source: QBEData, toDatabase database: QBESQLiteConnection, tableName: String) {
 		self.database = database
 		self.tableName = tableName
 		self.source = source
@@ -662,7 +646,7 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 	}
 
 	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
-		if let p = file.path, let database = QBESQLiteDatabase(path: p) {
+		if let p = file.path, let database = QBESQLiteConnection(path: p) {
 			// We must disable the WAL because the sandbox doesn't allow us to write to the WAL file (created separately)
 			database.query("PRAGMA journal_mode = MEMORY").require { s in
 				s.run()
@@ -704,19 +688,19 @@ background, and the SQLite-cached data set is swapped with the original one at c
 placed in a shared, temporary 'cache' database (sharedCacheDatabase) so that cached tables can efficiently be joined by
 SQLite. Users of this class can set a completion callback if they want to wait until caching has finished. */
 class QBESQLiteCachedData: QBEProxyData {
-	private let database: QBESQLiteDatabase
+	private let database: QBESQLiteConnection
 	private let tableName: String
 	private(set) var isCached: Bool = false
 	private let cacheJob: QBEJob
 	
-	private class var sharedCacheDatabase : QBESQLiteDatabase {
+	private class var sharedCacheDatabase : QBESQLiteConnection {
 		struct Static {
 			static var onceToken : dispatch_once_t = 0
-			static var instance : QBESQLiteDatabase? = nil
+			static var instance : QBESQLiteConnection? = nil
 		}
 		
 		dispatch_once(&Static.onceToken) {
-			Static.instance = QBESQLiteDatabase(path: "", readOnly: false)
+			Static.instance = QBESQLiteConnection(path: "", readOnly: false)
 			/** Because this database is created anew, we can set its encoding. As the code reading strings from SQLite
 			uses UTF-8, set the database's encoding to UTF-8 so that no unnecessary conversions have to take place. */
 			Static.instance!.query("PRAGMA encoding = \"UTF-8\"").require { e in
@@ -766,6 +750,26 @@ class QBESQLiteCachedData: QBEProxyData {
 	}
 }
 
+class QBESQLiteDatabase: QBESQLDatabase {
+	let url: NSURL
+	let readOnly: Bool
+	let dialect: QBESQLDialect = QBESQLiteDialect()
+
+	init(url: NSURL, readOnly: Bool) {
+		self.url = url
+		self.readOnly = readOnly
+	}
+
+	func connect(callback: (QBEFallible<QBESQLConnection>) -> ()) {
+		if let c = QBESQLiteConnection(path: self.url.path!, readOnly: self.readOnly) {
+			callback(.Success(c))
+		}
+		else {
+			callback(.Failure("Could not connect to SQLite database"))
+		}
+	}
+}
+
 class QBESQLiteSourceStep: QBEStep {
 	var file: QBEFileReference? { didSet {
 		oldValue?.url?.stopAccessingSecurityScopedResource()
@@ -774,7 +778,7 @@ class QBESQLiteSourceStep: QBEStep {
 	} }
 	
 	var tableName: String?
-	private var db: QBESQLiteDatabase?
+	private var db: QBESQLiteConnection?
 	
 	init?(url: NSURL) {
 		self.file = QBEFileReference.URL(url)
@@ -790,7 +794,7 @@ class QBESQLiteSourceStep: QBEStep {
 		self.db = nil
 		
 		if let url = file?.url {
-			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
+			self.db = QBESQLiteConnection(path: url.path!, readOnly: true)
 			
 			if self.tableName == nil {
 				self.db?.tableNames.maybe {(tns) in
@@ -842,7 +846,7 @@ class QBESQLiteSourceStep: QBEStep {
 		
 		if let url = u {
 			url.startAccessingSecurityScopedResource()
-			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
+			self.db = QBESQLiteConnection(path: url.path!, readOnly: true)
 		}
 	}
 	
@@ -856,12 +860,19 @@ class QBESQLiteSourceStep: QBEStep {
 	override func willSaveToDocument(atURL: NSURL) {
 		self.file = self.file?.bookmark(atURL)
 	}
+
+	override var store: QBEStore? {
+		if let u = self.file?.url, let tn = tableName {
+			return QBESQLStore(database: QBESQLiteDatabase(url: u, readOnly: false), databaseName: nil, schemaName: nil, tableName: tn)
+		}
+		return nil
+	}
 	
 	override func didLoadFromDocument(atURL: NSURL) {
 		self.file = self.file?.resolve(atURL)
 		if let url = self.file?.url {
 			url.startAccessingSecurityScopedResource()
-			self.db = QBESQLiteDatabase(path: url.path!, readOnly: true)
+			self.db = QBESQLiteConnection(path: url.path!, readOnly: true)
 		}
 	}
 }

@@ -226,7 +226,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 	}
 }
 
-private class QBEPrestoDatabase: QBESQLDatabase {
+private class QBEPrestoDatabase {
 	let url: NSURL
 	let schema: String
 	let catalog: String
@@ -396,12 +396,5 @@ class QBEPrestoSourceStep: QBEStep {
 		self.fullData(job, callback: { (fd) -> () in
 			callback(fd.use({$0.random(maxInputRows)}))
 		})
-	}
-
-	override var store: QBEStore? {
-		if let d = self.db, let catName = self.catalogName, let tableName = self.tableName, let schemaName = self.schemaName {
-			return QBESQLStore(database: d, databaseName: catName, schemaName: schemaName, tableName: tableName)
-		}
-		return nil
 	}
 }
