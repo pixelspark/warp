@@ -48,7 +48,7 @@ public class QBEStep: NSObject, NSCoding {
 		}
 	}
 
-	public var store: QBEStore? { get {
+	public var mutableData: QBEMutableData? { get {
 		return nil
 	} }
 

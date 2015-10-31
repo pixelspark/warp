@@ -97,12 +97,24 @@ public protocol QBESQLConnection {
 	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ())
 }
 
-public class QBESQLStore: QBEStore {
+public class QBESQLDataWarehouse: QBEDataWarehouse {
+	let database: QBESQLDatabase
+	let databaseName: String?
+	var dialect: QBESQLDialect { return database.dialect }
+
+	init(database: QBESQLDatabase, databaseName: String?) {
+		self.database = database
+		self.databaseName = databaseName
+	}
+}
+
+public class QBEMutableSQLData: QBEMutableData {
 	let database: QBESQLDatabase
 	let databaseName: String?
 	let tableName: String
 	let schemaName: String?
-	var dialect: QBESQLDialect { return database.dialect }
+
+	public var warehouse: QBEDataWarehouse { return QBESQLDataWarehouse(database: self.database, databaseName: self.databaseName) }
 
 	public init(database: QBESQLDatabase, databaseName: String?, schemaName: String?, tableName: String) {
 		self.database = database
@@ -111,7 +123,7 @@ public class QBESQLStore: QBEStore {
 		self.schemaName = schemaName
 	}
 
-	public func performMutation(mutation: QBEMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	public func performMutation(mutation: QBEDataMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
@@ -138,7 +150,7 @@ public class QBESQLStore: QBEStore {
 		}
 	}
 
-	public func canPerformMutation(mutation: QBEMutation) -> Bool {
+	public func canPerformMutation(mutation: QBEDataMutation) -> Bool {
 		switch mutation {
 		case .Truncate, .Drop:
 			return true

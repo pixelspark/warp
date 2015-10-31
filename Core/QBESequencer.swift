@@ -144,7 +144,7 @@ public class QBESequencer: Parser {
 	}
 	
 	public func stream(column: QBEColumn) -> QBEStream {
-		return QBESequenceStream(AnySequence<QBETuple>({ () -> QBESequencerRowGenerator in
+		return QBESequenceStream(AnySequence<QBEFallible<QBETuple>>({ () -> QBESequencerRowGenerator in
 			return QBESequencerRowGenerator(source: self.root!)
 		}), columnNames: [column], rowCount: stack.head.cardinality)
 	}
@@ -443,15 +443,15 @@ private class QBEAfterSequence: QBEValueSequence {
 
 private class QBESequencerRowGenerator: GeneratorType {
 	let source: AnyGenerator<QBEValue>
-	typealias Element = QBETuple
+	typealias Element = QBEFallible<QBETuple>
 	
 	init(source: AnySequence<QBEValue>) {
 		self.source = source.generate()
 	}
 	
-	func next() -> QBETuple? {
+	func next() -> QBEFallible<QBETuple>? {
 		if let n = source.next() {
-			return [n]
+			return .Success([n])
 		}
 		return nil
 	}

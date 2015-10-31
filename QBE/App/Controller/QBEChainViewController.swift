@@ -1075,9 +1075,9 @@ internal extension NSViewController {
 		}
 	}
 
-	private func performMutationOnStore(mutation: QBEMutation) {
+	private func performMutation(mutation: QBEDataMutation) {
 		QBEAssertMainThread()
-		guard let cs = currentStep, let store = cs.store where store.canPerformMutation(mutation) else {
+		guard let cs = currentStep, let store = cs.mutableData where store.canPerformMutation(mutation) else {
 			let a = NSAlert()
 			a.messageText = NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")
 			a.alertStyle = NSAlertStyle.WarningAlertStyle
@@ -1126,11 +1126,11 @@ internal extension NSViewController {
 	}
 
 	@IBAction func truncateStore(sender: NSObject) {
-		self.performMutationOnStore(.Truncate)
+		self.performMutation(.Truncate)
 	}
 
 	@IBAction func dropStore(sender: NSObject) {
-		self.performMutationOnStore(.Drop)
+		self.performMutation(.Drop)
 	}
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
@@ -1138,13 +1138,13 @@ internal extension NSViewController {
 			return currentStep != nil
 		}
 		else if item.action() == Selector("truncateStore:")  {
-			if let cs = self.currentStep?.store where cs.canPerformMutation(QBEMutation.Truncate) {
+			if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Truncate) {
 				return true
 			}
 			return false
 		}
 		else if item.action() == Selector("dropStore:")  {
-			if let cs = self.currentStep?.store where cs.canPerformMutation(QBEMutation.Drop) {
+			if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Drop) {
 				return true
 			}
 			return false

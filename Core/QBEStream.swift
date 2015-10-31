@@ -51,7 +51,7 @@ private class QBEStreamPuller {
 	var columnNames: [QBEColumn]
 	let callback: (QBEFallible<QBERaster>) -> ()
 
-	private var queue = dispatch_queue_create("nl.pixelspark.Warp.QBEStreamPuller", DISPATCH_QUEUE_SERIAL)
+	private let mutex = QBEMutex()
 	private let concurrentWavefronts: Int
 	private var outstandingWavefronts = 0
 	private var lastStartedWavefront = 0
@@ -69,7 +69,7 @@ private class QBEStreamPuller {
 	/** Start up to self.concurrentFetches number of fetch 'wavefronts' that will deliver their data to the
 	'sink' funtion. */
 	private func start() {
-		dispatch_sync(queue) {
+		mutex.locked {
 			while self.outstandingWavefronts < self.concurrentWavefronts {
 				self.lastStartedWavefront++
 				self.outstandingWavefronts++
@@ -77,7 +77,7 @@ private class QBEStreamPuller {
 
 				self.job.async {
 					self.stream.fetch(self.job, consumer: { (rows, streamStatus) in
-						dispatch_sync(self.queue) {
+						self.mutex.locked {
 							/** Some fetches may return earlier than others, but we need to reassemble them in the correct
 							order. Therefore we keep track of a 'wavefront ID'. If the last wavefront that was 'sinked' was
 							this wavefront's id minus one, we can sink this one directly. Otherwise we need to put it in a
@@ -109,36 +109,47 @@ private class QBEStreamPuller {
 	through 'start' each time it is called, unless the stream indicates there are no more records. When the last
 	wavefront has reported in, sink will call self.callback. */
 	private func sink(rows: QBEFallible<Array<QBETuple>>, hasNext: Bool) {
-		var isLast = false
-		self.outstandingWavefronts--;
-		isLast = self.outstandingWavefronts == 0
+		self.mutex.locked {
+			if self.outstandingWavefronts == 0 {
+				// We errored, any following wave fronts are ignored
+				return
+			}
+			var isLast = false
+			self.outstandingWavefronts--;
+			isLast = self.outstandingWavefronts == 0
 
-		switch rows {
-		case .Success(let r):
-			// Append the rows to our buffered raster
-			self.data.appendContentsOf(r)
+			switch rows {
+			case .Success(let r):
+				// Append the rows to our buffered raster
+				self.data.appendContentsOf(r)
 
-			if !hasNext {
-				if isLast {
-					/* This was the last wavefront that was running, and there are no more rows according to the source 
-					stream. Therefore we are now done fetching all data from the stream. */
-					self.callback(.Success(QBERaster(data: self.data, columnNames: self.columnNames, readOnly: true)))
+				if !hasNext {
+					if isLast {
+						/* This was the last wavefront that was running, and there are no more rows according to the source 
+						stream. Therefore we are now done fetching all data from the stream. */
+						job.async {
+							self.callback(.Success(QBERaster(data: self.data, columnNames: self.columnNames, readOnly: true)))
+						}
+					}
+					else {
+						/* There is no more data according to the stream, but several rows still have to come in as other
+						wavefronts are still running. The last one will turn off the lights, right now we can just wait. */
+					}
 				}
 				else {
-					/* There is no more data according to the stream, but several rows still have to come in as other
-					wavefronts are still running. The last one will turn off the lights, right now we can just wait. */
+					// If the stream indicates there are more rows, fetch them (start new wavefronts)
+					job.async {
+						self.start()
+						return
+					}
 				}
-			}
-			else {
-				// If the stream indicates there are more rows, fetch them (start new wavefronts)
-				job.async {
-					self.start()
-					return
-				}
-			}
 
-		case .Failure(let errorMessage):
-			callback(.Failure(errorMessage))
+			case .Failure(let errorMessage):
+				self.outstandingWavefronts = 0
+				job.async {
+					self.callback(.Failure(errorMessage))
+				}
+			}
 		}
 	}
 }
@@ -293,14 +304,15 @@ public class QBEEmptyStream: QBEStream {
 /** 
 A stream that sources from a Swift generator of QBETuple. */
 public class QBESequenceStream: QBEStream {
-	private let sequence: AnySequence<QBETuple>
-	private var generator: AnyGenerator<QBETuple>
+	private let sequence: AnySequence<QBEFallible<QBETuple>>
+	private var generator: AnyGenerator<QBEFallible<QBETuple>>
 	private let columns: [QBEColumn]
 	private var position: Int = 0
 	private var rowCount: Int? = nil // nil = number of rows is yet unknown
 	private var queue = dispatch_queue_create("nl.pixelspark.Warp.QBESequenceStream", DISPATCH_QUEUE_SERIAL)
+	private var error: String? = nil
 	
-	public init(_ sequence: AnySequence<QBETuple>, columnNames: [QBEColumn], rowCount: Int? = nil) {
+	public init(_ sequence: AnySequence<QBEFallible<QBETuple>>, columnNames: [QBEColumn], rowCount: Int? = nil) {
 		self.sequence = sequence
 		self.generator = sequence.generate()
 		self.columns = columnNames
@@ -308,6 +320,11 @@ public class QBESequenceStream: QBEStream {
 	}
 	
 	public func fetch(job: QBEJob, consumer: QBESink) {
+		if let e = error {
+			consumer(.Failure(e), .Finished)
+			return
+		}
+
 		dispatch_sync(queue) {
 			job.time("sequence", items: QBEStreamDefaultBatchSize, itemType: "rows") {
 				var done = false
@@ -316,10 +333,21 @@ public class QBESequenceStream: QBEStream {
 				
 				for _ in 0..<QBEStreamDefaultBatchSize {
 					if let next = self.generator.next() {
-						rows.append(next)
+						switch next {
+							case .Success(let f):
+								rows.append(f)
+
+							case .Failure(let e):
+								self.error = e
+								done = true
+								break
+						}
 					}
 					else {
 						done = true
+					}
+
+					if done {
 						break
 					}
 				}
@@ -329,7 +357,12 @@ public class QBESequenceStream: QBEStream {
 				}
 
 				job.async {
-					consumer(.Success(Array(rows)), done ? .Finished : .HasMore)
+					if let e = self.error {
+						consumer(.Failure(e), .Finished)
+					}
+					else {
+						consumer(.Success(Array(rows)), done ? .Finished : .HasMore)
+					}
 				}
 			}
 		}

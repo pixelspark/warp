@@ -312,10 +312,22 @@ class QBERethinkData: QBEStreamData {
 	}
 }
 
-class QBERethinkStore: QBEStore {
+class QBERethinkDataWarehouse: QBEDataWarehouse {
+	let url: NSURL
+	let databaseName: String
+
+	init(url: NSURL, databaseName: String) {
+		self.url = url
+		self.databaseName = databaseName
+	}
+}
+
+class QBEMutableRethinkData: QBEMutableData {
 	let url: NSURL
 	let databaseName: String
 	let tableName: String
+
+	var warehouse: QBEDataWarehouse { return QBERethinkDataWarehouse(url: url, databaseName: databaseName) }
 
 	init(url: NSURL, databaseName: String, tableName: String) {
 		self.url = url
@@ -323,14 +335,14 @@ class QBERethinkStore: QBEStore {
 		self.tableName = tableName
 	}
 
-	func canPerformMutation(mutation: QBEMutation) -> Bool {
+	func canPerformMutation(mutation: QBEDataMutation) -> Bool {
 		switch mutation {
 		case .Truncate, .Drop:
 			return true
 		}
 	}
 
-	func performMutation(mutation: QBEMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	func performMutation(mutation: QBEDataMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
@@ -496,9 +508,9 @@ class QBERethinkSourceStep: QBEStep {
 		)
 	}
 
-	override var store: QBEStore? {
+	override var mutableData: QBEMutableData? {
 		if let u = self.url {
-			return QBERethinkStore(url: u, databaseName: self.database, tableName: self.table)
+			return QBEMutableRethinkData(url: u, databaseName: self.database, tableName: self.table)
 		}
 		return nil
 	}

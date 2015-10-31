@@ -97,8 +97,8 @@ private class QBESQLiteResult {
 		return (0..<count).map({QBEColumn(String.fromCString(sqlite3_column_name(self.resultSet, $0))!)})
 	} }
 
-	func sequence() -> AnySequence<QBETuple> {
-		return AnySequence<QBETuple>(QBESQLiteResultSequence(result: self))
+	func sequence() -> AnySequence<QBEFallible<QBETuple>> {
+		return AnySequence<QBEFallible<QBETuple>>(QBESQLiteResultSequence(result: self))
 	}
 }
 
@@ -116,7 +116,7 @@ private class QBESQLiteResultSequence: SequenceType {
 }
 
 private class QBESQLiteResultGenerator: GeneratorType {
-	typealias Element = QBETuple
+	typealias Element = QBEFallible<QBETuple>
 	let result: QBESQLiteResult
 	var lastStatus: Int32 = SQLITE_OK
 	
@@ -134,21 +134,22 @@ private class QBESQLiteResultGenerator: GeneratorType {
 		self.result.db.perform({
 			self.lastStatus = sqlite3_step(self.result.resultSet)
 			if self.lastStatus == SQLITE_ROW {
-				item = self.row
+				item = .Success(self.row)
 				return SQLITE_OK
 			}
 			else if self.lastStatus == SQLITE_DONE {
 				return SQLITE_OK
 			}
 			else {
+				item = .Failure(self.result.db.lastError)
 				return self.lastStatus
 			}
 		})
 		
 		return item
 	}
-	
-	var row: Element? {
+
+	var row: QBETuple {
 		return (0..<result.columnNames.count).map { idx in
 			switch sqlite3_column_type(self.result.resultSet, Int32(idx)) {
 			case SQLITE_FLOAT:
@@ -388,7 +389,15 @@ private class QBESQLiteConnection: NSObject, QBESQLConnection {
 		return names.use({(ns) -> [String] in
 			var nameStrings: [String] = []
 			for name in ns.sequence() {
-				nameStrings.append(name[0].stringValue!)
+				switch name {
+				case .Success(let n):
+					nameStrings.append(n[0].stringValue!)
+
+				case .Failure(_):
+					// Ignore
+					break
+				}
+
 			}
 			return nameStrings
 		})
@@ -514,7 +523,7 @@ class QBESQLiteStream: QBEStream {
 		if resultStream == nil {
 			switch data.result() {
 				case .Success(let result):
-					resultStream = QBESequenceStream(AnySequence<QBETuple>(result.sequence()), columnNames: result.columnNames)
+					resultStream = QBESequenceStream(AnySequence<QBEFallible<QBETuple>>(result.sequence()), columnNames: result.columnNames)
 					
 				case .Failure(let error):
 					resultStream = QBEErrorStream(error)
@@ -892,9 +901,9 @@ class QBESQLiteSourceStep: QBEStep {
 		self.file = self.file?.bookmark(atURL)
 	}
 
-	override var store: QBEStore? {
+	override var mutableData: QBEMutableData? {
 		if let u = self.file?.url, let tn = tableName {
-			return QBESQLStore(database: QBESQLiteDatabase(url: u, readOnly: false), databaseName: nil, schemaName: nil, tableName: tn)
+			return QBEMutableSQLData(database: QBESQLiteDatabase(url: u, readOnly: false), databaseName: nil, schemaName: nil, tableName: tn)
 		}
 		return nil
 	}

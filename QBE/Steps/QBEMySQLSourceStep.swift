@@ -38,7 +38,7 @@ private final class QBEMySQLDialect: QBEStandardSQLDialect {
 }
 
 internal final class QBEMySQLResult: SequenceType, GeneratorType {
-	typealias Element = QBETuple
+	typealias Element = QBEFallible<QBETuple>
 	typealias Generator = QBEMySQLResult
 	
 	private let connection: QBEMySQLConnection
@@ -121,7 +121,8 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 	}
 	
 	func next() -> Element? {
-		return row()
+		let r = row()
+		return r == nil ? nil : .Success(r!)
 	}
 	
 	func row() -> [QBEValue]? {
@@ -483,7 +484,7 @@ QBEMySQLStream provides a stream of records from a MySQL result set. Because SQL
 sequentially, cloning of this stream requires re-executing the query. */
 private final class QBEMySQLResultStream: QBESequenceStream {
 	init(result: QBEMySQLResult) {
-		super.init(AnySequence<QBETuple>(result), columnNames: result.columnNames)
+		super.init(AnySequence<QBEFallible<QBETuple>>(result), columnNames: result.columnNames)
 	}
 	
 	override func clone() -> QBEStream {
@@ -631,9 +632,9 @@ class QBEMySQLSourceStep: QBEStep {
 		return nil
 	} }
 
-	override var store: QBEStore? { get {
+	override var mutableData: QBEMutableData? { get {
 		if let s = self.database, let t = self.tableName {
-			return QBESQLStore(database: s, databaseName: s.databaseName, schemaName: nil, tableName: t)
+			return QBEMutableSQLData(database: s, databaseName: s.databaseName, schemaName: nil, tableName: t)
 		}
 		return nil
 	} }

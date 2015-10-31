@@ -47,7 +47,7 @@ private class QBEPostgresDialect: QBEStandardSQLDialect {
 }
 
 internal class QBEPostgresResult: SequenceType, GeneratorType {
-	typealias Element = QBETuple
+	typealias Element = QBEFallible<QBETuple>
 	typealias Generator = QBEPostgresResult
 	
 	private let connection: QBEPostgresConnection
@@ -187,7 +187,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 		return row()
 	}
 	
-	func row() -> [QBEValue]? {
+	func row() -> QBEFallible<QBETuple>? {
 		var rowData: [QBEValue]? = nil
 		
 		dispatch_sync(self.connection.queue) {
@@ -249,7 +249,16 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 				self.finished = true
 			}
 		}
-		return rowData
+
+		if let e = self.error {
+			return .Failure(e)
+		}
+		else if let r = rowData {
+			return .Success(r)
+		}
+		else {
+			return nil
+		}
 	}
 }
 
@@ -288,8 +297,10 @@ class QBEPostgresDatabase: QBESQLDatabase {
 			$0.query(sql).use {(result) -> [String] in
 				var dbs: [String] = []
 				while let d = result.row() {
-					if let name = d[0].stringValue {
-						dbs.append(name)
+					if case .Success(let infoRow) = d {
+						if let name = infoRow[0].stringValue {
+							dbs.append(name)
+						}
 					}
 				}
 				return dbs
@@ -303,8 +314,10 @@ class QBEPostgresDatabase: QBESQLDatabase {
 			$0.query(sql).use { (result) -> [QBEPostgresTableName] in
 				var dbs: [QBEPostgresTableName] = []
 				while let d = result.row() {
-					if let tableName = d[1].stringValue, let schemaName = d[0].stringValue {
-						dbs.append(QBEPostgresTableName(schema: schemaName, table: tableName))
+					if case .Success(let infoRow) = d {
+						if let tableName = infoRow[1].stringValue, let schemaName = infoRow[0].stringValue {
+							dbs.append(QBEPostgresTableName(schema: schemaName, table: tableName))
+						}
 					}
 				}
 				return dbs
@@ -487,7 +500,7 @@ QBEPostgresStream provides a stream of records from a PostgreSQL result set. Bec
 sequentially, cloning of this stream requires re-executing the query. */
 private class QBEPostgresResultStream: QBESequenceStream {
 	init(result: QBEPostgresResult) {
-		super.init(AnySequence<QBETuple>(result), columnNames: result.columnNames)
+		super.init(AnySequence<QBEFallible<QBETuple>>(result), columnNames: result.columnNames)
 	}
 	
 	override func clone() -> QBEStream {
@@ -633,9 +646,9 @@ class QBEPostgresSourceStep: QBEStep {
 		return nil
 	} }
 
-	override var store: QBEStore? {
+	override var mutableData: QBEMutableData? {
 		if let d = self.database, let dn = self.databaseName, let tn = self.tableName, let sn = self.schemaName {
-			return QBESQLStore(database: d, databaseName: dn, schemaName: sn, tableName: tn)
+			return QBEMutableSQLData(database: d, databaseName: dn, schemaName: sn, tableName: tn)
 		}
 		return nil
 	}
