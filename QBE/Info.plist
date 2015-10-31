@@ -33,7 +33,6 @@
 				<string>tab</string>
 				<string>tsv</string>
 				<string>dbf</string>
-				<string>sqlite</string>
 			</array>
 			<key>CFBundleTypeMIMETypes</key>
 			<array>
@@ -48,8 +47,66 @@
 			<string>QBEReadableFileType</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
+			<key>LSTypeIsPackage</key>
+			<integer>0</integer>
 			<key>NSDocumentClass</key>
 			<string></string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>sqlite-journal</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>SQLiteJournal</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<integer>0</integer>
+			<key>NSIsRelatedItemType</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>sqlite</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>SQLite</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<integer>0</integer>
+			<key>NSIsRelatedItemType</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>sqlite-wal</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>SQLiteWAL</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<integer>0</integer>
+			<key>NSIsRelatedItemType</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>sqlite-shm</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>SQLiteSHM</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<integer>0</integer>
+			<key>NSIsRelatedItemType</key>
+			<true/>
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>

@@ -182,10 +182,36 @@ private class QBESQLiteResultGenerator: GeneratorType {
 	}
 }
 
+private class QBEFilePresenter: NSObject, NSFilePresenter {
+	@objc let primaryPresentedItemURL: NSURL?
+	@objc let presentedItemURL: NSURL?
+
+	@objc var presentedItemOperationQueue: NSOperationQueue {
+		return NSOperationQueue.mainQueue()
+	}
+
+	init(primary: NSURL, secondaryExtension: String) {
+		self.primaryPresentedItemURL = primary
+		self.presentedItemURL = primary.URLByDeletingPathExtension?.URLByAppendingPathExtension(secondaryExtension)
+		super.init()
+		NSFileCoordinator.addFilePresenter(self)
+	}
+
+	func remove() {
+		NSFileCoordinator.removeFilePresenter(self)
+	}
+
+	deinit {
+		// NSFileCoordinator holds strong references, so this should never be necessary
+		self.remove()
+	}
+}
+
 private class QBESQLiteConnection: NSObject, QBESQLConnection {
 	var url: String?
 	let db: COpaquePointer
 	let dialect: QBESQLDialect = QBESQLiteDialect()
+	let presenters: [QBEFilePresenter]
 
 	init?(path: String, readOnly: Bool = false) {
 		let flags = readOnly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
@@ -193,6 +219,10 @@ private class QBESQLiteConnection: NSObject, QBESQLConnection {
 		let url = NSURL(fileURLWithPath: path)
 		self.url = url.absoluteString
 
+		/* Writing to SQLite requires access to a journal file (usually it has the same name as the database itself, but
+		with the 'sqlite-journal' file extension). In order to gain access to these 'related' files, we need to tell the
+		system we are using the database. */
+		self.presenters = ["sqlite-journal", "sqlite-shm", "sqlite-wal"].map { return QBEFilePresenter(primary: url, secondaryExtension: $0) }
 		super.init()
 
 		dispatch_set_target_queue(self.ownQueue, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
@@ -213,6 +243,7 @@ private class QBESQLiteConnection: NSObject, QBESQLConnection {
 	}
 
 	deinit {
+		self.presenters.forEach { $0.remove() }
 		perform({sqlite3_close(self.db)})
 	}
 	
