@@ -218,24 +218,46 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 	}
 }
 
-class QBEMySQLDatabase {
+class QBEMySQLDatabase: QBESQLDatabase {
 	private let host: String
 	private let port: Int
 	private let user: String
 	private let password: String
-	private let database: String
-	private let dialect: QBESQLDialect = QBEMySQLDialect()
+	let databaseName: String
+	let dialect: QBESQLDialect = QBEMySQLDialect()
 	
 	init(host: String, port: Int, user: String, password: String, database: String) {
 		self.host = host
 		self.port = port
 		self.user = user
 		self.password = password
-		self.database = database
+		self.databaseName = database
 	}
 	
 	func isCompatible(other: QBEMySQLDatabase) -> Bool {
 		return self.host == other.host && self.user == other.user && self.password == other.password && self.port == other.port
+	}
+
+	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		switch self.connect() {
+			case .Success(let con):
+				for query in sql {
+					switch con.query(query) {
+						case .Success(_):
+							break
+
+						case .Failure(let e):
+							callback(.Failure(e))
+							return
+					}
+				}
+
+			case .Failure(let e):
+				callback(.Failure(e))
+				return
+		}
+
+		callback(.Success())
 	}
 	
 	func connect() -> QBEFallible<QBEMySQLConnection> {
@@ -256,7 +278,7 @@ class QBEMySQLDatabase {
 			return .Failure(connection.lastError)
 		}
 		
-		if let dbn = database.cStringUsingEncoding(NSUTF8StringEncoding) where !database.isEmpty {
+		if let dbn = databaseName.cStringUsingEncoding(NSUTF8StringEncoding) where !databaseName.isEmpty {
 			if !connection.perform({() -> Int32 in
 				return mysql_select_db(connection.connection, dbn)
 			}) {
@@ -405,8 +427,8 @@ Represents the result of a MySQL query as a QBEData object. */
 final class QBEMySQLData: QBESQLData {
 	private let database: QBEMySQLDatabase
 	
-	static func create(database database: QBEMySQLDatabase, tableName: String) -> QBEFallible<QBEMySQLData> {
-		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, schema: nil, database: database.database)) LIMIT 1"
+	static func create(database: QBEMySQLDatabase, tableName: String) -> QBEFallible<QBEMySQLData> {
+		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, schema: nil, database: database.databaseName)) LIMIT 1"
 		
 		let fallibleConnection = database.connect()
 		switch fallibleConnection {
@@ -434,7 +456,7 @@ final class QBEMySQLData: QBESQLData {
 	
 	private init(database: QBEMySQLDatabase, table: String, columns: [QBEColumn]) {
 		self.database = database
-		super.init(table: table, schema: nil, database: database.database, dialect: database.dialect, columns: columns)
+		super.init(table: table, schema: nil, database: database.databaseName, dialect: database.dialect, columns: columns)
 	}
 	
 	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
@@ -611,11 +633,18 @@ class QBEMySQLSourceStep: QBEStep {
 		}
 		return nil
 	} }
-	
+
+	override var store: QBEStore? { get {
+		if let s = self.database, let t = self.tableName {
+			return QBESQLStore(database: s, databaseName: s.databaseName, schemaName: nil, tableName: t)
+		}
+		return nil
+	} }
+
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		job.async {
 			if let s = self.database {
-				let md = QBEMySQLData.create(database: s, tableName: self.tableName ?? "")
+				let md = QBEMySQLData.create(s, tableName: self.tableName ?? "")
 				callback(md.use { $0.coalesced })
 			}
 			else {

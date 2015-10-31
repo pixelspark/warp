@@ -1074,10 +1074,80 @@ internal extension NSViewController {
 			}
 		}
 	}
+
+	private func performMutationOnStore(mutation: QBEMutation) {
+		QBEAssertMainThread()
+		guard let cs = currentStep, let store = cs.store where store.canPerformMutation(mutation) else {
+			let a = NSAlert()
+			a.messageText = NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")
+			a.alertStyle = NSAlertStyle.WarningAlertStyle
+			if let w = self.view.window {
+				a.beginSheetModalForWindow(w, completionHandler: nil)
+			}
+			return
+		}
+
+		let confirmationAlert = NSAlert()
+
+		switch mutation {
+		case .Truncate:
+			confirmationAlert.messageText = NSLocalizedString("Are you sure you want to remove all rows in the source data set?", comment: "")
+
+		case .Drop:
+			confirmationAlert.messageText = NSLocalizedString("Are you sure you want to completely remove the source data set?", comment: "")
+		}
+
+		confirmationAlert.informativeText = NSLocalizedString("This will modify the original data, and cannot be undone.", comment: "")
+		confirmationAlert.alertStyle = NSAlertStyle.InformationalAlertStyle
+		let yesButton = confirmationAlert.addButtonWithTitle(NSLocalizedString("Perform modifications", comment: ""))
+		let noButton = confirmationAlert.addButtonWithTitle(NSLocalizedString("Cancel", comment: ""))
+		yesButton.tag = 1
+		noButton.tag = 2
+		confirmationAlert.beginSheetModalForWindow(self.view.window!) { (response) -> Void in
+			if response == 1 {
+				// Confirmed
+				let job = QBEJob(QBEQoS.UserInitiated)
+				store.performMutation(mutation, job: job) { result in
+					QBEAsyncMain {
+						switch result {
+						case .Success:
+							//NSAlert.showSimpleAlert(NSLocalizedString("Command completed successfully", comment: ""), style: NSAlertStyle.InformationalAlertStyle, window: self.view.window!)
+							self.useFullData = false
+							self.calculate()
+
+						case .Failure(let e):
+							NSAlert.showSimpleAlert(e, style: NSAlertStyle.WarningAlertStyle, window: self.view.window!)
+
+						}
+					}
+				}
+			}
+		}
+	}
+
+	@IBAction func truncateStore(sender: NSObject) {
+		self.performMutationOnStore(.Truncate)
+	}
+
+	@IBAction func dropStore(sender: NSObject) {
+		self.performMutationOnStore(.Drop)
+	}
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action()==Selector("transposeData:") {
 			return currentStep != nil
+		}
+		else if item.action() == Selector("truncateStore:")  {
+			if let cs = self.currentStep?.store where cs.canPerformMutation(QBEMutation.Truncate) {
+				return true
+			}
+			return false
+		}
+		else if item.action() == Selector("dropStore:")  {
+			if let cs = self.currentStep?.store where cs.canPerformMutation(QBEMutation.Drop) {
+				return true
+			}
+			return false
 		}
 		else if item.action()==Selector("clearAllFilters:") {
 			return self.viewFilters.count > 0
@@ -1302,6 +1372,15 @@ class QBETipViewController: NSViewController {
 	
 	override func viewWillAppear() {
 		self.messageLabel?.stringValue = message
+	}
+}
+
+private extension NSAlert {
+	static func showSimpleAlert(message: String, style: NSAlertStyle, window: NSWindow) {
+		let av = NSAlert()
+		av.messageText = message
+		av.alertStyle = style
+		av.beginSheetModalForWindow(window, completionHandler: nil)
 	}
 }
 

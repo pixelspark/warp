@@ -47,7 +47,11 @@ public class QBEStep: NSObject, NSCoding {
 			callback(.Failure(NSLocalizedString("This step requires a previous step, but none was found.", comment: "")))
 		}
 	}
-	
+
+	public var store: QBEStore? { get {
+		return nil
+	} }
+
 	public var previous: QBEStep? { didSet {
 		assert(previous != self, "A step cannot be its own previous step")
 		previous?.next = self

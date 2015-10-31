@@ -262,13 +262,13 @@ struct QBEPostgresTableName {
 	} }
 }
 
-class QBEPostgresDatabase {
+class QBEPostgresDatabase: QBESQLDatabase {
 	private let host: String
 	private let port: Int
 	private let user: String
 	private let password: String
 	private let database: String
-	private let dialect: QBESQLDialect = QBEPostgresDialect()
+	let dialect: QBESQLDialect = QBEPostgresDialect()
 	
 	init(host: String, port: Int, user: String, password: String, database: String) {
 		self.host = host
@@ -310,6 +310,24 @@ class QBEPostgresDatabase {
 				return dbs
 			}
 		})
+	}
+
+	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		switch self.connect() {
+			case .Success(let c):
+				for q in sql {
+					let res = c.query(q)
+					if case .Failure(let e) = res {
+						callback(.Failure(e))
+						return
+					}
+				}
+
+			case .Failure(let e):
+				callback(.Failure(e))
+		}
+
+		callback(.Success())
 	}
 	
 	func connect() -> QBEFallible<QBEPostgresConnection> {
@@ -616,7 +634,14 @@ class QBEPostgresSourceStep: QBEStep {
 		}
 		return nil
 	} }
-	
+
+	override var store: QBEStore? {
+		if let d = self.database, let dn = self.databaseName, let tn = self.tableName, let sn = self.schemaName {
+			return QBESQLStore(database: d, databaseName: dn, schemaName: sn, tableName: tn)
+		}
+		return nil
+	}
+
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		job.async {
 			if let s = self.database, let tn = self.tableName where !tn.isEmpty {

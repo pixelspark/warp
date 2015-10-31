@@ -46,12 +46,16 @@ import WarpCore
 						if child.chain?.tablet == tablet {
 							documentView.selectTablet(tablet, notifyDelegate: false)
 							child.view.superview?.orderFront()
+
+							// Only show this tablet in the sentence editor if it really has become the selected tablet
+							if self.documentView.selectedTablet == tablet {
+								self.sentenceEditor?.configure(configureStep, delegate: delegate)
+							}
 						}
 					}
 				}
 			}
 		}
-		self.sentenceEditor?.configure(configureStep, delegate: delegate)
 	}
 	
 	@objc func removeTablet(tablet: QBETablet) {
@@ -384,14 +388,13 @@ import WarpCore
 	
 	private func didSelectTablet(tabletViewController: QBEChainViewController?) {
 		if let tv = tabletViewController {
-			//////self.setFormula(QBEValue.InvalidValue, callback: nil)
 			tv.tabletWasSelected()
 		}
 		else {
-			//////self.setFormula(QBEValue.InvalidValue, callback: nil)
 			self.sentenceEditor?.configure(nil, delegate: nil)
 		}
 		self.view.window?.update()
+		self.view.window?.toolbar?.validateVisibleItems()
 	}
 	
 	func documentView(view: QBEDocumentView, didSelectTablet tablet: QBEChainViewController?) {

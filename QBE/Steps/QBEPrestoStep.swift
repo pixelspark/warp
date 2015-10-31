@@ -230,18 +230,45 @@ private class QBEPrestoDatabase: QBESQLDatabase {
 	let url: NSURL
 	let schema: String
 	let catalog: String
+	let dialect: QBESQLDialect = QBEPrestoSQLDialect()
 	
 	init(url: NSURL, catalog: String, schema: String) {
 		self.url = url
 		self.catalog = catalog
 		self.schema = schema
-		super.init(dialect: QBEPrestoSQLDialect())
 	}
 	
 	func query(sql: String) -> QBEPrestoStream {
 		return QBEPrestoStream(url: url, sql: sql, catalog: catalog, schema: schema)
 	}
-	
+
+	func run(var sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		let mutex = QBEMutex() // To protect the list of queryes
+
+		// TODO check for memory leaks
+		var consume: (() -> ())? = nil
+		consume = { () -> () in
+			mutex.locked {
+				let q = sql.removeFirst()
+				let stream = self.query(q)
+				stream.fetch(job) { (res, _) -> () in
+					mutex.locked {
+						if case .Failure(let e) = res {
+							callback(.Failure(e))
+						}
+						else {
+							job.async {
+								consume?()
+							}
+						}
+					}
+				}
+			}
+		}
+
+		consume!()
+	}
+
 	var tableNames: [String]? { get {
 		return []
 	} }
@@ -369,5 +396,12 @@ class QBEPrestoSourceStep: QBEStep {
 		self.fullData(job, callback: { (fd) -> () in
 			callback(fd.use({$0.random(maxInputRows)}))
 		})
+	}
+
+	override var store: QBEStore? {
+		if let d = self.db, let catName = self.catalogName, let tableName = self.tableName, let schemaName = self.schemaName {
+			return QBESQLStore(database: d, databaseName: catName, schemaName: schemaName, tableName: tableName)
+		}
+		return nil
 	}
 }

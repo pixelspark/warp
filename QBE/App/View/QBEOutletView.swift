@@ -294,6 +294,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 	
 	func draggingSession(session: NSDraggingSession, movedToPoint screenPoint: NSPoint) {
 		dragLineWindow?.targetScreenPoint = screenPoint
+		dragLineWindow?.update()
 	}
 	
 	func draggingSession(session: NSDraggingSession, endedAtPoint screenPoint: NSPoint, operation: NSDragOperation) {

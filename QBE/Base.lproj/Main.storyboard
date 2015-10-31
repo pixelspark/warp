@@ -961,6 +961,13 @@ CA
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Tools" id="bCT-hI-Iv5">
                                     <items>
+                                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="Qd1-7c-QpC">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <connections>
+                                                <action selector="transposeData:" target="Ady-hI-5gd" id="zdd-dH-g4B"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="dy6-RC-S8R"/>
                                         <menuItem title="Make pivot table..." keyEquivalent="d" id="Mg0-TA-h4E">
                                             <connections>
                                                 <action selector="pivot:" target="Ady-hI-5gd" id="Cw3-1m-cKZ"/>
@@ -984,11 +991,24 @@ CA
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="0Dp-rC-xCW"/>
-                                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="Qd1-7c-QpC">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                                            <connections>
-                                                <action selector="transposeData:" target="Ady-hI-5gd" id="zdd-dH-g4B"/>
-                                            </connections>
+                                        <menuItem title="Modify source data" id="LGC-Mi-RUG">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Modify source data" id="sRO-jn-RSu">
+                                                <items>
+                                                    <menuItem title="Remove all rows" id="LPb-df-lkY">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="truncateStore:" target="Ady-hI-5gd" id="TIk-sw-KFb"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Delete data set" id="NQ3-pS-d85">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="dropStore:" target="Ady-hI-5gd" id="Y59-ih-jue"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
                                         </menuItem>
                                     </items>
                                 </menu>
@@ -1394,6 +1414,11 @@ CA
                                         <action selector="cancelCalculation:" target="6f7-a7-6o1" id="5y4-t5-jaI"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="A0D86B7B-622D-41A7-BAE6-2979E0157679" label="Calculate" paletteLabel="Calculate" tag="-1" image="BigIcon" id="xwx-V7-Rym">
+                                    <connections>
+                                        <action selector="setFullWorkingSet:" target="6f7-a7-6o1" id="sES-ve-507"/>
+                                    </connections>
+                                </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="65B21C31-F9E1-4753-9770-07804938BD85" label="Selection" paletteLabel="Zoom to selection" tag="-1" image="ZoomInIcon" id="QnM-NS-IrF">
                                     <connections>
                                         <action selector="zoomSelection:" target="6f7-a7-6o1" id="NrX-OE-0uM"/>
@@ -1402,26 +1427,6 @@ CA
                                 <toolbarItem implicitItemIdentifier="58A66CDB-C539-48F9-875C-790A62D93359" label="Alternatives" paletteLabel="Show alternatives" tag="-1" image="ChangeIcon" id="FIb-De-h7B">
                                     <connections>
                                         <action selector="showSuggestions:" target="6f7-a7-6o1" id="vEM-eL-BsV"/>
-                                    </connections>
-                                </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="63411011-AB43-4F4F-949B-CA1E1E0CF7DB" label="Calculate" paletteLabel="Calculate" image="BigIcon" id="OzT-DI-1G1">
-                                    <nil key="toolTip"/>
-                                    <size key="minSize" width="32" height="32"/>
-                                    <size key="maxSize" width="32" height="32"/>
-                                    <button key="view" id="8y0-qO-v96">
-                                        <rect key="frame" x="13" y="14" width="32" height="32"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                        <animations/>
-                                        <buttonCell key="cell" type="bevel" bezelStyle="rounded" image="BigIcon" imagePosition="overlaps" alignment="center" imageScaling="proportionallyDown" inset="2" id="f3b-xk-pOw">
-                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                            <font key="font" metaFont="system"/>
-                                        </buttonCell>
-                                        <connections>
-                                            <action selector="setFullWorkingSet:" target="6f7-a7-6o1" id="e2r-SV-LlV"/>
-                                        </connections>
-                                    </button>
-                                    <connections>
-                                        <action selector="setFullWorkingSet:" target="6f7-a7-6o1" id="pJO-7z-peH"/>
                                     </connections>
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="C32CAEDE-B9A1-49E9-8C7E-ABAE2BA30F3F" label="Export" paletteLabel="Export data" tag="-1" image="ExportIcon" id="A5A-19-saX">
@@ -1434,7 +1439,7 @@ CA
                                 <toolbarItem reference="uPf-Qt-XpM"/>
                                 <toolbarItem reference="QnM-NS-IrF"/>
                                 <toolbarItem reference="wdl-hf-yLn"/>
-                                <toolbarItem reference="OzT-DI-1G1"/>
+                                <toolbarItem reference="xwx-V7-Rym"/>
                                 <toolbarItem reference="qY2-Sw-ffx"/>
                                 <toolbarItem reference="wdl-hf-yLn"/>
                                 <toolbarItem reference="A5A-19-saX"/>
@@ -2463,7 +2468,7 @@ Gw
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </clipView>
                                 <animations/>
-                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="bfd-AV-hq2">
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="bfd-AV-hq2">
                                     <rect key="frame" x="1" y="231" width="640" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <animations/>

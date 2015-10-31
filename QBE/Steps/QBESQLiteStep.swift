@@ -1,7 +1,7 @@
 import Foundation
 import WarpCore
 
-internal class QBESQLiteResult {
+private class QBESQLiteResult {
 	let resultSet: COpaquePointer
 	let db: QBESQLiteDatabase
 	
@@ -102,7 +102,7 @@ internal class QBESQLiteResult {
 	}
 }
 
-internal class QBESQLiteResultSequence: SequenceType {
+private class QBESQLiteResultSequence: SequenceType {
 	let result: QBESQLiteResult
 	typealias Generator = QBESQLiteResultGenerator
 	
@@ -115,7 +115,7 @@ internal class QBESQLiteResultSequence: SequenceType {
 	}
 }
 
-internal class QBESQLiteResultGenerator: GeneratorType {
+private class QBESQLiteResultGenerator: GeneratorType {
 	typealias Element = QBETuple
 	let result: QBESQLiteResult
 	var lastStatus: Int32 = SQLITE_OK
@@ -182,9 +182,10 @@ internal class QBESQLiteResultGenerator: GeneratorType {
 	}
 }
 
-internal class QBESQLiteDatabase: QBESQLDatabase {
-	internal var url: String?
+private class QBESQLiteDatabase: QBESQLDatabase {
+	var url: String?
 	let db: COpaquePointer
+	let dialect: QBESQLDialect = QBESQLiteDialect()
 	
 	private class var sharedQueue : dispatch_queue_t {
 		struct Static {
@@ -325,7 +326,6 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 		let flags = readOnly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
 		self.db = nil
 		self.url = NSURL(fileURLWithPath: path).absoluteString
-		super.init(dialect: QBESQLiteDialect())
 		
 		if !perform({sqlite3_open_v2(path, &self.db, flags, nil) }) {
 			return nil
@@ -349,6 +349,23 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 	func query(sql: String) -> QBEFallible<QBESQLiteResult> {
 		return QBESQLiteResult.create(sql, db: self)
 	}
+
+	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		for q in sql {
+			switch query(q) {
+				case .Success(let c):
+					if !c.run() {
+						callback(.Failure(self.lastError))
+						return
+					}
+
+				case .Failure(let e):
+					callback(.Failure(e))
+					return
+			}
+		}
+		callback(.Success())
+	}
 	
 	var tableNames: QBEFallible<[String]> { get {
 		let names = query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name ASC")
@@ -363,11 +380,11 @@ internal class QBESQLiteDatabase: QBESQLDatabase {
 	} }
 }
 
-func ==(lhs: QBESQLiteDatabase, rhs: QBESQLiteDatabase) -> Bool {
+private func ==(lhs: QBESQLiteDatabase, rhs: QBESQLiteDatabase) -> Bool {
 	return lhs.db == rhs.db || (lhs.url == rhs.url && lhs.url != nil && rhs.url != nil)
 }
 
-internal class QBESQLiteDialect: QBEStandardSQLDialect {
+private class QBESQLiteDialect: QBEStandardSQLDialect {
 	// SQLite does not support column names with '"' in them.
 	override func columnIdentifier(column: QBEColumn, table: String?, schema: String?, database: String?) -> String {
 		return super.columnIdentifier(QBEColumn(column.name.stringByReplacingOccurrencesOfString("\"", withString: "", options: NSStringCompareOptions(), range: nil)), table: table, schema: schema, database: database)
@@ -432,7 +449,7 @@ internal class QBESQLiteDialect: QBEStandardSQLDialect {
 class QBESQLiteData: QBESQLData {
 	private let db: QBESQLiteDatabase
 	
-	static func create(db: QBESQLiteDatabase, tableName: String) -> QBEFallible<QBESQLiteData> {
+	static private func create(db: QBESQLiteDatabase, tableName: String) -> QBEFallible<QBESQLiteData> {
 		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, schema: nil, database: nil))"
 		switch db.query(query) {
 			case .Success(let result):
@@ -505,7 +522,7 @@ class QBESQLiteStream: QBEStream {
 	}
 }
 
-class QBESQLiteWriterSession {
+private class QBESQLiteWriterSession {
 	private let database: QBESQLiteDatabase
 	private let tableName: String
 	private let source: QBEData
@@ -757,7 +774,7 @@ class QBESQLiteSourceStep: QBEStep {
 	} }
 	
 	var tableName: String?
-	var db: QBESQLiteDatabase?
+	private var db: QBESQLiteDatabase?
 	
 	init?(url: NSURL) {
 		self.file = QBEFileReference.URL(url)

@@ -312,6 +312,60 @@ class QBERethinkData: QBEStreamData {
 	}
 }
 
+class QBERethinkStore: QBEStore {
+	let url: NSURL
+	let databaseName: String
+	let tableName: String
+
+	init(url: NSURL, databaseName: String, tableName: String) {
+		self.url = url
+		self.databaseName = databaseName
+		self.tableName = tableName
+	}
+
+	func canPerformMutation(mutation: QBEMutation) -> Bool {
+		switch mutation {
+		case .Truncate, .Drop:
+			return true
+		}
+	}
+
+	func performMutation(mutation: QBEMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		if !canPerformMutation(mutation) {
+			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
+			return
+		}
+
+		job.async {
+			R.connect(self.url) { (err, connection) -> () in
+				if let e = err {
+					callback(.Failure(e))
+					return
+				}
+
+				let q: ReQuery
+				switch mutation {
+					case .Truncate:
+						q = R.db(self.databaseName).table(self.tableName).delete()
+
+					case .Drop:
+						q = R.db(self.databaseName).tableDrop(self.tableName)
+				}
+
+				q.run(connection, callback: { (response) -> () in
+					if case ReResponse.Error(let e) = response {
+						callback(.Failure(e))
+						return
+					}
+					else {
+						callback(.Success())
+					}
+				})
+			}
+		}
+	}
+}
+
 class QBERethinkSourceStep: QBEStep {
 	var database: String = "test"
 	var table: String = "test"
@@ -440,5 +494,12 @@ class QBERethinkSourceStep: QBEStep {
 				self.database = newDatabase
 			})
 		)
+	}
+
+	override var store: QBEStore? {
+		if let u = self.url {
+			return QBERethinkStore(url: u, databaseName: self.database, tableName: self.table)
+		}
+		return nil
 	}
 }

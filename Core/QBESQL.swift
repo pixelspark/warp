@@ -84,11 +84,52 @@ public protocol QBESQLDialect {
 	func joinType(type: QBEJoinType) -> String?
 }
 
-public class QBESQLDatabase {
-	public let dialect: QBESQLDialect
-	
-	public init(dialect: QBESQLDialect) {
-		self.dialect = dialect
+public protocol QBESQLDatabase {
+	var dialect: QBESQLDialect { get }
+
+	/** Perform the indicate SQL data definition commands in the order specified. The callback is called after the first
+	 error is encountered, or when all queries have been executed successfully. Depending on the support of the database,
+	wrapping in a transaction is possible by issuing 'START TRANSACTION'  and 'COMMIT'  commands. Whenever an error is
+	encountered, no further query processing should happen. */
+	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ())
+}
+
+public class QBESQLStore: QBEStore {
+	let database: QBESQLDatabase
+	let databaseName: String
+	let tableName: String
+	let schemaName: String?
+	var dialect: QBESQLDialect { return database.dialect }
+
+	public init(database: QBESQLDatabase, databaseName: String, schemaName: String?, tableName: String) {
+		self.database = database
+		self.databaseName = databaseName
+		self.tableName = tableName
+		self.schemaName = schemaName
+	}
+
+	public func performMutation(mutation: QBEMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		if !canPerformMutation(mutation) {
+			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
+			return
+		}
+
+		job.async {
+			switch mutation {
+			case .Drop:
+				self.database.run(["DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.databaseName))"], job: job, callback: callback)
+
+			case .Truncate:
+				self.database.run(["TRUNCATE TABLE \(self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.databaseName))"], job: job, callback: callback)
+			}
+		}
+	}
+
+	public func canPerformMutation(mutation: QBEMutation) -> Bool {
+		switch mutation {
+		case .Truncate, .Drop:
+			return true
+		}
 	}
 }
 
