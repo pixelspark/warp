@@ -456,9 +456,13 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 				return literalString(s)
 				
 			case .DoubleValue(let d):
-				// FIXME: check decimal separator
-				return "\(d)"
-				
+				if d.isNormal {
+					return "\(d)"
+				}
+				else {
+					return "(1.0/0.0)"
+				}
+
 			case .IntValue(let i):
 				return "\(i)"
 			
