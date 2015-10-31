@@ -1,7 +1,7 @@
 import Cocoa
 import WarpCore
 
-class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate, QBEFormulaEditorViewDelegate {
+class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate, QBEFormulaEditorViewDelegate, QBESuggestionsViewDelegate {
 	@IBOutlet var tokenField: NSTokenField!
 	@IBOutlet var configureButton: NSButton!
 
@@ -293,7 +293,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func configure(sender: NSObject) {
-		if let s = self.editingStep, let stepView = QBEFactory.sharedInstance.viewForStep(s.self, delegate: delegate!) {
+		if let s = self.editingStep, let stepView = QBEFactory.sharedInstance.viewForStep(s.self, delegate: self) {
 			self.presentViewController(stepView, asPopoverRelativeToRect: configureButton.frame, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Semitransient)
 		}
 	}
@@ -318,4 +318,29 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			}
 		}
 	}
+
+	// QBESuggestionViewDelegate forwards
+	func suggestionsView(view: NSViewController, didSelectStep step: QBEStep) {
+		QBEAsyncMain { self.updateView() }
+		self.delegate?.suggestionsView(view, didSelectStep: step)
+	}
+
+	func suggestionsView(view: NSViewController, didSelectAlternativeStep step: QBEStep) {
+		QBEAsyncMain { self.updateView() }
+		self.delegate?.suggestionsView(view, didSelectAlternativeStep: step)
+	}
+
+	func suggestionsView(view: NSViewController, previewStep step: QBEStep?) {
+		QBEAsyncMain { self.updateView() }
+		self.delegate?.suggestionsView(view, previewStep: step)
+	}
+
+	func suggestionsViewDidCancel(view: NSViewController) {
+		QBEAsyncMain { self.updateView() }
+		self.delegate?.suggestionsViewDidCancel(view)
+	}
+
+	var currentStep: QBEStep? { return self.delegate?.currentStep }
+	var locale: QBELocale { return self.delegate!.locale }
+	var undo: NSUndoManager? { return self.delegate?.undo }
 }
