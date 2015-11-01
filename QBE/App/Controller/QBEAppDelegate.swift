@@ -3,7 +3,8 @@ import WarpCore
 
 @NSApplicationMain
 class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
-	var locale: QBELocale!
+	internal var locale: QBELocale!
+	internal let jobsManager = QBEJobsManager()
 	
 	func applicationDidFinishLaunching(aNotification: NSNotification) {
 		applyDefaults()

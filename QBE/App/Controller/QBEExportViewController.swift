@@ -18,6 +18,7 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESuggestionsV
 	private var sentenceEditor: QBESentenceViewController!
 	private var isExporting: Bool = false
 	private var notifyUser = false
+	private var job: QBEJob? = nil
 
 	@IBAction func addAsStep(sender: NSObject) {
 		if let s = self.step {
@@ -67,6 +68,13 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESuggestionsV
 	}
 
 	@IBAction func continueInBackground(sender: NSObject) {
+		if let j = job {
+			if let url = self.step?.file?.url?.lastPathComponent {
+				let jobName = String(format: NSLocalizedString("Export data to '%@'", comment: ""), url)
+				QBEAppDelegate.sharedInstance.jobsManager.addJob(j, description: jobName)
+			}
+
+		}
 		self.notifyUser = true
 		self.dismissController(sender)
 	}
@@ -74,6 +82,7 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESuggestionsV
 	@IBAction func exportOnce(sender: NSObject) {
 		let alertWindow = self.presentingViewController?.view.window
 		let job = QBEJob(.UserInitiated)
+		self.job = job
 		job.addObserver(self)
 		isExporting = true
 		update()

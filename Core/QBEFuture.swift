@@ -31,15 +31,6 @@ public func QBEAsyncMain(block: () -> ()) {
 	dispatch_async(dispatch_get_main_queue(), block)
 }
 
-internal extension dispatch_semaphore_t {
-	/** Acquire the semaphore, run block while holding the semaphore, release it afterwards. */
-	func use(timeout: dispatch_time_t = DISPATCH_TIME_FOREVER, @noescape block: () -> ()) {
-		dispatch_semaphore_wait(self, timeout)
-		block()
-		dispatch_semaphore_signal(self)
-	}
-}
-
 public extension SequenceType {
 	typealias Element = Generator.Element
 	
@@ -235,10 +226,10 @@ public enum QBEFallible<T> {
 	}
 }
 
-private class QBEWeak<T: AnyObject> {
-	private(set) weak var value: T?
+public class QBEWeak<T: AnyObject> {
+	public private(set) weak var value: T?
 	
-	init(_ value: T?) {
+	public init(_ value: T?) {
 		self.value = value
 	}
 }

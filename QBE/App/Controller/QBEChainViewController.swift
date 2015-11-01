@@ -1107,6 +1107,16 @@ internal extension NSViewController {
 			if response == 1 {
 				// Confirmed
 				let job = QBEJob(QBEQoS.UserInitiated)
+
+				// Register this job with the background job manager
+				let name: String
+				switch mutation {
+				case .Truncate: name = NSLocalizedString("Truncate data set", comment: "")
+				case .Drop: name = NSLocalizedString("Remove data set", comment: "")
+				}
+				QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: name)
+
+				// Start the mutation
 				store.performMutation(mutation, job: job) { result in
 					QBEAsyncMain {
 						switch result {

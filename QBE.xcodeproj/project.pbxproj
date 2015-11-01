@@ -128,6 +128,8 @@
 		65AAF4BF1B9B3F46004C79D3 /* QBESentence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65AAF4BE1B9B3F46004C79D3 /* QBESentence.swift */; };
 		65AAF4C11B9C2BE9004C79D3 /* QBEExportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65AAF4C01B9C2BE9004C79D3 /* QBEExportViewController.swift */; };
 		65CD414F1BE4C24A006534E1 /* QBEMutableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD414E1BE4C24A006534E1 /* QBEMutableData.swift */; };
+		65CD41551BE6105A006534E1 /* QBEJobsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD41541BE6105A006534E1 /* QBEJobsViewController.swift */; };
+		65CD41571BE6251F006534E1 /* QBEJobsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD41561BE6251F006534E1 /* QBEJobsManager.swift */; };
 		65CD70651B650DD2008AF5C3 /* QBEReferenceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */; };
 		65CD706C1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CD706B1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift */; };
 		65CD95201AC9E80300557C9E /* QBEObjectiveCBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 65CD951F1AC9E80300557C9E /* QBEObjectiveCBridge.m */; };
@@ -494,6 +496,8 @@
 		65AAF4BE1B9B3F46004C79D3 /* QBESentence.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESentence.swift; sourceTree = "<group>"; };
 		65AAF4C01B9C2BE9004C79D3 /* QBEExportViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEExportViewController.swift; sourceTree = "<group>"; };
 		65CD414E1BE4C24A006534E1 /* QBEMutableData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEMutableData.swift; path = Core/QBEMutableData.swift; sourceTree = SOURCE_ROOT; };
+		65CD41541BE6105A006534E1 /* QBEJobsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEJobsViewController.swift; sourceTree = "<group>"; };
+		65CD41561BE6251F006534E1 /* QBEJobsManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEJobsManager.swift; sourceTree = "<group>"; };
 		65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEReferenceViewController.swift; sourceTree = "<group>"; };
 		65CD706B1B652030008AF5C3 /* QBEFormula+SyntaxColoring.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "QBEFormula+SyntaxColoring.swift"; sourceTree = "<group>"; };
 		65CD951F1AC9E80300557C9E /* QBEObjectiveCBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = QBEObjectiveCBridge.m; path = QBE/QBEObjectiveCBridge.m; sourceTree = "<group>"; };
@@ -725,6 +729,7 @@
 				65AAF4C01B9C2BE9004C79D3 /* QBEExportViewController.swift */,
 				65E846D71B37E4A500397F88 /* QBEFilterViewController.swift */,
 				652FB9E81B75F1090045943C /* QBEFormulaEditorViewController.swift */,
+				65CD41541BE6105A006534E1 /* QBEJobsViewController.swift */,
 				65CD70641B650DD2008AF5C3 /* QBEReferenceViewController.swift */,
 				65A0DF6F1AF299C20005C50F /* QBESentenceViewController.swift */,
 				65A0DF721AF299C20005C50F /* QBESettingsViewController.swift */,
@@ -748,6 +753,7 @@
 				65884A301AFF50BF003A5BF1 /* QBESettings.swift */,
 				65AAF4BC1B9B3F10004C79D3 /* QBEStep.swift */,
 				65A0DF791AF299C20005C50F /* QBETablet.swift */,
+				65CD41561BE6251F006534E1 /* QBEJobsManager.swift */,
 			);
 			name = Model;
 			path = App/Model;
@@ -1234,6 +1240,7 @@
 			files = (
 				65A0E0261AF2B92A0005C50F /* QBEDocumentView.swift in Sources */,
 				65AAF4BF1B9B3F46004C79D3 /* QBESentence.swift in Sources */,
+				65CD41571BE6251F006534E1 /* QBEJobsManager.swift in Sources */,
 				657779A41B37032C00B28AED /* QBECrawlStepView.swift in Sources */,
 				65884A391AFFA9D9003A5BF1 /* QBEOutletView.swift in Sources */,
 				652B274F1B8FB8C200A2D38E /* QBECloneStep.swift in Sources */,
@@ -1293,6 +1300,7 @@
 				65A0DF881AF299C20005C50F /* QBESettingsViewController.swift in Sources */,
 				65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */,
 				65A0E01C1AF29A750005C50F /* QBEPrestoSourceStepView.swift in Sources */,
+				65CD41551BE6105A006534E1 /* QBEJobsViewController.swift in Sources */,
 				651648B51B3B466F001E50BC /* QBEFilterCell.swift in Sources */,
 				65DC015E1B791307001D4298 /* QBETourViewController.swift in Sources */,
 				65A0DF841AF299C20005C50F /* QBEDataViewController.swift in Sources */,
