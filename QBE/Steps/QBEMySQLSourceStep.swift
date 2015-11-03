@@ -594,7 +594,7 @@ class QBEMySQLSourceStep: QBEStep {
 					self.tableName = newTable
 			}),
 
-			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
+			QBESentenceList(value: self.databaseName ?? "", provider: { (callback) -> () in
 				if let d = self.database {
 					switch d.connect() {
 					case .Success(let con):
