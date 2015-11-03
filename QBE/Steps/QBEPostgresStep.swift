@@ -262,15 +262,6 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 	}
 }
 
-struct QBEPostgresTableName {
-	let schema: String
-	let table: String
-
-	var displayName: String { get {
-		return "\(schema).\(table)"
-	} }
-}
-
 class QBEPostgresDatabase: QBESQLDatabase {
 	private let host: String
 	private let port: Int
@@ -308,15 +299,36 @@ class QBEPostgresDatabase: QBESQLDatabase {
 		})
 	}
 	
-	func tables(callback: (QBEFallible<[QBEPostgresTableName]>) -> ()) {
-		let sql = "SELECT schemaname, tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog'  AND schemaname != 'information_schema'"
+	func tables(databaseName: String, schemaName: String, callback: (QBEFallible<[String]>) -> ()) {
+		let ts = self.dialect.expressionToSQL(QBELiteralExpression(QBEValue(schemaName)), alias: "s", foreignAlias: nil, inputValue: nil)!
+		let tc = self.dialect.expressionToSQL(QBELiteralExpression(QBEValue(databaseName)), alias: "s", foreignAlias: nil, inputValue: nil)!
+
+		let sql = "SELECT table_name FROM information_schema.tables t WHERE t.table_schema = \(ts)  AND t.table_catalog = \(tc)"
 		callback(self.connect().use {
-			$0.query(sql).use { (result) -> [QBEPostgresTableName] in
-				var dbs: [QBEPostgresTableName] = []
+			$0.query(sql).use { (result) -> [String] in
+				var dbs: [String] = []
 				while let d = result.row() {
 					if case .Success(let infoRow) = d {
-						if let tableName = infoRow[1].stringValue, let schemaName = infoRow[0].stringValue {
-							dbs.append(QBEPostgresTableName(schema: schemaName, table: tableName))
+						if let tableName = infoRow[0].stringValue {
+							dbs.append(tableName)
+						}
+					}
+				}
+				return dbs
+			}
+		})
+	}
+
+	func schemas(databaseName: String, callback: (QBEFallible<[String]>) -> ()) {
+		let cn = self.dialect.expressionToSQL(QBELiteralExpression(QBEValue(databaseName)), alias: "s", foreignAlias: nil, inputValue: nil)!
+		let sql = "SELECT s.schema_name FROM information_schema.schemata s WHERE catalog_name=\(cn)"
+		callback(self.connect().use {
+			$0.query(sql).use { (result) -> [String] in
+				var dbs: [String] = []
+				while let d = result.row() {
+					if case .Success(let infoRow) = d {
+						if let schemaName = infoRow[0].stringValue {
+							dbs.append(schemaName)
 						}
 					}
 				}
@@ -553,6 +565,7 @@ class QBEPostgresSourceStep: QBEStep {
 	var databaseName: String?
 	var schemaName: String?
 	var port: Int?
+	let defaultSchemaName = "public"
 	
 	init(host: String, port: Int, user: String, password: String, database: String,  schemaName: String, tableName: String) {
 		self.host = host
@@ -588,15 +601,13 @@ class QBEPostgresSourceStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale) -> QBESentence {
-		let tableIdentifier = "\(self.schemaName ?? "").\(self.tableName ?? "")"
-
-		return QBESentence(format: NSLocalizedString("Load table [#] from PostgreSQL database [#]", comment: ""),
-			QBESentenceList(value: tableIdentifier, provider: { (callback) -> () in
+		return QBESentence(format: NSLocalizedString("Load table [#] from schema [#] in PostgreSQL database [#]", comment: ""),
+			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
 				if let d = self.database {
-					d.tables { tablesFallible in
+					d.tables(self.databaseName ?? "", schemaName: self.schemaName ?? self.defaultSchemaName) { tablesFallible in
 						switch tablesFallible {
 						case .Success(let tables):
-							callback(.Success(tables.map { return "\($0.schema).\($0.table)" }))
+							callback(.Success(tables))
 
 						case .Failure(let e):
 							callback(.Failure(e))
@@ -607,11 +618,26 @@ class QBEPostgresSourceStep: QBEStep {
 					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
 				}
 			}, callback: { (newTable) -> () in
-					var components = newTable.characters.split(".")
-					if components.count == 2 {
-						self.schemaName = String(components.removeFirst())
-						self.tableName = String(components.removeFirst())
+				self.tableName = newTable
+			}),
+
+			QBESentenceList(value: self.schemaName ?? self.defaultSchemaName, provider: { (callback) -> () in
+				if let d = self.database {
+					d.schemas(self.databaseName ?? "") { schemaFallible in
+						switch schemaFallible {
+						case .Success(let dbs):
+							callback(.Success(dbs))
+
+						case .Failure(let e):
+							callback(.Failure(e))
+						}
 					}
+				}
+				else {
+					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
+				}
+			}, callback: { (newSchema) -> () in
+					self.schemaName = newSchema
 			}),
 
 			QBESentenceList(value: self.databaseName ?? "", provider: { (callback) -> () in
@@ -656,7 +682,7 @@ class QBEPostgresSourceStep: QBEStep {
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		job.async {
 			if let s = self.database, let tn = self.tableName where !tn.isEmpty {
-				callback(QBEPostgresData.create(database: s, tableName: tn, schemaName: self.schemaName ?? "public", locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
+				callback(QBEPostgresData.create(database: s, tableName: tn, schemaName: self.schemaName ?? self.defaultSchemaName, locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
 			}
 			else {
 				callback(.Failure(NSLocalizedString("No database or table selected", comment: "")))
