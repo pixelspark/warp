@@ -2,17 +2,13 @@ import Foundation
 import Cocoa
 import WarpCore
 
-internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate, NSComboBoxDelegate, NSComboBoxDataSource {
+internal class QBEMySQLSourceStepView: NSViewController {
 	let step: QBEMySQLSourceStep?
-	var tableNames: [String]?
 	weak var delegate: QBESuggestionsViewDelegate?
-	@IBOutlet var tableView: NSTableView?
 	@IBOutlet var userField: NSTextField?
 	@IBOutlet var passwordField: NSTextField?
 	@IBOutlet var hostField: NSTextField?
 	@IBOutlet var portField: NSTextField?
-	@IBOutlet var databaseField: NSComboBox?
-	private var databaseNames: [String]?
 	
 	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
 		self.delegate = delegate
@@ -61,11 +57,6 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 				s.port = Int(u)
 				changed = true
 			}
-			
-			if let u = self.databaseField?.stringValue where u != s.databaseName {
-				s.databaseName = u
-				changed = true
-			}
 		
 			if changed {
 				delegate?.suggestionsView(self, previewStep: step)
@@ -73,15 +64,7 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 			}
 		}
 	}
-	
-	func numberOfItemsInComboBox(aComboBox: NSComboBox) -> Int {
-		return databaseNames?.count ?? 0
-	}
-	
-	func comboBox(aComboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> AnyObject {
-		return databaseNames?[index] ?? ""
-	}
-	
+
 	private func updateView() {
 		let job = QBEJob(.UserInitiated)
 		
@@ -90,68 +73,21 @@ internal class QBEMySQLSourceStepView: NSViewController, NSTableViewDataSource, 
 			self.passwordField?.stringValue = s.password ?? ""
 			self.hostField?.stringValue = s.host ?? ""
 			self.portField?.stringValue = "\(s.port ?? 0)"
-			self.databaseField?.stringValue = s.databaseName ?? ""
-			
-			tableNames = []
-			tableView?.reloadData()
+
 			job.async {
 				if let database = s.database {
 					let dbFallible = database.connect()
 					switch dbFallible {
 						case .Success(let db):
-							// Update list of databases
-							db.databases { (dbs) -> () in
-								dbs.maybe { (databaseNames) -> () in
-									QBEAsyncMain {
-										self.databaseNames = databaseNames
-										self.databaseField?.reloadData()
-									}
-									
-									db.tables {(ts) -> () in
-										ts.maybe { (tableNames) -> () in
-											QBEAsyncMain {
-												self.tableNames = tableNames
-												self.tableView?.reloadData()
-												
-												// Select current table
-												if self.tableNames != nil {
-													let currentTable = s.tableName
-													for i in 0..<self.tableNames!.count {
-														if self.tableNames![i]==currentTable {
-															self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
+							// TODO OK, show some nice 'connected' message
+							break;
 
 						case .Failure(_):
+							// TODO: failure, show error
 							break;
 					}
 				}
 			}
 		}
-	}
-	
-	internal func tableViewSelectionDidChange(notification: NSNotification) {
-		let selection = tableView?.selectedRow ?? -1
-		if tableNames != nil && selection >= 0 && selection < tableNames!.count {
-			let selectedName = tableNames![selection]
-			if step?.tableName != selectedName {
-				step?.tableName = selectedName
-				delegate?.suggestionsView(self, previewStep: step)
-			}
-		}
-	}
-	
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
-		return tableNames?.count ?? 0
-	}
-	
-	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
-		return tableNames?[row] ?? ""
 	}
 }
