@@ -9,6 +9,9 @@ internal class QBEMySQLSourceStepView: NSViewController {
 	@IBOutlet var passwordField: NSTextField?
 	@IBOutlet var hostField: NSTextField?
 	@IBOutlet var portField: NSTextField?
+	@IBOutlet var infoLabel: NSTextField?
+	@IBOutlet var infoProgress: NSProgressIndicator?
+	@IBOutlet var infoIcon: NSImageView?
 	
 	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
 		self.delegate = delegate
@@ -65,8 +68,14 @@ internal class QBEMySQLSourceStepView: NSViewController {
 		}
 	}
 
+	private var checkConnectionJob: QBEJob? = nil { willSet {
+		if let o = checkConnectionJob {
+			o.cancel()
+		}
+	} }
+
 	private func updateView() {
-		let job = QBEJob(.UserInitiated)
+		checkConnectionJob = QBEJob(.UserInitiated)
 		
 		if let s = step {
 			self.userField?.stringValue = s.user ?? ""
@@ -74,17 +83,40 @@ internal class QBEMySQLSourceStepView: NSViewController {
 			self.hostField?.stringValue = s.host ?? ""
 			self.portField?.stringValue = "\(s.port ?? 0)"
 
-			job.async {
-				if let database = s.database {
-					let dbFallible = database.connect()
-					switch dbFallible {
-						case .Success(let db):
-							// TODO OK, show some nice 'connected' message
-							break;
+			self.infoProgress?.hidden = false
+			self.infoLabel?.stringValue = NSLocalizedString("Trying to connect...", comment: "")
+			self.infoIcon?.image = nil
+			self.infoIcon?.hidden = true
+			self.infoProgress?.startAnimation(nil)
 
-						case .Failure(_):
-							// TODO: failure, show error
-							break;
+			checkConnectionJob!.async {
+				if let database = s.database {
+					switch database.connect() {
+					case .Success(let con):
+						con.serverInformation({ (fallibleInfo) -> () in
+							QBEAsyncMain {
+								self.infoProgress?.stopAnimation(nil)
+								switch fallibleInfo {
+								case .Success(let v):
+									self.infoLabel?.stringValue = String(format: NSLocalizedString("Connected (%@)", comment: ""),v)
+									self.infoIcon?.image = NSImage(named: "CheckIcon")
+									self.infoProgress?.hidden = true
+									self.infoIcon?.hidden = false
+
+								case .Failure(let e):
+									self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
+									self.infoIcon?.image = NSImage(named: "SadIcon")
+									self.infoProgress?.hidden = true
+									self.infoIcon?.hidden = false
+								}
+							}
+						})
+
+					case .Failure(let e):
+						self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
+						self.infoIcon?.image = NSImage(named: "SadIcon")
+						self.infoProgress?.hidden = true
+						self.infoIcon?.hidden = false
 					}
 				}
 			}

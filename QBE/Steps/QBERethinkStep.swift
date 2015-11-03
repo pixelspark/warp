@@ -401,7 +401,7 @@ class QBERethinkSourceStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 
-	private var url: NSURL? { get {
+	internal var url: NSURL? { get {
 		if let u = self.authenticationKey where !u.isEmpty {
 			let urlString = "rethinkdb://\(u.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLUserAllowedCharacterSet())!)@\(self.server.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLHostAllowedCharacterSet())!):\(self.port)"
 			return NSURL(string: urlString)

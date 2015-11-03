@@ -319,6 +319,38 @@ class QBEPostgresDatabase: QBESQLDatabase {
 		})
 	}
 
+	/** Fetches the server information string (containing version number and other useful information). This is mostly
+	used to check whether a connection can be made. */
+	func serverInformation(callback: (QBEFallible<String>) -> ()) {
+		switch self.connect() {
+		case .Success(let con):
+			switch con.query("SELECT version()") {
+			case .Success(let result):
+				if let rowFallible = result.row() {
+					switch rowFallible {
+					case .Success(let row):
+						if let version = row.first?.stringValue {
+							callback(.Success(version))
+						}
+						else {
+							callback(.Failure("No or invalid version string returned"))
+						}
+
+					case .Failure(let e):
+						callback(.Failure(e))
+					}
+				}
+				else {
+					callback(.Failure("No version returned"))
+				}
+
+			case .Failure(let e): callback(.Failure(e))
+			}
+
+		case .Failure(let e): callback(.Failure(e))
+		}
+	}
+
 	func schemas(databaseName: String, callback: (QBEFallible<[String]>) -> ()) {
 		let cn = self.dialect.expressionToSQL(QBELiteralExpression(QBEValue(databaseName)), alias: "s", foreignAlias: nil, inputValue: nil)!
 		let sql = "SELECT s.schema_name FROM information_schema.schemata s WHERE catalog_name=\(cn)"

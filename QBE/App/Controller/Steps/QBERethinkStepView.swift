@@ -1,5 +1,6 @@
 import Foundation
 import WarpCore
+import Rethink
 
 internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 	let step: QBERethinkSourceStep!
@@ -9,6 +10,9 @@ internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTa
 	@IBOutlet var serverField: NSTextField!
 	@IBOutlet var portField: NSTextField!
 	@IBOutlet var authenticationKeyField: NSTextField!
+	@IBOutlet var infoLabel: NSTextField?
+	@IBOutlet var infoProgress: NSProgressIndicator?
+	@IBOutlet var infoIcon: NSImageView?
 
 	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
 		self.delegate = delegate
@@ -34,11 +38,59 @@ internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTa
 		updateView()
 	}
 
+	private var checkConnectionJob: QBEJob? = nil { willSet {
+		if let o = checkConnectionJob {
+			o.cancel()
+		}
+	} }
+
 	private func updateView() {
+		self.checkConnectionJob = QBEJob(.UserInitiated)
+
 		tableView?.reloadData()
 		self.serverField?.stringValue = self.step.server
 		self.portField?.stringValue = "\(self.step.port)"
 		self.authenticationKeyField?.stringValue = self.step.authenticationKey ?? ""
+
+		self.infoProgress?.hidden = false
+		self.infoLabel?.stringValue = NSLocalizedString("Trying to connect...", comment: "")
+		self.infoIcon?.image = nil
+		self.infoIcon?.hidden = true
+		self.infoProgress?.startAnimation(nil)
+
+		if let url = self.step?.url {
+			checkConnectionJob!.async {
+				R.connect(url) { (err, connection) in
+					if let e = err {
+						QBEAsyncMain {
+							self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
+							self.infoIcon?.image = NSImage(named: "SadIcon")
+							self.infoProgress?.hidden = true
+							self.infoIcon?.hidden = false
+						}
+						return
+					}
+
+					R.now().run(connection) { res in
+						QBEAsyncMain {
+							self.infoProgress?.stopAnimation(nil)
+							if case .Error(let e) = res {
+								self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
+								self.infoIcon?.image = NSImage(named: "SadIcon")
+								self.infoProgress?.hidden = true
+								self.infoIcon?.hidden = false
+							}
+							else {
+								self.infoLabel?.stringValue = NSLocalizedString("Connected!", comment: "")
+								self.infoIcon?.image = NSImage(named: "CheckIcon")
+								self.infoProgress?.hidden = true
+								self.infoIcon?.hidden = false
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	@IBAction func updateFromFields(sender: NSObject) {

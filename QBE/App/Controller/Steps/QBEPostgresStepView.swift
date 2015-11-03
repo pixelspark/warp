@@ -9,6 +9,9 @@ internal class QBEPostgresStepView: NSViewController {
 	@IBOutlet var passwordField: NSTextField?
 	@IBOutlet var hostField: NSTextField?
 	@IBOutlet var portField: NSTextField?
+	@IBOutlet var infoLabel: NSTextField?
+	@IBOutlet var infoProgress: NSProgressIndicator?
+	@IBOutlet var infoIcon: NSImageView?
 	
 	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
 		self.delegate = delegate
@@ -65,8 +68,14 @@ internal class QBEPostgresStepView: NSViewController {
 		}
 	}
 
+	private var checkConnectionJob: QBEJob? = nil { willSet {
+		if let o = checkConnectionJob {
+			o.cancel()
+		}
+	} }
+
 	private func updateView() {
-		let job = QBEJob(.UserInitiated)
+		checkConnectionJob = QBEJob(.UserInitiated)
 		
 		if let s = step {
 			self.userField?.stringValue = s.user ?? ""
@@ -74,11 +83,32 @@ internal class QBEPostgresStepView: NSViewController {
 			self.hostField?.stringValue = s.host ?? ""
 			self.portField?.stringValue = "\(s.port ?? 0)"
 
+			self.infoProgress?.hidden = false
+			self.infoLabel?.stringValue = NSLocalizedString("Trying to connect...", comment: "")
+			self.infoIcon?.image = nil
+			self.infoIcon?.hidden = true
+			self.infoProgress?.startAnimation(nil)
+
 			if let database = s.database {
-				job.async {
+				checkConnectionJob!.async {
 					// Update list of databases
-					database.databases({(dbs) -> () in
-						// TOOD: depending on outcome, show a 'connected' indicator
+					database.serverInformation({ (fallibleInfo) -> () in
+						QBEAsyncMain {
+							self.infoProgress?.stopAnimation(nil)
+							switch fallibleInfo {
+							case .Success(let v):
+								self.infoLabel?.stringValue = String(format: NSLocalizedString("Connected (%@)", comment: ""),v)
+								self.infoIcon?.image = NSImage(named: "CheckIcon")
+								self.infoProgress?.hidden = true
+								self.infoIcon?.hidden = false
+
+							case .Failure(let e):
+								self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
+								self.infoIcon?.image = NSImage(named: "SadIcon")
+								self.infoProgress?.hidden = true
+								self.infoIcon?.hidden = false
+							}
+						}
 					})
 				}
 			}

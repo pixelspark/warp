@@ -344,7 +344,28 @@ internal class QBEMySQLConnection: QBESQLConnection {
 	func clone() -> QBEFallible<QBEMySQLConnection> {
 		return self.database.connect()
 	}
-	
+
+	/** Fetches the server information string (containing version number and other useful information). This is mostly
+	used to check whether a connection can be made. */
+	func serverInformation(callback: (QBEFallible<String>) -> ()) {
+		switch self.query("SELECT version()") {
+		case .Success(let result):
+			if let row = result.row() {
+				if let version = row.first?.stringValue {
+					callback(.Success(version))
+				}
+				else {
+					callback(.Failure("No or invalid version string returned"))
+				}
+			}
+			else {
+				callback(.Failure("No version returned"))
+			}
+
+		case .Failure(let e): callback(.Failure(e))
+		}
+	}
+
 	func databases(callback: (QBEFallible<[String]>) -> ()) {
 		let resultFallible = self.query("SHOW DATABASES")
 		switch resultFallible {
