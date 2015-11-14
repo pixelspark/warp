@@ -106,6 +106,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 		
 		dispatch_sync(connection.queue) {
 			let result = PQgetResult(connection.connection)
+
 			if result == nil {
 				resultFallible = .Failure(connection.lastError)
 			}
@@ -113,6 +114,22 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 				let status = PQresultStatus(result)
 				if status.rawValue != PGRES_TUPLES_OK.rawValue && status.rawValue != PGRES_SINGLE_TUPLE.rawValue && status.rawValue != PGRES_COMMAND_OK.rawValue {
 					resultFallible = .Failure(connection.lastError)
+
+					// On error, call PQgetresult anyway to ensure that the command has fully finished
+					while PQgetResult(connection.connection) != nil {
+						QBELog("Extraneous result!")
+					}
+					return
+				}
+
+				if status.rawValue == PGRES_COMMAND_OK.rawValue {
+					// This result code indicates our command completed successfully. There is no data, so no need to enumerate columns, etc.
+					resultFallible = .Success(QBEPostgresResult(connection: connection, result: result, columnNames: [], columnTypes: []))
+
+					// On PGRES_COMMAND_OK, call PQgetresult anyway to ensure that the command has fully finished
+					while PQgetResult(connection.connection) != nil {
+						QBELog("Extraneous result!")
+					}
 					return
 				}
 				
@@ -177,7 +194,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 			
 			#if DEBUG
 				if warn && n > 0 {
-				QBELog("Unfinished result was destroyed, drained \(n) rows to prevent packet errors. This is a performance issue!")
+					QBELog("Unfinished result was destroyed, drained \(n) rows to prevent packet errors. This is a performance issue!")
 				}
 			#endif
 			self.finished = true
