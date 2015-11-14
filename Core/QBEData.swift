@@ -543,9 +543,14 @@ enum QBECoalescedData: QBEData {
 		return result
 	}
 	
-	/** data.limit(x).limit(y) is equivalent to data.limit(min(x,y)) */
+	/** Axioms for limit:
+	data.limit(x).limit(y) is equivalent to data.limit(min(x,y))
+	data.calculate(...).limit(x) is equivalent to data.limit(x).calculate(...) */
 	func limit(numberOfRows: Int) -> QBEData {
 		switch self {
+			case .Calculating(let data, let calculations):
+				return QBECoalescedData.Calculating(QBECoalescedData.Limiting(data, numberOfRows), calculations)
+
 			case .Limiting(let data, let nr):
 				return QBECoalescedData.Limiting(data, min(numberOfRows, nr))
 			
@@ -572,7 +577,10 @@ enum QBECoalescedData: QBEData {
 	
 	/** This function relies on the following axioms:
 		- data.filter(a).filter(b) is equivalent to data.filter(QBEFunctionExpression(a,b,QBEFunction.And))
-		- data.filter(e) is equivalent to data if e is a constant expression evaluating to true */
+		- data.filter(e) is equivalent to data if e is a constant expression evaluating to true 
+		- data.filter(e).calculate(...) is equivalent to data.calculate(...).filter(e) if the filter does not rely on 
+		  the outcome of the calculate operation
+	*/
 	func filter(condition: QBEExpression) -> QBEData {
 		let prepared = condition.prepare()
 		if prepared.isConstant {
@@ -584,14 +592,26 @@ enum QBECoalescedData: QBEData {
 		}
 		
 		switch self {
-			case .Filtering(let data, let oldFilter):
-				return QBECoalescedData.Filtering(data, QBEFunctionExpression(arguments: [oldFilter, condition], type: QBEFunction.And))
-				
-			default:
+		case .Calculating(let data, let calculations):
+			/** If the filter does not depend on the outcome of the calculations, then it can be ordered before the 
+			calculations. This is usually more efficient, because the less steps away from the source data, the higher
+			the chance that there is a usable index. */
+			let deps = prepared.siblingDependencies
+			if deps.isDisjointWith(calculations.keys) {
+				return QBECoalescedData.Calculating(QBECoalescedData.Filtering(data, condition), calculations)
+			}
+			else {
 				return QBECoalescedData.Filtering(self.data, condition)
+			}
+
+		case .Filtering(let data, let oldFilter):
+			return QBECoalescedData.Filtering(data, QBEFunctionExpression(arguments: [oldFilter, condition], type: QBEFunction.And))
+
+		default:
+			return QBECoalescedData.Filtering(self.data, condition)
 		}
 	}
-	
+
 	func unique(expression: QBEExpression, job: QBEJob, callback: (QBEFallible<Set<QBEValue>>) -> ()) {
 		return data.unique(expression, job: job, callback: callback)
 	}
@@ -663,16 +683,22 @@ enum QBECoalescedData: QBEData {
 		return QBECoalescedData.None(self.data.union(data))
 	}
 	
-	/** data.offset(x).offset(y) is equivalent to data.offset(x+y).*/
+	/** Axioms for offset:
+	- data.offset(x).offset(y) is equivalent to data.offset(x+y).
+	- data.calculate(...).offset(x) is equivalent to data.offset(x).calculate(...)
+	*/
 	func offset(numberOfRows: Int) -> QBEData {
 		assert(numberOfRows > 0)
 		
 		switch self {
-			case .Offsetting(let data, let offset):
-				return QBECoalescedData.Offsetting(data, offset + numberOfRows)
-			
-			default:
-				return QBECoalescedData.Offsetting(data, numberOfRows)
+		case .Calculating(let data, let calculations):
+			return QBECoalescedData.Calculating(QBECoalescedData.Offsetting(data, numberOfRows),calculations)
+
+		case .Offsetting(let data, let offset):
+			return QBECoalescedData.Offsetting(data, offset + numberOfRows)
+
+		default:
+			return QBECoalescedData.Offsetting(data, numberOfRows)
 		}
 	}
 	

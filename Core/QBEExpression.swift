@@ -764,6 +764,17 @@ extension QBEExpression {
 			return oldExpression
 		}
 	}
+
+	var siblingDependencies: Set<QBEColumn> {
+		var deps: Set<QBEColumn> = []
+
+		visit { expression -> () in
+			if let ex = expression as? QBESiblingExpression {
+				deps.insert(ex.columnName)
+			}
+		}
+		return deps
+	}
 	
 	/** Returns whether this expression depends on sibling columns (e.g. contains a QBESiblingExpression somewhere in 
 	its tree). */
