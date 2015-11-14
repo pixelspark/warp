@@ -15,8 +15,14 @@ final class QBEDBFStream: NSObject, QBEStream {
 	init(url: NSURL) {
 		self.url = url
 		self.handle = DBFOpen(url.fileSystemRepresentation, "rb")
-		self.recordCount = DBFGetRecordCount(self.handle)
-		self.fieldCount = DBFGetFieldCount(self.handle)
+		if self.handle == nil {
+			self.fieldCount = 0
+			self.recordCount = 0
+		}
+		else {
+			self.recordCount = DBFGetRecordCount(self.handle)
+			self.fieldCount = DBFGetFieldCount(self.handle)
+		}
 	}
 
 	deinit {
@@ -25,7 +31,7 @@ final class QBEDBFStream: NSObject, QBEStream {
 
 	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
 		if self.columns == nil {
-			let fieldCount = DBFGetFieldCount(handle)
+			let fieldCount = self.fieldCount
 			var fields: [QBEColumn] = []
 			var types: [DBFFieldType] = []
 			for i in 0..<fieldCount {
@@ -46,10 +52,10 @@ final class QBEDBFStream: NSObject, QBEStream {
 	func fetch(job: QBEJob, consumer: QBESink) {
 		dispatch_async(self.queue) {
 			self.columnNames(job) { (columnNames) -> () in
-				let end = min(self.recordCount-1, self.position + QBEStreamDefaultBatchSize - 1)
+				let end = min(self.recordCount, self.position + QBEStreamDefaultBatchSize)
 
 				var rows: [QBETuple] = []
-				for recordIndex in self.position...end {
+				for recordIndex in self.position..<end {
 					if DBFIsRecordDeleted(self.handle, recordIndex) == 0 {
 						var row: QBETuple = []
 						for fieldIndex in 0..<self.fieldCount {
@@ -143,6 +149,8 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 					fieldIndex++
 				}
 
+				let dbfMutex = QBEMutex()
+
 				var cb: QBESink? = nil
 				cb = { (rows: QBEFallible<Array<QBETuple>>, streamStatus: QBEStreamStatus) -> () in
 					switch rows {
@@ -154,25 +162,29 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 							}
 						}
 
-						job.time("Write CSV", items: rs.count, itemType: "rows") {
-							for row in rs {
-								var cellIndex = 0
-								for cell in row {
-									if let s = cell.stringValue?.cStringUsingEncoding(NSUTF8StringEncoding) {
-										DBFWriteStringAttribute(handle, Int32(rowIndex), Int32(cellIndex), s)
+						job.time("Write DBF", items: rs.count, itemType: "rows") {
+							dbfMutex.locked {
+								for row in rs {
+									var cellIndex = 0
+									for cell in row {
+										if let s = cell.stringValue?.cStringUsingEncoding(NSUTF8StringEncoding) {
+											DBFWriteStringAttribute(handle, Int32(rowIndex), Int32(cellIndex), s)
+										}
+										else {
+											DBFWriteNULLAttribute(handle, Int32(rowIndex), Int32(cellIndex))
+										}
+										// write field
+										cellIndex++
 									}
-									else {
-										DBFWriteNULLAttribute(handle, Int32(rowIndex), Int32(cellIndex))
-									}
-									// write field
-									cellIndex++
+									rowIndex++
 								}
-								rowIndex++
 							}
 						}
 
 						if streamStatus == .Finished {
-							DBFClose(handle)
+							dbfMutex.locked {
+								DBFClose(handle)
+							}
 							callback(.Success())
 						}
 
