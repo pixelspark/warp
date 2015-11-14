@@ -195,11 +195,15 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 }
 
 class QBEDBFSourceStep: QBEStep {
-	var file: QBEFileReference?
+	var file: QBEFileReference? = nil
+
+	required init() {
+		super.init()
+	}
 
 	init(url: NSURL) {
 		self.file = QBEFileReference.URL(url)
-		super.init(previous: nil)
+		super.init()
 	}
 
 	required init(coder aDecoder: NSCoder) {
@@ -237,7 +241,7 @@ class QBEDBFSourceStep: QBEStep {
 		coder.encodeObject(self.file?.bookmark, forKey: "fileBookmark")
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		let fileTypes = [
 			"dbf"
 		]

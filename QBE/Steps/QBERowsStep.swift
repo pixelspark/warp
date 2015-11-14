@@ -76,13 +76,18 @@ class QBERowsStep: NSObject {
 
 class QBEFilterStep: QBEStep {
 	var condition: QBEExpression
+
+	required init() {
+		condition = QBELiteralExpression(QBEValue.BoolValue(true))
+		super.init()
+	}
 	
 	init(previous: QBEStep?, condition: QBEExpression) {
 		self.condition = condition
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceText(NSLocalizedString("Select rows where", comment: "")),
 			QBESentenceFormula(expression: condition, locale: locale, callback: {[weak self] (expr) in
@@ -95,7 +100,7 @@ class QBEFilterStep: QBEStep {
 		condition = (aDecoder.decodeObjectForKey("condition") as? QBEExpression) ?? QBELiteralExpression(QBEValue.BoolValue(true))
 		super.init(coder: aDecoder)
 	}
-	
+
 	override func encodeWithCoder(coder: NSCoder) {
 		super.encodeWithCoder(coder)
 		coder.encodeObject(condition, forKey: "condition")
@@ -134,7 +139,12 @@ class QBELimitStep: QBEStep {
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	required init() {
+		self.numberOfRows = 1
+		super.init()
+	}
+
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString(self.numberOfRows > 1 ? "Select the first [#] rows" : "Select row [#]", comment: ""),
 			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
 				if let x = locale.valueForLocalString(newValue).intValue {
@@ -169,14 +179,18 @@ class QBELimitStep: QBEStep {
 }
 
 class QBEOffsetStep: QBEStep {
-	var numberOfRows: Int
+	var numberOfRows: Int = 1
+
+	required init() {
+		super.init()
+	}
 	
 	init(previous: QBEStep?, numberOfRows: Int) {
 		self.numberOfRows = numberOfRows
 		super.init(previous: previous)
 	}
 	
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString( numberOfRows > 1 ? "Skip the first [#] rows" : "Skip row [#]", comment: ""),
 			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
 				if let x = locale.valueForLocalString(newValue).intValue {
@@ -207,8 +221,12 @@ class QBERandomStep: QBELimitStep {
 	override init(previous: QBEStep?, numberOfRows: Int) {
 		super.init(previous: previous, numberOfRows: numberOfRows)
 	}
+
+	required init() {
+		super.init()
+	}
 	
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceText(NSLocalizedString("Randomly select", comment: "")),
 			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
@@ -225,7 +243,7 @@ class QBERandomStep: QBELimitStep {
 	required init(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
 	}
-	
+
 	override func encodeWithCoder(coder: NSCoder) {
 		super.encodeWithCoder(coder)
 	}
@@ -240,14 +258,8 @@ class QBERandomStep: QBELimitStep {
 }
 
 class QBEDistinctStep: QBEStep {
-	override init(previous: QBEStep?) {
-		super.init(previous: previous)
-	}
-
-	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence([
-			QBESentenceText(NSLocalizedString("Remove duplicate rows", comment: ""))
-		])
+	required init() {
+		super.init()
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -256,6 +268,12 @@ class QBEDistinctStep: QBEStep {
 	
 	override func encodeWithCoder(coder: NSCoder) {
 		super.encodeWithCoder(coder)
+	}
+
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+		return QBESentence([
+			QBESentenceText(NSLocalizedString("Remove duplicate rows", comment: ""))
+		])
 	}
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {

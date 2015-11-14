@@ -23,11 +23,11 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 	
 	var type: QBEDebugType = .None
 	
-	override init(previous: QBEStep?) {
-		super.init(previous: previous)
+	required init() {
+		super.init()
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceOptions(options: [
 				QBEDebugType.None.rawValue: QBEDebugType.None.description,

@@ -551,12 +551,12 @@ final class QBEMySQLStream: QBEStream {
 }
 
 class QBEMySQLSourceStep: QBEStep {
-	var tableName: String?
-	var host: String?
-	var user: String?
-	var password: String?
-	var databaseName: String?
-	var port: Int?
+	var tableName: String = ""
+	var host: String = "localhost"
+	var user: String = "root"
+	var password: String = ""
+	var databaseName: String = "mysql"
+	var port: Int = 3306
 	
 	init(host: String, port: Int, user: String, password: String, database: String, tableName: String) {
 		self.host = host
@@ -565,17 +565,21 @@ class QBEMySQLSourceStep: QBEStep {
 		self.port = port
 		self.databaseName = database
 		self.tableName = tableName
-		super.init(previous: nil)
+		super.init()
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.tableName = (aDecoder.decodeObjectForKey("tableName") as? String) ?? ""
-		self.host = (aDecoder.decodeObjectForKey("host") as? String) ?? ""
-		self.databaseName = (aDecoder.decodeObjectForKey("database") as? String) ?? ""
-		self.user = (aDecoder.decodeObjectForKey("user") as? String) ?? ""
-		self.password = (aDecoder.decodeObjectForKey("password") as? String) ?? ""
-		self.port = Int(aDecoder.decodeIntForKey("port"))
 		super.init(coder: aDecoder)
+		self.tableName = (aDecoder.decodeObjectForKey("tableName") as? String) ?? self.tableName
+		self.host = (aDecoder.decodeObjectForKey("host") as? String) ?? self.host
+		self.databaseName = (aDecoder.decodeObjectForKey("database") as? String) ?? self.databaseName
+		self.user = (aDecoder.decodeObjectForKey("user") as? String) ?? self.user
+		self.password = (aDecoder.decodeObjectForKey("password") as? String) ?? self.password
+		self.port = Int(aDecoder.decodeIntForKey("port"))
+	}
+
+	required init() {
+	    super.init()
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
@@ -588,8 +592,14 @@ class QBEMySQLSourceStep: QBEStep {
 		coder.encodeInt(Int32(port ?? 0), forKey: "port")
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence(format: NSLocalizedString("Load table [#] from MySQL database [#]", comment: ""),
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+		let template: String
+		switch variant {
+		case .Neutral, .Read: template = "Load table [#] from MySQL database [#]"
+		case .Write: template = "Write to table [#] in MySQL database [#]"
+		}
+
+		return QBESentence(format: NSLocalizedString(template, comment: ""),
 			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
 				if let d = self.database {
 					switch d.connect() {
@@ -643,19 +653,16 @@ class QBEMySQLSourceStep: QBEStep {
 	}
 	
 	internal var database: QBEMySQLDatabase? { get {
-		if let h = host, p = port, u = user, pw = password, d = databaseName {
-			/* For MySQL, the hostname 'localhost' is special and indicates access through a local UNIX socket. This does
-			not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite
-			localhost here to 127.0.0.1 in order to force access through TCP/IP. */
-			let ha = (h == "localhost") ? "127.0.0.1" : h
-			return QBEMySQLDatabase(host: ha, port: p, user: u, password: pw, database: d)
-		}
-		return nil
+		/* For MySQL, the hostname 'localhost' is special and indicates access through a local UNIX socket. This does
+		not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite
+		localhost here to 127.0.0.1 in order to force access through TCP/IP. */
+		let ha = (host == "localhost") ? "127.0.0.1" : host
+		return QBEMySQLDatabase(host: ha, port: port, user: user, password: password, database: databaseName)
 	} }
 
 	override var mutableData: QBEMutableData? { get {
-		if let s = self.database, let t = self.tableName {
-			return QBEMutableSQLData(database: s, databaseName: s.databaseName, schemaName: nil, tableName: t)
+		if let s = self.database {
+			return QBESQLMutableData(database: s, databaseName: s.databaseName, schemaName: nil, tableName: self.tableName)
 		}
 		return nil
 	} }

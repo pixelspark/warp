@@ -42,25 +42,22 @@ public protocol QBEStream {
 }
 
 /** This class manages the multithreaded retrieval of data from a stream. It will make concurrent calls to a stream's
-fetch function ('wavefronts') and store the returned rows. When all results are in, a callback is called. The class also
-exists to avoid issues with reference counting (the sink closure needs to reference itself). */
-private class QBEStreamPuller {
-	let job: QBEJob
-	let stream: QBEStream
-	var data: [QBETuple] = []
-	var columnNames: [QBEColumn]
-	let callback: (QBEFallible<QBERaster>) -> ()
+fetch function ('wavefronts') and call the method onReceiveRows each time it receives rows. When all results are in, the
+onDoneReceiving method is called. The subclass should implement onReceiveRows, onDoneReceiving and onError.
+The class also exists to avoid issues with reference counting (the sink closure needs to reference itself). */
+public class QBEStreamPuller {
+	public let job: QBEJob
+	public let stream: QBEStream
+	public let mutex = QBEMutex()
 
-	private let mutex = QBEMutex()
 	private let concurrentWavefronts: Int
 	private var outstandingWavefronts = 0
 	private var lastStartedWavefront = 0
 	private var lastSinkedWavefront = 0
 	private var earlyResults: [Int : QBEFallible<[QBETuple]>] = [:]
+	private var done = false
 
-	init(stream: QBEStream, job: QBEJob, columnNames: [QBEColumn], callback: (QBEFallible<QBERaster>) -> ()) {
-		self.columnNames = columnNames
-		self.callback = callback
+	public init(stream: QBEStream, job: QBEJob) {
 		self.stream = stream
 		self.job = job
 		self.concurrentWavefronts = NSProcessInfo.processInfo().processorCount
@@ -68,7 +65,7 @@ private class QBEStreamPuller {
 
 	/** Start up to self.concurrentFetches number of fetch 'wavefronts' that will deliver their data to the
 	'sink' funtion. */
-	private func start() {
+	public func start() {
 		mutex.locked {
 			while self.outstandingWavefronts < self.concurrentWavefronts {
 				self.lastStartedWavefront++
@@ -114,42 +111,93 @@ private class QBEStreamPuller {
 				// We errored, any following wave fronts are ignored
 				return
 			}
-			var isLast = false
+
 			self.outstandingWavefronts--;
-			isLast = self.outstandingWavefronts == 0
 
 			switch rows {
 			case .Success(let r):
-				// Append the rows to our buffered raster
-				self.data.appendContentsOf(r)
+				self.onReceiveRows(r) { receiveResult in
+					self.mutex.locked {
+						switch receiveResult {
+						case .Failure(let e):
+							self.outstandingWavefronts = 0
+							self.onError(e)
 
-				if !hasNext {
-					if isLast {
-						/* This was the last wavefront that was running, and there are no more rows according to the source 
-						stream. Therefore we are now done fetching all data from the stream. */
-						job.async {
-							self.callback(.Success(QBERaster(data: self.data, columnNames: self.columnNames, readOnly: true)))
+						case .Success(_):
+							if !hasNext {
+								let isLast = self.outstandingWavefronts == 0
+								if isLast {
+									/* This was the last wavefront that was running, and there are no more rows according to the source
+									stream. Therefore we are now done fetching all data from the stream. */
+									if !self.done {
+										self.done = true
+										self.onDoneReceiving()
+									}
+								}
+								else {
+									/* There is no more data according to the stream, but several rows still have to come in as other
+									wavefronts are still running. The last one will turn off the lights, right now we can just wait. */
+								}
+							}
+							else {
+								// If the stream indicates there are more rows, fetch them (start new wavefronts)
+								self.job.async {
+									self.start()
+									return
+								}
+							}
 						}
-					}
-					else {
-						/* There is no more data according to the stream, but several rows still have to come in as other
-						wavefronts are still running. The last one will turn off the lights, right now we can just wait. */
-					}
-				}
-				else {
-					// If the stream indicates there are more rows, fetch them (start new wavefronts)
-					job.async {
-						self.start()
-						return
 					}
 				}
 
 			case .Failure(let errorMessage):
 				self.outstandingWavefronts = 0
-				job.async {
-					self.callback(.Failure(errorMessage))
-				}
+				self.onError(errorMessage)
 			}
+		}
+	}
+
+	public func onReceiveRows(rows: [QBETuple], callback: (QBEFallible<Void>) -> ()) {
+		fatalError("Meant to be overridden")
+	}
+
+	public func onDoneReceiving() {
+		fatalError("Meant to be overridden")
+	}
+
+	public func onError(error: String) {
+		fatalError("Meant to be overridden")
+	}
+}
+
+private class QBERasterStreamPuller: QBEStreamPuller {
+	var data: [QBETuple] = []
+	let callback: (QBEFallible<QBERaster>) -> ()
+	let columnNames: [QBEColumn]
+
+	init(stream: QBEStream, job: QBEJob, columnNames: [QBEColumn], callback: (QBEFallible<QBERaster>) -> ()) {
+		self.callback = callback
+		self.columnNames = columnNames
+		super.init(stream: stream, job: job)
+	}
+
+	override func onReceiveRows(rows: [QBETuple], callback: (QBEFallible<Void>) -> ()) {
+		self.mutex.locked {
+			// Append the rows to our buffered raster
+			self.data.appendContentsOf(rows)
+			callback(.Success())
+		}
+	}
+
+	override func onDoneReceiving() {
+		job.async {
+			self.callback(.Success(QBERaster(data: self.data, columnNames: self.columnNames, readOnly: true)))
+		}
+	}
+
+	override func onError(error: String) {
+		job.async {
+			self.callback(.Failure(error))
 		}
 	}
 }
@@ -177,7 +225,7 @@ public class QBEStreamData: QBEData {
 			s.columnNames(job) { (columnNames) -> () in
 				switch columnNames {
 					case .Success(let cns):
-						let h = QBEStreamPuller(stream: s, job: job, columnNames: cns, callback: callback)
+						let h = QBERasterStreamPuller(stream: s, job: job, columnNames: cns, callback: callback)
 						h.start()
 
 					case .Failure(let e):

@@ -47,7 +47,6 @@ class QBEFlowchartView: NSView {
 	
 	@IBAction func delete(sender: NSObject) {
 		/// FIXME implement
-		Swift.print("Delete \(selectedArrow)")
 	}
 	
 	private func arrowAtPoint(point: CGPoint) -> QBEArrow? {

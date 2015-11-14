@@ -2,9 +2,7 @@ import Foundation
 import WarpCore
 import Rethink
 
-internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
-	let step: QBERethinkSourceStep!
-	weak var delegate: QBESuggestionsViewDelegate?
+internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep>, NSTableViewDataSource, NSTableViewDelegate, QBEAlterTableViewDelegate {
 	@IBOutlet var tableView: NSTableView?
 	@IBOutlet var addColumnTextField: NSTextField!
 	@IBOutlet var serverField: NSTextField!
@@ -13,24 +11,10 @@ internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTa
 	@IBOutlet var infoLabel: NSTextField?
 	@IBOutlet var infoProgress: NSProgressIndicator?
 	@IBOutlet var infoIcon: NSImageView?
+	@IBOutlet var createTableButton: NSButton?
 
-	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
-		self.delegate = delegate
-
-		if let s = step as? QBERethinkSourceStep {
-			self.step = s
-			super.init(nibName: "QBERethinkStepView", bundle: nil)
-		}
-		else {
-			self.step = nil
-			super.init(nibName: "QBERethinkStepView", bundle: nil)
-			return nil
-		}
-	}
-
-	required init?(coder: NSCoder) {
-		self.step = nil
-		super.init(coder: coder)
+	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
+		super.init(step: step, delegate: delegate, nibName: "QBERethinkStepView", bundle: nil)
 	}
 
 	internal override func viewWillAppear() {
@@ -56,9 +40,10 @@ internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTa
 		self.infoLabel?.stringValue = NSLocalizedString("Trying to connect...", comment: "")
 		self.infoIcon?.image = nil
 		self.infoIcon?.hidden = true
+		self.createTableButton?.enabled = false
 		self.infoProgress?.startAnimation(nil)
 
-		if let url = self.step?.url {
+		if let url = self.step.url {
 			checkConnectionJob!.async {
 				R.connect(url) { (err, connection) in
 					if let e = err {
@@ -77,12 +62,14 @@ internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTa
 							if case .Error(let e) = res {
 								self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
 								self.infoIcon?.image = NSImage(named: "SadIcon")
+								self.createTableButton?.enabled = false
 								self.infoProgress?.hidden = true
 								self.infoIcon?.hidden = false
 							}
 							else {
 								self.infoLabel?.stringValue = NSLocalizedString("Connected!", comment: "")
 								self.infoIcon?.image = NSImage(named: "CheckIcon")
+								self.createTableButton?.enabled = true
 								self.infoProgress?.hidden = true
 								self.infoIcon?.hidden = false
 							}
@@ -90,6 +77,27 @@ internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTa
 					}
 				}
 			}
+		}
+	}
+
+	func alterTableView(view: QBEAlterTableViewController, didCreateTable: QBEMutableData?) {
+		if let s = didCreateTable as? QBERethinkMutableData {
+			self.step.table = s.tableName
+			self.step.database = s.databaseName
+			self.step.server = s.url.host ?? self.step.server
+			self.step.port = s.url.port?.integerValue ?? self.step.port
+			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+			self.updateView()
+		}
+	}
+
+	@IBAction func createTable(sender: NSObject) {
+		if let mutableData = self.step.mutableData {
+			let vc = QBEAlterTableViewController()
+			vc.warehouse = mutableData.warehouse
+			vc.delegate = self
+			vc.warehouseName = String(format: NSLocalizedString("RethinkDB database '%@'", comment: ""), self.step.database)
+			self.presentViewControllerAsModalWindow(vc)
 		}
 	}
 
@@ -116,7 +124,7 @@ internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTa
 
 		if change {
 			self.updateView()
-			self.delegate?.suggestionsView(self, previewStep: step)
+			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 		}
 	}
 
@@ -125,10 +133,8 @@ internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTa
 	}
 
 	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
-		if let s = step {
-			s.columns[row] = QBEColumn(object as! String)
-			self.delegate?.suggestionsView(self, previewStep: s)
-		}
+		step.columns[row] = QBEColumn(object as! String)
+		self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 	}
 
 	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
@@ -146,7 +152,7 @@ internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTa
 			if !step.columns.contains(QBEColumn(s)) {
 				step.columns.append(QBEColumn(s))
 				self.updateView()
-				self.delegate?.suggestionsView(self, previewStep: step)
+				self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 			}
 		}
 		self.addColumnTextField.stringValue = ""
@@ -156,7 +162,7 @@ internal class QBERethinkStepView: NSViewController, NSTableViewDataSource, NSTa
 		if let sr = self.tableView?.selectedRow where sr >= 0 && sr != NSNotFound && sr < self.step.columns.count {
 			self.step.columns.removeAtIndex(sr)
 			self.updateView()
-			self.delegate?.suggestionsView(self, previewStep: step)
+			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 		}
 	}
 }

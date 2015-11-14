@@ -3,24 +3,23 @@ import WarpCore
 
 class QBERasterStep: QBEStep {
 	let raster: QBERaster
-	let staticExampleData: QBERasterData
-	let staticFullData: QBEData
 	
 	init(raster: QBERaster) {
 		self.raster = raster
-		self.staticExampleData = QBERasterData(raster: raster)
-		self.staticFullData = staticExampleData
-		super.init(previous: nil)
+		super.init()
 	}
 	
 	required init(coder aDecoder: NSCoder) {
 		self.raster = (aDecoder.decodeObjectForKey("raster") as? QBERaster) ?? QBERaster()
-		staticExampleData = QBERasterData(raster: self.raster)
-		staticFullData = staticExampleData
 		super.init(coder: aDecoder)
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	required init() {
+		raster = QBERaster(data: [], columnNames: [])
+		super.init()
+	}
+
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(NSLocalizedString("Data table", comment: ""))])
 	}
 	
@@ -30,10 +29,10 @@ class QBERasterStep: QBEStep {
 	}
 	
 	override func fullData(job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(.Success(staticFullData))
+		callback(.Success(QBERasterData(raster: self.raster)))
 	}
 	
 	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(.Success(staticExampleData.limit(min(maxInputRows, maxOutputRows))))
+		callback(.Success(QBERasterData(raster: self.raster).limit(min(maxInputRows, maxOutputRows))))
 	}
 }

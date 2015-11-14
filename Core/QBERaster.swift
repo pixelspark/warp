@@ -373,7 +373,7 @@ public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 public class QBERasterData: NSObject, QBEData {
 	private let future: QBEFuture<QBEFallible<QBERaster>>.Producer
 	
-	override init() {
+	public override init() {
 		future = {(job: QBEJob, cb: QBEFuture<QBEFallible<QBERaster>>.Callback) in
 			cb(.Success(QBERaster()))
 		}

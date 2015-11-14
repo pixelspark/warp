@@ -1,38 +1,25 @@
 import Foundation
 import WarpCore
 
-internal class QBESortStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
-	let step: QBESortStep?
-	weak var delegate: QBESuggestionsViewDelegate?
+internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableViewDataSource, NSTableViewDelegate {
 	@IBOutlet var tableView: NSTableView?
 	@IBOutlet var addButton: NSPopUpButton?
-	
-	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
-		self.delegate = delegate
-		
-		if let s = step as? QBESortStep {
-			self.step = s
-			super.init(nibName: "QBESortStepView", bundle: nil)
-		}
-		else {
-			self.step = nil
-			super.init(nibName: "QBESortStepView", bundle: nil)
-			return nil
-		}
+
+	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
+		super.init(step: step, delegate: delegate, nibName: "QBESortStepView", bundle: nil)
 	}
 	
 	required init?(coder: NSCoder) {
-		self.step = nil
-		super.init(coder: coder)
+		fatalError("Should not be called")
 	}
 	
 	@IBAction func addFromPopupButton(sender: NSObject) {
-		if let selected = self.addButton?.selectedItem, let s = step {
+		if let selected = self.addButton?.selectedItem {
 			let columnName = selected.title
 			let expression = QBESiblingExpression(columnName: QBEColumn(columnName))
-			s.orders.append(QBEOrder(expression: expression, ascending: true, numeric: true))
+			step.orders.append(QBEOrder(expression: expression, ascending: true, numeric: true))
 			self.addButton?.stringValue = ""
-			self.delegate?.suggestionsView(self, previewStep: s)
+			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 			updateView()
 		}
 	}
@@ -45,26 +32,24 @@ internal class QBESortStepView: NSViewController, NSTableViewDataSource, NSTable
 	
 	private func updateColumns() {
 		let job = QBEJob(.UserInitiated)
-		
-		if let s = step {
-			if let previous = s.previous {
-				previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
-					data.maybe({$0.columnNames(job) {(columns) in
-						columns.maybe { (columnNames) in
-							QBEAsyncMain {
-								self.addButton?.removeAllItems()
-								self.addButton?.addItemWithTitle(NSLocalizedString("Add sorting criterion...", comment: ""))
-								self.addButton?.addItemsWithTitles(columnNames.map({return $0.name}))
-								self.updateView()
-							}
+
+		if let previous = step.previous {
+			previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
+				data.maybe({$0.columnNames(job) {(columns) in
+					columns.maybe { (columnNames) in
+						QBEAsyncMain {
+							self.addButton?.removeAllItems()
+							self.addButton?.addItemWithTitle(NSLocalizedString("Add sorting criterion...", comment: ""))
+							self.addButton?.addItemsWithTitles(columnNames.map({return $0.name}))
+							self.updateView()
 						}
-					}})
-				}
+					}
+				}})
 			}
-			else {
-				self.addButton?.removeAllItems()
-				self.updateView()
-			}
+		}
+		else {
+			self.addButton?.removeAllItems()
+			self.updateView()
 		}
 	}
 	
@@ -73,7 +58,7 @@ internal class QBESortStepView: NSViewController, NSTableViewDataSource, NSTable
 	}
 	
 	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
-		return step?.orders.count ?? 0
+		return step.orders.count ?? 0
 	}
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
@@ -81,45 +66,43 @@ internal class QBESortStepView: NSViewController, NSTableViewDataSource, NSTable
 			return tableView?.selectedRowIndexes.count > 0
 		}
 		else if item.action() == Selector("addFromPopupButton:") {
-			return step != nil
+			return true
 		}
 		return false
 	}
 	
 	@IBAction func delete(sender: NSObject) {
-		if let selection = tableView?.selectedRowIndexes, let s = step where selection.count > 0 {
-			s.orders.removeObjectsAtIndexes(selection, offset: 0)
+		if let selection = tableView?.selectedRowIndexes where selection.count > 0 {
+			step.orders.removeObjectsAtIndexes(selection, offset: 0)
 			tableView?.reloadData()
-			self.delegate?.suggestionsView(self, previewStep: s)
+			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 		}
 	}
 	
 	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
 		if let identifier = tableColumn?.identifier {
-			if let s = step {
-				let order = s.orders[row]
-				
-				if identifier == "formula" {
-					if let formulaString = object as? String {
-						if let formula = QBEFormula(formula: formulaString, locale: self.delegate?.locale ?? QBELocale()) {
-							order.expression = formula.root
-							self.delegate?.suggestionsView(self, previewStep: s)
-						}
+			let order = step.orders[row]
+			
+			if identifier == "formula" {
+				if let formulaString = object as? String {
+					if let formula = QBEFormula(formula: formulaString, locale: self.delegate?.locale ?? QBELocale()) {
+						order.expression = formula.root
+						self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 					}
 				}
-				else if identifier == "ascending" {
-					let oldValue = order.ascending
-					order.ascending = object?.boolValue ?? oldValue
-					if oldValue != order.ascending {
-						self.delegate?.suggestionsView(self, previewStep: s)
-					}
+			}
+			else if identifier == "ascending" {
+				let oldValue = order.ascending
+				order.ascending = object?.boolValue ?? oldValue
+				if oldValue != order.ascending {
+					self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 				}
-				else if identifier == "numeric" {
-					let oldValue = order.numeric
-					order.numeric = object?.boolValue ?? oldValue
-					if oldValue != order.numeric {
-						self.delegate?.suggestionsView(self, previewStep: s)
-					}
+			}
+			else if identifier == "numeric" {
+				let oldValue = order.numeric
+				order.numeric = object?.boolValue ?? oldValue
+				if oldValue != order.numeric {
+					self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 				}
 			}
 		}
@@ -150,34 +133,30 @@ internal class QBESortStepView: NSViewController, NSTableViewDataSource, NSTable
 		let pboard = info.draggingPasteboard()
 		if let data = pboard.dataForType(QBESortStepViewItemType) {
 			if let rowIndexes = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? NSIndexSet {
-				if let s = step {
-					let movedItems = s.orders.objectsAtIndexes(rowIndexes)
-					movedItems.forEach { s.orders.remove($0) }
-					s.orders.insertContentsOf(movedItems, at: min(s.orders.count, row))
-				}
+				let movedItems = step.orders.objectsAtIndexes(rowIndexes)
+				movedItems.forEach { self.step.orders.remove($0) }
+				step.orders.insertContentsOf(movedItems, at: min(step.orders.count, row))
 			}
 		}
 		tableView.reloadData()
-		self.delegate?.suggestionsView(self, previewStep: step)
+		self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 		return true
 	}
 	
 	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if let identifier = tableColumn?.identifier {
-			if let s = step {
-				let order = s.orders[row]
-				
-				if identifier == "formula" {
-					if let formulaString = order.expression?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) {
-						return formulaString
-					}
+			let order = step.orders[row]
+			
+			if identifier == "formula" {
+				if let formulaString = order.expression?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) {
+					return formulaString
 				}
-				else if identifier == "ascending" {
-					return NSNumber(bool: order.ascending)
-				}
-				else if identifier == "numeric" {
-					return NSNumber(bool: order.numeric)
-				}
+			}
+			else if identifier == "ascending" {
+				return NSNumber(bool: order.ascending)
+			}
+			else if identifier == "numeric" {
+				return NSNumber(bool: order.numeric)
 			}
 		}
 

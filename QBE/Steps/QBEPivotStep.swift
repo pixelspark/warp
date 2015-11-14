@@ -14,9 +14,9 @@ class QBEPivotStep: QBEStep {
 	var rows: [QBEColumn] = []
 	var columns: [QBEColumn] = []
 	var aggregates: [QBEAggregation] = []
-	
-	override init(previous: QBEStep?) {
-		super.init(previous: previous)
+
+	required init() {
+		super.init()
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -66,7 +66,7 @@ class QBEPivotStep: QBEStep {
 		return NSLocalizedString("Pivot data", comment: "")
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
@@ -126,7 +126,7 @@ class QBEPivotStep: QBEStep {
 		// Generate a suggestion for each type of aggregation we have
 		var suggestions: [QBEStep] = []
 		for fun in aggregateFunctions {
-			let step = QBEPivotStep(previous: fromStep)
+			let step = QBEPivotStep()
 			
 			for column in aggregateColumns {
 				step.aggregates.append(QBEAggregation(map: QBESiblingExpression(columnName: column), reduce: fun, targetColumnName: column))

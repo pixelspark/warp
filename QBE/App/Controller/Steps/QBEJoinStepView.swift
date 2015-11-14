@@ -1,38 +1,26 @@
 import Foundation
 import WarpCore
 
-class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegate, NSTabViewDelegate {
-	weak var delegate: QBESuggestionsViewDelegate?
+class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSource, NSComboBoxDelegate, NSTabViewDelegate {
 	@IBOutlet var formulaField: NSTextField?
 	@IBOutlet var tabView: NSTabView!
 	@IBOutlet var foreignComboBox: NSComboBox!
 	@IBOutlet var siblingComboBox: NSComboBox!
 	@IBOutlet var joinTypeBox: NSPopUpButton!
-	let step: QBEJoinStep?
 	
 	private var existingOwnColumns: [QBEColumn] = []
 	private var existingForeignColumns: [QBEColumn] = []
-	
-	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
-		self.delegate = delegate
-		
-		if let s = step as? QBEJoinStep {
-			self.step = s
-			super.init(nibName: "QBEJoinStepView", bundle: nil)
-		}
-		else {
-			self.step = nil
-			super.init(nibName: "QBEJoinStepView", bundle: nil)
-			return nil
-		}
+
+	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
+		super.init(step: step, delegate: delegate, nibName: "QBEJoinStepView", bundle: nil)
 	}
 	
 	var simpleForeign: QBEColumn? {
 		get {
-			if let foreign = (self.step?.condition as? QBEBinaryExpression)?.first as? QBEForeignExpression {
+			if let foreign = (self.step.condition as? QBEBinaryExpression)?.first as? QBEForeignExpression {
 				return foreign.columnName
 			}
-			else if let foreign = (self.step?.condition as? QBEBinaryExpression)?.second as? QBEForeignExpression {
+			else if let foreign = (self.step.condition as? QBEBinaryExpression)?.second as? QBEForeignExpression {
 				return foreign.columnName
 			}
 			else {
@@ -46,10 +34,10 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 	
 	var simpleSibling: QBEColumn? {
 		get {
-			if let sibling = (self.step?.condition as? QBEBinaryExpression)?.second as? QBESiblingExpression {
+			if let sibling = (self.step.condition as? QBEBinaryExpression)?.second as? QBESiblingExpression {
 				return sibling.columnName
 			}
-			else if let sibling = (self.step?.condition as? QBEBinaryExpression)?.first as? QBESiblingExpression {
+			else if let sibling = (self.step.condition as? QBEBinaryExpression)?.first as? QBESiblingExpression {
 				return sibling.columnName
 			}
 			else {
@@ -62,10 +50,10 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 	}
 	
 	private func setSimpleCondition(sibling sibling: QBEColumn?, foreign: QBEColumn?) {
-		let currentType = (self.step?.condition as? QBEBinaryExpression)?.type ?? QBEBinary.Equal
+		let currentType = (self.step.condition as? QBEBinaryExpression)?.type ?? QBEBinary.Equal
 		let first: QBEExpression = (foreign != nil) ? QBEForeignExpression(columnName: foreign!) : QBELiteralExpression(QBEValue.InvalidValue)
 		let second: QBEExpression = (sibling != nil) ? QBESiblingExpression(columnName: sibling!) : QBELiteralExpression(QBEValue.InvalidValue)
-		self.step?.condition = QBEBinaryExpression(first: first, second: second, type: currentType)
+		self.step.condition = QBEBinaryExpression(first: first, second: second, type: currentType)
 	}
 	
 	func tabView(tabView: NSTabView, didSelectTabViewItem tabViewItem: NSTabViewItem?) {
@@ -76,33 +64,31 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 	Returns whether the currently set join is 'simple' (e.g. only based on a comparison of two columns). This requires the
 	join condition to be a binary expression with on either side a column reference. */
 	var isSimple: Bool { get {
-		if let s = step {
-			if let c = s.condition as? QBEBinaryExpression {
-				if c.first is QBEForeignExpression && c.second is QBESiblingExpression {
-					return true
-				}
-				
-				if c.second is QBEForeignExpression && c.first is QBESiblingExpression {
-					return true
-				}
-				
-				if c.isConstant {
-					let constantValue = c.apply(QBERow(), foreign: nil, inputValue: nil)
-					if !constantValue.isValid || constantValue == QBEValue.BoolValue(false) {
-						return true
-					}
-				}
-			}
-			else {
+		if let c = step.condition as? QBEBinaryExpression {
+			if c.first is QBEForeignExpression && c.second is QBESiblingExpression {
 				return true
 			}
+			
+			if c.second is QBEForeignExpression && c.first is QBESiblingExpression {
+				return true
+			}
+			
+			if c.isConstant {
+				let constantValue = c.apply(QBERow(), foreign: nil, inputValue: nil)
+				if !constantValue.isValid || constantValue == QBEValue.BoolValue(false) {
+					return true
+				}
+			}
+
+			return false
 		}
-		return false
+		else {
+			return true
+		}
 	} }
 	
 	required init?(coder: NSCoder) {
-		step = nil
-		super.init(coder: coder)
+		fatalError("Should not be called")
 	}
 	
 	func comboBox(aComboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> AnyObject {
@@ -127,86 +113,81 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 	
 	internal override func viewWillAppear() {
 		super.viewWillAppear()
-		if let s = step {
-			self.formulaField?.stringValue = (s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? "")
-			self.tabView.selectTabViewItemAtIndex(isSimple ? 0 : 1)
-		}
-		
+		self.formulaField?.stringValue = (step.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? "")
+		self.tabView.selectTabViewItemAtIndex(isSimple ? 0 : 1)
 		updateView()
 	}
 	
 	private func updateView() {
-		if let s = step {
-			switch s.joinType {
-				case .LeftJoin: self.joinTypeBox.selectItemWithTag(0)
-				case .InnerJoin: self.joinTypeBox.selectItemWithTag(1)
+		switch step.joinType {
+			case .LeftJoin: self.joinTypeBox.selectItemWithTag(0)
+			case .InnerJoin: self.joinTypeBox.selectItemWithTag(1)
+		}
+		
+		// Populate the 'simple' view
+		siblingComboBox.enabled = isSimple
+		foreignComboBox.enabled = isSimple
+		if isSimple {
+			siblingComboBox.stringValue = simpleSibling?.name ?? ""
+			foreignComboBox.stringValue = simpleForeign?.name ?? ""
+		}
+		else {
+			siblingComboBox.stringValue = ""
+			foreignComboBox.stringValue = ""
+		}
+		
+		if let f = step.condition {
+			let formula = f.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
+			if let parsed = QBEFormula(formula: formula, locale: self.delegate?.locale ?? QBELocale()) {
+				self.formulaField?.attributedStringValue = parsed.syntaxColoredFormula
 			}
-			
-			// Populate the 'simple' view
-			siblingComboBox.enabled = isSimple
-			foreignComboBox.enabled = isSimple
-			if isSimple {
-				siblingComboBox.stringValue = simpleSibling?.name ?? ""
-				foreignComboBox.stringValue = simpleForeign?.name ?? ""
-			}
-			else {
-				siblingComboBox.stringValue = ""
-				foreignComboBox.stringValue = ""
-			}
-			
-			if let f = s.condition {
-				let formula = f.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
-				if let parsed = QBEFormula(formula: formula, locale: self.delegate?.locale ?? QBELocale()) {
-					self.formulaField?.attributedStringValue = parsed.syntaxColoredFormula
+		}
+		
+		// Fetch own sibling columns
+		if let selected = tabView.selectedTabViewItem where tabView.indexOfTabViewItem(selected) == 0 {
+			let job = QBEJob(.UserInitiated)
+			step.previous?.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
+				switch data {
+				case .Success(let d):
+					d.columnNames(job) { (cns) in
+						QBEAsyncMain {
+							switch cns {
+							case .Success(let e):
+								self.existingOwnColumns = e
+								
+							case .Failure(_):
+								self.existingOwnColumns = []
+							}
+						
+							self.siblingComboBox?.reloadData()
+						}
+					}
+					
+				case .Failure(_):
+					break
 				}
 			}
 			
-			// Fetch own sibling columns
-			if let selected = tabView.selectedTabViewItem where tabView.indexOfTabViewItem(selected) == 0 {
-				let job = QBEJob(.UserInitiated)
-				s.previous?.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
-					switch data {
-					case .Success(let d):
-						d.columnNames(job) { (cns) in
-							QBEAsyncMain {
-								switch cns {
-								case .Success(let e):
-									self.existingOwnColumns = e
-									
-								case .Failure(_):
-									self.existingOwnColumns = []
-								}
-							
-								self.siblingComboBox?.reloadData()
+			// Fetch foreign columns
+			step.right?.head?.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
+				switch data {
+				case .Success(let d):
+					d.columnNames(job) { (cns) in
+						QBEAsyncMain {
+							switch cns {
+							case .Success(let e):
+								self.existingForeignColumns = e
+								
+							case .Failure(_):
+								self.existingForeignColumns = []
 							}
-						}
 						
-					case .Failure(_):
-						break
-					}
-				}
-				
-				// Fetch foreign columns
-				s.right?.head?.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
-					switch data {
-					case .Success(let d):
-						d.columnNames(job) { (cns) in
-							QBEAsyncMain {
-								switch cns {
-								case .Success(let e):
-									self.existingForeignColumns = e
-									
-								case .Failure(_):
-									self.existingForeignColumns = []
-								}
-							
-								self.foreignComboBox?.reloadData()
-							}
+							self.foreignComboBox?.reloadData()
 						}
-						
-					case .Failure(_):
-						break
 					}
+					
+				case .Failure(_):
+					break
 				}
 			}
 		}
@@ -225,9 +206,10 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 			newJoinType = .LeftJoin
 		}
 		
-		if let s = self.step?.joinType where s != newJoinType {
-			self.step?.joinType = newJoinType
-			delegate?.suggestionsView(self, previewStep: self.step)
+		let s = self.step.joinType
+		if s != newJoinType {
+			self.step.joinType = newJoinType
+			delegate?.stepView(self, didChangeConfigurationForStep: step)
 			updateView()
 		}
 	}
@@ -236,29 +218,27 @@ class QBEJoinStepView: NSViewController, NSComboBoxDataSource, NSComboBoxDelegat
 		if isSimple {
 			simpleSibling = QBEColumn(siblingComboBox.stringValue)
 			simpleForeign = QBEColumn(foreignComboBox.stringValue)
-			delegate?.suggestionsView(self, previewStep: self.step)
+			delegate?.stepView(self, didChangeConfigurationForStep: step)
 		}
 		updateView()
 	}
 	
 	@IBAction func updateFromComplexView(sender: NSObject) {
-		if let s = step {
-			// Set formula
-			let oldFormula = s.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? ""
-			if let f = self.formulaField?.stringValue {
-				if f != oldFormula {
-					if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale()))?.root {
-						s.condition = parsed
-						delegate?.suggestionsView(self, previewStep: s)
-						updateView()
-					}
-					else {
-						// TODO this should be a bit more informative
-						let a = NSAlert()
-						a.messageText = NSLocalizedString("The formula you typed is not valid.", comment: "")
-						a.alertStyle = NSAlertStyle.WarningAlertStyle
-						a.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
-					}
+		// Set formula
+		let oldFormula = step.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? ""
+		if let f = self.formulaField?.stringValue {
+			if f != oldFormula {
+				if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale()))?.root {
+					step.condition = parsed
+					delegate?.stepView(self, didChangeConfigurationForStep: step)
+					updateView()
+				}
+				else {
+					// TODO this should be a bit more informative
+					let a = NSAlert()
+					a.messageText = NSLocalizedString("The formula you typed is not valid.", comment: "")
+					a.alertStyle = NSAlertStyle.WarningAlertStyle
+					a.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
 				}
 			}
 		}

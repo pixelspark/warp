@@ -162,7 +162,16 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 			/* A new query cannot be started before all results from the previous one have been fetched, because packets
 			will get out of order. */
 			var n = 0
-			while let _ = self.row() {
+			while let r = self.row() {
+				if case .Failure(let e) = r {
+					#if DEBUG
+						if warn {
+							QBELog("Unfinished result was destroyed, drained \(n) rows to prevent packet errors, errored \(e). This is a performance issue!")
+						}
+					#endif
+					self.finished = true
+					return
+				}
 				++n
 			}
 			
@@ -377,8 +386,8 @@ class QBEPostgresDatabase: QBESQLDatabase {
 		let userEscaped = self.user.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLUserAllowedCharacterSet())!
 		let passwordEscaped = self.password.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLPasswordAllowedCharacterSet())!
 		let hostEscaped = self.host.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLHostAllowedCharacterSet())!
-		let databaseEscaped = self.database.urlEncoded ?? ""
-		let url = "postgres://\(userEscaped):\(passwordEscaped)@\(hostEscaped):\(self.port)/\(databaseEscaped)"
+		let databaseEscaped = self.database.isEmpty ? "" : ("/"+(self.database.urlEncoded ?? ""))
+		let url = "postgres://\(userEscaped):\(passwordEscaped)@\(hostEscaped):\(self.port)\(databaseEscaped)"
 		
 		let connection = PQconnectdb(url)
 		
@@ -590,13 +599,13 @@ class QBEPostgresStream: QBEStream {
 }
 
 class QBEPostgresSourceStep: QBEStep {
-	var tableName: String?
-	var host: String?
-	var user: String?
-	var password: String?
-	var databaseName: String?
-	var schemaName: String?
-	var port: Int?
+	var tableName: String = ""
+	var host: String = "localhost"
+	var user: String = "postgres"
+	var password: String = ""
+	var databaseName: String = "postgres"
+	var schemaName: String = "public"
+	var port: Int = 5432
 	let defaultSchemaName = "public"
 	
 	init(host: String, port: Int, user: String, password: String, database: String,  schemaName: String, tableName: String) {
@@ -607,9 +616,13 @@ class QBEPostgresSourceStep: QBEStep {
 		self.databaseName = database
 		self.tableName = tableName
 		self.schemaName = schemaName
-		super.init(previous: nil)
+		super.init()
 	}
-	
+
+	required init() {
+		super.init()
+	}
+
 	required init(coder aDecoder: NSCoder) {
 		self.tableName = (aDecoder.decodeObjectForKey("tableName") as? String) ?? ""
 		self.host = (aDecoder.decodeObjectForKey("host") as? String) ?? ""
@@ -632,8 +645,17 @@ class QBEPostgresSourceStep: QBEStep {
 		coder.encodeString(schemaName ?? "", forKey: "schema")
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence(format: NSLocalizedString("Load table [#] from schema [#] in PostgreSQL database [#]", comment: ""),
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+		let template: String
+		switch variant {
+		case .Neutral, .Read:
+			template = "Load table [#] from schema [#] in PostgreSQL database [#]"
+
+		case .Write:
+			template = "Write to table [#] in schema [#] in PostgreSQL database [#]"
+		}
+
+		return QBESentence(format: NSLocalizedString(template, comment: ""),
 			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
 				if let d = self.database {
 					d.tables(self.databaseName ?? "", schemaName: self.schemaName ?? self.defaultSchemaName) { tablesFallible in
@@ -694,27 +716,24 @@ class QBEPostgresSourceStep: QBEStep {
 	}
 	
 	internal var database: QBEPostgresDatabase? { get {
-		if let h = host, p = port, u = user, pw = password, d = databaseName {
-			/* For PostgreSQL, the hostname 'localhost' is special and indicates access through a local UNIX socket. This does
-			not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite
-			localhost here to 127.0.0.1 in order to force access through TCP/IP. */
-			let ha = (h == "localhost") ? "127.0.0.1" : h
-			return QBEPostgresDatabase(host: ha, port: p, user: u, password: pw, database: d)
-		}
-		return nil
+		/* For PostgreSQL, the hostname 'localhost' is special and indicates access through a local UNIX socket. This does
+		not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite
+		localhost here to 127.0.0.1 in order to force access through TCP/IP. */
+		let ha = (host == "localhost") ? "127.0.0.1" : host
+		return QBEPostgresDatabase(host: ha, port: port, user: user, password: password, database: databaseName)
 	} }
 
 	override var mutableData: QBEMutableData? {
-		if let d = self.database, let dn = self.databaseName, let tn = self.tableName, let sn = self.schemaName {
-			return QBEMutableSQLData(database: d, databaseName: dn, schemaName: sn, tableName: tn)
+		if let d = self.database {
+			return QBESQLMutableData(database: d, databaseName: databaseName, schemaName: schemaName, tableName: tableName)
 		}
 		return nil
 	}
 
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		job.async {
-			if let s = self.database, let tn = self.tableName where !tn.isEmpty {
-				callback(QBEPostgresData.create(database: s, tableName: tn, schemaName: self.schemaName ?? self.defaultSchemaName, locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
+			if let s = self.database where !self.tableName.isEmpty {
+				callback(QBEPostgresData.create(database: s, tableName: self.tableName, schemaName: self.schemaName, locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
 			}
 			else {
 				callback(.Failure(NSLocalizedString("No database or table selected", comment: "")))

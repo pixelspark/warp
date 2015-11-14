@@ -811,18 +811,22 @@ class QBESQLiteDatabase: QBESQLDatabase {
 }
 
 class QBESQLiteSourceStep: QBEStep {
-	var file: QBEFileReference? { didSet {
+	var file: QBEFileReference? = nil { didSet {
 		oldValue?.url?.stopAccessingSecurityScopedResource()
 		file?.url?.startAccessingSecurityScopedResource()
 		switchDatabase()
 	} }
 	
-	var tableName: String?
-	private var db: QBESQLiteConnection?
+	var tableName: String? = nil
+	private var db: QBESQLiteConnection? = nil
+
+	required init() {
+		super.init()
+	}
 	
 	init?(url: NSURL) {
 		self.file = QBEFileReference.URL(url)
-		super.init(previous: nil)
+		super.init()
 		switchDatabase()
 	}
 	
@@ -844,7 +848,7 @@ class QBESQLiteSourceStep: QBEStep {
 		}
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("Load table [#] from SQLite database [#]", comment: ""),
 			QBESentenceList(value: self.tableName ?? "", provider: { [weak self] (cb) -> () in
 				if let d = self?.db {
@@ -903,7 +907,7 @@ class QBESQLiteSourceStep: QBEStep {
 
 	override var mutableData: QBEMutableData? {
 		if let u = self.file?.url, let tn = tableName {
-			return QBEMutableSQLData(database: QBESQLiteDatabase(url: u, readOnly: false), databaseName: nil, schemaName: nil, tableName: tn)
+			return QBESQLMutableData(database: QBESQLiteDatabase(url: u, readOnly: false), databaseName: nil, schemaName: nil, tableName: tn)
 		}
 		return nil
 	}

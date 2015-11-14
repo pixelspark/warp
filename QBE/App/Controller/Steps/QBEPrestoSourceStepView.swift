@@ -1,34 +1,21 @@
 import Foundation
 import WarpCore
 
-internal class QBEPrestoSourceStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate, NSComboBoxDataSource, NSComboBoxDelegate {
-	let step: QBEPrestoSourceStep?
+internal class QBEPrestoSourceStepView: QBEStepViewControllerFor<QBEPrestoSourceStep>, NSTableViewDataSource, NSTableViewDelegate, NSComboBoxDataSource, NSComboBoxDelegate {
 	var tableNames: [String]?
 	var schemaNames: [String]?
 	var catalogNames: [String]?
-	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var tableView: NSTableView?
 	@IBOutlet var urlField: NSTextField?
 	@IBOutlet var catalogField: NSComboBox?
 	@IBOutlet var schemaField: NSComboBox?
-	
-	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
-		self.delegate = delegate
-		
-		if let s = step as? QBEPrestoSourceStep {
-			self.step = s
-			super.init(nibName: "QBEPrestoSourceStepView", bundle: nil)
-		}
-		else {
-			self.step = nil
-			super.init(nibName: "QBEPrestoSourceStepView", bundle: nil)
-			return nil
-		}
+
+	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
+		super.init(step: step, delegate: delegate, nibName: "QBEPrestoSourceStepView", bundle: nil)
 	}
 	
 	required init?(coder: NSCoder) {
-		self.step = nil
-		super.init(coder: coder)
+		fatalError("Should not be called")
 	}
 	
 	internal override func viewWillAppear() {
@@ -37,54 +24,50 @@ internal class QBEPrestoSourceStepView: NSViewController, NSTableViewDataSource,
 	}
 	
 	@IBAction func update(sender: NSObject) {
-		if let s = step {
-			s.url = urlField?.stringValue ?? s.url
-			s.catalogName = catalogField?.stringValue ?? s.catalogName
-			s.schemaName = schemaField?.stringValue ?? s.schemaName
-			updateView()
-			self.delegate?.suggestionsView(self, previewStep: s)
-		}
+		step.url = urlField?.stringValue ?? step.url
+		step.catalogName = catalogField?.stringValue ?? step.catalogName
+		step.schemaName = schemaField?.stringValue ?? step.schemaName
+		updateView()
+		self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 	}
 	
 	private func updateView() {
 		let job = QBEJob(.UserInitiated)
+
+		urlField?.stringValue = step.url ?? ""
+		catalogField?.stringValue = step.catalogName ?? ""
+		schemaField?.stringValue = step.schemaName ?? ""
 		
-		if let s = step {
-			urlField?.stringValue = s.url ?? ""
-			catalogField?.stringValue = s.catalogName ?? ""
-			schemaField?.stringValue = s.schemaName ?? ""
-			
-			s.catalogNames(job) { (catalogsFallible) -> () in
-				catalogsFallible.maybe {(catalogs) in
-					QBEAsyncMain {
-						self.catalogNames = Array(catalogs)
-						self.catalogField?.reloadData()
-					}
+		step.catalogNames(job) { (catalogsFallible) -> () in
+			catalogsFallible.maybe {(catalogs) in
+				QBEAsyncMain {
+					self.catalogNames = Array(catalogs)
+					self.catalogField?.reloadData()
 				}
 			}
-			
-			s.schemaNames(job) { (schemasFallible) -> () in
-				schemasFallible.maybe { (schemas) in
-					QBEAsyncMain {
-						self.schemaNames = Array(schemas)
-						self.schemaField?.reloadData()
-					}
+		}
+		
+		step.schemaNames(job) { (schemasFallible) -> () in
+			schemasFallible.maybe { (schemas) in
+				QBEAsyncMain {
+					self.schemaNames = Array(schemas)
+					self.schemaField?.reloadData()
 				}
 			}
-			
-			s.tableNames(job) { (namesFallible) -> () in
-				namesFallible.maybe { (names) in
-					QBEAsyncMain {
-						self.tableNames = Array(names)
-						self.tableView?.reloadData()
-						
-						if self.tableNames != nil {
-							let currentTable = s.tableName
-							for i in 0..<self.tableNames!.count {
-								if self.tableNames![i]==currentTable {
-									self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
-									break
-								}
+		}
+		
+		step.tableNames(job) { (namesFallible) -> () in
+			namesFallible.maybe { (names) in
+				QBEAsyncMain {
+					self.tableNames = Array(names)
+					self.tableView?.reloadData()
+					
+					if self.tableNames != nil {
+						let currentTable = self.step.tableName
+						for i in 0..<self.tableNames!.count {
+							if self.tableNames![i]==currentTable {
+								self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
+								break
 							}
 						}
 					}
@@ -97,8 +80,8 @@ internal class QBEPrestoSourceStepView: NSViewController, NSTableViewDataSource,
 		let selection = tableView?.selectedRow ?? -1
 		if tableNames != nil && selection >= 0 && selection < tableNames!.count {
 			let selectedName = tableNames![selection]
-			step?.tableName = selectedName
-			delegate?.suggestionsView(self, previewStep: step)
+			step.tableName = selectedName
+			delegate?.stepView(self, didChangeConfigurationForStep: step)
 		}
 	}
 	

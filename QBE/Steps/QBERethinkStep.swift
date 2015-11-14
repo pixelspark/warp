@@ -315,14 +315,109 @@ class QBERethinkData: QBEStreamData {
 class QBERethinkDataWarehouse: QBEDataWarehouse {
 	let url: NSURL
 	let databaseName: String
+	let hasFixedColumns: Bool = false
 
 	init(url: NSURL, databaseName: String) {
 		self.url = url
 		self.databaseName = databaseName
 	}
+
+	func canPerformMutation(mutation: QBEWarehouseMutation) -> Bool {
+		switch mutation {
+		case .Create(_,_):
+			return true
+		}
+	}
+
+	func performMutation(mutation: QBEWarehouseMutation, job: QBEJob, callback: (QBEFallible<QBEMutableData?>) -> ()) {
+		if !canPerformMutation(mutation) {
+			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
+			return
+		}
+
+		switch mutation {
+		case .Create(let name, _):
+			R.connect(self.url, callback: { (error, connection) -> () in
+				if error != nil {
+					callback(.Failure(error!))
+					return
+				}
+
+				R.db(self.databaseName).tableCreate(name).run(connection) { response in
+					switch response {
+					case .Error(let e):
+						callback(.Failure(e))
+
+					default:
+						callback(.Success(QBERethinkMutableData(url: self.url, databaseName: self.databaseName, tableName: name)))
+					}
+				}
+			})
+		}
+	}
 }
 
-class QBEMutableRethinkData: QBEMutableData {
+class QBERethinkInsertPuller: QBEStreamPuller {
+	let columnNames: [QBEColumn]
+	let connection: ReConnection
+	let table: ReQueryTable
+	var callback: ((QBEFallible<Void>) -> ())?
+
+	init(stream: QBEStream, job: QBEJob, columnNames: [QBEColumn], table: ReQueryTable, connection: ReConnection, callback: (QBEFallible<Void>) -> ()) {
+		self.callback = callback
+		self.table = table
+		self.connection = connection
+		self.columnNames = columnNames
+		super.init(stream: stream, job: job)
+	}
+
+	override func onReceiveRows(rows: [QBETuple], callback: (QBEFallible<Void>) -> ()) {
+		self.mutex.locked {
+			let documents = rows.map { row -> ReDocument in
+				assert(row.count == self.columnNames.count, "Mismatching column counts")
+				var document: ReDocument = [:]
+				for (index, element) in self.columnNames.enumerate()
+				{
+					document[element.name] = row[index].stringValue
+				}
+				return document
+			}
+
+			self.table.insert(documents).run(self.connection) { result in
+				switch result {
+				case .Error(let e):
+					callback(.Failure(e))
+
+				default:
+					callback(.Success())
+				}
+			}
+		}
+	}
+
+	override func onDoneReceiving() {
+		self.mutex.locked {
+			let cb = self.callback!
+			self.callback = nil
+			self.job.async {
+				cb(.Success())
+			}
+		}
+	}
+
+	override func onError(error: String) {
+		self.mutex.locked {
+			let cb = self.callback!
+			self.callback = nil
+
+			self.job.async {
+				cb(.Failure(error))
+			}
+		}
+	}
+}
+
+class QBERethinkMutableData: QBEMutableData {
 	let url: NSURL
 	let databaseName: String
 	let tableName: String
@@ -338,6 +433,9 @@ class QBEMutableRethinkData: QBEMutableData {
 	func canPerformMutation(mutation: QBEDataMutation) -> Bool {
 		switch mutation {
 		case .Truncate, .Drop:
+			return true
+
+		case .Insert(_,_):
 			return true
 		}
 	}
@@ -362,6 +460,23 @@ class QBEMutableRethinkData: QBEMutableData {
 
 					case .Drop:
 						q = R.db(self.databaseName).tableDrop(self.tableName)
+
+					case .Insert(let sourceData, _):
+						let stream = sourceData.stream()
+
+						stream.columnNames(job) { cns in
+							switch cns {
+							case .Success(let columnNames):
+								let table = R.db(self.databaseName).table(self.tableName)
+								let puller = QBERethinkInsertPuller(stream: stream, job: job, columnNames: columnNames, table: table, connection: connection, callback: callback)
+								puller.start()
+
+							case .Failure(let e):
+								callback(.Failure(e))
+							}
+						}
+
+						return
 				}
 
 				q.run(connection, callback: { (response) -> () in
@@ -387,7 +502,11 @@ class QBERethinkSourceStep: QBEStep {
 	var columns: [QBEColumn] = []
 
 	required override init(previous: QBEStep?) {
-		super.init(previous: nil)
+		super.init()
+	}
+
+	required init() {
+		super.init()
 	}
 
 	required init(coder aDecoder: NSCoder) {
@@ -447,8 +566,14 @@ class QBERethinkSourceStep: QBEStep {
 		}
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
-		return QBESentence(format: NSLocalizedString("Read table [#] from database [#]", comment: ""),
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+		let template: String
+		switch variant {
+		case .Read, .Neutral: template = "Read table [#] from RethinkDB database [#]"
+		case .Write: template = "Write to table [#] in RethinkDB database [#]";
+		}
+
+		return QBESentence(format: NSLocalizedString(template, comment: ""),
 			QBESentenceList(value: self.table, provider: { pc in
 				R.connect(self.url!, callback: { (err, connection) in
 					if err != nil {
@@ -510,7 +635,7 @@ class QBERethinkSourceStep: QBEStep {
 
 	override var mutableData: QBEMutableData? {
 		if let u = self.url {
-			return QBEMutableRethinkData(url: u, databaseName: self.database, tableName: self.table)
+			return QBERethinkMutableData(url: u, databaseName: self.database, tableName: self.table)
 		}
 		return nil
 	}

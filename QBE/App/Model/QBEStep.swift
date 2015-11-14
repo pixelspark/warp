@@ -1,6 +1,13 @@
 import Foundation
 import WarpCore
 
+/** Indicates a type of sentence. */
+public enum QBESentenceVariant {
+	case Neutral // "Table x from y"
+	case Read // "Read table x from y"
+	case Write // "Write to table x from y"
+}
+
 /** Represents a data manipulation step. Steps usually connect to (at least) one previous step and (sometimes) a next step.
 The step transforms a data manipulation on the data produced by the previous step; the results are in turn used by the 
 next. Steps work on two datasets: the 'example' data set (which is used to let the user design the data manipulation) and
@@ -10,7 +17,34 @@ Subclasses of QBEStep implement the data manipulation in the apply function, and
 as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. */
 public class QBEStep: NSObject, NSCoding {
 	public static let dragType = "nl.pixelspark.Warp.Step"
-	
+
+	public var previous: QBEStep? { didSet {
+		assert(previous != self, "A step cannot be its own previous step")
+		previous?.next = self
+		} }
+
+	public var alternatives: [QBEStep]?
+	public weak var next: QBEStep?
+
+	required override public init() {
+	}
+
+	public init(previous: QBEStep?) {
+		self.previous = previous
+	}
+
+	public required init(coder aDecoder: NSCoder) {
+		previous = aDecoder.decodeObjectForKey("previousStep") as? QBEStep
+		next = aDecoder.decodeObjectForKey("nextStep") as? QBEStep
+		alternatives = aDecoder.decodeObjectForKey("alternatives") as? [QBEStep]
+	}
+
+	public func encodeWithCoder(coder: NSCoder) {
+		coder.encodeObject(previous, forKey: "previousStep")
+		coder.encodeObject(next, forKey: "nextStep")
+		coder.encodeObject(alternatives, forKey: "alternatives")
+	}
+
 	/** Creates a data object representing the result of an 'example' calculation of the result of this QBEStep. The
 	maxInputRows parameter defines the maximum number of input rows a source step should generate. The maxOutputRows
 	parameter defines the maximum number of rows a step should strive to produce. */
@@ -51,41 +85,14 @@ public class QBEStep: NSObject, NSCoding {
 	public var mutableData: QBEMutableData? { get {
 		return nil
 	} }
-
-	public var previous: QBEStep? { didSet {
-		assert(previous != self, "A step cannot be its own previous step")
-		previous?.next = self
-	} }
-	
-	public var alternatives: [QBEStep]?
-	public weak var next: QBEStep?
-	
-	override private init() {
-	}
-	
-	public init(previous: QBEStep?) {
-		self.previous = previous
-	}
-	
-	public required init(coder aDecoder: NSCoder) {
-		previous = aDecoder.decodeObjectForKey("previousStep") as? QBEStep
-		next = aDecoder.decodeObjectForKey("nextStep") as? QBEStep
-		alternatives = aDecoder.decodeObjectForKey("alternatives") as? [QBEStep]
-	}
-	
-	public func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(previous, forKey: "previousStep")
-		coder.encodeObject(next, forKey: "nextStep")
-		coder.encodeObject(alternatives, forKey: "alternatives")
-	}
 	
 	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific
 	configuration of the step. */
 	public final func explain(locale: QBELocale) -> String {
-		return sentence(locale).stringValue
+		return sentence(locale, variant: .Neutral).stringValue
 	}
 
-	public func sentence(locale: QBELocale) -> QBESentence {
+	public func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([])
 	}
 	
@@ -254,7 +261,7 @@ public class QBETransposeStep: QBEStep {
 		callback(.Success(data.transpose()))
 	}
 
-	public override func sentence(locale: QBELocale) -> QBESentence {
+	public override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(NSLocalizedString("Switch rows/columns", comment: ""))])
 	}
 

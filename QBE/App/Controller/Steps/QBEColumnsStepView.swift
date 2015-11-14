@@ -1,29 +1,16 @@
 import Foundation
 import WarpCore
 
-internal class QBEColumnsStepView: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
-	let step: QBEColumnsStep?
+internal class QBEColumnsStepView: QBEStepViewControllerFor<QBEColumnsStep>, NSTableViewDataSource, NSTableViewDelegate {
 	var columnNames: [QBEColumn] = []
-	weak var delegate: QBESuggestionsViewDelegate?
 	@IBOutlet var tableView: NSTableView?
 	
-	init?(step: QBEStep?, delegate: QBESuggestionsViewDelegate) {
-		self.delegate = delegate
-		
-		if let s = step as? QBEColumnsStep {
-			self.step = s
-			super.init(nibName: "QBEColumnsStepView", bundle: nil)
-		}
-		else {
-			self.step = nil
-			super.init(nibName: "QBEColumnsStepView", bundle: nil)
-			return nil
-		}
+	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
+		super.init(step: step, delegate: delegate, nibName: "QBEColumnsStepView", bundle: nil)
 	}
 	
 	required init?(coder: NSCoder) {
-		self.step = nil
-		super.init(coder: coder)
+		fatalError("Should not be called")
 	}
 	
 	internal override func viewWillAppear() {
@@ -34,23 +21,21 @@ internal class QBEColumnsStepView: NSViewController, NSTableViewDataSource, NSTa
 	
 	private func updateColumns() {
 		let job = QBEJob(.UserInitiated)
-		if let s = step {
-			if let previous = s.previous {
-				previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
-					data.maybe({$0.columnNames(job) {(columns) in
-						columns.maybe {(cns) in
-							QBEAsyncMain {
-								self.columnNames = cns
-								self.updateView()
-							}
+		if let previous = step.previous {
+			previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
+				data.maybe({$0.columnNames(job) {(columns) in
+					columns.maybe {(cns) in
+						QBEAsyncMain {
+							self.columnNames = cns
+							self.updateView()
 						}
-					}})
-				}
+					}
+				}})
 			}
-			else {
-				columnNames.removeAll()
-				self.updateView()
-			}
+		}
+		else {
+			columnNames.removeAll()
+			self.updateView()
 		}
 	}
 	
@@ -63,17 +48,15 @@ internal class QBEColumnsStepView: NSViewController, NSTableViewDataSource, NSTa
 	}
 	
 	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
-		if let s = step {
-			if let identifier = tableColumn?.identifier where identifier == "selected" {
-				let select = object?.boolValue ?? false
-				let name = columnNames[row]
-				s.columnNames.remove(name)
-				if select {
-					s.columnNames.append(name)
-				}
+		if let identifier = tableColumn?.identifier where identifier == "selected" {
+			let select = object?.boolValue ?? false
+			let name = columnNames[row]
+			step.columnNames.remove(name)
+			if select {
+				step.columnNames.append(name)
 			}
-			self.delegate?.suggestionsView(self, previewStep: s)
 		}
+		self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 	}
 	
 	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
@@ -82,9 +65,7 @@ internal class QBEColumnsStepView: NSViewController, NSTableViewDataSource, NSTa
 				return columnNames[row].name
 			}
 			else {
-				if let s = step {
-					return NSNumber(bool: s.columnNames.indexOf(columnNames[row]) != nil)
-				}
+				return NSNumber(bool: step.columnNames.indexOf(columnNames[row]) != nil)
 			}
 		}
 		return nil

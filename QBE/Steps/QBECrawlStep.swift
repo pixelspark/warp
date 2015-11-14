@@ -224,7 +224,12 @@ class QBECrawlStep: QBEStep {
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	required init() {
+		self.crawler = QBECrawler(urlExpression: QBELiteralExpression(QBEValue("http://localhost")))
+		super.init()
+	}
+
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("For each row, fetch the web page at [#]", comment: ""),
 			QBESentenceFormula(expression: self.crawler.urlExpression, locale: locale, callback: { [weak self] (newExpression) -> () in
 				self?.crawler.urlExpression = newExpression

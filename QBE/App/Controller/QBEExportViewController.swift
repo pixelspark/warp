@@ -5,7 +5,7 @@ protocol QBEExportViewDelegate: NSObjectProtocol {
 	func exportView(view: QBEExportViewController, didAddStep: QBEExportStep)
 }
 
-class QBEExportViewController: NSViewController, QBEJobDelegate, QBESuggestionsViewDelegate {
+class QBEExportViewController: NSViewController, QBEJobDelegate, QBESentenceViewDelegate {
 	var step: QBEExportStep?
 	var locale: QBELocale = QBELocale()
 	weak var delegate: QBEExportViewDelegate? = nil
@@ -41,24 +41,13 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESuggestionsV
 		super.viewWillAppear()
 		update()
 		if let s = step {
-			self.sentenceEditor?.configure(s, delegate: self)
+			self.sentenceEditor?.configure(s, variant: .Write, delegate: self)
 		}
 	}
 
-	func suggestionsViewDidCancel(view: NSViewController) {
+	func sentenceView(view: QBESentenceViewController, didChangeStep: QBEStep) {
+		// TODO check if export is possible
 	}
-
-	func suggestionsView(view: NSViewController, previewStep: QBEStep?) {
-	}
-
-	func suggestionsView(view: NSViewController, didSelectStep: QBEStep) {
-	}
-
-	func suggestionsView(view: NSViewController, didSelectAlternativeStep: QBEStep) {
-	}
-
-	var currentStep: QBEStep? { get { return self.step} }
-	var undo: NSUndoManager? { get { return nil } }
 
 	private func update() {
 		self.progressView?.hidden = !isExporting

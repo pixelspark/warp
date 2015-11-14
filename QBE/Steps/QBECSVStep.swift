@@ -340,10 +340,16 @@ class QBEHTMLWriter: QBECSVWriter {
 }
 
 class QBECSVSourceStep: QBEStep {
-	var file: QBEFileReference?
+	var file: QBEFileReference? = nil
 	var fieldSeparator: unichar
-	var interpretLanguage: QBELocale.QBELanguage?
-	var hasHeaders: Bool
+	var interpretLanguage: QBELocale.QBELanguage? = nil
+	var hasHeaders: Bool = true
+
+	required init() {
+		let defaultSeparator = QBESettings.sharedInstance.defaultFieldSeparator
+		self.fieldSeparator = defaultSeparator.utf16[defaultSeparator.utf16.startIndex]
+		super.init()
+	}
 	
 	init(url: NSURL) {
 		let defaultSeparator = QBESettings.sharedInstance.defaultFieldSeparator
@@ -351,7 +357,7 @@ class QBECSVSourceStep: QBEStep {
 		self.fieldSeparator = defaultSeparator.utf16[defaultSeparator.utf16.startIndex]
 		self.hasHeaders = true
 		self.interpretLanguage = nil
-		super.init(previous: nil)
+		super.init()
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -400,7 +406,7 @@ class QBECSVSourceStep: QBEStep {
 		coder.encodeObject(self.interpretLanguage, forKey: "intepretLanguage")
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		let fileTypes = [
 			"public.comma-separated-values-text",
 			"public.delimited-values-text",

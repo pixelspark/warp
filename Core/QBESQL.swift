@@ -100,27 +100,107 @@ public protocol QBESQLConnection {
 public class QBESQLDataWarehouse: QBEDataWarehouse {
 	let database: QBESQLDatabase
 	let databaseName: String?
+	let schemaName: String?
 	var dialect: QBESQLDialect { return database.dialect }
+	public let hasFixedColumns: Bool = true
 
-	init(database: QBESQLDatabase, databaseName: String?) {
+	init(database: QBESQLDatabase, databaseName: String?, schemaName: String?) {
 		self.database = database
 		self.databaseName = databaseName
+		self.schemaName = schemaName
+	}
+
+	public func canPerformMutation(mutation: QBEWarehouseMutation) -> Bool {
+		switch mutation {
+			case .Create(_,_):
+				return true
+		}
+	}
+
+	public func performMutation(mutation: QBEWarehouseMutation, job: QBEJob, callback: (QBEFallible<QBEMutableData?>) -> ()) {
+		if !canPerformMutation(mutation) {
+			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
+			return
+		}
+
+		self.database.connect { connectionFallible in
+			switch connectionFallible {
+			case .Success(let con):
+				switch mutation {
+				// Create a table to store the given data set
+				case .Create(let tableName, let data):
+					// Start a transaction
+					con.run(["START TRANSACTION"], job: job) { result in
+						switch result {
+						case .Success(_):
+							// Find out the column names of the source data
+							data.columnNames(job) { columnsResult in
+								switch columnsResult {
+								case .Failure(let e): callback(.Failure(e))
+								case .Success(let columnNames):
+									// Build a 'CREATE TABLE' query and run it
+									let fields = columnNames.map {
+										return self.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) + " TEXT"
+									}.joinWithSeparator(", ")
+									let createQuery = "CREATE TABLE \(self.dialect.tableIdentifier(tableName, schema: self.schemaName, database: self.databaseName)) (\(fields))";
+
+									// Create the table
+									con.run([createQuery], job: job) { createResult in
+										switch createResult {
+										case .Failure(let e): callback(.Failure(e))
+										case .Success(_):
+											// Commit the things we just did
+											con.run(["COMMIT"], job: job) { commitResult in
+												switch commitResult {
+												case .Success:
+													// Go and insert the specified data in the table
+													let mutableData = QBESQLMutableData(database: self.database, databaseName: self.databaseName, schemaName: self.schemaName, tableName: tableName)
+													let mapping = columnNames.mapDictionary { cn in return (cn, cn) }
+													mutableData.performMutation(.Insert(data, mapping), job: job) { insertResult in
+														switch insertResult {
+														case .Success:
+															callback(.Success(mutableData))
+
+														case .Failure(let e): callback(.Failure(e))
+														}
+													}
+
+												case .Failure(let e): callback(.Failure(e))
+												}
+											}
+										}
+									}
+								}
+							}
+						case .Failure(let e): callback(.Failure(e))
+						}
+					}
+				}
+
+			case .Failure(let e):
+				callback(.Failure(e))
+			}
+		}
 	}
 }
 
-public class QBEMutableSQLData: QBEMutableData {
-	let database: QBESQLDatabase
-	let databaseName: String?
-	let tableName: String
-	let schemaName: String?
+public class QBESQLMutableData: QBEMutableData {
+	public let database: QBESQLDatabase
+	public let databaseName: String?
+	public let tableName: String
+	public let schemaName: String?
 
-	public var warehouse: QBEDataWarehouse { return QBESQLDataWarehouse(database: self.database, databaseName: self.databaseName) }
+	public var warehouse: QBEDataWarehouse { return QBESQLDataWarehouse(database: self.database, databaseName: self.databaseName, schemaName: self.schemaName) }
 
 	public init(database: QBESQLDatabase, databaseName: String?, schemaName: String?, tableName: String) {
 		self.database = database
 		self.databaseName = databaseName
 		self.tableName = tableName
 		self.schemaName = schemaName
+	}
+
+	private var tableIdentifier: String {
+		return self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.databaseName)
 	}
 
 	public func performMutation(mutation: QBEDataMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
@@ -135,12 +215,90 @@ public class QBEMutableSQLData: QBEMutableData {
 					case .Success(let con):
 						switch mutation {
 						case .Drop:
-							con.run(["DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.databaseName))"], job: job, callback: callback)
+							con.run(["DROP TABLE \(self.tableIdentifier)"], job: job, callback: callback)
 
 						case .Truncate:
 							// TODO: MySQL supports TRUNCATE TABLE which supposedly is faster
-							con.run(["DELETE FROM \(self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.databaseName))"], job: job, callback: callback)
+							con.run(["DELETE FROM \(self.tableIdentifier)"], job: job, callback: callback)
 
+						case .Insert(let data, let mapping):
+							let fields = mapping.keys.map { fn in return self.database.dialect.columnIdentifier(fn, table: nil, schema: nil, database: nil) }.joinWithSeparator(", ")
+							let insertStatement = "INSERT INTO \(self.tableIdentifier) (\(fields)) VALUES ";
+							print(insertStatement)
+
+							// Fetch rows and insert!
+							data.columnNames(job) { columnsFallible in
+								switch columnsFallible {
+									case .Success(let sourceColumnNames):
+										let fastMapping = mapping.keys.map { targetField -> Int? in
+											if let sourceFieldName = mapping[targetField] {
+												return sourceColumnNames.indexOf(sourceFieldName)
+											}
+											else {
+												return nil
+											}
+										}
+										let stream = data.stream()
+
+										var writer: (() -> ())? = nil
+										writer = {
+											stream.fetch(job) { rowsFallible, streamStatus in
+												switch rowsFallible {
+												case .Failure(let e):
+													print("ERR: \(e)")
+													callback(.Failure(e))
+													return
+
+												case .Success(let rows):
+													if rows.count == 0 {
+														if streamStatus == .Finished {
+															callback(.Success())
+														}
+														else {
+															writer!()
+														}
+														return
+													}
+													let values = rows.map { row in
+														let tuple = fastMapping.map { idx -> String in
+															if let i = idx {
+																return  self.database.dialect.expressionToSQL(QBELiteralExpression(row[i]), alias: "", foreignAlias: nil, inputValue: nil) ?? "NULL"
+															}
+															else {
+																return "NULL"
+															}
+														}.joinWithSeparator(", ")
+														return "(\(tuple))"
+													}.joinWithSeparator(", ")
+
+													let sql = "\(insertStatement) \(values)"
+													con.run([sql], job: job) { insertResult in
+														switch insertResult {
+															case .Failure(let e):
+																callback(.Failure(e))
+																return
+
+															case .Success(_):
+																if streamStatus == .Finished {
+																	callback(.Success())
+																}
+																else {
+																	writer!()
+																}
+														}
+
+													}
+												}
+											}
+										}
+
+										writer!()
+
+									case .Failure(let e):
+										callback(.Failure(e))
+										return
+								}
+							}
 						}
 
 					case .Failure(let e):
@@ -152,7 +310,7 @@ public class QBEMutableSQLData: QBEMutableData {
 
 	public func canPerformMutation(mutation: QBEDataMutation) -> Bool {
 		switch mutation {
-		case .Truncate, .Drop:
+		case .Truncate, .Drop, .Insert(_, _):
 			return true
 		}
 	}

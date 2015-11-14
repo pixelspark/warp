@@ -21,6 +21,12 @@ class QBEExportStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 
+	required init() {
+		writer = nil
+		file = nil
+		super.init()
+	}
+
 	override func willSaveToDocument(atURL: NSURL) {
 		self.file = self.file?.bookmark(atURL)
 	}
@@ -64,7 +70,7 @@ class QBEExportStep: QBEStep {
 		return callback(.Success(data))
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		let factory = QBEFactory.sharedInstance
 
 		var options: [String: String] = [:]

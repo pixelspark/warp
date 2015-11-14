@@ -17,7 +17,7 @@ class QBEChainView: NSView {
 
 protocol QBEChainViewDelegate: NSObjectProtocol {
 	/** Called when the chain view wants the delegate to present a configurator for a step. */
-	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESuggestionsViewDelegate)
+	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESentenceViewDelegate)
 	
 	/** Called when the user closes a chain view */
 	func chainViewDidClose(view: QBEChainViewController)
@@ -37,7 +37,7 @@ internal extension NSViewController {
 	}
 }
 
-@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate {
+@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate {
 	private var suggestions: QBEFuture<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator()
 	private var dataViewController: QBEDataViewController?
@@ -122,6 +122,16 @@ internal extension NSViewController {
 				self.view.suggestSteps([QBEMergeStep(previous: nil, with: self.otherChain)])
 			}
 
+
+			@objc func uploadData(sender: AnyObject) {
+				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Insert(QBERasterData(), [:])) {
+					let uploadView = self.view.storyboard?.instantiateControllerWithIdentifier("uploadData") as! QBEUploadViewController
+					uploadView.sourceStep = sourceStep
+					uploadView.targetStep = destStep
+					self.view.presentViewControllerAsSheet(uploadView)
+				}
+			}
+
 			@objc func joinChains(sender: AnyObject) {
 				// Generate sensible join options
 				self.view.calculator.currentRaster?.get { (r) -> () in
@@ -180,6 +190,13 @@ internal extension NSViewController {
 				let unionItem = NSMenuItem(title: NSLocalizedString("Append data set to this data set", comment: ""), action: Selector("unionChains:"), keyEquivalent: "")
 				unionItem.target = self
 				dropMenu.addItem(unionItem)
+
+				if let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Insert(QBERasterData(), [:])) {
+					dropMenu.addItem(NSMenuItem.separatorItem())
+					let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .Write).stringValue, action: Selector("uploadData:"), keyEquivalent: "")
+					createItem.target = self
+					dropMenu.addItem(createItem)
+				}
 
 				NSMenu.popUpContextMenu(dropMenu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.view.view)
 			}
@@ -737,6 +754,11 @@ internal extension NSViewController {
 			}
 		}
 	}
+
+	func sentenceView(view: QBESentenceViewController, didChangeStep: QBEStep) {
+		updateView()
+		calculate()
+	}
 	
 	func stepsController(vc: QBEStepsViewController, showSuggestionsForStep step: QBEStep, atView: NSView?) {
 		self.showSuggestionsForStep(step, atView: atView ?? self.stepsViewController?.view ?? self.view)
@@ -915,7 +937,7 @@ internal extension NSViewController {
 	}
 	
 	@IBAction func addDebugStep(sender: NSObject) {
-		suggestSteps([QBEDebugStep(previous: self.currentStep)])
+		suggestSteps([QBEDebugStep()])
 	}
 	
 	private func sortRows(ascending: Bool) {
@@ -1095,6 +1117,9 @@ internal extension NSViewController {
 
 		case .Drop:
 			confirmationAlert.messageText = NSLocalizedString("Are you sure you want to completely remove the source data set?", comment: "")
+
+		case .Insert(_,_):
+			break
 		}
 
 		confirmationAlert.informativeText = NSLocalizedString("This will modify the original data, and cannot be undone.", comment: "")
@@ -1113,6 +1138,7 @@ internal extension NSViewController {
 				switch mutation {
 				case .Truncate: name = NSLocalizedString("Truncate data set", comment: "")
 				case .Drop: name = NSLocalizedString("Remove data set", comment: "")
+				case .Insert(_,_): name = ""
 				}
 				QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: name)
 
@@ -1293,7 +1319,9 @@ internal extension NSViewController {
 	}
 	
 	@IBAction func removeDuplicateRows(sender: NSObject) {
-		suggestSteps([QBEDistinctStep(previous: self.currentStep)])
+		let step = QBEDistinctStep()
+		step.previous = self.currentStep
+		suggestSteps([step])
 	}
 	
 	@IBAction func goBack(sender: NSObject) {
@@ -1314,15 +1342,15 @@ internal extension NSViewController {
 	}
 	
 	@IBAction func flatten(sender: NSObject) {
-		suggestSteps([QBEFlattenStep(previous: currentStep)])
+		suggestSteps([QBEFlattenStep()])
 	}
 	
 	@IBAction func crawl(sender: NSObject) {
-		suggestSteps([QBECrawlStep(previous: currentStep)])
+		suggestSteps([QBECrawlStep()])
 	}
 	
 	@IBAction func pivot(sender: NSObject) {
-		suggestSteps([QBEPivotStep(previous: currentStep)])
+		suggestSteps([QBEPivotStep()])
 	}
 	
 	@IBAction func exportFile(sender: NSObject) {

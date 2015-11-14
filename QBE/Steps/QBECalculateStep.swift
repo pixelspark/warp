@@ -6,6 +6,12 @@ class QBECalculateStep: QBEStep {
 	var targetColumn: QBEColumn
 	var insertRelativeTo: QBEColumn? = nil
 	var insertBefore: Bool = false
+
+	required init() {
+		function = QBEIdentityExpression()
+		targetColumn = ""
+		super.init()
+	}
 	
 	required init(coder aDecoder: NSCoder) {
 		function = (aDecoder.decodeObjectForKey("function") as? QBEExpression) ?? QBEIdentityExpression()
@@ -22,7 +28,7 @@ class QBECalculateStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 	
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("Calculate column [#] as [#]", comment: ""),
 			QBESentenceTextInput(value: self.targetColumn.name, callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {

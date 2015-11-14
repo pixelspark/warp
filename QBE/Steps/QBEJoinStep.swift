@@ -2,10 +2,14 @@ import Foundation
 import WarpCore
 
 class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
-	weak var right: QBEChain?
-	var joinType: QBEJoinType
-	var condition: QBEExpression?
-	
+	weak var right: QBEChain? = nil
+	var joinType: QBEJoinType = QBEJoinType.LeftJoin
+	var condition: QBEExpression? = nil
+
+	required init() {
+		super.init()
+	}
+
 	override init(previous: QBEStep?) {
 		joinType = .LeftJoin
 		super.init(previous: previous)
@@ -37,7 +41,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return []
 	} }
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("Join data on [#], [#] rows without matches", comment: ""),
 			QBESentenceFormula(expression: self.condition ?? QBELiteralExpression(QBEValue.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
 				self?.condition = newExpression
@@ -129,7 +133,11 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 }
 
 class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
-	weak var right: QBEChain?
+	weak var right: QBEChain? = nil
+
+	required init() {
+		super.init()
+	}
 	
 	init(previous: QBEStep?, with: QBEChain?) {
 		right = with
@@ -157,7 +165,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return []
 	} }
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(NSLocalizedString("Merge data", comment: ""))])
 	}
 	

@@ -300,27 +300,29 @@ private class QBEPrestoData: QBESQLData {
 }
 
 class QBEPrestoSourceStep: QBEStep {
-	var catalogName: String? { didSet { switchDatabase() } }
-	var schemaName: String? { didSet { switchDatabase() } }
-	var tableName: String? { didSet { switchDatabase() } }
-	var url: String? { didSet { switchDatabase() } }
+	var catalogName: String = "default" { didSet { switchDatabase() } }
+	var schemaName: String = "default" { didSet { switchDatabase() } }
+	var tableName: String = "default" { didSet { switchDatabase() } }
+	var url: String = "http://localhost:8080" { didSet { switchDatabase() } }
 	
 	private var db: QBEPrestoDatabase?
+
+	required init() {
+		super.init()
+	}
 	
-	init(url: String? = nil) {
-		self.url = url ?? "http://localhost:8080"
-		self.catalogName = "default"
-		self.schemaName = "default"
-		super.init(previous: nil)
+	init(url: String?) {
+		super.init()
+		self.url = url ?? self.url
 		switchDatabase()
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.catalogName = (aDecoder.decodeObjectForKey("catalogName") as? String)
-		self.tableName = (aDecoder.decodeObjectForKey("tableName") as? String)
-		self.schemaName = (aDecoder.decodeObjectForKey("schemaName") as? String)
-		self.url = (aDecoder.decodeObjectForKey("url") as? String)
 		super.init(coder: aDecoder)
+		self.catalogName = (aDecoder.decodeObjectForKey("catalogName") as? String) ?? self.catalogName
+		self.tableName = (aDecoder.decodeObjectForKey("tableName") as? String) ?? self.tableName
+		self.schemaName = (aDecoder.decodeObjectForKey("schemaName") as? String) ?? self.schemaName
+		self.url = (aDecoder.decodeObjectForKey("url") as? String) ?? self.url
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
@@ -332,30 +334,26 @@ class QBEPrestoSourceStep: QBEStep {
 	}
 	
 	private func explanation(locale: QBELocale) -> String {
-		if let tn = tableName {
-			return String(format: NSLocalizedString("Table '%@' from Presto server",comment: ""), tn)
-		}
-		
-		return NSLocalizedString("Table from Presto server", comment: "")
+		return String(format: NSLocalizedString("Table '%@' from Presto server",comment: ""), tableName)
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+		// TODO make an interactive sentence
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
 	private func switchDatabase() {
 		self.db = nil
 		
-		if let urlString = self.url,
-		   let url = NSURL(string: urlString),
-		   let catalog = self.catalogName,
-		   let schema = self.schemaName {
-			db = QBEPrestoDatabase(url: url, catalog: catalog, schema: schema)
+		if !self.url.isEmpty {
+			if let url = NSURL(string: self.url) {
+				db = QBEPrestoDatabase(url: url, catalog: catalogName, schema: schemaName)
+			}
 		}
 	}
 	
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
-		if let d = db, tableName = self.tableName {
+		if let d = db where !self.tableName.isEmpty {
 			QBEPrestoData.tableData(job, db: d, tableName: tableName, callback: { (fd) -> () in
 				callback(fd.use({return $0}))
 			})

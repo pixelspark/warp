@@ -2,10 +2,15 @@ import Foundation
 import WarpCore
 
 class QBEFlattenStep: QBEStep {
-	var colColumn: QBEColumn?
-	var rowColumn: QBEColumn?
+	var colColumn: QBEColumn? = nil
+	var rowColumn: QBEColumn? = nil
 	var valueColumn: QBEColumn
-	var rowIdentifier: QBEExpression?
+	var rowIdentifier: QBEExpression? = nil
+
+	required init() {
+		valueColumn = QBEColumn(NSLocalizedString("Value", comment: ""))
+		super.init()
+	}
 	
 	override init(previous: QBEStep?) {
 		self.colColumn = QBEColumn(NSLocalizedString("Column", comment: ""))
@@ -14,7 +19,7 @@ class QBEFlattenStep: QBEStep {
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("For each cell, put its value in column [#], the column name in [#], and in [#] the result of [#]", comment: ""),
 			QBESentenceTextInput(value: self.valueColumn.name, callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {

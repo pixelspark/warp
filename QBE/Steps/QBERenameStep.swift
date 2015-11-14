@@ -2,14 +2,18 @@ import Foundation
 import WarpCore
 
 class QBERenameStep: QBEStep {
-	var renames: [QBEColumn: QBEColumn]
+	var renames: [QBEColumn: QBEColumn] = [:]
+
+	required init() {
+		super.init()
+	}
 	
 	init(previous: QBEStep?, renames: [QBEColumn:QBEColumn] = [:]) {
 		self.renames = renames
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		if renames.count == 0 {
 			return QBESentence([QBESentenceText(NSLocalizedString("Rename columns", comment: ""))])
 		}

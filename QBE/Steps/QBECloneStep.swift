@@ -5,7 +5,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	weak var right: QBEChain?
 	
 	init(chain: QBEChain?) {
-		super.init(previous: nil)
+		super.init()
 		self.right = chain
 	}
 	
@@ -13,7 +13,12 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		right = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "right")
 		super.init(coder: aDecoder)
 	}
-	
+
+	required init() {
+		right = nil
+		super.init()
+	}
+
 	static func supportsSecureCoding() -> Bool {
 		return true
 	}
@@ -30,7 +35,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return []
 	} }
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceText(NSLocalizedString("Cloned data", comment: ""))
 		])

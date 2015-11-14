@@ -3,7 +3,11 @@ import WarpCore
 
 class QBESortStep: QBEStep {
 	var orders: [QBEOrder] = []
-	
+
+	required init() {
+		super.init()
+	}
+
 	init(previous: QBEStep?, orders: [QBEOrder] = []) {
 		self.orders = orders
 		super.init(previous: previous)
@@ -14,7 +18,7 @@ class QBESortStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		if orders.count == 0 {
 			return QBESentence(format: NSLocalizedString("Sort rows on [#]", comment: ""),
 				QBESentenceFormula(expression: QBELiteralExpression(QBEValue.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in

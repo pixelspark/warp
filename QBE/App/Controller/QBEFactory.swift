@@ -1,6 +1,45 @@
 import Foundation
 import WarpCore
 
+protocol QBEStepViewDelegate: NSObjectProtocol {
+	var locale: QBELocale { get }
+
+	func stepView(view: QBEStepViewController, didChangeConfigurationForStep: QBEStep)
+}
+
+class QBEStepViewController: NSViewController {
+	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
+		fatalError("Do not call")
+	}
+
+	override init?(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
+		super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+	}
+
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+	}
+}
+
+class QBEStepViewControllerFor<StepType: QBEStep>: QBEStepViewController {
+	weak var delegate: QBEStepViewDelegate?
+	var step: StepType
+
+	init?(step: QBEStep, delegate: QBEStepViewDelegate, nibName: String?, bundle: NSBundle?) {
+		self.step = step as! StepType
+		self.delegate = delegate
+		super.init(nibName: nibName, bundle: bundle)
+	}
+
+	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
+		fatalError("init(coder:) has not been implemented")
+	}
+
+	required init?(coder: NSCoder) {
+	    fatalError("init(coder:) has not been implemented")
+	}
+}
+
 class QBEFactory {
 	typealias QBEStepViewCreator = (step: QBEStep?, delegate: QBESuggestionsViewDelegate) -> NSViewController?
 	typealias QBEFileReaderCreator = (url: NSURL) -> QBEStep?
@@ -13,6 +52,20 @@ class QBEFactory {
 		QBEHTMLWriter.self,
 		QBEDBFWriter.self,
 		QBESQLiteWriter.self
+	]
+
+	let dataWarehouseSteps: [QBEStep.Type] = [
+		QBEMySQLSourceStep.self,
+		QBEPostgresSourceStep.self,
+		QBERethinkSourceStep.self,
+		QBESQLiteSourceStep.self
+	]
+
+	let dataWarehouseStepNames: [String: String] = [
+		QBEMySQLSourceStep.className(): NSLocalizedString("MySQL table", comment: ""),
+		QBEPostgresSourceStep.className(): NSLocalizedString("PostgreSQL table", comment: ""),
+		QBERethinkSourceStep.className(): NSLocalizedString("RethinkDB table", comment: ""),
+		QBESQLiteSourceStep.className(): NSLocalizedString("SQLite table", comment: "")
 	]
 	
 	private let fileReaders: [String: QBEFileReaderCreator] = [
@@ -30,19 +83,19 @@ class QBEFactory {
 		"dbf": {(url) in return QBEDBFSourceStep(url: url)}
 	]
 	
-	private let stepViews: Dictionary<String, QBEStepViewCreator> = [
-		QBECalculateStep.className(): {QBECalculateStepView(step: $0, delegate: $1)},
-		QBEPivotStep.className(): {QBEPivotStepView(step: $0, delegate: $1)},
-		QBECSVSourceStep.className(): {QBECSVStepView(step: $0, delegate: $1)},
-		QBEPrestoSourceStep.className(): {QBEPrestoSourceStepView(step: $0, delegate: $1)},
-		QBEColumnsStep.className(): {QBEColumnsStepView(step: $0, delegate: $1)},
-		QBESortStep.className(): {QBESortStepView(step: $0, delegate: $1)},
-		QBEMySQLSourceStep.className(): {QBEMySQLSourceStepView(step: $0, delegate: $1)},
-		QBEJoinStep.className(): {QBEJoinStepView(step: $0, delegate: $1)},
-		QBEPostgresSourceStep.className(): {QBEPostgresStepView(step: $0, delegate: $1)},
-		QBERenameStep.className(): {QBERenameStepView(step: $0, delegate: $1)},
-		QBECrawlStep.className(): {QBECrawlStepView(step: $0, delegate: $1)},
-		QBERethinkSourceStep.className(): { QBERethinkStepView(step: $0, delegate: $1) }
+	private let stepViews: Dictionary<String, QBEStepViewController.Type> = [
+		QBECalculateStep.className(): QBECalculateStepView.self,
+		QBEPivotStep.className(): QBEPivotStepView.self,
+		QBECSVSourceStep.className(): QBECSVStepView.self,
+		QBEPrestoSourceStep.className(): QBEPrestoSourceStepView.self,
+		QBEColumnsStep.className(): QBEColumnsStepView.self,
+		QBESortStep.className(): QBESortStepView.self,
+		QBEMySQLSourceStep.className(): QBEMySQLSourceStepView.self,
+		QBERenameStep.className(): QBERenameStepView.self,
+		QBEPostgresSourceStep.className(): QBEPostgresStepView.self,
+		QBECrawlStep.className(): QBECrawlStepView.self,
+		QBERethinkSourceStep.className(): QBERethinkStepView.self,
+		QBEJoinStep.className(): QBEJoinStepView.self
 	]
 	
 	private let stepIcons = [
@@ -119,9 +172,9 @@ class QBEFactory {
 		return stepViews[step.self.className] != nil
 	}
 
-	func viewForStep(step: QBEStep, delegate: QBESuggestionsViewDelegate) -> NSViewController? {
-		if let creator = stepViews[step.self.className] {
-			return creator(step: step, delegate: delegate)
+	func viewForStep<StepType: QBEStep>(step: StepType, delegate: QBEStepViewDelegate) -> QBEStepViewController? {
+		if let viewType = stepViews[step.className] {
+			return viewType.init(step: step, delegate: delegate)
 		}
 		return nil
 	}

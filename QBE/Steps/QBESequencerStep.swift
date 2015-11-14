@@ -20,10 +20,16 @@ class QBESequencerStep: QBEStep {
 	init(pattern: String, column: QBEColumn) {
 		self.pattern = pattern
 		self.column = column
-		super.init(previous: nil)
+		super.init()
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	required init() {
+	    self.pattern = ""
+		self.column = QBEColumn(NSLocalizedString("Pattern", comment: ""))
+		super.init()
+	}
+
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		let sequencer = QBESequencer(self.pattern)
 
 		return QBESentence(format: String(format: NSLocalizedString("Generate a sequence using pattern [#] (for example: '%@') and place it in column [#]", comment: ""), locale.localStringFor(sequencer?.randomValue ?? QBEValue.InvalidValue)),

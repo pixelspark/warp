@@ -38,7 +38,7 @@ import WarpCore
 		documentView.reloadData()
 	}
 	
-	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESuggestionsViewDelegate) {
+	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESentenceViewDelegate) {
 		if let ch = view.chain {
 			if let tablet = ch.tablet {
 				for cvc in self.childViewControllers {
@@ -49,7 +49,7 @@ import WarpCore
 
 							// Only show this tablet in the sentence editor if it really has become the selected tablet
 							if self.documentView.selectedTablet == tablet {
-								self.sentenceEditor?.configure(configureStep, delegate: delegate)
+								self.sentenceEditor?.configure(configureStep, variant: .Read, delegate: delegate)
 							}
 						}
 					}
@@ -66,7 +66,7 @@ import WarpCore
 		assert(tablet.document == document, "tablet should belong to our document")
 
 		document?.removeTablet(tablet)
-		self.sentenceEditor?.configure(nil, delegate: nil)
+		self.sentenceEditor?.configure(nil, variant: .Read, delegate: nil)
 		documentView.removeTablet(tablet)
 		workspaceView.magnifyView(nil)
 		
@@ -279,7 +279,8 @@ import WarpCore
 	@IBAction func addButtonClicked(sender: NSView) {
 		NSMenu.popUpContextMenu(self.addTabletMenu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.view)
 	}
-	
+
+	/** Called when an outlet is dropped onto the workspace itself (e.g. an empty spot). */
 	func workspaceView(view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
 		QBEAssertMainThread()
 
@@ -299,6 +300,26 @@ import WarpCore
 				self.documentView.addTablet(tablet, atLocation: location, undo: true)
 			}
 
+			@objc func saveToWarehouse(sender: NSObject) {
+				let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
+				if let s = sender as? NSMenuItem where s.tag >= 0 && s.tag <= stepTypes.count {
+					let stepType = stepTypes[s.tag]
+
+					let uploadView = self.documentView.storyboard?.instantiateControllerWithIdentifier("uploadData") as! QBEUploadViewController
+					let targetStep = stepType.init()
+					uploadView.targetStep = targetStep
+					uploadView.sourceStep = chain.head
+					uploadView.afterSuccessfulUpload = {
+						// Add the written data as tablet to the document view
+						QBEAsyncMain {
+							let tablet = QBETablet(chain: QBEChain(head: targetStep))
+							self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
+						}
+					}
+					self.documentView.presentViewControllerAsSheet(uploadView)
+				}
+			}
+
 			func present() {
 				let menu = NSMenu()
 				menu.autoenablesItems = false
@@ -306,13 +327,27 @@ import WarpCore
 				let cloneItem = NSMenuItem(title: NSLocalizedString("Create clone of data here", comment: ""), action: Selector("addClone:"), keyEquivalent: "")
 				cloneItem.target = self
 				menu.addItem(cloneItem)
+				menu.addItem(NSMenuItem.separatorItem())
+				let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
+
+				for i in 0..<stepTypes.count {
+					let stepType = stepTypes[i]
+					if let name = QBEFactory.sharedInstance.dataWarehouseStepNames[stepType.className()] {
+						let saveItem = NSMenuItem(title: String(format: NSLocalizedString("Upload data to %@...", comment: ""), name), action: Selector("saveToWarehouse:"), keyEquivalent: "")
+						saveItem.target = self
+						saveItem.tag = i
+						menu.addItem(saveItem)
+					}
+				}
 
 				NSMenu.popUpContextMenu(menu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.documentView.view)
 			}
 		}
 
-		let ac = QBEDropAction(chain: chain, documentView: self, location: atLocation)
-		ac.present()
+		if chain.head != nil {
+			let ac = QBEDropAction(chain: chain, documentView: self, location: atLocation)
+			ac.present()
+		}
 	}
 	
 	func workspaceView(view: QBEWorkspaceView, didReceiveFiles files: [String], atLocation: CGPoint) {
@@ -391,7 +426,7 @@ import WarpCore
 			tv.tabletWasSelected()
 		}
 		else {
-			self.sentenceEditor?.configure(nil, delegate: nil)
+			self.sentenceEditor?.configure(nil, variant: .Neutral, delegate: nil)
 		}
 		self.view.window?.update()
 		self.view.window?.toolbar?.validateVisibleItems()

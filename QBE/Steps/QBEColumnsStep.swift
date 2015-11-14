@@ -2,9 +2,13 @@ import Foundation
 import WarpCore
 
 class QBEColumnsStep: QBEStep {
-	var columnNames: [QBEColumn]
-	let select: Bool
-	
+	var columnNames: [QBEColumn] = []
+	var select: Bool = true
+
+	required init() {
+		super.init()
+	}
+
 	init(previous: QBEStep?, columnNames: [QBEColumn], select: Bool) {
 		self.columnNames = columnNames
 		self.select = select
@@ -44,7 +48,7 @@ class QBEColumnsStep: QBEStep {
 		}
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 
@@ -106,8 +110,12 @@ class QBEColumnsStep: QBEStep {
 }
 
 class QBESortColumnsStep: QBEStep {
-	var sortColumns: [QBEColumn]
+	var sortColumns: [QBEColumn] = []
 	var before: QBEColumn? // nil means: at end
+
+	required init() {
+		super.init()
+	}
 	
 	init(previous: QBEStep?, sortColumns: [QBEColumn], before: QBEColumn?) {
 		self.sortColumns = sortColumns
@@ -130,7 +138,7 @@ class QBESortColumnsStep: QBEStep {
 		}
 	}
 
-	override func sentence(locale: QBELocale) -> QBESentence {
+	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
