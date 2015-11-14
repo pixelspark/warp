@@ -1129,7 +1129,7 @@ CA
                                                             </textFieldCell>
                                                             <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                         </tableColumn>
-                                                        <tableColumn identifier="description" width="346" minWidth="40" maxWidth="1000" id="x5m-PR-1Iz">
+                                                        <tableColumn identifier="description" editable="NO" width="346" minWidth="40" maxWidth="1000" id="x5m-PR-1Iz">
                                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" enabled="NO" borderStyle="border" title="Description">
                                                                 <font key="font" metaFont="smallSystem"/>
                                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>

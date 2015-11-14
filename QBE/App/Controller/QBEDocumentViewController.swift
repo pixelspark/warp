@@ -300,6 +300,42 @@ import WarpCore
 				self.documentView.addTablet(tablet, atLocation: location, undo: true)
 			}
 
+			@objc func exportFile(sender: NSObject) {
+				var exts: [String: String] = [:]
+				for ext in QBEFactory.sharedInstance.fileExtensionsForWriting {
+					let writer = QBEFactory.sharedInstance.fileWriterForType(ext)!
+					exts[ext] = writer.explain(ext, locale: self.documentView.locale)
+				}
+
+				let ns = QBEFilePanel(allowedFileTypes: exts)
+				ns.askForSaveFile(self.documentView.view.window!) { (urlFallible) -> () in
+					urlFallible.maybe { (url) in
+						self.exportToFile(url)
+					}
+				}
+			}
+
+			private func exportToFile(url: NSURL) {
+				let writerType: QBEFileWriter.Type
+				if let ext = url.pathExtension {
+					writerType = QBEFactory.sharedInstance.fileWriterForType(ext) ?? QBECSVWriter.self
+				}
+				else {
+					writerType = QBECSVWriter.self
+				}
+
+				let title = chain.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
+				let s = QBEExportStep(previous: chain.head!, writer: writerType.init(locale: self.documentView.locale, title: title), file: QBEFileReference.URL(url))
+
+				if let editorController = self.documentView.storyboard?.instantiateControllerWithIdentifier("exportEditor") as? QBEExportViewController {
+					editorController.step = s
+					editorController.delegate = nil
+					editorController.locale = self.documentView.locale
+					self.documentView.presentViewControllerAsSheet(editorController)
+					// TODO: be consistent and add the generated file as tablet here
+				}
+			}
+
 			@objc func saveToWarehouse(sender: NSObject) {
 				let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
 				if let s = sender as? NSMenuItem where s.tag >= 0 && s.tag <= stepTypes.count {
@@ -339,6 +375,11 @@ import WarpCore
 						menu.addItem(saveItem)
 					}
 				}
+
+				menu.addItem(NSMenuItem.separatorItem())
+				let exportFileItem = NSMenuItem(title: NSLocalizedString("Export data to file...", comment: ""), action: Selector("exportFile:"), keyEquivalent: "")
+				exportFileItem.target = self
+				menu.addItem(exportFileItem)
 
 				NSMenu.popUpContextMenu(menu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.documentView.view)
 			}
