@@ -1293,6 +1293,9 @@ internal extension NSViewController {
 		else if item.action() == Selector("removeTablet:") {
 			return true
 		}
+		else if item.action() == Selector("delete:") {
+			return true
+		}
 		else if item.action()==Selector("paste:") {
 			let pboard = NSPasteboard.generalPasteboard()
 			if pboard.dataForType(QBEStep.dragType) != nil {
@@ -1311,11 +1314,15 @@ internal extension NSViewController {
 		}
 	}
 	
-	@IBAction func removeTablet(sender: NSObject) {
+	@IBAction func removeTablet(sender: AnyObject?) {
 		self.delegate?.chainViewDidClose(self)
 		self.chain = nil
 		self.dataViewController = nil
 		self.delegate = nil
+	}
+
+	@IBAction func delete(sender: AnyObject?) {
+		self.removeTablet(sender)
 	}
 	
 	@IBAction func removeDuplicateRows(sender: NSObject) {
