@@ -2,7 +2,7 @@ import Foundation
 import Cocoa
 import WarpCore
 
-@objc class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate {
+@objc class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate, QBEExportViewDelegate {
 	private var documentView: QBEDocumentView!
 	private var sentenceEditor: QBESentenceViewController? = nil
 	@IBOutlet var addTabletMenu: NSMenu!
@@ -215,6 +215,14 @@ import WarpCore
 		}
 	}
 
+	@objc func exportView(view: QBEExportViewController, finishedExportingTo: NSURL) {
+		if let ext = finishedExportingTo.pathExtension {
+			if QBEFactory.sharedInstance.fileTypesForReading.contains(ext) {
+				self.addTabletFromURL(finishedExportingTo)
+			}
+		}
+	}
+
 	@IBAction func zoomToAll(sender: NSObject) {
 		zoomToAll()
 	}
@@ -329,10 +337,9 @@ import WarpCore
 
 				if let editorController = self.documentView.storyboard?.instantiateControllerWithIdentifier("exportEditor") as? QBEExportViewController {
 					editorController.step = s
-					editorController.delegate = nil
+					editorController.delegate = self.documentView
 					editorController.locale = self.documentView.locale
 					self.documentView.presentViewControllerAsSheet(editorController)
-					// TODO: be consistent and add the generated file as tablet here
 				}
 			}
 

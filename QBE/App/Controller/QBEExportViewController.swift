@@ -1,8 +1,9 @@
 import Foundation
 import WarpCore
 
-protocol QBEExportViewDelegate: NSObjectProtocol {
-	func exportView(view: QBEExportViewController, didAddStep: QBEExportStep)
+@objc protocol QBEExportViewDelegate: NSObjectProtocol {
+	optional func exportView(view: QBEExportViewController, didAddStep: QBEExportStep)
+	optional func exportView(view: QBEExportViewController, finishedExportingTo: NSURL)
 }
 
 class QBEExportViewController: NSViewController, QBEJobDelegate, QBESentenceViewDelegate {
@@ -22,7 +23,7 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESentenceView
 
 	@IBAction func addAsStep(sender: NSObject) {
 		if let s = self.step {
-			delegate?.exportView(self, didAddStep: s)
+			delegate?.exportView?(self, didAddStep: s)
 		}
 		self.dismissController(sender)
 	}
@@ -53,7 +54,7 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESentenceView
 		self.progressView?.hidden = !isExporting
 		self.backgroundButton?.hidden = !isExporting
 		self.addAsStepButton?.enabled = !isExporting
-		self.addAsStepButton?.hidden = self.delegate == nil
+		self.addAsStepButton?.hidden = self.delegate == nil || !(self.delegate?.respondsToSelector(Selector("exportView:didAddStep:")) ?? true)
 		self.exportButton?.enabled = !isExporting
 	}
 
@@ -95,6 +96,10 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESentenceView
 									un.informativeText = String(format: NSLocalizedString("The data has been saved to '%@'", comment: ""), url)
 								}
 								NSUserNotificationCenter.defaultUserNotificationCenter().scheduleNotification(un)
+							}
+
+							if let url = self.step?.file?.url {
+								self.delegate?.exportView?(self, finishedExportingTo: url)
 							}
 
 						case .Failure(let errorMessage):
