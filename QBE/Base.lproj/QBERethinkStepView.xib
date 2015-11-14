@@ -25,7 +25,7 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <tabView translatesAutoresizingMaskIntoConstraints="NO" id="hsg-fe-s63">
-                    <rect key="frame" x="-2" y="-5" width="274" height="365"/>
+                    <rect key="frame" x="-2" y="-5" width="274" height="360"/>
                     <animations/>
                     <font key="font" metaFont="system"/>
                     <tabViewItems>
@@ -169,17 +169,17 @@
                         </tabViewItem>
                         <tabViewItem label="Advanced" identifier="2" id="XXP-Si-eWL">
                             <view key="view" id="jHI-Do-knq">
-                                <rect key="frame" x="10" y="33" width="254" height="319"/>
+                                <rect key="frame" x="10" y="33" width="254" height="314"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
                                     <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Tls-AC-W6R">
-                                        <rect key="frame" x="0.0" y="32" width="254" height="265"/>
+                                        <rect key="frame" x="0.0" y="32" width="254" height="260"/>
                                         <clipView key="contentView" id="49i-Z6-SEc">
-                                            <rect key="frame" x="1" y="0.0" width="252" height="264"/>
+                                            <rect key="frame" x="1" y="0.0" width="252" height="259"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <subviews>
                                                 <tableView focusRingType="none" verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="sequential" alternatingRowBackgroundColors="YES" multipleSelection="NO" autosaveColumns="NO" typeSelect="NO" headerView="hzo-hc-AO1" id="fob-2l-UTD">
-                                                    <rect key="frame" x="0.0" y="0.0" width="252" height="241"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="252" height="236"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <animations/>
                                                     <size key="intercellSpacing" width="3" height="2"/>
@@ -242,7 +242,7 @@
                                         </connections>
                                     </textField>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="9JF-Gs-70p">
-                                        <rect key="frame" x="-2" y="302" width="258" height="17"/>
+                                        <rect key="frame" x="-2" y="297" width="258" height="17"/>
                                         <animations/>
                                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Retrieve fields:" id="eLN-LV-Bs3">
                                             <font key="font" metaFont="system"/>
@@ -298,7 +298,7 @@
             <constraints>
                 <constraint firstAttribute="bottom" secondItem="hsg-fe-s63" secondAttribute="bottom" constant="5" id="D9u-vb-5vq"/>
                 <constraint firstAttribute="trailing" secondItem="hsg-fe-s63" secondAttribute="trailing" constant="5" id="Y1j-Q0-wjK"/>
-                <constraint firstItem="hsg-fe-s63" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="5" id="eYT-9B-0Xn"/>
+                <constraint firstItem="hsg-fe-s63" firstAttribute="top" secondItem="c22-O7-iKe" secondAttribute="top" constant="10" id="eYT-9B-0Xn"/>
                 <constraint firstItem="hsg-fe-s63" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="5" id="rjI-38-pZf"/>
             </constraints>
             <animations/>
