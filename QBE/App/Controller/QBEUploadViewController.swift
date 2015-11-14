@@ -195,6 +195,9 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 	}
 
 	@IBAction func cancel(sender: NSObject) {
+		if let uj = self.uploadJob {
+			uj.cancel()
+		}
 		self.dismissController(sender)
 	}
 
