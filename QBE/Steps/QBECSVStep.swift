@@ -217,6 +217,8 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 				}
 				csvOut.finishLine()
 
+				let csvOutMutex = QBEMutex()
+
 				var cb: QBESink? = nil
 				cb = { (rows: QBEFallible<Array<QBETuple>>, streamStatus: QBEStreamStatus) -> () in
 					switch rows {
@@ -229,11 +231,13 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 						}
 
 						job.time("Write CSV", items: rs.count, itemType: "rows") {
-							for row in rs {
-								for cell in row {
-									csvOut.writeField(locale.localStringFor(cell))
+							csvOutMutex.locked {
+								for row in rs {
+									for cell in row {
+										csvOut.writeField(locale.localStringFor(cell))
+									}
+									csvOut.finishLine()
 								}
-								csvOut.finishLine()
 							}
 						}
 
