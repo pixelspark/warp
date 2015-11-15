@@ -138,6 +138,7 @@
 		65CD95CB1ACEB62500557C9E /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 65CD95C91ACEB62500557C9E /* Credits.rtf */; };
 		65CD95D31ACEB68000557C9E /* Warp.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 65CD95D01ACEB68000557C9E /* Warp.entitlements */; };
 		65D7A9811BF78880005AD925 /* QBEAlterTableViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65D7A9831BF78880005AD925 /* QBEAlterTableViewController.xib */; };
+		65D7A9881BF89DA1005AD925 /* QBEColumnMappingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D7A9871BF89DA1005AD925 /* QBEColumnMappingViewController.swift */; };
 		65DBA5611A798F31004CDF36 /* QBEPivotStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65DBA5631A798F31004CDF36 /* QBEPivotStepView.xib */; };
 		65DBA5681A798F41004CDF36 /* QBECSVStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65DBA56A1A798F41004CDF36 /* QBECSVStepView.xib */; };
 		65DC015C1B791290001D4298 /* Tour.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 65DC015B1B791290001D4298 /* Tour.xcassets */; };
@@ -512,6 +513,7 @@
 		65CD95D01ACEB68000557C9E /* Warp.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Warp.entitlements; sourceTree = "<group>"; };
 		65D7A9821BF78880005AD925 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEAlterTableViewController.xib; sourceTree = "<group>"; };
 		65D7A9851BF78883005AD925 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEAlterTableViewController.strings; sourceTree = "<group>"; };
+		65D7A9871BF89DA1005AD925 /* QBEColumnMappingViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEColumnMappingViewController.swift; sourceTree = "<group>"; };
 		65D81CDD1B20BA6200C0688E /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEJoinStepView.strings; sourceTree = "<group>"; };
 		65DBA5621A798F31004CDF36 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEPivotStepView.xib; sourceTree = "<group>"; };
 		65DBA5691A798F41004CDF36 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBECSVStepView.xib; sourceTree = "<group>"; };
@@ -728,10 +730,11 @@
 		65A0DF6B1AF299C20005C50F /* Controller */ = {
 			isa = PBXGroup;
 			children = (
+				65CD41581BEF5A9B006534E1 /* QBEAlterTableViewController.swift */,
 				65A0DF6D1AF299C20005C50F /* QBEAppDelegate.swift */,
 				65AAF4BA1B9B3E90004C79D3 /* QBECalculator.swift */,
 				65A0DF6E1AF299C20005C50F /* QBEChainViewController.swift */,
-				65CD41581BEF5A9B006534E1 /* QBEAlterTableViewController.swift */,
+				65D7A9871BF89DA1005AD925 /* QBEColumnMappingViewController.swift */,
 				65A0DF701AF299C20005C50F /* QBEDataViewController.swift */,
 				65A0DF711AF299C20005C50F /* QBEDocumentViewController.swift */,
 				65AAF4C01B9C2BE9004C79D3 /* QBEExportViewController.swift */,
@@ -743,8 +746,8 @@
 				65A0DF721AF299C20005C50F /* QBESettingsViewController.swift */,
 				65A0DF731AF299C20005C50F /* QBEStepsViewController.swift */,
 				65A0DF741AF299C20005C50F /* QBESuggestionsViewController.swift */,
-				65C1F3CA1BF7428C00A1EC4E /* QBEUploadViewController.swift */,
 				65DC015D1B791307001D4298 /* QBETourViewController.swift */,
+				65C1F3CA1BF7428C00A1EC4E /* QBEUploadViewController.swift */,
 				65A0DF751AF299C20005C50F /* QBEWindowController.swift */,
 				65A0DFFF1AF29A750005C50F /* Steps */,
 			);
@@ -1260,6 +1263,7 @@
 				65A0E0261AF2B92A0005C50F /* QBEDocumentView.swift in Sources */,
 				65AAF4BF1B9B3F46004C79D3 /* QBESentence.swift in Sources */,
 				65CD41571BE6251F006534E1 /* QBEJobsManager.swift in Sources */,
+				65D7A9881BF89DA1005AD925 /* QBEColumnMappingViewController.swift in Sources */,
 				657779A41B37032C00B28AED /* QBECrawlStepView.swift in Sources */,
 				65884A391AFFA9D9003A5BF1 /* QBEOutletView.swift in Sources */,
 				652B274F1B8FB8C200A2D38E /* QBECloneStep.swift in Sources */,

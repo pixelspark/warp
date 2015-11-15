@@ -39,6 +39,11 @@ public protocol QBEMutableData {
 	func data(job: QBEJob, callback: (QBEFallible<QBEData>) -> ())
 }
 
+/** Mapping that defines how source columns are matched to destination columns in an insert operation to a table that 
+already has columns defined. The destination columns are the keys, the source column where that column is filled from is 
+the value (or the empty column name, if we must attempt to insert nil) */
+public typealias QBEColumnMapping = [QBEColumn: QBEColumn]
+
 public enum QBEDataMutation {
 	/** Truncate: remove all data in the store, but keep the columns (if the store has fixed columns). */
 	case Truncate
@@ -49,7 +54,7 @@ public enum QBEDataMutation {
 	/** Insert the rows from the source data set in this table. The second argument specifies a mapping table, in which
 	the keys are columns in this table, and the values are the names of the corresponding columns in the source data. 
 	Columns for which a mapping is missing are filled with NULL. */
-	case Insert(QBEData, [QBEColumn: QBEColumn])
+	case Insert(QBEData, QBEColumnMapping)
 }
 
 public enum QBEWarehouseMutation {

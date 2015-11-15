@@ -305,6 +305,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 		self.delegate = delegate
 		updateView()
+		self.view.window?.update()
 
 		/* Check whether the window is visible before showing the tip, because this may get called early while setting
 		up views, or while we are editing a formula (which occludes the configure button) */
