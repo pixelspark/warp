@@ -47,7 +47,7 @@ public class QBESentence {
 	}
 
 	public var stringValue: String { get {
-		return self.tokens.map({ return $0.label }).joinWithSeparator(" ")
+		return self.tokens.map({ return $0.label }).joinWithSeparator("")
 		} }
 }
 

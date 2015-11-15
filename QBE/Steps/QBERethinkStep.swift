@@ -436,10 +436,7 @@ class QBERethinkMutableData: QBEMutableData {
 
 	func canPerformMutation(mutation: QBEDataMutation) -> Bool {
 		switch mutation {
-		case .Truncate, .Drop:
-			return true
-
-		case .Insert(_,_):
+		case .Truncate, .Drop, .Insert(_,_), .Alter(_):
 			return true
 		}
 	}
@@ -459,6 +456,11 @@ class QBERethinkMutableData: QBEMutableData {
 
 				let q: ReQuery
 				switch mutation {
+					case .Alter:
+						// RethinkDB does not have fixed columns, hence Alter is a no-op
+						callback(.Success())
+						return
+
 					case .Truncate:
 						q = R.db(self.databaseName).table(self.tableName).delete()
 

@@ -2019,7 +2019,7 @@ CA
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </clipView>
                                 <animations/>
-                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="qYM-4S-zjG">
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="qYM-4S-zjG">
                                     <rect key="frame" x="1" y="213" width="367" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <animations/>
@@ -2153,11 +2153,14 @@ DQ
             <objects>
                 <viewController storyboardIdentifier="uploadData" id="kej-0g-2dY" customClass="QBEUploadViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="grc-U0-uND">
-                        <rect key="frame" x="0.0" y="0.0" width="623" height="219"/>
+                        <rect key="frame" x="0.0" y="0.0" width="623" height="279"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="SYa-KY-zD8">
                                 <rect key="frame" x="510" y="-2" width="114" height="32"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="OKZ-VV-U0L"/>
+                                </constraints>
                                 <animations/>
                                 <buttonCell key="cell" type="push" title="Upload data" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="KSy-lv-NXj">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -2171,7 +2174,7 @@ DQ
                                 </connections>
                             </button>
                             <progressIndicator hidden="YES" wantsLayer="YES" maxValue="100" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="Dgz-cc-hxh">
-                                <rect key="frame" x="303" y="4" width="128" height="20"/>
+                                <rect key="frame" x="303" y="5" width="128" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="18" id="IBs-J5-5Re"/>
                                     <constraint firstAttribute="width" constant="128" id="T09-zb-fJx"/>
@@ -2179,14 +2182,14 @@ DQ
                                 <animations/>
                             </progressIndicator>
                             <containerView verticalCompressionResistancePriority="1000" ambiguous="YES" misplaced="YES" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="QpU-NZ-jJG">
-                                <rect key="frame" x="5" y="78" width="613" height="72"/>
+                                <rect key="frame" x="5" y="106" width="613" height="104"/>
                                 <animations/>
                                 <connections>
                                     <segue destination="dZx-NB-Ues" kind="embed" identifier="targetSentenceView" id="OiJ-tK-4iF"/>
                                 </connections>
                             </containerView>
                             <containerView verticalCompressionResistancePriority="1000" ambiguous="YES" misplaced="YES" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="TPX-oT-EhC">
-                                <rect key="frame" x="5" y="160" width="613" height="22"/>
+                                <rect key="frame" x="5" y="220" width="613" height="22"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="6AW-yp-ho3"/>
                                 </constraints>
@@ -2196,7 +2199,7 @@ DQ
                                 </connections>
                             </containerView>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="X39-p6-DDO">
-                                <rect key="frame" x="8" y="192" width="83" height="17"/>
+                                <rect key="frame" x="8" y="252" width="83" height="17"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="17" id="Fup-4l-zMR"/>
                                 </constraints>
@@ -2208,7 +2211,7 @@ DQ
                                 </textFieldCell>
                             </textField>
                             <button translatesAutoresizingMaskIntoConstraints="NO" id="P3i-Jl-l2t">
-                                <rect key="frame" x="8" y="36" width="402" height="34"/>
+                                <rect key="frame" x="13" y="64" width="402" height="34"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="dOs-V8-26c"/>
                                 </constraints>
@@ -2220,6 +2223,9 @@ DQ
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Unb-fA-YTw">
                                 <rect key="frame" x="435" y="-2" width="82" height="32"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="o3I-ze-S6h"/>
+                                </constraints>
                                 <animations/>
                                 <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="cFK-ro-Va3">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -2233,7 +2239,7 @@ Gw
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="fub-Gu-JU4">
-                                <rect key="frame" x="4" y="-2" width="154" height="34"/>
+                                <rect key="frame" x="4" y="-2" width="154" height="32"/>
                                 <animations/>
                                 <buttonCell key="cell" type="push" title="Column mapping..." bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="bXJ-wS-4gO">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -2246,24 +2252,40 @@ Gw
                                     <action selector="editColumnMapping:" target="kej-0g-2dY" id="xdL-44-73x"/>
                                 </connections>
                             </button>
+                            <button translatesAutoresizingMaskIntoConstraints="NO" id="03K-Ad-UyC">
+                                <rect key="frame" x="13" y="34" width="282" height="34"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="ubL-a5-9Iy"/>
+                                </constraints>
+                                <animations/>
+                                <buttonCell key="cell" type="check" title="Modify destination table to fit the new data" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Mgl-eL-1Bo">
+                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="updateFromInterface:" target="kej-0g-2dY" id="SKL-yh-eXn"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <constraints>
                             <constraint firstItem="fub-Gu-JU4" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="10" id="4GN-YU-xjX"/>
                             <constraint firstItem="QpU-NZ-jJG" firstAttribute="top" secondItem="TPX-oT-EhC" secondAttribute="bottom" constant="10" id="6bo-Bs-2nQ"/>
                             <constraint firstAttribute="trailing" secondItem="SYa-KY-zD8" secondAttribute="trailing" constant="5" id="7Mc-vB-WOb"/>
+                            <constraint firstItem="03K-Ad-UyC" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="15" id="Ede-Sg-U1Q"/>
                             <constraint firstItem="TPX-oT-EhC" firstAttribute="top" secondItem="X39-p6-DDO" secondAttribute="bottom" constant="10" id="Ehg-Gh-WkO"/>
                             <constraint firstItem="TPX-oT-EhC" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="5" id="IfI-7m-rJv"/>
-                            <constraint firstItem="P3i-Jl-l2t" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="10" id="JXC-3J-ntn"/>
+                            <constraint firstItem="P3i-Jl-l2t" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="15" id="JXC-3J-ntn"/>
                             <constraint firstAttribute="bottom" secondItem="SYa-KY-zD8" secondAttribute="bottom" constant="5" id="N1Y-ht-Zts"/>
                             <constraint firstItem="P3i-Jl-l2t" firstAttribute="top" secondItem="QpU-NZ-jJG" secondAttribute="bottom" constant="10" id="ODr-L2-6wi"/>
                             <constraint firstAttribute="bottom" secondItem="fub-Gu-JU4" secondAttribute="bottom" constant="5" id="VXe-sc-DUs"/>
                             <constraint firstAttribute="trailing" secondItem="QpU-NZ-jJG" secondAttribute="trailing" constant="5" id="Wa8-yI-BGo"/>
-                            <constraint firstItem="fub-Gu-JU4" firstAttribute="top" secondItem="P3i-Jl-l2t" secondAttribute="bottom" constant="10" id="aBV-aH-8Nt"/>
+                            <constraint firstItem="fub-Gu-JU4" firstAttribute="top" secondItem="03K-Ad-UyC" secondAttribute="bottom" constant="10" id="dQS-c6-8dM"/>
+                            <constraint firstItem="03K-Ad-UyC" firstAttribute="top" secondItem="P3i-Jl-l2t" secondAttribute="bottom" id="feg-81-nnp"/>
                             <constraint firstItem="QpU-NZ-jJG" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="5" id="j9n-9A-IHU"/>
                             <constraint firstAttribute="bottom" secondItem="Unb-fA-YTw" secondAttribute="bottom" constant="5" id="lMG-dt-gdb"/>
-                            <constraint firstItem="Dgz-cc-hxh" firstAttribute="top" secondItem="P3i-Jl-l2t" secondAttribute="bottom" constant="15" id="nOy-xn-R0H"/>
                             <constraint firstItem="Unb-fA-YTw" firstAttribute="leading" secondItem="Dgz-cc-hxh" secondAttribute="trailing" constant="10" id="nPl-zv-tBZ"/>
-                            <constraint firstAttribute="bottom" secondItem="Dgz-cc-hxh" secondAttribute="bottom" constant="5" id="q5c-Sc-wuI"/>
+                            <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="Dgz-cc-hxh" secondAttribute="bottom" constant="5" id="q5c-Sc-wuI"/>
+                            <constraint firstItem="Unb-fA-YTw" firstAttribute="centerY" secondItem="Dgz-cc-hxh" secondAttribute="centerY" id="qyk-UW-WNI"/>
                             <constraint firstItem="SYa-KY-zD8" firstAttribute="leading" secondItem="Unb-fA-YTw" secondAttribute="trailing" constant="5" id="vTY-N3-A13"/>
                             <constraint firstItem="X39-p6-DDO" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="10" id="yfG-B9-mtL"/>
                             <constraint firstAttribute="trailing" secondItem="TPX-oT-EhC" secondAttribute="trailing" constant="5" id="z9E-My-Hng"/>
@@ -2272,6 +2294,8 @@ Gw
                         <animations/>
                     </view>
                     <connections>
+                        <outlet property="alterButton" destination="03K-Ad-UyC" id="o2K-cF-FTD"/>
+                        <outlet property="columnMappingButton" destination="fub-Gu-JU4" id="SnA-Dz-iTT"/>
                         <outlet property="okButton" destination="SYa-KY-zD8" id="Iv3-qF-1fp"/>
                         <outlet property="progressBar" destination="Dgz-cc-hxh" id="hW6-HP-ZA7"/>
                         <outlet property="removeBeforeUpload" destination="P3i-Jl-l2t" id="2xx-7T-6d4"/>
@@ -2279,7 +2303,7 @@ Gw
                 </viewController>
                 <customObject id="Gdb-4K-uue" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2397.5" y="-331.5"/>
+            <point key="canvasLocation" x="2397.5" y="-301.5"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -2335,7 +2359,7 @@ Gw
                                     <nil key="backgroundColor"/>
                                 </clipView>
                                 <animations/>
-                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="NUm-sZ-uER">
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="NUm-sZ-uER">
                                     <rect key="frame" x="1" y="283" width="342" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <animations/>

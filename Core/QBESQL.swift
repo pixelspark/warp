@@ -82,6 +82,11 @@ public protocol QBESQLDialect {
 	
 	/** Returns the SQL name for the indicates join type, or nil if that join type is not supported */
 	func joinType(type: QBEJoinType) -> String?
+
+	/** Whether this database supports changing column definitions (or dropping columns) using an ALTER TABLE statement 
+	(if false, any changes can only be made by dropping and recreating the table). If false, the database should still
+	support ALTER TABLE to add columns. **/
+	var supportsChangingColumnDefinitionsWithAlter: Bool { get }
 }
 
 /** Represents a particular SQL database. In most cases, this will be a catalog or database on a particular database 
@@ -152,7 +157,7 @@ public class QBESQLDataWarehouse: QBEDataWarehouse {
 								case .Success(let columnNames):
 									// Build a 'CREATE TABLE' query and run it
 									let fields = columnNames.map {
-										return self.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) + " TEXT"
+										return self.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) + " TEXT NULL DEFAULT NULL"
 									}.joinWithSeparator(", ")
 									let createQuery = "CREATE TABLE \(self.dialect.tableIdentifier(tableName, schema: self.schemaName, database: self.databaseName)) (\(fields))";
 
@@ -217,6 +222,134 @@ public class QBESQLMutableData: QBEMutableData {
 		self.database.dataForTable(tableName, schema: schemaName, job: job, callback: callback)
 	}
 
+	private func performInsert(connection: QBESQLConnection, data: QBEData, mapping: QBEColumnMapping, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		if mapping.count == 0 {
+			callback(.Failure("Cannot insert zero columns!"))
+			return
+		}
+
+		let fields = mapping.keys.map { fn in return self.database.dialect.columnIdentifier(fn, table: nil, schema: nil, database: nil) }.joinWithSeparator(", ")
+		let insertStatement = "INSERT INTO \(self.tableIdentifier) (\(fields)) VALUES ";
+		print(insertStatement)
+
+		// Fetch rows and insert!
+		data.columnNames(job) { columnsFallible in
+			switch columnsFallible {
+			case .Success(let sourceColumnNames):
+				let fastMapping = mapping.keys.map { targetField -> Int? in
+					if let sourceFieldName = mapping[targetField] {
+						return sourceColumnNames.indexOf(sourceFieldName)
+					}
+					else {
+						return nil
+					}
+				}
+				let stream = data.stream()
+
+				var writer: (() -> ())? = nil
+				writer = {
+					stream.fetch(job) { rowsFallible, streamStatus in
+						switch rowsFallible {
+						case .Failure(let e):
+							print("ERR: \(e)")
+							callback(.Failure(e))
+							return
+
+						case .Success(let rows):
+							if rows.count == 0 {
+								if streamStatus == .Finished {
+									callback(.Success())
+								}
+								else {
+									writer!()
+								}
+								return
+							}
+							let values = rows.map { row in
+								let tuple = fastMapping.map { idx -> String in
+									if let i = idx {
+										return  self.database.dialect.expressionToSQL(QBELiteralExpression(row[i]), alias: "", foreignAlias: nil, inputValue: nil) ?? "NULL"
+									}
+									else {
+										return "NULL"
+									}
+									}.joinWithSeparator(", ")
+								return "(\(tuple))"
+								}.joinWithSeparator(", ")
+
+							let sql = "\(insertStatement) \(values)"
+							connection.run([sql], job: job) { insertResult in
+								switch insertResult {
+								case .Failure(let e):
+									callback(.Failure(e))
+									return
+
+								case .Success(_):
+									if streamStatus == .Finished {
+										callback(.Success())
+									}
+									else {
+										writer!()
+									}
+								}
+
+							}
+						}
+					}
+				}
+
+				writer!()
+
+			case .Failure(let e):
+				callback(.Failure(e))
+				return
+			}
+		}
+	}
+
+	private func performAlter(connection: QBESQLConnection, columns desiredColumns: [QBEColumn], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		self.data(job) { result in
+			switch result {
+			case .Success(let data):
+				data.columnNames(job) { result in
+					switch result {
+					case .Success(let existingColumns):
+						var changes: [String] = []
+
+						for dropColumn in Set(existingColumns).subtract(desiredColumns) {
+							changes.append("DROP COLUMN \(self.database.dialect.columnIdentifier(dropColumn, table: nil, schema: nil, database: nil))")
+						}
+
+						/* We should probably ensure that target columns have a storage type that can accomodate our data, 
+						but for now we leave the destination columns intact, to prevent unintentional (and unforeseen)
+						damage to the destination table. */
+						/*for changeColumn in Set(desiredColumns).intersect(existingColumns) {
+							let cn = self.database.dialect.columnIdentifier(changeColumn, table: nil, schema: nil, database: nil)
+							changes.append("ALTER COLUMN \(cn) \(cn) TEXT NULL DEFAULT NULL")
+						}*/
+
+						for addColumn in Set(desiredColumns).subtract(existingColumns) {
+							changes.append("ADD COLUMN \(self.database.dialect.columnIdentifier(addColumn, table: nil, schema: nil, database: nil)) TEXT NULL DEFAULT NULL")
+						}
+
+						if changes.count > 0 {
+							let sql = "ALTER TABLE \(self.tableIdentifier) \(changes.joinWithSeparator(", "))"
+							connection.run([sql], job: job, callback: callback)
+						}
+						else {
+							// No change required
+							callback(.Success())
+						}
+
+					case .Failure(let e): callback(.Failure(e))
+					}
+				}
+
+			case .Failure(let e): callback(.Failure(e))
+			}
+		}
+	}
+
 	public func performMutation(mutation: QBEDataMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
@@ -235,84 +368,12 @@ public class QBESQLMutableData: QBEMutableData {
 							// TODO: MySQL supports TRUNCATE TABLE which supposedly is faster
 							con.run(["DELETE FROM \(self.tableIdentifier)"], job: job, callback: callback)
 
+						case .Alter(let columns):
+							self.performAlter(con, columns: columns, job: job, callback: callback)
+
 						case .Insert(let data, let mapping):
-							let fields = mapping.keys.map { fn in return self.database.dialect.columnIdentifier(fn, table: nil, schema: nil, database: nil) }.joinWithSeparator(", ")
-							let insertStatement = "INSERT INTO \(self.tableIdentifier) (\(fields)) VALUES ";
-							print(insertStatement)
+							self.performInsert(con, data: data, mapping: mapping, job: job, callback: callback)
 
-							// Fetch rows and insert!
-							data.columnNames(job) { columnsFallible in
-								switch columnsFallible {
-									case .Success(let sourceColumnNames):
-										let fastMapping = mapping.keys.map { targetField -> Int? in
-											if let sourceFieldName = mapping[targetField] {
-												return sourceColumnNames.indexOf(sourceFieldName)
-											}
-											else {
-												return nil
-											}
-										}
-										let stream = data.stream()
-
-										var writer: (() -> ())? = nil
-										writer = {
-											stream.fetch(job) { rowsFallible, streamStatus in
-												switch rowsFallible {
-												case .Failure(let e):
-													print("ERR: \(e)")
-													callback(.Failure(e))
-													return
-
-												case .Success(let rows):
-													if rows.count == 0 {
-														if streamStatus == .Finished {
-															callback(.Success())
-														}
-														else {
-															writer!()
-														}
-														return
-													}
-													let values = rows.map { row in
-														let tuple = fastMapping.map { idx -> String in
-															if let i = idx {
-																return  self.database.dialect.expressionToSQL(QBELiteralExpression(row[i]), alias: "", foreignAlias: nil, inputValue: nil) ?? "NULL"
-															}
-															else {
-																return "NULL"
-															}
-														}.joinWithSeparator(", ")
-														return "(\(tuple))"
-													}.joinWithSeparator(", ")
-
-													let sql = "\(insertStatement) \(values)"
-													con.run([sql], job: job) { insertResult in
-														switch insertResult {
-															case .Failure(let e):
-																callback(.Failure(e))
-																return
-
-															case .Success(_):
-																if streamStatus == .Finished {
-																	callback(.Success())
-																}
-																else {
-																	writer!()
-																}
-														}
-
-													}
-												}
-											}
-										}
-
-										writer!()
-
-									case .Failure(let e):
-										callback(.Failure(e))
-										return
-								}
-							}
 						}
 
 					case .Failure(let e):
@@ -326,6 +387,12 @@ public class QBESQLMutableData: QBEMutableData {
 		switch mutation {
 		case .Truncate, .Drop, .Insert(_, _):
 			return true
+
+		case .Alter(_):
+			/* In some cases, an alter results in columns being changes/dropped, which is not supported by some databases
+			(SQLite most notably). TODO: check here whether the proposed Alter requires such changes, or implement an 
+			alternative for SQLite that uses DROP+CREATE to make the desired changes. */
+			return self.database.dialect.supportsChangingColumnDefinitionsWithAlter
 		}
 	}
 }
@@ -336,6 +403,7 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 	public var identifierQualifier: String { get { return "\"" } }
 	public var identifierQualifierEscape: String { get { return "\\\"" } }
 	public var stringEscape: String { get { return "\\" } }
+	public var supportsChangingColumnDefinitionsWithAlter: Bool { return true }
 
 	public init() {
 	}

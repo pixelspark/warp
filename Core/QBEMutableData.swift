@@ -55,6 +55,10 @@ public enum QBEDataMutation {
 	the keys are columns in this table, and the values are the names of the corresponding columns in the source data. 
 	Columns for which a mapping is missing are filled with NULL. */
 	case Insert(QBEData, QBEColumnMapping)
+
+	/** Alter the table so that it has columns as listed. Existing columns must be re-used and stay intact. If the table
+	does not exist, create the table. */
+	case Alter([QBEColumn])
 }
 
 public enum QBEWarehouseMutation {

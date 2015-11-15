@@ -8,6 +8,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 	@IBOutlet private var okButton: NSButton?
 	@IBOutlet private var removeBeforeUpload: NSButton?
 	@IBOutlet private var columnMappingButton: NSButton?
+	@IBOutlet private var alterButton: NSButton?
 
 	var afterSuccessfulUpload: (() -> ())? = nil
 	var mapping: QBEColumnMapping? = nil
@@ -69,6 +70,10 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 		}
 	} }
 
+	@IBAction func updateFromInterface(sender: NSObject) {
+		self.updateView()
+	}
+
 	private func updateView() {
 		self.progressBar?.hidden = self.uploadJob == nil
 		self.progressBar?.indeterminate = true
@@ -76,7 +81,8 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 		self.sourceSentenceViewController?.enabled = self.uploadJob == nil
 		self.targetSentenceViewController?.enabled = self.uploadJob == nil
 		self.removeBeforeUpload?.enabled = self.canPerformTruncateBeforeUpload && self.uploadJob == nil
-		self.columnMappingButton?.enabled = self.uploadJob == nil && needsColumnMapping
+		self.columnMappingButton?.enabled = self.uploadJob == nil && needsColumnMapping && !shouldAlter
+		self.alterButton?.enabled = self.uploadJob == nil && canAlter
 
 		if self.uploadJob == nil {
 			self.progressBar?.stopAnimation(nil)
@@ -148,6 +154,29 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 		}
 		else {
 			callback(.Success())
+		}
+	}
+
+	private func performAlter(perform: Bool, sourceData: QBEData, destination: QBEMutableData, callback: (QBEFallible<Bool>) -> ()) {
+		if perform {
+			sourceData.columnNames(self.uploadJob!) { result in
+				switch result {
+				case .Success(let sourceColumns):
+					destination.performMutation(.Alter(sourceColumns), job: self.uploadJob!) { res in
+						switch res {
+						case .Success(_):
+							self.mapping = sourceColumns.mapDictionary { return ($0,$0) }
+							callback(.Success(true))
+						case .Failure(let e): callback(.Failure(e))
+						}
+					}
+
+				case .Failure(let e): callback(.Failure(e))
+				}
+			}
+		}
+		else {
+			performCheck(destination, source: sourceData, callback: callback)
 		}
 	}
 
@@ -275,6 +304,17 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 		}
 	}
 
+	var canAlter: Bool {
+		if let md = self.targetStep?.mutableData {
+			return md.canPerformMutation(.Alter([])) && md.warehouse.hasFixedColumns
+		}
+		return false
+	}
+
+	var shouldAlter: Bool {
+		return canAlter && (self.alterButton?.state ?? NSOffState) == NSOnState
+	}
+
 	@IBAction func create(sender: NSObject) {
 		assert(uploadJob == nil, "Cannot start two uploads at the same time")
 
@@ -291,7 +331,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 				switch data {
 				case .Success(let fd):
 					// TODO: make this into a transaction somehow
-					self.performCheck(mutableData, source: fd) { result in
+					self.performAlter(self.shouldAlter, sourceData: fd, destination: mutableData) { result in
 						switch result {
 						case .Success(let mappingComplete):
 							if !mappingComplete {

@@ -409,6 +409,9 @@ private func ==(lhs: QBESQLiteConnection, rhs: QBESQLiteConnection) -> Bool {
 }
 
 private class QBESQLiteDialect: QBEStandardSQLDialect {
+	// SQLite does not support changing column definitions using an ALTER statement
+	override var supportsChangingColumnDefinitionsWithAlter: Bool { return false }
+
 	// SQLite does not support column names with '"' in them.
 	override func columnIdentifier(column: QBEColumn, table: String?, schema: String?, database: String?) -> String {
 		return super.columnIdentifier(QBEColumn(column.name.stringByReplacingOccurrencesOfString("\"", withString: "", options: NSStringCompareOptions(), range: nil)), table: table, schema: schema, database: database)
@@ -867,7 +870,13 @@ class QBESQLiteSourceStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence(format: NSLocalizedString("Load table [#] from SQLite database [#]", comment: ""),
+		let template: String
+		switch variant {
+		case .Read, .Neutral: template = "Load table [#] from SQLite database [#]"
+		case .Write: template = "Write to table [#] in SQLite database [#]"
+		}
+
+		return QBESentence(format: NSLocalizedString(template, comment: ""),
 			QBESentenceList(value: self.tableName ?? "", provider: { [weak self] (cb) -> () in
 				if let d = self?.db {
 					cb(d.tableNames)

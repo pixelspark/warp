@@ -193,7 +193,7 @@ internal extension NSViewController {
 
 				if let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Insert(QBERasterData(), [:])) {
 					dropMenu.addItem(NSMenuItem.separatorItem())
-					let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .Write).stringValue, action: Selector("uploadData:"), keyEquivalent: "")
+					let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .Write).stringValue + "...", action: Selector("uploadData:"), keyEquivalent: "")
 					createItem.target = self
 					dropMenu.addItem(createItem)
 				}
@@ -1118,8 +1118,7 @@ internal extension NSViewController {
 		case .Drop:
 			confirmationAlert.messageText = NSLocalizedString("Are you sure you want to completely remove the source data set?", comment: "")
 
-		case .Insert(_,_):
-			break
+		default: fatalError("Mutation not supported here")
 		}
 
 		confirmationAlert.informativeText = NSLocalizedString("This will modify the original data, and cannot be undone.", comment: "")
@@ -1138,7 +1137,7 @@ internal extension NSViewController {
 				switch mutation {
 				case .Truncate: name = NSLocalizedString("Truncate data set", comment: "")
 				case .Drop: name = NSLocalizedString("Remove data set", comment: "")
-				case .Insert(_,_): name = ""
+				default: fatalError("Mutation not supported here")
 				}
 				QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: name)
 
