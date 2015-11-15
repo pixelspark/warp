@@ -794,6 +794,7 @@ class QBESQLiteDatabase: QBESQLDatabase {
 	let url: NSURL
 	let readOnly: Bool
 	let dialect: QBESQLDialect = QBESQLiteDialect()
+	let databaseName: String? = nil
 
 	init(url: NSURL, readOnly: Bool) {
 		self.url = url
@@ -803,6 +804,23 @@ class QBESQLiteDatabase: QBESQLDatabase {
 	func connect(callback: (QBEFallible<QBESQLConnection>) -> ()) {
 		if let c = QBESQLiteConnection(path: self.url.path!, readOnly: self.readOnly) {
 			callback(.Success(c))
+		}
+		else {
+			callback(.Failure("Could not connect to SQLite database"))
+		}
+	}
+
+	func dataForTable(table: String, schema: String?, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		if schema != nil {
+			callback(.Failure("SQLite does not support schemas"))
+			return
+		}
+
+		if let con = QBESQLiteConnection(path: self.url.path!, readOnly: self.readOnly) {
+			switch QBESQLiteData.create(con, tableName: table) {
+			case .Success(let d): callback(.Success(d))
+			case .Failure(let e): callback(.Failure(e))
+			}
 		}
 		else {
 			callback(.Failure("Could not connect to SQLite database"))
@@ -907,7 +925,7 @@ class QBESQLiteSourceStep: QBEStep {
 
 	override var mutableData: QBEMutableData? {
 		if let u = self.file?.url, let tn = tableName {
-			return QBESQLMutableData(database: QBESQLiteDatabase(url: u, readOnly: false), databaseName: nil, schemaName: nil, tableName: tn)
+			return QBESQLMutableData(database: QBESQLiteDatabase(url: u, readOnly: false), schemaName: nil, tableName: tn)
 		}
 		return nil
 	}

@@ -5,17 +5,38 @@ public protocol QBEDataWarehouse {
 	/** Whether tables in this database require that column names are known in advance. NoSQL databases should set this
 	to false (and accept any Insert mutation on their mutable data) whereas relational databases will set this to true. */
 	var hasFixedColumns: Bool { get }
-	
+
+	/** Returns whether the specified mutation can be performed on this warehouse. Note that this function does
+	not guarantee that no errors occur during the actual performance of the mutation (user rights, data, et cetera may
+	change between invocations of canPerformMutation and performMutation). This function should therefore only perform
+	reasonable checks, such as (1) does the warehouse support a particular mutation at all, (2) are column names
+	suitable for this warehouse, et cetera. */
 	func canPerformMutation(mutation: QBEWarehouseMutation) -> Bool
+
+	/** Perform the specified mutation on this data warehouse. Where applicable, the result will include a mutable data
+	 object of any newly created or modified item. */
 	func performMutation(mutation: QBEWarehouseMutation, job: QBEJob, callback: (QBEFallible<QBEMutableData?>) -> ())
 }
 
 /** QBEMutableData represents a mutable data set (i.e., not the result of a query, but actually stored data). It usually
 corresponds with a 'table' in a regular database. A mutable data set can support several mutations on itself. */
 public protocol QBEMutableData {
+	/** The warehouse in which this mutable data set is stored. */
 	var warehouse: QBEDataWarehouse { get }
+
+	/** Returns whether the specified mutation can be performed on this mutable data set. Note that this function does 
+	not guarantee that no errors occur during the actual performance of the mutation (user rights, data, et cetera may
+	change between invocations of canPerformMutation and performMutation). This function should therefore only perform
+	reasonable checks, such as (1) does the mutable data set support a particular mutation at all, (2) are column names
+	suitable for this database, et cetera. */
 	func canPerformMutation(mutation: QBEDataMutation) -> Bool
+
+	/** Perform the specified mutation on this mutable data set. Note that performMutation will fail if a call to the
+	canPerformMutation function with the same mutation would return false. */
 	func performMutation(mutation: QBEDataMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ())
+
+	/** Returns a readable data object for the data contained in this mutable data set. */
+	func data(job: QBEJob, callback: (QBEFallible<QBEData>) -> ())
 }
 
 public enum QBEDataMutation {

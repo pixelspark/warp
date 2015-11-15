@@ -294,7 +294,9 @@ class QBEPostgresDatabase: QBESQLDatabase {
 	private let user: String
 	private let password: String
 	private let database: String
+
 	let dialect: QBESQLDialect = QBEPostgresDialect()
+	var databaseName: String? { return self.database }
 	
 	init(host: String, port: Int, user: String, password: String, database: String) {
 		self.host = host
@@ -306,6 +308,13 @@ class QBEPostgresDatabase: QBESQLDatabase {
 	
 	func isCompatible(other: QBEPostgresDatabase) -> Bool {
 		return self.host == other.host && self.user == other.user && self.password == other.password && self.port == other.port
+	}
+
+	func dataForTable(table: String, schema: String?, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		switch QBEPostgresData.create(database: self, tableName: table, schemaName: schema ?? "", locale: nil) {
+		case .Success(let d): callback(.Success(d))
+		case .Failure(let e): callback(.Failure(e))
+		}
 	}
 	
 	func databases(callback: (QBEFallible<[String]>) -> ()) {
@@ -742,7 +751,7 @@ class QBEPostgresSourceStep: QBEStep {
 
 	override var mutableData: QBEMutableData? {
 		if let d = self.database {
-			return QBESQLMutableData(database: d, databaseName: databaseName, schemaName: schemaName, tableName: tableName)
+			return QBESQLMutableData(database: d, schemaName: schemaName, tableName: tableName)
 		}
 		return nil
 	}

@@ -84,9 +84,21 @@ public protocol QBESQLDialect {
 	func joinType(type: QBEJoinType) -> String?
 }
 
+/** Represents a particular SQL database. In most cases, this will be a catalog or database on a particular database 
+server. Some 'flat' databases do not have the concept of separate databases. In this case, there is one database per
+connection/file (e.g. for SQLite). */
 public protocol QBESQLDatabase {
 	var dialect: QBESQLDialect { get }
+
+	/** The name that can be used to refer to this database in SQL queries performed on the connection. */
+	var databaseName: String? { get }
+
+	/** Create a connection over which queries can be sent to this database. */
 	func connect(callback: (QBEFallible<QBESQLConnection>) -> ())
+
+	/** Creates a QBEData object that can be used to read data from a table in the specified schema (if any) in this
+	database. For databases that do not support schemas the schema parameter must be nil. */
+	func dataForTable(table: String, schema: String?, job: QBEJob, callback: (QBEFallible<QBEData>) -> ())
 }
 
 public protocol QBESQLConnection {
@@ -154,7 +166,7 @@ public class QBESQLDataWarehouse: QBEDataWarehouse {
 												switch commitResult {
 												case .Success:
 													// Go and insert the specified data in the table
-													let mutableData = QBESQLMutableData(database: self.database, databaseName: self.databaseName, schemaName: self.schemaName, tableName: tableName)
+													let mutableData = QBESQLMutableData(database: self.database, schemaName: self.schemaName, tableName: tableName)
 													let mapping = columnNames.mapDictionary { cn in return (cn, cn) }
 													mutableData.performMutation(.Insert(data, mapping), job: job) { insertResult in
 														switch insertResult {
@@ -186,21 +198,23 @@ public class QBESQLDataWarehouse: QBEDataWarehouse {
 
 public class QBESQLMutableData: QBEMutableData {
 	public let database: QBESQLDatabase
-	public let databaseName: String?
 	public let tableName: String
 	public let schemaName: String?
 
-	public var warehouse: QBEDataWarehouse { return QBESQLDataWarehouse(database: self.database, databaseName: self.databaseName, schemaName: self.schemaName) }
+	public var warehouse: QBEDataWarehouse { return QBESQLDataWarehouse(database: self.database, databaseName: self.database.databaseName, schemaName: self.schemaName) }
 
-	public init(database: QBESQLDatabase, databaseName: String?, schemaName: String?, tableName: String) {
+	public init(database: QBESQLDatabase, schemaName: String?, tableName: String) {
 		self.database = database
-		self.databaseName = databaseName
 		self.tableName = tableName
 		self.schemaName = schemaName
 	}
 
 	private var tableIdentifier: String {
-		return self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.databaseName)
+		return self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.database.databaseName)
+	}
+
+	public func data(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		self.database.dataForTable(tableName, schema: schemaName, job: job, callback: callback)
 	}
 
 	public func performMutation(mutation: QBEDataMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {

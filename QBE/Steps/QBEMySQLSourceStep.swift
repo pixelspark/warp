@@ -224,7 +224,7 @@ class QBEMySQLDatabase: QBESQLDatabase {
 	private let port: Int
 	private let user: String
 	private let password: String
-	let databaseName: String
+	let databaseName: String?
 	let dialect: QBESQLDialect = QBEMySQLDialect()
 	
 	init(host: String, port: Int, user: String, password: String, database: String) {
@@ -261,9 +261,9 @@ class QBEMySQLDatabase: QBESQLDatabase {
 			return .Failure(connection.lastError)
 		}
 		
-		if let dbn = databaseName.cStringUsingEncoding(NSUTF8StringEncoding) where !databaseName.isEmpty {
+		if let dbn = databaseName, let dbc = dbn.cStringUsingEncoding(NSUTF8StringEncoding) where !dbn.isEmpty {
 			if !connection.perform({() -> Int32 in
-				return mysql_select_db(connection.connection, dbn)
+				return mysql_select_db(connection.connection, dbc)
 			}) {
 				return .Failure(connection.lastError)
 			}
@@ -282,6 +282,15 @@ class QBEMySQLDatabase: QBESQLDatabase {
 			res.finish()
 		}
 		return .Success(connection)
+	}
+
+	func dataForTable(table: String, schema: String?, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		switch QBEMySQLData.create(self, tableName: table) {
+		case .Success(let md):
+			callback(.Success(md))
+		case .Failure(let e):
+			callback(.Failure(e))
+		}
 	}
 }
 
@@ -475,7 +484,7 @@ final class QBEMySQLData: QBESQLData {
 	
 	private init(database: QBEMySQLDatabase, table: String, columns: [QBEColumn]) {
 		self.database = database
-		super.init(table: table, schema: nil, database: database.databaseName, dialect: database.dialect, columns: columns)
+		super.init(table: table, schema: nil, database: database.databaseName!, dialect: database.dialect, columns: columns)
 	}
 	
 	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
@@ -662,7 +671,7 @@ class QBEMySQLSourceStep: QBEStep {
 
 	override var mutableData: QBEMutableData? { get {
 		if let s = self.database {
-			return QBESQLMutableData(database: s, databaseName: s.databaseName, schemaName: nil, tableName: self.tableName)
+			return QBESQLMutableData(database: s, schemaName: nil, tableName: self.tableName)
 		}
 		return nil
 	} }

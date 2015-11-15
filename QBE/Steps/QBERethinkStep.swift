@@ -430,6 +430,10 @@ class QBERethinkMutableData: QBEMutableData {
 		self.tableName = tableName
 	}
 
+	func data(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(.Success(QBERethinkData(url: self.url, query: R.db(databaseName).table(tableName))))
+	}
+
 	func canPerformMutation(mutation: QBEDataMutation) -> Bool {
 		switch mutation {
 		case .Truncate, .Drop:
