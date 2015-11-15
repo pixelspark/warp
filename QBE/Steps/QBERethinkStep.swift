@@ -466,21 +466,27 @@ class QBERethinkMutableData: QBEMutableData {
 						q = R.db(self.databaseName).tableDrop(self.tableName)
 
 					case .Insert(let sourceData, _):
-						let stream = sourceData.stream()
-
-						stream.columnNames(job) { cns in
-							switch cns {
-							case .Success(let columnNames):
-								let table = R.db(self.databaseName).table(self.tableName)
-								let puller = QBERethinkInsertPuller(stream: stream, job: job, columnNames: columnNames, table: table, connection: connection, callback: callback)
-								puller.start()
-
-							case .Failure(let e):
-								callback(.Failure(e))
-							}
+						/* If the source rows are produced on the same server, we might as well let the server do the 
+						heavy lifting. */
+						if let sourceRethinkData = sourceData as? QBERethinkData where sourceRethinkData.url == self.url {
+							q = sourceRethinkData.query.forEach { doc in R.db(self.databaseName).table(self.tableName).insert([doc]) }
 						}
+						else {
+							let stream = sourceData.stream()
 
-						return
+							stream.columnNames(job) { cns in
+								switch cns {
+								case .Success(let columnNames):
+									let table = R.db(self.databaseName).table(self.tableName)
+									let puller = QBERethinkInsertPuller(stream: stream, job: job, columnNames: columnNames, table: table, connection: connection, callback: callback)
+									puller.start()
+
+								case .Failure(let e):
+									callback(.Failure(e))
+								}
+							}
+							return
+						}
 				}
 
 				q.run(connection, callback: { (response) -> () in
