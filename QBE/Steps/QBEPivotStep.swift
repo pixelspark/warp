@@ -49,7 +49,7 @@ class QBEPivotStep: QBEStep {
 	private func explanation(locale: QBELocale) -> String {
 		if aggregates.count == 1 {
 			let aggregation = aggregates[0]
-			if rows.count != 1 || columns.count != 0 {
+			if rows.count != 1 || !columns.isEmpty {
 				return String(format: NSLocalizedString("Pivot: %@ of %@", comment: "Pivot with 1 aggregate"),
 					aggregation.reduce.explain(locale),
 					aggregation.map.explain(locale))
@@ -102,7 +102,7 @@ class QBEPivotStep: QBEStep {
 		
 		let values = toDictionary(aggregates, transformer: { ($0.targetColumnName, $0) })
 		let resultData = data.aggregate(rowGroups, values: values)
-		if columns.count == 0 {
+		if columns.isEmpty {
 			callback(.Success(resultData))
 		}
 		else {
@@ -112,7 +112,7 @@ class QBEPivotStep: QBEStep {
 	}
 	
 	class func suggest(aggregateRows: NSIndexSet, columns aggregateColumns: Set<QBEColumn>, inRaster raster: QBERaster, fromStep: QBEStep?) -> [QBEStep] {
-		if aggregateColumns.count == 0 {
+		if aggregateColumns.isEmpty {
 			return []
 		}
 		

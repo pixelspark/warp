@@ -223,7 +223,7 @@ public class QBESQLMutableData: QBEMutableData {
 	}
 
 	private func performInsert(connection: QBESQLConnection, data: QBEData, mapping: QBEColumnMapping, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
-		if mapping.count == 0 {
+		if mapping.isEmpty {
 			callback(.Failure("Cannot insert zero columns!"))
 			return
 		}
@@ -256,7 +256,7 @@ public class QBESQLMutableData: QBEMutableData {
 							return
 
 						case .Success(let rows):
-							if rows.count == 0 {
+							if rows.isEmpty {
 								if streamStatus == .Finished {
 									callback(.Success())
 								}
@@ -1190,7 +1190,7 @@ public class QBESQLData: NSObject, QBEData {
 	}
 	
 	public func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
-		if groups.count == 0 && values.count == 0 {
+		if groups.isEmpty && values.isEmpty {
 			return QBEStreamData(source: QBEEmptyStream())
 		}
 

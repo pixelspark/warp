@@ -184,7 +184,7 @@ public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 		// If no columns from the right table will ever show up, we don't have to do the join
 		let rightColumns = rightRaster.columnNames
 		let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
-		if rightColumnsInResult.count == 0 {
+		if rightColumnsInResult.isEmpty {
 			callback(self)
 			return
 		}
@@ -360,7 +360,7 @@ public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 					}
 				}
 				
-				if sameColumns.count == 0 {
+				if sameColumns.isEmpty {
 					break
 				}
 			}
@@ -828,7 +828,7 @@ public class QBERasterData: NSObject, QBEData {
 	}
 	
 	public func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData {
-		if horizontal.count == 0 {
+		if horizontal.isEmpty {
 			return self
 		}
 		

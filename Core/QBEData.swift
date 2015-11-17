@@ -623,7 +623,7 @@ enum QBECoalescedData: QBEData {
 		- data.calculate().selectColumns() can be combined: calculations that result into columns that are not selected 
 		  are not included */
 	func selectColumns(columns: [QBEColumn]) -> QBEData {
-		if columns.count == 0 {
+		if columns.isEmpty {
 			return QBERasterData()
 		}
 		
@@ -705,7 +705,7 @@ enum QBECoalescedData: QBEData {
 	/** - data.sort([a,b]).sort([c,d]) is equivalent to data.sort([c,d, a,b]) 
 		- data.sort([]) is equivalent to data. */
 	func sort(orders: [QBEOrder]) -> QBEData {
-		if orders.count == 0 {
+		if orders.isEmpty {
 			return self
 		}
 		

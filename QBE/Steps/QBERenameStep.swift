@@ -14,7 +14,7 @@ class QBERenameStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
-		if renames.count == 0 {
+		if renames.isEmpty {
 			return QBESentence([QBESentenceText(NSLocalizedString("Rename columns", comment: ""))])
 		}
 		else if renames.count == 1 {
@@ -63,7 +63,7 @@ class QBERenameStep: QBEStep {
 	
 	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		// If we have nothing to rename, bypass this step
-		if self.renames.count == 0 {
+		if self.renames.isEmpty {
 			callback(.Success(data))
 			return
 		}

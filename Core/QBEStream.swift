@@ -939,7 +939,7 @@ private class QBEJoinTransformer: QBETransformer {
 						case .Success(let rightColumns):
 							// Only new columns from the right side will be added
 							let rightColumnsInResult = rightColumns.filter({return !leftColumns.contains($0)})
-							self.isIneffectiveJoin = rightColumnsInResult.count == 0
+							self.isIneffectiveJoin = rightColumnsInResult.isEmpty
 							callback(.Success(leftColumns + rightColumnsInResult))
 							
 						case .Failure(let e):

@@ -119,7 +119,7 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEPack("a,b,c,d,").count == 5, "Pack format parser works")
 		XCTAssert(QBEPack("a,b$0,c$1$0,d$0$1").count == 4, "Pack format parser works")
 		XCTAssert(QBEPack(",").count == 2, "Pack format parser works")
-		XCTAssert(QBEPack("").count == 0, "Pack format parser works")
+		XCTAssert(QBEPack("").isEmpty, "Pack format parser works")
 		XCTAssert(QBEPack(["Tommy", "van$,der,Vorst"]).stringValue == "Tommy,van$1$0der$0Vorst", "Pack writer properly escapes")
 	}
 
@@ -714,7 +714,7 @@ class QBETests: XCTestCase {
 		data.selectColumns(["THIS_DOESNT_EXIST"]).columnNames(job) { (r) -> () in
 			switch r {
 				case .Success(let cns):
-					XCTAssert(cns.count == 0, "Selecting an invalid column returns a set without columns")
+					XCTAssert(cns.isEmpty, "Selecting an invalid column returns a set without columns")
 				
 				case .Failure(let error):
 					XCTFail(error)
@@ -747,7 +747,7 @@ class QBETests: XCTestCase {
 		// Empty raster behavior
 		let emptyRasterData = QBERasterData(data: [], columnNames: [])
 		emptyRasterData.limit(5).raster(job) { assertRaster($0, message: "Limit works when number of rows > available rows") { $0.rowCount == 0 } }
-		emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).raster(job) { assertRaster($0, message: "Selecting an invalid column works properly in empty raster") { $0.columnNames.count == 0 } }
+		emptyRasterData.selectColumns([QBEColumn("THIS_DOESNT_EXIST")]).raster(job) { assertRaster($0, message: "Selecting an invalid column works properly in empty raster") { $0.columnNames.isEmpty } }
 	}
 	
     func testQBERaster() {

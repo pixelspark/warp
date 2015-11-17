@@ -119,7 +119,7 @@ public class QBEExpression: NSObject, NSCoding {
 				}
 			}
 			
-			if suggestions.count == 0 {
+			if suggestions.isEmpty {
 				// Let's see if we can find something else
 				for formula in exploreFurther {
 					let result = formula.apply(row, foreign: nil, inputValue: inputValue)

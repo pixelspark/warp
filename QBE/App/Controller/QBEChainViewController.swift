@@ -162,7 +162,7 @@ internal extension NSViewController {
 												}
 											}
 											else {
-												if joinSteps.count == 0 {
+												if joinSteps.isEmpty {
 													let js = QBEJoinStep(previous: nil)
 													js.right = self.otherChain
 													js.condition = QBELiteralExpression(QBEValue(false))
@@ -731,7 +731,7 @@ internal extension NSViewController {
 	private func suggestSteps(var steps: Array<QBEStep>) {
 		QBEAssertMainThread()
 		
-		if steps.count == 0 {
+		if steps.isEmpty {
 			// Alert
 			let alert = NSAlert()
 			alert.messageText = NSLocalizedString("I have no idea what you did.", comment: "")

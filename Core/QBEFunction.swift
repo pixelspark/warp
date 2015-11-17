@@ -923,7 +923,7 @@ public enum QBEFunction: String {
 			return least ?? QBEValue.InvalidValue
 			
 		case .RandomItem:
-			if arguments.count == 0 {
+			if arguments.isEmpty {
 				return QBEValue.EmptyValue
 			}
 			else {

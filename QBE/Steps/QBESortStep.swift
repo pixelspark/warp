@@ -19,7 +19,7 @@ class QBESortStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
-		if orders.count == 0 {
+		if orders.isEmpty {
 			return QBESentence(format: NSLocalizedString("Sort rows on [#]", comment: ""),
 				QBESentenceFormula(expression: QBELiteralExpression(QBEValue.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
 					self?.orders.append(QBEOrder(expression: newExpression, ascending: true, numeric: true))

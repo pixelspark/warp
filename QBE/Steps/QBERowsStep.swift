@@ -26,7 +26,7 @@ class QBERowsStep: NSObject {
 					}
 				}
 				
-				if sameColumns.count == 0 {
+				if sameColumns.isEmpty {
 					break
 				}
 			}

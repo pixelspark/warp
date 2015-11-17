@@ -17,7 +17,7 @@ class QBEColumnsStep: QBEStep {
 	
 	private func explanation(locale: QBELocale) -> String {
 		if select {
-			if columnNames.count == 0 {
+			if columnNames.isEmpty {
 				return NSLocalizedString("Select all columns", comment: "")
 			}
 			else if columnNames.count == 1 {
@@ -32,7 +32,7 @@ class QBEColumnsStep: QBEStep {
 			}
 		}
 		else {
-			if columnNames.count == 0 {
+			if columnNames.isEmpty {
 				return NSLocalizedString("Remove all columns", comment: "")
 			}
 			else if columnNames.count == 1 {
@@ -96,7 +96,7 @@ class QBEColumnsStep: QBEStep {
 			let contained = columnNames.contains(p.targetColumn)
 			if (select && !contained) || (!select && contained) {
 				let newColumns = columnNames.filter({$0 != p.targetColumn})
-				if newColumns.count == 0 {
+				if newColumns.isEmpty {
 					return QBEStepMerge.Cancels
 				}
 				else {
