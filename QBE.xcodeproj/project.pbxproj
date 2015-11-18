@@ -74,6 +74,7 @@
 		6548F2341A8673BF00FE8EF2 /* extension-functions.c in Sources */ = {isa = PBXBuildFile; fileRef = 6548F2331A8673BF00FE8EF2 /* extension-functions.c */; };
 		654AE1671AA514530022C533 /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 652872921A5D16C200C155FA /* SwiftParser.framework */; };
 		654C82931B9AE76F002B3F4A /* QBEExportStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654C82921B9AE76F002B3F4A /* QBEExportStep.swift */; };
+		65587CB11BFCFE4F0010C8D4 /* QBEFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65587CB01BFCFE4F0010C8D4 /* QBEFile.swift */; };
 		65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65734BE01AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65734BE31AB0E60A00D2C2F6 /* QBEPrestoSourceStepView.xib */; };
 		65776F101A6470BB00F7F82A /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 652872921A5D16C200C155FA /* SwiftParser.framework */; };
@@ -432,6 +433,7 @@
 		65436ED51B30C21F00636299 /* libssl.0.9.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.0.9.8.dylib; path = /usr/lib/libssl.0.9.8.dylib; sourceTree = "<absolute>"; };
 		6548F2331A8673BF00FE8EF2 /* extension-functions.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "extension-functions.c"; path = "Libraries/extension-functions.c"; sourceTree = "<group>"; };
 		654C82921B9AE76F002B3F4A /* QBEExportStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEExportStep.swift; path = QBE/Steps/QBEExportStep.swift; sourceTree = SOURCE_ROOT; };
+		65587CB01BFCFE4F0010C8D4 /* QBEFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFile.swift; sourceTree = "<group>"; };
 		65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Libraries/Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
 		65734BE21AB0E60A00D2C2F6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEPrestoSourceStepView.xib; sourceTree = "<group>"; };
 		65734BE51AB0E60D00D2C2F6 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEPrestoSourceStepView.strings; sourceTree = "<group>"; };
@@ -766,6 +768,7 @@
 				65AAF4BC1B9B3F10004C79D3 /* QBEStep.swift */,
 				65A0DF791AF299C20005C50F /* QBETablet.swift */,
 				65CD41561BE6251F006534E1 /* QBEJobsManager.swift */,
+				65587CB01BFCFE4F0010C8D4 /* QBEFile.swift */,
 			);
 			name = Model;
 			path = App/Model;
@@ -1334,6 +1337,7 @@
 				65A0DF901AF299C20005C50F /* QBEChain.swift in Sources */,
 				652B275A1B8FB8C200A2D38E /* QBEPrestoStep.swift in Sources */,
 				65A526CC1B0A5C8700CCF3E3 /* QBEPostgresStepView.swift in Sources */,
+				65587CB11BFCFE4F0010C8D4 /* QBEFile.swift in Sources */,
 				652B275C1B8FB8C200A2D38E /* QBERenameStep.swift in Sources */,
 				65CD41591BEF5A9B006534E1 /* QBEAlterTableViewController.swift in Sources */,
 				65884A311AFF50BF003A5BF1 /* QBESettings.swift in Sources */,
