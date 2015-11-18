@@ -71,6 +71,11 @@
 			<array>
 				<string>sqlite</string>
 			</array>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>application/sqlite</string>
+				<string>application/x-sqlite3</string>
+			</array>
 			<key>CFBundleTypeName</key>
 			<string>SQLite</string>
 			<key>CFBundleTypeRole</key>
@@ -101,6 +106,20 @@
 			</array>
 			<key>CFBundleTypeName</key>
 			<string>SQLiteSHM</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<integer>0</integer>
+			<key>NSIsRelatedItemType</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>sqlite-conch</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>SQLite proxy lock</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSTypeIsPackage</key>
