@@ -1151,7 +1151,7 @@ internal extension NSViewController {
 							self.calculate()
 
 						case .Failure(let e):
-							NSAlert.showSimpleAlert(e, style: NSAlertStyle.WarningAlertStyle, window: self.view.window!)
+							NSAlert.showSimpleAlert(NSLocalizedString("The selected action cannot be performed on this data set.",comment: ""), infoText: e, style: NSAlertStyle.WarningAlertStyle, window: self.view.window!)
 
 						}
 					}
@@ -1420,9 +1420,10 @@ class QBETipViewController: NSViewController {
 }
 
 private extension NSAlert {
-	static func showSimpleAlert(message: String, style: NSAlertStyle, window: NSWindow) {
+	static func showSimpleAlert(message: String, infoText: String, style: NSAlertStyle, window: NSWindow) {
 		let av = NSAlert()
 		av.messageText = message
+		av.informativeText = infoText
 		av.alertStyle = style
 		av.beginSheetModalForWindow(window, completionHandler: nil)
 	}
