@@ -369,7 +369,7 @@ public class QBESQLMutableData: QBEMutableData {
 							con.run(["DELETE FROM \(self.tableIdentifier)"], job: job, callback: callback)
 
 						case .Alter(let columns):
-							self.performAlter(con, columns: columns, job: job, callback: callback)
+							self.performAlter(con, columns: columns.columnNames, job: job, callback: callback)
 
 						case .Insert(let data, let mapping):
 							self.performInsert(con, data: data, mapping: mapping, job: job, callback: callback)

@@ -24,11 +24,14 @@ public protocol QBEMutableData {
 	/** The warehouse in which this mutable data set is stored. */
 	var warehouse: QBEDataWarehouse { get }
 
-	/** Returns whether the specified mutation can be performed on this mutable data set. Note that this function does 
-	not guarantee that no errors occur during the actual performance of the mutation (user rights, data, et cetera may
-	change between invocations of canPerformMutation and performMutation). This function should therefore only perform
-	reasonable checks, such as (1) does the mutable data set support a particular mutation at all, (2) are column names
-	suitable for this database, et cetera. */
+	/** Returns whether the specified mutation can be performed on this mutable data set. The function indicates support
+	of the mutation *at all* rather than whether it would succeed in the current state and on the current data set. The
+	function is synchronous and should not make calls to servers to check whether a mutation would succeed.
+	
+	As a consequence, this function does not guarantee that no errors occur during the actual performance of the mutation
+	(user rights, data, et cetera may change between invocations of canPerformMutation and performMutation). This function
+	should therefore only perform reasonable and fast checks, such as (1) does the mutable data set support a particular
+	mutation at all, (2) are column names suitable for this database, et cetera. */
 	func canPerformMutation(mutation: QBEDataMutation) -> Bool
 
 	/** Perform the specified mutation on this mutable data set. Note that performMutation will fail if a call to the
@@ -44,6 +47,15 @@ already has columns defined. The destination columns are the keys, the source co
 the value (or the empty column name, if we must attempt to insert nil) */
 public typealias QBEColumnMapping = [QBEColumn: QBEColumn]
 
+/** Description of a dataset's format (column names primarily). */
+public struct QBEDataDefinition {
+	public var columnNames: [QBEColumn]
+
+	public init(columnNames: [QBEColumn]) {
+		self.columnNames = columnNames
+	}
+}
+
 public enum QBEDataMutation {
 	/** Truncate: remove all data in the store, but keep the columns (if the store has fixed columns). */
 	case Truncate
@@ -58,7 +70,7 @@ public enum QBEDataMutation {
 
 	/** Alter the table so that it has columns as listed. Existing columns must be re-used and stay intact. If the table
 	does not exist, create the table. */
-	case Alter([QBEColumn])
+	case Alter(QBEDataDefinition)
 }
 
 public enum QBEWarehouseMutation {

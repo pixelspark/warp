@@ -162,7 +162,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 			sourceData.columnNames(self.uploadJob!) { result in
 				switch result {
 				case .Success(let sourceColumns):
-					destination.performMutation(.Alter(sourceColumns), job: self.uploadJob!) { res in
+					destination.performMutation(.Alter(QBEDataDefinition(columnNames: sourceColumns)), job: self.uploadJob!) { res in
 						switch res {
 						case .Success(_):
 							self.mapping = sourceColumns.mapDictionary { return ($0,$0) }
@@ -306,7 +306,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 
 	var canAlter: Bool {
 		if let md = self.targetStep?.mutableData {
-			return md.canPerformMutation(.Alter([])) && md.warehouse.hasFixedColumns
+			return md.canPerformMutation(.Alter(QBEDataDefinition(columnNames: [QBEColumn("dummy")]))) && md.warehouse.hasFixedColumns
 		}
 		return false
 	}
