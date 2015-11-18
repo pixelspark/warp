@@ -226,7 +226,7 @@ public enum QBEFallible<T> {
 	}
 }
 
-public class QBEWeak<T: AnyObject> {
+public class QBEWeak<T: AnyObject>: NSObject {
 	public private(set) weak var value: T?
 	
 	public init(_ value: T?) {

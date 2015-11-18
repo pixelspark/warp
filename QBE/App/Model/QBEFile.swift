@@ -170,6 +170,10 @@ public class QBEFilePresenter: NSObject {
 	private init(primary: NSURL, secondary: NSURL) {
 		self.delegate = QBEFilePresenterDelegate(primary: primary, secondary: secondary)
 		NSFileCoordinator.addFilePresenter(delegate)
+
+		/* FIXME this is a bad way to force the file coordinator to sync and actually finish creating the file presenters.
+		See: http://thebesthacker.com/question/osx-related-file-creation.html */
+		NSFileCoordinator.filePresenters()
 	}
 
 	deinit {
