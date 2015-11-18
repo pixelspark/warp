@@ -201,6 +201,82 @@ public class QBESQLDataWarehouse: QBEDataWarehouse {
 	}
 }
 
+private class QBESQLInsertPuller: QBEStreamPuller {
+	private let columnNames: [QBEColumn]
+	private var callback: ((QBEFallible<Void>) -> ())?
+	private let fastMapping: [Int?]
+	private let insertStatement: String
+	private let connection: QBESQLConnection
+	private let database: QBESQLDatabase
+
+	init(stream: QBEStream, job: QBEJob, columnNames: [QBEColumn], mapping: QBEColumnMapping, insertStatement: String, connection: QBESQLConnection, database: QBESQLDatabase, callback: ((QBEFallible<Void>) -> ())?) {
+		self.callback = callback
+		self.columnNames = columnNames
+		self.insertStatement = insertStatement
+		self.connection = connection
+		self.database = database
+
+		self.fastMapping = mapping.keys.map { targetField -> Int? in
+			if let sourceFieldName = mapping[targetField] {
+				return columnNames.indexOf(sourceFieldName)
+			}
+			else {
+				return nil
+			}
+		}
+
+		super.init(stream: stream, job: job)
+	}
+
+	override func onReceiveRows(rows: [QBETuple], callback: (QBEFallible<Void>) -> ()) {
+		self.mutex.locked {
+			let values = rows.map { row in
+				let tuple = fastMapping.map { idx -> String in
+					if let i = idx {
+						return  self.database.dialect.expressionToSQL(QBELiteralExpression(row[i]), alias: "", foreignAlias: nil, inputValue: nil) ?? "NULL"
+					}
+					else {
+						return "NULL"
+					}
+					}.joinWithSeparator(", ")
+				return "(\(tuple))"
+				}.joinWithSeparator(", ")
+
+			let sql = "\(insertStatement) \(values)"
+			connection.run([sql], job: job) { insertResult in
+				switch insertResult {
+				case .Failure(let e):
+					callback(.Failure(e))
+
+				case .Success(_):
+					callback(.Success())
+				}
+			}
+		}
+	}
+
+	override func onDoneReceiving() {
+		self.mutex.locked {
+			let cb = self.callback!
+			self.callback = nil
+			self.job.async {
+				cb(.Success())
+			}
+		}
+	}
+
+	override func onError(error: String) {
+		self.mutex.locked {
+			let cb = self.callback!
+			self.callback = nil
+
+			self.job.async {
+				cb(.Failure(error))
+			}
+		}
+	}
+}
+
 public class QBESQLMutableData: QBEMutableData {
 	public let database: QBESQLDatabase
 	public let tableName: String
@@ -236,69 +312,9 @@ public class QBESQLMutableData: QBEMutableData {
 		data.columnNames(job) { columnsFallible in
 			switch columnsFallible {
 			case .Success(let sourceColumnNames):
-				let fastMapping = mapping.keys.map { targetField -> Int? in
-					if let sourceFieldName = mapping[targetField] {
-						return sourceColumnNames.indexOf(sourceFieldName)
-					}
-					else {
-						return nil
-					}
-				}
 				let stream = data.stream()
-
-				var writer: (() -> ())? = nil
-				writer = {
-					stream.fetch(job) { rowsFallible, streamStatus in
-						switch rowsFallible {
-						case .Failure(let e):
-							print("ERR: \(e)")
-							callback(.Failure(e))
-							return
-
-						case .Success(let rows):
-							if rows.isEmpty {
-								if streamStatus == .Finished {
-									callback(.Success())
-								}
-								else {
-									writer!()
-								}
-								return
-							}
-							let values = rows.map { row in
-								let tuple = fastMapping.map { idx -> String in
-									if let i = idx {
-										return  self.database.dialect.expressionToSQL(QBELiteralExpression(row[i]), alias: "", foreignAlias: nil, inputValue: nil) ?? "NULL"
-									}
-									else {
-										return "NULL"
-									}
-									}.joinWithSeparator(", ")
-								return "(\(tuple))"
-								}.joinWithSeparator(", ")
-
-							let sql = "\(insertStatement) \(values)"
-							connection.run([sql], job: job) { insertResult in
-								switch insertResult {
-								case .Failure(let e):
-									callback(.Failure(e))
-									return
-
-								case .Success(_):
-									if streamStatus == .Finished {
-										callback(.Success())
-									}
-									else {
-										writer!()
-									}
-								}
-
-							}
-						}
-					}
-				}
-
-				writer!()
+				let puller = QBESQLInsertPuller(stream: stream, job: job, columnNames: sourceColumnNames, mapping: mapping, insertStatement: insertStatement, connection: connection, database: self.database, callback: callback)
+				puller.start()
 
 			case .Failure(let e):
 				callback(.Failure(e))
