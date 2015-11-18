@@ -66,7 +66,11 @@ class QBESettings {
 	
 	var exampleMaximumTime: Double {
 		get {
-			return defaults.doubleForKey("exampleMaximumTime") ?? 1.5
+			let maxTime = defaults.doubleForKey("exampleMaximumTime")
+			if maxTime <= 0.0 {
+				return 1.5
+			}
+			return maxTime
 		}
 		
 		set {
@@ -76,7 +80,11 @@ class QBESettings {
 	
 	var exampleMaximumRows: Int {
 		get {
-			return defaults.integerForKey("exampleMaximumRows") ?? 500
+			let maxRows = defaults.integerForKey("exampleMaximumRows")
+			if maxRows <= 0 {
+				return 500
+			}
+			return maxRows
 		}
 		
 		set {
