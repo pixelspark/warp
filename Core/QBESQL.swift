@@ -116,14 +116,12 @@ public protocol QBESQLConnection {
 
 public class QBESQLDataWarehouse: QBEDataWarehouse {
 	public let database: QBESQLDatabase
-	public let databaseName: String?
 	public let schemaName: String?
 	public var dialect: QBESQLDialect { return database.dialect }
 	public let hasFixedColumns: Bool = true
 
-	init(database: QBESQLDatabase, databaseName: String?, schemaName: String?) {
+	public init(database: QBESQLDatabase, schemaName: String?) {
 		self.database = database
-		self.databaseName = databaseName
 		self.schemaName = schemaName
 	}
 
@@ -159,7 +157,7 @@ public class QBESQLDataWarehouse: QBEDataWarehouse {
 									let fields = columnNames.map {
 										return self.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) + " TEXT NULL DEFAULT NULL"
 									}.joinWithSeparator(", ")
-									let createQuery = "CREATE TABLE \(self.dialect.tableIdentifier(tableName, schema: self.schemaName, database: self.databaseName)) (\(fields))";
+									let createQuery = "CREATE TABLE \(self.dialect.tableIdentifier(tableName, schema: self.schemaName, database: self.database.databaseName)) (\(fields))";
 
 									// Create the table
 									con.run([createQuery], job: job) { createResult in
@@ -282,7 +280,7 @@ public class QBESQLMutableData: QBEMutableData {
 	public let tableName: String
 	public let schemaName: String?
 
-	public var warehouse: QBEDataWarehouse { return QBESQLDataWarehouse(database: self.database, databaseName: self.database.databaseName, schemaName: self.schemaName) }
+	public var warehouse: QBEDataWarehouse { return QBESQLDataWarehouse(database: self.database, schemaName: self.schemaName) }
 
 	public init(database: QBESQLDatabase, schemaName: String?, tableName: String) {
 		self.database = database

@@ -805,6 +805,25 @@ class QBESQLiteDatabase: QBESQLDatabase {
 	}
 }
 
+class QBESQLiteDataWarehouse: QBESQLDataWarehouse {
+	override init(database: QBESQLDatabase, schemaName: String?) {
+		super.init(database: database, schemaName: schemaName)
+	}
+
+	override func canPerformMutation(mutation: QBEWarehouseMutation) -> Bool {
+		switch mutation {
+		case .Create(_, _):
+			// A read-only database cannot be mutated
+			let db = self.database as! QBESQLiteDatabase
+			return !db.readOnly
+		}
+	}
+}
+
+class QBESQLiteMutableData: QBESQLMutableData {
+	override var warehouse: QBEDataWarehouse { return QBESQLiteDataWarehouse(database: self.database, schemaName: self.schemaName) }
+}
+
 class QBESQLiteSourceStep: QBEStep {
 	var file: QBEFileReference? = nil { didSet {
 		oldValue?.url?.stopAccessingSecurityScopedResource()
@@ -908,7 +927,7 @@ class QBESQLiteSourceStep: QBEStep {
 
 	override var mutableData: QBEMutableData? {
 		if let u = self.file?.url, let tn = tableName {
-			return QBESQLMutableData(database: QBESQLiteDatabase(url: u, readOnly: false), schemaName: nil, tableName: tn)
+			return QBESQLiteMutableData(database: QBESQLiteDatabase(url: u, readOnly: false), schemaName: nil, tableName: tn)
 		}
 		return nil
 	}

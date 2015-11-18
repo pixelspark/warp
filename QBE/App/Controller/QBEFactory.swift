@@ -95,7 +95,8 @@ class QBEFactory {
 		QBEPostgresSourceStep.className(): QBEPostgresStepView.self,
 		QBECrawlStep.className(): QBECrawlStepView.self,
 		QBERethinkSourceStep.className(): QBERethinkStepView.self,
-		QBEJoinStep.className(): QBEJoinStepView.self
+		QBEJoinStep.className(): QBEJoinStepView.self,
+		QBESQLiteSourceStep.className(): QBESQLiteSourceStepView.self
 	]
 	
 	private let stepIcons = [
