@@ -109,16 +109,16 @@ public protocol QBESQLDatabase {
 public protocol QBESQLConnection {
 	/** Serially perform the indicate SQL data definition commands in the order specified. The callback is called after 
 	the first error is encountered, or when all queries have been executed successfully. Depending on the support of the 
-	database, wrapping in a transaction is possible by issuing 'START TRANSACTION'  and 'COMMIT'  commands. Whenever an 
+	database, wrapping in a transaction is possible by issuing 'BEGIN'  and 'COMMIT'  commands. Whenever an
 	error is encountered, no further query processing should happen. */
 	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ())
 }
 
 public class QBESQLDataWarehouse: QBEDataWarehouse {
-	let database: QBESQLDatabase
-	let databaseName: String?
-	let schemaName: String?
-	var dialect: QBESQLDialect { return database.dialect }
+	public let database: QBESQLDatabase
+	public let databaseName: String?
+	public let schemaName: String?
+	public var dialect: QBESQLDialect { return database.dialect }
 	public let hasFixedColumns: Bool = true
 
 	init(database: QBESQLDatabase, databaseName: String?, schemaName: String?) {
@@ -147,7 +147,7 @@ public class QBESQLDataWarehouse: QBEDataWarehouse {
 				// Create a table to store the given data set
 				case .Create(let tableName, let data):
 					// Start a transaction
-					con.run(["START TRANSACTION"], job: job) { result in
+					con.run(["BEGIN"], job: job) { result in
 						switch result {
 						case .Success(_):
 							// Find out the column names of the source data
