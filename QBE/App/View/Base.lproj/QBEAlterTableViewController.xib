@@ -11,6 +11,7 @@
                 <outlet property="createButton" destination="oQG-Gu-VK1" id="iXI-Vt-65u"/>
                 <outlet property="progressLabel" destination="8vj-Eh-trt" id="mod-bz-gOY"/>
                 <outlet property="progressView" destination="oeX-k0-gKz" id="MhO-8X-jne"/>
+                <outlet property="removeAllColumnsButton" destination="Psf-D7-Wh9" id="eK5-dR-a8o"/>
                 <outlet property="removeColumnButton" destination="PY9-Ra-Crg" id="O7z-rG-Fwr"/>
                 <outlet property="tableNameField" destination="Ura-aR-Kc5" id="xb4-0x-Yp5"/>
                 <outlet property="tableView" destination="1Bg-9Z-GDW" id="yqa-Vu-rfd"/>
@@ -86,7 +87,7 @@ Gw
                 <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="s7N-Tu-kkJ">
                     <rect key="frame" x="10" y="67" width="697" height="173"/>
                     <clipView key="contentView" id="yAr-qO-Lrj">
-                        <rect key="frame" x="1" y="23" width="695" height="149"/>
+                        <rect key="frame" x="1" y="0.0" width="695" height="172"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnSelection="YES" autosaveColumns="NO" headerView="kmf-VH-yIX" id="1Bg-9Z-GDW">
@@ -138,9 +139,9 @@ Gw
                     </tableHeaderView>
                 </scrollView>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="PY9-Ra-Crg">
-                    <rect key="frame" x="67" y="29" width="89" height="32"/>
+                    <rect key="frame" x="114" y="29" width="137" height="32"/>
                     <animations/>
-                    <buttonCell key="cell" type="push" title="Remove" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="rui-WR-Jvw">
+                    <buttonCell key="cell" type="push" title="Remove column" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="rui-WR-Jvw">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
@@ -149,9 +150,9 @@ Gw
                     </connections>
                 </button>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="2c3-9o-rIQ">
-                    <rect key="frame" x="4" y="29" width="65" height="32"/>
+                    <rect key="frame" x="4" y="29" width="112" height="32"/>
                     <animations/>
-                    <buttonCell key="cell" type="push" title="Add" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="jEz-7g-lhd">
+                    <buttonCell key="cell" type="push" title="Add column" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="jEz-7g-lhd">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
@@ -174,6 +175,17 @@ Gw
                         <action selector="tableNameDidChange:" target="-2" id="baH-7K-7Yc"/>
                     </connections>
                 </textField>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Psf-D7-Wh9">
+                    <rect key="frame" x="249" y="29" width="160" height="32"/>
+                    <animations/>
+                    <buttonCell key="cell" type="push" title="Remove all columns" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="kGl-gk-d1C">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="removeAllColumns:" target="-2" id="a2Y-2b-yEZ"/>
+                    </connections>
+                </button>
             </subviews>
             <constraints>
                 <constraint firstItem="PY9-Ra-Crg" firstAttribute="leading" secondItem="2c3-9o-rIQ" secondAttribute="trailing" constant="10" id="0bk-0Q-BLy"/>
@@ -182,6 +194,7 @@ Gw
                 <constraint firstItem="s7N-Tu-kkJ" firstAttribute="top" secondItem="mTE-5E-fTp" secondAttribute="bottom" constant="10" id="AUu-wB-2zP"/>
                 <constraint firstAttribute="bottom" secondItem="oeX-k0-gKz" secondAttribute="bottom" constant="10" id="INz-Ig-4Qe"/>
                 <constraint firstItem="Ura-aR-Kc5" firstAttribute="leading" secondItem="mTE-5E-fTp" secondAttribute="trailing" constant="10" id="Ifn-zp-XRk"/>
+                <constraint firstItem="Psf-D7-Wh9" firstAttribute="top" secondItem="s7N-Tu-kkJ" secondAttribute="bottom" constant="10" id="Oz1-x7-4n7"/>
                 <constraint firstItem="oeX-k0-gKz" firstAttribute="leading" secondItem="4Hu-CK-ZIY" secondAttribute="leading" constant="10" id="Pkf-2S-3Hu"/>
                 <constraint firstItem="Ura-aR-Kc5" firstAttribute="baseline" secondItem="mTE-5E-fTp" secondAttribute="baseline" id="QPv-4w-IKN"/>
                 <constraint firstItem="oeX-k0-gKz" firstAttribute="top" secondItem="2c3-9o-rIQ" secondAttribute="bottom" constant="10" id="QoF-cr-YgB"/>
@@ -189,6 +202,7 @@ Gw
                 <constraint firstItem="PY9-Ra-Crg" firstAttribute="top" secondItem="s7N-Tu-kkJ" secondAttribute="bottom" constant="10" id="UNz-e3-wym"/>
                 <constraint firstItem="mTE-5E-fTp" firstAttribute="top" secondItem="ytI-Q4-c61" secondAttribute="bottom" constant="10" id="aJs-IO-lxj"/>
                 <constraint firstItem="8vj-Eh-trt" firstAttribute="leading" secondItem="oeX-k0-gKz" secondAttribute="trailing" constant="10" id="ahs-ZI-cEV"/>
+                <constraint firstItem="Psf-D7-Wh9" firstAttribute="leading" secondItem="PY9-Ra-Crg" secondAttribute="trailing" constant="10" id="e0e-A8-rIU"/>
                 <constraint firstAttribute="bottom" secondItem="XlI-Cl-Z82" secondAttribute="bottom" constant="10" id="ebh-hR-PRe"/>
                 <constraint firstAttribute="trailing" secondItem="s7N-Tu-kkJ" secondAttribute="trailing" constant="10" id="h84-iQ-K5d"/>
                 <constraint firstItem="ytI-Q4-c61" firstAttribute="top" secondItem="4Hu-CK-ZIY" secondAttribute="top" constant="10" id="nUM-tW-7Wp"/>

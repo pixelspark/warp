@@ -96,6 +96,22 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 						self.canPerformUpload = mutableData.canPerformMutation(mutation)
 						self.canPerformTruncateBeforeUpload = mutableData.canPerformMutation(.Truncate)
 
+						// Get the source column names
+						fd.columnNames(job) { result in
+							switch result {
+							case .Success(let columnNames):
+								/* Put the source table definition on the 'table definition pasteboard'. The 'alter table'
+								view controller will try to read from the pasteboard, and use the column names given there
+								as default table definition when creating a new table. */
+								let def = QBEDataDefinition(columnNames: columnNames)
+								let pb = NSPasteboard(name: QBEDataDefinition.pasteboardName)
+								pb.setData(NSKeyedArchiver.archivedDataWithRootObject(def), forType: QBEDataDefinition.pasteboardName)
+
+							case .Failure(_):
+								break
+							}
+						}
+
 					case .Failure(_):
 						self.canPerformUpload = false
 						self.canPerformTruncateBeforeUpload = false

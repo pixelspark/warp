@@ -19,11 +19,12 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 	@IBOutlet var cancelButton: NSButton!
 	@IBOutlet var addColumnButton: NSButton!
 	@IBOutlet var removeColumnButton: NSButton!
+	@IBOutlet var removeAllColumnsButton: NSButton!
 	@IBOutlet var titleLabel: NSTextField!
 	@IBOutlet var tableView: NSTableView!
 
 	weak var delegate: QBEAlterTableViewDelegate? = nil
-	var columns: [QBEColumn] = []
+	var definition: QBEDataDefinition = QBEDataDefinition(columnNames: [])
 	var warehouse: QBEDataWarehouse? = nil
 	var warehouseName: String? = nil
 	var createJob: QBEJob? = nil
@@ -37,21 +38,32 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 	}
 
 	@IBAction func addColumn(sender: NSObject) {
-		self.columns.append(QBEColumn(String(format: NSLocalizedString("Column_%d", comment: ""), self.columns.count)))
-		self.updateView()
+		var i = 1
+		while true {
+			let newName = QBEColumn(String(format: NSLocalizedString("Column_%d", comment: ""), self.definition.columnNames.count + i))
+			if !self.definition.columnNames.contains(newName) {
+				self.definition.columnNames.append(newName)
+				self.tableView.reloadData()
+				self.updateView()
+				return
+			}
+			++i
+		}
 	}
 
 	@IBAction func removeColumn(sender: NSObject) {
 		let si = tableView.selectedRowIndexes
-		self.columns.removeAtIndices(si)
+		self.definition.columnNames.removeAtIndices(si)
+		self.tableView.deselectAll(sender)
+		self.tableView.reloadData()
 		self.updateView()
 	}
 
 	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
-		if row < 0 || row > self.columns.count {
+		if row < 0 || row > self.definition.columnNames.count {
 			return nil
 		}
-		let col = self.columns[row]
+		let col = self.definition.columnNames[row]
 
 		if let tc = tableColumn {
 			switch tc.identifier {
@@ -63,20 +75,33 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 	}
 
 	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
-		if row < 0 || row > self.columns.count {
+		if row < 0 || row > self.definition.columnNames.count {
 			return
 		}
 
 		if let tc = tableColumn {
 			switch tc.identifier {
-			case "columnName": return self.columns[row] = QBEColumn(object as! String)
+			case "columnName":
+				let col = QBEColumn(object as! String)
+				if !self.definition.columnNames.contains(col) {
+					return self.definition.columnNames[row] = col
+				}
+				else {
+					if let w = self.view.window {
+						let alert = NSAlert()
+						alert.messageText = String(format: NSLocalizedString("Cannot set this column's name to '%@'.", comment: ""), col.name)
+						alert.informativeText = String(format: NSLocalizedString("There can only be one column named '%@' in this table.", comment: ""), col.name)
+						alert.alertStyle = .WarningAlertStyle
+						alert.beginSheetModalForWindow(w, completionHandler: nil)
+					}
+				}
 			default: return
 			}
 		}
 	}
 
 	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
-		return self.columns.count
+		return self.definition.columnNames.count
 	}
 
 	@IBAction func createTable(sender: NSObject) {
@@ -86,7 +111,7 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 			if tableName.isEmpty {
 				return
 			}
-			let mutation = QBEWarehouseMutation.Create(self.tableNameField.stringValue, QBERasterData(data: [], columnNames: self.columns))
+			let mutation = QBEWarehouseMutation.Create(self.tableNameField.stringValue, QBERasterData(data: [], columnNames: self.definition.columnNames))
 
 			if dwh.canPerformMutation(mutation) {
 				self.createJob = QBEJob(.UserInitiated)
@@ -136,27 +161,47 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 		QBEAssertMainThread()
 		let working = createJob != nil
 		cancelButton.enabled = !working
-		createButton.enabled = !working && !self.tableNameField.stringValue.isEmpty && (!(self.warehouse?.hasFixedColumns ?? true) || self.columns.count > 0)
+		createButton.enabled = !working && !self.tableNameField.stringValue.isEmpty && (!(self.warehouse?.hasFixedColumns ?? true) || !self.definition.columnNames.isEmpty)
 		addColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
-		removeColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
+		removeColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columnNames.isEmpty && tableView.selectedRowIndexes.count > 0
+		removeAllColumnsButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columnNames.isEmpty && tableView.selectedRowIndexes.count > 0
 		tableView.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
 		progressView.hidden = !working
 		progressLabel.hidden = !working
 		tableNameField.enabled = !working
+
 		if let title = self.warehouseName {
 			self.titleLabel.stringValue = String(format: NSLocalizedString("Create a new table in %@.", comment: ""), title)
 		}
 		else {
 			self.titleLabel.stringValue = NSLocalizedString("Create a new table", comment: "")
 		}
-		self.tableView.reloadData()
+	}
+
+	func tableViewSelectionDidChange(notification: NSNotification) {
+		self.updateView()
 	}
 
 	@IBAction func tableNameDidChange(sender: NSObject) {
 		self.updateView()
 	}
 
+	@IBAction func removeAllColumns(sender: NSObject) {
+		self.definition.columnNames.removeAll()
+		self.tableView.reloadData()
+		self.updateView()
+	}
+
 	override func viewWillAppear() {
+		// Are we going to create a table? Then check if the pasteboard has a table definition for us we can propose
+		if self.definition.columnNames.isEmpty && (self.warehouse?.hasFixedColumns ?? false) {
+			let pb = NSPasteboard(name: QBEDataDefinition.pasteboardName)
+			if let data = pb.dataForType(QBEDataDefinition.pasteboardName), let def = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEDataDefinition {
+				self.definition = def
+			}
+		}
+
+		self.tableView.reloadData()
 		self.updateView()
 	}
 

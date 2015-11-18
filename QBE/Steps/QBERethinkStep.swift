@@ -646,7 +646,7 @@ class QBERethinkSourceStep: QBEStep {
 	}
 
 	override var mutableData: QBEMutableData? {
-		if let u = self.url {
+		if let u = self.url where !self.table.isEmpty {
 			return QBERethinkMutableData(url: u, databaseName: self.database, tableName: self.table)
 		}
 		return nil

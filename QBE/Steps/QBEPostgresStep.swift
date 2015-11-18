@@ -750,7 +750,7 @@ class QBEPostgresSourceStep: QBEStep {
 	} }
 
 	override var mutableData: QBEMutableData? {
-		if let d = self.database {
+		if let d = self.database where !tableName.isEmpty && !schemaName.isEmpty {
 			return QBESQLMutableData(database: d, schemaName: schemaName, tableName: tableName)
 		}
 		return nil

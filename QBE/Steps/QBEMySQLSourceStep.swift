@@ -670,7 +670,7 @@ class QBEMySQLSourceStep: QBEStep {
 	} }
 
 	override var mutableData: QBEMutableData? { get {
-		if let s = self.database {
+		if let s = self.database where !self.tableName.isEmpty {
 			return QBESQLMutableData(database: s, schemaName: nil, tableName: self.tableName)
 		}
 		return nil

@@ -48,11 +48,21 @@ the value (or the empty column name, if we must attempt to insert nil) */
 public typealias QBEColumnMapping = [QBEColumn: QBEColumn]
 
 /** Description of a dataset's format (column names primarily). */
-public struct QBEDataDefinition {
+public class QBEDataDefinition: NSObject, NSCoding {
+	public static let pasteboardName = "nl.pixelspark.Warp.QBEDataDefinition"
+
 	public var columnNames: [QBEColumn]
 
 	public init(columnNames: [QBEColumn]) {
 		self.columnNames = columnNames
+	}
+
+	public required init?(coder aDecoder: NSCoder) {
+		self.columnNames = (aDecoder.decodeObjectForKey("columns") as? [String] ?? []).map { return QBEColumn($0) }
+	}
+
+	public func encodeWithCoder(aCoder: NSCoder) {
+		aCoder.encodeObject(self.columnNames.map { return $0.name }, forKey: "columns")
 	}
 }
 

@@ -151,7 +151,7 @@ DQ
                 </viewController>
                 <customObject id="DSw-os-YXq" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1260" y="-1764.5"/>
+            <point key="canvasLocation" x="1307.5" y="-1594.5"/>
         </scene>
         <!--Application-->
         <scene sceneID="JPo-4y-FX3">
@@ -1089,7 +1089,7 @@ CA
                 </windowController>
                 <customObject id="cfw-wA-TDn" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1269" y="-1889"/>
+            <point key="canvasLocation" x="-1165" y="-2033"/>
         </scene>
         <!--Jobs View Controller-->
         <scene sceneID="sgd-2A-7Mb">
@@ -1193,7 +1193,7 @@ CA
                 </viewController>
                 <customObject id="V8t-Ii-Pma" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1367" y="-1358"/>
+            <point key="canvasLocation" x="-1171" y="-1542"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="FNS-F6-MVa">
@@ -1212,7 +1212,7 @@ CA
                 </windowController>
                 <customObject id="UU6-vb-q0Z" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-610" y="-1529"/>
+            <point key="canvasLocation" x="-594" y="-1985"/>
         </scene>
         <!--Settings-->
         <scene sceneID="q8y-wj-17x">
@@ -1508,7 +1508,7 @@ CA
                 <userDefaultsController id="yrO-od-YgV"/>
                 <userDefaultsController id="AEw-As-aAr"/>
             </objects>
-            <point key="canvasLocation" x="-301.5" y="-918.5"/>
+            <point key="canvasLocation" x="-588.5" y="-1406.5"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="R2V-B0-nI4">
@@ -2303,7 +2303,7 @@ Gw
                 </viewController>
                 <customObject id="Gdb-4K-uue" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2397.5" y="-301.5"/>
+            <point key="canvasLocation" x="2457.5" y="-243.5"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -2359,7 +2359,7 @@ Gw
                                     <nil key="backgroundColor"/>
                                 </clipView>
                                 <animations/>
-                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="NUm-sZ-uER">
+                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="NUm-sZ-uER">
                                     <rect key="frame" x="1" y="283" width="342" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <animations/>
@@ -2621,11 +2621,11 @@ Gw
             <objects>
                 <viewController storyboardIdentifier="formulaEditor" id="i8F-LO-H7z" customClass="QBEFormulaEditorViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="Jkl-pG-ybb">
-                        <rect key="frame" x="0.0" y="0.0" width="450" height="473"/>
+                        <rect key="frame" x="0.0" y="0.0" width="623" height="473"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="05D-KJ-eIY">
-                                <rect key="frame" x="4" y="269" width="442" height="200"/>
+                                <rect key="frame" x="4" y="269" width="615" height="200"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="200" id="9ul-up-iEh"/>
                                 </constraints>
@@ -2641,7 +2641,7 @@ Gw
                                 </connections>
                             </textField>
                             <containerView verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="b1j-St-PH2">
-                                <rect key="frame" x="4" y="4" width="442" height="261"/>
+                                <rect key="frame" x="4" y="4" width="615" height="261"/>
                                 <animations/>
                                 <connections>
                                     <segue destination="Qih-3c-JJr" kind="embed" identifier="showReference" id="saR-gH-ktk"/>
@@ -2666,7 +2666,7 @@ Gw
                 </viewController>
                 <customObject id="cXR-Ke-QzF" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1521" y="518.5"/>
+            <point key="canvasLocation" x="1699.5" y="1005.5"/>
         </scene>
         <!--Column Mapping View Controller-->
         <scene sceneID="lDh-VV-0TI">
@@ -2679,7 +2679,7 @@ Gw
                             <scrollView focusRingType="none" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nWh-Zi-0SE">
                                 <rect key="frame" x="10" y="41" width="542" height="249"/>
                                 <clipView key="contentView" id="l2T-yc-qaJ">
-                                    <rect key="frame" x="1" y="23" width="540" height="225"/>
+                                    <rect key="frame" x="1" y="0.0" width="540" height="248"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="none" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" headerView="e89-vv-S94" id="mHL-Bu-maT">
@@ -2698,7 +2698,7 @@ Gw
                                                     </tableHeaderCell>
                                                     <popUpButtonCell key="dataCell" type="bevel" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="bezel" imageScaling="proportionallyDown" inset="2" arrowPosition="arrowAtCenter" preferredEdge="maxY" selectedItem="eiE-hS-8vF" id="4mt-Ul-e6O">
                                                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
-                                                        <font key="font" metaFont="system"/>
+                                                        <font key="font" metaFont="menu"/>
                                                         <menu key="menu" id="tUT-73-DvL">
                                                             <items>
                                                                 <menuItem title="Item 1" state="on" id="eiE-hS-8vF"/>
@@ -2747,7 +2747,7 @@ Gw
                                     <autoresizingMask key="autoresizingMask"/>
                                     <animations/>
                                 </scroller>
-                                <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="S2C-AL-CMM">
+                                <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="S2C-AL-CMM">
                                     <rect key="frame" x="224" y="17" width="15" height="102"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <animations/>
@@ -2789,7 +2789,7 @@ DQ
                 </viewController>
                 <customObject id="X8P-6R-oKr" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2401" y="109"/>
+            <point key="canvasLocation" x="2488" y="268"/>
         </scene>
         <!--Reference View Controller-->
         <scene sceneID="1JE-h9-y3p">
@@ -2938,7 +2938,7 @@ DQ
                 </viewController>
                 <customObject id="zft-r8-Ymn" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2272" y="530"/>
+            <point key="canvasLocation" x="2501" y="1171"/>
         </scene>
         <!--Sentence View Controller-->
         <scene sceneID="Pcn-Xl-fFm">
@@ -2996,7 +2996,7 @@ DQ
                 </viewController>
                 <customObject id="XoF-0a-53S" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1547" y="141"/>
+            <point key="canvasLocation" x="1723" y="129"/>
         </scene>
     </scenes>
     <resources>
