@@ -159,7 +159,7 @@ public class QBEExpression: NSObject, NSCoding {
 /** The QBELiteralExpression always evaluates to the value set to it on initialization. The formula parser generates a
 QBELiteralExpression for each literal (numbers, strings, constants) it encounters. */
 public final class QBELiteralExpression: QBEExpression {
-	let value: QBEValue
+	public let value: QBEValue
 	
 	public init(_ value: QBEValue) {
 		self.value = value

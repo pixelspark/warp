@@ -243,6 +243,56 @@ final class QBERethinkStream: NSObject, QBEStream {
 	}
 }
 
+/** This class provides the expressionToQuery function that translates QBEExpression expression trees to ReSQL expressions. */
+private class QBERethinkExpression {
+	static func expressionToQuery(expression: QBEExpression, prior: ReQueryValue? = nil) -> ReQueryValue? {
+		if let sibling = expression as? QBESiblingExpression, let p = prior {
+			return p[sibling.columnName.name]
+		}
+		else if let literal = expression as? QBELiteralExpression {
+			switch literal.value {
+			case .DoubleValue(let d): return R.expr(d)
+			case .BoolValue(let b): return R.expr(b)
+			case .StringValue(let s): return R.expr(s)
+			case .IntValue(let i): return R.expr(i)
+			case .EmptyValue: return R.expr()
+			default: return nil
+			}
+		}
+		else if let unary = expression as? QBEFunctionExpression {
+			switch unary.type {
+			case .Negate:
+				if let f = unary.arguments.first {
+					return expressionToQuery(f, prior: prior)?.mul(R.expr(-1))
+				}
+				return nil
+
+			default: return nil
+			}
+		}
+		else if let binary = expression as? QBEBinaryExpression {
+			if let f = QBERethinkExpression.expressionToQuery(binary.first, prior: prior), let s = QBERethinkExpression.expressionToQuery(binary.second, prior: prior) {
+				switch binary.type {
+				case .Addition: return f.add(s)
+				case .Subtraction: return f.add(s)
+				case .Multiplication: return f.mul(s)
+				case .Division: return f.div(s)
+				case .Equal: return f.eq(s)
+				case .NotEqual: return f.ne(s)
+				case .Greater: return f.gt(s)
+				case .Lesser: return f.lt(s)
+				case .GreaterEqual: return f.ge(s)
+				case .LesserEqual: return f.le(s)
+				case .Modulus: return f.mod(s)
+				default: return nil
+				}
+			}
+		}
+
+		return nil
+	}
+}
+
 class QBERethinkData: QBEStreamData {
 	private let url: NSURL
 	private let query: ReQuerySequence
@@ -272,6 +322,15 @@ class QBERethinkData: QBEStreamData {
 
 	override func distinct() -> QBEData {
 		return QBERethinkData(url: self.url, query: self.query.distinct(), columns: columns)
+	}
+
+	override func filter(condition: QBEExpression) -> QBEData {
+		if QBERethinkExpression.expressionToQuery(condition, prior: R.expr()) != nil {
+			return QBERethinkData(url: self.url, query: self.query.filter {
+				i in return QBERethinkExpression.expressionToQuery(condition, prior: i)!
+			}, columns: columns)
+		}
+		return super.filter(condition)
 	}
 
 	override func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
@@ -357,7 +416,7 @@ class QBERethinkDataWarehouse: QBEDataWarehouse {
 	}
 }
 
-class QBERethinkInsertPuller: QBEStreamPuller {
+private class QBERethinkInsertPuller: QBEStreamPuller {
 	let columnNames: [QBEColumn]
 	let connection: ReConnection
 	let table: ReQueryTable
