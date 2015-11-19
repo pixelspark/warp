@@ -119,7 +119,7 @@ class QBETests: XCTestCase {
 		XCTAssert(QBEPack("a,b,c,d,").count == 5, "Pack format parser works")
 		XCTAssert(QBEPack("a,b$0,c$1$0,d$0$1").count == 4, "Pack format parser works")
 		XCTAssert(QBEPack(",").count == 2, "Pack format parser works")
-		XCTAssert(QBEPack("").isEmpty, "Pack format parser works")
+		XCTAssert(QBEPack("").count == 0, "Pack format parser works")
 		XCTAssert(QBEPack(["Tommy", "van$,der,Vorst"]).stringValue == "Tommy,van$1$0der$0Vorst", "Pack writer properly escapes")
 	}
 
