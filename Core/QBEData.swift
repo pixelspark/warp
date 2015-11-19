@@ -229,8 +229,8 @@ internal struct QBEHashComparison {
 	let comparisonOperator: QBEBinary
 	
 	init(leftExpression: QBEExpression, rightExpression: QBEExpression, comparisonOperator: QBEBinary) {
-		assert(!leftExpression.dependsOnForeign, "left side of a QBEHashComparison should not depend on foreign columns")
-		assert(!rightExpression.dependsOnForeign, "right side of a QBEHashComparison should not depend on foreign columns")
+		assert(!leftExpression.dependsOnForeigns, "left side of a QBEHashComparison should not depend on foreign columns")
+		assert(!rightExpression.dependsOnForeigns, "right side of a QBEHashComparison should not depend on foreign columns")
 		self.leftExpression = leftExpression
 		self.rightExpression = rightExpression
 		self.comparisonOperator = comparisonOperator
@@ -240,7 +240,7 @@ internal struct QBEHashComparison {
 	 between two expressions where one exclusively depends on the source table (ony sibling references) and the other 
 	exclusively depends on the foreign table (only foreign references). */
 	init?(expression: QBEExpression) {
-		if expression.dependsOnForeign && expression.dependsOnSiblings {
+		if expression.dependsOnForeigns && expression.dependsOnSiblings {
 			/* If this expression is a binary expression where one side depends only on siblings and the other side only 
 			depends on foreigns, then we can transform this into a hash comparison. */
 			if let binary = expression as? QBEBinaryExpression {

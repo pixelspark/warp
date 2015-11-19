@@ -271,12 +271,12 @@ private class QBERethinkExpression {
 			}
 		}
 		else if let binary = expression as? QBEBinaryExpression {
-			if let f = QBERethinkExpression.expressionToQuery(binary.first, prior: prior), let s = QBERethinkExpression.expressionToQuery(binary.second, prior: prior) {
+			if let s = QBERethinkExpression.expressionToQuery(binary.first, prior: prior), let f = QBERethinkExpression.expressionToQuery(binary.second, prior: prior) {
 				switch binary.type {
-				case .Addition: return f.add(s)
-				case .Subtraction: return f.add(s)
-				case .Multiplication: return f.mul(s)
-				case .Division: return f.div(s)
+				case .Addition: return f.coerceTo(.Number).add(s.coerceTo(.Number))
+				case .Subtraction: return f.coerceTo(.Number).sub(s.coerceTo(.Number))
+				case .Multiplication: return f.coerceTo(.Number).mul(s.coerceTo(.Number))
+				case .Division: return f.coerceTo(.Number).div(s.coerceTo(.Number))
 				case .Equal: return f.eq(s)
 				case .NotEqual: return f.ne(s)
 				case .Greater: return f.gt(s)
@@ -331,6 +331,54 @@ class QBERethinkData: QBEStreamData {
 			}, columns: columns)
 		}
 		return super.filter(condition)
+	}
+
+	override func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
+		var reqlCalculations: [QBEColumn: QBEExpression] = [:]
+		var fallbackCalculations: [QBEColumn: QBEExpression] = [:]
+
+		// Separate in two lists: calculations that can be translated to ReQL, and those that can't
+		for (column, expression) in calculations {
+			if QBERethinkExpression.expressionToQuery(expression, prior: R.expr()) != nil {
+				reqlCalculations[column] = expression
+			}
+			else {
+				fallbackCalculations[column] = expression
+			}
+		}
+
+		// If we have calculations that can be written as ReQL, write the query
+		if !reqlCalculations.isEmpty {
+			let q = self.query.map { row in
+				var merges: [String: ReQueryValue] = [:]
+				for (column, expression) in reqlCalculations {
+					merges[column.name] = QBERethinkExpression.expressionToQuery(expression, prior: row)
+				}
+				return row.merge(R.expr(merges))
+			}
+
+			// Check to see what the new list of columns will be
+			let newColumns: [QBEColumn]?
+			if let columns = self.columns {
+				newColumns = Array(Set(columns).union(reqlCalculations.keys))
+			}
+			else {
+				newColumns = nil
+			}
+
+			let data = QBERethinkData(url: self.url, query: q, columns: newColumns)
+			if fallbackCalculations.isEmpty {
+				return data
+			}
+			else {
+				// Write out the non-ReQL calculations
+				return data.calculate(fallbackCalculations)
+			}
+		}
+		else {
+			// All calculations are non-ReQL, time to give up and ask the fallback implementation to do the work
+			return super.calculate(fallbackCalculations)
+		}
 	}
 
 	override func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {

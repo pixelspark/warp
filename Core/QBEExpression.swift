@@ -765,7 +765,7 @@ extension QBEExpression {
 		}
 	}
 
-	var siblingDependencies: Set<QBEColumn> {
+	public var siblingDependencies: Set<QBEColumn> {
 		var deps: Set<QBEColumn> = []
 
 		visit { expression -> () in
@@ -778,7 +778,7 @@ extension QBEExpression {
 	
 	/** Returns whether this expression depends on sibling columns (e.g. contains a QBESiblingExpression somewhere in 
 	its tree). */
-	var dependsOnSiblings: Bool { get {
+	public var dependsOnSiblings: Bool { get {
 		var depends = false
 		visit { (expression) -> () in
 			if expression is QBESiblingExpression {
@@ -790,7 +790,7 @@ extension QBEExpression {
 
 	/** Returns whether this expression depends on foreign columns (e.g. contains a QBEForeignExpression somewhere in
 	its tree). */
-	var dependsOnForeign: Bool { get {
+	public var dependsOnForeigns: Bool { get {
 		var depends = false
 		visit { (expression) -> () in
 			if expression is QBEForeignExpression {
