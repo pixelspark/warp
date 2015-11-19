@@ -192,13 +192,18 @@ private class QBESQLiteConnection: NSObject, QBESQLConnection {
 	init?(path: String, readOnly: Bool = false) {
 		let flags = readOnly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
 		self.db = nil
-		let url = NSURL(fileURLWithPath: path)
+		let url = NSURL(fileURLWithPath: path, isDirectory: false)
 		self.url = url.absoluteString
 
 		/* Writing to SQLite requires access to a journal file (usually it has the same name as the database itself, but
 		with the 'sqlite-journal' file extension). In order to gain access to these 'related' files, we need to tell the
 		system we are using the database. */
-		self.presenters = url == nil ? [] : ["sqlite-journal", "sqlite-shm", "sqlite-wal", "sqlite-conch"].map { return QBEFileCoordinator.sharedInstance.present(url, secondaryExtension: $0) }
+		if path.isEmpty {
+			self.presenters = []
+		}
+		else {
+			self.presenters = ["sqlite-journal", "sqlite-shm", "sqlite-wal", "sqlite-conch"].map { return QBEFileCoordinator.sharedInstance.present(url, secondaryExtension: $0) }
+		}
 		super.init()
 
 		dispatch_set_target_queue(self.ownQueue, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))

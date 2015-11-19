@@ -126,7 +126,7 @@ internal class QBEFileCoordinator {
 	func present(file: NSURL, secondaryExtension: String? = nil) -> QBEFilePresenter {
 		let presentedFile: NSURL
 		if let se = secondaryExtension {
-			presentedFile = (file.URLByDeletingPathExtension?.URLByAppendingPathExtension(se))!
+			presentedFile = (file.URLByDeletingPathExtension?.URLByAppendingPathExtension(se)) ?? file
 		}
 		else {
 			presentedFile = file
