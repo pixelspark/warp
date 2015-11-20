@@ -334,51 +334,38 @@ class QBERethinkData: QBEStreamData {
 	}
 
 	override func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
-		var reqlCalculations: [QBEColumn: QBEExpression] = [:]
-		var fallbackCalculations: [QBEColumn: QBEExpression] = [:]
-
-		// Separate in two lists: calculations that can be translated to ReQL, and those that can't
-		for (column, expression) in calculations {
-			if QBERethinkExpression.expressionToQuery(expression, prior: R.expr()) != nil {
-				reqlCalculations[column] = expression
-			}
-			else {
-				fallbackCalculations[column] = expression
+		/* Some calculations cannot be translated to ReQL. If there is one in the list, fall back. This is to satisfy
+		the requirement that calculations fed to calculate() 'see' the old values in columns even while that column is
+		also recalculated by the calculation set. */
+		for (_, expression) in calculations {
+			if QBERethinkExpression.expressionToQuery(expression, prior: R.expr()) == nil {
+				return super.calculate(calculations)
 			}
 		}
 
-		// If we have calculations that can be written as ReQL, write the query
-		if !reqlCalculations.isEmpty {
-			let q = self.query.map { row in
-				var merges: [String: ReQueryValue] = [:]
-				for (column, expression) in reqlCalculations {
-					merges[column.name] = QBERethinkExpression.expressionToQuery(expression, prior: row)
-				}
-				return row.merge(R.expr(merges))
+		// Write the ReQL query
+		let q = self.query.map { row in
+			var merges: [String: ReQueryValue] = [:]
+			for (column, expression) in calculations {
+				merges[column.name] = QBERethinkExpression.expressionToQuery(expression, prior: row)
 			}
+			return row.merge(R.expr(merges))
+		}
 
-			// Check to see what the new list of columns will be
-			let newColumns: [QBEColumn]?
-			if let columns = self.columns {
-				newColumns = Array(Set(columns).union(reqlCalculations.keys))
-			}
-			else {
-				newColumns = nil
-			}
-
-			let data = QBERethinkData(url: self.url, query: q, columns: newColumns)
-			if fallbackCalculations.isEmpty {
-				return data
-			}
-			else {
-				// Write out the non-ReQL calculations
-				return data.calculate(fallbackCalculations)
-			}
+		// Check to see what the new list of columns will be
+		let newColumns: [QBEColumn]?
+		if let columns = self.columns {
+			// Add newly added columns to the end in no particular order
+			let newlyAdded = Set(calculations.keys).subtract(columns)
+			var all = columns
+			all.appendContentsOf(newlyAdded)
+			newColumns = all
 		}
 		else {
-			// All calculations are non-ReQL, time to give up and ask the fallback implementation to do the work
-			return super.calculate(fallbackCalculations)
+			newColumns = nil
 		}
+
+		return QBERethinkData(url: self.url, query: q, columns: newColumns)
 	}
 
 	override func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
