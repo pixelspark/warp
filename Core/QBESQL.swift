@@ -228,27 +228,32 @@ private class QBESQLInsertPuller: QBEStreamPuller {
 
 	override func onReceiveRows(rows: [QBETuple], callback: (QBEFallible<Void>) -> ()) {
 		self.mutex.locked {
-			let values = rows.map { row in
-				let tuple = fastMapping.map { idx -> String in
-					if let i = idx {
-						return  self.database.dialect.expressionToSQL(QBELiteralExpression(row[i]), alias: "", foreignAlias: nil, inputValue: nil) ?? "NULL"
-					}
-					else {
-						return "NULL"
-					}
+			if !rows.isEmpty {
+				let values = rows.map { row in
+					let tuple = fastMapping.map { idx -> String in
+						if let i = idx {
+							return  self.database.dialect.expressionToSQL(QBELiteralExpression(row[i]), alias: "", foreignAlias: nil, inputValue: nil) ?? "NULL"
+						}
+						else {
+							return "NULL"
+						}
+						}.joinWithSeparator(", ")
+					return "(\(tuple))"
 					}.joinWithSeparator(", ")
-				return "(\(tuple))"
-				}.joinWithSeparator(", ")
 
-			let sql = "\(insertStatement) \(values)"
-			connection.run([sql], job: job) { insertResult in
-				switch insertResult {
-				case .Failure(let e):
-					callback(.Failure(e))
+				let sql = "\(insertStatement) \(values)"
+				connection.run([sql], job: job) { insertResult in
+					switch insertResult {
+					case .Failure(let e):
+						callback(.Failure(e))
 
-				case .Success(_):
-					callback(.Success())
+					case .Success(_):
+						callback(.Success())
+					}
 				}
+			}
+			else {
+				callback(.Success())
 			}
 		}
 	}
@@ -296,12 +301,7 @@ public class QBESQLMutableData: QBEMutableData {
 		self.database.dataForTable(tableName, schema: schemaName, job: job, callback: callback)
 	}
 
-	private func performInsert(connection: QBESQLConnection, data: QBEData, mapping: QBEColumnMapping, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
-		if mapping.isEmpty {
-			callback(.Failure("Cannot insert zero columns!"))
-			return
-		}
-
+	private func performInsertByPulling(connection: QBESQLConnection, data: QBEData, mapping: QBEColumnMapping, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
 		let fields = mapping.keys.map { fn in return self.database.dialect.columnIdentifier(fn, table: nil, schema: nil, database: nil) }.joinWithSeparator(", ")
 		let insertStatement = "INSERT INTO \(self.tableIdentifier) (\(fields)) VALUES ";
 		print(insertStatement)
@@ -318,6 +318,54 @@ public class QBESQLMutableData: QBEMutableData {
 				callback(.Failure(e))
 				return
 			}
+		}
+	}
+
+	private func performInsert(connection: QBESQLConnection, data: QBEData, mapping: QBEColumnMapping, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		if mapping.isEmpty {
+			callback(.Failure("Cannot insert zero columns!"))
+			return
+		}
+
+		// Is the other data set an SQL data set (or an SQL data set shrink-wrapped in QBECoalescedData)?
+		if let otherSQL = (data as? QBESQLData) ?? ((data as? QBECoalescedData)?.data as? QBESQLData) {
+			self.data(job) { result in
+				switch result {
+				case .Success(let myData):
+					if let mySQLData  = myData as? QBESQLData where mySQLData.isCompatibleWith(otherSQL) {
+						// Perform INSERT INTO ... SELECT ...
+						self.database.connect { result in
+							switch result {
+							case .Success(let connection):
+								let targetColumns = Array(mapping.keys)
+								let fields = targetColumns.map { fn in return self.database.dialect.columnIdentifier(fn, table: nil, schema: nil, database: nil) }
+								let otherAlias = otherSQL.sql.aliasFor(.Select)
+
+								let selection = targetColumns.map { field in
+									return otherSQL.sql.dialect.columnIdentifier(mapping[field]!, table: otherAlias, schema: nil, database: nil)
+								}
+								let otherSelectSQL = otherSQL.sql.sqlSelect(selection.joinWithSeparator(", "))
+								let insertStatement = "INSERT INTO \(self.tableIdentifier) (\(fields.joinWithSeparator(", "))) \(otherSelectSQL.sql)";
+								connection.run([insertStatement], job: job, callback: callback)
+
+							case .Failure(let e):
+								callback(.Failure(e))
+								return
+							}
+						}
+					}
+					else {
+						self.performInsertByPulling(connection, data: data, mapping: mapping, job: job, callback: callback)
+					}
+
+				case .Failure(let e):
+					callback(.Failure(e))
+					return
+				}
+			}
+		}
+		else {
+			performInsertByPulling(connection, data: data, mapping: mapping, job: job, callback: callback)
 		}
 	}
 
