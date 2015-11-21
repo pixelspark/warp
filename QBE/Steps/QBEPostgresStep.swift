@@ -628,16 +628,18 @@ class QBEPostgresSourceStep: QBEStep {
 	var tableName: String = ""
 	var host: String = "localhost"
 	var user: String = "postgres"
-	var password: String = ""
 	var databaseName: String = "postgres"
 	var schemaName: String = "public"
 	var port: Int = 5432
 	let defaultSchemaName = "public"
+
+	var password: QBESecret {
+		return QBESecret(serviceType: "postgres", host: host, port: port, account: user, friendlyName: String(format: NSLocalizedString("User %@ at PostgreSQL server %@ (port %d)", comment: ""), user, host, port))
+	}
 	
-	init(host: String, port: Int, user: String, password: String, database: String,  schemaName: String, tableName: String) {
+	init(host: String, port: Int, user: String, database: String,  schemaName: String, tableName: String) {
 		self.host = host
 		self.user = user
-		self.password = password
 		self.port = port
 		self.databaseName = database
 		self.tableName = tableName
@@ -654,10 +656,13 @@ class QBEPostgresSourceStep: QBEStep {
 		self.host = (aDecoder.decodeObjectForKey("host") as? String) ?? ""
 		self.databaseName = (aDecoder.decodeObjectForKey("database") as? String) ?? ""
 		self.user = (aDecoder.decodeObjectForKey("user") as? String) ?? ""
-		self.password = (aDecoder.decodeObjectForKey("password") as? String) ?? ""
 		self.port = Int(aDecoder.decodeIntForKey("port"))
 		self.schemaName = aDecoder.decodeStringForKey("schema") ?? ""
 		super.init(coder: aDecoder)
+
+		if let pw = (aDecoder.decodeObjectForKey("password") as? String) {
+			self.password.stringValue = pw
+		}
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
@@ -665,7 +670,6 @@ class QBEPostgresSourceStep: QBEStep {
 		coder.encodeObject(tableName, forKey: "tableName")
 		coder.encodeObject(host, forKey: "host")
 		coder.encodeObject(user, forKey: "user")
-		coder.encodeObject(password, forKey: "password")
 		coder.encodeObject(databaseName, forKey: "database")
 		coder.encodeInt(Int32(port ?? 0), forKey: "port")
 		coder.encodeString(schemaName ?? "", forKey: "schema")
@@ -741,13 +745,13 @@ class QBEPostgresSourceStep: QBEStep {
 		)
 	}
 	
-	internal var database: QBEPostgresDatabase? { get {
+	internal var database: QBEPostgresDatabase? {
 		/* For PostgreSQL, the hostname 'localhost' is special and indicates access through a local UNIX socket. This does
 		not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite
 		localhost here to 127.0.0.1 in order to force access through TCP/IP. */
 		let ha = (host == "localhost") ? "127.0.0.1" : host
-		return QBEPostgresDatabase(host: ha, port: port, user: user, password: password, database: databaseName)
-	} }
+		return QBEPostgresDatabase(host: ha, port: port, user: user, password: self.password.stringValue ?? "", database: databaseName)
+	}
 
 	override var mutableData: QBEMutableData? {
 		if let d = self.database where !tableName.isEmpty && !schemaName.isEmpty {

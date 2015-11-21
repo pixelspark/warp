@@ -50,9 +50,8 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 			step.user = u
 			changed = true
 		}
-		
-		if let u = self.passwordField?.stringValue where u != step.password {
-			step.password = u
+		else if let u = self.passwordField?.stringValue where u != step.password.stringValue {
+			step.password.stringValue = u
 			changed = true
 		}
 		
@@ -83,7 +82,7 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 		checkConnectionJob = QBEJob(.UserInitiated)
 
 		self.userField?.stringValue = step.user ?? ""
-		self.passwordField?.stringValue = step.password ?? ""
+		self.passwordField?.stringValue = step.password.stringValue ?? ""
 		self.hostField?.stringValue = step.host ?? ""
 		self.portField?.stringValue = "\(step.port ?? 3306)"
 

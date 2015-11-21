@@ -563,14 +563,16 @@ class QBEMySQLSourceStep: QBEStep {
 	var tableName: String = ""
 	var host: String = "localhost"
 	var user: String = "root"
-	var password: String = ""
 	var databaseName: String = "mysql"
 	var port: Int = 3306
+
+	var password: QBESecret {
+		return QBESecret(serviceType: "mysql", host: host, port: port, account: user, friendlyName: String(format: NSLocalizedString("User %@ at MySQL server %@ (port %d)", comment: ""), user, host, port))
+	}
 	
-	init(host: String, port: Int, user: String, password: String, database: String, tableName: String) {
+	init(host: String, port: Int, user: String, database: String, tableName: String) {
 		self.host = host
 		self.user = user
-		self.password = password
 		self.port = port
 		self.databaseName = database
 		self.tableName = tableName
@@ -579,12 +581,20 @@ class QBEMySQLSourceStep: QBEStep {
 	
 	required init(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
+
+		let host = (aDecoder.decodeObjectForKey("host") as? String) ?? self.host
+		let user = (aDecoder.decodeObjectForKey("user") as? String) ?? self.user
+		let port = Int(aDecoder.decodeIntForKey("port"))
+
+		if let pw = aDecoder.decodeStringForKey("password") {
+			self.password.stringValue = pw
+		}
+
 		self.tableName = (aDecoder.decodeObjectForKey("tableName") as? String) ?? self.tableName
-		self.host = (aDecoder.decodeObjectForKey("host") as? String) ?? self.host
 		self.databaseName = (aDecoder.decodeObjectForKey("database") as? String) ?? self.databaseName
-		self.user = (aDecoder.decodeObjectForKey("user") as? String) ?? self.user
-		self.password = (aDecoder.decodeObjectForKey("password") as? String) ?? self.password
-		self.port = Int(aDecoder.decodeIntForKey("port"))
+		self.user = user
+		self.host = host
+		self.port = port
 	}
 
 	required init() {
@@ -596,7 +606,6 @@ class QBEMySQLSourceStep: QBEStep {
 		coder.encodeObject(tableName, forKey: "tableName")
 		coder.encodeObject(host, forKey: "host")
 		coder.encodeObject(user, forKey: "user")
-		coder.encodeObject(password, forKey: "password")
 		coder.encodeObject(databaseName, forKey: "database")
 		coder.encodeInt(Int32(port ?? 0), forKey: "port")
 	}
@@ -666,7 +675,7 @@ class QBEMySQLSourceStep: QBEStep {
 		not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite
 		localhost here to 127.0.0.1 in order to force access through TCP/IP. */
 		let ha = (host == "localhost") ? "127.0.0.1" : host
-		return QBEMySQLDatabase(host: ha, port: port, user: user, password: password, database: databaseName)
+		return QBEMySQLDatabase(host: ha, port: port, user: user, password: password.stringValue ?? "", database: databaseName)
 	} }
 
 	override var mutableData: QBEMutableData? { get {

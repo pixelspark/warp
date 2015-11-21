@@ -531,7 +531,7 @@ import WarpCore
 	}
 	
 	@IBAction func addTabletFromMySQL(sender: NSObject) {
-		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", password: "", database: "test", tableName: "test")
+		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", database: "test", tableName: "test")
 		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true, configureAfterAdding: true)
 	}
 
@@ -541,7 +541,7 @@ import WarpCore
 	}
 	
 	@IBAction func addTabletFromPostgres(sender: NSObject) {
-		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", password: "", database: "postgres", schemaName: "public", tableName: "")
+		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", database: "postgres", schemaName: "public", tableName: "")
 		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true, configureAfterAdding: true)
 	}
 	
