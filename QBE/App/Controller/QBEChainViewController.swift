@@ -128,6 +128,11 @@ internal extension NSViewController {
 					let uploadView = self.view.storyboard?.instantiateControllerWithIdentifier("uploadData") as! QBEUploadViewController
 					uploadView.sourceStep = sourceStep
 					uploadView.targetStep = destStep
+					uploadView.afterSuccessfulUpload = {
+						QBEAsyncMain {
+							self.view.calculate()
+						}
+					}
 					self.view.presentViewControllerAsSheet(uploadView)
 				}
 			}
@@ -433,6 +438,7 @@ internal extension NSViewController {
 			QBEAsyncMain {
 				self.presentRaster(fallibleRaster)
 				self.useFullData = false
+				self.view.window?.update()
 			}
 		}
 		job?.addObserver(self)
