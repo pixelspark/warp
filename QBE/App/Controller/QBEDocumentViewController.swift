@@ -6,13 +6,15 @@ import WarpCore
 	private var documentView: QBEDocumentView!
 	private var sentenceEditor: QBESentenceViewController? = nil
 	@IBOutlet var addTabletMenu: NSMenu!
+	@IBOutlet var readdMenuItem: NSMenuItem!
+	@IBOutlet var readdTabletMenu: NSMenu!
 	@IBOutlet var workspaceView: QBEWorkspaceView!
 	@IBOutlet var welcomeLabel: NSTextField!
 	@IBOutlet var documentAreaView: NSView!
 	private var zoomedView: (NSView, CGRect)? = nil
 	
 	var document: QBEDocument? { didSet {
-		self.documentView.removeAllTablets()
+		self.documentView?.removeAllTablets()
 		if let d = document {
 			for tablet in d.tablets {
 				self.addTablet(tablet, undo: false, animated: false)
@@ -285,7 +287,50 @@ import WarpCore
 	}
 	
 	@IBAction func addButtonClicked(sender: NSView) {
+		// Populate the 'copy of source step' sub menu
+		class QBETemplateAdder: NSObject {
+			var templateSteps: [QBEStep] = []
+			var documentView: QBEDocumentViewController
+
+			init(documentView: QBEDocumentViewController) {
+				self.documentView = documentView
+			}
+
+			@objc func readdStep(sender: NSMenuItem) {
+				if sender.tag >= 0 && sender.tag < templateSteps.count {
+					let templateStep = templateSteps[sender.tag]
+					let templateData = NSKeyedArchiver.archivedDataWithRootObject(templateStep)
+					let newStep = NSKeyedUnarchiver.unarchiveObjectWithData(templateData) as? QBEStep
+					let tablet = QBETablet(chain: QBEChain(head: newStep))
+					self.documentView.addTablet(tablet, undo: true, animated: true, configureAfterAdding: true)
+				}
+			}
+		}
+
+		let adder = QBETemplateAdder(documentView: self)
+		readdTabletMenu.removeAllItems()
+		if let d = self.document {
+			for tablet in d.tablets {
+				for step in tablet.chain.steps {
+					if step.previous == nil {
+						// This is a source step
+						let item = NSMenuItem(title: step.sentence(self.locale, variant: .Read).stringValue, action: Selector("readdStep:"), keyEquivalent: "")
+						item.enabled = true
+						item.tag = adder.templateSteps.count
+						item.target = adder
+						adder.templateSteps.append(step)
+						readdTabletMenu.addItem(item)
+					}
+				}
+			}
+		}
+
+		// The re-add menu item is hidden when the menu is opened from the context menu
+		readdMenuItem.hidden = false
+		readdMenuItem.enabled = !adder.templateSteps.isEmpty
 		NSMenu.popUpContextMenu(self.addTabletMenu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.view)
+		readdMenuItem.enabled = false
+		readdMenuItem.hidden = true
 	}
 
 	/** Called when an outlet is dropped onto the workspace itself (e.g. an empty spot). */

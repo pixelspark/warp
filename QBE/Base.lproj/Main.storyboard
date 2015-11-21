@@ -1684,6 +1684,8 @@ CA
                     <connections>
                         <outlet property="addTabletMenu" destination="TbW-HU-EDH" id="7Tq-aG-xZQ"/>
                         <outlet property="documentAreaView" destination="jQq-6i-09S" id="Xm4-KA-YGm"/>
+                        <outlet property="readdMenuItem" destination="6GW-Xt-IyR" id="YWR-bo-EnO"/>
+                        <outlet property="readdTabletMenu" destination="jJq-qb-mmt" id="2rl-AI-Nho"/>
                         <outlet property="welcomeLabel" destination="OEa-fZ-fMo" id="12i-vW-1Oe"/>
                         <outlet property="workspaceView" destination="Q9G-71-Jab" id="Sm4-KA-YGm"/>
                     </connections>
@@ -1735,6 +1737,17 @@ CA
                                         <connections>
                                             <action selector="addSequencerTablet:" target="0Jp-3X-LwR" id="TSj-UO-A0k"/>
                                         </connections>
+                                    </menuItem>
+                                    <menuItem isSeparatorItem="YES" id="CeP-ek-hn7"/>
+                                    <menuItem title="Re-add existing data source" hidden="YES" enabled="NO" id="6GW-Xt-IyR">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <menu key="submenu" title="Re-add existing data source" autoenablesItems="NO" id="jJq-qb-mmt">
+                                            <items>
+                                                <menuItem title="(Populated programmatically)" enabled="NO" id="Pjj-vd-Mby">
+                                                    <modifierMask key="keyEquivalentModifierMask"/>
+                                                </menuItem>
+                                            </items>
+                                        </menu>
                                     </menuItem>
                                 </items>
                             </menu>
@@ -2019,7 +2032,7 @@ CA
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </clipView>
                                 <animations/>
-                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="qYM-4S-zjG">
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="qYM-4S-zjG">
                                     <rect key="frame" x="1" y="213" width="367" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <animations/>
@@ -2359,7 +2372,7 @@ Gw
                                     <nil key="backgroundColor"/>
                                 </clipView>
                                 <animations/>
-                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="NUm-sZ-uER">
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="NUm-sZ-uER">
                                     <rect key="frame" x="1" y="283" width="342" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <animations/>
@@ -3014,6 +3027,6 @@ DQ
         <image name="ZoomOutIcon" width="26" height="26"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="ZgC-CH-SBh"/>
+        <segue reference="87o-14-S5w"/>
     </inferredMetricsTieBreakers>
 </document>
