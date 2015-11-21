@@ -27,7 +27,7 @@ public class QBEExpression: NSObject, NSCoding {
 	} }
 	
 	/** Returns a version of this expression that has constant parts replaced with their actual values. */
-	func prepare() -> QBEExpression {
+	public func prepare() -> QBEExpression {
 		if isConstant {
 			return QBELiteralExpression(self.apply(QBERow(), foreign: nil, inputValue: nil))
 		}
@@ -268,8 +268,24 @@ public final class QBEBinaryExpression: QBEExpression {
 	public override var isConstant: Bool { get {
 		return first.isConstant && second.isConstant
 	} }
+
+	/** Utility function to return the arguments of this binary expression in a partiular order. Suppose we want to test
+	 whether a binary expression is of type A=B where A is a sibling reference and B is a literal; because the equals 
+	 operator is commutative, B=A is also allowed. This function can be called as followed to retrieve the sibling and 
+	 the literal, allowing either variant:
+
+	 let (sibling, literal) = binaryExpression.pair(QBESiblingExpression.self, QBELiteralExpression.self) */
+	public func commutativePair<U, V>(first: U.Type, _ second: V.Type) -> (U,V)? {
+		if let a = self.first as? U, let b = self.second as? V {
+			return (a, b)
+		}
+		else if let a = self.first as? V, let b = self.second as? U {
+			return (b, a)
+		}
+		return nil
+	}
 	
-	override func prepare() -> QBEExpression {
+	override public func prepare() -> QBEExpression {
 		let firstOptimized = first.prepare()
 		let secondOptimized = second.prepare()
 		
@@ -459,7 +475,7 @@ public final class QBEFunctionExpression: QBEExpression {
 		return callback(QBEFunctionExpression(arguments: newArguments, type: self.type))
 	}
 	
-	override func prepare() -> QBEExpression {
+	public override func prepare() -> QBEExpression {
 		return self.type.prepare(arguments)
 	}
 	

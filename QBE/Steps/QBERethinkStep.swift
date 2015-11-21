@@ -297,14 +297,16 @@ class QBERethinkData: QBEStreamData {
 	private let url: NSURL
 	private let query: ReQuerySequence
 	private let columns: [QBEColumn]? // List of all columns in the result, or nil if unknown
+	private let indices: Set<QBEColumn>? // List of usable indices, or nil if no indices can be used
 
 	/** Create a data object with the result of the given query from the server at the given URL. If the array of column
 	names is set, the query *must* never return any other columns than the given columns (missing columns lead to empty
 	values). In order to guarantee this, add a .withFields(columns) to any query given to this constructor. */
-	init(url: NSURL, query: ReQuerySequence, columns: [QBEColumn]? = nil) {
+	init(url: NSURL, query: ReQuerySequence, columns: [QBEColumn]? = nil, indices: Set<QBEColumn>? = nil) {
 		self.url = url
 		self.query = query
 		self.columns = columns
+		self.indices = indices
 		super.init(source: QBERethinkStream(url: url, query: query, columns: columns))
 	}
 
@@ -325,9 +327,22 @@ class QBERethinkData: QBEStreamData {
 	}
 
 	override func filter(condition: QBEExpression) -> QBEData {
-		if QBERethinkExpression.expressionToQuery(condition, prior: R.expr()) != nil {
+		let optimized = condition.prepare()
+
+		if QBERethinkExpression.expressionToQuery(optimized, prior: R.expr()) != nil {
+			/* A filter is much faster if it can use an index. If this data set represents a table *and* the filter is
+			of the form column=value, *and* we have an index for that column, then use getAll. */
+			if let tbl = self.query as? ReQueryTable, let binary = optimized as? QBEBinaryExpression where binary.type == .Equal {
+				if let (sibling, literal) = binary.commutativePair(QBESiblingExpression.self, QBELiteralExpression.self) {
+					if self.indices?.contains(sibling.columnName) ?? false {
+						// We can use a secondary index
+						return QBERethinkData(url: self.url, query: tbl.getAll(QBERethinkExpression.expressionToQuery(literal)!, index: sibling.columnName.name), columns: columns)
+					}
+				}
+			}
+
 			return QBERethinkData(url: self.url, query: self.query.filter {
-				i in return QBERethinkExpression.expressionToQuery(condition, prior: i)!
+				i in return QBERethinkExpression.expressionToQuery(optimized, prior: i)!
 			}, columns: columns)
 		}
 		return super.filter(condition)
@@ -637,27 +652,45 @@ class QBERethinkSourceStep: QBEStep {
 		}
 	} }
 
-	private func sourceData() -> QBEFallible<QBEData> {
+	private func sourceData(callback: (QBEFallible<QBEData>) -> ()) {
 		if let u = url {
-			var q: ReQuerySequence = R.db(self.database).table(self.table)
+			let table = R.db(self.database).table(self.table)
+
 			if self.columns.count > 0 {
-				q = q.withFields(self.columns.map { return R.expr($0.name) })
+				let q = table.withFields(self.columns.map { return R.expr($0.name) })
+				callback(.Success(QBERethinkData(url: u, query: q, columns: self.columns.count > 0 ? self.columns : nil)))
 			}
-			return .Success(QBERethinkData(url: u, query: q, columns: self.columns.count > 0 ? self.columns : nil))
+			else {
+				R.connect(u, callback: { (err, connection) -> () in
+					if let e = err {
+						callback(.Failure(e))
+						return
+					}
+
+					table.indexList().run(connection) { response in
+						if case .Value(let indices) = response, let indexList = indices as? [String] {
+							callback(.Success(QBERethinkData(url: u, query: table, columns: !self.columns.isEmpty ? self.columns : nil, indices: Set(indexList.map { return QBEColumn($0) }))))
+						}
+					}
+				})
+			}
 		}
 		else {
-			return .Failure(NSLocalizedString("The location of the RethinkDB server is invalid.", comment: ""))
+			callback(.Failure(NSLocalizedString("The location of the RethinkDB server is invalid.", comment: "")))
 		}
 	}
 
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(sourceData())
+		sourceData(callback)
 	}
 
 	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
-		callback(sourceData().use { d in
-			return d.limit(maxInputRows)
-		})
+		sourceData { t in
+			switch t {
+			case .Failure(let e): callback(.Failure(e))
+			case .Success(let d): callback(.Success(d.limit(maxInputRows)))
+			}
+		}
 	}
 
 	override func encodeWithCoder(coder: NSCoder) {
