@@ -574,9 +574,10 @@ public class QBEFuture<T> {
 					self.batch = QBEBatch<T>(queue: dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
 				}
 			}
+
+			batch!.enqueue(callback)
 		}
 
-		batch!.enqueue(callback)
 		if(first) {
 			calculate()
 		}
