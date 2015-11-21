@@ -592,6 +592,10 @@ enum QBECoalescedData: QBEData {
 		}
 		
 		switch self {
+		case .Sorting(let data, let order):
+			/** Filtering is transparent to ordering, and so should be ordered before it, so it is 'closer to the index'. */
+			return QBECoalescedData.Sorting(QBECoalescedData.Filtering(data, condition), order)
+
 		case .Calculating(let data, let calculations):
 			/** If the filter does not depend on the outcome of the calculations, then it can be ordered before the 
 			calculations. This is usually more efficient, because the less steps away from the source data, the higher
