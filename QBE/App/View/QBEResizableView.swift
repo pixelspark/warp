@@ -141,12 +141,26 @@ internal class QBEResizerView: NSView {
 		setNeedsDisplayInRect(self.bounds)
 	} }
 	
-	var isResizing: Bool { get {
+	var isResizing: Bool {
 		return resizingSession != nil
-	} }
+	}
+
+	var selected: Bool {
+		return (self.superview as! QBEResizableView).selected
+	}
 	
 	internal override func hitTest(aPoint: NSPoint) -> NSView? {
 		let pt = convertPoint(aPoint, fromView: superview)
+
+		// If a subview is about to receive a mouse down event, then this tablet should be selected.
+		if self.bounds.contains(pt) {
+			if !self.selected {
+				if let ev = self.window?.currentEvent where ev.type == NSEventType.LeftMouseDown {
+					self.mouseDownInSubiew(ev)
+				}
+			}
+		}
+
 		return self.bounds.contains(pt) && !self.bounds.inset(inset).contains(pt) ? self : nil
 	}
 	
@@ -283,7 +297,17 @@ internal class QBEResizerView: NSView {
 	override func mouseDragged(theEvent: NSEvent) {
 		updateSize(theEvent)
 	}
-	
+
+	func mouseDownInSubiew(event: NSEvent) {
+		if resizingSession == nil || !resizingSession!.moved {
+			if let p = superview as? QBEResizableView {
+				if !p.selected {
+					p.delegate?.resizableViewWasSelected(p)
+				}
+			}
+		}
+	}
+
 	override func mouseUp(theEvent: NSEvent) {
 		if theEvent.clickCount > 1 {
 			if let p = superview as? QBEResizableView {
