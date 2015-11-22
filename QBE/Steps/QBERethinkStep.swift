@@ -260,12 +260,95 @@ private class QBERethinkExpression {
 			}
 		}
 		else if let unary = expression as? QBEFunctionExpression {
+			// Check arity
+			if !unary.type.arity.valid(unary.arguments.count) {
+				return nil
+			}
+
+			let f = unary.arguments.first != nil ? expressionToQuery(unary.arguments.first!, prior: prior) : nil
+
 			switch unary.type {
-			case .Negate:
-				if let f = unary.arguments.first {
-					return expressionToQuery(f, prior: prior)?.mul(R.expr(-1))
+			case .Negate: return f?.mul(R.expr(-1))
+			case .Uppercase: return f?.coerceTo(.String).upcase()
+			case .Lowercase: return f?.coerceTo(.String).downcase()
+			case .Identity: return f
+			case .Floor: return f?.floor()
+			case .Ceiling: return f?.ceil()
+			case .Round:
+				if unary.arguments.count == 1 {
+					return f?.round()
+				}
+				/* ReQL does not support rounding to an arbitrary number of decimals. A workaround like 
+				f.mul(R.expr(10).pow(decimals)).round().div(R.expr(10).pow(decimals)) should work (although there may be
+				issues with floating point precision), but unfortunately ReQL does not even provide the pow function. */
+				return nil
+
+			case .If:
+				// Need to use f.eq(true) because branch(...) will consider anything else than false or null to be ' true'
+				if let condition = f?.eq(R.expr(true)),
+					let trueAction = expressionToQuery(unary.arguments[1], prior: prior),
+					let falseAction = expressionToQuery(unary.arguments[2], prior: prior) {
+						return condition.branch(trueAction, falseAction)
 				}
 				return nil
+
+			case .And:
+				if var first = f {
+					for argIndex in 1..<unary.arguments.count {
+						if let second = expressionToQuery(unary.arguments[argIndex], prior: prior) {
+							first = first.and(second)
+						}
+						else {
+							return nil
+						}
+					}
+					return first
+				}
+				return R.expr(true) // AND() without arguments should return true (see QBEFunction)
+
+			case .Or:
+				if var first = f {
+					for argIndex in 1..<unary.arguments.count {
+						if let second = expressionToQuery(unary.arguments[argIndex], prior: prior) {
+							first = first.or(second)
+						}
+						else {
+							return nil
+						}
+					}
+					return first
+				}
+				return R.expr(false) // OR() without arguments should return false (see QBEFunction)
+
+			case .Xor:
+				if let first = f, let second = expressionToQuery(unary.arguments[1], prior: prior) {
+					return first.xor(second)
+				}
+				return nil
+
+			case .Concat:
+				if var first = f?.coerceTo(.String) {
+					for argIndex in 1..<unary.arguments.count {
+						if let second = expressionToQuery(unary.arguments[argIndex], prior: prior) {
+							first = first.add(second.coerceTo(.String))
+						}
+						else {
+							return nil
+						}
+					}
+					return first
+				}
+				return nil
+
+			case .Random:
+				return R.random()
+
+			case .RandomBetween:
+				if let lower = f, let upper = expressionToQuery(unary.arguments[1], prior: prior) {
+					/* RandomBetween should generate integers between lower and upper, inclusive. The ReQL random function 
+					generates between [lower, upper). Also the arguments are forced to an integer (rounding down). */
+					return R.random(lower.floor(), upper.floor().add(1), float: false)
+				}
 
 			default: return nil
 			}
