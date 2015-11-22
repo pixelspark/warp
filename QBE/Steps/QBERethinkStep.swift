@@ -21,58 +21,58 @@ final class QBERethinkStream: NSObject, QBEStream {
 		self.columns = columns
 		super.init()
 		self.connection = QBEFuture<QBEFallible<(ReConnection, [QBEColumn])>>({ [weak self] (job, callback) -> () in
-			R.connect(url) { (err, connection) in
-				if let e = err {
-					callback(.Failure(e))
-				}
-				else {
-					if let s = self {
+			if let s = self {
+				R.connect(url) { (err, connection) in
+					if let e = err {
+						callback(.Failure(e))
+					}
+					else {
 						s.query.run(connection) { response in
 							dispatch_sync(s.queue) {
 								s.firstResponse = response
 							}
 
 							switch response {
-								case .Unknown:
-									callback(.Failure("Unknown first response"))
+							case .Unknown:
+								callback(.Failure("Unknown first response"))
 
-								case .Error(let e):
-									callback(.Failure(e))
+							case .Error(let e):
+								callback(.Failure(e))
 
-								case .Value(let v):
-									if let av = v as? [AnyObject] {
-										// Check if the array contains documents
-										var colSet = Set<QBEColumn>()
-										for d in av {
-											if let doc = d as? [String: AnyObject] {
-												doc.keys.forEach { k in colSet.insert(QBEColumn(k)) }
-											}
-											else {
-												callback(.Failure("Received array value that contains non-document: \(v)"))
-												return
-											}
-										}
-
-										// Treat as any other regular result set
-										let columns = Array(colSet)
-										let result = (connection, columns)
-										callback(.Success(result))
-									}
-									else {
-										callback(.Failure("Received non-array value \(v)"))
-									}
-
-								case .Rows(let docs, let cnt):
-									// Find columns and set them now
+							case .Value(let v):
+								if let av = v as? [AnyObject] {
+									// Check if the array contains documents
 									var colSet = Set<QBEColumn>()
-									for d in docs {
-										d.keys.forEach { k in colSet.insert(QBEColumn(k)) }
+									for d in av {
+										if let doc = d as? [String: AnyObject] {
+											doc.keys.forEach { k in colSet.insert(QBEColumn(k)) }
+										}
+										else {
+											callback(.Failure("Received array value that contains non-document: \(v)"))
+											return
+										}
 									}
+
+									// Treat as any other regular result set
 									let columns = Array(colSet)
 									let result = (connection, columns)
-									s.continuation = cnt
-									//s.continueWith(cnt, job: job)
 									callback(.Success(result))
+								}
+								else {
+									callback(.Failure("Received non-array value \(v)"))
+								}
+
+							case .Rows(let docs, let cnt):
+								// Find columns and set them now
+								var colSet = Set<QBEColumn>()
+								for d in docs {
+									d.keys.forEach { k in colSet.insert(QBEColumn(k)) }
+								}
+								let columns = Array(colSet)
+								let result = (connection, columns)
+								s.continuation = cnt
+								//s.continueWith(cnt, job: job)
+								callback(.Success(result))
 							}
 						}
 					}
