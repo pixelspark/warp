@@ -1,13 +1,13 @@
 import Foundation
 
-private class QBERectangle: NSObject, NSSecureCoding {
+public class QBERectangle: NSObject, NSSecureCoding {
 	let rect: CGRect
 	
 	init(_ rect: CGRect) {
 		self.rect = rect
 	}
 	
-	@objc required init?(coder aDecoder: NSCoder) {
+	@objc required public init?(coder aDecoder: NSCoder) {
 		rect = CGRect(
 			x: aDecoder.decodeDoubleForKey("x") ?? Double.NaN,
 			y: aDecoder.decodeDoubleForKey("y") ?? Double.NaN,
@@ -16,14 +16,14 @@ private class QBERectangle: NSObject, NSSecureCoding {
 		)
 	}
 	
-	@objc func encodeWithCoder(aCoder: NSCoder) {
+	@objc public func encodeWithCoder(aCoder: NSCoder) {
 		aCoder.encodeDouble(Double(rect.origin.x), forKey: "x")
 		aCoder.encodeDouble(Double(rect.origin.y), forKey: "y")
 		aCoder.encodeDouble(Double(rect.size.width), forKey: "w")
 		aCoder.encodeDouble(Double(rect.size.height), forKey: "h")
 	}
 	
-	@objc static func supportsSecureCoding() -> Bool {
+	@objc public static func supportsSecureCoding() -> Bool {
 		return true
 	}
 }

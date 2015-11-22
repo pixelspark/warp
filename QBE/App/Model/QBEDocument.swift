@@ -77,9 +77,13 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	}
 	
 	override func readFromData(data: NSData, ofType typeName: String) throws {
-		if let x = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEDocument {
+		let unarchiver = NSKeyedUnarchiver(forReadingWithData: data)
+		unarchiver.setClass(QBERectangle.classForKeyedUnarchiver(), forClassName: "_TtC4WarpP33_B11F6D3701F49B735237E0045569881C12QBERectangle")
+
+		if let x = unarchiver.decodeObjectForKey("root") as? QBEDocument {
 			tablets = x.tablets
 			tablets.forEach { $0.document = self }
 		}
+		unarchiver.finishDecoding()
 	}
 }
