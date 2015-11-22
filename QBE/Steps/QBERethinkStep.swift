@@ -754,6 +754,10 @@ class QBERethinkSourceStep: QBEStep {
 						if case .Value(let indices) = response, let indexList = indices as? [String] {
 							callback(.Success(QBERethinkData(url: u, query: table, columns: !self.columns.isEmpty ? self.columns : nil, indices: Set(indexList.map { return QBEColumn($0) }))))
 						}
+						else {
+							// Carry on without indexes
+							callback(.Success(QBERethinkData(url: u, query: table, columns: !self.columns.isEmpty ? self.columns : nil, indices: nil)))
+						}
 					}
 				})
 			}
