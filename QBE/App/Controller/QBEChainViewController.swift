@@ -1385,6 +1385,18 @@ internal extension NSViewController {
 		stepsChanged()
 		calculate()
 	}
+
+	override func viewDidAppear() {
+		if let sv = self.stepsViewController?.view {
+			QBESettings.sharedInstance.showTip("chainView.stepView") {
+				self.showTip(NSLocalizedString("In this area, all processing steps that are applied to the data are shown.", comment: ""), atView: sv)
+			}
+		}
+
+		QBESettings.sharedInstance.showTip("chainView.outlet") {
+			self.showTip(NSLocalizedString("See this little circle? Drag it around to copy or move data, or to link data together.", comment: ""), atView: self.outletView)
+		}
+	}
 	
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
 		if segue.identifier=="grid" {

@@ -1153,7 +1153,7 @@ CA
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                         </clipView>
                                         <animations/>
-                                        <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="ITi-1q-vzJ">
+                                        <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="ITi-1q-vzJ">
                                             <rect key="frame" x="1" y="216" width="468" height="16"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <animations/>
@@ -1270,6 +1270,7 @@ CA
                                         <animations/>
                                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        <font key="titleFont" metaFont="message" size="11"/>
                                     </box>
                                     <box autoresizesSubviews="NO" title="Selection working set" borderType="line" translatesAutoresizingMaskIntoConstraints="NO" id="Fdz-2y-7rL">
                                         <rect key="frame" x="7" y="90" width="457" height="108"/>
@@ -1366,6 +1367,7 @@ CA
                                         <animations/>
                                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        <font key="titleFont" metaFont="message" size="11"/>
                                     </box>
                                     <box autoresizesSubviews="NO" title="Language" borderType="line" translatesAutoresizingMaskIntoConstraints="NO" id="9pX-ll-oio">
                                         <rect key="frame" x="7" y="204" width="457" height="156"/>
@@ -1456,6 +1458,7 @@ CA
                                         <animations/>
                                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        <font key="titleFont" metaFont="message" size="11"/>
                                     </box>
                                 </subviews>
                                 <constraints>
@@ -1598,13 +1601,16 @@ CA
                                         <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
-                                                <rect key="frame" x="107" y="237" width="486" height="34"/>
+                                                <rect key="frame" x="148" y="240" width="404" height="29"/>
                                                 <animations/>
                                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="Drag files here or click '+' to add data" id="Zpo-PO-ycL">
-                                                    <font key="font" size="28" name=".HelveticaNeueDeskInterface-Regular"/>
+                                                    <font key="font" size="24" name=".AppleSystemUIFont"/>
                                                     <color key="textColor" name="tertiaryLabelColor" catalog="System" colorSpace="catalog"/>
                                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                                 </textFieldCell>
+                                                <connections>
+                                                    <action selector="addButtonClicked:" target="y5B-O8-QaO" id="Xkt-W6-slr"/>
+                                                </connections>
                                             </textField>
                                             <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
                                                 <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
@@ -1613,7 +1619,7 @@ CA
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CDw-5V-yTY">
-                                                            <rect key="frame" x="161" y="-104" width="79" height="163"/>
+                                                            <rect key="frame" x="4" y="172" width="54" height="157"/>
                                                             <animations/>
                                                         </view>
                                                     </subviews>
@@ -2889,7 +2895,7 @@ DQ
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </clipView>
                                 <animations/>
-                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="bfd-AV-hq2">
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="bfd-AV-hq2">
                                     <rect key="frame" x="1" y="231" width="640" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <animations/>
