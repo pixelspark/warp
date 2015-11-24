@@ -957,57 +957,60 @@ CA
                                     </items>
                                 </menu>
                             </menuItem>
-                            <menuItem title="Source" id="LGC-Mi-RUG">
+                            <menuItem title="Table" id="OMj-Te-YTh">
                                 <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="Source" id="sRO-jn-RSu">
-                                    <items>
-                                        <menuItem title="Remove all rows..." id="LPb-df-lkY">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="truncateStore:" target="Ady-hI-5gd" id="TIk-sw-KFb"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Delete data set..." id="NQ3-pS-d85">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="dropStore:" target="Ady-hI-5gd" id="Y59-ih-jue"/>
-                                            </connections>
-                                        </menuItem>
-                                    </items>
-                                </menu>
-                            </menuItem>
-                            <menuItem title="Tools" id="OMj-Te-YTh">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="Tools" id="bCT-hI-Iv5">
+                                <menu key="submenu" title="Table" id="bCT-hI-Iv5">
                                     <items>
                                         <menuItem title="Switch rows/columns" keyEquivalent="t" id="Qd1-7c-QpC">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                             <connections>
                                                 <action selector="transposeData:" target="Ady-hI-5gd" id="zdd-dH-g4B"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="dy6-RC-S8R"/>
-                                        <menuItem title="Make pivot table..." keyEquivalent="d" id="Mg0-TA-h4E">
+                                        <menuItem title="Make pivot table..." keyEquivalent="p" id="Mg0-TA-h4E">
+                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                             <connections>
                                                 <action selector="pivot:" target="Ady-hI-5gd" id="Cw3-1m-cKZ"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Make columnar..." keyEquivalent="l" id="OG0-83-x0Z">
+                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="flatten:" target="Ady-hI-5gd" id="fyP-TI-xwT"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Developer tools..." alternate="YES" id="kZg-eL-T5Y">
+                                            <modifierMask key="keyEquivalentModifierMask" shift="YES" control="YES" option="YES"/>
+                                            <connections>
+                                                <action selector="addDebugStep:" target="Ady-hI-5gd" id="dY9-qB-qAh"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="dy6-RC-S8R"/>
                                         <menuItem title="Crawl data..." id="fdh-ox-BKw">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="crawl:" target="Ady-hI-5gd" id="9Pk-ZZ-CZq"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Make columnar..." keyEquivalent="D" id="OG0-83-x0Z">
-                                            <connections>
-                                                <action selector="flatten:" target="Ady-hI-5gd" id="fyP-TI-xwT"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Developer tools..." alternate="YES" keyEquivalent="D" id="kZg-eL-T5Y">
-                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
-                                            <connections>
-                                                <action selector="addDebugStep:" target="Ady-hI-5gd" id="dY9-qB-qAh"/>
-                                            </connections>
+                                        <menuItem isSeparatorItem="YES" id="0IV-ya-3me"/>
+                                        <menuItem title="Source" id="LGC-Mi-RUG">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Source" id="sRO-jn-RSu">
+                                                <items>
+                                                    <menuItem title="Remove all rows..." id="LPb-df-lkY">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="truncateStore:" target="Ady-hI-5gd" id="TIk-sw-KFb"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Delete data set..." id="NQ3-pS-d85">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="dropStore:" target="Ady-hI-5gd" id="Y59-ih-jue"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
                                         </menuItem>
                                     </items>
                                 </menu>
