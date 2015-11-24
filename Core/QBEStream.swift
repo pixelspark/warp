@@ -431,6 +431,8 @@ overridden). */
 private class QBETransformer: NSObject, QBEStream {
 	let source: QBEStream
 	var stopped = false
+	var outstanding = 0
+	let mutex = QBEMutex()
 	
 	init(source: QBEStream) {
 		self.source = source
@@ -449,28 +451,39 @@ private class QBETransformer: NSObject, QBEStream {
 	}
 	
 	private func fetch(job: QBEJob, consumer: QBESink) {
-		if !stopped {
-			source.fetch(job, consumer: QBEOnce { (fallibleRows, streamStatus) -> () in
-				if streamStatus == .Finished {
-					self.stopped = true
-				}
-				
-				switch fallibleRows {
-					case .Success(let rows):
-						self.transform(rows, streamStatus: streamStatus, job: job, callback: { (transformedRows, newStreamStatus) -> () in
-							self.stopped = self.stopped || newStreamStatus != .HasMore
-							job.async {
-								consumer(transformedRows, self.stopped ? .Finished : newStreamStatus)
-							}
-						})
+		self.mutex.locked {
+			if !stopped {
+				self.outstanding++
+				source.fetch(job, consumer: QBEOnce { (fallibleRows, streamStatus) -> () in
+					self.outstanding--
+
+					if streamStatus == .Finished {
+						self.mutex.locked {
+							self.stopped = true
+						}
+					}
 					
-					case .Failure(let error):
-						consumer(.Failure(error), .Finished)
-				}
-			})
-		}
-		else {
-			consumer(.Success([]), .Finished)
+					switch fallibleRows {
+						case .Success(let rows):
+							self.transform(rows, streamStatus: streamStatus, job: job, callback: { (transformedRows, newStreamStatus) -> () in
+								let stopped = self.mutex.locked { () -> Bool in
+									self.stopped = self.stopped || newStreamStatus != .HasMore
+									return self.stopped
+								}
+
+								job.async {
+									consumer(transformedRows, stopped ? .Finished : newStreamStatus)
+								}
+							})
+						
+						case .Failure(let error):
+							consumer(.Failure(error), .Finished)
+					}
+				})
+			}
+			else {
+				consumer(.Success([]), .Finished)
+			}
 		}
 	}
 	
@@ -611,7 +624,6 @@ achieve this. */
 private class QBERandomTransformer: QBETransformer {
 	var reservoir: QBEReservoir<QBETuple>
 	var done = false
-	let mutex = QBEMutex()
 	
 	init(source: QBEStream, numberOfRows: Int) {
 		reservoir = QBEReservoir<QBETuple>(sampleSize: numberOfRows)
@@ -631,17 +643,15 @@ private class QBERandomTransformer: QBETransformer {
 				}
 			}
 			else {
-				// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
-				if !self.done {
-					self.done = true
+				if self.outstanding == 0 {
+					// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
 					job.async {
 						callback(.Success(Array(self.reservoir.sample)), .Finished)
 					}
 				}
 				else {
-					job.async {
-						callback(.Success(Array()), .Finished)
-					}
+					// Still waiting for the other fetches to complete (may contain data still)
+					callback(.Success(Array()), .Finished)
 				}
 			}
 		}
@@ -656,7 +666,6 @@ private class QBERandomTransformer: QBETransformer {
 private class QBEOffsetTransformer: QBETransformer {
 	var position = 0
 	let offset: Int
-	let mutex = QBEMutex()
 	
 	init(source: QBEStream, numberOfRows: Int) {
 		self.offset = numberOfRows
@@ -697,7 +706,6 @@ private class QBEOffsetTransformer: QBETransformer {
 /** The QBELimitTransformer limits the number of rows passed through a stream. It effectively stops pumping data from the
 source stream to the consuming stream when the limit is reached. */
 private class QBELimitTransformer: QBETransformer {
-	let mutex = QBEMutex()
 	var position = 0
 	let limit: Int
 	
