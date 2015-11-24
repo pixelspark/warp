@@ -689,7 +689,7 @@ class QBEMySQLSourceStep: QBEStep {
 	} }
 
 	var warehouse: QBEDataWarehouse? {
-		if let s = self.database where !self.tableName.isEmpty {
+		if let s = self.database {
 			return QBESQLDataWarehouse(database: s, schemaName: nil)
 		}
 		return nil
