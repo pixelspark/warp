@@ -1153,7 +1153,7 @@ CA
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                         </clipView>
                                         <animations/>
-                                        <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="ITi-1q-vzJ">
+                                        <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="ITi-1q-vzJ">
                                             <rect key="frame" x="1" y="216" width="468" height="16"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <animations/>
@@ -2889,7 +2889,7 @@ DQ
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </clipView>
                                 <animations/>
-                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="bfd-AV-hq2">
+                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="bfd-AV-hq2">
                                     <rect key="frame" x="1" y="231" width="640" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <animations/>

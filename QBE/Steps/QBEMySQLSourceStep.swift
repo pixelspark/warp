@@ -685,6 +685,13 @@ class QBEMySQLSourceStep: QBEStep {
 		return nil
 	} }
 
+	var warehouse: QBEDataWarehouse? {
+		if let s = self.database where !self.tableName.isEmpty {
+			return QBESQLDataWarehouse(database: s, schemaName: nil)
+		}
+		return nil
+	}
+
 	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
 		job.async {
 			if let s = self.database {

@@ -30,9 +30,9 @@ internal class QBEPostgresStepView: QBEStepViewControllerFor<QBEPostgresSourceSt
 	}
 
 	@IBAction func createTable(sender: NSObject) {
-		if let mutableData = self.step.mutableData {
+		if let warehouse = step.warehouse {
 			let vc = QBEAlterTableViewController()
-			vc.warehouse = mutableData.warehouse
+			vc.warehouse = warehouse
 			vc.delegate = self
 			vc.warehouseName = String(format: NSLocalizedString("PostgreSQL database '%@'", comment: ""), self.step.databaseName)
 			self.presentViewControllerAsModalWindow(vc)
@@ -100,7 +100,7 @@ internal class QBEPostgresStepView: QBEStepViewControllerFor<QBEPostgresSourceSt
 							self.infoIcon?.image = NSImage(named: "CheckIcon")
 							self.infoProgress?.hidden = true
 							self.infoIcon?.hidden = false
-							self.createTableButton?.enabled = true
+							self.createTableButton?.enabled = self.step.warehouse != nil
 
 						case .Failure(let e):
 							self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)

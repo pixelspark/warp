@@ -34,9 +34,9 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 	}
 
 	@IBAction func createTable(sender: NSObject) {
-		if let mutableData = self.step.mutableData {
+		if let warehouse = self.step.warehouse {
 			let vc = QBEAlterTableViewController()
-			vc.warehouse = mutableData.warehouse
+			vc.warehouse = warehouse
 			vc.delegate = self
 			vc.warehouseName = String(format: NSLocalizedString("MySQL database '%@'", comment: ""), self.step.databaseName)
 			self.presentViewControllerAsModalWindow(vc)
@@ -107,7 +107,7 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 								self.infoIcon?.image = NSImage(named: "CheckIcon")
 								self.infoProgress?.hidden = true
 								self.infoIcon?.hidden = false
-								self.createTableButton?.enabled = true
+								self.createTableButton?.enabled = self.step.warehouse != nil
 
 							case .Failure(let e):
 								self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
