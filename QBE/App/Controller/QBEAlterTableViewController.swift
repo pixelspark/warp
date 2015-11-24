@@ -11,7 +11,7 @@ protocol QBEAlterTableViewDelegate: NSObjectProtocol {
 	func alterTableView(view: QBEAlterTableViewController, didCreateTable: QBEMutableData?)
 }
 
-class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableViewDataSource, NSTableViewDelegate {
+class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableViewDataSource, NSTableViewDelegate, NSUserInterfaceValidations {
 	@IBOutlet var tableNameField: NSTextField!
 	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var progressLabel: NSTextField!
@@ -51,7 +51,20 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 		}
 	}
 
-	@IBAction func removeColumn(sender: NSObject) {
+	@IBAction func delete(sender: AnyObject?) {
+		self.removeColumn(sender)
+	}
+
+	func validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItem) -> Bool {
+		switch anItem.action() {
+		case Selector("delete:"):
+			return tableView.selectedRowIndexes.count > 0
+		default:
+			return false
+		}
+	}
+
+	@IBAction func removeColumn(sender: AnyObject?) {
 		let si = tableView.selectedRowIndexes
 		self.definition.columnNames.removeAtIndices(si)
 		self.tableView.deselectAll(sender)
