@@ -93,6 +93,11 @@ class QBEPivotStep: QBEStep {
 	}
 	
 	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+		if self.rows.isEmpty && self.columns.isEmpty && self.aggregates.isEmpty {
+			callback(.Failure(NSLocalizedString("Click the settings button to configure the pivot table.", comment: "")))
+			return
+		}
+
 		fixupColumnNames()
 		var rowGroups = toDictionary(rows, transformer: { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
 		let colGroups = toDictionary(columns, transformer: { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
