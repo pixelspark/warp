@@ -496,23 +496,26 @@ Stream that lazily queries and streams results from an SQLite query. */
 class QBESQLiteStream: QBEStream {
 	private var resultStream: QBEStream?
 	private let data: QBESQLiteData
+	private let mutex = QBEMutex()
 	
 	init(data: QBESQLiteData) {
 		self.data = data
 	}
 	
 	private func stream() -> QBEStream {
-		if resultStream == nil {
-			switch data.result() {
-				case .Success(let result):
-					resultStream = QBESequenceStream(AnySequence<QBEFallible<QBETuple>>(result.sequence()), columnNames: result.columnNames)
-					
-				case .Failure(let error):
-					resultStream = QBEErrorStream(error)
+		return self.mutex.locked {
+			if resultStream == nil {
+				switch data.result() {
+					case .Success(let result):
+						resultStream = QBESequenceStream(AnySequence<QBEFallible<QBETuple>>(result.sequence()), columnNames: result.columnNames)
+						
+					case .Failure(let error):
+						resultStream = QBEErrorStream(error)
+				}
 			}
+			
+			return resultStream!
 		}
-		
-		return resultStream!
 	}
 	
 	func fetch(job: QBEJob, consumer: QBESink) {

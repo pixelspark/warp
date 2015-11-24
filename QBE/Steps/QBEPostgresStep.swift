@@ -592,23 +592,26 @@ private class QBEPostgresResultStream: QBESequenceStream {
 class QBEPostgresStream: QBEStream {
 	private var resultStream: QBEStream?
 	private let data: QBEPostgresData
+	private let mutex = QBEMutex()
 	
 	init(data: QBEPostgresData) {
 		self.data = data
 	}
 	
 	private func stream() -> QBEStream {
-		if resultStream == nil {
-			switch data.result() {
-				case .Success(let rs):
-					resultStream = QBEPostgresResultStream(result: rs)
-				
-				case .Failure(let error):
-					resultStream = QBEErrorStream(error)
+		return mutex.locked {
+			if resultStream == nil {
+				switch data.result() {
+					case .Success(let rs):
+						resultStream = QBEPostgresResultStream(result: rs)
+					
+					case .Failure(let error):
+						resultStream = QBEErrorStream(error)
+				}
 			}
+			
+			return resultStream!
 		}
-		
-		return resultStream!
 	}
 	
 	func fetch(job: QBEJob, consumer: QBESink) {
