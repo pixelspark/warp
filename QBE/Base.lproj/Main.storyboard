@@ -961,26 +961,23 @@ CA
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Table" id="bCT-hI-Iv5">
                                     <items>
-                                        <menuItem title="Switch rows/columns" keyEquivalent="t" id="Qd1-7c-QpC">
-                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                        <menuItem title="Switch rows/columns" keyEquivalent="T" id="Qd1-7c-QpC">
                                             <connections>
                                                 <action selector="transposeData:" target="Ady-hI-5gd" id="zdd-dH-g4B"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Make pivot table..." keyEquivalent="p" id="Mg0-TA-h4E">
-                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                        <menuItem title="Make pivot table..." keyEquivalent="D" id="Mg0-TA-h4E">
                                             <connections>
                                                 <action selector="pivot:" target="Ady-hI-5gd" id="Cw3-1m-cKZ"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Make columnar..." keyEquivalent="l" id="OG0-83-x0Z">
-                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                        <menuItem title="Make columnar..." keyEquivalent="L" id="OG0-83-x0Z">
                                             <connections>
                                                 <action selector="flatten:" target="Ady-hI-5gd" id="fyP-TI-xwT"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Developer tools..." alternate="YES" id="kZg-eL-T5Y">
-                                            <modifierMask key="keyEquivalentModifierMask" shift="YES" control="YES" option="YES"/>
+                                        <menuItem title="Developer tools..." alternate="YES" keyEquivalent="L" id="kZg-eL-T5Y">
+                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                             <connections>
                                                 <action selector="addDebugStep:" target="Ady-hI-5gd" id="dY9-qB-qAh"/>
                                             </connections>
@@ -1031,7 +1028,8 @@ CA
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="ujf-1c-nZF"/>
-                                        <menuItem title="Background jobs..." keyEquivalent="J" id="hzF-PW-Ixe">
+                                        <menuItem title="Background jobs..." id="hzF-PW-Ixe">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <segue destination="t43-UI-GiY" kind="show" id="16L-v7-zAk"/>
                                             </connections>
