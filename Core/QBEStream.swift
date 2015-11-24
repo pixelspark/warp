@@ -373,7 +373,7 @@ public class QBESequenceStream: QBEStream {
 			return
 		}
 
-		dispatch_sync(queue) {
+		dispatch_async(queue) {
 			job.time("sequence", items: QBEStreamDefaultBatchSize, itemType: "rows") {
 				var done = false
 				var rows :[QBETuple] = []
