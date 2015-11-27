@@ -431,7 +431,7 @@ overridden). */
 private class QBETransformer: NSObject, QBEStream {
 	let source: QBEStream
 	var stopped = false
-	var outstanding = 0
+	private var outstanding = 0 { didSet { assert(outstanding >= 0) } }
 	let mutex = QBEMutex()
 	
 	init(source: QBEStream) {
@@ -446,26 +446,34 @@ private class QBETransformer: NSObject, QBEStream {
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). */
-	private func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, job: QBEJob, callback: QBESink) {
+	private func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
 		fatalError("QBETransformer.transform should be implemented in a subclass")
 	}
 	
 	private func fetch(job: QBEJob, consumer: QBESink) {
-		self.mutex.locked {
-			if !stopped {
+		let shouldContinue = self.mutex.locked { () -> Bool in
+			if !self.stopped {
 				self.outstanding++
-				source.fetch(job, consumer: QBEOnce { (fallibleRows, streamStatus) -> () in
+			}
+			return !self.stopped
+		}
+
+		if shouldContinue {
+			source.fetch(job, consumer: QBEOnce { (fallibleRows, streamStatus) -> () in
+				let outstanding = self.mutex.locked { () -> Int in
 					self.outstanding--
 
 					if streamStatus == .Finished {
-						self.mutex.locked {
-							self.stopped = true
-						}
+						self.stopped = true
 					}
-					
-					switch fallibleRows {
-						case .Success(let rows):
-							self.transform(rows, streamStatus: streamStatus, job: job, callback: { (transformedRows, newStreamStatus) -> () in
+
+					return self.outstanding
+				}
+				
+				switch fallibleRows {
+					case .Success(let rows):
+						job.async {
+							self.transform(rows, streamStatus: streamStatus, outstanding: outstanding, job: job, callback: { (transformedRows, newStreamStatus) -> () in
 								let stopped = self.mutex.locked { () -> Bool in
 									self.stopped = self.stopped || newStreamStatus != .HasMore
 									return self.stopped
@@ -475,15 +483,15 @@ private class QBETransformer: NSObject, QBEStream {
 									consumer(transformedRows, stopped ? .Finished : newStreamStatus)
 								}
 							})
-						
-						case .Failure(let error):
-							consumer(.Failure(error), .Finished)
-					}
-				})
-			}
-			else {
-				consumer(.Success([]), .Finished)
-			}
+						}
+					
+					case .Failure(let error):
+						consumer(.Failure(error), .Finished)
+				}
+			})
+		}
+		else {
+			consumer(.Success([]), .Finished)
 		}
 	}
 	
@@ -553,7 +561,7 @@ private class QBEFlattenTransformer: QBETransformer {
 		return QBEFlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
 		prepare(job) {
 			switch self.originalColumns! {
 			case .Success(let originalColumns):
@@ -596,7 +604,7 @@ private class QBEFilterTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
 		source.columnNames(job) { (columnNames) -> () in
 			switch columnNames {
 			case .Success(let cns):
@@ -630,7 +638,7 @@ private class QBERandomTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
 		self.mutex.locked {
 			job.time("Reservoir fill", items: rows.count, itemType: "rows") {
 				self.reservoir.add(rows)
@@ -643,7 +651,10 @@ private class QBERandomTransformer: QBETransformer {
 				}
 			}
 			else {
-				if self.outstanding == 0 {
+				if outstanding == 0 {
+					assert(!self.done, "Random stream transformer still received \(rows.count) rows after being finished: \(outstanding) \(streamStatus)")
+
+					self.done = true
 					// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
 					job.async {
 						callback(.Success(Array(self.reservoir.sample)), .Finished)
@@ -672,7 +683,7 @@ private class QBEOffsetTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
 		self.mutex.locked {
 			if self.position > self.offset {
 				self.position += rows.count
@@ -714,7 +725,7 @@ private class QBELimitTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
 		self.mutex.locked {
 			// We haven't reached the limit yet, not even after streaming this chunk
 			if (self.position + rows.count) < self.limit {
@@ -773,7 +784,7 @@ private class QBEColumnsTransformer: QBETransformer {
 		}
 	}
 	
-	override private func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, job: QBEJob, callback: QBESink) {
+	override private func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
 		ensureIndexes(job) {
 			assert(self.indexes != nil)
 			
@@ -884,7 +895,7 @@ private class QBECalculateTransformer: QBETransformer {
 		}
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
 		self.ensureIndexes.get(job) {
 			job.time("Stream calculate", items: rows.count, itemType: "row") {
 				switch self.columns! {
@@ -986,7 +997,7 @@ private class QBEJoinTransformer: QBETransformer {
 		return QBEJoinTransformer(source: self.source.clone(), join: self.join)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
 		self.leftColumnNames.get(job) { (leftColumnNamesFallible) in
 			switch leftColumnNamesFallible {
 			case .Success(let leftColumnNames):

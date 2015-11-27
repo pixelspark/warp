@@ -660,6 +660,16 @@ class QBETests: XCTestCase {
 		compareData(job, inData, inOptData.transpose().transpose()) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for transpose().transpose() should equal original result")
 		}
+
+		let seqData = QBEStreamData(source: QBESequencer("[a-z]{4}")!.stream("Value"))
+		seqData.random(1).random(1).raster(job) { rf in
+			switch rf {
+			case .Success(let r):
+				XCTAssert(r.rowCount == 1, "Random.Random returns the wrong row count")
+
+			case .Failure(let e): XCTFail(e)
+			}
+		}
 	}
 	
 	func testInferer() {
