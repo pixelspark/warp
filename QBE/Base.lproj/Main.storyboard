@@ -1006,6 +1006,12 @@ CA
                                                             <action selector="dropStore:" target="Ady-hI-5gd" id="Y59-ih-jue"/>
                                                         </connections>
                                                     </menuItem>
+                                                    <menuItem title="Change structure..." id="9CM-oY-bpM">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="alterStore:" target="Ady-hI-5gd" id="X1H-io-21q"/>
+                                                        </connections>
+                                                    </menuItem>
                                                 </items>
                                             </menu>
                                         </menuItem>

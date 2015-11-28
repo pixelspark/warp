@@ -353,6 +353,33 @@ import WarpCore
 				self.documentView.addTablet(tablet, atLocation: location, undo: true)
 			}
 
+			@objc func addCopy(sender: NSObject) {
+				let job = QBEJob(.UserInitiated)
+				QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: NSLocalizedString("Create copy of data here", comment: ""))
+				chain.head?.fullData(job) { result in
+					switch result {
+					case .Success(let fd):
+						fd.raster(job) { result in
+							switch result {
+							case .Success(let raster):
+								QBEAsyncMain {
+									let tablet = QBETablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
+									self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
+								}
+							case .Failure(let e):
+								QBEAsyncMain {
+									NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+								}
+							}
+						}
+					case .Failure(let e):
+						QBEAsyncMain {
+							NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+						}
+					}
+				}
+			}
+
 			@objc func exportFile(sender: NSObject) {
 				var exts: [String: String] = [:]
 				for ext in QBEFactory.sharedInstance.fileExtensionsForWriting {
@@ -412,10 +439,15 @@ import WarpCore
 				let menu = NSMenu()
 				menu.autoenablesItems = false
 
-				let cloneItem = NSMenuItem(title: NSLocalizedString("Create clone of data here", comment: ""), action: Selector("addClone:"), keyEquivalent: "")
+				let cloneItem = NSMenuItem(title: NSLocalizedString("Create linked clone of data here", comment: ""), action: Selector("addClone:"), keyEquivalent: "")
 				cloneItem.target = self
 				menu.addItem(cloneItem)
+
+				let copyItem = NSMenuItem(title: NSLocalizedString("Create copy of data here", comment: ""), action: Selector("addCopy:"), keyEquivalent: "")
+				copyItem.target = self
+				menu.addItem(copyItem)
 				menu.addItem(NSMenuItem.separatorItem())
+
 				let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
 
 				for i in 0..<stepTypes.count {

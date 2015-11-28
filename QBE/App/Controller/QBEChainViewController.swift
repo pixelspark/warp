@@ -37,7 +37,7 @@ internal extension NSViewController {
 	}
 }
 
-@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate {
+@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
 	private var suggestions: QBEFuture<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator()
 	private var dataViewController: QBEDataViewController?
@@ -1166,6 +1166,42 @@ internal extension NSViewController {
 		}
 	}
 
+	@IBAction func alterStore(sender: NSObject) {
+		if let md = self.currentStep?.mutableData where md.canPerformMutation(.Alter(QBEDataDefinition(columnNames: []))) {
+			let alterViewController = QBEAlterTableViewController()
+			alterViewController.mutableData = md
+			alterViewController.warehouse = md.warehouse
+			alterViewController.delegate = self
+
+			// Get current column names
+			let job = QBEJob(.UserInitiated)
+			md.data(job) { result in
+				switch result {
+				case .Success(let data):
+					data.columnNames(job) { result in
+						switch result {
+							case .Success(let columnNames):
+								QBEAsyncMain {
+									alterViewController.definition = QBEDataDefinition(columnNames: columnNames)
+									self.presentViewControllerAsSheet(alterViewController)
+								}
+
+							case .Failure(let e):
+								QBEAsyncMain {
+									NSAlert.showSimpleAlert(NSLocalizedString("Could not modify table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+								}
+						}
+					}
+
+				case .Failure(let e):
+					QBEAsyncMain {
+						NSAlert.showSimpleAlert(NSLocalizedString("Could not modify table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+					}
+				}
+			}
+		}
+	}
+
 	@IBAction func truncateStore(sender: NSObject) {
 		self.performMutation(.Truncate)
 	}
@@ -1186,6 +1222,12 @@ internal extension NSViewController {
 		}
 		else if item.action() == Selector("dropStore:")  {
 			if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Drop) {
+				return true
+			}
+			return false
+		}
+		else if item.action() == Selector("alterStore:")  {
+			if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Alter(QBEDataDefinition(columnNames: []))) {
 				return true
 			}
 			return false
@@ -1423,6 +1465,11 @@ internal extension NSViewController {
 			}
 		}
 	}
+
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable: QBEMutableData?) {
+		QBEAssertMainThread()
+		self.calculate()
+	}
 }
 
 class QBETipViewController: NSViewController {
@@ -1434,16 +1481,6 @@ class QBETipViewController: NSViewController {
 	
 	override func viewWillAppear() {
 		self.messageLabel?.stringValue = message
-	}
-}
-
-private extension NSAlert {
-	static func showSimpleAlert(message: String, infoText: String, style: NSAlertStyle, window: NSWindow) {
-		let av = NSAlert()
-		av.messageText = message
-		av.informativeText = infoText
-		av.alertStyle = style
-		av.beginSheetModalForWindow(window, completionHandler: nil)
 	}
 }
 

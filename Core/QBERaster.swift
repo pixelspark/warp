@@ -9,6 +9,9 @@ place. */
 public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 	public internal(set) var raster: [[QBEValue]] = []
 	public internal(set) var columnNames: [QBEColumn] = []
+
+	// FIXME: use a read-write lock to allow concurrent reads, but still provide safety
+	private let mutex = QBEMutex()
 	public let readOnly: Bool
 
 	static let progressReportRowInterval = 512
@@ -31,145 +34,213 @@ public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 		columnNames = saveColumns.map({return QBEColumn($0)})
 		readOnly = aDecoder.decodeBoolForKey("readOnly")
 	}
+
+	public func clone(readOnly: Bool) -> QBERaster {
+		return self.mutex.locked {
+			return QBERaster(data: self.raster, columnNames: self.columnNames, readOnly: readOnly)
+		}
+	}
 	
-	public var isEmpty: Bool { get {
-		return raster.count==0
-	}}
+	public var isEmpty: Bool {
+		return self.mutex.locked {
+			return raster.count==0
+		}
+	}
 	
 	public func encodeWithCoder(aCoder: NSCoder) {
-		let saveValues = raster.map({return $0.map({return QBEValueCoder($0)})})
-		aCoder.encodeObject(saveValues, forKey: "raster")
-		
-		let saveColumns = columnNames.map({return $0.name})
-		aCoder.encodeObject(saveColumns, forKey: "columns")
-		aCoder.encodeBool(readOnly, forKey: "readOnly")
+		self.mutex.locked {
+			let saveValues = raster.map({return $0.map({return QBEValueCoder($0)})})
+			aCoder.encodeObject(saveValues, forKey: "raster")
+			
+			let saveColumns = columnNames.map({return $0.name})
+			aCoder.encodeObject(saveColumns, forKey: "columns")
+			aCoder.encodeBool(readOnly, forKey: "readOnly")
+		}
 	}
 	
 	public func removeRows(set: NSIndexSet) {
-		assert(!readOnly, "Data set is read-only")
-		self.raster.removeObjectsAtIndexes(set, offset: 0)
+		self.mutex.locked {
+			assert(!readOnly, "Data set is read-only")
+			self.raster.removeObjectsAtIndexes(set, offset: 0)
+		}
 	}
 	
 	public func removeColumns(set: NSIndexSet) {
-		assert(!readOnly, "Data set is read-only")
-		columnNames.removeObjectsAtIndexes(set, offset: 0)
-		
-		for i in 0..<raster.count {
-			raster[i].removeObjectsAtIndexes(set, offset: 0)
+		self.mutex.locked {
+			assert(!readOnly, "Data set is read-only")
+			columnNames.removeObjectsAtIndexes(set, offset: 0)
+			
+			for i in 0..<raster.count {
+				raster[i].removeObjectsAtIndexes(set, offset: 0)
+			}
+		}
+	}
+
+	public func addColumns(names: [QBEColumn]) {
+		self.mutex.locked {
+			assert(!readOnly, "Data set is read-only")
+			let oldCount = self.columnNames.count
+			let newColumns = names.filter { !self.columnNames.contains($0) }
+			self.columnNames.appendContentsOf(newColumns)
+			let template = Array<QBEValue>(count: newColumns.count, repeatedValue: QBEValue.EmptyValue)
+
+			for rowIndex in 0..<raster.count {
+				let cellCount = raster[rowIndex].count
+				if cellCount == oldCount {
+					raster[rowIndex].appendContentsOf(template)
+				}
+				else if cellCount > oldCount {
+					// Cut off at the old count
+					var oldRow = Array(raster[rowIndex][0..<oldCount])
+					oldRow.appendContentsOf(template)
+					raster[rowIndex] = oldRow
+				}
+				else if cellCount < oldCount {
+					let largerTemplate = Array<QBEValue>(count: newColumns.count, repeatedValue: QBEValue.EmptyValue)
+					raster[rowIndex].appendContentsOf(largerTemplate)
+				}
+			}
+		}
+	}
+
+	public func addRows(rows: [QBETuple]) {
+		self.mutex.locked {
+			assert(!readOnly, "Data set is read-only")
+			self.mutex.locked {
+				raster.appendContentsOf(rows)
+			}
 		}
 	}
 	
 	public func addRow() {
-		assert(!readOnly, "Data set is read-only")
-		let row = Array<QBEValue>(count: columnCount, repeatedValue: QBEValue("0"))
-		raster.append(row)
+		self.mutex.locked {
+			assert(!readOnly, "Data set is read-only")
+			let row = Array<QBEValue>(count: columnCount, repeatedValue: QBEValue.EmptyValue)
+			raster.append(row)
+		}
 	}
 	
 	public func indexOfColumnWithName(name: QBEColumn) -> Int? {
-		for i in 0..<columnNames.count {
-			if columnNames[i] == name {
-				return i
+		return self.mutex.locked { () -> Int? in
+			for i in 0..<columnNames.count {
+				if columnNames[i] == name {
+					return i
+				}
 			}
+			
+			return nil
 		}
-		
-		return nil
 	}
 	
 	public var rowCount: Int {
-		get {
+		return self.mutex.locked {
 			return raster.count
 		}
 	}
 	
 	public var columnCount: Int {
-		get {
+		return self.mutex.locked {
 			return columnNames.count
 		}
 	}
 	
 	public subscript(row: Int, col: String) -> QBEValue? {
-		return self[row, QBEColumn(col)]
+		return self.mutex.locked {
+			return self[row, QBEColumn(col)]
+		}
 	}
 	
 	public subscript(row: Int, col: QBEColumn) -> QBEValue? {
-		if let colNr = indexOfColumnWithName(col) {
-			return self[row, colNr]
+		return self.mutex.locked { () -> QBEValue? in
+			if let colNr = indexOfColumnWithName(col) {
+				return self[row, colNr]
+			}
+			return nil
 		}
-		return nil
 	}
 	
 	public subscript(row: Int) -> [QBEValue] {
-		assert(row < rowCount)
-		return raster[row]
+		return self.mutex.locked {
+			assert(row < rowCount)
+			return raster[row]
+		}
 	}
 	
 	public subscript(row: Int, col: Int) -> QBEValue {
-		assert(row < rowCount)
-		assert(col < columnCount)
-		
-		let rowData = raster[row]
-		if(col >= rowData.count) {
-			return QBEValue.EmptyValue
+		return self.mutex.locked {
+			assert(row < rowCount)
+			assert(col < columnCount)
+			
+			let rowData = raster[row]
+			if(col >= rowData.count) {
+				return QBEValue.EmptyValue
+			}
+			return rowData[col]
 		}
-		return rowData[col]
 	}
 	
 	public func setValue(value: QBEValue, forColumn: QBEColumn, inRow row: Int) {
-		assert(row < self.rowCount)
-		assert(!readOnly, "Data set is read-only")
-		
-		if let col = indexOfColumnWithName(forColumn) {
-			raster[row][col] = value
+		return self.mutex.locked {
+			assert(row < self.rowCount)
+			assert(!readOnly, "Data set is read-only")
+			
+			if let col = indexOfColumnWithName(forColumn) {
+				raster[row][col] = value
+			}
 		}
 	}
 	
-	override public var debugDescription: String { get {
-		var d = ""
-		
-		var line = "\t|"
-		for columnName in self.columnNames {
-			line += columnName.name+"\t|"
-		}
-		d += line + "\r\n"
-		
-		for rowNumber in 0..<rowCount {
-			var line = "\(rowNumber)\t|"
-			for colNumber in 0..<self.columnCount {
-				line += self[rowNumber, colNumber].debugDescription + "\t|"
+	override public var debugDescription: String {
+		return self.mutex.locked {
+			var d = ""
+			
+			var line = "\t|"
+			for columnName in self.columnNames {
+				line += columnName.name+"\t|"
 			}
 			d += line + "\r\n"
+			
+			for rowNumber in 0..<rowCount {
+				var line = "\(rowNumber)\t|"
+				for colNumber in 0..<self.columnCount {
+					line += self[rowNumber, colNumber].debugDescription + "\t|"
+				}
+				d += line + "\r\n"
+			}
+			return d
 		}
-		return d
-	} }
+	}
 	
 	public func compare(other: QBERaster) -> Bool {
-		// Compare row count
-		if self.rowCount != other.rowCount {
-			return false
-		}
-		
-		// Compare column count
-		if(self.columnCount != other.columnCount) {
-			return false
-		}
-		
-		// Compare column names
-		for columnNumber in 0..<self.columnCount {
-			if columnNames[columnNumber] != other.columnNames[columnNumber] {
+		return self.mutex.locked {
+			// Compare row count
+			if self.rowCount != other.rowCount {
 				return false
 			}
-		}
-		
-		// Compare values
-		for rowNumber in 0..<self.rowCount {
-			for colNumber in 0..<self.columnCount {
-				if(self[rowNumber, colNumber] != other[rowNumber, colNumber]) {
+			
+			// Compare column count
+			if(self.columnCount != other.columnCount) {
+				return false
+			}
+			
+			// Compare column names
+			for columnNumber in 0..<self.columnCount {
+				if columnNames[columnNumber] != other.columnNames[columnNumber] {
 					return false
 				}
 			}
+			
+			// Compare values
+			for rowNumber in 0..<self.rowCount {
+				for colNumber in 0..<self.columnCount {
+					if(self[rowNumber, colNumber] != other[rowNumber, colNumber]) {
+						return false
+					}
+				}
+			}
+			
+			return true
 		}
-		
-		return true
 	}
 	
 	internal func innerJoin(expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
@@ -205,54 +276,119 @@ public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 	function needs to calculate m+n hashes and perform m look-ups (hash-table assumed to be log n). Performance is 
 	therefore much better on larger data sets (m+n+log n compared to m*n) */
 	private func hashJoin(inner: Bool, comparison: QBEHashComparison, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
-		assert(comparison.comparisonOperator == QBEBinary.Equal, "hashJoin does not (yet) support hash joins based on non-equality")
+		self.mutex.locked {
+			assert(comparison.comparisonOperator == QBEBinary.Equal, "hashJoin does not (yet) support hash joins based on non-equality")
 
-		// Prepare a template row for the result
-		let rightColumns = rightRaster.columnNames
-		let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
-		let templateRow = QBERow(Array<QBEValue>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
-		
-		// Create a list of indices of the columns from the right table that need to be copied over
-		let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.indexOf($0)! })
-		let rightIndicesInResultSet = NSMutableIndexSet()
-		rightIndicesInResult.forEach({rightIndicesInResultSet.addIndex($0)})
-		
-		// Build the hash map of the foreign table
-		var rightHash: [QBEValue: [Int]] = [:]
-		for rowNumber in 0..<rightRaster.raster.count {
-			let row = QBERow(rightRaster.raster[rowNumber], columnNames: rightColumns)
-			let hash = comparison.rightExpression.apply(row, foreign: nil, inputValue: nil)
-			if let existing = rightHash[hash] {
-				rightHash[hash] = existing + [rowNumber]
+			// Prepare a template row for the result
+			let rightColumns = rightRaster.columnNames
+			let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
+			let templateRow = QBERow(Array<QBEValue>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
+			
+			// Create a list of indices of the columns from the right table that need to be copied over
+			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.indexOf($0)! })
+			let rightIndicesInResultSet = NSMutableIndexSet()
+			rightIndicesInResult.forEach({rightIndicesInResultSet.addIndex($0)})
+			
+			// Build the hash map of the foreign table
+			var rightHash: [QBEValue: [Int]] = [:]
+			for rowNumber in 0..<rightRaster.raster.count {
+				let row = QBERow(rightRaster.raster[rowNumber], columnNames: rightColumns)
+				let hash = comparison.rightExpression.apply(row, foreign: nil, inputValue: nil)
+				if let existing = rightHash[hash] {
+					rightHash[hash] = existing + [rowNumber]
+				}
+				else {
+					rightHash[hash] = [rowNumber]
+				}
 			}
-			else {
-				rightHash[hash] = [rowNumber]
-			}
-		}
-		
-		// Iterate over the rows on the left side and join rows from the right side using the hash table
-		let future = self.raster.parallel(
-			map: { (chunk) -> ([QBETuple]) in
-				var newData: [QBETuple] = []
-				job?.time("hashJoin", items: chunk.count, itemType: "rows") {
-					var myTemplateRow = templateRow
-					
-					for leftTuple in chunk {
-						let leftRow = QBERow(leftTuple, columnNames: self.columnNames)
-						let hash = comparison.leftExpression.apply(leftRow, foreign: nil, inputValue: nil)
-						if let rightMatches = rightHash[hash] {
-							for rightRowNumber in rightMatches {
-								let rightRow = QBERow(rightRaster.raster[rightRowNumber], columnNames: rightColumns)
-								myTemplateRow.values.removeAll(keepCapacity: true)
-								myTemplateRow.values.appendContentsOf(leftRow.values)
-								myTemplateRow.values.appendContentsOf(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
-								newData.append(myTemplateRow.values)
+			
+			// Iterate over the rows on the left side and join rows from the right side using the hash table
+			let future = self.raster.parallel(
+				map: { (chunk) -> ([QBETuple]) in
+					var newData: [QBETuple] = []
+					job?.time("hashJoin", items: chunk.count, itemType: "rows") {
+						var myTemplateRow = templateRow
+						
+						for leftTuple in chunk {
+							let leftRow = QBERow(leftTuple, columnNames: self.columnNames)
+							let hash = comparison.leftExpression.apply(leftRow, foreign: nil, inputValue: nil)
+							if let rightMatches = rightHash[hash] {
+								for rightRowNumber in rightMatches {
+									let rightRow = QBERow(rightRaster.raster[rightRowNumber], columnNames: rightColumns)
+									myTemplateRow.values.removeAll(keepCapacity: true)
+									myTemplateRow.values.appendContentsOf(leftRow.values)
+									myTemplateRow.values.appendContentsOf(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
+									newData.append(myTemplateRow.values)
+								}
+							}
+							else {
+								/* If there was no matching row in the right table, we need to add the left row regardless if this
+								is a left (non-inner) join */
+								if !inner {
+									myTemplateRow.values.removeAll(keepCapacity: true)
+									myTemplateRow.values.appendContentsOf(leftRow.values)
+									rightIndicesInResult.forEach({(Int) -> () in myTemplateRow.values.append(QBEValue.EmptyValue)})
+									newData.append(myTemplateRow.values)
+								}
 							}
 						}
-						else {
+					}
+					return newData
+				},
+				reduce: { (a: [QBETuple], b: [QBETuple]?) -> ([QBETuple]) in
+					if let br = b {
+						return br + a
+					}
+					return a
+			})
+			
+			future.get(job) { (newData: [QBETuple]?) -> () in
+				callback(QBERaster(data: newData ?? [], columnNames: templateRow.columnNames, readOnly: true))
+			}
+		}
+	}
+	
+	private func carthesianProduct(inner: Bool, expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
+		self.mutex.locked {
+			// Which columns are going to show up in the result set?
+			let rightColumns = rightRaster.columnNames
+			let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
+
+			// Create a list of indices of the columns from the right table that need to be copied over
+			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.indexOf($0)! })
+			let rightIndicesInResultSet = NSMutableIndexSet()
+			rightIndicesInResult.forEach({rightIndicesInResultSet.addIndex($0)})
+			
+			// Start joining rows
+			let joinExpression = expression.prepare()
+			let templateRow = QBERow(Array<QBEValue>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
+			
+			// Perform carthesian product (slow, so in parallel)
+			let future = self.raster.parallel(
+				map: { (chunk) -> ([QBETuple]) in
+					var newData: [QBETuple] = []
+					job?.time("carthesianProduct", items: chunk.count * rightRaster.rowCount, itemType: "pairs") {
+						var myTemplateRow = templateRow
+						
+						for leftTuple in chunk {
+							let leftRow = QBERow(leftTuple, columnNames: self.columnNames)
+							var foundRightMatch = false
+							
+							for rightTuple in rightRaster.raster {
+								let rightRow = QBERow(rightTuple, columnNames: rightColumns)
+								
+								if joinExpression.apply(leftRow, foreign: rightRow, inputValue: nil) == QBEValue.BoolValue(true) {
+									myTemplateRow.values.removeAll(keepCapacity: true)
+									myTemplateRow.values.appendContentsOf(leftRow.values)
+									myTemplateRow.values.appendContentsOf(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
+									newData.append(myTemplateRow.values)
+									foundRightMatch = true
+								}
+							}
+							
 							/* If there was no matching row in the right table, we need to add the left row regardless if this
 							is a left (non-inner) join */
-							if !inner {
+							if !inner && !foundRightMatch {
 								myTemplateRow.values.removeAll(keepCapacity: true)
 								myTemplateRow.values.appendContentsOf(leftRow.values)
 								rightIndicesInResult.forEach({(Int) -> () in myTemplateRow.values.append(QBEValue.EmptyValue)})
@@ -260,113 +396,54 @@ public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 							}
 						}
 					}
-				}
-				return newData
-			},
-			reduce: { (a: [QBETuple], b: [QBETuple]?) -> ([QBETuple]) in
-				if let br = b {
-					return br + a
-				}
-				return a
-		})
-		
-		future.get(job) { (newData: [QBETuple]?) -> () in
-			callback(QBERaster(data: newData ?? [], columnNames: templateRow.columnNames, readOnly: true))
-		}
-	}
-	
-	private func carthesianProduct(inner: Bool, expression: QBEExpression, raster rightRaster: QBERaster, job: QBEJob? = nil, callback: (QBERaster) -> ()) {
-		// Which columns are going to show up in the result set?
-		let rightColumns = rightRaster.columnNames
-		let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
-
-		// Create a list of indices of the columns from the right table that need to be copied over
-		let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.indexOf($0)! })
-		let rightIndicesInResultSet = NSMutableIndexSet()
-		rightIndicesInResult.forEach({rightIndicesInResultSet.addIndex($0)})
-		
-		// Start joining rows
-		let joinExpression = expression.prepare()
-		let templateRow = QBERow(Array<QBEValue>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: QBEValue.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
-		
-		// Perform carthesian product (slow, so in parallel)
-		let future = self.raster.parallel(
-			map: { (chunk) -> ([QBETuple]) in
-				var newData: [QBETuple] = []
-				job?.time("carthesianProduct", items: chunk.count * rightRaster.rowCount, itemType: "pairs") {
-					var myTemplateRow = templateRow
-					
-					for leftTuple in chunk {
-						let leftRow = QBERow(leftTuple, columnNames: self.columnNames)
-						var foundRightMatch = false
-						
-						for rightTuple in rightRaster.raster {
-							let rightRow = QBERow(rightTuple, columnNames: rightColumns)
-							
-							if joinExpression.apply(leftRow, foreign: rightRow, inputValue: nil) == QBEValue.BoolValue(true) {
-								myTemplateRow.values.removeAll(keepCapacity: true)
-								myTemplateRow.values.appendContentsOf(leftRow.values)
-								myTemplateRow.values.appendContentsOf(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
-								newData.append(myTemplateRow.values)
-								foundRightMatch = true
-							}
-						}
-						
-						/* If there was no matching row in the right table, we need to add the left row regardless if this
-						is a left (non-inner) join */
-						if !inner && !foundRightMatch {
-							myTemplateRow.values.removeAll(keepCapacity: true)
-							myTemplateRow.values.appendContentsOf(leftRow.values)
-							rightIndicesInResult.forEach({(Int) -> () in myTemplateRow.values.append(QBEValue.EmptyValue)})
-							newData.append(myTemplateRow.values)
-						}
+					return newData
+				},
+				reduce: { (a: [QBETuple], b: [QBETuple]?) -> ([QBETuple]) in
+					if let br = b {
+						return br + a
 					}
-				}
-				return newData
-			},
-			reduce: { (a: [QBETuple], b: [QBETuple]?) -> ([QBETuple]) in
-				if let br = b {
-					return br + a
-				}
-				return a
-			})
-		
-		future.get(job) { (newData: [QBETuple]?) -> () in
-			callback(QBERaster(data: newData ?? [], columnNames: templateRow.columnNames, readOnly: true))
+					return a
+				})
+			
+			future.get(job) { (newData: [QBETuple]?) -> () in
+				callback(QBERaster(data: newData ?? [], columnNames: templateRow.columnNames, readOnly: true))
+			}
 		}
 	}
 	
 	/** Finds out whether a set of columns exists for which the indicates rows all have the same value. Returns a
 	dictionary of the column names in this set, with the values for which the condition holds. */
 	public func commonalitiesOf(rows: NSIndexSet, inColumns columns: Set<QBEColumn>) -> [QBEColumn: QBEValue] {
-		// Check to see if the selected rows have similar values for other than the relevant columns
-		var sameValues = Dictionary<QBEColumn, QBEValue>()
-		var sameColumns = columns
-		
-		for index in 0..<rowCount {
-			if rows.containsIndex(index) {
-				for column in columns {
-					if let ci = indexOfColumnWithName(column) {
-						let value = self[index][ci]
-						if let previous = sameValues[column] {
-							if previous != value {
-								sameColumns.remove(column)
-								sameValues.removeValueForKey(column)
+		return self.mutex.locked {
+			// Check to see if the selected rows have similar values for other than the relevant columns
+			var sameValues = Dictionary<QBEColumn, QBEValue>()
+			var sameColumns = columns
+			
+			for index in 0..<rowCount {
+				if rows.containsIndex(index) {
+					for column in columns {
+						if let ci = indexOfColumnWithName(column) {
+							let value = self[index][ci]
+							if let previous = sameValues[column] {
+								if previous != value {
+									sameColumns.remove(column)
+									sameValues.removeValueForKey(column)
+								}
+							}
+							else {
+								sameValues[column] = value
 							}
 						}
-						else {
-							sameValues[column] = value
-						}
+					}
+					
+					if sameColumns.isEmpty {
+						break
 					}
 				}
-				
-				if sameColumns.isEmpty {
-					break
-				}
 			}
+			
+			return sameValues
 		}
-		
-		return sameValues
 	}
 }
 
@@ -943,12 +1020,139 @@ public class QBERasterData: NSObject, QBEData {
 	}
 }
 
+class QBERasterDataWarehouse: QBEDataWarehouse {
+	var hasFixedColumns: Bool { return true }
+
+	func canPerformMutation(mutation: QBEWarehouseMutation) -> Bool {
+		return false
+	}
+
+	func performMutation(mutation: QBEWarehouseMutation, job: QBEJob, callback: (QBEFallible<QBEMutableData?>) -> ()) {
+		return callback(.Failure("Not implemented"))
+	}
+}
+
+private class QBERasterInsertPuller: QBEStreamPuller {
+	let raster: QBERaster
+	var callback: ((QBEFallible<Void>) -> ())?
+	let fastMapping: [Int?]
+
+	init(target: QBERaster, mapping: QBEColumnMapping, source: QBEStream, sourceColumns: [QBEColumn], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		self.raster = target
+		self.callback = callback
+
+		self.fastMapping = self.raster.columnNames.map { cn -> Int? in
+			if let sn = mapping[cn] {
+				return sourceColumns.indexOf(sn)
+			}
+			return nil
+		}
+
+		super.init(stream: source, job: job)
+	}
+
+	private override func onReceiveRows(rows: [QBETuple], callback: (QBEFallible<Void>) -> ()) {
+		let newRows = rows.map { row in
+			return self.fastMapping.map { v in return v == nil ? QBEValue.EmptyValue : row[v!] }
+		}
+
+		self.raster.addRows(newRows)
+		callback(.Success())
+	}
+
+	override func onDoneReceiving() {
+		self.mutex.locked {
+			let cb = self.callback!
+			self.callback = nil
+			self.job.async {
+				cb(.Success())
+			}
+		}
+	}
+
+	override func onError(error: String) {
+		self.mutex.locked {
+			let cb = self.callback!
+			self.callback = nil
+
+			self.job.async {
+				cb(.Failure(error))
+			}
+		}
+	}
+}
+
+public class QBERasterMutableData: QBEMutableData {
+	let raster: QBERaster
+
+	public init(raster: QBERaster) {
+		self.raster = raster
+	}
+
+	public var warehouse: QBEDataWarehouse {
+		return QBERasterDataWarehouse()
+	}
+
+	public func canPerformMutation(mutation: QBEDataMutation) -> Bool {
+		if self.raster.readOnly {
+			return false
+		}
+
+		switch mutation {
+		case .Truncate, .Alter(_), .Insert(_, _):
+			return true
+
+		default:
+			return false
+		}
+	}
+
+	public func performMutation(mutation: QBEDataMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+		switch mutation {
+		case .Truncate:
+			self.raster.raster.removeAll()
+			callback(.Success())
+
+		case .Alter(let def):
+			let removedColumns = self.raster.columnNames.filter { return !def.columnNames.contains($0) }
+			let addedColumns = def.columnNames.filter { return !self.raster.columnNames.contains($0) }
+
+			let removeIndices = NSMutableIndexSet()
+			removedColumns.forEach { removeIndices.addIndex(self.raster.indexOfColumnWithName($0)!) }
+			self.raster.removeColumns(removeIndices)
+			self.raster.addColumns(addedColumns)
+			callback(.Success())
+
+		case .Insert(let data, let mapping):
+			let stream = data.stream()
+			stream.columnNames(job) { result in
+				switch result {
+				case .Success(let columnNames):
+					let puller = QBERasterInsertPuller(target: self.raster, mapping: mapping, source: data.stream(), sourceColumns: columnNames, job: job, callback: callback)
+					puller.start()
+
+				case .Failure(let e):
+					callback(.Failure(e))
+				}
+			}
+
+		default:
+			callback(.Failure("Not supported"))
+		}
+	}
+
+	public func data(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+		callback(.Success(QBERasterData(raster: self.raster)))
+	}
+}
+
 /** QBERasterDataStream is a data stream that streams the contents of an in-memory raster. It is used by QBERasterData
 to make use of stream-based implementations of certain operations. It is also returned by QBERasterData.stream. */
 private class QBERasterDataStream: NSObject, QBEStream {
 	let data: QBERasterData
 	private var raster: QBEFuture<QBEFallible<QBERaster>>
 	private var position = 0
+	private let mutex = QBEMutex()
 	
 	init(_ data: QBERasterData) {
 		self.data = data
@@ -970,17 +1174,24 @@ private class QBERasterDataStream: NSObject, QBEStream {
 		self.raster.get { (fallibleRaster) in
 			switch fallibleRaster {
 				case .Success(let raster):
-					if self.position < raster.rowCount {
-						let end = min(raster.rowCount, self.position + QBEStreamDefaultBatchSize)
-						let rows = Array(raster.raster[self.position..<end])
-						self.position = end
-						let hasNext = self.position < raster.rowCount
-						job.reportProgress(Double(self.position) / Double(raster.rowCount), forKey: self.hashValue)
-						consumer(.Success(rows), hasNext ? .HasMore : .Finished)
+					let (rows, hasNext) = self.mutex.locked { () -> ([QBETuple], Bool) in
+						if self.position < raster.rowCount {
+							let end = min(raster.rowCount, self.position + QBEStreamDefaultBatchSize)
+							let rows = Array(raster.raster[self.position..<end])
+							self.position = end
+							let hasNext = self.position < raster.rowCount
+							return (rows, hasNext)
+						}
+						else {
+							return ([], false)
+						}
+
+						job.async {
+							job.reportProgress(Double(self.position) / Double(raster.rowCount), forKey: self.hashValue)
+						}
 					}
-					else {
-						consumer(.Success([]), .Finished)
-					}
+
+					consumer(.Success(rows), hasNext ? .HasMore : .Finished)
 				
 				case .Failure(let error):
 					consumer(.Failure(error), .Finished)

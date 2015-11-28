@@ -80,8 +80,8 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 		}
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didCreateTable: QBEMutableData?) {
-		if let s = didCreateTable as? QBERethinkMutableData {
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: QBEMutableData?) {
+		if let s = table as? QBERethinkMutableData {
 			self.step.table = s.tableName
 			self.step.database = s.databaseName
 			self.step.server = s.url.host ?? self.step.server

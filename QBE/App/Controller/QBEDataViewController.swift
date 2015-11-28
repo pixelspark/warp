@@ -113,7 +113,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 
 	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
 		if let r = raster {
-			if columnIndex >= 0 && Int(columnIndex) < r.columnCount {
+			if columnIndex >= 0 && Int(columnIndex) < r.columnCount && Int(rowIndex) >= 0 && Int(rowIndex) < r.rowCount {
 				let x = r[Int(rowIndex), Int(columnIndex)]
 
 				// Invalid values are colored red

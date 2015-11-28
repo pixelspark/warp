@@ -21,8 +21,8 @@ internal class QBEPostgresStepView: QBEStepViewControllerFor<QBEPostgresSourceSt
 		updateView()
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didCreateTable: QBEMutableData?) {
-		if let s = didCreateTable as? QBESQLMutableData {
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: QBEMutableData?) {
+		if let s = table as? QBESQLMutableData {
 			self.step.tableName = s.tableName
 			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 			self.updateView()

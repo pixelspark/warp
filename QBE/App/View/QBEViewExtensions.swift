@@ -1,4 +1,5 @@
 import Cocoa
+import WarpCore
 
 internal extension CGRect {
 	func inset(inset: CGFloat) -> CGRect {
@@ -30,6 +31,23 @@ internal extension CGPoint {
 	
 	func distanceTo(point: CGPoint) -> CGFloat {
 		return hypot(point.x - self.x, point.y - self.y)
+	}
+}
+
+internal extension NSAlert {
+	static func showSimpleAlert(message: String, infoText: String, style: NSAlertStyle, window: NSWindow?) {
+		QBEAssertMainThread()
+		let av = NSAlert()
+		av.messageText = message
+		av.informativeText = infoText
+		av.alertStyle = style
+
+		if let w = window {
+			av.beginSheetModalForWindow(w, completionHandler: nil)
+		}
+		else {
+			av.runModal()
+		}
 	}
 }
 

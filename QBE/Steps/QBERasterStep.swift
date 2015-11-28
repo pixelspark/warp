@@ -5,7 +5,7 @@ class QBERasterStep: QBEStep {
 	let raster: QBERaster
 	
 	init(raster: QBERaster) {
-		self.raster = raster
+		self.raster = raster.clone(false)
 		super.init()
 	}
 	
@@ -20,7 +20,13 @@ class QBERasterStep: QBEStep {
 	}
 
 	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence([QBESentenceText(NSLocalizedString("Data table", comment: ""))])
+		switch variant {
+		case .Neutral, .Read:
+			return QBESentence([QBESentenceText(NSLocalizedString("Data table", comment: ""))])
+
+		case .Write:
+			return QBESentence([QBESentenceText(NSLocalizedString("Write to data table", comment: ""))])
+		}
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
@@ -34,5 +40,9 @@ class QBERasterStep: QBEStep {
 	
 	override func exampleData(job: QBEJob?, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
 		callback(.Success(QBERasterData(raster: self.raster).limit(min(maxInputRows, maxOutputRows))))
+	}
+
+	override internal var mutableData: QBEMutableData? {
+		return QBERasterMutableData(raster: self.raster)
 	}
 }

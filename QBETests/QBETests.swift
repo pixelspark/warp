@@ -798,6 +798,37 @@ class QBETests: XCTestCase {
 					XCTFail(error)
 			}
 		}
+
+		// Raster modifications
+		let cols = [QBEColumn("X"), QBEColumn("Y"), QBEColumn("Z")]
+		let testRaster = QBERaster(data: d, columnNames: cols)
+		XCTAssert(testRaster.rowCount == d.count, "Row count matches")
+		testRaster.addRows([[QBEValue.EmptyValue, QBEValue.EmptyValue, QBEValue.EmptyValue]])
+		XCTAssert(testRaster.rowCount == d.count+1, "Row count matches after insert")
+
+		testRaster.addColumns([QBEColumn("W")])
+		XCTAssert(testRaster.columnCount == 3+1, "Column count matches after insert")
+
+		// Raster modifications through QBERasterMutableData
+		let mutableRaster = QBERasterMutableData(raster: testRaster)
+		mutableRaster.performMutation(.Alter(QBEDataDefinition(columnNames: cols)), job: job) { result in
+			switch result {
+			case .Success:
+				XCTAssert(testRaster.columnCount == 3, "Column count matches again after mutation")
+
+				mutableRaster.performMutation(.Truncate, job: job) { result in
+					switch result {
+					case .Success:
+						XCTAssert(testRaster.columnCount == 3, "Column count matches again after mutation")
+						XCTAssert(testRaster.rowCount == 0, "Row count matches again after mutation")
+
+					case .Failure(let e): XCTFail(e)
+					}
+				}
+
+			case .Failure(let e): XCTFail(e)
+			}
+		}
     }
 	
 	func testThreading() {

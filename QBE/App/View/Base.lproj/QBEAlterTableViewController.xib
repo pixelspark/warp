@@ -36,7 +36,7 @@ DQ
 </string>
                     </buttonCell>
                     <connections>
-                        <action selector="createTable:" target="-2" id="9qK-Et-wM7"/>
+                        <action selector="createOrAlterTable:" target="-2" id="FpP-r9-QIj"/>
                     </connections>
                 </button>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="XlI-Cl-Z82">

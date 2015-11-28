@@ -8,7 +8,7 @@ extension RangeReplaceableCollectionType where Index : Comparable {
 }
 
 protocol QBEAlterTableViewDelegate: NSObjectProtocol {
-	func alterTableView(view: QBEAlterTableViewController, didCreateTable: QBEMutableData?)
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable: QBEMutableData?)
 }
 
 class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableViewDataSource, NSTableViewDelegate, NSUserInterfaceValidations {
@@ -26,8 +26,11 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 	weak var delegate: QBEAlterTableViewDelegate? = nil
 	var definition: QBEDataDefinition = QBEDataDefinition(columnNames: [])
 	var warehouse: QBEDataWarehouse? = nil
+	var mutableData: QBEMutableData? = nil
 	var warehouseName: String? = nil
 	var createJob: QBEJob? = nil
+
+	var isAltering: Bool { return mutableData != nil }
 
 	required init() {
 		super.init(nibName: "QBEAlterTableViewController", bundle: nil)!
@@ -117,7 +120,46 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 		return self.definition.columnNames.count
 	}
 
-	@IBAction func createTable(sender: NSObject) {
+	@IBAction func createOrAlterTable(sender: NSObject) {
+		if isAltering {
+			self.alterTable(sender)
+		}
+		else {
+			self.createTable(sender)
+		}
+	}
+
+	private func alterTable(sender: NSObject) {
+		assert(self.createJob == nil, "Cannot start two create table jobs at the same time")
+
+		if let md = self.mutableData {
+			let mutation = QBEDataMutation.Alter(self.definition)
+			if md.canPerformMutation(mutation) {
+				self.createJob = QBEJob(.UserInitiated)
+				self.updateView()
+				self.progressView.startAnimation(sender)
+
+				md.performMutation(mutation, job: self.createJob!) { result in
+					QBEAsyncMain {
+						self.createJob = nil
+						self.updateView()
+						self.progressView.stopAnimation(sender)
+
+						switch result {
+						case .Success:
+							self.delegate?.alterTableView(self, didAlterTable: md)
+							self.dismissController(sender)
+
+						case .Failure(let e):
+							NSAlert.showSimpleAlert(NSLocalizedString("Could not change this table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private func createTable(sender: NSObject) {
 		assert(self.createJob == nil, "Cannot start two create table jobs at the same time")
 		if let dwh = warehouse {
 			let tableName = self.tableNameField.stringValue
@@ -137,7 +179,7 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 
 						switch result {
 						case .Success(let d):
-							self.delegate?.alterTableView(self, didCreateTable: d)
+							self.delegate?.alterTableView(self, didAlterTable: d)
 							self.dismissController(sender)
 
 						case .Failure(let e):
@@ -172,22 +214,24 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 
 	func updateView() {
 		QBEAssertMainThread()
+
 		let working = createJob != nil
 		cancelButton.enabled = !working
-		createButton.enabled = !working && !self.tableNameField.stringValue.isEmpty && (!(self.warehouse?.hasFixedColumns ?? true) || !self.definition.columnNames.isEmpty)
+		createButton.enabled = !working && (isAltering || !self.tableNameField.stringValue.isEmpty) && (!(self.warehouse?.hasFixedColumns ?? true) || !self.definition.columnNames.isEmpty)
 		addColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
 		removeColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columnNames.isEmpty && tableView.selectedRowIndexes.count > 0
 		removeAllColumnsButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columnNames.isEmpty && tableView.selectedRowIndexes.count > 0
 		tableView.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
 		progressView.hidden = !working
 		progressLabel.hidden = !working
-		tableNameField.enabled = !working
+		tableNameField.enabled = !working && !isAltering
+		createButton.title = NSLocalizedString(self.isAltering ? "Modify table" : "Create table", comment: "")
 
 		if let title = self.warehouseName {
-			self.titleLabel.stringValue = String(format: NSLocalizedString("Create a new table in %@.", comment: ""), title)
+			self.titleLabel.stringValue = String(format: NSLocalizedString(isAltering ? "Modify table %@" : "Create a new table in %@.", comment: ""), title)
 		}
 		else {
-			self.titleLabel.stringValue = NSLocalizedString("Create a new table", comment: "")
+			self.titleLabel.stringValue = NSLocalizedString(isAltering ? "Modify table" : "Create a new table", comment: "")
 		}
 	}
 
