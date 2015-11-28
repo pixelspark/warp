@@ -1020,15 +1020,40 @@ public class QBERasterData: NSObject, QBEData {
 	}
 }
 
-class QBERasterDataWarehouse: QBEDataWarehouse {
-	var hasFixedColumns: Bool { return true }
+public class QBERasterDataWarehouse: QBEDataWarehouse {
+	public let hasFixedColumns = true
+	public let hasNamedTables = false
 
-	func canPerformMutation(mutation: QBEWarehouseMutation) -> Bool {
-		return false
+	public init() {
 	}
 
-	func performMutation(mutation: QBEWarehouseMutation, job: QBEJob, callback: (QBEFallible<QBEMutableData?>) -> ()) {
-		return callback(.Failure("Not implemented"))
+	public func canPerformMutation(mutation: QBEWarehouseMutation) -> Bool {
+		switch mutation {
+		case .Create(_,_):
+			return true
+		}
+	}
+
+	public func performMutation(mutation: QBEWarehouseMutation, job: QBEJob, callback: (QBEFallible<QBEMutableData?>) -> ()) {
+		switch mutation {
+		case .Create(_, let data):
+			data.columnNames(job) { result in
+				switch result {
+				case .Success(let cns):
+					let raster = QBERaster(data: [], columnNames: cns, readOnly: false)
+					let mutableData = QBERasterMutableData(raster: raster)
+					let mapping = cns.mapDictionary({ return ($0,$0) })
+					mutableData.performMutation(.Insert(data, mapping), job: job) { result in
+						switch result {
+						case .Success: callback(.Success(mutableData))
+						case .Failure(let e): callback(.Failure(e))
+						}
+					}
+
+				case .Failure(let e): callback(.Failure(e))
+				}
+			}
+		}
 	}
 }
 

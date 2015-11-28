@@ -6,6 +6,9 @@ public protocol QBEDataWarehouse {
 	to false (and accept any Insert mutation on their mutable data) whereas relational databases will set this to true. */
 	var hasFixedColumns: Bool { get }
 
+	/** Whether this data source has names for tables. */
+	var hasNamedTables: Bool { get }
+
 	/** Returns whether the specified mutation can be performed on this warehouse. Note that this function does
 	not guarantee that no errors occur during the actual performance of the mutation (user rights, data, et cetera may
 	change between invocations of canPerformMutation and performMutation). This function should therefore only perform

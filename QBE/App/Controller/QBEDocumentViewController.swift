@@ -2,7 +2,7 @@ import Foundation
 import Cocoa
 import WarpCore
 
-@objc class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate, QBEExportViewDelegate {
+@objc class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
 	private var documentView: QBEDocumentView!
 	private var sentenceEditor: QBESentenceViewController? = nil
 	@IBOutlet var addTabletMenu: NSMenu!
@@ -580,7 +580,42 @@ import WarpCore
 			return nil
 		}
 	}
-	
+
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable mutableData: QBEMutableData?) {
+		let job = QBEJob(.UserInitiated)
+		mutableData?.data(job) {result in
+			switch result {
+			case .Success(let data):
+				data.raster(job) { result in
+					switch result {
+					case .Success(let raster):
+						QBEAsyncMain {
+							let tablet = QBETablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
+							self.addTablet(tablet, atLocation: nil, undo: true)
+						}
+
+					case .Failure(let e):
+						QBEAsyncMain {
+							NSAlert.showSimpleAlert(NSLocalizedString("Could not add table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+						}
+					}
+				}
+
+			case .Failure(let e):
+				QBEAsyncMain {
+					NSAlert.showSimpleAlert(NSLocalizedString("Could not add table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+				}
+			}
+		}
+	}
+
+	@IBAction func addRasterTablet(sender: NSObject) {
+		let creator = QBEAlterTableViewController()
+		creator.warehouse = QBERasterDataWarehouse()
+		creator.delegate = self
+		self.presentViewControllerAsSheet(creator)
+	}
+
 	@IBAction func addSequencerTablet(sender: NSObject) {
 		let chain = QBEChain(head: QBESequencerStep(pattern: "[A-Z]{4}", column: QBEColumn(NSLocalizedString("Value", comment: ""))))
 		let tablet = QBETablet(chain: chain)
@@ -657,6 +692,7 @@ import WarpCore
 		if item.action() == Selector("selectPreviousTablet:") { return (self.document?.tablets.count > 0) ?? false }
 		if item.action() == Selector("addButtonClicked:") { return true }
 		if item.action() == Selector("addSequencerTablet:") { return true }
+		if item.action() == Selector("addRasterTablet:") { return true }
 		if item.action() == Selector("addTabletFromFile:") { return true }
 		if item.action() == Selector("addTabletFromPresto:") { return true }
 		if item.action() == Selector("addTabletFromMySQL:") { return true }

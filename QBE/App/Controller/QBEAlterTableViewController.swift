@@ -163,7 +163,7 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 		assert(self.createJob == nil, "Cannot start two create table jobs at the same time")
 		if let dwh = warehouse {
 			let tableName = self.tableNameField.stringValue
-			if tableName.isEmpty {
+			if tableName.isEmpty && dwh.hasNamedTables {
 				return
 			}
 			let mutation = QBEWarehouseMutation.Create(self.tableNameField.stringValue, QBERasterData(data: [], columnNames: self.definition.columnNames))
@@ -216,15 +216,16 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 		QBEAssertMainThread()
 
 		let working = createJob != nil
+		let needTableName = (self.warehouse?.hasNamedTables ?? true)
 		cancelButton.enabled = !working
-		createButton.enabled = !working && (isAltering || !self.tableNameField.stringValue.isEmpty) && (!(self.warehouse?.hasFixedColumns ?? true) || !self.definition.columnNames.isEmpty)
+		createButton.enabled = !working && (isAltering || !needTableName || !self.tableNameField.stringValue.isEmpty) && (!(self.warehouse?.hasFixedColumns ?? true) || !self.definition.columnNames.isEmpty)
 		addColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
 		removeColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columnNames.isEmpty && tableView.selectedRowIndexes.count > 0
 		removeAllColumnsButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columnNames.isEmpty && tableView.selectedRowIndexes.count > 0
 		tableView.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
 		progressView.hidden = !working
 		progressLabel.hidden = !working
-		tableNameField.enabled = !working && !isAltering
+		tableNameField.enabled = !working && !isAltering && needTableName
 		createButton.title = NSLocalizedString(self.isAltering ? "Modify table" : "Create table", comment: "")
 
 		if let title = self.warehouseName {

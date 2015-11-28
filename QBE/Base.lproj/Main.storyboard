@@ -1748,6 +1748,12 @@ CA
                                             <action selector="addSequencerTablet:" target="0Jp-3X-LwR" id="TSj-UO-A0k"/>
                                         </connections>
                                     </menuItem>
+                                    <menuItem title="Add new empty table..." id="0hE-P8-DTh">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="addRasterTablet:" target="0Jp-3X-LwR" id="20Q-Bb-FtT"/>
+                                        </connections>
+                                    </menuItem>
                                     <menuItem isSeparatorItem="YES" id="CeP-ek-hn7"/>
                                     <menuItem title="Re-add existing data source" hidden="YES" enabled="NO" id="6GW-Xt-IyR">
                                         <modifierMask key="keyEquivalentModifierMask"/>

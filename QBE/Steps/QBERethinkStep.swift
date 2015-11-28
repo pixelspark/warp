@@ -508,6 +508,7 @@ class QBERethinkDataWarehouse: QBEDataWarehouse {
 	let url: NSURL
 	let databaseName: String
 	let hasFixedColumns: Bool = false
+	let hasNamedTables: Bool = true
 
 	init(url: NSURL, databaseName: String) {
 		self.url = url

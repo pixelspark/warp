@@ -119,6 +119,7 @@ public class QBESQLDataWarehouse: QBEDataWarehouse {
 	public let schemaName: String?
 	public var dialect: QBESQLDialect { return database.dialect }
 	public let hasFixedColumns: Bool = true
+	public let hasNamedTables: Bool = true
 
 	public init(database: QBESQLDatabase, schemaName: String?) {
 		self.database = database
