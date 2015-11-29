@@ -322,3 +322,19 @@
 "6GW-Xt-IyR.title" = "Voeg bestaande databron opnieuw toe";
 "9CM-oY-bpM.title" = "Wijzig structuur...";
 "0hE-P8-DTh.title" = "Nieuwe, lege tabel toevoegen...";
+
+"k8n-C8-T8N.label" = "Voeg toe";
+"k8n-C8-T8N.paletteLabel" = "Gegevens toevoegen";
+"dSb-OG-sLN.label" = "Annuleren";
+"dSb-OG-sLN.paletteLabel" = "Annuleer berekening";
+"WfI-yD-3jF.label" = "Exporteer";
+"WfI-yD-3jF.paletteLabel" = "Exporteer naar bestand";
+
+"IjL-nI-Ixx.label" = "Volledige data";
+"IjL-nI-Ixx.paletteLabel" = "Volledige data";
+"JIm-dh-FPE.label" = "Zoom in/uit";
+"JIm-dh-FPE.paletteLabel" = "Zoom in/uit";
+"4nh-y5-Jb0.label" = "Vernieuwen";
+"4nh-y5-Jb0.paletteLabel" = "Vernieuw gegevens";
+"qo5-X1-gJ6.label" = "Alternatieven";
+"qo5-X1-gJ6.paletteLabel" = "Toon alternatieven";

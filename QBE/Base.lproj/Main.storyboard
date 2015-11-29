@@ -1527,58 +1527,145 @@ CA
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="183" y="108" width="1345" height="806"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
-                        <toolbar key="toolbar" implicitIdentifier="2EBAC5BC-9FAB-4475-8666-2326836DC6DE" displayMode="iconOnly" sizeMode="small" id="Mya-2b-t6F">
+                        <toolbar key="toolbar" implicitIdentifier="2EBAC5BC-9FAB-4475-8666-2326836DC6DE" displayMode="iconOnly" sizeMode="regular" id="Mya-2b-t6F">
                             <allowedToolbarItems>
-                                <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="iGp-sH-qSs"/>
-                                <toolbarItem implicitItemIdentifier="NSToolbarShowFontsItem" id="Xmw-Y9-USw"/>
-                                <toolbarItem implicitItemIdentifier="NSToolbarPrintItem" id="Rvh-SC-k8J"/>
-                                <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="umP-xg-rKC"/>
-                                <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="wdl-hf-yLn"/>
-                                <toolbarItem implicitItemIdentifier="6729A4D4-A221-46CD-897E-F90F5AD2F3FE" label="Add" paletteLabel="Add" tag="-1" image="NSAddTemplate" id="ZRd-bD-OPv">
+                                <toolbarItem implicitItemIdentifier="67BCC4D2-D6F5-4F96-BCEE-BAA3D3CB1650" label="Calculate" paletteLabel="Calculate" image="SmallIcon" id="IjL-nI-Ixx" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="43" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="YiK-Md-zzJ">
+                                        <rect key="frame" x="7" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="SmallIcon" imagePosition="overlaps" alignment="center" alternateImage="BigIcon" lineBreakMode="truncatingTail" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Zrc-YV-IB2">
+                                            <behavior key="behavior" pushIn="YES" changeContents="YES" lightByContents="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
                                     <connections>
-                                        <action selector="addButtonClicked:" target="6f7-a7-6o1" id="KNF-pq-8Il"/>
+                                        <action selector="toggleFullData:" target="6f7-a7-6o1" id="8Cd-Bx-Yk6"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="058B910A-8146-4564-BE8A-2ECC5997F094" label="All" paletteLabel="Zoom to all" tag="-1" image="ZoomOutIcon" id="uPf-Qt-XpM">
+                                <toolbarItem implicitItemIdentifier="C0BBED5C-8A5D-46E9-89F2-27F44E59EA83" label="Zoom" paletteLabel="Zoom" id="JIm-dh-FPE" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="72" height="25"/>
+                                    <size key="maxSize" width="72" height="25"/>
+                                    <segmentedControl key="view" verticalHuggingPriority="750" id="vzD-dy-P39">
+                                        <rect key="frame" x="0.0" y="14" width="72" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <segmentedCell key="cell" borderStyle="border" alignment="left" style="texturedRounded" trackingMode="momentary" id="3cA-X5-HMI">
+                                            <font key="font" metaFont="system"/>
+                                            <segments>
+                                                <segment image="ZoomOutIcon" width="32">
+                                                    <nil key="label"/>
+                                                </segment>
+                                                <segment image="ZoomInIcon" width="32" tag="1">
+                                                    <nil key="label"/>
+                                                </segment>
+                                            </segments>
+                                        </segmentedCell>
+                                    </segmentedControl>
                                     <connections>
-                                        <action selector="zoomToAll:" target="6f7-a7-6o1" id="F3O-EA-0gJ"/>
+                                        <action selector="zoomSegment:" target="6f7-a7-6o1" id="fyI-nI-sgt"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="645B5A5E-8763-4543-AF18-0566BC1E465C" label="Stop" paletteLabel="Stop calculating" tag="-1" image="StopIcon" id="qY2-Sw-ffx">
+                                <toolbarItem implicitItemIdentifier="93E10375-E66A-4C93-A8A9-2C2F3E0E03EB" label="Stop calculating" paletteLabel="Stop calculating" image="StopIcon" id="dSb-OG-sLN" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="42" height="25"/>
+                                    <size key="maxSize" width="43" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="uDN-ok-mKr">
+                                        <rect key="frame" x="25" y="14" width="42" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="StopIcon" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="KUj-Ug-O8I">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
                                     <connections>
-                                        <action selector="cancelCalculation:" target="6f7-a7-6o1" id="5y4-t5-jaI"/>
+                                        <action selector="cancelCalculation:" target="6f7-a7-6o1" id="A4R-Pd-pcG"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="A0D86B7B-622D-41A7-BAE6-2979E0157679" label="Calculate" paletteLabel="Calculate" tag="-1" image="BigIcon" id="xwx-V7-Rym">
+                                <toolbarItem implicitItemIdentifier="F27BA621-2DF3-47A2-BE73-EEB849F1FDC1" label="Add" paletteLabel="Add" image="NSAddTemplate" id="k8n-C8-T8N" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="43" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="M2w-aY-CH1">
+                                        <rect key="frame" x="0.0" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="NSAddTemplate" imagePosition="only" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="sa0-Y3-C5C">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
                                     <connections>
-                                        <action selector="setFullWorkingSet:" target="6f7-a7-6o1" id="sES-ve-507"/>
+                                        <action selector="addButtonClicked:" target="6f7-a7-6o1" id="AMU-IL-tDT"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="65B21C31-F9E1-4753-9770-07804938BD85" label="Selection" paletteLabel="Zoom to selection" tag="-1" image="ZoomInIcon" id="QnM-NS-IrF">
+                                <toolbarItem implicitItemIdentifier="60B4CE99-9421-44DB-86A4-D176C1D32F90" label="Export data" paletteLabel="Export data" image="ExportIcon" id="WfI-yD-3jF" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="43" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="fj9-9C-sqL">
+                                        <rect key="frame" x="13" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="ExportIcon" imagePosition="only" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="gQQ-ym-7bo">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
                                     <connections>
-                                        <action selector="zoomSelection:" target="6f7-a7-6o1" id="NrX-OE-0uM"/>
+                                        <action selector="exportFile:" target="6f7-a7-6o1" id="cup-kg-RKV"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="58A66CDB-C539-48F9-875C-790A62D93359" label="Alternatives" paletteLabel="Show alternatives" tag="-1" image="ChangeIcon" id="FIb-De-h7B">
+                                <toolbarItem implicitItemIdentifier="653347E5-957F-4E26-A65D-949A84242605" label="Refresh data" paletteLabel="Refresh data" image="ReloadIcon" id="4nh-y5-Jb0" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="43" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="VoA-fi-OJZ">
+                                        <rect key="frame" x="16" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="ReloadIcon" imagePosition="only" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="yPP-Bh-8ON">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
                                     <connections>
-                                        <action selector="showSuggestions:" target="6f7-a7-6o1" id="vEM-eL-BsV"/>
+                                        <action selector="refreshData:" target="6f7-a7-6o1" id="UA6-kD-hkq"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="C32CAEDE-B9A1-49E9-8C7E-ABAE2BA30F3F" label="Export" paletteLabel="Export data" tag="-1" image="ExportIcon" id="A5A-19-saX">
+                                <toolbarItem implicitItemIdentifier="2845B5F4-9D99-4268-9384-2E570B668763" label="Show alternatives" paletteLabel="Show alternatives" image="ChangeIcon" id="qo5-X1-gJ6" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="43" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="NCL-CP-9a6">
+                                        <rect key="frame" x="29" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="ChangeIcon" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="mN3-mm-104">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
                                     <connections>
-                                        <action selector="exportFile:" target="6f7-a7-6o1" id="fzC-Od-uUm"/>
+                                        <action selector="showSuggestions:" target="6f7-a7-6o1" id="3xX-qZ-C7D"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="UB3-EK-cBx"/>
+                                <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="g2T-uw-sdG"/>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
-                                <toolbarItem reference="uPf-Qt-XpM"/>
-                                <toolbarItem reference="QnM-NS-IrF"/>
-                                <toolbarItem reference="wdl-hf-yLn"/>
-                                <toolbarItem reference="xwx-V7-Rym"/>
-                                <toolbarItem reference="qY2-Sw-ffx"/>
-                                <toolbarItem reference="wdl-hf-yLn"/>
-                                <toolbarItem reference="A5A-19-saX"/>
-                                <toolbarItem reference="ZRd-bD-OPv"/>
+                                <toolbarItem reference="JIm-dh-FPE"/>
+                                <toolbarItem reference="g2T-uw-sdG"/>
+                                <toolbarItem reference="IjL-nI-Ixx"/>
+                                <toolbarItem reference="dSb-OG-sLN"/>
+                                <toolbarItem reference="g2T-uw-sdG"/>
+                                <toolbarItem reference="WfI-yD-3jF"/>
+                                <toolbarItem reference="k8n-C8-T8N"/>
                             </defaultToolbarItems>
                         </toolbar>
                     </window>
@@ -1658,7 +1745,7 @@ CA
                                         <animations/>
                                     </customView>
                                     <containerView canDrawConcurrently="YES" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
-                                        <rect key="frame" x="4" y="504" width="692" height="22"/>
+                                        <rect key="frame" x="4" y="504" width="688" height="22"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="xfu-7p-qw7"/>
@@ -1677,7 +1764,7 @@ CA
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="pNc-En-NPW"/>
                                     <constraint firstItem="JGk-n3-nvK" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" constant="4" id="sJw-Wk-WPz"/>
                                     <constraint firstAttribute="bottom" secondItem="jQq-6i-09S" secondAttribute="bottom" id="t7R-WV-Ubb"/>
-                                    <constraint firstAttribute="trailing" secondItem="JGk-n3-nvK" secondAttribute="trailing" constant="4" id="tL1-Xt-pEb"/>
+                                    <constraint firstAttribute="trailing" secondItem="JGk-n3-nvK" secondAttribute="trailing" constant="8" id="tL1-Xt-pEb"/>
                                     <constraint firstAttribute="trailing" secondItem="jQq-6i-09S" secondAttribute="trailing" id="z6k-ez-qQa"/>
                                 </constraints>
                                 <animations/>
@@ -1906,15 +1993,6 @@ CA
                                 </constraints>
                                 <animations/>
                             </progressIndicator>
-                            <imageView hidden="YES" toolTip="This data set has been fully calculated" wantsLayer="YES" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="t3T-zZ-xns">
-                                <rect key="frame" x="0.0" y="371" width="40" height="24"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="40" id="fAP-V5-WV4"/>
-                                    <constraint firstAttribute="height" constant="24" id="nya-v9-FgI"/>
-                                </constraints>
-                                <animations/>
-                                <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyUpOrDown" image="BigIcon" id="0Ho-rN-QQg"/>
-                            </imageView>
                             <textField wantsLayer="YES" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="4AO-tB-W5z">
                                 <rect key="frame" x="5" y="191" width="657" height="14"/>
                                 <animations/>
@@ -1928,10 +2006,8 @@ CA
                         <constraints>
                             <constraint firstAttribute="centerX" secondItem="ckd-Aw-A1T" secondAttribute="centerX" id="7Bc-Vt-so9"/>
                             <constraint firstAttribute="trailing" secondItem="4AO-tB-W5z" secondAttribute="trailing" constant="7" id="JTa-vL-VgV"/>
-                            <constraint firstItem="t3T-zZ-xns" firstAttribute="top" secondItem="qWX-f7-1Jq" secondAttribute="top" id="MX1-bv-PfD"/>
                             <constraint firstItem="4AO-tB-W5z" firstAttribute="leading" secondItem="qWX-f7-1Jq" secondAttribute="leading" constant="7" id="dmO-Ec-DTf"/>
                             <constraint firstAttribute="centerY" secondItem="ckd-Aw-A1T" secondAttribute="centerY" id="gg9-n6-AAV"/>
-                            <constraint firstItem="t3T-zZ-xns" firstAttribute="leading" secondItem="qWX-f7-1Jq" secondAttribute="leading" id="kEb-sy-9u1"/>
                             <constraint firstAttribute="centerY" secondItem="4AO-tB-W5z" secondAttribute="centerY" id="vio-2c-Bss"/>
                         </constraints>
                         <animations/>
@@ -1939,7 +2015,6 @@ CA
                     <connections>
                         <outlet property="columnContextMenu" destination="ZtX-Re-5cz" id="yu5-fo-zX6"/>
                         <outlet property="errorLabel" destination="4AO-tB-W5z" id="WSd-0y-y0u"/>
-                        <outlet property="fullDataIndicatorView" destination="t3T-zZ-xns" id="Z6m-p6-qt9"/>
                         <outlet property="progressView" destination="ckd-Aw-A1T" id="VLb-Ny-mnn"/>
                     </connections>
                 </viewController>
@@ -3017,6 +3092,12 @@ DQ
                             <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="CCw-Hx-VEJ" secondAttribute="bottom" id="uBh-I7-BQb"/>
                         </constraints>
                         <animations/>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="bottomBorder" value="YES"/>
+                            <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                <color key="value" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                            </userDefinedRuntimeAttribute>
+                        </userDefinedRuntimeAttributes>
                     </view>
                     <connections>
                         <outlet property="configureButton" destination="CCw-Hx-VEJ" id="jfB-DM-OFQ"/>
@@ -3029,18 +3110,20 @@ DQ
         </scene>
     </scenes>
     <resources>
-        <image name="BigIcon" width="26" height="26"/>
-        <image name="ChangeIcon" width="26" height="26"/>
+        <image name="BigIcon" width="51" height="51"/>
+        <image name="ChangeIcon" width="51" height="51"/>
         <image name="CloseIcon" width="26" height="26"/>
-        <image name="ExportIcon" width="26" height="26"/>
+        <image name="ExportIcon" width="51" height="51"/>
         <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSGoRightTemplate" width="9" height="12"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
-        <image name="StopIcon" width="26" height="26"/>
+        <image name="ReloadIcon" width="51" height="51"/>
+        <image name="SmallIcon" width="26" height="26"/>
+        <image name="StopIcon" width="51" height="51"/>
         <image name="TipIcon" width="32" height="32"/>
-        <image name="ZoomInIcon" width="26" height="26"/>
-        <image name="ZoomOutIcon" width="26" height="26"/>
+        <image name="ZoomInIcon" width="51" height="51"/>
+        <image name="ZoomOutIcon" width="51" height="51"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="87o-14-S5w"/>

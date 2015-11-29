@@ -686,27 +686,41 @@ import WarpCore
 			t.exportFile(sender)
 		}
 	}
-	
+
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
-		if item.action() == Selector("selectNextTablet:") { return (self.document?.tablets.count > 0) ?? false }
-		if item.action() == Selector("selectPreviousTablet:") { return (self.document?.tablets.count > 0) ?? false }
-		if item.action() == Selector("addButtonClicked:") { return true }
-		if item.action() == Selector("addSequencerTablet:") { return true }
-		if item.action() == Selector("addRasterTablet:") { return true }
-		if item.action() == Selector("addTabletFromFile:") { return true }
-		if item.action() == Selector("addTabletFromPresto:") { return true }
-		if item.action() == Selector("addTabletFromMySQL:") { return true }
-		if item.action() == Selector("addTabletFromRethinkDB:") { return true }
-		if item.action() == Selector("addTabletFromPostgres:") { return true }
-		if item.action() == Selector("updateFromFormulaField:") { return true }
-		if item.action() == Selector("setFullWorkingSet:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
-		if item.action() == Selector("cancelCalculation:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
-		if item.action() == Selector("showSuggestions:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
-		if item.action() == Selector("exportFile:") { return documentView.selectedTabletController?.validateUserInterfaceItem(item) ?? false }
-		if item.action() == Selector("zoomToAll:") { return documentView.boundsOfAllTablets != nil }
-		if item.action() == Selector("zoomSelection:") { return documentView.selectedTablet != nil }
-		if item.action() == Selector("delete:") { return true }
-		if item.action() == Selector("paste:") {
+			return validateSelector(item.action())
+	}
+
+	override func validateToolbarItem(theItem: NSToolbarItem) -> Bool {
+		return validateSelector(theItem.action)
+	}
+
+	@IBAction func zoomSegment(sender: NSSegmentedControl) {
+		if sender.selectedSegment == 0 {
+			self.zoomToAll(sender)
+		}
+		else if sender.selectedSegment == 1 {
+			self.zoomSelection(sender)
+		}
+	}
+
+	private func validateSelector(selector: Selector) -> Bool {
+		if selector == Selector("selectNextTablet:") { return (self.document?.tablets.count > 0) ?? false }
+		if selector == Selector("selectPreviousTablet:") { return (self.document?.tablets.count > 0) ?? false }
+		if selector == Selector("addButtonClicked:") { return true }
+		if selector == Selector("addSequencerTablet:") { return true }
+		if selector == Selector("addRasterTablet:") { return true }
+		if selector == Selector("addTabletFromFile:") { return true }
+		if selector == Selector("addTabletFromPresto:") { return true }
+		if selector == Selector("addTabletFromMySQL:") { return true }
+		if selector == Selector("addTabletFromRethinkDB:") { return true }
+		if selector == Selector("addTabletFromPostgres:") { return true }
+		if selector == Selector("updateFromFormulaField:") { return true }
+		if selector == Selector("zoomSegment:") { return documentView.boundsOfAllTablets != nil }
+		if selector == Selector("zoomToAll:") { return documentView.boundsOfAllTablets != nil }
+		if selector == Selector("zoomSelection:") { return documentView.selectedTablet != nil }
+		if selector == Selector("delete:") { return true }
+		if selector == Selector("paste:") {
 			let pboard = NSPasteboard.generalPasteboard()
 			if pboard.dataForType(QBEStep.dragType) != nil || pboard.dataForType(NSPasteboardTypeString) != nil || pboard.dataForType(NSPasteboardTypeTabularText) != nil {
 				return true

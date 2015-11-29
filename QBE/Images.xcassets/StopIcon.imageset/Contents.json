@@ -2,18 +2,18 @@
   "images" : [
     {
       "idiom" : "universal",
-      "scale" : "1x",
-      "filename" : "Stop@32.png"
+      "filename" : "Stop@64.png",
+      "scale" : "1x"
     },
     {
       "idiom" : "universal",
-      "scale" : "2x",
-      "filename" : "Stop@64.png"
+      "filename" : "Stop@128.png",
+      "scale" : "2x"
     },
     {
       "idiom" : "universal",
-      "scale" : "3x",
-      "filename" : "Stop@128.png"
+      "filename" : "Stop@256.png",
+      "scale" : "3x"
     }
   ],
   "info" : {

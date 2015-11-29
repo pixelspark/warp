@@ -44,6 +44,7 @@ internal extension NSViewController {
 	private var stepsViewController: QBEStepsViewController?
 	private var outletDropView: QBEOutletDropView!
 	private var viewFilters: [QBEColumn:QBEFilterSet] = [:]
+	private var hasFullData = false
 	
 	var outletView: QBEOutletView!
 	weak var delegate: QBEChainViewDelegate?
@@ -356,13 +357,13 @@ internal extension NSViewController {
 	private func presentRaster(raster: QBERaster?) {
 		if let dataView = self.dataViewController {
 			dataView.raster = raster
-			dataView.hasFullData = (raster != nil && useFullData)
+			hasFullData = (raster != nil && useFullData)
 			
 			if raster != nil && raster!.rowCount > 0 && !useFullData {
 				QBESettings.sharedInstance.showTip("workingSetTip") {
 					if let toolbar = self.view.window?.toolbar {
 						for item in toolbar.items {
-							if item.action == Selector("setFullWorkingSet:") {
+							if item.action == Selector("toggleFullData:") {
 								if let vw = item.view {
 									self.showTip(NSLocalizedString("By default, Warp shows you a small part of the data. Using this button, you can calculate the full result.",comment: "Working set selector tip"), atView: vw)
 								}
@@ -1209,152 +1210,187 @@ internal extension NSViewController {
 	@IBAction func dropStore(sender: NSObject) {
 		self.performMutation(.Drop)
 	}
+
+	@IBAction func toggleFullData(sender: NSObject) {
+		useFullData = !(useFullData || hasFullData)
+		hasFullData = false
+		self.view.window?.update()
+	}
+
+	@IBAction func refreshData(sender: NSObject) {
+		if !useFullData && hasFullData {
+			useFullData = true
+		}
+		else {
+			self.calculate()
+		}
+	}
+
+	override func validateToolbarItem(item: NSToolbarItem) -> Bool {
+		if item.action == Selector("toggleFullData:") {
+			if let c = item.view as? NSButton {
+				c.state = (hasFullData || useFullData) ? NSOnState: NSOffState
+			}
+		}
+
+		return validateSelector(item.action)
+	}
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
-		if item.action()==Selector("transposeData:") {
+		return validateSelector(item.action())
+	}
+
+	private func validateSelector(selector: Selector) -> Bool {
+		if selector == Selector("transposeData:") {
 			return currentStep != nil
 		}
-		else if item.action() == Selector("truncateStore:")  {
+		else if selector == Selector("truncateStore:")  {
 			if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Truncate) {
 				return true
 			}
 			return false
 		}
-		else if item.action() == Selector("dropStore:")  {
+		else if selector == Selector("dropStore:")  {
 			if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Drop) {
 				return true
 			}
 			return false
 		}
-		else if item.action() == Selector("alterStore:")  {
+		else if selector == Selector("alterStore:")  {
 			if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Alter(QBEDataDefinition(columnNames: []))) {
 				return true
 			}
 			return false
 		}
-		else if item.action()==Selector("clearAllFilters:") {
+		else if selector==Selector("clearAllFilters:") {
 			return self.viewFilters.count > 0
 		}
-		else if item.action()==Selector("makeAllFiltersPermanent:") {
+		else if selector==Selector("makeAllFiltersPermanent:") {
 			return self.viewFilters.count > 0
 		}
-		else if item.action()==Selector("crawl:") {
+		else if selector==Selector("crawl:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("addDebugStep:") {
+		else if selector==Selector("addDebugStep:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("aggregateRowsByCells:") {
+		else if selector==Selector("aggregateRowsByCells:") {
 			if let rowsToAggregate = dataViewController?.tableView?.selectedRowIndexes {
 				return rowsToAggregate.count > 0  && currentStep != nil
 			}
 			return false
 		}
-		else if item.action()==Selector("removeRows:") {
+		else if selector==Selector("removeRows:") {
 			if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
 				return rowsToRemove.count > 0  && currentStep != nil
 			}
 			return false
 		}
-		else if item.action()==Selector("removeColumns:") {
+		else if selector==Selector("removeColumns:") {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
 			}
 			return false
 		}
-		else if item.action()==Selector("renameColumn:") {
+		else if selector==Selector("renameColumn:") {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
 			}
 			return false
 		}
-		else if item.action()==Selector("selectColumns:") {
+		else if selector==Selector("selectColumns:") {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
 			}
 			return false
 		}
-		else if item.action()==Selector("addColumnAtEnd:") {
+		else if selector==Selector("addColumnAtEnd:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("addColumnAtBeginning:") {
+		else if selector==Selector("addColumnAtBeginning:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("addColumnToLeft:") {
+		else if selector==Selector("addColumnToLeft:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("addColumnToRight:") {
+		else if selector==Selector("addColumnToRight:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("exportFile:") {
+		else if selector==Selector("exportFile:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("goBack:") {
+		else if selector==Selector("goBack:") {
 			return currentStep?.previous != nil
 		}
-		else if item.action()==Selector("goForward:") {
+		else if selector==Selector("goForward:") {
 			return currentStep?.next != nil
 		}
-		else if item.action()==Selector("calculate:") {
+		else if selector==Selector("calculate:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("randomlySelectRows:") {
+		else if selector==Selector("randomlySelectRows:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("limitRows:") {
+		else if selector==Selector("limitRows:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("pivot:") {
+		else if selector==Selector("pivot:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("flatten:") {
+		else if selector==Selector("flatten:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("removeStep:") {
+		else if selector==Selector("removeStep:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("removeDuplicateRows:") {
+		else if selector==Selector("removeDuplicateRows:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("selectRows:") {
+		else if selector==Selector("selectRows:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("showSuggestions:") {
+		else if selector==Selector("showSuggestions:") {
 			return currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
 		}
-		else if item.action()==Selector("chooseFirstAlternativeStep:") {
+		else if selector==Selector("chooseFirstAlternativeStep:") {
 			return currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
 		}
-		else if item.action()==Selector("setFullWorkingSet:") {
+		else if selector==Selector("setFullWorkingSet:") {
 			return currentStep != nil && !useFullData
 		}
-		else if item.action()==Selector("setSelectionWorkingSet:") {
+		else if selector==Selector("toggleFullData:") {
+			return currentStep != nil
+		}
+		else if selector==Selector("setSelectionWorkingSet:") {
 			return currentStep != nil && useFullData
 		}
-		else if item.action()==Selector("sortRows:") {
+		else if selector==Selector("sortRows:") {
 			return currentStep != nil
 		}
-		else if item.action()==Selector("reverseSortRows:") {
+		else if selector==Selector("reverseSortRows:") {
 			return currentStep != nil
 		}
-		else if item.action() == Selector("removeTablet:") {
+		else if selector == Selector("removeTablet:") {
 			return true
 		}
-		else if item.action() == Selector("delete:") {
+		else if selector == Selector("delete:") {
 			return true
 		}
-		else if item.action()==Selector("paste:") {
+		else if selector==Selector("paste:") {
 			let pboard = NSPasteboard.generalPasteboard()
 			if pboard.dataForType(QBEStep.dragType) != nil {
 				return true
 			}
 			return false
 		}
-		else if item.action() == Selector("copy:") {
+		else if selector == Selector("copy:") {
 			return currentStep != nil
 		}
-		else if item.action() == Selector("cancelCalculation:") {
+		else if selector == Selector("cancelCalculation:") {
 			return self.calculator.calculating
+		}
+		else if selector == Selector("refreshData:") {
+			return !self.calculator.calculating
 		}
 		else {
 			return false

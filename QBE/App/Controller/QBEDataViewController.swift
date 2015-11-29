@@ -12,7 +12,6 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
 	var tableView: MBTableGrid?
-	@IBOutlet var fullDataIndicatorView: NSImageView!
 	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var columnContextMenu: NSMenu!
 	@IBOutlet var errorLabel: NSTextField!
@@ -26,10 +25,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		self.tableView?.dataSource = nil
 		self.tableView?.delegate = nil
 	}
-	
-	var hasFullData: Bool = false { didSet {
-		fullDataIndicatorView.hidden = !hasFullData
-	} }
 	
 	var calculating: Bool = false { didSet {
 		update()
@@ -380,8 +375,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			}
 		}
 		
-		// Move the full data indicator on top of the table grid, which was only just added
-		self.view.addSubview(self.fullDataIndicatorView)
 		updateFonts()
 		super.awakeFromNib()
 	}
