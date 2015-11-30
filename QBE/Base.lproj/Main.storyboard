@@ -1688,10 +1688,10 @@ CA
                             <visualEffectView blendingMode="behindWindow" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
                                 <rect key="frame" x="0.0" y="0.0" width="700" height="531"/>
                                 <subviews>
-                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
-                                        <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
+                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
+                                        <rect key="frame" x="0.0" y="0.0" width="700" height="501"/>
                                         <subviews>
-                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
+                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
                                                 <rect key="frame" x="148" y="240" width="404" height="29"/>
                                                 <animations/>
                                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="Drag files here or click '+' to add data" id="Zpo-PO-ycL">
@@ -1703,14 +1703,14 @@ CA
                                                     <action selector="addButtonClicked:" target="y5B-O8-QaO" id="Xkt-W6-slr"/>
                                                 </connections>
                                             </textField>
-                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
-                                                <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
-                                                <clipView key="contentView" drawsBackground="NO" id="883-xW-r8t">
-                                                    <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
+                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" ambiguous="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
+                                                <rect key="frame" x="0.0" y="0.0" width="700" height="501"/>
+                                                <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="883-xW-r8t">
+                                                    <rect key="frame" x="0.0" y="0.0" width="700" height="501"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CDw-5V-yTY">
-                                                            <rect key="frame" x="132" y="-137" width="66" height="115"/>
+                                                            <rect key="frame" x="132" y="-136" width="66" height="115"/>
                                                             <animations/>
                                                         </view>
                                                     </subviews>
@@ -1744,11 +1744,11 @@ CA
                                         </constraints>
                                         <animations/>
                                     </customView>
-                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="500" width="700" height="31"/>
+                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="501" width="700" height="30"/>
                                         <subviews>
-                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
-                                                <rect key="frame" x="4" y="5" width="688" height="22"/>
+                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
+                                                <rect key="frame" x="4" y="4" width="688" height="22"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>
                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="xfu-7p-qw7"/>
@@ -1762,7 +1762,7 @@ CA
                                         <constraints>
                                             <constraint firstAttribute="trailing" secondItem="JGk-n3-nvK" secondAttribute="trailing" constant="8" id="Cde-rP-Ydl"/>
                                             <constraint firstItem="JGk-n3-nvK" firstAttribute="top" secondItem="20V-eU-jYi" secondAttribute="top" constant="4" id="gDJ-kl-0Pc"/>
-                                            <constraint firstAttribute="bottom" secondItem="JGk-n3-nvK" secondAttribute="bottom" constant="5" id="lZT-7m-xMo"/>
+                                            <constraint firstAttribute="bottom" secondItem="JGk-n3-nvK" secondAttribute="bottom" constant="4" id="lZT-7m-xMo"/>
                                             <constraint firstItem="JGk-n3-nvK" firstAttribute="leading" secondItem="20V-eU-jYi" secondAttribute="leading" constant="4" id="qYv-ch-zwG"/>
                                         </constraints>
                                         <animations/>
