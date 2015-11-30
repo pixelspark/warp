@@ -785,7 +785,15 @@ internal extension NSViewController {
 	
 	@IBAction func showSuggestions(sender: NSObject) {
 		if let s = currentStep {
-			showSuggestionsForStep(s, atView: self.stepsViewController?.view ?? self.view)
+			let view: NSView
+			if let toolbarView = sender as? NSView {
+				view = toolbarView
+			}
+			else {
+				view = self.stepsViewController?.view ?? self.view
+			}
+
+			showSuggestionsForStep(s, atView: view)
 		}
 	}
 	

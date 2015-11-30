@@ -56,14 +56,19 @@ internal extension NSAlert {
 	@IBInspectable var topBorder: Bool = false
 	@IBInspectable var rightBorder: Bool = false
 	@IBInspectable var bottomBorder: Bool = false
-	@IBInspectable var backgroundColor: NSColor = NSColor.controlBackgroundColor()
-	@IBInspectable var borderColor: NSColor = NSColor.controlDarkShadowColor()
+	@IBInspectable var backgroundColor: NSColor = NSColor.windowFrameColor() { didSet { self.setNeedsDisplayInRect(self.bounds) } }
+	@IBInspectable var borderColor: NSColor = NSColor.windowFrameColor() { didSet { self.setNeedsDisplayInRect(self.bounds) } }
 	
 	override func drawRect(dirtyRect: NSRect) {
 		backgroundColor.set()
 		NSRectFill(self.bounds)
-		
-		borderColor.setStroke()
+
+		let start = NSColor.controlBackgroundColor().colorWithAlphaComponent(0.7)
+		let end = NSColor.controlBackgroundColor().colorWithAlphaComponent(0.6)
+		let g = NSGradient(startingColor: start, endingColor: end)
+		g?.drawInRect(self.bounds, angle: 270.0)
+
+		borderColor.set()
 		var bounds = self.bounds
 		bounds.intersectInPlace(dirtyRect)
 		
@@ -76,11 +81,11 @@ internal extension NSAlert {
 		}
 		
 		if topBorder {
-			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y, bounds.size.width, 1))
+			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y + bounds.size.height - 1, bounds.size.width, 1))
 		}
 		
 		if bottomBorder {
-			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y + bounds.size.height, bounds.size.width, 1))
+			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y, bounds.size.width, 1))
 		}
 	}
 }
