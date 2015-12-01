@@ -293,7 +293,7 @@
 "MQx-KQ-iXd.title" = "Voeg toe als stap";
 "C24-Sv-YCP.title" = "Naar achtergrond";
 "68C-Sa-h9M.title" = "Voer uit";
-"LGC-Mi-RUG.title" = "Bron";
+"LGC-Mi-RUG.title" = "Bronoperaties";
 "LPb-df-lkY.title" = "Verwijder alle rijen...";
 "NQ3-pS-d85.title" = "Verwijder dataset...";
 "xwx-V7-Rym.label" = "Bereken";
@@ -304,7 +304,7 @@
 "x5m-PR-1Iz.title" = "Omschrijving";
 "x5m-PR-1Iz.headerCell.title" = "Omschrijving";
 "hzF-PW-Ixe.title" = "Achtergrondtaken...";
-"sRO-jn-RSu.title" = "Bron";
+"sRO-jn-RSu.title" = "Bronoperaties";
 "bW-HU-EDH.title" = "Gegevens toevoegen";
 "Ag9-2H-Gsn.title" = "";
 "n3n-c9-OFg.title" = "";
@@ -338,3 +338,18 @@
 "4nh-y5-Jb0.paletteLabel" = "Vernieuw gegevens";
 "qo5-X1-gJ6.label" = "Alternatieven";
 "qo5-X1-gJ6.paletteLabel" = "Toon alternatieven";
+"jdM-jE-qua.label" = "Bewerken";
+"jdM-jE-qua.paletteLabel" = "Gegevens bewerken";
+
+"XKf-Bh-Q7R.title" = "Gegevens bewerken";
+"5WH-L1-9lb.title" = "Stop gegevens bewerken";
+
+"baz-Un-oZ9.paletteLabel" = "Brondataset leegmaken";
+"baz-Un-oZ9.label" = "Leegmaken";
+
+"BvK-Pa-sl9.paletteLabel" = "Brondataset verwijderen";
+"BvK-Pa-sl9.label" = "Verwijderen";
+
+"PkZ-zF-Svr.paletteLabel" = "Bronstructuur wijzigen";
+"PkZ-zF-Svr.label" = "Structuur";
+

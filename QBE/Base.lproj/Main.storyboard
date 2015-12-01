@@ -312,12 +312,6 @@ DQ
                                                 <action selector="paste:" target="Ady-hI-5gd" id="UvS-8e-Qdg"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Paste and Match Style" keyEquivalent="V" id="WeT-3V-zwk">
-                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
-                                            <connections>
-                                                <action selector="pasteAsPlainText:" target="Ady-hI-5gd" id="cEh-KX-wJQ"/>
-                                            </connections>
-                                        </menuItem>
                                         <menuItem title="Delete" id="pa3-QI-u2k">
                                             <string key="keyEquivalent" base64-UTF8="YES">
 CA
@@ -333,6 +327,49 @@ CA
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="oRc-rJ-6Zu"/>
+                                        <menuItem title="Edit data" id="XKf-Bh-Q7R">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                                            <connections>
+                                                <action selector="startEditing:" target="Ady-hI-5gd" id="jSj-Ji-FxC"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Stop editing data" alternate="YES" id="5WH-L1-9lb">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+DQ
+</string>
+                                            <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="stopEditing:" target="Ady-hI-5gd" id="kID-Yy-68l"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Source operations" id="LGC-Mi-RUG">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Source operations" id="sRO-jn-RSu">
+                                                <items>
+                                                    <menuItem title="Remove all rows..." id="LPb-df-lkY">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="truncateStore:" target="Ady-hI-5gd" id="TIk-sw-KFb"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Delete data set..." id="NQ3-pS-d85">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="dropStore:" target="Ady-hI-5gd" id="Y59-ih-jue"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Change structure..." id="9CM-oY-bpM">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="alterStore:" target="Ady-hI-5gd" id="X1H-io-21q"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="QmF-ID-jEv"/>
                                         <menuItem title="Format" id="jxT-CU-nIS">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <menu key="submenu" title="Format" id="GEO-Iw-cKr">
@@ -816,16 +853,13 @@ GQ
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="XZR-zT-kd0"/>
-                                        <menuItem title="Clear all filters" id="CcJ-5P-Kf9">
-                                            <string key="keyEquivalent" base64-UTF8="YES">
-CA
-</string>
+                                        <menuItem title="Clear all filters" keyEquivalent="\" id="CcJ-5P-Kf9">
                                             <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
                                             <connections>
                                                 <action selector="clearAllFilters:" target="Ady-hI-5gd" id="Q4V-kA-y49"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Add current filters as a step" keyEquivalent="F" id="HqL-9Y-nH9">
+                                        <menuItem title="Add current filters as a step" keyEquivalent="\" id="HqL-9Y-nH9">
                                             <connections>
                                                 <action selector="makeAllFiltersPermanent:" target="Ady-hI-5gd" id="38E-7H-DVb"/>
                                             </connections>
@@ -988,32 +1022,6 @@ CA
                                             <connections>
                                                 <action selector="crawl:" target="Ady-hI-5gd" id="9Pk-ZZ-CZq"/>
                                             </connections>
-                                        </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="0IV-ya-3me"/>
-                                        <menuItem title="Source" id="LGC-Mi-RUG">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <menu key="submenu" title="Source" id="sRO-jn-RSu">
-                                                <items>
-                                                    <menuItem title="Remove all rows..." id="LPb-df-lkY">
-                                                        <modifierMask key="keyEquivalentModifierMask"/>
-                                                        <connections>
-                                                            <action selector="truncateStore:" target="Ady-hI-5gd" id="TIk-sw-KFb"/>
-                                                        </connections>
-                                                    </menuItem>
-                                                    <menuItem title="Delete data set..." id="NQ3-pS-d85">
-                                                        <modifierMask key="keyEquivalentModifierMask"/>
-                                                        <connections>
-                                                            <action selector="dropStore:" target="Ady-hI-5gd" id="Y59-ih-jue"/>
-                                                        </connections>
-                                                    </menuItem>
-                                                    <menuItem title="Change structure..." id="9CM-oY-bpM">
-                                                        <modifierMask key="keyEquivalentModifierMask"/>
-                                                        <connections>
-                                                            <action selector="alterStore:" target="Ady-hI-5gd" id="X1H-io-21q"/>
-                                                        </connections>
-                                                    </menuItem>
-                                                </items>
-                                            </menu>
                                         </menuItem>
                                     </items>
                                 </menu>
@@ -1657,12 +1665,81 @@ CA
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="UB3-EK-cBx"/>
                                 <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="g2T-uw-sdG"/>
+                                <toolbarItem implicitItemIdentifier="C8134A35-D81B-4D2E-B6D7-28058BB59890" label="Edit" paletteLabel="Edit data" image="EditIcon" id="jdM-jE-qua" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="43" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="B2l-24-Cv0">
+                                        <rect key="frame" x="6" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="EditIcon" imagePosition="overlaps" alignment="center" alternateImage="EditingIcon" lineBreakMode="truncatingTail" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="1IT-90-BEM">
+                                            <behavior key="behavior" pushIn="YES" changeContents="YES" lightByContents="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
+                                    <connections>
+                                        <action selector="toggleEditing:" target="6f7-a7-6o1" id="hdk-le-PYs"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="70745AA2-F3E0-4606-B0BB-0C8C327F9197" label="Remove source data" paletteLabel="Remove source data" image="TrashIcon" id="BvK-Pa-sl9" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="43" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="a5C-pu-UBJ">
+                                        <rect key="frame" x="36" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="TrashIcon" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="hQL-bk-L0S">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
+                                    <connections>
+                                        <action selector="dropStore:" target="6f7-a7-6o1" id="MPz-mt-0ef"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="F3AA4A95-08CA-494D-99F5-91D76EEC14EC" label="Empty source data" paletteLabel="Empty source data" image="ShredIcon" id="baz-Un-oZ9" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="43" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="biH-bc-T6f">
+                                        <rect key="frame" x="32" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="ShredIcon" imagePosition="only" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="XCh-Yy-aaJ">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
+                                    <connections>
+                                        <action selector="truncateStore:" target="6f7-a7-6o1" id="PWT-dy-vHH"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="59AAAF35-77FE-4082-8CB1-62386FD310E5" label="Modify structure" paletteLabel="Modify structure" image="AlterIcon" id="PkZ-zF-Svr" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="43" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="B6d-tH-2pV">
+                                        <rect key="frame" x="26" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <animations/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="AlterIcon" imagePosition="only" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="lFO-4S-fCI">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
+                                    <connections>
+                                        <action selector="alterStore:" target="6f7-a7-6o1" id="7Hq-x0-4dn"/>
+                                    </connections>
+                                </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="JIm-dh-FPE"/>
                                 <toolbarItem reference="g2T-uw-sdG"/>
                                 <toolbarItem reference="IjL-nI-Ixx"/>
                                 <toolbarItem reference="dSb-OG-sLN"/>
+                                <toolbarItem reference="jdM-jE-qua"/>
                                 <toolbarItem reference="g2T-uw-sdG"/>
                                 <toolbarItem reference="WfI-yD-3jF"/>
                                 <toolbarItem reference="k8n-C8-T8N"/>
@@ -3119,18 +3196,23 @@ DQ
         </scene>
     </scenes>
     <resources>
+        <image name="AlterIcon" width="51" height="51"/>
         <image name="BigIcon" width="51" height="51"/>
         <image name="ChangeIcon" width="51" height="51"/>
         <image name="CloseIcon" width="26" height="26"/>
+        <image name="EditIcon" width="51" height="51"/>
+        <image name="EditingIcon" width="51" height="51"/>
         <image name="ExportIcon" width="51" height="51"/>
         <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSGoRightTemplate" width="9" height="12"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
         <image name="ReloadIcon" width="51" height="51"/>
+        <image name="ShredIcon" width="51" height="51"/>
         <image name="SmallIcon" width="26" height="26"/>
         <image name="StopIcon" width="51" height="51"/>
         <image name="TipIcon" width="32" height="32"/>
+        <image name="TrashIcon" width="51" height="51"/>
         <image name="ZoomInIcon" width="51" height="51"/>
         <image name="ZoomOutIcon" width="51" height="51"/>
     </resources>

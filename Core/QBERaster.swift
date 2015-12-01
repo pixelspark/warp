@@ -189,6 +189,47 @@ public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 			}
 		}
 	}
+
+	public func update(key: [QBEColumn: QBEValue], column: QBEColumn, old: QBEValue, new: QBEValue) -> Int {
+		return self.mutex.locked {
+			var changes = 0
+
+			let fastMapping = key.mapDictionary({ (col, value) -> (Int, QBEValue) in
+				return (self.indexOfColumnWithName(col)!, value)
+			})
+
+			let columnIndex = self.indexOfColumnWithName(column)!
+
+			for rowIndex in  0..<rowCount {
+				var row = raster[rowIndex]
+
+				// Does this row match the key?
+				var match = true
+				for (colIndex, value) in fastMapping {
+					if row[colIndex] != value {
+						match = false
+						break
+					}
+				}
+
+				if !match {
+					continue
+				}
+
+				if row[columnIndex] == old {
+					// Old value matches, we should change it to the new value
+					row[columnIndex] = new
+					raster[rowIndex] = row
+					changes++
+				}
+				else {
+					// No change
+				}
+			}
+
+			return changes
+		}
+	}
 	
 	override public var debugDescription: String {
 		return self.mutex.locked {
@@ -1118,16 +1159,20 @@ public class QBERasterMutableData: QBEMutableData {
 		return QBERasterDataWarehouse()
 	}
 
+	public func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>>) -> ()) {
+		callback(.Success(Set(raster.columnNames)))
+	}
+
 	public func canPerformMutation(mutation: QBEDataMutation) -> Bool {
 		if self.raster.readOnly {
 			return false
 		}
 
 		switch mutation {
-		case .Truncate, .Alter(_), .Insert(_, _):
+		case .Truncate, .Alter(_), .Insert(_, _), .Update(_,_,_,_):
 			return true
 
-		default:
+		case .Drop:
 			return false
 		}
 	}
@@ -1161,7 +1206,24 @@ public class QBERasterMutableData: QBEMutableData {
 				}
 			}
 
-		default:
+		case .Update(key: let key, column: let column, old: let old, new: let new):
+			// Do all the specified columns exist?
+			if raster.indexOfColumnWithName(column) == nil {
+				callback(.Failure("Column '\(column.name)' does not exist in raster and therefore cannot be updated"))
+				return
+			}
+
+			for (col, _) in key {
+				if raster.indexOfColumnWithName(col) == nil {
+					callback(.Failure("Column '\(col.name)' does not exist in raster and therefore cannot be updated"))
+					return
+				}
+			}
+
+			raster.update(key, column: column, old: old, new: new)
+			callback(.Success())
+
+		case .Drop:
 			callback(.Failure("Not supported"))
 		}
 	}

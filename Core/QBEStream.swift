@@ -473,7 +473,7 @@ private class QBETransformer: NSObject, QBEStream {
 				switch fallibleRows {
 					case .Success(let rows):
 						job.async {
-							self.transform(rows, streamStatus: streamStatus, outstanding: outstanding, job: job, callback: { (transformedRows, newStreamStatus) -> () in
+							self.transform(rows, streamStatus: streamStatus, outstanding: outstanding, job: job, callback: QBEOnce { (transformedRows, newStreamStatus) -> () in
 								let stopped = self.mutex.locked { () -> Bool in
 									self.stopped = self.stopped || newStreamStatus != .HasMore
 									return self.stopped
@@ -855,8 +855,9 @@ private class QBECalculateTransformer: QBETransformer {
 		self.calculations = optimizedCalculations
 		super.init(source: source)
 
-		self.ensureIndexes = QBEFuture({ [unowned self] (job, callback) -> () in
-			if self.indices == nil {
+		var s: QBECalculateTransformer? = self
+		self.ensureIndexes = QBEFuture({ (job, callback) -> () in
+			if s!.indices == nil {
 				source.columnNames(job) { (columnNames) -> () in
 					switch columnNames {
 					case .Success(let cns):
@@ -864,7 +865,7 @@ private class QBECalculateTransformer: QBETransformer {
 						var indices = Dictionary<QBEColumn, Int>()
 
 						// Create newly calculated columns
-						for (targetColumn, _) in self.calculations {
+						for (targetColumn, _) in s!.calculations {
 							var columnIndex = cns.indexOf(targetColumn) ?? -1
 							if columnIndex == -1 {
 								columns.append(targetColumn)
@@ -872,18 +873,20 @@ private class QBECalculateTransformer: QBETransformer {
 							}
 							indices[targetColumn] = columnIndex
 						}
-						self.indices = .Success(indices)
-						self.columns = .Success(columns)
+						s!.indices = .Success(indices)
+						s!.columns = .Success(columns)
 
 					case .Failure(let error):
-						self.columns = .Failure(error)
-						self.indices = .Failure(error)
+						s!.columns = .Failure(error)
+						s!.indices = .Failure(error)
 					}
 
+					s = nil
 					callback()
 				}
 			}
 			else {
+				s = nil
 				callback()
 			}
 		})

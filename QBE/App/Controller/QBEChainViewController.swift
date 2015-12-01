@@ -37,6 +37,12 @@ internal extension NSViewController {
 	}
 }
 
+internal enum QBEEditingMode {
+	case NotEditing
+	case EnablingEditing
+	case Editing(identifiers: Set<QBEColumn>)
+}
+
 @objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
 	private var suggestions: QBEFuture<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator()
@@ -58,6 +64,26 @@ internal extension NSViewController {
 			}
 		}
 	}
+
+	internal var editingMode: QBEEditingMode = .NotEditing {
+		didSet {
+			QBEAssertMainThread()
+			self.updateView()
+		}
+	}
+
+	internal var supportsEditing: Bool {
+		if let r = self.calculator.currentRaster?.result {
+			if case .Failure(_) = r {
+				return false
+			}
+
+			if let _ = self.currentStep?.mutableData {
+				return true
+			}
+		}
+		return false
+	}
 	
 	internal var locale: QBELocale { get {
 		return QBEAppDelegate.sharedInstance.locale ?? QBELocale()
@@ -65,6 +91,7 @@ internal extension NSViewController {
 	
 	dynamic var currentStep: QBEStep? {
 		didSet {
+			self.editingMode = .NotEditing
 			if let s = currentStep {
 				self.previewStep = nil				
 				delegate?.chainView(self, configureStep: s, delegate: self)
@@ -81,6 +108,7 @@ internal extension NSViewController {
 	
 	var previewStep: QBEStep? {
 		didSet {
+			self.editingMode = .NotEditing
 			if previewStep != currentStep?.previous {
 				previewStep?.previous = currentStep?.previous
 			}
@@ -361,8 +389,10 @@ internal extension NSViewController {
 			hasFullData = (raster != nil && useFullData)
 			
 			if raster != nil && raster!.rowCount > 0 && !useFullData {
-				QBESettings.sharedInstance.showTip("workingSetTip") {
-					if let toolbar = self.view.window?.toolbar {
+				if let toolbar = self.view.window?.toolbar {
+					toolbar.validateVisibleItems()
+					self.view.window?.update()
+					QBESettings.sharedInstance.showTip("workingSetTip") {
 						for item in toolbar.items {
 							if item.action == Selector("toggleFullData:") {
 								if let vw = item.view {
@@ -430,6 +460,7 @@ internal extension NSViewController {
 		}
 		self.useFullData = false
 		self.view.window?.update()
+		self.view.window?.toolbar?.validateVisibleItems()
 	}
 	
 	private func refreshData() {
@@ -440,10 +471,12 @@ internal extension NSViewController {
 			QBEAsyncMain {
 				self.presentRaster(fallibleRaster)
 				self.useFullData = false
+				self.view.window?.toolbar?.validateVisibleItems()
 				self.view.window?.update()
 			}
 		}
 		job?.addObserver(self)
+		self.view.window?.toolbar?.validateVisibleItems()
 		self.view.window?.update() // So that the 'cancel calculation' toolbar button autovalidates
 	}
 	
@@ -567,24 +600,73 @@ internal extension NSViewController {
 		return false
 	}
 
-	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
+	func dataView(view: QBEDataViewController, didChangeValue oldValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
 		suggestions?.cancel()
-		
-		calculator.currentRaster?.get { (fallibleRaster) -> () in
-			fallibleRaster.maybe { (raster) -> () in
-				self.suggestions = QBEFuture<[QBEStep]>({(job, callback) -> () in
-					job.async {
-						let expressions = QBECalculateStep.suggest(change: didChangeValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
-						callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)}))
-					}
-				}, timeLimit: 5.0)
-				
-				self.suggestions!.get {(steps) -> () in
-					QBEAsyncMain {
-						self.suggestSteps(steps)
+
+		switch self.editingMode {
+		case .NotEditing:
+			// In non-editing mode, we make a suggestion for a calculation
+			calculator.currentRaster?.get { (fallibleRaster) -> () in
+				fallibleRaster.maybe { (raster) -> () in
+					self.suggestions = QBEFuture<[QBEStep]>({(job, callback) -> () in
+						job.async {
+							let expressions = QBECalculateStep.suggest(change: oldValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
+							callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)}))
+						}
+						}, timeLimit: 5.0)
+
+					self.suggestions!.get {(steps) -> () in
+						QBEAsyncMain {
+							self.suggestSteps(steps)
+						}
 					}
 				}
 			}
+
+		case .Editing(identifiers: let identifiers):
+			let errorMessage = String(format: NSLocalizedString("Cannot change '%@' to '%@'", comment: ""), oldValue.stringValue ?? "", toValue.stringValue ?? "")
+
+			// In editing mode, we perform the edit on the mutable data set
+			if let md = self.currentStep?.mutableData {
+				let job = QBEJob(.UserInitiated)
+				calculator.currentRaster?.get(job) { result in
+					switch result {
+					case .Success(let raster):
+						// Create key
+						let row = QBERow(raster[inRow], columnNames: raster.columnNames)
+						var key: [QBEColumn: QBEValue] = [:]
+						for identifyingColumn in identifiers {
+							key[identifyingColumn] = row[identifyingColumn]
+						}
+
+						let mutation = QBEDataMutation.Update(key: key, column: raster.columnNames[column], old: oldValue, new: toValue)
+						md.performMutation(mutation, job: job) { result in
+							switch result {
+							case .Success():
+								// All ok
+								QBEAsyncMain {
+									self.calculate()
+								}
+								break
+
+							case .Failure(let e):
+								QBEAsyncMain {
+									NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+								}
+							}
+						}
+
+					case .Failure(let e):
+						QBEAsyncMain {
+							NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+						}
+					}
+				}
+			}
+
+		case .EnablingEditing:
+			return false
+
 		}
 		return false
 	}
@@ -614,6 +696,7 @@ internal extension NSViewController {
 	
 	private func stepsChanged() {
 		QBEAssertMainThread()
+		self.editingMode = .NotEditing
 		self.stepsViewController?.steps = chain?.steps
 		self.stepsViewController?.currentStep = currentStep
 		updateView()
@@ -751,6 +834,7 @@ internal extension NSViewController {
 	private func updateView() {
 		QBEAssertMainThread()
 		self.view.window?.update()
+		self.view.window?.toolbar?.validateVisibleItems()
 	}
 	
 	private func suggestSteps(var steps: Array<QBEStep>) {
@@ -1237,6 +1321,50 @@ internal extension NSViewController {
 		self.performMutation(.Drop)
 	}
 
+	@IBAction func startEditing(sender: NSObject) {
+		if let md = self.currentStep?.mutableData where self.supportsEditing {
+			self.editingMode = .EnablingEditing
+			let job = QBEJob(.UserInitiated)
+			md.identifier(job) { result in
+				QBEAsyncMain {
+					switch self.editingMode {
+					case .EnablingEditing:
+						switch result {
+						case .Success(let ids):
+							self.editingMode = .Editing(identifiers: ids)
+
+						case .Failure(let e):
+							NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .WarningAlertStyle, window: self.view.window)
+							self.editingMode = .NotEditing
+						}
+
+					default:
+						// Editing request was apparently cancelled, do not switch to editing mode
+						break
+					}
+
+					self.view.window?.update()
+				}
+			}
+		}
+		self.view.window?.update()
+	}
+
+	@IBAction func stopEditing(sender: NSObject) {
+		self.editingMode = .NotEditing
+		self.view.window?.update()
+	}
+
+	@IBAction func toggleEditing(sender: NSObject) {
+		switch editingMode {
+		case .EnablingEditing, .Editing(identifiers: _):
+			self.stopEditing(sender)
+
+		case .NotEditing:
+			self.startEditing(sender)
+		}
+	}
+
 	@IBAction func toggleFullData(sender: NSObject) {
 		useFullData = !(useFullData || hasFullData)
 		hasFullData = false
@@ -1255,7 +1383,21 @@ internal extension NSViewController {
 	override func validateToolbarItem(item: NSToolbarItem) -> Bool {
 		if item.action == Selector("toggleFullData:") {
 			if let c = item.view as? NSButton {
-				c.state = (hasFullData || useFullData) ? NSOnState: NSOffState
+				c.state = (currentStep != nil && (hasFullData || useFullData)) ? NSOnState: NSOffState
+			}
+		}
+		else if item.action == Selector("toggleEditing:") {
+			if let c = item.view as? NSButton {
+				switch self.editingMode {
+				case .Editing(_):
+					c.state = NSOnState
+
+				case .EnablingEditing:
+					c.state = NSMixedState
+
+				case .NotEditing:
+					c.state = NSOffState
+				}
 			}
 		}
 
@@ -1271,22 +1413,40 @@ internal extension NSViewController {
 			return currentStep != nil
 		}
 		else if selector == Selector("truncateStore:")  {
-			if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Truncate) {
-				return true
+			switch editingMode {
+			case .Editing:
+				if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Truncate) {
+					return true
+				}
+				return false
+
+			default:
+				return false
 			}
-			return false
 		}
 		else if selector == Selector("dropStore:")  {
-			if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Drop) {
-				return true
+			switch editingMode {
+			case .Editing:
+				if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Drop) {
+					return true
+				}
+				return false
+
+			default:
+				return false
 			}
-			return false
 		}
 		else if selector == Selector("alterStore:")  {
-			if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Alter(QBEDataDefinition(columnNames: []))) {
-				return true
+			switch editingMode {
+			case .Editing:
+				if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Alter(QBEDataDefinition(columnNames: []))) {
+					return true
+				}
+				return false
+
+			default:
+				return false
 			}
-			return false
 		}
 		else if selector==Selector("clearAllFilters:") {
 			return self.viewFilters.count > 0
@@ -1386,6 +1546,25 @@ internal extension NSViewController {
 		}
 		else if selector==Selector("toggleFullData:") {
 			return currentStep != nil
+		}
+		else if selector==Selector("toggleEditing:") {
+			return currentStep != nil && supportsEditing
+		}
+		else if selector==Selector("startEditing:") {
+			switch self.editingMode {
+			case .Editing(identifiers: _), .EnablingEditing:
+				return false
+			case .NotEditing:
+				return currentStep != nil && supportsEditing
+			}
+		}
+		else if selector==Selector("stopEditing:") {
+			switch self.editingMode {
+			case .Editing(identifiers: _), .EnablingEditing:
+				return true
+			case .NotEditing:
+				return false
+			}
 		}
 		else if selector==Selector("setSelectionWorkingSet:") {
 			return currentStep != nil && useFullData

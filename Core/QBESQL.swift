@@ -294,6 +294,10 @@ public class QBESQLMutableData: QBEMutableData {
 		self.schemaName = schemaName
 	}
 
+	public func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>>) -> ()) {
+		return callback(.Failure("Not implemented"))
+	}
+
 	private var tableIdentifier: String {
 		return self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.database.databaseName)
 	}
@@ -437,6 +441,9 @@ public class QBESQLMutableData: QBEMutableData {
 						case .Insert(let data, let mapping):
 							self.performInsert(con, data: data, mapping: mapping, job: job, callback: callback)
 
+						case .Update(key: _, column: _, old: _, new: _):
+							callback(.Failure("Not implemented"))
+
 						}
 
 					case .Failure(let e):
@@ -450,6 +457,9 @@ public class QBESQLMutableData: QBEMutableData {
 		switch mutation {
 		case .Truncate, .Drop, .Insert(_, _):
 			return true
+
+		case .Update(_,_,_,_):
+			return false
 
 		case .Alter(_):
 			/* In some cases, an alter results in columns being changes/dropped, which is not supported by some databases
