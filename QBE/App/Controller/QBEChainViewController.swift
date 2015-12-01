@@ -715,7 +715,7 @@ internal enum QBEEditingMode {
 			
 			self.currentStep?.fullData(job) { result in
 				result.maybe { fullData in
-					self.currentStep?.exampleData(job, maxInputRows: self.calculator.maximumExampleInputRows, maxOutputRows: self.calculator.desiredExampleRows) { exampleData in
+					self.currentStep?.exampleData(job, maxInputRows: self.calculator.maximumExampleInputRows, maxOutputRows: self.calculator.desiredExampleRows) { result in
 						result.maybe { exampleData in
 							QBEAsyncMain {
 								filterViewController.data = exampleData

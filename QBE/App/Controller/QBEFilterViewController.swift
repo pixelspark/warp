@@ -53,10 +53,11 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		reloadJob?.cancel()
 		reloadJob = nil
 		
-		if let d = (searchData ?? data), let c = column {
+		if let d = data, let c = column {
 			var filteredData = d
 			if let search = searchField?.stringValue where !search.isEmpty {
 				lastSearch = search
+				filteredData = searchData ?? filteredData
 				filteredData = filteredData.filter(QBEBinaryExpression(first: QBELiteralExpression(QBEValue(search)), second: QBESiblingExpression(columnName: c), type: QBEBinary.MatchesRegex))
 			}
 			
@@ -174,6 +175,10 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		self.reloadData()
 		self.filterChanged()
 		super.viewWillAppear()
+	}
+
+	override func viewWillDisappear() {
+		self.reloadJob?.cancel()
 	}
 	
 	@IBAction func clearFilter(sender: NSObject) {
