@@ -352,6 +352,7 @@ class QBEScrollView: NSScrollView {
 protocol QBEWorkspaceViewDelegate: NSObjectProtocol {
 	func workspaceView(view: QBEWorkspaceView, didReceiveFiles: [String], atLocation: CGPoint)
 	func workspaceView(view: QBEWorkspaceView, didReceiveChain: QBEChain, atLocation: CGPoint)
+	func workspaceView(view: QBEWorkspaceView, didRecieveColumnSet:[QBEColumn], fromDataViewController: QBEDataViewController)
 }
 
 class QBEWorkspaceView: QBEScrollView {
@@ -363,7 +364,7 @@ class QBEWorkspaceView: QBEScrollView {
 	}
 	
 	override func awakeFromNib() {
-		registerForDraggedTypes([NSFilenamesPboardType, QBEOutletView.dragType])
+		registerForDraggedTypes([NSFilenamesPboardType, QBEOutletView.dragType, MBTableGridColumnDataType])
 	}
 	
 	override func draggingEntered(sender: NSDraggingInfo) -> NSDragOperation {
@@ -375,6 +376,11 @@ class QBEWorkspaceView: QBEScrollView {
 			return NSDragOperation.Copy
 		}
 		else if let _ = pboard.dataForType(QBEOutletView.dragType) {
+			draggingOver = true
+			setNeedsDisplayInRect(self.bounds)
+			return NSDragOperation.Link
+		}
+		else if let _ = pboard.dataForType(MBTableGridColumnDataType) {
 			draggingOver = true
 			setNeedsDisplayInRect(self.bounds)
 			return NSDragOperation.Link
@@ -421,6 +427,14 @@ class QBEWorkspaceView: QBEScrollView {
 					delegate?.workspaceView(self, didReceiveChain: draggedChain, atLocation: pointInDocument)
 					return true
 				}
+			}
+		}
+		else if let d = pboard.dataForType(MBTableGridColumnDataType) {
+			if	let grid = draggingInfo.draggingSource() as? MBTableGrid,
+				let dc = grid.dataSource as? QBEDataViewController,
+				let indexSet = NSKeyedUnarchiver.unarchiveObjectWithData(d) as? NSIndexSet,
+				let names = dc.raster?.columnNames.objectsAtIndexes(indexSet) {
+					delegate?.workspaceView(self, didRecieveColumnSet:names, fromDataViewController: dc)
 			}
 		}
 		else if let files: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {

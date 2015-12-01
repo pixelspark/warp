@@ -474,6 +474,48 @@ import WarpCore
 			ac.present()
 		}
 	}
+
+	func workspaceView(view: QBEWorkspaceView, didRecieveColumnSet colset: [QBEColumn], fromDataViewController dc: QBEDataViewController) {
+		if colset.count == 1 {
+			if let sourceChainController = dc.parentViewController as? QBEChainViewController, let step = sourceChainController.chain?.head {
+				let job = QBEJob(.UserInitiated)
+				step.fullData(job) { result in
+					switch result {
+					case .Success(let data):
+						data.unique(QBESiblingExpression(columnName: colset.first!), job: job) { result in
+							switch result {
+							case .Success(let uniqueValues):
+								let rows = uniqueValues.map({ item in return [item] })
+								let raster = QBERaster(data: rows, columnNames: [colset.first!], readOnly: false)
+								let chain = QBEChain(head: QBERasterStep(raster: raster))
+								let tablet = QBETablet(chain: chain)
+								QBEAsyncMain {
+									self.addTablet(tablet, atLocation: nil, undo: true)
+
+									let joinStep = QBEJoinStep(previous: nil)
+									joinStep.joinType = QBEJoinType.LeftJoin
+									joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: colset.first!), second: QBEForeignExpression(columnName: colset.first!), type: .Equal)
+									joinStep.right = chain
+									sourceChainController.chain?.insertStep(joinStep, afterStep: sourceChainController.chain?.head)
+									sourceChainController.currentStep = joinStep
+								}
+
+							case .Failure(_):
+								break
+							}
+
+						}
+
+					case .Failure(_):
+						break
+					}
+				}
+			}
+		}
+		else {
+			// Do something with more than one column (multijoin)
+		}
+	}
 	
 	func workspaceView(view: QBEWorkspaceView, didReceiveFiles files: [String], atLocation: CGPoint) {
 		// Gather file paths
