@@ -677,17 +677,24 @@ internal enum QBEEditingMode {
 	
 	func dataView(view: QBEDataViewController, filterControllerForColumn column: QBEColumn, callback: (NSViewController) -> ()) {
 		if let filterViewController = self.storyboard?.instantiateControllerWithIdentifier("filterView") as? QBEFilterViewController {
-			self.calculator.currentData?.get { (data) -> () in
-				data.maybe { (d) in
-					QBEAsyncMain {
-						filterViewController.data = d
-						filterViewController.column = column
-						filterViewController.delegate = self
-						
-						if let filterSet = self.viewFilters[column] {
-							filterViewController.filter = filterSet
+			let job = QBEJob(.UserInitiated)
+			
+			self.currentStep?.fullData(job) { result in
+				result.maybe { fullData in
+					self.currentStep?.exampleData(job, maxInputRows: self.calculator.maximumExampleInputRows, maxOutputRows: self.calculator.desiredExampleRows) { exampleData in
+						result.maybe { exampleData in
+							QBEAsyncMain {
+								filterViewController.data = exampleData
+								filterViewController.searchData = fullData
+								filterViewController.column = column
+								filterViewController.delegate = self
+								
+								if let filterSet = self.viewFilters[column] {
+									filterViewController.filter = filterSet
+								}
+								callback(filterViewController)
+							}
 						}
-						callback(filterViewController)
 					}
 				}
 			}

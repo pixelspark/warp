@@ -16,6 +16,10 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	weak var delegate: QBEFilterViewDelegate?
 	
 	var data: QBEData?
+
+	/* Data set used for searching. Can be the full data set if the other data set is an example one. If this is nil, 
+	the normal one is used. */
+	var searchData: QBEData?
 	var column: QBEColumn?
 	
 	private var reloadJob: QBEJob? = nil
@@ -49,7 +53,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		reloadJob?.cancel()
 		reloadJob = nil
 		
-		if let d = data, let c = column {
+		if let d = (searchData ?? data), let c = column {
 			var filteredData = d
 			if let search = searchField?.stringValue where !search.isEmpty {
 				lastSearch = search
