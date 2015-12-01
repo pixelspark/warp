@@ -5,13 +5,21 @@ internal typealias QBEFilter = (QBERaster, QBEJob?, Int) -> (QBERaster)
 /** QBERaster represents a mutable, in-memory dataset. It is stored as a simple array of QBERow, which in turn is an array 
 of QBEValue. Column names are stored separately. Each QBERow should contain the same number of values as there are columns
 in the columnNames array. However, if rows are shorter, QBERaster will act as if there is a QBEValue.EmptyValue in its
-place. */
+place. 
+
+QBERaster is pedantic. It will assert and cause fatal errors on misuse, e.g. if a modification attempt is made to a read-
+only raster, or when a non-existent column is referenced. Users of QBERaster should check for these two conditions before
+calling methods.
+
+QBERaster data can only be modified if it was created with the `readOnly` flag set to false. Modifications are performed
+serially (i.e. QBERaster holds a mutex) and are atomic. To make multiple changes atomically, start holding the `mutex`
+before performing the first change and release it after performing the last (e.g. use raster.mutex.locked {...}). */
 public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 	public internal(set) var raster: [[QBEValue]] = []
 	public internal(set) var columnNames: [QBEColumn] = []
 
 	// FIXME: use a read-write lock to allow concurrent reads, but still provide safety
-	private let mutex = QBEMutex()
+	public let mutex = QBEMutex()
 	public let readOnly: Bool
 
 	static let progressReportRowInterval = 512
@@ -178,14 +186,27 @@ public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
 			return rowData[col]
 		}
 	}
-	
-	public func setValue(value: QBEValue, forColumn: QBEColumn, inRow row: Int) {
+
+	/** Set the value in the indicated row and column. When `ifMatches` is not nil, the current value must match the 
+	value of `ifMatched`, or the value will not be changed. This function returns true if the value was successfully
+	changed, and false if it was not (which can only happen when ifMatches is not nil and doesn't match the current
+	value). The change is made atomically. */
+	public func setValue(value: QBEValue, forColumn: QBEColumn, inRow row: Int, ifMatches: QBEValue? = nil) -> Bool {
 		return self.mutex.locked {
 			assert(row < self.rowCount)
 			assert(!readOnly, "Data set is read-only")
 			
 			if let col = indexOfColumnWithName(forColumn) {
-				raster[row][col] = value
+				if ifMatches == nil || raster[row][col] == ifMatches! {
+					raster[row][col] = value
+					return true
+				}
+				else {
+					return false
+				}
+			}
+			else {
+				fatalError("column specifed for setValue does not exist: '\(forColumn.name)'")
 			}
 		}
 	}
@@ -1159,8 +1180,8 @@ public class QBERasterMutableData: QBEMutableData {
 		return QBERasterDataWarehouse()
 	}
 
-	public func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>>) -> ()) {
-		callback(.Success(Set(raster.columnNames)))
+	public func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>?>) -> ()) {
+		callback(.Success(nil))
 	}
 
 	public func canPerformMutation(mutation: QBEDataMutation) -> Bool {
@@ -1169,7 +1190,7 @@ public class QBERasterMutableData: QBEMutableData {
 		}
 
 		switch mutation {
-		case .Truncate, .Alter(_), .Insert(_, _), .Update(_,_,_,_):
+		case .Truncate, .Alter(_), .Insert(_, _), .Update(_,_,_,_), .Edit(row: _, column: _, old: _, new: _):
 			return true
 
 		case .Drop:
@@ -1205,6 +1226,15 @@ public class QBERasterMutableData: QBEMutableData {
 					callback(.Failure(e))
 				}
 			}
+
+		case .Edit(row: let row, column: let column, old: let old, new: let new):
+			if raster.indexOfColumnWithName(column) == nil {
+				callback(.Failure("Column '\(column.name)' does not exist in raster and therefore cannot be updated"))
+				return
+			}
+
+			raster.setValue(new, forColumn: column, inRow: row, ifMatches: old)
+			callback(.Success())
 
 		case .Update(key: let key, column: let column, old: let old, new: let new):
 			// Do all the specified columns exist?

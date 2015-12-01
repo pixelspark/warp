@@ -294,7 +294,7 @@ public class QBESQLMutableData: QBEMutableData {
 		self.schemaName = schemaName
 	}
 
-	public func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>>) -> ()) {
+	public func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>?>) -> ()) {
 		return callback(.Failure("Not implemented"))
 	}
 
@@ -444,6 +444,8 @@ public class QBESQLMutableData: QBEMutableData {
 						case .Update(key: _, column: _, old: _, new: _):
 							callback(.Failure("Not implemented"))
 
+						case .Edit(_,_,_,_):
+							fatalError("Not supported")
 						}
 
 					case .Failure(let e):
@@ -458,7 +460,7 @@ public class QBESQLMutableData: QBEMutableData {
 		case .Truncate, .Drop, .Insert(_, _):
 			return true
 
-		case .Update(_,_,_,_):
+		case .Update(_,_,_,_), .Edit(_,_,_,_):
 			return false
 
 		case .Alter(_):

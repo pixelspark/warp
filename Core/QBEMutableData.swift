@@ -28,8 +28,10 @@ public protocol QBEMutableData {
 	var warehouse: QBEDataWarehouse { get }
 
 	/** This function fetches the set of columns using which rows can uniquely be identified. This set of columns can be
-	used to perform updates on specific rows */
-	func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>>) -> ())
+	used to perform updates on specific rows. If the mutable data does not support or have a primary key, it may return
+	nil. In this case, the user of QBEMutableData must choose its own keys (e.g. by asking the user) or use row numbers
+	(e.g. with the .Edit data mutation if that is supported). */
+	func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>?>) -> ())
 
 	/** Returns whether the specified mutation can be performed on this mutable data set. The function indicates support
 	of the mutation *at all* rather than whether it would succeed in the current state and on the current data set. The
@@ -92,6 +94,10 @@ public enum QBEDataMutation {
 	/** For rows that have the all values indicated in the key dictionary for each key column, change the value in the 
 	indicated column to the `new` value if it matches the `old` value. */
 	case Update(key: [QBEColumn: QBEValue], column: QBEColumn, old: QBEValue, new: QBEValue)
+
+	/** Set the value in the indicated `column` and the `row` (by index) to the `new` value if the current value matches
+	the `old` value. */
+	case Edit(row: Int, column: QBEColumn, old: QBEValue, new: QBEValue)
 }
 
 public enum QBEWarehouseMutation {

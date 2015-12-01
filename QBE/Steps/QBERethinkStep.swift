@@ -623,7 +623,7 @@ class QBERethinkMutableData: QBEMutableData {
 		self.tableName = tableName
 	}
 
-	func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>>) -> ()) {
+	func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>?>) -> ()) {
 		callback(.Failure("Not implemented"))
 	}
 
@@ -636,7 +636,7 @@ class QBERethinkMutableData: QBEMutableData {
 		case .Truncate, .Drop, .Insert(_,_), .Alter(_):
 			return true
 
-		case .Update(_,_,_,_):
+		case .Update(_,_,_,_), .Edit(_,_,_,_):
 			return false
 		}
 	}
@@ -664,6 +664,9 @@ class QBERethinkMutableData: QBEMutableData {
 				case .Update(key: _, column: _, old: _, new: _):
 					callback(.Failure("Not implemented"))
 					return
+
+				case .Edit(_,_,_,_):
+					fatalError("Not supported")
 
 				case .Truncate:
 					q = R.db(self.databaseName).table(self.tableName).delete()

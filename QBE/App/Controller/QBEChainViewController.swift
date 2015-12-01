@@ -40,7 +40,7 @@ internal extension NSViewController {
 internal enum QBEEditingMode {
 	case NotEditing
 	case EnablingEditing
-	case Editing(identifiers: Set<QBEColumn>)
+	case Editing(identifiers: Set<QBEColumn>?)
 }
 
 @objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
@@ -632,26 +632,60 @@ internal enum QBEEditingMode {
 				calculator.currentRaster?.get(job) { result in
 					switch result {
 					case .Success(let raster):
-						// Create key
-						let row = QBERow(raster[inRow], columnNames: raster.columnNames)
-						var key: [QBEColumn: QBEValue] = [:]
-						for identifyingColumn in identifiers {
-							key[identifyingColumn] = row[identifyingColumn]
-						}
+						// Does the data set support editing by row number, or do we edit by key?
+						let editMutation = QBEDataMutation.Edit(row: inRow, column: raster.columnNames[column], old: oldValue, new: toValue)
+						if md.canPerformMutation(editMutation) {
+							job.async {
+								md.performMutation(editMutation, job: job) { result in
+									switch result {
+									case .Success:
+										// All ok
+										QBEAsyncMain {
+											self.calculate()
+										}
+										break
 
-						let mutation = QBEDataMutation.Update(key: key, column: raster.columnNames[column], old: oldValue, new: toValue)
-						md.performMutation(mutation, job: job) { result in
-							switch result {
-							case .Success():
-								// All ok
-								QBEAsyncMain {
-									self.calculate()
+									case .Failure(let e):
+										QBEAsyncMain {
+											NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+										}
+									}
 								}
-								break
+							}
+						}
+						else {
+							if let ids = identifiers {
+								// Create key
+								let row = QBERow(raster[inRow], columnNames: raster.columnNames)
+								var key: [QBEColumn: QBEValue] = [:]
+								for identifyingColumn in ids {
+									key[identifyingColumn] = row[identifyingColumn]
+								}
 
-							case .Failure(let e):
+								let mutation = QBEDataMutation.Update(key: key, column: raster.columnNames[column], old: oldValue, new: toValue)
+								job.async {
+									md.performMutation(mutation, job: job) { result in
+										switch result {
+										case .Success():
+											// All ok
+											QBEAsyncMain {
+												self.calculate()
+											}
+											break
+
+										case .Failure(let e):
+											QBEAsyncMain {
+												NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+											}
+										}
+									}
+								}
+							}
+							else {
+								// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
+								// TODO: ask the user what key to use ("what property makes each row unique?")
 								QBEAsyncMain {
-									NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+									NSAlert.showSimpleAlert(errorMessage, infoText: NSLocalizedString("There is not enough information to be able to distinguish rows.", comment: ""), style: .CriticalAlertStyle, window: self.view.window)
 								}
 							}
 						}
