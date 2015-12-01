@@ -301,6 +301,7 @@ internal extension NSViewController {
 			if permanent {
 				if let realFilter = filter?.expression.expressionReplacingIdentityReferencesWith(QBESiblingExpression(columnName: c)) {
 					self.suggestSteps([QBEFilterStep(previous: currentStep, condition: realFilter)])
+					self.viewFilters.removeValueForKey(c)
 				}
 			}
 			else {
