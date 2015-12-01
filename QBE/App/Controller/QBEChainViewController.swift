@@ -536,13 +536,30 @@ internal extension NSViewController {
 	
 	func dataView(view: QBEDataViewController, didOrderColumns columns: [QBEColumn], toIndex: Int) -> Bool {
 		// Construct a new column ordering
-		if let r = view.raster {
-			var allColumns = r.columnNames
-			if toIndex < allColumns.count {
-				pushStep(QBESortColumnsStep(previous: self.currentStep, sortColumns: columns, before: allColumns[toIndex]))
+		if let r = view.raster where toIndex >= 0 && toIndex < r.columnNames.count {
+			/* If the current step is already a sort columns step, do not create another one; instead create a new sort
+			step that combines both sorts. This cannot be implemented as QBESortColumnStep.mergeWith, because from there
+			the full list of columns is not available. */
+			if let sortStep = self.currentStep as? QBESortColumnsStep {
+				let previous = sortStep.previous
+				self.remove(sortStep)
+				self.currentStep = previous
+
+				var allColumns = r.columnNames
+				let beforeColumn = allColumns[toIndex]
+				columns.forEach { allColumns.remove($0) }
+				if let beforeIndex = allColumns.indexOf(beforeColumn) {
+					allColumns.insertContentsOf(columns, at: beforeIndex)
+				}
+				pushStep(QBESortColumnsStep(previous: previous, sortColumns: allColumns, before: nil))
 			}
 			else {
-				pushStep(QBESortColumnsStep(previous: self.currentStep, sortColumns: columns, before: nil))
+				if toIndex < r.columnNames.count {
+					pushStep(QBESortColumnsStep(previous: self.currentStep, sortColumns: columns, before: r.columnNames[toIndex]))
+				}
+				else {
+					pushStep(QBESortColumnsStep(previous: self.currentStep, sortColumns: columns, before: nil))
+				}
 			}
 			calculate()
 			return true
