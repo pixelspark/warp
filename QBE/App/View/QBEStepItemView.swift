@@ -103,6 +103,9 @@ import WarpCore
 	}
 	
 	override func drawRect(dirtyRect: NSRect) {
+		NSColor.clearColor().set()
+		NSRectFill(dirtyRect)
+
 		if self.selected {
 			NSColor.blueColor().colorWithAlphaComponent(0.15).set()
 			//NSColor.selectedControlColor().set()
@@ -113,8 +116,9 @@ import WarpCore
 		else {
 			NSColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0).set()
 		}
-		
-		NSRectFill(dirtyRect)
+
+		let rr = NSBezierPath(roundedRect: self.bounds.inset(2.0), xRadius: 3.0, yRadius: 3.0)
+		rr.fill()
 	}
 	
 	override var allowsVibrancy: Bool { get {

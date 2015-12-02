@@ -289,8 +289,8 @@ internal class QBEResizerView: NSView {
 			CGContextSetLineWidth(context, 2.0)
 			CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
 			let bounds = self.bounds.inset(inset)
-			CGContextAddRect(context, bounds)
-			CGContextStrokePath(context)
+			let rr = NSBezierPath(roundedRect: bounds, xRadius: 3.0, yRadius: 3.0)
+			rr.stroke()
 		}
 	}
 	
