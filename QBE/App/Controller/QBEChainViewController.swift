@@ -362,9 +362,14 @@ internal enum QBEEditingMode {
 			presentRaster(nil)
 		}
 	}
+
+	func tabletWasDeselected() {
+		self.stepsViewController?.active = false
+	}
 	
 	func tabletWasSelected() {
 		delegate?.chainView(self, configureStep: currentStep, delegate: self)
+		self.stepsViewController?.active = true
 	}
 	
 	private func presentRaster(fallibleRaster: QBEFallible<QBERaster>) {

@@ -96,8 +96,8 @@ import WarpCore
 	
 	private var defaultTabletFrame: CGRect { get {
 		let vr = self.workspaceView.documentVisibleRect
-		let defaultWidth: CGFloat = vr.size.width * 0.8 * self.workspaceView.magnification
-		let defaultHeight: CGFloat = vr.size.height * 0.8 * self.workspaceView.magnification
+		let defaultWidth: CGFloat = min(300, vr.size.width * 0.8 * self.workspaceView.magnification)
+		let defaultHeight: CGFloat = min(400, vr.size.height * 0.8 * self.workspaceView.magnification)
 		
 		// If this is not the first view, place it to the right of all other views
 		if let ab = documentView.boundsOfAllTablets {
@@ -589,6 +589,14 @@ import WarpCore
 	}
 	
 	private func didSelectTablet(tabletViewController: QBEChainViewController?) {
+		for childController in self.childViewControllers {
+			if let cvc = childController as? QBEChainViewController {
+				if cvc != tabletViewController {
+					cvc.tabletWasDeselected()
+				}
+			}
+		}
+
 		if let tv = tabletViewController {
 			tv.tabletWasSelected()
 		}

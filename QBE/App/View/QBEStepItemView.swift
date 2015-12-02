@@ -107,7 +107,12 @@ import WarpCore
 		NSRectFill(dirtyRect)
 
 		if self.selected {
-			NSColor.blueColor().colorWithAlphaComponent(0.15).set()
+			if let sv = self.superview as? QBECollectionView where !sv.active {
+				NSColor.secondarySelectedControlColor().set()
+			}
+			else {
+				NSColor.blueColor().colorWithAlphaComponent(0.15).set()
+			}
 			//NSColor.selectedControlColor().set()
 		}
 		else if self.highlighted {

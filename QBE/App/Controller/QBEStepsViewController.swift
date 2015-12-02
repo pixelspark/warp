@@ -10,10 +10,22 @@ import WarpCore
 	func stepsController(vc: QBEStepsViewController, showSuggestionsForStep: QBEStep, atView: NSView?)
 }
 
+class QBECollectionView: NSCollectionView {
+	var active: Bool = false
+
+	override init(frame frameRect: NSRect) {
+		super.init(frame: frameRect)
+	}
+
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
+	}
+}
+
 class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
-	@IBOutlet var collectionView: NSCollectionView!
-	weak var delegate: QBEStepsControllerDelegate?
-	private var contents: NSArrayController?
+	@IBOutlet var collectionView: QBECollectionView! = nil
+	weak var delegate: QBEStepsControllerDelegate? = nil
+	private var contents: NSArrayController? = nil
 	
 	private var ignoreSelection = false
 	private static let dragType = "nl.pixelspark.Warp.QBEStepsViewController.Step"
@@ -23,7 +35,15 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 		update()
 		ignoreSelection = false
 	} }
-	
+
+	var active: Bool = false { didSet {
+		update()
+		if let cv = self.collectionView {
+			cv.setNeedsDisplayInRect(cv.bounds)
+			cv.subviews.forEach { $0.setNeedsDisplayInRect($0.bounds) }
+		}
+	} }
+
 	var currentStep: QBEStep? { didSet {
 		ignoreSelection = true
 		update()
@@ -43,6 +63,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	
 	private func update() {
 		QBEAssertMainThread()
+		self.collectionView?.active = self.active
 		
 		if let cv = self.collectionView {
 			// Update current selection

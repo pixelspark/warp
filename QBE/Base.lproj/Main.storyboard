@@ -2756,7 +2756,7 @@ Gw
                                     <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <collectionView canDrawConcurrently="YES" selectable="YES" maxNumberOfRows="1" id="z7I-jG-SgO">
+                                        <collectionView canDrawConcurrently="YES" selectable="YES" maxNumberOfRows="1" id="z7I-jG-SgO" customClass="QBECollectionView" customModule="Warp" customModuleProvider="target">
                                             <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <animations/>
