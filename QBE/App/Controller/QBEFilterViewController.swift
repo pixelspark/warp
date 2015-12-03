@@ -6,12 +6,12 @@ protocol QBEFilterViewDelegate: NSObjectProtocol {
 }
 
 class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, QBEJobDelegate {
-	@IBOutlet var searchField: NSSearchField?
-	@IBOutlet var valueList: NSTableView?
-	@IBOutlet var progressBar: NSProgressIndicator!
-	@IBOutlet var addFilterButton: NSButton!
-	@IBOutlet var applyFilterButton: NSButton!
-	@IBOutlet var clearFilterButton: NSButton!
+	@IBOutlet weak var searchField: NSSearchField?
+	@IBOutlet weak var valueList: NSTableView?
+	@IBOutlet weak var progressBar: NSProgressIndicator!
+	@IBOutlet weak var addFilterButton: NSButton!
+	@IBOutlet weak var applyFilterButton: NSButton!
+	@IBOutlet weak var clearFilterButton: NSButton!
 	private var lastSearch: String? = nil
 	weak var delegate: QBEFilterViewDelegate?
 	
@@ -26,14 +26,20 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	private var values: [QBEValue] = []
 	
 	var filter: QBEFilterSet = QBEFilterSet() { didSet {
+		QBEAssertMainThread()
 		reloadData()
 	} }
 	
-	func job(job: AnyObject, didProgress: Double) {
+	func job(job: AnyObject, didProgress: Double) {3
 		self.updateProgress()
+	}
+
+	deinit {
+		QBEAssertMainThread()
 	}
 	
 	private func updateProgress() {
+		QBEAssertMainThread()
 		if let j = self.reloadJob {
 			self.progressBar?.hidden = false
 			self.valueList?.enabled = false
@@ -50,6 +56,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	}
 	
 	private func reloadData() {
+		QBEAssertMainThread()
 		reloadJob?.cancel()
 		reloadJob = nil
 		
@@ -60,20 +67,24 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 				filteredData = searchData ?? filteredData
 				filteredData = filteredData.filter(QBEBinaryExpression(first: QBELiteralExpression(QBEValue(search)), second: QBESiblingExpression(columnName: c), type: QBEBinary.MatchesRegex))
 			}
-			
-			reloadJob = QBEJob(QBEQoS.UserInitiated)
+
+			let job = QBEJob(QBEQoS.UserInitiated)
+			reloadJob = job
 			reloadJob?.addObserver(self)
 			self.updateProgress()
 			
-			filteredData.unique(QBESiblingExpression(columnName: c), job: reloadJob!, callback: { (fallibleValues) -> () in
+			filteredData.unique(QBESiblingExpression(columnName: c), job: job, callback: { [weak self] (fallibleValues) -> () in
 				switch fallibleValues {
 					case .Success(let values):
-						self.values = Array(values)
-						self.values.sortInPlace({return $0.stringValue < $1.stringValue})
-						QBEAsyncMain {
-							self.reloadJob = nil
-							self.updateProgress()
-							self.valueList?.reloadData()
+						var valuesSorted = Array(values)
+						valuesSorted.sortInPlace({return $0.stringValue < $1.stringValue})
+						QBEAsyncMain { [weak self] in
+							if !job.cancelled {
+								self?.values = valuesSorted
+								self?.reloadJob = nil
+								self?.updateProgress()
+								self?.valueList?.reloadData()
+							}
 						}
 					
 					case .Failure(let e):
@@ -148,6 +159,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	}
 	
 	private func filterChanged() {
+		QBEAssertMainThread()
 		self.valueList?.reloadData()
 		let hasFilter = filter.selectedValues.count > 0
 		self.addFilterButton?.enabled = hasFilter

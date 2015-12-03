@@ -282,6 +282,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	func tableGrid(aTableGrid: MBTableGrid!, footerCellClicked cell: NSCell!, forColumn columnIndex: UInt, withEvent theEvent: NSEvent!) {
 		if let r = raster where Int(columnIndex) < r.columnNames.count {
 			self.delegate?.dataView(self, filterControllerForColumn: r.columnNames[Int(columnIndex)]) { (viewFilterController) in
+				QBEAssertMainThread()
 				let pv = NSPopover()
 				pv.behavior = NSPopoverBehavior.Semitransient
 				pv.contentViewController = viewFilterController
