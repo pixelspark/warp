@@ -362,11 +362,11 @@ private class QBERethinkExpression {
 				case .Division: return f.coerceTo(.Number).div(s.coerceTo(.Number))
 				case .Equal: return f.eq(s)
 				case .NotEqual: return f.ne(s)
-				case .Greater: return f.gt(s)
-				case .Lesser: return f.lt(s)
-				case .GreaterEqual: return f.ge(s)
-				case .LesserEqual: return f.le(s)
-				case .Modulus: return f.mod(s)
+				case .Greater: return f.coerceTo(.Number).gt(s.coerceTo(.Number))
+				case .Lesser: return f.coerceTo(.Number).lt(s.coerceTo(.Number))
+				case .GreaterEqual: return f.coerceTo(.Number).ge(s.coerceTo(.Number))
+				case .LesserEqual: return f.coerceTo(.Number).le(s.coerceTo(.Number))
+				case .Modulus: return f.coerceTo(.Number).mod(s.coerceTo(.Number))
 				default: return nil
 				}
 			}
