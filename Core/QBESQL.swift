@@ -519,9 +519,10 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 		case .LeftJoin: return "LEFT JOIN"
 		}
 	}
-	
-	private func literalString(str: String) -> String {
-		let escaped = str
+
+	/** Convert the given string to the representation in SQL (this includes string qualifiers and escaping). */
+	public func literalString(string: String) -> String {
+		let escaped = string
 			.stringByReplacingOccurrencesOfString(stringEscape, withString: stringEscape+stringEscape)
 			.stringByReplacingOccurrencesOfString(stringQualifier, withString: stringQualifierEscape)
 		return "\(stringQualifier)\(escaped)\(stringQualifier)"

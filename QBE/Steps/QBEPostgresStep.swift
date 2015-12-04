@@ -6,6 +6,12 @@ Implementation of the PostgreSQL 'SQL dialect'. Only deviatons from the standard
 private class QBEPostgresDialect: QBEStandardSQLDialect {
 	override var identifierQualifier: String { get { return  "\"" } }
 	override var identifierQualifierEscape: String { get { return  "\\\"" } }
+
+	override func literalString(string: String) -> String {
+		/* PostgreSQL needs its string literals prefixed with 'E' to make C-style backslash escapes work.
+		    See http://www.postgresql.org/docs/9.2/static/sql-syntax-lexical.html */
+		return "E\(super.literalString(string))"
+	}
 	
 	private override func unaryToSQL(type: QBEFunction, args: [String]) -> String? {
 		switch type {
