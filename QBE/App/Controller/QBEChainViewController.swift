@@ -19,8 +19,8 @@ protocol QBEChainViewDelegate: NSObjectProtocol {
 	/** Called when the chain view wants the delegate to present a configurator for a step. */
 	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESentenceViewDelegate)
 	
-	/** Called when the user closes a chain view */
-	func chainViewDidClose(view: QBEChainViewController)
+	/** Called when the user closes a chain view. If it returns false, the removal is blocked. */
+	func chainViewDidClose(view: QBEChainViewController) -> Bool
 	
 	/** Called when the chain has changed */
 	func chainViewDidChangeChain(view: QBEChainViewController)
@@ -1649,10 +1649,11 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func removeTablet(sender: AnyObject?) {
-		self.delegate?.chainViewDidClose(self)
-		self.chain = nil
-		self.dataViewController = nil
-		self.delegate = nil
+		if let d = self.delegate where d.chainViewDidClose(self) {
+			self.chain = nil
+			self.dataViewController = nil
+			self.delegate = nil
+		}
 	}
 
 	@IBAction func delete(sender: AnyObject?) {

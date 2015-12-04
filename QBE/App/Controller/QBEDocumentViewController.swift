@@ -27,10 +27,11 @@ import WarpCore
 		return QBEAppDelegate.sharedInstance.locale ?? QBELocale()
 	} }
 	
-	func chainViewDidClose(view: QBEChainViewController) {
+	func chainViewDidClose(view: QBEChainViewController) -> Bool {
 		if let t = view.chain?.tablet {
-			removeTablet(t, undo: true)
+			return removeTablet(t, undo: true)
 		}
+		return false
 	}
 	
 	func chainViewDidChangeChain(view: QBEChainViewController) {
@@ -64,8 +65,25 @@ import WarpCore
 		removeTablet(tablet, undo: false)
 	}
 	
-	func removeTablet(tablet: QBETablet, undo: Bool) {
+	func removeTablet(tablet: QBETablet, undo: Bool) -> Bool {
 		assert(tablet.document == document, "tablet should belong to our document")
+
+		// Who was dependent on this tablet?
+		if let d = document {
+			for otherTablet in d.tablets {
+				if otherTablet == tablet {
+					continue
+				}
+
+				for dep in otherTablet.chain.dependencies {
+					if dep.dependsOn == tablet.chain {
+						// TODO: automatically remove this dependency. For now just bail out
+						NSAlert.showSimpleAlert(NSLocalizedString("This table cannot be removed, because other items are still linked to it.", comment: ""), infoText: NSLocalizedString("To remove the table, first remove any links to this table, then try to remove the table itself.", comment: ""), style: .WarningAlertStyle, window: self.view.window)
+						return false
+					}
+				}
+			}
+		}
 
 		document?.removeTablet(tablet)
 		self.sentenceEditor?.configure(nil, variant: .Read, delegate: nil)
@@ -92,6 +110,7 @@ import WarpCore
 				um.setActionName(NSLocalizedString("Remove tablet", comment: ""))
 			}
 		}
+		return true
 	}
 	
 	private var defaultTabletFrame: CGRect { get {
