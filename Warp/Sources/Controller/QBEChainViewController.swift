@@ -5,7 +5,6 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 	func suggestionsView(view: NSViewController, didSelectStep: QBEStep)
 	func suggestionsView(view: NSViewController, didSelectAlternativeStep: QBEStep)
 	func suggestionsView(view: NSViewController, previewStep: QBEStep?)
-	func suggestionsViewDidCancel(view: NSViewController)
 	var currentStep: QBEStep? { get }
 	var locale: QBELocale { get }
 	var undo: NSUndoManager? { get }
@@ -861,17 +860,6 @@ internal enum QBEEditingMode {
 		}
 		else {
 			previewStep = step
-		}
-		updateView()
-		calculate()
-	}
-	
-	func suggestionsViewDidCancel(view: NSViewController) {
-		previewStep = nil
-		
-		// Close any configuration sheets that may be open
-		if let s = self.view.window?.attachedSheet {
-			self.view.window?.endSheet(s, returnCode: NSModalResponseOK)
 		}
 		updateView()
 		calculate()
