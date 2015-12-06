@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "A5F18CC216C059F29632AA08FA9E5DF3898315E3",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "A5F18CC216C059F29632AA08FA9E5DF3898315E3" : 0,
+    "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "E3B6766B-DD87-4632-AA90-45A4CDF7A013",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "A5F18CC216C059F29632AA08FA9E5DF3898315E3" : "QBE\/",
+    "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA" : "QBE\/Core\/Libraries\/SwiftParserGenerator\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "WarpCore",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "Core\/WarpCore.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/dparnell\/swift-parser-generator.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "\/Volumes\/code\/qbe.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A5F18CC216C059F29632AA08FA9E5DF3898315E3"
+    }
+  ]
+}

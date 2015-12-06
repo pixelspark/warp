@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>Warp (App Store).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>Warp (app store).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
+		<key>Warp (english).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>Warp (release).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>Warp.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>652B26D21B8F993900A2D38E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>652B26DB1B8F993900A2D38E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>654EBA721AA7A2AE00DDBBCA</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E3C2B41A05222F007BB3C8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E3C2BF1A05222F007BB3C8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E3C2D41A052252007BB3C8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E3C2EB1A062E5E007BB3C8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E3C2FE1A062E5E007BB3C8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E85EAD1B49200B00E9BB59</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E85EC71B4920CB00E9BB59</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>65E85ED01B4920CB00E9BB59</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+	</dict>
+</dict>
+</plist>

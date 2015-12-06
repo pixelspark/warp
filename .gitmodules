@@ -1,6 +1,3 @@
-[submodule "Libraries/swift-parser-generator"]
-	path = Libraries/swift-parser-generator
-	url = https://github.com/dparnell/swift-parser-generator.git
 [submodule "Libraries/MBTableGrid"]
 	path = Libraries/MBTableGrid
 	url = https://github.com/pixelspark/mbtablegrid
@@ -13,3 +10,8 @@
 [submodule "Libraries/Rethink"]
 	path = Libraries/Rethink
 	url = https://github.com/pixelspark/rethink-swift
+
+[submodule "WarpCore/Libraries/SwiftParserGenerator"]
+	path = WarpCore/Libraries/SwiftParserGenerator
+	url = git@github.com:pixelspark/swift-parser-generator
+
