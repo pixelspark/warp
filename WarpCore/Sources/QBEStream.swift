@@ -905,7 +905,8 @@ private class QBECalculateTransformer: QBETransformer {
 				case .Success(let cns):
 					switch self.indices! {
 					case .Success(let idcs):
-						let newData = Array(rows.map({ (var row: QBETuple) -> QBETuple in
+						let newData = Array(rows.map({ (inRow: QBETuple) -> QBETuple in
+							var row = inRow
 							for _ in 0..<max(0, cns.count - row.count) {
 								row.append(QBEValue.EmptyValue)
 							}

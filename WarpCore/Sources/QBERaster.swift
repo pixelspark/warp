@@ -14,7 +14,7 @@ calling methods.
 QBERaster data can only be modified if it was created with the `readOnly` flag set to false. Modifications are performed
 serially (i.e. QBERaster holds a mutex) and are atomic. To make multiple changes atomically, start holding the `mutex`
 before performing the first change and release it after performing the last (e.g. use raster.mutex.locked {...}). */
-public class QBERaster: NSObject, CustomDebugStringConvertible, NSCoding {
+public class QBERaster: NSObject, NSCoding {
 	public internal(set) var raster: [[QBEValue]] = []
 	public internal(set) var columnNames: [QBEColumn] = []
 
@@ -931,9 +931,10 @@ public class QBERasterData: NSObject, QBEData {
 				
 				for (column, value) in values {
 					let result = value.map.apply(QBERow(row, columnNames: r.columnNames), foreign: nil, inputValue: nil)
-					if var bag = currentIndex.values![column] {
-						bag.append(result)
-						currentIndex.values![column] = bag
+					if let bag = currentIndex.values![column] {
+						var mutableBag = bag
+						mutableBag.append(result)
+						currentIndex.values![column] = mutableBag
 					}
 					else {
 						currentIndex.values![column] = [result]

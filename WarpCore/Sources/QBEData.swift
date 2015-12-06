@@ -75,16 +75,17 @@ public struct QBEColumn: StringLiteralConvertible, Hashable, CustomDebugStringCo
 	} }
 
 	/** Return Excel-style column name for column at a given index (starting at 0). */
-	public static func defaultColumnForIndex(var index: Int) -> QBEColumn {
+	public static func defaultColumnForIndex(index: Int) -> QBEColumn {
+		var myIndex = index
 		let x = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
 		var str: String = ""
 		
 		repeat {
-			let i = ((index) % 26)
+			let i = ((myIndex) % 26)
 			str = x[i] + str
-			index -= i
-			index /= 26
-		} while index > 0
+			myIndex -= i
+			myIndex /= 26
+		} while myIndex > 0
 		return QBEColumn(str)
 	}
 	

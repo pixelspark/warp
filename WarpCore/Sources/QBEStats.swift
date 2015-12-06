@@ -105,7 +105,9 @@ internal class QBEReservoir<ValueType> {
 	/** Add items to the reservoir. The order of the items does not matter, as the reservoir will perform random sampling
 	in a uniform way. Note however that if the reservoir is not filled to at least full capacity, the sample is not 
 	randomized in any way (e.g. shuffled). */
-	func add(var rows: [ValueType]) {
+	func add(inRows: [ValueType]) {
+		var rows = inRows
+		
 		// Reservoir initial fill
 		if sample.count < sampleSize {
 			let length = sampleSize - sample.count

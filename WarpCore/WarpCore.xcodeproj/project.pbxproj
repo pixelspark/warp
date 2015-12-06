@@ -62,6 +62,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6527AA021C147B1400B9159A /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		655BD6121C146B2600634C66 /* QBETests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBETests.swift; path = Tests/QBETests.swift; sourceTree = "<group>"; };
 		655BD6561C14703F00634C66 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		655BD6581C14704900634C66 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -112,6 +113,7 @@
 		656889141C1465CE008D1A7D = {
 			isa = PBXGroup;
 			children = (
+				6527AA021C147B1400B9159A /* Package.swift */,
 				656889701C146738008D1A7D /* SwiftParser.xcodeproj */,
 				656889461C14662E008D1A7D /* Sources */,
 				656889631C14663F008D1A7D /* Tests */,

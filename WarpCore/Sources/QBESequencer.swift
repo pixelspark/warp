@@ -73,15 +73,16 @@ public class QBESequencer: Parser {
 		}
 	}
 	
-	private func unescape(var text: String) -> String {
+	private func unescape(text: String) -> String {
+		var unescapedText = text
 		for reserved in reservedCharacters {
-			text = text.stringByReplacingOccurrencesOfString("\\\(reserved)", withString: String(reserved))
+			unescapedText = unescapedText.stringByReplacingOccurrencesOfString("\\\(reserved)", withString: String(reserved))
 		}
 		
 		for (specialBefore, specialAfter) in specialCharacters {
-			text = text.stringByReplacingOccurrencesOfString("\\\(specialBefore)", withString: String(specialAfter))
+			unescapedText = unescapedText.stringByReplacingOccurrencesOfString("\\\(specialBefore)", withString: String(specialAfter))
 		}
-		return text
+		return unescapedText
 	}
 	
 	private func pushString() {
@@ -151,7 +152,7 @@ public class QBESequencer: Parser {
 }
 
 private class QBEValueGenerator: AnyGenerator<QBEValue> {
-	override func next() -> Element? {
+	override func next() -> QBEValue? {
 		return nil
 	}
 }
