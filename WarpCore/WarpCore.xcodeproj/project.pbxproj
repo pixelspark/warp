@@ -25,8 +25,6 @@
 		656889611C146637008D1A7D /* QBEStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889531C146637008D1A7D /* QBEStream.swift */; };
 		656889621C146637008D1A7D /* QBEValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889541C146637008D1A7D /* QBEValue.swift */; };
 		6568896B1C1466CB008D1A7D /* WarpCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 656889681C146683008D1A7D /* WarpCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		6568896E1C1466E2008D1A7D /* ltqnorm.c in Sources */ = {isa = PBXBuildFile; fileRef = 6568896C1C1466E2008D1A7D /* ltqnorm.c */; };
-		6568896F1C1466E2008D1A7D /* ltqnorm.h in Headers */ = {isa = PBXBuildFile; fileRef = 6568896D1C1466E2008D1A7D /* ltqnorm.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		656889791C14673F008D1A7D /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 656889761C146738008D1A7D /* SwiftParser.framework */; };
 /* End PBXBuildFile section */
 
@@ -85,8 +83,6 @@
 		656889671C146670008D1A7D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		656889681C146683008D1A7D /* WarpCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WarpCore.h; sourceTree = "<group>"; };
 		6568896A1C14668B008D1A7D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Tests/Info.plist; sourceTree = "<group>"; };
-		6568896C1C1466E2008D1A7D /* ltqnorm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ltqnorm.c; path = Sources/ltqnorm.c; sourceTree = "<group>"; };
-		6568896D1C1466E2008D1A7D /* ltqnorm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ltqnorm.h; path = Sources/ltqnorm.h; sourceTree = "<group>"; };
 		656889701C146738008D1A7D /* SwiftParser.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftParser.xcodeproj; path = Libraries/SwiftParserGenerator/SwiftParser.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -150,8 +146,6 @@
 				656889541C146637008D1A7D /* QBEValue.swift */,
 				656889681C146683008D1A7D /* WarpCore.h */,
 				656889671C146670008D1A7D /* Info.plist */,
-				6568896C1C1466E2008D1A7D /* ltqnorm.c */,
-				6568896D1C1466E2008D1A7D /* ltqnorm.h */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -181,7 +175,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6568896F1C1466E2008D1A7D /* ltqnorm.h in Headers */,
 				6568896B1C1466CB008D1A7D /* WarpCore.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -315,7 +308,6 @@
 				656889581C146637008D1A7D /* QBEFormula.swift in Sources */,
 				656889571C146637008D1A7D /* QBEExpression.swift in Sources */,
 				6568895C1C146637008D1A7D /* QBEMutableData.swift in Sources */,
-				6568896E1C1466E2008D1A7D /* ltqnorm.c in Sources */,
 				656889611C146637008D1A7D /* QBEStream.swift in Sources */,
 				6568895D1C146637008D1A7D /* QBERaster.swift in Sources */,
 				6568895A1C146637008D1A7D /* QBEFuture.swift in Sources */,

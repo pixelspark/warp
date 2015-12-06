@@ -1,2 +1,3 @@
 "BigIcon" = "The result has been calculated on the full data set.";
+"SmallIcon" = "The result has been calculated on a smaller version of the data set.";
 "NSActionTemplate" = "";

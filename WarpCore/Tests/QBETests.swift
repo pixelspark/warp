@@ -813,6 +813,14 @@ class QBETests: XCTestCase {
 			}
 		}
     }
+
+	func testNormalDistribution() {
+		XCTAssert(QBENormalDistribution().inverse(0.0).isInfinite)
+		XCTAssert(QBENormalDistribution().inverse(1.0).isInfinite)
+		XCTAssertEqualWithAccuracy(QBENormalDistribution().inverse(0.5), 0.0, accuracy: 0.001)
+		XCTAssertEqualWithAccuracy(QBENormalDistribution().inverse(0.25), -0.674490, accuracy: 0.001)
+		XCTAssertEqualWithAccuracy(QBENormalDistribution().inverse(0.75), 0.674490, accuracy: 0.001)
+	}
 	
 	func testThreading() {
 		let data = Array<Int>(0...5000000)
