@@ -7,6 +7,7 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 	func dataView(view: QBEDataViewController, didOrderColumns: [QBEColumn], toIndex: Int) -> Bool
 	func dataView(view: QBEDataViewController, didSelectValue: QBEValue, changeable: Bool)
 	func dataView(view: QBEDataViewController, filterControllerForColumn: QBEColumn, callback: (NSViewController) -> ())
+	func dataView(view: QBEDataViewController, addValue: QBEValue, inRow: Int?, column: Int?, callback: (Bool) -> ())
 	func dataView(view: QBEDataViewController, hasFilterForColumn: QBEColumn) -> Bool
 }
 
@@ -33,7 +34,11 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	var progress: Double = 0.0 { didSet {
 		updateProgress()
 	} }
-	
+
+	var showNewRowsAndColumns = false { didSet {
+		update()
+	} }
+
 	// When an error message is set, no raster can be set (and vice-versa)
 	var errorMessage: String? { didSet {
 		if errorMessage != nil {
@@ -54,16 +59,16 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func numberOfColumnsInTableGrid(aTableGrid: MBTableGrid!) -> UInt {
 		if let r = raster {
-			return r.columnCount > 0 ? UInt(r.columnCount) : 0
+			return (r.columnCount > 0 ? UInt(r.columnCount) : 0) + (self.showNewRowsAndColumns ? 1 : 0)
 		}
-		return 0
+		return (self.showNewRowsAndColumns ? 1 : 0)
 	}
 	
 	func numberOfRowsInTableGrid(aTableGrid: MBTableGrid!) -> UInt {
 		if let r = raster {
-			return r.rowCount > 0 ? UInt(r.rowCount) : 0
+			return (r.rowCount > 0 ? UInt(r.rowCount) : 0) + (self.showNewRowsAndColumns ? 1 : 0)
 		}
-		return 0
+		return (self.showNewRowsAndColumns ? 1 : 0)
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, shouldEditColumn columnIndex: UInt, row rowIndex: UInt) -> Bool {
@@ -71,21 +76,31 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	private func setValue(value: QBEValue, inRow: Int, inColumn: Int) {
-		if let r = raster where inRow < r.rowCount && inColumn < r.columnCount {
-			let oldValue = r[Int(inRow), Int(inColumn)]
-			if oldValue != value {
-				if let d = delegate {
-					if !d.dataView(self, didChangeValue: oldValue, toValue: value, inRow: Int(inRow), column: Int(inColumn)) {
-						if r.readOnly {
-							// When raster is read-only, only structural changes are allowed
-						}
-						else {
-							// The raster can be changed directly (it is source data), so change it
-							if(inColumn>0) {
-								//raster!.setValue(valueObject, forColumn: r.columnNames[Int(columnIndex)], inRow: Int(rowIndex))
-							}
-						}
+		if let r = raster {
+			if inRow < r.rowCount && inColumn < r.columnCount {
+				let oldValue = r[Int(inRow), Int(inColumn)]
+				if oldValue != value {
+					if let d = delegate {
+						d.dataView(self, didChangeValue: oldValue, toValue: value, inRow: Int(inRow), column: Int(inColumn))
 					}
+				}
+			}
+			else if inRow == r.rowCount && inColumn < r.columnCount {
+				// New row
+				self.delegate?.dataView(self, addValue: value, inRow: nil, column: inColumn) { didAddRow in
+					QBEAsyncMain {
+						self.tableView?.selectedRowIndexes = NSIndexSet(index: Int(inRow + 1))
+					}
+				}
+			}
+			else if inRow < r.rowCount && inColumn == r.columnCount {
+				// New column
+				self.delegate?.dataView(self, addValue: value, inRow: inRow, column: nil) { didAddColumn in
+				}
+			}
+			else if inRow == r.rowCount && inColumn == r.columnCount {
+				// New row and column
+				self.delegate?.dataView(self, addValue: value, inRow: nil, column: nil) { didAddColumn in
 				}
 			}
 		}
@@ -98,7 +113,11 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func tableGrid(aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> AnyObject! {
 		if let r = raster {
-			if columnIndex >= 0 && Int(columnIndex) < r.columnCount && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
+			if Int(columnIndex) == r.columnCount || Int(rowIndex) == r.rowCount {
+				// Template row, return empty string
+				return ""
+			}
+			else if columnIndex >= 0 && Int(columnIndex) < r.columnCount && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
 				let x = r[Int(rowIndex), Int(columnIndex)]
 				return locale.localStringFor(x)
 			}
@@ -108,7 +127,10 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 
 	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
 		if let r = raster {
-			if columnIndex >= 0 && Int(columnIndex) < r.columnCount && Int(rowIndex) >= 0 && Int(rowIndex) < r.rowCount {
+			if Int(columnIndex) == r.columnCount || Int(rowIndex) == r.rowCount {
+				return NSColor.blackColor().colorWithAlphaComponent(0.05)
+			}
+			else if columnIndex >= 0 && Int(columnIndex) < r.columnCount && Int(rowIndex) >= 0 && Int(rowIndex) < r.rowCount {
 				let x = r[Int(rowIndex), Int(columnIndex)]
 
 				// Invalid values are colored red
@@ -127,15 +149,25 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, headerStringForColumn columnIndex: UInt) -> String! {
-		if(Int(columnIndex) >= raster?.columnNames.count) {
-			return "";
+		if Int(columnIndex) == raster?.columnCount {
+			// Template column
+			return "+"
 		}
-		
-		return raster?.columnNames[Int(columnIndex)].name;
+		else if Int(columnIndex) >= raster?.columnNames.count {
+			// Out of range
+			return ""
+		}
+		else {
+			return raster?.columnNames[Int(columnIndex)].name
+		}
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, canMoveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
-		return true
+		// Make sure we are not dragging the template column, and not past the template column
+		if let r = raster where !columnIndexes.containsIndex(r.columnCount) && Int(index) < r.columnCount {
+			return true
+		}
+		return false
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, writeColumnsWithIndexes columnIndexes: NSIndexSet!, toPasteboard pboard: NSPasteboard!) -> Bool {
@@ -194,7 +226,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func tableGrid(aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt)  {
 		if let r = raster {
-			if Int(columnIndex) < r.columnNames.count {
+			if Int(columnIndex) < r.columnCount {
 				let cn = r.columnNames[Int(columnIndex)]
 				let previousWidth = QBESettings.sharedInstance.defaultWidthForColumn(cn)
 				
@@ -206,7 +238,10 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, headerStringForRow rowIndex: UInt) -> String! {
-		return "\(rowIndex+1)";
+		if Int(rowIndex) == raster?.rowCount {
+			return "+"
+		}
+		return "\(rowIndex+1)"
 	}
 	
 	private func updateProgress() {
@@ -251,9 +286,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 						tv.resizeColumnWithIndex(UInt(i), width: Float(self.DefaultColumnWidth))
 					}
 				}
-				tv.reloadData()
 			}
 
+			tv.reloadData()
 			tv.needsDisplay = true
 		}
 	}

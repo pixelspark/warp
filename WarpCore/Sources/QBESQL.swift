@@ -172,7 +172,7 @@ public class QBESQLDataWarehouse: QBEDataWarehouse {
 													// Go and insert the specified data in the table
 													let mutableData = QBESQLMutableData(database: self.database, schemaName: self.schemaName, tableName: tableName)
 													let mapping = columnNames.mapDictionary { cn in return (cn, cn) }
-													mutableData.performMutation(.Insert(data, mapping), job: job) { insertResult in
+													mutableData.performMutation(.Import(data: data, withMapping: mapping), job: job) { insertResult in
 														switch insertResult {
 														case .Success:
 															callback(.Success(mutableData))
@@ -438,13 +438,13 @@ public class QBESQLMutableData: QBEMutableData {
 						case .Alter(let columns):
 							self.performAlter(con, columns: columns.columnNames, job: job, callback: callback)
 
-						case .Insert(let data, let mapping):
+						case .Import(data: let data, withMapping: let mapping):
 							self.performInsert(con, data: data, mapping: mapping, job: job, callback: callback)
 
 						case .Update(key: _, column: _, old: _, new: _):
 							callback(.Failure("Not implemented"))
 
-						case .Edit(_,_,_,_):
+						case .Edit(_,_,_,_), .Insert(row: _):
 							fatalError("Not supported")
 						}
 
@@ -457,7 +457,7 @@ public class QBESQLMutableData: QBEMutableData {
 
 	public func canPerformMutation(mutation: QBEDataMutation) -> Bool {
 		switch mutation {
-		case .Truncate, .Drop, .Insert(_, _):
+		case .Truncate, .Drop, .Import(_, _), .Insert(_):
 			return true
 
 		case .Update(_,_,_,_), .Edit(_,_,_,_):

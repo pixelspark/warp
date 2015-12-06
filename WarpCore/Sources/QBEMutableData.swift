@@ -51,6 +51,20 @@ public protocol QBEMutableData {
 	func data(job: QBEJob, callback: (QBEFallible<QBEData>) -> ())
 }
 
+public extension QBEMutableData {
+	public func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+		self.data(job) { result in
+			switch result {
+			case .Success(let data):
+				data.columnNames(job, callback: callback)
+
+			case .Failure(let e):
+				callback(.Failure(e))
+			}
+		}
+	}
+}
+
 /** Mapping that defines how source columns are matched to destination columns in an insert operation to a table that 
 already has columns defined. The destination columns are the keys, the source column where that column is filled from is 
 the value (or the empty column name, if we must attempt to insert nil) */
@@ -82,10 +96,13 @@ public enum QBEDataMutation {
 	/** Drop: remove the data in the store and also remove the store itself. */
 	case Drop
 
+	/** Insert the given row in this dataset. */
+	case Insert(row: QBERow)
+
 	/** Insert the rows from the source data set in this table. The second argument specifies a mapping table, in which
 	the keys are columns in this table, and the values are the names of the corresponding columns in the source data. 
 	Columns for which a mapping is missing are filled with NULL. */
-	case Insert(QBEData, QBEColumnMapping)
+	case Import(data: QBEData, withMapping: QBEColumnMapping)
 
 	/** Alter the table so that it has columns as listed. Existing columns must be re-used and stay intact. If the table
 	does not exist, create the table. */

@@ -1106,7 +1106,7 @@ public class QBERasterDataWarehouse: QBEDataWarehouse {
 					let raster = QBERaster(data: [], columnNames: cns, readOnly: false)
 					let mutableData = QBERasterMutableData(raster: raster)
 					let mapping = cns.mapDictionary({ return ($0,$0) })
-					mutableData.performMutation(.Insert(data, mapping), job: job) { result in
+					mutableData.performMutation(.Import(data: data, withMapping: mapping), job: job) { result in
 						switch result {
 						case .Success: callback(.Success(mutableData))
 						case .Failure(let e): callback(.Failure(e))
@@ -1191,7 +1191,7 @@ public class QBERasterMutableData: QBEMutableData {
 		}
 
 		switch mutation {
-		case .Truncate, .Alter(_), .Insert(_, _), .Update(_,_,_,_), .Edit(row: _, column: _, old: _, new: _):
+		case .Truncate, .Alter(_), .Import(_, _), .Update(_,_,_,_), .Edit(row: _, column: _, old: _, new: _), .Insert(_):
 			return true
 
 		case .Drop:
@@ -1215,7 +1215,7 @@ public class QBERasterMutableData: QBEMutableData {
 			self.raster.addColumns(addedColumns)
 			callback(.Success())
 
-		case .Insert(let data, let mapping):
+		case .Import(data: let data, withMapping: let mapping):
 			let stream = data.stream()
 			stream.columnNames(job) { result in
 				switch result {
@@ -1227,6 +1227,14 @@ public class QBERasterMutableData: QBEMutableData {
 					callback(.Failure(e))
 				}
 			}
+
+		case .Insert(row: let row):
+			let values = raster.columnNames.map { cn -> QBEValue in
+				return row[cn] ?? QBEValue.EmptyValue
+			}
+
+			raster.addRows([values])
+			callback(.Success())
 
 		case .Edit(row: let row, column: let column, old: let old, new: let new):
 			if raster.indexOfColumnWithName(column) == nil {

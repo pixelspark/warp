@@ -152,7 +152,7 @@ internal enum QBEEditingMode {
 
 
 			@objc func uploadData(sender: AnyObject) {
-				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Insert(QBERasterData(), [:])) {
+				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Import(data: QBERasterData(), withMapping: [:])) {
 					let uploadView = self.view.storyboard?.instantiateControllerWithIdentifier("uploadData") as! QBEUploadViewController
 					uploadView.sourceStep = sourceStep
 					uploadView.targetStep = destStep
@@ -224,7 +224,7 @@ internal enum QBEEditingMode {
 				unionItem.target = self
 				dropMenu.addItem(unionItem)
 
-				if let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Insert(QBERasterData(), [:])) {
+				if let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Import(data: QBERasterData(), withMapping: [:])) {
 					dropMenu.addItem(NSMenuItem.separatorItem())
 					let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .Write).stringValue + "...", action: Selector("uploadData:"), keyEquivalent: "")
 					createItem.target = self
@@ -604,6 +604,178 @@ internal enum QBEEditingMode {
 		return false
 	}
 
+	func dataView(view: QBEDataViewController, addValue value: QBEValue, inRow: Int?, column: Int?, callback: (Bool) -> ()) {
+		suggestions?.cancel()
+
+		switch self.editingMode {
+		case .Editing(identifiers: _):
+			if let md = self.currentStep?.mutableData {
+				let job = QBEJob(.UserInitiated)
+
+				md.columnNames(job) { result in
+					switch result {
+					case .Success(let columnNames):
+						if let cn = column {
+							if cn >= 0 && cn <= columnNames.count {
+								let columnName = columnNames[cn]
+								let row = QBERow([value], columnNames: [columnName])
+								let mutation = QBEDataMutation.Insert(row: row)
+								md.performMutation(mutation, job: job) { result in
+									switch result {
+									case .Success:
+										QBEAsyncMain {
+											callback(true)
+											self.calculate()
+										}
+										break
+
+									case .Failure(let e):
+										QBEAsyncMain {
+											callback(false)
+											NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new row.", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+										}
+									}
+								}
+							}
+						}
+						else {
+							// need to add a new column first
+							var columns = columnNames
+							columns.append(QBEColumn.defaultColumnForIndex(columns.count+1))
+							let mutation = QBEDataMutation.Alter(QBEDataDefinition(columnNames: columns))
+							md.performMutation(mutation, job: job) { result in
+								switch result {
+								case .Success:
+									// Column was added
+									if let rn = inRow {
+										QBEAsyncMain {
+											self.dataView(view, didChangeValue: QBEValue.EmptyValue, toValue: value, inRow: rn, column: columns.count-1)
+											callback(true)
+										}
+									}
+									else {
+										// We're also adding a new row
+										self.dataView(view, addValue: value, inRow: nil, column: columns.count-1, callback: callback)
+									}
+
+								case .Failure(let e):
+									QBEAsyncMain {
+										callback(false)
+										NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new column.", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+									}
+								}
+							}
+						}
+					case .Failure(let e):
+						QBEAsyncMain {
+							NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new row.", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+						}
+					}
+				}
+			}
+
+		default:
+			return
+		}
+	}
+
+	private func editValue(oldValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int, identifiers: Set<QBEColumn>?) {
+		let errorMessage = String(format: NSLocalizedString("Cannot change '%@' to '%@'", comment: ""), oldValue.stringValue ?? "", toValue.stringValue ?? "")
+
+		// In editing mode, we perform the edit on the mutable data set
+		if let md = self.currentStep?.mutableData {
+			let job = QBEJob(.UserInitiated)
+			md.data(job) { result in
+				switch result {
+				case .Success(let data):
+					data.columnNames(job) { result in
+						switch result {
+						case .Success(let columnNames):
+							// Does the data set support editing by row number, or do we edit by key?
+							let editMutation = QBEDataMutation.Edit(row: inRow, column: columnNames[column], old: oldValue, new: toValue)
+							if md.canPerformMutation(editMutation) {
+								job.async {
+									md.performMutation(editMutation, job: job) { result in
+										switch result {
+										case .Success:
+											// All ok
+											QBEAsyncMain {
+												self.calculate()
+											}
+											break
+
+										case .Failure(let e):
+											QBEAsyncMain {
+												NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+											}
+										}
+									}
+								}
+							}
+							else {
+								if let ids = identifiers {
+									self.calculator.currentRaster?.get(job) { result in
+										switch result {
+										case .Success(let raster):
+											// Create key
+											let row = QBERow(raster[inRow], columnNames: raster.columnNames)
+											var key: [QBEColumn: QBEValue] = [:]
+											for identifyingColumn in ids {
+												key[identifyingColumn] = row[identifyingColumn]
+											}
+
+											let mutation = QBEDataMutation.Update(key: key, column: raster.columnNames[column], old: oldValue, new: toValue)
+											job.async {
+												md.performMutation(mutation, job: job) { result in
+													switch result {
+													case .Success():
+														// All ok
+														QBEAsyncMain {
+															self.calculate()
+														}
+														break
+
+													case .Failure(let e):
+														QBEAsyncMain {
+															NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+														}
+													}
+												}
+											}
+
+										case .Failure(let e):
+											QBEAsyncMain {
+												NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+											}
+										}
+									}
+								}
+								else {
+									// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
+									// TODO: ask the user what key to use ("what property makes each row unique?")
+									QBEAsyncMain {
+										NSAlert.showSimpleAlert(errorMessage, infoText: NSLocalizedString("There is not enough information to be able to distinguish rows.", comment: ""), style: .CriticalAlertStyle, window: self.view.window)
+									}
+								}
+							}
+
+						case .Failure(let e):
+							QBEAsyncMain {
+								NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+							}
+						}
+					}
+
+				case .Failure(let e):
+					QBEAsyncMain {
+						NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+					}
+				}
+
+			}
+		}
+	}
+
 	func dataView(view: QBEDataViewController, didChangeValue oldValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
 		suggestions?.cancel()
 
@@ -628,79 +800,8 @@ internal enum QBEEditingMode {
 			}
 
 		case .Editing(identifiers: let identifiers):
-			let errorMessage = String(format: NSLocalizedString("Cannot change '%@' to '%@'", comment: ""), oldValue.stringValue ?? "", toValue.stringValue ?? "")
-
-			// In editing mode, we perform the edit on the mutable data set
-			if let md = self.currentStep?.mutableData {
-				let job = QBEJob(.UserInitiated)
-				calculator.currentRaster?.get(job) { result in
-					switch result {
-					case .Success(let raster):
-						// Does the data set support editing by row number, or do we edit by key?
-						let editMutation = QBEDataMutation.Edit(row: inRow, column: raster.columnNames[column], old: oldValue, new: toValue)
-						if md.canPerformMutation(editMutation) {
-							job.async {
-								md.performMutation(editMutation, job: job) { result in
-									switch result {
-									case .Success:
-										// All ok
-										QBEAsyncMain {
-											self.calculate()
-										}
-										break
-
-									case .Failure(let e):
-										QBEAsyncMain {
-											NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
-										}
-									}
-								}
-							}
-						}
-						else {
-							if let ids = identifiers {
-								// Create key
-								let row = QBERow(raster[inRow], columnNames: raster.columnNames)
-								var key: [QBEColumn: QBEValue] = [:]
-								for identifyingColumn in ids {
-									key[identifyingColumn] = row[identifyingColumn]
-								}
-
-								let mutation = QBEDataMutation.Update(key: key, column: raster.columnNames[column], old: oldValue, new: toValue)
-								job.async {
-									md.performMutation(mutation, job: job) { result in
-										switch result {
-										case .Success():
-											// All ok
-											QBEAsyncMain {
-												self.calculate()
-											}
-											break
-
-										case .Failure(let e):
-											QBEAsyncMain {
-												NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
-											}
-										}
-									}
-								}
-							}
-							else {
-								// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
-								// TODO: ask the user what key to use ("what property makes each row unique?")
-								QBEAsyncMain {
-									NSAlert.showSimpleAlert(errorMessage, infoText: NSLocalizedString("There is not enough information to be able to distinguish rows.", comment: ""), style: .CriticalAlertStyle, window: self.view.window)
-								}
-							}
-						}
-
-					case .Failure(let e):
-						QBEAsyncMain {
-							NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
-						}
-					}
-				}
-			}
+			self.editValue(oldValue, toValue: toValue, inRow: inRow, column: column, identifiers: identifiers)
+			return true
 
 		case .EnablingEditing:
 			return false
@@ -867,6 +968,15 @@ internal enum QBEEditingMode {
 	
 	private func updateView() {
 		QBEAssertMainThread()
+
+		switch self.editingMode {
+		case .Editing(identifiers: _):
+			self.dataViewController?.showNewRowsAndColumns = true
+
+		default:
+			self.dataViewController?.showNewRowsAndColumns = false
+		}
+
 		self.view.window?.update()
 		self.view.window?.toolbar?.validateVisibleItems()
 	}

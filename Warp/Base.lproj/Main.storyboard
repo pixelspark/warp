@@ -1556,8 +1556,8 @@ CA
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="C0BBED5C-8A5D-46E9-89F2-27F44E59EA83" label="Zoom" paletteLabel="Zoom" id="JIm-dh-FPE" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
-                                    <size key="minSize" width="64" height="25"/>
-                                    <size key="maxSize" width="64" height="25"/>
+                                    <size key="minSize" width="72" height="25"/>
+                                    <size key="maxSize" width="72" height="25"/>
                                     <segmentedControl key="view" verticalHuggingPriority="750" id="vzD-dy-P39">
                                         <rect key="frame" x="0.0" y="14" width="72" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1765,7 +1765,7 @@ CA
                             <visualEffectView blendingMode="behindWindow" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
                                 <rect key="frame" x="0.0" y="0.0" width="700" height="531"/>
                                 <subviews>
-                                    <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
+                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
                                         <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
@@ -1780,7 +1780,7 @@ CA
                                                     <action selector="addButtonClicked:" target="y5B-O8-QaO" id="Xkt-W6-slr"/>
                                                 </connections>
                                             </textField>
-                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" ambiguous="YES" misplaced="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
+                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" ambiguous="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
                                                 <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                                 <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="883-xW-r8t">
                                                     <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
@@ -1821,10 +1821,10 @@ CA
                                         </constraints>
                                         <animations/>
                                     </customView>
-                                    <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
+                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="500" width="700" height="31"/>
                                         <subviews>
-                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
+                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
                                                 <rect key="frame" x="4" y="4" width="688" height="23"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>

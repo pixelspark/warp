@@ -92,7 +92,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 					switch data {
 					case .Success(let fd):
 						// FIXME add mapping (second [:])
-						let mutation = QBEDataMutation.Insert(fd, [:])
+						let mutation = QBEDataMutation.Import(data: fd, withMapping: [:])
 						self.canPerformUpload = mutableData.canPerformMutation(mutation)
 						self.canPerformTruncateBeforeUpload = mutableData.canPerformMutation(.Truncate)
 
@@ -127,7 +127,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, QBEJob
 
 	private func performUpload(data: QBEData, destination: QBEMutableData) {
 		// FIXME add mapping (second [:])
-		let mutation = QBEDataMutation.Insert(data, self.mapping ?? [:])
+		let mutation = QBEDataMutation.Import(data: data, withMapping: self.mapping ?? [:])
 		if destination.canPerformMutation(mutation) {
 			QBEAsyncMain {
 				self.updateView()

@@ -633,10 +633,10 @@ class QBERethinkMutableData: QBEMutableData {
 
 	func canPerformMutation(mutation: QBEDataMutation) -> Bool {
 		switch mutation {
-		case .Truncate, .Drop, .Insert(_,_), .Alter(_):
+		case .Truncate, .Drop, .Import(_,_), .Alter(_):
 			return true
 
-		case .Update(_,_,_,_), .Edit(_,_,_,_):
+		case .Update(_,_,_,_), .Edit(_,_,_,_), .Insert(row: _):
 			return false
 		}
 	}
@@ -665,7 +665,7 @@ class QBERethinkMutableData: QBEMutableData {
 					callback(.Failure("Not implemented"))
 					return
 
-				case .Edit(_,_,_,_):
+				case .Edit(_,_,_,_), .Insert(row: _):
 					fatalError("Not supported")
 
 				case .Truncate:
@@ -674,7 +674,7 @@ class QBERethinkMutableData: QBEMutableData {
 				case .Drop:
 					q = R.db(self.databaseName).tableDrop(self.tableName)
 
-				case .Insert(let sourceData, _):
+				case .Import(let sourceData, _):
 					/* If the source rows are produced on the same server, we might as well let the server do the
 					heavy lifting. */
 					if let sourceRethinkData = sourceData as? QBERethinkData where sourceRethinkData.url == self.url {

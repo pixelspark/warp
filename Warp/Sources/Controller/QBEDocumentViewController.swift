@@ -679,10 +679,10 @@ import WarpCore
 	}
 
 	@IBAction func addRasterTablet(sender: NSObject) {
-		let creator = QBEAlterTableViewController()
-		creator.warehouse = QBERasterDataWarehouse()
-		creator.delegate = self
-		self.presentViewControllerAsSheet(creator)
+		let raster = QBERaster(data: [], columnNames: [QBEColumn.defaultColumnForIndex(0)], readOnly: false)
+		let chain = QBEChain(head: QBERasterStep(raster: raster))
+		let tablet = QBETablet(chain: chain)
+		self.addTablet(tablet, undo: true, animated: true)
 	}
 
 	@IBAction func addSequencerTablet(sender: NSObject) {
