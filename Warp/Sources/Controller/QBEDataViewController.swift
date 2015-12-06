@@ -313,19 +313,34 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 		return nil
 	}
-	
+
+	func tableGrid(aTableGrid: MBTableGrid!, didDoubleClickColumn columnIndex: UInt) {
+		showFilterPopup(Int(columnIndex), atFooter: false)
+	}
+
 	func tableGrid(aTableGrid: MBTableGrid!, footerCellClicked cell: NSCell!, forColumn columnIndex: UInt, withEvent theEvent: NSEvent!) {
-		if let r = raster where Int(columnIndex) < r.columnNames.count {
+		showFilterPopup(Int(columnIndex), atFooter: true)
+	}
+
+	private func showFilterPopup(columnIndex: Int, atFooter: Bool) {
+		if let tv = self.tableView, let r = raster where columnIndex < r.columnNames.count {
 			self.delegate?.dataView(self, filterControllerForColumn: r.columnNames[Int(columnIndex)]) { (viewFilterController) in
 				QBEAssertMainThread()
 				let pv = NSPopover()
 				pv.behavior = NSPopoverBehavior.Semitransient
 				pv.contentViewController = viewFilterController
-				
-				let columnRect = aTableGrid.rectOfColumn(columnIndex)
-				let footerHeight = aTableGrid.columnFooterView.frame.size.height
-				let filterRect = CGRectMake(columnRect.origin.x, aTableGrid.frame.size.height - footerHeight, columnRect.size.width, footerHeight)
-				pv.showRelativeToRect(filterRect, ofView: aTableGrid, preferredEdge: NSRectEdge.MaxY)
+
+				let columnRect = tv.rectOfColumn(UInt(columnIndex))
+				let footerHeight = tv.columnFooterView.frame.size.height
+				let filterRect: CGRect
+				if atFooter {
+					filterRect = CGRectMake(columnRect.origin.x, tv.frame.size.height - footerHeight, columnRect.size.width, footerHeight)
+				}
+				else {
+					filterRect = CGRectMake(columnRect.origin.x, 0, columnRect.size.width, footerHeight)
+				}
+
+				pv.showRelativeToRect(filterRect, ofView: tv, preferredEdge: NSRectEdge.MaxY)
 			}
 		}
 	}
