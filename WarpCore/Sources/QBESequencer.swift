@@ -151,8 +151,10 @@ public class QBESequencer: Parser {
 	}
 }
 
-private class QBEValueGenerator: AnyGenerator<QBEValue> {
-	override func next() -> QBEValue? {
+private class QBEValueGenerator: GeneratorType {
+	typealias Element = QBEValue
+
+	func next() -> QBEValue? {
 		return nil
 	}
 }
