@@ -2,7 +2,7 @@ import Foundation
 import WarpCore
 
 protocol QBEStepViewDelegate: NSObjectProtocol {
-	var locale: QBELocale { get }
+	var locale: Locale { get }
 
 	func stepView(view: QBEStepViewController, didChangeConfigurationForStep: QBEStep)
 }

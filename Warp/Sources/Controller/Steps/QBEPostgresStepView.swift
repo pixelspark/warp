@@ -21,8 +21,8 @@ internal class QBEPostgresStepView: QBEStepViewControllerFor<QBEPostgresSourceSt
 		updateView()
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: QBEMutableData?) {
-		if let s = table as? QBESQLMutableData {
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: MutableData?) {
+		if let s = table as? SQLMutableData {
 			self.step.tableName = s.tableName
 			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 			self.updateView()
@@ -67,14 +67,14 @@ internal class QBEPostgresStepView: QBEStepViewControllerFor<QBEPostgresSourceSt
 		}
 	}
 
-	private var checkConnectionJob: QBEJob? = nil { willSet {
+	private var checkConnectionJob: Job? = nil { willSet {
 		if let o = checkConnectionJob {
 			o.cancel()
 		}
 	} }
 
 	private func updateView() {
-		checkConnectionJob = QBEJob(.UserInitiated)
+		checkConnectionJob = Job(.UserInitiated)
 
 		self.userField?.stringValue = step.user ?? ""
 		self.passwordField?.stringValue = step.password.stringValue ?? ""
@@ -92,7 +92,7 @@ internal class QBEPostgresStepView: QBEStepViewControllerFor<QBEPostgresSourceSt
 			checkConnectionJob!.async {
 				// Update list of databases
 				database.serverInformation({ (fallibleInfo) -> () in
-					QBEAsyncMain {
+					asyncMain {
 						self.infoProgress?.stopAnimation(nil)
 						switch fallibleInfo {
 						case .Success(let v):

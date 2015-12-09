@@ -16,8 +16,8 @@ internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableVi
 	@IBAction func addFromPopupButton(sender: NSObject) {
 		if let selected = self.addButton?.selectedItem {
 			let columnName = selected.title
-			let expression = QBESiblingExpression(columnName: QBEColumn(columnName))
-			step.orders.append(QBEOrder(expression: expression, ascending: true, numeric: true))
+			let expression = Sibling(columnName: Column(columnName))
+			step.orders.append(Order(expression: expression, ascending: true, numeric: true))
 			self.addButton?.stringValue = ""
 			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 			updateView()
@@ -31,13 +31,13 @@ internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableVi
 	}
 	
 	private func updateColumns() {
-		let job = QBEJob(.UserInitiated)
+		let job = Job(.UserInitiated)
 
 		if let previous = step.previous {
 			previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
 				data.maybe({$0.columnNames(job) {(columns) in
 					columns.maybe { (columnNames) in
-						QBEAsyncMain {
+						asyncMain {
 							self.addButton?.removeAllItems()
 							self.addButton?.addItemWithTitle(NSLocalizedString("Add sorting criterion...", comment: ""))
 							self.addButton?.addItemsWithTitles(columnNames.map({return $0.name}))
@@ -85,7 +85,7 @@ internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableVi
 			
 			if identifier == "formula" {
 				if let formulaString = object as? String {
-					if let formula = QBEFormula(formula: formulaString, locale: self.delegate?.locale ?? QBELocale()) {
+					if let formula = Formula(formula: formulaString, locale: self.delegate?.locale ?? Locale()) {
 						order.expression = formula.root
 						self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 					}
@@ -148,7 +148,7 @@ internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableVi
 			let order = step.orders[row]
 			
 			if identifier == "formula" {
-				if let formulaString = order.expression?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) {
+				if let formulaString = order.expression?.toFormula(self.delegate?.locale ?? Locale(), topLevel: true) {
 					return formulaString
 				}
 			}

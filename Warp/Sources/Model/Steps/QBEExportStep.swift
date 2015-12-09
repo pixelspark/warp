@@ -35,13 +35,13 @@ class QBEExportStep: QBEStep {
 		self.file = self.file?.resolve(atURL)
 	}
 
-	func write(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	func write(job: Job, callback: (Fallible<Data>) -> ()) {
 		super.fullData(job) { (fallibleData) -> () in
 			switch fallibleData {
 			case .Success(let data):
 				if let w = self.writer, let url = self.file?.url {
 					job.async {
-						w.writeData(data, toFile: url, locale: QBELocale(), job: job, callback: { (result) -> () in
+						w.writeData(data, toFile: url, locale: Locale(), job: job, callback: { (result) -> () in
 							switch result {
 							case .Success:
 								callback(.Success(data))
@@ -62,15 +62,15 @@ class QBEExportStep: QBEStep {
 		}
 	}
 
-	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
 		self.write(job, callback: callback)
 	}
 
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
 		return callback(.Success(data))
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		let factory = QBEFactory.sharedInstance
 
 		var options: [String: String] = [:]

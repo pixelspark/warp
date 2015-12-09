@@ -35,13 +35,13 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return []
 	} }
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceText(NSLocalizedString("Cloned data", comment: ""))
 		])
 	}
 	
-	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
 		if let r = self.right, let h = r.head {
 			h.fullData(job, callback: callback)
 		}
@@ -50,7 +50,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
+	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
 		if let r = self.right, let h = r.head {
 			h.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
 		}
@@ -59,7 +59,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
 		fatalError("QBECloneStep.apply should not be used")
 	}
 }

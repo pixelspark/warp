@@ -6,9 +6,9 @@ import WarpCore
 	optional func exportView(view: QBEExportViewController, finishedExportingTo: NSURL)
 }
 
-class QBEExportViewController: NSViewController, QBEJobDelegate, QBESentenceViewDelegate {
+class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDelegate {
 	var step: QBEExportStep?
-	var locale: QBELocale = QBELocale()
+	var locale: Locale = Locale()
 	weak var delegate: QBEExportViewDelegate? = nil
 
 	@IBOutlet var progressView: NSProgressIndicator?
@@ -19,7 +19,7 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESentenceView
 	private var sentenceEditor: QBESentenceViewController!
 	private var isExporting: Bool = false
 	private var notifyUser = false
-	private var job: QBEJob? = nil
+	private var job: Job? = nil
 
 	@IBAction func addAsStep(sender: NSObject) {
 		if let s = self.step {
@@ -72,7 +72,7 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESentenceView
 
 	@IBAction func exportOnce(sender: NSObject) {
 		let alertWindow = self.presentingViewController?.view.window
-		let job = QBEJob(.UserInitiated)
+		let job = Job(.UserInitiated)
 		self.job = job
 		job.addObserver(self)
 		isExporting = true
@@ -80,8 +80,8 @@ class QBEExportViewController: NSViewController, QBEJobDelegate, QBESentenceView
 		// What type of file are we exporting?
 		job.async {
 			if let cs = self.step {
-				cs.write(job) { (fallibleData: QBEFallible<QBEData>) -> () in
-					QBEAsyncMain {
+				cs.write(job) { (fallibleData: Fallible<Data>) -> () in
+					asyncMain {
 						let alert = NSAlert()
 
 						switch fallibleData {

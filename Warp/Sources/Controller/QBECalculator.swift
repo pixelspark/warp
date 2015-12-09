@@ -4,9 +4,9 @@ import WarpCore
 /** The QBECalculator class coordinates execution of steps. In particular, it models the performance of steps and can
 estimate the number of input rows required to arrive at a certain number of output rows (e.g. in example calculations). */
 public class QBECalculator {
-	public var currentData: QBEFuture<QBEFallible<QBEData>>?
-	public var currentRaster: QBEFuture<QBEFallible<QBERaster>>?
-	private var mutex: QBEMutex = QBEMutex()
+	public var currentData: Future<Fallible<Data>>?
+	public var currentRaster: Future<Fallible<Raster>>?
+	private var mutex: Mutex = Mutex()
 	
 	/** Statistical level of certainty that is used when calculating upper limits */
 	public var certainty = 0.95
@@ -85,7 +85,7 @@ public class QBECalculator {
 	
 	/** Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have 
 	been returned. The given callback is called as soon as the last calculation round has finished. */
-	public func calculateExample(sourceStep: QBEStep, maximumTime: Double? = nil,  columnFilters: [QBEColumn:QBEFilterSet]? = nil, attempt: Int = 0, callback: () -> ()) {
+	public func calculateExample(sourceStep: QBEStep, maximumTime: Double? = nil,  columnFilters: [Column:FilterSet]? = nil, attempt: Int = 0, callback: () -> ()) {
 		let maxTime = maximumTime ?? maximumExampleTime
 		
 		let startTime = NSDate.timeIntervalSinceReferenceDate()
@@ -118,7 +118,7 @@ public class QBECalculator {
 					is much faster than we think and we have plenty of time left to fill in our time budget. */
 					let maxExampleRows = self.maximumExampleInputRows
 					if r.rowCount < self.desiredExampleRows && (maxTime - duration) > duration && (maxInputRows < maxExampleRows) {
-						QBELog("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
+						trace("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
 						startAnother = true
 					}
 				}
@@ -136,7 +136,7 @@ public class QBECalculator {
 		}
 	}
 	
-	public func calculate(sourceStep: QBEStep, fullData: Bool, maximumTime: Double? = nil, columnFilters: [QBEColumn:QBEFilterSet]? = nil) {
+	public func calculate(sourceStep: QBEStep, fullData: Bool, maximumTime: Double? = nil, columnFilters: [Column:FilterSet]? = nil) {
 		if sourceStep != calculationInProgressForStep || currentData?.cancelled ?? false || currentRaster?.cancelled ?? false {
 			currentData?.cancel()
 			currentRaster?.cancel()
@@ -145,21 +145,21 @@ public class QBECalculator {
 			
 			// Set up calculation for the data object
 			if fullData {
-				currentData = QBEFuture<QBEFallible<QBEData>>(sourceStep.fullData)
+				currentData = Future<Fallible<Data>>(sourceStep.fullData)
 			}
 			else {
 				maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime ?? maximumExampleTime)
 				let maxOutputRows = desiredExampleRows
-				QBELog("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
-				currentData = QBEFuture<QBEFallible<QBEData>>({ (job, callback) in
+				trace("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
+				currentData = Future<Fallible<Data>>({ (job, callback) in
 					sourceStep.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
 				})
 			}
 			
 			// Set up calculation for the raster
-			currentRaster = QBEFuture<QBEFallible<QBERaster>>({ [unowned self] (job: QBEJob, callback: QBEFuture<QBEFallible<QBERaster>>.Callback) in
+			currentRaster = Future<Fallible<Raster>>({ [unowned self] (job: Job, callback: Future<Fallible<Raster>>.Callback) in
 				if let cd = self.currentData {
-					let dataJob = cd.get { (data: QBEFallible<QBEData>) -> () in
+					let dataJob = cd.get { (data: Fallible<Data>) -> () in
 						switch data {
 							case .Success(let d):
 								// At this point, we know which columns will be available. We should now add the view filters (if any)
@@ -170,7 +170,7 @@ public class QBECalculator {
 											var filteredData = d
 											for column in columnNames {
 												if let columnFilter = filters[column] {
-													let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(QBESiblingExpression(columnName: column))
+													let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(columnName: column))
 													filteredData = filteredData.filter(filterExpression)
 												}
 											}
@@ -215,8 +215,8 @@ public class QBECalculator {
 }
 
 private struct QBEStepPerformance {
-	var inputAmplificationFactor: QBEMoving = QBEMoving(size: 10)
-	var timePerInputRow: QBEMoving = QBEMoving(size: 10)
+	var inputAmplificationFactor: Moving = Moving(size: 10)
+	var timePerInputRow: Moving = Moving(size: 10)
 	var executionCount: Int = 0
 	var emptyCount: Int = 0
 }

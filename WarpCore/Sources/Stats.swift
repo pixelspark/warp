@@ -1,10 +1,10 @@
 import Foundation
 
-public protocol QBEDistribution {
+public protocol Distribution {
 	func inverse(p: Double) -> Double
 }
 
-public struct QBENormalDistribution: QBEDistribution {
+public struct NormalDistribution: Distribution {
 	/*
 	* Lower tail quantile for standard normal distribution function.
 	*
@@ -100,7 +100,7 @@ public struct QBENormalDistribution: QBEDistribution {
 }
 
 /** Represents a set of values samples from a stochastic variable. */
-public struct QBESample {
+public struct Sample {
 	public typealias ValueType = Double
 	public let mean: ValueType
 	public let stdev: ValueType
@@ -128,7 +128,7 @@ public struct QBESample {
 	
 	/** Returns a confidence interval in which a value from the population falls with 90% probability, based on this
 	sample. */
-	public func confidenceInterval(confidenceLevel: ValueType, distribution: QBEDistribution = QBENormalDistribution()) -> (ValueType, ValueType) {
+	public func confidenceInterval(confidenceLevel: ValueType, distribution: Distribution = NormalDistribution()) -> (ValueType, ValueType) {
 		let margin = (1.0 - confidenceLevel) / 2.0
 		let deviates = distribution.inverse(1.0 - margin) - distribution.inverse(margin)
 		return (self.mean - deviates * self.stdev, self.mean + deviates * self.stdev)
@@ -136,7 +136,7 @@ public struct QBESample {
 }
 
 /** Represents a moving sample of a variable. */
-public class QBEMoving: NSObject, NSCoding {
+public class Moving: NSObject, NSCoding {
 	public typealias ValueType = Double
 	private(set) var values: [ValueType?]
 	let size: Int
@@ -170,9 +170,9 @@ public class QBEMoving: NSObject, NSCoding {
 		}
 	}
 	
-	public var sample: QBESample {
+	public var sample: Sample {
 		get {
-			return QBESample(Array.filterNils(values))
+			return Sample(Array.filterNils(values))
 		}
 	}
 }
@@ -182,7 +182,7 @@ function. Once the reservoir is 'full', it will start randomly replacing items i
 this in such a way that the reservoir at any point in time contains a uniform random sample of the samples it has seen
 up to that point. If the reservoir is not completely filled, the sample will contain all items that have been fed to the
 reservoir up to that point. */
-internal class QBEReservoir<ValueType> {
+internal class Reservoir<ValueType> {
 	private(set) var sample: [ValueType] = []
 	let sampleSize: Int
 	private(set) var samplesSeen: Int = 0

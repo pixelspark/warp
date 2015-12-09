@@ -2,20 +2,20 @@ import Foundation
 import  WarpCore
 
 protocol QBEColumnMappingDelegate: NSObjectProtocol {
-	func columnMappingView(view: QBEColumnMappingViewController, didChangeMapping: QBEColumnMapping)
+	func columnMappingView(view: QBEColumnMappingViewController, didChangeMapping: ColumnMapping)
 }
 
 class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 	@IBOutlet private var tableView: NSTableView?
 	weak var delegate: QBEColumnMappingDelegate? = nil
 
-	var mapping: QBEColumnMapping = QBEColumnMapping() {
+	var mapping: ColumnMapping = ColumnMapping() {
 		didSet {
 			self.destinationColumns = Array(mapping.keys)
 		}
 	}
 
-	var sourceColumns: [QBEColumn] = [] {
+	var sourceColumns: [Column] = [] {
 		didSet {
 			self.sourceColumnsMenu = NSMenu()
 
@@ -33,7 +33,7 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 		}
 	}
 
-	private var destinationColumns: [QBEColumn] = []
+	private var destinationColumns: [Column] = []
 	private var sourceColumnsMenu: NSMenu = NSMenu()
 
 	@IBAction func okay(sender: NSObject) {
@@ -77,7 +77,7 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 					self.mapping[dest] = sourceName
 				}
 				else if tag == -1 {
-					self.mapping[dest] = QBEColumn("")
+					self.mapping[dest] = Column("")
 				}
 			}
 		}

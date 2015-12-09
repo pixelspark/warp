@@ -43,7 +43,7 @@ class QBEFilePanel {
 		self.allowedFileTypes = allowedFileTypes
 	}
 
-	func askForSaveFile(inWindow: NSWindow, callback: (QBEFallible<NSURL>) -> ()) {
+	func askForSaveFile(inWindow: NSWindow, callback: (Fallible<NSURL>) -> ()) {
 		let no = NSSavePanel()
 		no.allowedFileTypes = Array(allowedFileTypes.keys)
 		no.allowsOtherFileTypes = self.allowsOtherFileTypes

@@ -7,7 +7,7 @@ internal class QBECalculateStepView: QBEStepViewControllerFor<QBECalculateStep>,
 	@IBOutlet var formulaField: NSTextField?
 	@IBOutlet var insertAfterField: NSComboBox!
 	@IBOutlet var insertPositionPopup: NSPopUpButton!
-	var existingColumns: [QBEColumn]?
+	var existingColumns: [Column]?
 	
 	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
 		super.init(step: step, delegate: delegate, nibName: "QBECalculateStepView", bundle: nil)
@@ -41,9 +41,9 @@ internal class QBECalculateStepView: QBEStepViewControllerFor<QBECalculateStep>,
 	
 	
 	private func updateView() {
-		QBEAssertMainThread()
+		assertMainThread()
 
-		let job = QBEJob(.UserInitiated)
+		let job = Job(.UserInitiated)
 		self.insertAfterField?.stringValue = step.insertRelativeTo?.name ?? ""
 		self.insertPositionPopup.selectItemWithTag(step.insertBefore ? 1 : 0)
 		self.existingColumns = nil
@@ -62,7 +62,7 @@ internal class QBECalculateStepView: QBEStepViewControllerFor<QBECalculateStep>,
 								break;
 						}
 						
-						QBEAsyncMain {
+						asyncMain {
 							self.insertAfterField?.reloadData()
 						}
 					}
@@ -72,9 +72,9 @@ internal class QBECalculateStepView: QBEStepViewControllerFor<QBECalculateStep>,
 			}
 		}
 	
-		let f = step.function.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
+		let f = step.function.toFormula(self.delegate?.locale ?? Locale(), topLevel: true)
 		let fullFormula = f
-		if let parsed = QBEFormula(formula: fullFormula, locale: (self.delegate?.locale ?? QBELocale())) {
+		if let parsed = Formula(formula: fullFormula, locale: (self.delegate?.locale ?? Locale())) {
 			self.formulaField?.attributedStringValue = parsed.syntaxColoredFormula
 		}
 	}
@@ -94,15 +94,15 @@ internal class QBECalculateStepView: QBEStepViewControllerFor<QBECalculateStep>,
 		if sender == insertAfterField {
 			let after = insertAfterField.stringValue
 			if after != step.insertRelativeTo?.name {
-				step.insertRelativeTo = after.isEmpty ? nil : QBEColumn(after)
+				step.insertRelativeTo = after.isEmpty ? nil : Column(after)
 			}
 			delegate?.stepView(self, didChangeConfigurationForStep: step)
 			return
 		}
 		
-		step.targetColumn = QBEColumn(self.targetColumnNameField?.stringValue ?? step.targetColumn.name)
+		step.targetColumn = Column(self.targetColumnNameField?.stringValue ?? step.targetColumn.name)
 		if let f = self.formulaField?.stringValue {
-			if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale())) {
+			if let parsed = Formula(formula: f, locale: (self.delegate?.locale ?? Locale())) {
 				step.function = parsed.root
 				updateView()
 			}

@@ -37,7 +37,7 @@ public extension NSDate {
 		return calendar.dateFromComponents(comps)!
 	}
 	
-	static func startOfLocalDate(locale: QBELocale, year: Int, month: Int, day: Int) -> NSDate {
+	static func startOfLocalDate(locale: Locale, year: Int, month: Int, day: Int) -> NSDate {
 		let comps = NSDateComponents()
 		comps.year = year
 		comps.month = month
@@ -48,7 +48,7 @@ public extension NSDate {
 		return locale.calendar.dateFromComponents(comps)!
 	}
 	
-	func localComponents(locale: QBELocale) -> NSDateComponents {
+	func localComponents(locale: Locale) -> NSDateComponents {
 		return locale.calendar.componentsInTimeZone(locale.timeZone, fromDate: self)
 	}
 	

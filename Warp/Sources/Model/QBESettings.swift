@@ -52,9 +52,9 @@ class QBESettings {
 		}
 	}
 	
-	var locale: QBELocale.QBELanguage {
+	var locale: Locale.LanguageIdentifier {
 		get {
-			return defaults.stringForKey("locale") ?? QBELocale.defaultLanguage
+			return defaults.stringForKey("locale") ?? Locale.defaultLanguage
 		}
 	}
 	
@@ -92,11 +92,11 @@ class QBESettings {
 		}
 	}
 	
-	func defaultWidthForColumn(withName: QBEColumn) -> Double? {
+	func defaultWidthForColumn(withName: Column) -> Double? {
 		return defaults.doubleForKey("width.\(withName.name)")
 	}
 	
-	func setDefaultWidth(width: Double, forColumn: QBEColumn) {
+	func setDefaultWidth(width: Double, forColumn: Column) {
 		defaults.setDouble(width, forKey: "width.\(forColumn.name)")
 	}
 	

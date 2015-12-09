@@ -36,7 +36,7 @@ internal extension CGPoint {
 
 internal extension NSAlert {
 	static func showSimpleAlert(message: String, infoText: String, style: NSAlertStyle, window: NSWindow?) {
-		QBEAssertMainThread()
+		assertMainThread()
 		let av = NSAlert()
 		av.messageText = message
 		av.informativeText = infoText

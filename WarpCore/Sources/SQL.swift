@@ -1,11 +1,11 @@
 import Foundation
 
-/** The QBESQL family of classes enables data operations to be pushed down to SQL for efficient execution. In order for 
+/** The SQL family of classes enables data operations to be pushed down to SQL for efficient execution. In order for
 this to work properly and consistently, the calculations need to behave exactly like the (in-memory) reference 
-implementations provided by QBERaster/QBEStream. There are two problems associated with that:
+implementations provided by Raster/Stream. There are two problems associated with that:
 
-- The SQL type system is different than the QBE type system. A lot has been done to align the two type systems closely.
-  * The QBEValue types map rougly to the basic SQL types VARCHAR/TEXT (StringValue), BOOL or INT (BoolValue), DOUBLE
+- The SQL type system is different than the Warp type system. A lot has been done to align the two type systems closely.
+  * The Value types map rougly to the basic SQL types VARCHAR/TEXT (StringValue), BOOL or INT (BoolValue), DOUBLE
     (DoubleValue), INT (IntValue).
 
   * The EmptyValue maps to an empty string in expressions. NULLs received from the database are coalesced to empty 
@@ -27,18 +27,18 @@ implementations provided by QBERaster/QBEStream. There are two problems associat
    * Corner case behaviour may be different. An example is the usage of "LIMIT 0" to obtain information about the columns
      a query would result in.
    
-   In order to overcome the differences between DBMS'es, QBE uses the concept of a "SQL Dialect" which defines the mapping
+   In order to overcome the differences between DBMS'es, Warp uses the concept of a "SQL Dialect" which defines the mapping
    from and to SQL for different SQL vendors. The default dialect closely matches SQL/92. For each vendor, a subclass of
-   QBESQLDialect defines exceptions.
+   SQLDialect defines exceptions.
 
 - The DBMS may use a different locale than the application. Care is taken not to rely too much on locale-dependent parts.
 
 Even with the measures above in place, there may still be differences between our reference implementation and SQL. */
 
-/** Classes that implement QBESQLDialect provide SQL generating classes with tools to build SQL queries in a particular
-dialect. The standard dialect (implemented in QBEStandardSQLDialect) sticks as closely to the SQL92 standard (to implement
+/** Classes that implement SQLDialect provide SQL generating classes with tools to build SQL queries in a particular
+dialect. The standard dialect (implemented in StandardSQLDialect) sticks as closely to the SQL92 standard (to implement
 a particular dialect, the standard dialect should be subclassed and should only implement the exceptions). */
-public protocol QBESQLDialect {
+public protocol SQLDialect {
 	/** The string that starts and ends a string literal. */
 	var stringQualifier: String { get }
 	
@@ -55,8 +55,8 @@ public protocol QBESQLDialect {
 	/** The string that is used to escape the identifier qualifier in identifiers that contain it. */
 	var identifierQualifierEscape: String { get }
 	
-	/** Returns a column identifier for the given QBEColumn. */
-	func columnIdentifier(column: QBEColumn, table: String?, schema: String?, database: String?) -> String
+	/** Returns a column identifier for the given Column. */
+	func columnIdentifier(column: Column, table: String?, schema: String?, database: String?) -> String
 	
 	/** Returns the identifier that represents all columns in the given table (e.g. "table.*" or just "*". */
 	func allColumnsIdentifier(table: String?, schema: String?, database: String?) -> String
@@ -64,15 +64,15 @@ public protocol QBESQLDialect {
 	func tableIdentifier(table: String, schema: String?, database: String?) -> String
 	
 	/** Transforms the given expression to a SQL string. The inputValue parameter determines the return value of the
-	QBEIdentitiyExpression. The function may return nil for expressions it cannot successfully transform to SQL. */
-	func expressionToSQL(formula: QBEExpression, alias: String, foreignAlias: String?, inputValue: String?) -> String?
+	Identity expression. The function may return nil for expressions it cannot successfully transform to SQL. */
+	func expressionToSQL(formula: Expression, alias: String, foreignAlias: String?, inputValue: String?) -> String?
 	
-	func unaryToSQL(type: QBEFunction, args: [String]) -> String?
-	func binaryToSQL(type: QBEBinary, first: String, second: String) -> String?
+	func unaryToSQL(type: Function, args: [String]) -> String?
+	func binaryToSQL(type: Binary, first: String, second: String) -> String?
 	
 	/** Transforms the given aggregation to an aggregation description that can be incldued as part of a GROUP BY 
 	statement. The function may return nil for aggregations it cannot represent or transform to SQL. */
-	func aggregationToSQL(aggregation: QBEAggregation, alias: String) -> String?
+	func aggregationToSQL(aggregation: Aggregation, alias: String) -> String?
 	
 	/** Create an expression that forces the specified expression to a numeric type (DOUBLE or INT in SQL). */
 	func forceNumericExpression(expression: String) -> String
@@ -81,7 +81,7 @@ public protocol QBESQLDialect {
 	func forceStringExpression(expression: String) -> String
 	
 	/** Returns the SQL name for the indicates join type, or nil if that join type is not supported */
-	func joinType(type: QBEJoinType) -> String?
+	func joinType(type: JoinType) -> String?
 
 	/** Whether this database supports changing column definitions (or dropping columns) using an ALTER TABLE statement 
 	(if false, any changes can only be made by dropping and recreating the table). If false, the database should still
@@ -92,48 +92,48 @@ public protocol QBESQLDialect {
 /** Represents a particular SQL database. In most cases, this will be a catalog or database on a particular database 
 server. Some 'flat' databases do not have the concept of separate databases. In this case, there is one database per
 connection/file (e.g. for SQLite). */
-public protocol QBESQLDatabase {
-	var dialect: QBESQLDialect { get }
+public protocol SQLDatabase {
+	var dialect: SQLDialect { get }
 
 	/** The name that can be used to refer to this database in SQL queries performed on the connection. */
 	var databaseName: String? { get }
 
 	/** Create a connection over which queries can be sent to this database. */
-	func connect(callback: (QBEFallible<QBESQLConnection>) -> ())
+	func connect(callback: (Fallible<SQLConnection>) -> ())
 
-	/** Creates a QBEData object that can be used to read data from a table in the specified schema (if any) in this
+	/** Creates a Data object that can be used to read data from a table in the specified schema (if any) in this
 	database. For databases that do not support schemas the schema parameter must be nil. */
-	func dataForTable(table: String, schema: String?, job: QBEJob, callback: (QBEFallible<QBEData>) -> ())
+	func dataForTable(table: String, schema: String?, job: Job, callback: (Fallible<Data>) -> ())
 }
 
-public protocol QBESQLConnection {
+public protocol SQLConnection {
 	/** Serially perform the indicate SQL data definition commands in the order specified. The callback is called after 
 	the first error is encountered, or when all queries have been executed successfully. Depending on the support of the 
 	database, wrapping in a transaction is possible by issuing 'BEGIN'  and 'COMMIT'  commands. Whenever an
 	error is encountered, no further query processing should happen. */
-	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ())
+	func run(sql: [String], job: Job, callback: (Fallible<Void>) -> ())
 }
 
-public class QBESQLDataWarehouse: QBEDataWarehouse {
-	public let database: QBESQLDatabase
+public class SQLWarehouse: Warehouse {
+	public let database: SQLDatabase
 	public let schemaName: String?
-	public var dialect: QBESQLDialect { return database.dialect }
+	public var dialect: SQLDialect { return database.dialect }
 	public let hasFixedColumns: Bool = true
 	public let hasNamedTables: Bool = true
 
-	public init(database: QBESQLDatabase, schemaName: String?) {
+	public init(database: SQLDatabase, schemaName: String?) {
 		self.database = database
 		self.schemaName = schemaName
 	}
 
-	public func canPerformMutation(mutation: QBEWarehouseMutation) -> Bool {
+	public func canPerformMutation(mutation: WarehouseMutation) -> Bool {
 		switch mutation {
 			case .Create(_,_):
 				return true
 		}
 	}
 
-	public func performMutation(mutation: QBEWarehouseMutation, job: QBEJob, callback: (QBEFallible<QBEMutableData?>) -> ()) {
+	public func performMutation(mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableData?>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
@@ -170,7 +170,7 @@ public class QBESQLDataWarehouse: QBEDataWarehouse {
 												switch commitResult {
 												case .Success:
 													// Go and insert the specified data in the table
-													let mutableData = QBESQLMutableData(database: self.database, schemaName: self.schemaName, tableName: tableName)
+													let mutableData = SQLMutableData(database: self.database, schemaName: self.schemaName, tableName: tableName)
 													let mapping = columnNames.mapDictionary { cn in return (cn, cn) }
 													mutableData.performMutation(.Import(data: data, withMapping: mapping), job: job) { insertResult in
 														switch insertResult {
@@ -200,15 +200,15 @@ public class QBESQLDataWarehouse: QBEDataWarehouse {
 	}
 }
 
-private class QBESQLInsertPuller: QBEStreamPuller {
-	private let columnNames: [QBEColumn]
-	private var callback: ((QBEFallible<Void>) -> ())?
+private class SQLInsertPuller: StreamPuller {
+	private let columnNames: [Column]
+	private var callback: ((Fallible<Void>) -> ())?
 	private let fastMapping: [Int?]
 	private let insertStatement: String
-	private let connection: QBESQLConnection
-	private let database: QBESQLDatabase
+	private let connection: SQLConnection
+	private let database: SQLDatabase
 
-	init(stream: QBEStream, job: QBEJob, columnNames: [QBEColumn], mapping: QBEColumnMapping, insertStatement: String, connection: QBESQLConnection, database: QBESQLDatabase, callback: ((QBEFallible<Void>) -> ())?) {
+	init(stream: Stream, job: Job, columnNames: [Column], mapping: ColumnMapping, insertStatement: String, connection: SQLConnection, database: SQLDatabase, callback: ((Fallible<Void>) -> ())?) {
 		self.callback = callback
 		self.columnNames = columnNames
 		self.insertStatement = insertStatement
@@ -227,13 +227,13 @@ private class QBESQLInsertPuller: QBEStreamPuller {
 		super.init(stream: stream, job: job)
 	}
 
-	override func onReceiveRows(rows: [QBETuple], callback: (QBEFallible<Void>) -> ()) {
+	override func onReceiveRows(rows: [Tuple], callback: (Fallible<Void>) -> ()) {
 		self.mutex.locked {
 			if !rows.isEmpty {
 				let values = rows.map { row in
 					let tuple = fastMapping.map { idx -> String in
 						if let i = idx {
-							return  self.database.dialect.expressionToSQL(QBELiteralExpression(row[i]), alias: "", foreignAlias: nil, inputValue: nil) ?? "NULL"
+							return  self.database.dialect.expressionToSQL(Literal(row[i]), alias: "", foreignAlias: nil, inputValue: nil) ?? "NULL"
 						}
 						else {
 							return "NULL"
@@ -281,20 +281,20 @@ private class QBESQLInsertPuller: QBEStreamPuller {
 	}
 }
 
-public class QBESQLMutableData: QBEMutableData {
-	public let database: QBESQLDatabase
+public class SQLMutableData: MutableData {
+	public let database: SQLDatabase
 	public let tableName: String
 	public let schemaName: String?
 
-	public var warehouse: QBEDataWarehouse { return QBESQLDataWarehouse(database: self.database, schemaName: self.schemaName) }
+	public var warehouse: Warehouse { return SQLWarehouse(database: self.database, schemaName: self.schemaName) }
 
-	public init(database: QBESQLDatabase, schemaName: String?, tableName: String) {
+	public init(database: SQLDatabase, schemaName: String?, tableName: String) {
 		self.database = database
 		self.tableName = tableName
 		self.schemaName = schemaName
 	}
 
-	public func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>?>) -> ()) {
+	public func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
 		return callback(.Failure("Not implemented"))
 	}
 
@@ -302,11 +302,11 @@ public class QBESQLMutableData: QBEMutableData {
 		return self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.database.databaseName)
 	}
 
-	public func data(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	public func data(job: Job, callback: (Fallible<Data>) -> ()) {
 		self.database.dataForTable(tableName, schema: schemaName, job: job, callback: callback)
 	}
 
-	private func performInsertByPulling(connection: QBESQLConnection, data: QBEData, mapping: QBEColumnMapping, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	private func performInsertByPulling(connection: SQLConnection, data: Data, mapping: ColumnMapping, job: Job, callback: (Fallible<Void>) -> ()) {
 		let fields = mapping.keys.map { fn in return self.database.dialect.columnIdentifier(fn, table: nil, schema: nil, database: nil) }.joinWithSeparator(", ")
 		let insertStatement = "INSERT INTO \(self.tableIdentifier) (\(fields)) VALUES ";
 		print(insertStatement)
@@ -316,7 +316,7 @@ public class QBESQLMutableData: QBEMutableData {
 			switch columnsFallible {
 			case .Success(let sourceColumnNames):
 				let stream = data.stream()
-				let puller = QBESQLInsertPuller(stream: stream, job: job, columnNames: sourceColumnNames, mapping: mapping, insertStatement: insertStatement, connection: connection, database: self.database, callback: callback)
+				let puller = SQLInsertPuller(stream: stream, job: job, columnNames: sourceColumnNames, mapping: mapping, insertStatement: insertStatement, connection: connection, database: self.database, callback: callback)
 				puller.start()
 
 			case .Failure(let e):
@@ -326,18 +326,18 @@ public class QBESQLMutableData: QBEMutableData {
 		}
 	}
 
-	private func performInsert(connection: QBESQLConnection, data: QBEData, mapping: QBEColumnMapping, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	private func performInsert(connection: SQLConnection, data: Data, mapping: ColumnMapping, job: Job, callback: (Fallible<Void>) -> ()) {
 		if mapping.isEmpty {
 			callback(.Failure("Cannot insert zero columns!"))
 			return
 		}
 
-		// Is the other data set an SQL data set (or an SQL data set shrink-wrapped in QBECoalescedData)?
-		if let otherSQL = (data as? QBESQLData) ?? ((data as? QBECoalescedData)?.data as? QBESQLData) {
+		// Is the other data set an SQL data set (or an SQL data set shrink-wrapped in CoalescedData)?
+		if let otherSQL = (data as? SQLData) ?? ((data as? CoalescedData)?.data as? SQLData) {
 			self.data(job) { result in
 				switch result {
 				case .Success(let myData):
-					if let mySQLData  = myData as? QBESQLData where mySQLData.isCompatibleWith(otherSQL) {
+					if let mySQLData  = myData as? SQLData where mySQLData.isCompatibleWith(otherSQL) {
 						// Perform INSERT INTO ... SELECT ...
 						self.database.connect { result in
 							switch result {
@@ -374,7 +374,7 @@ public class QBESQLMutableData: QBEMutableData {
 		}
 	}
 
-	private func performAlter(connection: QBESQLConnection, columns desiredColumns: [QBEColumn], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	private func performAlter(connection: SQLConnection, columns desiredColumns: [Column], job: Job, callback: (Fallible<Void>) -> ()) {
 		self.data(job) { result in
 			switch result {
 			case .Success(let data):
@@ -417,7 +417,7 @@ public class QBESQLMutableData: QBEMutableData {
 		}
 	}
 
-	public func performMutation(mutation: QBEDataMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	public func performMutation(mutation: DataMutation, job: Job, callback: (Fallible<Void>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
@@ -455,7 +455,7 @@ public class QBESQLMutableData: QBEMutableData {
 		}
 	}
 
-	public func canPerformMutation(mutation: QBEDataMutation) -> Bool {
+	public func canPerformMutation(mutation: DataMutation) -> Bool {
 		switch mutation {
 		case .Truncate, .Drop, .Import(_, _), .Insert(_):
 			return true
@@ -472,7 +472,7 @@ public class QBESQLMutableData: QBEMutableData {
 	}
 }
 
-public class QBEStandardSQLDialect: QBESQLDialect {
+public class StandardSQLDialect: SQLDialect {
 	public var stringQualifier: String { get { return "\'" } }
 	public var stringQualifierEscape: String { get { return "\\\'" } }
 	public var identifierQualifier: String { get { return "\"" } }
@@ -483,7 +483,7 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 	public init() {
 	}
 
-	public func columnIdentifier(column: QBEColumn, table: String? = nil, schema: String? = nil, database: String? = nil) -> String {
+	public func columnIdentifier(column: Column, table: String? = nil, schema: String? = nil, database: String? = nil) -> String {
 		if let t = table {
 			let ti = tableIdentifier(t, schema: schema, database: database)
 			return "\(ti).\(identifierQualifier)\(column.name.stringByReplacingOccurrencesOfString(identifierQualifier, withString: identifierQualifierEscape))\(identifierQualifier)"
@@ -513,7 +513,7 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 		return "*"
 	}
 	
-	public func joinType(type: QBEJoinType) -> String? {
+	public func joinType(type: JoinType) -> String? {
 		switch type {
 		case .InnerJoin: return "INNER JOIN"
 		case .LeftJoin: return "LEFT JOIN"
@@ -536,22 +536,22 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 		return "CAST(\(expression) AS TEXT)"
 	}
 	
-	public func expressionToSQL(formula: QBEExpression, alias: String, foreignAlias: String? = nil, inputValue: String? = nil) -> String? {
+	public func expressionToSQL(formula: Expression, alias: String, foreignAlias: String? = nil, inputValue: String? = nil) -> String? {
 		if formula.isConstant {
-			let result = formula.apply(QBERow(), foreign: nil, inputValue: nil)
+			let result = formula.apply(Row(), foreign: nil, inputValue: nil)
 			return valueToSQL(result)
 		}
 		
-		if formula is QBELiteralExpression {
+		if formula is Literal {
 			fatalError("This code is unreachable since literals should always be constant")
 		}
-		else if formula is QBEIdentityExpression {
+		else if formula is Identity {
 			return inputValue ?? "???"
 		}
-		else if let f = formula as? QBESiblingExpression {
+		else if let f = formula as? Sibling {
 			return columnIdentifier(f.columnName, table: alias)
 		}
-		else if let f = formula as? QBEForeignExpression {
+		else if let f = formula as? Foreign {
 			if let fa = foreignAlias {
 				return columnIdentifier(f.columnName, table: fa)
 			}
@@ -559,7 +559,7 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 				return nil
 			}
 		}
-		else if let f = formula as? QBEBinaryExpression {
+		else if let f = formula as? Comparison {
 			if let first = expressionToSQL(f.first, alias: alias, foreignAlias: foreignAlias, inputValue: inputValue) {
 				if let second = expressionToSQL(f.second, alias: alias, foreignAlias: foreignAlias, inputValue: inputValue) {
 					return binaryToSQL(f.type, first: first, second: second)
@@ -567,9 +567,9 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 			}
 			return nil
 		}
-		else if let f = formula as? QBEFunctionExpression {
+		else if let f = formula as? Call {
 			var anyNils = false
-			let argValues = f.arguments.map({(e: QBEExpression) -> (String) in
+			let argValues = f.arguments.map({(e: Expression) -> (String) in
 				let r = self.expressionToSQL(e, alias: alias, foreignAlias: foreignAlias, inputValue: inputValue)
 				if r == nil {
 					anyNils = true
@@ -582,7 +582,7 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 		return nil
 	}
 	
-	public func aggregationToSQL(aggregation: QBEAggregation, alias: String) -> String? {
+	public func aggregationToSQL(aggregation: Aggregation, alias: String) -> String? {
 		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias, foreignAlias: nil, inputValue: nil) {
 			switch aggregation.reduce {
 				case .Average: return "AVG(\(expressionSQL))"
@@ -593,11 +593,11 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 				case .Concat: return "GROUP_CONCAT(\(expressionSQL),'')"
 				
 				case .Pack:
-					return "GROUP_CONCAT(REPLACE(REPLACE(\(expressionSQL),\(literalString(QBEPack.Escape)),\(literalString(QBEPack.EscapeEscape))),\(literalString(QBEPack.Separator)),\(literalString(QBEPack.SeparatorEscape))), \(literalString(QBEPack.Separator)))"
+					return "GROUP_CONCAT(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.Escape)),\(literalString(Pack.EscapeEscape))),\(literalString(Pack.Separator)),\(literalString(Pack.SeparatorEscape))), \(literalString(Pack.Separator)))"
 				
 				default:
 					/* TODO: RandomItem can be implemented using a UDF aggregation function in PostgreSQL. Implementing it in
-					SQLite is not easy.. (perhaps QBE can define a UDF from Swift?). */
+					SQLite is not easy.. (perhaps Warp can define a UDF from Swift?). */
 					return nil
 			}
 		}
@@ -606,7 +606,7 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 		}
 	}
 
-	public func unaryToSQL(type: QBEFunction, args: [String]) -> String? {
+	public func unaryToSQL(type: Function, args: [String]) -> String? {
 		let value = args.joinWithSeparator(", ")
 		switch type {
 			case .Identity: return value
@@ -658,7 +658,7 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 			case .RandomBetween:
 				/* FIXME check this! Using RANDOM() with modulus introduces a bias, but because we're using ABS, the bias
 				should be cancelled out. See http://stackoverflow.com/questions/8304204/generating-only-positive-random-numbers-in-sqlite */
-				let rf = self.unaryToSQL(QBEFunction.Random, args: []) ?? "RANDOM()"
+				let rf = self.unaryToSQL(Function.Random, args: []) ?? "RANDOM()"
 				return "(\(args[0]) + ABS(\(rf) % (\(args[1])-\(args[0]))))"
 			
 			case .Random:
@@ -696,8 +696,8 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 				return "(CASE WHEN \(args[0])=0 THEN 0 WHEN \(args[0])>0 THEN 1 ELSE -1 END)"
 			
 			
-			/* FIXME: These could simply call QBEFunction.Count.apply() if the parameters are constant, but then we need
-			the original QBEExpression arguments. */
+			/* FIXME: These could simply call Function.Count.apply() if the parameters are constant, but then we need
+			the original Expression arguments. */
 			case .Count: return nil
 			case .CountAll: return nil
 			case .Pack: return nil
@@ -766,7 +766,7 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 		}
 	}
 	
-	internal func valueToSQL(value: QBEValue) -> String {
+	internal func valueToSQL(value: Value) -> String {
 		switch value {
 			case .StringValue(let s):
 				return literalString(s)
@@ -796,7 +796,7 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 		}
 	}
 	
-	public func binaryToSQL(type: QBEBinary, first: String, second: String) -> String? {
+	public func binaryToSQL(type: Binary, first: String, second: String) -> String? {
 		switch type {
 			case .Addition:		return "(\(second)+\(first))"
 			case .Subtraction:	return "(\(second)-\(first))"
@@ -824,7 +824,7 @@ public class QBEStandardSQLDialect: QBESQLDialect {
 }
 
 /** Logical fragments in an SQL statement, in order of logical execution. */
-public enum QBESQLFragmentType {
+public enum SQLFragmentType {
 	case From
 	case Join
 	case Where
@@ -835,7 +835,7 @@ public enum QBESQLFragmentType {
 	case Select
 	case Union
 	
-	var precedingType: QBESQLFragmentType? {
+	var precedingType: SQLFragmentType? {
 		switch self {
 		case .From: return nil
 		case .Join: return .From
@@ -850,7 +850,7 @@ public enum QBESQLFragmentType {
 	}
 }
 
-/** QBESQLFragment is used to generate SQL queries in an efficient manner, by taking the logical execution order of an SQL
+/** SQLFragment is used to generate SQL queries in an efficient manner, by taking the logical execution order of an SQL
 statement into account. Fragments can be added to an existing fragment by calling one of the sql* functions. If the 
 fragment logically followed the existing one (e.g. a LIMIT after a WHERE), it will be added to the fragment. If however
 the added fragment does *not* logically follow the existing fragment (e.g. a WHERE after a LIMIT), the existing fragment
@@ -862,25 +862,25 @@ in higher performance. Another issue is that indexes can often not be used to ac
 combining operations in a single query, they stay 'closer' to the original table, and the chance we can use an available
 index is higher.
 
-Note that QBESQLFragment is not concerned with filling in the actual fragments - that is the job of QBESQLData. */
-public class QBESQLFragment {
-	public let type: QBESQLFragmentType
+Note that SQLFragment is not concerned with filling in the actual fragments - that is the job of SQLData. */
+public class SQLFragment {
+	public let type: SQLFragmentType
 	public let sql: String
-	public let dialect: QBESQLDialect
+	public let dialect: SQLDialect
 	public let alias: String
 	
-	public init(type: QBESQLFragmentType, sql: String, dialect: QBESQLDialect, alias: String) {
+	public init(type: SQLFragmentType, sql: String, dialect: SQLDialect, alias: String) {
 		self.type = type
 		self.sql = sql
 		self.dialect = dialect
 		self.alias = alias
 	}
 	
-	public convenience init(table: String, schema: String?, database: String?, dialect: QBESQLDialect) {
+	public convenience init(table: String, schema: String?, database: String?, dialect: SQLDialect) {
 		self.init(type: .From, sql: "FROM \(dialect.tableIdentifier(table,  schema: schema, database: database))", dialect: dialect, alias: table)
 	}
 	
-	public convenience init(query: String, dialect: QBESQLDialect) {
+	public convenience init(query: String, dialect: SQLDialect) {
 		let alias = "T\(abs(query.hash))"
 		
 		// TODO: can use WITH..AS syntax here for DBMS'es that work better with that
@@ -890,64 +890,64 @@ public class QBESQLFragment {
 	/** 
 	Returns the table alias to be used in the next call that adds a part; for example:
 	  
-	let fragment = QBESQLFragment(table: "test", dialect: ...)
+	let fragment = SQLFragment(table: "test", dialect: ...)
 	let newFragment = fragment.sqlOrder(dialect.columnIdentifier("col", table: fragment.aliasFor(.Order)) + " ASC")
 	*/
-	func aliasFor(part: QBESQLFragmentType) -> String {
+	func aliasFor(part: SQLFragmentType) -> String {
 		return advance(part, part: "X").alias
 	}
 	
 	// State transitions
-	public func sqlWhere(part: String?) -> QBESQLFragment {
-		return advance(QBESQLFragmentType.Where, part: part)
+	public func sqlWhere(part: String?) -> SQLFragment {
+		return advance(SQLFragmentType.Where, part: part)
 	}
 	
-	public func sqlJoin(part: String?) -> QBESQLFragment {
-		return advance(QBESQLFragmentType.Join, part: part)
+	public func sqlJoin(part: String?) -> SQLFragment {
+		return advance(SQLFragmentType.Join, part: part)
 	}
 	
-	public func sqlGroup(part: String?) -> QBESQLFragment {
-		return advance(QBESQLFragmentType.Group, part: part)
+	public func sqlGroup(part: String?) -> SQLFragment {
+		return advance(SQLFragmentType.Group, part: part)
 	}
 	
-	public func sqlHaving(part: String?) -> QBESQLFragment {
-		return advance(QBESQLFragmentType.Having, part: part)
+	public func sqlHaving(part: String?) -> SQLFragment {
+		return advance(SQLFragmentType.Having, part: part)
 	}
 	
-	public func sqlOrder(part: String?) -> QBESQLFragment {
-		return advance(QBESQLFragmentType.Order, part: part)
+	public func sqlOrder(part: String?) -> SQLFragment {
+		return advance(SQLFragmentType.Order, part: part)
 	}
 	
-	public func sqlLimit(part: String?) -> QBESQLFragment {
-		return advance(QBESQLFragmentType.Limit, part: part)
+	public func sqlLimit(part: String?) -> SQLFragment {
+		return advance(SQLFragmentType.Limit, part: part)
 	}
 	
-	public func sqlSelect(part: String?) -> QBESQLFragment {
-		return advance(QBESQLFragmentType.Select, part: part)
+	public func sqlSelect(part: String?) -> SQLFragment {
+		return advance(SQLFragmentType.Select, part: part)
 	}
 	
-	public func sqlUnion(part: String?) -> QBESQLFragment {
-		return advance(QBESQLFragmentType.Union, part: part)
+	public func sqlUnion(part: String?) -> SQLFragment {
+		return advance(SQLFragmentType.Union, part: part)
 	}
 	
 	/** Add a WHERE or HAVING clause with the given SQL for the condition part, depending on the state the query is 
 	currently in. This can be used to add another filter to the query without creating a new subquery layer, only for
 	conditions for which WHERE and HAVING have the same effect. */
-	public func sqlWhereOrHaving(part: String?) -> QBESQLFragment {
+	public func sqlWhereOrHaving(part: String?) -> SQLFragment {
 		if self.type == .Group || self.type == .Where {
 			return sqlHaving(part)
 		}
 		return sqlWhere(part)
 	}
 	
-	var asSubquery: QBESQLFragment { get {
-		return QBESQLFragment(query: self.sqlSelect(nil).sql, dialect: dialect)
+	var asSubquery: SQLFragment { get {
+		return SQLFragment(query: self.sqlSelect(nil).sql, dialect: dialect)
 	} }
 	
-	private func advance(toType: QBESQLFragmentType, part: String?) -> QBESQLFragment {
+	private func advance(toType: SQLFragmentType, part: String?) -> SQLFragment {
 		// From which state can one go to the to-state?
 		let precedingType = toType.precedingType
-		let source: QBESQLFragment
+		let source: SQLFragment
 		
 		if self.type == toType && part == nil {
 			// We are in the right place
@@ -1008,63 +1008,63 @@ public class QBESQLFragment {
 			}
 		}
 		
-		return QBESQLFragment(type: toType, sql: fullPart, dialect: source.dialect, alias: source.alias)
+		return SQLFragment(type: toType, sql: fullPart, dialect: source.dialect, alias: source.alias)
 	}
 }
 
-/** QBESQLData implements a general SQL-based data source. It maintains a single SQL statement that (when executed) 
+/** SQLData implements a general SQL-based data source. It maintains a single SQL statement that (when executed) 
 should return the data represented by this data set. This class needs to be subclassed to be able to actually fetch the
 data (a subclass implements the raster function to return the fetched data, preferably the stream function to return a
 stream of results, and the apply function, to make sure any operations on the data set return a data set of the same
 subclassed type). See QBESQLite for an implementation example. */
-public class QBESQLData: NSObject, QBEData {
-    public let sql: QBESQLFragment
-	public let columns: [QBEColumn]
+public class SQLData: NSObject, Data {
+    public let sql: SQLFragment
+	public let columns: [Column]
 	
-	public init(fragment: QBESQLFragment, columns: [QBEColumn]) {
+	public init(fragment: SQLFragment, columns: [Column]) {
 		self.columns = columns
 		self.sql = fragment
 	}
 	
-	public init(sql: String, dialect: QBESQLDialect, columns: [QBEColumn]) {
-		self.sql = QBESQLFragment(query: sql, dialect: dialect)
+	public init(sql: String, dialect: SQLDialect, columns: [Column]) {
+		self.sql = SQLFragment(query: sql, dialect: dialect)
 		self.columns = columns
     }
 	
-	public init(table: String, schema: String?, database: String, dialect: QBESQLDialect, columns: [QBEColumn]) {
-		self.sql = QBESQLFragment(table: table, schema: schema, database: database, dialect: dialect)
+	public init(table: String, schema: String?, database: String, dialect: SQLDialect, columns: [Column]) {
+		self.sql = SQLFragment(table: table, schema: schema, database: database, dialect: dialect)
 		self.columns = columns
 	}
 	
-	private func fallback() -> QBEData {
-		return QBEStreamData(source: self.stream())
+	private func fallback() -> Data {
+		return StreamData(source: self.stream())
 	}
 	
-	public func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		callback(.Success(columns))
 	}
 	
-	public func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ()) {
+	public func raster(job: Job, callback: (Fallible<Raster>) -> ()) {
 		job.async {
-			QBEStreamData(source: self.stream()).raster(job, callback: QBEOnce(callback))
+			StreamData(source: self.stream()).raster(job, callback: once(callback))
 		}
 	}
 	
-	/** Transposition is difficult in SQL, and therefore left to QBERasterData. */
-   public  func transpose() -> QBEData {
+	/** Transposition is difficult in SQL, and therefore left to RasterData. */
+   public  func transpose() -> Data {
 		return fallback().transpose()
     }
 	
-	public func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData {
+	public func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data {
 		return fallback().pivot(horizontal, vertical: vertical, values: values)
 	}
 	
-	public func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData {
+	public func flatten(valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Data {
 		return fallback().flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to)
 	}
 	
-	public func union(data: QBEData) -> QBEData {
-		if let rightSQL = data as? QBESQLData where isCompatibleWith(rightSQL) {
+	public func union(data: Data) -> Data {
+		if let rightSQL = data as? SQLData where isCompatibleWith(rightSQL) {
 			// Find out what columns we will end up with
 			var cols = self.columns
 			for rightColumn in rightSQL.columns {
@@ -1080,23 +1080,23 @@ public class QBESQLData: NSObject, QBEData {
 		}
 	}
 	
-	public func join(join: QBEJoin) -> QBEData {
+	public func join(join: Join) -> Data {
 		if let sqlJoinType = sql.dialect.joinType(join.type) {
 			switch join.type {
 			case .LeftJoin, .InnerJoin:
 				// We need to 'unpack' coalesced data to get to the actual data
 				var rightData = join.foreignData
-				while rightData is QBEProxyData || rightData is QBECoalescedData {
-					if let rd = rightData as? QBECoalescedData {
+				while rightData is ProxyData || rightData is CoalescedData {
+					if let rd = rightData as? CoalescedData {
 						rightData = rd.data
 					}
-					else if let rd = rightData as? QBEProxyData {
+					else if let rd = rightData as? ProxyData {
 						rightData = rd.data
 					}
 				}
 				
 				// Check if the other data set is a compatible SQL data set
-				if let rightSQL = rightData as? QBESQLData where isCompatibleWith(rightSQL) {
+				if let rightSQL = rightData as? SQLData where isCompatibleWith(rightSQL) {
 					// Get SQL from right dataset
 					let rightQuery = rightSQL.sql.sqlSelect(nil).sql
 					let leftAlias = self.sql.aliasFor(.Join)
@@ -1127,14 +1127,14 @@ public class QBESQLData: NSObject, QBEData {
 		}
 	}
 	
-	/** Determines whether another QBESQLData set is 'compatible' with this one. Compatible means that the two data sets 
+	/** Determines whether another SQLData set is 'compatible' with this one. Compatible means that the two data sets 
 	are actually in the same database, so that a join (or other merging operation) is possible between these datasets. By
 	default, we assume data sets are never compatible. */
-	public func isCompatibleWith(other: QBESQLData) -> Bool {
+	public func isCompatibleWith(other: SQLData) -> Bool {
 		return false
 	}
 	
-	public func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
+	public func calculate(calculations: Dictionary<Column, Expression>) -> Data {
 		var values: [String] = []
 		var newColumns = columns
 		
@@ -1174,7 +1174,7 @@ public class QBESQLData: NSObject, QBEData {
 		return apply(sourceSQL.sqlSelect(valueString), resultingColumns: newColumns)
     }
 	
-	public func sort(by: [QBEOrder]) -> QBEData {
+	public func sort(by: [Order]) -> Data {
 		var error = false
 		
 		let sqlOrders = by.map({(order) -> (String) in
@@ -1204,29 +1204,29 @@ public class QBESQLData: NSObject, QBEData {
 		return apply(sql.sqlOrder(orderClause), resultingColumns: columns)
 	}
 	
-	public func distinct() -> QBEData {
+	public func distinct() -> Data {
 		return apply(self.sql.sqlSelect("DISTINCT *"), resultingColumns: columns)
 	}
     
-    public func limit(numberOfRows: Int) -> QBEData {
+    public func limit(numberOfRows: Int) -> Data {
 		return apply(self.sql.sqlLimit("\(numberOfRows)"), resultingColumns: columns)
     }
 	
-	public func offset(numberOfRows: Int) -> QBEData {
+	public func offset(numberOfRows: Int) -> Data {
 		// FIXME: T-SQL uses "SELECT TOP x" syntax
 		// FIXME: the LIMIT -1 is probably only necessary for SQLite
 		return apply(sql.sqlLimit("-1 OFFSET \(numberOfRows)"), resultingColumns: columns)
 	}
 	
-	public func filter(condition: QBEExpression) -> QBEData {
+	public func filter(condition: Expression) -> Data {
 		let optimizedCondition = condition.prepare()
 		if optimizedCondition.isConstant {
-			let constantValue = optimizedCondition.apply(QBERow(), foreign: nil, inputValue: nil)
-			if constantValue == QBEValue(false) {
+			let constantValue = optimizedCondition.apply(Row(), foreign: nil, inputValue: nil)
+			if constantValue == Value(false) {
 				// Never return any rows
-				return QBERasterData(data: [], columnNames: self.columns)
+				return RasterData(data: [], columnNames: self.columns)
 			}
-			else if constantValue == QBEValue(true) {
+			else if constantValue == Value(true) {
 				// Return all rows always
 				return self
 			}
@@ -1240,39 +1240,39 @@ public class QBESQLData: NSObject, QBEData {
 		}
 	}
 	
-	public func random(numberOfRows: Int) -> QBEData {
-		let randomFunction = sql.dialect.unaryToSQL(QBEFunction.Random, args: []) ?? "RANDOM()"
+	public func random(numberOfRows: Int) -> Data {
+		let randomFunction = sql.dialect.unaryToSQL(Function.Random, args: []) ?? "RANDOM()"
 		return apply(sql.sqlOrder(randomFunction).sqlLimit("\(numberOfRows)"), resultingColumns: columns)
 	}
 	
-	public func unique(expression: QBEExpression, job: QBEJob, callback: (QBEFallible<Set<QBEValue>>) -> ()) {
+	public func unique(expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
 		if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sql.aliasFor(.Select), foreignAlias: nil, inputValue: nil) {
 			let data = apply(self.sql.sqlSelect("DISTINCT \(expressionString) AS _value"), resultingColumns: ["_value"])
 			
 			data.raster(job) { (raster) -> () in
 				callback(raster.use { r in
-					return Set<QBEValue>(r.raster.map({$0[0]}))
+					return Set<Value>(r.raster.map({$0[0]}))
 				})
 			}
 		}
 		else {
-			return fallback().unique(expression, job: job, callback: QBEOnce(callback))
+			return fallback().unique(expression, job: job, callback: once(callback))
 		}
 	}
 	
-	public func selectColumns(columns: [QBEColumn]) -> QBEData {
+	public func selectColumns(columns: [Column]) -> Data {
 		let colNames = columns.map { self.sql.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) }.joinWithSeparator(", ")
 		return apply(self.sql.sqlSelect(colNames), resultingColumns: columns)
 	}
 	
-	public func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
+	public func aggregate(groups: [Column : Expression], values: [Column : Aggregation]) -> Data {
 		if groups.isEmpty && values.isEmpty {
-			return QBEStreamData(source: QBEEmptyStream())
+			return StreamData(source: EmptyStream())
 		}
 
 		var groupBy: [String] = []
 		var select: [String] = []
-		var resultingColumns: [QBEColumn] = []
+		var resultingColumns: [Column] = []
 		
 		let alias = groups.count > 0 ? sql.aliasFor(.Group) : sql.aliasFor(.Select)
 		for (column, expression) in groups {
@@ -1308,11 +1308,11 @@ public class QBESQLData: NSObject, QBEData {
 		}
 	}
 	
-	public func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
-		return QBESQLData(fragment: fragment, columns: columns)
+	public func apply(fragment: SQLFragment, resultingColumns: [Column]) -> Data {
+		return SQLData(fragment: fragment, columns: columns)
 	}
 	
-	public func stream() -> QBEStream {
-		fatalError("Stream() must be implemented by subclass of QBESQLData")
+	public func stream() -> Stream {
+		fatalError("Stream() must be implemented by subclass of SQLData")
 	}
 }

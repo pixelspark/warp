@@ -6,7 +6,7 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 	func suggestionsView(view: NSViewController, didSelectAlternativeStep: QBEStep)
 	func suggestionsView(view: NSViewController, previewStep: QBEStep?)
 	var currentStep: QBEStep? { get }
-	var locale: QBELocale { get }
+	var locale: Locale { get }
 	var undo: NSUndoManager? { get }
 }
 
@@ -27,7 +27,7 @@ protocol QBEChainViewDelegate: NSObjectProtocol {
 
 internal extension NSViewController {
 	internal func showTip(message: String, atView: NSView) {
-		QBEAssertMainThread()
+		assertMainThread()
 		
 		if let vc = self.storyboard?.instantiateControllerWithIdentifier("tipController") as? QBETipViewController {
 			vc.message = message
@@ -39,16 +39,16 @@ internal extension NSViewController {
 internal enum QBEEditingMode {
 	case NotEditing
 	case EnablingEditing
-	case Editing(identifiers: Set<QBEColumn>?)
+	case Editing(identifiers: Set<Column>?)
 }
 
-@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, QBEJobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
-	private var suggestions: QBEFuture<[QBEStep]>?
+@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
+	private var suggestions: Future<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator()
 	private var dataViewController: QBEDataViewController?
 	private var stepsViewController: QBEStepsViewController?
 	private var outletDropView: QBEOutletDropView!
-	private var viewFilters: [QBEColumn:QBEFilterSet] = [:]
+	private var viewFilters: [Column:FilterSet] = [:]
 	private var hasFullData = false
 	
 	var outletView: QBEOutletView!
@@ -66,7 +66,7 @@ internal enum QBEEditingMode {
 
 	internal var editingMode: QBEEditingMode = .NotEditing {
 		didSet {
-			QBEAssertMainThread()
+			assertMainThread()
 			self.updateView()
 		}
 	}
@@ -84,8 +84,8 @@ internal enum QBEEditingMode {
 		return false
 	}
 	
-	internal var locale: QBELocale { get {
-		return QBEAppDelegate.sharedInstance.locale ?? QBELocale()
+	internal var locale: Locale { get {
+		return QBEAppDelegate.sharedInstance.locale ?? Locale()
 	} }
 	
 	dynamic var currentStep: QBEStep? {
@@ -152,12 +152,12 @@ internal enum QBEEditingMode {
 
 
 			@objc func uploadData(sender: AnyObject) {
-				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Import(data: QBERasterData(), withMapping: [:])) {
+				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Import(data: RasterData(), withMapping: [:])) {
 					let uploadView = self.view.storyboard?.instantiateControllerWithIdentifier("uploadData") as! QBEUploadViewController
 					uploadView.sourceStep = sourceStep
 					uploadView.targetStep = destStep
 					uploadView.afterSuccessfulUpload = {
-						QBEAsyncMain {
+						asyncMain {
 							self.view.calculate()
 						}
 					}
@@ -171,7 +171,7 @@ internal enum QBEEditingMode {
 					r.maybe { (raster) -> () in
 						let myColumns = raster.columnNames
 
-						let job = QBEJob(.UserInitiated)
+						let job = Job(.UserInitiated)
 						self.otherChain.head?.fullData(job) { (otherDataFallible) -> () in
 							otherDataFallible.maybe { (otherData) -> () in
 								otherData.columnNames(job) { (otherColumnsFallible) -> () in
@@ -179,7 +179,7 @@ internal enum QBEEditingMode {
 										let mySet = Set(myColumns)
 										let otherSet = Set(otherColumns)
 
-										QBEAsyncMain {
+										asyncMain {
 											var joinSteps: [QBEStep] = []
 
 											// If the other data set contains exactly the same columns as we do, or one is a subset of the other, propose a merge
@@ -190,7 +190,7 @@ internal enum QBEEditingMode {
 												for overlappingColumn in overlappingColumns {
 													let joinStep = QBEJoinStep(previous: nil)
 													joinStep.right = self.otherChain
-													joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: overlappingColumn), second: QBEForeignExpression(columnName: overlappingColumn), type: QBEBinary.Equal)
+													joinStep.condition = Comparison(first: Sibling(columnName: overlappingColumn), second: Foreign(columnName: overlappingColumn), type: Binary.Equal)
 													joinSteps.append(joinStep)
 												}
 											}
@@ -198,7 +198,7 @@ internal enum QBEEditingMode {
 												if joinSteps.isEmpty {
 													let js = QBEJoinStep(previous: nil)
 													js.right = self.otherChain
-													js.condition = QBELiteralExpression(QBEValue(false))
+													js.condition = Literal(Value(false))
 													joinSteps.append(js)
 												}
 											}
@@ -224,7 +224,7 @@ internal enum QBEEditingMode {
 				unionItem.target = self
 				dropMenu.addItem(unionItem)
 
-				if let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Import(data: QBERasterData(), withMapping: [:])) {
+				if let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Import(data: RasterData(), withMapping: [:])) {
 					dropMenu.addItem(NSMenuItem.separatorItem())
 					let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .Write).stringValue + "...", action: Selector("uploadData:"), keyEquivalent: "")
 					createItem.target = self
@@ -309,24 +309,24 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func makeAllFiltersPermanent(sender: NSObject) {
-		var args: [QBEExpression] = []
+		var args: [Expression] = []
 		
 		for (column, filterSet) in self.viewFilters {
-			args.append(filterSet.expression.expressionReplacingIdentityReferencesWith(QBESiblingExpression(columnName: column)))
+			args.append(filterSet.expression.expressionReplacingIdentityReferencesWith(Sibling(columnName: column)))
 		}
 		
 		self.viewFilters.removeAll()
 		if args.count > 0 {
-			suggestSteps([QBEFilterStep(previous: currentStep, condition: args.count > 1 ? QBEFunctionExpression(arguments: args, type: QBEFunction.And) : args[0])])
+			suggestSteps([QBEFilterStep(previous: currentStep, condition: args.count > 1 ? Call(arguments: args, type: Function.And) : args[0])])
 		}
 	}
 	
-	func filterView(view: QBEFilterViewController, applyFilter filter: QBEFilterSet?, permanent: Bool) {
-		QBEAssertMainThread()
+	func filterView(view: QBEFilterViewController, applyFilter filter: FilterSet?, permanent: Bool) {
+		assertMainThread()
 		
 		if let c = view.column {
 			if permanent {
-				if let realFilter = filter?.expression.expressionReplacingIdentityReferencesWith(QBESiblingExpression(columnName: c)) {
+				if let realFilter = filter?.expression.expressionReplacingIdentityReferencesWith(Sibling(columnName: c)) {
 					self.suggestSteps([QBEFilterStep(previous: currentStep, condition: realFilter)])
 					self.viewFilters.removeValueForKey(c)
 				}
@@ -341,16 +341,16 @@ internal enum QBEEditingMode {
 	
 	/** Present the given data set in the data grid. This is called by currentStep.didSet as well as previewStep.didSet.
 	The data from the previewed step takes precedence. */
-	private func presentData(data: QBEData?) {
-		QBEAssertMainThread()
+	private func presentData(data: Data?) {
+		assertMainThread()
 		
 		if let d = data {
 			if self.dataViewController != nil {
-				let job = QBEJob(.UserInitiated)
+				let job = Job(.UserInitiated)
 				
 				job.async {
 					d.raster(job, callback: { (raster) -> () in
-						QBEAsyncMain {
+						asyncMain {
 							self.presentRaster(raster)
 						}
 					})
@@ -371,8 +371,8 @@ internal enum QBEEditingMode {
 		self.stepsViewController?.active = true
 	}
 	
-	private func presentRaster(fallibleRaster: QBEFallible<QBERaster>) {
-		QBEAssertMainThread()
+	private func presentRaster(fallibleRaster: Fallible<Raster>) {
+		assertMainThread()
 		
 		switch fallibleRaster {
 			case .Success(let raster):
@@ -387,7 +387,7 @@ internal enum QBEEditingMode {
 		}
 	}
 	
-	private func presentRaster(raster: QBERaster?) {
+	private func presentRaster(raster: Raster?) {
 		if let dataView = self.dataViewController {
 			dataView.raster = raster
 			hasFullData = (raster != nil && useFullData)
@@ -411,7 +411,7 @@ internal enum QBEEditingMode {
 	}
 	
 	func calculate() {
-		QBEAssertMainThread()
+		assertMainThread()
 		
 		if let ch = chain {
 			if ch.isPartOfDependencyLoop {
@@ -439,7 +439,7 @@ internal enum QBEEditingMode {
 					}
 					else {
 						calculator.calculateExample(sourceStep, maximumTime: nil, columnFilters: self.viewFilters) {
-							QBEAsyncMain {
+							asyncMain {
 								self.refreshData()
 							}
 						}
@@ -457,7 +457,7 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func cancelCalculation(sender: NSObject) {
-		QBEAssertMainThread()
+		assertMainThread()
 		if calculator.calculating {
 			calculator.cancel()
 			self.presentRaster(.Failure(NSLocalizedString("The calculation was cancelled.", comment: "")))
@@ -472,7 +472,7 @@ internal enum QBEEditingMode {
 		dataViewController?.calculating = calculator.calculating
 		
 		let job = calculator.currentRaster?.get { (fallibleRaster) -> () in
-			QBEAsyncMain {
+			asyncMain {
 				self.presentRaster(fallibleRaster)
 				self.useFullData = false
 				self.view.window?.toolbar?.validateVisibleItems()
@@ -568,10 +568,10 @@ internal enum QBEEditingMode {
 		stepsChanged()
 	}
 	
-	func dataView(view: QBEDataViewController, didSelectValue: QBEValue, changeable: Bool) {
+	func dataView(view: QBEDataViewController, didSelectValue: Value, changeable: Bool) {
 	}
 	
-	func dataView(view: QBEDataViewController, didOrderColumns columns: [QBEColumn], toIndex: Int) -> Bool {
+	func dataView(view: QBEDataViewController, didOrderColumns columns: [Column], toIndex: Int) -> Bool {
 		// Construct a new column ordering
 		if let r = view.raster where toIndex >= 0 && toIndex < r.columnNames.count {
 			/* If the current step is already a sort columns step, do not create another one; instead create a new sort
@@ -604,13 +604,13 @@ internal enum QBEEditingMode {
 		return false
 	}
 
-	func dataView(view: QBEDataViewController, addValue value: QBEValue, inRow: Int?, column: Int?, callback: (Bool) -> ()) {
+	func dataView(view: QBEDataViewController, addValue value: Value, inRow: Int?, column: Int?, callback: (Bool) -> ()) {
 		suggestions?.cancel()
 
 		switch self.editingMode {
 		case .Editing(identifiers: _):
 			if let md = self.currentStep?.mutableData {
-				let job = QBEJob(.UserInitiated)
+				let job = Job(.UserInitiated)
 
 				md.columnNames(job) { result in
 					switch result {
@@ -618,19 +618,19 @@ internal enum QBEEditingMode {
 						if let cn = column {
 							if cn >= 0 && cn <= columnNames.count {
 								let columnName = columnNames[cn]
-								let row = QBERow([value], columnNames: [columnName])
-								let mutation = QBEDataMutation.Insert(row: row)
+								let row = Row([value], columnNames: [columnName])
+								let mutation = DataMutation.Insert(row: row)
 								md.performMutation(mutation, job: job) { result in
 									switch result {
 									case .Success:
-										QBEAsyncMain {
+										asyncMain {
 											callback(true)
 											self.calculate()
 										}
 										break
 
 									case .Failure(let e):
-										QBEAsyncMain {
+										asyncMain {
 											callback(false)
 											NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new row.", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 										}
@@ -641,15 +641,15 @@ internal enum QBEEditingMode {
 						else {
 							// need to add a new column first
 							var columns = columnNames
-							columns.append(QBEColumn.defaultColumnForIndex(columns.count+1))
-							let mutation = QBEDataMutation.Alter(QBEDataDefinition(columnNames: columns))
+							columns.append(Column.defaultColumnForIndex(columns.count+1))
+							let mutation = DataMutation.Alter(DataDefinition(columnNames: columns))
 							md.performMutation(mutation, job: job) { result in
 								switch result {
 								case .Success:
 									// Column was added
 									if let rn = inRow {
-										QBEAsyncMain {
-											self.dataView(view, didChangeValue: QBEValue.EmptyValue, toValue: value, inRow: rn, column: columns.count-1)
+										asyncMain {
+											self.dataView(view, didChangeValue: Value.EmptyValue, toValue: value, inRow: rn, column: columns.count-1)
 											callback(true)
 										}
 									}
@@ -659,7 +659,7 @@ internal enum QBEEditingMode {
 									}
 
 								case .Failure(let e):
-									QBEAsyncMain {
+									asyncMain {
 										callback(false)
 										NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new column.", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 									}
@@ -667,7 +667,7 @@ internal enum QBEEditingMode {
 							}
 						}
 					case .Failure(let e):
-						QBEAsyncMain {
+						asyncMain {
 							NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new row.", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 						}
 					}
@@ -679,12 +679,12 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	private func editValue(oldValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int, identifiers: Set<QBEColumn>?) {
+	private func editValue(oldValue: Value, toValue: Value, inRow: Int, column: Int, identifiers: Set<Column>?) {
 		let errorMessage = String(format: NSLocalizedString("Cannot change '%@' to '%@'", comment: ""), oldValue.stringValue ?? "", toValue.stringValue ?? "")
 
 		// In editing mode, we perform the edit on the mutable data set
 		if let md = self.currentStep?.mutableData {
-			let job = QBEJob(.UserInitiated)
+			let job = Job(.UserInitiated)
 			md.data(job) { result in
 				switch result {
 				case .Success(let data):
@@ -692,20 +692,20 @@ internal enum QBEEditingMode {
 						switch result {
 						case .Success(let columnNames):
 							// Does the data set support editing by row number, or do we edit by key?
-							let editMutation = QBEDataMutation.Edit(row: inRow, column: columnNames[column], old: oldValue, new: toValue)
+							let editMutation = DataMutation.Edit(row: inRow, column: columnNames[column], old: oldValue, new: toValue)
 							if md.canPerformMutation(editMutation) {
 								job.async {
 									md.performMutation(editMutation, job: job) { result in
 										switch result {
 										case .Success:
 											// All ok
-											QBEAsyncMain {
+											asyncMain {
 												self.calculate()
 											}
 											break
 
 										case .Failure(let e):
-											QBEAsyncMain {
+											asyncMain {
 												NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 											}
 										}
@@ -718,25 +718,25 @@ internal enum QBEEditingMode {
 										switch result {
 										case .Success(let raster):
 											// Create key
-											let row = QBERow(raster[inRow], columnNames: raster.columnNames)
-											var key: [QBEColumn: QBEValue] = [:]
+											let row = Row(raster[inRow], columnNames: raster.columnNames)
+											var key: [Column: Value] = [:]
 											for identifyingColumn in ids {
 												key[identifyingColumn] = row[identifyingColumn]
 											}
 
-											let mutation = QBEDataMutation.Update(key: key, column: raster.columnNames[column], old: oldValue, new: toValue)
+											let mutation = DataMutation.Update(key: key, column: raster.columnNames[column], old: oldValue, new: toValue)
 											job.async {
 												md.performMutation(mutation, job: job) { result in
 													switch result {
 													case .Success():
 														// All ok
-														QBEAsyncMain {
+														asyncMain {
 															self.calculate()
 														}
 														break
 
 													case .Failure(let e):
-														QBEAsyncMain {
+														asyncMain {
 															NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 														}
 													}
@@ -744,7 +744,7 @@ internal enum QBEEditingMode {
 											}
 
 										case .Failure(let e):
-											QBEAsyncMain {
+											asyncMain {
 												NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 											}
 										}
@@ -753,21 +753,21 @@ internal enum QBEEditingMode {
 								else {
 									// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
 									// TODO: ask the user what key to use ("what property makes each row unique?")
-									QBEAsyncMain {
+									asyncMain {
 										NSAlert.showSimpleAlert(errorMessage, infoText: NSLocalizedString("There is not enough information to be able to distinguish rows.", comment: ""), style: .CriticalAlertStyle, window: self.view.window)
 									}
 								}
 							}
 
 						case .Failure(let e):
-							QBEAsyncMain {
+							asyncMain {
 								NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 							}
 						}
 					}
 
 				case .Failure(let e):
-					QBEAsyncMain {
+					asyncMain {
 						NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 					}
 				}
@@ -776,7 +776,7 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	func dataView(view: QBEDataViewController, didChangeValue oldValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool {
+	func dataView(view: QBEDataViewController, didChangeValue oldValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool {
 		suggestions?.cancel()
 
 		switch self.editingMode {
@@ -784,7 +784,7 @@ internal enum QBEEditingMode {
 			// In non-editing mode, we make a suggestion for a calculation
 			calculator.currentRaster?.get { (fallibleRaster) -> () in
 				fallibleRaster.maybe { (raster) -> () in
-					self.suggestions = QBEFuture<[QBEStep]>({(job, callback) -> () in
+					self.suggestions = Future<[QBEStep]>({(job, callback) -> () in
 						job.async {
 							let expressions = QBECalculateStep.suggest(change: oldValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
 							callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)}))
@@ -792,7 +792,7 @@ internal enum QBEEditingMode {
 						}, timeLimit: 5.0)
 
 					self.suggestions!.get {(steps) -> () in
-						QBEAsyncMain {
+						asyncMain {
 							self.suggestSteps(steps)
 						}
 					}
@@ -810,19 +810,19 @@ internal enum QBEEditingMode {
 		return false
 	}
 	
-	func dataView(view: QBEDataViewController, hasFilterForColumn column: QBEColumn) -> Bool {
+	func dataView(view: QBEDataViewController, hasFilterForColumn column: Column) -> Bool {
 		return self.viewFilters[column] != nil
 	}
 	
-	func dataView(view: QBEDataViewController, filterControllerForColumn column: QBEColumn, callback: (NSViewController) -> ()) {
+	func dataView(view: QBEDataViewController, filterControllerForColumn column: Column, callback: (NSViewController) -> ()) {
 		if let filterViewController = self.storyboard?.instantiateControllerWithIdentifier("filterView") as? QBEFilterViewController {
-			let job = QBEJob(.UserInitiated)
+			let job = Job(.UserInitiated)
 			
 			self.currentStep?.fullData(job) { result in
 				result.maybe { fullData in
 					self.currentStep?.exampleData(job, maxInputRows: self.calculator.maximumExampleInputRows, maxOutputRows: self.calculator.desiredExampleRows) { result in
 						result.maybe { exampleData in
-							QBEAsyncMain {
+							asyncMain {
 								filterViewController.data = exampleData
 								filterViewController.searchData = fullData
 								filterViewController.column = column
@@ -841,7 +841,7 @@ internal enum QBEEditingMode {
 	}
 	
 	private func stepsChanged() {
-		QBEAssertMainThread()
+		assertMainThread()
 		self.editingMode = .NotEditing
 		self.stepsViewController?.steps = chain?.steps
 		self.stepsViewController?.currentStep = currentStep
@@ -852,7 +852,7 @@ internal enum QBEEditingMode {
 	internal var undo: NSUndoManager? { get { return chain?.tablet?.document?.undoManager } }
 	
 	private func pushStep(var step: QBEStep) {
-		QBEAssertMainThread()
+		assertMainThread()
 		
 		let isHead = chain?.head == nil || currentStep == chain?.head
 		
@@ -967,7 +967,7 @@ internal enum QBEEditingMode {
 	}
 	
 	private func updateView() {
-		QBEAssertMainThread()
+		assertMainThread()
 
 		switch self.editingMode {
 		case .Editing(identifiers: _):
@@ -982,7 +982,7 @@ internal enum QBEEditingMode {
 	}
 	
 	private func suggestSteps(var steps: Array<QBEStep>) {
-		QBEAssertMainThread()
+		assertMainThread()
 		
 		if steps.isEmpty {
 			// Alert
@@ -1018,7 +1018,7 @@ internal enum QBEEditingMode {
 	}
 	
 	private func showSuggestionsForStep(step: QBEStep, atView: NSView) {
-		QBEAssertMainThread()
+		assertMainThread()
 		
 		if let alternatives = step.alternatives where alternatives.count > 0 {
 			if let sv = self.storyboard?.instantiateControllerWithIdentifier("suggestions") as? QBESuggestionsViewController {
@@ -1064,19 +1064,19 @@ internal enum QBEEditingMode {
 	private func addColumnBeforeAfterCurrent(before: Bool) {
 		calculator.currentData?.get { (d) -> () in
 			d.maybe { (data) -> () in
-				let job = QBEJob(.UserInitiated)
+				let job = Job(.UserInitiated)
 				
 				data.columnNames(job) { (columnNamesFallible) -> () in
 					columnNamesFallible.maybe { (cols) -> () in
 						if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-							let name = QBEColumn.defaultColumnForIndex(cols.count)
+							let name = Column.defaultColumnForIndex(cols.count)
 							if before {
 								let firstSelectedColumn = selectedColumns.firstIndex
 								if firstSelectedColumn != NSNotFound {
 									let insertRelative = cols[firstSelectedColumn]
-									let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertRelative, insertBefore: true)
+									let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: Literal(Value.EmptyValue), insertRelativeTo: insertRelative, insertBefore: true)
 									
-									QBEAsyncMain {
+									asyncMain {
 										self.pushStep(step)
 										self.calculate()
 									}
@@ -1089,9 +1089,9 @@ internal enum QBEEditingMode {
 								let lastSelectedColumn = selectedColumns.lastIndex
 								if lastSelectedColumn != NSNotFound && lastSelectedColumn < cols.count {
 									let insertAfter = cols[lastSelectedColumn]
-									let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: insertAfter, insertBefore: false)
+									let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: Literal(Value.EmptyValue), insertRelativeTo: insertAfter, insertBefore: false)
 
-									QBEAsyncMain {
+									asyncMain {
 										self.pushStep(step)
 										self.calculate()
 									}
@@ -1108,26 +1108,26 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func addColumnToRight(sender: NSObject) {
-		QBEAssertMainThread()
+		assertMainThread()
 		addColumnBeforeAfterCurrent(false)
 	}
 	
 	@IBAction func addColumnToLeft(sender: NSObject) {
-		QBEAssertMainThread()
+		assertMainThread()
 		addColumnBeforeAfterCurrent(true)
 	}
 	
 	@IBAction func addColumnAtEnd(sender: NSObject) {
-		QBEAssertMainThread()
+		assertMainThread()
 		
 		calculator.currentData?.get {(data) in
-			let job = QBEJob(.UserInitiated)
+			let job = Job(.UserInitiated)
 			
 			data.maybe {$0.columnNames(job) {(columnsFallible) in
 				columnsFallible.maybe { (cols) -> () in
-					QBEAsyncMain {
-						let name = QBEColumn.defaultColumnForIndex(cols.count)
-						let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: false)
+					asyncMain {
+						let name = Column.defaultColumnForIndex(cols.count)
+						let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: Literal(Value.EmptyValue), insertRelativeTo: nil, insertBefore: false)
 						self.pushStep(step)
 						self.calculate()
 					}
@@ -1137,16 +1137,16 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func addColumnAtBeginning(sender: NSObject) {
-		QBEAssertMainThread()
+		assertMainThread()
 		
 		calculator.currentData?.get {(data) in
-			let job = QBEJob(.UserInitiated)
+			let job = Job(.UserInitiated)
 			
 			data.maybe {$0.columnNames(job) {(columnsFallible) in
 				columnsFallible.maybe { (cols) -> () in
-					QBEAsyncMain {
-						let name = QBEColumn.defaultColumnForIndex(cols.count)
-						let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: QBELiteralExpression(QBEValue.EmptyValue), insertRelativeTo: nil, insertBefore: true)
+					asyncMain {
+						let name = Column.defaultColumnForIndex(cols.count)
+						let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: Literal(Value.EmptyValue), insertRelativeTo: nil, insertBefore: true)
 						self.pushStep(step)
 						self.calculate()
 					}
@@ -1156,7 +1156,7 @@ internal enum QBEEditingMode {
 	}
 	
 	private func remove(stepToRemove: QBEStep) {
-		QBEAssertMainThread()
+		assertMainThread()
 		
 		let previous = stepToRemove.previous
 		previous?.next = stepToRemove.next
@@ -1175,7 +1175,7 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func copy(sender: NSObject) {
-		QBEAssertMainThread()
+		assertMainThread()
 		
 		if let s = currentStep {
 			let pboard = NSPasteboard.generalPasteboard()
@@ -1209,10 +1209,10 @@ internal enum QBEEditingMode {
 					r.maybe { (raster) -> () in
 						if firstSelectedColumn < raster.columnCount {
 							let columnName = raster.columnNames[firstSelectedColumn]
-							let expression = QBESiblingExpression(columnName: columnName)
-							let order = QBEOrder(expression: expression, ascending: ascending, numeric: true)
+							let expression = Sibling(columnName: columnName)
+							let order = Order(expression: expression, ascending: ascending, numeric: true)
 							
-							QBEAsyncMain {
+							asyncMain {
 								self.suggestSteps([QBESortStep(previous: self.currentStep, orders: [order])])
 							}
 						}
@@ -1243,8 +1243,8 @@ internal enum QBEEditingMode {
 			// Get the names of the columns to remove
 			calculator.currentRaster?.get { (raster) -> () in
 				raster.maybe { (r) -> () in
-					var namesToRemove: [QBEColumn] = []
-					var namesToSelect: [QBEColumn] = []
+					var namesToRemove: [Column] = []
+					var namesToSelect: [Column] = []
 					
 					for i in 0..<r.columnNames.count {
 						if colsToRemove.containsIndex(i) {
@@ -1255,7 +1255,7 @@ internal enum QBEEditingMode {
 						}
 					}
 					
-					QBEAsyncMain {
+					asyncMain {
 						self.suggestSteps([
 							QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: !remove),
 							QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: remove)
@@ -1291,7 +1291,7 @@ internal enum QBEEditingMode {
 							}
 						}
 						
-						var relevantColumns = Set<QBEColumn>()
+						var relevantColumns = Set<Column>()
 						for columnIndex in 0..<raster.columnCount {
 							if selectedColumns.containsIndex(columnIndex) {
 								relevantColumns.insert(raster.columnNames[columnIndex])
@@ -1303,7 +1303,7 @@ internal enum QBEEditingMode {
 						var removeSuggestions = QBERowsStep.suggest(selectedToRemove, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: false)
 						removeSuggestions.appendContentsOf(keepSuggestions)
 						
-						QBEAsyncMain {
+						asyncMain {
 							self.suggestSteps(removeSuggestions)
 						}
 					}
@@ -1317,7 +1317,7 @@ internal enum QBEEditingMode {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 				calculator.currentRaster?.get { (fallibleRaster) -> ()in
 					fallibleRaster.maybe { (raster) -> () in
-						var relevantColumns = Set<QBEColumn>()
+						var relevantColumns = Set<Column>()
 						for columnIndex in 0..<raster.columnCount {
 							if selectedColumns.containsIndex(columnIndex) {
 								relevantColumns.insert(raster.columnNames[columnIndex])
@@ -1326,7 +1326,7 @@ internal enum QBEEditingMode {
 						
 						let suggestions = QBEPivotStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep)
 						
-						QBEAsyncMain {
+						asyncMain {
 							self.suggestSteps(suggestions)
 						}
 					}
@@ -1340,7 +1340,7 @@ internal enum QBEEditingMode {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 				calculator.currentRaster?.get { (fallibleRaster) -> () in
 					fallibleRaster.maybe { (raster) -> () in
-						var relevantColumns = Set<QBEColumn>()
+						var relevantColumns = Set<Column>()
 						for columnIndex in 0..<raster.columnCount {
 							if selectedColumns.containsIndex(columnIndex) {
 								relevantColumns.insert(raster.columnNames[columnIndex])
@@ -1349,7 +1349,7 @@ internal enum QBEEditingMode {
 						
 						let suggestions = QBERowsStep.suggest(selectedRows, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: true)
 						
-						QBEAsyncMain {
+						asyncMain {
 							self.suggestSteps(suggestions)
 						}
 					}
@@ -1358,8 +1358,8 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	private func performMutation(mutation: QBEDataMutation) {
-		QBEAssertMainThread()
+	private func performMutation(mutation: DataMutation) {
+		assertMainThread()
 		guard let cs = currentStep, let store = cs.mutableData where store.canPerformMutation(mutation) else {
 			let a = NSAlert()
 			a.messageText = NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")
@@ -1391,7 +1391,7 @@ internal enum QBEEditingMode {
 		confirmationAlert.beginSheetModalForWindow(self.view.window!) { (response) -> Void in
 			if response == 1 {
 				// Confirmed
-				let job = QBEJob(QBEQoS.UserInitiated)
+				let job = Job(.UserInitiated)
 
 				// Register this job with the background job manager
 				let name: String
@@ -1404,7 +1404,7 @@ internal enum QBEEditingMode {
 
 				// Start the mutation
 				store.performMutation(mutation, job: job) { result in
-					QBEAsyncMain {
+					asyncMain {
 						switch result {
 						case .Success:
 							//NSAlert.showSimpleAlert(NSLocalizedString("Command completed successfully", comment: ""), style: NSAlertStyle.InformationalAlertStyle, window: self.view.window!)
@@ -1422,34 +1422,34 @@ internal enum QBEEditingMode {
 	}
 
 	@IBAction func alterStore(sender: NSObject) {
-		if let md = self.currentStep?.mutableData where md.canPerformMutation(.Alter(QBEDataDefinition(columnNames: []))) {
+		if let md = self.currentStep?.mutableData where md.canPerformMutation(.Alter(DataDefinition(columnNames: []))) {
 			let alterViewController = QBEAlterTableViewController()
 			alterViewController.mutableData = md
 			alterViewController.warehouse = md.warehouse
 			alterViewController.delegate = self
 
 			// Get current column names
-			let job = QBEJob(.UserInitiated)
+			let job = Job(.UserInitiated)
 			md.data(job) { result in
 				switch result {
 				case .Success(let data):
 					data.columnNames(job) { result in
 						switch result {
 							case .Success(let columnNames):
-								QBEAsyncMain {
-									alterViewController.definition = QBEDataDefinition(columnNames: columnNames)
+								asyncMain {
+									alterViewController.definition = DataDefinition(columnNames: columnNames)
 									self.presentViewControllerAsSheet(alterViewController)
 								}
 
 							case .Failure(let e):
-								QBEAsyncMain {
+								asyncMain {
 									NSAlert.showSimpleAlert(NSLocalizedString("Could not modify table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 								}
 						}
 					}
 
 				case .Failure(let e):
-					QBEAsyncMain {
+					asyncMain {
 						NSAlert.showSimpleAlert(NSLocalizedString("Could not modify table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 					}
 				}
@@ -1468,9 +1468,9 @@ internal enum QBEEditingMode {
 	@IBAction func startEditing(sender: NSObject) {
 		if let md = self.currentStep?.mutableData where self.supportsEditing {
 			self.editingMode = .EnablingEditing
-			let job = QBEJob(.UserInitiated)
+			let job = Job(.UserInitiated)
 			md.identifier(job) { result in
-				QBEAsyncMain {
+				asyncMain {
 					switch self.editingMode {
 					case .EnablingEditing:
 						switch result {
@@ -1583,7 +1583,7 @@ internal enum QBEEditingMode {
 		else if selector == Selector("alterStore:")  {
 			switch editingMode {
 			case .Editing:
-				if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Alter(QBEDataDefinition(columnNames: []))) {
+				if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Alter(DataDefinition(columnNames: []))) {
 					return true
 				}
 				return false
@@ -1852,8 +1852,8 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable: QBEMutableData?) {
-		QBEAssertMainThread()
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable: MutableData?) {
+		assertMainThread()
 		self.calculate()
 	}
 }

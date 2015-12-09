@@ -58,7 +58,7 @@ public protocol QBESentenceToken: NSObjectProtocol {
 
 public class QBESentenceList: NSObject, QBESentenceToken {
 	public typealias Callback = (String) -> ()
-	public typealias ProviderCallback = (QBEFallible<[String]>) -> ()
+	public typealias ProviderCallback = (Fallible<[String]>) -> ()
 	public typealias Provider = (ProviderCallback) -> ()
 	public private(set) var optionsProvider: Provider
 	private(set) var value: String
@@ -140,18 +140,18 @@ public class QBESentenceTextInput: NSObject, QBESentenceToken {
 }
 
 public class QBESentenceFormula: NSObject, QBESentenceToken {
-	public typealias Callback = (QBEExpression) -> ()
-	public let expression: QBEExpression
-	public let locale: QBELocale
+	public typealias Callback = (Expression) -> ()
+	public let expression: Expression
+	public let locale: Locale
 	public let callback: Callback
 
-	public init(expression: QBEExpression, locale: QBELocale, callback: Callback) {
+	public init(expression: Expression, locale: Locale, callback: Callback) {
 		self.expression = expression
 		self.locale = locale
 		self.callback = callback
 	}
 
-	public func change(newValue: QBEExpression) {
+	public func change(newValue: Expression) {
 		callback(newValue)
 	}
 

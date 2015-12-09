@@ -3,8 +3,8 @@ import WarpCore
 
 class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	weak var right: QBEChain? = nil
-	var joinType: QBEJoinType = QBEJoinType.LeftJoin
-	var condition: QBEExpression? = nil
+	var joinType: JoinType = JoinType.LeftJoin
+	var condition: Expression? = nil
 
 	required init() {
 		super.init()
@@ -17,8 +17,8 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	
 	required init(coder aDecoder: NSCoder) {
 		right = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "right")
-		condition = aDecoder.decodeObjectOfClass(QBEExpression.self, forKey: "condition")
-		joinType = QBEJoinType(rawValue: aDecoder.decodeObjectOfClass(NSString.self, forKey: "joinType") as? String ?? "") ?? .LeftJoin
+		condition = aDecoder.decodeObjectOfClass(Expression.self, forKey: "condition")
+		joinType = JoinType(rawValue: aDecoder.decodeObjectOfClass(NSString.self, forKey: "joinType") as? String ?? "") ?? .LeftJoin
 		
 		super.init(coder: aDecoder)
 	}
@@ -41,30 +41,30 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return []
 	} }
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("Join data on [#], [#] rows without matches", comment: ""),
-			QBESentenceFormula(expression: self.condition ?? QBELiteralExpression(QBEValue.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
+			QBESentenceFormula(expression: self.condition ?? Literal(Value.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
 				self?.condition = newExpression
 			}),
 			QBESentenceOptions(options: [
-				QBEJoinType.LeftJoin.rawValue: NSLocalizedString("including", comment: ""),
-				QBEJoinType.InnerJoin.rawValue: NSLocalizedString("ignoring", comment: "")
+				JoinType.LeftJoin.rawValue: NSLocalizedString("including", comment: ""),
+				JoinType.InnerJoin.rawValue: NSLocalizedString("ignoring", comment: "")
 			], value: self.joinType.rawValue, callback: { [weak self] (newJoinTypeName) -> () in
-				if let j = QBEJoinType(rawValue: newJoinTypeName) {
+				if let j = JoinType(rawValue: newJoinTypeName) {
 					self?.joinType = j
 				}
 			})
 		)
 	}
 	
-	private func join(right: QBEData) -> QBEJoin? {
+	private func join(right: Data) -> Join? {
 		if let c = condition {
-			return QBEJoin(type: joinType, foreignData: right, expression: c)
+			return Join(type: joinType, foreignData: right, expression: c)
 		}
 		return nil
 	}
 	
-	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
 		if let p = previous {
 			p.fullData(job) {(leftData) -> () in
 				if let r = self.right, let h = r.head {
@@ -93,7 +93,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
+	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
 		if let p = previous {
 			p.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftData) -> () in
 				switch leftData {
@@ -127,7 +127,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		fatalError("QBEJoinStep.apply should not be used")
 	}
 }
@@ -165,11 +165,11 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return []
 	} }
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(NSLocalizedString("Merge data", comment: ""))])
 	}
 	
-	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
 		if let p = previous {
 			p.fullData(job) {(leftData) -> () in
 				if let r = self.right, let h = r.head {
@@ -193,7 +193,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
+	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
 		if let p = previous {
 			p.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftData) -> () in
 				switch leftData {
@@ -222,7 +222,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		fatalError("QBEMergeStep.apply should not be used")
 	}
 }

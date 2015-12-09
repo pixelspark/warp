@@ -1,26 +1,26 @@
 import Foundation
 
-public enum QBEStreamStatus {
+public enum StreamStatus {
 	case HasMore
 	case Finished
 }
 
-/** A QBESink is a function used as a callback in response to QBEStream.fetch. It receives a set of rows from the stream
+/** A Sink is a function used as a callback in response to Stream.fetch. It receives a set of rows from the stream
 as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). */
-public typealias QBESink = (QBEFallible<Array<QBETuple>>, QBEStreamStatus) -> ()
+public typealias Sink = (Fallible<Array<Tuple>>, StreamStatus) -> ()
 
-/** The default number of rows that a QBEStream will send to a consumer upon request through QBEStream.fetch. */
-public let QBEStreamDefaultBatchSize = 256
+/** The default number of rows that a Stream will send to a consumer upon request through Stream.fetch. */
+public let StreamDefaultBatchSize = 256
 
-/** QBEStream represents a data set that can be streamed (consumed in batches). This allows for efficient processing of
+/** Stream represents a data set that can be streamed (consumed in batches). This allows for efficient processing of
 data sets for operations that do not require memory (e.g. a limit or filter can be performed almost statelessly). The 
 stream implements a single method (fetch) that allows batch fetching of result rows. The size of the batches are defined
 by the stream (for now).
 
 Streams are drained using concurrent calls to the 'fetch' method (multiple 'wavefronts'). */
-public protocol QBEStream {
+public protocol Stream {
 	/** The column names associated with the rows produced by this stream. */
-	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ())
+	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ())
 	
 	/** 
 	Request the next batch of rows from the stream; when it is available, asynchronously call (on the main queue) the
@@ -34,30 +34,30 @@ public protocol QBEStream {
 	Note that fetch may be called multiple times concurrently (i.e. multiple 'wavefronts') - it is the stream's job to 
 	ensure ordered and consistent delivery of data. Streams may use a serial dispatch queue to serialize requests if 
 	necessary. */
-	func fetch(job: QBEJob, consumer: QBESink)
+	func fetch(job: Job, consumer: Sink)
 	
 	/** Create a copy of this stream. The copied stream is reset to the initial position (e.g. will return the first row
 	of the data set during the first call to fetch on the copy). */
-	func clone() -> QBEStream
+	func clone() -> Stream
 }
 
 /** This class manages the multithreaded retrieval of data from a stream. It will make concurrent calls to a stream's
 fetch function ('wavefronts') and call the method onReceiveRows each time it receives rows. When all results are in, the
 onDoneReceiving method is called. The subclass should implement onReceiveRows, onDoneReceiving and onError.
 The class also exists to avoid issues with reference counting (the sink closure needs to reference itself). */
-public class QBEStreamPuller {
-	public let job: QBEJob
-	public let stream: QBEStream
-	public let mutex = QBEMutex()
+public class StreamPuller {
+	public let job: Job
+	public let stream: Stream
+	public let mutex = Mutex()
 
 	private let concurrentWavefronts: Int
 	private var outstandingWavefronts = 0
 	private var lastStartedWavefront = 0
 	private var lastSinkedWavefront = 0
-	private var earlyResults: [Int : QBEFallible<[QBETuple]>] = [:]
+	private var earlyResults: [Int : Fallible<[Tuple]>] = [:]
 	private var done = false
 
-	public init(stream: QBEStream, job: QBEJob) {
+	public init(stream: Stream, job: Job) {
 		self.stream = stream
 		self.job = job
 		self.concurrentWavefronts = NSProcessInfo.processInfo().processorCount
@@ -105,7 +105,7 @@ public class QBEStreamPuller {
 	/** Receives batches of data from streams and appends them to the buffer of rows. It will spawn new wavefronts
 	through 'start' each time it is called, unless the stream indicates there are no more records. When the last
 	wavefront has reported in, sink will call self.callback. */
-	private func sink(rows: QBEFallible<Array<QBETuple>>, hasNext: Bool) {
+	private func sink(rows: Fallible<Array<Tuple>>, hasNext: Bool) {
 		self.mutex.locked {
 			if self.outstandingWavefronts == 0 {
 				// We errored, any following wave fronts are ignored
@@ -157,7 +157,7 @@ public class QBEStreamPuller {
 		}
 	}
 
-	public func onReceiveRows(rows: [QBETuple], callback: (QBEFallible<Void>) -> ()) {
+	public func onReceiveRows(rows: [Tuple], callback: (Fallible<Void>) -> ()) {
 		fatalError("Meant to be overridden")
 	}
 
@@ -170,18 +170,18 @@ public class QBEStreamPuller {
 	}
 }
 
-private class QBERasterStreamPuller: QBEStreamPuller {
-	var data: [QBETuple] = []
-	let callback: (QBEFallible<QBERaster>) -> ()
-	let columnNames: [QBEColumn]
+private class RasterStreamPuller: StreamPuller {
+	var data: [Tuple] = []
+	let callback: (Fallible<Raster>) -> ()
+	let columnNames: [Column]
 
-	init(stream: QBEStream, job: QBEJob, columnNames: [QBEColumn], callback: (QBEFallible<QBERaster>) -> ()) {
+	init(stream: Stream, job: Job, columnNames: [Column], callback: (Fallible<Raster>) -> ()) {
 		self.callback = callback
 		self.columnNames = columnNames
 		super.init(stream: stream, job: job)
 	}
 
-	override func onReceiveRows(rows: [QBETuple], callback: (QBEFallible<Void>) -> ()) {
+	override func onReceiveRows(rows: [Tuple], callback: (Fallible<Void>) -> ()) {
 		self.mutex.locked {
 			// Append the rows to our buffered raster
 			self.data.appendContentsOf(rows)
@@ -191,7 +191,7 @@ private class QBERasterStreamPuller: QBEStreamPuller {
 
 	override func onDoneReceiving() {
 		job.async {
-			self.callback(.Success(QBERaster(data: self.data, columnNames: self.columnNames, readOnly: true)))
+			self.callback(.Success(Raster(data: self.data, columnNames: self.columnNames, readOnly: true)))
 		}
 	}
 
@@ -202,30 +202,30 @@ private class QBERasterStreamPuller: QBEStreamPuller {
 	}
 }
 
-/** QBEStreamData is an implementation of QBEData that performs data operations on a stream. QBEStreamData will consume
+/** StreamData is an implementation of Data that performs data operations on a stream. StreamData will consume
 the whole stream and proxy to a raster-based implementation for operations that cannot efficiently be performed on a 
 stream. */
-public class QBEStreamData: QBEData {
-	public let source: QBEStream
+public class StreamData: Data {
+	public let source: Stream
 	
-	public init(source: QBEStream) {
+	public init(source: Stream) {
 		self.source = source
 	}
 	
-	/** The fallback data object implements data operators not implemented here. Because QBERasterData is the fallback
-	for QBEStreamData and the other way around, neither should call the fallback for an operation it implements itself,
+	/** The fallback data object implements data operators not implemented here. Because RasterData is the fallback
+	for StreamData and the other way around, neither should call the fallback for an operation it implements itself,
 	and at least one of the classes has to implement each operation. */
-	private func fallback() -> QBEData {
-		return QBERasterData(future: raster)
+	private func fallback() -> Data {
+		return RasterData(future: raster)
 	}
 
-	public func raster(job: QBEJob, callback: (QBEFallible<QBERaster>) -> ()) {
+	public func raster(job: Job, callback: (Fallible<Raster>) -> ()) {
 		let s = source.clone()
 		job.async {
 			s.columnNames(job) { (columnNames) -> () in
 				switch columnNames {
 					case .Success(let cns):
-						let h = QBERasterStreamPuller(stream: s, job: job, columnNames: cns, callback: callback)
+						let h = RasterStreamPuller(stream: s, job: job, columnNames: cns, callback: callback)
 						h.start()
 
 					case .Failure(let e):
@@ -235,151 +235,151 @@ public class QBEStreamData: QBEData {
 		}
 	}
 
-	public func transpose() -> QBEData {
+	public func transpose() -> Data {
 		// This cannot be streamed
 		return fallback().transpose()
 	}
 	
-	public func aggregate(groups: [QBEColumn : QBEExpression], values: [QBEColumn : QBEAggregation]) -> QBEData {
+	public func aggregate(groups: [Column : Expression], values: [Column : Aggregation]) -> Data {
 		return fallback().aggregate(groups, values: values)
 	}
 	
-	public func distinct() -> QBEData {
+	public func distinct() -> Data {
 		return fallback().distinct()
 	}
 	
-	public func union(data: QBEData) -> QBEData {
+	public func union(data: Data) -> Data {
 		// TODO: this can be implemented efficiently as a streaming operation
 		return fallback().union(data)
 	}
 	
-	public func flatten(valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) -> QBEData {
-		return QBEStreamData(source: QBEFlattenTransformer(source: source, valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
+	public func flatten(valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Data {
+		return StreamData(source: FlattenTransformer(source: source, valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
 	}
 	
-	public func selectColumns(columns: [QBEColumn]) -> QBEData {
-		// Implemented by QBEColumnsTransformer
-		return QBEStreamData(source: QBEColumnsTransformer(source: source, selectColumns: columns))
+	public func selectColumns(columns: [Column]) -> Data {
+		// Implemented by ColumnsTransformer
+		return StreamData(source: ColumnsTransformer(source: source, selectColumns: columns))
 	}
 	
-	public func offset(numberOfRows: Int) -> QBEData {
-		return QBEStreamData(source: QBEOffsetTransformer(source: source, numberOfRows: numberOfRows))
+	public func offset(numberOfRows: Int) -> Data {
+		return StreamData(source: OffsetTransformer(source: source, numberOfRows: numberOfRows))
 	}
 	
-	public func limit(numberOfRows: Int) -> QBEData {
-		// Limit has a streaming implementation in QBELimitTransformer
-		return QBEStreamData(source: QBELimitTransformer(source: source, numberOfRows: numberOfRows))
+	public func limit(numberOfRows: Int) -> Data {
+		// Limit has a streaming implementation in LimitTransformer
+		return StreamData(source: LimitTransformer(source: source, numberOfRows: numberOfRows))
 	}
 	
-	public func random(numberOfRows: Int) -> QBEData {
-		return QBEStreamData(source: QBERandomTransformer(source: source, numberOfRows: numberOfRows))
+	public func random(numberOfRows: Int) -> Data {
+		return StreamData(source: RandomTransformer(source: source, numberOfRows: numberOfRows))
 	}
 	
-	public func unique(expression: QBEExpression, job: QBEJob, callback: (QBEFallible<Set<QBEValue>>) -> ()) {
+	public func unique(expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
 		// TODO: this can be implemented as a stream with some memory
 		return fallback().unique(expression, job: job, callback: callback)
 	}
 	
-	public func sort(by: [QBEOrder]) -> QBEData {
+	public func sort(by: [Order]) -> Data {
 		return fallback().sort(by)
 	}
 	
-	public func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
-		// Implemented as stream by QBECalculateTransformer
-		return QBEStreamData(source: QBECalculateTransformer(source: source, calculations: calculations))
+	public func calculate(calculations: Dictionary<Column, Expression>) -> Data {
+		// Implemented as stream by CalculateTransformer
+		return StreamData(source: CalculateTransformer(source: source, calculations: calculations))
 	}
 	
-	public func pivot(horizontal: [QBEColumn], vertical: [QBEColumn], values: [QBEColumn]) -> QBEData {
+	public func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data {
 		return fallback().pivot(horizontal, vertical: vertical, values: values)
 	}
 	
-	public func join(join: QBEJoin) -> QBEData {
-		return QBEStreamData(source: QBEJoinTransformer(source: source, join: join))
+	public func join(join: Join) -> Data {
+		return StreamData(source: JoinTransformer(source: source, join: join))
 	}
 	
-	public func filter(condition: QBEExpression) -> QBEData {
-		return QBEStreamData(source: QBEFilterTransformer(source: source, condition: condition))
+	public func filter(condition: Expression) -> Data {
+		return StreamData(source: FilterTransformer(source: source, condition: condition))
 	}
 	
-	public func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		source.columnNames(job, callback: callback)
 	}
 	
-	public func stream() -> QBEStream {
+	public func stream() -> Stream {
 		return source.clone()
 	}
 }
 
-public class QBEErrorStream: QBEStream {
-	private let error: QBEError
+public class ErrorStream: Stream {
+	private let error: String
 	
-	public init(_ error: QBEError) {
+	public init(_ error: String) {
 		self.error = error
 	}
 	
-	public func fetch(job: QBEJob, consumer: QBESink) {
+	public func fetch(job: Job, consumer: Sink) {
 		consumer(.Failure(self.error), .Finished)
 	}
 	
-	public func clone() -> QBEStream {
-		return QBEErrorStream(self.error)
+	public func clone() -> Stream {
+		return ErrorStream(self.error)
 	}
 	
-	public func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		callback(.Failure(self.error))
 	}
 }
 
 /** 
 A stream that never produces any data (but doesn't return errors either). */
-public class QBEEmptyStream: QBEStream {
+public class EmptyStream: Stream {
 	public init() {
 	}
 
-	public func fetch(job: QBEJob, consumer: QBESink) {
+	public func fetch(job: Job, consumer: Sink) {
 		consumer(.Success([]), .Finished)
 	}
 	
-	public func clone() -> QBEStream {
-		return QBEEmptyStream()
+	public func clone() -> Stream {
+		return EmptyStream()
 	}
 	
-	public func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		callback(.Success([]))
 	}
 }
 
 /** 
-A stream that sources from a Swift generator of QBETuple. */
-public class QBESequenceStream: QBEStream {
-	private let sequence: AnySequence<QBEFallible<QBETuple>>
-	private var generator: AnyGenerator<QBEFallible<QBETuple>>
-	private let columns: [QBEColumn]
+A stream that sources from a Swift generator of Tuple. */
+public class SequenceStream: Stream {
+	private let sequence: AnySequence<Fallible<Tuple>>
+	private var generator: AnyGenerator<Fallible<Tuple>>
+	private let columns: [Column]
 	private var position: Int = 0
 	private var rowCount: Int? = nil // nil = number of rows is yet unknown
-	private var queue = dispatch_queue_create("nl.pixelspark.Warp.QBESequenceStream", DISPATCH_QUEUE_SERIAL)
+	private var queue = dispatch_queue_create("nl.pixelspark.Warp.SequenceStream", DISPATCH_QUEUE_SERIAL)
 	private var error: String? = nil
 	
-	public init(_ sequence: AnySequence<QBEFallible<QBETuple>>, columnNames: [QBEColumn], rowCount: Int? = nil) {
+	public init(_ sequence: AnySequence<Fallible<Tuple>>, columnNames: [Column], rowCount: Int? = nil) {
 		self.sequence = sequence
 		self.generator = sequence.generate()
 		self.columns = columnNames
 		self.rowCount = rowCount
 	}
 	
-	public func fetch(job: QBEJob, consumer: QBESink) {
+	public func fetch(job: Job, consumer: Sink) {
 		if let e = error {
 			consumer(.Failure(e), .Finished)
 			return
 		}
 
 		dispatch_async(queue) {
-			job.time("sequence", items: QBEStreamDefaultBatchSize, itemType: "rows") {
+			job.time("sequence", items: StreamDefaultBatchSize, itemType: "rows") {
 				var done = false
-				var rows :[QBETuple] = []
-				rows.reserveCapacity(QBEStreamDefaultBatchSize)
+				var rows :[Tuple] = []
+				rows.reserveCapacity(StreamDefaultBatchSize)
 				
-				for _ in 0..<QBEStreamDefaultBatchSize {
+				for _ in 0..<StreamDefaultBatchSize {
 					if let next = self.generator.next() {
 						switch next {
 							case .Success(let f):
@@ -416,29 +416,29 @@ public class QBESequenceStream: QBEStream {
 		}
 	}
 	
-	public func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		callback(.Success(self.columns))
 	}
 	
-	public func clone() -> QBEStream {
-		return QBESequenceStream(self.sequence, columnNames: self.columns, rowCount: self.rowCount)
+	public func clone() -> Stream {
+		return SequenceStream(self.sequence, columnNames: self.columns, rowCount: self.rowCount)
 	}
 }
 
-/** A QBETransformer is a stream that provides data from an other stream, and applies a transformation step in between.
+/** A Transformer is a stream that provides data from an other stream, and applies a transformation step in between.
 This class needs to be subclassed before it does any real work (in particular, the transform and clone methods should be
 overridden). */
-private class QBETransformer: NSObject, QBEStream {
-	let source: QBEStream
+private class Transformer: NSObject, Stream {
+	let source: Stream
 	var stopped = false
 	private var outstanding = 0 { didSet { assert(outstanding >= 0) } }
-	let mutex = QBEMutex()
+	let mutex = Mutex()
 	
-	init(source: QBEStream) {
+	init(source: Stream) {
 		self.source = source
 	}
 	
-	private func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	private func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		source.columnNames(job, callback: callback)
 	}
 	
@@ -446,11 +446,11 @@ private class QBETransformer: NSObject, QBEStream {
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). */
-	private func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
-		fatalError("QBETransformer.transform should be implemented in a subclass")
+	private func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
+		fatalError("Transformer.transform should be implemented in a subclass")
 	}
 	
-	private func fetch(job: QBEJob, consumer: QBESink) {
+	private func fetch(job: Job, consumer: Sink) {
 		let shouldContinue = self.mutex.locked { () -> Bool in
 			if !self.stopped {
 				self.outstanding++
@@ -459,7 +459,7 @@ private class QBETransformer: NSObject, QBEStream {
 		}
 
 		if shouldContinue {
-			source.fetch(job, consumer: QBEOnce { (fallibleRows, streamStatus) -> () in
+			source.fetch(job, consumer: once { (fallibleRows, streamStatus) -> () in
 				let outstanding = self.mutex.locked { () -> Int in
 					self.outstanding--
 
@@ -473,7 +473,7 @@ private class QBETransformer: NSObject, QBEStream {
 				switch fallibleRows {
 					case .Success(let rows):
 						job.async {
-							self.transform(rows, streamStatus: streamStatus, outstanding: outstanding, job: job, callback: QBEOnce { (transformedRows, newStreamStatus) -> () in
+							self.transform(rows, streamStatus: streamStatus, outstanding: outstanding, job: job, callback: once { (transformedRows, newStreamStatus) -> () in
 								let stopped = self.mutex.locked { () -> Bool in
 									self.stopped = self.stopped || newStreamStatus != .HasMore
 									return self.stopped
@@ -496,30 +496,30 @@ private class QBETransformer: NSObject, QBEStream {
 	}
 	
 	/** Returns a clone of the transformer. It should also clone the source stream. */
-	private func clone() -> QBEStream {
+	private func clone() -> Stream {
 		fatalError("Should be implemented by subclass")
 	}
 }
 
-private class QBEFlattenTransformer: QBETransformer {
-	private let valueTo: QBEColumn
-	private let columnNameTo: QBEColumn?
-	private let rowIdentifier: QBEExpression?
-	private let rowIdentifierTo: QBEColumn?
+private class FlattenTransformer: Transformer {
+	private let valueTo: Column
+	private let columnNameTo: Column?
+	private let rowIdentifier: Expression?
+	private let rowIdentifierTo: Column?
 	
-	private let columnNames: [QBEColumn]
+	private let columnNames: [Column]
 	private let writeRowIdentifier: Bool
 	private let writeColumnIdentifier: Bool
-	private var originalColumns: QBEFallible<[QBEColumn]>? = nil
+	private var originalColumns: Fallible<[Column]>? = nil
 	
-	init(source: QBEStream, valueTo: QBEColumn, columnNameTo: QBEColumn?, rowIdentifier: QBEExpression?, to: QBEColumn?) {
+	init(source: Stream, valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) {
 		self.valueTo = valueTo
 		self.columnNameTo = columnNameTo
 		self.rowIdentifier = rowIdentifier
 		self.rowIdentifierTo = to
 		
 		// Determine which columns we are going to produce
-		var cols: [QBEColumn] = []
+		var cols: [Column] = []
 		if rowIdentifierTo != nil && rowIdentifier != nil {
 			cols.append(rowIdentifierTo!)
 			writeRowIdentifier = true
@@ -541,7 +541,7 @@ private class QBEFlattenTransformer: QBETransformer {
 		super.init(source: source)
 	}
 	
-	private func prepare(job: QBEJob, callback: () -> ()) {
+	private func prepare(job: Job, callback: () -> ()) {
 		if self.originalColumns == nil {
 			source.columnNames(job) { (cols) -> () in
 				self.originalColumns = cols
@@ -553,32 +553,32 @@ private class QBEFlattenTransformer: QBETransformer {
 		}
 	}
 	
-	private override func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	private override func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		callback(.Success(columnNames))
 	}
 	
-	private override func clone() -> QBEStream {
-		return QBEFlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
+	private override func clone() -> Stream {
+		return FlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
 		prepare(job) {
 			switch self.originalColumns! {
 			case .Success(let originalColumns):
-				var newRows: [QBETuple] = []
+				var newRows: [Tuple] = []
 				newRows.reserveCapacity(self.columnNames.count * rows.count)
-				var templateRow: [QBEValue] = self.columnNames.map({(c) -> (QBEValue) in return QBEValue.InvalidValue})
+				var templateRow: [Value] = self.columnNames.map({(c) -> (Value) in return Value.InvalidValue})
 				let valueIndex = (self.writeRowIdentifier ? 1 : 0) + (self.writeColumnIdentifier ? 1 : 0);
 				
 				job.time("flatten", items: self.columnNames.count * rows.count, itemType: "cells") {
 					for row in rows {
 						if self.writeRowIdentifier {
-							templateRow[0] = self.rowIdentifier!.apply(QBERow(row, columnNames: originalColumns), foreign: nil, inputValue: nil)
+							templateRow[0] = self.rowIdentifier!.apply(Row(row, columnNames: originalColumns), foreign: nil, inputValue: nil)
 						}
 						
 						for columnIndex in 0..<originalColumns.count {
 							if self.writeColumnIdentifier {
-								templateRow[self.writeRowIdentifier ? 1 : 0] = QBEValue(originalColumns[columnIndex].name)
+								templateRow[self.writeRowIdentifier ? 1 : 0] = Value(originalColumns[columnIndex].name)
 							}
 							
 							templateRow[valueIndex] = row[columnIndex]
@@ -595,22 +595,22 @@ private class QBEFlattenTransformer: QBETransformer {
 	}
 }
 
-private class QBEFilterTransformer: QBETransformer {
+private class FilterTransformer: Transformer {
 	var position = 0
-	let condition: QBEExpression
+	let condition: Expression
 	
-	init(source: QBEStream, condition: QBEExpression) {
+	init(source: Stream, condition: Expression) {
 		self.condition = condition
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
 		source.columnNames(job) { (columnNames) -> () in
 			switch columnNames {
 			case .Success(let cns):
 				job.time("Stream filter", items: rows.count, itemType: "row") {
 					let newRows = Array(rows.filter({(row) -> Bool in
-						return self.condition.apply(QBERow(row, columnNames: cns), foreign: nil, inputValue: nil) == QBEValue.BoolValue(true)
+						return self.condition.apply(Row(row, columnNames: cns), foreign: nil, inputValue: nil) == Value.BoolValue(true)
 					}))
 					
 					callback(.Success(Array(newRows)), streamStatus)
@@ -622,23 +622,23 @@ private class QBEFilterTransformer: QBETransformer {
 		}
 	}
 	
-	private override func clone() -> QBEStream {
-		return QBEFilterTransformer(source: source.clone(), condition: condition)
+	private override func clone() -> Stream {
+		return FilterTransformer(source: source.clone(), condition: condition)
 	}
 }
 
-/** The QBERandomTransformer randomly samples the specified amount of rows from a stream. It uses reservoir sampling to
+/** The RandomTransformer randomly samples the specified amount of rows from a stream. It uses reservoir sampling to
 achieve this. */
-private class QBERandomTransformer: QBETransformer {
-	var reservoir: QBEReservoir<QBETuple>
+private class RandomTransformer: Transformer {
+	var reservoir: Reservoir<Tuple>
 	var done = false
 	
-	init(source: QBEStream, numberOfRows: Int) {
-		reservoir = QBEReservoir<QBETuple>(sampleSize: numberOfRows)
+	init(source: Stream, numberOfRows: Int) {
+		reservoir = Reservoir<Tuple>(sampleSize: numberOfRows)
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
 		self.mutex.locked {
 			job.time("Reservoir fill", items: rows.count, itemType: "rows") {
 				self.reservoir.add(rows)
@@ -668,22 +668,22 @@ private class QBERandomTransformer: QBETransformer {
 		}
 	}
 	
-	private override func clone() -> QBEStream {
-		return QBERandomTransformer(source: source.clone(), numberOfRows: reservoir.sampleSize)
+	private override func clone() -> Stream {
+		return RandomTransformer(source: source.clone(), numberOfRows: reservoir.sampleSize)
 	}
 }
 
-/** The QBEOffsetTransformer skips the first specified number of rows passed through a stream. */
-private class QBEOffsetTransformer: QBETransformer {
+/** The OffsetTransformer skips the first specified number of rows passed through a stream. */
+private class OffsetTransformer: Transformer {
 	var position = 0
 	let offset: Int
 	
-	init(source: QBEStream, numberOfRows: Int) {
+	init(source: Stream, numberOfRows: Int) {
 		self.offset = numberOfRows
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
 		self.mutex.locked {
 			if self.position > self.offset {
 				self.position += rows.count
@@ -709,23 +709,23 @@ private class QBEOffsetTransformer: QBETransformer {
 		}
 	}
 	
-	private override func clone() -> QBEStream {
-		return QBEOffsetTransformer(source: source.clone(), numberOfRows: offset)
+	private override func clone() -> Stream {
+		return OffsetTransformer(source: source.clone(), numberOfRows: offset)
 	}
 }
 
-/** The QBELimitTransformer limits the number of rows passed through a stream. It effectively stops pumping data from the
+/** The LimitTransformer limits the number of rows passed through a stream. It effectively stops pumping data from the
 source stream to the consuming stream when the limit is reached. */
-private class QBELimitTransformer: QBETransformer {
+private class LimitTransformer: Transformer {
 	var position = 0
 	let limit: Int
 	
-	init(source: QBEStream, numberOfRows: Int) {
+	init(source: Stream, numberOfRows: Int) {
 		self.limit = numberOfRows
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
 		self.mutex.locked {
 			// We haven't reached the limit yet, not even after streaming this chunk
 			if (self.position + rows.count) < self.limit {
@@ -754,21 +754,21 @@ private class QBELimitTransformer: QBETransformer {
 		}
 	}
 	
-	private override func clone() -> QBEStream {
-		return QBELimitTransformer(source: source.clone(), numberOfRows: limit)
+	private override func clone() -> Stream {
+		return LimitTransformer(source: source.clone(), numberOfRows: limit)
 	}
 }
 
-private class QBEColumnsTransformer: QBETransformer {
-	let columns: [QBEColumn]
-	var indexes: QBEFallible<[Int]>? = nil
+private class ColumnsTransformer: Transformer {
+	let columns: [Column]
+	var indexes: Fallible<[Int]>? = nil
 	
-	init(source: QBEStream, selectColumns: [QBEColumn]) {
+	init(source: Stream, selectColumns: [Column]) {
 		self.columns = selectColumns
 		super.init(source: source)
 	}
 	
-	override private func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	override private func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		source.columnNames(job) { (sourceColumns) -> () in
 			switch sourceColumns {
 			case .Success(let cns):
@@ -784,16 +784,16 @@ private class QBEColumnsTransformer: QBETransformer {
 		}
 	}
 	
-	override private func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
+	override private func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
 		ensureIndexes(job) {
 			assert(self.indexes != nil)
 			
 			switch self.indexes! {
 				case .Success(let idxs):
-					var result: [QBETuple] = []
+					var result: [Tuple] = []
 					
 					for row in rows {
-						var newRow: QBETuple = []
+						var newRow: Tuple = []
 						newRow.reserveCapacity(idxs.count)
 						for idx in idxs {
 							newRow.append(row[idx])
@@ -808,10 +808,10 @@ private class QBEColumnsTransformer: QBETransformer {
 		}
 	}
 	
-	private func ensureIndexes(job: QBEJob, callback: () -> ()) {
+	private func ensureIndexes(job: Job, callback: () -> ()) {
 		if indexes == nil {
 			var idxs: [Int] = []
-			source.columnNames(job) { (sourceColumnNames: QBEFallible<[QBEColumn]>) -> () in
+			source.columnNames(job) { (sourceColumnNames: Fallible<[Column]>) -> () in
 				switch sourceColumnNames {
 					case .Success(let sourceCols):
 						for column in self.columns {
@@ -834,20 +834,20 @@ private class QBEColumnsTransformer: QBETransformer {
 		}
 	}
 	
-	private override func clone() -> QBEStream {
-		return QBEColumnsTransformer(source: source.clone(), selectColumns: columns)
+	private override func clone() -> Stream {
+		return ColumnsTransformer(source: source.clone(), selectColumns: columns)
 	}
 }
 
-private class QBECalculateTransformer: QBETransformer {
-	let calculations: Dictionary<QBEColumn, QBEExpression>
-	private var indices: QBEFallible<Dictionary<QBEColumn, Int>>? = nil
-	private var columns: QBEFallible<[QBEColumn]>? = nil
-	private let queue = dispatch_queue_create("nl.pixelspark.Warp.QBECalculateTransformer", DISPATCH_QUEUE_SERIAL)
-	private var ensureIndexes: QBEFuture<Void>! = nil
+private class CalculateTransformer: Transformer {
+	let calculations: Dictionary<Column, Expression>
+	private var indices: Fallible<Dictionary<Column, Int>>? = nil
+	private var columns: Fallible<[Column]>? = nil
+	private let queue = dispatch_queue_create("nl.pixelspark.Warp.CalculateTransformer", DISPATCH_QUEUE_SERIAL)
+	private var ensureIndexes: Future<Void>! = nil
 
-	init(source: QBEStream, calculations: Dictionary<QBEColumn, QBEExpression>) {
-		var optimizedCalculations = Dictionary<QBEColumn, QBEExpression>()
+	init(source: Stream, calculations: Dictionary<Column, Expression>) {
+		var optimizedCalculations = Dictionary<Column, Expression>()
 		for (column, expression) in calculations {
 			optimizedCalculations[column] = expression.prepare()
 		}
@@ -855,14 +855,14 @@ private class QBECalculateTransformer: QBETransformer {
 		self.calculations = optimizedCalculations
 		super.init(source: source)
 
-		var s: QBECalculateTransformer? = self
-		self.ensureIndexes = QBEFuture({ (job, callback) -> () in
+		var s: CalculateTransformer? = self
+		self.ensureIndexes = Future({ (job, callback) -> () in
 			if s!.indices == nil {
 				source.columnNames(job) { (columnNames) -> () in
 					switch columnNames {
 					case .Success(let cns):
 						var columns = cns
-						var indices = Dictionary<QBEColumn, Int>()
+						var indices = Dictionary<Column, Int>()
 
 						// Create newly calculated columns
 						for (targetColumn, _) in s!.calculations {
@@ -892,29 +892,29 @@ private class QBECalculateTransformer: QBETransformer {
 		})
 	}
 	
-	private override func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	private override func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.ensureIndexes.get(job) {
 			callback(self.columns!)
 		}
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
 		self.ensureIndexes.get(job) {
 			job.time("Stream calculate", items: rows.count, itemType: "row") {
 				switch self.columns! {
 				case .Success(let cns):
 					switch self.indices! {
 					case .Success(let idcs):
-						let newData = Array(rows.map({ (inRow: QBETuple) -> QBETuple in
+						let newData = Array(rows.map({ (inRow: Tuple) -> Tuple in
 							var row = inRow
 							for _ in 0..<max(0, cns.count - row.count) {
-								row.append(QBEValue.EmptyValue)
+								row.append(Value.EmptyValue)
 							}
 							
 							for (targetColumn, formula) in self.calculations {
 								let columnIndex = idcs[targetColumn]!
-								let inputValue: QBEValue = row[columnIndex]
-								let newValue = formula.apply(QBERow(row, columnNames: cns), foreign: nil, inputValue: inputValue)
+								let inputValue: Value = row[columnIndex]
+								let newValue = formula.apply(Row(row, columnNames: cns), foreign: nil, inputValue: inputValue)
 								row[columnIndex] = newValue
 							}
 							return row
@@ -933,12 +933,12 @@ private class QBECalculateTransformer: QBETransformer {
 		}
 	}
 	
-	private override func clone() -> QBEStream {
-		return QBECalculateTransformer(source: source.clone(), calculations: calculations)
+	private override func clone() -> Stream {
+		return CalculateTransformer(source: source.clone(), calculations: calculations)
 	}
 }
 
-/** The QBEJoinTransformer can perform joins between a stream on the left side and an arbitrary data set on the right
+/** The JoinTransformer can perform joins between a stream on the left side and an arbitrary data set on the right
 side. For each chunk of rows from the left side (streamed), it will call filter() on the right side data set to obtain
 a set that contains at least all rows necessary to join the rows in the chunk. It will then perform the join on the rows
 in the chunk and stream out that result. 
@@ -946,20 +946,20 @@ in the chunk and stream out that result.
 This is memory-efficient for joins that have a 1:1 relationship between left and right, or joins where rows from the left
 side all map to the same row on the right side (m:n where m>n). It breaks down for joins where a single row on the left 
 side maps to a high number of rows on the right side (m:n where n>>m). However, there is no good alternative for such 
-joins apart from performing it in-database (which will be tried before QBEJoinTransformer is put to work). */
-private class QBEJoinTransformer: QBETransformer {
-	let join: QBEJoin
-	private var leftColumnNames: QBEFuture<QBEFallible<[QBEColumn]>>
-	private var columnNamesCached: QBEFallible<[QBEColumn]>? = nil
+joins apart from performing it in-database (which will be tried before JoinTransformer is put to work). */
+private class JoinTransformer: Transformer {
+	let join: Join
+	private var leftColumnNames: Future<Fallible<[Column]>>
+	private var columnNamesCached: Fallible<[Column]>? = nil
 	private var isIneffectiveJoin: Bool = false
 	
-	init(source: QBEStream, join: QBEJoin) {
-		self.leftColumnNames = QBEFuture(source.columnNames)
+	init(source: Stream, join: Join) {
+		self.leftColumnNames = Future(source.columnNames)
 		self.join = join
 		super.init(source: source)
 	}
 	
-	private override func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	private override func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		if let c = self.columnNamesCached {
 			callback(c)
 		}
@@ -971,7 +971,7 @@ private class QBEJoinTransformer: QBETransformer {
 		}
 	}
 	
-	private func getColumnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	private func getColumnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.leftColumnNames.get(job) { (leftColumnsFallible) in
 			switch leftColumnsFallible {
 			case .Success(let leftColumns):
@@ -997,11 +997,11 @@ private class QBEJoinTransformer: QBETransformer {
 		}
 	}
 	
-	private override func clone() -> QBEStream {
-		return QBEJoinTransformer(source: self.source.clone(), join: self.join)
+	private override func clone() -> Stream {
+		return JoinTransformer(source: self.source.clone(), join: self.join)
 	}
 	
-	private override func transform(rows: Array<QBETuple>, streamStatus: QBEStreamStatus, outstanding: Int, job: QBEJob, callback: QBESink) {
+	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
 		self.leftColumnNames.get(job) { (leftColumnNamesFallible) in
 			switch leftColumnNamesFallible {
 			case .Success(let leftColumnNames):
@@ -1019,29 +1019,29 @@ private class QBEJoinTransformer: QBETransformer {
 							let joinExpression = self.join.expression
 							
 							// Create a filter expression that fetches all rows that we could possibly match to our own rows
-							var foreignFilters: [QBEExpression] = []
+							var foreignFilters: [Expression] = []
 							for row in rows {
-								foreignFilters.append(joinExpression.expressionForForeignFiltering(QBERow(row, columnNames: leftColumnNames)))
+								foreignFilters.append(joinExpression.expressionForForeignFiltering(Row(row, columnNames: leftColumnNames)))
 							}
-							let foreignFilter = QBEFunctionExpression(arguments: foreignFilters, type: QBEFunction.Or)
+							let foreignFilter = Call(arguments: foreignFilters, type: Function.Or)
 							
 							// Find relevant rows from the foreign data set
 							foreignData.filter(foreignFilter).raster(job, callback: { (foreignRasterFallible) -> () in
 								switch foreignRasterFallible {
 								case .Success(let foreignRaster):
 									// Perform the actual join using our own set of rows and the raster of possible matches from the foreign table
-									let ourRaster = QBERaster(data: Array(rows), columnNames: leftColumnNames, readOnly: true)
+									let ourRaster = Raster(data: Array(rows), columnNames: leftColumnNames, readOnly: true)
 									
 									switch self.join.type {
 									case .LeftJoin:
 										ourRaster.leftJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
-											let joinedTuples = Array<QBETuple>(joinedRaster.raster)
+											let joinedTuples = Array<Tuple>(joinedRaster.raster)
 											callback(.Success(joinedTuples), streamStatus)
 										}
 										
 									case .InnerJoin:
 										ourRaster.innerJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
-											let joinedTuples = Array<QBETuple>(joinedRaster.raster)
+											let joinedTuples = Array<Tuple>(joinedRaster.raster)
 											callback(.Success(joinedTuples), streamStatus)
 										}
 									}

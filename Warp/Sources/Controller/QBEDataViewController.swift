@@ -3,12 +3,12 @@ import WarpCore
 
 protocol QBEDataViewDelegate: NSObjectProtocol {
 	// Returns true if the delegate has handled the change (e.g. converted it to a strutural one)
-	func dataView(view: QBEDataViewController, didChangeValue: QBEValue, toValue: QBEValue, inRow: Int, column: Int) -> Bool
-	func dataView(view: QBEDataViewController, didOrderColumns: [QBEColumn], toIndex: Int) -> Bool
-	func dataView(view: QBEDataViewController, didSelectValue: QBEValue, changeable: Bool)
-	func dataView(view: QBEDataViewController, filterControllerForColumn: QBEColumn, callback: (NSViewController) -> ())
-	func dataView(view: QBEDataViewController, addValue: QBEValue, inRow: Int?, column: Int?, callback: (Bool) -> ())
-	func dataView(view: QBEDataViewController, hasFilterForColumn: QBEColumn) -> Bool
+	func dataView(view: QBEDataViewController, didChangeValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool
+	func dataView(view: QBEDataViewController, didOrderColumns: [Column], toIndex: Int) -> Bool
+	func dataView(view: QBEDataViewController, didSelectValue: Value, changeable: Bool)
+	func dataView(view: QBEDataViewController, filterControllerForColumn: Column, callback: (NSViewController) -> ())
+	func dataView(view: QBEDataViewController, addValue: Value, inRow: Int?, column: Int?, callback: (Bool) -> ())
+	func dataView(view: QBEDataViewController, hasFilterForColumn: Column) -> Bool
 }
 
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
@@ -17,7 +17,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	@IBOutlet var columnContextMenu: NSMenu!
 	@IBOutlet var errorLabel: NSTextField!
 	weak var delegate: QBEDataViewDelegate?
-	var locale: QBELocale!
+	var locale: Locale!
 	private var textCell: MBTableGridCell!
 	private var numberCell: MBTableGridCell!
 	private let DefaultColumnWidth = 100.0
@@ -47,7 +47,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		update()
 	} }
 	
-	var raster: QBERaster? {
+	var raster: Raster? {
 		didSet {
 			if raster != nil {
 				errorMessage = nil
@@ -75,7 +75,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return delegate != nil
 	}
 	
-	private func setValue(value: QBEValue, inRow: Int, inColumn: Int) {
+	private func setValue(value: Value, inRow: Int, inColumn: Int) {
 		if let r = raster {
 			if inRow < r.rowCount && inColumn < r.columnCount {
 				let oldValue = r[Int(inRow), Int(inColumn)]
@@ -88,7 +88,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			else if inRow == r.rowCount && inColumn < r.columnCount {
 				// New row
 				self.delegate?.dataView(self, addValue: value, inRow: nil, column: inColumn) { didAddRow in
-					QBEAsyncMain {
+					asyncMain {
 						self.tableView?.selectedRowIndexes = NSIndexSet(index: Int(inRow + 1))
 					}
 				}
@@ -107,7 +107,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, setObjectValue anObject: AnyObject?, forColumn columnIndex: UInt, row rowIndex: UInt) {
-		let valueObject = anObject==nil ? QBEValue.EmptyValue : locale.valueForLocalString(anObject!.description)
+		let valueObject = anObject==nil ? Value.EmptyValue : locale.valueForLocalString(anObject!.description)
 		setValue(valueObject, inRow: Int(rowIndex), inColumn: Int(columnIndex))
 	}
 	
@@ -176,7 +176,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 
 	func tableGrid(aTableGrid: MBTableGrid!, moveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
 		if let r = raster {
-			var columnsOrdered: [QBEColumn] = []
+			var columnsOrdered: [Column] = []
 			for columnIndex in 0..<r.columnCount {
 				if columnIndexes.containsIndex(columnIndex) {
 					columnsOrdered.append(r.columnNames[columnIndex])
@@ -271,7 +271,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	private func update() {
-		QBEAssertMainThread()
+		assertMainThread()
 		updateFonts()
 		updateProgress()
 		
@@ -325,7 +325,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	private func showFilterPopup(columnIndex: Int, atFooter: Bool) {
 		if let tv = self.tableView, let r = raster where columnIndex < r.columnNames.count {
 			self.delegate?.dataView(self, filterControllerForColumn: r.columnNames[Int(columnIndex)]) { (viewFilterController) in
-				QBEAssertMainThread()
+				assertMainThread()
 				let pv = NSPopover()
 				pv.behavior = NSPopoverBehavior.Semitransient
 				pv.contentViewController = viewFilterController
@@ -350,7 +350,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		let selectedCols = tableView!.selectedColumnIndexes
 
 		if selectedRows?.count > 1 || selectedCols?.count > 1 {
-			delegate?.dataView(self, didSelectValue: QBEValue.InvalidValue, changeable: false)
+			delegate?.dataView(self, didSelectValue: Value.InvalidValue, changeable: false)
 		}
 		else {
 			if let r = raster, let sr = selectedRows {
@@ -361,16 +361,16 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 					delegate?.dataView(self, didSelectValue: x, changeable: true)
 				}
 				else {
-					delegate?.dataView(self, didSelectValue: QBEValue.InvalidValue, changeable: false)
+					delegate?.dataView(self, didSelectValue: Value.InvalidValue, changeable: false)
 				}
 			}
 			else {
-				delegate?.dataView(self, didSelectValue: QBEValue.InvalidValue, changeable: false)
+				delegate?.dataView(self, didSelectValue: Value.InvalidValue, changeable: false)
 			}
 		}
 	}
 	
-	func changeSelectedValue(toValue: QBEValue) {
+	func changeSelectedValue(toValue: Value) {
 		if let selectedRows = tableView?.selectedRowIndexes {
 			if let selectedColumns = tableView?.selectedColumnIndexes {
 				setValue(toValue, inRow: selectedRows.firstIndex, inColumn: selectedColumns.firstIndex)
@@ -505,7 +505,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 						var col = startColumn
 						for cellString in cellStrings {
 							if col < columnCount {
-								setValue(QBEValue(cellString), inRow: row, inColumn: col)
+								setValue(Value(cellString), inRow: row, inColumn: col)
 							}
 							col++
 						}

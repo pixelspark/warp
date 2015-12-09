@@ -2,25 +2,25 @@ import Foundation
 import WarpCore
 import  Rethink
 
-final class QBERethinkStream: NSObject, QBEStream {
+final class QBERethinkStream: NSObject, Stream {
 	let url: NSURL
 	let query: ReQuery
 
 	private var queue = dispatch_queue_create("nl.pixelspark.Warp.QBERethinkStream", DISPATCH_QUEUE_SERIAL)
-	private var connection: QBEFuture<QBEFallible<(ReConnection, [QBEColumn])>>!
+	private var connection: Future<Fallible<(ReConnection, [Column])>>!
 	private var continuation: ReResponse.ContinuationCallback? = nil
 	private var firstResponse: ReResponse? = nil
-	private var waitingList: [QBESink] = []
+	private var waitingList: [Sink] = []
 	private var ended = false
-	private var columns: [QBEColumn]? = nil // A list of all columns in the result set, or nil if unknown
+	private var columns: [Column]? = nil // A list of all columns in the result set, or nil if unknown
 
-	init(url: NSURL, query: ReQuery, columns: [QBEColumn]? = nil) {
+	init(url: NSURL, query: ReQuery, columns: [Column]? = nil) {
 		self.url = url
 		self.query = query
 		self.connection = nil
 		self.columns = columns
 		super.init()
-		self.connection = QBEFuture<QBEFallible<(ReConnection, [QBEColumn])>>({ [weak self] (job, callback) -> () in
+		self.connection = Future<Fallible<(ReConnection, [Column])>>({ [weak self] (job, callback) -> () in
 			if let s = self {
 				R.connect(url) { (err, connection) in
 					if let e = err {
@@ -42,10 +42,10 @@ final class QBERethinkStream: NSObject, QBEStream {
 							case .Value(let v):
 								if let av = v as? [AnyObject] {
 									// Check if the array contains documents
-									var colSet = Set<QBEColumn>()
+									var colSet = Set<Column>()
 									for d in av {
 										if let doc = d as? [String: AnyObject] {
-											doc.keys.forEach { k in colSet.insert(QBEColumn(k)) }
+											doc.keys.forEach { k in colSet.insert(Column(k)) }
 										}
 										else {
 											callback(.Failure("Received array value that contains non-document: \(v)"))
@@ -64,9 +64,9 @@ final class QBERethinkStream: NSObject, QBEStream {
 
 							case .Rows(let docs, let cnt):
 								// Find columns and set them now
-								var colSet = Set<QBEColumn>()
+								var colSet = Set<Column>()
 								for d in docs {
-									d.keys.forEach { k in colSet.insert(QBEColumn(k)) }
+									d.keys.forEach { k in colSet.insert(Column(k)) }
 								}
 								let columns = Array(colSet)
 								let result = (connection, columns)
@@ -81,7 +81,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 		})
 	}
 
-	private func continueWith(continuation: ReResponse.ContinuationCallback?, job: QBEJob) {
+	private func continueWith(continuation: ReResponse.ContinuationCallback?, job: Job) {
 		dispatch_async(self.queue) { [weak self] in
 			if let s = self {
 				// We first have to get rid of the first response
@@ -129,7 +129,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 		}
 	}
 
-	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		if let fc = self.columns {
 			callback(.Success(fc))
 		}
@@ -140,7 +140,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 		}
 	}
 
-	private func ingest(response: ReResponse, consumer: QBESink, job: QBEJob) {
+	private func ingest(response: ReResponse, consumer: Sink, job: Job) {
 		switch response {
 			case .Error(let e):
 				consumer(.Failure(e), .Finished)
@@ -149,29 +149,29 @@ final class QBERethinkStream: NSObject, QBEStream {
 				self.columnNames(job, callback: { (columnsFallible) -> () in
 					switch columnsFallible {
 						case .Success(let columns):
-							let rows = docs.map { (document) -> [QBEValue] in
-								var newDocument: [QBEValue] = []
+							let rows = docs.map { (document) -> [Value] in
+								var newDocument: [Value] = []
 								for column in columns {
 									if let value = document[column.name] {
 										if let x = value as? NSNumber {
-											newDocument.append(QBEValue.DoubleValue(x.doubleValue))
+											newDocument.append(Value.DoubleValue(x.doubleValue))
 										}
 										else if let y = value as? String {
-											newDocument.append(QBEValue.StringValue(y))
+											newDocument.append(Value.StringValue(y))
 										}
 										else if let _ = value as? NSNull {
-											newDocument.append(QBEValue.EmptyValue)
+											newDocument.append(Value.EmptyValue)
 										}
 										else if let x = value as? NSDate {
-											newDocument.append(QBEValue(x))
+											newDocument.append(Value(x))
 										}
 										else {
 											// Probably arrays (NSArray), dictionaries (NSDictionary) and binary data (NSData)
-											newDocument.append(QBEValue.InvalidValue)
+											newDocument.append(Value.InvalidValue)
 										}
 									}
 									else {
-										newDocument.append(QBEValue.EmptyValue)
+										newDocument.append(Value.EmptyValue)
 									}
 								}
 								return newDocument
@@ -206,7 +206,7 @@ final class QBERethinkStream: NSObject, QBEStream {
 		}
 	}
 
-	func fetch(job: QBEJob, consumer: QBESink) {
+	func fetch(job: Job, consumer: Sink) {
 		self.connection.get(job) { resFallible in
 			dispatch_async(self.queue) {
 				if self.ended {
@@ -238,18 +238,18 @@ final class QBERethinkStream: NSObject, QBEStream {
 		}
 	}
 
-	func clone() -> QBEStream {
+	func clone() -> Stream {
 		return QBERethinkStream(url: self.url, query: self.query, columns: self.columns)
 	}
 }
 
-/** This class provides the expressionToQuery function that translates QBEExpression expression trees to ReSQL expressions. */
+/** This class provides the expressionToQuery function that translates Expression expression trees to ReSQL expressions. */
 private class QBERethinkExpression {
-	static func expressionToQuery(expression: QBEExpression, prior: ReQueryValue? = nil) -> ReQueryValue? {
-		if let sibling = expression as? QBESiblingExpression, let p = prior {
+	static func expressionToQuery(expression: Expression, prior: ReQueryValue? = nil) -> ReQueryValue? {
+		if let sibling = expression as? Sibling, let p = prior {
 			return p[sibling.columnName.name]
 		}
-		else if let literal = expression as? QBELiteralExpression {
+		else if let literal = expression as? Literal {
 			switch literal.value {
 			case .DoubleValue(let d): return R.expr(d)
 			case .BoolValue(let b): return R.expr(b)
@@ -259,7 +259,7 @@ private class QBERethinkExpression {
 			default: return nil
 			}
 		}
-		else if let unary = expression as? QBEFunctionExpression {
+		else if let unary = expression as? Call {
 			// Check arity
 			if !unary.type.arity.valid(unary.arguments.count) {
 				return nil
@@ -304,7 +304,7 @@ private class QBERethinkExpression {
 					}
 					return first
 				}
-				return R.expr(true) // AND() without arguments should return true (see QBEFunction)
+				return R.expr(true) // AND() without arguments should return true (see Function)
 
 			case .Or:
 				if var first = f {
@@ -318,7 +318,7 @@ private class QBERethinkExpression {
 					}
 					return first
 				}
-				return R.expr(false) // OR() without arguments should return false (see QBEFunction)
+				return R.expr(false) // OR() without arguments should return false (see Function)
 
 			case .Xor:
 				if let first = f, let second = expressionToQuery(unary.arguments[1], prior: prior) {
@@ -353,7 +353,7 @@ private class QBERethinkExpression {
 			default: return nil
 			}
 		}
-		else if let binary = expression as? QBEBinaryExpression {
+		else if let binary = expression as? Comparison {
 			if let s = QBERethinkExpression.expressionToQuery(binary.first, prior: prior), let f = QBERethinkExpression.expressionToQuery(binary.second, prior: prior) {
 				switch binary.type {
 				case .Addition: return f.coerceTo(.Number).add(s.coerceTo(.Number))
@@ -376,16 +376,16 @@ private class QBERethinkExpression {
 	}
 }
 
-class QBERethinkData: QBEStreamData {
+class QBERethinkData: StreamData {
 	private let url: NSURL
 	private let query: ReQuerySequence
-	private let columns: [QBEColumn]? // List of all columns in the result, or nil if unknown
-	private let indices: Set<QBEColumn>? // List of usable indices, or nil if no indices can be used
+	private let columns: [Column]? // List of all columns in the result, or nil if unknown
+	private let indices: Set<Column>? // List of usable indices, or nil if no indices can be used
 
 	/** Create a data object with the result of the given query from the server at the given URL. If the array of column
 	names is set, the query *must* never return any other columns than the given columns (missing columns lead to empty
 	values). In order to guarantee this, add a .withFields(columns) to any query given to this constructor. */
-	init(url: NSURL, query: ReQuerySequence, columns: [QBEColumn]? = nil, indices: Set<QBEColumn>? = nil) {
+	init(url: NSURL, query: ReQuerySequence, columns: [Column]? = nil, indices: Set<Column>? = nil) {
 		self.url = url
 		self.query = query
 		self.columns = columns
@@ -393,30 +393,30 @@ class QBERethinkData: QBEStreamData {
 		super.init(source: QBERethinkStream(url: url, query: query, columns: columns))
 	}
 
-	override func limit(numberOfRows: Int) -> QBEData {
+	override func limit(numberOfRows: Int) -> Data {
 		return QBERethinkData(url: self.url, query: self.query.limit(numberOfRows), columns: columns)
 	}
 
-	override func offset(numberOfRows: Int) -> QBEData {
+	override func offset(numberOfRows: Int) -> Data {
 		return QBERethinkData(url: self.url, query: self.query.skip(numberOfRows), columns: columns)
 	}
 
-	override func random(numberOfRows: Int) -> QBEData {
+	override func random(numberOfRows: Int) -> Data {
 		return QBERethinkData(url: self.url, query: self.query.sample(numberOfRows), columns: columns)
 	}
 
-	override func distinct() -> QBEData {
+	override func distinct() -> Data {
 		return QBERethinkData(url: self.url, query: self.query.distinct(), columns: columns)
 	}
 
-	override func filter(condition: QBEExpression) -> QBEData {
+	override func filter(condition: Expression) -> Data {
 		let optimized = condition.prepare()
 
 		if QBERethinkExpression.expressionToQuery(optimized, prior: R.expr()) != nil {
 			/* A filter is much faster if it can use an index. If this data set represents a table *and* the filter is
 			of the form column=value, *and* we have an index for that column, then use getAll. */
-			if let tbl = self.query as? ReQueryTable, let binary = optimized as? QBEBinaryExpression where binary.type == .Equal {
-				if let (sibling, literal) = binary.commutativePair(QBESiblingExpression.self, QBELiteralExpression.self) {
+			if let tbl = self.query as? ReQueryTable, let binary = optimized as? Comparison where binary.type == .Equal {
+				if let (sibling, literal) = binary.commutativePair(Sibling.self, Literal.self) {
 					if self.indices?.contains(sibling.columnName) ?? false {
 						// We can use a secondary index
 						return QBERethinkData(url: self.url, query: tbl.getAll(QBERethinkExpression.expressionToQuery(literal)!, index: sibling.columnName.name), columns: columns)
@@ -431,7 +431,7 @@ class QBERethinkData: QBEStreamData {
 		return super.filter(condition)
 	}
 
-	override func calculate(calculations: Dictionary<QBEColumn, QBEExpression>) -> QBEData {
+	override func calculate(calculations: Dictionary<Column, Expression>) -> Data {
 		/* Some calculations cannot be translated to ReQL. If there is one in the list, fall back. This is to satisfy
 		the requirement that calculations fed to calculate() 'see' the old values in columns even while that column is
 		also recalculated by the calculation set. */
@@ -451,7 +451,7 @@ class QBERethinkData: QBEStreamData {
 		}
 
 		// Check to see what the new list of columns will be
-		let newColumns: [QBEColumn]?
+		let newColumns: [Column]?
 		if let columns = self.columns {
 			// Add newly added columns to the end in no particular order
 			let newlyAdded = Set(calculations.keys).subtract(columns)
@@ -466,7 +466,7 @@ class QBERethinkData: QBEStreamData {
 		return QBERethinkData(url: self.url, query: q, columns: newColumns)
 	}
 
-	override func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	override func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		// If the column names are known for this data set, simply return them
 		if let c = self.columns {
 			callback(.Success(c))
@@ -476,7 +476,7 @@ class QBERethinkData: QBEStreamData {
 		return super.columnNames(job, callback: callback)
 	}
 
-	override func selectColumns(columns: [QBEColumn]) -> QBEData {
+	override func selectColumns(columns: [Column]) -> Data {
 		return QBERethinkData(url: self.url, query: self.query.withFields(columns.map { return R.expr($0.name) }), columns: columns)
 	}
 
@@ -484,10 +484,10 @@ class QBERethinkData: QBEStreamData {
 		return data.url == self.url
 	}
 
-	override func union(data: QBEData) -> QBEData {
+	override func union(data: Data) -> Data {
 		if let d = data as? QBERethinkData where self.isCompatibleWith(d) {
 			// Are the columns for the other data set known?
-			let resultingColumns: [QBEColumn]?
+			let resultingColumns: [Column]?
 			if let dc = d.columns, var oc = self.columns {
 				oc.appendContentsOf(dc)
 				resultingColumns = Array(Set(oc))
@@ -504,7 +504,7 @@ class QBERethinkData: QBEStreamData {
 	}
 }
 
-class QBERethinkDataWarehouse: QBEDataWarehouse {
+class QBERethinkDataWarehouse: Warehouse {
 	let url: NSURL
 	let databaseName: String
 	let hasFixedColumns: Bool = false
@@ -515,14 +515,14 @@ class QBERethinkDataWarehouse: QBEDataWarehouse {
 		self.databaseName = databaseName
 	}
 
-	func canPerformMutation(mutation: QBEWarehouseMutation) -> Bool {
+	func canPerformMutation(mutation: WarehouseMutation) -> Bool {
 		switch mutation {
 		case .Create(_,_):
 			return true
 		}
 	}
 
-	func performMutation(mutation: QBEWarehouseMutation, job: QBEJob, callback: (QBEFallible<QBEMutableData?>) -> ()) {
+	func performMutation(mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableData?>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
@@ -550,13 +550,13 @@ class QBERethinkDataWarehouse: QBEDataWarehouse {
 	}
 }
 
-private class QBERethinkInsertPuller: QBEStreamPuller {
-	let columnNames: [QBEColumn]
+private class QBERethinkInsertPuller: StreamPuller {
+	let columnNames: [Column]
 	let connection: ReConnection
 	let table: ReQueryTable
-	var callback: ((QBEFallible<Void>) -> ())?
+	var callback: ((Fallible<Void>) -> ())?
 
-	init(stream: QBEStream, job: QBEJob, columnNames: [QBEColumn], table: ReQueryTable, connection: ReConnection, callback: (QBEFallible<Void>) -> ()) {
+	init(stream: Stream, job: Job, columnNames: [Column], table: ReQueryTable, connection: ReConnection, callback: (Fallible<Void>) -> ()) {
 		self.callback = callback
 		self.table = table
 		self.connection = connection
@@ -564,7 +564,7 @@ private class QBERethinkInsertPuller: QBEStreamPuller {
 		super.init(stream: stream, job: job)
 	}
 
-	override func onReceiveRows(rows: [QBETuple], callback: (QBEFallible<Void>) -> ()) {
+	override func onReceiveRows(rows: [Tuple], callback: (Fallible<Void>) -> ()) {
 		self.mutex.locked {
 			let documents = rows.map { row -> ReDocument in
 				assert(row.count == self.columnNames.count, "Mismatching column counts")
@@ -610,12 +610,12 @@ private class QBERethinkInsertPuller: QBEStreamPuller {
 	}
 }
 
-class QBERethinkMutableData: QBEMutableData {
+class QBERethinkMutableData: MutableData {
 	let url: NSURL
 	let databaseName: String
 	let tableName: String
 
-	var warehouse: QBEDataWarehouse { return QBERethinkDataWarehouse(url: url, databaseName: databaseName) }
+	var warehouse: Warehouse { return QBERethinkDataWarehouse(url: url, databaseName: databaseName) }
 
 	init(url: NSURL, databaseName: String, tableName: String) {
 		self.url = url
@@ -623,15 +623,15 @@ class QBERethinkMutableData: QBEMutableData {
 		self.tableName = tableName
 	}
 
-	func identifier(job: QBEJob, callback: (QBEFallible<Set<QBEColumn>?>) -> ()) {
+	func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
 		callback(.Failure("Not implemented"))
 	}
 
-	func data(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	func data(job: Job, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(QBERethinkData(url: self.url, query: R.db(databaseName).table(tableName))))
 	}
 
-	func canPerformMutation(mutation: QBEDataMutation) -> Bool {
+	func canPerformMutation(mutation: DataMutation) -> Bool {
 		switch mutation {
 		case .Truncate, .Drop, .Import(_,_), .Alter(_):
 			return true
@@ -641,7 +641,7 @@ class QBERethinkMutableData: QBEMutableData {
 		}
 	}
 
-	func performMutation(mutation: QBEDataMutation, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	func performMutation(mutation: DataMutation, job: Job, callback: (Fallible<Void>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
@@ -718,7 +718,7 @@ class QBERethinkSourceStep: QBEStep {
 	var server: String = "localhost"
 	var port: Int = 28015
 	var authenticationKey: String? = nil
-	var columns: [QBEColumn] = []
+	var columns: [Column] = []
 
 	required override init(previous: QBEStep?) {
 		super.init()
@@ -735,7 +735,7 @@ class QBERethinkSourceStep: QBEStep {
 		self.port = max(1, min(65535, aDecoder.decodeIntegerForKey("port") ?? 28015));
 		self.authenticationKey = aDecoder.decodeStringForKey("authenticationKey")
 		let cols = (aDecoder.decodeObjectForKey("columns") as? [String]) ?? []
-		self.columns = cols.map { return QBEColumn($0) }
+		self.columns = cols.map { return Column($0) }
 		super.init(coder: aDecoder)
 	}
 
@@ -750,7 +750,7 @@ class QBERethinkSourceStep: QBEStep {
 		}
 	} }
 
-	private func sourceData(callback: (QBEFallible<QBEData>) -> ()) {
+	private func sourceData(callback: (Fallible<Data>) -> ()) {
 		if let u = url {
 			let table = R.db(self.database).table(self.table)
 
@@ -767,7 +767,7 @@ class QBERethinkSourceStep: QBEStep {
 
 					table.indexList().run(connection) { response in
 						if case .Value(let indices) = response, let indexList = indices as? [String] {
-							callback(.Success(QBERethinkData(url: u, query: table, columns: !self.columns.isEmpty ? self.columns : nil, indices: Set(indexList.map { return QBEColumn($0) }))))
+							callback(.Success(QBERethinkData(url: u, query: table, columns: !self.columns.isEmpty ? self.columns : nil, indices: Set(indexList.map { return Column($0) }))))
 						}
 						else {
 							// Carry on without indexes
@@ -782,11 +782,11 @@ class QBERethinkSourceStep: QBEStep {
 		}
 	}
 
-	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
 		sourceData(callback)
 	}
 
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
+	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
 		sourceData { t in
 			switch t {
 			case .Failure(let e): callback(.Failure(e))
@@ -807,7 +807,7 @@ class QBERethinkSourceStep: QBEStep {
 		}
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		let template: String
 		switch variant {
 		case .Read, .Neutral: template = "Read table [#] from RethinkDB database [#]"
@@ -874,7 +874,7 @@ class QBERethinkSourceStep: QBEStep {
 		)
 	}
 
-	override var mutableData: QBEMutableData? {
+	override var mutableData: MutableData? {
 		if let u = self.url where !self.table.isEmpty {
 			return QBERethinkMutableData(url: u, databaseName: self.database, tableName: self.table)
 		}

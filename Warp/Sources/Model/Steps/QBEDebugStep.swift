@@ -27,7 +27,7 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 		super.init()
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceOptions(options: [
 				QBEDebugType.None.rawValue: QBEDebugType.None.description,
@@ -55,14 +55,14 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
 		switch type {
 			case .None:
 				callback(.Success(data))
 			
 			case .Rasterize:
 				data.raster(job, callback: { (raster) -> () in
-					callback(raster.use({QBERasterData(raster: $0)}))
+					callback(raster.use({RasterData(raster: $0)}))
 				})
 			
 			case .Cache:

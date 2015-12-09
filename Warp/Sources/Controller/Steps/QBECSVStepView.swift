@@ -8,10 +8,10 @@ internal class QBECSVStepView: QBEStepViewControllerFor<QBECSVSourceStep>, NSCom
 	@IBOutlet var languageField: NSComboBox!
 	@IBOutlet var languageLabel: NSTextField!
 
-	private let languages: [QBELocale.QBELanguage]
+	private let languages: [Locale.LanguageIdentifier]
 
 	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		languages = Array(QBELocale.languages.keys)
+		languages = Array(Locale.languages.keys)
 		super.init(step: step, delegate: delegate, nibName: "QBECSVStepView", bundle: nil)
 	}
 	
@@ -48,7 +48,7 @@ internal class QBECSVStepView: QBEStepViewControllerFor<QBECSVSourceStep>, NSCom
 			}
 			else {
 				let langId = self.languages[index-1]
-				return QBELocale.languages[langId] ?? ""
+				return Locale.languages[langId] ?? ""
 			}
 		}
 		return ""
@@ -59,13 +59,13 @@ internal class QBECSVStepView: QBEStepViewControllerFor<QBECSVSourceStep>, NSCom
 		hasHeadersButton?.state = step.hasHeaders ? NSOnState : NSOffState
 		languageField.selectItemAtIndex((self.languages.indexOf(step.interpretLanguage ?? "") ?? -1) + 1)
 		
-		let testValue = QBEValue.DoubleValue(1110819.88)
+		let testValue = Value.DoubleValue(1110819.88)
 		if let language = step.interpretLanguage {
-			let locale = QBELocale(language: language)
+			let locale = Locale(language: language)
 			languageLabel.stringValue = String(format: NSLocalizedString("In this language, numbers look like this: %@ (numbers without thousand separators will also be accepted)", comment: ""), locale.localStringFor(testValue))
 		}
 		else {
-			languageLabel.stringValue = String(format: NSLocalizedString("In this language, numbers look like this: %@", comment: ""), QBELocale.stringForExchangedValue(testValue))
+			languageLabel.stringValue = String(format: NSLocalizedString("In this language, numbers look like this: %@", comment: ""), Locale.stringForExchangedValue(testValue))
 		}
 	}
 	
@@ -84,7 +84,7 @@ internal class QBECSVStepView: QBEStepViewControllerFor<QBECSVSourceStep>, NSCom
 		
 		// Interpretation language
 		let languageSelection = self.languageField.indexOfSelectedItem
-		let languageID: QBELocale.QBELanguage?
+		let languageID: Locale.LanguageIdentifier?
 		if languageSelection <= 0 {
 			languageID = nil
 		}

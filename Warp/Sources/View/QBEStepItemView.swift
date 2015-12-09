@@ -42,7 +42,7 @@ import WarpCore
 	}
 	
 	override func view(view: NSView, stringForToolTip tag: NSToolTipTag, point: NSPoint, userData data: UnsafeMutablePointer<Void>) -> String {
-		return step?.explain(QBELocale()) ?? ""
+		return step?.explain(Locale()) ?? ""
 	}
 	
 	var step: QBEStep? { didSet {
@@ -90,7 +90,7 @@ import WarpCore
 	}
 	
 	private func update() {
-		label?.attributedStringValue = NSAttributedString(string: step?.explain(QBELocale()) ?? "??")
+		label?.attributedStringValue = NSAttributedString(string: step?.explain(Locale()) ?? "??")
 		
 		if let s = step {
 			if let icon = QBEFactory.sharedInstance.iconForStep(s) {

@@ -11,7 +11,7 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 	@IBOutlet var aggregatesTable: NSTableView?
 	private var aggregatorsMenu: NSMenu?
 	
-	private var sourceColumns: [QBEColumn]? { didSet {
+	private var sourceColumns: [Column]? { didSet {
 		allTable?.reloadData()
 		rowsTable?.reloadData()
 		columnsTable?.reloadData()
@@ -30,11 +30,11 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 		super.viewWillAppear()
 	
 		if let sourceStep = self.step.previous {
-			let job = QBEJob(.UserInitiated)
-			sourceStep.exampleData(job, maxInputRows: 100, maxOutputRows: 100, callback: { (exData: QBEFallible<QBEData>) -> () in
-				exData.maybe({ (ed) in ed.columnNames(job) { (columns: QBEFallible<[QBEColumn]>) -> () in
+			let job = Job(.UserInitiated)
+			sourceStep.exampleData(job, maxInputRows: 100, maxOutputRows: 100, callback: { (exData: Fallible<Data>) -> () in
+				exData.maybe({ (ed) in ed.columnNames(job) { (columns: Fallible<[Column]>) -> () in
 					columns.maybe { (cs) in
-						QBEAsyncMain {
+						asyncMain {
 							self.sourceColumns = cs
 						}
 					}
@@ -54,11 +54,11 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 		columnsTable?.registerForDraggedTypes([dragType])
 		aggregatesTable?.registerForDraggedTypes([dragType])
 
-		let locale = delegate?.locale ?? QBELocale()
+		let locale = delegate?.locale ?? Locale()
 		
 		aggregatorsMenu = NSMenu()
-		for fun in QBEFunction.allFunctions {
-			if fun.arity == QBEArity.Any {
+		for fun in Function.allFunctions {
+			if fun.arity == Arity.Any {
 				let item = NSMenuItem(title: fun.explain(locale), action: nil, keyEquivalent: "")
 				item.representedObject = fun.rawValue
 				aggregatorsMenu!.addItem(item)
@@ -160,31 +160,31 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 			if let cols = NSUnarchiver.unarchiveObjectWithData(data) as? [String] {
 				for col in cols {
 					if tableView == rowsTable {
-						if !(self.step.rows.contains(QBEColumn(col)) ?? false) {
-							self.step.rows.append(QBEColumn(col))
+						if !(self.step.rows.contains(Column(col)) ?? false) {
+							self.step.rows.append(Column(col))
 						}
 					}
 					else if tableView == columnsTable {
-						if !(self.step.columns.contains(QBEColumn(col)) ?? false) {
-							self.step.columns.append(QBEColumn(col))
+						if !(self.step.columns.contains(Column(col)) ?? false) {
+							self.step.columns.append(Column(col))
 						}
 					}
 					else if tableView == aggregatesTable {
-						self.step.aggregates.append(QBEAggregation(map: QBESiblingExpression(columnName: QBEColumn(col)), reduce: QBEFunction.Sum, targetColumnName: QBEColumn(col)))
+						self.step.aggregates.append(Aggregation(map: Sibling(columnName: Column(col)), reduce: Function.Sum, targetColumnName: Column(col)))
 					}
 					else if tableView == allTable {
 						// Need to remove the dragged item from the source view
 						if info.draggingSource() as? NSTableView == rowsTable {
-							self.step.rows.remove(QBEColumn(col))
+							self.step.rows.remove(Column(col))
 							rowsTable?.reloadData()
 						}
 						else if info.draggingSource() as? NSTableView == columnsTable {
-							self.step.columns.remove(QBEColumn(col))
+							self.step.columns.remove(Column(col))
 							columnsTable?.reloadData()
 						}
 						else if info.draggingSource() as? NSTableView == aggregatesTable {
-							// FIXME: needs to remove a QBEAggregation object
-							//self.step.aggregates.remove(QBEColumn(col))
+							// FIXME: needs to remove a Aggregation object
+							//self.step.aggregates.remove(Column(col))
 							aggregatesTable?.reloadData()
 						}
 					}
@@ -203,8 +203,8 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 		if tableView == aggregatesTable {
 			if tableColumn?.identifier == "aggregator" {
 				if let menuItem = aggregatorsMenu?.itemAtIndex(object?.integerValue ?? 0) {
-					if let rep = menuItem.representedObject as? QBEFunction.RawValue {
-						if let fun = QBEFunction(rawValue: rep) {
+					if let rep = menuItem.representedObject as? Function.RawValue {
+						if let fun = Function(rawValue: rep) {
 							step.aggregates[row].reduce = fun
 							tableView.reloadData()
 							delegate?.stepView(self, didChangeConfigurationForStep: step)
@@ -214,7 +214,7 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 			}
 			else if tableColumn?.identifier == "targetColumnName" {
 				if let s = object as? String {
-					step.aggregates[row].targetColumnName = QBEColumn(s)
+					step.aggregates[row].targetColumnName = Column(s)
 				}
 			}
 		}
@@ -239,11 +239,11 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 	
 	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if tableColumn?.identifier == "aggregator" {
-			let reducer = step.aggregates[row].reduce ?? QBEFunction.Identity
+			let reducer = step.aggregates[row].reduce ?? Function.Identity
 			
 			for index in 0..<aggregatorsMenu!.numberOfItems {
 				if let mi = aggregatorsMenu!.itemAtIndex(index) {
-					if (mi.representedObject as? QBEFunction.RawValue) == reducer.rawValue {
+					if (mi.representedObject as? Function.RawValue) == reducer.rawValue {
 						return index
 					}
 				}

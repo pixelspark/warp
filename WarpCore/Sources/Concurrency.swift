@@ -1,6 +1,6 @@
 import Foundation
 
-public func QBELog(message: String, file: StaticString = __FILE__, line: UInt = __LINE__) {
+public func trace(message: String, file: StaticString = __FILE__, line: UInt = __LINE__) {
 	#if DEBUG
 		dispatch_async(dispatch_get_main_queue()) {
 			print(message)
@@ -8,11 +8,11 @@ public func QBELog(message: String, file: StaticString = __FILE__, line: UInt = 
 	#endif
 }
 
-public func QBEAssertMainThread(file: StaticString = __FILE__, line: UInt = __LINE__) {
+public func assertMainThread(file: StaticString = __FILE__, line: UInt = __LINE__) {
 	assert(NSThread.isMainThread(), "Code at \(file):\(line) must run on main thread!")
 }
 
-public func QBEOnce<P, R>(block: ((P) -> (R))) -> ((P) -> (R)) {
+public func once<P, R>(block: ((P) -> (R))) -> ((P) -> (R)) {
 	var run = false
 
 	#if DEBUG
@@ -27,7 +27,7 @@ public func QBEOnce<P, R>(block: ((P) -> (R))) -> ((P) -> (R)) {
 }
 
 /** Runs the given block of code asynchronously on the main queue. */
-public func QBEAsyncMain(block: () -> ()) {
+public func asyncMain(block: () -> ()) {
 	dispatch_async(dispatch_get_main_queue(), block)
 }
 
@@ -92,10 +92,10 @@ public extension SequenceType {
 }
 
 internal extension Array {
-	func parallel<T, ResultType>(map map: ((Array<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> QBEFuture<ResultType?> {
-		let chunkSize = QBEStreamDefaultBatchSize/8
+	func parallel<T, ResultType>(map map: ((Array<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> Future<ResultType?> {
+		let chunkSize = StreamDefaultBatchSize/8
 		
-		return QBEFuture<ResultType?>({ (job, completion) -> () in
+		return Future<ResultType?>({ (job, completion) -> () in
 			let group = dispatch_group_create()
 			var buffer: [T] = []
 			var finishedItems = 0
@@ -141,11 +141,11 @@ internal extension Array {
 	}
 }
 
-@objc public protocol QBEJobDelegate {
+@objc public protocol JobDelegate {
 	func job(job: AnyObject, didProgress: Double)
 }
 
-public enum QBEQoS {
+public enum QoS {
 	case UserInitiated
 	case Background
 	
@@ -160,15 +160,13 @@ public enum QBEQoS {
 	}
 }
 
-public typealias QBEError = String
-
-/** QBEFallible<T> represents the outcome of an operation that can either fail (with an error message) or succeed 
+/** Fallible<T> represents the outcome of an operation that can either fail (with an error message) or succeed 
 (returning an instance of T). */
-public enum QBEFallible<T> {
+public enum Fallible<T> {
 	case Success(T)
-	case Failure(QBEError)
+	case Failure(String)
 	
-	public init<P>(_ other: QBEFallible<P>) {
+	public init<P>(_ other: Fallible<P>) {
 		switch other {
 			case .Success(let s):
 				self = .Success(s as! T)
@@ -182,7 +180,7 @@ public enum QBEFallible<T> {
 	(if any). Otherwise return a new, failed result with the error message of this result. This can be used to chain 
 	operations on fallible operations, propagating the error once an operation fails. */
 	@warn_unused_result(message="Deal with potential failure returned by .use, .require to force success or .maybe to ignore failure.")
-	public func use<P>(@noescape block: T -> P) -> QBEFallible<P> {
+	public func use<P>(@noescape block: T -> P) -> Fallible<P> {
 		switch self {
 			case Success(let value):
 				return .Success(block(value))
@@ -193,7 +191,7 @@ public enum QBEFallible<T> {
 	}
 	
 	@warn_unused_result(message="Deal with potential failure returned by .use, .require to force success or .maybe to ignore failure.")
-	public func use<P>(@noescape block: T -> QBEFallible<P>) -> QBEFallible<P> {
+	public func use<P>(@noescape block: T -> Fallible<P>) -> Fallible<P> {
 		switch self {
 		case Success(let box):
 			return block(box)
@@ -221,12 +219,12 @@ public enum QBEFallible<T> {
 			block(value)
 			
 		case Failure(let errString):
-			QBELog("Silently ignoring failure: \(errString)")
+			trace("Silently ignoring failure: \(errString)")
 		}
 	}
 }
 
-public class QBEWeak<T: AnyObject>: NSObject {
+public class Weak<T: AnyObject>: NSObject {
 	public private(set) weak var value: T?
 	
 	public init(_ value: T?) {
@@ -234,33 +232,33 @@ public class QBEWeak<T: AnyObject>: NSObject {
 	}
 }
 
-/** A QBEJob represents a single asynchronous calculation. QBEJob tracks the progress and cancellation status of a single
-'job'. It is generally passed along to all functions that also accept an asynchronous callback. The QBEJob object should 
+/** A Job represents a single asynchronous calculation. Job tracks the progress and cancellation status of a single
+'job'. It is generally passed along to all functions that also accept an asynchronous callback. The Job object should 
 never be stored by these functions. It should be passed on by the functions to any other asynchronous operations that 
-belong to the same job. The QBEJob has an associated dispatch queue in which any asynchronous operations that belong to
-the job should be executed (the shorthand function QBEJob.async can be used for this).
+belong to the same job. The Job has an associated dispatch queue in which any asynchronous operations that belong to
+the job should be executed (the shorthand function Job.async can be used for this).
 
-QBEJob can be used to track the progress of a job's execution. Components in the job can report their progress using the
-reportProgress call. As key, callers should use a unique value (e.g. their own hashValue). The progress reported by QBEJob
+Job can be used to track the progress of a job's execution. Components in the job can report their progress using the
+reportProgress call. As key, callers should use a unique value (e.g. their own hashValue). The progress reported by Job
 is the average progress of all components.
 
-When used with QBEFuture, a job represents a single attempt at the calculation of a future. The 'producer' callback of a 
-QBEFuture receives the QBEJob object and should use it to check whether calculation of the future is still necessary (or
+When used with Future, a job represents a single attempt at the calculation of a future. The 'producer' callback of a 
+Future receives the Job object and should use it to check whether calculation of the future is still necessary (or
 the job has been cancelled) and report progress information. */
-public class QBEJob: QBEJobDelegate {
+public class Job: JobDelegate {
 	public let queue: dispatch_queue_t
-	let parentJob: QBEJob?
+	let parentJob: Job?
 	public private(set) var cancelled: Bool = false
 	private var progressComponents: [Int: Double] = [:]
-	private var observers: [QBEWeak<QBEJobDelegate>] = []
-	private let mutex = QBEMutex()
+	private var observers: [Weak<JobDelegate>] = []
+	private let mutex = Mutex()
 	
-	public init(_ qos: QBEQoS) {
+	public init(_ qos: QoS) {
 		self.queue = dispatch_get_global_queue(qos.qosClass, 0)
 		self.parentJob = nil
 	}
 	
-	public init(parent: QBEJob) {
+	public init(parent: Job) {
 		self.parentJob = parent
 		self.queue = parent.queue
 	}
@@ -316,9 +314,9 @@ public class QBEJob: QBEJobDelegate {
 		#endif
 	}
 	
-	public func addObserver(observer: QBEJobDelegate) {
+	public func addObserver(observer: JobDelegate) {
 		mutex.locked {
-			self.observers.append(QBEWeak(observer))
+			self.observers.append(Weak(observer))
 		}
 	}
 	
@@ -332,7 +330,7 @@ public class QBEJob: QBEJobDelegate {
 			return
 		}
 
-		QBEAsyncMain {
+		asyncMain {
 			self.progressComponents[forKey] = progress
 			let currentProgress = self.progress
 			for observer in self.observers {
@@ -391,7 +389,7 @@ public class QBEJob: QBEJobDelegate {
 	private var timeComponents: [String: Double] = [:]
 	
 	func reportTime(component: String, time: Double) {
-		QBEAsyncMain {
+		asyncMain {
 			if let t = self.timeComponents[component] {
 				self.timeComponents[component] = t + time
 			}
@@ -404,7 +402,7 @@ public class QBEJob: QBEJobDelegate {
 }
 
 /** A pthread-based recursive mutex lock. */
-public class QBEMutex {
+public class Mutex {
 	private var mutex: pthread_mutex_t = pthread_mutex_t()
 
 	public init() {
@@ -483,23 +481,23 @@ public class QBEMutex {
 	}
 }
 
-/** QBEFuture represents a result of a (potentially expensive) calculation. Code that needs the result of the
+/** Future represents a result of a (potentially expensive) calculation. Code that needs the result of the
 operation express their interest by enqueuing a callback with the get() function. The callback gets called immediately
 if the result of the calculation was available in cache, or as soon as the result has been calculated. 
 
 The calculation itself is done by the 'producer' block. When the producer block is changed, the cached result is 
 invalidated (pre-registered callbacks may still receive the stale result when it has been calculated). */
-public class QBEFuture<T> {
-	public typealias Callback = QBEBatch<T>.Callback
-	public typealias Producer = (QBEJob, Callback) -> ()
-	private var batch: QBEBatch<T>?
-	private let mutex: QBEMutex = QBEMutex()
+public class Future<T> {
+	public typealias Callback = Batch<T>.Callback
+	public typealias Producer = (Job, Callback) -> ()
+	private var batch: Batch<T>?
+	private let mutex: Mutex = Mutex()
 	
 	let producer: Producer
 	let timeLimit: Double?
 	
 	public init(_ producer: Producer, timeLimit: Double? = nil)  {
-		self.producer = QBEOnce(producer)
+		self.producer = once(producer)
 		self.timeLimit = timeLimit
 	}
 	
@@ -559,19 +557,19 @@ public class QBEFuture<T> {
 	Note that the callback may not make any assumptions about the queue or thread it is being called from. Callees should
 	therefore not block. 
 	
-	The get() function performs work in its own QBEJob.	If a job is set as parameter, this job will be a child of the 
+	The get() function performs work in its own Job.	If a job is set as parameter, this job will be a child of the 
 	given job, and will use its preferred queue. Otherwise it will perform the work in the user initiated QoS concurrent
-	queue. This function always returns its own child QBEJob. */
-	public func get(job: QBEJob? = nil, _ callback: Callback) -> QBEJob {
+	queue. This function always returns its own child Job. */
+	public func get(job: Job? = nil, _ callback: Callback) -> Job {
 		var first = false
 		self.mutex.locked {
 			if self.batch == nil {
 				first = true
 				if let j = job {
-					self.batch = QBEBatch<T>(parent: j)
+					self.batch = Batch<T>(parent: j)
 				}
 				else {
-					self.batch = QBEBatch<T>(queue: dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
+					self.batch = Batch<T>(queue: dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
 				}
 			}
 
@@ -585,7 +583,7 @@ public class QBEFuture<T> {
 	}
 }
 
-public class QBEBatch<T>: QBEJob {
+public class Batch<T>: Job {
 	public typealias Callback = (T) -> ()
 	private var cached: T? = nil
 	private var waitingList: [Callback] = []
@@ -598,15 +596,15 @@ public class QBEBatch<T>: QBEJob {
 		super.init(queue: queue)
 	}
 	
-	override init(parent: QBEJob) {
+	override init(parent: Job) {
 		super.init(parent: parent)
 	}
 	
 	/** Called by a producer to return the result of a job. This method will call all callbacks on the waiting list (on the
 	main thread) and subsequently empty the waiting list. Enqueue can only be called once on a batch. */
 	private func satisfy(value: T) {
-		assert(cached == nil, "QBEBatch.satisfy called with cached!=nil: \(cached) \(value)")
-		assert(!satisfied, "QBEBatch already satisfied")
+		assert(cached == nil, "Batch.satisfy called with cached!=nil: \(cached) \(value)")
+		assert(!satisfied, "Batch already satisfied")
 
 		self.mutex.locked {
 			self.cached = value
@@ -648,7 +646,7 @@ public class QBEBatch<T>: QBEJob {
 				}
 			}
 			else {
-				assert(!cancelled, "Cannot enqueue on a QBEFuture that is cancelled")
+				assert(!cancelled, "Cannot enqueue on a Future that is cancelled")
 				self.waitingList.append(callback)
 			}
 		}

@@ -11,9 +11,9 @@ private func toDictionary<E, K, V>(array: [E], transformer: (element: E) -> (key
 }
 
 class QBEPivotStep: QBEStep {
-	var rows: [QBEColumn] = []
-	var columns: [QBEColumn] = []
-	var aggregates: [QBEAggregation] = []
+	var rows: [Column] = []
+	var columns: [Column] = []
+	var aggregates: [Aggregation] = []
 
 	required init() {
 		super.init()
@@ -22,14 +22,14 @@ class QBEPivotStep: QBEStep {
 	required init(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
 		
-		aggregates = (aDecoder.decodeObjectForKey("aggregates") as? [QBEAggregation]) ?? []
+		aggregates = (aDecoder.decodeObjectForKey("aggregates") as? [Aggregation]) ?? []
 		
 		if let r = aDecoder.decodeObjectForKey("rows") as? [String] {
-			rows = r.map({QBEColumn($0)})
+			rows = r.map({Column($0)})
 		}
 		
 		if let c = aDecoder.decodeObjectForKey("columns") as? [String] {
-			columns = c.map({QBEColumn($0)})
+			columns = c.map({Column($0)})
 		}
 	}
 	
@@ -37,7 +37,7 @@ class QBEPivotStep: QBEStep {
 		super.encodeWithCoder(coder)
 		fixupColumnNames()
 		
-		// NSCoder can't store QBEColumn, so we store the raw names
+		// NSCoder can't store Column, so we store the raw names
 		let c = columns.map({$0.name})
 		let r = rows.map({$0.name})
 		
@@ -46,7 +46,7 @@ class QBEPivotStep: QBEStep {
 		coder.encodeObject(aggregates, forKey: "aggregates")
 	}
 	
-	private func explanation(locale: QBELocale) -> String {
+	private func explanation(locale: Locale) -> String {
 		if aggregates.count == 1 {
 			let aggregation = aggregates[0]
 			if rows.count != 1 || !columns.isEmpty {
@@ -66,7 +66,7 @@ class QBEPivotStep: QBEStep {
 		return NSLocalizedString("Pivot data", comment: "")
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
@@ -92,15 +92,15 @@ class QBEPivotStep: QBEStep {
 		}
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		if self.rows.isEmpty && self.columns.isEmpty && self.aggregates.isEmpty {
 			callback(.Failure(NSLocalizedString("Click the settings button to configure the pivot table.", comment: "")))
 			return
 		}
 
 		fixupColumnNames()
-		var rowGroups = toDictionary(rows, transformer: { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
-		let colGroups = toDictionary(columns, transformer: { ($0, QBESiblingExpression(columnName: $0) as QBEExpression) })
+		var rowGroups = toDictionary(rows, transformer: { ($0, Sibling(columnName: $0) as Expression) })
+		let colGroups = toDictionary(columns, transformer: { ($0, Sibling(columnName: $0) as Expression) })
 		for (k, v) in colGroups {
 			rowGroups[k] = v
 		}
@@ -116,17 +116,17 @@ class QBEPivotStep: QBEStep {
 		}
 	}
 	
-	class func suggest(aggregateRows: NSIndexSet, columns aggregateColumns: Set<QBEColumn>, inRaster raster: QBERaster, fromStep: QBEStep?) -> [QBEStep] {
+	class func suggest(aggregateRows: NSIndexSet, columns aggregateColumns: Set<Column>, inRaster raster: Raster, fromStep: QBEStep?) -> [QBEStep] {
 		if aggregateColumns.isEmpty {
 			return []
 		}
 		
 		// Check to see if the selected rows have similar values for other than the relevant columns
-		let groupColumnCandidates = Set<QBEColumn>(raster.columnNames).subtract(aggregateColumns)
+		let groupColumnCandidates = Set<Column>(raster.columnNames).subtract(aggregateColumns)
 		let sameValues = aggregateRows.count > 1 ? raster.commonalitiesOf(aggregateRows, inColumns: groupColumnCandidates) : [:]
 		
 		// What are our aggregate functions? Select the most likely ones (user can always change)
-		let aggregateFunctions = [QBEFunction.Sum, QBEFunction.Count, QBEFunction.Average]
+		let aggregateFunctions = [Function.Sum, Function.Count, Function.Average]
 		
 		// Generate a suggestion for each type of aggregation we have
 		var suggestions: [QBEStep] = []
@@ -134,7 +134,7 @@ class QBEPivotStep: QBEStep {
 			let step = QBEPivotStep()
 			
 			for column in aggregateColumns {
-				step.aggregates.append(QBEAggregation(map: QBESiblingExpression(columnName: column), reduce: fun, targetColumnName: column))
+				step.aggregates.append(Aggregation(map: Sibling(columnName: column), reduce: fun, targetColumnName: column))
 			}
 			
 			for (sameColumn, _) in sameValues {

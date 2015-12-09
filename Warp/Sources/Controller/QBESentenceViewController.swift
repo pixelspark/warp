@@ -3,7 +3,7 @@ import WarpCore
 
 protocol QBESentenceViewDelegate: NSObjectProtocol {
 	func sentenceView(view: QBESentenceViewController, didChangeStep: QBEStep)
-	var locale: QBELocale { get }
+	var locale: Locale { get }
 }
 
 class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate, QBEFormulaEditorViewDelegate, QBEStepViewDelegate {
@@ -20,7 +20,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			return tokenField.enabled
 		}
 		set {
-			QBEAssertMainThread()
+			assertMainThread()
 			tokenField.enabled = enabled
 		}
 	}
@@ -35,8 +35,8 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	private struct QBEEditingFormula {
-		let value: QBEValue
-		var callback: ((QBEValue) -> ())?
+		let value: Value
+		var callback: ((Value) -> ())?
 	}
 
 	override func viewDidLoad() {
@@ -66,8 +66,8 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		if let inputToken = editingToken?.token as? QBESentenceTextInput, let s = editingStep {
 			// Was a formula typed in?
 			if text.hasPrefix("=") {
-				if let formula = QBEFormula(formula: text, locale: self.locale) where formula.root.isConstant {
-					text = locale.localStringFor(formula.root.apply(QBERow(), foreign: nil, inputValue: nil))
+				if let formula = Formula(formula: text, locale: self.locale) where formula.root.isConstant {
+					text = locale.localStringFor(formula.root.apply(Row(), foreign: nil, inputValue: nil))
 				}
 			}
 
@@ -79,7 +79,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			return false
 		}
 		else if let inputToken = editingToken?.token as? QBESentenceFormula, let s = editingStep, let locale = self.delegate?.locale {
-			if let formula = QBEFormula(formula: text, locale: locale) {
+			if let formula = Formula(formula: text, locale: locale) {
 				inputToken.change(formula.root)
 				self.delegate?.sentenceView(self, didChangeStep: s)
 				updateView()
@@ -120,7 +120,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			let queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
 			dispatch_async(queue) {
 				options.optionsProvider { [weak self] (itemsFallible) in
-					QBEAsyncMain {
+					asyncMain {
 						menu.removeAllItems()
 
 						switch itemsFallible {
@@ -170,7 +170,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			/* We want to show a popover, but NSTokenField only lets us show a menu. So return an empty menu and 
 			asynchronously present a popover right at this location */
 			if let event = self.view.window?.currentEvent {
-				QBEAsyncMain {
+				asyncMain {
 					self.editFormula(event)
 				}
 			}
@@ -322,9 +322,9 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
-	func formulaEditor(view: QBEFormulaEditorViewController, didChangeExpression newExpression: QBEExpression?) {
+	func formulaEditor(view: QBEFormulaEditorViewController, didChangeExpression newExpression: Expression?) {
 		if let inputToken = editingToken?.token as? QBESentenceFormula, let s = self.editingStep {
-			inputToken.change(newExpression ?? QBELiteralExpression(QBEValue.EmptyValue))
+			inputToken.change(newExpression ?? Literal(Value.EmptyValue))
 			self.delegate?.sentenceView(self, didChangeStep: s)
 			updateView()
 		}
@@ -344,9 +344,9 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	func stepView(view: QBEStepViewController, didChangeConfigurationForStep step: QBEStep) {
-		QBEAsyncMain { self.updateView() }
+		asyncMain { self.updateView() }
 		self.delegate?.sentenceView(self, didChangeStep: step)
 	}
 
-	var locale: QBELocale { return self.delegate!.locale }
+	var locale: Locale { return self.delegate!.locale }
 }

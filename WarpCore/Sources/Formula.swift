@@ -1,34 +1,34 @@
 import Foundation
 import SwiftParser
 
-/** QBEFormula parses formulas written down in an Excel-like syntax (e.g. =SUM(SQRT(1+2/3);IF(1>2;3;4))) as a QBEExpression
+/** Formula parses formulas written down in an Excel-like syntax (e.g. =SUM(SQRT(1+2/3);IF(1>2;3;4))) as a Expression
 that can be used to calculate values. Like in Excel, the language used for the formulas (e.g. for function names) depends
-on the user's preference and is therefore variable (QBELocale implements this). */
-public class QBEFormula: Parser {
+on the user's preference and is therefore variable (Locale implements this). */
+public class Formula: Parser {
 	public struct Fragment {
 		public let start: Int
 		public let end: Int
-		public let expression: QBEExpression
+		public let expression: Expression
 		
 		public var length: Int { get {
 			return end - start
 		} }
 	}
 	
-	private var stack = QBEStack<QBEExpression>()
-	private var callStack = QBEStack<QBECall>()
-	let locale: QBELocale
+	private var stack = Stack<Expression>()
+	private var callStack = Stack<CallSite>()
+	let locale: Locale
 	public let originalText: String
 	public private(set) var fragments: [Fragment] = []
 	private var error: Bool = false
 	
-	public var root: QBEExpression {
+	public var root: Expression {
 		get {
 			return stack.head
 		}
 	}
 	
-	public init?(formula: String, locale: QBELocale) {
+	public init?(formula: String, locale: Locale) {
 		self.originalText = formula
 		self.locale = locale
 		self.fragments = []
@@ -39,22 +39,22 @@ public class QBEFormula: Parser {
 		super.captures.removeAll(keepCapacity: false)
 	}
 	
-	private func annotate(expression: QBEExpression) {
+	private func annotate(expression: Expression) {
 		if let cc = super.current_capture {
 			fragments.append(Fragment(start: cc.start, end: cc.end, expression: expression))
 		}
 	}
 	
 	private func pushInt() {
-		annotate(stack.push(QBELiteralExpression(QBEValue(Int(self.text)!))))
+		annotate(stack.push(Literal(Value(Int(self.text)!))))
 	}
 	
 	private func pushDouble() {
 		if let n = self.locale.numberFormatter.numberFromString(self.text.stringByReplacingOccurrencesOfString(self.locale.groupingSeparator, withString: "")) {
-			annotate(stack.push(QBELiteralExpression(QBEValue.DoubleValue(n.doubleValue))))
+			annotate(stack.push(Literal(Value.DoubleValue(n.doubleValue))))
 		}
 		else {
-			annotate(stack.push(QBELiteralExpression(QBEValue.InvalidValue)))
+			annotate(stack.push(Literal(Value.InvalidValue)))
 			error = true
 		}
 	}
@@ -62,110 +62,110 @@ public class QBEFormula: Parser {
 	private func pushTimestamp() {
 		let ts = self.text.substringFromIndex(self.text.startIndex.advancedBy(1))
 		if let n = self.locale.numberFormatter.numberFromString(ts) {
-			annotate(stack.push(QBELiteralExpression(QBEValue.DateValue(n.doubleValue))))
+			annotate(stack.push(Literal(Value.DateValue(n.doubleValue))))
 		}
 		else {
-			annotate(stack.push(QBELiteralExpression(QBEValue.InvalidValue)))
+			annotate(stack.push(Literal(Value.InvalidValue)))
 		}
 	}
 	
 	private func pushString() {
 		let text = self.text.stringByReplacingOccurrencesOfString("\"\"", withString: "\"")
-		annotate(stack.push(QBELiteralExpression(QBEValue(text))))
+		annotate(stack.push(Literal(Value(text))))
 	}
 	
 	private func pushAddition() {
-		pushBinary(QBEBinary.Addition)
+		pushBinary(Binary.Addition)
 	}
 	
 	private func pushSubtraction() {
-		pushBinary(QBEBinary.Subtraction)
+		pushBinary(Binary.Subtraction)
 	}
 	
 	private func pushMultiplication() {
-		pushBinary(QBEBinary.Multiplication)
+		pushBinary(Binary.Multiplication)
 	}
 	
 	private func pushDivision() {
-		pushBinary(QBEBinary.Division)
+		pushBinary(Binary.Division)
 	}
 	
 	private func pushPower() {
-		pushBinary(QBEBinary.Power)
+		pushBinary(Binary.Power)
 	}
 	
 	private func pushConcat() {
-		pushBinary(QBEBinary.Concatenation)
+		pushBinary(Binary.Concatenation)
 	}
 	
 	private func pushNegate() {
 		let a = stack.pop()
-		stack.push(QBEFunctionExpression(arguments: [a], type: QBEFunction.Negate));
+		stack.push(Call(arguments: [a], type: Function.Negate));
 	}
 	
 	private func pushSibling() {
-		annotate(stack.push(QBESiblingExpression(columnName: QBEColumn(self.text))))
+		annotate(stack.push(Sibling(columnName: Column(self.text))))
 	}
 	
 	private func pushForeign() {
-		annotate(stack.push(QBEForeignExpression(columnName: QBEColumn(self.text))))
+		annotate(stack.push(Foreign(columnName: Column(self.text))))
 	}
 	
 	private func pushConstant() {
 		for (constant, name) in locale.constants {
 			if name.caseInsensitiveCompare(self.text) == NSComparisonResult.OrderedSame {
-				annotate(stack.push(QBELiteralExpression(constant)))
+				annotate(stack.push(Literal(constant)))
 				return
 			}
 		}
 	}
 
-	private func pushPostfixMultiplier(factor: QBEValue) {
+	private func pushPostfixMultiplier(factor: Value) {
 		let a = stack.pop()
-		annotate(stack.push(QBEBinaryExpression(first: QBELiteralExpression(factor), second: a, type: QBEBinary.Multiplication)))
+		annotate(stack.push(Comparison(first: Literal(factor), second: a, type: Binary.Multiplication)))
 	}
 	
-	private func pushBinary(type: QBEBinary) {
+	private func pushBinary(type: Binary) {
 		let a = stack.pop()
 		let b = stack.pop()
-		stack.push(QBEBinaryExpression(first:a, second: b, type: type))
+		stack.push(Comparison(first:a, second: b, type: type))
 	}
 	
 	private func pushGreater() {
-		pushBinary(QBEBinary.Greater)
+		pushBinary(Binary.Greater)
 	}
 	
 	private func pushGreaterEqual() {
-		pushBinary(QBEBinary.GreaterEqual)
+		pushBinary(Binary.GreaterEqual)
 	}
 	
 	private func pushLesser() {
-		pushBinary(QBEBinary.Lesser)
+		pushBinary(Binary.Lesser)
 	}
 	
 	private func pushLesserEqual() {
-		pushBinary(QBEBinary.LesserEqual)
+		pushBinary(Binary.LesserEqual)
 	}
 	
 	private func pushContainsString() {
-		pushBinary(QBEBinary.ContainsString)
+		pushBinary(Binary.ContainsString)
 	}
 	
 	private func pushContainsStringStrict() {
-		pushBinary(QBEBinary.ContainsStringStrict)
+		pushBinary(Binary.ContainsStringStrict)
 	}
 	
 	private func pushEqual() {
-		pushBinary(QBEBinary.Equal)
+		pushBinary(Binary.Equal)
 	}
 	
 	private func pushNotEqual() {
-		pushBinary(QBEBinary.NotEqual)
+		pushBinary(Binary.NotEqual)
 	}
 	
 	private func pushCall() {
 		if let qu = locale.functionWithName(self.text) {
-			callStack.push(QBECall(function: qu))
+			callStack.push(CallSite(function: qu))
 			return
 		}
 		
@@ -174,12 +174,12 @@ public class QBEFormula: Parser {
 	}
 	
 	private func pushIdentity() {
-		annotate(stack.push(QBEIdentityExpression()))
+		annotate(stack.push(Identity()))
 	}
 	
 	private func popCall() {
 		let q = callStack.pop()
-		annotate(stack.push(QBEFunctionExpression(arguments: q.args, type: q.function)))
+		annotate(stack.push(Call(arguments: q.args, type: q.function)))
 	}
 	
 	private func pushArgument() {
@@ -194,7 +194,7 @@ public class QBEFormula: Parser {
 		shorter functions come first, they match with the formula before we get a chance to see whether the longer one 
 		would also match  (parser is dumb) */
 		var functionRules: [ParserRule] = []
-		let functionNames = QBEFunction.allFunctions
+		let functionNames = Function.allFunctions
 			.map({return self.locale.nameForFunction($0) ?? ""}).sort({(a,b) in return a.characters.count > b.characters.count})
 		
 		functionNames.forEach {(functionName) in
@@ -236,8 +236,8 @@ public class QBEFormula: Parser {
 		// Comparisons
 		add_named_rule("containsString", rule: ("~=" ~~ ^"concatenation") => pushContainsString)
 		add_named_rule("containsStringStrict", rule: ("~~=" ~~ ^"concatenation") => pushContainsStringStrict)
-		add_named_rule("matchesRegex", rule: ("±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(QBEBinary.MatchesRegex) })
-		add_named_rule("matchesRegexStrict", rule: ("±±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(QBEBinary.MatchesRegexStrict)})
+		add_named_rule("matchesRegex", rule: ("±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(Binary.MatchesRegex) })
+		add_named_rule("matchesRegexStrict", rule: ("±±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(Binary.MatchesRegexStrict)})
 		add_named_rule("greater", rule: (">" ~~ ^"concatenation") => pushGreater)
 		add_named_rule("greaterEqual", rule: (">=" ~~ ^"concatenation") => pushGreaterEqual)
 		add_named_rule("lesser", rule: ("<" ~~ ^"concatenation") => pushLesser)
@@ -332,11 +332,11 @@ internal func ~~ (left : ParserRule, right: ParserRule) -> ParserRule {
 	}
 }
 
-private struct QBECall {
-	let function: QBEFunction
-	var args: [QBEExpression] = []
+private struct CallSite {
+	let function: Function
+	var args: [Expression] = []
 	
-	init(function: QBEFunction) {
+	init(function: Function) {
 		self.function = function
 	}
 }

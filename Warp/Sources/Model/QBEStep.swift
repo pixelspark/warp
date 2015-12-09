@@ -48,7 +48,7 @@ public class QBEStep: NSObject, NSCoding {
 	/** Creates a data object representing the result of an 'example' calculation of the result of this QBEStep. The
 	maxInputRows parameter defines the maximum number of input rows a source step should generate. The maxOutputRows
 	parameter defines the maximum number of rows a step should strive to produce. */
-	public func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
+	public func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
 		if let p = self.previous {
 			p.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: {(data) in
 				switch data {
@@ -65,7 +65,7 @@ public class QBEStep: NSObject, NSCoding {
 		}
 	}
 	
-	public func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	public func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
 		if let p = self.previous {
 			p.fullData(job, callback: {(data) in
 				switch data {
@@ -82,21 +82,21 @@ public class QBEStep: NSObject, NSCoding {
 		}
 	}
 
-	public var mutableData: QBEMutableData? { get {
+	public var mutableData: MutableData? { get {
 		return nil
 	} }
 	
 	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific
 	configuration of the step. */
-	public final func explain(locale: QBELocale) -> String {
+	public final func explain(locale: Locale) -> String {
 		return sentence(locale, variant: .Neutral).stringValue
 	}
 
-	public func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	public func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([])
 	}
 	
-	public func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	public func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
 		fatalError("Child class of QBEStep should implement apply()")
 	}
 	
@@ -126,29 +126,29 @@ public enum QBEStepMerge {
 /** Component that can write a data set to a file in a particular format. */
 public protocol QBEFileWriter: NSObjectProtocol, NSCoding {
 	/** A description of the type of file exported by instances of this file writer, e.g. "XML file". */
-	static func explain(fileExtension: String, locale: QBELocale) -> String
+	static func explain(fileExtension: String, locale: Locale) -> String
 
 	/** The UTIs and file extensions supported by this type of file writer. */
 	static var fileTypes: Set<String> { get }
 
 	/** Create a file writer with default settings for the given locale. */
-	init(locale: QBELocale, title: String?)
+	init(locale: Locale, title: String?)
 
 	/** Write data to the given URL. The file writer calls back once after success or failure. */
-	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ())
+	func writeData(data: Data, toFile file: NSURL, locale: Locale, job: Job, callback: (Fallible<Void>) -> ())
 
 	/** Returns a sentence for configuring this writer */
-	func sentence(locale: QBELocale) -> QBESentence?
+	func sentence(locale: Locale) -> QBESentence?
 }
 
-/** The transpose step implements a row-column switch. It has no configuration and relies on the QBEData transpose()
+/** The transpose step implements a row-column switch. It has no configuration and relies on the Data transpose()
 implementation to do the actual work. */
 public class QBETransposeStep: QBEStep {
-	public override func apply(data: QBEData, job: QBEJob? = nil, callback: (QBEFallible<QBEData>) -> ()) {
+	public override func apply(data: Data, job: Job? = nil, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(data.transpose()))
 	}
 
-	public override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	public override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(NSLocalizedString("Switch rows/columns", comment: ""))])
 	}
 

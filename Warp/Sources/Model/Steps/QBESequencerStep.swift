@@ -3,7 +3,7 @@ import WarpCore
 
 class QBESequencerStep: QBEStep {
 	var pattern: String
-	var column: QBEColumn
+	var column: Column
 	
 	override func encodeWithCoder(coder: NSCoder) {
 		super.encodeWithCoder(coder)
@@ -13,11 +13,11 @@ class QBESequencerStep: QBEStep {
 	
 	required init(coder aDecoder: NSCoder) {
 		pattern = aDecoder.decodeStringForKey("pattern") ?? ""
-		column = QBEColumn(aDecoder.decodeStringForKey("columnName") ?? "")
+		column = Column(aDecoder.decodeStringForKey("columnName") ?? "")
 		super.init(coder: aDecoder)
 	}
 	
-	init(pattern: String, column: QBEColumn) {
+	init(pattern: String, column: Column) {
 		self.pattern = pattern
 		self.column = column
 		super.init()
@@ -25,21 +25,21 @@ class QBESequencerStep: QBEStep {
 
 	required init() {
 	    self.pattern = ""
-		self.column = QBEColumn(NSLocalizedString("Pattern", comment: ""))
+		self.column = Column(NSLocalizedString("Pattern", comment: ""))
 		super.init()
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
-		let sequencer = QBESequencer(self.pattern)
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+		let sequencer = Sequencer(self.pattern)
 
-		return QBESentence(format: String(format: NSLocalizedString("Generate a sequence using pattern [#] (for example: '%@') and place it in column [#]", comment: ""), locale.localStringFor(sequencer?.randomValue ?? QBEValue.InvalidValue)),
+		return QBESentence(format: String(format: NSLocalizedString("Generate a sequence using pattern [#] (for example: '%@') and place it in column [#]", comment: ""), locale.localStringFor(sequencer?.randomValue ?? Value.InvalidValue)),
 			QBESentenceTextInput(value: self.pattern, callback: { [weak self] (pattern) -> (Bool) in
 				self?.pattern = pattern
 				return true
 			}),
 			QBESentenceTextInput(value: self.column.name, callback: { [weak self] (name) -> (Bool) in
 				if !name.isEmpty {
-					self?.column = QBEColumn(name)
+					self?.column = Column(name)
 					return true
 				}
 				return false
@@ -47,13 +47,13 @@ class QBESequencerStep: QBEStep {
 		)
 	}
 	
-	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
-		if let sequencer = QBESequencer(self.pattern) {
-			callback(.Success(QBEStreamData(source: sequencer.stream(self.column))))
+	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+		if let sequencer = Sequencer(self.pattern) {
+			callback(.Success(StreamData(source: sequencer.stream(self.column))))
 		}
 	}
 	
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
+	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
 		self.fullData(job) { (fd) -> () in
 			callback(fd.use { (fullData) in
 				return fullData.limit(maxInputRows)

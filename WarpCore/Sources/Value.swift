@@ -1,8 +1,8 @@
 import Foundation
 
-/** QBEValue is used to represent all values in data sets. Although QBEValue can represent values of different types,
-values of different types can usually easily be converted to another type. QBEValue closely models the way values are
-handled in Excel and SQL (striving for a greatest common denominator where possible). QBEValue supports four data types
+/** Value is used to represent all values in data sets. Although Value can represent values of different types,
+values of different types can usually easily be converted to another type. Value closely models the way values are
+handled in Excel and SQL (striving for a greatest common denominator where possible). Value supports four data types
 (string, integer, boolean and double) and two special types: 
 
 - 'empty' indicates a value that is intentionally empty. It should however not trigger an error (e.g. it is possible to
@@ -12,7 +12,7 @@ handled in Excel and SQL (striving for a greatest common denominator where possi
 
 - 'invalid' reprsesents the result of an invalid operation and should trigger subsequent operations on the value to also
   return 'invalid'. This type is best compared with NaN (not a number); or the result of (1/0) in SQL. It is impossible
-  to create a value of type Double with a NaN (e.g. QBEValue(1.0/0.0) will return QBEValue.InvalidValue).
+  to create a value of type Double with a NaN (e.g. Value(1.0/0.0) will return Value.InvalidValue).
 
 Note that Excel does not have an 'empty' type (instead it treats empty cells as if they contain an empty string) and 
 represents invalid types differently.
@@ -23,14 +23,14 @@ string). Functions should always deal separately with empty and invalid values. 
 between values. Operators should not be designed to have behaviour dependent on the type (e.g. string concatenation should
 not be overloaded on the '+' operator, but should be implemented as a different operation).
 
-Note that as QBEValue is an enum, it cannot be encoded using NSCoding. Wrap QBETuple inside QBEValueCoder before
+Note that as Value is an enum, it cannot be encoded using NSCoding. Wrap Tuple inside ValueCoder before
 encoding or decoding using NSCoding. 
 
 Dates are represented as a DateValue, which contains the number of seconds that have passed since a reference date (set 
 to 2001-01-01T00:00:00Z in UTC, which is also what NSDate uses). A date cannot 'automatically' be converted to a numeric
 or string value. Only for debugging purposes it will be displayed as an ISO8601 formatted date in UTC.
 */
-public enum QBEValue: Hashable, CustomDebugStringConvertible {
+public enum Value: Hashable, CustomDebugStringConvertible {
 	case StringValue(String)
 	case IntValue(Int)
 	case BoolValue(Bool)
@@ -145,18 +145,18 @@ public enum QBEValue: Hashable, CustomDebugStringConvertible {
 	
 	public var debugDescription: String { get {
 		switch self {
-		case .StringValue(let s): return "QBEValue.String('\(s)')"
-		case .IntValue(let i): return "QBEValue.Int(\(i))"
-		case .BoolValue(let b): return "QBEValue.Bool(\(b))"
-		case .DoubleValue(let d): return "QBEValue.Double(\(d))"
-		case .DateValue(let d): return "QBEValue.DateValue(\(NSDate(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate)))"
-		case .EmptyValue: return "QBEValue.Empty"
-		case .InvalidValue: return "QBEValue.Invalid"
+		case .StringValue(let s): return "Value.String('\(s)')"
+		case .IntValue(let i): return "Value.Int(\(i))"
+		case .BoolValue(let b): return "Value.Bool(\(b))"
+		case .DoubleValue(let d): return "Value.Double(\(d))"
+		case .DateValue(let d): return "Value.DateValue(\(NSDate(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate)))"
+		case .EmptyValue: return "Value.Empty"
+		case .InvalidValue: return "Value.Invalid"
 		}
 	} }
 	
-	public var absolute: QBEValue { get {
-		return (self < QBEValue(0)) ? -self : self
+	public var absolute: Value { get {
+		return (self < Value(0)) ? -self : self
 	} }
 	
 	/** Returns true if this value is an invalid value. None of the other value types are considered to be 'invalid'. */
@@ -182,14 +182,14 @@ public enum QBEValue: Hashable, CustomDebugStringConvertible {
 
 /** The pack format is a framing format to store an array of values in a string, where the items of the array themselves
 may contain the separator character. These occurrences are escaped in the pack format using the escape sequence
-QBEPackSeparatorEscape. Occurrences of the escape character are replaced with the QBEPackEscapeEscape sequence. The pack
+PackSeparatorEscape. Occurrences of the escape character are replaced with the PackEscapeEscape sequence. The pack
 format is inspired by the SLIP serial line framing format. The pack format allows values to be grouped together in a single
 value cell (e.g. during aggregation) to later be unpacked again.
 
 Using ',' as separator, '$0' as separator escape and '$1' as escape-escape, packing the array ["a","b,", "c$"] leads to
 the following pack string: "a,b$0,c$1". Unpacking the pack string "$0$0$0,$1$0,," leads to the array [",,,", "$,","",""].
 */
-public struct QBEPack {
+public struct Pack {
 	public static let Separator = ","
 	public static let Escape = "$"
 	public static let SeparatorEscape = "$0"
@@ -201,7 +201,7 @@ public struct QBEPack {
 		self.items = items
 	}
 	
-	public init(_ items: [QBEValue]) {
+	public init(_ items: [Value]) {
 		self.items = items.map({return $0.stringValue ?? ""})
 	}
 	
@@ -210,9 +210,9 @@ public struct QBEPack {
 			items = []
 		}
 		else {
-			items = pack.componentsSeparatedByString(QBEPack.Separator).map({
-				return $0.stringByReplacingOccurrencesOfString(QBEPack.EscapeEscape, withString: QBEPack.Escape)
-					.stringByReplacingOccurrencesOfString(QBEPack.SeparatorEscape, withString: QBEPack.Separator)
+			items = pack.componentsSeparatedByString(Pack.Separator).map({
+				return $0.stringByReplacingOccurrencesOfString(Pack.EscapeEscape, withString: Pack.Escape)
+					.stringByReplacingOccurrencesOfString(Pack.SeparatorEscape, withString: Pack.Separator)
 			})
 		}
 	}
@@ -229,27 +229,27 @@ public struct QBEPack {
 	
 	public var stringValue: String { get {
 		let res = items.map({
-			$0.stringByReplacingOccurrencesOfString(QBEPack.Escape, withString: QBEPack.EscapeEscape)
-			  .stringByReplacingOccurrencesOfString(QBEPack.Separator, withString: QBEPack.SeparatorEscape) ?? ""
+			$0.stringByReplacingOccurrencesOfString(Pack.Escape, withString: Pack.EscapeEscape)
+			  .stringByReplacingOccurrencesOfString(Pack.Separator, withString: Pack.SeparatorEscape) ?? ""
 		})
 
-		return res.joinWithSeparator(QBEPack.Separator)
+		return res.joinWithSeparator(Pack.Separator)
 	} }
 }
 
-/** QBEValueCoder implements encoding for QBEValue (which cannot implement it as it is an enum). */
-class QBEValueCoder: NSObject, NSSecureCoding {
-	let value: QBEValue
+/** ValueCoder implements encoding for Value (which cannot implement it as it is an enum). */
+public class ValueCoder: NSObject, NSSecureCoding {
+	let value: Value
 	
 	override init() {
 		self.value = .EmptyValue
 	}
 	
-	init(_ value: QBEValue) {
+	init(_ value: Value) {
 		self.value = value
 	}
 	
-	required init?(coder aDecoder: NSCoder) {
+	required public init?(coder aDecoder: NSCoder) {
 		let t = aDecoder.decodeIntForKey("type")
 		switch t {
 			case 1: value = .StringValue((aDecoder.decodeObjectForKey("value") as? String) ?? "")
@@ -263,7 +263,7 @@ class QBEValueCoder: NSObject, NSSecureCoding {
 		}
 	}
 	
-	func encodeWithCoder(coder: NSCoder) {
+	public func encodeWithCoder(coder: NSCoder) {
 		switch value {
 		case .StringValue(let s):
 			coder.encodeInt(1, forKey: "type")
@@ -293,75 +293,75 @@ class QBEValueCoder: NSObject, NSSecureCoding {
 		}
 	}
 	
-	class func supportsSecureCoding() -> Bool {
+	public class func supportsSecureCoding() -> Bool {
 		return true
 	}
 }
 
-public func / (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func / (lhs: Value, rhs: Value) -> Value {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			// Division by zero will result in QBEValue.InvalidValue (handled in QBEValue initializer, which checks isnan/isinf)
-			return QBEValue(ld / rd)
+			// Division by zero will result in Value.InvalidValue (handled in Value initializer, which checks isnan/isinf)
+			return Value(ld / rd)
 		}
 	}
-	return QBEValue.InvalidValue
+	return Value.InvalidValue
 }
 
-public func % (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func % (lhs: Value, rhs: Value) -> Value {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			return QBEValue(ld % rd)
+			return Value(ld % rd)
 		}
 	}
-	return QBEValue.InvalidValue
+	return Value.InvalidValue
 }
 
-public func & (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func & (lhs: Value, rhs: Value) -> Value {
 	if !lhs.isValid || !rhs.isValid {
-		return QBEValue.InvalidValue
+		return Value.InvalidValue
 	}
 	
-	return QBEValue.StringValue((lhs.stringValue ?? "") + (rhs.stringValue ?? ""))
+	return Value.StringValue((lhs.stringValue ?? "") + (rhs.stringValue ?? ""))
 }
 
-public func * (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func * (lhs: Value, rhs: Value) -> Value {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			return QBEValue.DoubleValue(ld * rd)
+			return Value.DoubleValue(ld * rd)
 		}
 	}
-	return QBEValue.InvalidValue
+	return Value.InvalidValue
 }
 
-public func ^ (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func ^ (lhs: Value, rhs: Value) -> Value {
 	if let lh = lhs.doubleValue {
 		if let rh = rhs.doubleValue {
-			return QBEValue.DoubleValue(pow(lh, rh));
+			return Value.DoubleValue(pow(lh, rh));
 		}
 	}
-	return QBEValue.InvalidValue
+	return Value.InvalidValue
 }
 
-public func + (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func + (lhs: Value, rhs: Value) -> Value {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			return QBEValue.DoubleValue(ld + rd)
+			return Value.DoubleValue(ld + rd)
 		}
 	}
-	return QBEValue.InvalidValue
+	return Value.InvalidValue
 }
 
-public func - (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func - (lhs: Value, rhs: Value) -> Value {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			return QBEValue.DoubleValue(ld - rd)
+			return Value.DoubleValue(ld - rd)
 		}
 	}
-	return QBEValue.InvalidValue
+	return Value.InvalidValue
 }
 
-public func == (lhs: QBEValue, rhs: QBEValue) -> Bool {
+public func == (lhs: Value, rhs: Value) -> Bool {
 	// The invalid value is never equal to anything, not even another invalid value
 	if !lhs.isValid || !rhs.isValid {
 		return false
@@ -397,7 +397,7 @@ public func == (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	}
 }
 
-public func != (lhs: QBEValue, rhs: QBEValue) -> Bool {
+public func != (lhs: Value, rhs: Value) -> Bool {
 	if !lhs.isValid || !rhs.isValid {
 		return true
 	}
@@ -405,7 +405,7 @@ public func != (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	return !(lhs == rhs)
 }
 
-public func > (lhs: QBEValue, rhs: QBEValue) -> Bool {
+public func > (lhs: Value, rhs: Value) -> Bool {
 	if !lhs.isValid || !rhs.isValid {
 		return false
 	}
@@ -419,7 +419,7 @@ public func > (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	}
 }
 
-public func < (lhs: QBEValue, rhs: QBEValue) -> Bool {
+public func < (lhs: Value, rhs: Value) -> Bool {
 	if !lhs.isValid || !rhs.isValid {
 		return false
 	}
@@ -433,7 +433,7 @@ public func < (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	}
 }
 
-public func >= (lhs: QBEValue, rhs: QBEValue) -> Bool {
+public func >= (lhs: Value, rhs: Value) -> Bool {
 	if !lhs.isValid || !rhs.isValid {
 		return false
 	}
@@ -447,7 +447,7 @@ public func >= (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	}
 }
 
-public func <= (lhs: QBEValue, rhs: QBEValue) -> Bool {
+public func <= (lhs: Value, rhs: Value) -> Bool {
 	if !lhs.isValid || !rhs.isValid {
 		return false
 	}
@@ -461,35 +461,35 @@ public func <= (lhs: QBEValue, rhs: QBEValue) -> Bool {
 	}
 }
 
-public func <= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs <= rhs)
+public func <= (lhs: Value, rhs: Value) -> Value {
+	return Value(lhs <= rhs)
 }
 
-public func >= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs >= rhs)
+public func >= (lhs: Value, rhs: Value) -> Value {
+	return Value(lhs >= rhs)
 }
 
-public func == (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs == rhs)
+public func == (lhs: Value, rhs: Value) -> Value {
+	return Value(lhs == rhs)
 }
 
-public func != (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs != rhs)
+public func != (lhs: Value, rhs: Value) -> Value {
+	return Value(lhs != rhs)
 }
 
-public func < (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs < rhs)
+public func < (lhs: Value, rhs: Value) -> Value {
+	return Value(lhs < rhs)
 }
 
-public func > (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
-	return QBEValue(lhs > rhs)
+public func > (lhs: Value, rhs: Value) -> Value {
+	return Value(lhs > rhs)
 }
 
-public func ~= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func ~= (lhs: Value, rhs: Value) -> Value {
 	if let l = lhs.stringValue, r = rhs.stringValue {
-		return QBEValue.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) != nil)
+		return Value.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) != nil)
 	}
-	return QBEValue.InvalidValue
+	return Value.InvalidValue
 }
 
 infix operator ~~= {
@@ -504,41 +504,41 @@ infix operator ±±= {
 	associativity left precedence 120
 }
 
-public func ~~= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func ~~= (lhs: Value, rhs: Value) -> Value {
 	if let l = lhs.stringValue, r = rhs.stringValue {
-		return QBEValue.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions(), range: nil, locale: nil) != nil)
+		return Value.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions(), range: nil, locale: nil) != nil)
 	}
-	return QBEValue.InvalidValue
+	return Value.InvalidValue
 }
 
-public func ±= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func ±= (lhs: Value, rhs: Value) -> Value {
 	if let l = lhs.stringValue, r = rhs.stringValue, matches = l.matches(r, caseSensitive: false) {
-		return QBEValue.BoolValue(matches)
+		return Value.BoolValue(matches)
 	}
-	return QBEValue.InvalidValue
+	return Value.InvalidValue
 }
 
-public func ±±= (lhs: QBEValue, rhs: QBEValue) -> QBEValue {
+public func ±±= (lhs: Value, rhs: Value) -> Value {
 	if let l = lhs.stringValue, r = rhs.stringValue, matches = l.matches(r, caseSensitive: true) {
-		return QBEValue.BoolValue(matches)
+		return Value.BoolValue(matches)
 	}
-	return QBEValue.InvalidValue
+	return Value.InvalidValue
 }
 
-public prefix func - (lhs: QBEValue) -> QBEValue {
+public prefix func - (lhs: Value) -> Value {
 	switch lhs {
 	case .IntValue(let i):
-		return QBEValue.IntValue(-i)
+		return Value.IntValue(-i)
 		
 	case .DoubleValue(let d):
-		return QBEValue.DoubleValue(-d)
+		return Value.DoubleValue(-d)
 		
 	default:
-		return QBEValue.InvalidValue
+		return Value.InvalidValue
 	}
 }
 
-internal struct QBEStack<T> {
+internal struct Stack<T> {
 	var items = [T]()
 	
 	mutating func push(item: T) -> T {

@@ -2,7 +2,7 @@ import Foundation
 import WarpCore
 
 internal class QBERenameStepView: QBEStepViewControllerFor<QBERenameStep>, NSTableViewDataSource, NSTableViewDelegate {
-	var columnNames: [QBEColumn] = []
+	var columnNames: [Column] = []
 	@IBOutlet var tableView: NSTableView?
 
 	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
@@ -20,12 +20,12 @@ internal class QBERenameStepView: QBEStepViewControllerFor<QBERenameStep>, NSTab
 	}
 	
 	private func updateColumns() {
-		let job = QBEJob(.UserInitiated)
+		let job = Job(.UserInitiated)
 		if let previous = step.previous {
 			previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
 				data.maybe({ $0.columnNames(job) {(columns) in
 					columns.maybe {(cns) in
-						QBEAsyncMain {
+						asyncMain {
 							self.columnNames = cns
 							self.updateView()
 						}
@@ -51,7 +51,7 @@ internal class QBERenameStepView: QBEStepViewControllerFor<QBERenameStep>, NSTab
 		if let identifier = tableColumn?.identifier where identifier == "new" {
 			let name = columnNames[row]
 			if let newName = object as? String where !newName.isEmpty {
-				step.renames[name] = QBEColumn(newName)
+				step.renames[name] = Column(newName)
 			}
 			else {
 				step.renames.removeValueForKey(name)

@@ -62,7 +62,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 	}
 	
 	private func update() {
-		QBEAssertMainThread()
+		assertMainThread()
 		self.collectionView?.active = self.active
 		
 		if let cv = self.collectionView {
@@ -150,7 +150,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 			if let selected = collectionView?.selectionIndexes.firstIndex {
 				if let step = collectionView?.content[selected] as? QBEStep {
 					ignoreSelection = true
-					QBEAsyncMain {
+					asyncMain {
 						self.delegate?.stepsController(self, didSelectStep: step)
 						self.ignoreSelection = false
 						return;

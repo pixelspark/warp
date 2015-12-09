@@ -2,11 +2,11 @@ import Foundation
 import WarpCore
 
 class QBERowsStep: NSObject {
-	class func suggest(selectRows: NSIndexSet, columns: Set<QBEColumn>, inRaster: QBERaster, fromStep: QBEStep?, select: Bool) -> [QBEStep] {
+	class func suggest(selectRows: NSIndexSet, columns: Set<Column>, inRaster: Raster, fromStep: QBEStep?, select: Bool) -> [QBEStep] {
 		var suggestions: [QBEStep] = []
 		
 		// Check to see if the selected rows have similar values for the relevant columns
-		var sameValues = Dictionary<QBEColumn, QBEValue>()
+		var sameValues = Dictionary<Column, Value>()
 		var sameColumns = columns
 		
 		for index in 0..<inRaster.rowCount {
@@ -34,18 +34,18 @@ class QBERowsStep: NSObject {
 		
 		// Build an expression to select rows by similar value
 		if sameValues.count > 0 {
-			var conditions: [QBEExpression] = []
+			var conditions: [Expression] = []
 			
 			for (column, value) in sameValues {
-				conditions.append(QBEBinaryExpression(first: QBELiteralExpression(value), second: QBESiblingExpression(columnName: column), type: QBEBinary.Equal))
+				conditions.append(Comparison(first: Literal(value), second: Sibling(columnName: column), type: Binary.Equal))
 			}
 			
-			if let fullCondition = conditions.count > 1 ? QBEFunctionExpression(arguments: conditions, type: QBEFunction.And) : conditions.first {
+			if let fullCondition = conditions.count > 1 ? Call(arguments: conditions, type: Function.And) : conditions.first {
 				if select {
 					suggestions.append(QBEFilterStep(previous: fromStep, condition: fullCondition))
 				}
 				else {
-					suggestions.append(QBEFilterStep(previous: fromStep, condition: QBEFunctionExpression(arguments: [fullCondition], type: QBEFunction.Not)))
+					suggestions.append(QBEFilterStep(previous: fromStep, condition: Call(arguments: [fullCondition], type: Function.Not)))
 				}
 			}
 		}
@@ -75,19 +75,19 @@ class QBERowsStep: NSObject {
 }
 
 class QBEFilterStep: QBEStep {
-	var condition: QBEExpression
+	var condition: Expression
 
 	required init() {
-		condition = QBELiteralExpression(QBEValue.BoolValue(true))
+		condition = Literal(Value.BoolValue(true))
 		super.init()
 	}
 	
-	init(previous: QBEStep?, condition: QBEExpression) {
+	init(previous: QBEStep?, condition: Expression) {
 		self.condition = condition
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceText(NSLocalizedString("Select rows where", comment: "")),
 			QBESentenceFormula(expression: condition, locale: locale, callback: {[weak self] (expr) in
@@ -97,7 +97,7 @@ class QBEFilterStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		condition = (aDecoder.decodeObjectForKey("condition") as? QBEExpression) ?? QBELiteralExpression(QBEValue.BoolValue(true))
+		condition = (aDecoder.decodeObjectForKey("condition") as? Expression) ?? Literal(Value.BoolValue(true))
 		super.init(coder: aDecoder)
 	}
 
@@ -109,15 +109,15 @@ class QBEFilterStep: QBEStep {
 	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
 		if let p = prior as? QBEFilterStep {
 			// This filter step can be AND'ed with the previous
-			let combinedCondition: QBEExpression
+			let combinedCondition: Expression
 
-			if let rootAnd = p.condition as? QBEFunctionExpression where rootAnd.type == QBEFunction.And {
-				let args: [QBEExpression] = rootAnd.arguments + [self.condition]
-				combinedCondition = QBEFunctionExpression(arguments: args, type: QBEFunction.And)
+			if let rootAnd = p.condition as? Call where rootAnd.type == Function.And {
+				let args: [Expression] = rootAnd.arguments + [self.condition]
+				combinedCondition = Call(arguments: args, type: Function.And)
 			}
 			else {
-				let args: [QBEExpression] = [p.condition, self.condition]
-				combinedCondition = QBEFunctionExpression(arguments: args, type: QBEFunction.And)
+				let args: [Expression] = [p.condition, self.condition]
+				combinedCondition = Call(arguments: args, type: Function.And)
 			}
 			
 			return QBEStepMerge.Possible(QBEFilterStep(previous: nil, condition: combinedCondition))
@@ -126,7 +126,7 @@ class QBEFilterStep: QBEStep {
 		return QBEStepMerge.Impossible
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(data.filter(condition)))
 	}
 }
@@ -144,9 +144,9 @@ class QBELimitStep: QBEStep {
 		super.init()
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString(self.numberOfRows > 1 ? "Select the first [#] rows" : "Select row [#]", comment: ""),
-			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
+			QBESentenceTextInput(value: locale.localStringFor(Value(self.numberOfRows)), callback: { (newValue) -> (Bool) in
 				if let x = locale.valueForLocalString(newValue).intValue {
 					self.numberOfRows = x
 					return true
@@ -166,7 +166,7 @@ class QBELimitStep: QBEStep {
 		coder.encodeInt(Int32(numberOfRows), forKey: "numberOfRows")
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(data.limit(numberOfRows)))
 	}
 	
@@ -190,9 +190,9 @@ class QBEOffsetStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString( numberOfRows > 1 ? "Skip the first [#] rows" : "Skip row [#]", comment: ""),
-			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
+			QBESentenceTextInput(value: locale.localStringFor(Value(self.numberOfRows)), callback: { (newValue) -> (Bool) in
 				if let x = locale.valueForLocalString(newValue).intValue {
 					self.numberOfRows = x
 					return true
@@ -212,7 +212,7 @@ class QBEOffsetStep: QBEStep {
 		coder.encodeInt(Int32(numberOfRows), forKey: "numberOfRows")
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(data.offset(numberOfRows)))
 	}
 }
@@ -226,10 +226,10 @@ class QBERandomStep: QBELimitStep {
 		super.init()
 	}
 	
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceText(NSLocalizedString("Randomly select", comment: "")),
-			QBESentenceTextInput(value: locale.localStringFor(QBEValue(self.numberOfRows)), callback: { (newValue) -> (Bool) in
+			QBESentenceTextInput(value: locale.localStringFor(Value(self.numberOfRows)), callback: { (newValue) -> (Bool) in
 				if let x = locale.valueForLocalString(newValue).intValue {
 					self.numberOfRows = x
 					return true
@@ -248,7 +248,7 @@ class QBERandomStep: QBELimitStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(data.random(numberOfRows)))
 	}
 
@@ -270,13 +270,13 @@ class QBEDistinctStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceText(NSLocalizedString("Remove duplicate rows", comment: ""))
 		])
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(data.distinct()))
 	}
 }

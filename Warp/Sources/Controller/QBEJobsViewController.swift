@@ -1,9 +1,9 @@
 import Foundation
 import WarpCore
 
-class QBEJobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, QBEJobsManagerDelegate {
+class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, JobsManagerDelegate {
 	@IBOutlet var tableView: NSTableView!
-	var jobs: [QBEJobsManager.QBEJobInfo] = []
+	var jobs: [QBEJobsManager.JobInfo] = []
 
 	override func viewWillAppear() {
 		QBEAppDelegate.sharedInstance.jobsManager.addObserver(self)
@@ -54,19 +54,19 @@ class QBEJobsViewController: NSViewController, NSTableViewDataSource, NSTableVie
 	}
 
 	private func updateView() {
-		QBEAssertMainThread()
+		assertMainThread()
 		self.jobs = QBEAppDelegate.sharedInstance.jobsManager.runningJobs
 		self.tableView?.reloadData()
 	}
 
 	func jobManager(manager: QBEJobsManager, jobDidStart: AnyObject) {
-		QBEAsyncMain {
+		asyncMain {
 			self.updateView()
 		}
 	}
 
 	func jobManagerJobsProgressed(manager: QBEJobsManager) {
-		QBEAsyncMain {
+		asyncMain {
 			self.updateView()
 		}
 	}

@@ -2,7 +2,7 @@ import Foundation
 import WarpCore
 
 internal class QBEColumnsStepView: QBEStepViewControllerFor<QBEColumnsStep>, NSTableViewDataSource, NSTableViewDelegate {
-	var columnNames: [QBEColumn] = []
+	var columnNames: [Column] = []
 	@IBOutlet var tableView: NSTableView?
 	
 	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
@@ -20,12 +20,12 @@ internal class QBEColumnsStepView: QBEStepViewControllerFor<QBEColumnsStep>, NST
 	}
 	
 	private func updateColumns() {
-		let job = QBEJob(.UserInitiated)
+		let job = Job(.UserInitiated)
 		if let previous = step.previous {
 			previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
 				data.maybe({$0.columnNames(job) {(columns) in
 					columns.maybe {(cns) in
-						QBEAsyncMain {
+						asyncMain {
 							self.columnNames = cns
 							self.updateView()
 						}

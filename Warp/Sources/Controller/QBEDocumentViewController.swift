@@ -23,8 +23,8 @@ import WarpCore
 		}
 	} }
 	
-	internal var locale: QBELocale { get {
-		return QBEAppDelegate.sharedInstance.locale ?? QBELocale()
+	internal var locale: Locale { get {
+		return QBEAppDelegate.sharedInstance.locale ?? Locale()
 	} }
 	
 	func chainViewDidClose(view: QBEChainViewController) -> Bool {
@@ -276,11 +276,11 @@ import WarpCore
 			}
 			
 			if let tsvString = data {
-				var data: [QBETuple] = []
-				var headerRow: QBETuple? = nil
+				var data: [Tuple] = []
+				var headerRow: Tuple? = nil
 				let rows = tsvString.componentsSeparatedByString("\r")
 				for row in rows {
-					var rowValues: [QBEValue] = []
+					var rowValues: [Value] = []
 					
 					let cells = row.componentsSeparatedByString("\t")
 					for cell in cells {
@@ -296,7 +296,7 @@ import WarpCore
 				}
 				
 				if headerRow != nil {
-					let raster = QBERaster(data: data, columnNames: headerRow!.map({return QBEColumn($0.stringValue ?? "")}), readOnly: false)
+					let raster = Raster(data: data, columnNames: headerRow!.map({return Column($0.stringValue ?? "")}), readOnly: false)
 					let s = QBERasterStep(raster: raster)
 					let tablet = QBETablet(chain: QBEChain(head: s))
 					addTablet(tablet, undo: true, animated: true)
@@ -354,7 +354,7 @@ import WarpCore
 
 	/** Called when an outlet is dropped onto the workspace itself (e.g. an empty spot). */
 	func workspaceView(view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
-		QBEAssertMainThread()
+		assertMainThread()
 
 		class QBEDropAction: NSObject {
 			private var chain: QBEChain
@@ -373,7 +373,7 @@ import WarpCore
 			}
 
 			@objc func addCopy(sender: NSObject) {
-				let job = QBEJob(.UserInitiated)
+				let job = Job(.UserInitiated)
 				QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: NSLocalizedString("Create copy of data here", comment: ""))
 				chain.head?.fullData(job) { result in
 					switch result {
@@ -381,18 +381,18 @@ import WarpCore
 						fd.raster(job) { result in
 							switch result {
 							case .Success(let raster):
-								QBEAsyncMain {
+								asyncMain {
 									let tablet = QBETablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
 									self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 								}
 							case .Failure(let e):
-								QBEAsyncMain {
+								asyncMain {
 									NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
 								}
 							}
 						}
 					case .Failure(let e):
-						QBEAsyncMain {
+						asyncMain {
 							NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
 						}
 					}
@@ -445,7 +445,7 @@ import WarpCore
 					uploadView.sourceStep = chain.head
 					uploadView.afterSuccessfulUpload = {
 						// Add the written data as tablet to the document view
-						QBEAsyncMain {
+						asyncMain {
 							let tablet = QBETablet(chain: QBEChain(head: targetStep))
 							self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 						}
@@ -494,26 +494,26 @@ import WarpCore
 		}
 	}
 
-	func workspaceView(view: QBEWorkspaceView, didRecieveColumnSet colset: [QBEColumn], fromDataViewController dc: QBEDataViewController) {
+	func workspaceView(view: QBEWorkspaceView, didRecieveColumnSet colset: [Column], fromDataViewController dc: QBEDataViewController) {
 		if colset.count == 1 {
 			if let sourceChainController = dc.parentViewController as? QBEChainViewController, let step = sourceChainController.chain?.head {
-				let job = QBEJob(.UserInitiated)
+				let job = Job(.UserInitiated)
 				step.fullData(job) { result in
 					switch result {
 					case .Success(let data):
-						data.unique(QBESiblingExpression(columnName: colset.first!), job: job) { result in
+						data.unique(Sibling(columnName: colset.first!), job: job) { result in
 							switch result {
 							case .Success(let uniqueValues):
 								let rows = uniqueValues.map({ item in return [item] })
-								let raster = QBERaster(data: rows, columnNames: [colset.first!], readOnly: false)
+								let raster = Raster(data: rows, columnNames: [colset.first!], readOnly: false)
 								let chain = QBEChain(head: QBERasterStep(raster: raster))
 								let tablet = QBETablet(chain: chain)
-								QBEAsyncMain {
+								asyncMain {
 									self.addTablet(tablet, atLocation: nil, undo: true)
 
 									let joinStep = QBEJoinStep(previous: nil)
-									joinStep.joinType = QBEJoinType.LeftJoin
-									joinStep.condition = QBEBinaryExpression(first: QBESiblingExpression(columnName: colset.first!), second: QBEForeignExpression(columnName: colset.first!), type: .Equal)
+									joinStep.joinType = JoinType.LeftJoin
+									joinStep.condition = Comparison(first: Sibling(columnName: colset.first!), second: Foreign(columnName: colset.first!), type: .Equal)
 									joinStep.right = chain
 									sourceChainController.chain?.insertStep(joinStep, afterStep: sourceChainController.chain?.head)
 									sourceChainController.currentStep = joinStep
@@ -631,7 +631,7 @@ import WarpCore
 	}
 	
 	private func addTabletFromURL(url: NSURL, atLocation: CGPoint? = nil) -> QBETablet? {
-		QBEAssertMainThread()
+		assertMainThread()
 		let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url)
 		
 		if sourceStep != nil {
@@ -650,28 +650,28 @@ import WarpCore
 		}
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable mutableData: QBEMutableData?) {
-		let job = QBEJob(.UserInitiated)
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable mutableData: MutableData?) {
+		let job = Job(.UserInitiated)
 		mutableData?.data(job) {result in
 			switch result {
 			case .Success(let data):
 				data.raster(job) { result in
 					switch result {
 					case .Success(let raster):
-						QBEAsyncMain {
+						asyncMain {
 							let tablet = QBETablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
 							self.addTablet(tablet, atLocation: nil, undo: true)
 						}
 
 					case .Failure(let e):
-						QBEAsyncMain {
+						asyncMain {
 							NSAlert.showSimpleAlert(NSLocalizedString("Could not add table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 						}
 					}
 				}
 
 			case .Failure(let e):
-				QBEAsyncMain {
+				asyncMain {
 					NSAlert.showSimpleAlert(NSLocalizedString("Could not add table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
 				}
 			}
@@ -679,14 +679,14 @@ import WarpCore
 	}
 
 	@IBAction func addRasterTablet(sender: NSObject) {
-		let raster = QBERaster(data: [], columnNames: [QBEColumn.defaultColumnForIndex(0)], readOnly: false)
+		let raster = Raster(data: [], columnNames: [Column.defaultColumnForIndex(0)], readOnly: false)
 		let chain = QBEChain(head: QBERasterStep(raster: raster))
 		let tablet = QBETablet(chain: chain)
 		self.addTablet(tablet, undo: true, animated: true)
 	}
 
 	@IBAction func addSequencerTablet(sender: NSObject) {
-		let chain = QBEChain(head: QBESequencerStep(pattern: "[A-Z]{4}", column: QBEColumn(NSLocalizedString("Value", comment: ""))))
+		let chain = QBEChain(head: QBESequencerStep(pattern: "[A-Z]{4}", column: Column(NSLocalizedString("Value", comment: ""))))
 		let tablet = QBETablet(chain: chain)
 		self.addTablet(tablet, undo: true, animated: true)
 	}

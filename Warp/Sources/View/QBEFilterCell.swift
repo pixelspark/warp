@@ -2,14 +2,14 @@ import Cocoa
 import WarpCore
 
 internal class QBEFilterCell: NSButtonCell {
-	let raster: QBERaster
-	let column: QBEColumn
+	let raster: Raster
+	let column: Column
 	var selected: Bool = false
 	var active: Bool = false
 	
 	private var cached: [Int]? = nil
 	
-	init(raster: QBERaster, column: QBEColumn) {
+	init(raster: Raster, column: Column) {
 		self.raster = raster
 		self.column = column
 		super.init(textCell: "")

@@ -2,18 +2,18 @@ import Foundation
 import WarpCore
 
 class QBERenameStep: QBEStep {
-	var renames: [QBEColumn: QBEColumn] = [:]
+	var renames: [Column: Column] = [:]
 
 	required init() {
 		super.init()
 	}
 	
-	init(previous: QBEStep?, renames: [QBEColumn:QBEColumn] = [:]) {
+	init(previous: QBEStep?, renames: [Column:Column] = [:]) {
 		self.renames = renames
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		if renames.isEmpty {
 			return QBESentence([QBESentenceText(NSLocalizedString("Rename columns", comment: ""))])
 		}
@@ -23,14 +23,14 @@ class QBERenameStep: QBEStep {
 				QBESentenceTextInput(value: rename.0.name, callback: { [weak self] (newName) -> (Bool) in
 					if !newName.isEmpty {
 						let oldTo = self?.renames.removeValueForKey(rename.0)
-						self?.renames[QBEColumn(newName)] = oldTo
+						self?.renames[Column(newName)] = oldTo
 						return true
 					}
 					return false
 				}),
 				QBESentenceTextInput(value: rename.1.name, callback: { [weak self] (newName) -> (Bool) in
 					if !newName.isEmpty {
-						self?.renames[rename.0] = QBEColumn(newName)
+						self?.renames[rename.0] = Column(newName)
 						return true
 					}
 					return false
@@ -47,7 +47,7 @@ class QBERenameStep: QBEStep {
 		self.renames = [:]
 		
 		for (key, value) in renames {
-			self.renames[QBEColumn(key)] = QBEColumn(value)
+			self.renames[Column(key)] = Column(value)
 		}
 		super.init(coder: aDecoder)
 	}
@@ -61,7 +61,7 @@ class QBERenameStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
 		// If we have nothing to rename, bypass this step
 		if self.renames.isEmpty {
 			callback(.Success(data))
@@ -69,15 +69,15 @@ class QBERenameStep: QBEStep {
 		}
 		
 		data.columnNames(job) { (existingColumnsFallible) -> () in
-			callback(existingColumnsFallible.use {(existingColumnNames) -> QBEData in
-				var calculations: [QBEColumn: QBEExpression] = [:]
-				var newColumns: [QBEColumn] = []
+			callback(existingColumnsFallible.use {(existingColumnNames) -> Data in
+				var calculations: [Column: Expression] = [:]
+				var newColumns: [Column] = []
 				
 				// Create a calculation that performs the rename
 				for oldName in existingColumnNames {
 					if let newName = self.renames[oldName] where newName != oldName {
 						if !newColumns.contains(newName) {
-							calculations[newName] = QBESiblingExpression(columnName: oldName)
+							calculations[newName] = Sibling(columnName: oldName)
 							newColumns.append(newName)
 						}
 					}
@@ -95,7 +95,7 @@ class QBERenameStep: QBEStep {
 			var renames = p.renames
 			
 			// Find out which columns are created by the prior step
-			var renamed: [QBEColumn: QBEColumn] = [:]
+			var renamed: [Column: Column] = [:]
 			for (old, new) in renames {
 				renamed[new] = old
 			}

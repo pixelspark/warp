@@ -43,11 +43,11 @@ public enum QBEFileReference: Equatable {
 					return QBEFileReference.ResolvedBookmark(bookmark, resolved)
 				}
 				catch let error as NSError {
-					QBELog("Failed to resolve just-created bookmark: \(error)")
+					trace("Failed to resolve just-created bookmark: \(error)")
 				}
 			}
 			catch let error as NSError {
-				QBELog("Could not create bookmark for url \(u): \(error)")
+				trace("Could not create bookmark for url \(u): \(error)")
 			}
 			return self
 
@@ -70,7 +70,7 @@ public enum QBEFileReference: Equatable {
 				return QBEFileReference.ResolvedBookmark(b, u)
 			}
 			catch let error as NSError {
-				QBELog("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(relativeToDocument): \(error)")
+				trace("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(relativeToDocument): \(error)")
 			}
 
 			return self
@@ -81,7 +81,7 @@ public enum QBEFileReference: Equatable {
 				return QBEFileReference.ResolvedBookmark(b, u)
 			}
 			catch let error as NSError {
-				QBELog("Could not resolve secure bookmark \(b): \(error)")
+				trace("Could not resolve secure bookmark \(b): \(error)")
 			}
 			return self
 		}
@@ -120,8 +120,8 @@ as long as you need to access the file. */
 internal class QBEFileCoordinator {
 	static let sharedInstance = QBEFileCoordinator()
 
-	private let mutex = QBEMutex()
-	private var presenters: [NSURL: QBEWeak<QBEFilePresenter>] = [:]
+	private let mutex = Mutex()
+	private var presenters: [NSURL: Weak<QBEFilePresenter>] = [:]
 
 	func present(file: NSURL, secondaryExtension: String? = nil) -> QBEFilePresenter {
 		let presentedFile: NSURL
@@ -134,13 +134,13 @@ internal class QBEFileCoordinator {
 
 		return self.mutex.locked { () -> QBEFilePresenter in
 			if let existing = self.presenters[presentedFile]?.value {
-				QBELog("Present existing: \(presentedFile)")
+				trace("Present existing: \(presentedFile)")
 				return existing
 			}
 			else {
-				QBELog("Present new: \(presentedFile)")
+				trace("Present new: \(presentedFile)")
 				let pres = QBEFilePresenter(primary: file, secondary: presentedFile)
-				self.presenters[presentedFile] = QBEWeak(pres)
+				self.presenters[presentedFile] = Weak(pres)
 				return pres
 			}
 		}
@@ -177,7 +177,7 @@ public class QBEFilePresenter: NSObject {
 	}
 
 	deinit {
-		QBELog("Removing file presenter for \(self.delegate.presentedItemURL!)")
+		trace("Removing file presenter for \(self.delegate.presentedItemURL!)")
 		NSFileCoordinator.removeFilePresenter(self.delegate)
 	}
 }

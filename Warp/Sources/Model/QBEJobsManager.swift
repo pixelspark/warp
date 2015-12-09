@@ -1,20 +1,20 @@
 import Foundation
 import WarpCore
 
-@objc internal protocol QBEJobsManagerDelegate: NSObjectProtocol {
+@objc internal protocol JobsManagerDelegate: NSObjectProtocol {
 	func jobManager(manager: QBEJobsManager, jobDidStart: AnyObject)
 	func jobManagerJobsProgressed(manager: QBEJobsManager)
 }
 
-internal class QBEJobsManager: NSObject, QBEJobDelegate {
-	class QBEJobInfo: QBEJobDelegate {
-		weak var job: QBEJob?
-		weak var delegate: QBEJobDelegate?
+internal class QBEJobsManager: NSObject, JobDelegate {
+	class JobInfo: JobDelegate {
+		weak var job: Job?
+		weak var delegate: JobDelegate?
 		let description: String
 		var progress: Double
-		private let mutex = QBEMutex()
+		private let mutex = Mutex()
 
-		init(job: QBEJob, description: String) {
+		init(job: Job, description: String) {
 			self.description = description
 			self.job = job
 			self.progress = 0.0
@@ -36,20 +36,20 @@ internal class QBEJobsManager: NSObject, QBEJobDelegate {
 		}
 	}
 
-	private var observers: [QBEWeak<QBEJobsManagerDelegate>] = []
-	private var jobs: [QBEJobInfo] = []
-	private let mutex = QBEMutex()
+	private var observers: [Weak<JobsManagerDelegate>] = []
+	private var jobs: [JobInfo] = []
+	private let mutex = Mutex()
 
 	override init() {
 	}
 
-	func addObserver(delegate: QBEJobsManagerDelegate) {
+	func addObserver(delegate: JobsManagerDelegate) {
 		mutex.locked {
-			self.observers.append(QBEWeak(delegate))
+			self.observers.append(Weak(delegate))
 		}
 	}
 
-	func removeObserver(delegate: QBEJobsManagerDelegate) {
+	func removeObserver(delegate: JobsManagerDelegate) {
 		mutex.locked {
 			self.observers = self.observers.filter { w in
 				if let observer = w.value {
@@ -60,8 +60,8 @@ internal class QBEJobsManager: NSObject, QBEJobDelegate {
 		}
 	}
 
-	func addJob(job: QBEJob, description: String) {
-		let info = QBEJobInfo(job: job, description: description)
+	func addJob(job: Job, description: String) {
+		let info = JobInfo(job: job, description: description)
 		info.delegate = self
 		mutex.locked {
 			self.jobs.append(info)
@@ -90,7 +90,7 @@ internal class QBEJobsManager: NSObject, QBEJobDelegate {
 				}
 				else {
 					self.lastProgressUpdate = now
-					QBEAsyncMain {
+					asyncMain {
 						self.observers.forEach { d in d.value?.jobManagerJobsProgressed(self) }
 					}
 				}
@@ -105,7 +105,7 @@ internal class QBEJobsManager: NSObject, QBEJobDelegate {
 		}
 	}
 
-	var runningJobs: [QBEJobInfo] {
+	var runningJobs: [JobInfo] {
 		self.clean()
 		return self.jobs.filter { $0.running }
 	}

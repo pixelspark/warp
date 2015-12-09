@@ -2,20 +2,20 @@ import Foundation
 import WarpCore
 
 class QBEColumnsStep: QBEStep {
-	var columnNames: [QBEColumn] = []
+	var columnNames: [Column] = []
 	var select: Bool = true
 
 	required init() {
 		super.init()
 	}
 
-	init(previous: QBEStep?, columnNames: [QBEColumn], select: Bool) {
+	init(previous: QBEStep?, columnNames: [Column], select: Bool) {
 		self.columnNames = columnNames
 		self.select = select
 		super.init(previous: previous)
 	}
 	
-	private func explanation(locale: QBELocale) -> String {
+	private func explanation(locale: Locale) -> String {
 		if select {
 			if columnNames.isEmpty {
 				return NSLocalizedString("Select all columns", comment: "")
@@ -48,14 +48,14 @@ class QBEColumnsStep: QBEStep {
 		}
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 
 	required init(coder aDecoder: NSCoder) {
 		select = aDecoder.decodeBoolForKey("select")
 		let names = (aDecoder.decodeObjectForKey("columnNames") as? [String]) ?? []
-		columnNames = names.map({QBEColumn($0)})
+		columnNames = names.map({Column($0)})
 		super.init(coder: aDecoder)
 	}
 	
@@ -66,7 +66,7 @@ class QBEColumnsStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
 		data.columnNames(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
 				case .Success(let existingColumns):
@@ -110,20 +110,20 @@ class QBEColumnsStep: QBEStep {
 }
 
 class QBESortColumnsStep: QBEStep {
-	var sortColumns: [QBEColumn] = []
-	var before: QBEColumn? // nil means: at end
+	var sortColumns: [Column] = []
+	var before: Column? // nil means: at end
 
 	required init() {
 		super.init()
 	}
 	
-	init(previous: QBEStep?, sortColumns: [QBEColumn], before: QBEColumn?) {
+	init(previous: QBEStep?, sortColumns: [Column], before: Column?) {
 		self.sortColumns = sortColumns
 		self.before = before
 		super.init(previous: previous)
 	}
 	
-	private func explanation(locale: QBELocale) -> String {
+	private func explanation(locale: Locale) -> String {
 		let destination = before != nil ? String(format: NSLocalizedString("before %@", comment: ""), before!.name) : NSLocalizedString("at the end", comment: "")
 		
 		if sortColumns.count > 5 {
@@ -138,16 +138,16 @@ class QBESortColumnsStep: QBEStep {
 		}
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
 	required init(coder aDecoder: NSCoder) {
 		let names = (aDecoder.decodeObjectForKey("sortColumns") as? [String]) ?? []
-		sortColumns = names.map({QBEColumn($0)})
+		sortColumns = names.map({Column($0)})
 		let beforeName = aDecoder.decodeObjectForKey("before") as? String
 		if let b = beforeName {
-			self.before = QBEColumn(b)
+			self.before = Column(b)
 		}
 		else {
 			self.before = nil
@@ -162,7 +162,7 @@ class QBESortColumnsStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
 		data.columnNames(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
 				case .Success(let existingColumns):

@@ -2,10 +2,10 @@ import Cocoa
 import WarpCore
 
 protocol QBEFilterViewDelegate: NSObjectProtocol {
-	func filterView(view: QBEFilterViewController, applyFilter: QBEFilterSet?, permanent: Bool)
+	func filterView(view: QBEFilterViewController, applyFilter: FilterSet?, permanent: Bool)
 }
 
-class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, QBEJobDelegate {
+class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, JobDelegate {
 	@IBOutlet weak var searchField: NSSearchField?
 	@IBOutlet weak var valueList: NSTableView?
 	@IBOutlet weak var progressBar: NSProgressIndicator!
@@ -15,18 +15,18 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	private var lastSearch: String? = nil
 	weak var delegate: QBEFilterViewDelegate?
 	
-	var data: QBEData?
+	var data: Data?
 
 	/* Data set used for searching. Can be the full data set if the other data set is an example one. If this is nil, 
 	the normal one is used. */
-	var searchData: QBEData?
-	var column: QBEColumn?
+	var searchData: Data?
+	var column: Column?
 	
-	private var reloadJob: QBEJob? = nil
-	private var values: [QBEValue] = []
+	private var reloadJob: Job? = nil
+	private var values: [Value] = []
 	
-	var filter: QBEFilterSet = QBEFilterSet() { didSet {
-		QBEAssertMainThread()
+	var filter: FilterSet = FilterSet() { didSet {
+		assertMainThread()
 		reloadData()
 	} }
 	
@@ -35,11 +35,11 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	}
 
 	deinit {
-		QBEAssertMainThread()
+		assertMainThread()
 	}
 	
 	private func updateProgress() {
-		QBEAssertMainThread()
+		assertMainThread()
 		if let j = self.reloadJob {
 			self.progressBar?.hidden = false
 			self.valueList?.enabled = false
@@ -56,7 +56,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	}
 	
 	private func reloadData() {
-		QBEAssertMainThread()
+		assertMainThread()
 		reloadJob?.cancel()
 		reloadJob = nil
 		
@@ -65,20 +65,20 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 			if let search = searchField?.stringValue where !search.isEmpty {
 				lastSearch = search
 				filteredData = searchData ?? filteredData
-				filteredData = filteredData.filter(QBEBinaryExpression(first: QBELiteralExpression(QBEValue(search)), second: QBESiblingExpression(columnName: c), type: QBEBinary.MatchesRegex))
+				filteredData = filteredData.filter(Comparison(first: Literal(Value(search)), second: Sibling(columnName: c), type: Binary.MatchesRegex))
 			}
 
-			let job = QBEJob(QBEQoS.UserInitiated)
+			let job = Job(.UserInitiated)
 			reloadJob = job
 			reloadJob?.addObserver(self)
 			self.updateProgress()
 			
-			filteredData.unique(QBESiblingExpression(columnName: c), job: job, callback: { [weak self] (fallibleValues) -> () in
+			filteredData.unique(Sibling(columnName: c), job: job, callback: { [weak self] (fallibleValues) -> () in
 				switch fallibleValues {
 					case .Success(let values):
 						var valuesSorted = Array(values)
 						valuesSorted.sortInPlace({return $0.stringValue < $1.stringValue})
-						QBEAsyncMain { [weak self] in
+						asyncMain { [weak self] in
 							if !job.cancelled {
 								self?.values = valuesSorted
 								self?.reloadJob = nil
@@ -88,7 +88,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 						}
 					
 					case .Failure(let e):
-						QBELog("Error fetching unique values: \(e)")
+						trace("Error fetching unique values: \(e)")
 				}
 			})
 		}
@@ -159,7 +159,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	}
 	
 	private func filterChanged() {
-		QBEAssertMainThread()
+		assertMainThread()
 		self.valueList?.reloadData()
 		let hasFilter = filter.selectedValues.count > 0
 		self.addFilterButton?.enabled = hasFilter

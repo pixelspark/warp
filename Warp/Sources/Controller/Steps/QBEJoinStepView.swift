@@ -8,19 +8,19 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 	@IBOutlet var siblingComboBox: NSComboBox!
 	@IBOutlet var joinTypeBox: NSPopUpButton!
 	
-	private var existingOwnColumns: [QBEColumn] = []
-	private var existingForeignColumns: [QBEColumn] = []
+	private var existingOwnColumns: [Column] = []
+	private var existingForeignColumns: [Column] = []
 
 	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
 		super.init(step: step, delegate: delegate, nibName: "QBEJoinStepView", bundle: nil)
 	}
 	
-	var simpleForeign: QBEColumn? {
+	var simpleForeign: Column? {
 		get {
-			if let foreign = (self.step.condition as? QBEBinaryExpression)?.first as? QBEForeignExpression {
+			if let foreign = (self.step.condition as? Comparison)?.first as? Foreign {
 				return foreign.columnName
 			}
-			else if let foreign = (self.step.condition as? QBEBinaryExpression)?.second as? QBEForeignExpression {
+			else if let foreign = (self.step.condition as? Comparison)?.second as? Foreign {
 				return foreign.columnName
 			}
 			else {
@@ -32,12 +32,12 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 		}
 	}
 	
-	var simpleSibling: QBEColumn? {
+	var simpleSibling: Column? {
 		get {
-			if let sibling = (self.step.condition as? QBEBinaryExpression)?.second as? QBESiblingExpression {
+			if let sibling = (self.step.condition as? Comparison)?.second as? Sibling {
 				return sibling.columnName
 			}
-			else if let sibling = (self.step.condition as? QBEBinaryExpression)?.first as? QBESiblingExpression {
+			else if let sibling = (self.step.condition as? Comparison)?.first as? Sibling {
 				return sibling.columnName
 			}
 			else {
@@ -49,11 +49,11 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 		}
 	}
 	
-	private func setSimpleCondition(sibling sibling: QBEColumn?, foreign: QBEColumn?) {
-		let currentType = (self.step.condition as? QBEBinaryExpression)?.type ?? QBEBinary.Equal
-		let first: QBEExpression = (foreign != nil) ? QBEForeignExpression(columnName: foreign!) : QBELiteralExpression(QBEValue.InvalidValue)
-		let second: QBEExpression = (sibling != nil) ? QBESiblingExpression(columnName: sibling!) : QBELiteralExpression(QBEValue.InvalidValue)
-		self.step.condition = QBEBinaryExpression(first: first, second: second, type: currentType)
+	private func setSimpleCondition(sibling sibling: Column?, foreign: Column?) {
+		let currentType = (self.step.condition as? Comparison)?.type ?? Binary.Equal
+		let first: Expression = (foreign != nil) ? Foreign(columnName: foreign!) : Literal(Value.InvalidValue)
+		let second: Expression = (sibling != nil) ? Sibling(columnName: sibling!) : Literal(Value.InvalidValue)
+		self.step.condition = Comparison(first: first, second: second, type: currentType)
 	}
 	
 	func tabView(tabView: NSTabView, didSelectTabViewItem tabViewItem: NSTabViewItem?) {
@@ -64,18 +64,18 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 	Returns whether the currently set join is 'simple' (e.g. only based on a comparison of two columns). This requires the
 	join condition to be a binary expression with on either side a column reference. */
 	var isSimple: Bool { get {
-		if let c = step.condition as? QBEBinaryExpression {
-			if c.first is QBEForeignExpression && c.second is QBESiblingExpression {
+		if let c = step.condition as? Comparison {
+			if c.first is Foreign && c.second is Sibling {
 				return true
 			}
 			
-			if c.second is QBEForeignExpression && c.first is QBESiblingExpression {
+			if c.second is Foreign && c.first is Sibling {
 				return true
 			}
 			
 			if c.isConstant {
-				let constantValue = c.apply(QBERow(), foreign: nil, inputValue: nil)
-				if !constantValue.isValid || constantValue == QBEValue.BoolValue(false) {
+				let constantValue = c.apply(Row(), foreign: nil, inputValue: nil)
+				if !constantValue.isValid || constantValue == Value.BoolValue(false) {
 					return true
 				}
 			}
@@ -113,7 +113,7 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 	
 	internal override func viewWillAppear() {
 		super.viewWillAppear()
-		self.formulaField?.stringValue = (step.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? "")
+		self.formulaField?.stringValue = (step.condition?.toFormula(self.delegate?.locale ?? Locale(), topLevel: true) ?? "")
 		self.tabView.selectTabViewItemAtIndex(isSimple ? 0 : 1)
 		updateView()
 	}
@@ -137,20 +137,20 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 		}
 		
 		if let f = step.condition {
-			let formula = f.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true)
-			if let parsed = QBEFormula(formula: formula, locale: self.delegate?.locale ?? QBELocale()) {
+			let formula = f.toFormula(self.delegate?.locale ?? Locale(), topLevel: true)
+			if let parsed = Formula(formula: formula, locale: self.delegate?.locale ?? Locale()) {
 				self.formulaField?.attributedStringValue = parsed.syntaxColoredFormula
 			}
 		}
 		
 		// Fetch own sibling columns
 		if let selected = tabView.selectedTabViewItem where tabView.indexOfTabViewItem(selected) == 0 {
-			let job = QBEJob(.UserInitiated)
+			let job = Job(.UserInitiated)
 			step.previous?.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
 				switch data {
 				case .Success(let d):
 					d.columnNames(job) { (cns) in
-						QBEAsyncMain {
+						asyncMain {
 							switch cns {
 							case .Success(let e):
 								self.existingOwnColumns = e
@@ -173,7 +173,7 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 				switch data {
 				case .Success(let d):
 					d.columnNames(job) { (cns) in
-						QBEAsyncMain {
+						asyncMain {
 							switch cns {
 							case .Success(let e):
 								self.existingForeignColumns = e
@@ -194,7 +194,7 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 	}
 	
 	@IBAction func updateFromJoinTypeSelector(sender: NSObject) {
-		let newJoinType: QBEJoinType
+		let newJoinType: JoinType
 		switch self.joinTypeBox.selectedTag() {
 		case 0:
 			newJoinType = .LeftJoin
@@ -216,8 +216,8 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 	
 	@IBAction func updateFromSimpleView(sender: NSObject) {
 		if isSimple {
-			simpleSibling = QBEColumn(siblingComboBox.stringValue)
-			simpleForeign = QBEColumn(foreignComboBox.stringValue)
+			simpleSibling = Column(siblingComboBox.stringValue)
+			simpleForeign = Column(foreignComboBox.stringValue)
 			delegate?.stepView(self, didChangeConfigurationForStep: step)
 		}
 		updateView()
@@ -225,10 +225,10 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 	
 	@IBAction func updateFromComplexView(sender: NSObject) {
 		// Set formula
-		let oldFormula = step.condition?.toFormula(self.delegate?.locale ?? QBELocale(), topLevel: true) ?? ""
+		let oldFormula = step.condition?.toFormula(self.delegate?.locale ?? Locale(), topLevel: true) ?? ""
 		if let f = self.formulaField?.stringValue {
 			if f != oldFormula {
-				if let parsed = QBEFormula(formula: f, locale: (self.delegate?.locale ?? QBELocale()))?.root {
+				if let parsed = Formula(formula: f, locale: (self.delegate?.locale ?? Locale()))?.root {
 					step.condition = parsed
 					delegate?.stepView(self, didChangeConfigurationForStep: step)
 					updateView()

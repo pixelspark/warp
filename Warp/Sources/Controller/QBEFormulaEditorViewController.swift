@@ -2,20 +2,20 @@ import Cocoa
 import WarpCore
 
 protocol QBEFormulaEditorViewDelegate: NSObjectProtocol {
-	func formulaEditor(view: QBEFormulaEditorViewController, didChangeExpression: QBEExpression?)
+	func formulaEditor(view: QBEFormulaEditorViewController, didChangeExpression: Expression?)
 }
 
 class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate, NSTextFieldDelegate {
-	private(set) var expression: QBEExpression? = nil
-	private(set) var locale: QBELocale? = nil
+	private(set) var expression: Expression? = nil
+	private(set) var locale: Locale? = nil
 	weak var delegate: QBEFormulaEditorViewDelegate? = nil
 	@IBOutlet private var formulaField: NSTextField!
 	private var lastSelectedRange: NSRange? = nil
 	@IBOutlet private var referenceView: NSView!
 
-	private var syntaxColoringJob: QBEJob? = nil
+	private var syntaxColoringJob: Job? = nil
 
-	func referenceView(view: QBEReferenceViewController, didSelectFunction: QBEFunction) {
+	func referenceView(view: QBEReferenceViewController, didSelectFunction: Function) {
 		if let locale = self.locale {
 			self.view.window?.makeFirstResponder(formulaField)
 			if let ed = formulaField.currentEditor() {
@@ -24,8 +24,8 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 					ed.selectedRange = er
 					let selectedText = NSString(string: ed.string ?? "").substringWithRange(er)
 					let replacement: String
-					if let f = QBEFormula(formula: selectedText, locale: locale) {
-						let wrapped = QBEFunctionExpression(arguments: [f.root], type: didSelectFunction)
+					if let f = Formula(formula: selectedText, locale: locale) {
+						let wrapped = Call(arguments: [f.root], type: didSelectFunction)
 						replacement = wrapped.toFormula(locale, topLevel: true)
 					}
 					else {
@@ -35,17 +35,17 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 					ed.selectedRange = NSMakeRange(er.location, replacement.characters.count)
 				}
 				else {
-					formulaField.stringValue += QBEFunctionExpression(arguments: [], type: didSelectFunction).toFormula(locale, topLevel: false)
+					formulaField.stringValue += Call(arguments: [], type: didSelectFunction).toFormula(locale, topLevel: false)
 				}
 			}
 			else {
-				formulaField.stringValue += QBEFunctionExpression(arguments: [], type: didSelectFunction).toFormula(locale, topLevel: false)
+				formulaField.stringValue += Call(arguments: [], type: didSelectFunction).toFormula(locale, topLevel: false)
 			}
 		}
 		updateFromView(self.formulaField)
 	}
 
-	func startEditingExpression(expression: QBEExpression, locale: QBELocale) {
+	func startEditingExpression(expression: Expression, locale: Locale) {
 		self.locale = locale
 		self.expression = expression
 		updateView(true)
@@ -64,14 +64,14 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 	private func updateView(force: Bool) {
 		if let ff = self.formulaField {
 			if let e = expression, let locale = self.locale {
-				let job = QBEJob(.UserInitiated)
+				let job = Job(.UserInitiated)
 				self.syntaxColoringJob?.cancel()
 				self.syntaxColoringJob = job
 				job.async {
 					// Parse the formula to get coloring information. This can take a while, so do it in the background
-					if let formula = QBEFormula(formula: e.toFormula(locale, topLevel: true), locale: locale) {
+					if let formula = Formula(formula: e.toFormula(locale, topLevel: true), locale: locale) {
 						if !job.cancelled {
-							QBEAsyncMain {
+							asyncMain {
 								ff.attributedStringValue = formula.syntaxColoredFormula
 							}
 						}
@@ -99,12 +99,12 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		if let formulaText = self.formulaField?.stringValue, let locale = self.locale {
 			self.syntaxColoringJob?.cancel()
 
-			let job = QBEJob(.UserInitiated)
+			let job = Job(.UserInitiated)
 			self.syntaxColoringJob = job
 			job.async {
-				if let formula = QBEFormula(formula: formulaText, locale: locale) where formula.root != self.expression {
+				if let formula = Formula(formula: formulaText, locale: locale) where formula.root != self.expression {
 					if !job.cancelled {
-						QBEAsyncMain {
+						asyncMain {
 							self.expression = formula.root
 							self.delegate?.formulaEditor(self, didChangeExpression: self.expression)
 							self.updateView(false)

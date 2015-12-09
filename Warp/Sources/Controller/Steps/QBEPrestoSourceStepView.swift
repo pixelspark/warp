@@ -32,7 +32,7 @@ internal class QBEPrestoSourceStepView: QBEStepViewControllerFor<QBEPrestoSource
 	}
 	
 	private func updateView() {
-		let job = QBEJob(.UserInitiated)
+		let job = Job(.UserInitiated)
 
 		urlField?.stringValue = step.url ?? ""
 		catalogField?.stringValue = step.catalogName ?? ""
@@ -40,7 +40,7 @@ internal class QBEPrestoSourceStepView: QBEStepViewControllerFor<QBEPrestoSource
 		
 		step.catalogNames(job) { (catalogsFallible) -> () in
 			catalogsFallible.maybe {(catalogs) in
-				QBEAsyncMain {
+				asyncMain {
 					self.catalogNames = Array(catalogs)
 					self.catalogField?.reloadData()
 				}
@@ -49,7 +49,7 @@ internal class QBEPrestoSourceStepView: QBEStepViewControllerFor<QBEPrestoSource
 		
 		step.schemaNames(job) { (schemasFallible) -> () in
 			schemasFallible.maybe { (schemas) in
-				QBEAsyncMain {
+				asyncMain {
 					self.schemaNames = Array(schemas)
 					self.schemaField?.reloadData()
 				}
@@ -58,7 +58,7 @@ internal class QBEPrestoSourceStepView: QBEStepViewControllerFor<QBEPrestoSource
 		
 		step.tableNames(job) { (namesFallible) -> () in
 			namesFallible.maybe { (names) in
-				QBEAsyncMain {
+				asyncMain {
 					self.tableNames = Array(names)
 					self.tableView?.reloadData()
 					

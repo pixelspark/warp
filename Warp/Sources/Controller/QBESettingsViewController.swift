@@ -10,7 +10,7 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 	@IBOutlet var exampleRowsLabel: NSTextField?
 	@IBOutlet var exampleTimeLabel: NSTextField?
 	
-	var locale: QBELocale! { get {
+	var locale: Locale! { get {
 		return QBEAppDelegate.sharedInstance.locale
 	} }
 	
@@ -33,7 +33,7 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 		self.exampleTimeLabel?.stringValue = formatter.stringFromNumber(NSNumber(double: QBESettings.sharedInstance.exampleMaximumTime)) ?? ""
 		
 		if let language = NSUserDefaults.standardUserDefaults().stringForKey("locale") {
-			if let name = QBELocale.languages[language] {
+			if let name = Locale.languages[language] {
 				self.localeBox?.stringValue = name
 			}
 		}
@@ -52,7 +52,7 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 			QBESettings.sharedInstance.exampleMaximumTime = ms
 		}
 		
-		let langs = [String](QBELocale.languages.keys)
+		let langs = [String](Locale.languages.keys)
 		if let index = self.localeBox?.indexOfSelectedItem where index >= 0 {
 			NSUserDefaults.standardUserDefaults().setObject(langs[index], forKey: "locale")
 		}
@@ -65,7 +65,7 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 			return locale.commonFieldSeparators[index]
 		}
 		else if aComboBox == localeBox {
-			let langs = [String](QBELocale.languages.values)
+			let langs = [String](Locale.languages.values)
 			return langs[index]
 		}
 		
@@ -77,7 +77,7 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 			return locale.commonFieldSeparators.count
 		}
 		else if aComboBox == localeBox {
-			return QBELocale.languages.count
+			return Locale.languages.count
 		}
 		return 0
 	}

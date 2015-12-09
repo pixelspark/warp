@@ -2,8 +2,8 @@ import Foundation
 import Alamofire
 import WarpCore
 
-private class QBEPrestoSQLDialect: QBEStandardSQLDialect {
-	override func unaryToSQL(type: QBEFunction, var args: [String]) -> String? {
+private class QBEPrestoSQLDialect: StandardSQLDialect {
+	override func unaryToSQL(type: Function, var args: [String]) -> String? {
 		switch type {
 		case .Concat:
 			/** Presto doesn't support CONCAT'ing more than two arguments. Therefore, we need to nest them. */
@@ -34,18 +34,18 @@ private class QBEPrestoSQLDialect: QBEStandardSQLDialect {
 	}
 }
 
-private class QBEPrestoStream: NSObject, QBEStream {
+private class QBEPrestoStream: NSObject, Stream {
 	let url: NSURL
 	let sql: String
 	let catalog: String
 	let schema: String
 	
-	private var buffer: [QBETuple] = []
-	private var columns: QBEFallible<[QBEColumn]>?
+	private var buffer: [Tuple] = []
+	private var columns: Fallible<[Column]>?
 	private var stopped: Bool = false
 	private var started: Bool = false
 	private var nextURI: NSURL?
-	private var columnsFuture: QBEFuture<QBEFallible<[QBEColumn]>>! = nil
+	private var columnsFuture: Future<Fallible<[Column]>>! = nil
 	
 	init(url: NSURL, sql: String, catalog: String, schema: String) {
 		self.url = url
@@ -55,17 +55,17 @@ private class QBEPrestoStream: NSObject, QBEStream {
 		self.nextURI = self.url.URLByAppendingPathComponent("/v1/statement")
 		super.init()
 		
-		let c = { [unowned self] (job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) -> () in
+		let c = { [unowned self] (job: Job, callback: (Fallible<[Column]>) -> ()) -> () in
 			self.awaitColumns(job) {
 				callback(self.columns ?? .Failure(NSLocalizedString("Could not load column names from Presto.", comment: "")))
 			}
 		}
 		
-		self.columnsFuture = QBEFuture<QBEFallible<[QBEColumn]>>(c)
+		self.columnsFuture = Future<Fallible<[Column]>>(c)
 	}
 	
 	/** Request the next batch of result data from Presto. */
-	private func request(job: QBEJob, callback: () -> ()) {
+	private func request(job: Job, callback: () -> ()) {
 		if stopped {
 			callback()
 			return
@@ -141,12 +141,12 @@ private class QBEPrestoStream: NSObject, QBEStream {
 						// Does the response include column information?
 						if self.columns == nil {
 							if let columns = d["columns"] as? [AnyObject] {
-								var newColumns: [QBEColumn] = []
+								var newColumns: [Column] = []
 								
 								for columnSpec in columns {
 									if let columnInfo = columnSpec as? [String: AnyObject] {
 										if let name = columnInfo["name"] as? String {
-											newColumns.append(QBEColumn(name))
+											newColumns.append(Column(name))
 										}
 									}
 								}
@@ -157,21 +157,21 @@ private class QBEPrestoStream: NSObject, QBEStream {
 						// Does the response contain any data?
 						if let data = d["data"] as? [AnyObject] {
 							job.time("Fetch Presto", items: data.count, itemType: "row") {
-								var templateRow: [QBEValue] = []
+								var templateRow: [Value] = []
 								for row in data {
 									if let rowArray = row as? [AnyObject] {
 										for cell in rowArray {
 											if let value = cell as? NSNumber {
-												templateRow.append(QBEValue(value.doubleValue))
+												templateRow.append(Value(value.doubleValue))
 											}
 											else if let value = cell as? String {
-												templateRow.append(QBEValue(value))
+												templateRow.append(Value(value))
 											}
 											else if cell is NSNull {
-												templateRow.append(QBEValue.EmptyValue)
+												templateRow.append(Value.EmptyValue)
 											}
 											else {
-												templateRow.append(QBEValue.InvalidValue)
+												templateRow.append(Value.InvalidValue)
 											}
 										}
 									}
@@ -196,7 +196,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 		}
 	}
 	
-	private func awaitColumns(job: QBEJob, callback: () -> ()) {
+	private func awaitColumns(job: Job, callback: () -> ()) {
 		request(job) {
 			if self.columns == nil && !self.stopped {
 				job.async {
@@ -209,7 +209,7 @@ private class QBEPrestoStream: NSObject, QBEStream {
 		}
 	}
 	
-	func fetch(job: QBEJob, consumer: QBESink) {
+	func fetch(job: Job, consumer: Sink) {
 		request(job) {
 			let rows = self.buffer
 			self.buffer.removeAll(keepCapacity: true)
@@ -217,11 +217,11 @@ private class QBEPrestoStream: NSObject, QBEStream {
 		}
 	}
 	
-	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.columnsFuture.get(job, callback)
 	}
 	
-	func clone() -> QBEStream {
+	func clone() -> Stream {
 		return QBEPrestoStream(url: self.url, sql: self.sql, catalog: self.catalog, schema: self.schema)
 	}
 }
@@ -230,7 +230,7 @@ private class QBEPrestoDatabase {
 	let url: NSURL
 	let schema: String
 	let catalog: String
-	let dialect: QBESQLDialect = QBEPrestoSQLDialect()
+	let dialect: SQLDialect = QBEPrestoSQLDialect()
 	
 	init(url: NSURL, catalog: String, schema: String) {
 		self.url = url
@@ -242,8 +242,8 @@ private class QBEPrestoDatabase {
 		return QBEPrestoStream(url: url, sql: sql, catalog: catalog, schema: schema)
 	}
 
-	func run(var sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
-		let mutex = QBEMutex() // To protect the list of queryes
+	func run(var sql: [String], job: Job, callback: (Fallible<Void>) -> ()) {
+		let mutex = Mutex() // To protect the list of queryes
 
 		// TODO check for memory leaks
 		var consume: (() -> ())? = nil
@@ -274,27 +274,27 @@ private class QBEPrestoDatabase {
 	} }
 }
 
-private class QBEPrestoData: QBESQLData {
+private class QBEPrestoData: SQLData {
 	private let db: QBEPrestoDatabase
 	
-	class func tableData(job: QBEJob, db: QBEPrestoDatabase, tableName: String, callback: (QBEFallible<QBEPrestoData>) -> ()) {
+	class func tableData(job: Job, db: QBEPrestoDatabase, tableName: String, callback: (Fallible<QBEPrestoData>) -> ()) {
 		let sql = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, schema: nil, database: nil))"
 		
 		db.query(sql).columnNames(job) { (columns) -> () in
-			callback(columns.use({return QBEPrestoData(db: db, fragment: QBESQLFragment(table: tableName, schema: nil, database: nil, dialect: db.dialect), columns: $0)}))
+			callback(columns.use({return QBEPrestoData(db: db, fragment: SQLFragment(table: tableName, schema: nil, database: nil, dialect: db.dialect), columns: $0)}))
 		}
 	}
 	
-	init(db: QBEPrestoDatabase, fragment: QBESQLFragment, columns: [QBEColumn]) {
+	init(db: QBEPrestoDatabase, fragment: SQLFragment, columns: [Column]) {
 		self.db = db
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
+	override func apply(fragment: SQLFragment, resultingColumns: [Column]) -> Data {
 		return QBEPrestoData(db: self.db, fragment: fragment, columns: resultingColumns)
 	}
 	
-	override func stream() -> QBEStream {
+	override func stream() -> Stream {
 		return db.query(self.sql.sqlSelect(nil).sql)
 	}
 }
@@ -333,11 +333,11 @@ class QBEPrestoSourceStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	private func explanation(locale: QBELocale) -> String {
+	private func explanation(locale: Locale) -> String {
 		return String(format: NSLocalizedString("Table '%@' from Presto server",comment: ""), tableName)
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		// TODO make an interactive sentence
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
@@ -352,7 +352,7 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
 		if let d = db where !self.tableName.isEmpty {
 			QBEPrestoData.tableData(job, db: d, tableName: tableName, callback: { (fd) -> () in
 				callback(fd.use({return $0}))
@@ -363,9 +363,9 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	func catalogNames(job: QBEJob, callback: (QBEFallible<Set<String>>) -> ()) {
+	func catalogNames(job: Job, callback: (Fallible<Set<String>>) -> ()) {
 		if let d = db {
-			QBEStreamData(source: d.query("SHOW CATALOGS")).unique(QBESiblingExpression(columnName: QBEColumn("Catalog")), job: job) { (catalogNamesFallible) -> () in
+			StreamData(source: d.query("SHOW CATALOGS")).unique(Sibling(columnName: Column("Catalog")), job: job) { (catalogNamesFallible) -> () in
 				callback(catalogNamesFallible.use({(tn) -> (Set<String>) in return Set(tn.map({return $0.stringValue ?? ""})) }))
 			}
 		}
@@ -374,23 +374,23 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	func schemaNames(job: QBEJob, callback: (QBEFallible<Set<String>>) -> ()) {
+	func schemaNames(job: Job, callback: (Fallible<Set<String>>) -> ()) {
 		if let stream = db?.query("SHOW SCHEMAS") {
-			QBEStreamData(source: stream).unique(QBESiblingExpression(columnName: QBEColumn("Schema")), job: job, callback: { (schemaNamesFallible) -> () in
+			StreamData(source: stream).unique(Sibling(columnName: Column("Schema")), job: job, callback: { (schemaNamesFallible) -> () in
 				callback(schemaNamesFallible.use({(sn) in Set(sn.map({return $0.stringValue ?? ""})) }))
 			})
 		}
 	}
 	
-	func tableNames(job: QBEJob, callback: (QBEFallible<Set<String>>) -> ()) {
+	func tableNames(job: Job, callback: (Fallible<Set<String>>) -> ()) {
 		if let stream = db?.query("SHOW TABLES") {
-			QBEStreamData(source: stream).unique(QBESiblingExpression(columnName: QBEColumn("Table")), job: job, callback: { (tableNamesFallible) -> () in
+			StreamData(source: stream).unique(Sibling(columnName: Column("Table")), job: job, callback: { (tableNamesFallible) -> () in
 				callback(tableNamesFallible.use({(tn) in Set(tn.map({return $0.stringValue ?? ""})) }))
 			})
 		}
 	}
 	
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
+	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
 		self.fullData(job, callback: { (fd) -> () in
 			callback(fd.use({$0.random(maxInputRows)}))
 		})

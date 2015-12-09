@@ -352,7 +352,7 @@ class QBEScrollView: NSScrollView {
 protocol QBEWorkspaceViewDelegate: NSObjectProtocol {
 	func workspaceView(view: QBEWorkspaceView, didReceiveFiles: [String], atLocation: CGPoint)
 	func workspaceView(view: QBEWorkspaceView, didReceiveChain: QBEChain, atLocation: CGPoint)
-	func workspaceView(view: QBEWorkspaceView, didRecieveColumnSet:[QBEColumn], fromDataViewController: QBEDataViewController)
+	func workspaceView(view: QBEWorkspaceView, didRecieveColumnSet:[Column], fromDataViewController: QBEDataViewController)
 }
 
 class QBEWorkspaceView: QBEScrollView {

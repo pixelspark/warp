@@ -3,7 +3,7 @@ import WarpCore
 
 @NSApplicationMain
 class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
-	internal var locale: QBELocale!
+	internal var locale: Locale!
 	internal let jobsManager = QBEJobsManager()
 	
 	func applicationDidFinishLaunching(aNotification: NSNotification) {
@@ -17,8 +17,8 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 	}
 	
 	private func applyDefaults() {
-		let language = NSUserDefaults.standardUserDefaults().stringForKey("locale") ?? QBELocale.defaultLanguage
-		self.locale = QBELocale(language: language)
+		let language = NSUserDefaults.standardUserDefaults().stringForKey("locale") ?? Locale.defaultLanguage
+		self.locale = Locale(language: language)
 	}
 	
 	func applicationWillTerminate(aNotification: NSNotification) {

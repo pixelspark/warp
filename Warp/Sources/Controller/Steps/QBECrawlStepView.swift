@@ -23,22 +23,22 @@ internal class QBECrawlStepView: QBEStepViewControllerFor<QBECrawlStep> {
 		var changed = false
 		
 		if targetBodyField.stringValue != (c.targetBodyColumn?.name ?? "") {
-			c.targetBodyColumn = !targetBodyField.stringValue.isEmpty ? QBEColumn(targetBodyField.stringValue) : nil
+			c.targetBodyColumn = !targetBodyField.stringValue.isEmpty ? Column(targetBodyField.stringValue) : nil
 			changed = true
 		}
 		
 		if targetErrorField.stringValue != (c.targetErrorColumn?.name ?? "") {
-			c.targetErrorColumn = !targetErrorField.stringValue.isEmpty ? QBEColumn(targetErrorField.stringValue) : nil
+			c.targetErrorColumn = !targetErrorField.stringValue.isEmpty ? Column(targetErrorField.stringValue) : nil
 			changed = true
 		}
 		
 		if targetStatusField.stringValue != (c.targetStatusColumn?.name ?? "") {
-			c.targetStatusColumn = !targetStatusField.stringValue.isEmpty ? QBEColumn(targetStatusField.stringValue) : nil
+			c.targetStatusColumn = !targetStatusField.stringValue.isEmpty ? Column(targetStatusField.stringValue) : nil
 			changed = true
 		}
 		
 		if targetTimeField.stringValue != (c.targetResponseTimeColumn?.name ?? "") {
-			c.targetResponseTimeColumn = !targetTimeField.stringValue.isEmpty ? QBEColumn(targetTimeField.stringValue) : nil
+			c.targetResponseTimeColumn = !targetTimeField.stringValue.isEmpty ? Column(targetTimeField.stringValue) : nil
 			changed = true
 		}
 		

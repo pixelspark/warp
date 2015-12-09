@@ -24,7 +24,6 @@
 		65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
 		6548F2341A8673BF00FE8EF2 /* extension-functions.c in Sources */ = {isa = PBXBuildFile; fileRef = 6548F2331A8673BF00FE8EF2 /* extension-functions.c */; };
 		655BD6301C146D1E00634C66 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655BD6251C146BE800634C66 /* WarpCore.framework */; };
-		655BD6331C146D5500634C66 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655BD6251C146BE800634C66 /* WarpCore.framework */; };
 		655BD6341C146D5500634C66 /* WarpCore.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 655BD6251C146BE800634C66 /* WarpCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		655BD63A1C146DF000634C66 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655BD6251C146BE800634C66 /* WarpCore.framework */; };
 		655BD63B1C146DF300634C66 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A115011BCD969A007BC661 /* Rethink.framework */; };
@@ -537,7 +536,6 @@
 				655BD6511C146F5600634C66 /* SwiftParser.framework in Frameworks */,
 				65436ED61B30C21F00636299 /* libiconv.2.dylib in Frameworks */,
 				65436ED71B30C21F00636299 /* libssl.0.9.8.dylib in Frameworks */,
-				655BD6331C146D5500634C66 /* WarpCore.framework in Frameworks */,
 				65436ED21B30C20600636299 /* libcrypto.0.9.8.dylib in Frameworks */,
 				65436ED31B30C20600636299 /* libsqlite3.dylib in Frameworks */,
 				6518BFC41B26DE7C009E311F /* libmariadbclient.a in Frameworks */,
@@ -987,7 +985,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0700;
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = Pixelspark;
 				TargetAttributes = {
 					65E3C2EB1A062E5E007BB3C8 = {

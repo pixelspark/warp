@@ -2,34 +2,34 @@ import Foundation
 import WarpCore
 
 class QBESortStep: QBEStep {
-	var orders: [QBEOrder] = []
+	var orders: [Order] = []
 
 	required init() {
 		super.init()
 	}
 
-	init(previous: QBEStep?, orders: [QBEOrder] = []) {
+	init(previous: QBEStep?, orders: [Order] = []) {
 		self.orders = orders
 		super.init(previous: previous)
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		self.orders = (aDecoder.decodeObjectForKey("orders") as? [QBEOrder]) ?? []
+		self.orders = (aDecoder.decodeObjectForKey("orders") as? [Order]) ?? []
 		super.init(coder: aDecoder)
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		if orders.isEmpty {
 			return QBESentence(format: NSLocalizedString("Sort rows on [#]", comment: ""),
-				QBESentenceFormula(expression: QBELiteralExpression(QBEValue.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
-					self?.orders.append(QBEOrder(expression: newExpression, ascending: true, numeric: true))
+				QBESentenceFormula(expression: Literal(Value.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
+					self?.orders.append(Order(expression: newExpression, ascending: true, numeric: true))
 				})
 			)
 		}
 		if orders.count == 1 {
 			let order = orders[0]
 			return QBESentence(format: NSLocalizedString("Sort rows on [#][#][#]", comment: ""),
-				QBESentenceFormula(expression: order.expression ?? QBELiteralExpression(.BoolValue(false)), locale: locale, callback: { (newExpression) -> () in
+				QBESentenceFormula(expression: order.expression ?? Literal(.BoolValue(false)), locale: locale, callback: { (newExpression) -> () in
 					order.expression = newExpression
 				}),
 				QBESentenceOptions(options: [
@@ -58,7 +58,7 @@ class QBESortStep: QBEStep {
 		super.encodeWithCoder(coder)
 	}
 	
-	override func apply(data: QBEData, job: QBEJob?, callback: (QBEFallible<QBEData>) -> ()) {
+	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(data.sort(orders)))
 	}
 }

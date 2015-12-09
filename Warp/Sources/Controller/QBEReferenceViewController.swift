@@ -2,7 +2,7 @@ import Cocoa
 import WarpCore
 
 protocol QBEReferenceViewDelegate: NSObjectProtocol {
-	func referenceView(view: QBEReferenceViewController, didSelectFunction: QBEFunction)
+	func referenceView(view: QBEReferenceViewController, didSelectFunction: Function)
 }
 
 class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTableViewDelegate {
@@ -10,7 +10,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 	@IBOutlet private var valueList: NSTableView?
 	@IBOutlet private var exampleLabel: NSTextField!
 	
-	private var locale: QBELocale?
+	private var locale: Locale?
 	private var functions: [String] = []
 	weak var delegate: QBEReferenceViewDelegate? = nil
 	
@@ -46,11 +46,11 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 				let selectedName = functions[selectedRow]
 				let function = locale!.functionWithName(selectedName)!
 				if let parameters = function.parameters {
-					let expression = QBEFunctionExpression(arguments: parameters.map({ return QBELiteralExpression($0.exampleValue) }), type: function)
-					let result = expression.apply(QBERow(), foreign: nil, inputValue: nil)
+					let expression = Call(arguments: parameters.map({ return Literal($0.exampleValue) }), type: function)
+					let result = expression.apply(Row(), foreign: nil, inputValue: nil)
 					
 					let formula = expression.toFormula(locale!, topLevel: true)
-					if let parsedFormula = QBEFormula(formula: formula, locale: locale!) {
+					if let parsedFormula = Formula(formula: formula, locale: locale!) {
 						let ma = NSMutableAttributedString()
 						ma.appendAttributedString(parsedFormula.syntaxColoredFormula)
 						ma.appendAttributedString(NSAttributedString(string: " = ", attributes: [:]))

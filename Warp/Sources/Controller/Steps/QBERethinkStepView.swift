@@ -22,14 +22,14 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 		updateView()
 	}
 
-	private var checkConnectionJob: QBEJob? = nil { willSet {
+	private var checkConnectionJob: Job? = nil { willSet {
 		if let o = checkConnectionJob {
 			o.cancel()
 		}
 	} }
 
 	private func updateView() {
-		self.checkConnectionJob = QBEJob(.UserInitiated)
+		self.checkConnectionJob = Job(.UserInitiated)
 
 		tableView?.reloadData()
 		self.serverField?.stringValue = self.step.server
@@ -47,7 +47,7 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 			checkConnectionJob!.async {
 				R.connect(url) { (err, connection) in
 					if let e = err {
-						QBEAsyncMain {
+						asyncMain {
 							self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
 							self.infoIcon?.image = NSImage(named: "SadIcon")
 							self.infoProgress?.hidden = true
@@ -57,7 +57,7 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 					}
 
 					R.now().run(connection) { res in
-						QBEAsyncMain {
+						asyncMain {
 							self.infoProgress?.stopAnimation(nil)
 							if case .Error(let e) = res {
 								self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
@@ -80,7 +80,7 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 		}
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: QBEMutableData?) {
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: MutableData?) {
 		if let s = table as? QBERethinkMutableData {
 			self.step.table = s.tableName
 			self.step.database = s.databaseName
@@ -133,7 +133,7 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 	}
 
 	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
-		step.columns[row] = QBEColumn(object as! String)
+		step.columns[row] = Column(object as! String)
 		self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 	}
 
@@ -149,8 +149,8 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 	@IBAction func addColumn(sender: NSObject) {
 		let s = self.addColumnTextField.stringValue
 		if !s.isEmpty {
-			if !step.columns.contains(QBEColumn(s)) {
-				step.columns.append(QBEColumn(s))
+			if !step.columns.contains(Column(s)) {
+				step.columns.append(Column(s))
 				self.updateView()
 				self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 			}

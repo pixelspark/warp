@@ -6,7 +6,7 @@ class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 
 	var title: String?
 
-	required init(locale: QBELocale, title: String?) {
+	required init(locale: Locale, title: String?) {
 		self.title = title
 	}
 
@@ -18,15 +18,15 @@ class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 		aCoder.encodeString(self.title ?? "", forKey: "title")
 	}
 
-	func sentence(locale: QBELocale) -> QBESentence? {
+	func sentence(locale: Locale) -> QBESentence? {
 		return nil
 	}
 
-	static func explain(fileExtension: String, locale: QBELocale) -> String {
+	static func explain(fileExtension: String, locale: Locale) -> String {
 		return NSLocalizedString("XML", comment: "")
 	}
 	
-	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	func writeData(data: Data, toFile file: NSURL, locale: Locale, job: Job, callback: (Fallible<Void>) -> ()) {
 		let stream = data.stream()
 		
 		if let writer = TCMXMLWriter(options: UInt(TCMXMLWriterOptionPrettyPrinted), fileURL: file) {
@@ -67,8 +67,8 @@ class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 							}
 							
 							// Fetch rows in batches and write rows to XML
-							var sink: QBESink? = nil
-							sink = { (rows: QBEFallible<Array<QBETuple>>, streamStatus: QBEStreamStatus) -> () in
+							var sink: Sink? = nil
+							sink = { (rows: Fallible<Array<Tuple>>, streamStatus: StreamStatus) -> () in
 								switch rows {
 								case .Success(let rs):
 									// Write rows

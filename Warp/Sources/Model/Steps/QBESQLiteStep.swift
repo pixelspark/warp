@@ -5,9 +5,9 @@ private class QBESQLiteResult {
 	let resultSet: COpaquePointer
 	let db: QBESQLiteConnection
 	
-	static func create(sql: String, db: QBESQLiteConnection) -> QBEFallible<QBESQLiteResult> {
+	static func create(sql: String, db: QBESQLiteConnection) -> Fallible<QBESQLiteResult> {
 		var resultSet: COpaquePointer = nil
-		QBELog("SQL \(sql)")
+		trace("SQL \(sql)")
 		if !db.perform({sqlite3_prepare_v2(db.db, sql, -1, &resultSet, nil)}) {
 			return .Failure(db.lastError)
 		}
@@ -27,7 +27,7 @@ private class QBESQLiteResult {
 	
 	/** Run is used to execute statements that do not return data (e.g. UPDATE, INSERT, DELETE, etc.). It can optionally
 	be fed with parameters which will be bound before query execution. */
-	func run(parameters: [QBEValue]? = nil) -> Bool {
+	func run(parameters: [Value]? = nil) -> Bool {
 		// If there are parameters, bind them
 		var ret = true
 		
@@ -61,7 +61,7 @@ private class QBESQLiteResult {
 					}
 					
 					if result != SQLITE_OK {
-						QBELog("SQLite error on parameter bind: \(self.db.lastError)")
+						trace("SQLite error on parameter bind: \(self.db.lastError)")
 						ret = false
 					}
 					
@@ -71,17 +71,17 @@ private class QBESQLiteResult {
 		
 			let result = sqlite3_step(self.resultSet)
 			if result != SQLITE_ROW && result != SQLITE_DONE {
-				QBELog("SQLite error running statement: \(self.db.lastError)")
+				trace("SQLite error running statement: \(self.db.lastError)")
 				ret = false
 			}
 			
 			if sqlite3_clear_bindings(self.resultSet) != SQLITE_OK {
-				QBELog("SQLite: failed to clear parameter bindings: \(self.db.lastError)")
+				trace("SQLite: failed to clear parameter bindings: \(self.db.lastError)")
 				ret = false
 			}
 			
 			if sqlite3_reset(self.resultSet) != SQLITE_OK {
-				QBELog("SQLite: could not reset statement: \(self.db.lastError)")
+				trace("SQLite: could not reset statement: \(self.db.lastError)")
 				ret = false
 			}
 		}
@@ -92,13 +92,13 @@ private class QBESQLiteResult {
 		return Int(sqlite3_column_count(resultSet))
 	} }
 	
-	 var columnNames: [QBEColumn] { get {
+	 var columnNames: [Column] { get {
 		let count = sqlite3_column_count(resultSet)
-		return (0..<count).map({QBEColumn(String.fromCString(sqlite3_column_name(self.resultSet, $0))!)})
+		return (0..<count).map({Column(String.fromCString(sqlite3_column_name(self.resultSet, $0))!)})
 	} }
 
-	func sequence() -> AnySequence<QBEFallible<QBETuple>> {
-		return AnySequence<QBEFallible<QBETuple>>(QBESQLiteResultSequence(result: self))
+	func sequence() -> AnySequence<Fallible<Tuple>> {
+		return AnySequence<Fallible<Tuple>>(QBESQLiteResultSequence(result: self))
 	}
 }
 
@@ -116,7 +116,7 @@ private class QBESQLiteResultSequence: SequenceType {
 }
 
 private class QBESQLiteResultGenerator: GeneratorType {
-	typealias Element = QBEFallible<QBETuple>
+	typealias Element = Fallible<Tuple>
 	let result: QBESQLiteResult
 	var lastStatus: Int32 = SQLITE_OK
 	
@@ -149,44 +149,44 @@ private class QBESQLiteResultGenerator: GeneratorType {
 		return item
 	}
 
-	var row: QBETuple {
+	var row: Tuple {
 		return (0..<result.columnNames.count).map { idx in
 			switch sqlite3_column_type(self.result.resultSet, Int32(idx)) {
 			case SQLITE_FLOAT:
-				return QBEValue(sqlite3_column_double(self.result.resultSet, Int32(idx)))
+				return Value(sqlite3_column_double(self.result.resultSet, Int32(idx)))
 				
 			case SQLITE_NULL:
-				return QBEValue.EmptyValue
+				return Value.EmptyValue
 				
 			case SQLITE_INTEGER:
 				// Booleans are represented as integers, but boolean columns are declared as BOOL columns
 				let intValue = Int(sqlite3_column_int64(self.result.resultSet, Int32(idx)))
 				if let type = String.fromCString(sqlite3_column_decltype(self.result.resultSet, Int32(idx))) {
 					if type.hasPrefix("BOOL") {
-						return QBEValue(intValue != 0)
+						return Value(intValue != 0)
 					}
 				}
-				return QBEValue(intValue)
+				return Value(intValue)
 				
 			case SQLITE_TEXT:
 				if let string = String.fromCString(UnsafePointer<CChar>(sqlite3_column_text(self.result.resultSet, Int32(idx)))) {
-					return QBEValue(string)
+					return Value(string)
 				}
 				else {
-					return QBEValue.InvalidValue
+					return Value.InvalidValue
 				}
 				
 			default:
-				return QBEValue.InvalidValue
+				return Value.InvalidValue
 			}
 		}
 	}
 }
 
-private class QBESQLiteConnection: NSObject, QBESQLConnection {
+private class QBESQLiteConnection: NSObject, SQLConnection {
 	var url: String?
 	let db: COpaquePointer
-	let dialect: QBESQLDialect = QBESQLiteDialect()
+	let dialect: SQLDialect = QBESQLiteDialect()
 	let presenters: [QBEFilePresenter]
 
 	init?(path: String, readOnly: Bool = false) {
@@ -217,7 +217,7 @@ private class QBESQLiteConnection: NSObject, QBESQLConnection {
 		RegisterExtensionFunctions(self.db)
 
 		/* Create the 'WARP_*' user-defined functions in SQLite. When called, it looks up the native implementation of a
-		QBEFunction/QBEBinary whose raw value name is equal to the first parameter. It applies the function to the other parameters
+		Function/Binary whose raw value name is equal to the first parameter. It applies the function to the other parameters
 		and returns the result to SQLite. */
 		SQLiteCreateFunction(self.db, QBESQLiteConnection.sqliteUDFFunctionName, -1, true, QBESQLiteConnection.sqliteUDFFunction)
 		SQLiteCreateFunction(self.db, QBESQLiteConnection.sqliteUDFBinaryName, 3, true, QBESQLiteConnection.sqliteUDFBinary)
@@ -254,33 +254,33 @@ private class QBESQLiteConnection: NSObject, QBESQLConnection {
 		dispatch_sync(queue) {() -> () in
 			let code = op()
 			if code != SQLITE_OK && code != SQLITE_DONE && code != SQLITE_ROW {
-				QBELog("SQLite error \(code): \(self.lastError)")
+				trace("SQLite error \(code): \(self.lastError)")
 				ret = false
 			}
 		}
 		return ret
 	}
 	
-	private static func sqliteValueToValue(value: COpaquePointer) -> QBEValue {
+	private static func sqliteValueToValue(value: COpaquePointer) -> Value {
 		switch sqlite3_value_type(value) {
 			case SQLITE_NULL:
-				return QBEValue.EmptyValue
+				return Value.EmptyValue
 			
 			case SQLITE_FLOAT:
-				return QBEValue.DoubleValue(sqlite3_value_double(value))
+				return Value.DoubleValue(sqlite3_value_double(value))
 			
 			case SQLITE_TEXT:
-				return QBEValue.StringValue(String.fromCString(UnsafePointer<CChar>(sqlite3_value_text(value)))!)
+				return Value.StringValue(String.fromCString(UnsafePointer<CChar>(sqlite3_value_text(value)))!)
 			
 			case SQLITE_INTEGER:
-				return QBEValue.IntValue(Int(sqlite3_value_int64(value)))
+				return Value.IntValue(Int(sqlite3_value_int64(value)))
 			
 			default:
-				return QBEValue.InvalidValue
+				return Value.InvalidValue
 		}
 	}
 	
-	private static func sqliteResult(context: COpaquePointer, result: QBEValue) {
+	private static func sqliteResult(context: COpaquePointer, result: Value) {
 		switch result {
 			case .InvalidValue:
 				sqlite3_result_null(context)
@@ -309,15 +309,15 @@ private class QBESQLiteConnection: NSObject, QBESQLConnection {
 	private static let sqliteUDFBinaryName = "WARP_BINARY"
 	
 	/* This function implements the 'WARP_FUNCTION' user-defined function in SQLite. When called, it looks up the native
-	implementation of a QBEFunction whose raw value name is equal to the first parameter. It applies the function to the
+	implementation of a Function whose raw value name is equal to the first parameter. It applies the function to the
 	other parameters and returns the result to SQLite. */
 	private static func sqliteUDFFunction(context: COpaquePointer, argc: Int32,  values: UnsafeMutablePointer<COpaquePointer>) {
 		assert(argc>0, "The Warp UDF should always be called with at least one parameter")
 		let functionName = sqliteValueToValue(values[0]).stringValue!
-		let type = QBEFunction(rawValue: functionName)!
+		let type = Function(rawValue: functionName)!
 		assert(type.isDeterministic, "Calling non-deterministic function through SQLite Warp UDF is not allowed")
 		
-		var args: [QBEValue] = []
+		var args: [Value] = []
 		for i in 1..<argc {
 			let sqliteValue = values[Int(i)]
 			args.append(sqliteValueToValue(sqliteValue))
@@ -328,12 +328,12 @@ private class QBESQLiteConnection: NSObject, QBESQLConnection {
 	}
 	
 	/* This function implements the 'WARP_BINARY' user-defined function in SQLite. When called, it looks up the native
-	implementation of a QBEBinary whose raw value name is equal to the first parameter. It applies the function to the
+	implementation of a Binary whose raw value name is equal to the first parameter. It applies the function to the
 	other parameters and returns the result to SQLite. */
 	private static func sqliteUDFBinary(context: COpaquePointer, argc: Int32,  values: UnsafeMutablePointer<COpaquePointer>) {
 		assert(argc==3, "The Warp_binary UDF should always be called with three parameters")
 		let functionName = sqliteValueToValue(values[0]).stringValue!
-		let type = QBEBinary(rawValue: functionName)!
+		let type = Binary(rawValue: functionName)!
 		let first = sqliteValueToValue(values[1])
 		let second = sqliteValueToValue(values[2])
 		
@@ -341,11 +341,11 @@ private class QBESQLiteConnection: NSObject, QBESQLConnection {
 		sqliteResult(context, result: result)
 	}
 	
-	func query(sql: String) -> QBEFallible<QBESQLiteResult> {
+	func query(sql: String) -> Fallible<QBESQLiteResult> {
 		return QBESQLiteResult.create(sql, db: self)
 	}
 
-	func run(sql: [String], job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	func run(sql: [String], job: Job, callback: (Fallible<Void>) -> ()) {
 		for q in sql {
 			switch query(q) {
 				case .Success(let c):
@@ -362,7 +362,7 @@ private class QBESQLiteConnection: NSObject, QBESQLConnection {
 		callback(.Success())
 	}
 	
-	var tableNames: QBEFallible<[String]> { get {
+	var tableNames: Fallible<[String]> { get {
 		let names = query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name ASC")
 		
 		return names.use({(ns) -> [String] in
@@ -387,16 +387,16 @@ private func ==(lhs: QBESQLiteConnection, rhs: QBESQLiteConnection) -> Bool {
 	return lhs.db == rhs.db || (lhs.url == rhs.url && lhs.url != nil && rhs.url != nil)
 }
 
-private class QBESQLiteDialect: QBEStandardSQLDialect {
+private class QBESQLiteDialect: StandardSQLDialect {
 	// SQLite does not support changing column definitions using an ALTER statement
 	override var supportsChangingColumnDefinitionsWithAlter: Bool { return false }
 
 	// SQLite does not support column names with '"' in them.
-	override func columnIdentifier(column: QBEColumn, table: String?, schema: String?, database: String?) -> String {
-		return super.columnIdentifier(QBEColumn(column.name.stringByReplacingOccurrencesOfString("\"", withString: "", options: NSStringCompareOptions(), range: nil)), table: table, schema: schema, database: database)
+	override func columnIdentifier(column: Column, table: String?, schema: String?, database: String?) -> String {
+		return super.columnIdentifier(Column(column.name.stringByReplacingOccurrencesOfString("\"", withString: "", options: NSStringCompareOptions(), range: nil)), table: table, schema: schema, database: database)
 	}
 	
-	override func binaryToSQL(type: QBEBinary, first: String, second: String) -> String? {
+	override func binaryToSQL(type: Binary, first: String, second: String) -> String? {
 		let result: String?
 		switch type {
 			/** For 'contains string', the default implementation uses "a LIKE '%b%'" syntax. Using INSTR is probably a
@@ -419,7 +419,7 @@ private class QBESQLiteDialect: QBEStandardSQLDialect {
 		return result
 	}
 	
-	override func unaryToSQL(type: QBEFunction, args: [String]) -> String? {
+	override func unaryToSQL(type: Function, args: [String]) -> String? {
 		let result: String?
 		switch type {
 			case .Concat:
@@ -439,9 +439,9 @@ private class QBESQLiteDialect: QBEStandardSQLDialect {
 		return "\(QBESQLiteConnection.sqliteUDFFunctionName)('\(type.rawValue)',\(value))"
 	}
 	
-	override func aggregationToSQL(aggregation: QBEAggregation, alias: String) -> String? {
-		// QBEFunction.Count only counts numeric values
-		if aggregation.reduce == QBEFunction.Count {
+	override func aggregationToSQL(aggregation: Aggregation, alias: String) -> String? {
+		// Function.Count only counts numeric values
+		if aggregation.reduce == Function.Count {
 			if let expressionSQL = self.expressionToSQL(aggregation.map, alias: alias) {
 				return "SUM(CASE WHEN TYPEOF(\(expressionSQL)) IN('integer', 'real') THEN 1 ELSE 0 END)"
 			}
@@ -452,38 +452,38 @@ private class QBESQLiteDialect: QBEStandardSQLDialect {
 	}
 }
 
-class QBESQLiteData: QBESQLData {
+class QBESQLiteData: SQLData {
 	private let db: QBESQLiteConnection
 	
-	static private func create(db: QBESQLiteConnection, tableName: String) -> QBEFallible<QBESQLiteData> {
+	static private func create(db: QBESQLiteConnection, tableName: String) -> Fallible<QBESQLiteData> {
 		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, schema: nil, database: nil))"
 		switch db.query(query) {
 			case .Success(let result):
-				return .Success(QBESQLiteData(db: db, fragment: QBESQLFragment(table: tableName, schema: nil, database: nil, dialect: db.dialect), columns: result.columnNames))
+				return .Success(QBESQLiteData(db: db, fragment: SQLFragment(table: tableName, schema: nil, database: nil, dialect: db.dialect), columns: result.columnNames))
 				
 			case .Failure(let error):
 				return .Failure(error)
 		}
 	}
 	
-	private init(db: QBESQLiteConnection, fragment: QBESQLFragment, columns: [QBEColumn]) {
+	private init(db: QBESQLiteConnection, fragment: SQLFragment, columns: [Column]) {
 		self.db = db
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	override func apply(fragment: QBESQLFragment, resultingColumns: [QBEColumn]) -> QBEData {
+	override func apply(fragment: SQLFragment, resultingColumns: [Column]) -> Data {
 		return QBESQLiteData(db: self.db, fragment: fragment, columns: resultingColumns)
 	}
 	
-	override func stream() -> QBEStream {
-		return QBESQLiteStream(data: self) ?? QBEEmptyStream()
+	override func stream() -> Stream {
+		return QBESQLiteStream(data: self) ?? EmptyStream()
 	}
 	
-	private func result() -> QBEFallible<QBESQLiteResult> {
+	private func result() -> Fallible<QBESQLiteResult> {
 		return self.db.query(self.sql.sqlSelect(nil).sql)
 	}
 	
-	override func isCompatibleWith(other: QBESQLData) -> Bool {
+	override func isCompatibleWith(other: SQLData) -> Bool {
 		if let os = other as? QBESQLiteData {
 			return os.db == self.db
 		}
@@ -493,24 +493,24 @@ class QBESQLiteData: QBESQLData {
 
 /**
 Stream that lazily queries and streams results from an SQLite query. */
-class QBESQLiteStream: QBEStream {
-	private var resultStream: QBEStream?
+class QBESQLiteStream: Stream {
+	private var resultStream: Stream?
 	private let data: QBESQLiteData
-	private let mutex = QBEMutex()
+	private let mutex = Mutex()
 	
 	init(data: QBESQLiteData) {
 		self.data = data
 	}
 	
-	private func stream() -> QBEStream {
+	private func stream() -> Stream {
 		return self.mutex.locked {
 			if resultStream == nil {
 				switch data.result() {
 					case .Success(let result):
-						resultStream = QBESequenceStream(AnySequence<QBEFallible<QBETuple>>(result.sequence()), columnNames: result.columnNames)
+						resultStream = SequenceStream(AnySequence<Fallible<Tuple>>(result.sequence()), columnNames: result.columnNames)
 						
 					case .Failure(let error):
-						resultStream = QBEErrorStream(error)
+						resultStream = ErrorStream(error)
 				}
 			}
 			
@@ -518,15 +518,15 @@ class QBESQLiteStream: QBEStream {
 		}
 	}
 	
-	func fetch(job: QBEJob, consumer: QBESink) {
+	func fetch(job: Job, consumer: Sink) {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columnNames(job: QBEJob, callback: (QBEFallible<[QBEColumn]>) -> ()) {
+	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		return stream().columnNames(job, callback: callback)
 	}
 	
-	func clone() -> QBEStream {
+	func clone() -> Stream {
 		return QBESQLiteStream(data: data)
 	}
 }
@@ -534,20 +534,20 @@ class QBESQLiteStream: QBEStream {
 private class QBESQLiteWriterSession {
 	private let database: QBESQLiteConnection
 	private let tableName: String
-	private let source: QBEData
+	private let source: Data
 
-	private var job: QBEJob? = nil
-	private var stream: QBEStream?
+	private var job: Job? = nil
+	private var stream: Stream?
 	private var insertStatement: QBESQLiteResult?
-	private var completion: ((QBEFallible<Void>) -> ())?
+	private var completion: ((Fallible<Void>) -> ())?
 
-	init(data source: QBEData, toDatabase database: QBESQLiteConnection, tableName: String) {
+	init(data source: Data, toDatabase database: QBESQLiteConnection, tableName: String) {
 		self.database = database
 		self.tableName = tableName
 		self.source = source
 	}
 
-	func start(job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	func start(job: Job, callback: (Fallible<Void>) -> ()) {
 		let dialect = database.dialect
 		self.completion = callback
 		self.job = job
@@ -578,7 +578,7 @@ private class QBESQLiteWriterSession {
 							A transaction is started here and is ended in self.ingest. */
 							self.database.query("BEGIN").require { r in
 								r.run()
-								// TODO: use QBEStreamPuller to do this with more threads simultaneously
+								// TODO: use StreamPuller to do this with more threads simultaneously
 								self.stream?.fetch(job, consumer: self.ingest)
 							}
 
@@ -597,7 +597,7 @@ private class QBESQLiteWriterSession {
 		}
 	}
 
-	private func ingest(rows: QBEFallible<Array<QBETuple>>, streamStatus: QBEStreamStatus) {
+	private func ingest(rows: Fallible<Array<Tuple>>, streamStatus: StreamStatus) {
 		switch rows {
 		case .Success(let r):
 			if streamStatus == .HasMore && !self.job!.cancelled {
@@ -648,13 +648,13 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 	var mode: Mode = .Overwrite
 	var tableName: String
 
-	static func explain(fileExtension: String, locale: QBELocale) -> String {
+	static func explain(fileExtension: String, locale: Locale) -> String {
 		return NSLocalizedString("SQLite database", comment: "")
 	}
 
 	static var fileTypes: Set<String> { get { return Set(["sqlite"]) } }
 
-	required init(locale: QBELocale, title: String?) {
+	required init(locale: Locale, title: String?) {
 		tableName = "data"
 	}
 
@@ -670,7 +670,7 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 		aCoder.encodeString(mode.rawValue, forKey: "mode")
 	}
 
-	func writeData(data: QBEData, toFile file: NSURL, locale: QBELocale, job: QBEJob, callback: (QBEFallible<Void>) -> ()) {
+	func writeData(data: Data, toFile file: NSURL, locale: Locale, job: Job, callback: (Fallible<Void>) -> ()) {
 		if let p = file.path, let database = QBESQLiteConnection(path: p) {
 			// We must disable the WAL because the sandbox doesn't allow us to write to the WAL file (created separately)
 			database.query("PRAGMA journal_mode = MEMORY").require { s in
@@ -690,7 +690,7 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 		}
 	}
 
-	func sentence(locale: QBELocale) -> QBESentence? {
+	func sentence(locale: Locale) -> QBESentence? {
 		let modeOptions = [
 			Mode.Overwrite.rawValue: NSLocalizedString("(over)write", comment: "")
 		];
@@ -708,15 +708,15 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 }
 
 /**
-Cache a given QBEData data set in a SQLite table. Loading the data set into SQLite is performed asynchronously in the
+Cache a given Data data set in a SQLite table. Loading the data set into SQLite is performed asynchronously in the
 background, and the SQLite-cached data set is swapped with the original one at completion transparently. The cache is
 placed in a shared, temporary 'cache' database (sharedCacheDatabase) so that cached tables can efficiently be joined by
 SQLite. Users of this class can set a completion callback if they want to wait until caching has finished. */
-class QBESQLiteCachedData: QBEProxyData {
+class QBESQLiteCachedData: ProxyData {
 	private let database: QBESQLiteConnection
 	private let tableName: String
 	private(set) var isCached: Bool = false
-	private let cacheJob: QBEJob
+	private let cacheJob: Job
 	
 	private class var sharedCacheDatabase : QBESQLiteConnection {
 		struct Static {
@@ -741,10 +741,10 @@ class QBESQLiteCachedData: QBEProxyData {
 		return Static.instance!
 	}
 	
-	init(source: QBEData, job: QBEJob? = nil, completion: ((QBEFallible<QBESQLiteCachedData>) -> ())? = nil) {
+	init(source: Data, job: Job? = nil, completion: ((Fallible<QBESQLiteCachedData>) -> ())? = nil) {
 		database = QBESQLiteCachedData.sharedCacheDatabase
 		tableName = "cache_\(String.randomStringWithLength(32))"
-		self.cacheJob = job ?? QBEJob(.Background)
+		self.cacheJob = job ?? Job(.Background)
 		super.init(data: source)
 		
 		QBESQLiteWriterSession(data: source, toDatabase: database, tableName: tableName).start(cacheJob) { (result) -> () in
@@ -755,7 +755,7 @@ class QBESQLiteCachedData: QBEProxyData {
 				self.data.columnNames(self.cacheJob) { [unowned self] (columns) -> () in
 					switch columns {
 					case .Success(let cns):
-						self.data = QBESQLiteData(db: self.database, fragment: QBESQLFragment(table: self.tableName, schema: nil, database: nil, dialect: self.database.dialect), columns: cns)
+						self.data = QBESQLiteData(db: self.database, fragment: SQLFragment(table: self.tableName, schema: nil, database: nil, dialect: self.database.dialect), columns: cns)
 						self.isCached = true
 						completion?(.Success(self))
 
@@ -775,10 +775,10 @@ class QBESQLiteCachedData: QBEProxyData {
 	}
 }
 
-class QBESQLiteDatabase: QBESQLDatabase {
+class QBESQLiteDatabase: SQLDatabase {
 	let url: NSURL
 	let readOnly: Bool
-	let dialect: QBESQLDialect = QBESQLiteDialect()
+	let dialect: SQLDialect = QBESQLiteDialect()
 	let databaseName: String? = nil
 
 	init(url: NSURL, readOnly: Bool) {
@@ -786,7 +786,7 @@ class QBESQLiteDatabase: QBESQLDatabase {
 		self.readOnly = readOnly
 	}
 
-	func connect(callback: (QBEFallible<QBESQLConnection>) -> ()) {
+	func connect(callback: (Fallible<SQLConnection>) -> ()) {
 		if let c = QBESQLiteConnection(path: self.url.path!, readOnly: self.readOnly) {
 			callback(.Success(c))
 		}
@@ -795,7 +795,7 @@ class QBESQLiteDatabase: QBESQLDatabase {
 		}
 	}
 
-	func dataForTable(table: String, schema: String?, job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	func dataForTable(table: String, schema: String?, job: Job, callback: (Fallible<Data>) -> ()) {
 		if schema != nil {
 			callback(.Failure("SQLite does not support schemas"))
 			return
@@ -813,12 +813,12 @@ class QBESQLiteDatabase: QBESQLDatabase {
 	}
 }
 
-class QBESQLiteDataWarehouse: QBESQLDataWarehouse {
-	override init(database: QBESQLDatabase, schemaName: String?) {
+class QBESQLiteDataWarehouse: SQLWarehouse {
+	override init(database: SQLDatabase, schemaName: String?) {
 		super.init(database: database, schemaName: schemaName)
 	}
 
-	override func canPerformMutation(mutation: QBEWarehouseMutation) -> Bool {
+	override func canPerformMutation(mutation: WarehouseMutation) -> Bool {
 		switch mutation {
 		case .Create(_, _):
 			// A read-only database cannot be mutated
@@ -828,8 +828,8 @@ class QBESQLiteDataWarehouse: QBESQLDataWarehouse {
 	}
 }
 
-class QBESQLiteMutableData: QBESQLMutableData {
-	override var warehouse: QBEDataWarehouse { return QBESQLiteDataWarehouse(database: self.database, schemaName: self.schemaName) }
+class QBESQLiteMutableData: SQLMutableData {
+	override var warehouse: Warehouse { return QBESQLiteDataWarehouse(database: self.database, schemaName: self.schemaName) }
 }
 
 class QBESQLiteSourceStep: QBEStep {
@@ -870,7 +870,7 @@ class QBESQLiteSourceStep: QBEStep {
 		}
 	}
 
-	override func sentence(locale: QBELocale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		let template: String
 		switch variant {
 		case .Read, .Neutral: template = "Load table [#] from SQLite database [#]"
@@ -891,7 +891,7 @@ class QBESQLiteSourceStep: QBEStep {
 		)
 	}
 	
-	override func fullData(job: QBEJob, callback: (QBEFallible<QBEData>) -> ()) {
+	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
 		if let d = db {
 			callback(QBESQLiteData.create(d, tableName: self.tableName ?? "").use({return $0.coalesced}))
 		}
@@ -900,9 +900,9 @@ class QBESQLiteSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleData(job: QBEJob, maxInputRows: Int, maxOutputRows: Int, callback: (QBEFallible<QBEData>) -> ()) {
+	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
 		self.fullData(job, callback: { (fd) -> () in
-			callback(fd.use {(x) -> QBEData in
+			callback(fd.use {(x) -> Data in
 				return x.random(maxInputRows)
 			})
 		})
@@ -933,7 +933,7 @@ class QBESQLiteSourceStep: QBEStep {
 		self.file = self.file?.bookmark(atURL)
 	}
 
-	override var mutableData: QBEMutableData? {
+	override var mutableData: MutableData? {
 		if let u = self.file?.url, let tn = tableName {
 			return QBESQLiteMutableData(database: QBESQLiteDatabase(url: u, readOnly: false), schemaName: nil, tableName: tn)
 		}

@@ -1,21 +1,20 @@
 import Foundation
 
-internal let QBEExpressions: [QBEExpression.Type] = [
-	QBESiblingExpression.self,
-	QBELiteralExpression.self,
-	QBEBinaryExpression.self,
-	QBEFunctionExpression.self,
-	QBEIdentityExpression.self
+internal let expressions: [Expression.Type] = [
+	Sibling.self,
+	Literal.self,
+	Comparison.self,
+	Call.self,
+	Identity.self
 ]
 
-/** A QBEExpression is a 'formula' that evaluates to a certain QBEValue given a particular context. */
-public class QBEExpression: NSObject, NSCoding {
-	public func explain(locale: QBELocale, topLevel: Bool = true) -> String {
+/** A Expression is a 'formula' that evaluates to a certain Value given a particular context. */
+public class Expression: NSObject, NSCoding {
+	public func explain(locale: Locale, topLevel: Bool = true) -> String {
 		return "??"
 	}
 	
-	/** The complexity of an expression is an indication of how 'far fetched' it is - this is used by QBEInferer to 
-	decide which expressions to suggest. */
+	/** The complexity of an expression is an indication of how 'far fetched' it is */
 	var complexity: Int { get {
 		return 1
 	}}
@@ -27,9 +26,9 @@ public class QBEExpression: NSObject, NSCoding {
 	} }
 	
 	/** Returns a version of this expression that has constant parts replaced with their actual values. */
-	public func prepare() -> QBEExpression {
+	public func prepare() -> Expression {
 		if isConstant {
-			return QBELiteralExpression(self.apply(QBERow(), foreign: nil, inputValue: nil))
+			return Literal(self.apply(Row(), foreign: nil, inputValue: nil))
 		}
 		return self
 	}
@@ -43,61 +42,61 @@ public class QBEExpression: NSObject, NSCoding {
 	public func encodeWithCoder(aCoder: NSCoder) {
 	}
 	
-	/** Returns a localized representation of this expression, which should (when parsed by QBEFormula in the same locale)
+	/** Returns a localized representation of this expression, which should (when parsed by Formula in the same locale)
 	result in an equivalent expression. */
-	public func toFormula(locale: QBELocale, topLevel: Bool = false) -> String {
+	public func toFormula(locale: Locale, topLevel: Bool = false) -> String {
 		return ""
 	}
 	
 	/** Return true if, under all circumstances, this expression will return a result that is equal to the result returned
-	by the other expression (QBEValue equality). */
-	public func isEquivalentTo(expression: QBEExpression) -> Bool {
+	by the other expression (Value equality). */
+	public func isEquivalentTo(expression: Expression) -> Bool {
 		return false
 	}
 	
 	/** Requests that callback be called on self, and visit() forwarded to all children. This can be used to implement
 	dependency searches, etc. */
-	public func visit(@noescape callback: (QBEExpression) -> (QBEExpression)) -> QBEExpression {
+	public func visit(@noescape callback: (Expression) -> (Expression)) -> Expression {
 		return callback(self)
 	}
 	
-	@nonobjc public final func visit(@noescape callback: (QBEExpression) -> ()) {
-		self.visit { (e) -> QBEExpression in
+	@nonobjc public final func visit(@noescape callback: (Expression) -> ()) {
+		self.visit { (e) -> Expression in
 			callback(e)
 			return e
 		}
 	}
 	
 	/** Calculate the result of this expression for the given row, columns and current input value. */
-	public func apply(row: QBERow, foreign: QBERow?, inputValue: QBEValue?) -> QBEValue {
-		fatalError("A QBEExpression was called that isn't implemented")
+	public func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
+		fatalError("A Expression was called that isn't implemented")
 	}
 	
 	/** Returns a list of suggestions for applications of this expression on the given value (fromValue) that result in the
 	given 'to' value (or bring the value closer to the toValue). */
-	class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
+	class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		return []
 	}
 	
 	/** The infer function implements an algorithm to find one or more formulas that are able to transform an
-	input value to a specific output value. It does so by looping over 'suggestions' (provided by QBEFunction
+	input value to a specific output value. It does so by looping over 'suggestions' (provided by Function
 	implementations) for the application of (usually unary) functions to the input value to obtain (or come closer to) the
 	output value. */
-	public class final func infer(fromValue: QBEExpression?, toValue: QBEValue, inout suggestions: [QBEExpression], level: Int, row: QBERow, column: Int, maxComplexity: Int = Int.max, previousValues: [QBEValue] = [], job: QBEJob? = nil) {
+	public class final func infer(fromValue: Expression?, toValue: Value, inout suggestions: [Expression], level: Int, row: Row, column: Int, maxComplexity: Int = Int.max, previousValues: [Value] = [], job: Job? = nil) {
 		let inputValue = row.values[column]
 		if let c = job?.cancelled where c {
 			return
 		}
 		
 		// Try out combinations of formulas and see if they fit
-		for formulaType in QBEExpressions {
+		for formulaType in expressions {
 			if let c = job?.cancelled where c {
 				return
 			}
 			
 			let suggestedFormulas = formulaType.suggest(fromValue, toValue: toValue, row: row, inputValue: inputValue, level: level, job: job);
 			var complexity = maxComplexity
-			var exploreFurther: [QBEExpression] = []
+			var exploreFurther: [Expression] = []
 			
 			for formula in suggestedFormulas {
 				if formula.complexity >= maxComplexity {
@@ -137,7 +136,7 @@ public class QBEExpression: NSObject, NSCoding {
 						continue
 					}
 					
-					var nextLevelSuggestions: [QBEExpression] = []
+					var nextLevelSuggestions: [Expression] = []
 					var newPreviousValues = previousValues
 					newPreviousValues.append(result)
 					infer(formula, toValue: toValue, suggestions: &nextLevelSuggestions, level: level-1, row: row, column: column, maxComplexity: complexity, previousValues: newPreviousValues, job: job)
@@ -156,12 +155,12 @@ public class QBEExpression: NSObject, NSCoding {
 	}
 }
 
-/** The QBELiteralExpression always evaluates to the value set to it on initialization. The formula parser generates a
-QBELiteralExpression for each literal (numbers, strings, constants) it encounters. */
-public final class QBELiteralExpression: QBEExpression {
-	public let value: QBEValue
+/** The Literal always evaluates to the value set to it on initialization. The formula parser generates a
+Literal for each literal (numbers, strings, constants) it encounters. */
+public final class Literal: Expression {
+	public let value: Value
 	
-	public init(_ value: QBEValue) {
+	public init(_ value: Value) {
 		self.value = value
 		super.init()
 	}
@@ -175,15 +174,15 @@ public final class QBELiteralExpression: QBEExpression {
 	} }
 	
 	public required init?(coder aDecoder: NSCoder) {
-		self.value = ((aDecoder.decodeObjectForKey("value") as? QBEValueCoder) ?? QBEValueCoder()).value
+		self.value = ((aDecoder.decodeObjectForKey("value") as? ValueCoder) ?? ValueCoder()).value
 		super.init(coder: aDecoder)
 	}
 	
-	public override func explain(locale: QBELocale, topLevel: Bool) -> String {
+	public override func explain(locale: Locale, topLevel: Bool) -> String {
 		return locale.localStringFor(value)
 	}
 	
-	public override func toFormula(locale: QBELocale, topLevel: Bool) -> String {
+	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
 		switch value {
 		case .StringValue(let s):
 			let escaped = s.stringByReplacingOccurrencesOfString(String(locale.stringQualifier), withString: locale.stringQualifierEscape)
@@ -196,52 +195,52 @@ public final class QBELiteralExpression: QBEExpression {
 			return "@" + (locale.numberFormatter.stringFromNumber(NSNumber(double: d)) ?? "")
 			
 		case .BoolValue(let b):
-			return locale.constants[QBEValue(b)]!
+			return locale.constants[Value(b)]!
 			
 		case .IntValue(let i):
 			return "\(i)"
 		
-		case .InvalidValue: return locale.constants[QBEValue.EmptyValue]!
-		case .EmptyValue: return locale.constants[QBEValue.EmptyValue]!
+		case .InvalidValue: return locale.constants[Value.EmptyValue]!
+		case .EmptyValue: return locale.constants[Value.EmptyValue]!
 		}
 	}
 	
 	public override func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(QBEValueCoder(self.value), forKey: "value")
+		aCoder.encodeObject(ValueCoder(self.value), forKey: "value")
 		super.encodeWithCoder(aCoder)
 	}
 	
-	public override func apply(row: QBERow, foreign: QBERow?, inputValue: QBEValue?) -> QBEValue {
+	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
 		return value
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
+	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		if fromValue == nil {
-			return [QBELiteralExpression(toValue)]
+			return [Literal(toValue)]
 		}
 		return []
 	}
 	
-	public override func isEquivalentTo(expression: QBEExpression) -> Bool {
-		if let otherLiteral = expression as? QBELiteralExpression {
+	public override func isEquivalentTo(expression: Expression) -> Bool {
+		if let otherLiteral = expression as? Literal {
 			return otherLiteral.value == self.value
 		}
 		return false
 	}
 }
 
-/** The QBEIdentityExpression returns whatever value was set to the inputValue parameter during evaluation. This value
+/** The Identity returns whatever value was set to the inputValue parameter during evaluation. This value
 usually represents the (current) value in the current cell. */
-public class QBEIdentityExpression: QBEExpression {
+public class Identity: Expression {
 	public override init() {
 		super.init()
 	}
 	
-	public override func explain(locale: QBELocale, topLevel: Bool) -> String {
-		return QBEText("current value")
+	public override func explain(locale: Locale, topLevel: Bool) -> String {
+		return translationForString("current value")
 	}
 
-	public override func toFormula(locale: QBELocale, topLevel: Bool) -> String {
+	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
 		return locale.currentCellIdentifier
 	}
 	
@@ -249,21 +248,21 @@ public class QBEIdentityExpression: QBEExpression {
 		super.init(coder: aDecoder)
 	}
 	
-	public override func apply(row: QBERow, foreign: QBERow?, inputValue: QBEValue?) -> QBEValue {
-		return inputValue ?? QBEValue.InvalidValue
+	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
+		return inputValue ?? Value.InvalidValue
 	}
 	
-	public override func isEquivalentTo(expression: QBEExpression) -> Bool {
-		return expression is QBEIdentityExpression
+	public override func isEquivalentTo(expression: Expression) -> Bool {
+		return expression is Identity
 	}
 }
 
-/** QBEBinaryExpression evaluates to the result of applying a particular binary operator to two operands, which are 
+/** Comparison evaluates to the result of applying a particular binary operator to two operands, which are 
 other expressions. */
-public final class QBEBinaryExpression: QBEExpression {
-	public let first: QBEExpression
-	public let second: QBEExpression
-	public var type: QBEBinary
+public final class Comparison: Expression {
+	public let first: Expression
+	public let second: Expression
+	public var type: Binary
 	
 	public override var isConstant: Bool { get {
 		return first.isConstant && second.isConstant
@@ -274,7 +273,7 @@ public final class QBEBinaryExpression: QBEExpression {
 	 operator is commutative, B=A is also allowed. This function can be called as followed to retrieve the sibling and 
 	 the literal, allowing either variant:
 
-	 let (sibling, literal) = binaryExpression.pair(QBESiblingExpression.self, QBELiteralExpression.self) */
+	 let (sibling, literal) = binaryExpression.pair(Sibling.self, Literal.self) */
 	public func commutativePair<U, V>(first: U.Type, _ second: V.Type) -> (U,V)? {
 		if let a = self.first as? U, let b = self.second as? V {
 			return (a, b)
@@ -285,7 +284,7 @@ public final class QBEBinaryExpression: QBEExpression {
 		return nil
 	}
 	
-	override public func prepare() -> QBEExpression {
+	override public func prepare() -> Expression {
 		let firstOptimized = first.prepare()
 		let secondOptimized = second.prepare()
 		
@@ -294,10 +293,10 @@ public final class QBEBinaryExpression: QBEExpression {
 		if firstOptimized.isEquivalentTo(secondOptimized) {
 			switch self.type {
 				case .Equal, .LesserEqual, .GreaterEqual:
-					return QBELiteralExpression(QBEValue.BoolValue(true))
+					return Literal(Value.BoolValue(true))
 
 				case .NotEqual, .Greater, .Lesser:
-					return QBELiteralExpression(QBEValue.BoolValue(false))
+					return Literal(Value.BoolValue(false))
 				
 				default:
 					break;
@@ -305,25 +304,25 @@ public final class QBEBinaryExpression: QBEExpression {
 		}
 		
 		// If the first and second operand are constant, the result of the binary expression can likely be precalculated
-		let optimized = QBEBinaryExpression(first: firstOptimized, second: secondOptimized, type: self.type)
+		let optimized = Comparison(first: firstOptimized, second: secondOptimized, type: self.type)
 		if optimized.isConstant {
-			return QBELiteralExpression(optimized.apply(QBERow(), foreign: nil, inputValue: nil))
+			return Literal(optimized.apply(Row(), foreign: nil, inputValue: nil))
 		}
 		return optimized
 	}
 	
-	public override func visit(@noescape callback: (QBEExpression) -> (QBEExpression)) -> QBEExpression {
+	public override func visit(@noescape callback: (Expression) -> (Expression)) -> Expression {
 		let first = self.first.visit(callback)
 		let second = self.second.visit(callback)
-		let newSelf = QBEBinaryExpression(first: first, second: second, type: self.type)
+		let newSelf = Comparison(first: first, second: second, type: self.type)
 		return callback(newSelf)
 	}
 	
-	public override func explain(locale: QBELocale, topLevel: Bool) -> String {
+	public override func explain(locale: Locale, topLevel: Bool) -> String {
 		return (topLevel ? "": "(") + second.explain(locale, topLevel: false) + " " + type.explain(locale) + " " + first.explain(locale, topLevel: false) + (topLevel ? "": ")")
 	}
 	
-	public override func toFormula(locale: QBELocale, topLevel: Bool) -> String {
+	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
 		let start = topLevel ? "" : "("
 		let end = topLevel ? "" : ")"
 		return "\(start)\(second.toFormula(locale))\(type.toFormula(locale))\(first.toFormula(locale))\(end)"
@@ -333,7 +332,7 @@ public final class QBEBinaryExpression: QBEExpression {
 		return first.complexity + second.complexity + 1
 	}}
 	
-	public init(first: QBEExpression, second: QBEExpression, type: QBEBinary) {
+	public init(first: Expression, second: Expression, type: Binary) {
 		self.first = first
 		self.second = second
 		self.type = type
@@ -341,10 +340,10 @@ public final class QBEBinaryExpression: QBEExpression {
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		self.first = (aDecoder.decodeObjectForKey("first") as? QBEExpression) ?? QBEIdentityExpression()
-		self.second = (aDecoder.decodeObjectForKey("second") as? QBEExpression) ?? QBEIdentityExpression()
-		let typeString = (aDecoder.decodeObjectForKey("type") as? String) ?? QBEBinary.Addition.rawValue
-		self.type = QBEBinary(rawValue: typeString) ?? QBEBinary.Addition
+		self.first = (aDecoder.decodeObjectForKey("first") as? Expression) ?? Identity()
+		self.second = (aDecoder.decodeObjectForKey("second") as? Expression) ?? Identity()
+		let typeString = (aDecoder.decodeObjectForKey("type") as? String) ?? Binary.Addition.rawValue
+		self.type = Binary(rawValue: typeString) ?? Binary.Addition
 		super.init(coder: aDecoder)
 	}
 	
@@ -355,14 +354,14 @@ public final class QBEBinaryExpression: QBEExpression {
 		aCoder.encodeObject(type.rawValue, forKey: "type")
 	}
 	
-	public override func apply(row: QBERow, foreign: QBERow?, inputValue: QBEValue?) -> QBEValue {
+	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
 		let left = second.apply(row, foreign: foreign, inputValue: nil)
 		let right = first.apply(row, foreign: foreign, inputValue: nil)
 		return self.type.apply(left, right)
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
-		var suggestions: [QBEExpression] = []
+	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+		var suggestions: [Expression] = []
 		
 		if let from = fromValue {
 			if let f = fromValue?.apply(row, foreign: nil, inputValue: inputValue) {
@@ -372,14 +371,14 @@ public final class QBEBinaryExpression: QBEExpression {
 							// Suggest addition or subtraction
 							let difference = targetDouble - fromDouble
 							if difference != 0 {
-								var addSuggestions: [QBEExpression] = []
-								QBEExpression.infer(nil, toValue: QBEValue(abs(difference)), suggestions: &addSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+								var addSuggestions: [Expression] = []
+								Expression.infer(nil, toValue: Value(abs(difference)), suggestions: &addSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
 								if difference > 0 {
-									addSuggestions.forEach({suggestions.append(QBEBinaryExpression(first: $0, second: from, type: QBEBinary.Addition))})
+									addSuggestions.forEach({suggestions.append(Comparison(first: $0, second: from, type: Binary.Addition))})
 								}
 								else {
-									addSuggestions.forEach({suggestions.append(QBEBinaryExpression(first: $0, second: from, type: QBEBinary.Subtraction))})
+									addSuggestions.forEach({suggestions.append(Comparison(first: $0, second: from, type: Binary.Subtraction))})
 								}
 							}
 							
@@ -387,14 +386,14 @@ public final class QBEBinaryExpression: QBEExpression {
 							if fromDouble != 0 {
 								let dividend = targetDouble / fromDouble
 								
-								var mulSuggestions: [QBEExpression] = []
-								QBEExpression.infer(nil, toValue: QBEValue(dividend < 1 ? (1/dividend) : dividend), suggestions: &mulSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+								var mulSuggestions: [Expression] = []
+								Expression.infer(nil, toValue: Value(dividend < 1 ? (1/dividend) : dividend), suggestions: &mulSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
 								if dividend >= 1 {
-									mulSuggestions.forEach({suggestions.append(QBEBinaryExpression(first: $0, second: from, type: QBEBinary.Multiplication))})
+									mulSuggestions.forEach({suggestions.append(Comparison(first: $0, second: from, type: Binary.Multiplication))})
 								}
 								else {
-									mulSuggestions.forEach({suggestions.append(QBEBinaryExpression(first: $0, second: from, type: QBEBinary.Division))})
+									mulSuggestions.forEach({suggestions.append(Comparison(first: $0, second: from, type: Binary.Division))})
 								}
 							}
 						}
@@ -407,10 +406,10 @@ public final class QBEBinaryExpression: QBEExpression {
 								let postfix = targetString.substringWithRange(targetString.startIndex.advancedBy(fromString.characters.count)..<targetString.endIndex)
 								print("'\(fromString)' => '\(targetString)' share prefix: '\(targetPrefix)' need postfix: '\(postfix)'")
 								
-								var postfixSuggestions: [QBEExpression] = []
-								QBEExpression.infer(nil, toValue: QBEValue.StringValue(postfix), suggestions: &postfixSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+								var postfixSuggestions: [Expression] = []
+								Expression.infer(nil, toValue: Value.StringValue(postfix), suggestions: &postfixSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
-								postfixSuggestions.forEach({suggestions.append(QBEBinaryExpression(first: $0, second: from, type: QBEBinary.Concatenation))})
+								postfixSuggestions.forEach({suggestions.append(Comparison(first: $0, second: from, type: Binary.Concatenation))})
 							}
 							else {
 								// See if the target string shares a postfix with the source string
@@ -420,10 +419,10 @@ public final class QBEBinaryExpression: QBEExpression {
 									let prefix = targetString.substringWithRange(targetString.startIndex..<targetString.startIndex.advancedBy(prefixLength))
 									print("'\(fromString)' => '\(targetString)' share postfix: '\(targetPostfix)' need prefix: '\(prefix)'")
 									
-									var prefixSuggestions: [QBEExpression] = []
-									QBEExpression.infer(nil, toValue: QBEValue.StringValue(prefix), suggestions: &prefixSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+									var prefixSuggestions: [Expression] = []
+									Expression.infer(nil, toValue: Value.StringValue(prefix), suggestions: &prefixSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 									
-									prefixSuggestions.forEach({suggestions.append(QBEBinaryExpression(first: from, second: $0, type: QBEBinary.Concatenation))})
+									prefixSuggestions.forEach({suggestions.append(Comparison(first: from, second: $0, type: Binary.Concatenation))})
 								}
 							}
 						}
@@ -435,8 +434,8 @@ public final class QBEBinaryExpression: QBEExpression {
 		return suggestions
 	}
 	
-	public override func isEquivalentTo(expression: QBEExpression) -> Bool {
-		if let otherBinary = expression as? QBEBinaryExpression {
+	public override func isEquivalentTo(expression: Expression) -> Bool {
+		if let otherBinary = expression as? Comparison {
 			if otherBinary.type == self.type && otherBinary.first.isEquivalentTo(self.first) && otherBinary.second.isEquivalentTo(self.second) {
 				return true
 			}
@@ -450,11 +449,11 @@ public final class QBEBinaryExpression: QBEExpression {
 	}
 }
 
-/** QBEFunctionExpression evaluates to the result of applying a function to a given set of arguments. The set of arguments
-consists of QBEExpressions that are evaluated before sending them to the function. */
-public final class QBEFunctionExpression: QBEExpression {
-	public let arguments: [QBEExpression]
-	public let type: QBEFunction
+/** Call evaluates to the result of applying a function to a given set of arguments. The set of arguments
+consists of expressions that are evaluated before sending them to the function. */
+public final class Call: Expression {
+	public let arguments: [Expression]
+	public let type: Function
 	
 	public override var isConstant: Bool { get {
 		if !type.isDeterministic {
@@ -470,21 +469,21 @@ public final class QBEFunctionExpression: QBEExpression {
 		return true
 	} }
 	
-	public override func visit(@noescape callback: (QBEExpression) -> (QBEExpression)) -> QBEExpression {
+	public override func visit(@noescape callback: (Expression) -> (Expression)) -> Expression {
 		let newArguments = arguments.map({$0.visit(callback)})
-		return callback(QBEFunctionExpression(arguments: newArguments, type: self.type))
+		return callback(Call(arguments: newArguments, type: self.type))
 	}
 	
-	public override func prepare() -> QBEExpression {
+	public override func prepare() -> Expression {
 		return self.type.prepare(arguments)
 	}
 	
-	public override func explain(locale: QBELocale, topLevel: Bool) -> String {
+	public override func explain(locale: Locale, topLevel: Bool) -> String {
 		let argumentsList = arguments.map({$0.explain(locale, topLevel: false)}).joinWithSeparator(", ")
 		return "\(type.explain(locale))(\(argumentsList))"
 	}
 	
-	public override func toFormula(locale: QBELocale, topLevel: Bool) -> String {
+	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
 		let args = arguments.map({$0.toFormula(locale)}).joinWithSeparator(locale.argumentSeparator)
 		return "\(type.toFormula(locale))(\(args))"
 	}
@@ -498,16 +497,16 @@ public final class QBEFunctionExpression: QBEExpression {
 		return complexity + 1
 	}}
 	
-	public init(arguments: [QBEExpression], type: QBEFunction) {
+	public init(arguments: [Expression], type: Function) {
 		self.arguments = arguments
 		self.type = type
 		super.init()
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		self.arguments = (aDecoder.decodeObjectForKey("args") as? [QBEExpression]) ?? []
-		let typeString = (aDecoder.decodeObjectForKey("type") as? String) ?? QBEFunction.Identity.rawValue
-		self.type = QBEFunction(rawValue: typeString) ?? QBEFunction.Identity
+		self.arguments = (aDecoder.decodeObjectForKey("args") as? [Expression]) ?? []
+		let typeString = (aDecoder.decodeObjectForKey("type") as? String) ?? Function.Identity.rawValue
+		self.type = Function(rawValue: typeString) ?? Function.Identity
 		super.init(coder: aDecoder)
 	}
 	
@@ -517,13 +516,13 @@ public final class QBEFunctionExpression: QBEExpression {
 		aCoder.encodeObject(type.rawValue, forKey: "type")
 	}
 	
-	public override func apply(row: QBERow, foreign: QBERow?, inputValue: QBEValue?) -> QBEValue {
+	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
 		let vals = arguments.map({$0.apply(row, foreign: foreign, inputValue: inputValue)})
 		return self.type.apply(vals)
 	}
 	
-	public override func isEquivalentTo(expression: QBEExpression) -> Bool {
-		if let otherFunction = expression as? QBEFunctionExpression {
+	public override func isEquivalentTo(expression: Expression) -> Bool {
+		if let otherFunction = expression as? Call {
 			if otherFunction.type == self.type && self.arguments == otherFunction.arguments && self.type.isDeterministic {
 				return true
 			}
@@ -531,24 +530,24 @@ public final class QBEFunctionExpression: QBEExpression {
 		return false
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
-		var suggestions: [QBEExpression] = []
+	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+		var suggestions: [Expression] = []
 		
 		if let from = fromValue {
 			if let f = fromValue?.apply(row, foreign: nil, inputValue: inputValue) {
 				// Check whether one of the unary functions can transform the input value to the output value
-				for op in QBEFunction.allFunctions {
+				for op in Function.allFunctions {
 					if(op.arity.valid(1) && op.isDeterministic) {
 						if op.apply([f]) == toValue {
-							suggestions.append(QBEFunctionExpression(arguments: [from], type: op))
+							suggestions.append(Call(arguments: [from], type: op))
 						}
 					}
 				}
 				
 				// For binary and n-ary functions, specific test cases follow
-				var incompleteSuggestions: [QBEExpression] = []
+				var incompleteSuggestions: [Expression] = []
 				if let targetString = toValue.stringValue {
-					let length = QBEValue(targetString.characters.count)
+					let length = Value(targetString.characters.count)
 
 					// Is the 'to' string perhaps a substring of the 'from' string?
 					if let sourceString = f.stringValue {
@@ -562,11 +561,11 @@ public final class QBEFunctionExpression: QBEExpression {
 							
 							let splitted = sourceString.componentsSeparatedByString(separator)
 							if splitted.count > 1 {
-								let pack = QBEPack(splitted)
+								let pack = Pack(splitted)
 								for i in 0..<pack.count {
 									let item = pack[i]
-									let splitExpression = QBEFunctionExpression(arguments: [from, QBELiteralExpression(QBEValue.StringValue(separator))], type: QBEFunction.Split)
-									let nthExpression = QBEFunctionExpression(arguments: [splitExpression, QBELiteralExpression(QBEValue.IntValue(i+1))], type: QBEFunction.Nth)
+									let splitExpression = Call(arguments: [from, Literal(Value.StringValue(separator))], type: Function.Split)
+									let nthExpression = Call(arguments: [splitExpression, Literal(Value.IntValue(i+1))], type: Function.Nth)
 									if targetString == item {
 										suggestions.append(nthExpression)
 										foundAsElement = true
@@ -585,12 +584,12 @@ public final class QBEFunctionExpression: QBEExpression {
 							}
 							else {
 								if let range = sourceString.rangeOfString(targetString) {
-									suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Left))
-									suggestions.append(QBEFunctionExpression(arguments: [from, QBELiteralExpression(length)], type: QBEFunction.Right))
+									suggestions.append(Call(arguments: [from, Literal(length)], type: Function.Left))
+									suggestions.append(Call(arguments: [from, Literal(length)], type: Function.Right))
 									
-									let start = QBELiteralExpression(QBEValue(sourceString.startIndex.distanceTo(range.startIndex)))
-									let length = QBELiteralExpression(QBEValue(range.startIndex.distanceTo(range.endIndex)))
-									suggestions.append(QBEFunctionExpression(arguments: [from, start, length], type: QBEFunction.Mid))
+									let start = Literal(Value(sourceString.startIndex.distanceTo(range.startIndex)))
+									let length = Literal(Value(range.startIndex.distanceTo(range.endIndex)))
+									suggestions.append(Call(arguments: [from, start, length], type: Function.Mid))
 								}
 							}
 						}
@@ -603,29 +602,29 @@ public final class QBEFunctionExpression: QBEExpression {
 	}
 }
 
-protocol QBEColumnReferencingExpression {
-	var columnName: QBEColumn { get }
+protocol ColumnReferencingExpression {
+	var columnName: Column { get }
 }
 
-/** The QBESiblingExpression evaluates to the value of a cell in a particular column on the same row as the current value. */
-public final class QBESiblingExpression: QBEExpression, QBEColumnReferencingExpression {
-	public var columnName: QBEColumn
+/** The Sibling evaluates to the value of a cell in a particular column on the same row as the current value. */
+public final class Sibling: Expression, ColumnReferencingExpression {
+	public var columnName: Column
 	
-	public init(columnName: QBEColumn) {
+	public init(columnName: Column) {
 		self.columnName = columnName
 		super.init()
 	}
 	
-	public override func explain(locale: QBELocale, topLevel: Bool) -> String {
-		return String(format: QBEText("value in column %@"), columnName.name)
+	public override func explain(locale: Locale, topLevel: Bool) -> String {
+		return String(format: translationForString("value in column %@"), columnName.name)
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		columnName = QBEColumn((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")
+		columnName = Column((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")
 		super.init(coder: aDecoder)
 	}
 	
-	public override func toFormula(locale: QBELocale, topLevel: Bool) -> String {
+	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
 		return "[@\(columnName.name)]"
 	}
 	
@@ -634,48 +633,48 @@ public final class QBESiblingExpression: QBEExpression, QBEColumnReferencingExpr
 		aCoder.encodeObject(columnName.name, forKey: "columnName")
 	}
 	
-	public override func apply(row: QBERow, foreign: QBERow?, inputValue: QBEValue?) -> QBEValue {
-		return row[columnName] ?? QBEValue.InvalidValue
+	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
+		return row[columnName] ?? Value.InvalidValue
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
-		var s: [QBEExpression] = []
+	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+		var s: [Expression] = []
 		if fromValue == nil {
 			for columnName in row.columnNames {
-				s.append(QBESiblingExpression(columnName: columnName))
+				s.append(Sibling(columnName: columnName))
 			}
 		}
 		return s
 	}
 	
-	public override func isEquivalentTo(expression: QBEExpression) -> Bool {
-		if let otherSibling = expression as? QBESiblingExpression {
+	public override func isEquivalentTo(expression: Expression) -> Bool {
+		if let otherSibling = expression as? Sibling {
 			return otherSibling.columnName == self.columnName
 		}
 		return false
 	}
 }
 
-/** The QBEForeignExpression evaluates to the value of a cell in a particular column in the foreign row. This is used to 
+/** The Foreign evaluates to the value of a cell in a particular column in the foreign row. This is used to 
 evaluate whether two rows should be matched up in a join. If no foreign row is given, this expression gives an error. */
-public final class QBEForeignExpression: QBEExpression, QBEColumnReferencingExpression {
-	public var columnName: QBEColumn
+public final class Foreign: Expression, ColumnReferencingExpression {
+	public var columnName: Column
 	
-	public init(columnName: QBEColumn) {
+	public init(columnName: Column) {
 		self.columnName = columnName
 		super.init()
 	}
 	
-	public override func explain(locale: QBELocale, topLevel: Bool) -> String {
-		return String(format: QBEText("value in foreign column %@"), columnName.name)
+	public override func explain(locale: Locale, topLevel: Bool) -> String {
+		return String(format: translationForString("value in foreign column %@"), columnName.name)
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		columnName = QBEColumn((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")
+		columnName = Column((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")
 		super.init(coder: aDecoder)
 	}
 	
-	public override func toFormula(locale: QBELocale, topLevel: Bool) -> String {
+	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
 		return "[#\(columnName.name)]"
 	}
 	
@@ -684,62 +683,62 @@ public final class QBEForeignExpression: QBEExpression, QBEColumnReferencingExpr
 		aCoder.encodeObject(columnName.name, forKey: "columnName")
 	}
 	
-	public override func apply(row: QBERow, foreign: QBERow?, inputValue: QBEValue?) -> QBEValue {
-		return foreign?[columnName] ?? QBEValue.InvalidValue
+	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
+		return foreign?[columnName] ?? Value.InvalidValue
 	}
 	
-	override class func suggest(fromValue: QBEExpression?, toValue: QBEValue, row: QBERow, inputValue: QBEValue?, level: Int, job: QBEJob?) -> [QBEExpression] {
+	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		// TODO: implement when we are going to implement foreign suggestions
 		return []
 	}
 	
-	public override func isEquivalentTo(expression: QBEExpression) -> Bool {
-		if let otherForeign = expression as? QBEForeignExpression {
+	public override func isEquivalentTo(expression: Expression) -> Bool {
+		if let otherForeign = expression as? Foreign {
 			return otherForeign.columnName == self.columnName
 		}
 		return false
 	}
 }
 
-public class QBEFilterSet: NSObject, NSCoding {
-	public var selectedValues: Set<QBEValue> = []
+public class FilterSet: NSObject, NSCoding {
+	public var selectedValues: Set<Value> = []
 	
 	public override init() {
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		if let v = aDecoder.decodeObjectForKey("selectedValues") as? [QBEValueCoder] {
+		if let v = aDecoder.decodeObjectForKey("selectedValues") as? [ValueCoder] {
 			selectedValues = Set(v.map({return $0.value}))
 		}
 	}
 	
 	public func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(Array<QBEValueCoder>(selectedValues.map({return QBEValueCoder($0)})), forKey: "selectedValues")
+		aCoder.encodeObject(Array<ValueCoder>(selectedValues.map({return ValueCoder($0)})), forKey: "selectedValues")
 	}
 	
-	/** Returns an expression representing this filter. The source column is represented as QBEIdentityExpression. */
-	public var expression: QBEExpression { get {
-		var args: [QBEExpression] = [QBEIdentityExpression()]
+	/** Returns an expression representing this filter. The source column is represented as Identity. */
+	public var expression: Expression { get {
+		var args: [Expression] = [Identity()]
 		for value in selectedValues {
-			args.append(QBELiteralExpression(value))
+			args.append(Literal(value))
 		}
 		
-		return QBEFunctionExpression(arguments: args, type: QBEFunction.In)
+		return Call(arguments: args, type: Function.In)
 	} }
 }
 
-/** Functions defined on QBEExpression that rely on knowledge of its subclasses should be in this extension. */
-extension QBEExpression {
+/** Functions defined on Expression that rely on knowledge of its subclasses should be in this extension. */
+extension Expression {
 	/** Returns a version of this expression that can be used to find matching rows in a foreign table. It replaces all
-	occurences of QBEForeignExpression with QBESiblingExpression, and replaces instances QBESiblingExpression with the
+	occurences of Foreign with Sibling, and replaces instances Sibling with the
 	corresponding values from the row given. */
-	final func expressionForForeignFiltering(row: QBERow) -> QBEExpression {
+	final func expressionForForeignFiltering(row: Row) -> Expression {
 		return visit { (oldExpression) in
-			if let old = oldExpression as? QBESiblingExpression {
-				return QBELiteralExpression(old.apply(row, foreign: nil, inputValue: nil))
+			if let old = oldExpression as? Sibling {
+				return Literal(old.apply(row, foreign: nil, inputValue: nil))
 			}
-			else if let old = oldExpression as? QBEForeignExpression {
-				return QBESiblingExpression(columnName: old.columnName)
+			else if let old = oldExpression as? Foreign {
+				return Sibling(columnName: old.columnName)
 			}
 			else {
 				return oldExpression
@@ -749,16 +748,16 @@ extension QBEExpression {
 	
 	/** Returns a version of this expression where all foreign references have been replaced by sibling references. The
 	expression is not allowed to contain sibling references (in wich case this function will return nil) */
-	final func expressionForForeignFiltering() -> QBEExpression? {
+	final func expressionForForeignFiltering() -> Expression? {
 		var error = false
 		
-		let result = visit { (oldExpression) -> (QBEExpression) in
-			if  oldExpression is QBESiblingExpression {
+		let result = visit { (oldExpression) -> (Expression) in
+			if  oldExpression is Sibling {
 				error = true
 				return oldExpression
 			}
-			else if let old = oldExpression as? QBEForeignExpression {
-				return QBESiblingExpression(columnName: old.columnName)
+			else if let old = oldExpression as? Foreign {
+				return Sibling(columnName: old.columnName)
 			}
 			else {
 				return oldExpression
@@ -771,45 +770,45 @@ extension QBEExpression {
 		return result
 	}
 	
-	/** Returns this expression with all occurences of QBEIdentityExpression replaced with the given new expression. */
-	public final func expressionReplacingIdentityReferencesWith(newExpression: QBEExpression) -> QBEExpression {
+	/** Returns this expression with all occurences of Identity replaced with the given new expression. */
+	public final func expressionReplacingIdentityReferencesWith(newExpression: Expression) -> Expression {
 		return visit { (oldExpression) in
-			if oldExpression is QBEIdentityExpression {
+			if oldExpression is Identity {
 				return newExpression
 			}
 			return oldExpression
 		}
 	}
 
-	public var siblingDependencies: Set<QBEColumn> {
-		var deps: Set<QBEColumn> = []
+	public var siblingDependencies: Set<Column> {
+		var deps: Set<Column> = []
 
 		visit { expression -> () in
-			if let ex = expression as? QBESiblingExpression {
+			if let ex = expression as? Sibling {
 				deps.insert(ex.columnName)
 			}
 		}
 		return deps
 	}
 	
-	/** Returns whether this expression depends on sibling columns (e.g. contains a QBESiblingExpression somewhere in 
+	/** Returns whether this expression depends on sibling columns (e.g. contains a Sibling somewhere in 
 	its tree). */
 	public var dependsOnSiblings: Bool { get {
 		var depends = false
 		visit { (expression) -> () in
-			if expression is QBESiblingExpression {
+			if expression is Sibling {
 				depends = true
 			}
 		}
 		return depends
 	} }
 
-	/** Returns whether this expression depends on foreign columns (e.g. contains a QBEForeignExpression somewhere in
+	/** Returns whether this expression depends on foreign columns (e.g. contains a Foreign somewhere in
 	its tree). */
 	public var dependsOnForeigns: Bool { get {
 		var depends = false
 		visit { (expression) -> () in
-			if expression is QBEForeignExpression {
+			if expression is Foreign {
 				depends = true
 			}
 		}

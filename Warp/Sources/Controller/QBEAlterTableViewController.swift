@@ -8,10 +8,10 @@ extension RangeReplaceableCollectionType where Index : Comparable {
 }
 
 protocol QBEAlterTableViewDelegate: NSObjectProtocol {
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable: QBEMutableData?)
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable: MutableData?)
 }
 
-class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableViewDataSource, NSTableViewDelegate, NSUserInterfaceValidations {
+class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDataSource, NSTableViewDelegate, NSUserInterfaceValidations {
 	@IBOutlet var tableNameField: NSTextField!
 	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var progressLabel: NSTextField!
@@ -24,11 +24,11 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 	@IBOutlet var tableView: NSTableView!
 
 	weak var delegate: QBEAlterTableViewDelegate? = nil
-	var definition: QBEDataDefinition = QBEDataDefinition(columnNames: [])
-	var warehouse: QBEDataWarehouse? = nil
-	var mutableData: QBEMutableData? = nil
+	var definition: DataDefinition = DataDefinition(columnNames: [])
+	var warehouse: Warehouse? = nil
+	var mutableData: MutableData? = nil
 	var warehouseName: String? = nil
-	var createJob: QBEJob? = nil
+	var createJob: Job? = nil
 
 	var isAltering: Bool { return mutableData != nil }
 
@@ -43,7 +43,7 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 	@IBAction func addColumn(sender: NSObject) {
 		var i = 1
 		while true {
-			let newName = QBEColumn(String(format: NSLocalizedString("Column_%d", comment: ""), self.definition.columnNames.count + i))
+			let newName = Column(String(format: NSLocalizedString("Column_%d", comment: ""), self.definition.columnNames.count + i))
 			if !self.definition.columnNames.contains(newName) {
 				self.definition.columnNames.append(newName)
 				self.tableView.reloadData()
@@ -98,7 +98,7 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 		if let tc = tableColumn {
 			switch tc.identifier {
 			case "columnName":
-				let col = QBEColumn(object as! String)
+				let col = Column(object as! String)
 				if !self.definition.columnNames.contains(col) {
 					return self.definition.columnNames[row] = col
 				}
@@ -133,14 +133,14 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 		assert(self.createJob == nil, "Cannot start two create table jobs at the same time")
 
 		if let md = self.mutableData {
-			let mutation = QBEDataMutation.Alter(self.definition)
+			let mutation = DataMutation.Alter(self.definition)
 			if md.canPerformMutation(mutation) {
-				self.createJob = QBEJob(.UserInitiated)
+				self.createJob = Job(.UserInitiated)
 				self.updateView()
 				self.progressView.startAnimation(sender)
 
 				md.performMutation(mutation, job: self.createJob!) { result in
-					QBEAsyncMain {
+					asyncMain {
 						self.createJob = nil
 						self.updateView()
 						self.progressView.stopAnimation(sender)
@@ -166,14 +166,14 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 			if tableName.isEmpty && dwh.hasNamedTables {
 				return
 			}
-			let mutation = QBEWarehouseMutation.Create(self.tableNameField.stringValue, QBERasterData(data: [], columnNames: self.definition.columnNames))
+			let mutation = WarehouseMutation.Create(self.tableNameField.stringValue, RasterData(data: [], columnNames: self.definition.columnNames))
 
 			if dwh.canPerformMutation(mutation) {
-				self.createJob = QBEJob(.UserInitiated)
+				self.createJob = Job(.UserInitiated)
 				self.updateView()
 				self.progressView.startAnimation(sender)
 				dwh.performMutation(mutation, job: self.createJob!, callback: { (result) -> () in
-					QBEAsyncMain {
+					asyncMain {
 						self.createJob = nil
 						self.progressView.stopAnimation(sender)
 
@@ -213,7 +213,7 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 	}
 
 	func updateView() {
-		QBEAssertMainThread()
+		assertMainThread()
 
 		let working = createJob != nil
 		let needTableName = (self.warehouse?.hasNamedTables ?? true)
@@ -253,8 +253,8 @@ class QBEAlterTableViewController: NSViewController, QBEJobDelegate, NSTableView
 	override func viewWillAppear() {
 		// Are we going to create a table? Then check if the pasteboard has a table definition for us we can propose
 		if self.definition.columnNames.isEmpty && (self.warehouse?.hasFixedColumns ?? false) {
-			let pb = NSPasteboard(name: QBEDataDefinition.pasteboardName)
-			if let data = pb.dataForType(QBEDataDefinition.pasteboardName), let def = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEDataDefinition {
+			let pb = NSPasteboard(name: DataDefinition.pasteboardName)
+			if let data = pb.dataForType(DataDefinition.pasteboardName), let def = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? DataDefinition {
 				self.definition = def
 			}
 		}

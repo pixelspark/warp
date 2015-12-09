@@ -25,8 +25,8 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 		updateView()
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: QBEMutableData?) {
-		if let s = table as? QBESQLMutableData {
+	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: MutableData?) {
+		if let s = table as? SQLMutableData {
 			self.step.tableName = s.tableName
 			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
 			self.updateView()
@@ -71,15 +71,15 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 		}
 	}
 
-	private var checkConnectionJob: QBEJob? = nil { willSet {
+	private var checkConnectionJob: Job? = nil { willSet {
 		if let o = checkConnectionJob {
 			o.cancel()
 		}
 	} }
 
 	private func updateView() {
-		QBEAssertMainThread()
-		checkConnectionJob = QBEJob(.UserInitiated)
+		assertMainThread()
+		checkConnectionJob = Job(.UserInitiated)
 
 		self.userField?.stringValue = step.user ?? ""
 		self.passwordField?.stringValue = step.password.stringValue ?? ""
@@ -99,7 +99,7 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 				switch database.connect() {
 				case .Success(let con):
 					con.serverInformation({ (fallibleInfo) -> () in
-						QBEAsyncMain {
+						asyncMain {
 							self.infoProgress?.stopAnimation(nil)
 							switch fallibleInfo {
 							case .Success(let v):
@@ -119,7 +119,7 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 					})
 
 				case .Failure(let e):
-					QBEAsyncMain {
+					asyncMain {
 						self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
 						self.infoIcon?.image = NSImage(named: "SadIcon")
 						self.infoProgress?.hidden = true
