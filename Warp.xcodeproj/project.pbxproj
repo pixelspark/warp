@@ -153,6 +153,7 @@
 		65A176931B8B9769004D4A21 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176911B8B9769004D4A21 /* dbfopen.c */; };
 		65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176991B8B9AC0004D4A21 /* safileio.c */; };
 		65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A526B91B09BFDB00CCF3E3 /* libpq.a */; };
+		65B7F9691C31E37D00A55972 /* QBEJobViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65B7F96B1C31E37D00A55972 /* QBEJobViewController.xib */; };
 		65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -523,6 +524,8 @@
 		65A52BA31B0A665200CCF3E3 /* pg_config_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pg_config_ext.h; sourceTree = "<group>"; };
 		65A52BA41B0A665200CCF3E3 /* postgres_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = postgres_ext.h; sourceTree = "<group>"; };
 		65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
+		65B7F96A1C31E37D00A55972 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEJobViewController.xib; sourceTree = "<group>"; };
+		65B7F96C1C31E37F00A55972 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEJobViewController.strings; sourceTree = "<group>"; };
 		65E3C2EC1A062E5E007BB3C8 /* Warp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E3C2FF1A062E5E007BB3C8 /* WarpTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WarpTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -877,6 +880,7 @@
 				6583F0231C1475E700AE6C00 /* QBESQLiteSourceStepView.strings */,
 				6583EFDE1C1475D900AE6C00 /* QBESQLiteSourceStepView.xib */,
 				6583F0251C1475E700AE6C00 /* QBEStepsItem.strings */,
+				65B7F96B1C31E37D00A55972 /* QBEJobViewController.xib */,
 				6583EFE01C1475D900AE6C00 /* QBEStepsItem.xib */,
 				6583EFFE1C1475DF00AE6C00 /* Tour.strings */,
 				6583EFE21C1475D900AE6C00 /* Tour.xcassets */,
@@ -1162,6 +1166,7 @@
 				6583F0341C1475E700AE6C00 /* QBERenameStepView.strings in Resources */,
 				6583EFE41C1475D900AE6C00 /* Images.xcassets in Resources */,
 				6583EFE51C1475D900AE6C00 /* Localizable.strings in Resources */,
+				65B7F9691C31E37D00A55972 /* QBEJobViewController.xib in Resources */,
 				6583F02D1C1475E700AE6C00 /* QBECSVStepView.strings in Resources */,
 				6583EFF11C1475D900AE6C00 /* QBEPivotStepView.xib in Resources */,
 				6583F0321C1475E700AE6C00 /* QBEPostgresStepView.strings in Resources */,
@@ -1691,6 +1696,16 @@
 			);
 			name = QBEStepsItem.strings;
 			sourceTree = "<group>";
+		};
+		65B7F96B1C31E37D00A55972 /* QBEJobViewController.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				65B7F96A1C31E37D00A55972 /* Base */,
+				65B7F96C1C31E37F00A55972 /* nl */,
+			);
+			name = QBEJobViewController.xib;
+			path = Warp;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXVariantGroup section */
 

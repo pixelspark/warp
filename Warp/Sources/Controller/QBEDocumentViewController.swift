@@ -498,6 +498,9 @@ import WarpCore
 		if colset.count == 1 {
 			if let sourceChainController = dc.parentViewController as? QBEChainViewController, let step = sourceChainController.chain?.head {
 				let job = Job(.UserInitiated)
+				let jobProgressView = QBEJobViewController(job: job, description: String(format: NSLocalizedString("Analyzing %d column(s)...", comment: ""), colset.count))!
+				self.presentViewControllerAsSheet(jobProgressView)
+
 				step.fullData(job) { result in
 					switch result {
 					case .Success(let data):
@@ -509,6 +512,7 @@ import WarpCore
 								let chain = QBEChain(head: QBERasterStep(raster: raster))
 								let tablet = QBETablet(chain: chain)
 								asyncMain {
+									jobProgressView.dismissController(nil)
 									self.addTablet(tablet, atLocation: nil, undo: true)
 
 									let joinStep = QBEJoinStep(previous: nil)

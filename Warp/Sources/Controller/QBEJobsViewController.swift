@@ -1,6 +1,51 @@
 import Foundation
 import WarpCore
 
+class QBEJobViewController: NSViewController, JobDelegate {
+	private var job: Job
+	var jobDescription: String
+	@IBOutlet var descriptionLabel: NSTextField!
+	@IBOutlet var progressIndicator: NSProgressIndicator!
+
+	init?(job: Job, description: String) {
+		self.job = job
+		self.jobDescription = description
+		super.init(nibName: "QBEJobViewController", bundle: nil)
+		job.addObserver(self)
+	}
+
+	required init?(coder: NSCoder) {
+		fatalError("Not implemented")
+	}
+
+	override func viewWillAppear() {
+		self.progressIndicator.startAnimation(nil)
+		self.progressIndicator.indeterminate = true
+		self.update()
+	}
+
+	override func viewWillDisappear() {
+		self.progressIndicator.stopAnimation(nil)
+	}
+
+	@IBAction func cancel(sender: NSObject) {
+		self.job.cancel()
+		self.dismissController(sender)
+	}
+
+	private func update() {
+		self.descriptionLabel?.stringValue = jobDescription
+		self.progressIndicator.indeterminate = false
+		self.progressIndicator.doubleValue = job.progress
+	}
+
+	func job(job: AnyObject, didProgress: Double) {
+		asyncMain {
+			self.update()
+		}
+	}
+}
+
 class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, JobsManagerDelegate {
 	@IBOutlet var tableView: NSTableView!
 	var jobs: [QBEJobsManager.JobInfo] = []
