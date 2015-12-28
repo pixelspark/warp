@@ -8,79 +8,106 @@ internal class QBEFilterCell: NSButtonCell {
 	var active: Bool = false
 	
 	private var cached: [Int]? = nil
+	private var cacheJob: Job? = nil
 	
 	init(raster: Raster, column: Column) {
 		self.raster = raster
 		self.column = column
 		super.init(textCell: "")
 	}
+
+	deinit {
+		cacheJob?.cancel()
+	}
 	
 	required init?(coder aDecoder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
+
+	private func numberOfStripes(cellFrame: NSRect) -> Int {
+		let stripeFrame = CGRectInset(cellFrame, 2, 6)
+		return Int(stripeFrame.size.width) / 8
+	}
 	
 	override func drawWithFrame(cellFrame: NSRect, inView controlView: NSView) {
-		// Calculate the 'bar code' of this column
-		let stripeFrame = CGRectInset(cellFrame, 2, 6)
-		let stripes = Int(stripeFrame.size.width) / 8
-		
-		let values: [Int]
+		active ? NSColor.selectedMenuItemColor().set() : NSColor.windowBackgroundColor().set()
+		NSRectFill(cellFrame)
+
+		// Calculate the 'bar code' of this colum
+		let stripes = numberOfStripes(cellFrame)
+
 		if let c = cached where c.count == stripes {
-			values = c
+			self.drawWithFrame(cellFrame, inView: controlView, values: c)
 		}
 		else {
-			var v = Array<Int>(count: stripes, repeatedValue: 0)
-			if let index = raster.indexOfColumnWithName(self.column) {
-				for row in raster.raster {
-					if index < row.count {
-						let value = row[index]
-						let hash: Int
-						if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
-							hash = Int(fmod(abs(i), Double(Int.max-1)))
+			let column = self.column
+			let raster = self.raster
+			cacheJob?.cancel()
+			let job = Job(.Background)
+			cacheJob = job
+			job.async { [weak self] in
+				var v = Array<Int>(count: stripes, repeatedValue: 0)
+				if let index = raster.indexOfColumnWithName(column) {
+					for row in raster.raster {
+						if job.cancelled {
+							return
 						}
-						else {
-							hash = abs(value.stringValue?.hashValue ?? 0)
+
+						if index < row.count {
+							let value = row[index]
+							let hash: Int
+							if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
+								hash = Int(fmod(abs(i), Double(Int.max-1)))
+							}
+							else {
+								hash = abs(value.stringValue?.hashValue ?? 0)
+							}
+							v[hash % stripes]++
 						}
-						v[hash % stripes]++
+					}
+				}
+				asyncMain {
+					if let s = self where !job.cancelled {
+						s.cached = v
+						controlView.setNeedsDisplayInRect(cellFrame)
 					}
 				}
 			}
-			cached = v
-			values = v
 		}
-		
+	}
+
+	private func drawWithFrame(cellFrame: NSRect, inView controlView: NSView, values: [Int]) {
 		// How many stripes are non-zero?
 		var nonZeroValues: [Int] = []
 		var largestStripe: Int = 0
+		let stripes = self.numberOfStripes(cellFrame)
 		for i in 0..<stripes {
 			if values[i] > 0 {
 				nonZeroValues.append(values[i])
 			}
-			
+
 			if values[i] > largestStripe {
 				largestStripe = values[i]
 			}
 		}
-		
-		nonZeroValues.sortInPlace({return $0 > $1})
-		
-		active ? NSColor.selectedMenuItemColor().set() : NSColor.windowBackgroundColor().set()
-		NSRectFill(cellFrame)
-		
+
+		nonZeroValues.sortInPlace({return $0 < $1})
+
 		// Draw the bar code
+		let stripeFrame = CGRectInset(cellFrame, 2, 6)
 		let nonZeroStripes = nonZeroValues.count
 		let stripeWidth = stripeFrame.size.width / CGFloat(nonZeroStripes)
-		let stripeMargin = CGFloat(2)
-		
+		let stripeMargin = CGFloat(1)
+
 		for i in 0..<nonZeroStripes {
 			let stripeTotal = nonZeroValues[i]
-			
+
 			if stripeTotal > 0 {
 				let scaled = CGFloat(stripeTotal) / CGFloat(largestStripe)
 				let saturation = selected ? CGFloat(nonZeroStripes) / CGFloat(stripes) : 0.0
 				let alpha = selected ? min(max(0.3,scaled), 0.7) : 0.3
 				let stripeColor = NSColor(calibratedHue: CGFloat(i) / CGFloat(nonZeroStripes), saturation: saturation, brightness: 0.5, alpha: alpha)
-				
+
 				let stripeHeight = stripeFrame.size.height * scaled
 				let stripeVerticalMargin = stripeFrame.size.height * (1.0-scaled)
 				let stripeRect = CGRectMake(stripeFrame.origin.x + CGFloat(i) * stripeWidth, stripeFrame.origin.y + stripeVerticalMargin / 2.0, stripeWidth - stripeMargin, stripeHeight)

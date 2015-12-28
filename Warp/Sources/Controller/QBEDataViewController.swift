@@ -21,7 +21,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	private var textCell: MBTableGridCell!
 	private var numberCell: MBTableGridCell!
 	private let DefaultColumnWidth = 100.0
-	
+	private var columnCells: [NSCell]? = nil // Holds templates for the column cells
+	private var footerCells: [UInt: QBEFilterCell] = [:] // Holds cached instances of footer cells
+
 	deinit {
 		self.tableView?.dataSource = nil
 		self.tableView?.delegate = nil
@@ -49,6 +51,10 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	var raster: Raster? {
 		didSet {
+			assertMainThread()
+
+			columnCells = nil
+			footerCells.removeAll(keepCapacity: true)
 			if raster != nil {
 				errorMessage = nil
 				calculating = false
@@ -198,29 +204,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt) -> NSCell! {
-		// Check the first row to see what kind of value is in this column
-		if let r = raster where r.rowCount > 0 && r.columnCount > Int(columnIndex) {
-			var prototypeValue = r[0, Int(columnIndex)]
-			
-			// Find the first non-invalid, non-empty value
-			var row = 0
-			while (!prototypeValue.isValid || prototypeValue.isEmpty) && row < r.rowCount {
-				prototypeValue = r[row, Int(columnIndex)]
-				row++
-			}
-			
-			switch prototypeValue {
-				case .IntValue(_):
-					return numberCell
-					
-				case .DoubleValue(_):
-					return numberCell
-					
-				default:
-					return textCell
-			}
+		if let ct = self.columnCells where Int(columnIndex) < ct.count {
+			return ct[Int(columnIndex)]
 		}
-		
 		return textCell
 	}
 	
@@ -277,6 +263,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		
 		if let tv = tableView {
 			if let r = raster {
+				// Update column sizes
 				for i in 0..<r.columnCount {
 					let cn = r.columnNames[i]
 					if let w = QBESettings.sharedInstance.defaultWidthForColumn(cn) where w > 0 {
@@ -284,6 +271,36 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 					}
 					else {
 						tv.resizeColumnWithIndex(UInt(i), width: Float(self.DefaultColumnWidth))
+					}
+				}
+
+				// Cache cell types: check the first row to see what kind of value is in this column
+				if columnCells == nil {
+					columnCells = []
+					for columnIndex in 0..<r.columnCount {
+						if r.rowCount > 0 && r.columnCount > Int(columnIndex) {
+							var prototypeValue = r[0, Int(columnIndex)]
+
+							// Find the first non-invalid, non-empty value
+							var row = 0
+							while (!prototypeValue.isValid || prototypeValue.isEmpty) && row < r.rowCount {
+								prototypeValue = r[row, Int(columnIndex)]
+								row++
+							}
+
+							let cell: NSCell
+							switch prototypeValue {
+							case .IntValue(_):
+								cell = numberCell
+
+							case .DoubleValue(_):
+								cell = numberCell
+
+							default:
+								cell = textCell
+							}
+							columnCells!.append(cell)
+						}
 					}
 				}
 			}
@@ -304,9 +321,21 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, footerCellForColumn columnIndex: UInt) -> NSCell! {
-		if let r = raster where Int(columnIndex) < r.columnNames.count {
+		assertMainThread()
+
+		if let r = raster where Int(columnIndex) >= 0 && Int(columnIndex) < r.columnNames.count {
 			let cn = r.columnNames[Int(columnIndex)]
-			let filterCell = QBEFilterCell(raster: r, column: cn)
+
+			// If we have a cached instance, use that
+			let filterCell: QBEFilterCell
+			if let fc = footerCells[columnIndex] {
+				filterCell = fc
+			}
+			else {
+				filterCell = QBEFilterCell(raster: r, column: cn)
+				footerCells[columnIndex] = filterCell
+			}
+
 			filterCell.active = delegate?.dataView(self, hasFilterForColumn: cn) ?? false
 			filterCell.selected = aTableGrid.selectedColumnIndexes.containsIndex(Int(columnIndex))
 			return filterCell
