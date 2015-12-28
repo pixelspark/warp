@@ -636,7 +636,7 @@ class QBERethinkMutableData: MutableData {
 		case .Truncate, .Drop, .Import(_,_), .Alter(_):
 			return true
 
-		case .Update(_,_,_,_), .Edit(_,_,_,_), .Insert(row: _):
+		case .Update(_,_,_,_), .Edit(_,_,_,_), .Insert(row: _), .Rename(_):
 			return false
 		}
 	}
@@ -664,9 +664,6 @@ class QBERethinkMutableData: MutableData {
 				case .Update(key: _, column: _, old: _, new: _):
 					callback(.Failure("Not implemented"))
 					return
-
-				case .Edit(_,_,_,_), .Insert(row: _):
-					fatalError("Not supported")
 
 				case .Truncate:
 					q = R.db(self.databaseName).table(self.tableName).delete()
@@ -696,6 +693,9 @@ class QBERethinkMutableData: MutableData {
 						}
 						return
 					}
+
+					case .Edit(_,_,_,_), .Insert(row: _), .Rename(_):
+						fatalError("Not supported")
 				}
 
 				q.run(connection, callback: { (response) -> () in

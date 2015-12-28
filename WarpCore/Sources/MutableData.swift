@@ -108,6 +108,9 @@ public enum DataMutation {
 	does not exist, create the table. */
 	case Alter(DataDefinition)
 
+	/** Rename the columns according to the given mapping. Column names must be unique after performing this operation. */
+	case Rename([Column: Column])
+
 	/** For rows that have the all values indicated in the key dictionary for each key column, change the value in the 
 	indicated column to the `new` value if it matches the `old` value. */
 	case Update(key: [Column: Value], column: Column, old: Value, new: Value)

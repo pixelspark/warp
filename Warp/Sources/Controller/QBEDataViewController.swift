@@ -9,9 +9,10 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 	func dataView(view: QBEDataViewController, filterControllerForColumn: Column, callback: (NSViewController) -> ())
 	func dataView(view: QBEDataViewController, addValue: Value, inRow: Int?, column: Int?, callback: (Bool) -> ())
 	func dataView(view: QBEDataViewController, hasFilterForColumn: Column) -> Bool
+	func dataView(view: QBEDataViewController, didRenameColumn: Column, to: Column)
 }
 
-class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate {
+class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, QBEColumnViewDelegate {
 	var tableView: MBTableGrid?
 	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var columnContextMenu: NSMenu!
@@ -343,8 +344,22 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return nil
 	}
 
+	func columnViewController(controller: QBEColumnViewController, didRenameColumn: Column, to: Column) {
+		self.delegate?.dataView(self, didRenameColumn: didRenameColumn, to: to)
+	}
+
+	private func renameColumnPopup(columnIndex: UInt) {
+		if let popover = self.storyboard?.instantiateControllerWithIdentifier("columnPopup") as? QBEColumnViewController,
+			let rect = self.tableView?.headerRectOfColumn(columnIndex),
+			let r = raster where r.columnCount > Int(columnIndex) {
+				popover.column = r.columnNames[Int(columnIndex)]
+				popover.delegate = self
+				self.presentViewController(popover, asPopoverRelativeToRect: rect, ofView: self.tableView!, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
+		}
+	}
+
 	func tableGrid(aTableGrid: MBTableGrid!, didDoubleClickColumn columnIndex: UInt) {
-		showFilterPopup(Int(columnIndex), atFooter: false)
+		self.renameColumnPopup(columnIndex)
 	}
 
 	func tableGrid(aTableGrid: MBTableGrid!, footerCellClicked cell: NSCell!, forColumn columnIndex: UInt, withEvent theEvent: NSEvent!) {
@@ -541,6 +556,36 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 						row++
 					}
 				}
+			}
+		}
+	}
+}
+
+protocol QBEColumnViewDelegate: NSObjectProtocol {
+	func columnViewController(controller: QBEColumnViewController, didRenameColumn: Column, to: Column)
+}
+
+class QBEColumnViewController: NSViewController {
+	weak var delegate: QBEColumnViewDelegate? = nil
+	var column: Column? = nil
+
+	@IBOutlet private var nameField: NSTextField!
+
+	override func viewWillAppear() {
+		self.update()
+	}
+
+	private func update() {
+		self.nameField?.stringValue = column?.name ?? ""
+	}
+
+	@IBAction func rename(sender: NSObject) {
+		if let c = self.column {
+			let newName = Column(nameField.stringValue)
+			if c != newName {
+				self.delegate?.columnViewController(self, didRenameColumn:  c, to: newName)
+				self.column = newName
+				self.dismissController(sender)
 			}
 		}
 	}

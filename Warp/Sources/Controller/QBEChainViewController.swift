@@ -776,6 +776,47 @@ internal enum QBEEditingMode {
 		}
 	}
 
+	func dataView(view: QBEDataViewController, didRenameColumn: Column, to: Column) {
+		switch self.editingMode {
+		case .NotEditing:
+			// Make a suggestion
+			suggestSteps([
+				QBERenameStep(previous: self.currentStep, renames: [didRenameColumn: to])
+			])
+			break
+
+		case .Editing(_):
+			// Actually edit
+			let errorText = String(format: NSLocalizedString("Could not rename column '%@' to '%@'", comment: ""), didRenameColumn.name, to.name)
+			if let md = self.currentStep?.mutableData {
+				let mutation = DataMutation.Rename([didRenameColumn: to])
+				let job = Job(.UserInitiated)
+				if md.canPerformMutation(mutation) {
+					md.performMutation(mutation, job: job, callback: { result in
+						switch result {
+						case .Success(_):
+							asyncMain {
+								self.calculate()
+							}
+
+						case .Failure(let e):
+							asyncMain {
+								NSAlert.showSimpleAlert(errorText, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+							}
+						}
+					})
+				}
+				else {
+					NSAlert.showSimpleAlert(errorText, infoText: NSLocalizedString("The columns of this data set cannot be renamed.", comment: ""), style: .CriticalAlertStyle, window: self.view.window)
+				}
+			}
+			break
+
+		case .EnablingEditing:
+			break
+		}
+	}
+
 	func dataView(view: QBEDataViewController, didChangeValue oldValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool {
 		suggestions?.cancel()
 

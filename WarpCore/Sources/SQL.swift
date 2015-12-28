@@ -444,7 +444,7 @@ public class SQLMutableData: MutableData {
 						case .Update(key: _, column: _, old: _, new: _):
 							callback(.Failure("Not implemented"))
 
-						case .Edit(_,_,_,_), .Insert(row: _):
+						case .Edit(_,_,_,_), .Insert(row: _), .Rename(_):
 							fatalError("Not supported")
 						}
 
@@ -460,7 +460,7 @@ public class SQLMutableData: MutableData {
 		case .Truncate, .Drop, .Import(_, _), .Insert(_):
 			return true
 
-		case .Update(_,_,_,_), .Edit(_,_,_,_):
+		case .Update(_,_,_,_), .Edit(_,_,_,_), .Rename(_):
 			return false
 
 		case .Alter(_):

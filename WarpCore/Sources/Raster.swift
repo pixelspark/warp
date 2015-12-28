@@ -1191,7 +1191,7 @@ public class RasterMutableData: MutableData {
 		}
 
 		switch mutation {
-		case .Truncate, .Alter(_), .Import(_, _), .Update(_,_,_,_), .Edit(row: _, column: _, old: _, new: _), .Insert(_):
+		case .Truncate, .Alter(_), .Import(_, _), .Update(_,_,_,_), .Edit(row: _, column: _, old: _, new: _), .Insert(_), .Rename(_):
 			return true
 
 		case .Drop:
@@ -1203,6 +1203,15 @@ public class RasterMutableData: MutableData {
 		switch mutation {
 		case .Truncate:
 			self.raster.raster.removeAll()
+			callback(.Success())
+
+		case .Rename(let mapping):
+			self.raster.columnNames = self.raster.columnNames.map { cn -> Column in
+				if let newName = mapping[cn] {
+					return newName
+				}
+				return cn
+			}
 			callback(.Success())
 
 		case .Alter(let def):
