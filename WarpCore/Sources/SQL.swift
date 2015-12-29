@@ -417,6 +417,29 @@ public class SQLMutableData: MutableData {
 		}
 	}
 
+	private func performUpdate(connection: SQLConnection, key: [Column: Value], column: Column, old: Value, new:Value, job: Job, callback: (Fallible<Void>) -> ()) {
+		var wheres: [Expression] = []
+		for (column, value) in key {
+			wheres.append(Comparison(first: Sibling(columnName: column), second: Literal(value), type: .Equal))
+		}
+
+		// Only update if the old value matches what we last saw
+		wheres.append(Comparison(first: Sibling(columnName: column), second: Literal(old), type: .Equal))
+
+		let whereExpression = Call(arguments: wheres, type: .And)
+		guard let whereSQL = self.database.dialect.expressionToSQL(whereExpression, alias: self.tableName, foreignAlias: nil, inputValue: nil) else { return callback(.Failure("Selection cannot be written in SQL")) }
+
+		// Write assignment
+		let targetIdentifier = self.database.dialect.columnIdentifier(column, table: nil, schema: nil, database: nil)
+		guard let valueSQL = self.database.dialect.expressionToSQL(Literal(new), alias: self.tableName, foreignAlias: nil, inputValue: nil) else {
+			return callback(.Failure("Assignment cannot be written as SQL"))
+		}
+		let assignSQL = "\(targetIdentifier) = \(valueSQL)"
+
+		let query = "UPDATE \(self.tableIdentifier) SET \(assignSQL) WHERE \(whereSQL)"
+		connection.run([query], job: job, callback: callback)
+	}
+
 	public func performMutation(mutation: DataMutation, job: Job, callback: (Fallible<Void>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
@@ -441,8 +464,8 @@ public class SQLMutableData: MutableData {
 						case .Import(data: let data, withMapping: let mapping):
 							self.performInsert(con, data: data, mapping: mapping, job: job, callback: callback)
 
-						case .Update(key: _, column: _, old: _, new: _):
-							callback(.Failure("Not implemented"))
+						case .Update(key: let k, column: let c, old: let o, new: let n):
+							self.performUpdate(con, key:k, column: c, old: o, new: n, job: job, callback: callback)
 
 						case .Edit(_,_,_,_), .Insert(row: _), .Rename(_):
 							fatalError("Not supported")
@@ -457,10 +480,10 @@ public class SQLMutableData: MutableData {
 
 	public func canPerformMutation(mutation: DataMutation) -> Bool {
 		switch mutation {
-		case .Truncate, .Drop, .Import(_, _), .Insert(_):
+		case .Truncate, .Drop, .Import(_, _), .Insert(_), .Update(_,_,_,_):
 			return true
 
-		case .Update(_,_,_,_), .Edit(_,_,_,_), .Rename(_):
+		case .Edit(_,_,_,_), .Rename(_):
 			return false
 
 		case .Alter(_):

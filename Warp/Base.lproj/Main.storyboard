@@ -2964,7 +2964,7 @@ DQ
                                                     </textFieldCell>
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                 </tableColumn>
-                                                <tableColumn identifier="description" editable="NO" width="295.5" minWidth="40" maxWidth="1000" id="C0G-24-APL">
+                                                <tableColumn identifier="description" editable="NO" width="255.5" minWidth="40" maxWidth="1000" id="C0G-24-APL">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Description">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
