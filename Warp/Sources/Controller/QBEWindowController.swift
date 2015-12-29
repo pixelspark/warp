@@ -16,7 +16,13 @@ internal class QBEWindowController: NSWindowController {
 	}
 
 	internal func update() {
-		let saved = (self.document as? QBEDocument)?.savedAtLeastOnce ?? false
+		let saved: Bool
+		if let doc = self.document as? QBEDocument {
+			saved = doc.savedAtLeastOnce || doc.fileURL != nil
+		}
+		else {
+			saved = false
+		}
 		self.window?.titleVisibility =  saved ? .Visible : .Hidden
 	}
 
