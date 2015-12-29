@@ -12,7 +12,7 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 	func dataView(view: QBEDataViewController, didRenameColumn: Column, to: Column)
 }
 
-class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, QBEColumnViewDelegate {
+class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, QBEColumnViewDelegate, NSUserInterfaceValidations {
 	var tableView: MBTableGrid?
 	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var columnContextMenu: NSMenu!
@@ -318,6 +318,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			item.action() == Selector("keepSelectedColumn:") {
 			return true
 		}
+		else if item.action() == Selector("renameSelectedColumn:") {
+			if let si = self.tableView?.selectedColumnIndexes.firstIndex where si != NSNotFound {
+				return true
+			}
+			return false
+		}
 		return false
 	}
 	
@@ -346,6 +352,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 
 	func columnViewController(controller: QBEColumnViewController, didRenameColumn: Column, to: Column) {
 		self.delegate?.dataView(self, didRenameColumn: didRenameColumn, to: to)
+	}
+
+	@IBAction func renameSelectedColumn(sender: NSObject) {
+		if let si = self.tableView?.selectedColumnIndexes.firstIndex where si != NSNotFound {
+			self.renameColumnPopup(UInt(si))
+		}
 	}
 
 	private func renameColumnPopup(columnIndex: UInt) {

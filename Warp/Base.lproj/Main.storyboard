@@ -2044,6 +2044,13 @@ CA
                 </viewController>
                 <menu title="Columns" id="ZtX-Re-5cz" userLabel="Columns context menu">
                     <items>
+                        <menuItem title="Rename column" id="tHM-tE-vur">
+                            <modifierMask key="keyEquivalentModifierMask"/>
+                            <connections>
+                                <action selector="renameSelectedColumn:" target="heg-Gg-TM4" id="gHL-e9-5DO"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem isSeparatorItem="YES" id="9rq-Cr-6RN"/>
                         <menuItem title="Add new column to the left" keyEquivalent="" id="sMD-YK-zsD">
                             <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                             <connections>
