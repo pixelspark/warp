@@ -47,6 +47,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 
 		if !QBESettings.sharedInstance.once("tour", callback: { () -> () in
 			let ctr = storyboard.instantiateControllerWithIdentifier("tour") as! NSWindowController
+			ctr.window?.titleVisibility = .Hidden
 			self.addWindowController(ctr)
 		}) {
 			let windowController = storyboard.instantiateControllerWithIdentifier("Document Window Controller") as! NSWindowController
