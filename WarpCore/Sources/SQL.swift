@@ -1246,8 +1246,9 @@ public class SQLData: NSObject, Data {
 	}
 	
 	public func unique(expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
-		if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: sql.aliasFor(.Select), foreignAlias: nil, inputValue: nil) {
-			let data = apply(self.sql.sqlSelect("DISTINCT \(expressionString) AS _value"), resultingColumns: ["_value"])
+		let q = self.sql.asSubquery
+		if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: q.aliasFor(.Select), foreignAlias: nil, inputValue: nil) {
+			let data = apply(q.sqlSelect("DISTINCT \(expressionString) AS _value"), resultingColumns: ["_value"])
 			
 			data.raster(job) { (raster) -> () in
 				callback(raster.use { r in
