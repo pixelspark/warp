@@ -830,6 +830,50 @@ class QBESQLiteDataWarehouse: SQLWarehouse {
 
 class QBESQLiteMutableData: SQLMutableData {
 	override var warehouse: Warehouse { return QBESQLiteDataWarehouse(database: self.database, schemaName: self.schemaName) }
+
+	override func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+		let s = self.database as! QBESQLiteDatabase
+		s.connect { result in
+			switch result {
+			case .Success(let con):
+				let c = con as! QBESQLiteConnection
+				switch c.query("PRAGMA table_info(\(s.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: nil)))") {
+				case .Success(let result):
+					guard let nameIndex = result.columnNames.indexOf(Column("name")) else { callback(.Failure("No name column")); return }
+					guard let pkIndex = result.columnNames.indexOf(Column("pk")) else { callback(.Failure("No pk column")); return }
+
+					var identifiers = Set<Column>()
+					for row in result.sequence() {
+						switch row {
+						case .Success(let r):
+							if r[pkIndex] == Value(1) {
+								// This column is part of the primary key
+								if let name = r[nameIndex].stringValue {
+									identifiers.insert(Column(name))
+								}
+								else {
+									callback(.Failure("Invalid column name"))
+									return
+								}
+							}
+
+						case .Failure(let e):
+							callback(.Failure(e))
+							return
+						}
+					}
+
+					callback(.Success(identifiers))
+
+				case .Failure(let e):
+					callback(.Failure(e))
+				}
+
+			case .Failure(let e):
+				callback(.Failure(e))
+			}
+		}
+	}
 }
 
 class QBESQLiteSourceStep: QBEStep {
