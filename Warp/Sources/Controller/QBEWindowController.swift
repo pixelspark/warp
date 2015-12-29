@@ -10,8 +10,18 @@ internal class QBEWindowController: NSWindowController {
 		didSet {
 			if let qbeDocumentViewController = window!.contentViewController as? QBEDocumentViewController {
 				qbeDocumentViewController.document = document as? QBEDocument
+				self.update()
 			}
 		}
+	}
+
+	internal func update() {
+		let saved = (self.document as? QBEDocument)?.savedAtLeastOnce ?? false
+		self.window?.titleVisibility =  saved ? .Visible : .Hidden
+	}
+
+	override func windowDidLoad() {
+		self.update()
 	}
 }
 
