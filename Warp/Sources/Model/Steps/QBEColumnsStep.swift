@@ -92,6 +92,17 @@ class QBEColumnsStep: QBEStep {
 			// This step can ony be a further subset of the columns selected by the prior
 			return QBEStepMerge.Advised(self)
 		}
+		else if let p = prior as? QBEColumnsStep where !p.select && !self.select {
+			// This step removes additional columns after the previous one
+			var newColumns = p.columnNames
+			self.columnNames.forEach { cn in
+				if !newColumns.contains(cn) {
+					newColumns.append(cn)
+				}
+			}
+
+			return QBEStepMerge.Advised(QBEColumnsStep(previous: previous, columnNames: newColumns, select: false))
+		}
 		else if let p = prior as? QBECalculateStep {
 			let contained = columnNames.contains(p.targetColumn)
 			if (select && !contained) || (!select && contained) {
