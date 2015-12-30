@@ -92,7 +92,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 					}
 				}
 			}
-			else if inRow == r.rowCount && inColumn < r.columnCount {
+			else if inRow == r.rowCount && inColumn < r.columnCount && !value.isEmpty {
 				// New row
 				self.delegate?.dataView(self, addValue: value, inRow: nil, column: inColumn) { didAddRow in
 					asyncMain {
@@ -100,12 +100,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 					}
 				}
 			}
-			else if inRow < r.rowCount && inColumn == r.columnCount {
+			else if inRow < r.rowCount && inColumn == r.columnCount && !value.isEmpty {
 				// New column
 				self.delegate?.dataView(self, addValue: value, inRow: inRow, column: nil) { didAddColumn in
 				}
 			}
-			else if inRow == r.rowCount && inColumn == r.columnCount {
+			else if inRow == r.rowCount && inColumn == r.columnCount && !value.isEmpty {
 				// New row and column
 				self.delegate?.dataView(self, addValue: value, inRow: nil, column: nil) { didAddColumn in
 				}
