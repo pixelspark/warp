@@ -147,7 +147,7 @@ import WarpCore
 		}
 	}
 	
-	@objc func addTablet(tablet: QBETablet, undo: Bool, animated: Bool, configureAfterAdding: Bool = false) {
+	@objc func addTablet(tablet: QBETablet, undo: Bool, animated: Bool, callback: (() -> ())? = nil) {
 		self.workspaceView.magnifyView(nil) {
 			// Check if this tablet is also in the document
 			if let d = self.document where tablet.document != self.document {
@@ -167,10 +167,7 @@ import WarpCore
 				
 				self.documentView.addTablet(tabletController, animated: animated) {
 					self.documentView.selectTablet(tablet)
-
-					if configureAfterAdding {
-						self.sentenceEditor?.configure(self)
-					}
+					callback?()
 				}
 			}
 			self.updateView()
@@ -321,7 +318,9 @@ import WarpCore
 					let templateData = NSKeyedArchiver.archivedDataWithRootObject(templateStep)
 					let newStep = NSKeyedUnarchiver.unarchiveObjectWithData(templateData) as? QBEStep
 					let tablet = QBETablet(chain: QBEChain(head: newStep))
-					self.documentView.addTablet(tablet, undo: true, animated: true, configureAfterAdding: true)
+					self.documentView.addTablet(tablet, undo: true, animated: true) {
+						self.documentView.sentenceEditor?.configure(self.documentView)
+					}
 				}
 			}
 		}
@@ -686,7 +685,9 @@ import WarpCore
 		let raster = Raster(data: [], columnNames: [Column.defaultColumnForIndex(0)], readOnly: false)
 		let chain = QBEChain(head: QBERasterStep(raster: raster))
 		let tablet = QBETablet(chain: chain)
-		self.addTablet(tablet, undo: true, animated: true)
+		self.addTablet(tablet, undo: true, animated: true) {
+			self.documentView.selectedTabletController?.startEditing(sender)
+		}
 	}
 
 	@IBAction func addSequencerTablet(sender: NSObject) {
@@ -712,22 +713,30 @@ import WarpCore
 	}
 	
 	@IBAction func addTabletFromPresto(sender: NSObject) {
-		self.addTablet(QBETablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true, configureAfterAdding: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true) {
+			self.sentenceEditor?.configure(self)
+		}
 	}
 	
 	@IBAction func addTabletFromMySQL(sender: NSObject) {
 		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", database: "test", tableName: "test")
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true, configureAfterAdding: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true) {
+			self.sentenceEditor?.configure(self)
+		}
 	}
 
 	@IBAction func addTabletFromRethinkDB(sender: NSObject) {
 		let s = QBERethinkSourceStep(previous: nil)
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true, configureAfterAdding: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true) {
+			self.sentenceEditor?.configure(self)
+		}
 	}
 	
 	@IBAction func addTabletFromPostgres(sender: NSObject) {
 		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", database: "postgres", schemaName: "public", tableName: "")
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true, configureAfterAdding: true)
+		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true) {
+			self.sentenceEditor?.configure(self)
+		}
 	}
 	
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
