@@ -562,6 +562,47 @@ final class QBEMySQLStream: Stream {
 	}
 }
 
+class QBEMySQLMutableData: SQLMutableData {
+	override func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+		let db = self.database as! QBEMySQLDatabase
+		switch db.connect() {
+			case .Success(let connection):
+				let dbn = self.database.dialect.expressionToSQL(Literal(Value(self.database.databaseName ?? "")), alias: "", foreignAlias: nil, inputValue: nil)!
+				let tbn = self.database.dialect.expressionToSQL(Literal(Value(self.tableName)), alias: "", foreignAlias: nil, inputValue: nil)!
+				switch connection.query("SELECT `COLUMN_NAME` FROM `information_schema`.`COLUMNS` WHERE (`TABLE_SCHEMA` = \(dbn)) AND (`TABLE_NAME` = \(tbn)) AND (`COLUMN_KEY` = 'PRI')") {
+				case .Success(let result):
+					var primaryColumns = Set<Column>()
+					for row in result {
+						switch row {
+						case .Success(let r):
+							if let c = r[0].stringValue {
+								primaryColumns.insert(Column(c))
+							}
+							else {
+								return callback(.Failure("Invalid column name received"))
+							}
+
+						case .Failure(let e):
+							return callback(.Failure(e))
+						}
+					}
+
+					if primaryColumns.count == 0 {
+						return callback(.Failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
+					}
+
+					callback(.Success(primaryColumns))
+
+				case .Failure(let e):
+					return callback(.Failure(e))
+			}
+
+			case .Failure(let e):
+				return callback(.Failure(e))
+		}
+	}
+}
+
 class QBEMySQLSourceStep: QBEStep {
 	var tableName: String = ""
 	var host: String = "localhost"
@@ -683,7 +724,7 @@ class QBEMySQLSourceStep: QBEStep {
 
 	override var mutableData: MutableData? { get {
 		if let s = self.database where !self.tableName.isEmpty {
-			return SQLMutableData(database: s, schemaName: nil, tableName: self.tableName)
+			return QBEMySQLMutableData(database: s, schemaName: nil, tableName: self.tableName)
 		}
 		return nil
 	} }
