@@ -294,6 +294,47 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 	}
 }
 
+class QBEPostgresMutableData: SQLMutableData {
+	override func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+		let s = self.database as! QBEPostgresDatabase
+		let tableIdentifier = s.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: nil)
+		let query = "SELECT a.attname AS attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE  i.indrelid = '\(tableIdentifier)'::regclass AND i.indisprimary"
+		switch s.connect() {
+		case .Success(let connection):
+			switch connection.query(query)  {
+			case .Success(let result):
+				var primaryColumns = Set<Column>()
+				for row in result {
+					switch row {
+					case .Success(let r):
+						if let c = r[0].stringValue {
+							primaryColumns.insert(Column(c))
+						}
+						else {
+							return callback(.Failure("Invalid column name received"))
+						}
+
+					case .Failure(let e):
+						return callback(.Failure(e))
+					}
+				}
+
+				if primaryColumns.count == 0 {
+					return callback(.Failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
+				}
+
+				callback(.Success(primaryColumns))
+
+			case .Failure(let e):
+				return callback(.Failure(e))
+			}
+
+		case .Failure(let e):
+			return callback(.Failure(e))
+		}
+	}
+}
+
 class QBEPostgresDatabase: SQLDatabase {
 	private let host: String
 	private let port: Int
@@ -764,7 +805,7 @@ class QBEPostgresSourceStep: QBEStep {
 
 	override var mutableData: MutableData? {
 		if let d = self.database where !tableName.isEmpty && !schemaName.isEmpty {
-			return SQLMutableData(database: d, schemaName: schemaName, tableName: tableName)
+			return QBEPostgresMutableData(database: d, schemaName: schemaName, tableName: tableName)
 		}
 		return nil
 	}
