@@ -144,17 +144,22 @@ class QBEFactory {
 	
 	func stepForReadingFile(atURL: NSURL) -> QBEStep? {
 		do {
+			// Try to find reader by UTI type
 			let type = try NSWorkspace.sharedWorkspace().typeOfFile(atURL.path!)
 			if let creator = fileReaders[type] {
 				return creator(url: atURL)
 			}
 
+			// Try by file extension
 			if let p = atURL.path {
 				let ext = NSString(string: p).pathExtension
 				if let creator = fileReaders[ext] {
 					return creator(url: atURL)
 				}
 			}
+
+			// Just try to load as CSV file
+			return QBECSVSourceStep(url: atURL)
 		}
 		catch { }
 		return nil
