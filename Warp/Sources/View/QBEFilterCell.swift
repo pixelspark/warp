@@ -30,7 +30,7 @@ internal class QBEFilterCell: NSButtonCell {
 	}
 	
 	override func drawWithFrame(cellFrame: NSRect, inView controlView: NSView) {
-		active ? NSColor.selectedMenuItemColor().set() : NSColor.windowBackgroundColor().set()
+		NSColor.windowBackgroundColor().set()
 		NSRectFill(cellFrame)
 
 		// Calculate the 'bar code' of this colum
@@ -104,9 +104,16 @@ internal class QBEFilterCell: NSButtonCell {
 
 			if stripeTotal > 0 {
 				let scaled = CGFloat(stripeTotal) / CGFloat(largestStripe)
-				let saturation = selected ? CGFloat(nonZeroStripes) / CGFloat(stripes) : 0.0
-				let alpha = selected ? min(max(0.3,scaled), 0.7) : 0.3
-				let stripeColor = NSColor(calibratedHue: CGFloat(i) / CGFloat(nonZeroStripes), saturation: saturation, brightness: 0.5, alpha: alpha)
+				let saturation = (selected || active) ? CGFloat(nonZeroStripes) / CGFloat(stripes) : 0.0
+				let alpha = (selected || active) ? min(max(0.3,scaled), 0.7) : 0.3
+
+				let stripeColor: NSColor
+				if active {
+					stripeColor = NSColor(calibratedHue: CGFloat(i) / CGFloat(nonZeroStripes), saturation: saturation, brightness: 0.5, alpha: alpha)
+				}
+				else {
+					stripeColor = NSColor(calibratedWhite: CGFloat(i) / CGFloat(nonZeroStripes), alpha: alpha)
+				}
 
 				let stripeHeight = stripeFrame.size.height * scaled
 				let stripeVerticalMargin = stripeFrame.size.height * (1.0-scaled)
