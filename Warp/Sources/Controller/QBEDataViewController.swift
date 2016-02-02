@@ -31,7 +31,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	var calculating: Bool = false { didSet {
-		update()
+		if calculating != oldValue {
+			update()
+		}
 	} }
 	
 	var progress: Double = 0.0 { didSet {
@@ -39,7 +41,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	} }
 
 	var showNewRowsAndColumns = false { didSet {
-		update()
+		if showNewRowsAndColumns != oldValue {
+			update()
+		}
 	} }
 
 	// When an error message is set, no raster can be set (and vice-versa)
@@ -237,9 +241,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		
 		errorLabel.hidden = calculating || errorMessage == nil
 		errorLabel.stringValue = errorMessage ?? ""
-		
 		tableView?.hidden = errorMessage != nil
-		tableView?.layer?.opacity = (hasNoData || calculating) ? 0.5 : 1.0;
 		
 		progressView?.hidden = !calculating
 		progressView?.indeterminate = progress <= 0.0
@@ -305,6 +307,13 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 					}
 				}
 			}
+
+			let tr = CATransition()
+			tr.duration = 0.3
+			tr.type = kCATransitionFade
+			tr.subtype = kCATransitionFromBottom
+			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+			self.tableView?.layer?.addAnimation(tr, forKey: kCATransition)
 
 			tv.reloadData()
 			tv.needsDisplay = true
