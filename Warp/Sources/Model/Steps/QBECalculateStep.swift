@@ -136,8 +136,15 @@ class QBECalculateStep: QBEStep {
 		if fromValue != toValue {			
 			// Was a formula typed in?
 
-			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) where !(f.root is Literal) {
-				suggestions.append(f.root)
+			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
+				// Replace occurrences of the identity with a reference to this column (so users can type '@/1000')
+				let newFormula = f.root.visit { e -> Expression in
+					if e is Identity {
+						return Sibling(columnName: inRaster.columnNames[column])
+					}
+					return e
+				}
+				suggestions.append(newFormula)
 			}
 			Expression.infer(Literal(fromValue), toValue: toValue, suggestions: &suggestions, level: 8, row: Row(inRaster[row], columnNames: inRaster.columnNames), column: column, job: job)
 		}

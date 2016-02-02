@@ -14,7 +14,7 @@ public class Locale {
 	public var stringQualifier: Character = "\""
 	public var stringQualifierEscape = "\"\""
 	public var argumentSeparator = ";"
-	public var currentCellIdentifier = "RC"
+	public var currentCellIdentifier = "@"
 	public var csvFieldSeparator = ";"
 	public var csvLineSeparator = "\r\n"
 	public var csvStringQualifier = "\""
