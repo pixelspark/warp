@@ -584,12 +584,21 @@ public final class Call: Expression {
 							}
 							else {
 								if let range = sourceString.rangeOfString(targetString) {
-									suggestions.append(Call(arguments: [from, Literal(length)], type: Function.Left))
 									suggestions.append(Call(arguments: [from, Literal(length)], type: Function.Right))
-									
-									let start = Literal(Value(sourceString.startIndex.distanceTo(range.startIndex)))
+
+									let startIndex = sourceString.startIndex.distanceTo(range.startIndex)
+									let start = Literal(Value(startIndex))
 									let length = Literal(Value(range.startIndex.distanceTo(range.endIndex)))
-									suggestions.append(Call(arguments: [from, start, length], type: Function.Mid))
+									if startIndex == 0 {
+										suggestions.append(Call(arguments: [from, length], type: Function.Left))
+									}
+									else {
+										suggestions.append(Call(arguments: [from, start, length], type: Function.Mid))
+									}
+								}
+								else {
+									// Suggest a text replace
+									suggestions.append(Call(arguments: [Identity(), Literal(f), Literal(toValue)], type: Function.Substitute))
 								}
 							}
 						}

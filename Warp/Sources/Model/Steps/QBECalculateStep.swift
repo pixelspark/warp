@@ -135,15 +135,11 @@ class QBECalculateStep: QBEStep {
 		var suggestions: [Expression] = []
 		if fromValue != toValue {			
 			// Was a formula typed in?
-			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) {
+
+			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) where !(f.root is Literal) {
 				suggestions.append(f.root)
-				return suggestions
 			}
-			else {
-				Expression.infer(nil, toValue: toValue, suggestions: &suggestions, level: 8, row: Row(inRaster[row], columnNames: inRaster.columnNames), column: column, job: job)
-				// Suggest a text replace
-				suggestions.append(Call(arguments: [Identity(), Literal(fromValue), Literal(toValue)], type: Function.Substitute))
-			}
+			Expression.infer(Literal(fromValue), toValue: toValue, suggestions: &suggestions, level: 8, row: Row(inRaster[row], columnNames: inRaster.columnNames), column: column, job: job)
 		}
 		return suggestions
 	}
