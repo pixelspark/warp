@@ -765,7 +765,7 @@ public extension Array {
 
 internal extension Double {
 	func toString() -> String {
-		return String(format: "%.1f",self)
+		return String(format: "%f",self)
 	}
 }
 
@@ -776,7 +776,7 @@ internal extension Bool {
 	
 	static var random: Bool { get {
 		return Double.random() > 0.5
-		} }
+	} }
 	
 	func toDouble() -> Double {
 		return self ? 1.0 : 0.0;
