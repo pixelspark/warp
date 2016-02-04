@@ -432,7 +432,7 @@ public class Mutex {
 		}
 	}
 
-	private func lock() {
+	private final func lock() {
 		let ret = pthread_mutex_lock(&self.mutex)
 		switch ret {
 		case 0:
@@ -450,7 +450,7 @@ public class Mutex {
 		}
 	}
 
-	private func unlock() {
+	private final func unlock() {
 		let ret = pthread_mutex_unlock(&self.mutex)
 		switch ret {
 		case 0:
@@ -473,10 +473,19 @@ public class Mutex {
 	}
 
 	/** Execute the given block while holding a lock to this mutex. */
-	public func locked<T>(@noescape block: () -> (T)) -> T {
+	public final func locked<T>(file: StaticString = __FILE__, line: UInt = __LINE__, @noescape block: () -> (T)) -> T {
+		#if DEBUG
+			let start = CFAbsoluteTimeGetCurrent()
+		#endif
 		self.lock()
 		let ret: T = block()
 		self.unlock()
+		#if DEBUG
+			let duration = CFAbsoluteTimeGetCurrent() - start
+			if duration > 0.05 {
+				trace("Mutex held for \(duration)s by \(file):\(line)")
+			}
+		#endif
 		return ret
 	}
 }
