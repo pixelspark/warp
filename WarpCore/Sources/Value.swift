@@ -65,7 +65,15 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	}
 	
 	public var hashValue: Int { get  {
-		return self.stringValue?.hashValue ?? 0
+		switch self {
+		case .DoubleValue(let d): return d.hashValue
+		case .IntValue(let i): return i.hashValue
+		case .BoolValue(let b): return b.hashValue
+		case .StringValue(let s): return s.hashValue
+		case .EmptyValue: return 0
+		case .InvalidValue: return 1
+		case .DateValue(let d): return d.hashValue
+		}
 	}}
 	
 	/** The string representation of the value. String, integer, boolean and double values can be represented as a string.
