@@ -868,32 +868,6 @@ public class RasterData: NSObject, Data {
 	}
 	
 	public func aggregate(groups: [Column : Expression], values: [Column : Aggregation]) -> Data {
-		/* This implementation is fairly naive and simply generates a tree where each node is a particular aggregation
-		group label. The first aggregation group defines the first level in the tree, the second group is the second
-		level, et cetera. Values are stored at the leafs and are 'reduced' at the end, producing a value for each 
-		possible group label combination. */
-		class Index {
-			var children = Dictionary<Value, Index>()
-			var values: [Column: [Value]]? = nil
-			
-			func reduce(aggregations: [Column : Aggregation], row: [Value] = [], callback: ([Value]) -> ()) {
-				if values != nil {
-					var newRow = row
-					for (column, aggregation) in aggregations {
-						newRow.append(aggregation.reduce.apply(values![column] ?? []))
-					}
-					callback(newRow)
-				}
-				else {
-					for (val, index) in children {
-						var newRow = row
-						newRow.append(val)
-						index.reduce(aggregations, row: newRow, callback: callback)
-					}
-				}
-			}
-		}
-		
 		#if DEBUG
 		// Check if there are duplicate target column names. If so, bail out
 		for (col, _) in values {
@@ -904,25 +878,14 @@ public class RasterData: NSObject, Data {
 		#endif
 		
 		return apply("raster aggregate") {(r: Raster, job, progressKey) -> Raster in
-			let index = Index()
-			
+			let catalog = Catalog<[Value]>()
+			let groupExpressions = Array(groups.values)
+
 			for rowNumber in 0..<r.rowCount {
 				let row = r[rowNumber]
 				
 				// Calculate group values
-				var currentIndex = index
-				for (_, groupExpression) in groups {
-					let groupValue = groupExpression.apply(Row(row, columnNames: r.columnNames), foreign: nil, inputValue: nil)
-					
-					if let nextIndex = currentIndex.children[groupValue] {
-						currentIndex = nextIndex
-					}
-					else {
-						let nextIndex = Index()
-						currentIndex.children[groupValue] = nextIndex
-						currentIndex = nextIndex
-					}
-				}
+				let currentIndex = catalog.leafForRow(Row(row, columnNames: r.columnNames), groups: groupExpressions)
 				
 				// Calculate values
 				if currentIndex.values == nil {
@@ -962,7 +925,14 @@ public class RasterData: NSObject, Data {
 			var newRaster: [[Value]] = []
 			
 			// Time to aggregate
-			index.reduce(values, callback: {newRaster.append($0)})
+			catalog.visit { (path, bucket) -> () in
+				var newRow = path
+				for (column, aggregation) in values {
+					newRow.append(aggregation.reduce.apply(bucket[column]!))
+				}
+				newRaster.append(newRow)
+			}
+
 			return Raster(data: newRaster, columnNames: headers, readOnly: true)
 		}
 	}
@@ -1357,4 +1327,43 @@ private func ==<T>(lhs: HashableArray<T>, rhs: HashableArray<T>) -> Bool {
 	}
 	
 	return true
+}
+
+/* A catalog is a tree where each node is a particular aggregation group label. The first aggregation group defines the 
+first level in the tree, the second group is the second level, et cetera. Values are stored at the leafs and are 'reduced' 
+at the end, producing a value for each possible group label combination. */
+internal class Catalog<ValueType> {
+	var children = Dictionary<Value, Catalog<ValueType>>()
+	var values: [Column: ValueType]? = nil
+
+	final func leafForRow(row: Row, groups: [Expression]) -> Catalog {
+		var currentCatalog = self
+
+		for groupExpression in groups {
+			let groupValue = groupExpression.apply(row, foreign: nil, inputValue: nil)
+
+			if let nextIndex = currentCatalog.children[groupValue] {
+				currentCatalog = nextIndex
+			}
+			else {
+				let nextIndex = Catalog()
+				currentCatalog.children[groupValue] = nextIndex
+				currentCatalog = nextIndex
+			}
+		}
+
+		return currentCatalog
+	}
+
+	final func visit(path: [Value] = [], @noescape block: ([Value], [Column: ValueType]) -> ()) {
+		if let v = values {
+			block(path, v)
+		}
+		else {
+			for (val, index) in children {
+				let newPath = path + [val]
+				index.visit(newPath, block: block)
+			}
+		}
+	}
 }

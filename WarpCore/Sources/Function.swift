@@ -1,5 +1,14 @@
 import Foundation
 
+/** A Reducer is a function that takes multiple arguments, but can receive them in batches in order to calculate the
+result, and does not have to store all values. The 'average'  function for instance can maintain a sum of values received
+as well as a count, and determine the result at any point by dividing the sum by the count. */
+// TODO: implement hierarchical reducers (e.g. so that two SumReducers can be summed, and the reduction can be done in parallel)
+public protocol Reducer {
+	mutating func add(values: [Value])
+	var result: Value { get }
+}
+
 /** A Function takes a list of Value arguments (which may be empty) and returns a single Value. Functions
 each have a unique identifier (used for serializing), display names (which are localized), and arity (which indicates
 which number of arguments is allowed) and an implementation. Functions may also be implemented in other ways in other
@@ -856,20 +865,6 @@ public enum Function: String {
 				return Value(s.characters.count)
 			}
 			return Value.InvalidValue
-			
-		case .Count:
-			// Count only counts the number of numeric values
-			var count = 0
-			arguments.forEach {
-				if let _ = $0.doubleValue {
-					count++
-				}
-			}
-			return Value(count)
-			
-		case .CountAll:
-			// Like COUNTARGS in Excel, this function returns the number of arguments
-			return Value(arguments.count)
 		
 		case .Substitute:
 			if let source = arguments[0].stringValue {
@@ -887,40 +882,6 @@ public enum Function: String {
 				return Value(s.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()))
 			}
 			return Value.InvalidValue
-			
-		case .Sum:
-			var sum: Value = Value(0)
-			arguments.forEach {
-				let s = sum + $0
-				
-				// SUM just ignores anything that doesn't add up
-				if s.isValid {
-					sum = s
-				}
-			}
-			return sum
-		
-		case .Average:
-			let sum = Function.Sum.apply(arguments)
-			return sum / Value(arguments.count)
-			
-		case .Min:
-			var least: Value? = nil
-			for argument in arguments {
-				if least == nil || (argument.isValid && argument < least!) {
-					least = argument
-				}
-			}
-			return least ?? Value.InvalidValue
-			
-		case .Max:
-			var least: Value? = nil
-			for argument in arguments {
-				if least == nil || (argument.isValid && argument > least!) {
-					least = argument
-				}
-			}
-			return least ?? Value.InvalidValue
 			
 		case .RandomItem:
 			if arguments.isEmpty {
@@ -1223,9 +1184,29 @@ public enum Function: String {
 			
 		case .Power:
 			return arguments[0] ^ arguments[1]
+
+		// The following functions are already implemented as a Reducer, just use that
+		case .Sum, .Min, .Max, .Count, .CountAll, .Average:
+			var r = self.reducer!
+			r.add(arguments)
+			return r.result
 		}
 	}
-	
+
+	public var reducer: Reducer? { get {
+		switch self {
+		case .Sum: return SumReducer()
+		case .Min: return MinReducer()
+		case .Max: return MaxReducer()
+		case .Count: return CountReducer(all: false)
+		case .CountAll: return CountReducer(all: true)
+		case .Average: return AverageReducer()
+
+		default:
+			return nil
+		}
+	} }
+
 	public static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
 		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
@@ -1424,3 +1405,83 @@ public func ==(lhs: Arity, rhs: Arity) -> Bool {
 		return false
 	}
 }
+
+struct AverageReducer: Reducer {
+	var total: Value = Value(0.0)
+	var count: Int = 0
+
+	mutating func add(values: [Value]) {
+		values.forEach { v in
+			// Ignore any invalid values
+			if v.isValid {
+				self.count++
+				self.total = self.result + v
+			}
+		}
+	}
+
+	var result: Value { return self.total / Value(self.count) }
+}
+
+struct SumReducer: Reducer {
+	var result: Value = Value(0.0)
+
+	mutating func add(values: [Value]) {
+		values.forEach { v in
+			// Ignore any invalid values
+			if v.isValid {
+				self.result = self.result + v
+			}
+		}
+	}
+}
+
+struct MaxReducer: Reducer {
+	var result: Value = Value.InvalidValue
+
+	mutating func add(values: [Value]) {
+		for value in values {
+			if !self.result.isValid || (value.isValid && value > self.result) {
+				self.result = value
+			}
+		}
+	}
+}
+
+struct MinReducer: Reducer {
+	var result: Value = Value.InvalidValue
+
+	mutating func add(values: [Value]) {
+		for value in values {
+			if !self.result.isValid || (value.isValid && value < self.result) {
+				self.result = value
+			}
+		}
+	}
+}
+
+struct CountReducer: Reducer {
+	private var count = 0
+	private let all: Bool
+
+	init(all: Bool) {
+		self.all = all
+	}
+
+	mutating func add(values: [Value]) {
+		if all {
+			self.count += values.count
+		}
+		else {
+			// Count only counts the number of numeric values
+			values.forEach {
+				if let _ = $0.doubleValue {
+					self.count++
+				}
+			}
+		}
+	}
+
+	var result: Value { get { return Value(self.count) } }
+}
+

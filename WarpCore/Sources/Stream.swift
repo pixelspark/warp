@@ -241,7 +241,21 @@ public class StreamData: Data {
 	}
 	
 	public func aggregate(groups: [Column : Expression], values: [Column : Aggregation]) -> Data {
-		return fallback().aggregate(groups, values: values)
+		// Check whether all aggregations can be written as a 'reducer' (then we can do streaming aggregation)
+		var allAggregationsAreReducers = true
+		for (_, aggregation) in values {
+			if aggregation.reduce.reducer == nil {
+				allAggregationsAreReducers = false
+				break
+			}
+		}
+
+		if allAggregationsAreReducers {
+			return StreamData(source: AggregateTransformer(source: source, groups: groups, values: values))
+		}
+		else {
+			return fallback().aggregate(groups, values: values)
+		}
 	}
 	
 	public func distinct() -> Data {
@@ -1061,5 +1075,98 @@ private class JoinTransformer: Transformer {
 				callback(.Failure(e), .Finished)
 			}
 		}
+	}
+}
+
+private class AggregateTransformer: Transformer {
+	let groups: OrderedDictionary<Column, Expression>
+	let values: OrderedDictionary<Column, Aggregation>
+
+	private var groupExpressions: [Expression]
+	private let reducersMutex = Mutex()
+	private var reducers = Catalog<Reducer>()
+	private var sourceColumnNames: Future<Fallible<[Column]>>! = nil
+	private var done = false
+
+	init(source: Stream, groups: OrderedDictionary<Column, Expression>, values: OrderedDictionary<Column, Aggregation>) {
+		self.groups = groups
+		self.values = values
+		self.groupExpressions = groups.map { (_, e) in return e }
+		super.init(source: source)
+
+		self.sourceColumnNames = Future<Fallible<[Column]>>({ [unowned self] (job: Job, callback: (Fallible<[Column]>) -> ()) in
+			self.source.columnNames(job, callback: callback)
+			})
+	}
+
+	convenience init(source: Stream, groups: [Column: Expression], values: [Column: Aggregation]) {
+		self.init(source: source, groups: OrderedDictionary(dictionaryInAnyOrder: groups), values: OrderedDictionary(dictionaryInAnyOrder: values))
+	}
+
+	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
+		let reducerTemplate = self.values.mapDictionary { (c,a) in return (c, a.reduce.reducer!) }
+		self.sourceColumnNames.get { sourceColumnsFallible in
+			switch sourceColumnsFallible {
+			case .Success(let sourceColumns):
+				job.async {
+					job.time("Stream reduce collect", items: rows.count, itemType: "rows") {
+						self.reducersMutex.locked {
+							for row in rows {
+								let namedRow = Row(row, columnNames: sourceColumns)
+								let leaf = self.reducers.leafForRow(namedRow, groups: self.groupExpressions)
+
+								if leaf.values == nil {
+									leaf.values = reducerTemplate
+								}
+
+								// Add values to the reducers
+								for (column, aggregation) in self.values {
+									leaf.values![column]!.add([aggregation.map.apply(namedRow, foreign: nil, inputValue: nil)])
+								}
+							}
+						}
+					}
+				}
+
+				if streamStatus == .HasMore {
+					// More input is coming from the source, do not return our sample yet
+					job.async {
+						callback(.Success([]), streamStatus)
+					}
+				}
+				else {
+					if outstanding == 0 {
+						assert(!self.done, "Stream reducer still received \(rows.count) rows after being finished: \(outstanding) \(streamStatus)")
+
+						self.done = true
+						// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
+						job.async {
+							var rows: [Tuple] = []
+
+							self.reducers.visit(block: { (path, bucket) -> () in
+								rows.append(path + bucket.values.map { return $0.result })
+							})
+
+							callback(.Success(rows), .Finished)
+						}
+					}
+					else {
+						// Still waiting for the other fetches to complete (may contain data still)
+						callback(.Success(Array()), .Finished)
+					}
+				}
+
+			case .Failure(let e):
+				callback(.Failure(e), .Finished)
+			}
+		}
+	}
+
+	private override func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+		callback(.Success(self.groups.keys + self.values.keys))
+	}
+
+	private override func clone() -> Stream {
+		return AggregateTransformer(source: source, groups: groups, values: values)
 	}
 }
