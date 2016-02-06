@@ -15,9 +15,8 @@ private class QBEPostgresDialect: StandardSQLDialect {
 	
 	private override func unaryToSQL(type: Function, args: [String]) -> String? {
 		switch type {
-			case .Random:
-				return "RANDOM()"
-			
+			case .Random: return "RANDOM()"
+
 			default:
 				return super.unaryToSQL(type, args: args)
 		}
@@ -25,11 +24,18 @@ private class QBEPostgresDialect: StandardSQLDialect {
 	
 	private override func aggregationToSQL(aggregation: Aggregation, alias: String) -> String? {
 		// For Function.Count, we should count numeric values only. In PostgreSQL this can be done using REGEXP
-		if aggregation.reduce == Function.Count {
-			if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
-				return "SUM(CASE WHEN \(expressionSQL) REGEXP '^[[:digit:]]+$') THEN 1 ELSE 0 END)"
+		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
+			switch aggregation.reduce {
+			case .Count: return "SUM(CASE WHEN \(expressionSQL) ~* '^[[:digit:]]+$' THEN 1 ELSE 0 END)"
+			case .Sum: return "SUM((\(expressionSQL))::float)"
+			case .Average: return "AVG((\(expressionSQL))::float)"
+			case .Concat: return "STRING_AGG(\(expressionSQL),'')"
+			case .Pack:
+				return "STRING_AGG(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.Escape)),\(literalString(Pack.EscapeEscape))),\(literalString(Pack.Separator)),\(literalString(Pack.SeparatorEscape))), \(literalString(Pack.Separator)))"
+
+			default:
+				break
 			}
-			return nil
 		}
 		
 		return super.aggregationToSQL(aggregation, alias: alias)
