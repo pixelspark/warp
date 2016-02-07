@@ -397,7 +397,7 @@
 		6583EE951C14758B00AE6C00 /* QBEDataViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDataViewController.swift; sourceTree = "<group>"; };
 		6583EE961C14758B00AE6C00 /* QBEDocumentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDocumentViewController.swift; sourceTree = "<group>"; };
 		6583EE971C14758B00AE6C00 /* QBEExportViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEExportViewController.swift; sourceTree = "<group>"; };
-		6583EE981C14758B00AE6C00 /* QBEFactory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFactory.swift; sourceTree = "<group>"; };
+		6583EE981C14758B00AE6C00 /* QBEFactory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QBEFactory.swift; path = ../Controller/QBEFactory.swift; sourceTree = "<group>"; };
 		6583EE991C14758B00AE6C00 /* QBEFilterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFilterViewController.swift; sourceTree = "<group>"; };
 		6583EE9A1C14758B00AE6C00 /* QBEFormulaEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFormulaEditorViewController.swift; sourceTree = "<group>"; };
 		6583EE9B1C14758B00AE6C00 /* QBEJobsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEJobsViewController.swift; sourceTree = "<group>"; };
@@ -703,7 +703,6 @@
 				6583EE951C14758B00AE6C00 /* QBEDataViewController.swift */,
 				6583EE961C14758B00AE6C00 /* QBEDocumentViewController.swift */,
 				6583EE971C14758B00AE6C00 /* QBEExportViewController.swift */,
-				6583EE981C14758B00AE6C00 /* QBEFactory.swift */,
 				6583EE991C14758B00AE6C00 /* QBEFilterViewController.swift */,
 				6583EE9A1C14758B00AE6C00 /* QBEFormulaEditorViewController.swift */,
 				6583EE9B1C14758B00AE6C00 /* QBEJobsViewController.swift */,
@@ -746,6 +745,7 @@
 			children = (
 				6583EEB31C14758B00AE6C00 /* QBEChain.swift */,
 				6583EEB41C14758B00AE6C00 /* QBEDocument.swift */,
+				6583EE981C14758B00AE6C00 /* QBEFactory.swift */,
 				6583EEB51C14758B00AE6C00 /* QBEFile.swift */,
 				6583EEB61C14758B00AE6C00 /* QBEJobsManager.swift */,
 				6583EEB71C14758B00AE6C00 /* QBESecret.swift */,

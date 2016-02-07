@@ -635,22 +635,20 @@ import WarpCore
 	
 	private func addTabletFromURL(url: NSURL, atLocation: CGPoint? = nil) -> QBETablet? {
 		assertMainThread()
-		let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url)
-		
-		if sourceStep != nil {
+
+		if let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url) {
 			let tablet = QBETablet(chain: QBEChain(head: sourceStep))
 			self.addTablet(tablet, atLocation: atLocation, undo: true)
 			return tablet
 		}
 		else {
-			let alert = NSAlert()
-			alert.messageText = String(format: NSLocalizedString("Unknown file type '%@'.", comment: ""), (url.pathExtension ?? ""))
-			alert.alertStyle = NSAlertStyle.WarningAlertStyle
-			alert.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: NSModalResponse) -> Void in
-				// Do nothing...
-			})
-			return nil
+			// This may be a warp document - open separately
+			if let p = url.path {
+				NSWorkspace.sharedWorkspace().openFile(p)
+			}
 		}
+
+		return nil
 	}
 
 	func alterTableView(view: QBEAlterTableViewController, didAlterTable mutableData: MutableData?) {

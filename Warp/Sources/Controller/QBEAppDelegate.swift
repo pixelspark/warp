@@ -37,7 +37,24 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 	func application(sender: NSApplication, openFile filename: String) -> Bool {
 		let dc = NSDocumentController.sharedDocumentController()
 		let u = NSURL(fileURLWithPath: filename)
-		// What kind of file is this?
+
+		// Check to see if the file being opened is a document
+		var type: AnyObject? = nil
+		do {
+			try u.getResourceValue(&type, forKey: NSURLTypeIdentifierKey)
+			if let uti = type as? String {
+				if NSWorkspace.sharedWorkspace().type(uti, conformsToType: "nl.pixelspark.Warp.Document") {
+					dc.openDocumentWithContentsOfURL(u, display: true, completionHandler: { (doc, alreadyOpen, error) -> Void in
+					})
+					return true
+				}
+			}
+		}
+		catch {
+			print("ApplicationOpenFile error: could not check whether opened file is a document")
+		}
+
+		// This may be a file we can import
 		if let importStep = QBEFactory.sharedInstance.stepForReadingFile(u) {
 			let doc = QBEDocument()
 			doc.addTablet(QBETablet(chain: QBEChain(head: importStep)))
@@ -46,7 +63,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 			doc.showWindows()
 			return true
 		}
-		
+
 		return false
 	}
 }

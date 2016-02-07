@@ -14,6 +14,8 @@
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>QBEDocument</string>
+			<key>CFBundleTypeMIMETypes</key>
+			<array/>
 			<key>CFBundleTypeName</key>
 			<string>QBEDocumentType</string>
 			<key>CFBundleTypeOSTypes</key>
@@ -22,6 +24,8 @@
 			</array>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array/>
 			<key>NSDocumentClass</key>
 			<string>$(PRODUCT_MODULE_NAME).QBEDocument</string>
 		</dict>

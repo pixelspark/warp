@@ -146,8 +146,10 @@ class QBEFactory {
 		do {
 			// Try to find reader by UTI type
 			let type = try NSWorkspace.sharedWorkspace().typeOfFile(atURL.path!)
-			if let creator = fileReaders[type] {
-				return creator(url: atURL)
+			for (readerType, creator) in fileReaders {
+				if NSWorkspace.sharedWorkspace().type(type, conformsToType: readerType) {
+					return creator(url: atURL)
+				}
 			}
 
 			// Try by file extension
@@ -158,8 +160,7 @@ class QBEFactory {
 				}
 			}
 
-			// Just try to load as CSV file
-			return QBECSVSourceStep(url: atURL)
+			return nil
 		}
 		catch { }
 		return nil
