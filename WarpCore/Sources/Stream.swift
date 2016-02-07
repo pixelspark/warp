@@ -1069,7 +1069,6 @@ private class AggregateTransformer: Transformer {
 	let values: OrderedDictionary<Column, Aggregation>
 
 	private var groupExpressions: [Expression]
-	private let reducersMutex = Mutex()
 	private var reducers = Catalog<Reducer>()
 	private var sourceColumnNames: Future<Fallible<[Column]>>! = nil
 	private var done = false
@@ -1108,56 +1107,71 @@ private class AggregateTransformer: Transformer {
 
 	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
 		let reducerTemplate = self.values.mapDictionary { (c,a) in return (c, a.reduce.reducer!) }
-		self.sourceColumnNames.get { sourceColumnsFallible in
 		self.sourceColumnNames.get(job) { sourceColumnsFallible in
 			switch sourceColumnsFallible {
 			case .Success(let sourceColumns):
 				job.async {
 					job.time("Stream reduce collect", items: rows.count, itemType: "rows") {
-						self.reducersMutex.locked {
-							for row in rows {
-								let namedRow = Row(row, columnNames: sourceColumns)
-								let leaf = self.reducers.leafForRow(namedRow, groups: self.groupExpressions)
+						var leafs: [Catalog<Reducer>: [Row]] = [:]
 
+						for row in rows {
+							let namedRow = Row(row, columnNames: sourceColumns)
+							let leaf = self.reducers.leafForRow(namedRow, groups: self.groupExpressions)
+
+							leaf.mutex.locked {
 								if leaf.values == nil {
 									leaf.values = reducerTemplate
 								}
+							}
 
-								// Add values to the reducers
-								for (column, aggregation) in self.values {
-									leaf.values![column]!.add([aggregation.map.apply(namedRow, foreign: nil, inputValue: nil)])
+							if leafs[leaf] == nil {
+								leafs[leaf] = []
+							}
+							leafs[leaf]!.append(namedRow)
+						}
+
+						for (leaf, namedRows) in leafs {
+							leaf.mutex.locked {
+								for namedRow in namedRows {
+									// Add values to the reducers
+									for (column, aggregation) in self.values {
+										leaf.values![column]!.add([aggregation.map.apply(namedRow, foreign: nil, inputValue: nil)])
+									}
 								}
 							}
 						}
 					}
-				}
 
-				if streamStatus == .HasMore {
-					// More input is coming from the source, do not return our sample yet
-					job.async {
-						callback(.Success([]), streamStatus)
-					}
-				}
-				else {
-					if outstanding == 0 {
-						assert(!self.done, "Stream reducer still received \(rows.count) rows after being finished: \(outstanding) \(streamStatus)")
-
-						self.done = true
-						// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
+					if streamStatus == .HasMore {
+						// More input is coming from the source, do not return our sample yet
 						job.async {
-							var rows: [Tuple] = []
-
-							self.reducersMutex.locked {
-								self.reducers.visit(block: { (path, bucket) -> () in
-									rows.append(path + bucket.values.map { return $0.result })
-								})
-							}
-							callback(.Success(rows), .Finished)
+							callback(.Success([]), streamStatus)
 						}
 					}
 					else {
-						// Still waiting for the other fetches to complete (may contain data still)
-						callback(.Success(Array()), .Finished)
+						if outstanding == 0 {
+							assert(!self.done, "Stream reducer still received \(rows.count) rows after being finished: \(outstanding) \(streamStatus)")
+
+							self.done = true
+							// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
+							job.async {
+								var rows: [Tuple] = []
+
+								job.time("stream aggregate reduce", items: 1, itemType: "result") {
+									self.reducers.mutex.locked {
+										self.reducers.visit(block: { (path, bucket) -> () in
+											rows.append(path + bucket.values.map { return $0.result })
+										})
+									}
+								}
+
+								callback(.Success(rows), .Finished)
+							}
+						}
+						else {
+							// Still waiting for the other fetches to complete (may contain data still)
+							callback(.Success(Array()), .Finished)
+						}
 					}
 				}
 

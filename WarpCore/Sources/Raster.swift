@@ -1263,10 +1263,14 @@ private func ==<T>(lhs: HashableArray<T>, rhs: HashableArray<T>) -> Bool {
 	return true
 }
 
-/* A catalog is a tree where each node is a particular aggregation group label. The first aggregation group defines the 
+/** A catalog is a tree where each node is a particular aggregation group label. The first aggregation group defines the
 first level in the tree, the second group is the second level, et cetera. Values are stored at the leafs and are 'reduced' 
-at the end, producing a value for each possible group label combination. */
-internal class Catalog<ValueType> {
+at the end, producing a value for each possible group label combination.
+
+Each leaf has its own Mutex protecting the leaf from concurrent modification. By recursively obtaining a lock, parallel
+work can be done on different 'branches' of the tree at the same time. **/
+internal class Catalog<ValueType>: NSObject {
+	let mutex = Mutex()
 	var children = Dictionary<Value, Catalog<ValueType>>()
 	var values: [Column: ValueType]? = nil
 
@@ -1276,13 +1280,15 @@ internal class Catalog<ValueType> {
 		for groupExpression in groups {
 			let groupValue = groupExpression.apply(row, foreign: nil, inputValue: nil)
 
-			if let nextIndex = currentCatalog.children[groupValue] {
-				currentCatalog = nextIndex
-			}
-			else {
-				let nextIndex = Catalog()
-				currentCatalog.children[groupValue] = nextIndex
-				currentCatalog = nextIndex
+			currentCatalog.mutex.locked {
+				if let nextIndex = currentCatalog.children[groupValue] {
+					currentCatalog = nextIndex
+				}
+				else {
+					let nextIndex = Catalog()
+					currentCatalog.children[groupValue] = nextIndex
+					currentCatalog = nextIndex
+				}
 			}
 		}
 
@@ -1290,13 +1296,15 @@ internal class Catalog<ValueType> {
 	}
 
 	final func visit(path: [Value] = [], @noescape block: ([Value], [Column: ValueType]) -> ()) {
-		if let v = values {
-			block(path, v)
-		}
-		else {
-			for (val, index) in children {
-				let newPath = path + [val]
-				index.visit(newPath, block: block)
+		self.mutex.locked {
+			if let v = values {
+				block(path, v)
+			}
+			else {
+				for (val, index) in children {
+					let newPath = path + [val]
+					index.visit(newPath, block: block)
+				}
 			}
 		}
 	}
