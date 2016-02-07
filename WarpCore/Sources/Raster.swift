@@ -1210,7 +1210,7 @@ private class RasterDataStream: NSObject, Stream {
 	
 	func fetch(job: Job, consumer: Sink) {
 		job.reportProgress(0.0, forKey: self.hashValue)
-		self.raster.get { (fallibleRaster) in
+		self.raster.get(job) { (fallibleRaster) in
 			switch fallibleRaster {
 				case .Success(let raster):
 					let (rows, hasNext) = self.mutex.locked { () -> ([Tuple], Bool) in

@@ -252,9 +252,21 @@ public class Job: JobDelegate {
 	private var progressComponents: [Int: Double] = [:]
 	private var observers: [Weak<JobDelegate>] = []
 	private let mutex = Mutex()
+
+	#if DEBUG
+	private static var jobCounter = 0
+	private let jobID = jobCounter++
+	#endif
 	
 	public init(_ qos: QoS) {
-		self.queue = dispatch_get_global_queue(qos.qosClass, 0)
+		let attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT, qos.qosClass, 0)
+
+		#if DEBUG
+			let jobNumber = Job.jobCounter + 1
+			self.queue = dispatch_queue_create("Job \(jobNumber)", attr)
+		#else
+			self.queue = dispatch_queue_create("nl.pixelspark.Warp.Job", attr)
+		#endif
 		self.parentJob = nil
 	}
 	
@@ -381,11 +393,8 @@ public class Job: JobDelegate {
 			}
 		#endif
 	}
-	
+
 	#if DEBUG
-	private static var jobCounter = 0
-	private let jobID = jobCounter++
-	
 	private var timeComponents: [String: Double] = [:]
 	
 	func reportTime(component: String, time: Double) {
@@ -522,7 +531,9 @@ public class Future<T> {
 						batch.expire()
 					}
 				}
-				producer(batch, batch.satisfy)
+				batch.async {
+					self.producer(batch, batch.satisfy)
+				}
 			}
 		}
 	}

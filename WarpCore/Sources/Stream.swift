@@ -1109,6 +1109,7 @@ private class AggregateTransformer: Transformer {
 	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
 		let reducerTemplate = self.values.mapDictionary { (c,a) in return (c, a.reduce.reducer!) }
 		self.sourceColumnNames.get { sourceColumnsFallible in
+		self.sourceColumnNames.get(job) { sourceColumnsFallible in
 			switch sourceColumnsFallible {
 			case .Success(let sourceColumns):
 				job.async {

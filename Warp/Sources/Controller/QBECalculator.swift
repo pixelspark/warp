@@ -155,11 +155,13 @@ public class QBECalculator {
 					sourceStep.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
 				})
 			}
+
+			let calculationJob = Job(QoS.UserInitiated)
 			
 			// Set up calculation for the raster
 			currentRaster = Future<Fallible<Raster>>({ [unowned self] (job: Job, callback: Future<Fallible<Raster>>.Callback) in
 				if let cd = self.currentData {
-					let dataJob = cd.get { (data: Fallible<Data>) -> () in
+					let dataJob = cd.get(job) { (data: Fallible<Data>) -> () in
 						switch data {
 							case .Success(let d):
 								// At this point, we know which columns will be available. We should now add the view filters (if any)
@@ -199,7 +201,7 @@ public class QBECalculator {
 			})
 			
 			// Wait for the raster to arrive so we can indicate the calculation has ended
-			currentRaster!.get { [unowned self] (r) in
+			currentRaster!.get(calculationJob) { [unowned self] (r) in
 				self.calculationInProgressForStep = nil
 			}
 		}
