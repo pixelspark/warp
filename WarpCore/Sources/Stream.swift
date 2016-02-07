@@ -241,21 +241,7 @@ public class StreamData: Data {
 	}
 	
 	public func aggregate(groups: [Column : Expression], values: [Column : Aggregation]) -> Data {
-		// Check whether all aggregations can be written as a 'reducer' (then we can do streaming aggregation)
-		var allAggregationsAreReducers = true
-		for (_, aggregation) in values {
-			if aggregation.reduce.reducer == nil {
-				allAggregationsAreReducers = false
-				break
-			}
-		}
-
-		if allAggregationsAreReducers {
-			return StreamData(source: AggregateTransformer(source: source, groups: groups, values: values))
-		}
-		else {
-			return fallback().aggregate(groups, values: values)
-		}
+		return StreamData(source: AggregateTransformer(source: source, groups: groups, values: values))
 	}
 	
 	public func distinct() -> Data {
@@ -1089,6 +1075,23 @@ private class AggregateTransformer: Transformer {
 	private var done = false
 
 	init(source: Stream, groups: OrderedDictionary<Column, Expression>, values: OrderedDictionary<Column, Aggregation>) {
+		#if DEBUG
+			// Check if there are duplicate target column names. If so, bail out
+			for (col, _) in values {
+				if groups[col] != nil {
+					fatalError("Duplicate column names in aggregate are not allowed")
+				}
+			}
+
+			// Check whether all aggregations can be written as a 'reducer' (then we can do streaming aggregation)
+			for (_, aggregation) in values {
+				if aggregation.reduce.reducer == nil {
+					fatalError("Not all aggregators are reducers")
+					break
+				}
+			}
+		#endif
+
 		self.groups = groups
 		self.values = values
 		self.groupExpressions = groups.map { (_, e) in return e }
@@ -1096,7 +1099,7 @@ private class AggregateTransformer: Transformer {
 
 		self.sourceColumnNames = Future<Fallible<[Column]>>({ [unowned self] (job: Job, callback: (Fallible<[Column]>) -> ()) in
 			self.source.columnNames(job, callback: callback)
-			})
+		})
 	}
 
 	convenience init(source: Stream, groups: [Column: Expression], values: [Column: Aggregation]) {
@@ -1143,10 +1146,11 @@ private class AggregateTransformer: Transformer {
 						job.async {
 							var rows: [Tuple] = []
 
-							self.reducers.visit(block: { (path, bucket) -> () in
-								rows.append(path + bucket.values.map { return $0.result })
-							})
-
+							self.reducersMutex.locked {
+								self.reducers.visit(block: { (path, bucket) -> () in
+									rows.append(path + bucket.values.map { return $0.result })
+								})
+							}
 							callback(.Success(rows), .Finished)
 						}
 					}

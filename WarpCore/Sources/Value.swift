@@ -203,7 +203,11 @@ public struct Pack {
 	public static let SeparatorEscape = "$0"
 	public static let EscapeEscape = "$1"
 	
-	private let items: [String]
+	private var items: [String]
+
+	public init() {
+		self.items = []
+	}
 	
 	public init(_ items: [String]) {
 		self.items = items
@@ -233,6 +237,10 @@ public struct Pack {
 		assert(n >= 0, "Index on a pack cannot be negative")
 		assert(n < count, "Index out of bounds")
 		return items[n]
+	}
+
+	public mutating func append(value: Value) {
+		self.items.append(value.stringValue ?? "")
 	}
 	
 	public var stringValue: String { get {

@@ -867,74 +867,8 @@ public class RasterData: NSObject, Data {
 		}
 	}
 	
-	public func aggregate(groups: [Column : Expression], values: [Column : Aggregation]) -> Data {
-		#if DEBUG
-		// Check if there are duplicate target column names. If so, bail out
-		for (col, _) in values {
-			if groups[col] != nil {
-				fatalError("Duplicate column names in RasterData.aggregate are not allowed")
-			}
-		}
-		#endif
-		
-		return apply("raster aggregate") {(r: Raster, job, progressKey) -> Raster in
-			let catalog = Catalog<[Value]>()
-			let groupExpressions = Array(groups.values)
-
-			for rowNumber in 0..<r.rowCount {
-				let row = r[rowNumber]
-				
-				// Calculate group values
-				let currentIndex = catalog.leafForRow(Row(row, columnNames: r.columnNames), groups: groupExpressions)
-				
-				// Calculate values
-				if currentIndex.values == nil {
-					currentIndex.values = Dictionary<Column, [Value]>()
-				}
-				
-				for (column, value) in values {
-					let result = value.map.apply(Row(row, columnNames: r.columnNames), foreign: nil, inputValue: nil)
-					if let bag = currentIndex.values![column] {
-						var mutableBag = bag
-						mutableBag.append(result)
-						currentIndex.values![column] = mutableBag
-					}
-					else {
-						currentIndex.values![column] = [result]
-					}
-				}
-
-				// Report progress
-				if (rowNumber % Raster.progressReportRowInterval) == 0 {
-					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
-					if job?.cancelled == true {
-						return Raster()
-					}
-				}
-			}
-
-			// Generate output raster and column headers
-			var headers: [Column] = []
-			for (columnName, _) in groups {
-				headers.append(columnName)
-			}
-			
-			for (columnName, _) in values {
-				headers.append(columnName)
-			}
-			var newRaster: [[Value]] = []
-			
-			// Time to aggregate
-			catalog.visit { (path, bucket) -> () in
-				var newRow = path
-				for (column, aggregation) in values {
-					newRow.append(aggregation.reduce.apply(bucket[column]!))
-				}
-				newRaster.append(newRow)
-			}
-
-			return Raster(data: newRaster, columnNames: headers, readOnly: true)
-		}
+	public func aggregate(groups: [Column : Expression], values: [Column : Aggregation]) -> Data {		
+		return fallback().aggregate(groups, values: values)
 	}
 	
 	public func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data {

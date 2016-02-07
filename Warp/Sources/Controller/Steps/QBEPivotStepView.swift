@@ -58,7 +58,7 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 		
 		aggregatorsMenu = NSMenu()
 		for fun in Function.allFunctions {
-			if fun.arity == Arity.Any {
+			if fun.reducer != nil {
 				let item = NSMenuItem(title: fun.explain(locale), action: nil, keyEquivalent: "")
 				item.representedObject = fun.rawValue
 				aggregatorsMenu!.addItem(item)

@@ -713,22 +713,6 @@ public enum Function: String {
 			}
 			return Value.InvalidValue
 			
-		case .Concat:
-			var s: String = ""
-			for a in arguments {
-				if let text = a.stringValue {
-					s += text
-				}
-				else {
-					return Value.InvalidValue
-				}
-			}
-			return Value(s)
-			
-		case .Pack:
-			let pack = WarpCore.Pack(arguments)
-			return Value.StringValue(pack.stringValue)
-			
 		case .If:
 			if let d = arguments[0].boolValue {
 				return d ? arguments[1] : arguments[2]
@@ -1186,7 +1170,7 @@ public enum Function: String {
 			return arguments[0] ^ arguments[1]
 
 		// The following functions are already implemented as a Reducer, just use that
-		case .Sum, .Min, .Max, .Count, .CountAll, .Average:
+		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack:
 			var r = self.reducer!
 			r.add(arguments)
 			return r.result
@@ -1201,6 +1185,8 @@ public enum Function: String {
 		case .Count: return CountReducer(all: false)
 		case .CountAll: return CountReducer(all: true)
 		case .Average: return AverageReducer()
+		case .Concat: return ConcatenationReducer()
+		case .Pack: return PackReducer()
 
 		default:
 			return nil
@@ -1406,7 +1392,7 @@ public func ==(lhs: Arity, rhs: Arity) -> Bool {
 	}
 }
 
-struct AverageReducer: Reducer {
+private struct AverageReducer: Reducer {
 	var total: Value = Value(0.0)
 	var count: Int = 0
 
@@ -1423,7 +1409,7 @@ struct AverageReducer: Reducer {
 	var result: Value { return self.total / Value(self.count) }
 }
 
-struct SumReducer: Reducer {
+private struct SumReducer: Reducer {
 	var result: Value = Value(0.0)
 
 	mutating func add(values: [Value]) {
@@ -1436,7 +1422,7 @@ struct SumReducer: Reducer {
 	}
 }
 
-struct MaxReducer: Reducer {
+private struct MaxReducer: Reducer {
 	var result: Value = Value.InvalidValue
 
 	mutating func add(values: [Value]) {
@@ -1448,7 +1434,7 @@ struct MaxReducer: Reducer {
 	}
 }
 
-struct MinReducer: Reducer {
+private struct MinReducer: Reducer {
 	var result: Value = Value.InvalidValue
 
 	mutating func add(values: [Value]) {
@@ -1460,7 +1446,7 @@ struct MinReducer: Reducer {
 	}
 }
 
-struct CountReducer: Reducer {
+private struct CountReducer: Reducer {
 	private var count = 0
 	private let all: Bool
 
@@ -1485,3 +1471,24 @@ struct CountReducer: Reducer {
 	var result: Value { get { return Value(self.count) } }
 }
 
+private struct ConcatenationReducer: Reducer {
+	var result: Value = Value("")
+
+	mutating func add(values: [Value]) {
+		for a in values {
+			result = result & a
+		}
+	}
+}
+
+private struct PackReducer: Reducer {
+	var pack = Pack()
+
+	mutating func add(values: [Value]) {
+		for a in values {
+			pack.append(a)
+		}
+	}
+
+	var result: Value { return Value(pack.stringValue) }
+}
