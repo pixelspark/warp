@@ -1400,8 +1400,8 @@ private struct AverageReducer: Reducer {
 		values.forEach { v in
 			// Ignore any invalid values
 			if v.isValid {
-				self.count++
-				self.total = self.result + v
+				self.count += 1
+				self.total  = self.total + v
 			}
 		}
 	}
