@@ -2,7 +2,7 @@ import Foundation
 import Cocoa
 import WarpCore
 
-internal class QBECSVStepView: QBEStepViewControllerFor<QBECSVSourceStep>, NSComboBoxDataSource {
+internal class QBECSVStepView: QBEConfigurableStepViewControllerFor<QBECSVSourceStep>, NSComboBoxDataSource {
 	@IBOutlet var separatorField: NSComboBox?
 	@IBOutlet var hasHeadersButton: NSButton?
 	@IBOutlet var languageField: NSComboBox!
@@ -10,9 +10,9 @@ internal class QBECSVStepView: QBEStepViewControllerFor<QBECSVSourceStep>, NSCom
 
 	private let languages: [Locale.LanguageIdentifier]
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
 		languages = Array(Locale.languages.keys)
-		super.init(step: step, delegate: delegate, nibName: "QBECSVStepView", bundle: nil)
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBECSVStepView", bundle: nil)
 	}
 	
 	required init?(coder: NSCoder) {
@@ -105,7 +105,7 @@ internal class QBECSVStepView: QBEStepViewControllerFor<QBECSVSourceStep>, NSCom
 		}
 		
 		if changed {
-			delegate?.stepView(self, didChangeConfigurationForStep: step)
+			delegate?.configurableView(self, didChangeConfigurationFor: step)
 		}
 		
 		updateView()

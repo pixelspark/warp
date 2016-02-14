@@ -221,7 +221,9 @@
 "Fdz-2y-7rL.title" = "Selectie-werkset";
 "jA4-M7-4yd.title" = "Maximale rekentijd:";
 "nR1-jX-5Hf.title" = "Gewenst aantal rijen:";
-"3tj-IE-VFf.title" = "Plakken";
+"HNO-gG-97X.title" = "Plakken als gegevens";
+"3tj-IE-VFf.title" = "Plakken als tekst";
+"dgg-fz-XMm.title" = "Plakken";
 "ZRd-bD-OPv.label" = "Voeg in";
 "ZRd-bD-OPv.paletteLabel" = "Voeg in";
 "FIb-De-h7B.label" = "Alternatieven";
@@ -355,3 +357,5 @@
 
 "kEL-zb-Ty6.title" = "Hernoem";
 "tHM-tE-vur.title" = "Hernoem kolom";
+
+"Rpj-cE-DtD.title" = "Notitie toevoegen...";

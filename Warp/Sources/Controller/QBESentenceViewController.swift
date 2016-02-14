@@ -2,17 +2,17 @@ import Cocoa
 import WarpCore
 
 protocol QBESentenceViewDelegate: NSObjectProtocol {
-	func sentenceView(view: QBESentenceViewController, didChangeStep: QBEStep)
+	func sentenceView(view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable)
 	var locale: Locale { get }
 }
 
-class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate, QBEFormulaEditorViewDelegate, QBEStepViewDelegate {
+class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate, QBEFormulaEditorViewDelegate, QBEConfigurableViewDelegate {
 	@IBOutlet var tokenField: NSTokenField!
 	@IBOutlet var configureButton: NSButton!
 
 	var variant: QBESentenceVariant = .Neutral
 	private var editingToken: QBEEditingToken? = nil
-	private var editingStep: QBEStep? = nil
+	private var editingConfigurable: QBEConfigurable? = nil
 	private weak var delegate: QBESentenceViewDelegate? = nil
 
 	var enabled: Bool {
@@ -63,7 +63,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 	func control(control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
 		var text = control.stringValue
-		if let inputToken = editingToken?.token as? QBESentenceTextInput, let s = editingStep {
+		if let inputToken = editingToken?.token as? QBESentenceTextInput, let s = editingConfigurable {
 			// Was a formula typed in?
 			if text.hasPrefix("=") {
 				if let formula = Formula(formula: text, locale: self.locale) where formula.root.isConstant {
@@ -72,16 +72,16 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			}
 
 			if inputToken.change(text) {
-				self.delegate?.sentenceView(self, didChangeStep: s)
+				self.delegate?.sentenceView(self, didChangeConfigurable: s)
 				updateView()
 				return true
 			}
 			return false
 		}
-		else if let inputToken = editingToken?.token as? QBESentenceFormula, let s = editingStep, let locale = self.delegate?.locale {
+		else if let inputToken = editingToken?.token as? QBESentenceFormula, let s = editingConfigurable, let locale = self.delegate?.locale {
 			if let formula = Formula(formula: text, locale: locale) {
 				inputToken.change(formula.root)
-				self.delegate?.sentenceView(self, didChangeStep: s)
+				self.delegate?.sentenceView(self, didChangeConfigurable: s)
 				updateView()
 				return true
 			}
@@ -202,7 +202,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func selectFile(sender: NSObject) {
-		if let token = editingToken?.token as? QBESentenceFile, let s = editingStep {
+		if let token = editingToken?.token as? QBESentenceFile, let s = editingConfigurable {
 			if token.mustExist || token.isDirectory {
 				let no = NSOpenPanel()
 				if token.isDirectory {
@@ -218,7 +218,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 					if result==NSFileHandlingPanelOKButton {
 						let url = no.URLs[0]
 						token.change(QBEFileReference.URL(url))
-						self.delegate?.sentenceView(self, didChangeStep: s)
+						self.delegate?.sentenceView(self, didChangeConfigurable: s)
 						self.updateView()
 					}
 				})
@@ -231,7 +231,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 					if result==NSFileHandlingPanelOKButton {
 						if let url = no.URL {
 							token.change(QBEFileReference.URL(url))
-							self.delegate?.sentenceView(self, didChangeStep: s)
+							self.delegate?.sentenceView(self, didChangeConfigurable: s)
 							self.updateView()
 						}
 					}
@@ -253,12 +253,12 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func selectOption(sender: NSObject) {
-		if let options = editingToken?.token as? QBESentenceOptions, let menuItem = sender as? NSMenuItem, let s = editingStep {
+		if let options = editingToken?.token as? QBESentenceOptions, let menuItem = sender as? NSMenuItem, let s = editingConfigurable {
 			let keys = Array(options.options.keys)
 			if keys.count > menuItem.tag {
 				let value = keys[menuItem.tag]
 				options.select(value)
-				self.delegate?.sentenceView(self, didChangeStep: s)
+				self.delegate?.sentenceView(self, didChangeConfigurable: s)
 				updateView()
 			}
 			self.editingToken = nil
@@ -266,23 +266,23 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func selectListOption(sender: NSObject) {
-		if let listToken = editingToken?.token as? QBESentenceList, let options = editingToken?.options, let menuItem = sender as? NSMenuItem, let s = editingStep {
+		if let listToken = editingToken?.token as? QBESentenceList, let options = editingToken?.options, let menuItem = sender as? NSMenuItem, let s = editingConfigurable {
 			let value = options[menuItem.tag]
 			listToken.select(value)
-			self.delegate?.sentenceView(self, didChangeStep: s)
+			self.delegate?.sentenceView(self, didChangeConfigurable: s)
 			updateView()
 		}
 		self.editingToken = nil
 	}
 
 	private func updateView() {
-		self.tokenField.hidden =  self.editingStep == nil
-		self.configureButton.hidden = self.editingStep == nil
+		self.tokenField.hidden =  self.editingConfigurable == nil
+		self.configureButton.hidden = self.editingConfigurable == nil
 
-		if let s = editingStep, let locale = delegate?.locale {
+		if let s = editingConfigurable, let locale = delegate?.locale {
 			let sentence = s.sentence(locale, variant: self.variant)
 			tokenField.objectValue = sentence.tokens.map({ return $0 as! NSObject })
-			configureButton.enabled = QBEFactory.sharedInstance.hasViewForStep(s)
+			configureButton.enabled = QBEFactory.sharedInstance.hasViewForConfigurable(s)
 		}
 		else {
 			tokenField.objectValue = []
@@ -290,16 +290,16 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
-	func configure(step: QBEStep?, variant: QBESentenceVariant, delegate: QBESentenceViewDelegate?) {
-		if self.editingStep != step || step == nil {
+	func configure(configurable: QBEConfigurable?, variant: QBESentenceVariant, delegate: QBESentenceViewDelegate?) {
+		if self.editingConfigurable != configurable || configurable == nil {
 			let tr = CATransition()
 			tr.duration = 0.3
 			tr.type = kCATransitionPush
-			tr.subtype = self.editingStep == nil ? kCATransitionFromTop : kCATransitionFromBottom
+			tr.subtype = self.editingConfigurable == nil ? kCATransitionFromTop : kCATransitionFromBottom
 			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
 			self.view.layer?.addAnimation(tr, forKey: kCATransition)
 
-			self.editingStep = step
+			self.editingConfigurable = configurable
 			self.variant = variant
 		}
 
@@ -309,7 +309,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 		/* Check whether the window is visible before showing the tip, because this may get called early while setting
 		up views, or while we are editing a formula (which occludes the configure button) */
-		if let s = step where QBEFactory.sharedInstance.hasViewForStep(s) && (self.view.window?.visible == true) {
+		if let s = configurable where QBEFactory.sharedInstance.hasViewForConfigurable(s) && (self.view.window?.visible == true) {
 			QBESettings.sharedInstance.showTip("sentenceView.configureButton") {
 				self.showTip(NSLocalizedString("Click here to change additional settings for this step.", comment: ""), atView: self.configureButton)
 			}
@@ -317,15 +317,15 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func configure(sender: NSObject) {
-		if let s = self.editingStep, let stepView = QBEFactory.sharedInstance.viewForStep(s.self, delegate: self) {
+		if let s = self.editingConfigurable, let stepView = QBEFactory.sharedInstance.viewForConfigurable(s.self, delegate: self) {
 			self.presentViewController(stepView, asPopoverRelativeToRect: configureButton.frame, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Semitransient)
 		}
 	}
 
 	func formulaEditor(view: QBEFormulaEditorViewController, didChangeExpression newExpression: Expression?) {
-		if let inputToken = editingToken?.token as? QBESentenceFormula, let s = self.editingStep {
+		if let inputToken = editingToken?.token as? QBESentenceFormula, let s = self.editingConfigurable {
 			inputToken.change(newExpression ?? Literal(Value.EmptyValue))
-			self.delegate?.sentenceView(self, didChangeStep: s)
+			self.delegate?.sentenceView(self, didChangeConfigurable: s)
 			updateView()
 		}
 	}
@@ -343,10 +343,10 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
-	func stepView(view: QBEStepViewController, didChangeConfigurationForStep step: QBEStep) {
-		asyncMain { self.updateView() }
-		self.delegate?.sentenceView(self, didChangeStep: step)
-	}
-
 	var locale: Locale { return self.delegate!.locale }
+
+	func configurableView(view: QBEConfigurableViewController, didChangeConfigurationFor c: QBEConfigurable) {
+		asyncMain { self.updateView() }
+		self.delegate?.sentenceView(self, didChangeConfigurable: c)
+	}
 }

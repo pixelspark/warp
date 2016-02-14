@@ -2,7 +2,7 @@ import Foundation
 import Cocoa
 import WarpCore
 
-internal class QBEPostgresStepView: QBEStepViewControllerFor<QBEPostgresSourceStep>, QBEAlterTableViewDelegate {
+internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPostgresSourceStep>, QBEAlterTableViewDelegate {
 	@IBOutlet var userField: NSTextField?
 	@IBOutlet var passwordField: NSTextField?
 	@IBOutlet var hostField: NSTextField?
@@ -12,8 +12,8 @@ internal class QBEPostgresStepView: QBEStepViewControllerFor<QBEPostgresSourceSt
 	@IBOutlet var infoIcon: NSImageView?
 	@IBOutlet var createTableButton: NSButton?
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBEPostgresStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBEPostgresStepView", bundle: nil)
 	}
 	
 	internal override func viewWillAppear() {
@@ -24,7 +24,7 @@ internal class QBEPostgresStepView: QBEStepViewControllerFor<QBEPostgresSourceSt
 	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: MutableData?) {
 		if let s = table as? SQLMutableData {
 			self.step.tableName = s.tableName
-			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 			self.updateView()
 		}
 	}
@@ -62,7 +62,7 @@ internal class QBEPostgresStepView: QBEStepViewControllerFor<QBEPostgresSourceSt
 		}
 		
 		if changed {
-			delegate?.stepView(self, didChangeConfigurationForStep: step)
+			delegate?.configurableView(self, didChangeConfigurationFor: step)
 			updateView()
 		}
 	}

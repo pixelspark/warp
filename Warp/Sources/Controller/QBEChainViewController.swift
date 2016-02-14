@@ -50,7 +50,7 @@ internal enum QBEEditingMode {
 	private var outletDropView: QBEOutletDropView!
 	private var viewFilters: [Column:FilterSet] = [:]
 	private var hasFullData = false
-	
+
 	var outletView: QBEOutletView!
 	weak var delegate: QBEChainViewDelegate?
 	
@@ -119,7 +119,14 @@ internal enum QBEEditingMode {
 			self.currentStep = chain?.head
 		}
 	}
-	
+
+	var selected: Bool = false { didSet {
+		self.stepsViewController?.active = selected
+		if selected {
+			delegate?.chainView(self, configureStep: currentStep, delegate: self)
+		}
+	} }
+
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		outletView.delegate = self
@@ -362,15 +369,6 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	func tabletWasDeselected() {
-		self.stepsViewController?.active = false
-	}
-	
-	func tabletWasSelected() {
-		delegate?.chainView(self, configureStep: currentStep, delegate: self)
-		self.stepsViewController?.active = true
-	}
-	
 	private func presentRaster(fallibleRaster: Fallible<Raster>) {
 		assertMainThread()
 		
@@ -1053,7 +1051,7 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	func sentenceView(view: QBESentenceViewController, didChangeStep: QBEStep) {
+	func sentenceView(view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable) {
 		updateView()
 		calculate()
 	}

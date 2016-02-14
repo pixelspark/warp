@@ -1,12 +1,12 @@
 import Foundation
 import WarpCore
 
-internal class QBERenameStepView: QBEStepViewControllerFor<QBERenameStep>, NSTableViewDataSource, NSTableViewDelegate {
+internal class QBERenameStepView: QBEConfigurableStepViewControllerFor<QBERenameStep>, NSTableViewDataSource, NSTableViewDelegate {
 	var columnNames: [Column] = []
 	@IBOutlet var tableView: NSTableView?
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBERenameStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBERenameStepView", bundle: nil)
 	}
 
 	required init?(coder: NSCoder) {
@@ -57,7 +57,7 @@ internal class QBERenameStepView: QBEStepViewControllerFor<QBERenameStep>, NSTab
 				step.renames.removeValueForKey(name)
 			}
 		}
-		self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+		self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 	
 	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {

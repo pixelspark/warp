@@ -57,7 +57,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 		// This may be a file we can import
 		if let importStep = QBEFactory.sharedInstance.stepForReadingFile(u) {
 			let doc = QBEDocument()
-			doc.addTablet(QBETablet(chain: QBEChain(head: importStep)))
+			doc.addTablet(QBEChainTablet(chain: QBEChain(head: importStep)))
 			dc.addDocument(doc)
 			doc.makeWindowControllers()
 			doc.showWindows()

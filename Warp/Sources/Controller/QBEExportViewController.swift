@@ -46,7 +46,7 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 		}
 	}
 
-	func sentenceView(view: QBESentenceViewController, didChangeStep: QBEStep) {
+	func sentenceView(view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable) {
 		// TODO check if export is possible
 	}
 

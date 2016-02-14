@@ -608,7 +608,7 @@ public class Batch<T>: Job {
 	private var cached: T? = nil
 	private var waitingList: [Callback] = []
 	
-	var satisfied: Bool { get {
+	private var satisfied: Bool { get {
 		return cached != nil
 	} }
 	
@@ -623,10 +623,10 @@ public class Batch<T>: Job {
 	/** Called by a producer to return the result of a job. This method will call all callbacks on the waiting list (on the
 	main thread) and subsequently empty the waiting list. Enqueue can only be called once on a batch. */
 	private func satisfy(value: T) {
-		assert(cached == nil, "Batch.satisfy called with cached!=nil: \(cached) \(value)")
-		assert(!satisfied, "Batch already satisfied")
-
 		self.mutex.locked {
+			assert(cached == nil, "Batch.satisfy called with cached!=nil: \(cached) \(value)")
+			assert(!satisfied, "Batch already satisfied")
+
 			self.cached = value
 			for waiting in self.waitingList {
 				self.async {

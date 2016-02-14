@@ -1,12 +1,12 @@
 import Foundation
 import WarpCore
 
-internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableViewDataSource, NSTableViewDelegate {
+internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep>, NSTableViewDataSource, NSTableViewDelegate {
 	@IBOutlet var tableView: NSTableView?
 	@IBOutlet var addButton: NSPopUpButton?
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBESortStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBESortStepView", bundle: nil)
 	}
 	
 	required init?(coder: NSCoder) {
@@ -19,7 +19,7 @@ internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableVi
 			let expression = Sibling(columnName: Column(columnName))
 			step.orders.append(Order(expression: expression, ascending: true, numeric: true))
 			self.addButton?.stringValue = ""
-			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 			updateView()
 		}
 	}
@@ -75,7 +75,7 @@ internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableVi
 		if let selection = tableView?.selectedRowIndexes where selection.count > 0 {
 			step.orders.removeObjectsAtIndexes(selection, offset: 0)
 			tableView?.reloadData()
-			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 		}
 	}
 	
@@ -87,7 +87,7 @@ internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableVi
 				if let formulaString = object as? String {
 					if let formula = Formula(formula: formulaString, locale: self.delegate?.locale ?? Locale()) {
 						order.expression = formula.root
-						self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+						self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 					}
 				}
 			}
@@ -95,14 +95,14 @@ internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableVi
 				let oldValue = order.ascending
 				order.ascending = object?.boolValue ?? oldValue
 				if oldValue != order.ascending {
-					self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+					self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 				}
 			}
 			else if identifier == "numeric" {
 				let oldValue = order.numeric
 				order.numeric = object?.boolValue ?? oldValue
 				if oldValue != order.numeric {
-					self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+					self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 				}
 			}
 		}
@@ -139,7 +139,7 @@ internal class QBESortStepView: QBEStepViewControllerFor<QBESortStep>, NSTableVi
 			}
 		}
 		tableView.reloadData()
-		self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+		self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 		return true
 	}
 	

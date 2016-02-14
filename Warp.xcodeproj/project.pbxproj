@@ -11,6 +11,10 @@
 		651521991B13B92D007BCDFF /* TCMXMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 651521981B13B92D007BCDFF /* TCMXMLWriter.m */; };
 		6518BFC41B26DE7C009E311F /* libmariadbclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */; };
 		651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 651988E51A0F9C30003463AA /* CHCSVParser.m */; };
+		651C68761C70D7B300F0F048 /* QBETabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68751C70D7B300F0F048 /* QBETabletViewController.swift */; };
+		651C687E1C70E2AB00F0F048 /* QBEChainTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */; };
+		651C68801C70E96600F0F048 /* QBENoteTablet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687F1C70E96600F0F048 /* QBENoteTablet.swift */; };
+		651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */; };
 		65436ED21B30C20600636299 /* libcrypto.0.9.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65436ED01B30C20600636299 /* libcrypto.0.9.8.dylib */; };
 		65436ED31B30C20600636299 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65436ED11B30C20600636299 /* libsqlite3.dylib */; };
 		65436ED61B30C21F00636299 /* libiconv.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65436ED41B30C21F00636299 /* libiconv.2.dylib */; };
@@ -343,6 +347,10 @@
 		651521981B13B92D007BCDFF /* TCMXMLWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TCMXMLWriter.m; path = Libraries/TCMXMLWriter/TCMXML/TCMXMLWriter.m; sourceTree = "<group>"; };
 		651988E41A0F9C30003463AA /* CHCSVParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CHCSVParser.h; path = Libraries/CHCSVParser/CHCSVParser.h; sourceTree = "<group>"; };
 		651988E51A0F9C30003463AA /* CHCSVParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CHCSVParser.m; path = Libraries/CHCSVParser/CHCSVParser.m; sourceTree = "<group>"; };
+		651C68751C70D7B300F0F048 /* QBETabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBETabletViewController.swift; sourceTree = "<group>"; };
+		651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChainTabletViewController.swift; sourceTree = "<group>"; };
+		651C687F1C70E96600F0F048 /* QBENoteTablet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENoteTablet.swift; sourceTree = "<group>"; };
+		651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENoteTabletViewController.swift; sourceTree = "<group>"; };
 		654296D81AB83123000472E6 /* config-win.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "config-win.h"; sourceTree = "<group>"; };
 		654296D91AB83123000472E6 /* dbug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dbug.h; sourceTree = "<group>"; };
 		654296DA1AB83123000472E6 /* errmsg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = errmsg.h; sourceTree = "<group>"; };
@@ -698,6 +706,7 @@
 				6583EE901C14758B00AE6C00 /* QBEAlterTableViewController.swift */,
 				6583EE911C14758B00AE6C00 /* QBEAppDelegate.swift */,
 				6583EE921C14758B00AE6C00 /* QBECalculator.swift */,
+				651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */,
 				6583EE931C14758B00AE6C00 /* QBEChainViewController.swift */,
 				6583EE941C14758B00AE6C00 /* QBEColumnMappingViewController.swift */,
 				6583EE951C14758B00AE6C00 /* QBEDataViewController.swift */,
@@ -706,11 +715,13 @@
 				6583EE991C14758B00AE6C00 /* QBEFilterViewController.swift */,
 				6583EE9A1C14758B00AE6C00 /* QBEFormulaEditorViewController.swift */,
 				6583EE9B1C14758B00AE6C00 /* QBEJobsViewController.swift */,
+				651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */,
 				6583EE9C1C14758B00AE6C00 /* QBEReferenceViewController.swift */,
 				6583EE9D1C14758B00AE6C00 /* QBESentenceViewController.swift */,
 				6583EE9E1C14758B00AE6C00 /* QBESettingsViewController.swift */,
 				6583EE9F1C14758B00AE6C00 /* QBEStepsViewController.swift */,
 				6583EEA01C14758B00AE6C00 /* QBESuggestionsViewController.swift */,
+				651C68751C70D7B300F0F048 /* QBETabletViewController.swift */,
 				6583EEA11C14758B00AE6C00 /* QBETourViewController.swift */,
 				6583EEA21C14758B00AE6C00 /* QBEUploadViewController.swift */,
 				6583EEA31C14758B00AE6C00 /* QBEWindowController.swift */,
@@ -748,6 +759,7 @@
 				6583EE981C14758B00AE6C00 /* QBEFactory.swift */,
 				6583EEB51C14758B00AE6C00 /* QBEFile.swift */,
 				6583EEB61C14758B00AE6C00 /* QBEJobsManager.swift */,
+				651C687F1C70E96600F0F048 /* QBENoteTablet.swift */,
 				6583EEB71C14758B00AE6C00 /* QBESecret.swift */,
 				6583EEB81C14758B00AE6C00 /* QBESentence.swift */,
 				6583EEB91C14758B00AE6C00 /* QBESettings.swift */,
@@ -1209,6 +1221,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6583EF111C14758B00AE6C00 /* QBEExportStep.swift in Sources */,
+				651C687E1C70E2AB00F0F048 /* QBEChainTabletViewController.swift in Sources */,
 				6583EF081C14758B00AE6C00 /* QBEStep.swift in Sources */,
 				6583EEE41C14758B00AE6C00 /* QBEColumnMappingViewController.swift in Sources */,
 				6583EF071C14758B00AE6C00 /* QBESettings.swift in Sources */,
@@ -1268,6 +1281,7 @@
 				6583EF171C14758B00AE6C00 /* QBEPrestoStep.swift in Sources */,
 				6583EEEE1C14758B00AE6C00 /* QBESettingsViewController.swift in Sources */,
 				6583EEE01C14758B00AE6C00 /* QBEAlterTableViewController.swift in Sources */,
+				651C68761C70D7B300F0F048 /* QBETabletViewController.swift in Sources */,
 				6583EEF31C14758B00AE6C00 /* QBEWindowController.swift in Sources */,
 				6583EEF61C14758B00AE6C00 /* QBECrawlStepView.swift in Sources */,
 				6583EEE11C14758B00AE6C00 /* QBEAppDelegate.swift in Sources */,
@@ -1281,8 +1295,10 @@
 				6583EF0F1C14758B00AE6C00 /* QBEDBFStep.swift in Sources */,
 				6583EF281C14758B00AE6C00 /* QBEResizableView.swift in Sources */,
 				6583EF271C14758B00AE6C00 /* QBEOutletView.swift in Sources */,
+				651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */,
 				6583EF011C14758B00AE6C00 /* QBEChain.swift in Sources */,
 				6583EF1D1C14758B00AE6C00 /* QBESortStep.swift in Sources */,
+				651C68801C70E96600F0F048 /* QBENoteTablet.swift in Sources */,
 				6583EF161C14758B00AE6C00 /* QBEPostgresStep.swift in Sources */,
 				6583EEE31C14758B00AE6C00 /* QBEChainViewController.swift in Sources */,
 				6583EEE81C14758B00AE6C00 /* QBEFactory.swift in Sources */,

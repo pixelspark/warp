@@ -399,7 +399,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 		self.mapping = didChangeMapping
 	}
 
-	func sentenceView(view: QBESentenceViewController, didChangeStep: QBEStep) {
+	func sentenceView(view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable) {
 		self.updateView()
 	}
 

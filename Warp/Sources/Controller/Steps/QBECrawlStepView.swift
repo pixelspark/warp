@@ -2,7 +2,7 @@ import Foundation
 import Cocoa
 import WarpCore
 
-internal class QBECrawlStepView: QBEStepViewControllerFor<QBECrawlStep> {
+internal class QBECrawlStepView: QBEConfigurableStepViewControllerFor<QBECrawlStep> {
 	@IBOutlet var targetBodyField: NSTextField!
 	@IBOutlet var targetErrorField: NSTextField!
 	@IBOutlet var targetStatusField: NSTextField!
@@ -10,8 +10,8 @@ internal class QBECrawlStepView: QBEStepViewControllerFor<QBECrawlStep> {
 	@IBOutlet var maxConcurrentField: NSTextField!
 	@IBOutlet var maxRequestsField: NSTextField!
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBECrawlStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBECrawlStepView", bundle: nil)
 	}
 	
 	required init?(coder: NSCoder) {
@@ -53,7 +53,7 @@ internal class QBECrawlStepView: QBEStepViewControllerFor<QBECrawlStep> {
 		}
 		
 		if changed {
-			delegate?.stepView(self, didChangeConfigurationForStep: step)
+			delegate?.configurableView(self, didChangeConfigurationFor: step)
 		}
 	}
 	

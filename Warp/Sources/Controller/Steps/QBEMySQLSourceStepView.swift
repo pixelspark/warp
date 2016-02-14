@@ -2,7 +2,7 @@ import Foundation
 import Cocoa
 import WarpCore
 
-internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceStep>, QBEAlterTableViewDelegate {
+internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEMySQLSourceStep>, QBEAlterTableViewDelegate {
 	@IBOutlet var userField: NSTextField?
 	@IBOutlet var passwordField: NSTextField?
 	@IBOutlet var hostField: NSTextField?
@@ -12,8 +12,8 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 	@IBOutlet var infoIcon: NSImageView?
 	@IBOutlet var createTableButton: NSButton?
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBEMySQLSourceStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBEMySQLSourceStepView", bundle: nil)
 	}
 	
 	required init?(coder: NSCoder) {
@@ -28,7 +28,7 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: MutableData?) {
 		if let s = table as? SQLMutableData {
 			self.step.tableName = s.tableName
-			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 			self.updateView()
 		}
 	}
@@ -66,7 +66,7 @@ internal class QBEMySQLSourceStepView: QBEStepViewControllerFor<QBEMySQLSourceSt
 		}
 	
 		if changed {
-			delegate?.stepView(self, didChangeConfigurationForStep: step)
+			delegate?.configurableView(self, didChangeConfigurationFor: step)
 			updateView()
 		}
 	}

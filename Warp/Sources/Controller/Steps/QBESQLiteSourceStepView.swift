@@ -2,11 +2,11 @@ import Foundation
 import Cocoa
 import WarpCore
 
-internal class QBESQLiteSourceStepView: QBEStepViewControllerFor<QBESQLiteSourceStep>, QBEAlterTableViewDelegate {
+internal class QBESQLiteSourceStepView: QBEConfigurableStepViewControllerFor<QBESQLiteSourceStep>, QBEAlterTableViewDelegate {
 	@IBOutlet var createTableButton: NSButton?
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBESQLiteSourceStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBESQLiteSourceStepView", bundle: nil)
 	}
 
 	required init?(coder: NSCoder) {
@@ -21,7 +21,7 @@ internal class QBESQLiteSourceStepView: QBEStepViewControllerFor<QBESQLiteSource
 	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: MutableData?) {
 		if let s = table as? SQLMutableData {
 			self.step.tableName = s.tableName
-			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 			self.updateView()
 		}
 	}

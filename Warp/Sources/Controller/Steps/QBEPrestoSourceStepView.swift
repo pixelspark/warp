@@ -1,7 +1,7 @@
 import Foundation
 import WarpCore
 
-internal class QBEPrestoSourceStepView: QBEStepViewControllerFor<QBEPrestoSourceStep>, NSTableViewDataSource, NSTableViewDelegate, NSComboBoxDataSource, NSComboBoxDelegate {
+internal class QBEPrestoSourceStepView: QBEConfigurableStepViewControllerFor<QBEPrestoSourceStep>, NSTableViewDataSource, NSTableViewDelegate, NSComboBoxDataSource, NSComboBoxDelegate {
 	var tableNames: [String]?
 	var schemaNames: [String]?
 	var catalogNames: [String]?
@@ -10,8 +10,8 @@ internal class QBEPrestoSourceStepView: QBEStepViewControllerFor<QBEPrestoSource
 	@IBOutlet var catalogField: NSComboBox?
 	@IBOutlet var schemaField: NSComboBox?
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBEPrestoSourceStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBEPrestoSourceStepView", bundle: nil)
 	}
 	
 	required init?(coder: NSCoder) {
@@ -28,7 +28,7 @@ internal class QBEPrestoSourceStepView: QBEStepViewControllerFor<QBEPrestoSource
 		step.catalogName = catalogField?.stringValue ?? step.catalogName
 		step.schemaName = schemaField?.stringValue ?? step.schemaName
 		updateView()
-		self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+		self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 	
 	private func updateView() {
@@ -81,7 +81,7 @@ internal class QBEPrestoSourceStepView: QBEStepViewControllerFor<QBEPrestoSource
 		if tableNames != nil && selection >= 0 && selection < tableNames!.count {
 			let selectedName = tableNames![selection]
 			step.tableName = selectedName
-			delegate?.stepView(self, didChangeConfigurationForStep: step)
+			delegate?.configurableView(self, didChangeConfigurationFor: step)
 		}
 	}
 	

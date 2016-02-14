@@ -1,7 +1,7 @@
 import Foundation
 import WarpCore
 
-class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSource, NSComboBoxDelegate, NSTabViewDelegate {
+class QBEJoinStepView: QBEConfigurableStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSource, NSComboBoxDelegate, NSTabViewDelegate {
 	@IBOutlet var formulaField: NSTextField?
 	@IBOutlet var tabView: NSTabView!
 	@IBOutlet var foreignComboBox: NSComboBox!
@@ -11,8 +11,8 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 	private var existingOwnColumns: [Column] = []
 	private var existingForeignColumns: [Column] = []
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBEJoinStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBEJoinStepView", bundle: nil)
 	}
 	
 	var simpleForeign: Column? {
@@ -209,7 +209,7 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 		let s = self.step.joinType
 		if s != newJoinType {
 			self.step.joinType = newJoinType
-			delegate?.stepView(self, didChangeConfigurationForStep: step)
+			delegate?.configurableView(self, didChangeConfigurationFor: step)
 			updateView()
 		}
 	}
@@ -218,7 +218,7 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 		if isSimple {
 			simpleSibling = Column(siblingComboBox.stringValue)
 			simpleForeign = Column(foreignComboBox.stringValue)
-			delegate?.stepView(self, didChangeConfigurationForStep: step)
+			delegate?.configurableView(self, didChangeConfigurationFor: step)
 		}
 		updateView()
 	}
@@ -230,7 +230,7 @@ class QBEJoinStepView: QBEStepViewControllerFor<QBEJoinStep>, NSComboBoxDataSour
 			if f != oldFormula {
 				if let parsed = Formula(formula: f, locale: (self.delegate?.locale ?? Locale()))?.root {
 					step.condition = parsed
-					delegate?.stepView(self, didChangeConfigurationForStep: step)
+					delegate?.configurableView(self, didChangeConfigurationFor: step)
 					updateView()
 				}
 				else {

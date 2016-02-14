@@ -10,7 +10,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	
 	required init?(coder aDecoder: NSCoder) {
 		if let head = aDecoder.decodeObjectOfClass(QBEStep.self, forKey: "head") {
-			let legacyTablet = QBETablet(chain: QBEChain(head: head))
+			let legacyTablet = QBEChainTablet(chain: QBEChain(head: head))
 			tablets.append(legacyTablet)
 		}
 		else {
@@ -65,7 +65,12 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	}
 	
 	override func dataOfType(typeName: String) throws -> NSData {
-		return NSKeyedArchiver.archivedDataWithRootObject(self)
+		let data = NSMutableData()
+		let ka = NSKeyedArchiver(forWritingWithMutableData: data)
+		ka.setClassName("Warp.QBETablet.v2", forClass: QBETablet.classForKeyedArchiver()!)
+		ka.encodeObject(self, forKey: "root")
+		ka.finishEncoding()
+		return data
 	}
 
 	override func saveDocument(sender: AnyObject?) {
@@ -125,6 +130,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 		unarchiver.setClass(Foreign.classForKeyedUnarchiver(), forClassName: "WarpCore.QBEForeignExpression")
 		unarchiver.setClass(Comparison.classForKeyedUnarchiver(), forClassName: "WarpCore.QBEBinaryExpression")
 		unarchiver.setClass(Identity.classForKeyedUnarchiver(), forClassName: "WarpCore.QBEIdentityExpression")
+		unarchiver.setClass(QBEChainTablet.classForKeyedUnarchiver(), forClassName: "Warp.QBETablet")
 
 		if let x = unarchiver.decodeObjectForKey("root") as? QBEDocument {
 			tablets = x.tablets

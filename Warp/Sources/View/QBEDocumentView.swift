@@ -2,29 +2,14 @@ import Cocoa
 import WarpCore
 
 @objc protocol QBEDocumentViewDelegate: NSObjectProtocol {
-	func documentView(view: QBEDocumentView, didSelectTablet: QBEChainViewController?)
-	func documentView(view: QBEDocumentView, didSelectArrow: QBEArrow?)
+	func documentView(view: QBEDocumentView, didSelectTablet: QBETablet?)
+	func documentView(view: QBEDocumentView, didSelectArrow: QBETabletArrow?)
 	func documentView(view: QBEDocumentView, wantsZoomToView: NSView)
 }
 
-class QBETabletArrow: NSObject, QBEArrow {
-	private(set) weak var from: QBETablet?
-	private(set) weak var to: QBETablet?
-	private(set) weak var fromStep: QBEStep?
-	
-	init(from: QBETablet, to: QBETablet, fromStep: QBEStep) {
-		self.from = from
-		self.to = to
-		self.fromStep = fromStep
-	}
-	
-	var sourceFrame: CGRect { get {
-		return from?.frame ?? CGRectZero
-	} }
-	
-	var targetFrame: CGRect { get {
-		return to?.frame ?? CGRectZero
-	} }
+/** The view of a QBETabletViewController should subclass this view. It is used to identify pieces of the tablet that are
+draggable (see QBEResizableView's hitTest). */
+internal class QBETabletView: NSView {
 }
 
 internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDelegate {
@@ -52,7 +37,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		if let t = tablet {
 			for sv in subviews {
 				if let tv = sv as? QBEResizableTabletView {
-					if tv.tabletController.chain?.tablet == t {
+					if tv.tabletController.tablet == t {
 						selectView(tv, notifyDelegate: notifyDelegate)
 						return
 					}
@@ -64,9 +49,11 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		}
 	}
 	
-	func flowchartView(view: QBEFlowchartView, didSelectArrow: QBEArrow?) {
+	func flowchartView(view: QBEFlowchartView, didSelectArrow arrow: QBEArrow?) {
 		selectView(nil)
-		delegate?.documentView(self, didSelectArrow: didSelectArrow)
+		if let tabletArrow = arrow as? QBETabletArrow {
+			delegate?.documentView(self, didSelectArrow: tabletArrow)
+		}
 	}
 	
 	private func selectView(view: QBEResizableTabletView?, notifyDelegate: Bool = true) {
@@ -77,7 +64,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 				if tv == view {
 					self.window?.makeFirstResponder(tv.tabletController.view)
 					if notifyDelegate {
-						delegate?.documentView(self, didSelectTablet: tv.tabletController)
+						delegate?.documentView(self, didSelectTablet: tv.tabletController.tablet)
 					}
 					self.window?.update()
 				}
@@ -106,13 +93,12 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	
 	func resizableView(view: QBEResizableView, changedFrameTo frame: CGRect) {
 		if let tv = view as? QBEResizableTabletView {
-			if let tablet = tv.tabletController.chain?.tablet {
-				let sizeChanged = tablet.frame == nil || tablet.frame!.size.width != frame.size.width || tablet.frame!.size.height != frame.size.height
-				tablet.frame = frame
-				tabletsChanged()
-				if tv.selected && sizeChanged {
-					tv.scrollRectToVisible(tv.bounds)
-				}
+			let tablet = tv.tabletController.tablet
+			let sizeChanged = tablet.frame == nil || tablet.frame!.size.width != frame.size.width || tablet.frame!.size.height != frame.size.height
+			tablet.frame = frame
+			tabletsChanged()
+			if tv.selected && sizeChanged {
+				tv.scrollRectToVisible(tv.bounds)
 			}
 		}
 		setNeedsDisplayInRect(self.bounds)
@@ -149,11 +135,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		// Move all tablets
 		for vw in subviews {
 			if let tv = vw as? QBEResizableTabletView {
-				if let tablet = tv.tabletController.chain?.tablet {
-					if let tabletFrame = tablet.frame {
-						tablet.frame = tabletFrame.offsetBy(dx: offset.x, dy: offset.y)
-						tv.frame = tablet.frame!
-					}
+				let tablet = tv.tabletController.tablet
+				if let tabletFrame = tablet.frame {
+					tablet.frame = tabletFrame.offsetBy(dx: offset.x, dy: offset.y)
+					tv.frame = tablet.frame!
 				}
 			}
 		}
@@ -169,12 +154,8 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		// Update flowchart
 		var arrows: [QBEArrow] = []
 		for va in subviews {
-			if let sourceChain = (va as? QBEResizableTabletView)?.tabletController.chain {
-				for dep in sourceChain.dependencies {
-					if let s = sourceChain.tablet, let t = dep.dependsOn.tablet {
-						arrows.append(QBETabletArrow(from: s, to: t, fromStep: dep.step))
-					}
-				}
+			if let vc = va as? QBEResizableTabletView {
+				arrows += (vc.tabletController.tablet.arrows as [QBEArrow])
 			}
 		}
 		flowchartView.arrows = arrows
@@ -192,10 +173,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	}}
 	
 	var selectedTablet: QBETablet? { get {
-		return selectedView?.tabletController.chain?.tablet
+		return selectedView?.tabletController.tablet
 	} }
 	
-	var selectedTabletController: QBEChainViewController? { get {
+	var selectedTabletController: QBETabletViewController? { get {
 		return selectedView?.tabletController
 	} }
 	
@@ -210,7 +191,8 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	func removeTablet(tablet: QBETablet) {
 		for subview in subviews {
 			if let rv = subview as? QBEResizableTabletView {
-				if let ct = rv.tabletController.chain?.tablet where ct == tablet {
+				let ct = rv.tabletController.tablet
+				if ct == tablet {
 					subview.removeFromSuperview()
 				}
 			}
@@ -218,15 +200,13 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		tabletsChanged()
 	}
 	
-	func addTablet(tabletController: QBEChainViewController, animated: Bool = true, completion: (() -> ())? = nil) {
-		if let tablet = tabletController.chain?.tablet {
-			let resizer = QBEResizableTabletView(frame: tablet.frame!, controller: tabletController)
-			resizer.contentView = tabletController.view
-			resizer.delegate = self
-		
-			self.addSubview(resizer, animated: animated, completion: completion)
-			tabletsChanged()
-		}
+	func addTablet(tabletController: QBETabletViewController, animated: Bool = true, completion: (() -> ())? = nil) {
+		let resizer = QBEResizableTabletView(frame: tabletController.tablet.frame!, controller: tabletController)
+		resizer.contentView = tabletController.view
+		resizer.delegate = self
+	
+		self.addSubview(resizer, animated: animated, completion: completion)
+		tabletsChanged()
 	}
 	
 	/** This view needs to be able to be first responder, so that QBEDocumentViewCOntroller can respond to first 
@@ -235,10 +215,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 }
 
 private class QBEResizableTabletView: QBEResizableView {
-	let tabletController: QBEChainViewController
+	let tabletController: QBETabletViewController
 	
-	init(frame: CGRect, controller: QBEChainViewController) {
-		tabletController = controller
+	init(frame: CGRect, controller: QBETabletViewController) {
+		self.tabletController = controller
 		super.init(frame: frame)
 	}
 	

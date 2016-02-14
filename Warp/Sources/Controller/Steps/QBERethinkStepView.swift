@@ -2,7 +2,7 @@ import Foundation
 import WarpCore
 import Rethink
 
-internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep>, NSTableViewDataSource, NSTableViewDelegate, QBEAlterTableViewDelegate {
+internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethinkSourceStep>, NSTableViewDataSource, NSTableViewDelegate, QBEAlterTableViewDelegate {
 	@IBOutlet var tableView: NSTableView?
 	@IBOutlet var addColumnTextField: NSTextField!
 	@IBOutlet var serverField: NSTextField!
@@ -13,8 +13,8 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 	@IBOutlet var infoIcon: NSImageView?
 	@IBOutlet var createTableButton: NSButton?
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBERethinkStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBERethinkStepView", bundle: nil)
 	}
 
 	internal override func viewWillAppear() {
@@ -86,7 +86,7 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 			self.step.database = s.databaseName
 			self.step.server = s.url.host ?? self.step.server
 			self.step.port = s.url.port?.integerValue ?? self.step.port
-			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 			self.updateView()
 		}
 	}
@@ -124,7 +124,7 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 
 		if change {
 			self.updateView()
-			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 		}
 	}
 
@@ -134,7 +134,7 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 
 	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
 		step.columns[row] = Column(object as! String)
-		self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+		self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 
 	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
@@ -152,7 +152,7 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 			if !step.columns.contains(Column(s)) {
 				step.columns.append(Column(s))
 				self.updateView()
-				self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+				self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 			}
 		}
 		self.addColumnTextField.stringValue = ""
@@ -162,7 +162,7 @@ internal class QBERethinkStepView: QBEStepViewControllerFor<QBERethinkSourceStep
 		if let sr = self.tableView?.selectedRow where sr >= 0 && sr != NSNotFound && sr < self.step.columns.count {
 			self.step.columns.removeAtIndex(sr)
 			self.updateView()
-			self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 		}
 	}
 }

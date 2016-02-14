@@ -237,8 +237,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	private func updateProgress() {
 		// Set visibility
-		let hasNoData = (raster==nil)
-		
 		errorLabel.hidden = calculating || errorMessage == nil
 		errorLabel.stringValue = errorMessage ?? ""
 		tableView?.hidden = errorMessage != nil

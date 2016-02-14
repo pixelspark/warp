@@ -2,15 +2,15 @@ import Foundation
 import Cocoa
 import WarpCore
 
-internal class QBECalculateStepView: QBEStepViewControllerFor<QBECalculateStep>, NSComboBoxDataSource, NSComboBoxDelegate {
+internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECalculateStep>, NSComboBoxDataSource, NSComboBoxDelegate {
 	@IBOutlet var targetColumnNameField: NSTextField?
 	@IBOutlet var formulaField: NSTextField?
 	@IBOutlet var insertAfterField: NSComboBox!
 	@IBOutlet var insertPositionPopup: NSPopUpButton!
 	var existingColumns: [Column]?
 	
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBECalculateStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBECalculateStepView", bundle: nil)
 	}
 	
 	required init?(coder: NSCoder) {
@@ -85,7 +85,7 @@ internal class QBECalculateStepView: QBEStepViewControllerFor<QBECalculateStep>,
 				let before = position.tag == 1
 				if step.insertBefore != before {
 					step.insertBefore = before
-					delegate?.stepView(self, didChangeConfigurationForStep: step)
+					delegate?.configurableView(self, didChangeConfigurationFor: step)
 					return
 				}
 			}
@@ -96,7 +96,7 @@ internal class QBECalculateStepView: QBEStepViewControllerFor<QBECalculateStep>,
 			if after != step.insertRelativeTo?.name {
 				step.insertRelativeTo = after.isEmpty ? nil : Column(after)
 			}
-			delegate?.stepView(self, didChangeConfigurationForStep: step)
+			delegate?.configurableView(self, didChangeConfigurationFor: step)
 			return
 		}
 		
@@ -114,6 +114,6 @@ internal class QBECalculateStepView: QBEStepViewControllerFor<QBECalculateStep>,
 				a.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
 			}
 		}
-		delegate?.stepView(self, didChangeConfigurationForStep: step)
+		delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 }

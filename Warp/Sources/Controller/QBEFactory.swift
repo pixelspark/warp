@@ -1,14 +1,20 @@
 import Foundation
 import WarpCore
 
-protocol QBEStepViewDelegate: NSObjectProtocol {
-	var locale: Locale { get }
-
-	func stepView(view: QBEStepViewController, didChangeConfigurationForStep: QBEStep)
+public class QBEConfigurable: NSObject {
+	public func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+		fatalError("Not implemented")
+	}
 }
 
-class QBEStepViewController: NSViewController {
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
+protocol QBEConfigurableViewDelegate: NSObjectProtocol {
+	var locale: Locale { get }
+
+	func configurableView(view: QBEConfigurableViewController, didChangeConfigurationFor: QBEConfigurable)
+}
+
+class QBEConfigurableViewController: NSViewController {
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
 		fatalError("Do not call")
 	}
 
@@ -21,17 +27,17 @@ class QBEStepViewController: NSViewController {
 	}
 }
 
-class QBEStepViewControllerFor<StepType: QBEStep>: QBEStepViewController {
-	weak var delegate: QBEStepViewDelegate?
+class QBEConfigurableStepViewControllerFor<StepType: QBEStep>: QBEConfigurableViewController {
+	weak var delegate: QBEConfigurableViewDelegate?
 	var step: StepType
 
-	init?(step: QBEStep, delegate: QBEStepViewDelegate, nibName: String?, bundle: NSBundle?) {
-		self.step = step as! StepType
+	init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate, nibName: String?, bundle: NSBundle?) {
+		self.step = configurable as! StepType
 		self.delegate = delegate
 		super.init(nibName: nibName, bundle: bundle)
 	}
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
 		fatalError("init(coder:) has not been implemented")
 	}
 
@@ -83,7 +89,7 @@ class QBEFactory {
 		"dbf": {(url) in return QBEDBFSourceStep(url: url)}
 	]
 	
-	private let stepViews: Dictionary<String, QBEStepViewController.Type> = [
+	private let configurableViews: Dictionary<String, QBEConfigurableViewController.Type> = [
 		QBECalculateStep.className(): QBECalculateStepView.self,
 		QBEPivotStep.className(): QBEPivotStepView.self,
 		QBECSVSourceStep.className(): QBECSVStepView.self,
@@ -175,13 +181,13 @@ class QBEFactory {
 		return nil
 	}
 
-	func hasViewForStep(step: QBEStep) -> Bool {
-		return stepViews[step.self.className] != nil
+	func hasViewForConfigurable(configurable: NSObject) -> Bool {
+		return configurableViews[configurable.className] != nil
 	}
 
-	func viewForStep<StepType: QBEStep>(step: StepType, delegate: QBEStepViewDelegate) -> QBEStepViewController? {
-		if let viewType = stepViews[step.className] {
-			return viewType.init(step: step, delegate: delegate)
+	func viewForConfigurable<StepType: QBEConfigurable>(step: StepType, delegate: QBEConfigurableViewDelegate) -> QBEConfigurableViewController? {
+		if let viewType = configurableViews[step.self.className] {
+			return viewType.init(configurable: step, delegate: delegate)
 		}
 		return nil
 	}

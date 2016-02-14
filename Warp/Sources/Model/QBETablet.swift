@@ -28,45 +28,54 @@ public class QBERectangle: NSObject, NSSecureCoding {
 	}
 }
 
-/** A 'tablet' is a user-defined working item that represents tabular data and (possibly in the future) other forms of
-data. Currently a tablet is always comprised of a QBEChain that calculates data. */
+/** An arrow that exists between two tablets, indicating some sort of dependency. */
+class QBETabletArrow: NSObject, QBEArrow {
+	private(set) weak var from: QBETablet?
+	private(set) weak var to: QBETablet?
+	private(set) weak var fromStep: QBEStep?
+
+	init(from: QBETablet, to: QBETablet, fromStep: QBEStep) {
+		self.from = from
+		self.to = to
+		self.fromStep = fromStep
+	}
+
+	var sourceFrame: CGRect { get {
+		return from?.frame ?? CGRectZero
+	} }
+
+	var targetFrame: CGRect { get {
+		return to?.frame ?? CGRectZero
+	} }
+}
+
+/** A 'tablet' is an interactive widget that is contained in the document that allows visualisation and/or manipulation
+of data. A tablet has a rectangular shape and a certain position in the document ('frame'). */
 @objc class QBETablet: NSObject, NSSecureCoding {
 	weak internal(set) var document: QBEDocument? = nil
 	var frame: CGRect? = nil
+
+	/** An arrow is a dependency between two tablets. */
+	var arrows: [QBETabletArrow] {
+		return []
+	}
 
 	var displayName: String? { get {
 		return self.document?.displayName
 	} }
 
-	var chain: QBEChain { didSet {
-		assert(chain.tablet == nil, "chain must not be associated with another tablet already")
-		chain.tablet = self
-	} }
-	
-	init(chain: QBEChain) {
-		self.chain = chain
-		super.init()
-		self.chain.tablet = self
+	override init() {
 	}
 	
 	required init?(coder aDecoder: NSCoder) {
-		if let c = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "chain") {
-			chain = c
-		}
-		else {
-			chain = QBEChain()
-		}
-		
 		if let rect = aDecoder.decodeObjectOfClass(QBERectangle.self, forKey: "frame") {
 			frame = rect.rect
 		}
 		
 		super.init()
-		chain.tablet = self
 	}
 	
 	func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(chain, forKey: "chain")
 		aCoder.encodeObject(frame == nil ? nil : QBERectangle(frame!), forKey: "frame")
 	}
 	
@@ -78,11 +87,60 @@ data. Currently a tablet is always comprised of a QBEChain that calculates data.
 	external files should take the opportunity to create security bookmarks to these files (as required by Apple's
 	App Sandbox) and store them. */
 	func willSaveToDocument(atURL: NSURL) {
-		self.chain.willSaveToDocument(atURL)
 	}
 	
 	/** This method is called right after a document has been loaded from disk. */
 	func didLoadFromDocument(atURL: NSURL) {
+	}
+}
+
+/** A chain tablet is a tablet that shows a 'chain' of operations calculating tabular data. */
+@objc class QBEChainTablet: QBETablet {
+	var chain: QBEChain { didSet {
+		assert(chain.tablet == nil, "chain must not be associated with another tablet already")
+		chain.tablet = self
+		} }
+
+	init(chain: QBEChain) {
+		self.chain = chain
+		super.init()
+		self.chain.tablet = self
+	}
+
+	required init?(coder aDecoder: NSCoder) {
+		if let c = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "chain") {
+			chain = c
+		}
+		else {
+			chain = QBEChain()
+		}
+
+		super.init(coder: aDecoder)
+		chain.tablet = self
+	}
+
+
+	override var arrows: [QBETabletArrow] {
+		var arrows: [QBETabletArrow] = []
+		for dep in chain.dependencies {
+			if let s = chain.tablet, let t = dep.dependsOn.tablet {
+				arrows.append(QBETabletArrow(from: s, to: t, fromStep: dep.step))
+			}
+		}
+		return arrows
+	}
+
+	override func encodeWithCoder(aCoder: NSCoder) {
+		super.encodeWithCoder(aCoder)
+		aCoder.encodeObject(chain, forKey: "chain")
+	}
+
+	override func willSaveToDocument(atURL: NSURL) {
+		self.chain.willSaveToDocument(atURL)
+	}
+
+	override func didLoadFromDocument(atURL: NSURL) {
 		self.chain.didLoadFromDocument(atURL)
 	}
+	
 }

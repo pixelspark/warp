@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="9531" systemVersion="15D21" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15D21" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9531"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9532"/>
         <capability name="box content view" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
@@ -1716,7 +1716,7 @@ CA
                             <visualEffectView blendingMode="behindWindow" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
                                 <rect key="frame" x="0.0" y="0.0" width="700" height="531"/>
                                 <subviews>
-                                    <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
+                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
                                         <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
@@ -1730,7 +1730,7 @@ CA
                                                     <action selector="addButtonClicked:" target="y5B-O8-QaO" id="Xkt-W6-slr"/>
                                                 </connections>
                                             </textField>
-                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" ambiguous="YES" misplaced="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
+                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" ambiguous="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
                                                 <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                                 <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="883-xW-r8t">
                                                     <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
@@ -1765,10 +1765,10 @@ CA
                                             <constraint firstAttribute="centerY" secondItem="OEa-fZ-fMo" secondAttribute="centerY" constant="4" id="v8g-g5-hb7"/>
                                         </constraints>
                                     </customView>
-                                    <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
+                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="500" width="700" height="31"/>
                                         <subviews>
-                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
+                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
                                                 <rect key="frame" x="4" y="4" width="688" height="23"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>
@@ -1822,10 +1822,23 @@ CA
                 <customObject id="0Jp-3X-LwR" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <menu id="AA5-ar-r3l" userLabel="Workspace context menu">
                     <items>
-                        <menuItem title="Paste" keyEquivalent="v" id="3tj-IE-VFf">
-                            <connections>
-                                <action selector="paste:" target="0Jp-3X-LwR" id="kph-JM-Yyx"/>
-                            </connections>
+                        <menuItem title="Paste" id="dgg-fz-XMm">
+                            <modifierMask key="keyEquivalentModifierMask"/>
+                            <menu key="submenu" title="Paste" id="ISc-ES-ZKw">
+                                <items>
+                                    <menuItem title="Paste as text" id="3tj-IE-VFf">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="pasteAsPlainText:" target="0Jp-3X-LwR" id="peg-a3-5se"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem title="Paste as data" keyEquivalent="v" id="HNO-gG-97X">
+                                        <connections>
+                                            <action selector="paste:" target="0Jp-3X-LwR" id="j8w-R3-aJ0"/>
+                                        </connections>
+                                    </menuItem>
+                                </items>
+                            </menu>
                         </menuItem>
                         <menuItem title="Add data" id="5Nv-qM-dTC">
                             <menu key="submenu" title="Add data" id="TbW-HU-EDH" userLabel="Add tablet menu">
@@ -1874,6 +1887,13 @@ CA
                                         </connections>
                                     </menuItem>
                                     <menuItem isSeparatorItem="YES" id="CeP-ek-hn7"/>
+                                    <menuItem title="Add note..." id="Rpj-cE-DtD">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="addNoteTablet:" target="0Jp-3X-LwR" id="xUU-no-Nw0"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem isSeparatorItem="YES" id="8Ae-TL-Kda"/>
                                     <menuItem title="Re-add existing data source" hidden="YES" enabled="NO" id="6GW-Xt-IyR">
                                         <modifierMask key="keyEquivalentModifierMask"/>
                                         <menu key="submenu" title="Re-add existing data source" autoenablesItems="NO" id="jJq-qb-mmt">
@@ -1891,6 +1911,104 @@ CA
                 </menu>
             </objects>
             <point key="canvasLocation" x="867" y="-77.5"/>
+        </scene>
+        <!--Chain Tablet View Controller-->
+        <scene sceneID="lUR-PW-ass">
+            <objects>
+                <viewController storyboardIdentifier="chainTablet" id="Hh2-sW-i9e" customClass="QBEChainTabletViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="LIJ-4x-2a2" customClass="QBETabletView" customModule="Warp" customModuleProvider="target">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <containerView translatesAutoresizingMaskIntoConstraints="NO" id="dEL-JY-fJT">
+                                <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                                <connections>
+                                    <segue destination="DXE-ii-MK8" kind="embed" identifier="chain" id="trX-VI-cBQ"/>
+                                </connections>
+                            </containerView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="dEL-JY-fJT" firstAttribute="leading" secondItem="LIJ-4x-2a2" secondAttribute="leading" id="8Ox-ep-6kf"/>
+                            <constraint firstItem="dEL-JY-fJT" firstAttribute="top" secondItem="LIJ-4x-2a2" secondAttribute="top" id="Jgs-QH-tui"/>
+                            <constraint firstAttribute="bottom" secondItem="dEL-JY-fJT" secondAttribute="bottom" id="Uqp-zH-E5I"/>
+                            <constraint firstAttribute="trailing" secondItem="dEL-JY-fJT" secondAttribute="trailing" id="fl4-6d-vxC"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <customObject id="yMH-fU-5Kt" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1700" y="1301"/>
+        </scene>
+        <!--Note Tablet View Controller-->
+        <scene sceneID="SrD-PH-7ec">
+            <objects>
+                <viewController storyboardIdentifier="noteTablet" id="6dm-83-cu3" customClass="QBENoteTabletViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" wantsLayer="YES" id="fSY-oP-xo5" customClass="QBETabletView" customModule="Warp" customModuleProvider="target">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="260"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <button toolTip="Close and remove this card" horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="lVB-uZ-gaw">
+                                <rect key="frame" x="427" y="235" width="16" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="16" id="30r-5a-IYe"/>
+                                    <constraint firstAttribute="height" constant="16" id="GQb-7W-xX3"/>
+                                </constraints>
+                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="CloseIcon" imagePosition="only" alignment="left" imageScaling="proportionallyUpOrDown" id="6oi-v0-3sQ">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="closeTablet:" target="6dm-83-cu3" id="WNs-LU-K4e"/>
+                                </connections>
+                            </button>
+                            <scrollView horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AUz-hw-bvd">
+                                <rect key="frame" x="5" y="5" width="440" height="220"/>
+                                <clipView key="contentView" id="CNw-Qt-Aiw">
+                                    <rect key="frame" x="1" y="1" width="438" height="218"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <textView importsGraphics="NO" findStyle="panel" continuousSpellChecking="YES" allowsUndo="YES" usesRuler="YES" usesFontPanel="YES" verticallyResizable="YES" allowsNonContiguousLayout="YES" quoteSubstitution="YES" dashSubstitution="YES" smartInsertDelete="YES" id="Ogm-8T-YNE">
+                                            <rect key="frame" x="0.0" y="0.0" width="438" height="218"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <size key="minSize" width="438" height="218"/>
+                                            <size key="maxSize" width="463" height="10000000"/>
+                                            <color key="insertionPointColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                            <size key="minSize" width="438" height="218"/>
+                                            <size key="maxSize" width="463" height="10000000"/>
+                                            <connections>
+                                                <outlet property="delegate" destination="6dm-83-cu3" id="hoY-dm-JYd"/>
+                                            </connections>
+                                        </textView>
+                                    </subviews>
+                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                </clipView>
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="YES" id="cdY-hG-nQu">
+                                    <rect key="frame" x="-100" y="-100" width="87" height="18"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                                <scroller key="verticalScroller" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="icG-qS-6Vr">
+                                    <rect key="frame" x="423" y="1" width="16" height="218"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                            </scrollView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="lVB-uZ-gaw" secondAttribute="trailing" constant="7" id="0vU-xc-gMc"/>
+                            <constraint firstAttribute="bottom" secondItem="AUz-hw-bvd" secondAttribute="bottom" constant="5" id="DWx-bM-YBU"/>
+                            <constraint firstAttribute="trailing" secondItem="AUz-hw-bvd" secondAttribute="trailing" constant="5" id="Goh-uk-trX"/>
+                            <constraint firstItem="lVB-uZ-gaw" firstAttribute="top" secondItem="fSY-oP-xo5" secondAttribute="top" constant="9" id="M8B-df-VY0"/>
+                            <constraint firstItem="AUz-hw-bvd" firstAttribute="top" secondItem="fSY-oP-xo5" secondAttribute="top" constant="35" id="WTh-wf-dyg"/>
+                            <constraint firstItem="AUz-hw-bvd" firstAttribute="leading" secondItem="fSY-oP-xo5" secondAttribute="leading" constant="5" id="agW-NN-BaD"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="textField" destination="Ogm-8T-YNE" id="nYP-lD-JfT"/>
+                    </connections>
+                </viewController>
+                <customObject id="hIN-DL-NER" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1349" y="1831"/>
         </scene>
         <!--Chain view controller-->
         <scene sceneID="4qG-DD-elD">

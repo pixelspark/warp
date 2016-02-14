@@ -2,7 +2,7 @@ import Foundation
 import Cocoa
 import WarpCore
 
-@objc class QBEDocumentViewController: NSViewController, QBEChainViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
+@objc class QBEDocumentViewController: NSViewController, QBETabletViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
 	private var documentView: QBEDocumentView!
 	private var sentenceEditor: QBESentenceViewController? = nil
 	@IBOutlet var addTabletMenu: NSMenu!
@@ -27,37 +27,27 @@ import WarpCore
 		return QBEAppDelegate.sharedInstance.locale ?? Locale()
 	} }
 	
-	func chainViewDidClose(view: QBEChainViewController) -> Bool {
-		if let t = view.chain?.tablet {
+	func tabletViewDidClose(view: QBETabletViewController) -> Bool {
+		if let t = view.tablet {
 			return removeTablet(t, undo: true)
 		}
 		return false
 	}
 	
-	func chainViewDidChangeChain(view: QBEChainViewController) {
+	func tabletViewDidChangeContents(view: QBETabletViewController) {
 		if workspaceView.magnifiedView == nil {
 			documentView.resizeDocument()
 		}
 		documentView.reloadData()
 	}
 	
-	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESentenceViewDelegate) {
-		if let ch = view.chain {
-			if let tablet = ch.tablet {
-				for cvc in self.childViewControllers {
-					if let child = cvc as? QBEChainViewController {
-						if child.chain?.tablet == tablet {
-							documentView.selectTablet(tablet, notifyDelegate: false)
-							child.view.superview?.orderFront()
+	func tabletView(view: QBETabletViewController, didSelectConfigurable configurable: QBEConfigurable?, delegate: QBESentenceViewDelegate) {
+		documentView.selectTablet(view.tablet, notifyDelegate: false)
+		view.view.superview?.orderFront()
 
-							// Only show this tablet in the sentence editor if it really has become the selected tablet
-							if self.documentView.selectedTablet == tablet {
-								self.sentenceEditor?.configure(configureStep, variant: .Read, delegate: delegate)
-							}
-						}
-					}
-				}
-			}
+		// Only show this tablet in the sentence editor if it really has become the selected tablet
+		if self.documentView.selectedTablet == view.tablet {
+			self.sentenceEditor?.configure(configurable, variant: .Read, delegate: delegate)
 		}
 	}
 	
@@ -75,8 +65,8 @@ import WarpCore
 					continue
 				}
 
-				for dep in otherTablet.chain.dependencies {
-					if dep.dependsOn == tablet.chain {
+				for dep in otherTablet.arrows {
+					if dep.from == tablet {
 						// TODO: automatically remove this dependency. For now just bail out
 						NSAlert.showSimpleAlert(NSLocalizedString("This table cannot be removed, because other items are still linked to it.", comment: ""), infoText: NSLocalizedString("To remove the table, first remove any links to this table, then try to remove the table itself.", comment: ""), style: .WarningAlertStyle, window: self.view.window)
 						return false
@@ -158,20 +148,33 @@ import WarpCore
 				tablet.frame = self.defaultTabletFrame
 			}
 
-			if let tabletController = self.storyboard?.instantiateControllerWithIdentifier("chain") as? QBEChainViewController {
-				tabletController.delegate = self
-
-				self.addChildViewController(tabletController)
-				tabletController.chain = tablet.chain
-				tabletController.view.frame = tablet.frame!
+			let vc = self.viewControllerForTablet(tablet)
+			self.addChildViewController(vc)
 				
-				self.documentView.addTablet(tabletController, animated: animated) {
-					self.documentView.selectTablet(tablet)
-					callback?()
-				}
+			self.documentView.addTablet(vc, animated: animated) {
+				self.documentView.selectTablet(tablet)
+				callback?()
 			}
 			self.updateView()
 		}
+	}
+
+	private func viewControllerForTablet(tablet: QBETablet) -> QBETabletViewController {
+		let tabletController: QBETabletViewController
+		if tablet is QBEChainTablet {
+			tabletController = self.storyboard?.instantiateControllerWithIdentifier("chainTablet") as! QBEChainTabletViewController
+		}
+		else if tablet is QBENoteTablet {
+			tabletController = self.storyboard?.instantiateControllerWithIdentifier("noteTablet") as! QBENoteTabletViewController
+		}
+		else {
+			fatalError("No view controller found for tablet type")
+		}
+
+		tabletController.delegate = self
+		tabletController.tablet = tablet
+		tabletController.view.frame = tablet.frame!
+		return tabletController
 	}
 	
 	private func updateView() {
@@ -256,13 +259,23 @@ import WarpCore
 			documentView.reloadData()
 		}
 	}
-	
+
+	@IBAction func pasteAsPlainText(sender: AnyObject) {
+		let pboard = NSPasteboard.generalPasteboard()
+
+		if let data = pboard.stringForType(NSPasteboardTypeString) {
+			let note = QBENoteTablet()
+			note.text = NSAttributedString(string: data)
+			self.addTablet(note, undo: true, animated: true)
+		}
+	}
+
 	@IBAction func paste(sender: NSObject) {
 		// Pasting a step?
 		let pboard = NSPasteboard.generalPasteboard()
 		if let data = pboard.dataForType(QBEStep.dragType) {
 			if let step = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEStep {
-				self.addTablet(QBETablet(chain: QBEChain(head: step)), undo: true, animated: true)
+				self.addTablet(QBEChainTablet(chain: QBEChain(head: step)), undo: true, animated: true)
 			}
 		}
 		else {
@@ -295,7 +308,7 @@ import WarpCore
 				if headerRow != nil {
 					let raster = Raster(data: data, columnNames: headerRow!.map({return Column($0.stringValue ?? "")}), readOnly: false)
 					let s = QBERasterStep(raster: raster)
-					let tablet = QBETablet(chain: QBEChain(head: s))
+					let tablet = QBEChainTablet(chain: QBEChain(head: s))
 					addTablet(tablet, undo: true, animated: true)
 				}
 			}
@@ -317,7 +330,7 @@ import WarpCore
 					let templateStep = templateSteps[sender.tag]
 					let templateData = NSKeyedArchiver.archivedDataWithRootObject(templateStep)
 					let newStep = NSKeyedUnarchiver.unarchiveObjectWithData(templateData) as? QBEStep
-					let tablet = QBETablet(chain: QBEChain(head: newStep))
+					let tablet = QBEChainTablet(chain: QBEChain(head: newStep))
 					self.documentView.addTablet(tablet, undo: true, animated: true) {
 						self.documentView.sentenceEditor?.configure(self.documentView)
 					}
@@ -328,16 +341,19 @@ import WarpCore
 		let adder = QBETemplateAdder(documentView: self)
 		readdTabletMenu.removeAllItems()
 		if let d = self.document {
+			// Loop over all chain tablets and add menu items to re-add the starting step from each chain
 			for tablet in d.tablets {
-				for step in tablet.chain.steps {
-					if step.previous == nil {
-						// This is a source step
-						let item = NSMenuItem(title: step.sentence(self.locale, variant: .Read).stringValue, action: Selector("readdStep:"), keyEquivalent: "")
-						item.enabled = true
-						item.tag = adder.templateSteps.count
-						item.target = adder
-						adder.templateSteps.append(step)
-						readdTabletMenu.addItem(item)
+				if let chainTablet = tablet as? QBEChainTablet {
+					for step in chainTablet.chain.steps {
+						if step.previous == nil {
+							// This is a source step
+							let item = NSMenuItem(title: step.sentence(self.locale, variant: .Read).stringValue, action: Selector("readdStep:"), keyEquivalent: "")
+							item.enabled = true
+							item.tag = adder.templateSteps.count
+							item.target = adder
+							adder.templateSteps.append(step)
+							readdTabletMenu.addItem(item)
+						}
 					}
 				}
 			}
@@ -367,7 +383,7 @@ import WarpCore
 			}
 
 			@objc func addClone(sender: NSObject) {
-				let tablet = QBETablet(chain: QBEChain(head: QBECloneStep(chain: chain)))
+				let tablet = QBEChainTablet(chain: QBEChain(head: QBECloneStep(chain: chain)))
 				self.documentView.addTablet(tablet, atLocation: location, undo: true)
 			}
 
@@ -381,7 +397,7 @@ import WarpCore
 							switch result {
 							case .Success(let raster):
 								asyncMain {
-									let tablet = QBETablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
+									let tablet = QBEChainTablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
 									self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 								}
 							case .Failure(let e):
@@ -445,7 +461,7 @@ import WarpCore
 					uploadView.afterSuccessfulUpload = {
 						// Add the written data as tablet to the document view
 						asyncMain {
-							let tablet = QBETablet(chain: QBEChain(head: targetStep))
+							let tablet = QBEChainTablet(chain: QBEChain(head: targetStep))
 							self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 						}
 					}
@@ -509,7 +525,7 @@ import WarpCore
 								let rows = uniqueValues.map({ item in return [item] })
 								let raster = Raster(data: rows, columnNames: [colset.first!], readOnly: false)
 								let chain = QBEChain(head: QBERasterStep(raster: raster))
-								let tablet = QBETablet(chain: chain)
+								let tablet = QBEChainTablet(chain: chain)
 								asyncMain {
 									jobProgressView.dismissController(nil)
 									self.addTablet(tablet, atLocation: nil, undo: true)
@@ -587,49 +603,45 @@ import WarpCore
 		self.workspaceView.magnifyToFitRect(allRect)
 	}
 	
-	func documentView(view: QBEDocumentView, didSelectArrow arrow: QBEArrow?) {
-		if let ta = arrow as? QBETabletArrow {
-			if let fromStep = ta.fromStep, let fromTablet = ta.from {
-				findAndSelectStep(fromStep, inChain: fromTablet.chain)
-			}
+	func documentView(view: QBEDocumentView, didSelectArrow arrow: QBETabletArrow?) {
+		if let a = arrow, fromTablet = a.from {
+			findAndSelectArrow(a, inTablet: fromTablet)
 		}
 	}
 	
-	func findAndSelectStep(step: QBEStep, inChain chain: QBEChain) {
-		if let tablet = chain.tablet {
-			for cvc in self.childViewControllers {
-				if let child = cvc as? QBEChainViewController {
-					if child.chain?.tablet == tablet {
-						documentView.selectTablet(tablet)
-						child.view.superview?.orderFront()
-						didSelectTablet(child)
-						child.currentStep = step
-					}
+	func findAndSelectArrow(arrow: QBETabletArrow, inTablet tablet: QBETablet) {
+		for cvc in self.childViewControllers {
+			if let child = cvc as? QBETabletViewController {
+				if child.tablet == tablet {
+					documentView.selectTablet(tablet)
+					child.view.superview?.orderFront()
+					didSelectTablet(child.tablet)
+					child.selectArrow(arrow)
 				}
 			}
 		}
 	}
 	
-	private func didSelectTablet(tabletViewController: QBEChainViewController?) {
+	private func didSelectTablet(tablet: QBETablet?) {
+		self.sentenceEditor?.configure(nil, variant: .Neutral, delegate: nil)
+
 		for childController in self.childViewControllers {
-			if let cvc = childController as? QBEChainViewController {
-				if cvc != tabletViewController {
+			if let cvc = childController as? QBETabletViewController {
+				if cvc.tablet != tablet {
 					cvc.tabletWasDeselected()
+				}
+				else {
+					cvc.tabletWasSelected()
+					cvc.view.orderFront()
 				}
 			}
 		}
 
-		if let tv = tabletViewController {
-			tv.tabletWasSelected()
-		}
-		else {
-			self.sentenceEditor?.configure(nil, variant: .Neutral, delegate: nil)
-		}
 		self.view.window?.update()
 		self.view.window?.toolbar?.validateVisibleItems()
 	}
 	
-	func documentView(view: QBEDocumentView, didSelectTablet tablet: QBEChainViewController?) {
+	func documentView(view: QBEDocumentView, didSelectTablet tablet: QBETablet?) {
 		didSelectTablet(tablet)
 	}
 	
@@ -637,7 +649,7 @@ import WarpCore
 		assertMainThread()
 
 		if let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url) {
-			let tablet = QBETablet(chain: QBEChain(head: sourceStep))
+			let tablet = QBEChainTablet(chain: QBEChain(head: sourceStep))
 			self.addTablet(tablet, atLocation: atLocation, undo: true)
 			return tablet
 		}
@@ -660,7 +672,7 @@ import WarpCore
 					switch result {
 					case .Success(let raster):
 						asyncMain {
-							let tablet = QBETablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
+							let tablet = QBEChainTablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
 							self.addTablet(tablet, atLocation: nil, undo: true)
 						}
 
@@ -679,18 +691,25 @@ import WarpCore
 		}
 	}
 
+	@IBAction func addNoteTablet(sender: NSObject) {
+		let tablet = QBENoteTablet()
+		self.addTablet(tablet, undo: true, animated: true) {
+		}
+	}
+
 	@IBAction func addRasterTablet(sender: NSObject) {
 		let raster = Raster(data: [], columnNames: [Column.defaultColumnForIndex(0)], readOnly: false)
 		let chain = QBEChain(head: QBERasterStep(raster: raster))
-		let tablet = QBETablet(chain: chain)
+		let tablet = QBEChainTablet(chain: chain)
 		self.addTablet(tablet, undo: true, animated: true) {
-			self.documentView.selectedTabletController?.startEditing(sender)
+			/// FIXME
+			//self.documentView.selectedTabletController?.startEditing(sender)
 		}
 	}
 
 	@IBAction func addSequencerTablet(sender: NSObject) {
 		let chain = QBEChain(head: QBESequencerStep(pattern: "[A-Z]{4}", column: Column(NSLocalizedString("Value", comment: ""))))
-		let tablet = QBETablet(chain: chain)
+		let tablet = QBEChainTablet(chain: chain)
 		self.addTablet(tablet, undo: true, animated: true)
 	}
 	
@@ -711,28 +730,28 @@ import WarpCore
 	}
 	
 	@IBAction func addTabletFromPresto(sender: NSObject) {
-		self.addTablet(QBETablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true) {
+		self.addTablet(QBEChainTablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true) {
 			self.sentenceEditor?.configure(self)
 		}
 	}
 	
 	@IBAction func addTabletFromMySQL(sender: NSObject) {
 		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", database: "test", tableName: "test")
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true) {
+		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) {
 			self.sentenceEditor?.configure(self)
 		}
 	}
 
 	@IBAction func addTabletFromRethinkDB(sender: NSObject) {
 		let s = QBERethinkSourceStep(previous: nil)
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true) {
+		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) {
 			self.sentenceEditor?.configure(self)
 		}
 	}
 	
 	@IBAction func addTabletFromPostgres(sender: NSObject) {
 		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", database: "postgres", schemaName: "public", tableName: "")
-		self.addTablet(QBETablet(chain: QBEChain(head: s)), undo: true, animated: true) {
+		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) {
 			self.sentenceEditor?.configure(self)
 		}
 	}
@@ -743,7 +762,7 @@ import WarpCore
 		}
 	}
 	
-	@IBAction func setFullWorkingSet(sender: NSObject) {
+	/*@IBAction func setFullWorkingSet(sender: NSObject) {
 		if let t = documentView.selectedTabletController {
 			t.setFullWorkingSet(sender)
 		}
@@ -765,7 +784,7 @@ import WarpCore
 		if let t = documentView.selectedTabletController {
 			t.exportFile(sender)
 		}
-	}
+	}*/
 
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 			return validateSelector(item.action())
@@ -790,6 +809,7 @@ import WarpCore
 		if selector == Selector("addButtonClicked:") { return true }
 		if selector == Selector("addSequencerTablet:") { return true }
 		if selector == Selector("addRasterTablet:") { return true }
+		if selector == Selector("addNoteTablet:") { return true }
 		if selector == Selector("addTabletFromFile:") { return true }
 		if selector == Selector("addTabletFromPresto:") { return true }
 		if selector == Selector("addTabletFromMySQL:") { return true }
@@ -805,6 +825,10 @@ import WarpCore
 			if pboard.dataForType(QBEStep.dragType) != nil || pboard.dataForType(NSPasteboardTypeString) != nil || pboard.dataForType(NSPasteboardTypeTabularText) != nil {
 				return true
 			}
+		}
+		if selector == Selector("pasteAsPlainText:") {
+			let pboard = NSPasteboard.generalPasteboard()
+			return pboard.dataForType(NSPasteboardTypeString) != nil
 		}
 		return false
 	}

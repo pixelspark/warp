@@ -2,7 +2,7 @@ import Foundation
 import Cocoa
 import WarpCore
 
-internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTableViewDelegate, NSTableViewDataSource, NSMenuDelegate {
+internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotStep>, NSTableViewDelegate, NSTableViewDataSource, NSMenuDelegate {
 	private let dragType = "nl.pixelspark.qbe.column"
 
 	@IBOutlet var allTable: NSTableView?
@@ -18,8 +18,8 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 		aggregatesTable?.reloadData()
 	} }
 
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBEPivotStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBEPivotStepView", bundle: nil)
 	}
 
 	required init?(coder: NSCoder) {
@@ -145,7 +145,7 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 			return
 		}
 		
-		delegate?.stepView(self, didChangeConfigurationForStep: step)
+		delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 	
 	internal func tableView(tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableViewDropOperation) -> Bool {
@@ -192,7 +192,7 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 			}
 			
 			tableView.reloadData()
-			delegate?.stepView(self, didChangeConfigurationForStep: step)
+			delegate?.configurableView(self, didChangeConfigurationFor: step)
 			return true
 		}
 		
@@ -207,7 +207,7 @@ internal class QBEPivotStepView: QBEStepViewControllerFor<QBEPivotStep>, NSTable
 						if let fun = Function(rawValue: rep) {
 							step.aggregates[row].reduce = fun
 							tableView.reloadData()
-							delegate?.stepView(self, didChangeConfigurationForStep: step)
+							delegate?.configurableView(self, didChangeConfigurationFor: step)
 						}
 					}
 				}

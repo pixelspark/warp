@@ -1,12 +1,12 @@
 import Foundation
 import WarpCore
 
-internal class QBEColumnsStepView: QBEStepViewControllerFor<QBEColumnsStep>, NSTableViewDataSource, NSTableViewDelegate {
+internal class QBEColumnsStepView: QBEConfigurableStepViewControllerFor<QBEColumnsStep>, NSTableViewDataSource, NSTableViewDelegate {
 	var columnNames: [Column] = []
 	@IBOutlet var tableView: NSTableView?
 	
-	required init?(step: QBEStep, delegate: QBEStepViewDelegate) {
-		super.init(step: step, delegate: delegate, nibName: "QBEColumnsStepView", bundle: nil)
+	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
+		super.init(configurable: configurable, delegate: delegate, nibName: "QBEColumnsStepView", bundle: nil)
 	}
 	
 	required init?(coder: NSCoder) {
@@ -56,7 +56,7 @@ internal class QBEColumnsStepView: QBEStepViewControllerFor<QBEColumnsStep>, NST
 				step.columnNames.append(name)
 			}
 		}
-		self.delegate?.stepView(self, didChangeConfigurationForStep: step)
+		self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 	
 	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {

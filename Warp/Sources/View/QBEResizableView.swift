@@ -55,7 +55,7 @@ class QBEResizableView: NSView {
 			// Make the background of an NSCollectionView grabbable for dragging
 			let pt = convertPoint(aPoint, fromView: superview)
 			let ht = cv.hitTest(pt)
-			if let _ = ht as? NSCollectionView {
+			if ht is NSCollectionView || ht is QBETabletView {
 				return self.resizerView
 			}
 		}
