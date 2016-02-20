@@ -17,4 +17,4 @@
 
 [submodule "Libraries/Charts"]
 	path = Libraries/Charts
-	url = https://github.com/pixelspark/ios-charts.git
+url=https://github.com/danielgindi/ios-charts.git
