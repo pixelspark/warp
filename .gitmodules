@@ -15,3 +15,6 @@
 	path = WarpCore/Libraries/SwiftParserGenerator
 	url = git@github.com:pixelspark/swift-parser-generator
 
+[submodule "Libraries/Charts"]
+	path = Libraries/Charts
+	url = https://github.com/pixelspark/ios-charts.git

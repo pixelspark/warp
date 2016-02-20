@@ -105,8 +105,8 @@ import WarpCore
 	
 	private var defaultTabletFrame: CGRect { get {
 		let vr = self.workspaceView.documentVisibleRect
-		let defaultWidth: CGFloat = min(800, vr.size.width * 0.8 * self.workspaceView.magnification)
-		let defaultHeight: CGFloat = min(600, vr.size.height * 0.8 * self.workspaceView.magnification)
+		let defaultWidth: CGFloat = min(800, vr.size.width * 0.618 * self.workspaceView.magnification)
+		let defaultHeight: CGFloat = min(600, vr.size.height * 0.618 * self.workspaceView.magnification)
 		
 		// If this is not the first view, place it to the right of all other views
 		if let ab = documentView.boundsOfAllTablets {
@@ -166,6 +166,9 @@ import WarpCore
 		}
 		else if tablet is QBENoteTablet {
 			tabletController = self.storyboard?.instantiateControllerWithIdentifier("noteTablet") as! QBENoteTabletViewController
+		}
+		else if tablet is QBEChartTablet {
+			tabletController = self.storyboard?.instantiateControllerWithIdentifier("chartTablet") as! QBEChartTabletViewController
 		}
 		else {
 			fatalError("No view controller found for tablet type")
@@ -265,7 +268,7 @@ import WarpCore
 
 		if let data = pboard.stringForType(NSPasteboardTypeString) {
 			let note = QBENoteTablet()
-			note.text = NSAttributedString(string: data)
+			note.note.text = NSAttributedString(string: data)
 			self.addTablet(note, undo: true, animated: true)
 		}
 	}
@@ -387,6 +390,35 @@ import WarpCore
 				self.documentView.addTablet(tablet, atLocation: location, undo: true)
 			}
 
+			@objc func addChart(sender: NSObject) {
+				if let sourceTablet = chain.tablet as? QBEChainTablet {
+					let job = Job(.UserInitiated)
+					sourceTablet.chain.head?.exampleData(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
+						switch result {
+						case .Success(let data):
+							data.columnNames(job) { result in
+								switch result {
+								case .Success(let columnNames):
+									asyncMain {
+										if let first = columnNames.first, let last = columnNames.last where columnNames.count > 1 {
+											let tablet = QBEChartTablet(source: sourceTablet, type: .Line, xExpression: Sibling(columnName: first), yExpression: Sibling(columnName: last))
+											self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
+										}
+									}
+
+								case .Failure(let e):
+									Swift.print("Error fetching column names for chart: \(e)")
+									break
+								}
+							}
+
+						case .Failure(let e):
+							Swift.print("Error fetching data for chart: \(e)")
+						}
+					})
+				}
+			}
+
 			@objc func addCopy(sender: NSObject) {
 				let job = Job(.UserInitiated)
 				QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: NSLocalizedString("Create copy of data here", comment: ""))
@@ -476,6 +508,12 @@ import WarpCore
 				let cloneItem = NSMenuItem(title: NSLocalizedString("Create linked clone of data here", comment: ""), action: Selector("addClone:"), keyEquivalent: "")
 				cloneItem.target = self
 				menu.addItem(cloneItem)
+
+				if self.chain.tablet is QBEChainTablet {
+					let chartItem = NSMenuItem(title: NSLocalizedString("Create chart of data here", comment: ""), action: Selector("addChart:"), keyEquivalent: "")
+					chartItem.target = self
+					menu.addItem(chartItem)
+				}
 
 				let copyItem = NSMenuItem(title: NSLocalizedString("Create copy of data here", comment: ""), action: Selector("addCopy:"), keyEquivalent: "")
 				copyItem.target = self

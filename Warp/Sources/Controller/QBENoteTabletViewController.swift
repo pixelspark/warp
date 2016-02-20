@@ -6,10 +6,11 @@ class QBENoteTabletViewController: QBETabletViewController {
 	private var noteTablet: QBENoteTablet? { return self.tablet as? QBENoteTablet }
 
 	override func viewWillAppear() {
-		textField.insertText(self.noteTablet?.text ?? NSAttributedString())
+		textField.insertText(self.noteTablet?.note.text ?? NSAttributedString())
+
 	}
 
 	override func controlTextDidChange(obj: NSNotification) {
-		self.noteTablet?.text = textField.attributedString()
+		self.noteTablet?.note.text = textField.attributedString()
 	}
 }

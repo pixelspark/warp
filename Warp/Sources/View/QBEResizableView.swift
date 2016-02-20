@@ -24,7 +24,7 @@ class QBEResizableView: NSView {
 		self.layer?.shadowRadius = 4.0
 		self.layer?.shadowColor = NSColor.shadowColor().CGColor
 		self.layer?.shadowOpacity = 0.3
-		
+
 		resizerView = QBEResizerView(frame: self.bounds)
 		resizerView.autoresizingMask = [NSAutoresizingMaskOptions.ViewHeightSizable, NSAutoresizingMaskOptions.ViewWidthSizable]
 		resizerView.hide = true
@@ -52,11 +52,17 @@ class QBEResizableView: NSView {
 	
 	override func hitTest(aPoint: NSPoint) -> NSView? {
 		if let cv = contentView {
-			// Make the background of an NSCollectionView grabbable for dragging
+			// Dirty hack to find out when one of our subviews is clicked, so we can select ourselves
 			let pt = convertPoint(aPoint, fromView: superview)
-			let ht = cv.hitTest(pt)
-			if ht is NSCollectionView || ht is QBETabletView {
-				return self.resizerView
+			if let ht = cv.hitTest(pt) {
+				if let ev = self.window?.currentEvent where ev.type == NSEventType.LeftMouseDown {
+					self.resizerView.mouseDownInSubiew(ev)
+				}
+
+				// Make the background of an NSCollectionView or QBETabletView always grabbable for dragging
+				if ht is NSCollectionView || ht is QBETabletView || ht is NSClipView {
+					return self.resizerView
+				}
 			}
 		}
 
@@ -99,13 +105,6 @@ class QBEResizableView: NSView {
 	override func mouseUp(theEvent: NSEvent) {
 		self.window?.invalidateCursorRectsForView(self)
 	}
-
-	override func drawRect(dirtyRect: NSRect) {
-		NSColor.windowBackgroundColor().set()
-		var bounds = self.bounds.inset(self.resizerView.inset)
-		bounds.intersectInPlace(dirtyRect)
-		NSRectFill(bounds)
-	}
 	
 	override var acceptsFirstResponder: Bool { get { return true } }
 }
@@ -119,7 +118,7 @@ internal class QBEResizerView: NSView {
 		var moved = false
 	}
 	
-	let inset: CGFloat = 10.0
+	let inset: CGFloat = 18.0
 	private var resizingSession: ResizingSession? = nil
 	private var visibleAnchors: Set<QBEAnchor> = [.South, .North, .East, .West, .SouthEast, .SouthWest, .NorthEast, .NorthWest];
 	
@@ -195,6 +194,7 @@ internal class QBEResizerView: NSView {
 	}
 	
 	override func resetCursorRects() {
+		self.addCursorRect(self.bounds, cursor: self.isResizing ? NSCursor.closedHandCursor() : NSCursor.openHandCursor())
 		if canResize {
 			for anchor in visibleAnchors {
 				let frame = anchor.frameInBounds(self.bounds, withInset: inset)
@@ -235,7 +235,7 @@ internal class QBEResizerView: NSView {
 			}
 		}
 		else {
-			if dy > self.bounds.height-insetWithMargin {
+			if dy > self.bounds.height - (insetWithMargin / 4.0 * 3.0) {
 				return .North
 			}
 			else if dy < insetWithMargin {
@@ -276,6 +276,7 @@ internal class QBEResizerView: NSView {
 			
 			resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: realAnchor, moved: false)
 			setNeedsDisplayInRect(self.bounds)
+			self.window?.invalidateCursorRectsForView(self)
 		}
 	}
 	
@@ -288,7 +289,7 @@ internal class QBEResizerView: NSView {
 			let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.5) : NSColor.clearColor()
 			CGContextSetLineWidth(context, 2.0)
 			CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
-			let bounds = self.bounds.inset(inset)
+			let bounds = self.bounds.inset(inset - 1.0)
 			let rr = NSBezierPath(roundedRect: bounds, xRadius: 3.0, yRadius: 3.0)
 			rr.stroke()
 		}
@@ -333,6 +334,7 @@ internal class QBEResizerView: NSView {
 		}
 		
 		resizingSession = nil
+		self.window?.invalidateCursorRectsForView(self)
 		setNeedsDisplayInRect(self.bounds)
 	}
 }

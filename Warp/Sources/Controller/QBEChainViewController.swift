@@ -12,6 +12,12 @@ protocol QBESuggestionsViewDelegate: NSObjectProtocol {
 
 class QBEChainView: NSView {
 	override var acceptsFirstResponder: Bool { get { return true } }
+
+	override func becomeFirstResponder() -> Bool {
+		return true
+	}
+
+	override var allowsVibrancy: Bool { return true }
 }
 
 protocol QBEChainViewDelegate: NSObjectProtocol {

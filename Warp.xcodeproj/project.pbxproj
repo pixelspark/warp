@@ -13,7 +13,7 @@
 		651988E61A0F9C30003463AA /* CHCSVParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 651988E51A0F9C30003463AA /* CHCSVParser.m */; };
 		651C68761C70D7B300F0F048 /* QBETabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68751C70D7B300F0F048 /* QBETabletViewController.swift */; };
 		651C687E1C70E2AB00F0F048 /* QBEChainTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */; };
-		651C68801C70E96600F0F048 /* QBENoteTablet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687F1C70E96600F0F048 /* QBENoteTablet.swift */; };
+		651C68801C70E96600F0F048 /* QBENote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687F1C70E96600F0F048 /* QBENote.swift */; };
 		651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */; };
 		65436ED21B30C20600636299 /* libcrypto.0.9.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65436ED01B30C20600636299 /* libcrypto.0.9.8.dylib */; };
 		65436ED31B30C20600636299 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65436ED11B30C20600636299 /* libsqlite3.dylib */; };
@@ -155,6 +155,11 @@
 		65A176931B8B9769004D4A21 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176911B8B9769004D4A21 /* dbfopen.c */; };
 		65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176991B8B9AC0004D4A21 /* safileio.c */; };
 		65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A526B91B09BFDB00CCF3E3 /* libpq.a */; };
+		65B3F6A31C73CFC0000983D0 /* Charts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65B3F69B1C73CF93000983D0 /* Charts.framework */; };
+		65B3F6A41C73CFC0000983D0 /* Charts.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65B3F69B1C73CF93000983D0 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		65B3F6A81C73D0EE000983D0 /* QBEChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6A71C73D0EE000983D0 /* QBEChart.swift */; };
+		65B3F6AA1C73D302000983D0 /* QBEChartTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6A91C73D302000983D0 /* QBEChartTabletViewController.swift */; };
+		65B3F6AD1C749F93000983D0 /* QBETabletView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6AC1C749F93000983D0 /* QBETabletView.swift */; };
 		65B7F9691C31E37D00A55972 /* QBEJobViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65B7F96B1C31E37D00A55972 /* QBEJobViewController.xib */; };
 		65B7F9701C31ECC100A55972 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65B7F9721C31ECC100A55972 /* Main.storyboard */; };
 		65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -322,6 +327,41 @@
 			remoteGlobalIDString = 65F739D01BC9502400B5E62D;
 			remoteInfo = Rethink;
 		};
+		65B3F6941C73CF93000983D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 5BA8EC401A9D14DC00CE82E1;
+			remoteInfo = "Charts-iOS";
+		};
+		65B3F6961C73CF93000983D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = A52C5C371BAC5CA400594CDD;
+			remoteInfo = "Charts-TV";
+		};
+		65B3F6981C73CF93000983D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 06AEE7A21BDC3F8B009875AE;
+			remoteInfo = ChartsTests;
+		};
+		65B3F69A1C73CF93000983D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65B3F5BF1C7370BE000983D0;
+			remoteInfo = "Charts-OSX";
+		};
+		65B3F6A51C73CFC0000983D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 65B3F5BE1C7370BE000983D0;
+			remoteInfo = "Charts-OSX";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -334,6 +374,7 @@
 				65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */,
 				655BD6341C146D5500634C66 /* WarpCore.framework in CopyFiles */,
 				65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */,
+				65B3F6A41C73CFC0000983D0 /* Charts.framework in CopyFiles */,
 				65A115051BCD96A6007BC661 /* Rethink.framework in CopyFiles */,
 				655BD6521C146F5600634C66 /* SwiftParser.framework in CopyFiles */,
 			);
@@ -349,7 +390,7 @@
 		651988E51A0F9C30003463AA /* CHCSVParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CHCSVParser.m; path = Libraries/CHCSVParser/CHCSVParser.m; sourceTree = "<group>"; };
 		651C68751C70D7B300F0F048 /* QBETabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBETabletViewController.swift; sourceTree = "<group>"; };
 		651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChainTabletViewController.swift; sourceTree = "<group>"; };
-		651C687F1C70E96600F0F048 /* QBENoteTablet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENoteTablet.swift; sourceTree = "<group>"; };
+		651C687F1C70E96600F0F048 /* QBENote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENote.swift; sourceTree = "<group>"; };
 		651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENoteTabletViewController.swift; sourceTree = "<group>"; };
 		654296D81AB83123000472E6 /* config-win.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "config-win.h"; sourceTree = "<group>"; };
 		654296D91AB83123000472E6 /* dbug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dbug.h; sourceTree = "<group>"; };
@@ -529,6 +570,10 @@
 		65A52BA31B0A665200CCF3E3 /* pg_config_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pg_config_ext.h; sourceTree = "<group>"; };
 		65A52BA41B0A665200CCF3E3 /* postgres_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = postgres_ext.h; sourceTree = "<group>"; };
 		65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
+		65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Charts.xcodeproj; path = Libraries/Charts/Charts/Charts.xcodeproj; sourceTree = "<group>"; };
+		65B3F6A71C73D0EE000983D0 /* QBEChart.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChart.swift; sourceTree = "<group>"; };
+		65B3F6A91C73D302000983D0 /* QBEChartTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChartTabletViewController.swift; sourceTree = "<group>"; };
+		65B3F6AC1C749F93000983D0 /* QBETabletView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBETabletView.swift; sourceTree = "<group>"; };
 		65B7F96A1C31E37D00A55972 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEJobViewController.xib; sourceTree = "<group>"; };
 		65B7F96C1C31E37F00A55972 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEJobViewController.strings; sourceTree = "<group>"; };
 		65B7F9711C31ECC100A55972 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -551,6 +596,7 @@
 				6518BFC41B26DE7C009E311F /* libmariadbclient.a in Frameworks */,
 				65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */,
 				65A115041BCD96A6007BC661 /* Rethink.framework in Frameworks */,
+				65B3F6A31C73CFC0000983D0 /* Charts.framework in Frameworks */,
 				6510A7391A4D9832005633EF /* MBTableGrid.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -586,24 +632,25 @@
 		651988E71A0F9C39003463AA /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				65A176991B8B9AC0004D4A21 /* safileio.c */,
-				65A176911B8B9769004D4A21 /* dbfopen.c */,
-				65A176921B8B9769004D4A21 /* shapefil.h */,
-				65436ED41B30C21F00636299 /* libiconv.2.dylib */,
-				65436ED51B30C21F00636299 /* libssl.0.9.8.dylib */,
-				65436ED01B30C20600636299 /* libcrypto.0.9.8.dylib */,
-				65436ED11B30C20600636299 /* libsqlite3.dylib */,
-				65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */,
-				6548F2331A8673BF00FE8EF2 /* extension-functions.c */,
-				651988E41A0F9C30003463AA /* CHCSVParser.h */,
-				651521971B13B92D007BCDFF /* TCMXMLWriter.h */,
-				651988E51A0F9C30003463AA /* CHCSVParser.m */,
-				651521981B13B92D007BCDFF /* TCMXMLWriter.m */,
 				65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */,
+				65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */,
+				651988E41A0F9C30003463AA /* CHCSVParser.h */,
+				651988E51A0F9C30003463AA /* CHCSVParser.m */,
+				65A176911B8B9769004D4A21 /* dbfopen.c */,
+				6548F2331A8673BF00FE8EF2 /* extension-functions.c */,
+				65436ED01B30C20600636299 /* libcrypto.0.9.8.dylib */,
+				65436ED41B30C21F00636299 /* libiconv.2.dylib */,
+				65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */,
+				65436ED11B30C20600636299 /* libsqlite3.dylib */,
+				65436ED51B30C21F00636299 /* libssl.0.9.8.dylib */,
 				6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */,
-				65A114F71BCD969A007BC661 /* Rethink.xcodeproj */,
 				654296901AB80D09000472E6 /* MySQL */,
 				65A526B71B09BFDB00CCF3E3 /* PostgreSQL */,
+				65A114F71BCD969A007BC661 /* Rethink.xcodeproj */,
+				65A176991B8B9AC0004D4A21 /* safileio.c */,
+				65A176921B8B9769004D4A21 /* shapefil.h */,
+				651521971B13B92D007BCDFF /* TCMXMLWriter.h */,
+				651521981B13B92D007BCDFF /* TCMXMLWriter.m */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -708,6 +755,7 @@
 				6583EE921C14758B00AE6C00 /* QBECalculator.swift */,
 				651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */,
 				6583EE931C14758B00AE6C00 /* QBEChainViewController.swift */,
+				65B3F6A91C73D302000983D0 /* QBEChartTabletViewController.swift */,
 				6583EE941C14758B00AE6C00 /* QBEColumnMappingViewController.swift */,
 				6583EE951C14758B00AE6C00 /* QBEDataViewController.swift */,
 				6583EE961C14758B00AE6C00 /* QBEDocumentViewController.swift */,
@@ -755,11 +803,12 @@
 			isa = PBXGroup;
 			children = (
 				6583EEB31C14758B00AE6C00 /* QBEChain.swift */,
+				65B3F6A71C73D0EE000983D0 /* QBEChart.swift */,
 				6583EEB41C14758B00AE6C00 /* QBEDocument.swift */,
 				6583EE981C14758B00AE6C00 /* QBEFactory.swift */,
 				6583EEB51C14758B00AE6C00 /* QBEFile.swift */,
 				6583EEB61C14758B00AE6C00 /* QBEJobsManager.swift */,
-				651C687F1C70E96600F0F048 /* QBENoteTablet.swift */,
+				651C687F1C70E96600F0F048 /* QBENote.swift */,
 				6583EEB71C14758B00AE6C00 /* QBESecret.swift */,
 				6583EEB81C14758B00AE6C00 /* QBESentence.swift */,
 				6583EEB91C14758B00AE6C00 /* QBESettings.swift */,
@@ -813,6 +862,7 @@
 				6583EEDD1C14758B00AE6C00 /* QBEResizableView.swift */,
 				6583EEDE1C14758B00AE6C00 /* QBEStepItemView.swift */,
 				6583EEDF1C14758B00AE6C00 /* QBEViewExtensions.swift */,
+				65B3F6AC1C749F93000983D0 /* QBETabletView.swift */,
 			);
 			name = View;
 			path = Warp/Sources/View;
@@ -847,6 +897,17 @@
 				65A52BA41B0A665200CCF3E3 /* postgres_ext.h */,
 			);
 			path = include;
+			sourceTree = "<group>";
+		};
+		65B3F68B1C73CF93000983D0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				65B3F6951C73CF93000983D0 /* Charts.framework */,
+				65B3F6971C73CF93000983D0 /* Charts.framework */,
+				65B3F6991C73CF93000983D0 /* ChartsTests.xctest */,
+				65B3F69B1C73CF93000983D0 /* Charts.framework */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		65D7A9861BF793D5005AD925 /* Resources */ = {
@@ -965,6 +1026,7 @@
 				65A115071BCD96A6007BC661 /* PBXTargetDependency */,
 				655BD6361C146D5500634C66 /* PBXTargetDependency */,
 				655BD6541C146F5600634C66 /* PBXTargetDependency */,
+				65B3F6A61C73CFC0000983D0 /* PBXTargetDependency */,
 			);
 			name = Warp;
 			productName = QBE;
@@ -1036,6 +1098,10 @@
 				{
 					ProductGroup = 65734BBE1AB0380200D2C2F6 /* Products */;
 					ProjectRef = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+				},
+				{
+					ProductGroup = 65B3F68B1C73CF93000983D0 /* Products */;
+					ProjectRef = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
 				},
 				{
 					ProductGroup = 6510A72F1A4D9811005633EF /* Products */;
@@ -1154,6 +1220,34 @@
 			remoteRef = 65A115021BCD969A007BC661 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		65B3F6951C73CF93000983D0 /* Charts.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Charts.framework;
+			remoteRef = 65B3F6941C73CF93000983D0 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65B3F6971C73CF93000983D0 /* Charts.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Charts.framework;
+			remoteRef = 65B3F6961C73CF93000983D0 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65B3F6991C73CF93000983D0 /* ChartsTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = ChartsTests.xctest;
+			remoteRef = 65B3F6981C73CF93000983D0 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65B3F69B1C73CF93000983D0 /* Charts.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Charts.framework;
+			remoteRef = 65B3F69A1C73CF93000983D0 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -1237,6 +1331,7 @@
 				6583EEEA1C14758B00AE6C00 /* QBEFormulaEditorViewController.swift in Sources */,
 				6583EEF21C14758B00AE6C00 /* QBEUploadViewController.swift in Sources */,
 				6583EF261C14758B00AE6C00 /* QBEFormula+SyntaxColoring.swift in Sources */,
+				65B3F6A81C73D0EE000983D0 /* QBEChart.swift in Sources */,
 				6583EF291C14758B00AE6C00 /* QBEStepItemView.swift in Sources */,
 				6583EEE21C14758B00AE6C00 /* QBECalculator.swift in Sources */,
 				6583EEFD1C14758B00AE6C00 /* QBERenameStepView.swift in Sources */,
@@ -1263,6 +1358,7 @@
 				6583EF001C14758B00AE6C00 /* QBESQLiteSourceStepView.swift in Sources */,
 				651521991B13B92D007BCDFF /* TCMXMLWriter.m in Sources */,
 				6583EEFB1C14758B00AE6C00 /* QBEPostgresStepView.swift in Sources */,
+				65B3F6AA1C73D302000983D0 /* QBEChartTabletViewController.swift in Sources */,
 				6583EF051C14758B00AE6C00 /* QBESecret.swift in Sources */,
 				65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */,
 				6583EEFA1C14758B00AE6C00 /* QBEPivotStepView.swift in Sources */,
@@ -1273,6 +1369,7 @@
 				6583EF0C1C14758B00AE6C00 /* QBEColumnsStep.swift in Sources */,
 				6583EF131C14758B00AE6C00 /* QBEJoinStep.swift in Sources */,
 				6583EF0B1C14758B00AE6C00 /* QBECloneStep.swift in Sources */,
+				65B3F6AD1C749F93000983D0 /* QBETabletView.swift in Sources */,
 				6583EF021C14758B00AE6C00 /* QBEDocument.swift in Sources */,
 				6583EF1F1C14758B00AE6C00 /* QBEXMLStep.swift in Sources */,
 				6583EF0D1C14758B00AE6C00 /* QBECrawlStep.swift in Sources */,
@@ -1298,7 +1395,7 @@
 				651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */,
 				6583EF011C14758B00AE6C00 /* QBEChain.swift in Sources */,
 				6583EF1D1C14758B00AE6C00 /* QBESortStep.swift in Sources */,
-				651C68801C70E96600F0F048 /* QBENoteTablet.swift in Sources */,
+				651C68801C70E96600F0F048 /* QBENote.swift in Sources */,
 				6583EF161C14758B00AE6C00 /* QBEPostgresStep.swift in Sources */,
 				6583EEE31C14758B00AE6C00 /* QBEChainViewController.swift in Sources */,
 				6583EEE81C14758B00AE6C00 /* QBEFactory.swift in Sources */,
@@ -1367,6 +1464,11 @@
 			isa = PBXTargetDependency;
 			name = Rethink;
 			targetProxy = 65A115061BCD96A6007BC661 /* PBXContainerItemProxy */;
+		};
+		65B3F6A61C73CFC0000983D0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Charts-OSX";
+			targetProxy = 65B3F6A51C73CFC0000983D0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1735,7 +1837,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -1764,7 +1866,7 @@
 					"$(PROJECT_DIR)/Libraries/MySQL",
 					"$(PROJECT_DIR)/Libraries/PostgreSQL",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
@@ -1794,7 +1896,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1820,7 +1922,7 @@
 					"$(PROJECT_DIR)/Libraries/PostgreSQL",
 				);
 				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = Warp/Sources/QBEObjectiveCBridge.h;
@@ -1844,7 +1946,7 @@
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = Warp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OTHER_CFLAGS = "-fno-optimize-sibling-calls";
 				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1866,7 +1968,7 @@
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = Warp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "i386 x86_64";

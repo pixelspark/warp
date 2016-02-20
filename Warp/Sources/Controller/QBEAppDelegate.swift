@@ -1,6 +1,12 @@
 import Cocoa
 import WarpCore
 
+extension String {
+	var localized: String {
+		return NSLocalizedString(self, comment: "")
+	}
+}
+
 @NSApplicationMain
 class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
 	internal var locale: Locale!

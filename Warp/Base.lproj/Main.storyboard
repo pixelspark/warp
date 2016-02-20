@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15D21" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
+        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9532"/>
         <capability name="box content view" minToolsVersion="7.0"/>
     </dependencies>
@@ -1916,24 +1917,13 @@ CA
         <scene sceneID="lUR-PW-ass">
             <objects>
                 <viewController storyboardIdentifier="chainTablet" id="Hh2-sW-i9e" customClass="QBEChainTabletViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="LIJ-4x-2a2" customClass="QBETabletView" customModule="Warp" customModuleProvider="target">
+                    <containerView key="view" id="dEL-JY-fJT" customClass="QBETabletView" customModule="Warp" customModuleProvider="target">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                        <subviews>
-                            <containerView translatesAutoresizingMaskIntoConstraints="NO" id="dEL-JY-fJT">
-                                <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
-                                <connections>
-                                    <segue destination="DXE-ii-MK8" kind="embed" identifier="chain" id="trX-VI-cBQ"/>
-                                </connections>
-                            </containerView>
-                        </subviews>
-                        <constraints>
-                            <constraint firstItem="dEL-JY-fJT" firstAttribute="leading" secondItem="LIJ-4x-2a2" secondAttribute="leading" id="8Ox-ep-6kf"/>
-                            <constraint firstItem="dEL-JY-fJT" firstAttribute="top" secondItem="LIJ-4x-2a2" secondAttribute="top" id="Jgs-QH-tui"/>
-                            <constraint firstAttribute="bottom" secondItem="dEL-JY-fJT" secondAttribute="bottom" id="Uqp-zH-E5I"/>
-                            <constraint firstAttribute="trailing" secondItem="dEL-JY-fJT" secondAttribute="trailing" id="fl4-6d-vxC"/>
-                        </constraints>
-                    </view>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <connections>
+                            <segue destination="DXE-ii-MK8" kind="embed" identifier="chain" id="trX-VI-cBQ"/>
+                        </connections>
+                    </containerView>
                 </viewController>
                 <customObject id="yMH-fU-5Kt" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -1953,7 +1943,7 @@ CA
                                     <constraint firstAttribute="width" constant="16" id="30r-5a-IYe"/>
                                     <constraint firstAttribute="height" constant="16" id="GQb-7W-xX3"/>
                                 </constraints>
-                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="CloseIcon" imagePosition="only" alignment="left" imageScaling="proportionallyUpOrDown" id="6oi-v0-3sQ">
+                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="CloseIcon" imagePosition="only" alignment="left" refusesFirstResponder="YES" imageScaling="proportionallyUpOrDown" id="6oi-v0-3sQ">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -2019,7 +2009,7 @@ CA
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <containerView wantsLayer="YES" canDrawConcurrently="YES" focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
-                                <rect key="frame" x="0.0" y="0.0" width="1089" height="401"/>
+                                <rect key="frame" x="1" y="1" width="1087" height="400"/>
                                 <constraints>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="100" id="KeW-J3-VQO"/>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="100" id="uiJ-1d-vdA"/>
@@ -2063,16 +2053,16 @@ CA
                         </subviews>
                         <constraints>
                             <constraint firstItem="W1j-vX-x7J" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" constant="7" id="45H-4F-k2o"/>
-                            <constraint firstAttribute="bottom" secondItem="mVs-W6-cUa" secondAttribute="bottom" id="Eaq-X1-yjL"/>
+                            <constraint firstAttribute="bottom" secondItem="mVs-W6-cUa" secondAttribute="bottom" constant="1" id="Eaq-X1-yjL"/>
                             <constraint firstItem="788-NV-QHP" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" id="KUA-gT-h2H"/>
-                            <constraint firstItem="mVs-W6-cUa" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="LzO-kr-yAA"/>
+                            <constraint firstItem="mVs-W6-cUa" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" constant="1" id="LzO-kr-yAA"/>
                             <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="788-NV-QHP" secondAttribute="bottom" id="TS1-se-ljc"/>
                             <constraint firstItem="WZZ-hS-HjA" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" constant="9" id="VEz-5v-Te2"/>
                             <constraint firstAttribute="trailing" secondItem="WZZ-hS-HjA" secondAttribute="trailing" constant="7" id="WXq-TD-SdR"/>
                             <constraint firstItem="WZZ-hS-HjA" firstAttribute="leading" secondItem="W1j-vX-x7J" secondAttribute="trailing" constant="7" id="jbY-dq-kaB"/>
                             <constraint firstItem="W1j-vX-x7J" firstAttribute="leading" secondItem="788-NV-QHP" secondAttribute="trailing" constant="7" id="qYD-4T-w06"/>
                             <constraint firstItem="788-NV-QHP" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="s3D-J4-XgD"/>
-                            <constraint firstAttribute="trailing" secondItem="mVs-W6-cUa" secondAttribute="trailing" id="wGo-B6-Wht"/>
+                            <constraint firstAttribute="trailing" secondItem="mVs-W6-cUa" secondAttribute="trailing" constant="1" id="wGo-B6-Wht"/>
                         </constraints>
                     </view>
                     <connections>
@@ -3229,6 +3219,49 @@ DQ
                 <customObject id="XoF-0a-53S" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1723" y="129"/>
+        </scene>
+        <!--Chart Tablet View Controller-->
+        <scene sceneID="U8A-1X-Ia3">
+            <objects>
+                <viewController storyboardIdentifier="chartTablet" id="yGm-IQ-6BR" customClass="QBEChartTabletViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" wantsLayer="YES" id="lMg-0N-5yo" customClass="QBETabletView" customModule="Warp" customModuleProvider="target">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="260"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <button toolTip="Close and remove this card" horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bzR-6Y-lGW">
+                                <rect key="frame" x="427" y="235" width="16" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="16" id="9Lk-Gx-s5k"/>
+                                    <constraint firstAttribute="height" constant="16" id="vsF-fg-Zmh"/>
+                                </constraints>
+                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="CloseIcon" imagePosition="only" alignment="left" refusesFirstResponder="YES" imageScaling="proportionallyUpOrDown" id="sa8-jb-AC6">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="closeTablet:" target="yGm-IQ-6BR" id="bmM-vd-ggG"/>
+                                </connections>
+                            </button>
+                            <customView translatesAutoresizingMaskIntoConstraints="NO" id="Lrh-uQ-FeM">
+                                <rect key="frame" x="5" y="5" width="440" height="220"/>
+                            </customView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="Lrh-uQ-FeM" firstAttribute="top" secondItem="lMg-0N-5yo" secondAttribute="top" constant="35" id="PIg-0P-jui"/>
+                            <constraint firstAttribute="trailing" secondItem="bzR-6Y-lGW" secondAttribute="trailing" constant="7" id="WkB-tA-bx4"/>
+                            <constraint firstAttribute="trailing" secondItem="Lrh-uQ-FeM" secondAttribute="trailing" constant="5" id="X5E-ne-1rp"/>
+                            <constraint firstAttribute="bottom" secondItem="Lrh-uQ-FeM" secondAttribute="bottom" constant="5" id="aTe-yh-Gxv"/>
+                            <constraint firstItem="Lrh-uQ-FeM" firstAttribute="leading" secondItem="lMg-0N-5yo" secondAttribute="leading" constant="5" id="bh7-fr-2m2"/>
+                            <constraint firstItem="bzR-6Y-lGW" firstAttribute="top" secondItem="lMg-0N-5yo" secondAttribute="top" constant="9" id="vPz-7P-o2v"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="chartView" destination="Lrh-uQ-FeM" id="ybZ-87-h9T"/>
+                    </connections>
+                </viewController>
+                <customObject id="74i-uV-bg8" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1349" y="2154"/>
         </scene>
     </scenes>
     <resources>

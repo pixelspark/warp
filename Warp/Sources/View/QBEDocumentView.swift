@@ -7,11 +7,6 @@ import WarpCore
 	func documentView(view: QBEDocumentView, wantsZoomToView: NSView)
 }
 
-/** The view of a QBETabletViewController should subclass this view. It is used to identify pieces of the tablet that are
-draggable (see QBEResizableView's hitTest). */
-internal class QBETabletView: NSView {
-}
-
 internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDelegate {
 	@IBOutlet weak var delegate: QBEDocumentViewDelegate?
 	var flowchartView: QBEFlowchartView!
@@ -23,6 +18,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		flowchartView.frame = self.bounds
 		flowchartView.delegate = self
 		addSubview(flowchartView)
+		self.wantsLayer = true
 	}
 	
 	override func prepareForDragOperation(sender: NSDraggingInfo) -> Bool {
@@ -63,6 +59,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 				tv.selected = (tv == view)
 				if tv == view {
 					self.window?.makeFirstResponder(tv.tabletController.view)
+
 					if notifyDelegate {
 						delegate?.documentView(self, didSelectTablet: tv.tabletController.tablet)
 					}
