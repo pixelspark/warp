@@ -1337,12 +1337,19 @@ internal enum QBEEditingMode {
 							namesToSelect.append(r.columnNames[i])
 						}
 					}
-					
+
 					asyncMain {
-						self.suggestSteps([
-							QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: !remove),
-							QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: remove)
-						])
+						var steps: [QBEStep] = []
+
+						if namesToRemove.count > 0 && namesToRemove.count < r.columnCount {
+							steps.append(QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: !remove))
+						}
+
+						if namesToSelect.count > 0 && namesToSelect.count < r.columnCount {
+							steps.append(QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: remove))
+						}
+
+						self.suggestSteps(steps)
 					}
 				}
 			}
