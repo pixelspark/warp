@@ -12,6 +12,8 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 	func dataView(view: QBEDataViewController, didRenameColumn: Column, to: Column)
 }
 
+/** A data view shows data in a Raster as a table. It can also show a progress bar to indicate loading progress, and has
+footer cells that allow filtering of the data. */
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, QBEColumnViewDelegate, NSUserInterfaceValidations {
 	var tableView: MBTableGrid?
 	@IBOutlet var progressView: NSProgressIndicator!
@@ -40,8 +42,14 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		updateProgress()
 	} }
 
-	var showNewRowsAndColumns = false { didSet {
-		if showNewRowsAndColumns != oldValue {
+	var showNewRow = false { didSet {
+		if showNewRow != oldValue {
+			update()
+		}
+	} }
+
+	var showNewColumn = false { didSet {
+		if showNewColumn != oldValue {
 			update()
 		}
 	} }
@@ -70,16 +78,16 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func numberOfColumnsInTableGrid(aTableGrid: MBTableGrid!) -> UInt {
 		if let r = raster {
-			return (r.columnCount > 0 ? UInt(r.columnCount) : 0) + (self.showNewRowsAndColumns ? 1 : 0)
+			return (r.columnCount > 0 ? UInt(r.columnCount) : 0) + (self.showNewColumn ? 1 : 0)
 		}
-		return (self.showNewRowsAndColumns ? 1 : 0)
+		return (self.showNewColumn ? 1 : 0)
 	}
 	
 	func numberOfRowsInTableGrid(aTableGrid: MBTableGrid!) -> UInt {
 		if let r = raster {
-			return (r.rowCount > 0 ? UInt(r.rowCount) : 0) + (self.showNewRowsAndColumns ? 1 : 0)
+			return (r.rowCount > 0 ? UInt(r.rowCount) : 0) + (self.showNewRow ? 1 : 0)
 		}
-		return (self.showNewRowsAndColumns ? 1 : 0)
+		return (self.showNewRow ? 1 : 0)
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, shouldEditColumn columnIndex: UInt, row rowIndex: UInt) -> Bool {

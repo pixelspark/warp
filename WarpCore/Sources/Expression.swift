@@ -82,8 +82,15 @@ public class Expression: NSObject, NSCoding {
 	input value to a specific output value. It does so by looping over 'suggestions' (provided by Function
 	implementations) for the application of (usually unary) functions to the input value to obtain (or come closer to) the
 	output value. */
-	public class final func infer(fromValue: Expression?, toValue: Value, inout suggestions: [Expression], level: Int, row: Row, column: Int, maxComplexity: Int = Int.max, previousValues: [Value] = [], job: Job? = nil) {
-		let inputValue = row.values[column]
+	public class final func infer(fromValue: Expression?, toValue: Value, inout suggestions: [Expression], level: Int, row: Row, column: Int?, maxComplexity: Int = Int.max, previousValues: [Value] = [], job: Job? = nil) {
+		let inputValue: Value
+		if let c = column {
+			inputValue = row.values[c]
+		}
+		else {
+			inputValue = Value.InvalidValue
+		}
+
 		if let c = job?.cancelled where c {
 			return
 		}

@@ -608,11 +608,36 @@ internal enum QBEEditingMode {
 		return false
 	}
 
+	/** This delegate method is called by the data view whenever a value is added using the template new row/column. */
 	func dataView(view: QBEDataViewController, addValue value: Value, inRow: Int?, column: Int?, callback: (Bool) -> ()) {
 		suggestions?.cancel()
 
 		switch self.editingMode {
+		case .NotEditing:
+			if let row = inRow {
+				// If we are not editing the source data, the only thing that can be done is calculate a new column
+				calculator.currentRaster?.get { (fallibleRaster) -> () in
+					fallibleRaster.maybe { (raster) -> () in
+						let targetColumnName = Column.defaultColumnForIndex(raster.columnCount)
+
+						self.suggestions = Future<[QBEStep]>({(job, callback) -> () in
+							job.async {
+								let expressions = QBECalculateStep.suggest(change: nil, toValue: value, inRaster: raster, row: row, column: nil, locale: self.locale, job: job)
+								callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: targetColumnName, function: $0)}))
+							}
+						}, timeLimit: 5.0)
+
+						self.suggestions!.get {(steps) -> () in
+							asyncMain {
+								self.suggestSteps(steps)
+							}
+						}
+					}
+				}
+			}
+
 		case .Editing(identifiers: _):
+			// If we are in editing mode, the new value will actually be added to the source data set.
 			if let md = self.currentStep?.mutableData {
 				let job = Job(.UserInitiated)
 
@@ -620,6 +645,7 @@ internal enum QBEEditingMode {
 					switch result {
 					case .Success(let columnNames):
 						if let cn = column {
+							// The edit made was inside the range of current columns. No need to add a new column, just a new row
 							if cn >= 0 && cn <= columnNames.count {
 								let columnName = columnNames[cn]
 								let row = Row([value], columnNames: [columnName])
@@ -1020,10 +1046,18 @@ internal enum QBEEditingMode {
 
 		switch self.editingMode {
 		case .Editing(identifiers: _):
-			self.dataViewController?.showNewRowsAndColumns = true
+			// In editing mode, rows and columns can be added
+			self.dataViewController?.showNewRow = true
+			self.dataViewController?.showNewColumn = true
+
+		case .NotEditing:
+			// In non-editing mode, only new calculated columns can be added
+			self.dataViewController?.showNewRow = false
+			self.dataViewController?.showNewColumn = true
 
 		default:
-			self.dataViewController?.showNewRowsAndColumns = false
+			self.dataViewController?.showNewRow = false
+			self.dataViewController?.showNewColumn = false
 		}
 
 		self.view.window?.update()
