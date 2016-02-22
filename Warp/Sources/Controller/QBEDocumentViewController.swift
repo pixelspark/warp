@@ -114,12 +114,12 @@ import WarpCore
 	
 	private var defaultTabletFrame: CGRect { get {
 		let vr = self.workspaceView.documentVisibleRect
-		let defaultWidth: CGFloat = min(800, vr.size.width * 0.618 * self.workspaceView.magnification)
-		let defaultHeight: CGFloat = min(600, vr.size.height * 0.618 * self.workspaceView.magnification)
+		let defaultWidth: CGFloat = max(350, min(800, vr.size.width * 0.382 * self.workspaceView.magnification))
+		let defaultHeight: CGFloat = max(300, min(600, vr.size.height * 0.382 * self.workspaceView.magnification))
 		
 		// If this is not the first view, place it to the right of all other views
 		if let ab = documentView.boundsOfAllTablets {
-			return CGRectMake(ab.origin.x + ab.size.width + 10, ab.origin.y + ((ab.size.height - defaultHeight) / 2), defaultWidth, defaultHeight)
+			return CGRectMake(ab.origin.x + ab.size.width + 25, ab.origin.y + ((ab.size.height - defaultHeight) / 2), defaultWidth, defaultHeight)
 		}
 		else {
 			// If this is the first view, just center it in the visible rect
