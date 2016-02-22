@@ -29,7 +29,8 @@ import WarpCore
 	
 	func tabletViewDidClose(view: QBETabletViewController) -> Bool {
 		if let t = view.tablet {
-			return removeTablet(t, undo: true)
+			let force = self.view.window?.currentEvent?.modifierFlags.contains(.AlternateKeyMask) ?? false
+			return removeTablet(t, undo: true, force: force)
 		}
 		return false
 	}
@@ -52,10 +53,10 @@ import WarpCore
 	}
 	
 	@objc func removeTablet(tablet: QBETablet) {
-		removeTablet(tablet, undo: false)
+		removeTablet(tablet, undo: false, force: false)
 	}
 	
-	func removeTablet(tablet: QBETablet, undo: Bool) -> Bool {
+	func removeTablet(tablet: QBETablet, undo: Bool, force: Bool = false) -> Bool {
 		assert(tablet.document == document, "tablet should belong to our document")
 
 		// Who was dependent on this tablet?
@@ -67,9 +68,17 @@ import WarpCore
 
 				for dep in otherTablet.arrows {
 					if dep.from == tablet {
-						// TODO: automatically remove this dependency. For now just bail out
-						NSAlert.showSimpleAlert(NSLocalizedString("This table cannot be removed, because other items are still linked to it.", comment: ""), infoText: NSLocalizedString("To remove the table, first remove any links to this table, then try to remove the table itself.", comment: ""), style: .WarningAlertStyle, window: self.view.window)
-						return false
+						if force {
+							if let to = dep.to {
+								// Recursively remove the dependent tablets first
+								self.removeTablet(to, undo: undo, force: true)
+							}
+						}
+						else {
+							// TODO: automatically remove this dependency. For now just bail out
+							NSAlert.showSimpleAlert("This item cannot be removed, because other items are still linked to it.".localized, infoText: "To remove the item, first remove any links to this item, then try to remove the table itself. Alternatively, if you hold the option key while removing the item, the linked items will be removed as well.".localized, style: .WarningAlertStyle, window: self.view.window)
+							return false
+						}
 					}
 				}
 			}
