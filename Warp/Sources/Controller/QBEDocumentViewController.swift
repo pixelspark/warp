@@ -137,7 +137,7 @@ import WarpCore
 		}
 	}
 	
-	@objc func addTablet(tablet: QBETablet, undo: Bool, animated: Bool, callback: (() -> ())? = nil) {
+	@objc func addTablet(tablet: QBETablet, undo: Bool, animated: Bool, callback: ((QBETabletViewController) -> ())? = nil) {
 		self.workspaceView.magnifyView(nil) {
 			// Check if this tablet is also in the document
 			if let d = self.document where tablet.document != self.document {
@@ -153,7 +153,7 @@ import WarpCore
 				
 			self.documentView.addTablet(vc, animated: animated) {
 				self.documentView.selectTablet(tablet)
-				callback?()
+				callback?(vc)
 			}
 			self.updateView()
 		}
@@ -334,7 +334,7 @@ import WarpCore
 					let templateData = NSKeyedArchiver.archivedDataWithRootObject(templateStep)
 					let newStep = NSKeyedUnarchiver.unarchiveObjectWithData(templateData) as? QBEStep
 					let tablet = QBEChainTablet(chain: QBEChain(head: newStep))
-					self.documentView.addTablet(tablet, undo: true, animated: true) {
+					self.documentView.addTablet(tablet, undo: true, animated: true) { _ in
 						self.documentView.sentenceEditor?.configure(self.documentView)
 					}
 				}
@@ -731,17 +731,15 @@ import WarpCore
 
 	@IBAction func addNoteTablet(sender: NSObject) {
 		let tablet = QBENoteTablet()
-		self.addTablet(tablet, undo: true, animated: true) {
-		}
+		self.addTablet(tablet, undo: true, animated: true)
 	}
 
 	@IBAction func addRasterTablet(sender: NSObject) {
 		let raster = Raster(data: [], columnNames: [Column.defaultColumnForIndex(0)], readOnly: false)
 		let chain = QBEChain(head: QBERasterStep(raster: raster))
 		let tablet = QBEChainTablet(chain: chain)
-		self.addTablet(tablet, undo: true, animated: true) {
-			/// FIXME
-			//self.documentView.selectedTabletController?.startEditing(sender)
+		self.addTablet(tablet, undo: true, animated: true) { tabletViewController in
+			tabletViewController.startEditing()
 		}
 	}
 
@@ -768,28 +766,28 @@ import WarpCore
 	}
 	
 	@IBAction func addTabletFromPresto(sender: NSObject) {
-		self.addTablet(QBEChainTablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true) {
+		self.addTablet(QBEChainTablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
 	}
 	
 	@IBAction func addTabletFromMySQL(sender: NSObject) {
 		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", database: "test", tableName: "test")
-		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) {
+		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
 	}
 
 	@IBAction func addTabletFromRethinkDB(sender: NSObject) {
 		let s = QBERethinkSourceStep(previous: nil)
-		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) {
+		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
 	}
 	
 	@IBAction func addTabletFromPostgres(sender: NSObject) {
 		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", database: "postgres", schemaName: "public", tableName: "")
-		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) {
+		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
 	}
@@ -799,30 +797,6 @@ import WarpCore
 			self.sentenceEditor = segue.destinationController as? QBESentenceViewController
 		}
 	}
-	
-	/*@IBAction func setFullWorkingSet(sender: NSObject) {
-		if let t = documentView.selectedTabletController {
-			t.setFullWorkingSet(sender)
-		}
-	}
-	
-	@IBAction func cancelCalculation(sender: NSObject) {
-		if let t = documentView.selectedTabletController {
-			t.cancelCalculation(sender)
-		}
-	}
-	
-	@IBAction func showSuggestions(sender: NSObject) {
-		if let t = documentView.selectedTabletController {
-			t.showSuggestions(sender)
-		}
-	}
-	
-	@IBAction func exportFile(sender: NSObject) {
-		if let t = documentView.selectedTabletController {
-			t.exportFile(sender)
-		}
-	}*/
 
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 			return validateSelector(item.action())

@@ -27,6 +27,9 @@ class QBETabletViewController: NSViewController {
 	func selectArrow(arrow: QBETabletArrow) {
 	}
 
+	func startEditing() {
+	}
+
 	@IBAction func closeTablet(sender: AnyObject) {
 		self.delegate?.tabletViewDidClose(self)
 	}

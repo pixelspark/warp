@@ -29,6 +29,10 @@ internal class QBEChainTabletViewController: QBETabletViewController, QBEChainVi
 		}
 	}
 
+	override func startEditing() {
+		self.chainViewController?.startEditing(self)
+	}
+
 	/** Chain view delegate implementation */
 	func chainViewDidClose(view: QBEChainViewController) -> Bool {
 		return self.delegate?.tabletViewDidClose(self) ?? true
