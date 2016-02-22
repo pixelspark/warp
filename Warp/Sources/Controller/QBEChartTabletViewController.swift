@@ -2,8 +2,9 @@ import Cocoa
 import Charts
 import WarpCore
 
-class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDelegate, NSUserInterfaceValidations {
+class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDelegate, NSUserInterfaceValidations, JobDelegate {
 	@IBOutlet var chartView: NSView!
+	@IBOutlet var progressView: NSProgressIndicator!
 	private var chartBaseView: ChartViewBase? = nil
 	private var chartTablet: QBEChartTablet? { return self.tablet as? QBEChartTablet }
 	private var raster: Raster? = nil
@@ -20,6 +21,31 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	override func viewWillAppear() {
 		self.chart = self.chartTablet?.chart
 		self.reloadData()
+	}
+
+	func job(job: AnyObject, didProgress: Double) {
+		asyncMain {
+			self.progressView.doubleValue = (job as! Job).progress * 100.0
+			self.progressView.indeterminate = false
+		}
+	}
+
+	private func updateProgress() {
+		asyncMain {
+			if self.loadJob != nil {
+				if self.progressView.hidden {
+					self.progressView.indeterminate = true
+					self.progressView.startAnimation(nil)
+				}
+				self.progressView.hidden = false
+
+			}
+			else {
+				self.progressView.stopAnimation(nil)
+				self.progressView.doubleValue = 0.0
+				self.progressView.hidden = true
+			}
+		}
 	}
 
 	func sentenceView(view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable) {
@@ -39,10 +65,16 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 
 		if let j = self.loadJob {
 			j.cancel()
+			self.loadJob = nil
 		}
+
+		self.updateProgress()
 
 		if let t = self.chartTablet, let source = t.sourceTablet, let step = source.chain.head {
 			self.loadJob = Job(.UserInitiated)
+			self.loadJob!.addObserver(self)
+
+			self.updateProgress()
 			step.fullData(self.loadJob!) { result in
 				switch result {
 				case .Success(let fullData):
@@ -51,17 +83,21 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 						case .Success(let raster):
 							asyncMain {
 								self.raster = raster
+								self.loadJob = nil
+								self.updateProgress()
 								self.updateChart()
 							}
 
 						case .Failure(let e):
 							/// FIXME show failure
+							self.updateProgress()
 							print("Failed to rasterize: \(e)")
 						}
 					}
 
 				case .Failure(let e):
 					/// FIXME Show failure
+					self.updateProgress()
 					print("Could not draw chart: \(e)")
 				}
 			}
@@ -203,6 +239,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.chartView, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0),
 				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self.chartView, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0)
 			])
+			cb.canDrawConcurrently = true
 			cb.animate(xAxisDuration: 1.0, yAxisDuration: 1.0)
 			cb.descriptionFont = NSUIFont.systemFontOfSize(12.0)
 			cb.descriptionText = ""
@@ -227,6 +264,12 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 		}
 	}
 
+	@IBAction func cancelCalculation(sender: NSObject) {
+		self.loadJob?.cancel()
+		self.loadJob = nil
+		self.updateProgress()
+	}
+
 	override func validateToolbarItem(item: NSToolbarItem) -> Bool {
 		return validateSelector(item.action)
 	}
@@ -238,6 +281,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	private func validateSelector(action: Selector) -> Bool {
 		switch action {
 		case Selector("refreshData:"), Selector("exportFile:"): return true
+		case Selector("cancelCalculation:"): return self.loadJob != nil
 		default: return false
 		}
 	}

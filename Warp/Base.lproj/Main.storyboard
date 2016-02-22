@@ -1717,7 +1717,7 @@ CA
                             <visualEffectView blendingMode="behindWindow" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
                                 <rect key="frame" x="0.0" y="0.0" width="700" height="531"/>
                                 <subviews>
-                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
+                                    <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
                                         <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
@@ -1731,7 +1731,7 @@ CA
                                                     <action selector="addButtonClicked:" target="y5B-O8-QaO" id="Xkt-W6-slr"/>
                                                 </connections>
                                             </textField>
-                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" ambiguous="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
+                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" ambiguous="YES" misplaced="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
                                                 <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                                 <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="883-xW-r8t">
                                                     <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
@@ -1766,10 +1766,10 @@ CA
                                             <constraint firstAttribute="centerY" secondItem="OEa-fZ-fMo" secondAttribute="centerY" constant="4" id="v8g-g5-hb7"/>
                                         </constraints>
                                     </customView>
-                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
+                                    <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="500" width="700" height="31"/>
                                         <subviews>
-                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
+                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
                                                 <rect key="frame" x="4" y="4" width="688" height="23"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>
@@ -3228,6 +3228,15 @@ DQ
                         <rect key="frame" x="0.0" y="0.0" width="450" height="260"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
+                            <progressIndicator wantsLayer="YES" canDrawConcurrently="YES" maxValue="100" doubleValue="50" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="ecA-yC-LoP">
+                                <rect key="frame" x="175" y="120" width="100" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="TPa-GL-XYG"/>
+                                </constraints>
+                            </progressIndicator>
+                            <customView wantsLayer="YES" canDrawConcurrently="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Lrh-uQ-FeM">
+                                <rect key="frame" x="5" y="5" width="440" height="220"/>
+                            </customView>
                             <button toolTip="Close and remove this card" horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bzR-6Y-lGW">
                                 <rect key="frame" x="427" y="235" width="16" height="16"/>
                                 <constraints>
@@ -3242,12 +3251,11 @@ DQ
                                     <action selector="closeTablet:" target="yGm-IQ-6BR" id="bmM-vd-ggG"/>
                                 </connections>
                             </button>
-                            <customView translatesAutoresizingMaskIntoConstraints="NO" id="Lrh-uQ-FeM">
-                                <rect key="frame" x="5" y="5" width="440" height="220"/>
-                            </customView>
                         </subviews>
                         <constraints>
+                            <constraint firstItem="ecA-yC-LoP" firstAttribute="centerY" secondItem="lMg-0N-5yo" secondAttribute="centerY" id="1Uw-qp-Yiz"/>
                             <constraint firstItem="Lrh-uQ-FeM" firstAttribute="top" secondItem="lMg-0N-5yo" secondAttribute="top" constant="35" id="PIg-0P-jui"/>
+                            <constraint firstItem="ecA-yC-LoP" firstAttribute="centerX" secondItem="lMg-0N-5yo" secondAttribute="centerX" id="WC3-3y-bkf"/>
                             <constraint firstAttribute="trailing" secondItem="bzR-6Y-lGW" secondAttribute="trailing" constant="7" id="WkB-tA-bx4"/>
                             <constraint firstAttribute="trailing" secondItem="Lrh-uQ-FeM" secondAttribute="trailing" constant="5" id="X5E-ne-1rp"/>
                             <constraint firstAttribute="bottom" secondItem="Lrh-uQ-FeM" secondAttribute="bottom" constant="5" id="aTe-yh-Gxv"/>
@@ -3257,6 +3265,7 @@ DQ
                     </view>
                     <connections>
                         <outlet property="chartView" destination="Lrh-uQ-FeM" id="ybZ-87-h9T"/>
+                        <outlet property="progressView" destination="ecA-yC-LoP" id="2ZA-NO-JTy"/>
                     </connections>
                 </viewController>
                 <customObject id="74i-uV-bg8" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
