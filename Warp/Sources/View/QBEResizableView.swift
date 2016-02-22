@@ -59,8 +59,11 @@ class QBEResizableView: NSView {
 					self.resizerView.mouseDownInSubiew(ev)
 				}
 
-				// Make the background of an NSCollectionView or QBETabletView always grabbable for dragging
-				if ht is NSCollectionView || ht is QBETabletView || ht is NSClipView {
+				/* Make the background of an NSCollectionView or QBETabletView always grabbable for dragging. These are
+				usually NSClipViews embedded in an NSScrollView. Note however that when field editors are involved, Cocoa
+				will create views of _NSKeyboardFocusView around the keyboard focus area, which are also NSClipView. So
+				therefore we check for exactly NSClipView, not 'subclass of' NSClipView. */
+				if ht is NSCollectionView || ht is QBETabletView || ht.className == NSClipView.className() {
 					return self.resizerView
 				}
 			}
