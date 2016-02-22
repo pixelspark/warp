@@ -45,7 +45,7 @@ internal extension NSViewController {
 internal enum QBEEditingMode {
 	case NotEditing
 	case EnablingEditing
-	case Editing(identifiers: Set<Column>?)
+	case Editing(identifiers: Set<Column>?, editingRaster: Raster)
 }
 
 @objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
@@ -636,7 +636,7 @@ internal enum QBEEditingMode {
 				}
 			}
 
-		case .Editing(identifiers: _):
+		case .Editing(identifiers: _, editingRaster: let editingRaster):
 			// If we are in editing mode, the new value will actually be added to the source data set.
 			if let md = self.currentStep?.mutableData {
 				let job = Job(.UserInitiated)
@@ -653,9 +653,18 @@ internal enum QBEEditingMode {
 								md.performMutation(mutation, job: job) { result in
 									switch result {
 									case .Success:
-										asyncMain {
-											callback(true)
-											self.calculate()
+										/* The mutation has been performed on the source data, now perform it on our own
+										temporary raster as well. We could also call self.calculate() here, but that takes
+										a while, and we would lose our current scrolling position, etc. */
+										self.calculator.currentRaster?.get {r in
+											r.maybe { r in
+												RasterMutableData(raster: editingRaster).performMutation(mutation, job: job) { result in
+													asyncMain {
+														self.presentRaster(editingRaster)
+														callback(true)
+													}
+												}
+											}
 										}
 										break
 
@@ -713,7 +722,7 @@ internal enum QBEEditingMode {
 		let errorMessage = String(format: NSLocalizedString("Cannot change '%@' to '%@'", comment: ""), oldValue.stringValue ?? "", toValue.stringValue ?? "")
 
 		// In editing mode, we perform the edit on the mutable data set
-		if let md = self.currentStep?.mutableData {
+		if let md = self.currentStep?.mutableData, case .Editing(identifiers:_, editingRaster: let editingRaster) = self.editingMode {
 			let job = Job(.UserInitiated)
 			md.data(job) { result in
 				switch result {
@@ -728,9 +737,17 @@ internal enum QBEEditingMode {
 									md.performMutation(editMutation, job: job) { result in
 										switch result {
 										case .Success:
-											// All ok
-											asyncMain {
-												self.calculate()
+											/* The mutation has been performed on the source data, now perform it on our own
+											temporary raster as well. We could also call self.calculate() here, but that takes
+											a while, and we would lose our current scrolling position, etc. */
+											self.calculator.currentRaster?.get {r in
+												r.maybe { r in
+													RasterMutableData(raster: editingRaster).performMutation(editMutation, job: job) { result in
+														asyncMain {
+															self.presentRaster(editingRaster)
+														}
+													}
+												}
 											}
 											break
 
@@ -759,9 +776,17 @@ internal enum QBEEditingMode {
 												md.performMutation(mutation, job: job) { result in
 													switch result {
 													case .Success():
-														// All ok
-														asyncMain {
-															self.calculate()
+														/* The mutation has been performed on the source data, now perform it on our own
+														temporary raster as well. We could also call self.calculate() here, but that takes
+														a while, and we would lose our current scrolling position, etc. */
+														self.calculator.currentRaster?.get {r in
+															r.maybe { r in
+																RasterMutableData(raster: editingRaster).performMutation(editMutation, job: job) { result in
+																	asyncMain {
+																		self.presentRaster(editingRaster)
+																	}
+																}
+															}
 														}
 														break
 
@@ -870,7 +895,7 @@ internal enum QBEEditingMode {
 				}
 			}
 
-		case .Editing(identifiers: let identifiers):
+		case .Editing(identifiers: let identifiers, editingRaster: _):
 			self.editValue(oldValue, toValue: toValue, inRow: inRow, column: column, identifiers: identifiers)
 			return true
 
@@ -1565,7 +1590,20 @@ internal enum QBEEditingMode {
 					case .EnablingEditing:
 						switch result {
 						case .Success(let ids):
-							self.editingMode = .Editing(identifiers: ids)
+							self.calculator.currentRaster?.get { result in
+								switch result {
+								case .Success(let editingRaster):
+									asyncMain {
+										self.editingMode = .Editing(identifiers: ids, editingRaster: editingRaster.clone(false))
+									}
+
+								case .Failure(let e):
+									asyncMain {
+										NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .WarningAlertStyle, window: self.view.window)
+										self.editingMode = .NotEditing
+									}
+								}
+							}
 
 						case .Failure(let e):
 							NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .WarningAlertStyle, window: self.view.window)

@@ -267,10 +267,20 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	private func update() {
 		assertMainThread()
-		updateFonts()
-		updateProgress()
 		
 		if let tv = tableView {
+			if !showNewRow {
+				let tr = CATransition()
+				tr.duration = 0.3
+				tr.type = kCATransitionFade
+				tr.subtype = kCATransitionFromBottom
+				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+				self.tableView?.layer?.addAnimation(tr, forKey: kCATransition)
+			}
+
+			updateFonts()
+			updateProgress()
+
 			if let r = raster {
 				// Update column sizes
 				for i in 0..<r.columnCount {
@@ -314,16 +324,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 				}
 			}
 
-			let tr = CATransition()
-			tr.duration = 0.3
-			tr.type = kCATransitionFade
-			tr.subtype = kCATransitionFromBottom
-			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-			self.tableView?.layer?.addAnimation(tr, forKey: kCATransition)
-
 			tv.reloadData()
 			tv.singleClickCellEdit = self.showNewRow
-			tv.needsDisplay = true
+			//tv.needsDisplay = true
 		}
 	}
 	
