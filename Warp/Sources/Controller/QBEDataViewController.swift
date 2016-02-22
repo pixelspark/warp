@@ -322,6 +322,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			self.tableView?.layer?.addAnimation(tr, forKey: kCATransition)
 
 			tv.reloadData()
+			tv.singleClickCellEdit = self.showNewRow
 			tv.needsDisplay = true
 		}
 	}
