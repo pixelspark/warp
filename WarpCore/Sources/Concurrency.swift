@@ -342,7 +342,7 @@ public class Job: JobDelegate {
 			return
 		}
 
-		asyncMain {
+		mutex.locked {
 			self.progressComponents[forKey] = progress
 			let currentProgress = self.progress
 			for observer in self.observers {
@@ -398,7 +398,7 @@ public class Job: JobDelegate {
 	private var timeComponents: [String: Double] = [:]
 	
 	func reportTime(component: String, time: Double) {
-		asyncMain {
+		mutex.locked {
 			if let t = self.timeComponents[component] {
 				self.timeComponents[component] = t + time
 			}
