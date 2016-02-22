@@ -89,8 +89,8 @@ class QBEFlowchartView: NSView {
 
 		// Draw arrow head
 		let (sourceAnchor, targetAnchor) = QBEAnchor.anchorsForArrow(arrow.sourceFrame, to: arrow.targetFrame)
-		if let firstBendpoint = QBEAnchor.bendpointsBetween(arrow.sourceFrame, fromAnchor: sourceAnchor, to: arrow.targetFrame, toAnchor: targetAnchor).first {
-			let targetPoint = sourceAnchor.pointInBounds(arrow.sourceFrame)
+		if let firstBendpoint = QBEAnchor.bendpointsBetween(arrow.sourceFrame, fromAnchor: sourceAnchor, to: arrow.targetFrame, toAnchor: targetAnchor).last {
+			let targetPoint = targetAnchor.pointInBounds(arrow.targetFrame, isDestination: true)
 
 			CGContextSetFillColorWithColor(context, color.CGColor)
 			context.drawArrowheadAt(targetPoint, fromPoint: firstBendpoint, length: 6.0, width: 6.0)

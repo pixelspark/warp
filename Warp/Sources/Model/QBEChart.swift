@@ -99,7 +99,7 @@ class QBEChartTablet: QBETablet {
 
 	override var arrows: [QBETabletArrow] {
 		if let h = self.sourceTablet?.chain.head {
-			return [QBETabletArrow(from: self, to: self.sourceTablet!, fromStep: h)]
+			return [QBETabletArrow(from: self.sourceTablet!, to: self, fromStep: h)]
 		}
 		return []
 	}

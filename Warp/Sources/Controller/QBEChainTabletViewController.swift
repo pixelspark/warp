@@ -23,7 +23,7 @@ internal class QBEChainTabletViewController: QBETabletViewController, QBEChainVi
 	}
 
 	override func selectArrow(arrow: QBETabletArrow) {
-		if let s = arrow.fromStep {
+		if let s = arrow.fromStep where s != self.chainViewController?.currentStep {
 			self.chainViewController?.currentStep = s
 			self.chainViewController?.calculate()
 		}

@@ -642,7 +642,7 @@ import WarpCore
 	}
 	
 	func documentView(view: QBEDocumentView, didSelectArrow arrow: QBETabletArrow?) {
-		if let a = arrow, fromTablet = a.from {
+		if let a = arrow, fromTablet = a.to {
 			findAndSelectArrow(a, inTablet: fromTablet)
 		}
 	}

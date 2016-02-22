@@ -34,6 +34,7 @@ class QBETabletArrow: NSObject, QBEArrow {
 	private(set) weak var to: QBETablet?
 	private(set) weak var fromStep: QBEStep?
 
+	/** Create an arrow between two tablets. The arrow should always point in the direction the data is flowing. */
 	init(from: QBETablet, to: QBETablet, fromStep: QBEStep) {
 		self.from = from
 		self.to = to
@@ -124,7 +125,7 @@ of data. A tablet has a rectangular shape and a certain position in the document
 		var arrows: [QBETabletArrow] = []
 		for dep in chain.dependencies {
 			if let s = chain.tablet, let t = dep.dependsOn.tablet {
-				arrows.append(QBETabletArrow(from: s, to: t, fromStep: dep.step))
+				arrows.append(QBETabletArrow(from: t, to: s, fromStep: dep.step))
 			}
 		}
 		return arrows
