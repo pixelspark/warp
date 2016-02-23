@@ -289,11 +289,11 @@ internal class QBEResizerView: NSView {
 
 			// Draw the bounding box
 			let selected = (self.superview as! QBEResizableView).selected
-			let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.5) : NSColor.clearColor()
-			CGContextSetLineWidth(context, 2.0)
+			let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.3) : NSColor.clearColor()
 			CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
-			let bounds = self.bounds.inset(inset - 1.0)
+			let bounds = self.bounds.inset(inset - 2.0)
 			let rr = NSBezierPath(roundedRect: bounds, xRadius: 3.0, yRadius: 3.0)
+			rr.lineWidth = 3.0
 			rr.stroke()
 		}
 	}
