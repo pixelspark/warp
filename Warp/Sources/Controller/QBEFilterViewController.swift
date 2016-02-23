@@ -30,8 +30,10 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		reloadData()
 	} }
 	
-	func job(job: AnyObject, didProgress: Double) {3
-		self.updateProgress()
+	func job(job: AnyObject, didProgress: Double) {
+		asyncMain {
+			self.updateProgress()
+		}
 	}
 
 	deinit {
