@@ -7,8 +7,16 @@ internal class QBETabletView: NSView {
 		super.init(frame: frameRect)
 	}
 
+	override func awakeFromNib() {
+		self.wantsLayer = true
+		self.layer?.backgroundColor = NSColor.windowBackgroundColor().CGColor
+		self.layer?.cornerRadius = 3.0
+		self.layer?.masksToBounds = true
+	}
+
 	override func drawRect(dirtyRect: NSRect) {
 		NSColor.windowBackgroundColor().set()
+		//NSColor.redColor().set()
 		NSRectFill(dirtyRect)
 	}
 

@@ -21,7 +21,8 @@ class QBEResizableView: NSView {
 		self.wantsLayer = true
 		self.layer?.opaque = true
 		self.layer?.drawsAsynchronously = true
-		self.layer?.shadowRadius = 4.0
+		self.layer?.cornerRadius = 3.0
+		self.layer?.shadowRadius = 3.0
 		self.layer?.shadowColor = NSColor.shadowColor().CGColor
 		self.layer?.shadowOpacity = 0.3
 
@@ -291,7 +292,7 @@ internal class QBEResizerView: NSView {
 			let selected = (self.superview as! QBEResizableView).selected
 			let borderColor = selected ? NSColor.blueColor().colorWithAlphaComponent(0.3) : NSColor.clearColor()
 			CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
-			let bounds = self.bounds.inset(inset - 2.0)
+			let bounds = self.bounds.inset(inset - 1.0)
 			let rr = NSBezierPath(roundedRect: bounds, xRadius: 3.0, yRadius: 3.0)
 			rr.lineWidth = 3.0
 			rr.stroke()
