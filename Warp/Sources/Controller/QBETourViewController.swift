@@ -25,7 +25,7 @@ override func makeWindowControllers() {
 		self.addWindowController(ctr)
 	}
 	else {
-		let windowController = storyboard.instantiateControllerWithIdentifier("Document Window Controller") as! NSWindowController
+		let windowController = storyboard.instantiateControllerWithIdentifier("documentWindow") as! NSWindowController
 		self.addWindowController(windowController)
 	}
 } */

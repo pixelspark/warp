@@ -51,7 +51,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 			ctr.window?.titleVisibility = .Hidden
 			self.addWindowController(ctr)
 		}) {
-			let windowController = storyboard.instantiateControllerWithIdentifier("Document Window Controller") as! NSWindowController
+			let windowController = storyboard.instantiateControllerWithIdentifier("documentWindow") as! NSWindowController
 			self.addWindowController(windowController)
 		}
 	}
