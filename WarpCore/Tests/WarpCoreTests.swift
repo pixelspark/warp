@@ -457,6 +457,8 @@ class WarpCoreTests: XCTestCase {
 		}
 
 		checkSequence("[AB]{2}", ["AA","AB","BA","BB"])
+		checkSequence("[A\\t]{2}", ["AA","A\t","\tA","\t\t"])
+		checkSequence("[A\\ ]{2}", ["AA","A "," A","  "])
 		checkSequence("test", ["test"])
 		checkSequence("(foo)bar", ["foobar"])
 		checkSequence("foo?bar", ["bar", "foobar"])

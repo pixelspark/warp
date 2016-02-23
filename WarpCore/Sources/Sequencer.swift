@@ -19,7 +19,8 @@ public class Sequencer: Parser {
 	private let specialCharacters: [Character: Character] = [
 		"t": "\t",
 		"n": "\n",
-		"r": "\r"
+		"r": "\r",
+		" ": " "
 	]
 	private var stack = Stack<ValueSequence>()
 	
@@ -121,9 +122,9 @@ public class Sequencer: Parser {
 	}
 	
 	public override func rules() {
-		let reservedCharactersRule = Parser.matchAnyFrom(reservedCharacters.map({ return Parser.matchLiteralInsensitive(String($0)) }))
-		let specialCharactersRule = Parser.matchAnyFrom(specialCharacters.keys.map({ return Parser.matchLiteralInsensitive(String($0)) }))
-		let escapes = Parser.matchLiteralInsensitive("\\") ~~ (reservedCharactersRule | specialCharactersRule)
+		let reservedCharactersRule = Parser.matchAnyFrom(reservedCharacters.map({ return Parser.matchLiteral(String($0)) }))
+		let specialCharactersRule = Parser.matchAnyFrom(specialCharacters.keys.map({ return Parser.matchLiteral(String($0)) }))
+		let escapes = Parser.matchLiteral("\\") ~ (reservedCharactersRule | specialCharactersRule)
 		
 		add_named_rule("number", rule: (("0" - "9")++))
 		add_named_rule("escapedCharacter", rule: escapes => pushValue)
@@ -132,10 +133,10 @@ public class Sequencer: Parser {
 		add_named_rule("charRange", rule: (Parser.matchAnyCharacterExcept(reservedCharacters) ~~ "-" ~~ Parser.matchAnyCharacterExcept(reservedCharacters)) => pushRange)
 		add_named_rule("charSpec", rule: (^"charRange" | ^"escapedCharacter" | ^"character")*)
 		
-		add_named_rule("charset", rule: ((Parser.matchLiteralInsensitive("[") => pushCharset) ~~ ^"charSpec" ~~ "]"))
+		add_named_rule("charset", rule: ((Parser.matchLiteral("[") => pushCharset) ~~ ^"charSpec" ~~ "]"))
 		add_named_rule("component", rule: ^"subsequence" | ^"charset" | ^"string")
-		add_named_rule("maybe", rule: ^"component" ~~ (Parser.matchLiteralInsensitive("?") => pushMaybe)/~)
-		add_named_rule("repeat", rule: ^"maybe" ~~ (Parser.matchLiteralInsensitive("{") ~~ (^"number" => pushRepeat) ~~ Parser.matchLiteralInsensitive("}"))/~)
+		add_named_rule("maybe", rule: ^"component" ~~ (Parser.matchLiteral("?") => pushMaybe)/~)
+		add_named_rule("repeat", rule: ^"maybe" ~~ (Parser.matchLiteral("{") ~~ (^"number" => pushRepeat) ~~ Parser.matchLiteral("}"))/~)
 		
 		add_named_rule("following", rule: ^"repeat" ~~ ((^"repeat") => pushFollowing)*)
 		add_named_rule("alternatives", rule: ^"following" ~~ (("|" ~~ ^"following") => pushAfter)*)

@@ -302,6 +302,21 @@ internal extension Parser {
 			return true
 		}
 	}
+
+	static func matchLiteral(string:String) -> ParserRule {
+		return {(parser: Parser, reader: Reader) -> Bool in
+			let pos = reader.position
+
+			for ch in string.characters {
+				if ch != reader.read() {
+					reader.seek(pos)
+					return false
+				}
+			}
+			return true
+		}
+	}
+
 	
 	/** The ~~ operator is a variant of the ~ operator that allows whitespace in between (a ~ b means: a followed by b, whereas
 	a ~~ b means: a followed by b with whitespace allowed in between). */
