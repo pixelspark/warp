@@ -21,6 +21,27 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	override func viewWillAppear() {
 		self.chart = self.chartTablet?.chart
 		self.reloadData()
+		NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("resultNotificationReceived:"), name: QBEResultNotification.name, object: nil)
+	}
+
+	@objc private func resultNotificationReceived(notification: NSNotification) {
+		assertMainThread()
+
+		if let calculationNotification = notification.object as? QBEResultNotification where calculationNotification.sender != self {
+			if let t = self.chartTablet, let source = t.sourceTablet, let step = source.chain.head {
+				if step == calculationNotification.step {
+					self.raster = calculationNotification.raster
+					self.loadJob?.cancel()
+					self.loadJob = nil
+					self.updateProgress()
+					self.updateChart(false)
+				}
+			}
+		}
+	}
+
+	override func viewWillDisappear() {
+		NSNotificationCenter.defaultCenter().removeObserver(self)
 	}
 
 	func job(job: AnyObject, didProgress: Double) {
@@ -60,7 +81,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	private func reloadData() {
 		asyncMain {
 			self.raster = nil
-			self.updateChart()
+			self.updateChart(false)
 		}
 
 		if let j = self.loadJob {
@@ -85,7 +106,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 								self.raster = raster
 								self.loadJob = nil
 								self.updateProgress()
-								self.updateChart()
+								self.updateChart(true)
 							}
 
 						case .Failure(let e):
@@ -105,7 +126,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	}
 
 	/** Repaint the chart based on the current data and parameters. Draws no chart in case we are still loading it. */
-	private func updateChart() {
+	private func updateChart(animated: Bool = false) {
 		assertMainThread()
 
 		// Fade any changes in smoothly
@@ -240,7 +261,10 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self.chartView, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0)
 			])
 			cb.canDrawConcurrently = true
-			cb.animate(xAxisDuration: 1.0, yAxisDuration: 1.0)
+
+			if animated {
+				cb.animate(xAxisDuration: 1.0, yAxisDuration: 1.0)
+			}
 			cb.descriptionFont = NSUIFont.systemFontOfSize(12.0)
 			cb.descriptionText = ""
 		}

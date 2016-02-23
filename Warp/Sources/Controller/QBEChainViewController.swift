@@ -658,6 +658,7 @@ internal enum QBEEditingMode {
 										a while, and we would lose our current scrolling position, etc. */
 										RasterMutableData(raster: editingRaster).performMutation(mutation, job: job) { result in
 											asyncMain {
+												NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 												self.presentRaster(editingRaster)
 												callback(true)
 											}
@@ -687,6 +688,7 @@ internal enum QBEEditingMode {
 									RasterMutableData(raster: editingRaster).performMutation(mutation, job: job) { result in
 										asyncMain {
 											self.presentRaster(editingRaster)
+											NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 
 											if let rn = inRow {
 												self.dataView(view, didChangeValue: Value.EmptyValue, toValue: value, inRow: rn, column: columns.count-1)
@@ -746,6 +748,7 @@ internal enum QBEEditingMode {
 												r.maybe { r in
 													RasterMutableData(raster: editingRaster).performMutation(editMutation, job: job) { result in
 														asyncMain {
+															NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 															self.presentRaster(editingRaster)
 														}
 													}
@@ -785,6 +788,7 @@ internal enum QBEEditingMode {
 															r.maybe { r in
 																RasterMutableData(raster: editingRaster).performMutation(editMutation, job: job) { result in
 																	asyncMain {
+																		NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 																		self.presentRaster(editingRaster)
 																	}
 																}
@@ -1626,6 +1630,7 @@ internal enum QBEEditingMode {
 
 	@IBAction func stopEditing(sender: NSObject) {
 		self.editingMode = .NotEditing
+		self.calculate()
 		self.view.window?.update()
 	}
 

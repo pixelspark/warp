@@ -2875,7 +2875,7 @@ Gw
                                 <constraints>
                                     <constraint firstAttribute="height" constant="200" id="9ul-up-iEh"/>
                                 </constraints>
-                                <textFieldCell key="cell" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" focusRingType="none" drawsBackground="YES" allowsEditingTextAttributes="YES" id="XZe-fm-0U6">
+                                <textFieldCell key="cell" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" focusRingType="none" alignment="left" drawsBackground="YES" allowsEditingTextAttributes="YES" id="XZe-fm-0U6">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>

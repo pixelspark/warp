@@ -1,9 +1,29 @@
 import Foundation
 import WarpCore
 
+/** Notification that is sent around whenever a result has been calculated for a particular step. It can be used to keep
+linked tablets in sync. */
+public class QBEResultNotification: NSObject {
+	public static let name = "nl.pixelspark.warp.ResultNotification"
+
+	weak var sender: NSObject?
+	let raster: Raster
+	let isFull: Bool
+	let step: QBEStep
+	let filters: [Column:FilterSet]?
+
+	init(raster: Raster, isFull: Bool, step: QBEStep, filters: [Column:FilterSet]?, sender: NSObject) {
+		self.raster = raster
+		self.isFull = isFull
+		self.step = step
+		self.filters = filters
+		self.sender = sender
+	}
+}
+
 /** The QBECalculator class coordinates execution of steps. In particular, it models the performance of steps and can
 estimate the number of input rows required to arrive at a certain number of output rows (e.g. in example calculations). */
-public class QBECalculator {
+public class QBECalculator: NSObject {
 	public var currentData: Future<Fallible<Data>>?
 	public var currentRaster: Future<Fallible<Raster>>?
 	private var mutex: Mutex = Mutex()
@@ -34,7 +54,8 @@ public class QBECalculator {
 		return self.calculationInProgressForStep != nil
 	} }
 
-	public init() {
+	public override init() {
+		super.init()
 	}
 	
 	/** Returns the number of input rows that should be set as a limit in an example calculation in order to meet the
@@ -127,6 +148,11 @@ public class QBECalculator {
 					self.calculateExample(sourceStep, maximumTime: maxTime - duration, columnFilters: columnFilters, attempt: attempt + 1, callback: callback)
 				}
 				else {
+					// Send notification of finished raster
+					asyncMain {
+						NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
+							QBEResultNotification(raster: r, isFull: false, step: sourceStep, filters: columnFilters, sender: self))
+					}
 					callback()
 				}
 				
@@ -137,82 +163,104 @@ public class QBECalculator {
 	}
 	
 	public func calculate(sourceStep: QBEStep, fullData: Bool, maximumTime: Double? = nil, columnFilters: [Column:FilterSet]? = nil) {
-		if sourceStep != calculationInProgressForStep || currentData?.cancelled ?? false || currentRaster?.cancelled ?? false {
-			currentData?.cancel()
-			currentRaster?.cancel()
-			calculationInProgressForStep = sourceStep
-			var maxInputRows = 0
-			
-			// Set up calculation for the data object
-			if fullData {
-				currentData = Future<Fallible<Data>>(sourceStep.fullData)
-			}
-			else {
-				maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime ?? maximumExampleTime)
-				let maxOutputRows = desiredExampleRows
-				trace("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
-				currentData = Future<Fallible<Data>>({ (job, callback) in
-					sourceStep.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
-				})
-			}
-
-			let calculationJob = Job(QoS.UserInitiated)
-			
-			// Set up calculation for the raster
-			currentRaster = Future<Fallible<Raster>>({ [unowned self] (job: Job, callback: Future<Fallible<Raster>>.Callback) in
-				if let cd = self.currentData {
-					let dataJob = cd.get(job) { (data: Fallible<Data>) -> () in
-						switch data {
-							case .Success(let d):
-								// At this point, we know which columns will be available. We should now add the view filters (if any)
-								if let filters = columnFilters where filters.count > 0 {
-									d.columnNames(job, callback: { (fallibleColumns) -> () in
-										switch fallibleColumns {
-										case .Success(let columnNames):
-											var filteredData = d
-											for column in columnNames {
-												if let columnFilter = filters[column] {
-													let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(columnName: column))
-													filteredData = filteredData.filter(filterExpression)
-												}
-											}
-											
-											filteredData.raster(job, callback: callback)
-											
-										case .Failure(let e):
-											callback(.Failure(e))
-										}
-									})
-									
-								}
-								else {
-									d.raster(job, callback: callback)
-								}
-							
-							case .Failure(let s):
-								callback(.Failure(s))
-						}
-					}
-					dataJob.addObserver(job)
+		self.mutex.locked {
+			if sourceStep != calculationInProgressForStep || currentData?.cancelled ?? false || currentRaster?.cancelled ?? false {
+				currentData?.cancel()
+				currentRaster?.cancel()
+				calculationInProgressForStep = sourceStep
+				var maxInputRows = 0
+				
+				// Set up calculation for the data object
+				if fullData {
+					currentData = Future<Fallible<Data>>(sourceStep.fullData)
 				}
 				else {
-					callback(.Failure(NSLocalizedString("No data available.", comment: "")))
+					maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime ?? maximumExampleTime)
+					let maxOutputRows = desiredExampleRows
+					trace("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
+					currentData = Future<Fallible<Data>>({ (job, callback) in
+						sourceStep.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
+					})
 				}
-			})
-			
-			// Wait for the raster to arrive so we can indicate the calculation has ended
-			currentRaster!.get(calculationJob) { [unowned self] (r) in
-				self.calculationInProgressForStep = nil
+
+				let calculationJob = Job(QoS.UserInitiated)
+				
+				// Set up calculation for the raster
+				currentRaster = Future<Fallible<Raster>>({ [unowned self] (job: Job, callback: Future<Fallible<Raster>>.Callback) in
+					if let cd = self.currentData {
+						let dataJob = cd.get(job) { (data: Fallible<Data>) -> () in
+							switch data {
+								case .Success(let d):
+									// At this point, we know which columns will be available. We should now add the view filters (if any)
+									if let filters = columnFilters where filters.count > 0 {
+										d.columnNames(job, callback: { (fallibleColumns) -> () in
+											switch fallibleColumns {
+											case .Success(let columnNames):
+												var filteredData = d
+												for column in columnNames {
+													if let columnFilter = filters[column] {
+														let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(columnName: column))
+														filteredData = filteredData.filter(filterExpression)
+													}
+												}
+												
+												filteredData.raster(job) { result in
+													result.maybe { raster in
+														// Send notification of finished raster
+														asyncMain {
+															NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
+																QBEResultNotification(raster: raster, isFull: fullData, step: sourceStep, filters: columnFilters, sender: self))
+														}
+													}
+													callback(result)
+												}
+												
+											case .Failure(let e):
+												callback(.Failure(e))
+											}
+										})
+										
+									}
+									else {
+										d.raster(job) { result in
+											result.maybe { raster in
+												// Send notification of finished raster
+												asyncMain {
+													NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
+														QBEResultNotification(raster: raster, isFull: fullData, step: sourceStep, filters: columnFilters, sender: self))
+												}
+											}
+											callback(result)
+										}
+									}
+								
+								case .Failure(let s):
+									callback(.Failure(s))
+							}
+						}
+						dataJob.addObserver(job)
+					}
+					else {
+						callback(.Failure(NSLocalizedString("No data available.", comment: "")))
+					}
+				})
+				
+				// Wait for the raster to arrive so we can indicate the calculation has ended
+				currentRaster!.get(calculationJob) { [unowned self] (r) in
+					self.calculationInProgressForStep = nil
+				}
 			}
 		}
 	}
 	
 	public func cancel() {
-		currentData?.cancel()
-		currentRaster?.cancel()
-		currentData = nil
-		currentRaster = nil
-		calculationInProgressForStep = nil
+		self.mutex.locked {
+			currentData?.cancel()
+			currentRaster?.cancel()
+			currentData = nil
+			currentRaster = nil
+			calculationInProgressForStep = nil
+		}
 	}
 }
 
