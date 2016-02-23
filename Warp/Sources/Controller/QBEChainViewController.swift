@@ -656,14 +656,10 @@ internal enum QBEEditingMode {
 										/* The mutation has been performed on the source data, now perform it on our own
 										temporary raster as well. We could also call self.calculate() here, but that takes
 										a while, and we would lose our current scrolling position, etc. */
-										self.calculator.currentRaster?.get {r in
-											r.maybe { r in
-												RasterMutableData(raster: editingRaster).performMutation(mutation, job: job) { result in
-													asyncMain {
-														self.presentRaster(editingRaster)
-														callback(true)
-													}
-												}
+										RasterMutableData(raster: editingRaster).performMutation(mutation, job: job) { result in
+											asyncMain {
+												self.presentRaster(editingRaster)
+												callback(true)
 											}
 										}
 										break
@@ -685,16 +681,22 @@ internal enum QBEEditingMode {
 							md.performMutation(mutation, job: job) { result in
 								switch result {
 								case .Success:
-									// Column was added
-									if let rn = inRow {
+									/* The mutation has been performed on the source data, now perform it on our own
+									temporary raster as well. We could also call self.calculate() here, but that takes
+									a while, and we would lose our current scrolling position, etc. */
+									RasterMutableData(raster: editingRaster).performMutation(mutation, job: job) { result in
 										asyncMain {
-											self.dataView(view, didChangeValue: Value.EmptyValue, toValue: value, inRow: rn, column: columns.count-1)
-											callback(true)
+											self.presentRaster(editingRaster)
+
+											if let rn = inRow {
+												self.dataView(view, didChangeValue: Value.EmptyValue, toValue: value, inRow: rn, column: columns.count-1)
+												callback(true)
+											}
+											else {
+												// We're also adding a new row
+												self.dataView(view, addValue: value, inRow: nil, column: columns.count-1, callback: callback)
+											}
 										}
-									}
-									else {
-										// We're also adding a new row
-										self.dataView(view, addValue: value, inRow: nil, column: columns.count-1, callback: callback)
 									}
 
 								case .Failure(let e):
