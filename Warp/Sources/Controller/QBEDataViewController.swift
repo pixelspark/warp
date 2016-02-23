@@ -415,7 +415,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 					filterRect = CGRectMake(columnRect.origin.x, 0, columnRect.size.width, footerHeight)
 				}
 
-				pv.showRelativeToRect(filterRect, ofView: tv, preferredEdge: NSRectEdge.MaxY)
+				pv.showRelativeToRect(filterRect, ofView: tv, preferredEdge: atFooter ? NSRectEdge.MaxY : NSRectEdge.MinY)
 			}
 		}
 	}

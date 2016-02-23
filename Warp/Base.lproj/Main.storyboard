@@ -47,9 +47,6 @@
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="AiM-IN-Dvf">
                                 <rect key="frame" x="438" y="25" width="78" height="31"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="20" id="rDX-m6-Ubg"/>
-                                </constraints>
                                 <buttonCell key="cell" type="push" title="Got it!" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ReD-jn-tgz">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1717,10 +1714,10 @@ CA
                             <visualEffectView blendingMode="behindWindow" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
                                 <rect key="frame" x="0.0" y="0.0" width="700" height="531"/>
                                 <subviews>
-                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
+                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
                                         <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                         <subviews>
-                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
+                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
                                                 <rect key="frame" x="148" y="240" width="404" height="29"/>
                                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="Drag files here or click '+' to add data" id="Zpo-PO-ycL">
                                                     <font key="font" size="24" name=".AppleSystemUIFont"/>
@@ -1731,9 +1728,9 @@ CA
                                                     <action selector="addButtonClicked:" target="y5B-O8-QaO" id="Xkt-W6-slr"/>
                                                 </connections>
                                             </textField>
-                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" ambiguous="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
+                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
                                                 <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
-                                                <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="883-xW-r8t">
+                                                <clipView key="contentView" drawsBackground="NO" id="883-xW-r8t">
                                                     <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
@@ -1766,10 +1763,10 @@ CA
                                             <constraint firstAttribute="centerY" secondItem="OEa-fZ-fMo" secondAttribute="centerY" constant="4" id="v8g-g5-hb7"/>
                                         </constraints>
                                     </customView>
-                                    <customView ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
+                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="500" width="700" height="31"/>
                                         <subviews>
-                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
+                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
                                                 <rect key="frame" x="4" y="4" width="688" height="23"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>
@@ -1793,6 +1790,7 @@ CA
                                 </subviews>
                                 <constraints>
                                     <constraint firstItem="jQq-6i-09S" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" id="6II-69-NmR"/>
+                                    <constraint firstItem="jQq-6i-09S" firstAttribute="top" secondItem="cDc-rh-vev" secondAttribute="top" constant="31" id="7hK-wT-ezE"/>
                                     <constraint firstItem="jQq-6i-09S" firstAttribute="top" secondItem="20V-eU-jYi" secondAttribute="bottom" id="IP2-Sl-qE5"/>
                                     <constraint firstItem="20V-eU-jYi" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" id="SdG-9D-fyB"/>
                                     <constraint firstAttribute="trailing" secondItem="20V-eU-jYi" secondAttribute="trailing" id="UgF-pb-Ago"/>
@@ -2457,14 +2455,14 @@ DQ
                                     <constraint firstAttribute="width" constant="128" id="T09-zb-fJx"/>
                                 </constraints>
                             </progressIndicator>
-                            <containerView verticalCompressionResistancePriority="1000" ambiguous="YES" misplaced="YES" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="QpU-NZ-jJG">
-                                <rect key="frame" x="5" y="106" width="613" height="104"/>
+                            <containerView verticalHuggingPriority="251" verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="QpU-NZ-jJG">
+                                <rect key="frame" x="5" y="106" width="613" height="22"/>
                                 <connections>
                                     <segue destination="dZx-NB-Ues" kind="embed" identifier="targetSentenceView" id="OiJ-tK-4iF"/>
                                 </connections>
                             </containerView>
-                            <containerView verticalCompressionResistancePriority="1000" ambiguous="YES" misplaced="YES" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="TPX-oT-EhC">
-                                <rect key="frame" x="5" y="220" width="613" height="22"/>
+                            <containerView verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="TPX-oT-EhC">
+                                <rect key="frame" x="5" y="138" width="613" height="104"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="6AW-yp-ho3"/>
                                 </constraints>
@@ -3295,6 +3293,6 @@ DQ
         <image name="ZoomOutIcon" width="51" height="51"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="XPo-cR-lfW"/>
+        <segue reference="87o-14-S5w"/>
     </inferredMetricsTieBreakers>
 </document>
