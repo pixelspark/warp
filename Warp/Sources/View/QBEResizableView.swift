@@ -173,7 +173,7 @@ internal class QBEResizerView: NSView {
 			
 			let delta = (Int(locationInView.x - rs.downPoint.x), Int(locationInView.y - rs.downPoint.y))
 			let newFrame = rs.downAnchor.offset(rs.downRect, horizontal: CGFloat(delta.0), vertical: CGFloat(delta.1)).rounded
-			let minSize = self.contentView!.fittingSize
+			let minSize = self.superview!.fittingSize
 			if newFrame.size.width >= minSize.width && newFrame.size.height > minSize.height {
 				self.superview?.frame = newFrame
 				self.frame = self.superview!.bounds
