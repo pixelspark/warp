@@ -245,7 +245,7 @@ public class Formula: Parser {
 		add_named_rule("equal", rule: ("=" ~~ ^"concatenation") => pushEqual)
 		add_named_rule("notEqual", rule: ("<>" ~~ ^"concatenation") => pushNotEqual)
 		add_named_rule("logic", rule: ^"concatenation" ~~ (^"greaterEqual" | ^"greater" | ^"lesserEqual" | ^"lesser" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict" | ^"matchesRegex" | ^"matchesRegexStrict" )*)
-		let formula = ("=")/~ ~~ Parser.matchWhitespace ~~ (^"logic")*!*
+		let formula = ("=")/~ ~~ self.whitespace ~~ (^"logic")*!*
 		start_rule = formula
 	}
 }
@@ -315,35 +315,6 @@ internal extension Parser {
 			}
 			return true
 		}
-	}
-
-	
-	/** The ~~ operator is a variant of the ~ operator that allows whitespace in between (a ~ b means: a followed by b, whereas
-	a ~~ b means: a followed by b with whitespace allowed in between). */
-	static let matchWhitespace: ParserRule = (" " | "\t" | "\r\n" | "\r" | "\n")*
-}
-
-/** Generate a parser rule that matches the given parser rule at least once, but possibly more */
-internal postfix func ++ (left: ParserRule) -> ParserRule {
-	return left ~~ left*
-}
-
-infix operator  ~~ {associativity left precedence 10}
-internal func ~~ (left: String, right: String) -> ParserRule {
-	return literal(left) ~~ literal(right)
-}
-
-internal func ~~ (left: String, right: ParserRule) -> ParserRule {
-	return literal(left) ~~ right
-}
-
-internal func ~~ (left: ParserRule, right: String) -> ParserRule {
-	return left ~~ literal(right)
-}
-
-internal func ~~ (left : ParserRule, right: ParserRule) -> ParserRule {
-	return {(parser: Parser, reader: Reader) -> Bool in
-		return left(parser: parser, reader: reader) && Parser.matchWhitespace(parser: parser, reader: reader) && right(parser: parser, reader: reader)
 	}
 }
 
