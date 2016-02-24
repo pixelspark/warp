@@ -395,6 +395,16 @@ internal enum QBEEditingMode {
 		if let dataView = self.dataViewController {
 			dataView.raster = raster
 			hasFullData = (raster != nil && useFullData)
+
+			// Fade any changes in smoothly
+			if raster == nil {
+				let tr = CATransition()
+				tr.duration = 0.3
+				tr.type = kCATransitionFade
+				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+				self.outletView.layer?.addAnimation(tr, forKey: kCATransition)
+			}
+			self.outletView.enabled = raster != nil
 			
 			if raster != nil && raster!.rowCount > 0 && !useFullData {
 				if let toolbar = self.view.window?.toolbar {

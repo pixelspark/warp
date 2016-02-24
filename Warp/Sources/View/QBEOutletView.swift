@@ -207,7 +207,8 @@ the QBEOutletView.dragType dragging type. Upon receiving a dragged outlet, they 
 will be the sending QBEOutletView) and then obtain the draggedObject from that view. */
 @IBDesignable class QBEOutletView: NSView, NSDraggingSource, NSPasteboardItemDataProvider {
 	static let dragType = "nl.pixelspark.Warp.Outlet"
-	
+
+	@IBInspectable var enabled: Bool = true { didSet { setNeedsDisplayInRect(self.bounds) } }
 	@IBInspectable var connected: Bool = false { didSet { setNeedsDisplayInRect(self.bounds) } }
 	weak var delegate: QBEOutletViewDelegate? = nil
 	var draggedObject: AnyObject? = nil
@@ -215,19 +216,21 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 	private var dragLineWindow: QBELaceWindow?
 	
 	override func mouseDown(theEvent: NSEvent) {
-		delegate?.outletViewWillStartDragging(self)
-		
-		if draggedObject != nil {
-			let pboardItem = NSPasteboardItem()
-			pboardItem.setData("[dragged outlet]".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false), forType: QBEOutletView.dragType)
+		if enabled {
+			delegate?.outletViewWillStartDragging(self)
+			
+			if draggedObject != nil {
+				let pboardItem = NSPasteboardItem()
+				pboardItem.setData("[dragged outlet]".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false), forType: QBEOutletView.dragType)
 
-			/* When this item is dragged to a finder window, promise to write a CSV file there. Our provideDataForType 
-			function is called as soon as the system actually wants us to write that file. */
-			pboardItem.setDataProvider(self, forTypes: [kPasteboardTypeFileURLPromise])
-			pboardItem.setString(kUTTypeCommaSeparatedText as String, forType: kPasteboardTypeFilePromiseContent)
+				/* When this item is dragged to a finder window, promise to write a CSV file there. Our provideDataForType 
+				function is called as soon as the system actually wants us to write that file. */
+				pboardItem.setDataProvider(self, forTypes: [kPasteboardTypeFileURLPromise])
+				pboardItem.setString(kUTTypeCommaSeparatedText as String, forType: kPasteboardTypeFilePromiseContent)
 
-			let dragItem = NSDraggingItem(pasteboardWriter: pboardItem)
-			self.beginDraggingSessionWithItems([dragItem] as [NSDraggingItem], event: theEvent, source: self)
+				let dragItem = NSDraggingItem(pasteboardWriter: pboardItem)
+				self.beginDraggingSessionWithItems([dragItem] as [NSDraggingItem], event: theEvent, source: self)
+			}
 		}
 	}
 
@@ -251,7 +254,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 			
 			if !isinf(square.origin.x) && !isinf(square.origin.y) {
 				// Draw the outer ring (always visible, dimmed if no dragging item set)
-				let baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: draggedObject == nil ? 0.5 : 1.0)
+				let baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: enabled ? (draggedObject == nil ? 0.5 : 1.0) : 0.1)
 				baseColor.setStroke()
 				CGContextSetLineWidth(context, 3.0)
 				CGContextStrokeEllipseInRect(context, square)
