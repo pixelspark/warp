@@ -413,16 +413,24 @@ import WarpCore
 											let tablet = QBEChartTablet(source: sourceTablet, type: .Line, xExpression: Sibling(columnName: first), yExpression: Sibling(columnName: last))
 											self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 										}
+										else {
+											asyncMain {
+												NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: "In order to be able to create a chart, the data set must contain at least two columns.".localized, style: .CriticalAlertStyle, window: self.documentView.view.window)
+											}
+										}
 									}
 
 								case .Failure(let e):
-									Swift.print("Error fetching column names for chart: \(e)")
-									break
+									asyncMain {
+										NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+									}
 								}
 							}
 
 						case .Failure(let e):
-							Swift.print("Error fetching data for chart: \(e)")
+							asyncMain {
+								NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+							}
 						}
 					})
 				}
