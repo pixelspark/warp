@@ -56,7 +56,7 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 			self.columnNames = []
 			
 			for columnName in columnNames {
-				if columnNames.contains(columnName) {
+				if self.columnNames.contains(columnName) {
 					let count = self.columnNames.reduce(0, combine: { (n, item) in return n + (item == columnName ? 1 : 0) })
 					self.columnNames.append(Column("\(columnName.name)_\(Column.defaultNameForIndex(count).name)"))
 				}
