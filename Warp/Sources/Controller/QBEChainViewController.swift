@@ -499,7 +499,9 @@ internal enum QBEEditingMode {
 	}
 	
 	@objc func job(job: AnyObject, didProgress: Double) {
-		self.dataViewController?.progress = didProgress
+		asyncMain {
+			self.dataViewController?.progress = didProgress
+		}
 	}
 	
 	func stepsController(vc: QBEStepsViewController, didSelectStep step: QBEStep) {

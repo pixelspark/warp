@@ -208,6 +208,10 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 @IBDesignable class QBEOutletView: NSView, NSDraggingSource, NSPasteboardItemDataProvider {
 	static let dragType = "nl.pixelspark.Warp.Outlet"
 
+	@IBInspectable var progress: Double = 1.0 { didSet {
+		assert(progress >= 0.0 && progress <= 1.0, "progress must be [0,1]")
+		setNeedsDisplayInRect(self.bounds)
+	} }
 	@IBInspectable var enabled: Bool = true { didSet { setNeedsDisplayInRect(self.bounds) } }
 	@IBInspectable var connected: Bool = false { didSet { setNeedsDisplayInRect(self.bounds) } }
 	weak var delegate: QBEOutletViewDelegate? = nil
@@ -254,10 +258,38 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 			
 			if !isinf(square.origin.x) && !isinf(square.origin.y) {
 				// Draw the outer ring (always visible, dimmed if no dragging item set)
-				let baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: enabled ? (draggedObject == nil ? 0.5 : 1.0) : 0.1)
+				let isProgressing = self.progress < 1.0
+				let isDragging = (draggedObject != nil)
+				let baseColor: NSColor
+				if enabled {
+					if isDragging {
+						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: 1.0)
+					}
+					else {
+						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: 0.5)
+					}
+				}
+				else {
+					if isProgressing {
+						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: 0.2)
+					}
+					else {
+						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: 0.2)
+					}
+				}
+
 				baseColor.setStroke()
 				CGContextSetLineWidth(context, 3.0)
-				CGContextStrokeEllipseInRect(context, square)
+
+				let ring = CGPathCreateMutable()
+				var t = CGAffineTransformMakeTranslation(square.center.x, square.center.y)
+				let progress = self.enabled ? 1.0 : self.progress
+				let offset: CGFloat = 3.14159 / 2.0
+				CGPathAddArc(ring, &t, 0, 0, square.size.width / 2, offset + CGFloat(2.0 * 3.141459 * (1.0 - progress)), offset + CGFloat(2.0 * 3.14159), false)
+				CGContextAddPath(context, ring)
+				CGContextStrokePath(context)
+
+				//CGContextStrokeEllipseInRect(context, square)
 				
 				// Draw the inner circle (if the outlet is connected)
 				if connected || dragLineWindow !== nil {

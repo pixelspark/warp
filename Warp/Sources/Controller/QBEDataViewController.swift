@@ -244,6 +244,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	private func updateProgress() {
+		assertMainThread()
 		// Set visibility
 		errorLabel.hidden = calculating || errorMessage == nil
 		errorLabel.stringValue = errorMessage ?? ""
