@@ -7,8 +7,10 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	@IBOutlet var progressView: NSProgressIndicator!
 	private var chartBaseView: ChartViewBase? = nil
 	private var chartTablet: QBEChartTablet? { return self.tablet as? QBEChartTablet }
-	private var raster: Raster? = nil
-	private var loadJob: Job? = nil
+	private var presentedRaster: Raster? = nil
+	private var presentedDataIsFullData: Bool = false
+	private var useFullData: Bool = false
+	private var calculator = QBECalculator()
 
 	var chart: QBEChart? = nil { didSet {
 		self.updateChart()
@@ -27,12 +29,12 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	@objc private func resultNotificationReceived(notification: NSNotification) {
 		assertMainThread()
 
-		if let calculationNotification = notification.object as? QBEResultNotification where calculationNotification.sender != self {
+		if let calculationNotification = notification.object as? QBEResultNotification where calculationNotification.sender != calculator {
 			if let t = self.chartTablet, let source = t.sourceTablet, let step = source.chain.head {
 				if step == calculationNotification.step {
-					self.raster = calculationNotification.raster
-					self.loadJob?.cancel()
-					self.loadJob = nil
+					self.presentedRaster = calculationNotification.raster
+					self.presentedDataIsFullData = calculationNotification.isFull
+					self.calculator.cancel()
 					self.updateProgress()
 					self.updateChart(false)
 				}
@@ -53,7 +55,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 
 	private func updateProgress() {
 		asyncMain {
-			if self.loadJob != nil {
+			if self.calculator.calculating {
 				if self.progressView.hidden {
 					self.progressView.indeterminate = true
 					self.progressView.startAnimation(nil)
@@ -80,46 +82,32 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	/** Loads the required raster data fresh from the data source, and repaints the chart. */
 	private func reloadData() {
 		asyncMain {
-			self.raster = nil
+			self.presentedRaster = nil
 			self.updateChart(false)
 		}
 
-		if let j = self.loadJob {
-			j.cancel()
-			self.loadJob = nil
-		}
-
+		self.calculator.cancel()
 		self.updateProgress()
 
 		if let t = self.chartTablet, let source = t.sourceTablet, let step = source.chain.head {
-			self.loadJob = Job(.UserInitiated)
-			self.loadJob!.addObserver(self)
+			self.calculator.calculate(step, fullData: self.useFullData)
+			let job = Job(.UserInitiated)
+			job.addObserver(self)
 
-			self.updateProgress()
-			step.fullData(self.loadJob!) { result in
+			self.calculator.currentRaster?.get(job) { result in
 				switch result {
-				case .Success(let fullData):
-					fullData.raster(self.loadJob!) { result in
-						switch result {
-						case .Success(let raster):
-							asyncMain {
-								self.raster = raster
-								self.loadJob = nil
-								self.updateProgress()
-								self.updateChart(true)
-							}
-
-						case .Failure(let e):
-							/// FIXME show failure
-							self.updateProgress()
-							print("Failed to rasterize: \(e)")
-						}
+				case .Success(let raster):
+					asyncMain {
+						self.presentedRaster = raster
+						self.presentedDataIsFullData = self.useFullData
+						self.updateProgress()
+						self.updateChart(true)
 					}
 
 				case .Failure(let e):
-					/// FIXME Show failure
+					/// FIXME show failure
 					self.updateProgress()
-					print("Could not draw chart: \(e)")
+					print("Failed to rasterize: \(e)")
 				}
 			}
 		}
@@ -150,7 +138,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 			(77, 77, 77)
 			].map { c in return NSUIColor(calibratedRed: c.0 / 255.0, green: c.1 / 255.0, blue: c.2 / 255.0, alpha: 1.0) }
 
-		if let r = self.raster, let chart = self.chart {
+		if let r = self.presentedRaster, let chart = self.chart {
 			// Create chart view
 			let xs = r.raster.map { chart.xExpression.apply(Row($0, columnNames: r.columnNames), foreign: nil, inputValue: nil) }
 
@@ -289,12 +277,28 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	}
 
 	@IBAction func cancelCalculation(sender: NSObject) {
-		self.loadJob?.cancel()
-		self.loadJob = nil
+		self.calculator.cancel()
 		self.updateProgress()
 	}
 
+	@IBAction func toggleFullData(sender: NSObject) {
+		useFullData = !(useFullData || presentedDataIsFullData)
+		self.reloadData()
+		self.view.window?.update()
+	}
+
 	override func validateToolbarItem(item: NSToolbarItem) -> Bool {
+		if item.action == Selector("toggleFullData:") {
+			if let c = item.view as? NSButton {
+				c.state = (useFullData || presentedDataIsFullData) ? NSOnState: NSOffState
+			}
+		}
+		else if item.action == Selector("toggleEditing:") {
+			if let c = item.view as? NSButton {
+				c.state = NSOffState
+			}
+		}
+
 		return validateSelector(item.action)
 	}
 
@@ -303,10 +307,14 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	}
 
 	private func validateSelector(action: Selector) -> Bool {
-		switch action {
-		case Selector("refreshData:"), Selector("exportFile:"): return true
-		case Selector("cancelCalculation:"): return self.loadJob != nil
-		default: return false
+		if self.chartTablet?.sourceTablet?.chain.head != nil {
+			switch action {
+			case Selector("refreshData:"), Selector("exportFile:"): return true
+			case Selector("cancelCalculation:"): return self.calculator.calculating
+			case Selector("toggleFullData:"): return true
+			default: return false
+			}
 		}
+		return false
 	}
 }
