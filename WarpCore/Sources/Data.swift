@@ -74,8 +74,22 @@ public struct Column: StringLiteralConvertible, Hashable, CustomDebugStringConve
 		return "Column(\(name))"
 	} }
 
-	/** Return Excel-style column name for column at a given index (starting at 0). */
-	public static func defaultColumnForIndex(index: Int) -> Column {
+	/** Returns a new, unique name for the next column given a set of existing columns. */
+	public static func defaultNameForNewColumn(existing: [Column]) -> Column {
+		var index = existing.count
+		while true {
+			let newName = Column.defaultNameForIndex(index)
+			if !existing.contains(newName) {
+				return newName
+			}
+			index = index + 1
+		}
+	}
+
+	/** Return Excel-style column name for column at a given index (starting at 0). Note: do not use to generate the name
+	of a column that is to be added to an existing set (column names must be unique). Use defaultNameForNewColumn to 
+	generate a new, unique name. */
+	public static func defaultNameForIndex(index: Int) -> Column {
 		var myIndex = index
 		let x = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
 		var str: String = ""
@@ -92,7 +106,7 @@ public struct Column: StringLiteralConvertible, Hashable, CustomDebugStringConve
 	public func newName(accept: (Column) -> Bool) -> Column {
 		var i = 0
 		repeat {
-			let newName = Column("\(self.name)_\(Column.defaultColumnForIndex(i).name)")
+			let newName = Column("\(self.name)_\(Column.defaultNameForIndex(i).name)")
 			let accepted = accept(newName)
 			if accepted {
 				return newName

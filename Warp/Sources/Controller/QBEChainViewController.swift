@@ -618,7 +618,7 @@ internal enum QBEEditingMode {
 				// If we are not editing the source data, the only thing that can be done is calculate a new column
 				calculator.currentRaster?.get { (fallibleRaster) -> () in
 					fallibleRaster.maybe { (raster) -> () in
-						let targetColumnName = Column.defaultColumnForIndex(raster.columnCount)
+						let targetColumnName = Column.defaultNameForNewColumn(raster.columnNames)
 
 						self.suggestions = Future<[QBEStep]>({(job, callback) -> () in
 							job.async {
@@ -677,7 +677,7 @@ internal enum QBEEditingMode {
 						else {
 							// need to add a new column first
 							var columns = columnNames
-							columns.append(Column.defaultColumnForIndex(columns.count+1))
+							columns.append(Column.defaultNameForNewColumn(columns))
 							let mutation = DataMutation.Alter(DataDefinition(columnNames: columns))
 							md.performMutation(mutation, job: job) { result in
 								switch result {
@@ -1183,7 +1183,7 @@ internal enum QBEEditingMode {
 				data.columnNames(job) { (columnNamesFallible) -> () in
 					columnNamesFallible.maybe { (cols) -> () in
 						if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-							let name = Column.defaultColumnForIndex(cols.count)
+							let name = Column.defaultNameForNewColumn(cols)
 							if before {
 								let firstSelectedColumn = selectedColumns.firstIndex
 								if firstSelectedColumn != NSNotFound {
@@ -1240,7 +1240,7 @@ internal enum QBEEditingMode {
 			data.maybe {$0.columnNames(job) {(columnsFallible) in
 				columnsFallible.maybe { (cols) -> () in
 					asyncMain {
-						let name = Column.defaultColumnForIndex(cols.count)
+						let name = Column.defaultNameForNewColumn(cols)
 						let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: Literal(Value.EmptyValue), insertRelativeTo: nil, insertBefore: false)
 						self.pushStep(step)
 						self.calculate()
@@ -1259,7 +1259,7 @@ internal enum QBEEditingMode {
 			data.maybe {$0.columnNames(job) {(columnsFallible) in
 				columnsFallible.maybe { (cols) -> () in
 					asyncMain {
-						let name = Column.defaultColumnForIndex(cols.count)
+						let name = Column.defaultNameForNewColumn(cols)
 						let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: Literal(Value.EmptyValue), insertRelativeTo: nil, insertBefore: true)
 						self.pushStep(step)
 						self.calculate()

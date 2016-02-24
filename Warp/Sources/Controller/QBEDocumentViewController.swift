@@ -744,7 +744,7 @@ import WarpCore
 	}
 
 	@IBAction func addRasterTablet(sender: NSObject) {
-		let raster = Raster(data: [], columnNames: [Column.defaultColumnForIndex(0)], readOnly: false)
+		let raster = Raster(data: [], columnNames: [Column.defaultNameForNewColumn([])], readOnly: false)
 		let chain = QBEChain(head: QBERasterStep(raster: raster))
 		let tablet = QBEChainTablet(chain: chain)
 		self.addTablet(tablet, undo: true, animated: true) { tabletViewController in

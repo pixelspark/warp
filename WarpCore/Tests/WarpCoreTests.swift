@@ -442,9 +442,10 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(Column("Hello") == Column("hello"), "Case-insensitive column names")
 		XCTAssert(Column("xxx") != Column("hello"), "Case-insensitive column names")
 		
-		XCTAssert(Column.defaultColumnForIndex(1337)==Column("BZL"), "Generation of column names")
-		XCTAssert(Column.defaultColumnForIndex(0)==Column("A"), "Generation of column names")
-		XCTAssert(Column.defaultColumnForIndex(1)==Column("B"), "Generation of column names")
+		XCTAssert(Column.defaultNameForIndex(1337) == Column("BZL"), "Generation of column names")
+		XCTAssert(Column.defaultNameForNewColumn([]) == Column("A"), "Generation of column names")
+		XCTAssert(Column.defaultNameForNewColumn(["xxx"]) == Column("B"), "Generation of column names")
+		XCTAssert(Column.defaultNameForNewColumn(["B"]) != Column("B"), "Generation of column names")
 	}
 	
 	func testSequencer() {

@@ -77,6 +77,7 @@ public class DataDefinition: NSObject, NSCoding {
 	public var columnNames: [Column]
 
 	public init(columnNames: [Column]) {
+		assert(Set(columnNames).count == columnNames.count, "Column names must be unique")
 		self.columnNames = columnNames
 	}
 

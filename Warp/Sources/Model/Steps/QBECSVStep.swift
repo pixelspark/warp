@@ -5,7 +5,7 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 	let parser: CHCSVParser
 	let url: NSURL
 
-	private var _columnNames: [Column] = []
+	private var columnNames: [Column] = []
 	private var finished: Bool = false
 	private var templateRow: [String?] = []
 	private var row: [String?] = []
@@ -53,15 +53,15 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 		if hasHeaders {
 			// Load column names, avoiding duplicate names
 			let columnNames = row.map({Column($0 ?? "")})
-			_columnNames = []
+			self.columnNames = []
 			
 			for columnName in columnNames {
-				if _columnNames.contains(columnName) {
-					let count = _columnNames.reduce(0, combine: { (n, item) in return n + (item == columnName ? 1 : 0) })
-					_columnNames.append(Column("\(columnName.name)_\(Column.defaultColumnForIndex(count).name)"))
+				if columnNames.contains(columnName) {
+					let count = self.columnNames.reduce(0, combine: { (n, item) in return n + (item == columnName ? 1 : 0) })
+					self.columnNames.append(Column("\(columnName.name)_\(Column.defaultNameForIndex(count).name)"))
 				}
 				else {
-					_columnNames.append(columnName)
+					self.columnNames.append(columnName)
 				}
 			}
 			
@@ -69,15 +69,15 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 		}
 		else {
 			for i in 0..<row.count {
-				_columnNames.append(Column.defaultColumnForIndex(i))
+				columnNames.append(Column.defaultNameForIndex(i))
 			}
 		}
 		
-		templateRow = Array<String?>(count: _columnNames.count, repeatedValue: nil)
+		templateRow = Array<String?>(count: columnNames.count, repeatedValue: nil)
 	}
 	
 	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		callback(.Success(_columnNames))
+		callback(.Success(columnNames))
 	}
 	
 	func fetch(job: Job, consumer: Sink) {
@@ -134,7 +134,7 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 	}
 	
 	func parser(parser: CHCSVParser, didEndLine line: UInt) {
-		while row.count < _columnNames.count {
+		while row.count < columnNames.count {
 			row.append(nil)
 		}
 		rows.append(row)
