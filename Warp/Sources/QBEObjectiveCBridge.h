@@ -4,6 +4,7 @@
 #import "CHCSVParser.h"
 #import "TCMXMLWriter.h"
 #import "MBTableGrid.h"
+#import <MBTableGrid/MBTableGridContentView.h>
 #import <MBTableGrid/MBTableGridHeaderView.h>
 #import <MBTableGrid/MBTableGridFooterView.h>
 #import <MBTableGrid/MBTableGridCell.h>
