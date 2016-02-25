@@ -12,6 +12,13 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 	func dataView(view: QBEDataViewController, didRenameColumn: Column, to: Column)
 }
 
+extension NSFont {
+	func sizeOfString(string: String) -> NSSize {
+		let s = NSString(string: string)
+		return s.sizeWithAttributes([NSFontAttributeName: self])
+	}
+}
+
 /** A data view shows data in a Raster as a table. It can also show a progress bar to indicate loading progress, and has
 footer cells that allow filtering of the data. */
 class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, QBEColumnViewDelegate, NSUserInterfaceValidations {
@@ -26,6 +33,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	private let DefaultColumnWidth = 100.0
 	private var columnCells: [NSCell]? = nil // Holds templates for the column cells
 	private var footerCells: [UInt: QBEFilterCell] = [:] // Holds cached instances of footer cells
+	private var columnsAutosized = false
 
 	deinit {
 		self.tableView?.dataSource = nil
@@ -328,6 +336,11 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			tv.reloadData()
 			tv.singleClickCellEdit = self.showNewRow
 			//tv.needsDisplay = true
+
+			if !columnsAutosized && self.raster != nil {
+				self.columnsAutosized = true
+				self.sizeAllColumnsToFit()
+			}
 		}
 	}
 	
@@ -335,10 +348,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		if item.action() == Selector("addColumnBeforeSelectedColumn:") ||
 			item.action() == Selector("addColumnAfterSelectedColumn:") ||
 			item.action() == Selector("removeSelectedColumn:") ||
-			item.action() == Selector("keepSelectedColumn:") {
+			item.action() == Selector("keepSelectedColumn:") ||
+			item.action() == Selector("sizeAllColumnsToFit:") {
 			return true
 		}
-		else if item.action() == Selector("renameSelectedColumn:") {
+		else if item.action() == Selector("renameSelectedColumn:") ||
+			item.action() == Selector("sizeSelectedColumnToFit:") {
 			if let si = self.tableView?.selectedColumnIndexes.firstIndex where si != NSNotFound {
 				return true
 			}
@@ -390,7 +405,51 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 
+	@IBAction func sizeSelectedColumnToFit(sender: NSObject) {
+		if let tv = self.tableView {
+			for idx in tv.selectedColumnIndexes {
+				self.sizeColumnToFit(UInt(idx))
+			}
+		}
+	}
+
+	@IBAction func sizeAllColumnsToFit(sender: NSObject) {
+		self.sizeAllColumnsToFit()
+	}
+
+	private func sizeColumnToFit(columnIndex: UInt) {
+		let maxWidth: CGFloat = 250.0
+		let maxRowsToConsider = 500
+
+		if let tv = self.tableView {
+			var w: CGFloat = 25.0 // minimum width
+			let vr = tv.contentView().visibleRect
+			let firstRow = max(0, tv.rowAtPoint(CGPointMake(vr.origin.x + 3.0, vr.origin.y + 3.0)))
+			let lastRow = min(firstRow + maxRowsToConsider, tv.rowAtPoint(CGPointMake(3.0 + vr.origin.x + vr.size.width, 3.0 + vr.origin.y + vr.size.height)))
+			let columnCell = self.tableGrid(tv, cellForColumn: columnIndex)
+			let font = columnCell.font ?? NSFont.systemFontOfSize(NSFont.systemFontSize())
+
+			for rowNumber in firstRow...lastRow {
+				if let stringValue = self.tableGrid(tv, objectValueForColumn: columnIndex, row: UInt(rowNumber)) as? String {
+					w = max(w, font.sizeOfString(stringValue).width)
+				}
+			}
+
+			tv.resizeColumnWithIndex(columnIndex, width: Float(min(maxWidth, w + 10.0)))
+			self.tableGrid(tv, setWidth: Float(w), forColumn: columnIndex)
+		}
+	}
+
+	private func sizeAllColumnsToFit() {
+		if let tv = self.tableView {
+			for cn in 0..<tv.numberOfColumns {
+				self.sizeColumnToFit(cn)
+			}
+		}
+	}
+
 	func tableGrid(aTableGrid: MBTableGrid!, didDoubleClickColumn columnIndex: UInt) {
+		//self.sizeColumnToFit(columnIndex)
 		self.renameColumnPopup(columnIndex)
 	}
 

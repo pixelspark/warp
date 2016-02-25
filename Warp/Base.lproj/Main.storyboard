@@ -2156,6 +2156,25 @@ CA
                                 <action selector="renameSelectedColumn:" target="heg-Gg-TM4" id="gHL-e9-5DO"/>
                             </connections>
                         </menuItem>
+                        <menuItem title="View" id="7h7-YF-NyK">
+                            <modifierMask key="keyEquivalentModifierMask"/>
+                            <menu key="submenu" title="View" id="Sph-Fk-S7I">
+                                <items>
+                                    <menuItem title="Size this column to fit" id="GgE-eP-43x">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="sizeSelectedColumnToFit:" target="heg-Gg-TM4" id="fpj-Xe-f2q"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem title="Size all columns to fit" id="lBm-8l-P8X">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="sizeAllColumnsToFit:" target="heg-Gg-TM4" id="GEz-Di-4r3"/>
+                                        </connections>
+                                    </menuItem>
+                                </items>
+                            </menu>
+                        </menuItem>
                         <menuItem isSeparatorItem="YES" id="9rq-Cr-6RN"/>
                         <menuItem title="Add new column to the left" keyEquivalent="" id="sMD-YK-zsD">
                             <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
