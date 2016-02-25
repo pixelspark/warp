@@ -123,7 +123,7 @@ class QBECalculateStep: QBEStep {
 			
 			if !dependsOnPrevious {
 				let relativeTo = self.insertRelativeTo ?? p.insertRelativeTo
-				let before = self.insertBefore ?? p.insertBefore
+				let before = relativeTo == self.insertRelativeTo ? self.insertBefore : p.insertBefore
 				return QBEStepMerge.Advised(QBECalculateStep(previous: previous, targetColumn: targetColumn, function: function, insertRelativeTo: relativeTo, insertBefore: before))
 			}
 		}
