@@ -16,8 +16,13 @@ internal class QBETabletView: NSView {
 
 	override func drawRect(dirtyRect: NSRect) {
 		NSColor.windowBackgroundColor().set()
-		//NSColor.redColor().set()
-		NSRectFill(dirtyRect)
+		NSRectFill(self.bounds)
+
+
+		let gradientHeight: CGFloat = 30.0
+		let g = NSGradient(startingColor: NSColor(calibratedWhite: 1.0, alpha: 0.5), endingColor: NSColor(calibratedWhite: 1.0, alpha: 0.0))
+		let gradientFrame = NSMakeRect(self.bounds.origin.x, self.bounds.origin.y + self.bounds.size.height - gradientHeight, self.bounds.size.width, gradientHeight)
+		g?.drawInRect(gradientFrame, angle: 270.0)
 	}
 
 	required init?(coder: NSCoder) {
