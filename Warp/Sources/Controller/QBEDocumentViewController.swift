@@ -402,6 +402,9 @@ import WarpCore
 			@objc func addChart(sender: NSObject) {
 				if let sourceTablet = chain.tablet as? QBEChainTablet {
 					let job = Job(.UserInitiated)
+					let jobProgressView = QBEJobViewController(job: job, description: "Analyzing data...".localized)!
+					self.documentView.presentViewControllerAsSheet(jobProgressView)
+
 					sourceTablet.chain.head?.exampleData(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
 						switch result {
 						case .Success(let data):
@@ -409,6 +412,7 @@ import WarpCore
 								switch result {
 								case .Success(let columnNames):
 									asyncMain {
+										jobProgressView.dismissController(sender)
 										if let first = columnNames.first, let last = columnNames.last where columnNames.count > 1 {
 											let tablet = QBEChartTablet(source: sourceTablet, type: .Line, xExpression: Sibling(columnName: first), yExpression: Sibling(columnName: last))
 											self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
