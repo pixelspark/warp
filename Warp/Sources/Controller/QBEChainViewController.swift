@@ -500,6 +500,7 @@ internal enum QBEEditingMode {
 	
 	@objc func job(job: AnyObject, didProgress: Double) {
 		asyncMain {
+			self.outletView.progress = didProgress
 			self.dataViewController?.progress = didProgress
 		}
 	}

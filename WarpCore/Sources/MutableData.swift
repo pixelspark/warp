@@ -97,7 +97,10 @@ public enum DataMutation {
 	/** Drop: remove the data in the store and also remove the store itself. */
 	case Drop
 
-	/** Insert the given row in this dataset. */
+	/** Insert the given row in this dataset. If the row to be inserted contains a column that does not exists in the 
+	target data set, it is discarded. If the row to be inserted does not have a column that is required by the target,
+	it is filled with .EmptyValue. If the target data set does not have required columns, any columns that are omitted
+	are simply not present in the record added. */
 	case Insert(row: Row)
 
 	/** Insert the rows from the source data set in this table. The second argument specifies a mapping table, in which
