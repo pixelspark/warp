@@ -115,9 +115,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			else if inRow == r.rowCount && inColumn < r.columnCount && !value.isEmpty {
 				// New row
 				self.delegate?.dataView(self, addValue: value, inRow: nil, column: inColumn) { didAddRow in
-					asyncMain {
-						self.tableView?.selectedRowIndexes = NSIndexSet(index: Int(inRow + 1))
-					}
 				}
 			}
 			else if inRow < r.rowCount && inColumn == r.columnCount && !value.isEmpty {
@@ -327,6 +324,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 							default:
 								cell = textCell
 							}
+
 							columnCells!.append(cell)
 						}
 					}
