@@ -3253,6 +3253,10 @@ DQ
                             </progressIndicator>
                             <customView wantsLayer="YES" canDrawConcurrently="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Lrh-uQ-FeM">
                                 <rect key="frame" x="5" y="5" width="440" height="220"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="50" id="35w-Jb-m7Y"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="mhB-jJ-gGt"/>
+                                </constraints>
                             </customView>
                             <button toolTip="Close and remove this card" horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bzR-6Y-lGW">
                                 <rect key="frame" x="427" y="235" width="16" height="16"/>
