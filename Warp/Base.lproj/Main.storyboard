@@ -2101,7 +2101,7 @@ CA
                                 <action selector="selectColumns:" target="Izd-TK-t8f" id="2l5-zX-B2D"/>
                             </connections>
                         </menuItem>
-                        <menuItem title="Sort rows by these column(s)" keyEquivalent="l" id="g0t-86-Lvi">
+                        <menuItem title="Sort rows by these column(s)" keyEquivalent="o" id="g0t-86-Lvi">
                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                             <connections>
                                 <action selector="sortRows:" target="Izd-TK-t8f" id="Frv-CF-g0b"/>
@@ -2165,12 +2165,48 @@ CA
                 </viewController>
                 <menu title="Columns" id="ZtX-Re-5cz" userLabel="Columns context menu">
                     <items>
-                        <menuItem title="Rename column" id="tHM-tE-vur">
-                            <modifierMask key="keyEquivalentModifierMask"/>
+                        <menuItem title="Rename column..." keyEquivalent="r" id="tHM-tE-vur">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                             <connections>
                                 <action selector="renameSelectedColumn:" target="heg-Gg-TM4" id="gHL-e9-5DO"/>
                             </connections>
                         </menuItem>
+                        <menuItem title="Sort rows by this column" keyEquivalent="o" id="Fz0-k5-twy">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="sortRows:" target="PUg-Ve-SLp" id="L9I-Zq-cDH"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem isSeparatorItem="YES" id="nhT-c8-XOF"/>
+                        <menuItem title="Remove selected column(s)" id="ETe-Gw-5UG">
+                            <string key="keyEquivalent" base64-UTF8="YES">
+CA
+</string>
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                            <connections>
+                                <action selector="removeColumns:" target="PUg-Ve-SLp" id="5gj-9j-Hmv"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Keep only selected column(s)" keyEquivalent="s" id="fkg-Il-kVZ">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                            <connections>
+                                <action selector="selectColumns:" target="PUg-Ve-SLp" id="Lxb-wO-icm"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem isSeparatorItem="YES" id="9rq-Cr-6RN"/>
+                        <menuItem title="Add new column to the left" keyEquivalent="" id="sMD-YK-zsD">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                            <connections>
+                                <action selector="addColumnToLeft:" target="PUg-Ve-SLp" id="itl-4B-SEB"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Add new column to the right" keyEquivalent="" id="Tbb-3w-O02">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                            <connections>
+                                <action selector="addColumnToRight:" target="PUg-Ve-SLp" id="Rsu-cM-tcT"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem isSeparatorItem="YES" id="38R-9V-jBR"/>
                         <menuItem title="View" id="7h7-YF-NyK">
                             <modifierMask key="keyEquivalentModifierMask"/>
                             <menu key="submenu" title="View" id="Sph-Fk-S7I">
@@ -2189,35 +2225,6 @@ CA
                                     </menuItem>
                                 </items>
                             </menu>
-                        </menuItem>
-                        <menuItem isSeparatorItem="YES" id="9rq-Cr-6RN"/>
-                        <menuItem title="Add new column to the left" keyEquivalent="" id="sMD-YK-zsD">
-                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
-                            <connections>
-                                <action selector="addColumnToLeft:" target="PUg-Ve-SLp" id="itl-4B-SEB"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem title="Add new column to the right" keyEquivalent="" id="Tbb-3w-O02">
-                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
-                            <connections>
-                                <action selector="addColumnToRight:" target="PUg-Ve-SLp" id="Rsu-cM-tcT"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem isSeparatorItem="YES" id="38R-9V-jBR"/>
-                        <menuItem title="Remove selected column(s)" id="ETe-Gw-5UG">
-                            <string key="keyEquivalent" base64-UTF8="YES">
-CA
-</string>
-                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
-                            <connections>
-                                <action selector="removeColumns:" target="PUg-Ve-SLp" id="5gj-9j-Hmv"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem title="Keep only selected column(s)" keyEquivalent="s" id="fkg-Il-kVZ">
-                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
-                            <connections>
-                                <action selector="selectColumns:" target="PUg-Ve-SLp" id="Lxb-wO-icm"/>
-                            </connections>
                         </menuItem>
                     </items>
                 </menu>
