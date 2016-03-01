@@ -49,7 +49,14 @@ public class Expression: NSObject, NSCoding {
 	}
 	
 	/** Return true if, under all circumstances, this expression will return a result that is equal to the result returned
-	by the other expression (Value equality). */
+	by the other expression (Value equality). Note that this is different from what isEqual returns: isEqual is about 
+	literal (definition) equality, whereas isEquivalentTo is about meaningful equality.
+	
+	Some examples of the differences:
+	- Comparison(a,b).isEqual(Comparison(b,a)) will return false, but if the operator in both cases is commutative,
+	  isEquivalentTo will return true.
+	- Call(x).isEqual(Call(x)) will return true if x is the same function, but isEquivalentTo will only do so when x is
+	  deterministic. */
 	public func isEquivalentTo(expression: Expression) -> Bool {
 		return false
 	}
@@ -229,10 +236,14 @@ public final class Literal: Expression {
 	}
 	
 	public override func isEquivalentTo(expression: Expression) -> Bool {
-		if let otherLiteral = expression as? Literal {
-			return otherLiteral.value == self.value
+		return self.isEqual(expression)
+	}
+
+	public override func isEqual(object: AnyObject?) -> Bool {
+		if let o = object as? Literal where o.value == self.value {
+			return true
 		}
-		return false
+		return super.isEqual(object)
 	}
 }
 
@@ -260,7 +271,14 @@ public class Identity: Expression {
 	}
 	
 	public override func isEquivalentTo(expression: Expression) -> Bool {
-		return expression is Identity
+		return self.isEqual(expression)
+	}
+
+	public override func isEqual(object: AnyObject?) -> Bool {
+		if object is Identity {
+			return true
+		}
+		return super.isEqual(object)
 	}
 }
 
@@ -454,6 +472,13 @@ public final class Comparison: Expression {
 		
 		return false
 	}
+
+	public override func isEqual(object: AnyObject?) -> Bool {
+		if let o = object as? Comparison where o.first == self.first && o.second == self.second {
+			return true
+		}
+		return super.isEqual(object)
+	}
 }
 
 /** Call evaluates to the result of applying a function to a given set of arguments. The set of arguments
@@ -535,6 +560,13 @@ public final class Call: Expression {
 			}
 		}
 		return false
+	}
+
+	public override func isEqual(object: AnyObject?) -> Bool {
+		if let o = object as? Call where o.type == self.type && o.arguments == self.arguments {
+			return true
+		}
+		return super.isEqual(object)
 	}
 	
 	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
@@ -669,6 +701,13 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 		}
 		return false
 	}
+
+	public override func isEqual(object: AnyObject?) -> Bool {
+		if let o = object as? Sibling where o.columnName == self.columnName {
+			return true
+		}
+		return super.isEqual(object)
+	}
 }
 
 /** The Foreign evaluates to the value of a cell in a particular column in the foreign row. This is used to 
@@ -713,6 +752,13 @@ public final class Foreign: Expression, ColumnReferencingExpression {
 			return otherForeign.columnName == self.columnName
 		}
 		return false
+	}
+
+	public override func isEqual(object: AnyObject?) -> Bool {
+		if let o = object as? Foreign where o.columnName == self.columnName {
+			return true
+		}
+		return super.isEqual(object)
 	}
 }
 

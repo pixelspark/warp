@@ -163,6 +163,13 @@ public class Order: NSObject, NSCoding {
 		aCoder.encodeBool(ascending, forKey: "ascending")
 		aCoder.encodeBool(numeric, forKey: "numeric")
 	}
+
+	public override func isEqual(object: AnyObject?) -> Bool {
+		if let o = object as? Order where o.ascending == self.ascending && o.numeric == self.numeric && o.expression == self.expression {
+			return true
+		}
+		return false
+	}
 }
 
 /** Specification of an aggregation. The map expression generates values (it is called for each item and included in the

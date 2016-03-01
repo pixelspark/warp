@@ -53,6 +53,19 @@ class QBESortStep: QBEStep {
 		}
 	}
 
+	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+		if let p = prior as? QBESortStep {
+			if p.orders == self.orders {
+				return .Advised(p)
+			}
+			else if p.orders.count == 1 && self.orders.count == 1 && p.orders.first!.expression == self.orders.first!.expression {
+				// Same field, different settings, last one counts
+				return .Advised(self)
+			}
+		}
+		return .Impossible
+	}
+
 	override func encodeWithCoder(coder: NSCoder) {
 		coder.encodeObject(self.orders, forKey: "orders")
 		super.encodeWithCoder(coder)
