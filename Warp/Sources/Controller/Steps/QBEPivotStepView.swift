@@ -67,7 +67,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 	}
 	
 	internal func tableView(tableView: NSTableView, writeRowsWithIndexes rowIndexes: NSIndexSet, toPasteboard pboard: NSPasteboard) -> Bool {
-		var cols: [String] = []
+		var cols: [AnyObject] = []
 		
 		rowIndexes.enumerateIndexesUsingBlock({ (index, stop) -> Void in
 			if tableView == self.allTable! {
@@ -82,11 +82,11 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 				cols.append(self.step.columns[index].name)
 			}
 			else if tableView == self.aggregatesTable! {
-				cols.append(self.step.aggregates[index].map.description)
+				cols.append(self.step.aggregates[index])
 			}
 		})
 		
-		let data = NSArchiver.archivedDataWithRootObject(cols)
+		let data = NSKeyedArchiver.archivedDataWithRootObject(cols)
 		pboard.declareTypes([dragType], owner: nil)
 		pboard.setData(data, forType: dragType)
 		return true
@@ -157,38 +157,47 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 			}
 			
 			// Unpack data and add
-			if let cols = NSUnarchiver.unarchiveObjectWithData(data) as? [String] {
+			if let cols = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? [AnyObject] {
 				for col in cols {
-					if tableView == rowsTable {
-						if !(self.step.rows.contains(Column(col)) ?? false) {
-							self.step.rows.append(Column(col))
+					if let columnName = col as? String {
+						let column = Column(columnName)
+						if tableView == rowsTable && !self.step.rows.contains(column) {
+							self.step.rows.append(column)
+						}
+						else if tableView == columnsTable && !self.step.columns.contains(column) {
+							self.step.columns.append(column)
+						}
+						else if tableView == aggregatesTable {
+							self.step.aggregates.append(Aggregation(map: Sibling(columnName: column), reduce: Function.Sum, targetColumnName: column))
+						}
+						else if tableView == allTable {
+							// Need to remove the dragged item from the source view
+							if info.draggingSource() as? NSTableView == rowsTable {
+								self.step.rows.remove(column)
+							}
+							else if info.draggingSource() as? NSTableView == columnsTable {
+								self.step.columns.remove(column)
+							}
 						}
 					}
-					else if tableView == columnsTable {
-						if !(self.step.columns.contains(Column(col)) ?? false) {
-							self.step.columns.append(Column(col))
-						}
-					}
-					else if tableView == aggregatesTable {
-						self.step.aggregates.append(Aggregation(map: Sibling(columnName: Column(col)), reduce: Function.Sum, targetColumnName: Column(col)))
-					}
-					else if tableView == allTable {
-						// Need to remove the dragged item from the source view
-						if info.draggingSource() as? NSTableView == rowsTable {
-							self.step.rows.remove(Column(col))
-							rowsTable?.reloadData()
-						}
-						else if info.draggingSource() as? NSTableView == columnsTable {
-							self.step.columns.remove(Column(col))
-							columnsTable?.reloadData()
-						}
-						else if info.draggingSource() as? NSTableView == aggregatesTable {
-							// FIXME: needs to remove a Aggregation object
-							//self.step.aggregates.remove(Column(col))
-							aggregatesTable?.reloadData()
+					else if let aggregation = col as? Aggregation {
+						if let columnExpression = aggregation.map as? Sibling {
+							let column = columnExpression.columnName
+							if tableView == rowsTable && !self.step.rows.contains(column) {
+								self.step.rows.append(column)
+							}
+							else if tableView == columnsTable && !self.step.columns.contains(column) {
+								self.step.columns.append(column)
+							}
+							else if tableView == allTable {
+								// TODO: remove aggregation from source table
+							}
 						}
 					}
 				}
+
+				tableView.reloadData()
+				(info.draggingSource() as? NSTableView)?.reloadData()
 			}
 			
 			tableView.reloadData()
