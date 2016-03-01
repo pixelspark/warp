@@ -94,41 +94,19 @@ private class QBEPrestoStream: NSObject, Stream {
 			}
 			
 			job.log("Presto requesting \(endpoint)")
-			Alamofire.request(request).responseJSON(options: [], completionHandler: { (request, response, data) -> Void in
-				if let res = response {
-					// Status code 503 means that we should wait a bit
-					if res.statusCode == 503 {
-						let queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
-						dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(100 * NSEC_PER_MSEC)), queue) {
-							callback()
-						}
-						return
-					}
-					
-					// Any status code other than 200 means trouble
-					if res.statusCode != 200 {
-						job.log("Presto errored: \(res.statusCode)")
-						self.stopped = true
-						return
-					}
-				
-					if let e = data.error {
-						job.log("Presto request error: \(e)")
-						self.stopped = true
-						return
-					}
-					
+			Alamofire.request(request).responseJSON(options: [], completionHandler: { response in
+				if response.result.isSuccess {
 					// Let's see if the response got something useful
-					if let d = data.value as? [String: AnyObject] {
+					if let d = response.result.value as? [String: AnyObject] {
 						// Get progress data from response
 						if let stats = d["stats"] as? [String: AnyObject] {
 							if let completedSplits = stats["completedSplits"] as? Int,
-							   let queuedSplits = stats["queuedSplits"] as? Int {
-								let progress = Double(completedSplits) / Double(completedSplits + queuedSplits)
-								job.reportProgress(progress, forKey: self.hash)
+								let queuedSplits = stats["queuedSplits"] as? Int {
+									let progress = Double(completedSplits) / Double(completedSplits + queuedSplits)
+									job.reportProgress(progress, forKey: self.hash)
 							}
 						}
-						
+
 						// Does the response tell us where to look next?
 						if let nu = (d["nextUri"] as? String) {
 							self.nextURI = NSURL(string: nu)
@@ -137,12 +115,12 @@ private class QBEPrestoStream: NSObject, Stream {
 							self.nextURI = nil
 							self.stopped = true
 						}
-						
+
 						// Does the response include column information?
 						if self.columns == nil {
 							if let columns = d["columns"] as? [AnyObject] {
 								var newColumns: [Column] = []
-								
+
 								for columnSpec in columns {
 									if let columnInfo = columnSpec as? [String: AnyObject] {
 										if let name = columnInfo["name"] as? String {
@@ -153,7 +131,7 @@ private class QBEPrestoStream: NSObject, Stream {
 								self.columns = .Success(newColumns)
 							}
 						}
-							
+
 						// Does the response contain any data?
 						if let data = d["data"] as? [AnyObject] {
 							job.time("Fetch Presto", items: data.count, itemType: "row") {
@@ -187,11 +165,23 @@ private class QBEPrestoStream: NSObject, Stream {
 					}
 				}
 				else {
-					self.stopped = true
-					self.nextURI = nil
+					if response.response?.statusCode == 503 {
+						// Status code 503 means that we should wait a bit
+						let queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
+						dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(100 * NSEC_PER_MSEC)), queue) {
+							callback()
+						}
+						return
+					}
+					else {
+						// Any status code other than 200 means trouble
+						job.log("Presto errored: \(response.response?.statusCode) \(response.result.error)")
+						self.stopped = true
+						self.nextURI = nil
+						callback()
+						return
+					}
 				}
-				
-				callback()
 			})
 		}
 	}
