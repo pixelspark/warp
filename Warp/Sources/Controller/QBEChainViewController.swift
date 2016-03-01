@@ -1445,6 +1445,35 @@ internal enum QBEEditingMode {
 			}
 		}
 	}
+
+	@IBAction func aggregateRowsByGroup(sender: NSObject) {
+		if let selectedColumns = dataViewController?.tableView?.selectedColumnIndexes {
+			let job = Job(.UserInitiated)
+
+			calculator.currentRaster?.get(job) { result in
+				switch result {
+				case .Success(let raster):
+					let step = QBEPivotStep()
+					var selectedColumnNames: [Column] = []
+					selectedColumns.forEach { idx in
+						if raster.columnCount > idx {
+							selectedColumnNames.append(raster.columnNames[idx])
+						}
+					}
+					step.rows = selectedColumnNames
+					step.aggregates.append(Aggregation(map: Literal(Value(1)), reduce: Function.CountAll, targetColumnName: Column("Count".localized)))
+					asyncMain {
+						self.suggestSteps([step])
+					}
+
+				case .Failure(let e):
+					asyncMain {
+						NSAlert.showSimpleAlert("The selection cannot be aggregated".localized, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+					}
+				}
+			}
+		}
+	}
 	
 	@IBAction func aggregateRowsByCells(sender: NSObject) {
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
@@ -1755,6 +1784,12 @@ internal enum QBEEditingMode {
 		else if selector==Selector("aggregateRowsByCells:") {
 			if let rowsToAggregate = dataViewController?.tableView?.selectedRowIndexes {
 				return rowsToAggregate.count > 0  && currentStep != nil
+			}
+			return false
+		}
+		else if selector==Selector("aggregateRowsByGroup:") {
+			if let colsToAggregate = dataViewController?.tableView?.selectedColumnIndexes {
+				return colsToAggregate.count > 0  && currentStep != nil
 			}
 			return false
 		}

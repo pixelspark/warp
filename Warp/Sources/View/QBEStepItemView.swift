@@ -111,7 +111,7 @@ import WarpCore
 				NSColor.secondarySelectedControlColor().set()
 			}
 			else {
-				NSColor.blueColor().colorWithAlphaComponent(0.15).set()
+				NSColor.blueColor().colorWithAlphaComponent(0.2).set()
 			}
 			//NSColor.selectedControlColor().set()
 		}

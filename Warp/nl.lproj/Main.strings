@@ -96,8 +96,10 @@
 "S0p-oC-mLd.title" = "Spring naar selectie";
 "SMS-CO-LFo.title" = "Voorkeuren";
 "ShO-0r-bmP.title" = "Verwijder geselecteerde kolommen";
-"T5M-6C-O6U.title" = "Combineer rijen door geselecteerde cellen te aggregeren";
-"aGP-PL-8zZ.title" = "Combineer deze cellen door te aggregeren";
+"T5M-6C-O6U.title" = "Aggregeer rijen (combineer selectie)";
+"XPC-6q-XaB.title" = "Aggregeer rijen (gebruik selectie als groepering)";
+"aGP-PL-8zZ.title" = "Aggregeer rijen (combineer selectie)";
+"wTV-aI-fwu.title" = "Aggregeer rijen (gebruik selectie als groepering)";
 "zxu-sF-VWl.title" = "Behoud alleen geselecteerde rijen";
 "Td7-aD-5lo.title" = "Venster";
 "TxF-Ed-uJa.title" = "Beperk tot een specifiek aantal rijen";

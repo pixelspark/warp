@@ -878,8 +878,7 @@ GQ
                                                 <action selector="selectRows:" target="Ady-hI-5gd" id="Vg2-7t-0sB"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="iTD-Us-nM9"/>
-                                        <menuItem title="Remove row(s)" id="bP3-jR-pV3">
+                                        <menuItem title="Remove selected row(s)" id="bP3-jR-pV3">
                                             <string key="keyEquivalent" base64-UTF8="YES">
 CA
 </string>
@@ -888,6 +887,7 @@ CA
                                                 <action selector="removeRows:" target="Ady-hI-5gd" id="KyO-OJ-qkb"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="iTD-Us-nM9"/>
                                         <menuItem title="Remove duplicate rows" keyEquivalent="d" id="67j-oU-aM5">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
@@ -900,16 +900,23 @@ CA
                                                 <action selector="limitRows:" target="Ady-hI-5gd" id="2xt-ga-mSd"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Combine rows by aggregating selected cells" keyEquivalent="a" id="T5M-6C-O6U">
+                                        <menuItem title="Randomly select rows..." keyEquivalent="r" id="21p-in-cPl">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <connections>
+                                                <action selector="randomlySelectRows:" target="Ady-hI-5gd" id="ejq-Vh-tsl"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="i3v-3U-dMz"/>
+                                        <menuItem title="Aggregate rows (combine selected cells)" keyEquivalent="a" id="T5M-6C-O6U">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
                                                 <action selector="aggregateRowsByCells:" target="Ady-hI-5gd" id="Tqr-T9-EHd"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Randomly select rows..." keyEquivalent="r" id="21p-in-cPl">
+                                        <menuItem title="Aggregate rows (use selection as groups)" keyEquivalent="g" id="wTV-aI-fwu">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
-                                                <action selector="randomlySelectRows:" target="Ady-hI-5gd" id="ejq-Vh-tsl"/>
+                                                <action selector="aggregateRowsByGroup:" target="Ady-hI-5gd" id="u3B-aE-mMY"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="TKS-Eg-OdV"/>
@@ -2087,6 +2094,7 @@ CA
                                 <action selector="removeRows:" target="Izd-TK-t8f" id="Sun-xv-Nk5"/>
                             </connections>
                         </menuItem>
+                        <menuItem isSeparatorItem="YES" id="zGh-vn-0S5"/>
                         <menuItem title="Select these column(s)" keyEquivalent="s" id="kMm-xA-kB4">
                             <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
                             <connections>
@@ -2099,10 +2107,17 @@ CA
                                 <action selector="sortRows:" target="Izd-TK-t8f" id="Frv-CF-g0b"/>
                             </connections>
                         </menuItem>
-                        <menuItem title="Combine these cells by aggregating" keyEquivalent="a" id="aGP-PL-8zZ">
+                        <menuItem isSeparatorItem="YES" id="LwJ-6l-ZrQ"/>
+                        <menuItem title="Aggregate rows (combine selection)" keyEquivalent="a" id="aGP-PL-8zZ">
                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                             <connections>
                                 <action selector="aggregateRowsByCells:" target="Izd-TK-t8f" id="HyP-hi-0bn"/>
+                            </connections>
+                        </menuItem>
+                        <menuItem title="Aggregate rows (use selection as group)" keyEquivalent="g" id="XPC-6q-XaB">
+                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                            <connections>
+                                <action selector="aggregateRowsByGroup:" target="Izd-TK-t8f" id="zLP-ak-uJ9"/>
                             </connections>
                         </menuItem>
                     </items>
@@ -2823,7 +2838,7 @@ Gw
                         <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" verticalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="oh5-QN-ivd">
+                            <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" verticalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="oh5-QN-ivd">
                                 <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
                                 <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="IgC-yr-ZlP">
                                     <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
@@ -2841,7 +2856,7 @@ Gw
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </clipView>
                                 <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="tt1-Sj-Rxq">
-                                    <rect key="frame" x="1" y="144" width="233" height="15"/>
+                                    <rect key="frame" x="-100" y="-100" width="233" height="15"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="vYR-91-Loj">
