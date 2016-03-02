@@ -429,6 +429,12 @@ class WarpCoreTests: XCTestCase {
 		let z = Function.NormalInverse.apply([Value(0.9), Value(10), Value(5)]).doubleValue
 		XCTAssert(z != nil, "NormalInverse should return a value under normal conditions")
 		XCTAssert(z! > 16.406 && z! < 16.408, "NormalInverse should results that are equal to those of NORM.INV.N in Excel")
+
+		// Equality of expressions
+		XCTAssert(Sibling(columnName: Column("x")) == Sibling(columnName: Column("x")), "Equality of expressions")
+		XCTAssert(Sibling(columnName: Column("x")) != Sibling(columnName: Column("y")), "Equality of expressions")
+		XCTAssert(Call(arguments: [], type: Function.Random) == Call(arguments: [], type: Function.Random), "Non-deterministic expression can be equal")
+		XCTAssert(!Call(arguments: [], type: Function.Random).isEquivalentTo(Call(arguments: [], type: Function.Random)), "Non-deterministic expression cannot be equivalent")
 	}
 	
 	func testEmptyRaster() {
