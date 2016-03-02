@@ -61,8 +61,10 @@ class QBEFlowchartView: NSView {
 		
 		return nil
 	}
-	
-	private func pathForArrow(arrow: QBEArrow) -> CGPathRef {
+
+	/** Return a bent path for this arrow. The corners of the path will be rounded if `rounded` is set to true (the 
+	default). */
+	private func pathForArrow(arrow: QBEArrow, rounded: Bool = true) -> CGPathRef {
 		let (sourceAnchor, targetAnchor) = QBEAnchor.anchorsForArrow(arrow.sourceFrame, to: arrow.targetFrame)
 		let sourcePoint = sourceAnchor.pointInBounds(arrow.sourceFrame)
 		let targetPoint = targetAnchor.pointInBounds(arrow.targetFrame, isDestination: true)
@@ -70,16 +72,42 @@ class QBEFlowchartView: NSView {
 		// Draw the arrow
 		let p = CGPathCreateMutable()
 		CGPathMoveToPoint(p, nil, sourcePoint.x, sourcePoint.y)
-		let bendpoints = QBEAnchor.bendpointsBetween(arrow.sourceFrame, fromAnchor: sourceAnchor, to: arrow.targetFrame, toAnchor: targetAnchor)
-		for bendpoint in bendpoints {
-			CGPathAddLineToPoint(p, nil, bendpoint.x, bendpoint.y)
+		var bendpoints = QBEAnchor.bendpointsBetween(arrow.sourceFrame, fromAnchor: sourceAnchor, to: arrow.targetFrame, toAnchor: targetAnchor)
+
+		if rounded {
+			bendpoints.append(targetPoint)
+			var lastPoint = sourcePoint
+			let w: CGFloat = 0.25 // Determines the 'roundedness' of the path
+			for (idx, bendpoint) in bendpoints.enumerate() {
+				if idx < bendpoints.count - 1 {
+					// Choose a point between the last point and the bendpoint to act as starting point for the curve
+					let firstBetween = CGPointMake((lastPoint.x * w + bendpoint.x) / (w + 1.0), (lastPoint.y * w + bendpoint.y) / (w + 1.0))
+
+					// Choose a point between the bendpoint and the next point to act as ending point for the curve
+					let secondPoint = bendpoints[idx+1]
+					let secondBetween = CGPointMake((secondPoint.x * w + bendpoint.x) / (w + 1.0), (secondPoint.y * w + bendpoint.y) / (w + 1.0))
+
+					// Draw a straight line to the curve starting point, the draw the curve to the next 'halfway point'
+					CGPathAddLineToPoint(p, nil, firstBetween.x, firstBetween.y)
+					CGPathAddQuadCurveToPoint(p, nil, bendpoint.x, bendpoint.y, secondBetween.x, secondBetween.y)
+					lastPoint = secondBetween
+				}
+			}
+
+			// The last line is a straight line again, from the last halfway point
+			CGPathAddLineToPoint(p, nil, targetPoint.x, targetPoint.y)
 		}
-		CGPathAddLineToPoint(p, nil, targetPoint.x, targetPoint.y)
+		else {
+			for bendpoint in bendpoints {
+				CGPathAddLineToPoint(p, nil, bendpoint.x, bendpoint.y)
+			}
+			CGPathAddLineToPoint(p, nil, targetPoint.x, targetPoint.y)
+		}
 		return p
 	}
 
 	private func drawArrow(arrow: QBEArrow, context: CGContext) {
-		let color = (arrow === selectedArrow) ? NSColor.blueColor() : NSColor.grayColor()
+		let color = (arrow === selectedArrow) ? NSColor(calibratedRed: 0.3, green: 0.3, blue: 0.8, alpha: 1.0) : NSColor.grayColor()
 		color.set()
 
 		// Draw arrow line
