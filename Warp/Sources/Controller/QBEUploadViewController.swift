@@ -25,10 +25,10 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 
 	private func initializeView() {
 		if let s = targetStep {
-			self.targetSentenceViewController?.configure(s, variant: .Write, delegate: self)
+			self.targetSentenceViewController?.startConfiguring(s, variant: .Write, delegate: self)
 		}
 		if let s = sourceStep {
-			self.sourceSentenceViewController?.configure(s, variant: .Read, delegate: self)
+			self.sourceSentenceViewController?.startConfiguring(s, variant: .Read, delegate: self)
 		}
 	}
 

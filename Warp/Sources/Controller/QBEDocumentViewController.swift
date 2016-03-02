@@ -42,13 +42,17 @@ import WarpCore
 		documentView.reloadData()
 	}
 	
-	func tabletView(view: QBETabletViewController, didSelectConfigurable configurable: QBEConfigurable?, delegate: QBESentenceViewDelegate) {
+	func tabletView(view: QBETabletViewController, didSelectConfigurable configurable: QBEConfigurable?, configureNow: Bool, delegate: QBESentenceViewDelegate) {
 		documentView.selectTablet(view.tablet, notifyDelegate: false)
 		view.view.superview?.orderFront()
 
 		// Only show this tablet in the sentence editor if it really has become the selected tablet
 		if self.documentView.selectedTablet == view.tablet {
-			self.sentenceEditor?.configure(configurable, variant: .Read, delegate: delegate)
+			self.sentenceEditor?.startConfiguring(configurable, variant: .Read, delegate: delegate)
+		}
+
+		if configureNow {
+			self.sentenceEditor?.configure(self)
 		}
 	}
 	
@@ -85,7 +89,7 @@ import WarpCore
 		}
 
 		document?.removeTablet(tablet)
-		self.sentenceEditor?.configure(nil, variant: .Read, delegate: nil)
+		self.sentenceEditor?.startConfiguring(nil, variant: .Read, delegate: nil)
 		documentView.removeTablet(tablet)
 		workspaceView.magnifyView(nil)
 		
@@ -682,7 +686,7 @@ import WarpCore
 	}
 	
 	private func didSelectTablet(tablet: QBETablet?) {
-		self.sentenceEditor?.configure(nil, variant: .Neutral, delegate: nil)
+		self.sentenceEditor?.startConfiguring(nil, variant: .Neutral, delegate: nil)
 
 		for childController in self.childViewControllers {
 			if let cvc = childController as? QBETabletViewController {

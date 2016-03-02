@@ -42,7 +42,7 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 		super.viewWillAppear()
 		update()
 		if let s = step {
-			self.sentenceEditor?.configure(s, variant: .Write, delegate: self)
+			self.sentenceEditor?.startConfiguring(s, variant: .Write, delegate: self)
 		}
 	}
 

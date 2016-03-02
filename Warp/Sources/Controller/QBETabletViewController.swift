@@ -11,7 +11,7 @@ protocol QBETabletViewDelegate: NSObjectProtocol {
 
 	/** Indicates that the tablet view has selected an object that is configurable, or nil if a non-configurable object
 	was selected. */
-	func tabletView(view: QBETabletViewController, didSelectConfigurable: QBEConfigurable?, delegate: QBESentenceViewDelegate)
+	func tabletView(view: QBETabletViewController, didSelectConfigurable: QBEConfigurable?, configureNow: Bool, delegate: QBESentenceViewDelegate)
 }
 
 class QBETabletViewController: NSViewController {

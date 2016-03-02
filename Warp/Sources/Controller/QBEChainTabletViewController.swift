@@ -38,8 +38,8 @@ internal class QBEChainTabletViewController: QBETabletViewController, QBEChainVi
 		return self.delegate?.tabletViewDidClose(self) ?? true
 	}
 
-	func chainView(view: QBEChainViewController, configureStep step: QBEStep?, delegate: QBESentenceViewDelegate) {
-		self.delegate?.tabletView(self, didSelectConfigurable:step, delegate: delegate)
+	func chainView(view: QBEChainViewController, configureStep step: QBEStep?, necessary: Bool, delegate: QBESentenceViewDelegate) {
+		self.delegate?.tabletView(self, didSelectConfigurable:step, configureNow: necessary, delegate: delegate)
 	}
 
 	func chainViewDidChangeChain(view: QBEChainViewController) {

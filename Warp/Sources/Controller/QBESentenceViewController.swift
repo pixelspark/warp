@@ -290,7 +290,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
-	func configure(configurable: QBEConfigurable?, variant: QBESentenceVariant, delegate: QBESentenceViewDelegate?) {
+	func startConfiguring(configurable: QBEConfigurable?, variant: QBESentenceVariant, delegate: QBESentenceViewDelegate?) {
 		if self.editingConfigurable != configurable || configurable == nil {
 			let tr = CATransition()
 			tr.duration = 0.3
@@ -316,7 +316,8 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
-	@IBAction func configure(sender: NSObject) {
+	/** Opens the popover containing more detailed configuration options for the current configurable. */
+	@IBAction func configure(sender: AnyObject) {
 		if let s = self.editingConfigurable, let stepView = QBEFactory.sharedInstance.viewForConfigurable(s.self, delegate: self) {
 			self.presentViewController(stepView, asPopoverRelativeToRect: configureButton.frame, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Semitransient)
 		}

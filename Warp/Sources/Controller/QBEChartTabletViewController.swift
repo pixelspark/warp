@@ -17,7 +17,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	} }
 
 	override func tabletWasSelected() {
-		self.delegate?.tabletView(self, didSelectConfigurable: self.chart, delegate: self)
+		self.delegate?.tabletView(self, didSelectConfigurable: self.chart, configureNow: false, delegate: self)
 	}
 
 	override func viewWillAppear() {

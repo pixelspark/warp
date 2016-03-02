@@ -21,8 +21,9 @@ class QBEChainView: NSView {
 }
 
 protocol QBEChainViewDelegate: NSObjectProtocol {
-	/** Called when the chain view wants the delegate to present a configurator for a step. */
-	func chainView(view: QBEChainViewController, configureStep: QBEStep?, delegate: QBESentenceViewDelegate)
+	/** Called when the chain view wants the delegate to present a configurator for a step. If 'necessary' is set to true,
+	the step needs configuration right now in order to work. */
+	func chainView(view: QBEChainViewController, configureStep: QBEStep?, necessary: Bool, delegate: QBESentenceViewDelegate)
 	
 	/** Called when the user closes a chain view. If it returns false, the removal is blocked. */
 	func chainViewDidClose(view: QBEChainViewController) -> Bool
@@ -99,10 +100,10 @@ internal enum QBEEditingMode {
 			self.editingMode = .NotEditing
 			if let s = currentStep {
 				self.previewStep = nil				
-				delegate?.chainView(self, configureStep: s, delegate: self)
+				delegate?.chainView(self, configureStep: s, necessary: false, delegate: self)
 			}
 			else {
-				delegate?.chainView(self, configureStep: nil, delegate: self)
+				delegate?.chainView(self, configureStep: nil, necessary: false, delegate: self)
 				self.presentData(nil)
 			}
 			
@@ -129,7 +130,7 @@ internal enum QBEEditingMode {
 	var selected: Bool = false { didSet {
 		self.stepsViewController?.active = selected
 		if selected {
-			delegate?.chainView(self, configureStep: currentStep, delegate: self)
+			delegate?.chainView(self, configureStep: currentStep, necessary: false, delegate: self)
 		}
 	} }
 
@@ -193,6 +194,7 @@ internal enum QBEEditingMode {
 										let otherSet = Set(otherColumns)
 
 										asyncMain {
+											var configureStep: QBEStep? = nil
 											var joinSteps: [QBEStep] = []
 
 											// If the other data set contains exactly the same columns as we do, or one is a subset of the other, propose a merge
@@ -213,10 +215,15 @@ internal enum QBEEditingMode {
 													js.right = self.otherChain
 													js.condition = Literal(Value(false))
 													joinSteps.append(js)
+													configureStep = js
 												}
 											}
 
 											self.view.suggestSteps(joinSteps)
+
+											if let cs = configureStep {
+												self.view.delegate?.chainView(self.view, configureStep: cs, necessary: true, delegate: self.view)
+											}
 										}
 									}
 								}
