@@ -327,8 +327,16 @@ class QBEScrollView: NSScrollView {
 }
 
 protocol QBEWorkspaceViewDelegate: NSObjectProtocol {
+	/** Files were dropped in the workspace. */
 	func workspaceView(view: QBEWorkspaceView, didReceiveFiles: [String], atLocation: CGPoint)
+
+	/** A chain was dropped to the workspace. The chain already exists in the workspace. */
 	func workspaceView(view: QBEWorkspaceView, didReceiveChain: QBEChain, atLocation: CGPoint)
+
+	/** A step was dropped to the workspace. The step is not an existing step instance (e.g. it is created anew). */
+	func workspaceView(view: QBEWorkspaceView, didReceiveStep: QBEStep, atLocation: CGPoint)
+
+	/** A column set was dropped in the workspace */
 	func workspaceView(view: QBEWorkspaceView, didRecieveColumnSet:[Column], fromDataViewController: QBEDataViewController)
 }
 
@@ -341,13 +349,18 @@ class QBEWorkspaceView: QBEScrollView {
 	}
 	
 	override func awakeFromNib() {
-		registerForDraggedTypes([NSFilenamesPboardType, QBEOutletView.dragType, MBTableGridColumnDataType])
+		registerForDraggedTypes([NSFilenamesPboardType, QBEOutletView.dragType, MBTableGridColumnDataType, QBEStep.dragType])
 	}
 	
 	override func draggingEntered(sender: NSDraggingInfo) -> NSDragOperation {
 		let pboard = sender.draggingPasteboard()
 		
 		if let _: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
+			draggingOver = true
+			setNeedsDisplayInRect(self.bounds)
+			return NSDragOperation.Copy
+		}
+		else if let _ = pboard.dataForType(QBEStep.dragType) {
 			draggingOver = true
 			setNeedsDisplayInRect(self.bounds)
 			return NSDragOperation.Copy
@@ -404,6 +417,12 @@ class QBEWorkspaceView: QBEScrollView {
 					delegate?.workspaceView(self, didReceiveChain: draggedChain, atLocation: pointInDocument)
 					return true
 				}
+			}
+		}
+		else if let stepData = pboard.dataForType(QBEStep.dragType) {
+			if let step = NSKeyedUnarchiver.unarchiveObjectWithData(stepData) as? QBEStep {
+				delegate?.workspaceView(self, didReceiveStep: step, atLocation: pointInDocument)
+				return true
 			}
 		}
 		else if let d = pboard.dataForType(MBTableGridColumnDataType) {

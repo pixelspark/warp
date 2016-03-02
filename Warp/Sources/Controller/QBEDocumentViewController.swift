@@ -383,6 +383,14 @@ import WarpCore
 		readdMenuItem.hidden = true
 	}
 
+	func workspaceView(view: QBEWorkspaceView, didReceiveStep step: QBEStep, atLocation location: CGPoint) {
+		assertMainThread()
+
+		let chain = QBEChain(head: step)
+		let tablet = QBEChainTablet(chain: chain)
+		self.addTablet(tablet, atLocation: location, undo: true)
+	}
+
 	/** Called when an outlet is dropped onto the workspace itself (e.g. an empty spot). */
 	func workspaceView(view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
 		assertMainThread()
