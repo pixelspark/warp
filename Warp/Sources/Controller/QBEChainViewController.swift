@@ -758,6 +758,89 @@ internal enum QBEEditingMode {
 		}
 	}
 
+	private func removeRowsPermanently(rows: [Int]) {
+		let errorMessage = rows.count > 1 ? "Cannot remove these rows".localized : "Cannot remove this row".localized
+
+		// In editing mode, we perform the edit on the mutable data set
+		if let md = self.currentStep?.mutableData, case .Editing(identifiers: let identifiers, editingRaster: let editingRaster) = self.editingMode {
+			let job = Job(.UserInitiated)
+			md.data(job) { result in
+				// Does the data set support deleting by row number, or do we edit by key?
+				let removeMutation = DataMutation.Remove(rows: rows)
+				if md.canPerformMutation(removeMutation) {
+					job.async {
+						md.performMutation(removeMutation, job: job) { result in
+							switch result {
+							case .Success:
+								/* The mutation has been performed on the source data, now perform it on our own
+								temporary raster as well. We could also call self.calculate() here, but that takes
+								a while, and we would lose our current scrolling position, etc. */
+								RasterMutableData(raster: editingRaster).performMutation(removeMutation, job: job) { result in
+									asyncMain {
+										NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
+										self.presentRaster(editingRaster)
+									}
+								}
+								break
+
+							case .Failure(let e):
+								asyncMain {
+									NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+								}
+							}
+						}
+					}
+				}
+				else {
+					if let ids = identifiers {
+						var keys: [[Column: Value]] = []
+						for rowNumber in rows {
+							// Create key
+							let row = Row(editingRaster[rowNumber], columnNames: editingRaster.columnNames)
+							var key: [Column: Value] = [:]
+							for identifyingColumn in ids {
+								key[identifyingColumn] = row[identifyingColumn]
+							}
+							keys.append(key)
+						}
+
+						let deleteMutation = DataMutation.Delete(keys: keys)
+
+						job.async {
+							md.performMutation(deleteMutation, job: job) { result in
+								switch result {
+								case .Success():
+									/* The mutation has been performed on the source data, now perform it on our own
+									temporary raster as well. We could also call self.calculate() here, but that takes
+									a while, and we would lose our current scrolling position, etc. */
+									RasterMutableData(raster: editingRaster).performMutation(deleteMutation, job: job) { result in
+										asyncMain {
+											NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
+											self.presentRaster(editingRaster)
+										}
+									}
+									break
+
+								case .Failure(let e):
+									asyncMain {
+										NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+									}
+								}
+							}
+						}
+					}
+					else {
+						// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
+						// TODO: ask the user what key to use ("what property makes each row unique?")
+						asyncMain {
+							NSAlert.showSimpleAlert(errorMessage, infoText: "There is not enough information to be able to distinguish rows.".localized, style: .CriticalAlertStyle, window: self.view.window)
+						}
+					}
+				}
+			}
+		}
+	}
+
 	private func editValue(oldValue: Value, toValue: Value, inRow: Int, column: Int, identifiers: Set<Column>?) {
 		var toValue = toValue
 		let errorMessage = String(format: NSLocalizedString("Cannot change '%@' to '%@'", comment: ""), oldValue.stringValue ?? "", toValue.stringValue ?? "")
@@ -1420,40 +1503,51 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func removeRows(sender: NSObject) {
-		if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
-			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				calculator.currentRaster?.get { (r) -> () in
-					r.maybe { (raster) -> () in
-						// Invert the selection
-						let selectedToKeep = NSMutableIndexSet()
-						let selectedToRemove = NSMutableIndexSet()
-						for index in 0..<raster.rowCount {
-							if !rowsToRemove.containsIndex(index) {
-								selectedToKeep.addIndex(index)
+		switch self.editingMode {
+		case .Editing(identifiers: _, editingRaster: _):
+			if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
+				self.removeRowsPermanently(Array(rowsToRemove))
+			}
+
+		case .NotEditing:
+			if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
+				if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
+					calculator.currentRaster?.get { (r) -> () in
+						r.maybe { (raster) -> () in
+							// Invert the selection
+							let selectedToKeep = NSMutableIndexSet()
+							let selectedToRemove = NSMutableIndexSet()
+							for index in 0..<raster.rowCount {
+								if !rowsToRemove.containsIndex(index) {
+									selectedToKeep.addIndex(index)
+								}
+								else {
+									selectedToRemove.addIndex(index)
+								}
 							}
-							else {
-								selectedToRemove.addIndex(index)
+
+							var relevantColumns = Set<Column>()
+							for columnIndex in 0..<raster.columnCount {
+								if selectedColumns.containsIndex(columnIndex) {
+									relevantColumns.insert(raster.columnNames[columnIndex])
+								}
 							}
-						}
-						
-						var relevantColumns = Set<Column>()
-						for columnIndex in 0..<raster.columnCount {
-							if selectedColumns.containsIndex(columnIndex) {
-								relevantColumns.insert(raster.columnNames[columnIndex])
+
+							// Find suggestions for keeping the other rows
+							let keepSuggestions = QBERowsStep.suggest(selectedToKeep, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: true)
+							var removeSuggestions = QBERowsStep.suggest(selectedToRemove, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: false)
+							removeSuggestions.appendContentsOf(keepSuggestions)
+
+							asyncMain {
+								self.suggestSteps(removeSuggestions)
 							}
-						}
-						
-						// Find suggestions for keeping the other rows
-						let keepSuggestions = QBERowsStep.suggest(selectedToKeep, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: true)
-						var removeSuggestions = QBERowsStep.suggest(selectedToRemove, columns: relevantColumns, inRaster: raster, fromStep: self.currentStep, select: false)
-						removeSuggestions.appendContentsOf(keepSuggestions)
-						
-						asyncMain {
-							self.suggestSteps(removeSuggestions)
 						}
 					}
 				}
 			}
+
+		case .EnablingEditing:
+			return
 		}
 	}
 

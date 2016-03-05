@@ -417,6 +417,27 @@ public class SQLMutableData: MutableData {
 		}
 	}
 
+	private func performDelete(connection: SQLConnection, keys: [[Column: Value]], job: Job, callback: (Fallible<Void>) -> ()) {
+		var allWheres: [Expression] = []
+
+		for key in keys {
+			var wheres: [Expression] = []
+			for (column, value) in key {
+				wheres.append(Comparison(first: Sibling(columnName: column), second: Literal(value), type: .Equal))
+			}
+			allWheres.append(Call(arguments: wheres, type: .And))
+		}
+
+		let whereExpression = Call(arguments: allWheres, type: .Or)
+
+		guard let whereSQL = self.database.dialect.expressionToSQL(whereExpression, alias: self.tableName, foreignAlias: nil, inputValue: nil) else {
+			return callback(.Failure("Selection cannot be written in SQL"))
+		}
+
+		let query = "DELETE FROM \(self.tableIdentifier) WHERE \(whereSQL)"
+		connection.run([query], job: job, callback: callback)
+	}
+
 	private func performUpdate(connection: SQLConnection, key: [Column: Value], column: Column, old: Value, new:Value, job: Job, callback: (Fallible<Void>) -> ()) {
 		var wheres: [Expression] = []
 		for (column, value) in key {
@@ -467,7 +488,10 @@ public class SQLMutableData: MutableData {
 						case .Update(key: let k, column: let c, old: let o, new: let n):
 							self.performUpdate(con, key:k, column: c, old: o, new: n, job: job, callback: callback)
 
-						case .Edit(_,_,_,_), .Insert(row: _), .Rename(_):
+						case .Delete(keys: let k):
+							self.performDelete(con, keys:k, job: job, callback: callback)
+
+						case .Edit(_,_,_,_), .Insert(row: _), .Rename(_), .Remove(rows: _):
 							fatalError("Not supported")
 						}
 
@@ -480,10 +504,10 @@ public class SQLMutableData: MutableData {
 
 	public func canPerformMutation(mutation: DataMutation) -> Bool {
 		switch mutation {
-		case .Truncate, .Drop, .Import(_, _), .Insert(_), .Update(_,_,_,_):
+		case .Truncate, .Drop, .Import(_, _), .Insert(_), .Update(_,_,_,_), .Delete(keys: _):
 			return true
 
-		case .Edit(_,_,_,_), .Rename(_):
+		case .Edit(_,_,_,_), .Rename(_), .Remove(rows: _):
 			return false
 
 		case .Alter(_):

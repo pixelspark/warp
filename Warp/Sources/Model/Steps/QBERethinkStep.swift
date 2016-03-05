@@ -666,10 +666,10 @@ class QBERethinkMutableData: MutableData {
 
 	func canPerformMutation(mutation: DataMutation) -> Bool {
 		switch mutation {
-		case .Truncate, .Drop, .Import(_,_), .Alter(_), .Update(_,_,_,_), .Insert(row: _):
+		case .Truncate, .Drop, .Import(_,_), .Alter(_), .Update(_,_,_,_), .Insert(row: _), .Delete(keys: _):
 			return true
 
-		case .Edit(_,_,_,_), .Rename(_):
+		case .Edit(_,_,_,_), .Rename(_), .Remove(rows: _):
 			return false
 		}
 	}
@@ -740,8 +740,23 @@ class QBERethinkMutableData: MutableData {
 						}
 						q = R.db(self.databaseName).table(self.tableName).insert([doc])
 
+					case .Delete(keys: let keys):
+						// TODO: if we're deleting by primary key, then .get(pk).delete() is much faster than .filter().delete()
+						q = R.db(self.databaseName).table(self.tableName).filter({ row in
+							var predicate: ReQueryValue = R.expr(false)
 
-					case .Edit(_,_,_,_), .Rename(_):
+							for key in keys {
+								var subPredicate = R.expr(true)
+								for (col, value) in key {
+									subPredicate = subPredicate.and(row[col.name].eq(value.rethinkValue))
+								}
+
+								predicate = predicate.or(subPredicate)
+							}
+							return predicate
+						}).delete()
+
+				case .Edit(_,_,_,_), .Rename(_), .Remove(rows: _):
 						fatalError("Not supported")
 				}
 
@@ -926,5 +941,19 @@ class QBERethinkSourceStep: QBEStep {
 			return QBERethinkMutableData(url: u, databaseName: self.database, tableName: self.table)
 		}
 		return nil
+	}
+}
+
+extension Value {
+	var rethinkValue: ReQueryValue {
+		switch self {
+		case .StringValue(let s): return R.expr(s)
+		case .BoolValue(let b): return R.expr(b)
+		case .DoubleValue(let d): return R.expr(d)
+		case .DateValue(let d): return R.expr(d) // FIXME!
+		case .IntValue(let i): return R.expr(i)
+		case .InvalidValue: return R.expr(1).div(0)
+		case .EmptyValue: return R.expr()
+		}
 	}
 }

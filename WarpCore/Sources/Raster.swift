@@ -72,6 +72,35 @@ public class Raster: NSObject, NSCoding {
 			self.raster.removeObjectsAtIndexes(set, offset: 0)
 		}
 	}
+
+	public func removeRows(keys: [[Column: Value]]) {
+		self.mutex.locked {
+			let keysByNumber = keys.map { key in
+				return key.mapDictionary { k, v in
+					return (self.indexOfColumnWithName(k)!, v)
+				}
+			}
+
+			self.raster = self.raster.filter { row in
+				for key in keysByNumber {
+					var matches = true
+					// If any key does not match, we keep the row. Otherwise it must be removed
+					for (colNumber, value) in key {
+						if row[colNumber] != value {
+							matches = false
+							break
+						}
+					}
+
+					if matches {
+						return false
+					}
+				}
+
+				return true
+			}
+		}
+	}
 	
 	public func removeColumns(set: NSIndexSet) {
 		self.mutex.locked {
@@ -1095,7 +1124,7 @@ public class RasterMutableData: MutableData {
 		}
 
 		switch mutation {
-		case .Truncate, .Alter(_), .Import(_, _), .Update(_,_,_,_), .Edit(row: _, column: _, old: _, new: _), .Insert(_), .Rename(_):
+		case .Truncate, .Alter(_), .Import(_, _), .Update(_,_,_,_), .Edit(row: _, column: _, old: _, new: _), .Insert(_), .Rename(_), .Remove(rows: _), .Delete(keys: _):
 			return true
 
 		case .Drop:
@@ -1173,6 +1202,19 @@ public class RasterMutableData: MutableData {
 			}
 
 			raster.update(key, column: column, old: old, new: new)
+			callback(.Success())
+
+		case .Remove(rows: let rowNumbers):
+			let indexSet = NSMutableIndexSet()
+			for row in rowNumbers {
+				indexSet.addIndex(row)
+			}
+
+			raster.removeRows(indexSet)
+			callback(.Success())
+
+		case .Delete(keys: let keys):
+			raster.removeRows(keys)
 			callback(.Success())
 
 		case .Drop:

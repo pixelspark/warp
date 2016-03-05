@@ -122,6 +122,12 @@ public enum DataMutation {
 	/** Set the value in the indicated `column` and the `row` (by index) to the `new` value if the current value matches
 	the `old` value. */
 	case Edit(row: Int, column: Column, old: Value, new: Value)
+
+	/** Removes the row at the given indices. */
+	case Remove(rows: [Int])
+
+	/** Removes the rows identified by the given keys. */
+	case Delete(keys: [[Column: Value]])
 }
 
 public enum WarehouseMutation {
