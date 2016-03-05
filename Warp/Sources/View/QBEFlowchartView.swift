@@ -77,15 +77,21 @@ class QBEFlowchartView: NSView {
 		if rounded {
 			bendpoints.append(targetPoint)
 			var lastPoint = sourcePoint
-			let w: CGFloat = 0.25 // Determines the 'roundedness' of the path
+			let cornerRadius: CGFloat = 10.0
 			for (idx, bendpoint) in bendpoints.enumerate() {
 				if idx < bendpoints.count - 1 {
 					// Choose a point between the last point and the bendpoint to act as starting point for the curve
-					let firstBetween = CGPointMake((lastPoint.x * w + bendpoint.x) / (w + 1.0), (lastPoint.y * w + bendpoint.y) / (w + 1.0))
+					let firstDist = lastPoint.distanceTo(bendpoint)
+					let firstRadius = min(firstDist, cornerRadius)
+					let firstWeight = firstDist < cornerRadius ? 0.5 : firstRadius / firstDist
+					let firstBetween = CGPointMake(lastPoint.x * firstWeight + bendpoint.x * (1.0 - firstWeight), lastPoint.y * firstWeight + bendpoint.y * (1.0 - firstWeight))
 
 					// Choose a point between the bendpoint and the next point to act as ending point for the curve
 					let secondPoint = bendpoints[idx+1]
-					let secondBetween = CGPointMake((secondPoint.x * w + bendpoint.x) / (w + 1.0), (secondPoint.y * w + bendpoint.y) / (w + 1.0))
+					let secondDist = secondPoint.distanceTo(bendpoint)
+					let secondRadius = min(cornerRadius, secondDist)
+					let secondWeight = secondDist < cornerRadius ? 0.5 : secondRadius / secondDist
+					let secondBetween = CGPointMake(secondPoint.x * secondWeight + bendpoint.x * (1.0 - secondWeight), secondPoint.y * secondWeight + bendpoint.y * (1.0 - secondWeight))
 
 					// Draw a straight line to the curve starting point, the draw the curve to the next 'halfway point'
 					CGPathAddLineToPoint(p, nil, firstBetween.x, firstBetween.y)
