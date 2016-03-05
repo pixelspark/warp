@@ -150,6 +150,18 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .InvalidValue: return nil
 		}
 	} }
+
+	public var nativeValue: AnyObject? {
+		switch self {
+		case .StringValue(let s): return s
+		case .IntValue(let i): return i
+		case .BoolValue(let b): return b
+		case .DateValue(let d): return NSDate(timeIntervalSinceReferenceDate: d)
+		case .DoubleValue(let d): return d
+		case .EmptyValue: return nil
+		case .InvalidValue: return nil
+		}
+	}
 	
 	public var debugDescription: String { get {
 		switch self {

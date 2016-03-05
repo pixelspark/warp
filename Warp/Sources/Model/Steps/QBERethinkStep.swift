@@ -78,6 +78,9 @@ final class QBERethinkStream: NSObject, Stream {
 					}
 				}
 			}
+			else {
+				callback(.Failure("Stream was destroyed"))
+			}
 		})
 	}
 
@@ -135,7 +138,11 @@ final class QBERethinkStream: NSObject, Stream {
 		}
 		else {
 			self.connection.get(job) { res in
-				callback(res.use { return $0.1 })
+				callback(res.use { p in
+					/* Capture `self` explicitly here so it doesn't get destroyed while we are performing self.connection.get. */
+					self.columns = p.1
+					return .Success(p.1)
+				})
 			}
 		}
 	}
@@ -571,7 +578,7 @@ private class QBERethinkInsertPuller: StreamPuller {
 				var document: ReDocument = [:]
 				for (index, element) in self.columnNames.enumerate()
 				{
-					document[element.name] = row[index].stringValue
+					document[element.name] = row[index].nativeValue ?? NSNull()
 				}
 				return document
 			}
@@ -624,7 +631,32 @@ class QBERethinkMutableData: MutableData {
 	}
 
 	func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
-		callback(.Failure("Not implemented"))
+		R.connect(self.url) { err, connection in
+			if let e = err {
+				callback(.Failure(e))
+				return
+			}
+
+			R.db(self.databaseName).table(self.tableName).info().run(connection) { response in
+				if case ReResponse.Error(let e) = response {
+					callback(.Failure(e))
+					return
+				}
+				else {
+					if let info = response.value as? [String: AnyObject] {
+						if let pk = info["primary_key"] as? String {
+							callback(.Success(Set<Column>([Column(pk)])))
+						}
+						else {
+							callback(.Failure("RethinkDB failed to tell us what the primary key is"))
+						}
+					}
+					else {
+						callback(.Failure("RethinkDB returned unreadable information on the table"))
+					}
+				}
+			}
+		}
 	}
 
 	func data(job: Job, callback: (Fallible<Data>) -> ()) {
@@ -633,10 +665,10 @@ class QBERethinkMutableData: MutableData {
 
 	func canPerformMutation(mutation: DataMutation) -> Bool {
 		switch mutation {
-		case .Truncate, .Drop, .Import(_,_), .Alter(_):
+		case .Truncate, .Drop, .Import(_,_), .Alter(_), .Update(_,_,_,_), .Insert(row: _):
 			return true
 
-		case .Update(_,_,_,_), .Edit(_,_,_,_), .Insert(row: _), .Rename(_):
+		case .Edit(_,_,_,_), .Rename(_):
 			return false
 		}
 	}
@@ -661,9 +693,15 @@ class QBERethinkMutableData: MutableData {
 					callback(.Success())
 					return
 
-				case .Update(key: _, column: _, old: _, new: _):
-					callback(.Failure("Not implemented"))
-					return
+				case .Update(let key, let column, _, let newValue):
+					// the identifier function returns only the primary key for this table as key. Updates may not use any other key.
+					if let pkeyValue = key.first {
+						let document: ReDocument = [column.name: newValue.nativeValue ?? NSNull()]
+						q = R.db(self.databaseName).table(self.tableName).get(pkeyValue.1.nativeValue ?? NSNull()).update(document)
+					}
+					else {
+						return callback(.Failure("Invalid key"))
+					}
 
 				case .Truncate:
 					q = R.db(self.databaseName).table(self.tableName).delete()
@@ -694,7 +732,15 @@ class QBERethinkMutableData: MutableData {
 						return
 					}
 
-					case .Edit(_,_,_,_), .Insert(row: _), .Rename(_):
+					case .Insert(let row):
+						var doc = ReDocument()
+						for name in row.columnNames {
+							doc[name.name] = row[name]?.nativeValue ?? NSNull()
+						}
+						q = R.db(self.databaseName).table(self.tableName).insert([doc])
+
+
+					case .Edit(_,_,_,_), .Rename(_):
 						fatalError("Not supported")
 				}
 

@@ -764,16 +764,12 @@ internal enum QBEEditingMode {
 											/* The mutation has been performed on the source data, now perform it on our own
 											temporary raster as well. We could also call self.calculate() here, but that takes
 											a while, and we would lose our current scrolling position, etc. */
-											self.calculator.currentRaster?.get {r in
-												r.maybe { r in
-													RasterMutableData(raster: editingRaster).performMutation(editMutation, job: job) { result in
-														asyncMain {
-															NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
-															self.presentRaster(editingRaster)
-														}
+												RasterMutableData(raster: editingRaster).performMutation(editMutation, job: job) { result in
+													asyncMain {
+														NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
+														self.presentRaster(editingRaster)
 													}
 												}
-											}
 											break
 
 										case .Failure(let e):
@@ -786,47 +782,33 @@ internal enum QBEEditingMode {
 							}
 							else {
 								if let ids = identifiers {
-									self.calculator.currentRaster?.get(job) { result in
-										switch result {
-										case .Success(let raster):
-											// Create key
-											let row = Row(raster[inRow], columnNames: raster.columnNames)
-											var key: [Column: Value] = [:]
-											for identifyingColumn in ids {
-												key[identifyingColumn] = row[identifyingColumn]
-											}
+									// Create key
+									let row = Row(editingRaster[inRow], columnNames: editingRaster.columnNames)
+									var key: [Column: Value] = [:]
+									for identifyingColumn in ids {
+										key[identifyingColumn] = row[identifyingColumn]
+									}
 
-											let mutation = DataMutation.Update(key: key, column: raster.columnNames[column], old: oldValue, new: toValue)
-											job.async {
-												md.performMutation(mutation, job: job) { result in
-													switch result {
-													case .Success():
-														/* The mutation has been performed on the source data, now perform it on our own
-														temporary raster as well. We could also call self.calculate() here, but that takes
-														a while, and we would lose our current scrolling position, etc. */
-														self.calculator.currentRaster?.get {r in
-															r.maybe { r in
-																RasterMutableData(raster: editingRaster).performMutation(editMutation, job: job) { result in
-																	asyncMain {
-																		NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
-																		self.presentRaster(editingRaster)
-																	}
-																}
-															}
-														}
-														break
-
-													case .Failure(let e):
-														asyncMain {
-															NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
-														}
+									let mutation = DataMutation.Update(key: key, column: editingRaster.columnNames[column], old: oldValue, new: toValue)
+									job.async {
+										md.performMutation(mutation, job: job) { result in
+											switch result {
+											case .Success():
+												/* The mutation has been performed on the source data, now perform it on our own
+												temporary raster as well. We could also call self.calculate() here, but that takes
+												a while, and we would lose our current scrolling position, etc. */
+												RasterMutableData(raster: editingRaster).performMutation(editMutation, job: job) { result in
+													asyncMain {
+														NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
+														self.presentRaster(editingRaster)
 													}
 												}
-											}
+												break
 
-										case .Failure(let e):
-											asyncMain {
-												NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+											case .Failure(let e):
+												asyncMain {
+													NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+												}
 											}
 										}
 									}
