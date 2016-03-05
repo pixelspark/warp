@@ -197,7 +197,7 @@ public class Raster: NSObject, NSCoding {
 			assert(!readOnly, "Data set is read-only")
 			
 			if let col = indexOfColumnWithName(forColumn) {
-				if ifMatches == nil || raster[row][col] == ifMatches! {
+				if ifMatches == nil || raster[row][col] == ifMatches! || (!raster[row][col].isValid && !ifMatches!.isValid) {
 					raster[row][col] = value
 					return true
 				}
