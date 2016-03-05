@@ -511,8 +511,11 @@ public final class Call: Expression {
 	}
 	
 	public override func explain(locale: Locale, topLevel: Bool) -> String {
-		let argumentsList = arguments.map({$0.explain(locale, topLevel: false)}).joinWithSeparator(", ")
-		return "\(type.explain(locale))(\(argumentsList))"
+		if arguments.count > 0 {
+			let argumentsList = arguments.map({$0.explain(locale, topLevel: false)}).joinWithSeparator(", ")
+			return "\(type.explain(locale))(\(argumentsList))"
+		}
+		return type.explain(locale)
 	}
 	
 	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
