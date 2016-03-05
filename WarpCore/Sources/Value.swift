@@ -775,7 +775,7 @@ public extension Array {
 	}
 	
 	mutating func removeObjectsAtIndexes(indexes: NSIndexSet, offset: Int) {
-		for (index, _) in indexes.enumerate().reverse() {
+		for (_, index) in indexes.enumerate().reverse() {
 			self.removeAtIndex(index + offset)
 		}
 	}
