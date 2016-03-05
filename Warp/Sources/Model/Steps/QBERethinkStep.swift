@@ -275,6 +275,7 @@ private class QBERethinkExpression {
 			let f = unary.arguments.first != nil ? expressionToQuery(unary.arguments.first!, prior: prior) : nil
 
 			switch unary.type {
+			case .UUID: return R.uuid()
 			case .Negate: return f?.mul(R.expr(-1))
 			case .Uppercase: return f?.coerceTo(.String).upcase()
 			case .Lowercase: return f?.coerceTo(.String).downcase()

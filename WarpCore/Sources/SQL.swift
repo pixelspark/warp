@@ -735,7 +735,8 @@ public class StandardSQLDialect: SQLDialect {
 			case .Levenshtein: return nil
 			case .URLEncode: return nil
 			case .Capitalize: return nil
-			
+			case .UUID: return nil
+
 			// TODO: date function can probably be implemented in SQL
 			case .Now: return nil
 			case .ToUTCISO8601: return nil

@@ -182,7 +182,8 @@ public class Locale {
 			"RANDSTRING": Function.RandomString,
 			"WRITE.DATE": Function.ToUnicodeDateString,
 			"READ.DATE": Function.FromUnicodeDateString,
-			"POWER": Function.Power
+			"POWER": Function.Power,
+			"UUID": Function.UUID
 		],
 		
 		"nl": [
@@ -263,7 +264,8 @@ public class Locale {
 			"ASELECTTEKST": Function.RandomString,
 			"SCHRIJF.DATUM": Function.ToUnicodeDateString,
 			"LEES.DATUM": Function.FromUnicodeDateString,
-			"MACHT": Function.Power
+			"MACHT": Function.Power,
+			"UUID": Function.UUID
 		]
 	]
 	

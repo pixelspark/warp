@@ -92,6 +92,7 @@ public enum Function: String {
 	case FromUnicodeDateString = "fromUnicodeDateString"
 	case ToUnicodeDateString = "toUnicodeDateString"
 	case Power = "power"
+	case UUID = "uuid"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -308,6 +309,7 @@ public enum Function: String {
 			case .ToUnicodeDateString: return translationForString("write date in format")
 			case .FromUnicodeDateString: return translationForString("read date in format")
 			case .Power: return translationForString("to the power")
+			case .UUID: return translationForString("generate UUID")
 		}
 	}
 	
@@ -324,6 +326,7 @@ public enum Function: String {
 			case .Random: return false
 			case .RandomString: return false
 			case .Now: return false
+			case .UUID: return false
 			default: return true
 		}
 	} }
@@ -551,6 +554,9 @@ public enum Function: String {
 				Parameter(name: translationForString("base"), exampleValue: Value.IntValue(2)),
 				Parameter(name: translationForString("exponent"), exampleValue: Value.IntValue(32))
 			]
+
+		case .UUID:
+			return []
 		}
 	} }
 	
@@ -634,6 +640,7 @@ public enum Function: String {
 		case .ToUnicodeDateString: return Arity.Fixed(2)
 		case .FromUnicodeDateString: return Arity.Fixed(2)
 		case .Power: return Arity.Fixed(2)
+		case .UUID: return Arity.Fixed(0)
 		}
 	} }
 	
@@ -1174,6 +1181,9 @@ public enum Function: String {
 			var r = self.reducer!
 			r.add(arguments)
 			return r.result
+
+		case .UUID:
+			return .StringValue(NSUUID().UUIDString)
 		}
 	}
 
@@ -1199,7 +1209,7 @@ public enum Function: String {
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
 		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
-		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power
+		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID
 	]
 }
 

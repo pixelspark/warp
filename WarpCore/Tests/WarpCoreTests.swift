@@ -410,6 +410,9 @@ class WarpCoreTests: XCTestCase {
 
 			case .Power:
 				XCTAssert(Function.Power.apply([Value(2), Value(0)]) == Value(1), "Power")
+
+			case .UUID:
+				XCTAssert(Function.UUID.apply([]).stringValue!.lengthOfBytesUsingEncoding(NSUTF8StringEncoding) == 36, "UUID must be 36 characters long")
 			}
 		}
 
