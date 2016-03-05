@@ -482,12 +482,17 @@ class QBESQLiteData: SQLData {
 	private func result() -> Fallible<QBESQLiteResult> {
 		return self.db.query(self.sql.sqlSelect(nil).sql)
 	}
-	
+
 	override func isCompatibleWith(other: SQLData) -> Bool {
 		if let os = other as? QBESQLiteData {
 			return os.db == self.db
 		}
 		return false
+	}
+
+	/** SQLite does not support "OFFSET" without a LIMIT clause. It does support "LIMIT -1 OFFSET x". */
+	override func offset(numberOfRows: Int) -> Data {
+		return self.apply(sql.sqlLimit("-1").sqlOffset("\(numberOfRows)"), resultingColumns: columns)
 	}
 }
 

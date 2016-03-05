@@ -882,6 +882,7 @@ public enum SQLFragmentType {
 	case Limit
 	case Select
 	case Union
+	case Offset
 	
 	var precedingType: SQLFragmentType? {
 		switch self {
@@ -892,7 +893,8 @@ public enum SQLFragmentType {
 		case .Having: return .Group
 		case .Order: return .Having
 		case .Limit: return .Order
-		case .Select: return .Limit
+		case .Offset: return .Limit
+		case .Select: return .Offset
 		case .Union: return .Select
 		}
 	}
@@ -969,6 +971,10 @@ public class SQLFragment {
 	public func sqlLimit(part: String?) -> SQLFragment {
 		return advance(SQLFragmentType.Limit, part: part)
 	}
+
+	public func sqlOffset(part: String?) -> SQLFragment {
+		return advance(SQLFragmentType.Offset, part: part)
+	}
 	
 	public func sqlSelect(part: String?) -> SQLFragment {
 		return advance(SQLFragmentType.Select, part: part)
@@ -1035,7 +1041,10 @@ public class SQLFragment {
 				
 				case .Limit:
 					fullPart = "\(source.sql) LIMIT \(p)"
-				
+
+				case .Offset:
+					fullPart = "\(source.sql) OFFSET \(p)"
+
 				case .Select:
 					fullPart = "SELECT \(p) \(source.sql)"
 				
@@ -1259,11 +1268,13 @@ public class SQLData: NSObject, Data {
     public func limit(numberOfRows: Int) -> Data {
 		return apply(self.sql.sqlLimit("\(numberOfRows)"), resultingColumns: columns)
     }
-	
+
+	/** This implements OFFSET. It assumed OFFSET can be put after LIMIT, or in the position where LIMIT would be if no
+	limit is desired. In T-SQL, the "SELECT TOP x" syntax is used instead. In SQLite, LIMIT is always required, but can
+	be set to -1 to obtain all rows (e.g. "LIMIT -1 OFFSET x"). This is not implemented here but is the responsibility 
+	of implementing subclasses. */
 	public func offset(numberOfRows: Int) -> Data {
-		// FIXME: T-SQL uses "SELECT TOP x" syntax
-		// FIXME: the LIMIT -1 is probably only necessary for SQLite
-		return apply(sql.sqlLimit("-1 OFFSET \(numberOfRows)"), resultingColumns: columns)
+		return apply(sql.sqlOffset("\(numberOfRows)"), resultingColumns: columns)
 	}
 	
 	public func filter(condition: Expression) -> Data {
