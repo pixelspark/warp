@@ -90,27 +90,29 @@ import WarpCore
 
 		document?.removeTablet(tablet)
 		self.sentenceEditor?.startConfiguring(nil, variant: .Read, delegate: nil)
-		documentView.removeTablet(tablet)
-		workspaceView.magnifyView(nil)
+		documentView.removeTablet(tablet) {
+			assertMainThread()
+			self.workspaceView.magnifyView(nil)
 		
-		for cvc in self.childViewControllers {
-			if let child = cvc as? QBEChainViewController {
-				if child.chain?.tablet == tablet {
-					child.removeFromParentViewController()
+			for cvc in self.childViewControllers {
+				if let child = cvc as? QBEChainViewController {
+					if child.chain?.tablet == tablet {
+						child.removeFromParentViewController()
+					}
 				}
 			}
-		}
 		
-		self.view.window?.makeFirstResponder(self.documentView)
-		updateView()
-		
-		// Register undo operation. Do not retain the QBETablet but instead serialize, so all caches are properly destroyed.
-		if undo {
-			let data = NSKeyedArchiver.archivedDataWithRootObject(tablet)
+			self.view.window?.makeFirstResponder(self.documentView)
+			self.updateView()
 			
-			if let um = undoManager {
-				um.registerUndoWithTarget(self, selector: Selector("addTabletFromArchivedData:"), object: data)
-				um.setActionName(NSLocalizedString("Remove tablet", comment: ""))
+			// Register undo operation. Do not retain the QBETablet but instead serialize, so all caches are properly destroyed.
+			if undo {
+				let data = NSKeyedArchiver.archivedDataWithRootObject(tablet)
+				
+				if let um = self.undoManager {
+					um.registerUndoWithTarget(self, selector: Selector("addTabletFromArchivedData:"), object: data)
+					um.setActionName(NSLocalizedString("Remove tablet", comment: ""))
+				}
 			}
 		}
 		return true

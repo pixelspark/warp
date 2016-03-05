@@ -185,16 +185,21 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		super.init(coder: coder)
 	}
 	
-	func removeTablet(tablet: QBETablet) {
+	func removeTablet(tablet: QBETablet, completion: (() -> ())? = nil) {
 		for subview in subviews {
 			if let rv = subview as? QBEResizableTabletView {
 				let ct = rv.tabletController.tablet
 				if ct == tablet {
-					subview.removeFromSuperview()
+					subview.removeFromSuperview(true) {
+						assertMainThread()
+						
+						self.tabletsChanged()
+						completion?()
+					}
+					return
 				}
 			}
 		}
-		tabletsChanged()
 	}
 	
 	func addTablet(tabletController: QBETabletViewController, animated: Bool = true, completion: (() -> ())? = nil) {

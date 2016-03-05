@@ -94,10 +94,57 @@ internal extension NSView {
 	func orderFront() {
 		self.superview?.addSubview(self)
 	}
+
+	func removeFromSuperview(animated: Bool, completion: (() -> ())? = nil) {
+		if !animated {
+			self.removeFromSuperview()
+			completion?()
+			return
+		}
+
+		let duration = 0.25
+		self.wantsLayer = true
+
+		CATransaction.begin()
+		CATransaction.setAnimationDuration(duration)
+		CATransaction.setCompletionBlock {
+			self.removeFromSuperview()
+			completion?()
+		}
+		let ta = CABasicAnimation(keyPath: "transform")
+
+		// Scale, but centered in the middle of the view
+		var end = CATransform3DIdentity
+		end = CATransform3DTranslate(end, self.bounds.size.width/2, self.bounds.size.height/2, 0.0)
+		end = CATransform3DScale(end, 0.01, 0.01, 0.01)
+		end = CATransform3DTranslate(end, -self.bounds.size.width/2, -self.bounds.size.height/2, 0.0)
+
+		var begin = CATransform3DIdentity
+		begin = CATransform3DTranslate(begin, self.bounds.size.width/2, self.bounds.size.height/2, 0.0)
+		begin = CATransform3DScale(begin, 1.0, 1.0, 0.0)
+		begin = CATransform3DTranslate(begin, -self.bounds.size.width/2, -self.bounds.size.height/2, 0.0)
+
+		// Fade in
+		ta.fromValue = NSValue(CATransform3D: begin)
+		ta.toValue = NSValue(CATransform3D: end)
+		ta.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
+		self.layer?.addAnimation(ta, forKey: "transformAnimation")
+
+		let oa = CABasicAnimation(keyPath: "opacity")
+		oa.fromValue = 1.0
+		oa.toValue = 0.0
+		oa.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
+		oa.fillMode = kCAFillModeForwards
+		oa.removedOnCompletion = false
+		self.layer?.addAnimation(oa, forKey: "opacityAnimation")
+
+		CATransaction.commit()
+	}
 	
 	func addSubview(view: NSView, animated: Bool, completion: (() -> ())? = nil) {
 		if !animated {
 			self.addSubview(view)
+			completion?()
 			return
 		}
 		
