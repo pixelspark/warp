@@ -630,6 +630,8 @@ internal enum QBEEditingMode {
 
 	/** This delegate method is called by the data view whenever a value is added using the template new row/column. */
 	func dataView(view: QBEDataViewController, addValue value: Value, inRow: Int?, column: Int?, callback: (Bool) -> ()) {
+		var value = value
+
 		suggestions?.cancel()
 
 		switch self.editingMode {
@@ -657,6 +659,12 @@ internal enum QBEEditingMode {
 			}
 
 		case .Editing(identifiers: _, editingRaster: let editingRaster):
+			// If a formula was typed in, calculate the result first
+			if let f = Formula(formula: value.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
+				let row = inRow == nil ? Row() : Row(editingRaster[inRow!], columnNames: editingRaster.columnNames)
+				value = f.root.apply(row, foreign: nil, inputValue: nil)
+			}
+
 			// If we are in editing mode, the new value will actually be added to the source data set.
 			if let md = self.currentStep?.mutableData {
 				let job = Job(.UserInitiated)
@@ -680,6 +688,7 @@ internal enum QBEEditingMode {
 											asyncMain {
 												NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 												self.presentRaster(editingRaster)
+												self.dataViewController?.sizeColumnToFit(columnName)
 												callback(true)
 											}
 										}
@@ -697,7 +706,8 @@ internal enum QBEEditingMode {
 						else {
 							// need to add a new column first
 							var columns = columnNames
-							columns.append(Column.defaultNameForNewColumn(columns))
+							let newColumnName = Column.defaultNameForNewColumn(columns)
+							columns.append(newColumnName)
 							let mutation = DataMutation.Alter(DataDefinition(columnNames: columns))
 							md.performMutation(mutation, job: job) { result in
 								switch result {
@@ -712,11 +722,17 @@ internal enum QBEEditingMode {
 
 											if let rn = inRow {
 												self.dataView(view, didChangeValue: Value.EmptyValue, toValue: value, inRow: rn, column: columns.count-1)
+												self.dataViewController?.sizeColumnToFit(newColumnName)
 												callback(true)
 											}
 											else {
 												// We're also adding a new row
-												self.dataView(view, addValue: value, inRow: nil, column: columns.count-1, callback: callback)
+												self.dataView(view, addValue: value, inRow: nil, column: columns.count-1) { b in
+													asyncMain {
+														self.dataViewController?.sizeColumnToFit(newColumnName)
+														callback(b)
+													}
+												}
 											}
 										}
 									}
@@ -743,10 +759,16 @@ internal enum QBEEditingMode {
 	}
 
 	private func editValue(oldValue: Value, toValue: Value, inRow: Int, column: Int, identifiers: Set<Column>?) {
+		var toValue = toValue
 		let errorMessage = String(format: NSLocalizedString("Cannot change '%@' to '%@'", comment: ""), oldValue.stringValue ?? "", toValue.stringValue ?? "")
 
 		// In editing mode, we perform the edit on the mutable data set
 		if let md = self.currentStep?.mutableData, case .Editing(identifiers:_, editingRaster: let editingRaster) = self.editingMode {
+			// If a formula was typed in, calculate the result first
+			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
+				toValue = f.root.apply(Row(editingRaster[inRow], columnNames: editingRaster.columnNames), foreign: nil, inputValue: oldValue)
+			}
+
 			let job = Job(.UserInitiated)
 			md.data(job) { result in
 				switch result {

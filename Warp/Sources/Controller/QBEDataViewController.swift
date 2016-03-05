@@ -411,6 +411,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 
+	func sizeColumnToFit(name: Column) {
+		if let idx = self.raster?.indexOfColumnWithName(name) {
+			self.sizeColumnToFit(UInt(idx))
+		}
+	}
+
 	@IBAction func sizeAllColumnsToFit(sender: NSObject) {
 		self.sizeAllColumnsToFit()
 	}
