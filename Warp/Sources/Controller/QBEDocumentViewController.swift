@@ -428,7 +428,7 @@ import WarpCore
 									asyncMain {
 										jobProgressView.dismissController(sender)
 										if let first = columnNames.first, let last = columnNames.last where columnNames.count > 1 {
-											let tablet = QBEChartTablet(source: sourceTablet, type: .Line, xExpression: Sibling(columnName: first), yExpression: Sibling(columnName: last))
+											let tablet = QBEChartTablet(source: sourceTablet, type: .Bar, xExpression: Sibling(columnName: first), yExpression: Sibling(columnName: last))
 											self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 										}
 										else {
