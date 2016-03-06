@@ -226,17 +226,6 @@ DQ
                                                 </items>
                                             </menu>
                                         </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="m54-Is-iLE"/>
-                                        <menuItem title="Load data from a file..." keyEquivalent="O" id="fB4-We-7hb">
-                                            <connections>
-                                                <action selector="addTabletFromFile:" target="Ady-hI-5gd" id="pcR-xW-Bd7"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Save data to a file..." keyEquivalent="S" id="5as-D7-7Ei">
-                                            <connections>
-                                                <action selector="exportFile:" target="Ady-hI-5gd" id="h5w-eg-g6C"/>
-                                            </connections>
-                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="WxQ-HX-TGu"/>
                                         <menuItem title="Close" keyEquivalent="w" id="DVo-aG-piG">
                                             <connections>
@@ -260,6 +249,17 @@ DQ
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="aJh-i4-bef"/>
+                                        <menuItem title="Import data..." keyEquivalent="O" id="fB4-We-7hb">
+                                            <connections>
+                                                <action selector="addTabletFromFile:" target="Ady-hI-5gd" id="pcR-xW-Bd7"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Export data..." keyEquivalent="S" id="5as-D7-7Ei">
+                                            <connections>
+                                                <action selector="exportFile:" target="Ady-hI-5gd" id="h5w-eg-g6C"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="m54-Is-iLE"/>
                                         <menuItem title="Page Setup…" keyEquivalent="P" id="qIS-W8-SiK">
                                             <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
                                             <connections>
@@ -335,31 +335,6 @@ DQ
                                             <connections>
                                                 <action selector="stopEditing:" target="Ady-hI-5gd" id="kID-Yy-68l"/>
                                             </connections>
-                                        </menuItem>
-                                        <menuItem title="Source operations" id="LGC-Mi-RUG">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <menu key="submenu" title="Source operations" id="sRO-jn-RSu">
-                                                <items>
-                                                    <menuItem title="Remove all rows..." id="LPb-df-lkY">
-                                                        <modifierMask key="keyEquivalentModifierMask"/>
-                                                        <connections>
-                                                            <action selector="truncateStore:" target="Ady-hI-5gd" id="TIk-sw-KFb"/>
-                                                        </connections>
-                                                    </menuItem>
-                                                    <menuItem title="Delete data set..." id="NQ3-pS-d85">
-                                                        <modifierMask key="keyEquivalentModifierMask"/>
-                                                        <connections>
-                                                            <action selector="dropStore:" target="Ady-hI-5gd" id="Y59-ih-jue"/>
-                                                        </connections>
-                                                    </menuItem>
-                                                    <menuItem title="Change structure..." id="9CM-oY-bpM">
-                                                        <modifierMask key="keyEquivalentModifierMask"/>
-                                                        <connections>
-                                                            <action selector="alterStore:" target="Ady-hI-5gd" id="X1H-io-21q"/>
-                                                        </connections>
-                                                    </menuItem>
-                                                </items>
-                                            </menu>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="QmF-ID-jEv"/>
                                         <menuItem title="Format" id="jxT-CU-nIS">
@@ -1021,6 +996,31 @@ CA
                                             <connections>
                                                 <action selector="crawl:" target="Ady-hI-5gd" id="9Pk-ZZ-CZq"/>
                                             </connections>
+                                        </menuItem>
+                                        <menuItem title="Source" id="LGC-Mi-RUG">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Source" id="sRO-jn-RSu">
+                                                <items>
+                                                    <menuItem title="Remove all rows..." id="LPb-df-lkY">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="truncateStore:" target="Ady-hI-5gd" id="TIk-sw-KFb"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Delete data set..." id="NQ3-pS-d85">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="dropStore:" target="Ady-hI-5gd" id="Y59-ih-jue"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Change structure..." id="9CM-oY-bpM">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="alterStore:" target="Ady-hI-5gd" id="X1H-io-21q"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
                                         </menuItem>
                                     </items>
                                 </menu>

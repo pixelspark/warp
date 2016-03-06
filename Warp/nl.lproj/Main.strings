@@ -19,7 +19,7 @@
 "51V-E9-1Wy.paletteLabel" = "Add file";
 "5QF-Oa-p0T.title" = "Wijzig";
 "5Vv-lz-BsD.title" = "Kopieer stijl";
-"5as-D7-7Ei.title" = "Sla gegevens op in een bestand...";
+"5as-D7-7Ei.title" = "Exporteer gegevens...";
 "5kV-Vb-QxS.title" = "Over...";
 "67j-oU-aM5.title" = "Verwijder dubbele rijen";
 "6dh-zS-Vam.title" = "Opnieuw";
@@ -144,7 +144,7 @@
 "dlO-l3-BJL.label" = "Vooruit";
 "dlO-l3-BJL.paletteLabel" = "Ga vooruit";
 "eGF-3B-6fa.title" = "Kolommen";
-"fB4-We-7hb.title" = "Laad gegevens uit een bestand...";
+"fB4-We-7hb.title" = "Importeer gegevens...";
 "Aqi-Ro-Cqz.title" = "Laad gegevens uit RethinkDB...";
 "fMr-YO-xzR.title" = "Toepassen";
 "gVA-U4-sdL.title" = "Plakken";
@@ -298,7 +298,7 @@
 "MQx-KQ-iXd.title" = "Voeg toe als stap";
 "C24-Sv-YCP.title" = "Naar achtergrond";
 "68C-Sa-h9M.title" = "Voer uit";
-"LGC-Mi-RUG.title" = "Bronoperaties";
+"LGC-Mi-RUG.title" = "Bron";
 "LPb-df-lkY.title" = "Verwijder alle rijen...";
 "NQ3-pS-d85.title" = "Verwijder dataset...";
 "xwx-V7-Rym.label" = "Bereken";
