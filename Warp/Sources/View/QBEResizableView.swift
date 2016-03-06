@@ -3,7 +3,7 @@ import Cocoa
 
 protocol QBEResizableDelegate: NSObjectProtocol {
 	func resizableView(view: QBEResizableView, changedFrameTo: CGRect)
-	func resizableViewWasSelected(view: QBEResizableView)
+	func resizableViewWasSelected(view: QBEResizableView, wasAlreadySelected: Bool)
 	func resizableViewWasDoubleClicked(view: QBEResizableView)
 }
 
@@ -306,9 +306,7 @@ internal class QBEResizerView: NSView {
 	func mouseDownInSubiew(event: NSEvent) {
 		if resizingSession == nil || !resizingSession!.moved {
 			if let p = superview as? QBEResizableView {
-				if !p.selected {
-					p.delegate?.resizableViewWasSelected(p)
-				}
+				p.delegate?.resizableViewWasSelected(p, wasAlreadySelected: p.selected)
 			}
 		}
 	}
@@ -330,9 +328,7 @@ internal class QBEResizerView: NSView {
 				
 			if resizingSession == nil || !resizingSession!.moved {
 				if let p = superview as? QBEResizableView {
-					if !p.selected {
-						p.delegate?.resizableViewWasSelected(p)
-					}
+					p.delegate?.resizableViewWasSelected(p, wasAlreadySelected: p.selected)
 				}
 			}
 		}
