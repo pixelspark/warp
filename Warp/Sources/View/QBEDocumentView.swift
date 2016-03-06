@@ -34,7 +34,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 			for sv in subviews {
 				if let tv = sv as? QBEResizableTabletView {
 					if tv.tabletController.tablet == t {
-						selectView(tv, wasAlreadySelected: !notifyDelegate)
+						selectView(tv, notifyDelegate: notifyDelegate)
 						return
 					}
 				}
@@ -52,7 +52,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		}
 	}
 	
-	private func selectView(view: QBEResizableTabletView?, wasAlreadySelected: Bool = false) {
+	private func selectView(view: QBEResizableTabletView?, notifyDelegate: Bool = true) {
 		// Deselect other views
 		for sv in subviews {
 			if let tv = sv as? QBEResizableTabletView {
@@ -60,7 +60,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 				if tv == view {
 					self.window?.makeFirstResponder(tv.tabletController.view)
 
-					if !wasAlreadySelected {
+					if notifyDelegate {
 						delegate?.documentView(self, didSelectTablet: tv.tabletController.tablet)
 					}
 					self.window?.update()
@@ -69,7 +69,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		}
 		
 		if view == nil {
-			if !wasAlreadySelected {
+			if notifyDelegate {
 				delegate?.documentView(self, didSelectTablet: nil)
 			}
 		}
@@ -79,9 +79,9 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		delegate?.documentView(self, wantsZoomToView: view)
 	}
 	
-	func resizableViewWasSelected(view: QBEResizableView, wasAlreadySelected: Bool) {
+	func resizableViewWasSelected(view: QBEResizableView) {
 		flowchartView.selectedArrow = nil
-		selectView(view as? QBEResizableTabletView, wasAlreadySelected: wasAlreadySelected)
+		selectView(view as? QBEResizableTabletView)
 	}
 	
 	func resizableViewWasDoubleClicked(view: QBEResizableView) {
