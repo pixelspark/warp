@@ -232,6 +232,7 @@ private class QBEResizableTabletView: QBEResizableView {
 class QBEScrollView: NSScrollView {
 	private var oldZoomedRect: NSRect? = nil
 	private(set) var magnifiedView: NSView? = nil
+	private var magnificationInProgress = false
 	
 	func zoomView(view: NSView, completion: (() -> ())? = nil) {
 		// First just try to magnify to the tablet
@@ -259,6 +260,21 @@ class QBEScrollView: NSScrollView {
 	}
 	
 	func magnifyView(view: NSView?, completion: (() -> ())? = nil) {
+		assertMainThread()
+
+		if magnificationInProgress {
+			completion?()
+			return
+		}
+
+		magnificationInProgress = true
+
+		let completer = {() -> () in
+			assertMainThread()
+			self.magnificationInProgress = false
+			completion?()
+		}
+
 		let zoom = {() -> () in
 			if let zv = view {
 				self.magnifiedView = zv
@@ -282,7 +298,7 @@ class QBEScrollView: NSScrollView {
 					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
 						ac.duration = 0.1
 						zv.animator().frame = self.documentVisibleRect.inset(-11.0)
-					}, completionHandler: completion)
+					}, completionHandler: completer)
 				}
 			}
 			else {
@@ -295,10 +311,10 @@ class QBEScrollView: NSScrollView {
 					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
 						ac.duration = 0.3
 						oldView.animator().scrollRectToVisible(oldView.bounds)
-					}, completionHandler: completion)
+					}, completionHandler: completer)
 				}
 				else {
-					completion?()
+					completer()
 				}
 			}
 		}
