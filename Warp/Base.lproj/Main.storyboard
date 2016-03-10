@@ -313,6 +313,14 @@ CA
                                                 <action selector="delete:" target="Ady-hI-5gd" id="0Mk-Ml-PaM"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Remove this step" alternate="YES" id="oDn-7p-C6j">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+CA
+</string>
+                                            <connections>
+                                                <action selector="removeStep:" target="Ady-hI-5gd" id="nnF-n3-wQB"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem title="Select All" keyEquivalent="a" id="Ruw-6m-B2m">
                                             <connections>
                                                 <action selector="selectAll:" target="Ady-hI-5gd" id="VNm-Mi-diN"/>
@@ -767,14 +775,6 @@ DQ
                                         <menuItem title="Go to previous step" keyEquivalent="" id="BXv-d1-8v7">
                                             <connections>
                                                 <action selector="goBack:" target="Ady-hI-5gd" id="rZN-1k-bHM"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Remove this step" id="oDn-7p-C6j">
-                                            <string key="keyEquivalent" base64-UTF8="YES">
-CA
-</string>
-                                            <connections>
-                                                <action selector="removeStep:" target="Ady-hI-5gd" id="nnF-n3-wQB"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="PYa-SM-ZQg"/>
