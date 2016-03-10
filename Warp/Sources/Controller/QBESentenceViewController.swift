@@ -159,6 +159,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			let item = NSMenuItem()
 			item.view = borderView
 			let menu = NSMenu()
+			menu.autoenablesItems = false
 			menu.addItem(item)
 			menu.addItem(NSMenuItem(title: NSLocalizedString("OK", comment: ""), action: Selector("dismissInputEditor:"), keyEquivalent: ""))
 
