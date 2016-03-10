@@ -2,10 +2,6 @@ import Foundation
 import Cocoa
 
 internal class QBEWindowController: NSWindowController {
-	@IBOutlet var stopButton: NSButton!
-	@IBOutlet var calculateButton: NSButton!
-	@IBOutlet var zoomButton: NSSegmentedControl!
-
 	override var document: AnyObject? {
 		didSet {
 			if let qbeDocumentViewController = window!.contentViewController as? QBEDocumentViewController {
