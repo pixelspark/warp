@@ -4,7 +4,7 @@ import WarpCore
 @IBDesignable class QBEStepsItemView: NSView {
 	private var highlighted = false
 	@IBOutlet var label: NSTextField?
-	@IBOutlet var imageView: NSButton?
+	@IBOutlet var imageView: NSImageView?
 	@IBOutlet var previousImageView: NSImageView?
 	@IBOutlet var nextImageView: NSImageView?
 	

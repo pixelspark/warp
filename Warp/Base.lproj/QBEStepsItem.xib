@@ -24,31 +24,25 @@
                     <rect key="frame" x="-8" y="4" width="18" height="27"/>
                     <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="NextIcon" id="jpo-7y-WoM"/>
                 </imageView>
-                <button autoresizesSubviews="NO" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="90M-sr-YFs">
-                    <rect key="frame" x="16" y="5" width="24" height="26"/>
+                <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="8LM-Wh-vXg">
+                    <rect key="frame" x="16" y="4" width="24" height="26"/>
                     <constraints>
-                        <constraint firstAttribute="width" constant="24" id="Evl-If-Gdm"/>
-                        <constraint firstAttribute="height" constant="26" id="K0U-4x-CT5"/>
+                        <constraint firstAttribute="width" constant="24" id="4Yo-zU-Cgq"/>
+                        <constraint firstAttribute="height" constant="26" id="jIh-Vf-UWD"/>
                     </constraints>
-                    <buttonCell key="cell" type="bevel" bezelStyle="rounded" imagePosition="only" alignment="center" controlSize="small" enabled="NO" imageScaling="proportionallyDown" inset="2" id="Z5B-H7-dmH">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="smallSystem"/>
-                    </buttonCell>
-                    <connections>
-                        <action selector="showSuggestions:" target="p82-vT-MLo" id="2JS-2N-9Nn"/>
-                    </connections>
-                </button>
+                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="IfL-td-2h1"/>
+                </imageView>
             </subviews>
             <constraints>
                 <constraint firstItem="QCt-Sl-a6l" firstAttribute="leading" secondItem="p82-vT-MLo" secondAttribute="leading" constant="-8" id="2bU-3S-a3g"/>
+                <constraint firstItem="8LM-Wh-vXg" firstAttribute="centerY" secondItem="p82-vT-MLo" secondAttribute="centerY" id="9Rz-Zf-Fxv"/>
                 <constraint firstAttribute="centerY" secondItem="cYg-Eq-9dj" secondAttribute="centerY" id="Bvw-m2-L52"/>
-                <constraint firstAttribute="centerX" secondItem="90M-sr-YFs" secondAttribute="centerX" id="SLc-LN-M1c"/>
-                <constraint firstAttribute="centerY" secondItem="90M-sr-YFs" secondAttribute="centerY" id="Xr6-wq-mCh"/>
                 <constraint firstAttribute="trailing" secondItem="cYg-Eq-9dj" secondAttribute="trailing" constant="-10" id="ZeY-5s-wQi"/>
+                <constraint firstItem="8LM-Wh-vXg" firstAttribute="centerX" secondItem="p82-vT-MLo" secondAttribute="centerX" id="oed-yB-ALp"/>
                 <constraint firstAttribute="centerY" secondItem="QCt-Sl-a6l" secondAttribute="centerY" id="zTn-T8-OLe"/>
             </constraints>
             <connections>
-                <outlet property="imageView" destination="90M-sr-YFs" id="IcJ-Hk-ZcP"/>
+                <outlet property="imageView" destination="8LM-Wh-vXg" id="zkN-gX-dAD"/>
                 <outlet property="menu" destination="ZB5-QH-UND" id="PcN-Cv-nlH"/>
                 <outlet property="nextImageView" destination="cYg-Eq-9dj" id="Zms-AI-P7x"/>
                 <outlet property="previousImageView" destination="QCt-Sl-a6l" id="HeD-Ko-j5t"/>
