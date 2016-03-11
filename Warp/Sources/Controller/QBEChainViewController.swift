@@ -1223,7 +1223,7 @@ internal enum QBEEditingMode {
 			// Show a tip if there are alternatives
 			if steps.count > 1 {
 				QBESettings.sharedInstance.showTip("suggestionsTip") {
-					self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, click on the newly added step.", comment: "Tip for suggestions button"), atView: self.stepsViewController!.view)
+					self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, right-click on the newly added step.", comment: "Tip for suggestions button"), atView: self.stepsViewController!.view)
 				}
 			}
 		}
