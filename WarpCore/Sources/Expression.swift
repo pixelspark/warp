@@ -474,7 +474,7 @@ public final class Comparison: Expression {
 	}
 
 	public override func isEqual(object: AnyObject?) -> Bool {
-		if let o = object as? Comparison where o.first == self.first && o.second == self.second {
+		if let o = object as? Comparison where o.first == self.first && o.second == self.second && o.type == self.type {
 			return true
 		}
 		return super.isEqual(object)
