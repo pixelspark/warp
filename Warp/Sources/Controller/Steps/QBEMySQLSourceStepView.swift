@@ -5,12 +5,13 @@ import WarpCore
 internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEMySQLSourceStep>, QBEAlterTableViewDelegate {
 	@IBOutlet var userField: NSTextField?
 	@IBOutlet var passwordField: NSTextField?
-	@IBOutlet var hostField: NSTextField?
+	@IBOutlet var hostField: NSComboBox?
 	@IBOutlet var portField: NSTextField?
 	@IBOutlet var infoLabel: NSTextField?
 	@IBOutlet var infoProgress: NSProgressIndicator?
 	@IBOutlet var infoIcon: NSImageView?
 	@IBOutlet var createTableButton: NSButton?
+	private let serviceDataSource = QBESecretsDataSource(serviceType: "mysql")
 
 	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
 		super.init(configurable: configurable, delegate: delegate, nibName: "QBEMySQLSourceStepView", bundle: nil)
@@ -21,6 +22,7 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 	}
 	
 	internal override func viewWillAppear() {
+		self.hostField?.dataSource = self.serviceDataSource
 		super.viewWillAppear()
 		updateView()
 	}
@@ -56,7 +58,14 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 		}
 		
 		if let u = self.hostField?.stringValue where u != step.host {
-			step.host = u
+			if let url = NSURL(string: u) {
+				step.user = url.user ?? step.user
+				step.host = url.host ?? step.host
+				step.port = url.port?.integerValue ?? step.port
+			}
+			else {
+				step.host = u
+			}
 			changed = true
 		}
 		

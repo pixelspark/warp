@@ -8,6 +8,40 @@ public class QBESecret {
 	let accountName: String
 	let friendlyName: String
 
+	public static func secretsForService(serviceType: String) -> [QBESecret] {
+		let q = [
+			kSecClass as String: kSecClassGenericPassword,
+			//kSecAttrService as String: serviceType,
+			kSecReturnAttributes as String: kCFBooleanTrue,
+			kSecReturnRef as String: kCFBooleanTrue,
+			kSecMatchLimit as String: kSecMatchLimitAll
+		]
+
+		var result: AnyObject?
+		let status = withUnsafeMutablePointer(&result) {
+			SecItemCopyMatching(q, UnsafeMutablePointer($0))
+		}
+
+		if status == errSecSuccess {
+			if let items = result as? [[String: AnyObject]] {
+				var services: [QBESecret] = []
+				for item in items {
+					if	let sn = item[kSecAttrService as String] as? String,
+						let serviceURL = NSURL(string: sn) ,
+						let accountName = item[kSecAttrAccount as String] as? String
+						where serviceURL.scheme == serviceType {
+						services.append(QBESecret(serviceType: serviceType, host: serviceURL.host!, port: serviceURL.port!.integerValue, account: accountName, friendlyName: sn))
+					}
+				}
+				return services
+			}
+			else {
+				return []
+			}
+		}
+		return []
+	}
+
 	/** The service type is a short identifier of the kind of service this secret is associated with, e.g. 'mysql'. The
 	host is the name of the remote computer where the service is located (either a domain name or IP address), or simply
 	'localhost' if the secret is on the local computer (note that QBESecret will not attempt to resolve domain names). The
@@ -36,6 +70,14 @@ public class QBESecret {
 			kSecAttrAccount as String: accountName,
 			kSecAttrGeneric as String: accountName
 		]
+	}
+
+	public var url: NSURL? {
+		if let url = NSURLComponents(string: self.serviceName) {
+			url.user = self.accountName
+			return url.URL
+		}
+		return nil
 	}
 
 	public var data: NSData? {
@@ -107,5 +149,23 @@ public class QBESecret {
 			let data = newValue?.dataUsingEncoding(NSUTF8StringEncoding)
 			setData(data)
 		}
+	}
+}
+
+internal class QBESecretsDataSource: NSObject, NSComboBoxDataSource {
+	let serviceType: String
+	var secrets: [QBESecret] = []
+
+	init(serviceType: String) {
+		self.serviceType = serviceType
+	}
+
+	@objc func comboBox(aComboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> AnyObject {
+		return self.secrets[index].url ?? ""
+	}
+
+	@objc func numberOfItemsInComboBox(aComboBox: NSComboBox) -> Int {
+		self.secrets = QBESecret.secretsForService(self.serviceType)
+		return self.secrets.count
 	}
 }

@@ -5,18 +5,20 @@ import WarpCore
 internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPostgresSourceStep>, QBEAlterTableViewDelegate {
 	@IBOutlet var userField: NSTextField?
 	@IBOutlet var passwordField: NSTextField?
-	@IBOutlet var hostField: NSTextField?
+	@IBOutlet var hostField: NSComboBox?
 	@IBOutlet var portField: NSTextField?
 	@IBOutlet var infoLabel: NSTextField?
 	@IBOutlet var infoProgress: NSProgressIndicator?
 	@IBOutlet var infoIcon: NSImageView?
 	@IBOutlet var createTableButton: NSButton?
+	let serviceDataSource = QBESecretsDataSource(serviceType: "postgres")
 
 	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
 		super.init(configurable: configurable, delegate: delegate, nibName: "QBEPostgresStepView", bundle: nil)
 	}
 	
 	internal override func viewWillAppear() {
+		self.hostField?.dataSource = self.serviceDataSource
 		super.viewWillAppear()
 		updateView()
 	}
@@ -52,7 +54,14 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 		}
 		
 		if let u = self.hostField?.stringValue where u != step.host {
-			step.host = u
+			if let url = NSURL(string: u) {
+				step.user = url.user ?? step.user
+				step.host = url.host ?? step.host
+				step.port = url.port?.integerValue ?? step.port
+			}
+			else {
+				step.host = u
+			}
 			changed = true
 		}
 		
@@ -75,6 +84,8 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 
 	private func updateView() {
 		checkConnectionJob = Job(.UserInitiated)
+
+		self.hostField?.reloadData()
 
 		self.userField?.stringValue = step.user ?? ""
 		self.passwordField?.stringValue = step.password.stringValue ?? ""
