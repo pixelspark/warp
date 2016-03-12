@@ -55,9 +55,9 @@ private class QBEPrestoStream: NSObject, Stream {
 		self.nextURI = self.url.URLByAppendingPathComponent("/v1/statement")
 		super.init()
 		
-		let c = { [unowned self] (job: Job, callback: (Fallible<[Column]>) -> ()) -> () in
-			self.awaitColumns(job) {
-				callback(self.columns ?? .Failure(NSLocalizedString("Could not load column names from Presto.", comment: "")))
+		let c = { [weak self] (job: Job, callback: (Fallible<[Column]>) -> ()) -> () in
+			self?.awaitColumns(job) {
+				callback(self?.columns ?? .Failure(NSLocalizedString("Could not load column names from Presto.", comment: "")))
 			}
 		}
 		
