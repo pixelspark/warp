@@ -2132,17 +2132,17 @@ CA
             <objects>
                 <viewController storyboardIdentifier="keyViewController" id="TSl-d3-i7I" customClass="QBEKeySelectionViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="5Jk-kt-4Od">
-                        <rect key="frame" x="0.0" y="0.0" width="743" height="323"/>
+                        <rect key="frame" x="0.0" y="0.0" width="520" height="323"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="E0f-k7-r7a">
-                                <rect key="frame" x="10" y="41" width="723" height="218"/>
+                                <rect key="frame" x="10" y="41" width="500" height="201"/>
                                 <clipView key="contentView" id="Rds-0v-xfP">
-                                    <rect key="frame" x="1" y="1" width="721" height="216"/>
+                                    <rect key="frame" x="1" y="1" width="498" height="199"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="UDJ-gV-4Hz">
-                                            <rect key="frame" x="0.0" y="0.0" width="721" height="216"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="498" height="199"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -2160,7 +2160,7 @@ CA
                                                     </buttonCell>
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                 </tableColumn>
-                                                <tableColumn identifier="columnName" editable="NO" width="675" minWidth="40" maxWidth="1000" id="kZM-3H-hCQ">
+                                                <tableColumn identifier="columnName" editable="NO" width="452" minWidth="40" maxWidth="1000" id="kZM-3H-hCQ">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -2191,7 +2191,7 @@ CA
                                 </scroller>
                             </scrollView>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="sL0-5G-441">
-                                <rect key="frame" x="680" y="3" width="59" height="32"/>
+                                <rect key="frame" x="457" y="3" width="59" height="32"/>
                                 <buttonCell key="cell" type="push" title="OK" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="0eF-Qz-HQH">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -2204,15 +2204,15 @@ DQ
                                 </connections>
                             </button>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="6cu-Mo-K3B">
-                                <rect key="frame" x="8" y="296" width="727" height="17"/>
+                                <rect key="frame" x="8" y="296" width="504" height="17"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Please tell Warp how it can identify rows." id="ntV-Kx-g9d">
                                     <font key="font" metaFont="systemBold"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="xn7-qY-QCk">
-                                <rect key="frame" x="8" y="269" width="727" height="17"/>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="xn7-qY-QCk">
+                                <rect key="frame" x="8" y="252" width="504" height="34"/>
                                 <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="In order to be able to make changes to this data set, Warp needs to know which columns are unique identifiers of a row." id="x54-SG-KZu">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -2220,7 +2220,7 @@ DQ
                                 </textFieldCell>
                             </textField>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="3hg-Za-CYR">
-                                <rect key="frame" x="600" y="3" width="82" height="32"/>
+                                <rect key="frame" x="377" y="3" width="82" height="32"/>
                                 <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="1ZX-8m-y8m">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
