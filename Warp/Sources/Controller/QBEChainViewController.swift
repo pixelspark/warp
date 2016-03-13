@@ -49,7 +49,7 @@ internal enum QBEEditingMode {
 	case Editing(identifiers: Set<Column>?, editingRaster: Raster)
 }
 
-@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
+@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate, QBEKeySelectionViewControllerDelegate {
 	private var suggestions: Future<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator()
 	private var dataViewController: QBEDataViewController?
@@ -1741,26 +1741,27 @@ internal enum QBEEditingMode {
 				asyncMain {
 					switch self.editingMode {
 					case .EnablingEditing:
-						switch result {
-						case .Success(let ids):
-							self.calculator.currentRaster?.get { result in
+						if case .Success(let ids) = result where ids != nil {
+							self.startEditingWithIdentifier(ids!)
+						}
+						else {
+							// Cannot start editing right now
+							self.editingMode = .NotEditing
+
+							md.columnNames(job) { result in
 								switch result {
-								case .Success(let editingRaster):
+								case .Success(let columnNames):
 									asyncMain {
-										self.editingMode = .Editing(identifiers: ids, editingRaster: editingRaster.clone(false))
+										let ctr = self.storyboard?.instantiateControllerWithIdentifier("keyViewController") as! QBEKeySelectionViewController
+										ctr.columnNames = columnNames
+										ctr.delegate = self
+										self.presentViewControllerAsSheet(ctr)
 									}
 
 								case .Failure(let e):
-									asyncMain {
-										NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .WarningAlertStyle, window: self.view.window)
-										self.editingMode = .NotEditing
-									}
+									NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .WarningAlertStyle, window: self.view.window)
 								}
 							}
-
-						case .Failure(let e):
-							NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .WarningAlertStyle, window: self.view.window)
-							self.editingMode = .NotEditing
 						}
 
 					default:
@@ -1773,6 +1774,38 @@ internal enum QBEEditingMode {
 			}
 		}
 		self.view.window?.update()
+	}
+
+	func keySelectionViewController(controller: QBEKeySelectionViewController, didSelectKeyColumns columns: Set<Column>) {
+		self.startEditingWithIdentifier(columns)
+	}
+
+	private func startEditingWithIdentifier(ids: Set<Column>) {
+		asyncMain {
+			switch self.editingMode {
+			case .EnablingEditing, .NotEditing:
+				self.calculator.currentRaster?.get { result in
+					switch result {
+					case .Success(let editingRaster):
+						asyncMain {
+							self.editingMode = .Editing(identifiers: ids, editingRaster: editingRaster.clone(false))
+							self.view.window?.update()
+						}
+
+					case .Failure(let e):
+						asyncMain {
+							NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .WarningAlertStyle, window: self.view.window)
+							self.editingMode = .NotEditing
+						}
+					}
+				}
+
+			case .Editing(identifiers: _, editingRaster: _):
+				// Already editing
+				break
+			}
+			self.view.window?.update()
+		}
 	}
 
 	@IBAction func stopEditing(sender: NSObject) {

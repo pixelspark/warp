@@ -588,10 +588,51 @@ class QBEMySQLMutableData: SQLMutableData {
 					}
 
 					if primaryColumns.count == 0 {
-						return callback(.Failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
-					}
+						// No primary key, find a unique key instead
+						switch connection.query("SELECT `COLUMN_NAME`,`INDEX_NAME` FROM `information_schema`.`STATISTICS` WHERE (`TABLE_SCHEMA` = \(dbn)) AND (`TABLE_NAME` = \(tbn)) AND NOT(`NULLABLE`) AND NOT(`NON_UNIQUE`) ORDER BY index_name ASC") {
+						case .Success(let r):
+							var uniqueColumns = Set<Column>()
+							var uniqueIndexName: String? = nil
 
-					callback(.Success(primaryColumns))
+							for row in r {
+								switch row {
+								case .Success(let row):
+									// Use all columns from the first index we see
+									if let indexName = row[1].stringValue {
+										if uniqueIndexName == nil {
+											uniqueIndexName = indexName
+										}
+										else if uniqueIndexName! != indexName {
+											break
+										}
+									}
+
+									if let c = row[0].stringValue {
+										uniqueColumns.insert(Column(c))
+									}
+									else {
+										return callback(.Failure("Invalid column name received"))
+									}
+								case .Failure(let e):
+									return callback(.Failure(e))
+								}
+							}
+
+							if uniqueColumns.isEmpty {
+								return callback(.Failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
+							}
+							else {
+								return callback(.Success(uniqueColumns))
+							}
+
+						case .Failure(let e):
+							return callback(.Failure(e))
+
+						}
+					}
+					else {
+						callback(.Success(primaryColumns))
+					}
 
 				case .Failure(let e):
 					return callback(.Failure(e))
