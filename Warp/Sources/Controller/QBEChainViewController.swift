@@ -1734,6 +1734,8 @@ internal enum QBEEditingMode {
 	}
 
 	@IBAction func startEditing(sender: NSObject) {
+		let forceCustomKeySelection = self.view.window?.currentEvent?.modifierFlags.contains(.AlternateKeyMask) ?? false
+
 		if let md = self.currentStep?.mutableData where self.supportsEditing {
 			self.editingMode = .EnablingEditing
 			let job = Job(.UserInitiated)
@@ -1741,20 +1743,25 @@ internal enum QBEEditingMode {
 				asyncMain {
 					switch self.editingMode {
 					case .EnablingEditing:
-						if case .Success(let ids) = result where ids != nil {
+						if case .Success(let ids) = result where ids != nil && !forceCustomKeySelection {
 							self.startEditingWithIdentifier(ids!)
 						}
 						else {
 							// Cannot start editing right now
 							self.editingMode = .NotEditing
 
-							md.columnNames(job) { result in
-								switch result {
+							md.columnNames(job) { columnsResult in
+								switch columnsResult {
 								case .Success(let columnNames):
 									asyncMain {
 										let ctr = self.storyboard?.instantiateControllerWithIdentifier("keyViewController") as! QBEKeySelectionViewController
 										ctr.columnNames = columnNames
 										ctr.delegate = self
+
+										if case .Success(let ids) = result where ids != nil {
+											ctr.keyColumns = ids!
+										}
+
 										self.presentViewControllerAsSheet(ctr)
 									}
 
