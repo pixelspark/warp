@@ -134,18 +134,21 @@ class QBECalculateStep: QBEStep {
 	class func suggest(change fromValue: Value?, toValue: Value, inRaster: Raster, row: Int, column: Int?, locale: Locale, job: Job?) -> [Expression] {
 		var suggestions: [Expression] = []
 		if fromValue != toValue {
-			if let c = column {
-				// Was a formula typed in?
-				if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
-					// Replace occurrences of the identity with a reference to this column (so users can type '@/1000')
-					let newFormula = f.root.visit { e -> Expression in
-						if e is Identity {
+			// Was a formula typed in?
+			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
+				// Replace occurrences of the identity with a reference to this column (so users can type '@/1000')
+				let newFormula = f.root.visit { e -> Expression in
+					if e is Identity {
+						if let c = column {
 							return Sibling(columnName: inRaster.columnNames[c])
 						}
-						return e
+						else {
+							return Literal(.InvalidValue)
+						}
 					}
-					suggestions.append(newFormula)
+					return e
 				}
+				suggestions.append(newFormula)
 			}
 			Expression.infer(fromValue != nil ? Literal(fromValue!): nil, toValue: toValue, suggestions: &suggestions, level: 8, row: Row(inRaster[row], columnNames: inRaster.columnNames), column: column, job: job)
 		}
