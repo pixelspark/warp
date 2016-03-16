@@ -359,8 +359,13 @@ private class CombinatorGenerator: ValueGenerator {
 				// need a new left value, reset right value
 				self.rightGenerator = self.rightSequence.generate()
 				leftValue = self.leftGenerator.next()
-				if let r = self.rightGenerator.next() {
-					return l & r
+				if let l = leftValue {
+					if let r = self.rightGenerator.next() {
+						return l & r
+					}
+					else {
+						return nil
+					}
 				}
 				else {
 					return nil
