@@ -400,7 +400,7 @@ public class SequenceStream: Stream {
 					}
 				}
 				self.position += rows.count
-				if let rc = self.rowCount {
+				if let rc = self.rowCount where rc > 0 {
 					job.reportProgress(Double(self.position) / Double(rc), forKey: unsafeAddressOf(self).hashValue)
 				}
 
