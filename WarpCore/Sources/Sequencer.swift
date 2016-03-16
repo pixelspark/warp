@@ -109,8 +109,18 @@ public class Sequencer: Parser {
 			assert(items.count == 2, "Invalid range")
 			let startChar: unichar = items[0].utf16.first!
 			let endChar: unichar = items[1].utf16.first!
-			
-			if endChar > startChar {
+
+			// [a-Z] and [A-z] are supposed to be equal to [a-zA-Z]
+			if (startChar == "a".utf16.first! && endChar == "Z".utf16.first!) ||
+				(startChar == "A".utf16.first! && endChar == "z".utf16.first!) {
+				for character in ("a".utf16.first!)...("z".utf16.first!) {
+					r.values.append(Value(String(Character(UnicodeScalar(character)))))
+				}
+				for character in ("A".utf16.first!)...("Z".utf16.first!) {
+					r.values.append(Value(String(Character(UnicodeScalar(character)))))
+				}
+			}
+			else if endChar > startChar {
 				for character in startChar...endChar {
 					r.values.append(Value(String(Character(UnicodeScalar(character)))))
 				}

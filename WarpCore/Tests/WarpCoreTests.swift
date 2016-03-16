@@ -478,7 +478,17 @@ class WarpCoreTests: XCTestCase {
 		checkSequence("[abc][def]", ["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"])
 		checkSequence("[abc]|[def]", ["a","b","c","d","e","f"])
 		checkSequence("[A-E]{2}", ["AA","AB","AC","AD","AE","BA","BB","BC","BD","BE","CA","CB","CC","CD","CE","DA","DB","DC","DD","DE","EA","EB","EC","ED","EE"])
-		
+
+		checkSequence("[0-9]{2}[E-A]{2}", []) // Right side is empty, do not crash and produce empty sequence
+		checkSequence("[a-Z]", ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",
+								"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"])
+
+		checkSequence("[A-z]", ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",
+			"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"])
+
+		checkSequence("[a-zA-Z]", ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",
+			"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"])
+
 		XCTAssert(Sequencer("'") == nil, "Do not parse everything")
 		XCTAssert(Array(Sequencer("[A-C]{2}")!.root!).count == 3*3, "Sequence [A-C]{2} delivers 3*3 items")
 		XCTAssert(Array(Sequencer("[A-Z]{2}")!.root!).count == 26*26, "Sequence [A-Z]{2} delivers 26*26 items")
