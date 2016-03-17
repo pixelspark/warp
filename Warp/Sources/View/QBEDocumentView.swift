@@ -358,7 +358,7 @@ protocol QBEWorkspaceViewDelegate: NSObjectProtocol {
 	func workspaceView(view: QBEWorkspaceView, didReceiveStep: QBEStep, atLocation: CGPoint)
 
 	/** A column set was dropped in the workspace */
-	func workspaceView(view: QBEWorkspaceView, didRecieveColumnSet:[Column], fromDataViewController: QBEDataViewController)
+	func workspaceView(view: QBEWorkspaceView, didReceiveColumnSet:[Column], fromDataViewController: QBEDataViewController)
 }
 
 class QBEWorkspaceView: QBEScrollView {
@@ -451,7 +451,7 @@ class QBEWorkspaceView: QBEScrollView {
 				let dc = grid.dataSource as? QBEDataViewController,
 				let indexSet = NSKeyedUnarchiver.unarchiveObjectWithData(d) as? NSIndexSet,
 				let names = dc.raster?.columnNames.objectsAtIndexes(indexSet) {
-					delegate?.workspaceView(self, didRecieveColumnSet:names, fromDataViewController: dc)
+					delegate?.workspaceView(self, didReceiveColumnSet:names, fromDataViewController: dc)
 			}
 		}
 		else if let files: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {

@@ -585,7 +585,8 @@ import WarpCore
 		}
 	}
 
-	func workspaceView(view: QBEWorkspaceView, didRecieveColumnSet colset: [Column], fromDataViewController dc: QBEDataViewController) {
+	/** Called when a set of columns was dropped onto the document. */
+	func workspaceView(view: QBEWorkspaceView, didReceiveColumnSet colset: [Column], fromDataViewController dc: QBEDataViewController) {
 		if colset.count == 1 {
 			if let sourceChainController = dc.parentViewController as? QBEChainViewController, let step = sourceChainController.chain?.head {
 				let job = Job(.UserInitiated)
