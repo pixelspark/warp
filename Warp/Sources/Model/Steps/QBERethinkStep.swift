@@ -375,6 +375,11 @@ private class QBERethinkExpression {
 				case .GreaterEqual: return f.coerceTo(.Number).ge(s.coerceTo(.Number))
 				case .LesserEqual: return f.coerceTo(.Number).le(s.coerceTo(.Number))
 				case .Modulus: return f.coerceTo(.Number).mod(s.coerceTo(.Number))
+				case .MatchesRegexStrict: return f.coerceTo(.String).match(s.coerceTo(.String)).eq(R.expr()).not()
+
+				/* The 'match' function accepts Re2 syntax. By prefixing the pattern with '(?i)', the matching is
+				case-insensitive. (http://rethinkdb.com/api/javascript/match/) */
+				case .MatchesRegex: return f.coerceTo(.String).match(R.expr("(?i)").add(s.coerceTo(.String))).eq(R.expr()).not()
 				default: return nil
 				}
 			}
