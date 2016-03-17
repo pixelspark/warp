@@ -18,6 +18,10 @@ public class Raster: NSObject, NSCoding {
 	public internal(set) var raster: [[Value]] = []
 	public internal(set) var columnNames: [Column] = []
 
+	public var rows: AnySequence<Row> {
+		return AnySequence(self.raster.lazy.map { return Row($0, columnNames: self.columnNames) })
+	}
+
 	// FIXME: use a read-write lock to allow concurrent reads, but still provide safety
 	public let mutex = Mutex()
 	public let readOnly: Bool
