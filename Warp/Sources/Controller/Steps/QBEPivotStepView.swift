@@ -181,7 +181,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 						}
 					}
 					else if let aggregation = col as? Aggregation {
-						if let columnExpression = aggregation.map as? Sibling {
+						if let columnExpression = aggregation.aggregator.map as? Sibling {
 							let column = columnExpression.columnName
 							if tableView == rowsTable && !self.step.rows.contains(column) {
 								self.step.rows.append(column)
@@ -214,7 +214,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 				if let menuItem = aggregatorsMenu?.itemAtIndex(object?.integerValue ?? 0) {
 					if let rep = menuItem.representedObject as? Function.RawValue {
 						if let fun = Function(rawValue: rep) {
-							step.aggregates[row].reduce = fun
+							step.aggregates[row].aggregator.reduce = fun
 							tableView.reloadData()
 							delegate?.configurableView(self, didChangeConfigurationFor: step)
 						}
@@ -248,7 +248,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 	
 	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if tableColumn?.identifier == "aggregator" {
-			let reducer = step.aggregates[row].reduce ?? Function.Identity
+			let reducer = step.aggregates[row].aggregator.reduce ?? Function.Identity
 			
 			for index in 0..<aggregatorsMenu!.numberOfItems {
 				if let mi = aggregatorsMenu!.itemAtIndex(index) {

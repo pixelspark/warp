@@ -22,7 +22,7 @@ private class QBEPostgresDialect: StandardSQLDialect {
 		}
 	}
 	
-	private override func aggregationToSQL(aggregation: Aggregation, alias: String) -> String? {
+	private override func aggregationToSQL(aggregation: Aggregator, alias: String) -> String? {
 		// For Function.Count, we should count numeric values only. In PostgreSQL this can be done using REGEXP
 		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
 			switch aggregation.reduce {

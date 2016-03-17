@@ -896,7 +896,7 @@ public class RasterData: NSObject, Data {
 		}
 	}
 	
-	public func aggregate(groups: [Column : Expression], values: [Column : Aggregation]) -> Data {		
+	public func aggregate(groups: [Column : Expression], values: [Column : Aggregator]) -> Data {
 		return fallback().aggregate(groups, values: values)
 	}
 	

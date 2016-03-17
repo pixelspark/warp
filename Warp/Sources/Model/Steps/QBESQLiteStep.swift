@@ -439,7 +439,7 @@ private class QBESQLiteDialect: StandardSQLDialect {
 		return "\(QBESQLiteConnection.sqliteUDFFunctionName)('\(type.rawValue)',\(value))"
 	}
 	
-	override func aggregationToSQL(aggregation: Aggregation, alias: String) -> String? {
+	override func aggregationToSQL(aggregation: Aggregator, alias: String) -> String? {
 		// Function.Count only counts numeric values
 		if aggregation.reduce == Function.Count {
 			if let expressionSQL = self.expressionToSQL(aggregation.map, alias: alias) {

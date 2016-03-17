@@ -16,7 +16,7 @@ private final class QBEMySQLDialect: StandardSQLDialect {
 		return super.unaryToSQL(type, args: args)
 	}
 	
-	private override func aggregationToSQL(aggregation: Aggregation, alias: String) -> String? {
+	private override func aggregationToSQL(aggregation: Aggregator, alias: String) -> String? {
 		// For Function.Count, we should count numeric values only. In MySQL this can be done using REGEXP
 		if aggregation.reduce == Function.Count {
 			if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {

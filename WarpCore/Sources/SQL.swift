@@ -72,7 +72,7 @@ public protocol SQLDialect {
 	
 	/** Transforms the given aggregation to an aggregation description that can be incldued as part of a GROUP BY 
 	statement. The function may return nil for aggregations it cannot represent or transform to SQL. */
-	func aggregationToSQL(aggregation: Aggregation, alias: String) -> String?
+	func aggregationToSQL(aggregation: Aggregator, alias: String) -> String?
 	
 	/** Create an expression that forces the specified expression to a numeric type (DOUBLE or INT in SQL). */
 	func forceNumericExpression(expression: String) -> String
@@ -629,7 +629,7 @@ public class StandardSQLDialect: SQLDialect {
 		return nil
 	}
 	
-	public func aggregationToSQL(aggregation: Aggregation, alias: String) -> String? {
+	public func aggregationToSQL(aggregation: Aggregator, alias: String) -> String? {
 		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias, foreignAlias: nil, inputValue: nil) {
 			switch aggregation.reduce {
 				case .Average: return "AVG(\(expressionSQL))"
@@ -1325,7 +1325,7 @@ public class SQLData: NSObject, Data {
 		return apply(self.sql.sqlSelect(colNames), resultingColumns: columns)
 	}
 	
-	public func aggregate(groups: [Column : Expression], values: [Column : Aggregation]) -> Data {
+	public func aggregate(groups: [Column : Expression], values: [Column : Aggregator]) -> Data {
 		if groups.isEmpty && values.isEmpty {
 			return StreamData(source: EmptyStream())
 		}

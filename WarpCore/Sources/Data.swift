@@ -172,36 +172,42 @@ public class Order: NSObject, NSCoding {
 	}
 }
 
-/** Specification of an aggregation. The map expression generates values (it is called for each item and included in the
-set if it is non-empty). The reduce function receives the mapped items as arguments and reduces them to a single value.
-Note that the reduce function can be called multiple times with different sets (e.g. reduce(reduce(a,b), reduce(c,d)) 
-should be equal to reduce(a,b,c,d). */
-public class Aggregation: NSObject, NSCoding {
+/** An aggregator collects values and summarizes them. The map expression generates values (it is called for each item 
+and included in the set if it is non-empty). The reduce function receives the mapped items as arguments and reduces them 
+to a single value. Note that the reduce function can be called multiple times with different sets (e.g. 
+reduce(reduce(a,b), reduce(c,d)) should be equal to reduce(a,b,c,d).  */
+public struct Aggregator {
 	public var map: Expression
 	public var reduce: Function
+}
+
+/** Specification of an aggregation, which is an aggregator that generates a particular target column. */
+public class Aggregation: NSObject, NSCoding {
+	public var aggregator: Aggregator
 	public var targetColumnName: Column
 	
 	public init(map: Expression, reduce: Function, targetColumnName: Column) {
-		self.map = map
-		self.reduce = reduce
+		self.aggregator = Aggregator(map: map, reduce: reduce)
 		self.targetColumnName = targetColumnName
 	}
 	
 	required public init?(coder: NSCoder) {
 		targetColumnName = Column((coder.decodeObjectForKey("targetColumnName") as? String) ?? "")
-		map = (coder.decodeObjectForKey("map") as? Expression) ?? Identity()
+		let map = (coder.decodeObjectForKey("map") as? Expression) ?? Identity()
+		let reduce: Function
 		if let rawReduce = coder.decodeObjectForKey("reduce") as? String {
 			reduce = Function(rawValue: rawReduce) ?? Function.Identity
 		}
 		else {
 			reduce = Function.Identity
 		}
+		self.aggregator = Aggregator(map: map, reduce: reduce)
 	}
 	
 	public func encodeWithCoder(aCoder: NSCoder) {
 		aCoder.encodeObject(targetColumnName.name, forKey: "targetColumnName")
-		aCoder.encodeObject(map, forKey: "map")
-		aCoder.encodeObject(reduce.rawValue, forKey: "reduce")
+		aCoder.encodeObject(aggregator.map, forKey: "map")
+		aCoder.encodeObject(aggregator.reduce.rawValue, forKey: "reduce")
 	}
 }
 
@@ -343,7 +349,7 @@ public protocol Data {
 	/** Aggregate data in this set. The 'groups' parameter defines different aggregation 'buckets'. Items are mapped in
 	into each bucket. Subsequently, the aggregations specified in the 'values' parameter are run on each bucket 
 	separately. The resulting data set starts with the group identifier columns, followed by the aggregation results. */
-	func aggregate(groups: [Column: Expression], values: [Column: Aggregation]) -> Data
+	func aggregate(groups: [Column: Expression], values: [Column: Aggregator]) -> Data
 	
 	func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data
 	
@@ -396,7 +402,7 @@ public class ProxyData: NSObject, Data {
 	public func filter(condition: Expression) -> Data { return data.filter(condition) }
 	public func unique(expression: Expression,  job: Job, callback: (Fallible<Set<Value>>) -> ()) { return data.unique(expression, job: job, callback: callback) }
 	public func selectColumns(columns: [Column]) -> Data { return data.selectColumns(columns) }
-	public func aggregate(groups: [Column: Expression], values: [Column: Aggregation]) -> Data { return data.aggregate(groups, values: values) }
+	public func aggregate(groups: [Column: Expression], values: [Column: Aggregator]) -> Data { return data.aggregate(groups, values: values) }
 	public func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data { return data.pivot(horizontal, vertical: vertical, values: values) }
 	public func stream() -> Stream { return data.stream() }
 	public func raster(job: Job, callback: (Fallible<Raster>) -> ()) { return data.raster(job, callback: callback) }
@@ -681,7 +687,7 @@ enum CoalescedData: Data {
 		}
 	}
 	
-	func aggregate(groups: [Column: Expression], values: [Column: Aggregation]) -> Data {
+	func aggregate(groups: [Column: Expression], values: [Column: Aggregator]) -> Data {
 		return CoalescedData.None(data.aggregate(groups, values: values))
 	}
 	

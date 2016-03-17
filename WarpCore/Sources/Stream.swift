@@ -240,7 +240,7 @@ public class StreamData: Data {
 		return fallback().transpose()
 	}
 	
-	public func aggregate(groups: [Column : Expression], values: [Column : Aggregation]) -> Data {
+	public func aggregate(groups: [Column : Expression], values: [Column : Aggregator]) -> Data {
 		return StreamData(source: AggregateTransformer(source: source, groups: groups, values: values))
 	}
 	
@@ -1066,14 +1066,14 @@ private class JoinTransformer: Transformer {
 
 private class AggregateTransformer: Transformer {
 	let groups: OrderedDictionary<Column, Expression>
-	let values: OrderedDictionary<Column, Aggregation>
+	let values: OrderedDictionary<Column, Aggregator>
 
 	private var groupExpressions: [Expression]
 	private var reducers = Catalog<Reducer>()
 	private var sourceColumnNames: Future<Fallible<[Column]>>! = nil
 	private var done = false
 
-	init(source: Stream, groups: OrderedDictionary<Column, Expression>, values: OrderedDictionary<Column, Aggregation>) {
+	init(source: Stream, groups: OrderedDictionary<Column, Expression>, values: OrderedDictionary<Column, Aggregator>) {
 		#if DEBUG
 			// Check if there are duplicate target column names. If so, bail out
 			for (col, _) in values {
@@ -1101,7 +1101,7 @@ private class AggregateTransformer: Transformer {
 		})
 	}
 
-	convenience init(source: Stream, groups: [Column: Expression], values: [Column: Aggregation]) {
+	convenience init(source: Stream, groups: [Column: Expression], values: [Column: Aggregator]) {
 		self.init(source: source, groups: OrderedDictionary(dictionaryInAnyOrder: groups), values: OrderedDictionary(dictionaryInAnyOrder: values))
 	}
 

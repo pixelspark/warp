@@ -51,14 +51,14 @@ class QBEPivotStep: QBEStep {
 			let aggregation = aggregates[0]
 			if rows.count != 1 || !columns.isEmpty {
 				return String(format: NSLocalizedString("Pivot: %@ of %@", comment: "Pivot with 1 aggregate"),
-					aggregation.reduce.explain(locale),
-					aggregation.map.explain(locale))
+					aggregation.aggregator.reduce.explain(locale),
+					aggregation.aggregator.map.explain(locale))
 			}
 			else {
 				let row = rows[0]
 				return String(format: NSLocalizedString("Pivot: %@ of %@ grouped by %@", comment: "Pivot with 1 aggregate"),
-					aggregation.reduce.explain(locale),
-					aggregation.map.explain(locale),
+					aggregation.aggregator.reduce.explain(locale),
+					aggregation.aggregator.map.explain(locale),
 					row.name)
 			}
 		}
@@ -105,7 +105,7 @@ class QBEPivotStep: QBEStep {
 			rowGroups[k] = v
 		}
 		
-		let values = toDictionary(aggregates, transformer: { ($0.targetColumnName, $0) })
+		let values = toDictionary(aggregates, transformer: { ($0.targetColumnName, $0.aggregator) })
 		let resultData = data.aggregate(rowGroups, values: values)
 		if columns.isEmpty {
 			callback(.Success(resultData))
