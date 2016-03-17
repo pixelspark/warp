@@ -15,7 +15,7 @@ Raster data can only be modified if it was created with the `readOnly` flag set 
 serially (i.e. Raster holds a mutex) and are atomic. To make multiple changes atomically, start holding the `mutex`
 before performing the first change and release it after performing the last (e.g. use raster.mutex.locked {...}). */
 public class Raster: NSObject, NSCoding {
-	public internal(set) var raster: [[Value]] = []
+	internal var raster: [[Value]] = []
 	public internal(set) var columnNames: [Column] = []
 
 	public var rows: AnySequence<Row> {

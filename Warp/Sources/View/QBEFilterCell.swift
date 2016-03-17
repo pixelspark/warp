@@ -48,22 +48,20 @@ internal class QBEFilterCell: NSButtonCell {
 			job.async { [weak self] in
 				var v = Array<Int>(count: stripes, repeatedValue: 0)
 				if let index = raster.indexOfColumnWithName(column) {
-					for row in raster.raster {
+					for row in raster.rows {
 						if job.cancelled {
 							return
 						}
 
-						if index < row.count {
-							let value = row[index]
-							let hash: Int
-							if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
-								hash = Int(fmod(abs(i), Double(Int.max-1)))
-							}
-							else {
-								hash = abs(value.stringValue?.hashValue ?? 0)
-							}
-							v[hash % stripes]++
+						let value = row.values[index]
+						let hash: Int
+						if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
+							hash = Int(fmod(abs(i), Double(Int.max-1)))
 						}
+						else {
+							hash = abs(value.stringValue?.hashValue ?? 0)
+						}
+						v[hash % stripes]++
 					}
 				}
 				asyncMain {

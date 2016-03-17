@@ -140,7 +140,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 
 		if let r = self.presentedRaster, let chart = self.chart {
 			// Create chart view
-			let xs = r.raster.map { chart.xExpression.apply(Row($0, columnNames: r.columnNames), foreign: nil, inputValue: nil) }
+			let xs = r.rows.map { chart.xExpression.apply($0, foreign: nil, inputValue: nil) }
 
 			switch chart.type {
 			case .Line:
@@ -152,7 +152,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 
 					// FIXME: add support for multiple series in QBEChart
 					for ySeriesIndex in 1..<2 {
-						let ys = r.raster.map { chart.yExpression.apply(Row($0, columnNames: r.columnNames), foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
+						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
 						let yse = ys.enumerate().map { idx, i in return ChartDataEntry(value: i, xIndex: idx) }
 
 						let ds = LineChartDataSet(yVals: yse, label: r.columnNames[ySeriesIndex].name)
@@ -176,7 +176,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 					let data = RadarChartData(xVals: xs.map { return $0.doubleValue ?? Double.NaN })
 
 					for ySeriesIndex in 1..<2 {
-						let ys = r.raster.map { chart.yExpression.apply(Row($0, columnNames: r.columnNames), foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
+						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
 						let yse = ys.enumerate().map { idx, i in return ChartDataEntry(value: i, xIndex: idx) }
 
 						let ds = RadarChartDataSet(yVals: yse, label: r.columnNames[ySeriesIndex].name)
@@ -196,7 +196,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				if r.columnCount >= 2 {
 					let data = BarChartData(xVals: [1])
 
-					let ys = r.raster.map { chart.yExpression.apply(Row($0, columnNames: r.columnNames), foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
+					let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
 
 					for (idx, y) in ys.enumerate() {
 						let yse = [BarChartDataEntry(value: y, xIndex: 0)]
@@ -218,7 +218,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 
 				// Do any additional setup after loading the view.
 				let data = PieChartData(xVals: xs.map { return $0.stringValue })
-				let ys = r.raster.map { chart.yExpression.apply(Row($0, columnNames: r.columnNames), foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
+				let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
 
 				let yse = ys.map { ChartDataEntry(value: $0, xIndex: 0) }
 				let ds = PieChartDataSet(yVals: yse, label: "Data")
