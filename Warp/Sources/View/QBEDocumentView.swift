@@ -450,7 +450,7 @@ class QBEWorkspaceView: QBEScrollView {
 			if	let grid = draggingInfo.draggingSource() as? MBTableGrid,
 				let dc = grid.dataSource as? QBEDataViewController,
 				let indexSet = NSKeyedUnarchiver.unarchiveObjectWithData(d) as? NSIndexSet,
-				let names = dc.raster?.columnNames.objectsAtIndexes(indexSet) {
+				let names = dc.raster?.columns.objectsAtIndexes(indexSet) {
 					delegate?.workspaceView(self, didReceiveColumnSet:names, fromDataViewController: dc)
 			}
 		}

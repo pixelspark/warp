@@ -2,48 +2,48 @@ import Foundation
 import WarpCore
 
 class QBEColumnsStep: QBEStep {
-	var columnNames: [Column] = []
+	var columns: [Column] = []
 	var select: Bool = true
 
 	required init() {
 		super.init()
 	}
 
-	init(previous: QBEStep?, columnNames: [Column], select: Bool) {
-		self.columnNames = columnNames
+	init(previous: QBEStep?, columns: [Column], select: Bool) {
+		self.columns = columns
 		self.select = select
 		super.init(previous: previous)
 	}
 	
 	private func explanation(locale: Locale) -> String {
 		if select {
-			if columnNames.isEmpty {
+			if columns.isEmpty {
 				return NSLocalizedString("Select all columns", comment: "")
 			}
-			else if columnNames.count == 1 {
-				return String(format: NSLocalizedString("Select only the column '%@'", comment: ""), columnNames.first!.name)
+			else if columns.count == 1 {
+				return String(format: NSLocalizedString("Select only the column '%@'", comment: ""), columns.first!.name)
 			}
-			else if columnNames.count < 5 {
-				let cn = columnNames.map({$0.name}).joinWithSeparator(", ")
+			else if columns.count < 5 {
+				let cn = columns.map({$0.name}).joinWithSeparator(", ")
 				return String(format: NSLocalizedString("Select only the columns %@", comment: ""), cn)
 			}
 			else {
-				return String(format: NSLocalizedString("Select %lu columns", comment: ""), columnNames.count)
+				return String(format: NSLocalizedString("Select %lu columns", comment: ""), columns.count)
 			}
 		}
 		else {
-			if columnNames.isEmpty {
+			if columns.isEmpty {
 				return NSLocalizedString("Remove all columns", comment: "")
 			}
-			else if columnNames.count == 1 {
-				return String(format: NSLocalizedString("Remove the column '%@'", comment: ""), columnNames.first!.name)
+			else if columns.count == 1 {
+				return String(format: NSLocalizedString("Remove the column '%@'", comment: ""), columns.first!.name)
 			}
-			else if columnNames.count < 5 {
-				let cn = columnNames.map({$0.name}).joinWithSeparator(", ") ?? ""
+			else if columns.count < 5 {
+				let cn = columns.map({$0.name}).joinWithSeparator(", ") ?? ""
 				return String(format: NSLocalizedString("Remove the columns %@", comment: ""), cn)
 			}
 			else {
-				return String(format: NSLocalizedString("Remove %lu columns", comment: ""), columnNames.count)
+				return String(format: NSLocalizedString("Remove %lu columns", comment: ""), columns.count)
 			}
 		}
 	}
@@ -55,23 +55,23 @@ class QBEColumnsStep: QBEStep {
 	required init(coder aDecoder: NSCoder) {
 		select = aDecoder.decodeBoolForKey("select")
 		let names = (aDecoder.decodeObjectForKey("columnNames") as? [String]) ?? []
-		columnNames = names.map({Column($0)})
+		columns = names.map({Column($0)})
 		super.init(coder: aDecoder)
 	}
 	
 	override func encodeWithCoder(coder: NSCoder) {
-		let columnNameStrings = columnNames.map({$0.name})
+		let columnNameStrings = columns.map({$0.name})
 		coder.encodeObject(columnNameStrings, forKey: "columnNames")
 		coder.encodeBool(select, forKey: "select")
 		super.encodeWithCoder(coder)
 	}
 	
 	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
-		data.columnNames(job) { (existingColumnsFallible) -> () in
+		data.columns(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
 				case .Success(let existingColumns):
 					let columns = existingColumns.filter({column -> Bool in
-						for c in self.columnNames {
+						for c in self.columns {
 							if c == column {
 								return self.select
 							}
@@ -94,24 +94,24 @@ class QBEColumnsStep: QBEStep {
 		}
 		else if let p = prior as? QBEColumnsStep where !p.select && !self.select {
 			// This step removes additional columns after the previous one
-			var newColumns = p.columnNames
-			self.columnNames.forEach { cn in
+			var newColumns = p.columns
+			self.columns.forEach { cn in
 				if !newColumns.contains(cn) {
 					newColumns.append(cn)
 				}
 			}
 
-			return QBEStepMerge.Advised(QBEColumnsStep(previous: previous, columnNames: newColumns, select: false))
+			return QBEStepMerge.Advised(QBEColumnsStep(previous: previous, columns: newColumns, select: false))
 		}
 		else if let p = prior as? QBECalculateStep {
-			let contained = columnNames.contains(p.targetColumn)
+			let contained = columns.contains(p.targetColumn)
 			if (select && !contained) || (!select && contained) {
-				let newColumns = columnNames.filter({$0 != p.targetColumn})
+				let newColumns = columns.filter({$0 != p.targetColumn})
 				if newColumns.isEmpty {
 					return QBEStepMerge.Cancels
 				}
 				else {
-					return QBEStepMerge.Advised(QBEColumnsStep(previous: previous, columnNames: newColumns, select: self.select))
+					return QBEStepMerge.Advised(QBEColumnsStep(previous: previous, columns: newColumns, select: self.select))
 				}
 			}
 		}
@@ -174,7 +174,7 @@ class QBESortColumnsStep: QBEStep {
 	}
 	
 	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
-		data.columnNames(job) { (existingColumnsFallible) -> () in
+		data.columns(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
 				case .Success(let existingColumns):
 					let columnSet = Set(existingColumns)

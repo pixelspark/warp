@@ -158,7 +158,7 @@ public class Sequencer: Parser {
 	public func stream(column: Column) -> Stream {
 		return SequenceStream(AnySequence<Fallible<Tuple>>({ () -> SequencerRowGenerator in
 			return SequencerRowGenerator(source: self.root!)
-		}), columnNames: [column], rowCount: stack.head.cardinality)
+		}), columns: [column], rowCount: stack.head.cardinality)
 	}
 }
 

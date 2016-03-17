@@ -24,7 +24,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	@IBOutlet var tableView: NSTableView!
 
 	weak var delegate: QBEAlterTableViewDelegate? = nil
-	var definition: DataDefinition = DataDefinition(columnNames: [])
+	var definition: DataDefinition = DataDefinition(columns: [])
 	var warehouse: Warehouse? = nil
 	var mutableData: MutableData? = nil
 	var warehouseName: String? = nil
@@ -43,9 +43,9 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	@IBAction func addColumn(sender: NSObject) {
 		var i = 1
 		while true {
-			let newName = Column(String(format: NSLocalizedString("Column_%d", comment: ""), self.definition.columnNames.count + i))
-			if !self.definition.columnNames.contains(newName) {
-				self.definition.columnNames.append(newName)
+			let newName = Column(String(format: NSLocalizedString("Column_%d", comment: ""), self.definition.columns.count + i))
+			if !self.definition.columns.contains(newName) {
+				self.definition.columns.append(newName)
 				self.tableView.reloadData()
 				self.updateView()
 				return
@@ -69,17 +69,17 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 
 	@IBAction func removeColumn(sender: AnyObject?) {
 		let si = tableView.selectedRowIndexes
-		self.definition.columnNames.removeAtIndices(si)
+		self.definition.columns.removeAtIndices(si)
 		self.tableView.deselectAll(sender)
 		self.tableView.reloadData()
 		self.updateView()
 	}
 
 	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
-		if row < 0 || row > self.definition.columnNames.count {
+		if row < 0 || row > self.definition.columns.count {
 			return nil
 		}
-		let col = self.definition.columnNames[row]
+		let col = self.definition.columns[row]
 
 		if let tc = tableColumn {
 			switch tc.identifier {
@@ -91,7 +91,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	}
 
 	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
-		if row < 0 || row > self.definition.columnNames.count {
+		if row < 0 || row > self.definition.columns.count {
 			return
 		}
 
@@ -99,8 +99,8 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 			switch tc.identifier {
 			case "columnName":
 				let col = Column(object as! String)
-				if !self.definition.columnNames.contains(col) {
-					return self.definition.columnNames[row] = col
+				if !self.definition.columns.contains(col) {
+					return self.definition.columns[row] = col
 				}
 				else {
 					if let w = self.view.window {
@@ -117,7 +117,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	}
 
 	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
-		return self.definition.columnNames.count
+		return self.definition.columns.count
 	}
 
 	@IBAction func createOrAlterTable(sender: NSObject) {
@@ -166,7 +166,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 			if tableName.isEmpty && dwh.hasNamedTables {
 				return
 			}
-			let mutation = WarehouseMutation.Create(self.tableNameField.stringValue, RasterData(data: [], columnNames: self.definition.columnNames))
+			let mutation = WarehouseMutation.Create(self.tableNameField.stringValue, RasterData(data: [], columns: self.definition.columns))
 
 			if dwh.canPerformMutation(mutation) {
 				self.createJob = Job(.UserInitiated)
@@ -218,10 +218,10 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		let working = createJob != nil
 		let needTableName = (self.warehouse?.hasNamedTables ?? true)
 		cancelButton.enabled = !working
-		createButton.enabled = !working && (isAltering || !needTableName || !self.tableNameField.stringValue.isEmpty) && (!(self.warehouse?.hasFixedColumns ?? true) || !self.definition.columnNames.isEmpty)
+		createButton.enabled = !working && (isAltering || !needTableName || !self.tableNameField.stringValue.isEmpty) && (!(self.warehouse?.hasFixedColumns ?? true) || !self.definition.columns.isEmpty)
 		addColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
-		removeColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columnNames.isEmpty && tableView.selectedRowIndexes.count > 0
-		removeAllColumnsButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columnNames.isEmpty && tableView.selectedRowIndexes.count > 0
+		removeColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columns.isEmpty && tableView.selectedRowIndexes.count > 0
+		removeAllColumnsButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columns.isEmpty && tableView.selectedRowIndexes.count > 0
 		tableView.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
 		progressView.hidden = !working
 		progressLabel.hidden = !working
@@ -245,14 +245,14 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	}
 
 	@IBAction func removeAllColumns(sender: NSObject) {
-		self.definition.columnNames.removeAll()
+		self.definition.columns.removeAll()
 		self.tableView.reloadData()
 		self.updateView()
 	}
 
 	override func viewWillAppear() {
 		// Are we going to create a table? Then check if the pasteboard has a table definition for us we can propose
-		if self.definition.columnNames.isEmpty && (self.warehouse?.hasFixedColumns ?? false) {
+		if self.definition.columns.isEmpty && (self.warehouse?.hasFixedColumns ?? false) {
 			let pb = NSPasteboard(name: DataDefinition.pasteboardName)
 			if let data = pb.dataForType(DataDefinition.pasteboardName), let def = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? DataDefinition {
 				self.definition = def

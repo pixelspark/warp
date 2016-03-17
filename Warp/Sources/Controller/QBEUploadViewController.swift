@@ -97,13 +97,13 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 						self.canPerformTruncateBeforeUpload = mutableData.canPerformMutation(.Truncate)
 
 						// Get the source column names
-						fd.columnNames(job) { result in
+						fd.columns(job) { result in
 							switch result {
-							case .Success(let columnNames):
+							case .Success(let columns):
 								/* Put the source table definition on the 'table definition pasteboard'. The 'alter table'
 								view controller will try to read from the pasteboard, and use the column names given there
 								as default table definition when creating a new table. */
-								let def = DataDefinition(columnNames: columnNames)
+								let def = DataDefinition(columns: columns)
 								let pb = NSPasteboard(name: DataDefinition.pasteboardName)
 								pb.setData(NSKeyedArchiver.archivedDataWithRootObject(def), forType: DataDefinition.pasteboardName)
 
@@ -175,10 +175,10 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 
 	private func performAlter(perform: Bool, sourceData: Data, destination: MutableData, callback: (Fallible<Bool>) -> ()) {
 		if perform {
-			sourceData.columnNames(self.uploadJob!) { result in
+			sourceData.columns(self.uploadJob!) { result in
 				switch result {
 				case .Success(let sourceColumns):
-					destination.performMutation(.Alter(DataDefinition(columnNames: sourceColumns)), job: self.uploadJob!) { res in
+					destination.performMutation(.Alter(DataDefinition(columns: sourceColumns)), job: self.uploadJob!) { res in
 						switch res {
 						case .Success(_):
 							self.mapping = sourceColumns.mapDictionary { return ($0,$0) }
@@ -208,7 +208,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 		destination.data(self.uploadJob!) { result in
 			switch result {
 			case .Success(let destData):
-				destData.columnNames(self.uploadJob!) { result in
+				destData.columns(self.uploadJob!) { result in
 					switch result {
 					case .Success(let cols):
 						// Are all destination columns present in the mapping?
@@ -257,14 +257,14 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 			destination.data(job) { result in
 				switch result {
 				case .Success(let destData):
-					destData.columnNames(job) { result in
+					destData.columns(job) { result in
 						switch result {
 						case .Success(let destinationColumns):
 							// Fetch source columns
 							source.fullData(job) { result in
 								switch result {
 								case .Success(let sourceData):
-									sourceData.columnNames(job) { result in
+									sourceData.columns(job) { result in
 										switch result {
 										case .Success(let sourceColumns):
 											job.log("SRC=\(sourceColumns) DST=\(destinationColumns)")
@@ -322,7 +322,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 
 	var canAlter: Bool {
 		if let md = self.targetStep?.mutableData {
-			return md.canPerformMutation(.Alter(DataDefinition(columnNames: [Column("dummy")]))) && md.warehouse.hasFixedColumns
+			return md.canPerformMutation(.Alter(DataDefinition(columns: [Column("dummy")]))) && md.warehouse.hasFixedColumns
 		}
 		return false
 	}

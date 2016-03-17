@@ -29,7 +29,7 @@ final class QBEDBFStream: NSObject, Stream {
 		DBFClose(handle)
 	}
 
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		if self.columns == nil {
 			let fieldCount = self.fieldCount
 			var fields: [Column] = []
@@ -51,7 +51,7 @@ final class QBEDBFStream: NSObject, Stream {
 
 	func fetch(job: Job, consumer: Sink) {
 		dispatch_async(self.queue) {
-			self.columnNames(job) { (columnNames) -> () in
+			self.columns(job) { (columns) -> () in
 				let end = min(self.recordCount, self.position + StreamDefaultBatchSize)
 
 				var rows: [Tuple] = []
@@ -133,8 +133,8 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 		var rowIndex = 0
 
 		// Write column headers
-		stream.columnNames(job) { (columnNames) -> () in
-			switch columnNames {
+		stream.columns(job) { (columns) -> () in
+			switch columns {
 			case .Success(let cns):
 				var fieldIndex = 0
 				for col in cns {

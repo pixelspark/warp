@@ -691,7 +691,7 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		var s: [Expression] = []
 		if fromValue == nil {
-			for columnName in row.columnNames {
+			for columnName in row.columns {
 				s.append(Sibling(columnName: columnName))
 			}
 		}

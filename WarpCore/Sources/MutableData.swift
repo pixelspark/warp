@@ -52,11 +52,11 @@ public protocol MutableData {
 }
 
 public extension MutableData {
-	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.data(job) { result in
 			switch result {
 			case .Success(let data):
-				data.columnNames(job, callback: callback)
+				data.columns(job, callback: callback)
 
 			case .Failure(let e):
 				callback(.Failure(e))
@@ -74,19 +74,19 @@ public typealias ColumnMapping = [Column: Column]
 public class DataDefinition: NSObject, NSCoding {
 	public static let pasteboardName = "nl.pixelspark.Warp.DataDefinition"
 
-	public var columnNames: [Column]
+	public var columns: [Column]
 
-	public init(columnNames: [Column]) {
-		assert(Set(columnNames).count == columnNames.count, "Column names must be unique")
-		self.columnNames = columnNames
+	public init(columns: [Column]) {
+		assert(Set(columns).count == columns.count, "Column names must be unique")
+		self.columns = columns
 	}
 
 	public required init?(coder aDecoder: NSCoder) {
-		self.columnNames = (aDecoder.decodeObjectForKey("columns") as? [String] ?? []).map { return Column($0) }
+		self.columns = (aDecoder.decodeObjectForKey("columns") as? [String] ?? []).map { return Column($0) }
 	}
 
 	public func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(self.columnNames.map { return $0.name }, forKey: "columns")
+		aCoder.encodeObject(self.columns.map { return $0.name }, forKey: "columns")
 	}
 }
 

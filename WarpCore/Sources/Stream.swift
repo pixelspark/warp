@@ -20,7 +20,7 @@ by the stream (for now).
 Streams are drained using concurrent calls to the 'fetch' method (multiple 'wavefronts'). */
 public protocol Stream {
 	/** The column names associated with the rows produced by this stream. */
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ())
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ())
 	
 	/** 
 	Request the next batch of rows from the stream; when it is available, asynchronously call (on the main queue) the
@@ -173,11 +173,11 @@ public class StreamPuller {
 private class RasterStreamPuller: StreamPuller {
 	var data: [Tuple] = []
 	let callback: (Fallible<Raster>) -> ()
-	let columnNames: [Column]
+	let columns: [Column]
 
-	init(stream: Stream, job: Job, columnNames: [Column], callback: (Fallible<Raster>) -> ()) {
+	init(stream: Stream, job: Job, columns: [Column], callback: (Fallible<Raster>) -> ()) {
 		self.callback = callback
-		self.columnNames = columnNames
+		self.columns = columns
 		super.init(stream: stream, job: job)
 	}
 
@@ -191,7 +191,7 @@ private class RasterStreamPuller: StreamPuller {
 
 	override func onDoneReceiving() {
 		job.async {
-			self.callback(.Success(Raster(data: self.data, columnNames: self.columnNames, readOnly: true)))
+			self.callback(.Success(Raster(data: self.data, columns: self.columns, readOnly: true)))
 		}
 	}
 
@@ -222,10 +222,10 @@ public class StreamData: Data {
 	public func raster(job: Job, callback: (Fallible<Raster>) -> ()) {
 		let s = source.clone()
 		job.async {
-			s.columnNames(job) { (columnNames) -> () in
-				switch columnNames {
+			s.columns(job) { (columns) -> () in
+				switch columns {
 					case .Success(let cns):
-						let h = RasterStreamPuller(stream: s, job: job, columnNames: cns, callback: callback)
+						let h = RasterStreamPuller(stream: s, job: job, columns: cns, callback: callback)
 						h.start()
 
 					case .Failure(let e):
@@ -301,8 +301,8 @@ public class StreamData: Data {
 		return StreamData(source: FilterTransformer(source: source, condition: condition))
 	}
 	
-	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		source.columnNames(job, callback: callback)
+	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+		source.columns(job, callback: callback)
 	}
 	
 	public func stream() -> Stream {
@@ -325,7 +325,7 @@ public class ErrorStream: Stream {
 		return ErrorStream(self.error)
 	}
 	
-	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		callback(.Failure(self.error))
 	}
 }
@@ -344,7 +344,7 @@ public class EmptyStream: Stream {
 		return EmptyStream()
 	}
 	
-	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		callback(.Success([]))
 	}
 }
@@ -360,10 +360,10 @@ public class SequenceStream: Stream {
 	private var queue = dispatch_queue_create("nl.pixelspark.Warp.SequenceStream", DISPATCH_QUEUE_SERIAL)
 	private var error: String? = nil
 	
-	public init(_ sequence: AnySequence<Fallible<Tuple>>, columnNames: [Column], rowCount: Int? = nil) {
+	public init(_ sequence: AnySequence<Fallible<Tuple>>, columns: [Column], rowCount: Int? = nil) {
 		self.sequence = sequence
 		self.generator = sequence.generate()
-		self.columns = columnNames
+		self.columns = columns
 		self.rowCount = rowCount
 	}
 	
@@ -416,12 +416,12 @@ public class SequenceStream: Stream {
 		}
 	}
 	
-	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		callback(.Success(self.columns))
 	}
 	
 	public func clone() -> Stream {
-		return SequenceStream(self.sequence, columnNames: self.columns, rowCount: self.rowCount)
+		return SequenceStream(self.sequence, columns: self.columns, rowCount: self.rowCount)
 	}
 }
 
@@ -438,8 +438,8 @@ private class Transformer: NSObject, Stream {
 		self.source = source
 	}
 	
-	private func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		source.columnNames(job, callback: callback)
+	private func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+		source.columns(job, callback: callback)
 	}
 	
 	/** Perform the stream transformation on the given set of rows. The function should call the callback exactly once
@@ -507,7 +507,7 @@ private class FlattenTransformer: Transformer {
 	private let rowIdentifier: Expression?
 	private let rowIdentifierTo: Column?
 	
-	private let columnNames: [Column]
+	private let columns: [Column]
 	private let writeRowIdentifier: Bool
 	private let writeColumnIdentifier: Bool
 	private var originalColumns: Fallible<[Column]>? = nil
@@ -536,14 +536,14 @@ private class FlattenTransformer: Transformer {
 			writeColumnIdentifier = false
 		}
 		cols.append(valueTo)
-		self.columnNames = cols
+		self.columns = cols
 		
 		super.init(source: source)
 	}
 	
 	private func prepare(job: Job, callback: () -> ()) {
 		if self.originalColumns == nil {
-			source.columnNames(job) { (cols) -> () in
+			source.columns(job) { (cols) -> () in
 				self.originalColumns = cols
 				callback()
 			}
@@ -553,8 +553,8 @@ private class FlattenTransformer: Transformer {
 		}
 	}
 	
-	private override func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		callback(.Success(columnNames))
+	private override func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+		callback(.Success(columns))
 	}
 	
 	private override func clone() -> Stream {
@@ -566,14 +566,14 @@ private class FlattenTransformer: Transformer {
 			switch self.originalColumns! {
 			case .Success(let originalColumns):
 				var newRows: [Tuple] = []
-				newRows.reserveCapacity(self.columnNames.count * rows.count)
-				var templateRow: [Value] = self.columnNames.map({(c) -> (Value) in return Value.InvalidValue})
+				newRows.reserveCapacity(self.columns.count * rows.count)
+				var templateRow: [Value] = self.columns.map({(c) -> (Value) in return Value.InvalidValue})
 				let valueIndex = (self.writeRowIdentifier ? 1 : 0) + (self.writeColumnIdentifier ? 1 : 0);
 				
-				job.time("flatten", items: self.columnNames.count * rows.count, itemType: "cells") {
+				job.time("flatten", items: self.columns.count * rows.count, itemType: "cells") {
 					for row in rows {
 						if self.writeRowIdentifier {
-							templateRow[0] = self.rowIdentifier!.apply(Row(row, columnNames: originalColumns), foreign: nil, inputValue: nil)
+							templateRow[0] = self.rowIdentifier!.apply(Row(row, columns: originalColumns), foreign: nil, inputValue: nil)
 						}
 						
 						for columnIndex in 0..<originalColumns.count {
@@ -605,12 +605,12 @@ private class FilterTransformer: Transformer {
 	}
 	
 	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, outstanding: Int, job: Job, callback: Sink) {
-		source.columnNames(job) { (columnNames) -> () in
-			switch columnNames {
+		source.columns(job) { (columns) -> () in
+			switch columns {
 			case .Success(let cns):
 				job.time("Stream filter", items: rows.count, itemType: "row") {
 					let newRows = Array(rows.filter({(row) -> Bool in
-						return self.condition.apply(Row(row, columnNames: cns), foreign: nil, inputValue: nil) == Value.BoolValue(true)
+						return self.condition.apply(Row(row, columns: cns), foreign: nil, inputValue: nil) == Value.BoolValue(true)
 					}))
 					
 					callback(.Success(Array(newRows)), streamStatus)
@@ -768,8 +768,8 @@ private class ColumnsTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	override private func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		source.columnNames(job) { (sourceColumns) -> () in
+	override private func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+		source.columns(job) { (sourceColumns) -> () in
 			switch sourceColumns {
 			case .Success(let cns):
 				self.ensureIndexes(job) {
@@ -811,7 +811,7 @@ private class ColumnsTransformer: Transformer {
 	private func ensureIndexes(job: Job, callback: () -> ()) {
 		if indexes == nil {
 			var idxs: [Int] = []
-			source.columnNames(job) { (sourceColumnNames: Fallible<[Column]>) -> () in
+			source.columns(job) { (sourceColumnNames: Fallible<[Column]>) -> () in
 				switch sourceColumnNames {
 					case .Success(let sourceCols):
 						for column in self.columns {
@@ -858,8 +858,8 @@ private class CalculateTransformer: Transformer {
 		var s: CalculateTransformer? = self
 		self.ensureIndexes = Future({ (job, callback) -> () in
 			if s!.indices == nil {
-				source.columnNames(job) { (columnNames) -> () in
-					switch columnNames {
+				source.columns(job) { (columns) -> () in
+					switch columns {
 					case .Success(let cns):
 						var columns = cns
 						var indices = Dictionary<Column, Int>()
@@ -892,7 +892,7 @@ private class CalculateTransformer: Transformer {
 		})
 	}
 	
-	private override func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private override func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.ensureIndexes.get(job) {
 			callback(self.columns!)
 		}
@@ -914,7 +914,7 @@ private class CalculateTransformer: Transformer {
 							for (targetColumn, formula) in self.calculations {
 								let columnIndex = idcs[targetColumn]!
 								let inputValue: Value = row[columnIndex]
-								let newValue = formula.apply(Row(row, columnNames: cns), foreign: nil, inputValue: inputValue)
+								let newValue = formula.apply(Row(row, columns: cns), foreign: nil, inputValue: inputValue)
 								row[columnIndex] = newValue
 							}
 							return row
@@ -954,12 +954,12 @@ private class JoinTransformer: Transformer {
 	private var isIneffectiveJoin: Bool = false
 	
 	init(source: Stream, join: Join) {
-		self.leftColumnNames = Future(source.columnNames)
+		self.leftColumnNames = Future(source.columns)
 		self.join = join
 		super.init(source: source)
 	}
 	
-	private override func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private override func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		if let c = self.columnNamesCached {
 			callback(c)
 		}
@@ -977,7 +977,7 @@ private class JoinTransformer: Transformer {
 			case .Success(let leftColumns):
 				switch self.join.type {
 				case .LeftJoin, .InnerJoin:
-					self.join.foreignData.columnNames(job) { (rightColumnsFallible) -> () in
+					self.join.foreignData.columns(job) { (rightColumnsFallible) -> () in
 						switch rightColumnsFallible {
 						case .Success(let rightColumns):
 							// Only new columns from the right side will be added
@@ -1005,8 +1005,8 @@ private class JoinTransformer: Transformer {
 		self.leftColumnNames.get(job) { (leftColumnNamesFallible) in
 			switch leftColumnNamesFallible {
 			case .Success(let leftColumnNames):
-				// The columnNames function checks whether this join will actually add columns to the result.
-				self.columnNames(job) { (columnNamesFallible) -> () in
+				// The columns function checks whether this join will actually add columns to the result.
+				self.columns(job) { (columnNamesFallible) -> () in
 					switch columnNamesFallible {
 					case .Success(_):
 						// Do we have any new columns at all?
@@ -1021,7 +1021,7 @@ private class JoinTransformer: Transformer {
 							// Create a filter expression that fetches all rows that we could possibly match to our own rows
 							var foreignFilters: [Expression] = []
 							for row in rows {
-								foreignFilters.append(joinExpression.expressionForForeignFiltering(Row(row, columnNames: leftColumnNames)))
+								foreignFilters.append(joinExpression.expressionForForeignFiltering(Row(row, columns: leftColumnNames)))
 							}
 							let foreignFilter = Call(arguments: foreignFilters, type: Function.Or)
 							
@@ -1030,7 +1030,7 @@ private class JoinTransformer: Transformer {
 								switch foreignRasterFallible {
 								case .Success(let foreignRaster):
 									// Perform the actual join using our own set of rows and the raster of possible matches from the foreign table
-									let ourRaster = Raster(data: Array(rows), columnNames: leftColumnNames, readOnly: true)
+									let ourRaster = Raster(data: Array(rows), columns: leftColumnNames, readOnly: true)
 									
 									switch self.join.type {
 									case .LeftJoin:
@@ -1097,7 +1097,7 @@ private class AggregateTransformer: Transformer {
 		super.init(source: source)
 
 		self.sourceColumnNames = Future<Fallible<[Column]>>({ [unowned self] (job: Job, callback: (Fallible<[Column]>) -> ()) in
-			self.source.columnNames(job, callback: callback)
+			self.source.columns(job, callback: callback)
 		})
 	}
 
@@ -1115,7 +1115,7 @@ private class AggregateTransformer: Transformer {
 						var leafs: [Catalog<Reducer>: [Row]] = [:]
 
 						for row in rows {
-							let namedRow = Row(row, columnNames: sourceColumns)
+							let namedRow = Row(row, columns: sourceColumns)
 							let leaf = self.reducers.leafForRow(namedRow, groups: self.groupExpressions)
 
 							leaf.mutex.locked {
@@ -1181,7 +1181,7 @@ private class AggregateTransformer: Transformer {
 		}
 	}
 
-	private override func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private override func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		callback(.Success(self.groups.keys + self.values.keys))
 	}
 

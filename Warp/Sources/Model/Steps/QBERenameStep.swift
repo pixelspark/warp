@@ -68,7 +68,7 @@ class QBERenameStep: QBEStep {
 			return
 		}
 		
-		data.columnNames(job) { (existingColumnsFallible) -> () in
+		data.columns(job) { (existingColumnsFallible) -> () in
 			callback(existingColumnsFallible.use {(existingColumnNames) -> Data in
 				var calculations: [Column: Expression] = [:]
 				var newColumns: [Column] = []

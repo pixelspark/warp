@@ -149,7 +149,7 @@ class QBEJoinStepView: QBEConfigurableStepViewControllerFor<QBEJoinStep>, NSComb
 			step.previous?.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
 				switch data {
 				case .Success(let d):
-					d.columnNames(job) { (cns) in
+					d.columns(job) { (cns) in
 						asyncMain {
 							switch cns {
 							case .Success(let e):
@@ -172,7 +172,7 @@ class QBEJoinStepView: QBEConfigurableStepViewControllerFor<QBEJoinStep>, NSComb
 			step.right?.head?.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
 				switch data {
 				case .Success(let d):
-					d.columnNames(job) { (cns) in
+					d.columns(job) { (cns) in
 						asyncMain {
 							switch cns {
 							case .Success(let e):

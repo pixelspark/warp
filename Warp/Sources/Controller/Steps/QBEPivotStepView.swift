@@ -32,7 +32,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		if let sourceStep = self.step.previous {
 			let job = Job(.UserInitiated)
 			sourceStep.exampleData(job, maxInputRows: 100, maxOutputRows: 100, callback: { (exData: Fallible<Data>) -> () in
-				exData.maybe({ (ed) in ed.columnNames(job) { (columns: Fallible<[Column]>) -> () in
+				exData.maybe({ (ed) in ed.columns(job) { (columns: Fallible<[Column]>) -> () in
 					columns.maybe { (cs) in
 						asyncMain {
 							self.sourceColumns = cs
@@ -168,7 +168,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 							self.step.columns.append(column)
 						}
 						else if tableView == aggregatesTable {
-							self.step.aggregates.append(Aggregation(map: Sibling(columnName: column), reduce: Function.Sum, targetColumnName: column))
+							self.step.aggregates.append(Aggregation(map: Sibling(columnName: column), reduce: Function.Sum, targetColumn: column))
 						}
 						else if tableView == allTable {
 							// Need to remove the dragged item from the source view
@@ -221,9 +221,9 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 					}
 				}
 			}
-			else if tableColumn?.identifier == "targetColumnName" {
+			else if tableColumn?.identifier == "targetColumn" {
 				if let s = object as? String {
-					step.aggregates[row].targetColumnName = Column(s)
+					step.aggregates[row].targetColumn = Column(s)
 				}
 			}
 		}
@@ -271,7 +271,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 				return step.columns[row].name
 				
 			case aggregatesTable!:
-				return step.aggregates[row].targetColumnName.name
+				return step.aggregates[row].targetColumn.name
 				
 			default:
 				return ""

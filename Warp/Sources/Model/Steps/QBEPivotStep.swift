@@ -71,23 +71,23 @@ class QBEPivotStep: QBEStep {
 	}
 	
 	private func fixupColumnNames() {
-		var columnNames = Set(rows)
+		var columns = Set(rows)
 		
 		// Make sure we don't create duplicate columns
 		for idx in 0..<columns.count {
-			let column = columns[idx]
-			if columnNames.contains(column) {
-				columns[idx] = column.newName({return !columnNames.contains($0)})
+			let column = self.columns[idx]
+			if columns.contains(column) {
+				self.columns[idx] = column.newName({return !columns.contains($0)})
 			}
 		}
 		
-		columnNames.unionInPlace(Set(columns))
+		columns.unionInPlace(Set(columns))
 		
 		for idx in 0..<aggregates.count {
 			let aggregation = aggregates[idx]
 			
-			if columnNames.contains(aggregation.targetColumnName) {
-				aggregation.targetColumnName = aggregation.targetColumnName.newName({return !columnNames.contains($0)})
+			if columns.contains(aggregation.targetColumn) {
+				aggregation.targetColumn = aggregation.targetColumn.newName({return !columns.contains($0)})
 			}
 		}
 	}
@@ -105,13 +105,13 @@ class QBEPivotStep: QBEStep {
 			rowGroups[k] = v
 		}
 		
-		let values = toDictionary(aggregates, transformer: { ($0.targetColumnName, $0.aggregator) })
+		let values = toDictionary(aggregates, transformer: { ($0.targetColumn, $0.aggregator) })
 		let resultData = data.aggregate(rowGroups, values: values)
 		if columns.isEmpty {
 			callback(.Success(resultData))
 		}
 		else {
-			let pivotedData = resultData.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumnName}))
+			let pivotedData = resultData.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumn}))
 			callback(.Success(pivotedData))
 		}
 	}
@@ -122,7 +122,7 @@ class QBEPivotStep: QBEStep {
 		}
 		
 		// Check to see if the selected rows have similar values for other than the relevant columns
-		let groupColumnCandidates = Set<Column>(raster.columnNames).subtract(aggregateColumns)
+		let groupColumnCandidates = Set<Column>(raster.columns).subtract(aggregateColumns)
 		let sameValues = aggregateRows.count > 1 ? raster.commonalitiesOf(aggregateRows, inColumns: groupColumnCandidates) : [:]
 		
 		// What are our aggregate functions? Select the most likely ones (user can always change)
@@ -134,7 +134,7 @@ class QBEPivotStep: QBEStep {
 			let step = QBEPivotStep()
 			
 			for column in aggregateColumns {
-				step.aggregates.append(Aggregation(map: Sibling(columnName: column), reduce: fun, targetColumnName: column))
+				step.aggregates.append(Aggregation(map: Sibling(columnName: column), reduce: fun, targetColumn: column))
 			}
 			
 			for (sameColumn, _) in sameValues {

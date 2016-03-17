@@ -64,7 +64,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 	
 	private let connection: QBEPostgresConnection
 	private var result: COpaquePointer
-	private let columnNames: [Column]
+	private let columns: [Column]
 	private let columnTypes: [Oid]
 	private(set) var finished = false
 	private(set) var error: String? = nil
@@ -136,7 +136,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 
 				if status.rawValue == PGRES_COMMAND_OK.rawValue {
 					// This result code indicates our command completed successfully. There is no data, so no need to enumerate columns, etc.
-					resultFallible = .Success(QBEPostgresResult(connection: connection, result: result, columnNames: [], columnTypes: []))
+					resultFallible = .Success(QBEPostgresResult(connection: connection, result: result, columns: [], columnTypes: []))
 
 					// On PGRES_COMMAND_OK, call PQgetresult anyway to ensure that the command has fully finished
 					while PQgetResult(connection.connection) != nil {
@@ -145,7 +145,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 					return
 				}
 				
-				var columnNames: [Column] = []
+				var columns: [Column] = []
 				var columnTypes: [Oid] = []
 				
 				let colCount = PQnfields(result)
@@ -153,7 +153,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 					let column = PQfname(result, colIndex)
 					if column != nil {
 						if let name = NSString(bytes: column, length: Int(strlen(column)), encoding: NSUTF8StringEncoding) {
-							columnNames.append(Column(String(name)))
+							columns.append(Column(String(name)))
 							let type = PQftype(result, colIndex)
 							columnTypes.append(type)
 						}
@@ -168,17 +168,17 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 					}
 				}
 				
-				resultFallible = .Success(QBEPostgresResult(connection: connection, result: result, columnNames: columnNames, columnTypes: columnTypes))
+				resultFallible = .Success(QBEPostgresResult(connection: connection, result: result, columns: columns, columnTypes: columnTypes))
 			}
 		}
 		
 		return resultFallible
 	}
 	
-	private init(connection: QBEPostgresConnection, result: COpaquePointer, columnNames: [Column], columnTypes: [Oid]) {
+	private init(connection: QBEPostgresConnection, result: COpaquePointer, columns: [Column], columnTypes: [Oid]) {
 		self.connection = connection
 		self.result = result
-		self.columnNames = columnNames
+		self.columns = columns
 		self.columnTypes = columnTypes
 	}
 	
@@ -237,9 +237,9 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 			if self.result != nil {
 				if PQntuples(self.result) == 1 && PQresultStatus(self.result).rawValue == PGRES_SINGLE_TUPLE.rawValue {
 					rowData = []
-					rowData!.reserveCapacity(self.columnNames.count)
+					rowData!.reserveCapacity(self.columns.count)
 					
-					for colIndex in 0..<self.columnNames.count {
+					for colIndex in 0..<self.columns.count {
 						let val = PQgetvalue(self.result, Int32(0), Int32(colIndex))
 						if val == nil {
 							rowData!.append(Value.InvalidValue)
@@ -586,7 +586,7 @@ class QBEPostgresData: SQLData {
 		return database.connect().use {
 			$0.query(query).use {(result) -> QBEPostgresData in
 				result.finish() // We're not interested in that one row we just requested, just the column names
-				return QBEPostgresData(database: database, schema: schemaName, table: tableName, columns: result.columnNames, locale: locale)
+				return QBEPostgresData(database: database, schema: schemaName, table: tableName, columns: result.columns, locale: locale)
 			}
 		}
 	}
@@ -632,7 +632,7 @@ QBEPostgresStream provides a stream of records from a PostgreSQL result set. Bec
 sequentially, cloning of this stream requires re-executing the query. */
 private class QBEPostgresResultStream: SequenceStream {
 	init(result: QBEPostgresResult) {
-		super.init(AnySequence<Fallible<Tuple>>(result), columnNames: result.columnNames)
+		super.init(AnySequence<Fallible<Tuple>>(result), columns: result.columns)
 	}
 	
 	override func clone() -> Stream {
@@ -671,8 +671,8 @@ class QBEPostgresStream: Stream {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		return stream().columnNames(job, callback: callback)
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+		return stream().columns(job, callback: callback)
 	}
 	
 	func clone() -> Stream {

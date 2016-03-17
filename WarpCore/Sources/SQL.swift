@@ -150,12 +150,12 @@ public class SQLWarehouse: Warehouse {
 						switch result {
 						case .Success(_):
 							// Find out the column names of the source data
-							data.columnNames(job) { columnsResult in
+							data.columns(job) { columnsResult in
 								switch columnsResult {
 								case .Failure(let e): callback(.Failure(e))
-								case .Success(let columnNames):
+								case .Success(let columns):
 									// Build a 'CREATE TABLE' query and run it
-									let fields = columnNames.map {
+									let fields = columns.map {
 										return self.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) + " TEXT NULL DEFAULT NULL"
 									}.joinWithSeparator(", ")
 									let createQuery = "CREATE TABLE \(self.dialect.tableIdentifier(tableName, schema: self.schemaName, database: self.database.databaseName)) (\(fields))";
@@ -171,7 +171,7 @@ public class SQLWarehouse: Warehouse {
 												case .Success:
 													// Go and insert the specified data in the table
 													let mutableData = SQLMutableData(database: self.database, schemaName: self.schemaName, tableName: tableName)
-													let mapping = columnNames.mapDictionary { cn in return (cn, cn) }
+													let mapping = columns.mapDictionary { cn in return (cn, cn) }
 													mutableData.performMutation(.Import(data: data, withMapping: mapping), job: job) { insertResult in
 														switch insertResult {
 														case .Success:
@@ -201,23 +201,23 @@ public class SQLWarehouse: Warehouse {
 }
 
 private class SQLInsertPuller: StreamPuller {
-	private let columnNames: [Column]
+	private let columns: [Column]
 	private var callback: ((Fallible<Void>) -> ())?
 	private let fastMapping: [Int?]
 	private let insertStatement: String
 	private let connection: SQLConnection
 	private let database: SQLDatabase
 
-	init(stream: Stream, job: Job, columnNames: [Column], mapping: ColumnMapping, insertStatement: String, connection: SQLConnection, database: SQLDatabase, callback: ((Fallible<Void>) -> ())?) {
+	init(stream: Stream, job: Job, columns: [Column], mapping: ColumnMapping, insertStatement: String, connection: SQLConnection, database: SQLDatabase, callback: ((Fallible<Void>) -> ())?) {
 		self.callback = callback
-		self.columnNames = columnNames
+		self.columns = columns
 		self.insertStatement = insertStatement
 		self.connection = connection
 		self.database = database
 
 		self.fastMapping = mapping.keys.map { targetField -> Int? in
 			if let sourceFieldName = mapping[targetField] {
-				return columnNames.indexOf(sourceFieldName)
+				return columns.indexOf(sourceFieldName)
 			}
 			else {
 				return nil
@@ -312,11 +312,11 @@ public class SQLMutableData: MutableData {
 		print(insertStatement)
 
 		// Fetch rows and insert!
-		data.columnNames(job) { columnsFallible in
+		data.columns(job) { columnsFallible in
 			switch columnsFallible {
 			case .Success(let sourceColumnNames):
 				let stream = data.stream()
-				let puller = SQLInsertPuller(stream: stream, job: job, columnNames: sourceColumnNames, mapping: mapping, insertStatement: insertStatement, connection: connection, database: self.database, callback: callback)
+				let puller = SQLInsertPuller(stream: stream, job: job, columns: sourceColumnNames, mapping: mapping, insertStatement: insertStatement, connection: connection, database: self.database, callback: callback)
 				puller.start()
 
 			case .Failure(let e):
@@ -378,7 +378,7 @@ public class SQLMutableData: MutableData {
 		self.data(job) { result in
 			switch result {
 			case .Success(let data):
-				data.columnNames(job) { result in
+				data.columns(job) { result in
 					switch result {
 					case .Success(let existingColumns):
 						var changes: [String] = []
@@ -480,7 +480,7 @@ public class SQLMutableData: MutableData {
 							con.run(["DELETE FROM \(self.tableIdentifier)"], job: job, callback: callback)
 
 						case .Alter(let columns):
-							self.performAlter(con, columns: columns.columnNames, job: job, callback: callback)
+							self.performAlter(con, columns: columns.columns, job: job, callback: callback)
 
 						case .Import(data: let data, withMapping: let mapping):
 							self.performInsert(con, data: data, mapping: mapping, job: job, callback: callback)
@@ -1097,7 +1097,7 @@ public class SQLData: NSObject, Data {
 		return StreamData(source: self.stream())
 	}
 	
-	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		callback(.Success(columns))
 	}
 	
@@ -1283,7 +1283,7 @@ public class SQLData: NSObject, Data {
 			let constantValue = optimizedCondition.apply(Row(), foreign: nil, inputValue: nil)
 			if constantValue == Value(false) {
 				// Never return any rows
-				return RasterData(data: [], columnNames: self.columns)
+				return RasterData(data: [], columns: self.columns)
 			}
 			else if constantValue == Value(true) {
 				// Return all rows always

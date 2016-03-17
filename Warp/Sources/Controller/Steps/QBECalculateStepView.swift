@@ -51,7 +51,7 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 		step.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
 			switch data {
 				case .Success(let d):
-					d.columnNames(job) {(cns) in
+					d.columns(job) {(cns) in
 						switch cns {
 							case .Success(let e):
 								self.existingColumns = e

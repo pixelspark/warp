@@ -78,7 +78,7 @@ class QBEFlattenStep: QBEStep {
 		/* If a column is set to put a row identifier in, but there is no expression, fill in an expression that uses the
 		value in the first column. */
 		if rowIdentifier == nil && rowColumn != nil {
-			data.columnNames(job) { (columns) -> () in
+			data.columns(job) { (columns) -> () in
 				switch columns {
 					case .Success(let cs):
 						if let firstColumn = cs.first {

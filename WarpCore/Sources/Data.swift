@@ -4,26 +4,26 @@ public typealias Tuple = [Value]
 
 public struct Row {
 	public internal(set) var values: Tuple
-	public internal(set) var columnNames: [Column]
+	public internal(set) var columns: [Column]
 	
 	public init() {
 		self.values = []
-		self.columnNames = []
+		self.columns = []
 	}
 	
-	public init(_ values: Tuple, columnNames: [Column]) {
-		assert(values.count == columnNames.count, "All values should have column names")
+	public init(_ values: Tuple, columns: [Column]) {
+		assert(values.count == columns.count, "All values should have column names")
 		self.values = values
-		self.columnNames = columnNames
+		self.columns = columns
 	}
 	
 	public func indexOfColumnWithName(name: Column) -> Int? {
-		return columnNames.indexOf(name)
+		return columns.indexOf(name)
 	}
 	
 	public subscript(column: Column) -> Value? {
 		get {
-			if let i = columnNames.indexOf(column) {
+			if let i = columns.indexOf(column) {
 				return values[i]
 			}
 			return nil
@@ -31,11 +31,11 @@ public struct Row {
 	}
 	
 	public mutating func setValue(value: Value, forColumn column: Column) {
-		if let i = columnNames.indexOf(column) {
+		if let i = columns.indexOf(column) {
 			values[i] = value
 		}
 		else {
-			columnNames.append(column)
+			columns.append(column)
 			values.append(value)
 		}
 	}
@@ -184,15 +184,15 @@ public struct Aggregator {
 /** Specification of an aggregation, which is an aggregator that generates a particular target column. */
 public class Aggregation: NSObject, NSCoding {
 	public var aggregator: Aggregator
-	public var targetColumnName: Column
+	public var targetColumn: Column
 	
-	public init(map: Expression, reduce: Function, targetColumnName: Column) {
+	public init(map: Expression, reduce: Function, targetColumn: Column) {
 		self.aggregator = Aggregator(map: map, reduce: reduce)
-		self.targetColumnName = targetColumnName
+		self.targetColumn = targetColumn
 	}
 	
 	required public init?(coder: NSCoder) {
-		targetColumnName = Column((coder.decodeObjectForKey("targetColumnName") as? String) ?? "")
+		targetColumn = Column((coder.decodeObjectForKey("targetColumnName") as? String) ?? "")
 		let map = (coder.decodeObjectForKey("map") as? Expression) ?? Identity()
 		let reduce: Function
 		if let rawReduce = coder.decodeObjectForKey("reduce") as? String {
@@ -205,7 +205,7 @@ public class Aggregation: NSObject, NSCoding {
 	}
 	
 	public func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(targetColumnName.name, forKey: "targetColumnName")
+		aCoder.encodeObject(targetColumn.name, forKey: "targetColumnName")
 		aCoder.encodeObject(aggregator.map, forKey: "map")
 		aCoder.encodeObject(aggregator.reduce.rawValue, forKey: "reduce")
 	}
@@ -368,7 +368,7 @@ public protocol Data {
 	func raster(job: Job, callback: (Fallible<Raster>) -> ())
 	
 	/** Returns the names of the columns in the data set. The list of column names is ordered. */
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ())
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ())
 	
 	/** Sort the dataset in the indicates ways. The sorts are applied in-order, e.g. the dataset is sorted by the first
 	order specified, in case of ties by the second, et cetera. If there are ties and there is no further order to sort by,
@@ -429,7 +429,7 @@ public class ProxyData: NSObject, Data {
 	public func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data { return data.pivot(horizontal, vertical: vertical, values: values) }
 	public func stream() -> Stream { return data.stream() }
 	public func raster(job: Job, callback: (Fallible<Raster>) -> ()) { return data.raster(job, callback: callback) }
-	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) { return data.columnNames(job, callback: callback) }
+	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) { return data.columns(job, callback: callback) }
 	public func flatten(valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Data { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
 	public func offset(numberOfRows: Int) -> Data { return data.offset(numberOfRows) }
 	public func sort(by: [Order]) -> Data { return data.sort(by) }
@@ -726,8 +726,8 @@ enum CoalescedData: Data {
 		return data.raster(job, callback: callback)
 	}
 	
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		return data.columnNames(job, callback: callback)
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+		return data.columns(job, callback: callback)
 	}
 	
 	func flatten(valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Data {

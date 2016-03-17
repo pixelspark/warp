@@ -62,11 +62,11 @@ class QBECrawlStream: Stream {
 	
 	init(source: Stream, crawler: QBECrawler) {
 		self.source = source
-		self.sourceColumnNames = Future({(j, cb) in source.columnNames(j, callback: cb) })
+		self.sourceColumnNames = Future({(j, cb) in source.columns(j, callback: cb) })
 		self.crawler = crawler
 	}
 	
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.sourceColumnNames.get { (sourceColumns) in
 			callback(sourceColumns.use({ (var sourceColumns) -> [Column] in
 				// Add the column in which we're writing the result
@@ -119,7 +119,7 @@ class QBECrawlStream: Stream {
 							
 							job.async {
 								// Find out what URL we need to fetch
-								var row = Row(tuple, columnNames: sourceColumns)
+								var row = Row(tuple, columns: sourceColumns)
 								if let urlString = self.crawler.urlExpression.apply(row, foreign: nil, inputValue: nil).stringValue, url = NSURL(string: urlString) {
 									let request = NSMutableURLRequest(URL: url)
 									// TODO: make configurable

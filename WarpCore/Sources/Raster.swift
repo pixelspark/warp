@@ -4,7 +4,7 @@ internal typealias Filter = (Raster, Job?, Int) -> (Raster)
 
 /** Raster represents a mutable, in-memory dataset. It is stored as a simple array of Row, which in turn is an array 
 of Value. Column names are stored separately. Each Row should contain the same number of values as there are columns
-in the columnNames array. However, if rows are shorter, Raster will act as if there is a Value.EmptyValue in its
+in the columns array. However, if rows are shorter, Raster will act as if there is a Value.EmptyValue in its
 place. 
 
 Raster is pedantic. It will assert and cause fatal errors on misuse, e.g. if a modification attempt is made to a read-
@@ -16,10 +16,10 @@ serially (i.e. Raster holds a mutex) and are atomic. To make multiple changes at
 before performing the first change and release it after performing the last (e.g. use raster.mutex.locked {...}). */
 public class Raster: NSObject, NSCoding {
 	internal var raster: [[Value]] = []
-	public internal(set) var columnNames: [Column] = []
+	public internal(set) var columns: [Column] = []
 
 	public var rows: AnySequence<Row> {
-		return AnySequence(self.raster.lazy.map { return Row($0, columnNames: self.columnNames) })
+		return AnySequence(self.raster.lazy.map { return Row($0, columns: self.columns) })
 	}
 
 	// FIXME: use a read-write lock to allow concurrent reads, but still provide safety
@@ -32,9 +32,9 @@ public class Raster: NSObject, NSCoding {
 		self.readOnly = false
 	}
 	
-	public init(data: [[Value]], columnNames: [Column], readOnly: Bool = false) {
+	public init(data: [[Value]], columns: [Column], readOnly: Bool = false) {
 		self.raster = data
-		self.columnNames = columnNames
+		self.columns = columns
 		self.readOnly = readOnly
 	}
 	
@@ -43,13 +43,13 @@ public class Raster: NSObject, NSCoding {
 		raster = codedRaster.map({$0.map({return $0.value})})
 		
 		let saveColumns = aDecoder.decodeObjectForKey("columns") as? [String] ?? []
-		columnNames = saveColumns.map({return Column($0)})
+		columns = saveColumns.map({return Column($0)})
 		readOnly = aDecoder.decodeBoolForKey("readOnly")
 	}
 
 	public func clone(readOnly: Bool) -> Raster {
 		return self.mutex.locked {
-			return Raster(data: self.raster, columnNames: self.columnNames, readOnly: readOnly)
+			return Raster(data: self.raster, columns: self.columns, readOnly: readOnly)
 		}
 	}
 	
@@ -64,7 +64,7 @@ public class Raster: NSObject, NSCoding {
 			let saveValues = raster.map({return $0.map({return ValueCoder($0)})})
 			aCoder.encodeObject(saveValues, forKey: "raster")
 			
-			let saveColumns = columnNames.map({return $0.name})
+			let saveColumns = columns.map({return $0.name})
 			aCoder.encodeObject(saveColumns, forKey: "columns")
 			aCoder.encodeBool(readOnly, forKey: "readOnly")
 		}
@@ -109,7 +109,7 @@ public class Raster: NSObject, NSCoding {
 	public func removeColumns(set: NSIndexSet) {
 		self.mutex.locked {
 			assert(!readOnly, "Data set is read-only")
-			columnNames.removeObjectsAtIndexes(set, offset: 0)
+			columns.removeObjectsAtIndexes(set, offset: 0)
 			
 			for i in 0..<raster.count {
 				raster[i].removeObjectsAtIndexes(set, offset: 0)
@@ -120,9 +120,9 @@ public class Raster: NSObject, NSCoding {
 	public func addColumns(names: [Column]) {
 		self.mutex.locked {
 			assert(!readOnly, "Data set is read-only")
-			let oldCount = self.columnNames.count
-			let newColumns = names.filter { !self.columnNames.contains($0) }
-			self.columnNames.appendContentsOf(newColumns)
+			let oldCount = self.columns.count
+			let newColumns = names.filter { !self.columns.contains($0) }
+			self.columns.appendContentsOf(newColumns)
 			let template = Array<Value>(count: newColumns.count, repeatedValue: Value.EmptyValue)
 
 			for rowIndex in 0..<raster.count {
@@ -163,8 +163,8 @@ public class Raster: NSObject, NSCoding {
 	
 	public func indexOfColumnWithName(name: Column) -> Int? {
 		return self.mutex.locked { () -> Int? in
-			for i in 0..<columnNames.count {
-				if columnNames[i] == name {
+			for i in 0..<columns.count {
+				if columns[i] == name {
 					return i
 				}
 			}
@@ -181,7 +181,7 @@ public class Raster: NSObject, NSCoding {
 	
 	public var columnCount: Int {
 		return self.mutex.locked {
-			return columnNames.count
+			return columns.count
 		}
 	}
 	
@@ -290,7 +290,7 @@ public class Raster: NSObject, NSCoding {
 			var d = ""
 			
 			var line = "\t|"
-			for columnName in self.columnNames {
+			for columnName in self.columns {
 				line += columnName.name+"\t|"
 			}
 			d += line + "\r\n"
@@ -320,7 +320,7 @@ public class Raster: NSObject, NSCoding {
 			
 			// Compare column names
 			for columnNumber in 0..<self.columnCount {
-				if columnNames[columnNumber] != other.columnNames[columnNumber] {
+				if columns[columnNumber] != other.columns[columnNumber] {
 					return false
 				}
 			}
@@ -348,8 +348,8 @@ public class Raster: NSObject, NSCoding {
 	
 	private func hashOrCarthesianJoin(inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
 		// If no columns from the right table will ever show up, we don't have to do the join
-		let rightColumns = rightRaster.columnNames
-		let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
+		let rightColumns = rightRaster.columns
+		let rightColumnsInResult = rightColumns.filter({return !self.columns.contains($0)})
 		if rightColumnsInResult.isEmpty {
 			callback(self)
 			return
@@ -375,9 +375,9 @@ public class Raster: NSObject, NSCoding {
 			assert(comparison.comparisonOperator == Binary.Equal, "hashJoin does not (yet) support hash joins based on non-equality")
 
 			// Prepare a template row for the result
-			let rightColumns = rightRaster.columnNames
-			let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
-			let templateRow = Row(Array<Value>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: Value.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
+			let rightColumns = rightRaster.columns
+			let rightColumnsInResult = rightColumns.filter({return !self.columns.contains($0)})
+			let templateRow = Row(Array<Value>(count: self.columns.count + rightColumnsInResult.count, repeatedValue: Value.InvalidValue), columns: self.columns + rightColumnsInResult)
 			
 			// Create a list of indices of the columns from the right table that need to be copied over
 			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.indexOf($0)! })
@@ -387,7 +387,7 @@ public class Raster: NSObject, NSCoding {
 			// Build the hash map of the foreign table
 			var rightHash: [Value: [Int]] = [:]
 			for rowNumber in 0..<rightRaster.raster.count {
-				let row = Row(rightRaster.raster[rowNumber], columnNames: rightColumns)
+				let row = Row(rightRaster.raster[rowNumber], columns: rightColumns)
 				let hash = comparison.rightExpression.apply(row, foreign: nil, inputValue: nil)
 				if let existing = rightHash[hash] {
 					rightHash[hash] = existing + [rowNumber]
@@ -405,11 +405,11 @@ public class Raster: NSObject, NSCoding {
 						var myTemplateRow = templateRow
 						
 						for leftTuple in chunk {
-							let leftRow = Row(leftTuple, columnNames: self.columnNames)
+							let leftRow = Row(leftTuple, columns: self.columns)
 							let hash = comparison.leftExpression.apply(leftRow, foreign: nil, inputValue: nil)
 							if let rightMatches = rightHash[hash] {
 								for rightRowNumber in rightMatches {
-									let rightRow = Row(rightRaster.raster[rightRowNumber], columnNames: rightColumns)
+									let rightRow = Row(rightRaster.raster[rightRowNumber], columns: rightColumns)
 									myTemplateRow.values.removeAll(keepCapacity: true)
 									myTemplateRow.values.appendContentsOf(leftRow.values)
 									myTemplateRow.values.appendContentsOf(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
@@ -438,7 +438,7 @@ public class Raster: NSObject, NSCoding {
 			})
 			
 			future.get(job) { (newData: [Tuple]?) -> () in
-				callback(Raster(data: newData ?? [], columnNames: templateRow.columnNames, readOnly: true))
+				callback(Raster(data: newData ?? [], columns: templateRow.columns, readOnly: true))
 			}
 		}
 	}
@@ -446,8 +446,8 @@ public class Raster: NSObject, NSCoding {
 	private func carthesianProduct(inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
 		self.mutex.locked {
 			// Which columns are going to show up in the result set?
-			let rightColumns = rightRaster.columnNames
-			let rightColumnsInResult = rightColumns.filter({return !self.columnNames.contains($0)})
+			let rightColumns = rightRaster.columns
+			let rightColumnsInResult = rightColumns.filter({return !self.columns.contains($0)})
 
 			// Create a list of indices of the columns from the right table that need to be copied over
 			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.indexOf($0)! })
@@ -456,7 +456,7 @@ public class Raster: NSObject, NSCoding {
 			
 			// Start joining rows
 			let joinExpression = expression.prepare()
-			let templateRow = Row(Array<Value>(count: self.columnNames.count + rightColumnsInResult.count, repeatedValue: Value.InvalidValue), columnNames: self.columnNames + rightColumnsInResult)
+			let templateRow = Row(Array<Value>(count: self.columns.count + rightColumnsInResult.count, repeatedValue: Value.InvalidValue), columns: self.columns + rightColumnsInResult)
 			
 			// Perform carthesian product (slow, so in parallel)
 			let future = self.raster.parallel(
@@ -466,11 +466,11 @@ public class Raster: NSObject, NSCoding {
 						var myTemplateRow = templateRow
 						
 						for leftTuple in chunk {
-							let leftRow = Row(leftTuple, columnNames: self.columnNames)
+							let leftRow = Row(leftTuple, columns: self.columns)
 							var foundRightMatch = false
 							
 							for rightTuple in rightRaster.raster {
-								let rightRow = Row(rightTuple, columnNames: rightColumns)
+								let rightRow = Row(rightTuple, columns: rightColumns)
 								
 								if joinExpression.apply(leftRow, foreign: rightRow, inputValue: nil) == Value.BoolValue(true) {
 									myTemplateRow.values.removeAll(keepCapacity: true)
@@ -501,7 +501,7 @@ public class Raster: NSObject, NSCoding {
 				})
 			
 			future.get(job) { (newData: [Tuple]?) -> () in
-				callback(Raster(data: newData ?? [], columnNames: templateRow.columnNames, readOnly: true))
+				callback(Raster(data: newData ?? [], columns: templateRow.columns, readOnly: true))
 			}
 		}
 	}
@@ -559,8 +559,8 @@ public class RasterData: NSObject, Data {
 		future = {(job, callback) in callback(.Success(raster))}
 	}
 	
-	public init(data: [[Value]], columnNames: [Column]) {
-		let raster = Raster(data: data, columnNames: columnNames)
+	public init(data: [[Value]], columns: [Column]) {
+		let raster = Raster(data: data, columns: columns)
 		future = {(job, callback) in callback(.Success(raster))}
 	}
 	
@@ -572,9 +572,9 @@ public class RasterData: NSObject, Data {
 		return RasterData(future: future)
 	}
 	
-	public func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		raster(job, callback: { (r) -> () in
-			callback(r.use({$0.columnNames}))
+			callback(r.use({$0.columns}))
 		})
 	}
 	
@@ -621,8 +621,8 @@ public class RasterData: NSObject, Data {
 	public func transpose() -> Data {
 		return apply("transpose") {(r: Raster, job, progressKey) -> Raster in
 			// Find new column names (first column stays in place)
-			if r.columnNames.count > 0 {
-				var columns: [Column] = [r.columnNames[0]]
+			if r.columns.count > 0 {
+				var columns: [Column] = [r.columns[0]]
 				for i in 0..<r.rowCount {
 					columns.append(Column(r[i, 0].stringValue ?? ""))
 
@@ -635,10 +635,9 @@ public class RasterData: NSObject, Data {
 				}
 				
 				var newData: [[Value]] = []
-				
-				let columnNames = r.columnNames
+
 				for colNumber in 1..<r.columnCount {
-					let columnName = columnNames[colNumber];
+					let columnName = r.columns[colNumber]
 					var row: [Value] = [Value(columnName.name)]
 					for rowNumber in 0..<r.rowCount {
 						row.append(r[rowNumber, colNumber])
@@ -646,7 +645,7 @@ public class RasterData: NSObject, Data {
 					newData.append(row)
 				}
 				
-				return Raster(data: newData, columnNames: columns, readOnly: true)
+				return Raster(data: newData, columns: columns, readOnly: true)
 			}
 			else {
 				return Raster()
@@ -684,7 +683,7 @@ public class RasterData: NSObject, Data {
 				}
 			}
 			
-			return Raster(data: newData, columnNames: namesToKeep, readOnly: true)
+			return Raster(data: newData, columns: namesToKeep, readOnly: true)
 		}
 	}
 	
@@ -701,7 +700,7 @@ public class RasterData: NSObject, Data {
 	
 	public func unique(expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
 		self.raster(job, callback: { (raster) -> () in
-			callback(raster.use({(r) in Set<Value>(r.raster.map({expression.apply(Row($0, columnNames: r.columnNames), foreign: nil, inputValue: nil)}))}))
+			callback(raster.use({(r) in Set<Value>(r.raster.map({expression.apply(Row($0, columns: r.columns), foreign: nil, inputValue: nil)}))}))
 		})
 	}
 	
@@ -714,19 +713,19 @@ public class RasterData: NSObject, Data {
 				newData.append(r[rowNumber])
 			}
 			
-			return Raster(data: newData, columnNames: r.columnNames, readOnly: true)
+			return Raster(data: newData, columns: r.columns, readOnly: true)
 		}
 	}
 	
 	public func sort(by: [Order]) -> Data {
 		return apply("sort") {(r: Raster, job, progressKey) -> Raster in
-			let columns = r.columnNames
+			let columns = r.columns
 			
 			let newData = r.raster.sort({ (a, b) -> Bool in
 				// Return true if a comes before b
 				for order in by {
-					if let aValue = order.expression?.apply(Row(a, columnNames: columns), foreign: nil, inputValue: nil),
-						let bValue = order.expression?.apply(Row(b, columnNames: columns), foreign: nil, inputValue: nil) {
+					if let aValue = order.expression?.apply(Row(a, columns: columns), foreign: nil, inputValue: nil),
+						let bValue = order.expression?.apply(Row(b, columns: columns), foreign: nil, inputValue: nil) {
 						
 						if order.numeric {
 							if order.ascending && aValue < bValue {
@@ -766,7 +765,7 @@ public class RasterData: NSObject, Data {
 
 			// FIXME: more detailed progress reporting
 			job?.reportProgress(1.0, forKey: progressKey)
-			return Raster(data: newData, columnNames: columns, readOnly: true)
+			return Raster(data: newData, columns: columns, readOnly: true)
 		}
 	}
 
@@ -786,7 +785,7 @@ public class RasterData: NSObject, Data {
 				}
 			}
 			
-			return Raster(data: newData, columnNames: r.columnNames, readOnly: true)
+			return Raster(data: newData, columns: r.columns, readOnly: true)
 		}
 	}
 	
@@ -797,7 +796,7 @@ public class RasterData: NSObject, Data {
 			if constantValue == Value(false) {
 				// Never return any rows
 				return apply { (r: Raster, job, progressKey) -> Raster in
-					return Raster(data: [], columnNames: r.columnNames, readOnly: true)
+					return Raster(data: [], columns: r.columns, readOnly: true)
 				}
 			}
 			else if constantValue == Value(true) {
@@ -811,7 +810,7 @@ public class RasterData: NSObject, Data {
 			
 			for rowNumber in 0..<r.rowCount {
 				let row = r[rowNumber]
-				if optimizedCondition.apply(Row(row, columnNames: r.columnNames), foreign: nil, inputValue: nil) == Value.BoolValue(true) {
+				if optimizedCondition.apply(Row(row, columns: r.columns), foreign: nil, inputValue: nil) == Value.BoolValue(true) {
 					newData.append(row)
 				}
 
@@ -823,7 +822,7 @@ public class RasterData: NSObject, Data {
 				}
 			}
 			
-			return Raster(data: newData, columnNames: r.columnNames, readOnly: true)
+			return Raster(data: newData, columns: r.columns, readOnly: true)
 		}
 	}
 	
@@ -839,8 +838,8 @@ public class RasterData: NSObject, Data {
 						var newData: [Tuple] = []
 						
 						// Determine result raster columns
-						var columns = leftRaster.columnNames
-						for rightColumn in rightRaster.columnNames {
+						var columns = leftRaster.columns
+						for rightColumn in rightRaster.columns {
 							if !columns.contains(rightColumn) {
 								columns.append(rightColumn)
 							}
@@ -855,7 +854,7 @@ public class RasterData: NSObject, Data {
 						}
 					
 						// Fill in data from the right side
-						let indices = rightRaster.columnNames.map({return columns.indexOf($0)})
+						let indices = rightRaster.columns.map({return columns.indexOf($0)})
 						let empty = Array<Value>(count: columns.count, repeatedValue: Value.EmptyValue)
 						for row in rightRaster.raster {
 							var rowClone = empty
@@ -867,7 +866,7 @@ public class RasterData: NSObject, Data {
 							newData.append(rowClone)
 						}
 					
-						callback(.Success(Raster(data: newData, columnNames: columns)))
+						callback(.Success(Raster(data: newData, columns: columns)))
 					
 					case .Failure(let error):
 						callback(.Failure(error))
@@ -968,7 +967,7 @@ public class RasterData: NSObject, Data {
 
 			// FIXME: more detailed progress reports
 			job?.reportProgress(1.0, forKey: progressKey)
-			return Raster(data: rows, columnNames: newColumnNames, readOnly: true)
+			return Raster(data: rows, columns: newColumnNames, readOnly: true)
 		}
 	}
 	
@@ -985,7 +984,7 @@ public class RasterData: NSObject, Data {
 				// FIXME: check job.cancelled
 			}
 			// FIXME: include newData.map in progress reporting
-			return Raster(data: newData.map({$0.row}), columnNames: r.columnNames, readOnly: true)
+			return Raster(data: newData.map({$0.row}), columns: r.columns, readOnly: true)
 		}
 	}
 	
@@ -1011,7 +1010,7 @@ public class RasterData: NSObject, Data {
 				}
 			}
 			
-			return Raster(data: newData, columnNames: r.columnNames, readOnly: true)
+			return Raster(data: newData, columns: r.columns, readOnly: true)
 		}
 	}
 	
@@ -1037,10 +1036,10 @@ public class RasterWarehouse: Warehouse {
 	public func performMutation(mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableData?>) -> ()) {
 		switch mutation {
 		case .Create(_, let data):
-			data.columnNames(job) { result in
+			data.columns(job) { result in
 				switch result {
 				case .Success(let cns):
-					let raster = Raster(data: [], columnNames: cns, readOnly: false)
+					let raster = Raster(data: [], columns: cns, readOnly: false)
 					let mutableData = RasterMutableData(raster: raster)
 					let mapping = cns.mapDictionary({ return ($0,$0) })
 					mutableData.performMutation(.Import(data: data, withMapping: mapping), job: job) { result in
@@ -1066,7 +1065,7 @@ private class RasterInsertPuller: StreamPuller {
 		self.raster = target
 		self.callback = callback
 
-		self.fastMapping = self.raster.columnNames.map { cn -> Int? in
+		self.fastMapping = self.raster.columns.map { cn -> Int? in
 			if let sn = mapping[cn] {
 				return sourceColumns.indexOf(sn)
 			}
@@ -1143,7 +1142,7 @@ public class RasterMutableData: MutableData {
 			callback(.Success())
 
 		case .Rename(let mapping):
-			self.raster.columnNames = self.raster.columnNames.map { cn -> Column in
+			self.raster.columns = self.raster.columns.map { cn -> Column in
 				if let newName = mapping[cn] {
 					return newName
 				}
@@ -1152,8 +1151,8 @@ public class RasterMutableData: MutableData {
 			callback(.Success())
 
 		case .Alter(let def):
-			let removedColumns = self.raster.columnNames.filter { return !def.columnNames.contains($0) }
-			let addedColumns = def.columnNames.filter { return !self.raster.columnNames.contains($0) }
+			let removedColumns = self.raster.columns.filter { return !def.columns.contains($0) }
+			let addedColumns = def.columns.filter { return !self.raster.columns.contains($0) }
 
 			let removeIndices = NSMutableIndexSet()
 			removedColumns.forEach { removeIndices.addIndex(self.raster.indexOfColumnWithName($0)!) }
@@ -1163,10 +1162,10 @@ public class RasterMutableData: MutableData {
 
 		case .Import(data: let data, withMapping: let mapping):
 			let stream = data.stream()
-			stream.columnNames(job) { result in
+			stream.columns(job) { result in
 				switch result {
-				case .Success(let columnNames):
-					let puller = RasterInsertPuller(target: self.raster, mapping: mapping, source: data.stream(), sourceColumns: columnNames, job: job, callback: callback)
+				case .Success(let columns):
+					let puller = RasterInsertPuller(target: self.raster, mapping: mapping, source: data.stream(), sourceColumns: columns, job: job, callback: callback)
 					puller.start()
 
 				case .Failure(let e):
@@ -1175,7 +1174,7 @@ public class RasterMutableData: MutableData {
 			}
 
 		case .Insert(row: let row):
-			let values = raster.columnNames.map { cn -> Value in
+			let values = raster.columns.map { cn -> Value in
 				return row[cn] ?? Value.EmptyValue
 			}
 
@@ -1244,9 +1243,9 @@ private class RasterDataStream: NSObject, Stream {
 		self.raster = Future(data.raster)
 	}
 	
-	private func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.raster.get { (fallibleRaster) in
-			callback(fallibleRaster.use({ return $0.columnNames }))
+			callback(fallibleRaster.use({ return $0.columns }))
 		}
 	}
 	

@@ -183,12 +183,12 @@ internal enum QBEEditingMode {
 				// Generate sensible join options
 				self.view.calculator.currentRaster?.get { (r) -> () in
 					r.maybe { (raster) -> () in
-						let myColumns = raster.columnNames
+						let myColumns = raster.columns
 
 						let job = Job(.UserInitiated)
 						self.otherChain.head?.fullData(job) { (otherDataFallible) -> () in
 							otherDataFallible.maybe { (otherData) -> () in
-								otherData.columnNames(job) { (otherColumnsFallible) -> () in
+								otherData.columns(job) { (otherColumnsFallible) -> () in
 									otherColumnsFallible.maybe { (otherColumns) -> () in
 										let mySet = Set(myColumns)
 										let otherSet = Set(otherColumns)
@@ -597,7 +597,7 @@ internal enum QBEEditingMode {
 	
 	func dataView(view: QBEDataViewController, didOrderColumns columns: [Column], toIndex: Int) -> Bool {
 		// Construct a new column ordering
-		if let r = view.raster where toIndex >= 0 && toIndex < r.columnNames.count {
+		if let r = view.raster where toIndex >= 0 && toIndex < r.columns.count {
 			/* If the current step is already a sort columns step, do not create another one; instead create a new sort
 			step that combines both sorts. This cannot be implemented as QBESortColumnStep.mergeWith, because from there
 			the full list of columns is not available. */
@@ -606,7 +606,7 @@ internal enum QBEEditingMode {
 				self.remove(sortStep)
 				self.currentStep = previous
 
-				var allColumns = r.columnNames
+				var allColumns = r.columns
 				let beforeColumn = allColumns[toIndex]
 				columns.forEach { allColumns.remove($0) }
 				if let beforeIndex = allColumns.indexOf(beforeColumn) {
@@ -615,8 +615,8 @@ internal enum QBEEditingMode {
 				pushStep(QBESortColumnsStep(previous: previous, sortColumns: allColumns, before: nil))
 			}
 			else {
-				if toIndex < r.columnNames.count {
-					pushStep(QBESortColumnsStep(previous: self.currentStep, sortColumns: columns, before: r.columnNames[toIndex]))
+				if toIndex < r.columns.count {
+					pushStep(QBESortColumnsStep(previous: self.currentStep, sortColumns: columns, before: r.columns[toIndex]))
 				}
 				else {
 					pushStep(QBESortColumnsStep(previous: self.currentStep, sortColumns: columns, before: nil))
@@ -640,12 +640,12 @@ internal enum QBEEditingMode {
 				// If we are not editing the source data, the only thing that can be done is calculate a new column
 				calculator.currentRaster?.get { (fallibleRaster) -> () in
 					fallibleRaster.maybe { (raster) -> () in
-						let targetColumnName = Column.defaultNameForNewColumn(raster.columnNames)
+						let targetColumn = Column.defaultNameForNewColumn(raster.columns)
 
 						self.suggestions = Future<[QBEStep]>({(job, callback) -> () in
 							job.async {
 								let expressions = QBECalculateStep.suggest(change: nil, toValue: value, inRaster: raster, row: row, column: nil, locale: self.locale, job: job)
-								callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: targetColumnName, function: $0)}))
+								callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: targetColumn, function: $0)}))
 							}
 						}, timeLimit: 5.0)
 
@@ -661,7 +661,7 @@ internal enum QBEEditingMode {
 		case .Editing(identifiers: _, editingRaster: let editingRaster):
 			// If a formula was typed in, calculate the result first
 			if let f = Formula(formula: value.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
-				let row = inRow == nil ? Row() : Row(editingRaster[inRow!], columnNames: editingRaster.columnNames)
+				let row = inRow == nil ? Row() : Row(editingRaster[inRow!], columns: editingRaster.columns)
 				value = f.root.apply(row, foreign: nil, inputValue: nil)
 			}
 
@@ -669,14 +669,14 @@ internal enum QBEEditingMode {
 			if let md = self.currentStep?.mutableData {
 				let job = Job(.UserInitiated)
 
-				md.columnNames(job) { result in
+				md.columns(job) { result in
 					switch result {
-					case .Success(let columnNames):
+					case .Success(let columns):
 						if let cn = column {
 							// The edit made was inside the range of current columns. No need to add a new column, just a new row
-							if cn >= 0 && cn <= columnNames.count {
-								let columnName = columnNames[cn]
-								let row = Row([value], columnNames: [columnName])
+							if cn >= 0 && cn <= columns.count {
+								let columnName = columns[cn]
+								let row = Row([value], columns: [columnName])
 								let mutation = DataMutation.Insert(row: row)
 								md.performMutation(mutation, job: job) { result in
 									switch result {
@@ -705,10 +705,10 @@ internal enum QBEEditingMode {
 						}
 						else {
 							// need to add a new column first
-							var columns = columnNames
+							var columns = columns
 							let newColumnName = Column.defaultNameForNewColumn(columns)
 							columns.append(newColumnName)
-							let mutation = DataMutation.Alter(DataDefinition(columnNames: columns))
+							let mutation = DataMutation.Alter(DataDefinition(columns: columns))
 							md.performMutation(mutation, job: job) { result in
 								switch result {
 								case .Success:
@@ -796,7 +796,7 @@ internal enum QBEEditingMode {
 						var keys: [[Column: Value]] = []
 						for rowNumber in rows {
 							// Create key
-							let row = Row(editingRaster[rowNumber], columnNames: editingRaster.columnNames)
+							let row = Row(editingRaster[rowNumber], columns: editingRaster.columns)
 							var key: [Column: Value] = [:]
 							for identifyingColumn in ids {
 								key[identifyingColumn] = row[identifyingColumn]
@@ -849,18 +849,18 @@ internal enum QBEEditingMode {
 		if let md = self.currentStep?.mutableData, case .Editing(identifiers:_, editingRaster: let editingRaster) = self.editingMode {
 			// If a formula was typed in, calculate the result first
 			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
-				toValue = f.root.apply(Row(editingRaster[inRow], columnNames: editingRaster.columnNames), foreign: nil, inputValue: oldValue)
+				toValue = f.root.apply(Row(editingRaster[inRow], columns: editingRaster.columns), foreign: nil, inputValue: oldValue)
 			}
 
 			let job = Job(.UserInitiated)
 			md.data(job) { result in
 				switch result {
 				case .Success(let data):
-					data.columnNames(job) { result in
+					data.columns(job) { result in
 						switch result {
-						case .Success(let columnNames):
+						case .Success(let columns):
 							// Does the data set support editing by row number, or do we edit by key?
-							let editMutation = DataMutation.Edit(row: inRow, column: columnNames[column], old: oldValue, new: toValue)
+							let editMutation = DataMutation.Edit(row: inRow, column: columns[column], old: oldValue, new: toValue)
 							if md.canPerformMutation(editMutation) {
 								job.async {
 									md.performMutation(editMutation, job: job) { result in
@@ -888,13 +888,13 @@ internal enum QBEEditingMode {
 							else {
 								if let ids = identifiers {
 									// Create key
-									let row = Row(editingRaster[inRow], columnNames: editingRaster.columnNames)
+									let row = Row(editingRaster[inRow], columns: editingRaster.columns)
 									var key: [Column: Value] = [:]
 									for identifyingColumn in ids {
 										key[identifyingColumn] = row[identifyingColumn]
 									}
 
-									let mutation = DataMutation.Update(key: key, column: editingRaster.columnNames[column], old: oldValue, new: toValue)
+									let mutation = DataMutation.Update(key: key, column: editingRaster.columns[column], old: oldValue, new: toValue)
 									job.async {
 										md.performMutation(mutation, job: job) { result in
 											switch result {
@@ -996,7 +996,7 @@ internal enum QBEEditingMode {
 					self.suggestions = Future<[QBEStep]>({(job, callback) -> () in
 						job.async {
 							let expressions = QBECalculateStep.suggest(change: oldValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
-							callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columnNames[column], function: $0)}))
+							callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columns[column], function: $0)}))
 						}
 						}, timeLimit: 5.0)
 
@@ -1287,7 +1287,7 @@ internal enum QBEEditingMode {
 			d.maybe { (data) -> () in
 				let job = Job(.UserInitiated)
 				
-				data.columnNames(job) { (columnNamesFallible) -> () in
+				data.columns(job) { (columnNamesFallible) -> () in
 					columnNamesFallible.maybe { (cols) -> () in
 						if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 							let name = Column.defaultNameForNewColumn(cols)
@@ -1344,7 +1344,7 @@ internal enum QBEEditingMode {
 		calculator.currentData?.get {(data) in
 			let job = Job(.UserInitiated)
 			
-			data.maybe {$0.columnNames(job) {(columnsFallible) in
+			data.maybe {$0.columns(job) {(columnsFallible) in
 				columnsFallible.maybe { (cols) -> () in
 					asyncMain {
 						let name = Column.defaultNameForNewColumn(cols)
@@ -1363,7 +1363,7 @@ internal enum QBEEditingMode {
 		calculator.currentData?.get {(data) in
 			let job = Job(.UserInitiated)
 			
-			data.maybe {$0.columnNames(job) {(columnsFallible) in
+			data.maybe {$0.columns(job) {(columnsFallible) in
 				columnsFallible.maybe { (cols) -> () in
 					asyncMain {
 						let name = Column.defaultNameForNewColumn(cols)
@@ -1429,7 +1429,7 @@ internal enum QBEEditingMode {
 				calculator.currentRaster?.get {(r) -> () in
 					r.maybe { (raster) -> () in
 						if firstSelectedColumn < raster.columnCount {
-							let columnName = raster.columnNames[firstSelectedColumn]
+							let columnName = raster.columns[firstSelectedColumn]
 							let expression = Sibling(columnName: columnName)
 							let order = Order(expression: expression, ascending: ascending, numeric: true)
 							
@@ -1467,12 +1467,12 @@ internal enum QBEEditingMode {
 					var namesToRemove: [Column] = []
 					var namesToSelect: [Column] = []
 					
-					for i in 0..<r.columnNames.count {
+					for i in 0..<r.columns.count {
 						if colsToRemove.containsIndex(i) {
-							namesToRemove.append(r.columnNames[i])
+							namesToRemove.append(r.columns[i])
 						}
 						else {
-							namesToSelect.append(r.columnNames[i])
+							namesToSelect.append(r.columns[i])
 						}
 					}
 
@@ -1480,11 +1480,11 @@ internal enum QBEEditingMode {
 						var steps: [QBEStep] = []
 
 						if namesToRemove.count > 0 && namesToRemove.count < r.columnCount {
-							steps.append(QBEColumnsStep(previous: self.currentStep, columnNames: namesToRemove, select: !remove))
+							steps.append(QBEColumnsStep(previous: self.currentStep, columns: namesToRemove, select: !remove))
 						}
 
 						if namesToSelect.count > 0 && namesToSelect.count < r.columnCount {
-							steps.append(QBEColumnsStep(previous: self.currentStep, columnNames: namesToSelect, select: remove))
+							steps.append(QBEColumnsStep(previous: self.currentStep, columns: namesToSelect, select: remove))
 						}
 
 						self.suggestSteps(steps)
@@ -1529,7 +1529,7 @@ internal enum QBEEditingMode {
 							var relevantColumns = Set<Column>()
 							for columnIndex in 0..<raster.columnCount {
 								if selectedColumns.containsIndex(columnIndex) {
-									relevantColumns.insert(raster.columnNames[columnIndex])
+									relevantColumns.insert(raster.columns[columnIndex])
 								}
 							}
 
@@ -1562,11 +1562,11 @@ internal enum QBEEditingMode {
 					var selectedColumnNames: [Column] = []
 					selectedColumns.forEach { idx in
 						if raster.columnCount > idx {
-							selectedColumnNames.append(raster.columnNames[idx])
+							selectedColumnNames.append(raster.columns[idx])
 						}
 					}
 					step.rows = selectedColumnNames
-					step.aggregates.append(Aggregation(map: Literal(Value(1)), reduce: Function.CountAll, targetColumnName: Column("Count".localized)))
+					step.aggregates.append(Aggregation(map: Literal(Value(1)), reduce: Function.CountAll, targetColumn: Column("Count".localized)))
 					asyncMain {
 						self.suggestSteps([step])
 					}
@@ -1588,7 +1588,7 @@ internal enum QBEEditingMode {
 						var relevantColumns = Set<Column>()
 						for columnIndex in 0..<raster.columnCount {
 							if selectedColumns.containsIndex(columnIndex) {
-								relevantColumns.insert(raster.columnNames[columnIndex])
+								relevantColumns.insert(raster.columns[columnIndex])
 							}
 						}
 						
@@ -1611,7 +1611,7 @@ internal enum QBEEditingMode {
 						var relevantColumns = Set<Column>()
 						for columnIndex in 0..<raster.columnCount {
 							if selectedColumns.containsIndex(columnIndex) {
-								relevantColumns.insert(raster.columnNames[columnIndex])
+								relevantColumns.insert(raster.columns[columnIndex])
 							}
 						}
 						
@@ -1690,7 +1690,7 @@ internal enum QBEEditingMode {
 	}
 
 	@IBAction func alterStore(sender: NSObject) {
-		if let md = self.currentStep?.mutableData where md.canPerformMutation(.Alter(DataDefinition(columnNames: []))) {
+		if let md = self.currentStep?.mutableData where md.canPerformMutation(.Alter(DataDefinition(columns: []))) {
 			let alterViewController = QBEAlterTableViewController()
 			alterViewController.mutableData = md
 			alterViewController.warehouse = md.warehouse
@@ -1701,11 +1701,11 @@ internal enum QBEEditingMode {
 			md.data(job) { result in
 				switch result {
 				case .Success(let data):
-					data.columnNames(job) { result in
+					data.columns(job) { result in
 						switch result {
-							case .Success(let columnNames):
+							case .Success(let columns):
 								asyncMain {
-									alterViewController.definition = DataDefinition(columnNames: columnNames)
+									alterViewController.definition = DataDefinition(columns: columns)
 									self.presentViewControllerAsSheet(alterViewController)
 								}
 
@@ -1750,12 +1750,12 @@ internal enum QBEEditingMode {
 							// Cannot start editing right now
 							self.editingMode = .NotEditing
 
-							md.columnNames(job) { columnsResult in
+							md.columns(job) { columnsResult in
 								switch columnsResult {
-								case .Success(let columnNames):
+								case .Success(let columns):
 									asyncMain {
 										let ctr = self.storyboard?.instantiateControllerWithIdentifier("keyViewController") as! QBEKeySelectionViewController
-										ctr.columnNames = columnNames
+										ctr.columns = columns
 										ctr.delegate = self
 
 										if case .Success(let ids) = result where ids != nil {
@@ -1905,7 +1905,7 @@ internal enum QBEEditingMode {
 		else if selector == Selector("alterStore:")  {
 			switch editingMode {
 			case .Editing:
-				if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Alter(DataDefinition(columnNames: []))) {
+				if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Alter(DataDefinition(columns: []))) {
 					return true
 				}
 				return false

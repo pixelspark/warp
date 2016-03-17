@@ -193,11 +193,11 @@ public class QBECalculator: NSObject {
 								case .Success(let d):
 									// At this point, we know which columns will be available. We should now add the view filters (if any)
 									if let filters = columnFilters where filters.count > 0 {
-										d.columnNames(job, callback: { (fallibleColumns) -> () in
+										d.columns(job, callback: { (fallibleColumns) -> () in
 											switch fallibleColumns {
-											case .Success(let columnNames):
+											case .Success(let columns):
 												var filteredData = d
-												for column in columnNames {
+												for column in columns {
 													if let columnFilter = filters[column] {
 														let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(columnName: column))
 														filteredData = filteredData.filter(filterExpression)

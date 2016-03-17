@@ -155,7 +155,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
 						let yse = ys.enumerate().map { idx, i in return ChartDataEntry(value: i, xIndex: idx) }
 
-						let ds = LineChartDataSet(yVals: yse, label: r.columnNames[ySeriesIndex].name)
+						let ds = LineChartDataSet(yVals: yse, label: r.columns[ySeriesIndex].name)
 						ds.drawValuesEnabled = false
 						ds.drawCirclesEnabled = false
 						ds.colors = [colors[(ySeriesIndex - 1) % colors.count]]
@@ -179,7 +179,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
 						let yse = ys.enumerate().map { idx, i in return ChartDataEntry(value: i, xIndex: idx) }
 
-						let ds = RadarChartDataSet(yVals: yse, label: r.columnNames[ySeriesIndex].name)
+						let ds = RadarChartDataSet(yVals: yse, label: r.columns[ySeriesIndex].name)
 						ds.drawValuesEnabled = false
 						ds.colors = [colors[(ySeriesIndex - 1) % colors.count]]
 						data.addDataSet(ds)

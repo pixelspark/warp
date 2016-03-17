@@ -207,7 +207,7 @@ private class QBEPrestoStream: NSObject, Stream {
 		}
 	}
 	
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.columnsFuture.get(job, callback)
 	}
 	
@@ -270,7 +270,7 @@ private class QBEPrestoData: SQLData {
 	class func tableData(job: Job, db: QBEPrestoDatabase, tableName: String, callback: (Fallible<QBEPrestoData>) -> ()) {
 		let sql = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, schema: nil, database: nil))"
 		
-		db.query(sql).columnNames(job) { (columns) -> () in
+		db.query(sql).columns(job) { (columns) -> () in
 			callback(columns.use({return QBEPrestoData(db: db, fragment: SQLFragment(table: tableName, schema: nil, database: nil, dialect: db.dialect), columns: $0)}))
 		}
 	}

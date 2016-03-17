@@ -177,12 +177,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			// Template column
 			return "+"
 		}
-		else if Int(columnIndex) >= raster?.columnNames.count {
+		else if Int(columnIndex) >= raster?.columns.count {
 			// Out of range
 			return ""
 		}
 		else {
-			return raster?.columnNames[Int(columnIndex)].name
+			return raster?.columns[Int(columnIndex)].name
 		}
 	}
 	
@@ -203,7 +203,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			var columnsOrdered: [Column] = []
 			for columnIndex in 0..<r.columnCount {
 				if columnIndexes.containsIndex(columnIndex) {
-					columnsOrdered.append(r.columnNames[columnIndex])
+					columnsOrdered.append(r.columns[columnIndex])
 				}
 			}
 			
@@ -231,7 +231,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	func tableGrid(aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt)  {
 		if let r = raster {
 			if Int(columnIndex) < r.columnCount {
-				let cn = r.columnNames[Int(columnIndex)]
+				let cn = r.columns[Int(columnIndex)]
 				let previousWidth = QBESettings.sharedInstance.defaultWidthForColumn(cn)
 				
 				if width != Float(self.DefaultColumnWidth) || (previousWidth != nil && previousWidth! > 0) {
@@ -290,7 +290,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			if let r = raster {
 				// Update column sizes
 				for i in 0..<r.columnCount {
-					let cn = r.columnNames[i]
+					let cn = r.columns[i]
 					if let w = QBESettings.sharedInstance.defaultWidthForColumn(cn) where w > 0 {
 						tv.resizeColumnWithIndex(UInt(i), width: Float(w))
 					}
@@ -363,8 +363,8 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	func tableGrid(aTableGrid: MBTableGrid!, footerCellForColumn columnIndex: UInt) -> NSCell! {
 		assertMainThread()
 
-		if let r = raster where Int(columnIndex) >= 0 && Int(columnIndex) < r.columnNames.count {
-			let cn = r.columnNames[Int(columnIndex)]
+		if let r = raster where Int(columnIndex) >= 0 && Int(columnIndex) < r.columns.count {
+			let cn = r.columns[Int(columnIndex)]
 
 			// If we have a cached instance, use that
 			let filterCell: QBEFilterCell
@@ -397,7 +397,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		if let popover = self.storyboard?.instantiateControllerWithIdentifier("columnPopup") as? QBEColumnViewController,
 			let rect = self.tableView?.headerRectOfColumn(columnIndex),
 			let r = raster where r.columnCount > Int(columnIndex) {
-				popover.column = r.columnNames[Int(columnIndex)]
+				popover.column = r.columns[Int(columnIndex)]
 				popover.delegate = self
 				self.presentViewController(popover, asPopoverRelativeToRect: rect, ofView: self.tableView!, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
 		}
@@ -462,8 +462,8 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 
 	private func showFilterPopup(columnIndex: Int, atFooter: Bool) {
-		if let tv = self.tableView, let r = raster where columnIndex < r.columnNames.count {
-			self.delegate?.dataView(self, filterControllerForColumn: r.columnNames[Int(columnIndex)]) { (viewFilterController) in
+		if let tv = self.tableView, let r = raster where columnIndex < r.columns.count {
+			self.delegate?.dataView(self, filterControllerForColumn: r.columns[Int(columnIndex)]) { (viewFilterController) in
 				assertMainThread()
 				let pv = NSPopover()
 				pv.behavior = NSPopoverBehavior.Semitransient

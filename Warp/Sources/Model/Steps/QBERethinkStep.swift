@@ -132,7 +132,7 @@ final class QBERethinkStream: NSObject, Stream {
 		}
 	}
 
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		if let fc = self.columns {
 			callback(.Success(fc))
 		}
@@ -153,7 +153,7 @@ final class QBERethinkStream: NSObject, Stream {
 				consumer(.Failure(e), .Finished)
 
 			case .Rows(let docs, let continuation):
-				self.columnNames(job, callback: { (columnsFallible) -> () in
+				self.columns(job, callback: { (columnsFallible) -> () in
 					switch columnsFallible {
 						case .Success(let columns):
 							let rows = docs.map { (document) -> [Value] in
@@ -479,14 +479,14 @@ class QBERethinkData: StreamData {
 		return QBERethinkData(url: self.url, query: q, columns: newColumns)
 	}
 
-	override func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	override func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		// If the column names are known for this data set, simply return them
 		if let c = self.columns {
 			callback(.Success(c))
 			return
 		}
 
-		return super.columnNames(job, callback: callback)
+		return super.columns(job, callback: callback)
 	}
 
 	override func selectColumns(columns: [Column]) -> Data {
@@ -564,25 +564,25 @@ class QBERethinkDataWarehouse: Warehouse {
 }
 
 private class QBERethinkInsertPuller: StreamPuller {
-	let columnNames: [Column]
+	let columns: [Column]
 	let connection: ReConnection
 	let table: ReQueryTable
 	var callback: ((Fallible<Void>) -> ())?
 
-	init(stream: Stream, job: Job, columnNames: [Column], table: ReQueryTable, connection: ReConnection, callback: (Fallible<Void>) -> ()) {
+	init(stream: Stream, job: Job, columns: [Column], table: ReQueryTable, connection: ReConnection, callback: (Fallible<Void>) -> ()) {
 		self.callback = callback
 		self.table = table
 		self.connection = connection
-		self.columnNames = columnNames
+		self.columns = columns
 		super.init(stream: stream, job: job)
 	}
 
 	override func onReceiveRows(rows: [Tuple], callback: (Fallible<Void>) -> ()) {
 		self.mutex.locked {
 			let documents = rows.map { row -> ReDocument in
-				assert(row.count == self.columnNames.count, "Mismatching column counts")
+				assert(row.count == self.columns.count, "Mismatching column counts")
 				var document: ReDocument = [:]
-				for (index, element) in self.columnNames.enumerate()
+				for (index, element) in self.columns.enumerate()
 				{
 					document[element.name] = row[index].nativeValue ?? NSNull()
 				}
@@ -724,11 +724,11 @@ class QBERethinkMutableData: MutableData {
 					else {
 						let stream = sourceData.stream()
 
-						stream.columnNames(job) { cns in
+						stream.columns(job) { cns in
 							switch cns {
-							case .Success(let columnNames):
+							case .Success(let columns):
 								let table = R.db(self.databaseName).table(self.tableName)
-								let puller = QBERethinkInsertPuller(stream: stream, job: job, columnNames: columnNames, table: table, connection: connection, callback: callback)
+								let puller = QBERethinkInsertPuller(stream: stream, job: job, columns: columns, table: table, connection: connection, callback: callback)
 								puller.start()
 
 							case .Failure(let e):
@@ -740,7 +740,7 @@ class QBERethinkMutableData: MutableData {
 
 					case .Insert(let row):
 						var doc = ReDocument()
-						for name in row.columnNames {
+						for name in row.columns {
 							doc[name.name] = row[name]?.nativeValue ?? NSNull()
 						}
 						q = R.db(self.databaseName).table(self.tableName).insert([doc])

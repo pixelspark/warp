@@ -54,8 +54,8 @@ class QBEXMLWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 				}
 				
 				// Fetch column names
-				stream.columnNames(job) { (columnNames) -> () in
-					switch columnNames {
+				stream.columns(job) { (columns) -> () in
+					switch columns {
 						case .Success(let cns):
 							writer.openTag("grid")
 							

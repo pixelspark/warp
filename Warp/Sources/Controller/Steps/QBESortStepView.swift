@@ -35,12 +35,12 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 
 		if let previous = step.previous {
 			previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
-				data.maybe({$0.columnNames(job) {(columns) in
-					columns.maybe { (columnNames) in
+				data.maybe({$0.columns(job) {(columns) in
+					columns.maybe { (columns) in
 						asyncMain {
 							self.addButton?.removeAllItems()
 							self.addButton?.addItemWithTitle(NSLocalizedString("Add sorting criterion...", comment: ""))
-							self.addButton?.addItemsWithTitles(columnNames.map({return $0.name}))
+							self.addButton?.addItemsWithTitles(columns.map({return $0.name}))
 							self.updateView()
 						}
 					}

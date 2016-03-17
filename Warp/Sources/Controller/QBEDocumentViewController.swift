@@ -327,7 +327,7 @@ import WarpCore
 				}
 				
 				if headerRow != nil {
-					let raster = Raster(data: data, columnNames: headerRow!.map({return Column($0.stringValue ?? "")}), readOnly: false)
+					let raster = Raster(data: data, columns: headerRow!.map({return Column($0.stringValue ?? "")}), readOnly: false)
 					let s = QBERasterStep(raster: raster)
 					let tablet = QBEChainTablet(chain: QBEChain(head: s))
 					addTablet(tablet, undo: true, animated: true)
@@ -425,12 +425,12 @@ import WarpCore
 					sourceTablet.chain.head?.exampleData(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
 						switch result {
 						case .Success(let data):
-							data.columnNames(job) { result in
+							data.columns(job) { result in
 								switch result {
-								case .Success(let columnNames):
+								case .Success(let columns):
 									asyncMain {
 										jobProgressView.dismissController(sender)
-										if let first = columnNames.first, let last = columnNames.last where columnNames.count > 1 {
+										if let first = columns.first, let last = columns.last where columns.count > 1 {
 											let tablet = QBEChartTablet(source: sourceTablet, type: .Bar, xExpression: Sibling(columnName: first), yExpression: Sibling(columnName: last))
 											self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 										}
@@ -600,7 +600,7 @@ import WarpCore
 							switch result {
 							case .Success(let uniqueValues):
 								let rows = uniqueValues.map({ item in return [item] })
-								let raster = Raster(data: rows, columnNames: [colset.first!], readOnly: false)
+								let raster = Raster(data: rows, columns: [colset.first!], readOnly: false)
 								let chain = QBEChain(head: QBERasterStep(raster: raster))
 								let tablet = QBEChainTablet(chain: chain)
 								asyncMain {
@@ -774,7 +774,7 @@ import WarpCore
 	}
 
 	@IBAction func addRasterTablet(sender: NSObject) {
-		let raster = Raster(data: [], columnNames: [Column.defaultNameForNewColumn([])], readOnly: false)
+		let raster = Raster(data: [], columns: [Column.defaultNameForNewColumn([])], readOnly: false)
 		let chain = QBEChain(head: QBERasterStep(raster: raster))
 		let tablet = QBEChainTablet(chain: chain)
 		self.addTablet(tablet, undo: true, animated: true) { tabletViewController in

@@ -43,7 +43,7 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 	
 	private let connection: QBEMySQLConnection
 	private let result: UnsafeMutablePointer<MYSQL_RES>
-	private(set) var columnNames: [Column] = []
+	private(set) var columns: [Column] = []
 	private(set) var columnTypes: [MYSQL_FIELD] = []
 	private(set) var finished = false
 	
@@ -59,7 +59,7 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 				let column = mysql_fetch_field(result)
 				if column != nil {
 					if let name = NSString(bytes: column.memory.name, length: Int(column.memory.name_length), encoding: NSUTF8StringEncoding) {
-						realResult.columnNames.append(Column(String(name)))
+						realResult.columns.append(Column(String(name)))
 						realResult.columnTypes.append(column.memory)
 					}
 					else {
@@ -132,9 +132,9 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 			let row: MYSQL_ROW = mysql_fetch_row(self.result)
 			if row != nil {
 				rowData = []
-				rowData!.reserveCapacity(self.columnNames.count)
+				rowData!.reserveCapacity(self.columns.count)
 				
-				for cn in 0..<self.columnNames.count {
+				for cn in 0..<self.columns.count {
 					let val = row[cn]
 					if val == nil {
 						rowData!.append(Value.EmptyValue)
@@ -466,7 +466,7 @@ final class QBEMySQLData: SQLData {
 				switch fallibleResult {
 					case .Success(let result):
 						result.finish() // We're not interested in that one row we just requested, just the column names
-						return .Success(QBEMySQLData(database: database, table: tableName, columns: result.columnNames))
+						return .Success(QBEMySQLData(database: database, table: tableName, columns: result.columns))
 					
 					case .Failure(let error):
 						return .Failure(error)
@@ -514,7 +514,7 @@ QBEMySQLStream provides a stream of records from a MySQL result set. Because SQL
 sequentially, cloning of this stream requires re-executing the query. */
 private final class QBEMySQLResultStream: SequenceStream {
 	init(result: QBEMySQLResult) {
-		super.init(AnySequence<Fallible<Tuple>>(result), columnNames: result.columnNames)
+		super.init(AnySequence<Fallible<Tuple>>(result), columns: result.columns)
 	}
 	
 	override func clone() -> Stream {
@@ -553,8 +553,8 @@ final class QBEMySQLStream: Stream {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		return stream().columnNames(job, callback: callback)
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+		return stream().columns(job, callback: callback)
 	}
 	
 	func clone() -> Stream {

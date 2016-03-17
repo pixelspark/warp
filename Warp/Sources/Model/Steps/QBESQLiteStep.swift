@@ -92,7 +92,7 @@ private class QBESQLiteResult {
 		return Int(sqlite3_column_count(resultSet))
 	} }
 	
-	 var columnNames: [Column] { get {
+	 var columns: [Column] { get {
 		let count = sqlite3_column_count(resultSet)
 		return (0..<count).map({Column(String.fromCString(sqlite3_column_name(self.resultSet, $0))!)})
 	} }
@@ -150,7 +150,7 @@ private class QBESQLiteResultGenerator: GeneratorType {
 	}
 
 	var row: Tuple {
-		return (0..<result.columnNames.count).map { idx in
+		return (0..<result.columns.count).map { idx in
 			switch sqlite3_column_type(self.result.resultSet, Int32(idx)) {
 			case SQLITE_FLOAT:
 				return Value(sqlite3_column_double(self.result.resultSet, Int32(idx)))
@@ -459,7 +459,7 @@ class QBESQLiteData: SQLData {
 		let query = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, schema: nil, database: nil))"
 		switch db.query(query) {
 			case .Success(let result):
-				return .Success(QBESQLiteData(db: db, fragment: SQLFragment(table: tableName, schema: nil, database: nil, dialect: db.dialect), columns: result.columnNames))
+				return .Success(QBESQLiteData(db: db, fragment: SQLFragment(table: tableName, schema: nil, database: nil, dialect: db.dialect), columns: result.columns))
 				
 			case .Failure(let error):
 				return .Failure(error)
@@ -512,7 +512,7 @@ class QBESQLiteStream: Stream {
 			if resultStream == nil {
 				switch data.result() {
 					case .Success(let result):
-						resultStream = SequenceStream(AnySequence<Fallible<Tuple>>(result.sequence()), columnNames: result.columnNames)
+						resultStream = SequenceStream(AnySequence<Fallible<Tuple>>(result.sequence()), columns: result.columns)
 						
 					case .Failure(let error):
 						resultStream = ErrorStream(error)
@@ -527,8 +527,8 @@ class QBESQLiteStream: Stream {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		return stream().columnNames(job, callback: callback)
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+		return stream().columns(job, callback: callback)
 	}
 	
 	func clone() -> Stream {
@@ -558,7 +558,7 @@ private class QBESQLiteWriterSession {
 		self.job = job
 
 		job.async {
-			self.source.columnNames(job) { (columns) -> () in
+			self.source.columns(job) { (columns) -> () in
 				switch columns {
 				case .Success(let cns):
 					// Create SQL field specifications for the columns
@@ -757,7 +757,7 @@ class QBESQLiteCachedData: ProxyData {
 			case .Success:
 				// Swap out the original source with our new cached source
 				self.cacheJob.log("Done caching, swapping out")
-				self.data.columnNames(self.cacheJob) { [unowned self] (columns) -> () in
+				self.data.columns(self.cacheJob) { [unowned self] (columns) -> () in
 					switch columns {
 					case .Success(let cns):
 						self.data = QBESQLiteData(db: self.database, fragment: SQLFragment(table: self.tableName, schema: nil, database: nil, dialect: self.database.dialect), columns: cns)
@@ -844,8 +844,8 @@ class QBESQLiteMutableData: SQLMutableData {
 				let c = con as! QBESQLiteConnection
 				switch c.query("PRAGMA table_info(\(s.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: nil)))") {
 				case .Success(let result):
-					guard let nameIndex = result.columnNames.indexOf(Column("name")) else { callback(.Failure("No name column")); return }
-					guard let pkIndex = result.columnNames.indexOf(Column("pk")) else { callback(.Failure("No pk column")); return }
+					guard let nameIndex = result.columns.indexOf(Column("name")) else { callback(.Failure("No name column")); return }
+					guard let pkIndex = result.columns.indexOf(Column("pk")) else { callback(.Failure("No pk column")); return }
 
 					var identifiers = Set<Column>()
 					for row in result.sequence() {

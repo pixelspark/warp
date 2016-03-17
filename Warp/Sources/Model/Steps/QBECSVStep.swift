@@ -5,7 +5,7 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 	let parser: CHCSVParser
 	let url: NSURL
 
-	private var columnNames: [Column] = []
+	private var columns: [Column] = []
 	private var finished: Bool = false
 	private var templateRow: [String?] = []
 	private var row: [String?] = []
@@ -52,16 +52,16 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 		
 		if hasHeaders {
 			// Load column names, avoiding duplicate names
-			let columnNames = row.map({Column($0 ?? "")})
-			self.columnNames = []
+			let columns = row.map({Column($0 ?? "")})
+			self.columns = []
 			
-			for columnName in columnNames {
-				if self.columnNames.contains(columnName) {
-					let count = self.columnNames.reduce(0, combine: { (n, item) in return n + (item == columnName ? 1 : 0) })
-					self.columnNames.append(Column("\(columnName.name)_\(Column.defaultNameForIndex(count).name)"))
+			for columnName in columns {
+				if self.columns.contains(columnName) {
+					let count = self.columns.reduce(0, combine: { (n, item) in return n + (item == columnName ? 1 : 0) })
+					self.columns.append(Column("\(columnName.name)_\(Column.defaultNameForIndex(count).name)"))
 				}
 				else {
-					self.columnNames.append(columnName)
+					self.columns.append(columnName)
 				}
 			}
 			
@@ -69,15 +69,15 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 		}
 		else {
 			for i in 0..<row.count {
-				columnNames.append(Column.defaultNameForIndex(i))
+				columns.append(Column.defaultNameForIndex(i))
 			}
 		}
 		
-		templateRow = Array<String?>(count: columnNames.count, repeatedValue: nil)
+		templateRow = Array<String?>(count: columns.count, repeatedValue: nil)
 	}
 	
-	func columnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		callback(.Success(columnNames))
+	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+		callback(.Success(columns))
 	}
 	
 	func fetch(job: Job, consumer: Sink) {
@@ -134,7 +134,7 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 	}
 	
 	func parser(parser: CHCSVParser, didEndLine line: UInt) {
-		while row.count < columnNames.count {
+		while row.count < columns.count {
 			row.append(nil)
 		}
 		rows.append(row)
@@ -209,8 +209,8 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 		csvOut.newlineCharacter = self.newLineCharacter
 
 		// Write column headers
-		stream.columnNames(job) { (columnNames) -> () in
-			switch columnNames {
+		stream.columns(job) { (columns) -> () in
+			switch columns {
 			case .Success(let cns):
 				for col in cns {
 					csvOut.writeField(col.name)

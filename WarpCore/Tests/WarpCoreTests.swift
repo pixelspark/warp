@@ -444,7 +444,7 @@ class WarpCoreTests: XCTestCase {
 		let emptyRaster = Raster()
 		XCTAssert(emptyRaster.rowCount == 0, "Empty raster is empty")
 		XCTAssert(emptyRaster.columnCount == 0, "Empty raster is empty")
-		XCTAssert(emptyRaster.columnNames.count == emptyRaster.columnCount, "Column count matches")
+		XCTAssert(emptyRaster.columns.count == emptyRaster.columnCount, "Column count matches")
 	}
 	
 	func testColumn() {
@@ -606,7 +606,7 @@ class WarpCoreTests: XCTestCase {
 			[Value.IntValue(1), Value.IntValue(2), Value.IntValue(3)],
 			[Value.IntValue(4), Value.IntValue(5), Value.IntValue(6)],
 			[Value.IntValue(7), Value.IntValue(8), Value.IntValue(9)]
-		], columnNames: [Column("a"), Column("b"), Column("c")], readOnly: true)
+		], columns: [Column("a"), Column("b"), Column("c")], readOnly: true)
 		
 		let inData = RasterData(raster: raster)
 		let inOptData = inData.coalesced
@@ -615,7 +615,7 @@ class WarpCoreTests: XCTestCase {
 		inData.filter(Literal(Value(false))).raster(job) { rf in
 			switch rf {
 			case .Success(let r):
-				XCTAssert(r.columnNames.count > 0, "Data set that is filtered to be empty should still contains column names")
+				XCTAssert(r.columns.count > 0, "Data set that is filtered to be empty should still contains column names")
 
 			case .Failure(let e):
 				XCTFail(e)
@@ -682,7 +682,7 @@ class WarpCoreTests: XCTestCase {
 		var suggestions: [Expression] = []
 		let cols = ["A","B","C","D"].map({Column($0)})
 		let row = [1,3,4,6].map({Value($0)})
-		Expression.infer(nil, toValue: Value(24), suggestions: &suggestions, level: 10, row: Row(row, columnNames: cols), column: 0, maxComplexity: Int.max, previousValues: [])
+		Expression.infer(nil, toValue: Value(24), suggestions: &suggestions, level: 10, row: Row(row, columns: cols), column: 0, maxComplexity: Int.max, previousValues: [])
 		suggestions.forEach { trace($0.explain(locale)) }
 		XCTAssert(suggestions.count>0, "Can solve the 1-3-4-6 24 game.")
 	}
@@ -705,7 +705,7 @@ class WarpCoreTests: XCTestCase {
 			}
 		}
 		
-		let data = RasterData(data: d, columnNames: [Column("X"), Column("Y"), Column("Z")])
+		let data = RasterData(data: d, columns: [Column("X"), Column("Y"), Column("Z")])
 		
 		// Limit
 		data.limit(5).raster(job) { assertRaster($0, message: "Limit actually works") { $0.rowCount == 5 } }
@@ -720,7 +720,7 @@ class WarpCoreTests: XCTestCase {
 		}
 		
 		// Union
-		let secondData = RasterData(data: d, columnNames: [Column("X"), Column("B"), Column("C")])
+		let secondData = RasterData(data: d, columns: [Column("X"), Column("B"), Column("C")])
 		data.union(secondData).raster(job) {
 			assertRaster($0, message: "Union creates the proper number of columns", condition: { $0.columnCount == 5 })
 			assertRaster($0, message: "Union creates the proper number of rows", condition: { $0.rowCount == 2000 })
@@ -743,7 +743,7 @@ class WarpCoreTests: XCTestCase {
 		}
 		
 		// Select columns
-		data.selectColumns(["THIS_DOESNT_EXIST"]).columnNames(job) { (r) -> () in
+		data.selectColumns(["THIS_DOESNT_EXIST"]).columns(job) { (r) -> () in
 			switch r {
 				case .Success(let cns):
 					XCTAssert(cns.isEmpty, "Selecting an invalid column returns a set without columns")
@@ -777,9 +777,9 @@ class WarpCoreTests: XCTestCase {
 		}
 		
 		// Empty raster behavior
-		let emptyRasterData = RasterData(data: [], columnNames: [])
+		let emptyRasterData = RasterData(data: [], columns: [])
 		emptyRasterData.limit(5).raster(job) { assertRaster($0, message: "Limit works when number of rows > available rows") { $0.rowCount == 0 } }
-		emptyRasterData.selectColumns([Column("THIS_DOESNT_EXIST")]).raster(job) { assertRaster($0, message: "Selecting an invalid column works properly in empty raster") { $0.columnNames.isEmpty } }
+		emptyRasterData.selectColumns([Column("THIS_DOESNT_EXIST")]).raster(job) { assertRaster($0, message: "Selecting an invalid column works properly in empty raster") { $0.columns.isEmpty } }
 	}
 	
     func testRaster() {
@@ -790,7 +790,7 @@ class WarpCoreTests: XCTestCase {
 			d.append([Value(i), Value(i+1), Value(i+2)])
 		}
 		
-		let rasterData = RasterData(data: d, columnNames: [Column("X"), Column("Y"), Column("Z")])
+		let rasterData = RasterData(data: d, columns: [Column("X"), Column("Y"), Column("Z")])
 		rasterData.raster(job) { (raster) -> () in
 			switch raster {
 				case .Success(let r):
@@ -806,7 +806,7 @@ class WarpCoreTests: XCTestCase {
 
 		// Raster modifications
 		let cols = [Column("X"), Column("Y"), Column("Z")]
-		let testRaster = Raster(data: d, columnNames: cols)
+		let testRaster = Raster(data: d, columns: cols)
 		XCTAssert(testRaster.rowCount == d.count, "Row count matches")
 		testRaster.addRows([[Value.EmptyValue, Value.EmptyValue, Value.EmptyValue]])
 		XCTAssert(testRaster.rowCount == d.count+1, "Row count matches after insert")
@@ -816,7 +816,7 @@ class WarpCoreTests: XCTestCase {
 
 		// Raster modifications through RasterMutableData
 		let mutableRaster = RasterMutableData(raster: testRaster)
-		mutableRaster.performMutation(.Alter(DataDefinition(columnNames: cols)), job: job) { result in
+		mutableRaster.performMutation(.Alter(DataDefinition(columns: cols)), job: job) { result in
 			switch result {
 			case .Success:
 				XCTAssert(testRaster.columnCount == 3, "Column count matches again after mutation")

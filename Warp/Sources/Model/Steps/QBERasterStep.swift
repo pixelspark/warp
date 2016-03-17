@@ -15,7 +15,7 @@ class QBERasterStep: QBEStep {
 	}
 
 	required init() {
-		raster = Raster(data: [], columnNames: [])
+		raster = Raster(data: [], columns: [])
 		super.init()
 	}
 

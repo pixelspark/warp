@@ -63,8 +63,8 @@ class QBECalculateStep: QBEStep {
 		let result = data.calculate([targetColumn: function])
 		if let relativeTo = insertRelativeTo {
 			// Reorder columns in the result set so that targetColumn is inserted after insertAfter
-			data.columnNames(job) { (columnNames) in
-				callback(columnNames.use { (var cns: [Column]) -> Data in
+			data.columns(job) { (columns) in
+				callback(columns.use { (var cns: [Column]) -> Data in
 					cns.remove(self.targetColumn)
 					if let idx = cns.indexOf(relativeTo) {
 						if self.insertBefore {
@@ -81,8 +81,8 @@ class QBECalculateStep: QBEStep {
 		else {
 			// If the column is to be added at the beginning, shuffle columns around (the default is to add at the end
 			if insertRelativeTo == nil && insertBefore {
-				data.columnNames(job) { (columnNames: Fallible<[Column]>) -> () in
-					switch columnNames {
+				data.columns(job) { (columns: Fallible<[Column]>) -> () in
+					switch columns {
 						case .Success(let cns):
 							var columns = cns
 							columns.remove(self.targetColumn)
@@ -140,7 +140,7 @@ class QBECalculateStep: QBEStep {
 				let newFormula = f.root.visit { e -> Expression in
 					if e is Identity {
 						if let c = column {
-							return Sibling(columnName: inRaster.columnNames[c])
+							return Sibling(columnName: inRaster.columns[c])
 						}
 						else {
 							return Literal(.InvalidValue)
@@ -150,7 +150,7 @@ class QBECalculateStep: QBEStep {
 				}
 				suggestions.append(newFormula)
 			}
-			Expression.infer(fromValue != nil ? Literal(fromValue!): nil, toValue: toValue, suggestions: &suggestions, level: 8, row: Row(inRaster[row], columnNames: inRaster.columnNames), column: column, job: job)
+			Expression.infer(fromValue != nil ? Literal(fromValue!): nil, toValue: toValue, suggestions: &suggestions, level: 8, row: Row(inRaster[row], columns: inRaster.columns), column: column, job: job)
 		}
 		return suggestions
 	}
