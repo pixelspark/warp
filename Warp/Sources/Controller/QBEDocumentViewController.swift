@@ -400,236 +400,16 @@ import WarpCore
 	func workspaceView(view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
 		assertMainThread()
 
-		class QBEDropAction: NSObject {
-			private var chain: QBEChain
-			private var documentView: QBEDocumentViewController
-			private var location: CGPoint
-
-			init(chain: QBEChain, documentView: QBEDocumentViewController, location: CGPoint) {
-				self.chain = chain
-				self.documentView = documentView
-				self.location = location
-			}
-
-			@objc func addClone(sender: NSObject) {
-				let tablet = QBEChainTablet(chain: QBEChain(head: QBECloneStep(chain: chain)))
-				self.documentView.addTablet(tablet, atLocation: location, undo: true)
-			}
-
-			@objc func addChart(sender: NSObject) {
-				if let sourceTablet = chain.tablet as? QBEChainTablet {
-					let job = Job(.UserInitiated)
-					let jobProgressView = QBEJobViewController(job: job, description: "Analyzing data...".localized)!
-					self.documentView.presentViewControllerAsSheet(jobProgressView)
-
-					sourceTablet.chain.head?.exampleData(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
-						switch result {
-						case .Success(let data):
-							data.columns(job) { result in
-								switch result {
-								case .Success(let columns):
-									asyncMain {
-										jobProgressView.dismissController(sender)
-										if let first = columns.first, let last = columns.last where columns.count > 1 {
-											let tablet = QBEChartTablet(source: sourceTablet, type: .Bar, xExpression: Sibling(columnName: first), yExpression: Sibling(columnName: last))
-											self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
-										}
-										else {
-											asyncMain {
-												NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: "In order to be able to create a chart, the data set must contain at least two columns.".localized, style: .CriticalAlertStyle, window: self.documentView.view.window)
-											}
-										}
-									}
-
-								case .Failure(let e):
-									asyncMain {
-										NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
-									}
-								}
-							}
-
-						case .Failure(let e):
-							asyncMain {
-								NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
-							}
-						}
-					})
-				}
-			}
-
-			@objc func addCopy(sender: NSObject) {
-				let job = Job(.UserInitiated)
-				QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: NSLocalizedString("Create copy of data here", comment: ""))
-				chain.head?.fullData(job) { result in
-					switch result {
-					case .Success(let fd):
-						fd.raster(job) { result in
-							switch result {
-							case .Success(let raster):
-								asyncMain {
-									let tablet = QBEChainTablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
-									self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
-								}
-							case .Failure(let e):
-								asyncMain {
-									NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
-								}
-							}
-						}
-					case .Failure(let e):
-						asyncMain {
-							NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
-						}
-					}
-				}
-			}
-
-			@objc func exportFile(sender: NSObject) {
-				var exts: [String: String] = [:]
-				for ext in QBEFactory.sharedInstance.fileExtensionsForWriting {
-					let writer = QBEFactory.sharedInstance.fileWriterForType(ext)!
-					exts[ext] = writer.explain(ext, locale: self.documentView.locale)
-				}
-
-				let ns = QBEFilePanel(allowedFileTypes: exts)
-				ns.askForSaveFile(self.documentView.view.window!) { (urlFallible) -> () in
-					urlFallible.maybe { (url) in
-						self.exportToFile(url)
-					}
-				}
-			}
-
-			private func exportToFile(url: NSURL) {
-				let writerType: QBEFileWriter.Type
-				if let ext = url.pathExtension {
-					writerType = QBEFactory.sharedInstance.fileWriterForType(ext) ?? QBECSVWriter.self
-				}
-				else {
-					writerType = QBECSVWriter.self
-				}
-
-				let title = chain.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
-				let s = QBEExportStep(previous: chain.head!, writer: writerType.init(locale: self.documentView.locale, title: title), file: QBEFileReference.URL(url))
-
-				if let editorController = self.documentView.storyboard?.instantiateControllerWithIdentifier("exportEditor") as? QBEExportViewController {
-					editorController.step = s
-					editorController.delegate = self.documentView
-					editorController.locale = self.documentView.locale
-					self.documentView.presentViewControllerAsSheet(editorController)
-				}
-			}
-
-			@objc func saveToWarehouse(sender: NSObject) {
-				let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
-				if let s = sender as? NSMenuItem where s.tag >= 0 && s.tag <= stepTypes.count {
-					let stepType = stepTypes[s.tag]
-
-					let uploadView = self.documentView.storyboard?.instantiateControllerWithIdentifier("uploadData") as! QBEUploadViewController
-					let targetStep = stepType.init()
-					uploadView.targetStep = targetStep
-					uploadView.sourceStep = chain.head
-					uploadView.afterSuccessfulUpload = {
-						// Add the written data as tablet to the document view
-						asyncMain {
-							let tablet = QBEChainTablet(chain: QBEChain(head: targetStep))
-							self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
-						}
-					}
-					self.documentView.presentViewControllerAsSheet(uploadView)
-				}
-			}
-
-			func present() {
-				let menu = NSMenu()
-				menu.autoenablesItems = false
-
-				let cloneItem = NSMenuItem(title: NSLocalizedString("Create linked clone of data here", comment: ""), action: Selector("addClone:"), keyEquivalent: "")
-				cloneItem.target = self
-				menu.addItem(cloneItem)
-
-				if self.chain.tablet is QBEChainTablet {
-					let chartItem = NSMenuItem(title: NSLocalizedString("Create chart of data here", comment: ""), action: Selector("addChart:"), keyEquivalent: "")
-					chartItem.target = self
-					menu.addItem(chartItem)
-				}
-
-				let copyItem = NSMenuItem(title: NSLocalizedString("Create copy of data here", comment: ""), action: Selector("addCopy:"), keyEquivalent: "")
-				copyItem.target = self
-				menu.addItem(copyItem)
-				menu.addItem(NSMenuItem.separatorItem())
-
-				let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
-
-				for i in 0..<stepTypes.count {
-					let stepType = stepTypes[i]
-					if let name = QBEFactory.sharedInstance.dataWarehouseStepNames[stepType.className()] {
-						let saveItem = NSMenuItem(title: String(format: NSLocalizedString("Upload data to %@...", comment: ""), name), action: Selector("saveToWarehouse:"), keyEquivalent: "")
-						saveItem.target = self
-						saveItem.tag = i
-						menu.addItem(saveItem)
-					}
-				}
-
-				menu.addItem(NSMenuItem.separatorItem())
-				let exportFileItem = NSMenuItem(title: NSLocalizedString("Export data to file...", comment: ""), action: Selector("exportFile:"), keyEquivalent: "")
-				exportFileItem.target = self
-				menu.addItem(exportFileItem)
-
-				NSMenu.popUpContextMenu(menu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.documentView.view)
-			}
-		}
-
 		if chain.head != nil {
-			let ac = QBEDropAction(chain: chain, documentView: self, location: atLocation)
+			let ac = QBEDropChainAction(chain: chain, documentView: self, location: atLocation)
 			ac.present()
 		}
 	}
 
 	/** Called when a set of columns was dropped onto the document. */
 	func workspaceView(view: QBEWorkspaceView, didReceiveColumnSet colset: [Column], fromDataViewController dc: QBEDataViewController) {
-		if colset.count == 1 {
-			if let sourceChainController = dc.parentViewController as? QBEChainViewController, let step = sourceChainController.chain?.head {
-				let job = Job(.UserInitiated)
-				let jobProgressView = QBEJobViewController(job: job, description: String(format: NSLocalizedString("Analyzing %d column(s)...", comment: ""), colset.count))!
-				self.presentViewControllerAsSheet(jobProgressView)
-
-				step.fullData(job) { result in
-					switch result {
-					case .Success(let data):
-						data.unique(Sibling(columnName: colset.first!), job: job) { result in
-							switch result {
-							case .Success(let uniqueValues):
-								let rows = uniqueValues.map({ item in return [item] })
-								let raster = Raster(data: rows, columns: [colset.first!], readOnly: false)
-								let chain = QBEChain(head: QBERasterStep(raster: raster))
-								let tablet = QBEChainTablet(chain: chain)
-								asyncMain {
-									jobProgressView.dismissController(nil)
-									self.addTablet(tablet, atLocation: nil, undo: true)
-
-									let joinStep = QBEJoinStep(previous: nil)
-									joinStep.joinType = JoinType.LeftJoin
-									joinStep.condition = Comparison(first: Sibling(columnName: colset.first!), second: Foreign(columnName: colset.first!), type: .Equal)
-									joinStep.right = chain
-									sourceChainController.chain?.insertStep(joinStep, afterStep: sourceChainController.chain?.head)
-									sourceChainController.currentStep = joinStep
-								}
-
-							case .Failure(_):
-								break
-							}
-
-						}
-
-					case .Failure(_):
-						break
-					}
-				}
-			}
-		}
-		else {
-			// Do something with more than one column (multijoin)
-		}
+		let action = QBEDropColumnsAction(columns: colset, dataViewController: dc, documentViewController: self)
+		action.present()
 	}
 	
 	func workspaceView(view: QBEWorkspaceView, didReceiveFiles files: [String], atLocation: CGPoint) {
@@ -897,5 +677,259 @@ import WarpCore
 		self.workspaceView.delegate = self
 		self.workspaceView.documentView = documentView
 		documentView.resizeDocument()
+	}
+}
+
+private class QBEDropChainAction: NSObject {
+	private var chain: QBEChain
+	private var documentView: QBEDocumentViewController
+	private var location: CGPoint
+
+	init(chain: QBEChain, documentView: QBEDocumentViewController, location: CGPoint) {
+		self.chain = chain
+		self.documentView = documentView
+		self.location = location
+	}
+
+	@objc func addClone(sender: NSObject) {
+		let tablet = QBEChainTablet(chain: QBEChain(head: QBECloneStep(chain: chain)))
+		self.documentView.addTablet(tablet, atLocation: location, undo: true)
+	}
+
+	@objc func addChart(sender: NSObject) {
+		if let sourceTablet = chain.tablet as? QBEChainTablet {
+			let job = Job(.UserInitiated)
+			let jobProgressView = QBEJobViewController(job: job, description: "Analyzing data...".localized)!
+			self.documentView.presentViewControllerAsSheet(jobProgressView)
+
+			sourceTablet.chain.head?.exampleData(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
+				switch result {
+				case .Success(let data):
+					data.columns(job) { result in
+						switch result {
+						case .Success(let columns):
+							asyncMain {
+								jobProgressView.dismissController(sender)
+								if let first = columns.first, let last = columns.last where columns.count > 1 {
+									let tablet = QBEChartTablet(source: sourceTablet, type: .Bar, xExpression: Sibling(columnName: first), yExpression: Sibling(columnName: last))
+									self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
+								}
+								else {
+									asyncMain {
+										NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: "In order to be able to create a chart, the data set must contain at least two columns.".localized, style: .CriticalAlertStyle, window: self.documentView.view.window)
+									}
+								}
+							}
+
+						case .Failure(let e):
+							asyncMain {
+								NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+							}
+						}
+					}
+
+				case .Failure(let e):
+					asyncMain {
+						NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+					}
+				}
+			})
+		}
+	}
+
+	@objc func addCopy(sender: NSObject) {
+		let job = Job(.UserInitiated)
+		QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: NSLocalizedString("Create copy of data here", comment: ""))
+		chain.head?.fullData(job) { result in
+			switch result {
+			case .Success(let fd):
+				fd.raster(job) { result in
+					switch result {
+					case .Success(let raster):
+						asyncMain {
+							let tablet = QBEChainTablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
+							self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
+						}
+					case .Failure(let e):
+						asyncMain {
+							NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+						}
+					}
+				}
+			case .Failure(let e):
+				asyncMain {
+					NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+				}
+			}
+		}
+	}
+
+	@objc func exportFile(sender: NSObject) {
+		var exts: [String: String] = [:]
+		for ext in QBEFactory.sharedInstance.fileExtensionsForWriting {
+			let writer = QBEFactory.sharedInstance.fileWriterForType(ext)!
+			exts[ext] = writer.explain(ext, locale: self.documentView.locale)
+		}
+
+		let ns = QBEFilePanel(allowedFileTypes: exts)
+		ns.askForSaveFile(self.documentView.view.window!) { (urlFallible) -> () in
+			urlFallible.maybe { (url) in
+				self.exportToFile(url)
+			}
+		}
+	}
+
+	private func exportToFile(url: NSURL) {
+		let writerType: QBEFileWriter.Type
+		if let ext = url.pathExtension {
+			writerType = QBEFactory.sharedInstance.fileWriterForType(ext) ?? QBECSVWriter.self
+		}
+		else {
+			writerType = QBECSVWriter.self
+		}
+
+		let title = chain.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
+		let s = QBEExportStep(previous: chain.head!, writer: writerType.init(locale: self.documentView.locale, title: title), file: QBEFileReference.URL(url))
+
+		if let editorController = self.documentView.storyboard?.instantiateControllerWithIdentifier("exportEditor") as? QBEExportViewController {
+			editorController.step = s
+			editorController.delegate = self.documentView
+			editorController.locale = self.documentView.locale
+			self.documentView.presentViewControllerAsSheet(editorController)
+		}
+	}
+
+	@objc func saveToWarehouse(sender: NSObject) {
+		let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
+		if let s = sender as? NSMenuItem where s.tag >= 0 && s.tag <= stepTypes.count {
+			let stepType = stepTypes[s.tag]
+
+			let uploadView = self.documentView.storyboard?.instantiateControllerWithIdentifier("uploadData") as! QBEUploadViewController
+			let targetStep = stepType.init()
+			uploadView.targetStep = targetStep
+			uploadView.sourceStep = chain.head
+			uploadView.afterSuccessfulUpload = {
+				// Add the written data as tablet to the document view
+				asyncMain {
+					let tablet = QBEChainTablet(chain: QBEChain(head: targetStep))
+					self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
+				}
+			}
+			self.documentView.presentViewControllerAsSheet(uploadView)
+		}
+	}
+
+	func present() {
+		let menu = NSMenu()
+		menu.autoenablesItems = false
+
+		let cloneItem = NSMenuItem(title: NSLocalizedString("Create linked clone of data here", comment: ""), action: Selector("addClone:"), keyEquivalent: "")
+		cloneItem.target = self
+		menu.addItem(cloneItem)
+
+		if self.chain.tablet is QBEChainTablet {
+			let chartItem = NSMenuItem(title: NSLocalizedString("Create chart of data here", comment: ""), action: Selector("addChart:"), keyEquivalent: "")
+			chartItem.target = self
+			menu.addItem(chartItem)
+		}
+
+		let copyItem = NSMenuItem(title: NSLocalizedString("Create copy of data here", comment: ""), action: Selector("addCopy:"), keyEquivalent: "")
+		copyItem.target = self
+		menu.addItem(copyItem)
+		menu.addItem(NSMenuItem.separatorItem())
+
+		let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
+
+		for i in 0..<stepTypes.count {
+			let stepType = stepTypes[i]
+			if let name = QBEFactory.sharedInstance.dataWarehouseStepNames[stepType.className()] {
+				let saveItem = NSMenuItem(title: String(format: NSLocalizedString("Upload data to %@...", comment: ""), name), action: Selector("saveToWarehouse:"), keyEquivalent: "")
+				saveItem.target = self
+				saveItem.tag = i
+				menu.addItem(saveItem)
+			}
+		}
+
+		menu.addItem(NSMenuItem.separatorItem())
+		let exportFileItem = NSMenuItem(title: NSLocalizedString("Export data to file...", comment: ""), action: Selector("exportFile:"), keyEquivalent: "")
+		exportFileItem.target = self
+		menu.addItem(exportFileItem)
+
+		NSMenu.popUpContextMenu(menu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.documentView.view)
+	}
+}
+
+/** Action that handles dropping a set of columns on the document. Usually the columns come from another data view / chain
+controller. */
+private class QBEDropColumnsAction: NSObject {
+	let columns: [Column]
+	let documentViewController: QBEDocumentViewController
+	let dataViewController: QBEDataViewController
+
+	init(columns: [Column], dataViewController: QBEDataViewController, documentViewController: QBEDocumentViewController) {
+		self.columns = columns
+		self.dataViewController = dataViewController
+		self.documentViewController = documentViewController
+	}
+
+	@objc private func addLookupTable(sender: NSObject) {
+		if columns.count == 1 {
+			if let sourceChainController = dataViewController.parentViewController as? QBEChainViewController, let step = sourceChainController.chain?.head {
+				let job = Job(.UserInitiated)
+				let jobProgressView = QBEJobViewController(job: job, description: String(format: NSLocalizedString("Analyzing %d column(s)...", comment: ""), columns.count))!
+				self.documentViewController.presentViewControllerAsSheet(jobProgressView)
+
+				step.fullData(job) { result in
+					switch result {
+					case .Success(let data):
+						data.unique(Sibling(columnName: self.columns.first!), job: job) { result in
+							switch result {
+							case .Success(let uniqueValues):
+								let rows = uniqueValues.map({ item in return [item] })
+								let raster = Raster(data: rows, columns: [self.columns.first!], readOnly: false)
+								let chain = QBEChain(head: QBERasterStep(raster: raster))
+								let tablet = QBEChainTablet(chain: chain)
+								asyncMain {
+									jobProgressView.dismissController(nil)
+									self.documentViewController.addTablet(tablet, atLocation: nil, undo: true)
+
+									let joinStep = QBEJoinStep(previous: nil)
+									joinStep.joinType = JoinType.LeftJoin
+									joinStep.condition = Comparison(first: Sibling(columnName: self.columns.first!), second: Foreign(columnName: self.columns.first!), type: .Equal)
+									joinStep.right = chain
+									sourceChainController.chain?.insertStep(joinStep, afterStep: sourceChainController.chain?.head)
+									sourceChainController.currentStep = joinStep
+								}
+
+							case .Failure(_):
+								break
+							}
+
+						}
+
+					case .Failure(_):
+						break
+					}
+				}
+			}
+		}
+	}
+
+	func present() {
+		let menu = NSMenu()
+		menu.autoenablesItems = false
+
+		if columns.count == 1 {
+			if let sourceChainController = dataViewController.parentViewController as? QBEChainViewController where sourceChainController.chain?.head != nil {
+				let item = NSMenuItem(title: "Add look-up table".localized, action: Selector("addLookupTable:"), keyEquivalent: "")
+				item.target = self
+				menu.addItem(item)
+			}
+		}
+		else {
+			// Do something with more than one column (multijoin)
+		}
+
+		NSMenu.popUpContextMenu(menu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.documentViewController.view)
 	}
 }
