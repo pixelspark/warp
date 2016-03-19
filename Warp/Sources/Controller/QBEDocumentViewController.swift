@@ -872,6 +872,29 @@ private class QBEDropColumnsAction: NSObject {
 		self.documentViewController = documentViewController
 	}
 
+	/** Add a tablet to the document containing a chain that calculates the histogram of this column (unique values and
+	their occurrence count). */
+	@objc private func addHistogram(sender: NSObject) {
+		if columns.count == 1 {
+			if let sourceChainController = dataViewController.parentViewController as? QBEChainViewController, let sourceChain = sourceChainController.chain {
+				let countColumn = Column("Count".localized)
+				let cloneStep = QBECloneStep(chain: sourceChain)
+				let histogramStep = QBEPivotStep()
+				histogramStep.previous = cloneStep
+				histogramStep.rows = columns
+				histogramStep.aggregates = [Aggregation(map: Sibling(columns.first!), reduce: .CountAll, targetColumn: countColumn)]
+				let sortStep = QBESortStep(previous: histogramStep, orders: [Order(expression: Sibling(countColumn), ascending: false, numeric: true)])
+
+				let histogramChain = QBEChain(head: sortStep)
+				let histogramTablet = QBEChainTablet(chain: histogramChain)
+
+				self.documentViewController.addTablet(histogramTablet, atLocation: nil, undo: true)
+			}
+		}
+	}
+
+	/** Add a tablet to the document containing a raster table containing all unique values in the original column. This
+	tablet is then joined to the original table. */
 	@objc private func addLookupTable(sender: NSObject) {
 		if columns.count == 1 {
 			if let sourceChainController = dataViewController.parentViewController as? QBEChainViewController, let step = sourceChainController.chain?.head {
@@ -921,9 +944,13 @@ private class QBEDropColumnsAction: NSObject {
 
 		if columns.count == 1 {
 			if let sourceChainController = dataViewController.parentViewController as? QBEChainViewController where sourceChainController.chain?.head != nil {
-				let item = NSMenuItem(title: "Add look-up table".localized, action: Selector("addLookupTable:"), keyEquivalent: "")
+				let item = NSMenuItem(title: "Create a look-up table for this column".localized, action: Selector("addLookupTable:"), keyEquivalent: "")
 				item.target = self
 				menu.addItem(item)
+
+				let histogramItem = NSMenuItem(title: "Add a histogram of this column".localized, action: Selector("addHistogram:"), keyEquivalent: "")
+				histogramItem.target = self
+				menu.addItem(histogramItem)
 			}
 		}
 		else {
