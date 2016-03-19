@@ -74,7 +74,7 @@ class QBEPivotStep: QBEStep {
 		var columns = Set(rows)
 		
 		// Make sure we don't create duplicate columns
-		for idx in 0..<columns.count {
+		for idx in 0..<self.columns.count {
 			let column = self.columns[idx]
 			if columns.contains(column) {
 				self.columns[idx] = column.newName({return !columns.contains($0)})
