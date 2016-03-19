@@ -94,6 +94,10 @@ public enum Function: String {
 	case Power = "power"
 	case UUID = "uuid"
 	case CountDistinct = "countDistinct"
+	case MedianLow = "medianLow"
+	case MedianHigh = "medianHigh"
+	case Median = "median"
+	case MedianPack = "medianPack"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -312,6 +316,10 @@ public enum Function: String {
 			case .Power: return translationForString("to the power")
 			case .UUID: return translationForString("generate UUID")
 			case .CountDistinct: return translationForString("number of unique items")
+			case MedianLow: return translationForString("median value (lowest in case of a draw)")
+			case MedianHigh: return translationForString("median value (highest in case of a draw)")
+			case Median: return translationForString("median value (average in case of a draw)")
+			case MedianPack: return translationForString("median value (pack in case of a draw)")
 		}
 	}
 	
@@ -480,7 +488,7 @@ public enum Function: String {
 		case .Sign, .Absolute, .Negate:
 			return [Parameter(name: translationForString("number"), exampleValue: Value(-1337))]
 			
-		case .Sum, .Count, .CountAll, .Average, .Min, .Max, .RandomItem, .CountDistinct:
+		case .Sum, .Count, .CountAll, .Average, .Min, .Max, .RandomItem, .CountDistinct, .Median, .MedianHigh, .MedianLow, .MedianPack:
 			return [
 				Parameter(name: translationForString("value"), exampleValue: Value(1)),
 				Parameter(name: translationForString("value"), exampleValue: Value(2)),
@@ -645,6 +653,10 @@ public enum Function: String {
 		case .Power: return Arity.Fixed(2)
 		case .UUID: return Arity.Fixed(0)
 		case .CountDistinct: return Arity.Any
+		case .MedianPack: return Arity.Any
+		case .MedianHigh: return Arity.Any
+		case .MedianLow: return Arity.Any
+		case .Median: return Arity.Any
 		}
 	} }
 	
@@ -1181,7 +1193,7 @@ public enum Function: String {
 			return arguments[0] ^ arguments[1]
 
 		// The following functions are already implemented as a Reducer, just use that
-		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct:
+		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct, .Median, .MedianHigh, .MedianLow, .MedianPack:
 			var r = self.reducer!
 			r.add(arguments)
 			return r.result
@@ -1202,6 +1214,10 @@ public enum Function: String {
 		case .Average: return AverageReducer()
 		case .Concat: return ConcatenationReducer()
 		case .Pack: return PackReducer()
+		case .MedianPack: return MedianReducer(medianType: .Pack)
+		case .MedianHigh: return MedianReducer(medianType: .High)
+		case .MedianLow: return MedianReducer(medianType: .Low)
+		case .Median: return MedianReducer(medianType: .Average)
 
 		default:
 			return nil
@@ -1215,7 +1231,7 @@ public enum Function: String {
 		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
 		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID,
-		CountDistinct
+		CountDistinct, MedianLow, MedianHigh, MedianPack, Median
 	]
 }
 
@@ -1521,4 +1537,59 @@ private struct CountDistinctReducer: Reducer {
 	}
 
 	var result: Value { return Value(valueSet.count) }
+}
+
+private enum MedianType {
+	case Low
+	case High
+	case Average
+	case Pack
+}
+
+private struct MedianReducer: Reducer {
+	let medianType: MedianType
+	var values = [Value]()
+
+	init(medianType: MedianType) {
+		self.medianType = medianType
+	}
+
+	mutating func add(values: [Value]) {
+		self.values += values.filter { return $0.isValid && !$0.isEmpty }
+	}
+
+	var result: Value {
+		let sorted = values.sort({ return $0 < $1 })
+		let count = sorted.count
+
+		if count == 0 {
+			return Value.InvalidValue
+		}
+
+		/* The code below is adapted from SigmaSwift (https://github.com/evgenyneu/SigmaSwiftStatistics) used under MIT license. */
+		if count % 2 == 0 {
+			let leftIndex = Int(count / 2 - 1)
+			let leftValue = sorted[leftIndex]
+			let rightValue = sorted[leftIndex + 1]
+
+			switch medianType {
+			case .Average:
+				// FIXME: this messes up string values, obviously.
+				return (leftValue + rightValue) / Value(2.0)
+
+			case .Low:
+				return leftValue
+
+			case .High:
+				return rightValue
+
+			case .Pack:
+				return Value(Pack([leftValue, rightValue]).stringValue)
+			}
+		}
+		else {
+			// Odd number of items - take the middle item.
+			return sorted[Int(count / 2)]
+		}
+	}
 }

@@ -157,6 +157,18 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.Count.apply([]) == Value(0), "Empty count returns zero")
 				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.InvalidValue, Value.EmptyValue]) == Value(2), "Count does not include invalid values and empty values")
 
+			case .Median:
+				XCTAssert(Function.Median.apply([Value(1), Value(1), Value(2), Value.InvalidValue, Value.EmptyValue]) == Value(1), "Median ignores invalid values and takes averages")
+
+			case .MedianLow:
+				XCTAssert(Function.MedianLow.apply([Value(1), Value(1), Value(2), Value(2), Value.InvalidValue, Value.EmptyValue]) == Value(1), "Median low ignores invalid values and takes lower value")
+
+			case .MedianHigh:
+				XCTAssert(Function.MedianHigh.apply([Value(1), Value(1), Value(2), Value(2), Value.InvalidValue, Value.EmptyValue]) == Value(2), "Median high ignores invalid values and takes higher value")
+
+			case .MedianPack:
+				XCTAssert(Function.MedianPack.apply([Value(1), Value(1), Value(2), Value(2), Value.InvalidValue, Value.EmptyValue]) == Value(Pack([Value(1), Value(2)]).stringValue), "Median pack ignores invalid values and returns pack value")
+
 			case .CountDistinct:
 				XCTAssert(Function.Count.apply([]) == Value(0), "Empty count distinct returns zero")
 				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.InvalidValue, Value.EmptyValue]) == Value(2), "Count distinct does not include invalid values")

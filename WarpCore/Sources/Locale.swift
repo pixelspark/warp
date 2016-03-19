@@ -183,7 +183,11 @@ public class Locale {
 			"WRITE.DATE": Function.ToUnicodeDateString,
 			"READ.DATE": Function.FromUnicodeDateString,
 			"POWER": Function.Power,
-			"UUID": Function.UUID
+			"UUID": Function.UUID,
+			"MEDIAN.LOW": Function.MedianLow,
+			"MEDIAN.HIGH": Function.MedianHigh,
+			"MEDIAN.PACK": Function.MedianPack,
+			"MEDIAN": Function.Median
 		],
 		
 		"nl": [
@@ -265,7 +269,12 @@ public class Locale {
 			"SCHRIJF.DATUM": Function.ToUnicodeDateString,
 			"LEES.DATUM": Function.FromUnicodeDateString,
 			"MACHT": Function.Power,
-			"UUID": Function.UUID
+			"UUID": Function.UUID,
+			"AANTAL.UNIEK": Function.CountDistinct,
+			"MEDIAAN.LAAG": Function.MedianLow,
+			"MEDIAAN.HOOG": Function.MedianHigh,
+			"MEDIAAN.PAKKET": Function.MedianPack,
+			"MEDIAAN": Function.Median
 		]
 	]
 	

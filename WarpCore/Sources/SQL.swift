@@ -750,6 +750,10 @@ public class StandardSQLDialect: SQLDialect {
 			case .CountDistinct: return nil
 			case .CountAll: return nil
 			case .Pack: return nil
+			case .Median: return nil
+			case .MedianLow: return nil
+			case .MedianHigh: return nil
+			case .MedianPack: return nil
 			
 			// FIXME: should be implemented as CASE WHEN i=1 THEN a WHEN i=2 THEN b ... END
 			case .Choose: return nil

@@ -123,3 +123,7 @@
 "(no directory)" = "(geen map)";
 "generate UUID" = "genereer UUID";
 "number of unique items" = "aantal unieke items";
+"median value (lowest in case of a draw)" = "mediaan (laagste in geval van gelijkspel)";
+"median value (highest in case of a draw)" = "mediaan (hoogste in geval van gelijkspel)";
+"median value (pack in case of a draw)" = "mediaan (pakket in geval van gelijkspel)";
+"median value (average in case of a draw)" = "mediaan (gemiddelde in geval van gelijkspel)";
