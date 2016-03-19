@@ -989,29 +989,7 @@ public class RasterData: NSObject, Data {
 	}
 	
 	public func random(numberOfRows: Int) -> Data {
-		return apply {(r: Raster, job, progressKey) -> Raster in
-			var newData: [[Value]] = []
-			
-			/* Random selection without replacement works like this: first we assign each row a random number. Then, we 
-			sort the list of row numbers by the number assigned to each row. We then take the top x of these rows. */
-			var indexPairs = [Int](0..<r.rowCount).map({($0, rand())})
-			indexPairs.sortInPlace({ (a, b) -> Bool in return a.1 < b.1 })
-			let randomlySortedIndices = indexPairs.map({$0.0})
-			let resultNumberOfRows = min(numberOfRows, r.rowCount)
-			
-			for rowNumber in 0..<resultNumberOfRows {
-				newData.append(r[randomlySortedIndices[rowNumber]])
-
-				if (rowNumber % Raster.progressReportRowInterval) == 0 {
-					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
-					if job?.cancelled == true {
-						return Raster()
-					}
-				}
-			}
-			
-			return Raster(data: newData, columns: r.columns, readOnly: true)
-		}
+		return fallback().random(numberOfRows)
 	}
 	
 	public func stream() -> Stream {
