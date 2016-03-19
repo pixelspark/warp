@@ -157,6 +157,10 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.Count.apply([]) == Value(0), "Empty count returns zero")
 				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.InvalidValue, Value.EmptyValue]) == Value(2), "Count does not include invalid values and empty values")
 
+			case .CountDistinct:
+				XCTAssert(Function.Count.apply([]) == Value(0), "Empty count distinct returns zero")
+				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.InvalidValue, Value.EmptyValue]) == Value(2), "Count distinct does not include invalid values")
+
 			case .Items:
 				XCTAssert(Function.Items.apply([Value("")]) == Value(0), "Empty count returns zero")
 				XCTAssert(Function.Items.apply([Value("Foo,bar,baz")]) == Value(3), "Count does not include invalid values and empty values")

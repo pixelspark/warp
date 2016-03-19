@@ -93,6 +93,7 @@ public enum Function: String {
 	case ToUnicodeDateString = "toUnicodeDateString"
 	case Power = "power"
 	case UUID = "uuid"
+	case CountDistinct = "countDistinct"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -310,6 +311,7 @@ public enum Function: String {
 			case .FromUnicodeDateString: return translationForString("read date in format")
 			case .Power: return translationForString("to the power")
 			case .UUID: return translationForString("generate UUID")
+			case .CountDistinct: return translationForString("number of unique items")
 		}
 	}
 	
@@ -478,10 +480,11 @@ public enum Function: String {
 		case .Sign, .Absolute, .Negate:
 			return [Parameter(name: translationForString("number"), exampleValue: Value(-1337))]
 			
-		case .Sum, .Count, .CountAll, .Average, .Min, .Max, .RandomItem:
+		case .Sum, .Count, .CountAll, .Average, .Min, .Max, .RandomItem, .CountDistinct:
 			return [
 				Parameter(name: translationForString("value"), exampleValue: Value(1)),
 				Parameter(name: translationForString("value"), exampleValue: Value(2)),
+				Parameter(name: translationForString("value"), exampleValue: Value(3)),
 				Parameter(name: translationForString("value"), exampleValue: Value(3))
 			]
 			
@@ -641,6 +644,7 @@ public enum Function: String {
 		case .FromUnicodeDateString: return Arity.Fixed(2)
 		case .Power: return Arity.Fixed(2)
 		case .UUID: return Arity.Fixed(0)
+		case .CountDistinct: return Arity.Any
 		}
 	} }
 	
@@ -1177,7 +1181,7 @@ public enum Function: String {
 			return arguments[0] ^ arguments[1]
 
 		// The following functions are already implemented as a Reducer, just use that
-		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack:
+		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct:
 			var r = self.reducer!
 			r.add(arguments)
 			return r.result
@@ -1192,6 +1196,7 @@ public enum Function: String {
 		case .Sum: return SumReducer()
 		case .Min: return MinReducer()
 		case .Max: return MaxReducer()
+		case .CountDistinct: return CountDistinctReducer()
 		case .Count: return CountReducer(all: false)
 		case .CountAll: return CountReducer(all: true)
 		case .Average: return AverageReducer()
@@ -1209,7 +1214,8 @@ public enum Function: String {
 		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
 		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
-		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID
+		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID,
+		CountDistinct
 	]
 }
 
@@ -1501,4 +1507,18 @@ private struct PackReducer: Reducer {
 	}
 
 	var result: Value { return Value(pack.stringValue) }
+}
+
+private struct CountDistinctReducer: Reducer {
+	var valueSet = Set<Value>()
+
+	mutating func add(values: [Value]) {
+		for a in values {
+			if a.isValid && !a.isEmpty {
+				valueSet.insert(a)
+			}
+		}
+	}
+
+	var result: Value { return Value(valueSet.count) }
 }

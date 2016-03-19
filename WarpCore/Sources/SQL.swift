@@ -634,6 +634,7 @@ public class StandardSQLDialect: SQLDialect {
 			switch aggregation.reduce {
 				case .Average: return "AVG(\(expressionSQL))"
 				case .CountAll: return "COUNT(*)"
+				case .CountDistinct: return "COUNT(DISTINCT \(expressionSQL))"
 				case .Sum: return "SUM(\(expressionSQL))"
 				case .Min: return "MIN(\(expressionSQL))"
 				case .Max: return "MAX(\(expressionSQL))"
@@ -746,6 +747,7 @@ public class StandardSQLDialect: SQLDialect {
 			/* FIXME: These could simply call Function.Count.apply() if the parameters are constant, but then we need
 			the original Expression arguments. */
 			case .Count: return nil
+			case .CountDistinct: return nil
 			case .CountAll: return nil
 			case .Pack: return nil
 			
