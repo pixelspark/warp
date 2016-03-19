@@ -638,6 +638,10 @@ public class StandardSQLDialect: SQLDialect {
 				case .Sum: return "SUM(\(expressionSQL))"
 				case .Min: return "MIN(\(expressionSQL))"
 				case .Max: return "MAX(\(expressionSQL))"
+				case .StandardDeviationPopulation: return "STDDEV_POP(\(expressionSQL))"
+				case .StandardDeviationSample: return "STDDEV_SAMP(\(expressionSQL))"
+				case .VariancePopulation: return "VAR_POP(\(expressionSQL))"
+				case .VarianceSample: return "VAR_SAMP(\(expressionSQL))"
 				case .Concat: return "GROUP_CONCAT(\(expressionSQL),'')"
 				
 				case .Pack:
