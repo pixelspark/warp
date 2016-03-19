@@ -648,15 +648,30 @@ enum CoalescedData: Data {
 			return CoalescedData.Sorting(CoalescedData.Filtering(data, condition), order)
 
 		case .Calculating(let data, let calculations):
-			/** If the filter does not depend on the outcome of the calculations, then it can be ordered before the 
-			calculations. This is usually more efficient, because the less steps away from the source data, the higher
-			the chance that there is a usable index. */
+			/** If the filter does not depend on the outcome of the calculations, then it can simply be ordered before 
+			the calculations. This is usually more efficient, because the less steps away from the source data, the 
+			higher the chance that there is a usable index. */
 			let deps = prepared.siblingDependencies
 			if deps.isDisjointWith(calculations.keys) {
 				return CoalescedData.Calculating(CoalescedData.Filtering(data, condition), calculations)
 			}
 			else {
-				return CoalescedData.Filtering(self.data, condition)
+				/** If the filter expression depends on a newly calculated column, then we can substitute the calculation
+				for that column in the filter expression, to make the filter expression solely dependent on the columns
+				before the calculation. Then, we can reorder the filter before the calculation. */
+				let changedExpression = condition.visit { e -> Expression in
+					if let sibling = e as? Sibling, let calculateExpression = calculations[sibling.columnName] {
+						// Identity may occur in the calculation, but may not occur in the filter expression.
+						return calculateExpression.visit { se -> Expression in
+							if se is Identity {
+								return Sibling(columnName: sibling.columnName)
+							}
+							return se
+						}
+					}
+					return e
+				}
+				return CoalescedData.Calculating(CoalescedData.Filtering(data, changedExpression), calculations)
 			}
 
 		case .Filtering(let data, let oldFilter):
