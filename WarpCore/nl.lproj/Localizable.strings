@@ -127,3 +127,7 @@
 "median value (highest in case of a draw)" = "mediaan (hoogste in geval van gelijkspel)";
 "median value (pack in case of a draw)" = "mediaan (pakket in geval van gelijkspel)";
 "median value (average in case of a draw)" = "mediaan (gemiddelde in geval van gelijkspel)";
+"variance (of population)" = "variantie (van populatie)";
+"variance (of sample)" = "variantie (van sample)";
+"standard deviation (of population)" = "standaarddeviatie (van populatie)";
+"standard deviation (of sample)" = "standaarddeviatie (van sample)";

@@ -153,6 +153,26 @@ class WarpCoreTests: XCTestCase {
 			case .Absolute:
 				XCTAssert(Function.Absolute.apply([Value(-1)]) == Value(1), "Absolute")
 
+			case .StandardDeviationSample:
+				XCTAssert(Function.StandardDeviationSample.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(1.0), "Standard deviation of sample works")
+				XCTAssert(!Function.StandardDeviationSample.apply([1.0].map { return Value($0) }).isValid, "Standard deviation of sample works")
+				XCTAssert(!Function.StandardDeviationSample.apply([]).isValid, "Standard deviation of sample works")
+
+			case .StandardDeviationPopulation:
+				XCTAssert(Function.StandardDeviationPopulation.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(sqrt(2.0 / 3.0)), "Standard deviation of sample works")
+				XCTAssert(Function.StandardDeviationPopulation.apply([1.0].map { return Value($0) }) == Value(0.0), "Standard deviation of sample works")
+				XCTAssert(!Function.StandardDeviationPopulation.apply([]).isValid, "Standard deviation of sample works")
+
+			case .VarianceSample:
+				XCTAssert(Function.VarianceSample.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(1.0), "Variance of sample works")
+				XCTAssert(!Function.VarianceSample.apply([1.0].map { return Value($0) }).isValid, "Variance of sample works")
+				XCTAssert(!Function.VarianceSample.apply([]).isValid, "Variance of sample works")
+
+			case .VariancePopulation:
+				XCTAssert(Function.VariancePopulation.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(2.0 / 3.0), "Variance of sample works")
+				XCTAssert(Function.VariancePopulation.apply([1.0].map { return Value($0) }) == Value(0.0), "Variance of sample works")
+				XCTAssert(!Function.VariancePopulation.apply([]).isValid, "Variance of sample works")
+
 			case .Count:
 				XCTAssert(Function.Count.apply([]) == Value(0), "Empty count returns zero")
 				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.InvalidValue, Value.EmptyValue]) == Value(2), "Count does not include invalid values and empty values")

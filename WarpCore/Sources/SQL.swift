@@ -754,6 +754,10 @@ public class StandardSQLDialect: SQLDialect {
 			case .MedianLow: return nil
 			case .MedianHigh: return nil
 			case .MedianPack: return nil
+			case .StandardDeviationSample: return nil
+			case .StandardDeviationPopulation: return nil
+			case .VarianceSample: return nil
+			case .VariancePopulation: return nil
 			
 			// FIXME: should be implemented as CASE WHEN i=1 THEN a WHEN i=2 THEN b ... END
 			case .Choose: return nil

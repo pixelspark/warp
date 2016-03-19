@@ -187,7 +187,11 @@ public class Locale {
 			"MEDIAN.LOW": Function.MedianLow,
 			"MEDIAN.HIGH": Function.MedianHigh,
 			"MEDIAN.PACK": Function.MedianPack,
-			"MEDIAN": Function.Median
+			"MEDIAN": Function.Median,
+			"STDEV.P": Function.StandardDeviationPopulation,
+			"STDEV.S": Function.StandardDeviationSample,
+			"VAR.P": Function.VariancePopulation,
+			"VAR.S": Function.VarianceSample
 		],
 		
 		"nl": [
@@ -274,7 +278,11 @@ public class Locale {
 			"MEDIAAN.LAAG": Function.MedianLow,
 			"MEDIAAN.HOOG": Function.MedianHigh,
 			"MEDIAAN.PAKKET": Function.MedianPack,
-			"MEDIAAN": Function.Median
+			"MEDIAAN": Function.Median,
+			"STDEV.P": Function.StandardDeviationPopulation,
+			"STDEV.S": Function.StandardDeviationSample,
+			"VAR.P": Function.VariancePopulation,
+			"VAR.S": Function.VarianceSample
 		]
 	]
 	

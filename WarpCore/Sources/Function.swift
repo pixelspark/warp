@@ -98,6 +98,10 @@ public enum Function: String {
 	case MedianHigh = "medianHigh"
 	case Median = "median"
 	case MedianPack = "medianPack"
+	case VariancePopulation = "variancePopulation"
+	case VarianceSample = "varianceSample"
+	case StandardDeviationPopulation = "stdevPopulation"
+	case StandardDeviationSample = "stdevSample"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -316,10 +320,14 @@ public enum Function: String {
 			case .Power: return translationForString("to the power")
 			case .UUID: return translationForString("generate UUID")
 			case .CountDistinct: return translationForString("number of unique items")
-			case MedianLow: return translationForString("median value (lowest in case of a draw)")
-			case MedianHigh: return translationForString("median value (highest in case of a draw)")
-			case Median: return translationForString("median value (average in case of a draw)")
-			case MedianPack: return translationForString("median value (pack in case of a draw)")
+			case .MedianLow: return translationForString("median value (lowest in case of a draw)")
+			case .MedianHigh: return translationForString("median value (highest in case of a draw)")
+			case .Median: return translationForString("median value (average in case of a draw)")
+			case .MedianPack: return translationForString("median value (pack in case of a draw)")
+			case .VariancePopulation: return translationForString("variance (of population)")
+			case .VarianceSample: return translationForString("variance (of sample)")
+			case .StandardDeviationPopulation: return translationForString("standard deviation (of population)")
+			case .StandardDeviationSample: return translationForString("standard deviation (of sample)")
 		}
 	}
 	
@@ -488,7 +496,8 @@ public enum Function: String {
 		case .Sign, .Absolute, .Negate:
 			return [Parameter(name: translationForString("number"), exampleValue: Value(-1337))]
 			
-		case .Sum, .Count, .CountAll, .Average, .Min, .Max, .RandomItem, .CountDistinct, .Median, .MedianHigh, .MedianLow, .MedianPack:
+		case .Sum, .Count, .CountAll, .Average, .Min, .Max, .RandomItem, .CountDistinct, .Median, .MedianHigh,
+			.MedianLow, .MedianPack, .StandardDeviationSample, .StandardDeviationPopulation, .VariancePopulation, .VarianceSample:
 			return [
 				Parameter(name: translationForString("value"), exampleValue: Value(1)),
 				Parameter(name: translationForString("value"), exampleValue: Value(2)),
@@ -657,6 +666,10 @@ public enum Function: String {
 		case .MedianHigh: return Arity.Any
 		case .MedianLow: return Arity.Any
 		case .Median: return Arity.Any
+		case .StandardDeviationPopulation: return Arity.Any
+		case .StandardDeviationSample: return Arity.Any
+		case .VariancePopulation: return Arity.Any
+		case .VarianceSample: return Arity.Any
 		}
 	} }
 	
@@ -1193,7 +1206,8 @@ public enum Function: String {
 			return arguments[0] ^ arguments[1]
 
 		// The following functions are already implemented as a Reducer, just use that
-		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct, .Median, .MedianHigh, .MedianLow, .MedianPack:
+		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct, .Median, .MedianHigh,
+			.MedianLow, .MedianPack, .VarianceSample, .VariancePopulation, .StandardDeviationPopulation, .StandardDeviationSample:
 			var r = self.reducer!
 			r.add(arguments)
 			return r.result
@@ -1218,6 +1232,10 @@ public enum Function: String {
 		case .MedianHigh: return MedianReducer(medianType: .High)
 		case .MedianLow: return MedianReducer(medianType: .Low)
 		case .Median: return MedianReducer(medianType: .Average)
+		case .VariancePopulation: return VarianceReducer(varianceType: .Population)
+		case .VarianceSample: return VarianceReducer(varianceType: .Sample)
+		case .StandardDeviationPopulation: return StandardDeviationReducer(varianceType: .Population)
+		case .StandardDeviationSample: return StandardDeviationReducer(varianceType: .Sample)
 
 		default:
 			return nil
@@ -1231,7 +1249,8 @@ public enum Function: String {
 		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
 		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID,
-		CountDistinct, MedianLow, MedianHigh, MedianPack, Median
+		CountDistinct, MedianLow, MedianHigh, MedianPack, Median, VarianceSample, VariancePopulation, StandardDeviationSample,
+		StandardDeviationPopulation
 	]
 }
 
@@ -1591,5 +1610,84 @@ private struct MedianReducer: Reducer {
 			// Odd number of items - take the middle item.
 			return sorted[Int(count / 2)]
 		}
+	}
+}
+
+private enum VarianceType {
+	case Population
+	case Sample
+}
+
+private struct VarianceReducer: Reducer {
+	let varianceType: VarianceType
+	var values = [Double]()
+	var invalid = false
+
+	init(varianceType: VarianceType) {
+		self.varianceType = varianceType
+	}
+
+	mutating func add(values: [Value]) {
+		for v in values {
+			if v.isValid && !v.isEmpty {
+				if let d = v.doubleValue {
+					self.values.append(d)
+				}
+				else {
+					self.invalid = true
+					self.values = []
+					return
+				}
+			}
+		}
+	}
+
+	var result: Value {
+		if self.invalid {
+			return Value.InvalidValue
+		}
+
+		// An empty list of values does not have variance
+		if self.values.count == 0 {
+			return Value.InvalidValue
+		}
+
+		// Sample variance is undefined for a list of values with only one value
+		if self.varianceType == .Sample && self.values.count == 1 {
+			return Value.InvalidValue
+		}
+
+		let sum = self.values.reduce(0.0) { t, v in t + v }
+		let average = sum / Double(self.values.count)
+
+		let numerator = self.values.reduce(0.0) { total, value in
+			total + pow(average - value, 2.0)
+		}
+
+		switch self.varianceType {
+		case .Population: return Value.DoubleValue(numerator / Double(self.values.count))
+		case .Sample: return Value.DoubleValue(numerator / Double(self.values.count - 1))
+		}
+	}
+}
+
+private struct StandardDeviationReducer: Reducer {
+	var varianceReducer: VarianceReducer
+
+	init(varianceType: VarianceType) {
+		self.varianceReducer = VarianceReducer(varianceType: varianceType)
+	}
+
+	mutating func add(values: [Value]) {
+		self.varianceReducer.add(values)
+	}
+
+	var result: Value {
+		let r = varianceReducer.result
+
+		if let d = r.doubleValue {
+			return Value.DoubleValue(sqrt(d))
+		}
+		return Value.InvalidValue
 	}
 }
