@@ -765,6 +765,7 @@ public final class Foreign: Expression, ColumnReferencingExpression {
 	}
 }
 
+/** A filter set represents a set of values that is selected from a set of values (usually a data set column). */
 public class FilterSet: NSObject, NSCoding {
 	public var selectedValues: Set<Value> = []
 	
@@ -782,14 +783,25 @@ public class FilterSet: NSObject, NSCoding {
 	}
 	
 	/** Returns an expression representing this filter. The source column is represented as Identity. */
-	public var expression: Expression { get {
-		var args: [Expression] = [Identity()]
-		for value in selectedValues {
-			args.append(Literal(value))
+	public var expression: Expression {
+		if selectedValues.count == 1 {
+			// The value must be equal to the selected value x - generate value == x
+			return Comparison(first: Literal(selectedValues.first!), second: Identity(), type: .Equal)
 		}
-		
-		return Call(arguments: args, type: Function.In)
-	} }
+		else if selectedValues.count > 1 {
+			// The value may match any of the selected values x, y, z - generate IN(value, x, y, z)
+			var args: [Expression] = [Identity()]
+			for value in selectedValues {
+				args.append(Literal(value))
+			}
+			
+			return Call(arguments: args, type: Function.In)
+		}
+		else {
+			// No value is selected, therefore no value should match
+			return Literal(Value(false))
+		}
+	}
 }
 
 /** Functions defined on Expression that rely on knowledge of its subclasses should be in this extension. */
