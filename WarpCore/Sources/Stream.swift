@@ -1176,6 +1176,6 @@ private class AggregateTransformer: Transformer {
 	}
 
 	private override func clone() -> Stream {
-		return AggregateTransformer(source: source, groups: groups, values: values)
+		return AggregateTransformer(source: source.clone(), groups: groups, values: values)
 	}
 }
