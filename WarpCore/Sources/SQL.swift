@@ -1195,7 +1195,7 @@ public class SQLData: NSObject, Data {
 		var values: [String] = []
 		var newColumns = columns
 		
-		let sourceSQL = sql.asSubquery
+		let sourceSQL = sql.advance(.From, part: nil)
 		let sourceAlias = sourceSQL.alias
 		
 		// Re-calculate existing columns first
