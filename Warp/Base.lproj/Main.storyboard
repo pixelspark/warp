@@ -2559,12 +2559,12 @@ DQ
             <objects>
                 <viewController storyboardIdentifier="columnPopup" id="Umf-c0-c7Z" customClass="QBEColumnViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="iV6-rZ-K37">
-                        <rect key="frame" x="0.0" y="0.0" width="353" height="167"/>
+                        <rect key="frame" x="0.0" y="0.0" width="353" height="172"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <textField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="d9z-Ij-JeE">
-                                <rect key="frame" x="5" y="136" width="343" height="24"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" focusRingType="none" title="Column name" id="H1E-OF-0Se">
+                                <rect key="frame" x="7" y="136" width="339" height="29"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" focusRingType="none" title="Column name" drawsBackground="YES" id="H1E-OF-0Se">
                                     <font key="font" metaFont="system" size="20"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>

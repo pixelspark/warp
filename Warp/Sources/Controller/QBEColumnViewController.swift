@@ -9,7 +9,7 @@ protocol QBEColumnViewDelegate: NSObjectProtocol {
 }
 
 private struct QBEColumnDescriptives {
-	let average: Value?
+	let average: Double?
 	let standardDeviation: Double?
 	let minimumValue: Value
 	let maximumValue: Value
@@ -76,7 +76,7 @@ class QBEColumnViewController: NSViewController {
 								if raster.rowCount == 1 {
 									let row = raster.rows.generate().next()!
 									self.descriptives = QBEColumnDescriptives(
-										average: row["mu"]!,
+										average: row["mu"]?.doubleValue,
 										standardDeviation: row["s"]?.doubleValue,
 										minimumValue: row["mn"]!,
 										maximumValue: row["mx"]!,
@@ -112,7 +112,8 @@ class QBEColumnViewController: NSViewController {
 		self.descriptivesView?.hidden = self.descriptives == nil
 
 		if let d = self.descriptives {
-			self.muLabel?.stringValue = locale.localStringFor(d.average ?? Value.InvalidValue)
+			let avg = d.average == nil ? Value.InvalidValue: Value.DoubleValue(d.average!)
+			self.muLabel?.stringValue = locale.localStringFor(avg)
 
 			let sd = d.standardDeviation == nil ? Value.InvalidValue: Value.DoubleValue(d.standardDeviation!)
 			self.sigmaLabel?.stringValue = locale.localStringFor(sd)
