@@ -49,7 +49,11 @@ internal enum QBEEditingMode {
 	case Editing(identifiers: Set<Column>?, editingRaster: Raster)
 }
 
-@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate, QBEDataViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget, QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate, QBEKeySelectionViewControllerDelegate {
+@objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate,
+	QBEDataViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget,
+	QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate, QBEKeySelectionViewControllerDelegate,
+	QBEColumnViewDelegate {
+
 	private var suggestions: Future<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator()
 	private var dataViewController: QBEDataViewController?
@@ -57,6 +61,7 @@ internal enum QBEEditingMode {
 	private var outletDropView: QBEOutletDropView!
 	private var viewFilters: [Column:FilterSet] = [:]
 	private var hasFullData = false
+	private var filterControllerJob: Job? = nil
 
 	var outletView: QBEOutletView!
 	weak var delegate: QBEChainViewDelegate?
@@ -944,20 +949,24 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	func dataView(view: QBEDataViewController, didRenameColumn: Column, to: Column) {
+	func dataView(view: QBEDataViewController, didRenameColumn column: Column, to: Column) {
+		self.renameColumn(column, to: to)
+	}
+
+	private func renameColumn(column: Column, to: Column) {
 		switch self.editingMode {
 		case .NotEditing:
 			// Make a suggestion
 			suggestSteps([
-				QBERenameStep(previous: self.currentStep, renames: [didRenameColumn: to])
-			])
+				QBERenameStep(previous: self.currentStep, renames: [column: to])
+				])
 			break
 
 		case .Editing(_):
 			// Actually edit
-			let errorText = String(format: NSLocalizedString("Could not rename column '%@' to '%@'", comment: ""), didRenameColumn.name, to.name)
+			let errorText = String(format: NSLocalizedString("Could not rename column '%@' to '%@'", comment: ""), column.name, to.name)
 			if let md = self.currentStep?.mutableData {
-				let mutation = DataMutation.Rename([didRenameColumn: to])
+				let mutation = DataMutation.Rename([column: to])
 				let job = Job(.UserInitiated)
 				if md.canPerformMutation(mutation) {
 					md.performMutation(mutation, job: job, callback: { result in
@@ -1018,39 +1027,53 @@ internal enum QBEEditingMode {
 		}
 		return false
 	}
-	
-	func dataView(view: QBEDataViewController, hasFilterForColumn column: Column) -> Bool {
-		return self.viewFilters[column] != nil
-	}
 
-	private var filterControllerJob: Job? = nil
-	
-	func dataView(view: QBEDataViewController, filterControllerForColumn column: Column, callback: (NSViewController) -> ()) {
-		filterControllerJob?.cancel()
-		let job = Job(.UserInitiated)
-		filterControllerJob = job
-		
-		self.currentStep?.fullData(job) { result in
-			result.maybe { fullData in
-				self.currentStep?.exampleData(job, maxInputRows: self.calculator.maximumExampleInputRows, maxOutputRows: self.calculator.desiredExampleRows) { result in
-					result.maybe { exampleData in
+	func dataView(view: QBEDataViewController, viewControllerForColumn column: Column, info: Bool, callback: (NSViewController) -> ()) {
+		if info {
+			if let popover = self.storyboard?.instantiateControllerWithIdentifier("columnPopup") as? QBEColumnViewController {
+				self.calculator.currentData?.get { result in
+					result.maybe { data in
 						asyncMain {
-							if let filterViewController = self.storyboard?.instantiateControllerWithIdentifier("filterView") as? QBEFilterViewController {
-								filterViewController.data = exampleData
-								filterViewController.searchData = fullData
-								filterViewController.column = column
-								filterViewController.delegate = self
-								
-								if let filterSet = self.viewFilters[column] {
-									filterViewController.filter = filterSet
+							popover.column = column
+							popover.data = data
+							popover.delegate = self
+							callback(popover)
+						}
+					}
+				}
+			}
+		}
+		else {
+			filterControllerJob?.cancel()
+			let job = Job(.UserInitiated)
+			filterControllerJob = job
+
+			self.currentStep?.fullData(job) { result in
+				result.maybe { fullData in
+					self.currentStep?.exampleData(job, maxInputRows: self.calculator.maximumExampleInputRows, maxOutputRows: self.calculator.desiredExampleRows) { result in
+						result.maybe { exampleData in
+							asyncMain {
+								if let filterViewController = self.storyboard?.instantiateControllerWithIdentifier("filterView") as? QBEFilterViewController {
+									filterViewController.data = exampleData
+									filterViewController.searchData = fullData
+									filterViewController.column = column
+									filterViewController.delegate = self
+
+									if let filterSet = self.viewFilters[column] {
+										filterViewController.filter = filterSet
+									}
+									callback(filterViewController)
 								}
-								callback(filterViewController)
 							}
 						}
 					}
 				}
 			}
 		}
+	}
+
+	func dataView(view: QBEDataViewController, hasFilterForColumn column: Column) -> Bool {
+		return self.viewFilters[column] != nil
 	}
 	
 	private func stepsChanged() {
@@ -1423,6 +1446,8 @@ internal enum QBEEditingMode {
 	}
 	
 	private func sortRows(ascending: Bool) {
+		assertMainThread()
+
 		if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
 			let firstSelectedColumn = selectedColumns.firstIndex
 			if firstSelectedColumn != NSNotFound {
@@ -1430,19 +1455,23 @@ internal enum QBEEditingMode {
 					r.maybe { (raster) -> () in
 						if firstSelectedColumn < raster.columnCount {
 							let columnName = raster.columns[firstSelectedColumn]
-							let expression = Sibling(columnName)
-							let order = Order(expression: expression, ascending: ascending, numeric: true)
-							
-							asyncMain {
-								self.suggestSteps([QBESortStep(previous: self.currentStep, orders: [order])])
-							}
+							self.sortRowsInColumn(columnName, ascending: ascending)
 						}
 					}
 				}
 			}
 		}
 	}
-	
+
+	private func sortRowsInColumn(column: Column, ascending: Bool) {
+		let expression = Sibling(column)
+		let order = Order(expression: expression, ascending: ascending, numeric: true)
+
+		asyncMain {
+			self.suggestSteps([QBESortStep(previous: self.currentStep, orders: [order])])
+		}
+	}
+
 	@IBAction func reverseSortRows(sender: NSObject) {
 		sortRows(false)
 	}
@@ -2183,6 +2212,24 @@ internal enum QBEEditingMode {
 	func alterTableView(view: QBEAlterTableViewController, didAlterTable: MutableData?) {
 		assertMainThread()
 		self.calculate()
+	}
+
+	func columnViewControllerDidRemove(controller: QBEColumnViewController, column: Column) {
+		self.suggestSteps([
+			QBEColumnsStep(previous: nil, columns: [column], select: false)
+		])
+	}
+
+	func columnViewControllerDidRename(controller: QBEColumnViewController, column: Column, to: Column) {
+		renameColumn(column, to: to)
+	}
+
+	func columnViewControllerDidAutosize(controller: QBEColumnViewController, column: Column) {
+		self.dataViewController?.sizeColumnToFit(column)
+	}
+
+	func columnViewControllerDidSort(controller: QBEColumnViewController, column: Column, ascending: Bool) {
+		self.sortRowsInColumn(column, ascending: ascending)
 	}
 }
 

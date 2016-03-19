@@ -6,7 +6,7 @@ protocol QBEDataViewDelegate: NSObjectProtocol {
 	func dataView(view: QBEDataViewController, didChangeValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool
 	func dataView(view: QBEDataViewController, didOrderColumns: [Column], toIndex: Int) -> Bool
 	func dataView(view: QBEDataViewController, didSelectValue: Value, changeable: Bool)
-	func dataView(view: QBEDataViewController, filterControllerForColumn: Column, callback: (NSViewController) -> ())
+	func dataView(view: QBEDataViewController, viewControllerForColumn: Column, info: Bool, callback: (NSViewController) -> ())
 	func dataView(view: QBEDataViewController, addValue: Value, inRow: Int?, column: Int?, callback: (Bool) -> ())
 	func dataView(view: QBEDataViewController, hasFilterForColumn: Column) -> Bool
 	func dataView(view: QBEDataViewController, didRenameColumn: Column, to: Column)
@@ -21,7 +21,7 @@ extension NSFont {
 
 /** A data view shows data in a Raster as a table. It can also show a progress bar to indicate loading progress, and has
 footer cells that allow filtering of the data. */
-class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, QBEColumnViewDelegate, NSUserInterfaceValidations {
+class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, NSUserInterfaceValidations {
 	var tableView: MBTableGrid?
 	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var columnContextMenu: NSMenu!
@@ -383,10 +383,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return nil
 	}
 
-	func columnViewController(controller: QBEColumnViewController, didRenameColumn: Column, to: Column) {
-		self.delegate?.dataView(self, didRenameColumn: didRenameColumn, to: to)
-	}
-
 	@IBAction func renameSelectedColumn(sender: NSObject) {
 		if let si = self.tableView?.selectedColumnIndexes.firstIndex where si != NSNotFound {
 			self.renameColumnPopup(UInt(si))
@@ -394,12 +390,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 
 	private func renameColumnPopup(columnIndex: UInt) {
-		if let popover = self.storyboard?.instantiateControllerWithIdentifier("columnPopup") as? QBEColumnViewController,
-			let rect = self.tableView?.headerRectOfColumn(columnIndex),
-			let r = raster where r.columnCount > Int(columnIndex) {
-				popover.column = r.columns[Int(columnIndex)]
-				popover.delegate = self
-				self.presentViewController(popover, asPopoverRelativeToRect: rect, ofView: self.tableView!, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
+		if let r = raster where Int(columnIndex) < r.columnCount {
+			self.delegate?.dataView(self, viewControllerForColumn: r.columns[Int(columnIndex)], info: true, callback: { vc in
+				if let rect = self.tableView?.headerRectOfColumn(columnIndex) {
+					self.presentViewController(vc, asPopoverRelativeToRect: rect, ofView: self.tableView!, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
+				}
+			})
 		}
 	}
 
@@ -463,7 +459,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 
 	private func showFilterPopup(columnIndex: Int, atFooter: Bool) {
 		if let tv = self.tableView, let r = raster where columnIndex < r.columns.count {
-			self.delegate?.dataView(self, filterControllerForColumn: r.columns[Int(columnIndex)]) { (viewFilterController) in
+			self.delegate?.dataView(self, viewControllerForColumn: r.columns[Int(columnIndex)], info: false) { viewFilterController in
 				assertMainThread()
 				let pv = NSPopover()
 				pv.behavior = NSPopoverBehavior.Semitransient
@@ -652,36 +648,6 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 						row++
 					}
 				}
-			}
-		}
-	}
-}
-
-protocol QBEColumnViewDelegate: NSObjectProtocol {
-	func columnViewController(controller: QBEColumnViewController, didRenameColumn: Column, to: Column)
-}
-
-class QBEColumnViewController: NSViewController {
-	weak var delegate: QBEColumnViewDelegate? = nil
-	var column: Column? = nil
-
-	@IBOutlet private var nameField: NSTextField!
-
-	override func viewWillAppear() {
-		self.update()
-	}
-
-	private func update() {
-		self.nameField?.stringValue = column?.name ?? ""
-	}
-
-	@IBAction func rename(sender: NSObject) {
-		if let c = self.column {
-			let newName = Column(nameField.stringValue)
-			if c != newName {
-				self.delegate?.columnViewController(self, didRenameColumn:  c, to: newName)
-				self.column = newName
-				self.dismissController(sender)
 			}
 		}
 	}

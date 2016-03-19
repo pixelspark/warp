@@ -179,6 +179,11 @@ reduce(reduce(a,b), reduce(c,d)) should be equal to reduce(a,b,c,d).  */
 public struct Aggregator {
 	public var map: Expression
 	public var reduce: Function
+
+	public init(map: Expression, reduce: Function) {
+		self.map = map
+		self.reduce = reduce
+	}
 }
 
 /** Specification of an aggregation, which is an aggregator that generates a particular target column. */

@@ -351,7 +351,7 @@ public class Locale {
 				return numberFormatter.stringFromNumber(d)!
 			
 			case .InvalidValue:
-				return ""
+				return translationForString("n/a")
 			
 			case .DateValue(let d):
 				return dateFormatter.stringFromDate(NSDate(timeIntervalSinceReferenceDate: d))

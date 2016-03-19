@@ -163,6 +163,7 @@
 		65B3F6AD1C749F93000983D0 /* QBETabletView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6AC1C749F93000983D0 /* QBETabletView.swift */; };
 		65B7F9691C31E37D00A55972 /* QBEJobViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65B7F96B1C31E37D00A55972 /* QBEJobViewController.xib */; };
 		65B7F9701C31ECC100A55972 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65B7F9721C31ECC100A55972 /* Main.storyboard */; };
+		65EC97971C9DFB8D0098A330 /* QBEColumnViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */; };
 		65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -597,6 +598,7 @@
 		65B92BD71C86196900397014 /* Warp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = Warp.entitlements; path = Warp/Warp.entitlements; sourceTree = "<group>"; };
 		65E3C2EC1A062E5E007BB3C8 /* Warp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E3C2FF1A062E5E007BB3C8 /* WarpTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WarpTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEColumnViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -776,6 +778,7 @@
 				6583EE931C14758B00AE6C00 /* QBEChainViewController.swift */,
 				65B3F6A91C73D302000983D0 /* QBEChartTabletViewController.swift */,
 				6583EE941C14758B00AE6C00 /* QBEColumnMappingViewController.swift */,
+				65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */,
 				6583EE951C14758B00AE6C00 /* QBEDataViewController.swift */,
 				6583EE961C14758B00AE6C00 /* QBEDocumentViewController.swift */,
 				6583EE971C14758B00AE6C00 /* QBEExportViewController.swift */,
@@ -1433,6 +1436,7 @@
 				6583EF1D1C14758B00AE6C00 /* QBESortStep.swift in Sources */,
 				651C68801C70E96600F0F048 /* QBENote.swift in Sources */,
 				6583EF161C14758B00AE6C00 /* QBEPostgresStep.swift in Sources */,
+				65EC97971C9DFB8D0098A330 /* QBEColumnViewController.swift in Sources */,
 				6583EEE31C14758B00AE6C00 /* QBEChainViewController.swift in Sources */,
 				6583EEE81C14758B00AE6C00 /* QBEFactory.swift in Sources */,
 				6583EF151C14758B00AE6C00 /* QBEPivotStep.swift in Sources */,
