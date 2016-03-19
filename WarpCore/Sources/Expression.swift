@@ -654,45 +654,45 @@ public final class Call: Expression {
 }
 
 protocol ColumnReferencingExpression {
-	var columnName: Column { get }
+	var column: Column { get }
 }
 
 /** The Sibling evaluates to the value of a cell in a particular column on the same row as the current value. */
 public final class Sibling: Expression, ColumnReferencingExpression {
-	public var columnName: Column
+	public var column: Column
 	
-	public init(columnName: Column) {
-		self.columnName = columnName
+	public init(_ columnName: Column) {
+		self.column = columnName
 		super.init()
 	}
 	
 	public override func explain(locale: Locale, topLevel: Bool) -> String {
-		return String(format: translationForString("value in column %@"), columnName.name)
+		return String(format: translationForString("value in column %@"), column.name)
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		columnName = Column((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")
+		column = Column((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")
 		super.init(coder: aDecoder)
 	}
 	
 	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
-		return "[@\(columnName.name)]"
+		return "[@\(column.name)]"
 	}
 	
 	public override func encodeWithCoder(aCoder: NSCoder) {
 		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(columnName.name, forKey: "columnName")
+		aCoder.encodeObject(column.name, forKey: "columnName")
 	}
 	
 	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
-		return row[columnName] ?? Value.InvalidValue
+		return row[column] ?? Value.InvalidValue
 	}
 	
 	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		var s: [Expression] = []
 		if fromValue == nil {
 			for columnName in row.columns {
-				s.append(Sibling(columnName: columnName))
+				s.append(Sibling(columnName))
 			}
 		}
 		return s
@@ -700,13 +700,13 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 	
 	public override func isEquivalentTo(expression: Expression) -> Bool {
 		if let otherSibling = expression as? Sibling {
-			return otherSibling.columnName == self.columnName
+			return otherSibling.column == self.column
 		}
 		return false
 	}
 
 	public override func isEqual(object: AnyObject?) -> Bool {
-		if let o = object as? Sibling where o.columnName == self.columnName {
+		if let o = object as? Sibling where o.column == self.column {
 			return true
 		}
 		return super.isEqual(object)
@@ -716,33 +716,33 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 /** The Foreign evaluates to the value of a cell in a particular column in the foreign row. This is used to 
 evaluate whether two rows should be matched up in a join. If no foreign row is given, this expression gives an error. */
 public final class Foreign: Expression, ColumnReferencingExpression {
-	public var columnName: Column
+	public var column: Column
 	
-	public init(columnName: Column) {
-		self.columnName = columnName
+	public init(_ column: Column) {
+		self.column = column
 		super.init()
 	}
 	
 	public override func explain(locale: Locale, topLevel: Bool) -> String {
-		return String(format: translationForString("value in foreign column %@"), columnName.name)
+		return String(format: translationForString("value in foreign column %@"), column.name)
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		columnName = Column((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")
+		column = Column((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")
 		super.init(coder: aDecoder)
 	}
 	
 	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
-		return "[#\(columnName.name)]"
+		return "[#\(column.name)]"
 	}
 	
 	public override func encodeWithCoder(aCoder: NSCoder) {
 		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(columnName.name, forKey: "columnName")
+		aCoder.encodeObject(column.name, forKey: "columnName")
 	}
 	
 	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
-		return foreign?[columnName] ?? Value.InvalidValue
+		return foreign?[column] ?? Value.InvalidValue
 	}
 	
 	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
@@ -752,13 +752,13 @@ public final class Foreign: Expression, ColumnReferencingExpression {
 	
 	public override func isEquivalentTo(expression: Expression) -> Bool {
 		if let otherForeign = expression as? Foreign {
-			return otherForeign.columnName == self.columnName
+			return otherForeign.column == self.column
 		}
 		return false
 	}
 
 	public override func isEqual(object: AnyObject?) -> Bool {
-		if let o = object as? Foreign where o.columnName == self.columnName {
+		if let o = object as? Foreign where o.column == self.column {
 			return true
 		}
 		return super.isEqual(object)
@@ -815,7 +815,7 @@ extension Expression {
 				return Literal(old.apply(row, foreign: nil, inputValue: nil))
 			}
 			else if let old = oldExpression as? Foreign {
-				return Sibling(columnName: old.columnName)
+				return Sibling(old.column)
 			}
 			else {
 				return oldExpression
@@ -834,7 +834,7 @@ extension Expression {
 				return oldExpression
 			}
 			else if let old = oldExpression as? Foreign {
-				return Sibling(columnName: old.columnName)
+				return Sibling(old.column)
 			}
 			else {
 				return oldExpression
@@ -862,7 +862,7 @@ extension Expression {
 
 		visit { expression -> () in
 			if let ex = expression as? Sibling {
-				deps.insert(ex.columnName)
+				deps.insert(ex.column)
 			}
 		}
 		return deps
@@ -870,7 +870,7 @@ extension Expression {
 	
 	/** Returns whether this expression depends on sibling columns (e.g. contains a Sibling somewhere in 
 	its tree). */
-	public var dependsOnSiblings: Bool { get {
+	public var dependsOnSiblings: Bool {
 		var depends = false
 		visit { (expression) -> () in
 			if expression is Sibling {
@@ -878,17 +878,17 @@ extension Expression {
 			}
 		}
 		return depends
-	} }
+	}
 
 	/** Returns whether this expression depends on foreign columns (e.g. contains a Foreign somewhere in
 	its tree). */
-	public var dependsOnForeigns: Bool { get {
+	public var dependsOnForeigns: Bool {
 		var depends = false
-		visit { (expression) -> () in
+		visit { expression -> () in
 			if expression is Foreign {
 				depends = true
 			}
 		}
 		return depends
-		} }
+	}
 }

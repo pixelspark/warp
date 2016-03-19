@@ -18,10 +18,10 @@ class QBEJoinStepView: QBEConfigurableStepViewControllerFor<QBEJoinStep>, NSComb
 	var simpleForeign: Column? {
 		get {
 			if let foreign = (self.step.condition as? Comparison)?.first as? Foreign {
-				return foreign.columnName
+				return foreign.column
 			}
 			else if let foreign = (self.step.condition as? Comparison)?.second as? Foreign {
-				return foreign.columnName
+				return foreign.column
 			}
 			else {
 				return nil
@@ -35,10 +35,10 @@ class QBEJoinStepView: QBEConfigurableStepViewControllerFor<QBEJoinStep>, NSComb
 	var simpleSibling: Column? {
 		get {
 			if let sibling = (self.step.condition as? Comparison)?.second as? Sibling {
-				return sibling.columnName
+				return sibling.column
 			}
 			else if let sibling = (self.step.condition as? Comparison)?.first as? Sibling {
-				return sibling.columnName
+				return sibling.column
 			}
 			else {
 				return nil
@@ -51,8 +51,8 @@ class QBEJoinStepView: QBEConfigurableStepViewControllerFor<QBEJoinStep>, NSComb
 	
 	private func setSimpleCondition(sibling sibling: Column?, foreign: Column?) {
 		let currentType = (self.step.condition as? Comparison)?.type ?? Binary.Equal
-		let first: Expression = (foreign != nil) ? Foreign(columnName: foreign!) : Literal(Value.InvalidValue)
-		let second: Expression = (sibling != nil) ? Sibling(columnName: sibling!) : Literal(Value.InvalidValue)
+		let first: Expression = (foreign != nil) ? Foreign(foreign!) : Literal(Value.InvalidValue)
+		let second: Expression = (sibling != nil) ? Sibling(sibling!) : Literal(Value.InvalidValue)
 		self.step.condition = Comparison(first: first, second: second, type: currentType)
 	}
 	

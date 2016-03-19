@@ -205,7 +205,7 @@ internal enum QBEEditingMode {
 												for overlappingColumn in overlappingColumns {
 													let joinStep = QBEJoinStep(previous: nil)
 													joinStep.right = self.otherChain
-													joinStep.condition = Comparison(first: Sibling(columnName: overlappingColumn), second: Foreign(columnName: overlappingColumn), type: Binary.Equal)
+													joinStep.condition = Comparison(first: Sibling(overlappingColumn), second: Foreign(overlappingColumn), type: Binary.Equal)
 													joinSteps.append(joinStep)
 												}
 											}
@@ -332,7 +332,7 @@ internal enum QBEEditingMode {
 		var args: [Expression] = []
 		
 		for (column, filterSet) in self.viewFilters {
-			args.append(filterSet.expression.expressionReplacingIdentityReferencesWith(Sibling(columnName: column)))
+			args.append(filterSet.expression.expressionReplacingIdentityReferencesWith(Sibling(column)))
 		}
 		
 		self.viewFilters.removeAll()
@@ -346,7 +346,7 @@ internal enum QBEEditingMode {
 		
 		if let c = view.column {
 			if permanent {
-				if let realFilter = filter?.expression.expressionReplacingIdentityReferencesWith(Sibling(columnName: c)) {
+				if let realFilter = filter?.expression.expressionReplacingIdentityReferencesWith(Sibling(c)) {
 					self.suggestSteps([QBEFilterStep(previous: currentStep, condition: realFilter)])
 					self.viewFilters.removeValueForKey(c)
 				}
@@ -1430,7 +1430,7 @@ internal enum QBEEditingMode {
 					r.maybe { (raster) -> () in
 						if firstSelectedColumn < raster.columnCount {
 							let columnName = raster.columns[firstSelectedColumn]
-							let expression = Sibling(columnName: columnName)
+							let expression = Sibling(columnName)
 							let order = Order(expression: expression, ascending: ascending, numeric: true)
 							
 							asyncMain {

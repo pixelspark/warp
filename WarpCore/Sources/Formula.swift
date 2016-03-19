@@ -104,11 +104,11 @@ public class Formula: Parser {
 	}
 	
 	private func pushSibling() {
-		annotate(stack.push(Sibling(columnName: Column(self.text))))
+		annotate(stack.push(Sibling(Column(self.text))))
 	}
 	
 	private func pushForeign() {
-		annotate(stack.push(Foreign(columnName: Column(self.text))))
+		annotate(stack.push(Foreign(Column(self.text))))
 	}
 	
 	private func pushConstant() {

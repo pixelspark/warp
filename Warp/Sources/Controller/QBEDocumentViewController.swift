@@ -711,7 +711,7 @@ private class QBEDropChainAction: NSObject {
 							asyncMain {
 								jobProgressView.dismissController(sender)
 								if let first = columns.first, let last = columns.last where columns.count > 1 {
-									let tablet = QBEChartTablet(source: sourceTablet, type: .Bar, xExpression: Sibling(columnName: first), yExpression: Sibling(columnName: last))
+									let tablet = QBEChartTablet(source: sourceTablet, type: .Bar, xExpression: Sibling(first), yExpression: Sibling(last))
 									self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 								}
 								else {
@@ -882,7 +882,7 @@ private class QBEDropColumnsAction: NSObject {
 				step.fullData(job) { result in
 					switch result {
 					case .Success(let data):
-						data.unique(Sibling(columnName: self.columns.first!), job: job) { result in
+						data.unique(Sibling(self.columns.first!), job: job) { result in
 							switch result {
 							case .Success(let uniqueValues):
 								let rows = uniqueValues.map({ item in return [item] })
@@ -895,7 +895,7 @@ private class QBEDropColumnsAction: NSObject {
 
 									let joinStep = QBEJoinStep(previous: nil)
 									joinStep.joinType = JoinType.LeftJoin
-									joinStep.condition = Comparison(first: Sibling(columnName: self.columns.first!), second: Foreign(columnName: self.columns.first!), type: .Equal)
+									joinStep.condition = Comparison(first: Sibling(self.columns.first!), second: Foreign(self.columns.first!), type: .Equal)
 									joinStep.right = chain
 									sourceChainController.chain?.insertStep(joinStep, afterStep: sourceChainController.chain?.head)
 									sourceChainController.currentStep = joinStep

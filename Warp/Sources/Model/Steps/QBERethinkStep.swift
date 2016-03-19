@@ -254,7 +254,7 @@ final class QBERethinkStream: NSObject, Stream {
 private class QBERethinkExpression {
 	static func expressionToQuery(expression: Expression, prior: ReQueryValue? = nil) -> ReQueryValue? {
 		if let sibling = expression as? Sibling, let p = prior {
-			return p[sibling.columnName.name]
+			return p[sibling.column.name]
 		}
 		else if let literal = expression as? Literal {
 			switch literal.value {
@@ -430,9 +430,9 @@ class QBERethinkData: StreamData {
 			of the form column=value, *and* we have an index for that column, then use getAll. */
 			if let tbl = self.query as? ReQueryTable, let binary = optimized as? Comparison where binary.type == .Equal {
 				if let (sibling, literal) = binary.commutativePair(Sibling.self, Literal.self) {
-					if self.indices?.contains(sibling.columnName) ?? false {
+					if self.indices?.contains(sibling.column) ?? false {
 						// We can use a secondary index
-						return QBERethinkData(url: self.url, query: tbl.getAll(QBERethinkExpression.expressionToQuery(literal)!, index: sibling.columnName.name), columns: columns)
+						return QBERethinkData(url: self.url, query: tbl.getAll(QBERethinkExpression.expressionToQuery(literal)!, index: sibling.column.name), columns: columns)
 					}
 				}
 			}

@@ -77,7 +77,7 @@ class QBERenameStep: QBEStep {
 				for oldName in existingColumnNames {
 					if let newName = self.renames[oldName] where newName != oldName {
 						if !newColumns.contains(newName) {
-							calculations[newName] = Sibling(columnName: oldName)
+							calculations[newName] = Sibling(oldName)
 							newColumns.append(newName)
 						}
 					}

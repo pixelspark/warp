@@ -434,8 +434,8 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(z! > 16.406 && z! < 16.408, "NormalInverse should results that are equal to those of NORM.INV.N in Excel")
 
 		// Equality of expressions
-		XCTAssert(Sibling(columnName: Column("x")) == Sibling(columnName: Column("x")), "Equality of expressions")
-		XCTAssert(Sibling(columnName: Column("x")) != Sibling(columnName: Column("y")), "Equality of expressions")
+		XCTAssert(Sibling(Column("x")) == Sibling(Column("x")), "Equality of expressions")
+		XCTAssert(Sibling(Column("x")) != Sibling(Column("y")), "Equality of expressions")
 		XCTAssert(Call(arguments: [], type: Function.Random) == Call(arguments: [], type: Function.Random), "Non-deterministic expression can be equal")
 		XCTAssert(!Call(arguments: [], type: Function.Random).isEquivalentTo(Call(arguments: [], type: Function.Random)), "Non-deterministic expression cannot be equivalent")
 	}
@@ -637,12 +637,12 @@ class WarpCoreTests: XCTestCase {
 		
 		// Verify coalesced sort operations
 		let aSorts = [
-			Order(expression: Sibling(columnName: "a"), ascending: true, numeric: true),
-			Order(expression: Sibling(columnName: "b"), ascending: false, numeric: true)
+			Order(expression: Sibling("a"), ascending: true, numeric: true),
+			Order(expression: Sibling("b"), ascending: false, numeric: true)
 		]
 		
 		let bSorts = [
-			Order(expression: Sibling(columnName: "c"), ascending: true, numeric: true)
+			Order(expression: Sibling("c"), ascending: true, numeric: true)
 		]
 		
 		compareData(job, inData.sort(aSorts).sort(bSorts), inData.sort(bSorts + aSorts)) { (equal) -> () in
@@ -731,13 +731,13 @@ class WarpCoreTests: XCTestCase {
 		}
 		
 		// Join
-		data.join(Join(type: .LeftJoin, foreignData: secondData, expression: Comparison(first: Sibling(columnName: "X"), second: Foreign(columnName: "X"), type: .Equal))).raster(job) {
+		data.join(Join(type: .LeftJoin, foreignData: secondData, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .Equal))).raster(job) {
 			assertRaster($0, message: "Join returns the appropriate number of rows in a one-to-one scenario", condition: { (x) in
 				x.rowCount == 1000
 			})
 			assertRaster($0, message: "Join returns the appropriate number of columns", condition: { $0.columnCount == 5 })
 		}
-		data.join(Join(type: .LeftJoin, foreignData: data, expression: Comparison(first: Sibling(columnName: "X"), second: Foreign(columnName: "X"), type: .Equal))).raster(job) {
+		data.join(Join(type: .LeftJoin, foreignData: data, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .Equal))).raster(job) {
 			assertRaster($0, message: "Join returns the appropriate number of rows in a self-join one-to-one scenario", condition: { $0.rowCount == 1000 })
 			assertRaster($0, message: "Join returns the appropriate number of columns in a self-join", condition: { $0.columnCount == 3 })
 		}

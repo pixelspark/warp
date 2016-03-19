@@ -67,7 +67,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 			if let search = searchField?.stringValue where !search.isEmpty {
 				lastSearch = search
 				filteredData = searchData ?? filteredData
-				filteredData = filteredData.filter(Comparison(first: Literal(Value(search)), second: Sibling(columnName: c), type: Binary.MatchesRegex))
+				filteredData = filteredData.filter(Comparison(first: Literal(Value(search)), second: Sibling(c), type: Binary.MatchesRegex))
 			}
 
 			let job = Job(.UserInitiated)
@@ -75,7 +75,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 			reloadJob?.addObserver(self)
 			self.updateProgress()
 			
-			filteredData.unique(Sibling(columnName: c), job: job, callback: { [weak self] (fallibleValues) -> () in
+			filteredData.unique(Sibling(c), job: job, callback: { [weak self] (fallibleValues) -> () in
 				switch fallibleValues {
 					case .Success(let values):
 						var valuesSorted = Array(values)

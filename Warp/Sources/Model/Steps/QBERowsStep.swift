@@ -37,7 +37,7 @@ class QBERowsStep: NSObject {
 			var conditions: [Expression] = []
 			
 			for (column, value) in sameValues {
-				conditions.append(Comparison(first: Literal(value), second: Sibling(columnName: column), type: Binary.Equal))
+				conditions.append(Comparison(first: Literal(value), second: Sibling(column), type: Binary.Equal))
 			}
 			
 			if let fullCondition = conditions.count > 1 ? Call(arguments: conditions, type: Function.And) : conditions.first {

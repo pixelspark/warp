@@ -184,7 +184,7 @@ public enum Function: String {
 							if let ce = columnExpression {
 								let sameType = (c is Sibling && columnExpression is Sibling) ||
 									(c is Foreign && columnExpression is Foreign)
-								if sameType && c.columnName != ce.columnName {
+								if sameType && c.column != ce.column {
 									columnExpression = nil
 									break;
 								}

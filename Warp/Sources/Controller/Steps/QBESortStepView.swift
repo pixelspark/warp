@@ -16,7 +16,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	@IBAction func addFromPopupButton(sender: NSObject) {
 		if let selected = self.addButton?.selectedItem {
 			let columnName = selected.title
-			let expression = Sibling(columnName: Column(columnName))
+			let expression = Sibling(Column(columnName))
 			step.orders.append(Order(expression: expression, ascending: true, numeric: true))
 			self.addButton?.stringValue = ""
 			self.delegate?.configurableView(self, didChangeConfigurationFor: step)

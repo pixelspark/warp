@@ -99,8 +99,8 @@ class QBEPivotStep: QBEStep {
 		}
 
 		fixupColumnNames()
-		var rowGroups = toDictionary(rows, transformer: { ($0, Sibling(columnName: $0) as Expression) })
-		let colGroups = toDictionary(columns, transformer: { ($0, Sibling(columnName: $0) as Expression) })
+		var rowGroups = toDictionary(rows, transformer: { ($0, Sibling($0) as Expression) })
+		let colGroups = toDictionary(columns, transformer: { ($0, Sibling($0) as Expression) })
 		for (k, v) in colGroups {
 			rowGroups[k] = v
 		}
@@ -134,7 +134,7 @@ class QBEPivotStep: QBEStep {
 			let step = QBEPivotStep()
 			
 			for column in aggregateColumns {
-				step.aggregates.append(Aggregation(map: Sibling(columnName: column), reduce: fun, targetColumn: column))
+				step.aggregates.append(Aggregation(map: Sibling(column), reduce: fun, targetColumn: column))
 			}
 			
 			for (sameColumn, _) in sameValues {

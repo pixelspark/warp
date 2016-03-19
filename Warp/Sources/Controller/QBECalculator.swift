@@ -199,7 +199,7 @@ public class QBECalculator: NSObject {
 												var filteredData = d
 												for column in columns {
 													if let columnFilter = filters[column] {
-														let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(columnName: column))
+														let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(column))
 														filteredData = filteredData.filter(filterExpression)
 													}
 												}

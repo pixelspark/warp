@@ -82,7 +82,7 @@ class QBEFlattenStep: QBEStep {
 				switch columns {
 					case .Success(let cs):
 						if let firstColumn = cs.first {
-							let ri = Sibling(columnName: firstColumn)
+							let ri = Sibling(firstColumn)
 							callback(.Success(data.flatten(self.valueColumn, columnNameTo: self.colColumn, rowIdentifier: ri, to: self.rowColumn)))
 						}
 						else {

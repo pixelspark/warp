@@ -423,7 +423,7 @@ public class SQLMutableData: MutableData {
 		for key in keys {
 			var wheres: [Expression] = []
 			for (column, value) in key {
-				wheres.append(Comparison(first: Sibling(columnName: column), second: Literal(value), type: .Equal))
+				wheres.append(Comparison(first: Sibling(column), second: Literal(value), type: .Equal))
 			}
 			allWheres.append(Call(arguments: wheres, type: .And))
 		}
@@ -441,11 +441,11 @@ public class SQLMutableData: MutableData {
 	private func performUpdate(connection: SQLConnection, key: [Column: Value], column: Column, old: Value, new:Value, job: Job, callback: (Fallible<Void>) -> ()) {
 		var wheres: [Expression] = []
 		for (column, value) in key {
-			wheres.append(Comparison(first: Sibling(columnName: column), second: Literal(value), type: .Equal))
+			wheres.append(Comparison(first: Sibling(column), second: Literal(value), type: .Equal))
 		}
 
 		// Only update if the old value matches what we last saw
-		wheres.append(Comparison(first: Sibling(columnName: column), second: Literal(old), type: .Equal))
+		wheres.append(Comparison(first: Sibling(column), second: Literal(old), type: .Equal))
 
 		let whereExpression = Call(arguments: wheres, type: .And)
 		guard let whereSQL = self.database.dialect.expressionToSQL(whereExpression, alias: self.tableName, foreignAlias: nil, inputValue: nil) else { return callback(.Failure("Selection cannot be written in SQL")) }
@@ -596,11 +596,11 @@ public class StandardSQLDialect: SQLDialect {
 			return inputValue ?? "???"
 		}
 		else if let f = formula as? Sibling {
-			return columnIdentifier(f.columnName, table: alias)
+			return columnIdentifier(f.column, table: alias)
 		}
 		else if let f = formula as? Foreign {
 			if let fa = foreignAlias {
-				return columnIdentifier(f.columnName, table: fa)
+				return columnIdentifier(f.column, table: fa)
 			}
 			else {
 				return nil

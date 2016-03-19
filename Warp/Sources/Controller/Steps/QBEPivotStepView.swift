@@ -168,7 +168,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 							self.step.columns.append(column)
 						}
 						else if tableView == aggregatesTable {
-							self.step.aggregates.append(Aggregation(map: Sibling(columnName: column), reduce: Function.Sum, targetColumn: column))
+							self.step.aggregates.append(Aggregation(map: Sibling(column), reduce: Function.Sum, targetColumn: column))
 						}
 						else if tableView == allTable {
 							// Need to remove the dragged item from the source view
@@ -182,7 +182,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 					}
 					else if let aggregation = col as? Aggregation {
 						if let columnExpression = aggregation.aggregator.map as? Sibling {
-							let column = columnExpression.columnName
+							let column = columnExpression.column
 							if tableView == rowsTable && !self.step.rows.contains(column) {
 								self.step.rows.append(column)
 							}

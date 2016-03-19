@@ -110,7 +110,7 @@ class QBECalculateStep: QBEStep {
 				// Check whether this calculation overwrites the previous result, or depends on its outcome
 				self.function.visit {(expr) -> () in
 					if let col  = expr as? Sibling {
-						if col.columnName == p.targetColumn {
+						if col.column == p.targetColumn {
 							// This expression depends on the column produced by the previous one, hence it cannot overwrite it
 							dependsOnPrevious = true
 						}
@@ -140,7 +140,7 @@ class QBECalculateStep: QBEStep {
 				let newFormula = f.root.visit { e -> Expression in
 					if e is Identity {
 						if let c = column {
-							return Sibling(columnName: inRaster.columns[c])
+							return Sibling(inRaster.columns[c])
 						}
 						else {
 							return Literal(.InvalidValue)

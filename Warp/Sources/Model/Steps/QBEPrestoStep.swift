@@ -355,7 +355,7 @@ class QBEPrestoSourceStep: QBEStep {
 	
 	func catalogNames(job: Job, callback: (Fallible<Set<String>>) -> ()) {
 		if let d = db {
-			StreamData(source: d.query("SHOW CATALOGS")).unique(Sibling(columnName: Column("Catalog")), job: job) { (catalogNamesFallible) -> () in
+			StreamData(source: d.query("SHOW CATALOGS")).unique(Sibling(Column("Catalog")), job: job) { (catalogNamesFallible) -> () in
 				callback(catalogNamesFallible.use({(tn) -> (Set<String>) in return Set(tn.map({return $0.stringValue ?? ""})) }))
 			}
 		}
@@ -366,7 +366,7 @@ class QBEPrestoSourceStep: QBEStep {
 	
 	func schemaNames(job: Job, callback: (Fallible<Set<String>>) -> ()) {
 		if let stream = db?.query("SHOW SCHEMAS") {
-			StreamData(source: stream).unique(Sibling(columnName: Column("Schema")), job: job, callback: { (schemaNamesFallible) -> () in
+			StreamData(source: stream).unique(Sibling(Column("Schema")), job: job, callback: { (schemaNamesFallible) -> () in
 				callback(schemaNamesFallible.use({(sn) in Set(sn.map({return $0.stringValue ?? ""})) }))
 			})
 		}
@@ -374,7 +374,7 @@ class QBEPrestoSourceStep: QBEStep {
 	
 	func tableNames(job: Job, callback: (Fallible<Set<String>>) -> ()) {
 		if let stream = db?.query("SHOW TABLES") {
-			StreamData(source: stream).unique(Sibling(columnName: Column("Table")), job: job, callback: { (tableNamesFallible) -> () in
+			StreamData(source: stream).unique(Sibling(Column("Table")), job: job, callback: { (tableNamesFallible) -> () in
 				callback(tableNamesFallible.use({(tn) in Set(tn.map({return $0.stringValue ?? ""})) }))
 			})
 		}

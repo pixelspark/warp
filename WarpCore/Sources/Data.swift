@@ -553,7 +553,7 @@ enum CoalescedData: Data {
 			// Find out if the new calculation depends on anything that was calculated earlier
 			var dependsOnCurrent = false
 			
-			if let se = newCalculations[targetColumn] as? Sibling where se.columnName == targetColumn {
+			if let se = newCalculations[targetColumn] as? Sibling where se.column == targetColumn {
 				// The old calculation is just an identity one, it can safely be overwritten
 			}
 			else if newCalculations[targetColumn] is Identity {
@@ -563,7 +563,7 @@ enum CoalescedData: Data {
 				// Iterate over all column dependencies of the new expression
 				expression.visit({ (subexpression) -> () in
 					if let se = subexpression as? Sibling {
-						if newCalculations[se.columnName] != nil {
+						if newCalculations[se.column] != nil {
 							dependsOnCurrent = true
 						}
 					}
@@ -660,11 +660,11 @@ enum CoalescedData: Data {
 				for that column in the filter expression, to make the filter expression solely dependent on the columns
 				before the calculation. Then, we can reorder the filter before the calculation. */
 				let changedExpression = condition.visit { e -> Expression in
-					if let sibling = e as? Sibling, let calculateExpression = calculations[sibling.columnName] {
+					if let sibling = e as? Sibling, let calculateExpression = calculations[sibling.column] {
 						// Identity may occur in the calculation, but may not occur in the filter expression.
 						return calculateExpression.visit { se -> Expression in
 							if se is Identity {
-								return Sibling(columnName: sibling.columnName)
+								return sibling
 							}
 							return se
 						}
