@@ -1162,7 +1162,7 @@ private class AggregateTransformer: Transformer {
 			job.time("stream aggregate reduce", items: 1, itemType: "result") {
 				self.reducers.mutex.locked {
 					self.reducers.visit(block: { (path, bucket) -> () in
-						rows.append(path + bucket.values.map { return $0.result })
+						rows.append(path + self.values.keys.map { k in return bucket[k]!.result })
 					})
 				}
 			}
