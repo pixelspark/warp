@@ -914,8 +914,8 @@ internal extension Double {
 	}
 }
 
-internal struct OrderedDictionaryGenerator<KeyType: Hashable, ValueType>: GeneratorType {
-	typealias Element = (KeyType, ValueType)
+public struct OrderedDictionaryGenerator<KeyType: Hashable, ValueType>: GeneratorType {
+	public typealias Element = (KeyType, ValueType)
 	private let orderedDictionary: OrderedDictionary<KeyType, ValueType>
 	private var keyGenerator: IndexingGenerator<[KeyType]>
 	
@@ -924,7 +924,7 @@ internal struct OrderedDictionaryGenerator<KeyType: Hashable, ValueType>: Genera
 		self.keyGenerator = self.orderedDictionary.keys.generate()
 	}
 	
-	mutating func next() -> Element? {
+	mutating public func next() -> Element? {
 		if let nextKey = self.keyGenerator.next() {
 			return (nextKey, self.orderedDictionary.values[nextKey]!)
 		}
@@ -932,37 +932,38 @@ internal struct OrderedDictionaryGenerator<KeyType: Hashable, ValueType>: Genera
 	}
 }
 
-internal struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
-	typealias KeyArrayType = [KeyType]
-	typealias DictionaryType = [KeyType: ValueType]
-	typealias Generator = OrderedDictionaryGenerator<KeyType, ValueType>
+public struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
+	public typealias KeyArrayType = [KeyType]
+	public typealias DictionaryType = [KeyType: ValueType]
+	public typealias Generator = OrderedDictionaryGenerator<KeyType, ValueType>
+	public typealias PairType = (key: KeyType, value: ValueType)
 	
-	private(set) var keys = KeyArrayType()
-	private(set) var values = DictionaryType()
+	public private(set) var keys = KeyArrayType()
+	public private(set) var values = DictionaryType()
 	
-	init() {
+	public init() {
 		// Empty ordered dictionary
 	}
 	
-	init(dictionaryInAnyOrder: DictionaryType) {
+	public init(dictionaryInAnyOrder: DictionaryType) {
 		self.values = dictionaryInAnyOrder
 		self.keys = [KeyType](dictionaryInAnyOrder.keys)
 	}
 	
-	func generate() -> Generator {
+	public func generate() -> Generator {
 		return OrderedDictionaryGenerator(orderedDictionary: self)
 	}
 	
-	var count: Int { get {
+	public var count: Int {
 		return keys.count
-		} }
-	
-	mutating func remove(key: KeyType) {
+	}
+
+	public mutating func remove(key: KeyType) {
 		keys.remove(key)
 		values.removeValueForKey(key)
 	}
 	
-	mutating func insert(value: ValueType, forKey key: KeyType, atIndex index: Int) -> ValueType? {
+	public mutating func insert(value: ValueType, forKey key: KeyType, atIndex index: Int) -> ValueType? {
 		var adjustedIndex = index
 		let existingValue = self.values[key]
 		if existingValue != nil {
@@ -979,13 +980,13 @@ internal struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 		return existingValue
 	}
 	
-	func contains(key: KeyType) -> Bool {
+	public func contains(key: KeyType) -> Bool {
 		return self.values[key] != nil
 	}
 	
 	/** Keeps only the keys present in the 'keys' parameter and puts them in the specified order. The 'keys' parameter is
 	not allowed to contain keys that do not exist in the ordered dictionary, or contain the same key twice. */
-	mutating func filterAndOrder(keyOrder: [KeyType]) {
+	public mutating func filterAndOrder(keyOrder: [KeyType]) {
 		var newKeySet = Set<KeyType>()
 		for k in keyOrder {
 			if contains(k) {
@@ -1010,13 +1011,13 @@ internal struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 		self.keys = keyOrder
 	}
 	
-	mutating func orderKey(key: KeyType, toIndex: Int) {
+	public mutating func orderKey(key: KeyType, toIndex: Int) {
 		precondition(self.keys.indexOf(key) != nil, "key to be ordered must exist")
 		self.keys.remove(key)
 		self.keys.insertContentsOf([key], at: toIndex)
 	}
 	
-	mutating func orderKey(key: KeyType, beforeKey: KeyType) {
+	public mutating func orderKey(key: KeyType, beforeKey: KeyType) {
 		if let newIndex = self.keys.indexOf(beforeKey) {
 			orderKey(key, toIndex: newIndex)
 		}
@@ -1025,7 +1026,7 @@ internal struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 		}
 	}
 	
-	mutating func removeAtIndex(index: Int) -> (KeyType, ValueType)
+	public mutating func removeAtIndex(index: Int) -> (KeyType, ValueType)
 	{
 		precondition(index < self.keys.count, "Index out-of-bounds")
 		let key = self.keys.removeAtIndex(index)
@@ -1033,20 +1034,30 @@ internal struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 		return (key, value)
 	}
 	
-	mutating func append(value: ValueType, forKey: KeyType) {
+	public mutating func append(value: ValueType, forKey: KeyType) {
 		precondition(!contains(forKey), "Ordered dictionary already contains value")
 		self.keys.append(forKey)
 		self.values[forKey] = value
 	}
 	
-	mutating func replaceOrAppend(value: ValueType, forKey key: KeyType) {
+	public mutating func replaceOrAppend(value: ValueType, forKey key: KeyType) {
 		if !contains(key) {
 			self.keys.append(key)
 		}
 		self.values[key] = value
 	}
+
+	public mutating func sortKeysInPlace(isOrderedBefore: (a: KeyType, b: KeyType) -> Bool) {
+		self.keys.sortInPlace(isOrderedBefore)
+	}
+
+	public mutating func sortPairsInPlace(isOrderedBefore: (PairType, PairType) -> Bool) {
+		self.keys.sortInPlace { a, b in
+			return isOrderedBefore((a, self.values[a]!), (b, self.values[b]!))
+		}
+	}
 	
-	subscript(key: KeyType) -> ValueType? {
+	public subscript(key: KeyType) -> ValueType? {
 		get {
 			return self.values[key]
 		}
@@ -1060,7 +1071,7 @@ internal struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 		}
 	}
 	
-	subscript(index: Int) -> (KeyType, ValueType) {
+	public subscript(index: Int) -> (KeyType, ValueType) {
 		get {
 			precondition(index < self.keys.count, "Index out-of-bounds")
 			let key = self.keys[index]
