@@ -107,13 +107,26 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 			job.async {
 				/* Convert the read string values to Values. Do this asynchronously because Locale.valueForLocalString 
 				may take a lot of time, and we really want the CSV parser to continue meanwhile */
-				let v = r.map {(row: [String?]) -> [Value] in
-					return row.map { (field: String?) -> Value in
+				let v = r.map { row -> [Value] in
+					var values = row.map { field -> Value in
 						if let value = field {
 							return self.locale != nil ? self.locale!.valueForLocalString(value) : Locale.valueForExchangedString(value)
 						}
 						return Value.EmptyValue
 					}
+
+					// If the row contains more fields than we want, chop off the last ones
+					if values.count > self.columns.count {
+						values = Array(values[0..<self.columns.count])
+					}
+					else {
+						// If there are less fields in the row then there are columns, pad with nils
+						while values.count < self.columns.count {
+							values.append(Value.EmptyValue)
+						}
+					}
+
+					return values
 				}
 
 				consumer(.Success(v), self.finished ? .Finished : .HasMore)
@@ -134,9 +147,6 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 	}
 	
 	func parser(parser: CHCSVParser, didEndLine line: UInt) {
-		while row.count < columns.count {
-			row.append(nil)
-		}
 		rows.append(row)
 	}
 	
