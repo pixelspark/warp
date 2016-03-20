@@ -825,6 +825,12 @@ public class StandardSQLDialect: SQLDialect {
 			
 			case .Power:
 				return "POW(\(args[0]), \(args[1]))"
+
+			case .IsEmpty:
+				return "(\(args[0]) IS NULL)"
+
+			case .IsInvalid:
+				return nil
 		}
 	}
 	

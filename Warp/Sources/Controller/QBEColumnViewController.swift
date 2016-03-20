@@ -16,6 +16,7 @@ private struct QBEColumnDescriptives {
 	let maximumValue: Value
 	let count: Int
 	let countUnique: Int
+	let countEmpty: Int
 }
 
 class QBEColumnViewController: NSViewController {
@@ -37,6 +38,7 @@ class QBEColumnViewController: NSViewController {
 	@IBOutlet private var progressIndicator: NSProgressIndicator!
 	@IBOutlet private var descriptivesView: NSView!
 	@IBOutlet private var fullDataButton: NSButton!
+	@IBOutlet private var emptyLabel: NSTextField!
 
 	override func viewWillAppear() {
 		self.updateDescriptives()
@@ -68,7 +70,8 @@ class QBEColumnViewController: NSViewController {
 						"mn": Aggregator(map: Sibling(cn), reduce: .Min),
 						"mx": Aggregator(map: Sibling(cn), reduce: .Max),
 						"c": Aggregator(map: Sibling(cn), reduce: .CountAll),
-						"cd": Aggregator(map: Sibling(cn), reduce: .CountDistinct)
+						"cd": Aggregator(map: Sibling(cn), reduce: .CountDistinct),
+						"mt": Aggregator(map: Call(arguments: [Call(arguments:[Sibling(cn)], type: Function.IsEmpty), Literal(Value(1)), Literal(Value(0))], type: Function.If), reduce: .Sum)
 					])
 
 					descriptiveData.raster(self.descriptivesJob!) { result in
@@ -83,7 +86,8 @@ class QBEColumnViewController: NSViewController {
 										minimumValue: row["mn"]!,
 										maximumValue: row["mx"]!,
 										count: row["c"]!.intValue!,
-										countUnique: row["cd"]!.intValue!
+										countUnique: row["cd"]!.intValue!,
+										countEmpty: row["mt"]!.intValue!
 									)
 								}
 								else {
@@ -109,7 +113,7 @@ class QBEColumnViewController: NSViewController {
 	}
 
 	private func update() {
-		for v in [self.muLabel, self.sigmaLabel, self.maxLabel, self.minLabel, self.distinctLabel, self.countLabel] {
+		for v in [self.muLabel, self.sigmaLabel, self.maxLabel, self.minLabel, self.distinctLabel, self.countLabel, self.emptyLabel] {
 			if let vv = v {
 				let tr = CATransition()
 				tr.duration = 0.3
@@ -138,6 +142,7 @@ class QBEColumnViewController: NSViewController {
 			self.maxLabel?.stringValue = locale.localStringFor(d.maximumValue)
 			self.countLabel?.stringValue = locale.localStringFor(Value.IntValue(d.count))
 			self.distinctLabel?.stringValue = locale.localStringFor(Value.IntValue(d.countUnique))
+			self.emptyLabel?.stringValue = locale.localStringFor(Value.IntValue(d.countEmpty))
 		}
 		else {
 			if self.descriptivesJob == nil {
@@ -147,6 +152,7 @@ class QBEColumnViewController: NSViewController {
 				self.maxLabel?.stringValue = "?"
 				self.countLabel?.stringValue = "?"
 				self.distinctLabel?.stringValue = "?"
+				self.emptyLabel?.stringValue = "?"
 			}
 		}
 	}

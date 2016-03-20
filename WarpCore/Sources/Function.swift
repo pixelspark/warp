@@ -102,6 +102,8 @@ public enum Function: String {
 	case VarianceSample = "varianceSample"
 	case StandardDeviationPopulation = "stdevPopulation"
 	case StandardDeviationSample = "stdevSample"
+	case IsEmpty = "isEmpty"
+	case IsInvalid = "isInvalid"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -328,6 +330,8 @@ public enum Function: String {
 			case .VarianceSample: return translationForString("variance (of sample)")
 			case .StandardDeviationPopulation: return translationForString("standard deviation (of population)")
 			case .StandardDeviationSample: return translationForString("standard deviation (of sample)")
+			case .IsInvalid: return translationForString("is invalid")
+			case .IsEmpty: return translationForString("is empty")
 		}
 	}
 	
@@ -577,6 +581,12 @@ public enum Function: String {
 
 		case .UUID:
 			return []
+
+		case .IsInvalid:
+			return [Parameter(name: translationForString("value"), exampleValue: Value.IntValue(3))]
+
+		case .IsEmpty:
+			return [Parameter(name: translationForString("value"), exampleValue: Value.IntValue(3))]
 		}
 	} }
 	
@@ -670,6 +680,8 @@ public enum Function: String {
 		case .StandardDeviationSample: return Arity.Any
 		case .VariancePopulation: return Arity.Any
 		case .VarianceSample: return Arity.Any
+		case .IsInvalid: return Arity.Fixed(1)
+		case .IsEmpty: return Arity.Fixed(1)
 		}
 	} }
 	
@@ -1205,15 +1217,21 @@ public enum Function: String {
 		case .Power:
 			return arguments[0] ^ arguments[1]
 
+		case .UUID:
+			return .StringValue(NSUUID().UUIDString)
+
+		case .IsInvalid:
+			return Value.BoolValue(!arguments[0].isValid)
+
+		case .IsEmpty:
+			return Value.BoolValue(arguments[0].isEmpty)
+
 		// The following functions are already implemented as a Reducer, just use that
 		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct, .Median, .MedianHigh,
 			.MedianLow, .MedianPack, .VarianceSample, .VariancePopulation, .StandardDeviationPopulation, .StandardDeviationSample:
 			var r = self.reducer!
 			r.add(arguments)
 			return r.result
-
-		case .UUID:
-			return .StringValue(NSUUID().UUIDString)
 		}
 	}
 
@@ -1250,7 +1268,7 @@ public enum Function: String {
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
 		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID,
 		CountDistinct, MedianLow, MedianHigh, MedianPack, Median, VarianceSample, VariancePopulation, StandardDeviationSample,
-		StandardDeviationPopulation
+		StandardDeviationPopulation, IsEmpty, IsInvalid
 	]
 }
 

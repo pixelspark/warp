@@ -449,6 +449,15 @@ class WarpCoreTests: XCTestCase {
 
 			case .UUID:
 				XCTAssert(Function.UUID.apply([]).stringValue!.lengthOfBytesUsingEncoding(NSUTF8StringEncoding) == 36, "UUID must be 36 characters long")
+
+			case .IsEmpty:
+				XCTAssert(Function.IsEmpty.apply([Value.EmptyValue]) == Value.BoolValue(true), "empty value is empty")
+				XCTAssert(Function.IsEmpty.apply([Value.IntValue(1)]) == Value.BoolValue(false), "value is not empty")
+				XCTAssert(Function.IsEmpty.apply([Value.InvalidValue]) == Value.BoolValue(false), "invalid value is not empty")
+
+			case .IsInvalid:
+				XCTAssert(Function.IsInvalid.apply([Value.InvalidValue]) == Value.BoolValue(true), "invalid value is invalid")
+				XCTAssert(Function.IsInvalid.apply([Value.EmptyValue]) == Value.BoolValue(false), "empty value is not invalid")
 			}
 		}
 
