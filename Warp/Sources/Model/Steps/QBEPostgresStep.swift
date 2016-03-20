@@ -28,7 +28,12 @@ private class QBEPostgresDialect: StandardSQLDialect {
 			switch aggregation.reduce {
 			case .Count: return "SUM(CASE WHEN \(expressionSQL) ~* '^[[:digit:]]+$' THEN 1 ELSE 0 END)"
 			case .Sum: return "SUM((\(expressionSQL))::float)"
+				
 			case .Average: return "AVG((\(expressionSQL))::float)"
+			case .StandardDeviationPopulation: return "STDDEV_POP((\(expressionSQL))::float)"
+			case .StandardDeviationSample: return "STDDEV_SAMP((\(expressionSQL))::float)"
+			case .VariancePopulation: return "VAR_POP((\(expressionSQL))::float)"
+			case .VarianceSample: return "VAR_SAMP((\(expressionSQL))::float)"
 			case .Concat: return "STRING_AGG(\(expressionSQL),'')"
 			case .Pack:
 				return "STRING_AGG(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.Escape)),\(literalString(Pack.EscapeEscape))),\(literalString(Pack.Separator)),\(literalString(Pack.SeparatorEscape))), \(literalString(Pack.Separator)))"
