@@ -1973,9 +1973,6 @@ CA
                                             <color key="insertionPointColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                             <size key="minSize" width="438" height="218"/>
                                             <size key="maxSize" width="463" height="10000000"/>
-                                            <connections>
-                                                <outlet property="delegate" destination="6dm-83-cu3" id="hoY-dm-JYd"/>
-                                            </connections>
                                         </textView>
                                     </subviews>
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
