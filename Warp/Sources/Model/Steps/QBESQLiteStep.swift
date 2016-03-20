@@ -440,15 +440,22 @@ private class QBESQLiteDialect: StandardSQLDialect {
 	}
 	
 	override func aggregationToSQL(aggregation: Aggregator, alias: String) -> String? {
-		// Function.Count only counts numeric values
-		if aggregation.reduce == Function.Count {
+		switch aggregation.reduce {
+		case .StandardDeviationPopulation, .StandardDeviationSample, .VarianceSample, .VariancePopulation:
+			// These aren't supported in SQLite
+			// TODO: implement as UDF
+			return nil
+
+		case .Count:
+			// COUNT in SQLite counts everything, we want just the numeric values (Function.CountAll counts everything)
 			if let expressionSQL = self.expressionToSQL(aggregation.map, alias: alias) {
 				return "SUM(CASE WHEN TYPEOF(\(expressionSQL)) IN('integer', 'real') THEN 1 ELSE 0 END)"
 			}
 			return nil
+
+		default:
+			return super.aggregationToSQL(aggregation, alias: alias)
 		}
-		
-		return super.aggregationToSQL(aggregation, alias: alias)
 	}
 }
 
