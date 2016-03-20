@@ -1776,6 +1776,10 @@ internal enum QBEEditingMode {
 						if case .Success(let ids) = result where ids != nil && !forceCustomKeySelection {
 							self.startEditingWithIdentifier(ids!)
 						}
+						else if !forceCustomKeySelection && md.canPerformMutation(DataMutation.Edit(row: 0, column: Column("a"), old: Value.InvalidValue, new: Value.InvalidValue)) {
+							// This data set does not have key columns, but this isn't an issue, as it can be edited by row number
+							self.startEditingWithIdentifier([])
+						}
 						else {
 							// Cannot start editing right now
 							self.editingMode = .NotEditing
@@ -1817,6 +1821,8 @@ internal enum QBEEditingMode {
 		self.startEditingWithIdentifier(columns)
 	}
 
+	/** Start editing using the given set of identifier keys. If the set is empty, the data set must support line-based
+	editing (DataMutation.Edit). */
 	private func startEditingWithIdentifier(ids: Set<Column>) {
 		asyncMain {
 			switch self.editingMode {
