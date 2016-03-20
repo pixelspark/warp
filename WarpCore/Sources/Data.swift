@@ -390,7 +390,7 @@ public protocol Data {
 	func union(data: Data) -> Data
 }
 
-extension Data {
+public extension Data {
 	/** Returns a histogram of the values for the given expression (each unique value that occurs, and the number of times
 	it occurs). */
 	func histogram(expression: Expression, job: Job, callback: (Fallible<[Value: Int]>) -> ()) {

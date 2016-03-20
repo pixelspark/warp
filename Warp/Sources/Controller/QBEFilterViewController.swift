@@ -23,7 +23,8 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	var column: Column?
 	
 	private var reloadJob: Job? = nil
-	private var values: [Value] = []
+	private var values = OrderedDictionary<Value, Int>()
+	private var valueCount = 0
 	
 	var filter: FilterSet = FilterSet() { didSet {
 		assertMainThread()
@@ -74,16 +75,22 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 			reloadJob = job
 			reloadJob?.addObserver(self)
 			self.updateProgress()
-			
-			filteredData.unique(Sibling(c), job: job, callback: { [weak self] (fallibleValues) -> () in
-				switch fallibleValues {
+
+			filteredData.histogram(Sibling(c), job: job) { result in
+				switch result {
 					case .Success(let values):
-						var valuesSorted = Array(values)
-						valuesSorted.sortInPlace({return $0.stringValue < $1.stringValue})
+						var ordered = OrderedDictionary(dictionaryInAnyOrder: values)
+						ordered.sortKeysInPlace { a,b in return a.stringValue < b.stringValue }
+						var count = 0
+						ordered.forEach { _, v in
+							count += v
+						}
+
 						asyncMain { [weak self] in
 							if !job.cancelled {
-								self?.values = valuesSorted
+								self?.values = ordered
 								self?.reloadJob = nil
+								self?.valueCount = count
 								self?.updateProgress()
 								self?.valueList?.reloadData()
 							}
@@ -92,7 +99,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 					case .Failure(let e):
 						trace("Error fetching unique values: \(e)")
 				}
-			})
+			}
 		}
 	}
 	
@@ -105,10 +112,10 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 			switch tableColumn?.identifier ?? "" {
 				case "selected":
 					if let b = object?.boolValue where b {
-						filter.selectedValues.insert(values[row])
+						filter.selectedValues.insert(values[row].0)
 					}
 					else {
-						filter.selectedValues.remove(values[row])
+						filter.selectedValues.remove(values[row].0)
 					}
 					filterChanged()
 				
@@ -120,9 +127,10 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	
 	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if row < values.count {
+			let value = values[row].0
+
 			switch tableColumn?.identifier ?? "" {
 				case "value":
-					let value = values[row]
 					switch value {
 						case .EmptyValue:
 							return NSLocalizedString("(missing)", comment: "")
@@ -131,17 +139,55 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 							return NSLocalizedString("(error)", comment: "")
 
 						default:
-							return QBEAppDelegate.sharedInstance.locale.localStringFor(values[row])
+							return QBEAppDelegate.sharedInstance.locale.localStringFor(value)
 					}
+
+				case "occurrence":
+					if self.valueCount > 0 {
+						return max(1.0, (Double(values[row].1) / Double(self.valueCount)) * 50.0)
+					}
+					return 0.0
 				
 				case "selected":
-					return NSNumber(bool: filter.selectedValues.contains(values[row]))
-				
+					return NSNumber(bool: filter.selectedValues.contains(value))
+
 				default:
 					return nil
 			}
 		}
 		return nil
+	}
+
+	func tableView(tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
+		for d in tableView.sortDescriptors.reverse() {
+			if let k = d.key {
+				switch k {
+					case "value":
+						self.values.sortKeysInPlace { a, b in
+							if d.ascending {
+								return a.stringValue < b.stringValue
+							}
+							else {
+								return a.stringValue > b.stringValue
+							}
+						}
+
+					case "occurrence":
+						self.values.sortPairsInPlace { a, b in
+							if d.ascending {
+								return a.value < b.value
+							}
+							else {
+								return a.value > b.value
+							}
+						}
+
+					default:
+						break
+				}
+			}
+		}
+		tableView.reloadData()
 	}
 	
 	@IBAction func applyFilter(sender: NSObject) {
@@ -170,13 +216,13 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	}
 	
 	@IBAction override func selectAll(sender: AnyObject?) {
-		filter.selectedValues.unionInPlace(values)
+		filter.selectedValues.unionInPlace(values.keys)
 		self.valueList?.reloadData()
 		filterChanged()
 	}
 	
 	@IBAction func selectNone(sender: AnyObject?) {
-		filter.selectedValues.subtractInPlace(values)
+		filter.selectedValues.subtractInPlace(values.keys)
 		self.valueList?.reloadData()
 		filterChanged()
 	}

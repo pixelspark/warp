@@ -2383,14 +2383,14 @@ CA
                                     <outlet property="nextKeyView" destination="bYQ-uH-ziK" id="UIQ-ar-41K"/>
                                 </connections>
                             </searchField>
-                            <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DGZ-ci-0Uv">
+                            <scrollView autohidesScrollers="YES" horizontalLineScroll="20" horizontalPageScroll="10" verticalLineScroll="20" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DGZ-ci-0Uv">
                                 <rect key="frame" x="7" y="35" width="369" height="230"/>
                                 <clipView key="contentView" id="pzE-ch-gni">
-                                    <rect key="frame" x="1" y="1" width="367" height="228"/>
+                                    <rect key="frame" x="1" y="0.0" width="367" height="229"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="none" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="bYQ-uH-ziK">
-                                            <rect key="frame" x="0.0" y="0.0" width="367" height="19"/>
+                                        <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" selectionHighlightStyle="none" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="18" headerView="2FJ-8K-aag" id="bYQ-uH-ziK">
+                                            <rect key="frame" x="0.0" y="0.0" width="367" height="212"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -2407,8 +2407,8 @@ CA
                                                         <font key="font" metaFont="system"/>
                                                     </buttonCell>
                                                 </tableColumn>
-                                                <tableColumn identifier="value" editable="NO" width="321" minWidth="40" maxWidth="1000" id="eBr-Dn-68H">
-                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
+                                                <tableColumn identifier="value" editable="NO" width="238" minWidth="40" maxWidth="1000" id="eBr-Dn-68H">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Value">
                                                         <font key="font" metaFont="smallSystem"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
@@ -2418,6 +2418,17 @@ CA
                                                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     </textFieldCell>
+                                                    <sortDescriptor key="sortDescriptorPrototype" selector="compare:" sortKey="value"/>
+                                                </tableColumn>
+                                                <tableColumn identifier="occurrence" width="65" minWidth="10" maxWidth="3.4028234663852886e+38" id="Izv-dP-y0u">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Occurence">
+                                                        <font key="font" metaFont="smallSystem"/>
+                                                        <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                    </tableHeaderCell>
+                                                    <levelIndicatorCell key="dataCell" state="on" alignment="left" doubleValue="25" maxValue="50" warningValue="40" criticalValue="45" levelIndicatorStyle="relevancy" id="UCn-OB-wu4"/>
+                                                    <sortDescriptor key="sortDescriptorPrototype" selector="compare:" sortKey="occurrence"/>
+                                                    <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                 </tableColumn>
                                             </tableColumns>
                                             <connections>
@@ -2436,6 +2447,10 @@ CA
                                     <rect key="frame" x="224" y="17" width="15" height="102"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
+                                <tableHeaderView key="headerView" id="2FJ-8K-aag">
+                                    <rect key="frame" x="0.0" y="0.0" width="367" height="17"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </tableHeaderView>
                                 <connections>
                                     <outlet property="nextKeyView" destination="smA-uG-2Fy" id="Q1s-ZK-2P7"/>
                                 </connections>
