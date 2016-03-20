@@ -1344,16 +1344,16 @@ public class SQLData: NSObject, Data {
 			return StreamData(source: EmptyStream())
 		}
 
-		let sql = self.sql.asSubquery
-
 		var groupBy: [String] = []
 		var select: [String] = []
 		var resultingColumns: [Column] = []
-		
-		let alias = groups.count > 0 ? sql.aliasFor(.Group) : sql.aliasFor(.Select)
+
+		let alias = groups.count > 0 ? self.sql.aliasFor(.Group) : self.sql.aliasFor(.Select)
+
+		// Write out grouping expressions
 		for (column, expression) in groups {
-			if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: alias, foreignAlias: nil, inputValue: nil) {
-				select.append("\(expressionString) AS \(sql.dialect.columnIdentifier(column, table: nil, schema: nil, database: nil))")
+			if let expressionString = self.sql.dialect.expressionToSQL(expression.prepare(), alias: alias, foreignAlias: nil, inputValue: nil) {
+				select.append("\(expressionString) AS \(self.sql.dialect.columnIdentifier(column, table: nil, schema: nil, database: nil))")
 				groupBy.append("\(expressionString)")
 				resultingColumns.append(column)
 			}
@@ -1361,9 +1361,15 @@ public class SQLData: NSObject, Data {
 				return fallback().aggregate(groups, values: values)
 			}
 		}
+
+		/* If there are no groups, we still need to skip the query past the .Group state (with groups, sqlGroup will be 
+		called below, which will advance the query state past .Group). This is done here so we know the alias to use in 
+		the select expressions. */
+		let sql = groups.count == 0 ? self.sql.advance(.Group, part: nil) : self.sql
+		let aliasInSelect = sql.alias
 		
 		for (column, aggregation) in values {
-			if let aggregationSQL = sql.dialect.aggregationToSQL(aggregation, alias: alias) {
+			if let aggregationSQL = sql.dialect.aggregationToSQL(aggregation, alias: aliasInSelect) {
 				select.append("\(aggregationSQL) AS \(sql.dialect.columnIdentifier(column, table: nil, schema: nil, database: nil))")
 				resultingColumns.append(column)
 			}
