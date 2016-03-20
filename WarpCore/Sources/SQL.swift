@@ -1344,6 +1344,8 @@ public class SQLData: NSObject, Data {
 			return StreamData(source: EmptyStream())
 		}
 
+		let sql = self.sql.asSubquery
+
 		var groupBy: [String] = []
 		var select: [String] = []
 		var resultingColumns: [Column] = []

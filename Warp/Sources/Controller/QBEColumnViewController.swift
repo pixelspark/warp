@@ -6,6 +6,7 @@ protocol QBEColumnViewDelegate: NSObjectProtocol {
 	func columnViewControllerDidRemove(controller: QBEColumnViewController, column: Column)
 	func columnViewControllerDidSort(controller: QBEColumnViewController, column: Column, ascending: Bool)
 	func columnViewControllerDidAutosize(controller: QBEColumnViewController, column: Column)
+	func columnViewControllerSetFullData(controller: QBEColumnViewController, fullData: Bool)
 }
 
 private struct QBEColumnDescriptives {
@@ -19,8 +20,9 @@ private struct QBEColumnDescriptives {
 
 class QBEColumnViewController: NSViewController {
 	weak var delegate: QBEColumnViewDelegate? = nil
-	var column: Column? = nil
-	var data: Data? = nil
+	var column: Column? = nil { didSet { asyncMain { self.update() } } }
+	var data: Data? = nil { didSet { asyncMain { self.update() } } }
+	var isFullData: Bool = false { didSet { asyncMain { self.update() } } }
 
 	private var descriptives: QBEColumnDescriptives? = nil
 	private var descriptivesJob: Job? = nil
@@ -34,6 +36,7 @@ class QBEColumnViewController: NSViewController {
 	@IBOutlet private var distinctLabel: NSTextField!
 	@IBOutlet private var progressIndicator: NSProgressIndicator!
 	@IBOutlet private var descriptivesView: NSView!
+	@IBOutlet private var fullDataButton: NSButton!
 
 	override func viewWillAppear() {
 		self.updateDescriptives()
@@ -46,12 +49,11 @@ class QBEColumnViewController: NSViewController {
 		self.descriptives = nil
 	}
 
-	private func updateDescriptives() {
+	func updateDescriptives() {
 		asyncMain {
 			self.descriptivesJob?.cancel()
 			self.descriptivesJob = nil
 			self.descriptives = nil
-			self.update()
 
 			if let d = self.data, let cn = self.column {
 				asyncMain {
@@ -101,15 +103,29 @@ class QBEColumnViewController: NSViewController {
 			}
 			else {
 				print("Not fetching descriptives: no data or no column")
+				self.update()
 			}
 		}
 	}
 
 	private func update() {
+		for v in [self.muLabel, self.sigmaLabel, self.maxLabel, self.minLabel, self.distinctLabel, self.countLabel] {
+			if let vv = v {
+				let tr = CATransition()
+				tr.duration = 0.3
+				tr.type = kCATransitionPush
+				tr.subtype = kCATransitionFromBottom
+				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+				vv.layer?.addAnimation(tr, forKey: kCATransition)
+			}
+		}
+
 		let locale = QBEAppDelegate.sharedInstance.locale
 		self.nameField?.stringValue = column?.name ?? ""
 		self.progressIndicator?.hidden = self.descriptivesJob == nil
 		self.descriptivesView?.hidden = self.descriptives == nil
+		self.fullDataButton?.state = self.isFullData ? NSOnState: NSOffState
+		self.fullDataButton?.image =  NSImage(named: self.isFullData ? "BigIcon" : "SmallIcon")
 
 		if let d = self.descriptives {
 			let avg = d.average == nil ? Value.InvalidValue: Value.DoubleValue(d.average!)
@@ -124,13 +140,19 @@ class QBEColumnViewController: NSViewController {
 			self.distinctLabel?.stringValue = locale.localStringFor(Value.IntValue(d.countUnique))
 		}
 		else {
-			self.muLabel?.stringValue = "?"
-			self.sigmaLabel?.stringValue = "?"
-			self.minLabel?.stringValue = "?"
-			self.maxLabel?.stringValue = "?"
-			self.countLabel?.stringValue = "?"
-			self.distinctLabel?.stringValue = "?"
+			if self.descriptivesJob == nil {
+				self.muLabel?.stringValue = "?"
+				self.sigmaLabel?.stringValue = "?"
+				self.minLabel?.stringValue = "?"
+				self.maxLabel?.stringValue = "?"
+				self.countLabel?.stringValue = "?"
+				self.distinctLabel?.stringValue = "?"
+			}
 		}
+	}
+
+	@IBAction func toggleFullData(sender: NSObject) {
+		self.delegate?.columnViewControllerSetFullData(self, fullData: !self.isFullData)
 	}
 
 	@IBAction func removeColumn(sender: NSObject) {

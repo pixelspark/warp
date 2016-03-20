@@ -1036,6 +1036,7 @@ internal enum QBEEditingMode {
 						asyncMain {
 							popover.column = column
 							popover.data = data
+							popover.isFullData = self.hasFullData
 							popover.delegate = self
 							callback(popover)
 						}
@@ -2230,6 +2231,33 @@ internal enum QBEEditingMode {
 
 	func columnViewControllerDidSort(controller: QBEColumnViewController, column: Column, ascending: Bool) {
 		self.sortRowsInColumn(column, ascending: ascending)
+	}
+
+	func columnViewControllerSetFullData(controller: QBEColumnViewController, fullData: Bool) {
+		let job = Job(.UserInitiated)
+
+		if fullData {
+			self.currentStep?.fullData(job) { result in
+				result.maybe { data in
+					asyncMain {
+						controller.data = data
+						controller.isFullData = true
+						controller.updateDescriptives()
+					}
+				}
+			}
+		}
+		else {
+			self.calculator.currentData?.get(job) { result in
+				result.maybe { data in
+					asyncMain {
+						controller.isFullData = self.hasFullData
+						controller.data = data
+						controller.updateDescriptives()
+					}
+				}
+			}
+		}
 	}
 }
 
