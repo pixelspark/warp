@@ -1372,7 +1372,7 @@ public class SQLData: NSObject, Data {
 		called below, which will advance the query state past .Group). This is done here so we know the alias to use in 
 		the select expressions. */
 		let sql = groups.count == 0 ? self.sql.advance(.Group, part: nil) : self.sql
-		let aliasInSelect = sql.alias
+		let aliasInSelect = groups.count == 0 ? sql.aliasFor(.Select) : alias
 		
 		for (column, aggregation) in values {
 			if let aggregationSQL = sql.dialect.aggregationToSQL(aggregation, alias: aliasInSelect) {
