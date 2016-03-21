@@ -390,29 +390,6 @@ public protocol Data {
 	func union(data: Data) -> Data
 }
 
-public extension Data {
-	/** Returns a histogram of the values for the given expression (each unique value that occurs, and the number of times
-	it occurs). */
-	func histogram(expression: Expression, job: Job, callback: (Fallible<[Value: Int]>) -> ()) {
-		let keyColumn = Column("k")
-		let countColumn = Column("n")
-		let d = self.aggregate([keyColumn: expression], values: [countColumn: Aggregator(map: expression, reduce: .Count)])
-		d.raster(job) { result in
-			switch result {
-			case .Success(let r):
-				var histogram: [Value: Int] = [:]
-				for row in r.rows {
-					histogram[row[keyColumn]!] = row[countColumn]!.intValue
-				}
-				callback(.Success(histogram))
-
-			case .Failure(let e):
-				callback(.Failure(e))
-			}
-		}
-	}
-}
-
 /** Utility class that allows for easy swapping of Data objects. This can for instance be used to swap-in a cached
 version of a particular data object. */
 public class ProxyData: NSObject, Data {
