@@ -86,7 +86,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func numberOfColumnsInTableGrid(aTableGrid: MBTableGrid!) -> UInt {
 		if let r = raster {
-			return (r.columnCount > 0 ? UInt(r.columnCount) : 0) + (self.showNewColumn ? 1 : 0)
+			return (r.columns.count > 0 ? UInt(r.columns.count) : 0) + (self.showNewColumn ? 1 : 0)
 		}
 		return (self.showNewColumn ? 1 : 0)
 	}
@@ -104,7 +104,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	private func setValue(value: Value, inRow: Int, inColumn: Int) {
 		if let r = raster {
-			if inRow < r.rowCount && inColumn < r.columnCount {
+			if inRow < r.rowCount && inColumn < r.columns.count {
 				let oldValue = r[Int(inRow), Int(inColumn)]
 				if oldValue != value {
 					if let d = delegate {
@@ -112,17 +112,17 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 					}
 				}
 			}
-			else if inRow == r.rowCount && inColumn < r.columnCount && !value.isEmpty {
+			else if inRow == r.rowCount && inColumn < r.columns.count && !value.isEmpty {
 				// New row
 				self.delegate?.dataView(self, addValue: value, inRow: nil, column: inColumn) { didAddRow in
 				}
 			}
-			else if inRow < r.rowCount && inColumn == r.columnCount && !value.isEmpty {
+			else if inRow < r.rowCount && inColumn == r.columns.count && !value.isEmpty {
 				// New column
 				self.delegate?.dataView(self, addValue: value, inRow: inRow, column: nil) { didAddColumn in
 				}
 			}
-			else if inRow == r.rowCount && inColumn == r.columnCount && !value.isEmpty {
+			else if inRow == r.rowCount && inColumn == r.columns.count && !value.isEmpty {
 				// New row and column
 				self.delegate?.dataView(self, addValue: value, inRow: nil, column: nil) { didAddColumn in
 				}
@@ -137,11 +137,11 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func tableGrid(aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> AnyObject! {
 		if let r = raster {
-			if Int(columnIndex) == r.columnCount || Int(rowIndex) == r.rowCount {
+			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
 				// Template row, return empty string
 				return ""
 			}
-			else if columnIndex >= 0 && Int(columnIndex) < r.columnCount && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
+			else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
 				let x = r[Int(rowIndex), Int(columnIndex)]
 				return locale.localStringFor(x)
 			}
@@ -151,10 +151,10 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 
 	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
 		if let r = raster {
-			if Int(columnIndex) == r.columnCount || Int(rowIndex) == r.rowCount {
+			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
 				return NSColor.blackColor().colorWithAlphaComponent(0.05)
 			}
-			else if columnIndex >= 0 && Int(columnIndex) < r.columnCount && Int(rowIndex) >= 0 && Int(rowIndex) < r.rowCount {
+			else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && Int(rowIndex) >= 0 && Int(rowIndex) < r.rowCount {
 				let x = r[Int(rowIndex), Int(columnIndex)]
 
 				// Invalid values are colored red
@@ -173,7 +173,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, headerStringForColumn columnIndex: UInt) -> String! {
-		if Int(columnIndex) == raster?.columnCount {
+		if Int(columnIndex) == raster?.columns.count {
 			// Template column
 			return "+"
 		}
@@ -188,7 +188,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func tableGrid(aTableGrid: MBTableGrid!, canMoveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
 		// Make sure we are not dragging the template column, and not past the template column
-		if let r = raster where !columnIndexes.containsIndex(r.columnCount) && Int(index) < r.columnCount {
+		if let r = raster where !columnIndexes.containsIndex(r.columns.count) && Int(index) < r.columns.count {
 			return true
 		}
 		return false
@@ -201,7 +201,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	func tableGrid(aTableGrid: MBTableGrid!, moveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
 		if let r = raster {
 			var columnsOrdered: [Column] = []
-			for columnIndex in 0..<r.columnCount {
+			for columnIndex in 0..<r.columns.count {
 				if columnIndexes.containsIndex(columnIndex) {
 					columnsOrdered.append(r.columns[columnIndex])
 				}
@@ -230,7 +230,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func tableGrid(aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt)  {
 		if let r = raster {
-			if Int(columnIndex) < r.columnCount {
+			if Int(columnIndex) < r.columns.count {
 				let cn = r.columns[Int(columnIndex)]
 				let previousWidth = QBESettings.sharedInstance.defaultWidthForColumn(cn)
 				
@@ -289,7 +289,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 
 			if let r = raster {
 				// Update column sizes
-				for i in 0..<r.columnCount {
+				for i in 0..<r.columns.count {
 					let cn = r.columns[i]
 					if let w = QBESettings.sharedInstance.defaultWidthForColumn(cn) where w > 0 {
 						tv.resizeColumnWithIndex(UInt(i), width: Float(w))
@@ -302,8 +302,8 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 				// Cache cell types: check the first row to see what kind of value is in this column
 				if columnCells == nil {
 					columnCells = []
-					for columnIndex in 0..<r.columnCount {
-						if r.rowCount > 0 && r.columnCount > Int(columnIndex) {
+					for columnIndex in 0..<r.columns.count {
+						if r.rowCount > 0 && r.columns.count > Int(columnIndex) {
 							var prototypeValue = r[0, Int(columnIndex)]
 
 							// Find the first non-invalid, non-empty value
@@ -390,7 +390,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 
 	private func renameColumnPopup(columnIndex: UInt) {
-		if let r = raster where Int(columnIndex) < r.columnCount {
+		if let r = raster where Int(columnIndex) < r.columns.count {
 			self.delegate?.dataView(self, viewControllerForColumn: r.columns[Int(columnIndex)], info: true, callback: { vc in
 				if let rect = self.tableView?.headerRectOfColumn(columnIndex) {
 					self.presentViewController(vc, asPopoverRelativeToRect: rect, ofView: self.tableView!, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
@@ -491,7 +491,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			if let r = raster, let sr = selectedRows {
 				let rowIndex = sr.firstIndex
 				let colIndex = sr.firstIndex
-				if rowIndex >= 0 && colIndex >= 0 && rowIndex < r.rowCount && colIndex < r.columnCount {
+				if rowIndex >= 0 && colIndex >= 0 && rowIndex < r.rowCount && colIndex < r.columns.count {
 					let x = r[rowIndex, colIndex]
 					delegate?.dataView(self, didSelectValue: x, changeable: true)
 				}
@@ -631,7 +631,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			}
 			
 			let rowCount = r.rowCount
-			let columnCount = r.columnCount
+			let columnCount = r.columns.count
 			
 			if let rowStrings = tsvString?.componentsSeparatedByString("\r\n") {
 				var row = startRow

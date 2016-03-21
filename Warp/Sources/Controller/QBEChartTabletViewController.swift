@@ -147,7 +147,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				let lineChartView = LineChartView(frame: self.chartView.bounds)
 				self.chartBaseView = lineChartView
 
-				if r.columnCount >= 2 {
+				if r.columns.count >= 2 {
 					let data = LineChartData(xVals: xs.map { return $0.doubleValue ?? Double.NaN })
 
 					// FIXME: add support for multiple series in QBEChart
@@ -172,7 +172,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				let radarChartView = RadarChartView(frame: self.chartView.bounds)
 				self.chartBaseView = radarChartView
 
-				if r.columnCount >= 2 {
+				if r.columns.count >= 2 {
 					let data = RadarChartData(xVals: xs.map { return $0.doubleValue ?? Double.NaN })
 
 					for ySeriesIndex in 1..<2 {
@@ -193,7 +193,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				self.chartBaseView = barChartView
 
 				// Do any additional setup after loading the view.
-				if r.columnCount >= 2 {
+				if r.columns.count >= 2 {
 					let data = BarChartData(xVals: [1])
 
 					let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }

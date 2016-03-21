@@ -666,7 +666,7 @@ internal enum QBEEditingMode {
 		case .Editing(identifiers: _, editingRaster: let editingRaster):
 			// If a formula was typed in, calculate the result first
 			if let f = Formula(formula: value.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
-				let row = inRow == nil ? Row() : Row(editingRaster[inRow!], columns: editingRaster.columns)
+				let row = inRow == nil ? Row() : editingRaster[inRow!]
 				value = f.root.apply(row, foreign: nil, inputValue: nil)
 			}
 
@@ -801,7 +801,7 @@ internal enum QBEEditingMode {
 						var keys: [[Column: Value]] = []
 						for rowNumber in rows {
 							// Create key
-							let row = Row(editingRaster[rowNumber], columns: editingRaster.columns)
+							let row = editingRaster[rowNumber]
 							var key: [Column: Value] = [:]
 							for identifyingColumn in ids {
 								key[identifyingColumn] = row[identifyingColumn]
@@ -854,7 +854,7 @@ internal enum QBEEditingMode {
 		if let md = self.currentStep?.mutableData, case .Editing(identifiers:_, editingRaster: let editingRaster) = self.editingMode {
 			// If a formula was typed in, calculate the result first
 			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
-				toValue = f.root.apply(Row(editingRaster[inRow], columns: editingRaster.columns), foreign: nil, inputValue: oldValue)
+				toValue = f.root.apply(editingRaster[inRow], foreign: nil, inputValue: oldValue)
 			}
 
 			let job = Job(.UserInitiated)
@@ -893,7 +893,7 @@ internal enum QBEEditingMode {
 							else {
 								if let ids = identifiers {
 									// Create key
-									let row = Row(editingRaster[inRow], columns: editingRaster.columns)
+									let row = editingRaster[inRow]
 									var key: [Column: Value] = [:]
 									for identifyingColumn in ids {
 										key[identifyingColumn] = row[identifyingColumn]
@@ -1454,7 +1454,7 @@ internal enum QBEEditingMode {
 			if firstSelectedColumn != NSNotFound {
 				calculator.currentRaster?.get {(r) -> () in
 					r.maybe { (raster) -> () in
-						if firstSelectedColumn < raster.columnCount {
+						if firstSelectedColumn < raster.columns.count {
 							let columnName = raster.columns[firstSelectedColumn]
 							self.sortRowsInColumn(columnName, ascending: ascending)
 						}
@@ -1509,11 +1509,11 @@ internal enum QBEEditingMode {
 					asyncMain {
 						var steps: [QBEStep] = []
 
-						if namesToRemove.count > 0 && namesToRemove.count < r.columnCount {
+						if namesToRemove.count > 0 && namesToRemove.count < r.columns.count {
 							steps.append(QBEColumnsStep(previous: self.currentStep, columns: namesToRemove, select: !remove))
 						}
 
-						if namesToSelect.count > 0 && namesToSelect.count < r.columnCount {
+						if namesToSelect.count > 0 && namesToSelect.count < r.columns.count {
 							steps.append(QBEColumnsStep(previous: self.currentStep, columns: namesToSelect, select: remove))
 						}
 
@@ -1557,7 +1557,7 @@ internal enum QBEEditingMode {
 							}
 
 							var relevantColumns = Set<Column>()
-							for columnIndex in 0..<raster.columnCount {
+							for columnIndex in 0..<raster.columns.count {
 								if selectedColumns.containsIndex(columnIndex) {
 									relevantColumns.insert(raster.columns[columnIndex])
 								}
@@ -1591,7 +1591,7 @@ internal enum QBEEditingMode {
 					let step = QBEPivotStep()
 					var selectedColumnNames: [Column] = []
 					selectedColumns.forEach { idx in
-						if raster.columnCount > idx {
+						if raster.columns.count > idx {
 							selectedColumnNames.append(raster.columns[idx])
 						}
 					}
@@ -1616,7 +1616,7 @@ internal enum QBEEditingMode {
 				calculator.currentRaster?.get { (fallibleRaster) -> ()in
 					fallibleRaster.maybe { (raster) -> () in
 						var relevantColumns = Set<Column>()
-						for columnIndex in 0..<raster.columnCount {
+						for columnIndex in 0..<raster.columns.count {
 							if selectedColumns.containsIndex(columnIndex) {
 								relevantColumns.insert(raster.columns[columnIndex])
 							}
@@ -1639,7 +1639,7 @@ internal enum QBEEditingMode {
 				calculator.currentRaster?.get { (fallibleRaster) -> () in
 					fallibleRaster.maybe { (raster) -> () in
 						var relevantColumns = Set<Column>()
-						for columnIndex in 0..<raster.columnCount {
+						for columnIndex in 0..<raster.columns.count {
 							if selectedColumns.containsIndex(columnIndex) {
 								relevantColumns.insert(raster.columns[columnIndex])
 							}

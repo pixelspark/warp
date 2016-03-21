@@ -18,8 +18,8 @@ public class Raster: NSObject, NSCoding {
 	internal var raster: [[Value]] = []
 	public internal(set) var columns: [Column] = []
 
-	public var rows: AnySequence<Row> {
-		return AnySequence(self.raster.lazy.map { return Row($0, columns: self.columns) })
+	public var rows: AnyRandomAccessCollection<Row> {
+		return AnyRandomAccessCollection(self.raster.lazy.map { return Row($0, columns: self.columns) })
 	}
 
 	// FIXME: use a read-write lock to allow concurrent reads, but still provide safety
@@ -170,7 +170,7 @@ public class Raster: NSObject, NSCoding {
 	public func addRow() {
 		self.mutex.locked {
 			assert(!readOnly, "Data set is read-only")
-			let row = Array<Value>(count: columnCount, repeatedValue: Value.EmptyValue)
+			let row = Array<Value>(count: self.columns.count, repeatedValue: Value.EmptyValue)
 			raster.append(row)
 		}
 	}
@@ -193,19 +193,13 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	public var columnCount: Int {
-		return self.mutex.locked {
-			return columns.count
-		}
-	}
-	
-	public subscript(row: Int, col: String) -> Value? {
+	public subscript(row: Int, col: String) -> Value! {
 		return self.mutex.locked {
 			return self[row, Column(col)]
 		}
 	}
 	
-	public subscript(row: Int, col: Column) -> Value? {
+	public subscript(row: Int, col: Column) -> Value! {
 		return self.mutex.locked { () -> Value? in
 			if let colNr = indexOfColumnWithName(col) {
 				return self[row, colNr]
@@ -214,17 +208,17 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	public subscript(row: Int) -> [Value] {
+	public subscript(row: Int) -> Row {
 		return self.mutex.locked {
 			assert(row < rowCount)
-			return raster[row]
+			return Row(raster[row], columns: self.columns)
 		}
 	}
 	
 	public subscript(row: Int, col: Int) -> Value {
 		return self.mutex.locked {
-			assert(row < rowCount)
-			assert(col < columnCount)
+			assert(row < self.raster.count)
+			assert(col < self.columns.count)
 			
 			let rowData = raster[row]
 			if(col >= rowData.count) {
@@ -311,7 +305,7 @@ public class Raster: NSObject, NSCoding {
 			
 			for rowNumber in 0..<rowCount {
 				var line = "\(rowNumber)\t|"
-				for colNumber in 0..<self.columnCount {
+				for colNumber in 0..<self.columns.count {
 					line += self[rowNumber, colNumber].debugDescription + "\t|"
 				}
 				d += line + "\r\n"
@@ -328,12 +322,12 @@ public class Raster: NSObject, NSCoding {
 			}
 			
 			// Compare column count
-			if(self.columnCount != other.columnCount) {
+			if(self.columns.count != other.columns.count) {
 				return false
 			}
 			
 			// Compare column names
-			for columnNumber in 0..<self.columnCount {
+			for columnNumber in 0..<self.columns.count {
 				if columns[columnNumber] != other.columns[columnNumber] {
 					return false
 				}
@@ -341,7 +335,7 @@ public class Raster: NSObject, NSCoding {
 			
 			// Compare values
 			for rowNumber in 0..<self.rowCount {
-				for colNumber in 0..<self.columnCount {
+				for colNumber in 0..<self.columns.count {
 					if(self[rowNumber, colNumber] != other[rowNumber, colNumber]) {
 						return false
 					}
@@ -650,7 +644,7 @@ public class RasterData: NSObject, Data {
 				
 				var newData: [[Value]] = []
 
-				for colNumber in 1..<r.columnCount {
+				for colNumber in 1..<r.columns.count {
 					let columnName = r.columns[colNumber]
 					var row: [Value] = [Value(columnName.name)]
 					for rowNumber in 0..<r.rowCount {
@@ -682,7 +676,7 @@ public class RasterData: NSObject, Data {
 			// Select columns for each row
 			var newData: [Tuple] = []
 			for rowNumber in 0..<r.rowCount {
-				var oldRow = r[rowNumber]
+				let oldRow = r[rowNumber]
 				var newRow: Tuple = []
 				for i in indexesToKeep {
 					newRow.append(oldRow[i])
@@ -724,7 +718,7 @@ public class RasterData: NSObject, Data {
 			
 			let resultingNumberOfRows = min(numberOfRows, r.rowCount)
 			for rowNumber in 0..<resultingNumberOfRows {
-				newData.append(r[rowNumber])
+				newData.append(r[rowNumber].values)
 			}
 			
 			return Raster(data: newData, columns: r.columns, readOnly: true)
@@ -789,7 +783,7 @@ public class RasterData: NSObject, Data {
 			
 			let skipRows = min(numberOfRows, r.rowCount)
 			for rowNumber in skipRows..<r.rowCount {
-				newData.append(r[rowNumber])
+				newData.append(r[rowNumber].values)
 
 				if (rowNumber % Raster.progressReportRowInterval) == 0 {
 					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
@@ -824,8 +818,8 @@ public class RasterData: NSObject, Data {
 			
 			for rowNumber in 0..<r.rowCount {
 				let row = r[rowNumber]
-				if optimizedCondition.apply(Row(row, columns: r.columns), foreign: nil, inputValue: nil) == Value.BoolValue(true) {
-					newData.append(row)
+				if optimizedCondition.apply(row, foreign: nil, inputValue: nil) == Value.BoolValue(true) {
+					newData.append(row.values)
 				}
 
 				if (rowNumber % Raster.progressReportRowInterval) == 0 {
@@ -860,7 +854,7 @@ public class RasterData: NSObject, Data {
 						}
 					
 						// Fill in the data from the left side
-						let fillRight = Array<Value>(count: columns.count - leftRaster.columnCount, repeatedValue: Value.EmptyValue)
+						let fillRight = Array<Value>(count: columns.count - leftRaster.columns.count, repeatedValue: Value.EmptyValue)
 						for row in leftRaster.raster {
 							var rowClone = row
 							rowClone.appendContentsOf(fillRight)

@@ -245,13 +245,13 @@ class QBECalculateStep: QBEStep {
 
 			// Maybe there is an expression in the history that may be of help
 			for e in QBEHistory.sharedInstance.suggestExpressionsGiven(Set(inRaster.columns)) {
-				if e.apply(Row(inRaster[row], columns: inRaster.columns), foreign: nil, inputValue: fromValue) == toValue {
+				if e.apply(inRaster[row], foreign: nil, inputValue: fromValue) == toValue {
 					trace("Suggesting from history: \(e.toFormula(locale))")
 					suggestions.append(e)
 				}
 			}
 
-			Expression.infer(fromValue != nil ? Literal(fromValue!): nil, toValue: toValue, suggestions: &suggestions, level: 8, row: Row(inRaster[row], columns: inRaster.columns), column: column, job: job)
+			Expression.infer(fromValue != nil ? Literal(fromValue!): nil, toValue: toValue, suggestions: &suggestions, level: 8, row: inRaster[row], column: column, job: job)
 		}
 		return suggestions
 	}

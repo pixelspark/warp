@@ -81,13 +81,13 @@ class QBEColumnViewController: NSViewController {
 								if raster.rowCount == 1 {
 									let row = raster.rows.generate().next()!
 									self.descriptives = QBEColumnDescriptives(
-										average: row["mu"]?.doubleValue,
-										standardDeviation: row["s"]?.doubleValue,
-										minimumValue: row["mn"]!,
-										maximumValue: row["mx"]!,
-										count: row["c"]!.intValue!,
-										countUnique: row["cd"]!.intValue!,
-										countEmpty: row["mt"]!.intValue!
+										average: row["mu"].doubleValue,
+										standardDeviation: row["s"].doubleValue,
+										minimumValue: row["mn"],
+										maximumValue: row["mx"],
+										count: row["c"].intValue!,
+										countUnique: row["cd"].intValue!,
+										countEmpty: row["mt"].intValue!
 									)
 								}
 								else {

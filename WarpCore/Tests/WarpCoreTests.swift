@@ -488,8 +488,8 @@ class WarpCoreTests: XCTestCase {
 	func testEmptyRaster() {
 		let emptyRaster = Raster()
 		XCTAssert(emptyRaster.rowCount == 0, "Empty raster is empty")
-		XCTAssert(emptyRaster.columnCount == 0, "Empty raster is empty")
-		XCTAssert(emptyRaster.columns.count == emptyRaster.columnCount, "Column count matches")
+		XCTAssert(emptyRaster.columns.count == 0, "Empty raster is empty")
+		XCTAssert(emptyRaster.columns.count == emptyRaster.columns.count, "Column count matches")
 	}
 	
 	func testColumn() {
@@ -765,18 +765,18 @@ class WarpCoreTests: XCTestCase {
 		
 		// Distinct
 		data.distinct().raster(job) {
-			assertRaster($0, message: "Distinct removes no columns", condition: { $0.columnCount == 3 })
+			assertRaster($0, message: "Distinct removes no columns", condition: { $0.columns.count == 3 })
 			assertRaster($0, message: "Distinct removes no rows when they are all unique", condition: { $0.rowCount == 1000 })
 		}
 		
 		// Union
 		let secondData = RasterData(data: d, columns: [Column("X"), Column("B"), Column("C")])
 		data.union(secondData).raster(job) {
-			assertRaster($0, message: "Union creates the proper number of columns", condition: { $0.columnCount == 5 })
+			assertRaster($0, message: "Union creates the proper number of columns", condition: { $0.columns.count == 5 })
 			assertRaster($0, message: "Union creates the proper number of rows", condition: { $0.rowCount == 2000 })
 		}
 		data.union(data).raster(job) {
-			assertRaster($0, message: "Union creates the proper number of columns in self-union scenario", condition: { $0.columnCount == 3 })
+			assertRaster($0, message: "Union creates the proper number of columns in self-union scenario", condition: { $0.columns.count == 3 })
 			assertRaster($0, message: "Union creates the proper number of rows in self-union scenario", condition: { $0.rowCount == 2000 })
 		}
 		
@@ -785,11 +785,11 @@ class WarpCoreTests: XCTestCase {
 			assertRaster($0, message: "Join returns the appropriate number of rows in a one-to-one scenario", condition: { (x) in
 				x.rowCount == 1000
 			})
-			assertRaster($0, message: "Join returns the appropriate number of columns", condition: { $0.columnCount == 5 })
+			assertRaster($0, message: "Join returns the appropriate number of columns", condition: { $0.columns.count == 5 })
 		}
 		data.join(Join(type: .LeftJoin, foreignData: data, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .Equal))).raster(job) {
 			assertRaster($0, message: "Join returns the appropriate number of rows in a self-join one-to-one scenario", condition: { $0.rowCount == 1000 })
-			assertRaster($0, message: "Join returns the appropriate number of columns in a self-join", condition: { $0.columnCount == 3 })
+			assertRaster($0, message: "Join returns the appropriate number of columns in a self-join", condition: { $0.columns.count == 3 })
 		}
 		
 		// Select columns
@@ -808,7 +808,7 @@ class WarpCoreTests: XCTestCase {
 			switch r {
 				case .Success(let raster):
 					let rowsBefore = raster.rowCount
-					let columnsBefore = raster.columnCount
+					let columnsBefore = raster.columns.count
 					
 					self.measureBlock {
 						var td: Data = data
@@ -817,7 +817,7 @@ class WarpCoreTests: XCTestCase {
 						}
 						
 						td.raster(job) { assertRaster($0, message: "Row count matches") { $0.rowCount == columnsBefore - 1 } }
-						td.raster(job) { assertRaster($0, message: "Column count matches") { $0.columnCount == rowsBefore + 1 } }
+						td.raster(job) { assertRaster($0, message: "Column count matches") { $0.columns.count == rowsBefore + 1 } }
 					}
 			
 				case .Failure(let error):
@@ -847,7 +847,7 @@ class WarpCoreTests: XCTestCase {
 					XCTAssert(r.indexOfColumnWithName("X")==0, "First column has index 0")
 					XCTAssert(r.indexOfColumnWithName("x")==0, "Column names should be case-insensitive")
 					XCTAssert(r.rowCount == 1001, "Row count matches")
-					XCTAssert(r.columnCount == 3, "Column count matches")
+					XCTAssert(r.columns.count == 3, "Column count matches")
 				
 				case .Failure(let error):
 					XCTFail(error)
@@ -862,19 +862,19 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(testRaster.rowCount == d.count+1, "Row count matches after insert")
 
 		testRaster.addColumns([Column("W")])
-		XCTAssert(testRaster.columnCount == 3+1, "Column count matches after insert")
+		XCTAssert(testRaster.columns.count == 3+1, "Column count matches after insert")
 
 		// Raster modifications through RasterMutableData
 		let mutableRaster = RasterMutableData(raster: testRaster)
 		mutableRaster.performMutation(.Alter(DataDefinition(columns: cols)), job: job) { result in
 			switch result {
 			case .Success:
-				XCTAssert(testRaster.columnCount == 3, "Column count matches again after mutation")
+				XCTAssert(testRaster.columns.count == 3, "Column count matches again after mutation")
 
 				mutableRaster.performMutation(.Truncate, job: job) { result in
 					switch result {
 					case .Success:
-						XCTAssert(testRaster.columnCount == 3, "Column count matches again after mutation")
+						XCTAssert(testRaster.columns.count == 3, "Column count matches again after mutation")
 						XCTAssert(testRaster.rowCount == 0, "Row count matches again after mutation")
 
 					case .Failure(let e): XCTFail(e)
@@ -963,7 +963,7 @@ class WarpCoreTests: XCTestCase {
 
 	private static func rasterEquals(raster: Raster, grid: [[Value]]) -> Bool {
 		for row in 0..<raster.rowCount {
-			if raster[row] != grid[row] {
+			if raster[row].values != grid[row] {
 				return false
 			}
 		}

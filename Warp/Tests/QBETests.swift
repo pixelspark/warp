@@ -37,7 +37,7 @@ class QBETests: XCTestCase {
 
 	private static func rasterEquals(raster: Raster, grid: [[Value]]) -> Bool {
 		for row in 0..<raster.rowCount {
-			if raster[row] != grid[row] {
+			if raster[row].values != grid[row] {
 				return false
 			}
 		}

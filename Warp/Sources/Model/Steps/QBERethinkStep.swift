@@ -741,7 +741,7 @@ class QBERethinkMutableData: MutableData {
 					case .Insert(let row):
 						var doc = ReDocument()
 						for name in row.columns {
-							doc[name.name] = row[name]?.nativeValue ?? NSNull()
+							doc[name.name] = row[name].nativeValue ?? NSNull()
 						}
 						q = R.db(self.databaseName).table(self.tableName).insert([doc])
 

@@ -21,13 +21,20 @@ public struct Row {
 		return columns.indexOf(name)
 	}
 	
-	public subscript(column: Column) -> Value? {
+	public subscript(column: Column) -> Value! {
 		get {
 			if let i = columns.indexOf(column) {
 				return values[i]
 			}
 			return nil
 		}
+		set(newValue) {
+			self.setValue(newValue!, forColumn: column)
+		}
+	}
+
+	public subscript(column: Int) -> Value {
+		return values[column]
 	}
 	
 	public mutating func setValue(value: Value, forColumn column: Column) {
