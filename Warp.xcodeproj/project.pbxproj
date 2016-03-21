@@ -161,6 +161,9 @@
 		65B3F6A81C73D0EE000983D0 /* QBEChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6A71C73D0EE000983D0 /* QBEChart.swift */; };
 		65B3F6AA1C73D302000983D0 /* QBEChartTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6A91C73D302000983D0 /* QBEChartTabletViewController.swift */; };
 		65B3F6AD1C749F93000983D0 /* QBETabletView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6AC1C749F93000983D0 /* QBETabletView.swift */; };
+		65B774701C9FDB97006480B2 /* regular.csv in Resources */ = {isa = PBXBuildFile; fileRef = 65B7746E1C9FDA79006480B2 /* regular.csv */; };
+		65B774731C9FE88C006480B2 /* extraneous-columns.csv in Resources */ = {isa = PBXBuildFile; fileRef = 65B774711C9FE80D006480B2 /* extraneous-columns.csv */; };
+		65B774751C9FE8AF006480B2 /* missing-columns.csv in Resources */ = {isa = PBXBuildFile; fileRef = 65B774741C9FE8AF006480B2 /* missing-columns.csv */; };
 		65B7F9691C31E37D00A55972 /* QBEJobViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65B7F96B1C31E37D00A55972 /* QBEJobViewController.xib */; };
 		65B7F9701C31ECC100A55972 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65B7F9721C31ECC100A55972 /* Main.storyboard */; };
 		65EC97971C9DFB8D0098A330 /* QBEColumnViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */; };
@@ -591,6 +594,9 @@
 		65B3F6A71C73D0EE000983D0 /* QBEChart.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChart.swift; sourceTree = "<group>"; };
 		65B3F6A91C73D302000983D0 /* QBEChartTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChartTabletViewController.swift; sourceTree = "<group>"; };
 		65B3F6AC1C749F93000983D0 /* QBETabletView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBETabletView.swift; sourceTree = "<group>"; };
+		65B7746E1C9FDA79006480B2 /* regular.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = regular.csv; path = Warp/Tests/Data/regular.csv; sourceTree = SOURCE_ROOT; };
+		65B774711C9FE80D006480B2 /* extraneous-columns.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "extraneous-columns.csv"; path = "Warp/Tests/Data/extraneous-columns.csv"; sourceTree = SOURCE_ROOT; };
+		65B774741C9FE8AF006480B2 /* missing-columns.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "missing-columns.csv"; path = "Warp/Tests/Data/missing-columns.csv"; sourceTree = SOURCE_ROOT; };
 		65B7F96A1C31E37D00A55972 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEJobViewController.xib; sourceTree = "<group>"; };
 		65B7F96C1C31E37F00A55972 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEJobViewController.strings; sourceTree = "<group>"; };
 		65B7F9711C31ECC100A55972 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -1024,6 +1030,9 @@
 			children = (
 				6583EF2B1C1475AA00AE6C00 /* Info.plist */,
 				6583EF2C1C1475AA00AE6C00 /* QBETests.swift */,
+				65B7746E1C9FDA79006480B2 /* regular.csv */,
+				65B774711C9FE80D006480B2 /* extraneous-columns.csv */,
+				65B774741C9FE8AF006480B2 /* missing-columns.csv */,
 			);
 			name = Tests;
 			path = QBETests;
@@ -1342,6 +1351,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65B774731C9FE88C006480B2 /* extraneous-columns.csv in Resources */,
+				65B774701C9FDB97006480B2 /* regular.csv in Resources */,
+				65B774751C9FE8AF006480B2 /* missing-columns.csv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
