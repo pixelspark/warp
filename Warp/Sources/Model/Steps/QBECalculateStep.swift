@@ -1,8 +1,99 @@
 import Foundation
 import WarpCore
 
+private extension Expression {
+	static let permutationLimit = 1000
+
+	/** Generate all possible permutations of this expression by replacing sibling and identity references in this 
+	expression by sibling references in the given set of columns (or an identiy reference). */
+	private func permutationsUsing(columns: Set<Column>, limit: Int = Expression.permutationLimit) -> Set<Expression> {
+		let replacements = columns.map { Sibling($0) } + [Identity()]
+		let substitutes = self.siblingDependencies.map { Sibling($0) } + [Identity()]
+
+		let v = self.generateVariants(self, replacing: ArraySlice(substitutes), with: replacements, limit: limit)
+
+		return v
+	}
+
+	private func generateVariants(expression: Expression, replacing: ArraySlice<Expression>, with: [Expression], limit: Int) -> Set<Expression> {
+		assert(limit >= 0, "Limit cannot be negative")
+		if limit == 0 {
+			return []
+		}
+
+		if let first = replacing.first {
+			let remaining = replacing.dropFirst()
+
+			var results: Set<Expression> = []
+			for w in with {
+				let newExpression = expression.visit { e -> Expression in
+					if e == first {
+						return w
+					}
+					return e
+				}
+
+				let subLimit = limit - results.count
+				if subLimit > 0 {
+					results.unionInPlace(self.generateVariants(newExpression, replacing: remaining, with: with, limit: subLimit))
+				}
+				else {
+					break
+				}
+			}
+			return results
+		}
+		else {
+			return [expression]
+		}
+	}
+}
+
+/** This class keeps track of calculation expressions used earlier/elsewhere. It can be invoked to suggest derivate 
+expressions in which the sibling references are replaced with siblings that actually exist in the new context. */
+private class QBEHistory {
+	let historyLimit = 50
+
+	private class var sharedInstance : QBEHistory {
+		struct Static {
+			static var onceToken : dispatch_once_t = 0
+			static var instance : QBEHistory? = nil
+		}
+
+		dispatch_once(&Static.onceToken) {
+			Static.instance = QBEHistory()
+		}
+		return Static.instance!
+	}
+
+	var expressions: Set<Expression> = []
+
+	/** Add an expression to the history, limiting the expression history list to a specified amount of entries. */
+	func addExpression(expression: Expression) {
+		if !expressions.contains(expression) {
+			while expressions.count > (self.historyLimit - 1) {
+				expressions.removeFirst()
+			}
+
+			expressions.insert(expression)
+		}
+	}
+
+	/** Suggest new expressions based on the older expressions, but given the presence of certain columns (columns that
+	existed in the original expression are assumed to be non-existent if they are not in the given set).*/
+	func suggestExpressionsGiven(columns: Set<Column>) -> Set<Expression> {
+		var variants: Set<Expression> = []
+
+		for e in expressions {
+			variants.unionInPlace(e.permutationsUsing(columns))
+		}
+
+		return variants
+	}
+}
+
 class QBECalculateStep: QBEStep {
-	var function: Expression
+	var function: Expression { didSet { QBEHistory.sharedInstance.addExpression(function) } }
 	var targetColumn: Column
 	var insertRelativeTo: Column? = nil
 	var insertBefore: Bool = false
@@ -16,6 +107,7 @@ class QBECalculateStep: QBEStep {
 	required init(coder aDecoder: NSCoder) {
 		function = (aDecoder.decodeObjectForKey("function") as? Expression) ?? Identity()
 		targetColumn = Column((aDecoder.decodeObjectForKey("targetColumn") as? String) ?? "")
+		QBEHistory.sharedInstance.addExpression(function)
 		
 		if let after = aDecoder.decodeObjectForKey("insertAfter") as? String {
 			insertRelativeTo = Column(after)
@@ -150,6 +242,15 @@ class QBECalculateStep: QBEStep {
 				}
 				suggestions.append(newFormula)
 			}
+
+			// Maybe there is an expression in the history that may be of help
+			for e in QBEHistory.sharedInstance.suggestExpressionsGiven(Set(inRaster.columns)) {
+				if e.apply(Row(inRaster[row], columns: inRaster.columns), foreign: nil, inputValue: fromValue) == toValue {
+					trace("Suggesting from history: \(e.toFormula(locale))")
+					suggestions.append(e)
+				}
+			}
+
 			Expression.infer(fromValue != nil ? Literal(fromValue!): nil, toValue: toValue, suggestions: &suggestions, level: 8, row: Row(inRaster[row], columns: inRaster.columns), column: column, job: job)
 		}
 		return suggestions
