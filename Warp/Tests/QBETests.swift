@@ -115,5 +115,24 @@ class QBETests: XCTestCase {
 				}
 			}
 		}
+
+		// Test escapes in CSV
+		let url4 = NSBundle(forClass: QBETests.self).URLForResource("escapes", withExtension: "csv")
+		let csv4 = QBECSVStream(url: url4!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
+
+		testAsync { callback in
+			StreamData(source: csv4).raster(job) { result in
+				result.require { raster in
+					XCTAssert(raster.rowCount == 2, "Need two rows")
+					XCTAssert(raster.columns == ["a;a","b","c"], "Wrong columns")
+					XCTAssert(rasterEquals(raster, grid: [
+						[Value.IntValue(1), Value.StringValue("a;\nb"), Value.IntValue(3)],
+						[4,5,6].map { Value.IntValue($0) }
+					]), "Raster invalid")
+
+					callback()
+				}
+			}
+		}
 	}
 }
