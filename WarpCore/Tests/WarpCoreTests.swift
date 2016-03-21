@@ -917,4 +917,51 @@ class WarpCoreTests: XCTestCase {
 			}
 		})
 	}
+
+	func testAggregation() {
+		let n = 10000
+		let rows = (0..<n).map { i in
+			return [i, 0, 1].map { Value.IntValue($0) }
+		}
+
+		let raster = Raster(data: rows, columns: ["a", "b", "c"])
+		let rasterData = RasterData(raster: raster)
+		let job = Job(.UserInitiated)
+
+		asyncTest { callback in
+			rasterData.aggregate([:], values: ["x": Aggregator(map: Sibling(Column("c")), reduce: .Sum)]).raster(job) { result in
+				result.require { outRaster in
+					XCTAssert(WarpCoreTests.rasterEquals(outRaster, grid: [
+						[Value.IntValue(n)]
+					]), "Simple aggregation works")
+
+					callback()
+				}
+			}
+		}
+	}
+
+	private func asyncTest(block: (callback: () -> ()) -> ()) {
+		let expectFinish = self.expectationWithDescription("CSV tests")
+
+		block {
+			expectFinish.fulfill()
+		}
+
+		self.waitForExpectationsWithTimeout(5.0) { (err) -> Void in
+			if let e = err {
+				// Note: referencing self here deliberately to prevent test from being destroyed prematurely
+				print("Error=\(e) \(self)")
+			}
+		}
+	}
+
+	private static func rasterEquals(raster: Raster, grid: [[Value]]) -> Bool {
+		for row in 0..<raster.rowCount {
+			if raster[row] != grid[row] {
+				return false
+			}
+		}
+		return true
+	}
 }
