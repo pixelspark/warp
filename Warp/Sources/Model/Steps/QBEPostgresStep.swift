@@ -16,6 +16,9 @@ private class QBEPostgresDialect: StandardSQLDialect {
 	private override func unaryToSQL(type: Function, args: [String]) -> String? {
 		switch type {
 			case .Random: return "RANDOM()"
+			case .Left: return "SUBSTR(\(args[0]), 1, (\(args[1]))::integer)"
+			case .Right: return "RIGHT(\(args[0]), LENGTH(\(args[0]))-(\(args[1]))::integer)"
+			case .Mid: return "SUBSTR(\(args[0]), (\(args[1]))::integer, (\(args[2]))::integer)"
 
 			default:
 				return super.unaryToSQL(type, args: args)
