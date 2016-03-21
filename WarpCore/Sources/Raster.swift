@@ -36,6 +36,9 @@ public class Raster: NSObject, NSCoding {
 		self.raster = data
 		self.columns = columns
 		self.readOnly = readOnly
+		super.init()
+
+		assert(self.verify(), "raster is invalid")
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
@@ -51,6 +54,17 @@ public class Raster: NSObject, NSCoding {
 		return self.mutex.locked {
 			return Raster(data: self.raster, columns: self.columns, readOnly: readOnly)
 		}
+	}
+
+	private func verify() -> Bool {
+		let columnCount = self.columns.count
+
+		for r in raster {
+			if r.count != columnCount {
+				return false
+			}
+		}
+		return true
 	}
 	
 	public var isEmpty: Bool {
