@@ -109,21 +109,16 @@ public class Expression: NSObject, NSCoding {
 			}
 			
 			let suggestedFormulas = formulaType.suggest(fromValue, toValue: toValue, row: row, inputValue: inputValue, level: level, job: job);
-			var complexity = maxComplexity
 			var exploreFurther: [Expression] = []
 			
 			for formula in suggestedFormulas {
-				if formula.complexity >= maxComplexity {
+				if formula.complexity > maxComplexity {
 					continue
 				}
 				
 				let result = formula.apply(row, foreign: nil, inputValue: inputValue)
 				if result == toValue {
 					suggestions.append(formula)
-					
-					if formula.complexity < maxComplexity {
-						complexity = formula.complexity
-					}
 				}
 				else {
 					if level > 0 {
@@ -131,37 +126,32 @@ public class Expression: NSObject, NSCoding {
 					}
 				}
 			}
-			
-			if suggestions.isEmpty {
-				// Let's see if we can find something else
-				for formula in exploreFurther {
-					let result = formula.apply(row, foreign: nil, inputValue: inputValue)
-					
-					// Have we already seen this result? Then ignore
-					var found = false
-					for previous in previousValues {
-						if previous == result {
-							found = true
-							break
-						}
+
+			// Let's see if we can find something else
+			for formula in exploreFurther {
+				let result = formula.apply(row, foreign: nil, inputValue: inputValue)
+				
+				// Have we already seen this result? Then ignore
+				var found = false
+				for previous in previousValues {
+					if previous == result {
+						found = true
+						break
 					}
-					
-					if found {
-						continue
-					}
-					
-					var nextLevelSuggestions: [Expression] = []
-					var newPreviousValues = previousValues
-					newPreviousValues.append(result)
-					infer(formula, toValue: toValue, suggestions: &nextLevelSuggestions, level: level-1, row: row, column: column, maxComplexity: complexity, previousValues: newPreviousValues, job: job)
-					
-					for nextLevelSuggestion in nextLevelSuggestions {
-						if nextLevelSuggestion.apply(row, foreign: nil, inputValue: inputValue) == toValue {
-							if nextLevelSuggestion.complexity <= complexity {
-								suggestions.append(nextLevelSuggestion)
-								complexity = nextLevelSuggestion.complexity
-							}
-						}
+				}
+				
+				if found {
+					continue
+				}
+				
+				var nextLevelSuggestions: [Expression] = []
+				var newPreviousValues = previousValues
+				newPreviousValues.append(result)
+				infer(formula, toValue: toValue, suggestions: &nextLevelSuggestions, level: level-1, row: row, column: column, maxComplexity: maxComplexity-1, previousValues: newPreviousValues, job: job)
+				
+				for nextLevelSuggestion in nextLevelSuggestions {
+					if nextLevelSuggestion.apply(row, foreign: nil, inputValue: inputValue) == toValue {
+						suggestions.append(nextLevelSuggestion)
 					}
 				}
 			}
