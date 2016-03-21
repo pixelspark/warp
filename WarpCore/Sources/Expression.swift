@@ -178,7 +178,11 @@ public final class Literal: Expression {
 		self.value = value
 		super.init()
 	}
-	
+
+	public override var hashValue: Int {
+		return value.hashValue
+	}
+
 	override var complexity: Int { get {
 		return 10
 	}}
@@ -253,7 +257,11 @@ public class Identity: Expression {
 	public override init() {
 		super.init()
 	}
-	
+
+	public override var hashValue: Int {
+		return 0x1D377170
+	}
+
 	public override func explain(locale: Locale, topLevel: Bool) -> String {
 		return translationForString("current value")
 	}
@@ -292,6 +300,10 @@ public final class Comparison: Expression {
 	public override var isConstant: Bool { get {
 		return first.isConstant && second.isConstant
 	} }
+
+	public override var hashValue: Int {
+		return first.hashValue ^ (second.hashValue >> 3)
+	}
 
 	/** Utility function to return the arguments of this binary expression in a partiular order. Suppose we want to test
 	 whether a binary expression is of type A=B where A is a sibling reference and B is a literal; because the equals 
@@ -486,6 +498,10 @@ consists of expressions that are evaluated before sending them to the function. 
 public final class Call: Expression {
 	public let arguments: [Expression]
 	public let type: Function
+
+	public override var hashValue: Int {
+		return arguments.reduce(type.hashValue) { t, e in return t ^ e.hashValue }
+	}
 	
 	public override var isConstant: Bool { get {
 		if !type.isDeterministic {
@@ -665,6 +681,10 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 		self.column = columnName
 		super.init()
 	}
+
+	public override var hashValue: Int {
+		return column.hashValue
+	}
 	
 	public override func explain(locale: Locale, topLevel: Bool) -> String {
 		return String(format: translationForString("value in column %@"), column.name)
@@ -721,6 +741,10 @@ public final class Foreign: Expression, ColumnReferencingExpression {
 	public init(_ column: Column) {
 		self.column = column
 		super.init()
+	}
+
+	public override var hashValue: Int {
+		return ~column.hashValue
 	}
 	
 	public override func explain(locale: Locale, topLevel: Bool) -> String {

@@ -593,6 +593,11 @@ class WarpCoreTests: XCTestCase {
 	}
 	
 	func testExpressions() {
+		let x = Call(arguments: [Sibling(Column("test")), Literal(Value(3))], type: .Left)
+		let y = Call(arguments: [Sibling(Column("test")), Literal(Value(3))], type: .Left)
+		XCTAssert(x == y, "Two identical expressions must be equal")
+		XCTAssert(x.hashValue == y.hashValue, "Two identical expressions must be equal")
+
 		XCTAssert(Literal(Value(13.46)).isConstant, "Literal expression should be constant")
 		XCTAssert(!Call(arguments: [], type: Function.RandomItem).isConstant, "Non-deterministic function expression should not be constant")
 		
