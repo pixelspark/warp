@@ -885,7 +885,7 @@ public enum Function: String {
 							let index = s.startIndex.advancedBy(start)
 							let end = sourceLength >= (start+length) ? index.advancedBy(length) : s.endIndex
 							
-							return Value(s.substringWithRange(Range(start: index, end: end)))
+							return Value(s.substringWithRange(index..<end))
 						}
 					}
 				}
@@ -1531,7 +1531,7 @@ private struct CountReducer: Reducer {
 			// Count only counts the number of numeric values
 			values.forEach {
 				if let _ = $0.doubleValue {
-					self.count++
+					self.count += 1
 				}
 			}
 		}

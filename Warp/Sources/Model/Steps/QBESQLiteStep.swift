@@ -65,7 +65,7 @@ private class QBESQLiteResult {
 						ret = false
 					}
 					
-					i++
+					i += 1
 				}
 			}
 		
@@ -652,12 +652,6 @@ private class QBESQLiteWriterSession {
 }
 
 class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
-	enum Mode: String {
-		case Overwrite = "overwrite"
-		// TODO implement Append mode. Note however that the table structure might be different, so we need to deal with taht
-	}
-
-	var mode: Mode = .Overwrite
 	var tableName: String
 
 	static func explain(fileExtension: String, locale: Locale) -> String {
@@ -672,14 +666,10 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 
 	required init?(coder aDecoder: NSCoder) {
 		tableName = aDecoder.decodeStringForKey("tableName") ?? "data"
-		if let sm = aDecoder.decodeStringForKey("mode"), let m = Mode(rawValue: sm) {
-			mode = m
-		}
 	}
 
 	func encodeWithCoder(aCoder: NSCoder) {
 		aCoder.encodeString(tableName, forKey: "tableName")
-		aCoder.encodeString(mode.rawValue, forKey: "mode")
 	}
 
 	func writeData(data: Data, toFile file: NSURL, locale: Locale, job: Job, callback: (Fallible<Void>) -> ()) {
@@ -688,12 +678,9 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 			database.query("PRAGMA journal_mode = MEMORY").require { s in
 				s.run()
 
-				switch mode {
-				case .Overwrite:
-					database.query("DROP TABLE IF EXISTS \(database.dialect.tableIdentifier(self.tableName, schema: nil, database: nil))").require { s in
-						s.run()
-						QBESQLiteWriterSession(data: data, toDatabase: database, tableName: self.tableName).start(job, callback: callback)
-					}
+				database.query("DROP TABLE IF EXISTS \(database.dialect.tableIdentifier(self.tableName, schema: nil, database: nil))").require { s in
+					s.run()
+					QBESQLiteWriterSession(data: data, toDatabase: database, tableName: self.tableName).start(job, callback: callback)
 				}
 			}
 		}
@@ -703,14 +690,7 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 	}
 
 	func sentence(locale: Locale) -> QBESentence? {
-		let modeOptions = [
-			Mode.Overwrite.rawValue: NSLocalizedString("(over)write", comment: "")
-		];
-
-		return QBESentence(format: NSLocalizedString("[#] data to table [#]", comment: ""),
-			QBESentenceOptions(options: modeOptions, value: self.mode.rawValue, callback: { (newMode) -> () in
-				self.mode = Mode(rawValue: newMode)!
-			}),
+		return QBESentence(format: NSLocalizedString("(Over)write data to table [#]", comment: ""),
 			QBESentenceTextInput(value: self.tableName, callback: { [weak self] (newTableName) -> (Bool) in
 				self?.tableName = newTableName
 				return true

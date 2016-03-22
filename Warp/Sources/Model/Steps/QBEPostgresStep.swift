@@ -209,7 +209,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 					self.finished = true
 					return
 				}
-				++n
+				n += 1
 			}
 			
 			#if DEBUG

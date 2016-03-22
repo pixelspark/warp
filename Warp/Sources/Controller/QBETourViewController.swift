@@ -65,7 +65,7 @@ class QBETourViewController: NSViewController {
 			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
 			animatedView.layer?.addAnimation(tr, forKey: kCATransition)
 		}
-		self.currentStep++
+		self.currentStep += 1
 		updateView()
 	}
 

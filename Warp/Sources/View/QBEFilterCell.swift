@@ -61,7 +61,7 @@ internal class QBEFilterCell: NSButtonCell {
 						else {
 							hash = abs(value.stringValue?.hashValue ?? 0)
 						}
-						v[hash % stripes]++
+						v[hash % stripes] += 1
 					}
 				}
 				asyncMain {

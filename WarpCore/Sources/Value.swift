@@ -970,7 +970,7 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 			let existingIndex = self.keys.indexOf(key)!
 			
 			if existingIndex < index {
-				adjustedIndex--
+				adjustedIndex -= 1
 			}
 			self.keys.removeAtIndex(existingIndex)
 		}

@@ -22,8 +22,8 @@ public class QBESentence {
 
 		var startIndex = format.startIndex
 		for token in tokens {
-			if let nextToken = format.rangeOfString(QBESentence.formatStringTokenPlaceholder, options: [], range: Range(start: startIndex, end: format.endIndex)) {
-				let constantString = format.substringWithRange(Range(start: startIndex, end: nextToken.startIndex))
+			if let nextToken = format.rangeOfString(QBESentence.formatStringTokenPlaceholder, options: [], range: startIndex..<format.endIndex) {
+				let constantString = format.substringWithRange(startIndex..<nextToken.startIndex)
 				self.tokens.append(QBESentenceText(constantString))
 				self.tokens.append(token)
 				startIndex = nextToken.endIndex
@@ -34,7 +34,7 @@ public class QBESentence {
 		}
 
 		if startIndex.distanceTo(format.endIndex) > 0 {
-			self.tokens.append(QBESentenceText(format.substringWithRange(Range(start: startIndex, end: format.endIndex))))
+			self.tokens.append(QBESentenceText(format.substringWithRange(startIndex..<format.endIndex)))
 		}
 	}
 

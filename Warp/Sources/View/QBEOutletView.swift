@@ -152,7 +152,7 @@ private class QBELaceWindow: NSWindow {
 	
 	init() {
 		laceView = QBELaceView(frame: NSZeroRect)
-		super.init(contentRect: NSZeroRect, styleMask: NSBorderlessWindowMask, backing: NSBackingStoreType.Buffered, `defer`: false)
+		super.init(contentRect: NSZeroRect, styleMask: NSBorderlessWindowMask, backing: NSBackingStoreType.Buffered, defer: false)
 		backgroundColor = NSColor.clearColor()
 		releasedWhenClosed = false
 		opaque = false

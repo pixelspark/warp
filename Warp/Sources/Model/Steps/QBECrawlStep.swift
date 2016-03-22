@@ -68,7 +68,9 @@ class QBECrawlStream: Stream {
 	
 	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.sourceColumnNames.get { (sourceColumns) in
-			callback(sourceColumns.use({ (var sourceColumns) -> [Column] in
+			callback(sourceColumns.use({ (sourceColumns) -> [Column] in
+				var sourceColumns = sourceColumns
+
 				// Add the column in which we're writing the result
 				if let tbody = self.crawler.targetBodyColumn {
 					if !sourceColumns.contains(tbody) {

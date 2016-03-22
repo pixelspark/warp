@@ -903,7 +903,8 @@ class WarpCoreTests: XCTestCase {
 				//println("Worker \(slice)")
 				return Array(slice.map({return $0 * 2}))
 			},
-			reduce: {(s, var r: Int?) -> (Int) in
+			reduce: {(s, r: Int?) -> (Int) in
+				var r = r
 				for number in s {
 					r = (r == nil || number > r) ? number : r
 				}

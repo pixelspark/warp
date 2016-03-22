@@ -29,11 +29,11 @@ internal class QBEWindowController: NSWindowController {
 
 class QBEToolbarItem: NSToolbarItem {
 	var isValid: Bool {
-		if let f = NSApp.targetForAction(Selector("validateToolbarItem:")) {
+		if let f = NSApp.targetForAction(#selector(NSObject.validateToolbarItem(_:))) {
 			var responder: AnyObject? = f
 
 			while responder != nil {
-				if responder!.respondsToSelector(Selector("validateToolbarItem:")) && responder!.validateToolbarItem(self) {
+				if responder!.respondsToSelector(#selector(NSObject.validateToolbarItem(_:))) && responder!.validateToolbarItem(self) {
 					return true
 				}
 				else {

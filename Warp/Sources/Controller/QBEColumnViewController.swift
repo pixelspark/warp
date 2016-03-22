@@ -40,6 +40,10 @@ class QBEColumnViewController: NSViewController {
 	@IBOutlet private var fullDataButton: NSButton!
 	@IBOutlet private var emptyLabel: NSTextField!
 
+	deinit {
+		assertMainThread()
+	}
+
 	override func viewWillAppear() {
 		self.updateDescriptives()
 		self.update()

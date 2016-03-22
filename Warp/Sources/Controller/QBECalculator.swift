@@ -130,9 +130,9 @@ public class QBECalculator: NSObject {
 						perf.inputAmplificationFactor.add(Double(r.rowCount) / Double(maxInputRows))
 					}
 					else {
-						perf.emptyCount++
+						perf.emptyCount += 1
 					}
-					perf.executionCount++
+					perf.executionCount += 1
 					self.stepPerformance[index] = perf
 				
 					/* If we got zero rows, but there is stil time left, just try again. In many cases the back-end

@@ -113,7 +113,7 @@ import WarpCore
 				let data = NSKeyedArchiver.archivedDataWithRootObject(tablet)
 				
 				if let um = self.undoManager {
-					um.registerUndoWithTarget(self, selector: Selector("addTabletFromArchivedData:"), object: data)
+					um.registerUndoWithTarget(self, selector: #selector(QBEDocumentViewController.addTabletFromArchivedData(_:)), object: data)
 					um.setActionName(NSLocalizedString("Remove tablet", comment: ""))
 				}
 			}
@@ -368,7 +368,7 @@ import WarpCore
 					for step in chainTablet.chain.steps {
 						if step.previous == nil {
 							// This is a source step
-							let item = NSMenuItem(title: step.sentence(self.locale, variant: .Read).stringValue, action: Selector("readdStep:"), keyEquivalent: "")
+							let item = NSMenuItem(title: step.sentence(self.locale, variant: .Read).stringValue, action: #selector(QBETemplateAdder.readdStep(_:)), keyEquivalent: "")
 							item.enabled = true
 							item.tag = adder.templateSteps.count
 							item.target = adder
@@ -635,29 +635,28 @@ import WarpCore
 	}
 
 	private func validateSelector(selector: Selector) -> Bool {
-		if selector == Selector("selectNextTablet:") { return (self.document?.tablets.count > 0) ?? false }
-		if selector == Selector("selectPreviousTablet:") { return (self.document?.tablets.count > 0) ?? false }
-		if selector == Selector("addButtonClicked:") { return true }
-		if selector == Selector("addSequencerTablet:") { return true }
-		if selector == Selector("addRasterTablet:") { return true }
-		if selector == Selector("addNoteTablet:") { return true }
-		if selector == Selector("addTabletFromFile:") { return true }
-		if selector == Selector("addTabletFromPresto:") { return true }
-		if selector == Selector("addTabletFromMySQL:") { return true }
-		if selector == Selector("addTabletFromRethinkDB:") { return true }
-		if selector == Selector("addTabletFromPostgres:") { return true }
-		if selector == Selector("updateFromFormulaField:") { return true }
-		if selector == Selector("zoomSegment:") { return documentView.boundsOfAllTablets != nil }
-		if selector == Selector("zoomToAll:") { return documentView.boundsOfAllTablets != nil }
-		if selector == Selector("zoomSelection:") { return documentView.selectedTablet != nil }
-		if selector == Selector("delete:") { return true }
-		if selector == Selector("paste:") {
+		if selector == #selector(QBEDocumentViewController.selectNextTablet(_:)) { return (self.document?.tablets.count > 0) ?? false }
+		if selector == #selector(QBEDocumentViewController.selectPreviousTablet(_:)) { return (self.document?.tablets.count > 0) ?? false }
+		if selector == #selector(QBEDocumentViewController.addButtonClicked(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.addSequencerTablet(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.addRasterTablet(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.addNoteTablet(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.addTabletFromFile(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.addTabletFromPresto(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.addTabletFromMySQL(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.addTabletFromRethinkDB(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.addTabletFromPostgres(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.zoomSegment(_:)) { return documentView.boundsOfAllTablets != nil }
+		if selector == #selector(QBEDocumentViewController.zoomToAll(_:) as (QBEDocumentViewController) -> (NSObject) -> ()) { return documentView.boundsOfAllTablets != nil }
+		if selector == #selector(QBEDocumentViewController.zoomSelection(_:)) { return documentView.selectedTablet != nil }
+		if selector == #selector(NSText.delete(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.paste(_:)) {
 			let pboard = NSPasteboard.generalPasteboard()
 			if pboard.dataForType(QBEStep.dragType) != nil || pboard.dataForType(NSPasteboardTypeString) != nil || pboard.dataForType(NSPasteboardTypeTabularText) != nil {
 				return true
 			}
 		}
-		if selector == Selector("pasteAsPlainText:") {
+		if selector == #selector(QBEDocumentViewController.pasteAsPlainText(_:)) {
 			let pboard = NSPasteboard.generalPasteboard()
 			return pboard.dataForType(NSPasteboardTypeString) != nil
 		}
@@ -823,17 +822,17 @@ private class QBEDropChainAction: NSObject {
 		let menu = NSMenu()
 		menu.autoenablesItems = false
 
-		let cloneItem = NSMenuItem(title: NSLocalizedString("Create linked clone of data here", comment: ""), action: Selector("addClone:"), keyEquivalent: "")
+		let cloneItem = NSMenuItem(title: NSLocalizedString("Create linked clone of data here", comment: ""), action: #selector(QBEDropChainAction.addClone(_:)), keyEquivalent: "")
 		cloneItem.target = self
 		menu.addItem(cloneItem)
 
 		if self.chain.tablet is QBEChainTablet {
-			let chartItem = NSMenuItem(title: NSLocalizedString("Create chart of data here", comment: ""), action: Selector("addChart:"), keyEquivalent: "")
+			let chartItem = NSMenuItem(title: NSLocalizedString("Create chart of data here", comment: ""), action: #selector(QBEDropChainAction.addChart(_:)), keyEquivalent: "")
 			chartItem.target = self
 			menu.addItem(chartItem)
 		}
 
-		let copyItem = NSMenuItem(title: NSLocalizedString("Create copy of data here", comment: ""), action: Selector("addCopy:"), keyEquivalent: "")
+		let copyItem = NSMenuItem(title: NSLocalizedString("Create copy of data here", comment: ""), action: #selector(QBEDropChainAction.addCopy(_:)), keyEquivalent: "")
 		copyItem.target = self
 		menu.addItem(copyItem)
 		menu.addItem(NSMenuItem.separatorItem())
@@ -843,7 +842,7 @@ private class QBEDropChainAction: NSObject {
 		for i in 0..<stepTypes.count {
 			let stepType = stepTypes[i]
 			if let name = QBEFactory.sharedInstance.dataWarehouseStepNames[stepType.className()] {
-				let saveItem = NSMenuItem(title: String(format: NSLocalizedString("Upload data to %@...", comment: ""), name), action: Selector("saveToWarehouse:"), keyEquivalent: "")
+				let saveItem = NSMenuItem(title: String(format: NSLocalizedString("Upload data to %@...", comment: ""), name), action: #selector(QBEDropChainAction.saveToWarehouse(_:)), keyEquivalent: "")
 				saveItem.target = self
 				saveItem.tag = i
 				menu.addItem(saveItem)
@@ -851,7 +850,7 @@ private class QBEDropChainAction: NSObject {
 		}
 
 		menu.addItem(NSMenuItem.separatorItem())
-		let exportFileItem = NSMenuItem(title: NSLocalizedString("Export data to file...", comment: ""), action: Selector("exportFile:"), keyEquivalent: "")
+		let exportFileItem = NSMenuItem(title: NSLocalizedString("Export data to file...", comment: ""), action: #selector(QBEDropChainAction.exportFile(_:)), keyEquivalent: "")
 		exportFileItem.target = self
 		menu.addItem(exportFileItem)
 
@@ -944,11 +943,11 @@ private class QBEDropColumnsAction: NSObject {
 
 		if columns.count == 1 {
 			if let sourceChainController = dataViewController.parentViewController as? QBEChainViewController where sourceChainController.chain?.head != nil {
-				let item = NSMenuItem(title: "Create a look-up table for this column".localized, action: Selector("addLookupTable:"), keyEquivalent: "")
+				let item = NSMenuItem(title: "Create a look-up table for this column".localized, action: #selector(QBEDropColumnsAction.addLookupTable(_:)), keyEquivalent: "")
 				item.target = self
 				menu.addItem(item)
 
-				let histogramItem = NSMenuItem(title: "Add a histogram of this column".localized, action: Selector("addHistogram:"), keyEquivalent: "")
+				let histogramItem = NSMenuItem(title: "Add a histogram of this column".localized, action: #selector(QBEDropColumnsAction.addHistogram(_:)), keyEquivalent: "")
 				histogramItem.target = self
 				menu.addItem(histogramItem)
 			}

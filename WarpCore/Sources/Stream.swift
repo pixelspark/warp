@@ -68,8 +68,8 @@ public class StreamPuller {
 	public func start() {
 		mutex.locked {
 			while self.outstandingWavefronts < self.concurrentWavefronts {
-				self.lastStartedWavefront++
-				self.outstandingWavefronts++
+				self.lastStartedWavefront += 1
+				self.outstandingWavefronts += 1
 				let waveFrontId = self.lastStartedWavefront
 
 				self.job.async {
@@ -87,7 +87,7 @@ public class StreamPuller {
 								// Maybe now we can sink other results we already received, but were too early.
 								while let earlierRows = self.earlyResults[self.lastSinkedWavefront+1] {
 									self.earlyResults.removeValueForKey(self.lastSinkedWavefront+1)
-									self.lastSinkedWavefront++
+									self.lastSinkedWavefront += 1
 									self.sink(earlierRows, hasNext: streamStatus == .HasMore)
 								}
 							}
@@ -112,7 +112,7 @@ public class StreamPuller {
 				return
 			}
 
-			self.outstandingWavefronts--;
+			self.outstandingWavefronts -= 1
 
 			switch rows {
 			case .Success(let r):
@@ -455,7 +455,7 @@ private class Transformer: NSObject, Stream {
 	private func fetch(job: Job, consumer: Sink) {
 		let shouldContinue = self.mutex.locked { () -> Bool in
 			if !self.stopped {
-				self.outstandingTransforms++
+				self.outstandingTransforms += 1
 			}
 			return !self.stopped
 		}
@@ -474,7 +474,7 @@ private class Transformer: NSObject, Stream {
 							self.transform(rows, streamStatus: streamStatus, job: job, callback: once { (transformedRows, newStreamStatus) -> () in
 								let (sourceStopped, outstandingTransforms) = self.mutex.locked { () -> (Bool, Int) in
 									self.stopped = self.stopped || newStreamStatus != .HasMore
-									self.outstandingTransforms--
+									self.outstandingTransforms -= 1
 									return (self.stopped, self.outstandingTransforms)
 								}
 

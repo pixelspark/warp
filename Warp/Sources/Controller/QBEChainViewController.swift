@@ -241,17 +241,17 @@ internal enum QBEEditingMode {
 			func presentMenu() {
 				let dropMenu = NSMenu()
 				dropMenu.autoenablesItems = false
-				let joinItem = NSMenuItem(title: NSLocalizedString("Join data set to this data set", comment: ""), action: Selector("joinChains:"), keyEquivalent: "")
+				let joinItem = NSMenuItem(title: NSLocalizedString("Join data set to this data set", comment: ""), action: #selector(QBEDropChainAction.joinChains(_:)), keyEquivalent: "")
 				joinItem.target = self
 				dropMenu.addItem(joinItem)
 
-				let unionItem = NSMenuItem(title: NSLocalizedString("Append data set to this data set", comment: ""), action: Selector("unionChains:"), keyEquivalent: "")
+				let unionItem = NSMenuItem(title: NSLocalizedString("Append data set to this data set", comment: ""), action: #selector(QBEDropChainAction.unionChains(_:)), keyEquivalent: "")
 				unionItem.target = self
 				dropMenu.addItem(unionItem)
 
 				if let destStep = self.view.currentStep, let destMutable = destStep.mutableData where destMutable.canPerformMutation(.Import(data: RasterData(), withMapping: [:])) {
 					dropMenu.addItem(NSMenuItem.separatorItem())
-					let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .Write).stringValue + "...", action: Selector("uploadData:"), keyEquivalent: "")
+					let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .Write).stringValue + "...", action: #selector(QBEDropChainAction.uploadData(_:)), keyEquivalent: "")
 					createItem.target = self
 					dropMenu.addItem(createItem)
 				}
@@ -424,7 +424,7 @@ internal enum QBEEditingMode {
 					self.view.window?.update()
 					QBESettings.sharedInstance.showTip("workingSetTip") {
 						for item in toolbar.items {
-							if item.action == Selector("toggleFullData:") {
+							if item.action == #selector(QBEChainViewController.toggleFullData(_:)) {
 								if let vw = item.view {
 									self.showTip(NSLocalizedString("By default, Warp shows you a small part of the data. Using this button, you can calculate the full result.",comment: "Working set selector tip"), atView: vw)
 								}
@@ -1088,7 +1088,8 @@ internal enum QBEEditingMode {
 	
 	internal var undo: NSUndoManager? { get { return chain?.tablet?.document?.undoManager } }
 	
-	private func pushStep(var step: QBEStep) {
+	private func pushStep(step: QBEStep) {
+		var step = step
 		assertMainThread()
 		
 		let isHead = chain?.head == nil || currentStep == chain?.head
@@ -1226,7 +1227,8 @@ internal enum QBEEditingMode {
 		self.view.window?.toolbar?.validateVisibleItems()
 	}
 	
-	private func suggestSteps(var steps: Array<QBEStep>) {
+	private func suggestSteps(steps: Array<QBEStep>) {
+		var steps = steps
 		assertMainThread()
 		
 		if steps.isEmpty {
@@ -1883,12 +1885,12 @@ internal enum QBEEditingMode {
 	}
 
 	override func validateToolbarItem(item: NSToolbarItem) -> Bool {
-		if item.action == Selector("toggleFullData:") {
+		if item.action == #selector(QBEChainViewController.toggleFullData(_:)) {
 			if let c = item.view as? NSButton {
 				c.state = (currentStep != nil && (hasFullData || useFullData)) ? NSOnState: NSOffState
 			}
 		}
-		else if item.action == Selector("toggleEditing:") {
+		else if item.action == #selector(QBEChainViewController.toggleEditing(_:)) {
 			if let c = item.view as? NSButton {
 				switch self.editingMode {
 				case .Editing(_):
@@ -1911,10 +1913,10 @@ internal enum QBEEditingMode {
 	}
 
 	private func validateSelector(selector: Selector) -> Bool {
-		if selector == Selector("transposeData:") {
+		if selector == #selector(QBEChainViewController.transposeData(_:)) {
 			return currentStep != nil
 		}
-		else if selector == Selector("truncateStore:")  {
+		else if selector == #selector(QBEChainViewController.truncateStore(_:))  {
 			switch editingMode {
 			case .Editing:
 				if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Truncate) {
@@ -1926,7 +1928,7 @@ internal enum QBEEditingMode {
 				return false
 			}
 		}
-		else if selector == Selector("dropStore:")  {
+		else if selector == #selector(QBEChainViewController.dropStore(_:))  {
 			switch editingMode {
 			case .Editing:
 				if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Drop) {
@@ -1938,7 +1940,7 @@ internal enum QBEEditingMode {
 				return false
 			}
 		}
-		else if selector == Selector("alterStore:")  {
+		else if selector == #selector(QBEChainViewController.alterStore(_:))  {
 			switch editingMode {
 			case .Editing:
 				if let cs = self.currentStep?.mutableData where cs.canPerformMutation(.Alter(DataDefinition(columns: []))) {
@@ -1950,115 +1952,112 @@ internal enum QBEEditingMode {
 				return false
 			}
 		}
-		else if selector==Selector("clearAllFilters:") {
+		else if selector==#selector(QBEChainViewController.clearAllFilters(_:)) {
 			return self.viewFilters.count > 0
 		}
-		else if selector==Selector("makeAllFiltersPermanent:") {
+		else if selector==#selector(QBEChainViewController.makeAllFiltersPermanent(_:)) {
 			return self.viewFilters.count > 0
 		}
-		else if selector==Selector("crawl:") {
+		else if selector==#selector(QBEChainViewController.crawl(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("addDebugStep:") {
+		else if selector==#selector(QBEChainViewController.addDebugStep(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("aggregateRowsByCells:") {
+		else if selector==#selector(QBEChainViewController.aggregateRowsByCells(_:)) {
 			if let rowsToAggregate = dataViewController?.tableView?.selectedRowIndexes {
 				return rowsToAggregate.count > 0  && currentStep != nil
 			}
 			return false
 		}
-		else if selector==Selector("aggregateRowsByGroup:") {
+		else if selector==#selector(QBEChainViewController.aggregateRowsByGroup(_:)) {
 			if let colsToAggregate = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToAggregate.count > 0  && currentStep != nil
 			}
 			return false
 		}
-		else if selector==Selector("removeRows:") {
+		else if selector==#selector(QBEChainViewController.removeRows(_:)) {
 			if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
 				return rowsToRemove.count > 0  && currentStep != nil
 			}
 			return false
 		}
-		else if selector==Selector("removeColumns:") {
+		else if selector==#selector(QBEChainViewController.removeColumns(_:)) {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
 			}
 			return false
 		}
-		else if selector==Selector("renameColumn:") {
+		else if selector==#selector(QBEChainViewController.renameColumn(_:)) {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
 			}
 			return false
 		}
-		else if selector==Selector("selectColumns:") {
+		else if selector==#selector(QBEChainViewController.selectColumns(_:) as (QBEChainViewController) -> (NSObject) -> ()) {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
 			}
 			return false
 		}
-		else if selector==Selector("addColumnAtEnd:") {
+		else if selector==#selector(QBEChainViewController.addColumnAtEnd(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("addColumnAtBeginning:") {
+		else if selector==#selector(QBEChainViewController.addColumnAtBeginning(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("addColumnToLeft:") {
+		else if selector==#selector(QBEChainViewController.addColumnToLeft(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("addColumnToRight:") {
+		else if selector==#selector(QBEChainViewController.addColumnToRight(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("exportFile:") {
+		else if selector==#selector(QBEChainViewController.exportFile(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("goBack:") {
+		else if selector==#selector(QBEChainViewController.goBack(_:)) {
 			return currentStep?.previous != nil
 		}
-		else if selector==Selector("goForward:") {
+		else if selector==#selector(QBEChainViewController.goForward(_:)) {
 			return currentStep?.next != nil
 		}
-		else if selector==Selector("calculate:") {
+		else if selector==#selector(QBEChainViewController.randomlySelectRows(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("randomlySelectRows:") {
+		else if selector==#selector(QBEChainViewController.limitRows(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("limitRows:") {
+		else if selector==#selector(QBEChainViewController.pivot(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("pivot:") {
+		else if selector==#selector(QBEChainViewController.flatten(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("flatten:") {
+		else if selector==#selector(QBEChainViewController.removeStep(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("removeStep:") {
+		else if selector==#selector(QBEChainViewController.removeDuplicateRows(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("removeDuplicateRows:") {
+		else if selector==#selector(QBEChainViewController.selectRows(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("selectRows:") {
-			return currentStep != nil
-		}
-		else if selector==Selector("showSuggestions:") {
+		else if selector==#selector(QBEChainViewController.showSuggestions(_:)) {
 			return currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
 		}
-		else if selector==Selector("chooseFirstAlternativeStep:") {
+		else if selector==#selector(QBEChainViewController.chooseFirstAlternativeStep(_:)) {
 			return currentStep?.alternatives != nil && currentStep!.alternatives!.count > 0
 		}
-		else if selector==Selector("setFullWorkingSet:") {
+		else if selector==#selector(QBEChainViewController.setFullWorkingSet(_:)) {
 			return currentStep != nil && !useFullData
 		}
-		else if selector==Selector("toggleFullData:") {
+		else if selector==#selector(QBEChainViewController.toggleFullData(_:)) {
 			return currentStep != nil
 		}
-		else if selector==Selector("toggleEditing:") {
+		else if selector==#selector(QBEChainViewController.toggleEditing(_:)) {
 			return currentStep != nil && supportsEditing
 		}
-		else if selector==Selector("startEditing:") {
+		else if selector==#selector(QBEChainViewController.startEditing(_:)) {
 			switch self.editingMode {
 			case .Editing(identifiers: _), .EnablingEditing:
 				return false
@@ -2066,7 +2065,7 @@ internal enum QBEEditingMode {
 				return currentStep != nil && supportsEditing
 			}
 		}
-		else if selector==Selector("stopEditing:") {
+		else if selector==#selector(QBEChainViewController.stopEditing(_:)) {
 			switch self.editingMode {
 			case .Editing(identifiers: _), .EnablingEditing:
 				return true
@@ -2074,35 +2073,35 @@ internal enum QBEEditingMode {
 				return false
 			}
 		}
-		else if selector==Selector("setSelectionWorkingSet:") {
+		else if selector==#selector(QBEChainViewController.setSelectionWorkingSet(_:)) {
 			return currentStep != nil && useFullData
 		}
-		else if selector==Selector("sortRows:") {
+		else if selector==#selector(QBEChainViewController.sortRows(_:) as (QBEChainViewController) -> (NSObject) -> ()) {
 			return currentStep != nil
 		}
-		else if selector==Selector("reverseSortRows:") {
+		else if selector==#selector(QBEChainViewController.reverseSortRows(_:)) {
 			return currentStep != nil
 		}
-		else if selector == Selector("removeTablet:") {
+		else if selector == #selector(QBEChainViewController.removeTablet(_:)) {
 			return true
 		}
-		else if selector == Selector("delete:") {
+		else if selector == #selector(QBEChainViewController.delete(_:)) {
 			return true
 		}
-		else if selector==Selector("paste:") {
+		else if selector==#selector(QBEChainViewController.paste(_:)) {
 			let pboard = NSPasteboard.generalPasteboard()
 			if pboard.dataForType(QBEStep.dragType) != nil {
 				return true
 			}
 			return false
 		}
-		else if selector == Selector("copy:") {
+		else if selector == #selector(QBEChainViewController.copy(_:)) {
 			return currentStep != nil
 		}
-		else if selector == Selector("cancelCalculation:") {
+		else if selector == #selector(QBEChainViewController.cancelCalculation(_:)) {
 			return self.calculator.calculating
 		}
-		else if selector == Selector("refreshData:") {
+		else if selector == #selector(QBEChainViewController.refreshData(_:)) {
 			return !self.calculator.calculating
 		}
 		else {

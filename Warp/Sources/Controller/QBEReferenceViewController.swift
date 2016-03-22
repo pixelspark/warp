@@ -128,7 +128,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 
 	override func awakeFromNib() {
 		super.awakeFromNib()
-		self.valueList?.doubleAction = Selector("didDoubleClickRow:")
+		self.valueList?.doubleAction = #selector(QBEReferenceViewController.didDoubleClickRow(_:))
 		self.valueList?.target = self
 	}
 }

@@ -50,7 +50,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 				self.updateView()
 				return
 			}
-			++i
+			i += 1
 		}
 	}
 
@@ -60,7 +60,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 
 	func validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItem) -> Bool {
 		switch anItem.action() {
-		case Selector("delete:"):
+		case #selector(QBEAlterTableViewController.delete(_:)):
 			return tableView.selectedRowIndexes.count > 0
 		default:
 			return false

@@ -23,7 +23,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	override func viewWillAppear() {
 		self.chart = self.chartTablet?.chart
 		self.reloadData()
-		NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("resultNotificationReceived:"), name: QBEResultNotification.name, object: nil)
+		NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(QBEChartTabletViewController.resultNotificationReceived(_:)), name: QBEResultNotification.name, object: nil)
 	}
 
 	@objc private func resultNotificationReceived(notification: NSNotification) {
@@ -287,13 +287,16 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 		self.view.window?.update()
 	}
 
+	@IBAction func toggleEditing(sender: NSObject) {
+	}
+
 	override func validateToolbarItem(item: NSToolbarItem) -> Bool {
-		if item.action == Selector("toggleFullData:") {
+		if item.action == #selector(QBEChartTabletViewController.toggleFullData(_:)) {
 			if let c = item.view as? NSButton {
 				c.state = (useFullData || presentedDataIsFullData) ? NSOnState: NSOffState
 			}
 		}
-		else if item.action == Selector("toggleEditing:") {
+		else if item.action == #selector(QBEChartTabletViewController.toggleEditing(_:)) {
 			if let c = item.view as? NSButton {
 				c.state = NSOffState
 			}
@@ -309,9 +312,9 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	private func validateSelector(action: Selector) -> Bool {
 		if self.chartTablet?.sourceTablet?.chain.head != nil {
 			switch action {
-			case Selector("refreshData:"), Selector("exportFile:"): return true
-			case Selector("cancelCalculation:"): return self.calculator.calculating
-			case Selector("toggleFullData:"): return true
+			case #selector(QBEChartTabletViewController.refreshData(_:)), #selector(QBEChartTabletViewController.exportFile(_:)): return true
+			case #selector(QBEChartTabletViewController.cancelCalculation(_:)): return self.calculator.calculating
+			case #selector(QBEChartTabletViewController.toggleFullData(_:)): return true
 			default: return false
 			}
 		}

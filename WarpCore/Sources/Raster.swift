@@ -282,7 +282,7 @@ public class Raster: NSObject, NSCoding {
 					// Old value matches, we should change it to the new value
 					row[columnIndex] = new
 					raster[rowIndex] = row
-					changes++
+					changes += 1
 				}
 				else {
 					// No change
@@ -985,7 +985,7 @@ public class RasterData: NSObject, Data {
 			var rowNumber = 0
 			r.raster.forEach {
 				newData.insert(HashableArray<Value>($0))
-				rowNumber++
+				rowNumber += 1
 				if (rowNumber % Raster.progressReportRowInterval) == 0 {
 					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
 				}
@@ -1245,6 +1245,10 @@ private class RasterDataStream: NSObject, Stream {
 			switch fallibleRaster {
 				case .Success(let raster):
 					let (rows, hasNext) = self.mutex.locked { () -> ([Tuple], Bool) in
+						job.async {
+							job.reportProgress(Double(self.position) / Double(raster.rowCount), forKey: self.hashValue)
+						}
+
 						if self.position < raster.rowCount {
 							let end = min(raster.rowCount, self.position + StreamDefaultBatchSize)
 							let rows = Array(raster.raster[self.position..<end])
@@ -1254,10 +1258,6 @@ private class RasterDataStream: NSObject, Stream {
 						}
 						else {
 							return ([], false)
-						}
-
-						job.async {
-							job.reportProgress(Double(self.position) / Double(raster.rowCount), forKey: self.hashValue)
 						}
 					}
 

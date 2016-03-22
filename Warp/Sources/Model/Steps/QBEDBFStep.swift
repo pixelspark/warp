@@ -146,7 +146,7 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 						let name = "COL\(fieldIndex)"
 						DBFAddField(handle, name.cStringUsingEncoding(NSUTF8StringEncoding)!, FTString, 255, 0)
 					}
-					fieldIndex++
+					fieldIndex += 1
 				}
 
 				let dbfMutex = Mutex()
@@ -174,9 +174,9 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 											DBFWriteNULLAttribute(handle, Int32(rowIndex), Int32(cellIndex))
 										}
 										// write field
-										cellIndex++
+										cellIndex += 1
 									}
-									rowIndex++
+									rowIndex += 1
 								}
 							}
 						}

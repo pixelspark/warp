@@ -60,10 +60,10 @@ import WarpCore
 	}
 	
 	override func validateMenuItem(menuItem: NSMenuItem) -> Bool {
-		if menuItem.action == Selector("remove:") {
+		if menuItem.action == #selector(QBEStepsItemView.remove(_:)) {
 			return true
 		}
-		else if menuItem.action == Selector("showSuggestions:") {
+		else if menuItem.action == #selector(QBEStepsItemView.showSuggestions(_:)) {
 			if let s = step, let alternatives = s.alternatives where alternatives.count > 0 {
 				return true
 			}

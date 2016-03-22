@@ -1,6 +1,6 @@
 import Foundation
 
-public func trace(message: String, file: StaticString = __FILE__, line: UInt = __LINE__) {
+public func trace(message: String, file: StaticString = #file, line: UInt = #line) {
 	#if DEBUG
 		dispatch_async(dispatch_get_main_queue()) {
 			print(message)
@@ -8,7 +8,7 @@ public func trace(message: String, file: StaticString = __FILE__, line: UInt = _
 	#endif
 }
 
-public func assertMainThread(file: StaticString = __FILE__, line: UInt = __LINE__) {
+public func assertMainThread(file: StaticString = #file, line: UInt = #line) {
 	assert(NSThread.isMainThread(), "Code at \(file):\(line) must run on main thread!")
 }
 
@@ -67,7 +67,7 @@ public extension SequenceType {
 				eachTimed(next)
 			}
 			else {
-				outstanding--
+				outstanding -= 1
 				// No elements left to call each for, but there may be some elements in flight. The last one calls completion
 				if outstanding == 0 {
 					completion()
@@ -80,7 +80,7 @@ public extension SequenceType {
 		for _ in 0..<maxConcurrent {
 			if let next = iterator.next() {
 				atLeastOne = true
-				outstanding++
+				outstanding += 1
 				eachTimed(next)
 			}
 		}
@@ -255,7 +255,7 @@ public class Job: JobDelegate {
 
 	#if DEBUG
 	private static var jobCounter = 0
-	private let jobID = jobCounter++
+	private let jobID: Int
 	#endif
 	
 	public init(_ qos: QoS) {
@@ -263,6 +263,8 @@ public class Job: JobDelegate {
 
 		#if DEBUG
 			let jobNumber = Job.jobCounter + 1
+			Job.jobCounter += 1
+			jobID = jobNumber
 			self.queue = dispatch_queue_create("Job \(jobNumber)", attr)
 		#else
 			self.queue = dispatch_queue_create("nl.pixelspark.Warp.Job", attr)
@@ -273,11 +275,21 @@ public class Job: JobDelegate {
 	public init(parent: Job) {
 		self.parentJob = parent
 		self.queue = parent.queue
+
+		#if DEBUG
+			Job.jobCounter += 1
+			jobID = Job.jobCounter
+		#endif
 	}
 	
 	private init(queue: dispatch_queue_t) {
 		self.queue = queue
 		self.parentJob = nil
+
+		#if DEBUG
+			Job.jobCounter += 1
+			jobID = Job.jobCounter
+		#endif
 	}
 
 	#if DEBUG
@@ -363,7 +375,7 @@ public class Job: JobDelegate {
 			var items = 0;
 			for (_, p) in self.progressComponents {
 				sumProgress += p
-				items++
+				items += 1
 			}
 			
 			return items > 0 ? (sumProgress / Double(items)) : 0.0;
@@ -385,7 +397,7 @@ public class Job: JobDelegate {
 	
 	/** Print a message to the debug log. The message is sent to the console asynchronously (but ordered) and prepended
 	with the 'job ID'. No messages will be logged when not compiled in debug mode. */
-	public func log(message: String, file: StaticString = __FILE__, line: UInt = __LINE__) {
+	public func log(message: String, file: StaticString = #file, line: UInt = #line) {
 		#if DEBUG
 			let id = self.jobID
 			dispatch_async(dispatch_get_main_queue()) {
@@ -482,7 +494,7 @@ public class Mutex {
 	}
 
 	/** Execute the given block while holding a lock to this mutex. */
-	public final func locked<T>(file: StaticString = __FILE__, line: UInt = __LINE__, @noescape block: () -> (T)) -> T {
+	public final func locked<T>(file: StaticString = #file, line: UInt = #line, @noescape block: () -> (T)) -> T {
 		#if DEBUG
 			let start = CFAbsoluteTimeGetCurrent()
 		#endif

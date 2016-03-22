@@ -101,11 +101,11 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			var index = 0
 			for key in keys {
 				let title = options.options[key]!
-				let item = NSMenuItem(title: title, action: Selector("selectOption:"), keyEquivalent: "")
+				let item = NSMenuItem(title: title, action: #selector(QBESentenceViewController.selectOption(_:)), keyEquivalent: "")
 				item.state = (key == options.value) ? NSOnState : NSOffState
 				item.tag = index
 				menu.addItem(item)
-				index++
+				index += 1
 			}
 			return menu
 		}
@@ -113,7 +113,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			editingToken = QBEEditingToken(options)
 			let menu = NSMenu()
 			menu.autoenablesItems = false
-			let loadingItem = NSMenuItem(title: NSLocalizedString("Loading...", comment: ""), action: Selector("dismissInputEditor:"), keyEquivalent: "")
+			let loadingItem = NSMenuItem(title: NSLocalizedString("Loading...", comment: ""), action: #selector(QBESentenceViewController.dismissInputEditor(_:)), keyEquivalent: "")
 			loadingItem.enabled = false
 			menu.addItem(loadingItem)
 
@@ -128,14 +128,14 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 							self?.editingToken?.options = items
 							var index = 0
 							for item in items {
-								let menuItem = NSMenuItem(title: item, action: Selector("selectListOption:"), keyEquivalent: "")
+								let menuItem = NSMenuItem(title: item, action: #selector(QBESentenceViewController.selectListOption(_:)), keyEquivalent: "")
 								menuItem.tag = index
 								menu.addItem(menuItem)
-								index++
+								index += 1
 							}
 
 						case .Failure(let e):
-							let errorItem = NSMenuItem(title: e, action: Selector("dismissInputEditor:"), keyEquivalent: "")
+							let errorItem = NSMenuItem(title: e, action: #selector(QBESentenceViewController.dismissInputEditor(_:)), keyEquivalent: "")
 							errorItem.enabled = false
 							menu.addItem(errorItem)
 							break
@@ -161,7 +161,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			let menu = NSMenu()
 			menu.autoenablesItems = false
 			menu.addItem(item)
-			menu.addItem(NSMenuItem(title: NSLocalizedString("OK", comment: ""), action: Selector("dismissInputEditor:"), keyEquivalent: ""))
+			menu.addItem(NSMenuItem(title: NSLocalizedString("OK", comment: ""), action: #selector(QBESentenceViewController.dismissInputEditor(_:)), keyEquivalent: ""))
 
 			return menu
 		}
@@ -183,12 +183,12 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 			let menu = NSMenu()
 			if inputToken.isDirectory {
-				menu.addItem(NSMenuItem(title: NSLocalizedString("Select directory...", comment: ""), action: Selector("selectFile:"), keyEquivalent: ""))
+				menu.addItem(NSMenuItem(title: NSLocalizedString("Select directory...", comment: ""), action: #selector(QBESentenceViewController.selectFile(_:)), keyEquivalent: ""))
 			}
 			else {
-				menu.addItem(NSMenuItem(title: NSLocalizedString("Select file...", comment: ""), action: Selector("selectFile:"), keyEquivalent: ""))
+				menu.addItem(NSMenuItem(title: NSLocalizedString("Select file...", comment: ""), action: #selector(QBESentenceViewController.selectFile(_:)), keyEquivalent: ""))
 			}
-			let showItem = NSMenuItem(title: NSLocalizedString("Show in Finder", comment: ""), action: Selector("showFileInFinder:"), keyEquivalent: "")
+			let showItem = NSMenuItem(title: NSLocalizedString("Show in Finder", comment: ""), action: #selector(QBESentenceViewController.showFileInFinder(_:)), keyEquivalent: "")
 			showItem.enabled = inputToken.file != nil
 			menu.addItem(showItem)
 			return menu

@@ -54,7 +54,7 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 		self.progressView?.hidden = !isExporting
 		self.backgroundButton?.hidden = !isExporting
 		self.addAsStepButton?.enabled = !isExporting
-		self.addAsStepButton?.hidden = self.delegate == nil || !(self.delegate?.respondsToSelector(Selector("exportView:didAddStep:")) ?? true)
+		self.addAsStepButton?.hidden = self.delegate == nil || !(self.delegate?.respondsToSelector(#selector(QBEExportViewDelegate.exportView(_:didAddStep:))) ?? true)
 		self.exportButton?.enabled = !isExporting
 	}
 

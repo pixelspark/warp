@@ -49,8 +49,18 @@ class QBEConfigurableStepViewControllerFor<StepType: QBEStep>: QBEConfigurableVi
 class QBEFactory {
 	typealias QBEStepViewCreator = (step: QBEStep?, delegate: QBESuggestionsViewDelegate) -> NSViewController?
 	typealias QBEFileReaderCreator = (url: NSURL) -> QBEStep?
-	
-	static let sharedInstance = QBEFactory()
+
+	class var sharedInstance : QBEFactory {
+		struct Static {
+			static var onceToken : dispatch_once_t = 0
+			static var instance : QBEFactory? = nil
+		}
+
+		dispatch_once(&Static.onceToken) {
+			Static.instance = QBEFactory()
+		}
+		return Static.instance!
+	}
 	
 	let fileWriters: [QBEFileWriter.Type] = [
 		QBECSVWriter.self,

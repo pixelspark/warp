@@ -94,7 +94,7 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 			will get out of order. */
 			var n = 0
 			while self.row() != nil {
-				++n
+				n += 1
 			}
 			
 			#if DEBUG

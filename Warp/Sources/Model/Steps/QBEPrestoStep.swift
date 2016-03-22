@@ -3,7 +3,7 @@ import Alamofire
 import WarpCore
 
 private class QBEPrestoSQLDialect: StandardSQLDialect {
-	override func unaryToSQL(type: Function, var args: [String]) -> String? {
+	override func unaryToSQL(type: Function, args: [String]) -> String? {
 		switch type {
 		case .Concat:
 			/** Presto doesn't support CONCAT'ing more than two arguments. Therefore, we need to nest them. */
@@ -12,8 +12,7 @@ private class QBEPrestoSQLDialect: StandardSQLDialect {
 			}
 			if args.count > 1 {
 				var sql = args.last
-				args.removeLast()
-				for a in Array(args.reverse()) {
+				for a in Array(args.dropLast().reverse()) {
 					sql = "CONCAT(\(a), \(sql))"
 				}
 				return sql
@@ -232,7 +231,8 @@ private class QBEPrestoDatabase {
 		return QBEPrestoStream(url: url, sql: sql, catalog: catalog, schema: schema)
 	}
 
-	func run(var sql: [String], job: Job, callback: (Fallible<Void>) -> ()) {
+	func run(sql: [String], job: Job, callback: (Fallible<Void>) -> ()) {
+		var sql = sql
 		let mutex = Mutex() // To protect the list of queryes
 
 		// TODO check for memory leaks

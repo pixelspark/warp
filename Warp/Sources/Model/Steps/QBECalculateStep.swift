@@ -156,7 +156,8 @@ class QBECalculateStep: QBEStep {
 		if let relativeTo = insertRelativeTo {
 			// Reorder columns in the result set so that targetColumn is inserted after insertAfter
 			data.columns(job) { (columns) in
-				callback(columns.use { (var cns: [Column]) -> Data in
+				callback(columns.use { (cns: [Column]) -> Data in
+					var cns = cns
 					cns.remove(self.targetColumn)
 					if let idx = cns.indexOf(relativeTo) {
 						if self.insertBefore {

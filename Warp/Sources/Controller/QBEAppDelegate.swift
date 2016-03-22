@@ -15,7 +15,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 	func applicationDidFinishLaunching(aNotification: NSNotification) {
 		applyDefaults()
 		NSUserNotificationCenter.defaultUserNotificationCenter().delegate = self
-		NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("defaultsChanged:"), name: NSUserDefaultsDidChangeNotification, object: nil)
+		NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(QBEAppDelegate.defaultsChanged(_:)), name: NSUserDefaultsDidChangeNotification, object: nil)
 	}
 	
 	func defaultsChanged(nf: NSNotification) {

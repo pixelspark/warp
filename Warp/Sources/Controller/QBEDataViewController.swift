@@ -310,7 +310,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 							var row = 0
 							while (!prototypeValue.isValid || prototypeValue.isEmpty) && row < r.rowCount {
 								prototypeValue = r[row, Int(columnIndex)]
-								row++
+								row += 1
 							}
 
 							let cell: NSCell
@@ -343,21 +343,20 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	}
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
-		if item.action() == Selector("addColumnBeforeSelectedColumn:") ||
-			item.action() == Selector("addColumnAfterSelectedColumn:") ||
-			item.action() == Selector("removeSelectedColumn:") ||
-			item.action() == Selector("keepSelectedColumn:") ||
-			item.action() == Selector("sizeAllColumnsToFit:") {
+		switch item.action() {
+		case #selector(QBEDataViewController.sizeAllColumnsToFit(_:)):
 			return true
-		}
-		else if item.action() == Selector("renameSelectedColumn:") ||
-			item.action() == Selector("sizeSelectedColumnToFit:") {
+
+		case #selector(QBEDataViewController.renameSelectedColumn(_:)),
+		     #selector(QBEDataViewController.sizeSelectedColumnToFit(_:)):
 			if let si = self.tableView?.selectedColumnIndexes.firstIndex where si != NSNotFound {
 				return true
 			}
 			return false
+
+		default:
+			return false
 		}
-		return false
 	}
 	
 	func tableGrid(aTableGrid: MBTableGrid!, footerCellForColumn columnIndex: UInt) -> NSCell! {
@@ -643,9 +642,9 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 							if col < columnCount {
 								setValue(Value(cellString), inRow: row, inColumn: col)
 							}
-							col++
+							col += 1
 						}
-						row++
+						row += 1
 					}
 				}
 			}

@@ -89,7 +89,7 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 				var fetched = 0
 				while !self.finished && (fetched < StreamDefaultBatchSize) && !job.cancelled {
 					self.finished = !self.parser._parseRecord()
-					fetched++
+					fetched += 1
 				}
 			
 				// Calculate progress

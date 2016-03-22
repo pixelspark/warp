@@ -62,10 +62,10 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	}
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
-		if item.action() == Selector("delete:") {
+		if item.action() == #selector(QBESortStepView.delete(_:)) {
 			return tableView?.selectedRowIndexes.count > 0
 		}
-		else if item.action() == Selector("addFromPopupButton:") {
+		else if item.action() == #selector(QBESortStepView.addFromPopupButton(_:)) {
 			return true
 		}
 		return false

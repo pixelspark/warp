@@ -118,7 +118,7 @@ public struct Column: StringLiteralConvertible, Hashable, CustomDebugStringConve
 			if accepted {
 				return newName
 			}
-			i++
+			i += 1
 		} while true
 	}
 }
