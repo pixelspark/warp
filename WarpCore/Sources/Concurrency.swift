@@ -426,6 +426,10 @@ public class Job: JobDelegate {
 public class Mutex {
 	private var mutex: pthread_mutex_t = pthread_mutex_t()
 
+	#if DEBUG
+	private var locker: String? = nil
+	#endif
+
 	public init() {
 		var attr: pthread_mutexattr_t = pthread_mutexattr_t()
 		pthread_mutexattr_init(&attr)
@@ -499,14 +503,15 @@ public class Mutex {
 			let start = CFAbsoluteTimeGetCurrent()
 		#endif
 		self.lock()
-		let ret: T = block()
-		self.unlock()
 		#if DEBUG
 			let duration = CFAbsoluteTimeGetCurrent() - start
 			if duration > 0.05 {
-				trace("Mutex held for \(duration)s by \(file):\(line)")
+				trace("Waited \(duration)s for mutex (\(file):\(line)) last locked by \(self.locker)")
 			}
+			self.locker = "\(file):\(line)"
 		#endif
+		let ret: T = block()
+		self.unlock()
 		return ret
 	}
 }
