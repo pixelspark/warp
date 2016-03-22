@@ -279,7 +279,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 				}
 				else {
 					self.finished = true
-					if PQresultStatus(self.result).rawValue != PGRES_TUPLES_OK.rawValue {
+					if PQresultStatus(self.result).rawValue != PGRES_TUPLES_OK.rawValue && PQresultStatus(self.result).rawValue != PGRES_COMMAND_OK.rawValue {
 						let status = String(CString: PQresStatus(PQresultStatus(self.result)), encoding: NSUTF8StringEncoding) ?? "(unknown status)"
 						let error = String(CString: PQresultErrorMessage(self.result), encoding: NSUTF8StringEncoding) ?? "(unknown error)"
 						self.error = error
