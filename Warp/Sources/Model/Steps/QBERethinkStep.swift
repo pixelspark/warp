@@ -24,7 +24,7 @@ final class QBERethinkStream: NSObject, Stream {
 			if let s = self {
 				R.connect(url) { (err, connection) in
 					if let e = err {
-						callback(.Failure(e))
+						callback(.Failure(e.description))
 					}
 					else {
 						s.query.run(connection) { response in
@@ -545,7 +545,7 @@ class QBERethinkDataWarehouse: Warehouse {
 		case .Create(let name, _):
 			R.connect(self.url, callback: { (error, connection) -> () in
 				if error != nil {
-					callback(.Failure(error!))
+					callback(.Failure(error!.description))
 					return
 				}
 
@@ -639,7 +639,7 @@ class QBERethinkMutableData: MutableData {
 	func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
 		R.connect(self.url) { err, connection in
 			if let e = err {
-				callback(.Failure(e))
+				callback(.Failure(e.description))
 				return
 			}
 
@@ -688,7 +688,7 @@ class QBERethinkMutableData: MutableData {
 		job.async {
 			R.connect(self.url) { (err, connection) -> () in
 				if let e = err {
-					callback(.Failure(e))
+					callback(.Failure(e.description))
 					return
 				}
 
@@ -828,7 +828,7 @@ class QBERethinkSourceStep: QBEStep {
 			else {
 				R.connect(u, callback: { (err, connection) -> () in
 					if let e = err {
-						callback(.Failure(e))
+						callback(.Failure(e.description))
 						return
 					}
 
@@ -885,7 +885,7 @@ class QBERethinkSourceStep: QBEStep {
 			QBESentenceList(value: self.table, provider: { pc in
 				R.connect(self.url!, callback: { (err, connection) in
 					if err != nil {
-						pc(.Failure(err!))
+						pc(.Failure(err!.description))
 						return
 					}
 
@@ -914,7 +914,7 @@ class QBERethinkSourceStep: QBEStep {
 			QBESentenceList(value: self.database, provider: { pc in
 				R.connect(self.url!, callback: { (err, connection) in
 					if err != nil {
-						pc(.Failure(err!))
+						pc(.Failure(err!.description))
 						return
 					}
 
