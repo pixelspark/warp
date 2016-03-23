@@ -1048,8 +1048,8 @@
 			children = (
 				6583EED31C14758B00AE6C00 /* QBEObjectiveCBridge.h */,
 				6583EED41C14758B00AE6C00 /* QBEObjectiveCBridge.m */,
-				6583EE8F1C14758B00AE6C00 /* Controller */,
 				6583EEB21C14758B00AE6C00 /* Model */,
+				6583EE8F1C14758B00AE6C00 /* Controller */,
 				6583EED51C14758B00AE6C00 /* View */,
 			);
 			name = Sources;

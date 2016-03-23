@@ -56,6 +56,7 @@ public protocol QBESentenceToken: NSObjectProtocol {
 	var isToken: Bool { get }
 }
 
+/** A sentence item that presents a list of (string) options. */
 public class QBESentenceList: NSObject, QBESentenceToken {
 	public typealias Callback = (String) -> ()
 	public typealias ProviderCallback = (Fallible<[String]>) -> ()
@@ -83,6 +84,7 @@ public class QBESentenceList: NSObject, QBESentenceToken {
 	}
 }
 
+/** A sentence item that shows a list of string options, which have associated string keys. */
 public class QBESentenceOptions: NSObject, QBESentenceToken {
 	public typealias Callback = (String) -> ()
 	public private(set) var options: [String: String]
@@ -109,6 +111,7 @@ public class QBESentenceOptions: NSObject, QBESentenceToken {
 	}
 }
 
+/** Sentence item that shows static, read-only text. */
 public class QBESentenceText: NSObject, QBESentenceToken {
 	public let label: String
 
@@ -119,6 +122,7 @@ public class QBESentenceText: NSObject, QBESentenceToken {
 	public var isToken: Bool { get { return false } }
 }
 
+/** Sentence item that shows editable text. */
 public class QBESentenceTextInput: NSObject, QBESentenceToken {
 	public typealias Callback = (String) -> (Bool)
 	public let label: String
@@ -139,6 +143,7 @@ public class QBESentenceTextInput: NSObject, QBESentenceToken {
 	public var isToken: Bool { get { return true } }
 }
 
+/** Sentence item that shows a friendly representation of a formula, and shows a formula editor on editing. */
 public class QBESentenceFormula: NSObject, QBESentenceToken {
 	public typealias Callback = (Expression) -> ()
 	public let expression: Expression
@@ -164,6 +169,7 @@ public class QBESentenceFormula: NSObject, QBESentenceToken {
 	public var isToken: Bool { get { return true } }
 }
 
+/** Sentence item that refers to an (existing or yet to be created) file or directory. */
 public class QBESentenceFile: NSObject, QBESentenceToken {
 	public typealias Callback = (QBEFileReference) -> ()
 	public let file: QBEFileReference?

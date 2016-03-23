@@ -1293,8 +1293,35 @@ public enum Binary: String {
 	case ContainsStringStrict = "containsStrict" // case-sensitive
 	case MatchesRegex = "matchesRegex" // not case-sensitive
 	case MatchesRegexStrict = "matchesRegexStrict" // case-sensitive
+
+	public static let allBinaries = [Addition, Subtraction, Multiplication, Division, Modulus, Concatenation, Power,
+	                                 Equal, NotEqual, Greater, Lesser, GreaterEqual, LesserEqual, ContainsString,
+	                                 ContainsStringStrict, MatchesRegex, MatchesRegexStrict]
+
+	/** Returns a human-readable, localized explanation of what this binary operator does. */
+	public func explain(locale: Locale) -> String {
+		switch self {
+		case .Addition: return "+"
+		case .Subtraction: return "-"
+		case .Multiplication: return "*"
+		case .Division: return "/"
+		case .Modulus: return "%"
+		case .Concatenation: return "&"
+		case .Power: return "^"
+		case .Greater: return translationForString("is greater than")
+		case .Lesser: return translationForString("is less than")
+		case .GreaterEqual: return translationForString("is greater than or equal to")
+		case .LesserEqual: return translationForString("is less than or equal to")
+		case .Equal: return translationForString("is equal to")
+		case .NotEqual: return translationForString("is not equal to")
+		case .ContainsString: return translationForString("contains text")
+		case .ContainsStringStrict: return translationForString("contains text (case-sensitive)")
+		case .MatchesRegex: return translationForString("matches pattern")
+		case .MatchesRegexStrict: return translationForString("matches pattern (case-sensitive)")
+		}
+	}
 	
-	func explain(locale: Locale) -> String {
+	public func toFormula(locale: Locale) -> String {
 		switch self {
 		case .Addition: return "+"
 		case .Subtraction: return "-"
@@ -1315,13 +1342,19 @@ public enum Binary: String {
 		case .MatchesRegexStrict: return "±±="
 		}
 	}
-	
-	func toFormula(locale: Locale) -> String {
-		return self.explain(locale)
+
+	/** True if this operator accepts two arbitrary values and returns a boolean (at least for non-invalid values). */
+	public var isComparative: Bool {
+		switch self {
+		case .Greater, .Lesser, .GreaterEqual, .LesserEqual, .Equal, .NotEqual, .ContainsStringStrict, .ContainsString, .MatchesRegex, .MatchesRegexStrict:
+			return true
+		case .Addition, .Subtraction, .Multiplication, .Division, .Modulus, .Concatenation, .Power:
+			return false
+		}
 	}
-	
+
 	/** Returns whether this operator is guaranteed to return the same result when its operands are swapped. */
-	var isCommutative: Bool { get {
+	public var isCommutative: Bool { get {
 		switch self {
 		case .Equal, .NotEqual, .Addition, .Multiplication: return true
 		default: return false
