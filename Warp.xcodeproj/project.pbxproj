@@ -156,6 +156,7 @@
 		65A176931B8B9769004D4A21 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176911B8B9769004D4A21 /* dbfopen.c */; };
 		65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176991B8B9AC0004D4A21 /* safileio.c */; };
 		65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A526B91B09BFDB00CCF3E3 /* libpq.a */; };
+		65B3CC4E1CA2A4A3003FC6DF /* WarpUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC4D1CA2A4A3003FC6DF /* WarpUITests.swift */; };
 		65B3F6A31C73CFC0000983D0 /* Charts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65B3F69B1C73CF93000983D0 /* Charts.framework */; };
 		65B3F6A41C73CFC0000983D0 /* Charts.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65B3F69B1C73CF93000983D0 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65B3F6A81C73D0EE000983D0 /* QBEChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6A71C73D0EE000983D0 /* QBEChart.swift */; };
@@ -332,6 +333,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 65F739D01BC9502400B5E62D;
 			remoteInfo = Rethink;
+		};
+		65B3CC501CA2A4A3003FC6DF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65E3C2AC1A05222F007BB3C8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 65E3C2EB1A062E5E007BB3C8;
+			remoteInfo = Warp;
 		};
 		65B3F6941C73CF93000983D0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -591,6 +599,9 @@
 		65A52BA31B0A665200CCF3E3 /* pg_config_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pg_config_ext.h; sourceTree = "<group>"; };
 		65A52BA41B0A665200CCF3E3 /* postgres_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = postgres_ext.h; sourceTree = "<group>"; };
 		65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
+		65B3CC4B1CA2A4A3003FC6DF /* WarpUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WarpUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		65B3CC4D1CA2A4A3003FC6DF /* WarpUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpUITests.swift; sourceTree = "<group>"; };
+		65B3CC4F1CA2A4A3003FC6DF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Charts.xcodeproj; path = Libraries/Charts/Charts/Charts.xcodeproj; sourceTree = "<group>"; };
 		65B3F6A71C73D0EE000983D0 /* QBEChart.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChart.swift; sourceTree = "<group>"; };
 		65B3F6A91C73D302000983D0 /* QBEChartTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChartTabletViewController.swift; sourceTree = "<group>"; };
@@ -610,6 +621,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		65B3CC481CA2A4A3003FC6DF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65E3C2E91A062E5E007BB3C8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -930,6 +948,15 @@
 			path = include;
 			sourceTree = "<group>";
 		};
+		65B3CC4C1CA2A4A3003FC6DF /* WarpUITests */ = {
+			isa = PBXGroup;
+			children = (
+				65B3CC4D1CA2A4A3003FC6DF /* WarpUITests.swift */,
+				65B3CC4F1CA2A4A3003FC6DF /* Info.plist */,
+			);
+			path = WarpUITests;
+			sourceTree = "<group>";
+		};
 		65B3F68B1C73CF93000983D0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -1001,6 +1028,7 @@
 				65E3C2ED1A062E5E007BB3C8 /* Sources */,
 				65D7A9861BF793D5005AD925 /* Resources */,
 				65E3C3021A062E5E007BB3C8 /* Tests */,
+				65B3CC4C1CA2A4A3003FC6DF /* WarpUITests */,
 				65E3C2B61A05222F007BB3C8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -1010,6 +1038,7 @@
 			children = (
 				65E3C2EC1A062E5E007BB3C8 /* Warp.app */,
 				65E3C2FF1A062E5E007BB3C8 /* WarpTests.xctest */,
+				65B3CC4B1CA2A4A3003FC6DF /* WarpUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1044,6 +1073,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		65B3CC4A1CA2A4A3003FC6DF /* WarpUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 65B3CC5F1CA2A4A3003FC6DF /* Build configuration list for PBXNativeTarget "WarpUITests" */;
+			buildPhases = (
+				65B3CC471CA2A4A3003FC6DF /* Sources */,
+				65B3CC481CA2A4A3003FC6DF /* Frameworks */,
+				65B3CC491CA2A4A3003FC6DF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				65B3CC511CA2A4A3003FC6DF /* PBXTargetDependency */,
+			);
+			name = WarpUITests;
+			productName = WarpUITests;
+			productReference = 65B3CC4B1CA2A4A3003FC6DF /* WarpUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		65E3C2EB1A062E5E007BB3C8 /* Warp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 65E3C3071A062E5E007BB3C8 /* Build configuration list for PBXNativeTarget "Warp" */;
@@ -1096,10 +1143,14 @@
 		65E3C2AC1A05222F007BB3C8 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0700;
+				LastSwiftUpdateCheck = 0730;
 				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = Pixelspark;
 				TargetAttributes = {
+					65B3CC4A1CA2A4A3003FC6DF = {
+						CreatedOnToolsVersion = 7.3;
+						TestTargetID = 65E3C2EB1A062E5E007BB3C8;
+					};
 					65E3C2EB1A062E5E007BB3C8 = {
 						CreatedOnToolsVersion = 6.1;
 						DevelopmentTeam = 2T2T7HAA8S;
@@ -1160,6 +1211,7 @@
 			targets = (
 				65E3C2EB1A062E5E007BB3C8 /* Warp */,
 				65E3C2FE1A062E5E007BB3C8 /* WarpTests */,
+				65B3CC4A1CA2A4A3003FC6DF /* WarpUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -1301,6 +1353,13 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
+		65B3CC491CA2A4A3003FC6DF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65E3C2EA1A062E5E007BB3C8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1364,6 +1423,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		65B3CC471CA2A4A3003FC6DF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65B3CC4E1CA2A4A3003FC6DF /* WarpUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65E3C2E81A062E5E007BB3C8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1520,6 +1587,11 @@
 			isa = PBXTargetDependency;
 			name = Rethink;
 			targetProxy = 65A115061BCD96A6007BC661 /* PBXContainerItemProxy */;
+		};
+		65B3CC511CA2A4A3003FC6DF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 65E3C2EB1A062E5E007BB3C8 /* Warp */;
+			targetProxy = 65B3CC501CA2A4A3003FC6DF /* PBXContainerItemProxy */;
 		};
 		65B3F6A61C73CFC0000983D0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1875,6 +1947,39 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		65B3CC521CA2A4A3003FC6DF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = WarpUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.charts.WarpUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = Warp;
+			};
+			name = Debug;
+		};
+		65B3CC531CA2A4A3003FC6DF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = WarpUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.charts.WarpUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = Warp;
+			};
+			name = Release;
+		};
 		65E3C2C91A05222F007BB3C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2074,6 +2179,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		65B3CC5F1CA2A4A3003FC6DF /* Build configuration list for PBXNativeTarget "WarpUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65B3CC521CA2A4A3003FC6DF /* Debug */,
+				65B3CC531CA2A4A3003FC6DF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		65E3C2AF1A05222F007BB3C8 /* Build configuration list for PBXProject "Warp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

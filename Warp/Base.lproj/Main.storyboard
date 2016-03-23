@@ -33,7 +33,7 @@
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <button wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="L7q-Xh-UXU">
-                                <rect key="frame" x="32" y="32" width="59" height="20"/>
+                                <rect key="frame" x="32" y="16" width="59" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="20" id="zvL-oi-6DC"/>
                                 </constraints>
@@ -46,7 +46,7 @@
                                 </connections>
                             </button>
                             <button wantsLayer="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="AiM-IN-Dvf">
-                                <rect key="frame" x="438" y="25" width="78" height="31"/>
+                                <rect key="frame" x="438" y="9" width="78" height="31"/>
                                 <buttonCell key="cell" type="push" title="Got it!" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ReD-jn-tgz">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -60,10 +60,10 @@ DQ
                                 </connections>
                             </button>
                             <customView wantsLayer="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pv1-rO-sqe">
-                                <rect key="frame" x="0.0" y="20" width="953" height="839"/>
+                                <rect key="frame" x="0.0" y="36" width="953" height="823"/>
                                 <subviews>
                                     <imageView focusRingType="none" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="R45-mU-UtZ">
-                                        <rect key="frame" x="0.0" y="8" width="953" height="715"/>
+                                        <rect key="frame" x="0.0" y="8" width="953" height="699"/>
                                         <constraints>
                                             <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="GvR-1f-y1a"/>
                                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="300" id="ORJ-rO-hEP"/>
@@ -71,7 +71,7 @@ DQ
                                         <imageCell key="cell" refusesFirstResponder="YES" focusRingType="none" alignment="left" imageScaling="proportionallyDown" id="4dp-93-5Kr"/>
                                     </imageView>
                                     <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4YD-cM-3CR">
-                                        <rect key="frame" x="30" y="767" width="893" height="24"/>
+                                        <rect key="frame" x="30" y="751" width="893" height="24"/>
                                         <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="center" title="Multiline Label" id="ZDr-Za-f0M">
                                             <font key="font" size="20" name=".HelveticaNeueDeskInterface-Regular"/>
                                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -79,7 +79,7 @@ DQ
                                         </textFieldCell>
                                     </textField>
                                     <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Zf8-vF-475">
-                                        <rect key="frame" x="30" y="723" width="893" height="36"/>
+                                        <rect key="frame" x="30" y="707" width="893" height="36"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="36" id="Dez-bL-4VO"/>
                                         </constraints>
@@ -104,7 +104,7 @@ DQ
                                 </constraints>
                             </customView>
                             <textField wantsLayer="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Q5f-4K-wxC">
-                                <rect key="frame" x="852" y="35" width="71" height="17"/>
+                                <rect key="frame" x="852" y="19" width="71" height="17"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Page x of y" id="gIW-MK-7JK">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
@@ -118,14 +118,14 @@ DQ
                             <constraint firstAttribute="trailing" secondItem="Q5f-4K-wxC" secondAttribute="trailing" constant="32" id="Ehd-sf-Ep7"/>
                             <constraint firstItem="AiM-IN-Dvf" firstAttribute="centerX" secondItem="T3g-my-X5g" secondAttribute="centerX" id="FNK-Gj-c2x"/>
                             <constraint firstItem="AiM-IN-Dvf" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="L7q-Xh-UXU" secondAttribute="trailing" constant="10" id="JqD-IZ-HWt"/>
-                            <constraint firstItem="Q5f-4K-wxC" firstAttribute="top" secondItem="pv1-rO-sqe" secondAttribute="bottom" constant="-32" id="RdJ-pZ-pSN"/>
+                            <constraint firstItem="Q5f-4K-wxC" firstAttribute="top" secondItem="pv1-rO-sqe" secondAttribute="bottom" id="RdJ-pZ-pSN"/>
                             <constraint firstItem="pv1-rO-sqe" firstAttribute="top" secondItem="T3g-my-X5g" secondAttribute="top" id="WA4-nD-v65"/>
-                            <constraint firstItem="L7q-Xh-UXU" firstAttribute="top" secondItem="pv1-rO-sqe" secondAttribute="bottom" constant="-32" id="XHC-n0-6LG"/>
-                            <constraint firstAttribute="bottom" secondItem="L7q-Xh-UXU" secondAttribute="bottom" constant="32" id="btx-bD-cHT"/>
+                            <constraint firstItem="L7q-Xh-UXU" firstAttribute="top" secondItem="pv1-rO-sqe" secondAttribute="bottom" id="XHC-n0-6LG"/>
+                            <constraint firstAttribute="bottom" secondItem="L7q-Xh-UXU" secondAttribute="bottom" constant="16" id="btx-bD-cHT"/>
                             <constraint firstItem="L7q-Xh-UXU" firstAttribute="leading" secondItem="T3g-my-X5g" secondAttribute="leading" constant="32" id="jRM-H8-nNd"/>
                             <constraint firstItem="Q5f-4K-wxC" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="AiM-IN-Dvf" secondAttribute="trailing" constant="10" id="oEd-v0-Soj"/>
-                            <constraint firstAttribute="bottom" secondItem="AiM-IN-Dvf" secondAttribute="bottom" constant="32" id="tcY-Kp-eSf"/>
-                            <constraint firstItem="AiM-IN-Dvf" firstAttribute="top" secondItem="pv1-rO-sqe" secondAttribute="bottom" constant="-32" id="xEI-DW-EP4"/>
+                            <constraint firstAttribute="bottom" secondItem="AiM-IN-Dvf" secondAttribute="bottom" constant="16" id="tcY-Kp-eSf"/>
+                            <constraint firstItem="AiM-IN-Dvf" firstAttribute="top" secondItem="pv1-rO-sqe" secondAttribute="bottom" id="xEI-DW-EP4"/>
                         </constraints>
                         <connections>
                             <outlet property="nextKeyView" destination="AiM-IN-Dvf" id="4ZF-nG-spm"/>
