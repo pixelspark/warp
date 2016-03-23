@@ -860,7 +860,7 @@ public class StandardSQLDialect: SQLDialect {
 				return "(1/0)"
 				
 			case .EmptyValue:
-				return "''"
+				return "NULL"
 		}
 	}
 	
@@ -877,8 +877,28 @@ public class StandardSQLDialect: SQLDialect {
 			case .Lesser:		return "(\(second)<\(first))"
 			case .GreaterEqual:	return "(\(second)>=\(first))"
 			case .LesserEqual:	return "(\(second)<=\(first))"
-			case .Equal:		return "(\(second)=\(first))"
-			case .NotEqual:		return "(\(second)<>\(first))"
+
+			case .NotEqual:
+				if second == "NULL" {
+					return "(\(first) IS NOT NULL)"
+				}
+				else if first == "NULL" {
+					return "(\(second) IS NOT NULL)"
+				}
+				else {
+					return "(\(second)<>\(first))"
+				}
+
+			case .Equal:
+				if second == "NULL" {
+					return "(\(first) IS NULL)"
+				}
+				else if first == "NULL" {
+					return "(\(second) IS NULL)"
+				}
+				else {
+					return "(\(second)=\(first))"
+				}
 			
 			/* Most SQL database support the "a LIKE '%b%'" syntax for finding items where column a contains the string b
 			(case-insensitive), so that's what we use for ContainsString and ContainsStringStrict. Because Presto doesn't
