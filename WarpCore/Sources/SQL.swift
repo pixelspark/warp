@@ -1236,7 +1236,7 @@ public class SQLData: NSObject, Data {
 		var newColumns = columns
 		
 		let sourceSQL = sql
-		let sourceAlias = sourceSQL.alias
+		let sourceAlias = sourceSQL.aliasFor(.Select)
 		
 		// Re-calculate existing columns first
 		for targetColumn in columns {
