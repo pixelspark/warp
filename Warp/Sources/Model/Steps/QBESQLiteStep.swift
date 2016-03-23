@@ -29,9 +29,7 @@ private class QBESQLiteResult {
 	be fed with parameters which will be bound before query execution. */
 	func run(parameters: [Value]? = nil) -> Bool {
 		// If there are parameters, bind them
-		var ret = true
-		
-		dispatch_sync(self.db.queue) {
+		return self.db.mutex.locked {
 			if let p = parameters {
 				var i = 0
 				for value in p {
@@ -62,7 +60,7 @@ private class QBESQLiteResult {
 					
 					if result != SQLITE_OK {
 						trace("SQLite error on parameter bind: \(self.db.lastError)")
-						ret = false
+						return false
 					}
 					
 					i += 1
@@ -72,20 +70,21 @@ private class QBESQLiteResult {
 			let result = sqlite3_step(self.resultSet)
 			if result != SQLITE_ROW && result != SQLITE_DONE {
 				trace("SQLite error running statement: \(self.db.lastError)")
-				ret = false
+				return false
 			}
 			
 			if sqlite3_clear_bindings(self.resultSet) != SQLITE_OK {
 				trace("SQLite: failed to clear parameter bindings: \(self.db.lastError)")
-				ret = false
+				return false
 			}
 			
 			if sqlite3_reset(self.resultSet) != SQLITE_OK {
 				trace("SQLite: could not reset statement: \(self.db.lastError)")
-				ret = false
+				return false
 			}
+
+			return true
 		}
-		return ret
 	}
 	
 	var columnCount: Int { get {
@@ -204,9 +203,8 @@ private class QBESQLiteConnection: NSObject, SQLConnection {
 		else {
 			self.presenters = ["sqlite-journal", "sqlite-shm", "sqlite-wal", "sqlite-conch"].map { return QBEFileCoordinator.sharedInstance.present(url, secondaryExtension: $0) }
 		}
-		super.init()
 
-		dispatch_set_target_queue(self.ownQueue, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
+		super.init()
 
 		if !perform({sqlite3_open_v2(path, &self.db, flags, nil) }) {
 			return nil
@@ -227,20 +225,20 @@ private class QBESQLiteConnection: NSObject, SQLConnection {
 		perform({sqlite3_close(self.db)})
 	}
 	
-	private static let sharedQueue = dispatch_queue_create("nl.pixelspark.Warp.QBESQLiteConnection.Queue", DISPATCH_QUEUE_SERIAL)
-	private let ownQueue : dispatch_queue_t = dispatch_queue_create("nl.pixelspark.Warp.QBESQLiteConnection.Queue", DISPATCH_QUEUE_SERIAL)
+	private static let sharedMutex = Mutex()
+	private let ownMutex = Mutex()
 	
-	private var queue: dispatch_queue_t { get {
+	private var mutex: Mutex { get {
 		switch sqlite3_threadsafe() {
 			case 0:
 				/* SQLite was compiled without any form of thread-safety, so all requests to it need to go through the 
 				shared SQLite queue */
-				return QBESQLiteConnection.sharedQueue
+				return QBESQLiteConnection.sharedMutex
 			
 			default:
 				/* SQLite is (at least) thread safe (i.e. a single connection may be used by a single thread; concurrently
 				other threads may use different connections). */
-				return ownQueue
+				return ownMutex
 		}
 	} }
 	
@@ -250,15 +248,14 @@ private class QBESQLiteConnection: NSObject, SQLConnection {
 	}
 	
 	private func perform(op: () -> Int32) -> Bool {
-		var ret: Bool = true
-		dispatch_sync(queue) {() -> () in
+		return mutex.locked {
 			let code = op()
 			if code != SQLITE_OK && code != SQLITE_DONE && code != SQLITE_ROW {
 				trace("SQLite error \(code): \(self.lastError)")
-				ret = false
+				return false
 			}
+			return true
 		}
-		return ret
 	}
 	
 	private static func sqliteValueToValue(value: COpaquePointer) -> Value {
@@ -708,6 +705,7 @@ class QBESQLiteCachedData: ProxyData {
 	private let database: QBESQLiteConnection
 	private let tableName: String
 	private(set) var isCached: Bool = false
+	private let mutex = Mutex()
 	private let cacheJob: Job
 	
 	private class var sharedCacheDatabase : QBESQLiteConnection {
@@ -747,8 +745,10 @@ class QBESQLiteCachedData: ProxyData {
 				self.data.columns(self.cacheJob) { [unowned self] (columns) -> () in
 					switch columns {
 					case .Success(let cns):
-						self.data = QBESQLiteData(db: self.database, fragment: SQLFragment(table: self.tableName, schema: nil, database: nil, dialect: self.database.dialect), columns: cns)
-						self.isCached = true
+						self.mutex.locked {
+							self.data = QBESQLiteData(db: self.database, fragment: SQLFragment(table: self.tableName, schema: nil, database: nil, dialect: self.database.dialect), columns: cns)
+							self.isCached = true
+						}
 						completion?(.Success(self))
 
 					case .Failure(let error):
@@ -762,8 +762,14 @@ class QBESQLiteCachedData: ProxyData {
 	}
 
 	deinit {
-		cacheJob.cancel()
-		self.database.query("DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName, schema: nil, database: nil))")
+		self.mutex.locked {
+			if !self.isCached {
+				cacheJob.cancel()
+			}
+			else {
+				self.database.query("DROP TABLE \(self.database.dialect.tableIdentifier(self.tableName, schema: nil, database: nil))")
+			}
+		}
 	}
 }
 
