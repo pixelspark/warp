@@ -22,7 +22,7 @@ private class QBESQLiteResult {
 	}
 	
 	deinit {
-		sqlite3_finalize(resultSet)
+		db.perform { sqlite3_finalize(self.resultSet) }
 	}
 	
 	/** Run is used to execute statements that do not return data (e.g. UPDATE, INSERT, DELETE, etc.). It can optionally
@@ -88,12 +88,16 @@ private class QBESQLiteResult {
 	}
 	
 	var columnCount: Int { get {
-		return Int(sqlite3_column_count(resultSet))
+		return self.db.mutex.locked {
+			return Int(sqlite3_column_count(self.resultSet))
+		}
 	} }
 	
 	 var columns: [Column] { get {
-		let count = sqlite3_column_count(resultSet)
-		return (0..<count).map({Column(String.fromCString(sqlite3_column_name(self.resultSet, $0))!)})
+		return self.db.mutex.locked {
+			let count = sqlite3_column_count(self.resultSet)
+			return (0..<count).map({Column(String.fromCString(sqlite3_column_name(self.resultSet, $0))!)})
+		}
 	} }
 
 	func sequence() -> AnySequence<Fallible<Tuple>> {
@@ -149,34 +153,36 @@ private class QBESQLiteResultGenerator: GeneratorType {
 	}
 
 	var row: Tuple {
-		return (0..<result.columns.count).map { idx in
-			switch sqlite3_column_type(self.result.resultSet, Int32(idx)) {
-			case SQLITE_FLOAT:
-				return Value(sqlite3_column_double(self.result.resultSet, Int32(idx)))
-				
-			case SQLITE_NULL:
-				return Value.EmptyValue
-				
-			case SQLITE_INTEGER:
-				// Booleans are represented as integers, but boolean columns are declared as BOOL columns
-				let intValue = Int(sqlite3_column_int64(self.result.resultSet, Int32(idx)))
-				if let type = String.fromCString(sqlite3_column_decltype(self.result.resultSet, Int32(idx))) {
-					if type.hasPrefix("BOOL") {
-						return Value(intValue != 0)
+		return self.result.db.mutex.locked {
+			return (0..<result.columns.count).map { idx in
+				switch sqlite3_column_type(self.result.resultSet, Int32(idx)) {
+				case SQLITE_FLOAT:
+					return Value(sqlite3_column_double(self.result.resultSet, Int32(idx)))
+					
+				case SQLITE_NULL:
+					return Value.EmptyValue
+					
+				case SQLITE_INTEGER:
+					// Booleans are represented as integers, but boolean columns are declared as BOOL columns
+					let intValue = Int(sqlite3_column_int64(self.result.resultSet, Int32(idx)))
+					if let type = String.fromCString(sqlite3_column_decltype(self.result.resultSet, Int32(idx))) {
+						if type.hasPrefix("BOOL") {
+							return Value(intValue != 0)
+						}
 					}
-				}
-				return Value(intValue)
-				
-			case SQLITE_TEXT:
-				if let string = String.fromCString(UnsafePointer<CChar>(sqlite3_column_text(self.result.resultSet, Int32(idx)))) {
-					return Value(string)
-				}
-				else {
+					return Value(intValue)
+					
+				case SQLITE_TEXT:
+					if let string = String.fromCString(UnsafePointer<CChar>(sqlite3_column_text(self.result.resultSet, Int32(idx)))) {
+						return Value(string)
+					}
+					else {
+						return Value.InvalidValue
+					}
+					
+				default:
 					return Value.InvalidValue
 				}
-				
-			default:
-				return Value.InvalidValue
 			}
 		}
 	}
@@ -222,7 +228,9 @@ private class QBESQLiteConnection: NSObject, SQLConnection {
 	}
 
 	deinit {
-		perform({sqlite3_close(self.db)})
+		perform {
+			sqlite3_close(self.db)
+		}
 	}
 	
 	private static let sharedMutex = Mutex()
@@ -259,46 +267,50 @@ private class QBESQLiteConnection: NSObject, SQLConnection {
 	}
 	
 	private static func sqliteValueToValue(value: COpaquePointer) -> Value {
-		switch sqlite3_value_type(value) {
-			case SQLITE_NULL:
-				return Value.EmptyValue
-			
-			case SQLITE_FLOAT:
-				return Value.DoubleValue(sqlite3_value_double(value))
-			
-			case SQLITE_TEXT:
-				return Value.StringValue(String.fromCString(UnsafePointer<CChar>(sqlite3_value_text(value)))!)
-			
-			case SQLITE_INTEGER:
-				return Value.IntValue(Int(sqlite3_value_int64(value)))
-			
-			default:
-				return Value.InvalidValue
+		return self.sharedMutex.locked {
+			switch sqlite3_value_type(value) {
+				case SQLITE_NULL:
+					return Value.EmptyValue
+				
+				case SQLITE_FLOAT:
+					return Value.DoubleValue(sqlite3_value_double(value))
+				
+				case SQLITE_TEXT:
+					return Value.StringValue(String.fromCString(UnsafePointer<CChar>(sqlite3_value_text(value)))!)
+				
+				case SQLITE_INTEGER:
+					return Value.IntValue(Int(sqlite3_value_int64(value)))
+				
+				default:
+					return Value.InvalidValue
+			}
 		}
 	}
 	
 	private static func sqliteResult(context: COpaquePointer, result: Value) {
-		switch result {
-			case .InvalidValue:
-				sqlite3_result_null(context)
+		return self.sharedMutex.locked {
+			switch result {
+				case .InvalidValue:
+					sqlite3_result_null(context)
+					
+				case .EmptyValue:
+					sqlite3_result_null(context)
+					
+				case .StringValue(let s):
+					sqlite3_result_text(context, s, -1, sqlite3_transient_destructor)
+					
+				case .IntValue(let s):
+					sqlite3_result_int64(context, Int64(s))
+					
+				case .DoubleValue(let d):
+					sqlite3_result_double(context, d)
 				
-			case .EmptyValue:
-				sqlite3_result_null(context)
+				case .DateValue(let d):
+					sqlite3_result_double(context, d)
 				
-			case .StringValue(let s):
-				sqlite3_result_text(context, s, -1, sqlite3_transient_destructor)
-				
-			case .IntValue(let s):
-				sqlite3_result_int64(context, Int64(s))
-				
-			case .DoubleValue(let d):
-				sqlite3_result_double(context, d)
-			
-			case .DateValue(let d):
-				sqlite3_result_double(context, d)
-			
-			case .BoolValue(let b):
-				sqlite3_result_int64(context, b ? 1 : 0)
+				case .BoolValue(let b):
+					sqlite3_result_int64(context, b ? 1 : 0)
+			}
 		}
 	}
 	
