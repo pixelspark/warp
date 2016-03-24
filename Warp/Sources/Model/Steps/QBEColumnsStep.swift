@@ -56,7 +56,7 @@ class QBEColumnsStep: QBEStep {
 				return QBESentence(format: "[#] [#]", typeItem, columnsItem)
 			}
 			else {
-				return QBESentence(format: "[#] [#]".localized, typeItem, columnsItem)
+				return QBESentence(format: "[#] [#]", typeItem, columnsItem)
 			}
 		}
 		else {
@@ -64,10 +64,10 @@ class QBEColumnsStep: QBEStep {
 				return QBESentence(format: "Remove all columns".localized)
 			}
 			else if columns.count == 1 {
-				return QBESentence(format: "[#] [#]".localized, typeItem, columnsItem)
+				return QBESentence(format: "[#] [#]", typeItem, columnsItem)
 			}
 			else {
-				return QBESentence(format: "[#] [#]".localized, typeItem, columnsItem)
+				return QBESentence(format: "[#] [#]", typeItem, columnsItem)
 			}
 		}
 	}
