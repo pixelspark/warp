@@ -264,6 +264,7 @@ internal enum QBEEditingMode {
 			if let otherChain = draggedObject as? QBEChain {
 				if otherChain == myChain || Array(otherChain.dependencies).map({$0.dependsOn}).contains(myChain) {
 					// This would introduce a loop, don't do anything.
+					NSAlert.showSimpleAlert("The data set cannot be linked to this data set".localized, infoText: "Linking the data set to this data set would introduce a loop where the outcome of a calculation would depend on itself.".localized, style: .CriticalAlertStyle, window: self.view.window)
 				}
 				else {
 					let ca = QBEDropChainAction(view: self, chain: otherChain)

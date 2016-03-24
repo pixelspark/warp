@@ -30,7 +30,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	
 	var dependencies: Set<QBEDependency> { get {
 		if let r = right {
-			return [QBEDependency(step: self, dependsOn: r)]
+			return Set([QBEDependency(step: self, dependsOn: r)]).union(r.dependencies)
 		}
 		return []
 	} }
