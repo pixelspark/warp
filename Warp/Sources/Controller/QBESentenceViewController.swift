@@ -6,7 +6,8 @@ protocol QBESentenceViewDelegate: NSObjectProtocol {
 	var locale: Locale { get }
 }
 
-class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate, QBEFormulaEditorViewDelegate, QBEConfigurableViewDelegate {
+class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate,
+	QBEFormulaEditorViewDelegate, QBEConfigurableViewDelegate, QBESetEditorDelegate {
 	@IBOutlet var tokenField: NSTokenField!
 	@IBOutlet var configureButton: NSButton!
 
@@ -178,6 +179,19 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 			return NSMenu()
 		}
+		else if let inputToken = representedObject as? QBESentenceSet {
+			editingToken = QBEEditingToken(inputToken)
+
+			/* We want to show a popover, but NSTokenField only lets us show a menu. So return an empty menu and
+			asynchronously present a popover right at this location */
+			if let event = self.view.window?.currentEvent {
+				asyncMain {
+					self.editSet(event)
+				}
+			}
+
+			return NSMenu()
+		}
 		else if let inputToken = representedObject as? QBESentenceFile {
 			self.editingToken = QBEEditingToken(inputToken)
 
@@ -329,6 +343,34 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			inputToken.change(newExpression ?? Literal(Value.EmptyValue))
 			self.delegate?.sentenceView(self, didChangeConfigurable: s)
 			updateView()
+		}
+	}
+
+	func setEditor(editor: QBESetEditorViewController, didChangeSelection selection: Set<String>) {
+		if let inputToken = editingToken?.token as? QBESentenceSet, let s = self.editingConfigurable {
+			inputToken.select(selection)
+			self.delegate?.sentenceView(self, didChangeConfigurable: s)
+			updateView()
+		}
+	}
+
+	func editSet(sender: NSEvent) {
+		if let inputToken = editingToken?.token as? QBESentenceSet {
+			inputToken.provider { result in
+				result.maybe { options in
+					asyncMain {
+						if let editor = self.storyboard?.instantiateControllerWithIdentifier("setEditor") as? QBESetEditorViewController {
+							editor.delegate = self
+							editor.possibleValues = Array(options)
+							editor.selection = inputToken.value
+							let windowRect = NSMakeRect(sender.locationInWindow.x + 5, sender.locationInWindow.y, 1, 1)
+							var viewRect = self.view.convertRect(windowRect, fromView: nil)
+							viewRect.origin.y = 0.0
+							self.presentViewController(editor, asPopoverRelativeToRect: viewRect, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
+						}
+					}
+				}
+			}
 		}
 	}
 

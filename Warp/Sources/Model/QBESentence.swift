@@ -111,6 +111,37 @@ public class QBESentenceOptions: NSObject, QBESentenceToken {
 	}
 }
 
+/** A sentence item that shows a list of string options, which have associated string keys. Either option can be selected
+or deselected.*/
+public class QBESentenceSet: NSObject, QBESentenceToken {
+	public typealias Provider = (callback: (Fallible<Set<String>>) -> ()) -> ()
+	public typealias Callback = (Set<String>) -> ()
+	public private(set) var provider: Provider
+	public private(set) var value: Set<String>
+	public let callback: Callback
+
+	public var label: String {
+		if self.value.count > 4 {
+			let first = self.value.prefix(4)
+			return String(format: "%@ and %d more".localized, first.joinWithSeparator(", "), self.value.count - first.count)
+		}
+
+		return self.value.joinWithSeparator(", ")
+	}
+
+	public init(value: Set<String>, provider: Provider, callback: Callback) {
+		self.provider = provider
+		self.value = value
+		self.callback = callback
+	}
+
+	public var isToken: Bool { get { return true } }
+
+	public func select(set: Set<String>) {
+		callback(set)
+	}
+}
+
 /** Sentence item that shows static, read-only text. */
 public class QBESentenceText: NSObject, QBESentenceToken {
 	public let label: String

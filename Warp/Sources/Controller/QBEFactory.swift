@@ -104,7 +104,6 @@ class QBEFactory {
 		QBEPivotStep.className(): QBEPivotStepView.self,
 		QBECSVSourceStep.className(): QBECSVStepView.self,
 		QBEPrestoSourceStep.className(): QBEPrestoSourceStepView.self,
-		QBEColumnsStep.className(): QBEColumnsStepView.self,
 		QBESortStep.className(): QBESortStepView.self,
 		QBEMySQLSourceStep.className(): QBEMySQLSourceStepView.self,
 		QBERenameStep.className(): QBERenameStepView.self,

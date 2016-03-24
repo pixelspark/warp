@@ -14,42 +14,62 @@ class QBEColumnsStep: QBEStep {
 		self.select = select
 		super.init(previous: previous)
 	}
-	
-	private func explanation(locale: Locale) -> String {
-		if select {
-			if columns.isEmpty {
-				return NSLocalizedString("Select all columns", comment: "")
-			}
-			else if columns.count == 1 {
-				return String(format: NSLocalizedString("Select only the column '%@'", comment: ""), columns.first!.name)
-			}
-			else if columns.count < 5 {
-				let cn = columns.map({$0.name}).joinWithSeparator(", ")
-				return String(format: NSLocalizedString("Select only the columns %@", comment: ""), cn)
+
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+		let typeItem = QBESentenceOptions(options: [
+			"select": (columns.count <= 1 ? "Select column".localized : "Select columns".localized),
+			"remove": (columns.count <= 1 ? "Remove column".localized : "Remove columns".localized)
+		], value: self.select ? "select" : "remove") { [weak self] newType in
+			self?.select = (newType == "select")
+		}
+
+		let columnsItem = QBESentenceSet(value: Set(self.columns.map { $0.name }), provider: { cb in
+			let job = Job(.UserInitiated)
+			if let previous = self.previous {
+				previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) {result in
+					switch result {
+					case .Success(let data):
+						data.columns(job) { result in
+							switch result {
+							case .Success(let cns):
+								cb(.Success(Set(cns.map { $0.name })))
+
+							case .Failure(let e):
+								cb(.Failure(e))
+							}
+						}
+					case .Failure(let e):
+						cb(.Failure(e))
+					}
+				}
 			}
 			else {
-				return String(format: NSLocalizedString("Select %lu columns", comment: ""), columns.count)
+				cb(.Success([]))
+			}
+		},
+		callback: { [weak self] newSet in
+			self?.columns = Array(newSet.map { Column($0) })
+		})
+
+		if select {
+			if columns.count <= 1 {
+				return QBESentence(format: "[#] [#]", typeItem, columnsItem)
+			}
+			else {
+				return QBESentence(format: "[#] [#]".localized, typeItem, columnsItem)
 			}
 		}
 		else {
 			if columns.isEmpty {
-				return NSLocalizedString("Remove all columns", comment: "")
+				return QBESentence(format: "Remove all columns".localized)
 			}
 			else if columns.count == 1 {
-				return String(format: NSLocalizedString("Remove the column '%@'", comment: ""), columns.first!.name)
-			}
-			else if columns.count < 5 {
-				let cn = columns.map({$0.name}).joinWithSeparator(", ") ?? ""
-				return String(format: NSLocalizedString("Remove the columns %@", comment: ""), cn)
+				return QBESentence(format: "[#] [#]".localized, typeItem, columnsItem)
 			}
 			else {
-				return String(format: NSLocalizedString("Remove %lu columns", comment: ""), columns.count)
+				return QBESentence(format: "[#] [#]".localized, typeItem, columnsItem)
 			}
 		}
-	}
-
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 
 	required init(coder aDecoder: NSCoder) {
@@ -78,7 +98,7 @@ class QBEColumnsStep: QBEStep {
 						}
 						return !self.select
 					}) ?? []
-					
+					print("selectCols \(columns)")
 					callback(.Success(data.selectColumns(columns)))
 				
 				case .Failure(let error):
