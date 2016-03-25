@@ -51,6 +51,36 @@ public protocol MutableData {
 	func data(job: Job, callback: (Fallible<Data>) -> ())
 }
 
+/** Proxy for MutableData that can be used to create mutable data objects that perform particular operations differently
+than the underlying mutable data set, or block certain mutations. */
+public class MutableProxyData: MutableData {
+	public let original: MutableData
+
+	public init(original: MutableData) {
+		self.original = original
+	}
+
+	public var warehouse: Warehouse {
+		return self.original.warehouse
+	}
+
+	public func data(job: Job, callback: (Fallible<Data>) -> ()) {
+		self.original.data(job, callback: callback)
+	}
+
+	public func performMutation(mutation: DataMutation, job: Job, callback: (Fallible<Void>) -> ()) {
+		self.original.performMutation(mutation, job: job, callback: callback)
+	}
+
+	public func canPerformMutation(mutation: DataMutation) -> Bool {
+		return self.original.canPerformMutation(mutation)
+	}
+
+	public func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+		return self.original.identifier(job, callback: callback)
+	}
+}
+
 public extension MutableData {
 	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.data(job) { result in

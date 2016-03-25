@@ -65,6 +65,10 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 			callback(.Failure(NSLocalizedString("Clone step cannot find the original to clone from.", comment: "")))
 		}
 	}
+
+	override var mutableData: MutableData? {
+		return self.right?.head?.mutableData
+	}
 	
 	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
 		fatalError("QBECloneStep.apply should not be used")

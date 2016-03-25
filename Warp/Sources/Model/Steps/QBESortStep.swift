@@ -74,4 +74,11 @@ class QBESortStep: QBEStep {
 	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(data.sort(orders)))
 	}
+
+	override var mutableData: MutableData? {
+		if let md = self.previous?.mutableData {
+			return QBEMutableDataWithRowsShuffled(original: md)
+		}
+		return nil
+	}
 }

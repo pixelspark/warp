@@ -1,6 +1,18 @@
 import Foundation
 import WarpCore
 
+/** A mutable data proxy that prevents edits to the data set that assume a certain order or position of rows. */
+class QBEMutableDataWithRowsShuffled: MutableProxyData {
+	override func canPerformMutation(mutation: DataMutation) -> Bool {
+		switch mutation {
+		case .Remove(rows: _), .Edit(row: _, column: _, old: _, new: _):
+			return false
+		default:
+			return true
+		}
+	}
+}
+
 class QBERowsStep: NSObject {
 	class func suggest(selectRows: NSIndexSet, columns: Set<Column>, inRaster: Raster, fromStep: QBEStep?, select: Bool) -> [QBEStep] {
 		var suggestions: [QBEStep] = []
@@ -129,6 +141,13 @@ class QBEFilterStep: QBEStep {
 	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(data.filter(condition)))
 	}
+
+	override var mutableData: MutableData? {
+		if let md = self.previous?.mutableData {
+			return QBEMutableDataWithRowsShuffled(original: md)
+		}
+		return nil
+	}
 }
 
 class QBELimitStep: QBEStep {
@@ -176,6 +195,13 @@ class QBELimitStep: QBEStep {
 		}
 		return QBEStepMerge.Impossible
 	}
+
+	override var mutableData: MutableData? {
+		if let md = self.previous?.mutableData {
+			return QBEMutableDataWithRowsShuffled(original: md)
+		}
+		return nil
+	}
 }
 
 class QBEOffsetStep: QBEStep {
@@ -214,6 +240,13 @@ class QBEOffsetStep: QBEStep {
 	
 	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
 		callback(.Success(data.offset(numberOfRows)))
+	}
+
+	override var mutableData: MutableData? {
+		if let md = self.previous?.mutableData {
+			return QBEMutableDataWithRowsShuffled(original: md)
+		}
+		return nil
 	}
 }
 
@@ -254,6 +287,13 @@ class QBERandomStep: QBELimitStep {
 
 	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
 		return QBEStepMerge.Impossible
+	}
+
+	override var mutableData: MutableData? {
+		if let md = self.previous?.mutableData {
+			return QBEMutableDataWithRowsShuffled(original: md)
+		}
+		return nil
 	}
 }
 
