@@ -34,12 +34,19 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		super.encodeWithCoder(coder)
 	}
 	
-	var dependencies: Set<QBEDependency> { get {
+	var recursiveDependencies: Set<QBEDependency> {
 		if let r = right {
-			return [QBEDependency(step: self, dependsOn: r)]
+			return Set([QBEDependency(step: self, dependsOn: r)]).union(r.recursiveDependencies)
 		}
 		return []
-	} }
+	}
+
+	var directDependencies: Set<QBEDependency> {
+		if let r = right {
+			return Set([QBEDependency(step: self, dependsOn: r)])
+		}
+		return []
+	}
 
 	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		let joinTypeSentenceItem = QBESentenceOptions(options: [
@@ -303,12 +310,19 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		super.encodeWithCoder(coder)
 	}
 	
-	var dependencies: Set<QBEDependency> { get {
+	var recursiveDependencies: Set<QBEDependency> {
 		if let r = right {
-			return [QBEDependency(step: self, dependsOn: r)]
+			return Set([QBEDependency(step: self, dependsOn: r)]).union(r.recursiveDependencies)
 		}
 		return []
-	} }
+	}
+
+	var directDependencies: Set<QBEDependency> {
+		if let r = right {
+			return Set([QBEDependency(step: self, dependsOn: r)])
+		}
+		return []
+	}
 
 	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(NSLocalizedString("Merge data", comment: ""))])

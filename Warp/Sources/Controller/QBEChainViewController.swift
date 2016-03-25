@@ -262,7 +262,7 @@ internal enum QBEEditingMode {
 
 		if let myChain = chain {
 			if let otherChain = draggedObject as? QBEChain {
-				if otherChain == myChain || Array(otherChain.dependencies).map({$0.dependsOn}).contains(myChain) {
+				if otherChain == myChain || Array(otherChain.recursiveDependencies).map({$0.dependsOn}).contains(myChain) {
 					// This would introduce a loop, don't do anything.
 					NSAlert.showSimpleAlert("The data set cannot be linked to this data set".localized, infoText: "Linking the data set to this data set would introduce a loop where the outcome of a calculation would depend on itself.".localized, style: .CriticalAlertStyle, window: self.view.window)
 				}
@@ -538,6 +538,10 @@ internal enum QBEEditingMode {
 		
 		(undo?.prepareWithInvocationTarget(self) as? QBEChainViewController)?.addStep(step)
 		undo?.setActionName(NSLocalizedString("Remove step", comment: ""))
+
+		if let c = chain {
+			QBEChangeNotification.broadcastChange(c)
+		}
 	}
 	
 	func stepsController(vc: QBEStepsViewController, didMoveStep: QBEStep, afterStep: QBEStep?) {
@@ -585,17 +589,29 @@ internal enum QBEEditingMode {
 		stepsChanged()
 		updateView()
 		calculate()
+
+		if let c = chain {
+			QBEChangeNotification.broadcastChange(c)
+		}
 	}
 	
 	func stepsController(vc: QBEStepsViewController, didInsertStep step: QBEStep, afterStep: QBEStep?) {
 		chain?.insertStep(step, afterStep: afterStep)
 		stepsChanged()
+
+		if let c = chain {
+			QBEChangeNotification.broadcastChange(c)
+		}
 	}
 	
 	// Used for undo for remove step
 	@objc func addStep(step: QBEStep) {
 		chain?.insertStep(step, afterStep: nil)
 		stepsChanged()
+
+		if let c = chain {
+			QBEChangeNotification.broadcastChange(c)
+		}
 	}
 	
 	func dataView(view: QBEDataViewController, didSelectValue: Value, changeable: Bool) {
@@ -691,8 +707,8 @@ internal enum QBEEditingMode {
 										temporary raster as well. We could also call self.calculate() here, but that takes
 										a while, and we would lose our current scrolling position, etc. */
 										RasterMutableData(raster: editingRaster).performMutation(mutation, job: job) { result in
+											QBEChangeNotification.broadcastChange(self.chain!)
 											asyncMain {
-												NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 												self.presentRaster(editingRaster)
 												self.dataViewController?.sizeColumnToFit(columnName)
 												callback(true)
@@ -722,9 +738,10 @@ internal enum QBEEditingMode {
 									temporary raster as well. We could also call self.calculate() here, but that takes
 									a while, and we would lose our current scrolling position, etc. */
 									RasterMutableData(raster: editingRaster).performMutation(mutation, job: job) { result in
+										QBEChangeNotification.broadcastChange(self.chain!)
+
 										asyncMain {
 											self.presentRaster(editingRaster)
-											NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 
 											if let rn = inRow {
 												self.dataView(view, didChangeValue: Value.EmptyValue, toValue: value, inRow: rn, column: columns.count-1)
@@ -782,8 +799,8 @@ internal enum QBEEditingMode {
 								temporary raster as well. We could also call self.calculate() here, but that takes
 								a while, and we would lose our current scrolling position, etc. */
 								RasterMutableData(raster: editingRaster).performMutation(removeMutation, job: job) { result in
+									QBEChangeNotification.broadcastChange(self.chain!)
 									asyncMain {
-										NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 										self.presentRaster(editingRaster)
 									}
 								}
@@ -820,8 +837,8 @@ internal enum QBEEditingMode {
 									temporary raster as well. We could also call self.calculate() here, but that takes
 									a while, and we would lose our current scrolling position, etc. */
 									RasterMutableData(raster: editingRaster).performMutation(deleteMutation, job: job) { result in
+										QBEChangeNotification.broadcastChange(self.chain!)
 										asyncMain {
-											NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 											self.presentRaster(editingRaster)
 										}
 									}
@@ -876,8 +893,9 @@ internal enum QBEEditingMode {
 											temporary raster as well. We could also call self.calculate() here, but that takes
 											a while, and we would lose our current scrolling position, etc. */
 												RasterMutableData(raster: editingRaster).performMutation(editMutation, job: job) { result in
+													QBEChangeNotification.broadcastChange(self.chain!)
+
 													asyncMain {
-														NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 														self.presentRaster(editingRaster)
 													}
 												}
@@ -909,8 +927,9 @@ internal enum QBEEditingMode {
 												temporary raster as well. We could also call self.calculate() here, but that takes
 												a while, and we would lose our current scrolling position, etc. */
 												RasterMutableData(raster: editingRaster).performMutation(editMutation, job: job) { result in
+													QBEChangeNotification.broadcastChange(self.chain!)
+
 													asyncMain {
-														NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object: QBEResultNotification(raster: editingRaster, isFull: false, step: self.currentStep!, filters: self.viewFilters, sender: self))
 														self.presentRaster(editingRaster)
 													}
 												}
@@ -1143,6 +1162,10 @@ internal enum QBEEditingMode {
 		
 		updateView()
 		stepsChanged()
+
+		if let c = self.chain {
+			QBEChangeNotification.broadcastChange(c)
+		}
 	}
 	
 	private func popStep() {
@@ -1192,6 +1215,10 @@ internal enum QBEEditingMode {
 		}
 		stepsChanged()
 		calculate()
+
+		if let c = self.chain {
+			QBEChangeNotification.broadcastChange(c)
+		}
 	}
 	
 	func suggestionsView(view: NSViewController, previewStep step: QBEStep?) {
@@ -1256,9 +1283,12 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	func sentenceView(view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable) {
+	func sentenceView(view: QBESentenceViewController, didChangeConfigurable configurable: QBEConfigurable) {
 		updateView()
 		calculate()
+		if let c = self.chain {
+			QBEChangeNotification.broadcastChange(c)
+		}
 	}
 	
 	func stepsController(vc: QBEStepsViewController, showSuggestionsForStep step: QBEStep, atView: NSView?) {
@@ -1420,6 +1450,10 @@ internal enum QBEEditingMode {
 		
 		stepToRemove.previous = nil
 		stepsChanged()
+
+		if let c = self.chain {
+			QBEChangeNotification.broadcastChange(c)
+		}
 	}
 	
 	@IBAction func copy(sender: NSObject) {
@@ -2176,6 +2210,32 @@ internal enum QBEEditingMode {
 		super.viewWillAppear()
 		stepsChanged()
 		calculate()
+		NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(QBEChainViewController.changeNotificationReceived(_:)), name: QBEChangeNotification.name, object: nil)
+	}
+
+	@objc private func changeNotificationReceived(notification: NSNotification) {
+		assertMainThread()
+
+		if let changeNotification = notification.object as? QBEChangeNotification {
+			// Check if this notification came from ourselves
+			if changeNotification.chain == self.chain {
+				return
+			}
+
+			if let deps = self.chain?.recursiveDependencies {
+				for d in deps {
+					if d.dependsOn == changeNotification.chain {
+						// We depend on the newly calculated data
+						self.calculate()
+						return
+					}
+				}
+			}
+		}
+	}
+
+	override func viewWillDisappear() {
+		NSNotificationCenter.defaultCenter().removeObserver(self)
 	}
 
 	override func viewDidAppear() {

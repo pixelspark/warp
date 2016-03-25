@@ -29,7 +29,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	@objc private func resultNotificationReceived(notification: NSNotification) {
 		assertMainThread()
 
-		if let calculationNotification = notification.object as? QBEResultNotification where calculationNotification.sender != calculator {
+		if let calculationNotification = notification.object as? QBEResultNotification where calculationNotification.calculator != calculator {
 			if let t = self.chartTablet, let source = t.sourceTablet, let step = source.chain.head {
 				if step == calculationNotification.step {
 					self.presentedRaster = calculationNotification.raster

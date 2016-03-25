@@ -123,7 +123,7 @@ of data. A tablet has a rectangular shape and a certain position in the document
 
 	override var arrows: [QBETabletArrow] {
 		var arrows: [QBETabletArrow] = []
-		for dep in chain.dependencies {
+		for dep in chain.directDependencies {
 			if let s = chain.tablet, let t = dep.dependsOn.tablet {
 				arrows.append(QBETabletArrow(from: t, to: s, fromStep: dep.step))
 			}

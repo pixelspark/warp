@@ -1,23 +1,44 @@
 import Foundation
 import WarpCore
 
-/** Notification that is sent around whenever a result has been calculated for a particular step. It can be used to keep
-linked tablets in sync. */
+/** Notification that is sent around whenever a step or chain changes in such a way that it requires recalculation of
+data depending on the chain's outcome. */
+internal class QBEChangeNotification: NSObject {
+	static let name = "nl.pixelspark.warp.ChangeNotification"
+
+	weak var sender: NSObject?
+	let chain: QBEChain
+
+	private init(chain: QBEChain) {
+		self.chain = chain
+	}
+
+	internal static func broadcastChange(chain: QBEChain) {
+		let n = QBEChangeNotification(chain: chain)
+		asyncMain {
+			NSNotificationCenter.defaultCenter().postNotification(NSNotification(name: QBEChangeNotification.name, object: n))
+		}
+	}
+}
+
+/** Notification that is sent around by QBECalculator whenever a result has been calculated for a particular step. Tablets
+that depend on data from another step can listen for this notification to receive 'cheap' data (it has already been
+calculated) and update their displays. */
 public class QBEResultNotification: NSObject {
 	public static let name = "nl.pixelspark.warp.ResultNotification"
 
-	weak var sender: NSObject?
+	weak var calculator: QBECalculator?
 	let raster: Raster
 	let isFull: Bool
 	let step: QBEStep
 	let filters: [Column:FilterSet]?
 
-	init(raster: Raster, isFull: Bool, step: QBEStep, filters: [Column:FilterSet]?, sender: NSObject) {
+	private init(raster: Raster, isFull: Bool, step: QBEStep, filters: [Column:FilterSet]?, calculator: QBECalculator) {
 		self.raster = raster
 		self.isFull = isFull
 		self.step = step
 		self.filters = filters
-		self.sender = sender
+		self.calculator = calculator
 	}
 }
 
@@ -151,7 +172,7 @@ public class QBECalculator: NSObject {
 					// Send notification of finished raster
 					asyncMain {
 						NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
-							QBEResultNotification(raster: r, isFull: false, step: sourceStep, filters: columnFilters, sender: self))
+							QBEResultNotification(raster: r, isFull: false, step: sourceStep, filters: columnFilters, calculator: self))
 					}
 					callback()
 				}
@@ -209,7 +230,7 @@ public class QBECalculator: NSObject {
 														// Send notification of finished raster
 														asyncMain {
 															NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
-																QBEResultNotification(raster: raster, isFull: fullData, step: sourceStep, filters: columnFilters, sender: self))
+																QBEResultNotification(raster: raster, isFull: fullData, step: sourceStep, filters: columnFilters, calculator: self))
 														}
 													}
 													callback(result)
@@ -227,7 +248,7 @@ public class QBECalculator: NSObject {
 												// Send notification of finished raster
 												asyncMain {
 													NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
-														QBEResultNotification(raster: raster, isFull: fullData, step: sourceStep, filters: columnFilters, sender: self))
+														QBEResultNotification(raster: raster, isFull: fullData, step: sourceStep, filters: columnFilters, calculator: self))
 												}
 											}
 											callback(result)

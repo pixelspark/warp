@@ -28,12 +28,19 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		super.encodeWithCoder(coder)
 	}
 	
-	var dependencies: Set<QBEDependency> { get {
+	var recursiveDependencies: Set<QBEDependency> {
 		if let r = right {
-			return Set([QBEDependency(step: self, dependsOn: r)]).union(r.dependencies)
+			return Set([QBEDependency(step: self, dependsOn: r)]).union(r.recursiveDependencies)
 		}
 		return []
-	} }
+	}
+
+	var directDependencies: Set<QBEDependency> {
+		if let r = right {
+			return Set([QBEDependency(step: self, dependsOn: r)])
+		}
+		return []
+	}
 
 	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([

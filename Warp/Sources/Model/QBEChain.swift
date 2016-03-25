@@ -15,7 +15,8 @@ func ==(lhs: QBEDependency, rhs: QBEDependency) -> Bool {
 }
 
 protocol QBEChainDependent: NSObjectProtocol {
-	var dependencies: Set<QBEDependency> { get }
+	var recursiveDependencies: Set<QBEDependency> { get }
+	var directDependencies: Set<QBEDependency> { get }
 }
 
 /** QBEChain represents a chain of steps, leading to a result data set. */
@@ -41,23 +42,35 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 		return true
 	}
 	
-	var dependencies: Set<QBEDependency> { get {
+	var recursiveDependencies: Set<QBEDependency> {
 		var deps: Set<QBEDependency> = []
 		
 		for s in steps {
 			if let sd = s as? QBEChainDependent {
-				deps.unionInPlace(sd.dependencies)
+				deps.unionInPlace(sd.recursiveDependencies)
 			}
 		}
 		
 		return deps
-	} }
+	}
+
+	var directDependencies: Set<QBEDependency> {
+		var deps: Set<QBEDependency> = []
+
+		for s in steps {
+			if let sd = s as? QBEChainDependent {
+				deps.unionInPlace(sd.directDependencies)
+			}
+		}
+
+		return deps
+	}
 	
-	var isPartOfDependencyLoop: Bool { get {
-		return Array(dependencies).map({$0.dependsOn}).contains(self)
-	} }
+	var isPartOfDependencyLoop: Bool {
+		return Array(directDependencies).map({$0.dependsOn}).contains(self)
+	}
 	
-	var steps: [QBEStep] { get {
+	var steps: [QBEStep] {
 		var s: [QBEStep] = []
 		var current = head
 		
@@ -67,7 +80,7 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 		}
 		
 		return Array(s.reverse())
-	} }
+	}
 	
 	func insertStep(step: QBEStep, afterStep: QBEStep?) {
 		if afterStep == nil {
