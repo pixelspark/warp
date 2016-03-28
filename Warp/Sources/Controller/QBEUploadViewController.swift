@@ -267,7 +267,6 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 									sourceData.columns(job) { result in
 										switch result {
 										case .Success(let sourceColumns):
-											job.log("SRC=\(sourceColumns) DST=\(destinationColumns)")
 											// Make a default mapping if none exists yet
 											if self.mapping == nil {
 												self.mapping = [:]

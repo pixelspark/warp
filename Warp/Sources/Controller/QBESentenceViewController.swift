@@ -394,3 +394,10 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		self.delegate?.sentenceView(self, didChangeConfigurable: c)
 	}
 }
+
+class QBESentenceTokenField: NSTokenField {
+	override func layout() {
+		self.preferredMaxLayoutWidth = self.frame.size.width
+		super.layout()
+	}
+}

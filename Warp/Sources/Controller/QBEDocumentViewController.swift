@@ -599,6 +599,7 @@ import WarpCore
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
 		if segue.identifier == "sentence" {
 			self.sentenceEditor = segue.destinationController as? QBESentenceViewController
+			self.sentenceEditor?.view.translatesAutoresizingMaskIntoConstraints = false
 		}
 	}
 

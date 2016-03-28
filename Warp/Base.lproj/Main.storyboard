@@ -1738,7 +1738,7 @@ CA
                                                     <action selector="addButtonClicked:" target="y5B-O8-QaO" id="Xkt-W6-slr"/>
                                                 </connections>
                                             </textField>
-                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="1000" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
+                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="250" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
                                                 <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                                 <clipView key="contentView" drawsBackground="NO" id="883-xW-r8t">
                                                     <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
@@ -1773,10 +1773,10 @@ CA
                                             <constraint firstAttribute="centerY" secondItem="OEa-fZ-fMo" secondAttribute="centerY" constant="4" id="v8g-g5-hb7"/>
                                         </constraints>
                                     </customView>
-                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
+                                    <customView verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="500" width="700" height="31"/>
                                         <subviews>
-                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="1000" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
+                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="1000" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="688" placeholderIntrinsicHeight="23" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
                                                 <rect key="frame" x="4" y="4" width="688" height="23"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>
@@ -1800,7 +1800,6 @@ CA
                                 </subviews>
                                 <constraints>
                                     <constraint firstItem="jQq-6i-09S" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" id="6II-69-NmR"/>
-                                    <constraint firstItem="jQq-6i-09S" firstAttribute="top" secondItem="cDc-rh-vev" secondAttribute="top" constant="31" id="7hK-wT-ezE"/>
                                     <constraint firstItem="jQq-6i-09S" firstAttribute="top" secondItem="20V-eU-jYi" secondAttribute="bottom" id="IP2-Sl-qE5"/>
                                     <constraint firstItem="20V-eU-jYi" firstAttribute="leading" secondItem="cDc-rh-vev" secondAttribute="leading" id="SdG-9D-fyB"/>
                                     <constraint firstAttribute="trailing" secondItem="20V-eU-jYi" secondAttribute="trailing" id="UgF-pb-Ago"/>
@@ -2843,7 +2842,7 @@ z4M9Ew
             <objects>
                 <viewController storyboardIdentifier="uploadData" id="kej-0g-2dY" customClass="QBEUploadViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="grc-U0-uND">
-                        <rect key="frame" x="0.0" y="0.0" width="623" height="279"/>
+                        <rect key="frame" x="0.0" y="0.0" width="623" height="197"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="SYa-KY-zD8">
@@ -2869,14 +2868,14 @@ DQ
                                     <constraint firstAttribute="width" constant="128" id="T09-zb-fJx"/>
                                 </constraints>
                             </progressIndicator>
-                            <containerView verticalHuggingPriority="251" verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="QpU-NZ-jJG">
+                            <containerView verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="QpU-NZ-jJG">
                                 <rect key="frame" x="5" y="106" width="613" height="22"/>
                                 <connections>
                                     <segue destination="dZx-NB-Ues" kind="embed" identifier="targetSentenceView" id="OiJ-tK-4iF"/>
                                 </connections>
                             </containerView>
-                            <containerView verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="TPX-oT-EhC">
-                                <rect key="frame" x="5" y="138" width="613" height="104"/>
+                            <containerView verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="TPX-oT-EhC">
+                                <rect key="frame" x="5" y="138" width="613" height="22"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="6AW-yp-ho3"/>
                                 </constraints>
@@ -2885,7 +2884,7 @@ DQ
                                 </connections>
                             </containerView>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="X39-p6-DDO">
-                                <rect key="frame" x="8" y="252" width="83" height="17"/>
+                                <rect key="frame" x="8" y="170" width="83" height="17"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="17" id="Fup-4l-zMR"/>
                                 </constraints>
@@ -2954,10 +2953,13 @@ Gw
                             <constraint firstAttribute="trailing" secondItem="SYa-KY-zD8" secondAttribute="trailing" constant="5" id="7Mc-vB-WOb"/>
                             <constraint firstItem="03K-Ad-UyC" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="15" id="Ede-Sg-U1Q"/>
                             <constraint firstItem="TPX-oT-EhC" firstAttribute="top" secondItem="X39-p6-DDO" secondAttribute="bottom" constant="10" id="Ehg-Gh-WkO"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="P3i-Jl-l2t" secondAttribute="trailing" constant="5" id="HR3-cB-9wz"/>
                             <constraint firstItem="TPX-oT-EhC" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="5" id="IfI-7m-rJv"/>
                             <constraint firstItem="P3i-Jl-l2t" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="15" id="JXC-3J-ntn"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="03K-Ad-UyC" secondAttribute="trailing" constant="5" id="Kml-R6-7Jx"/>
                             <constraint firstAttribute="bottom" secondItem="SYa-KY-zD8" secondAttribute="bottom" constant="5" id="N1Y-ht-Zts"/>
                             <constraint firstItem="P3i-Jl-l2t" firstAttribute="top" secondItem="QpU-NZ-jJG" secondAttribute="bottom" constant="10" id="ODr-L2-6wi"/>
+                            <constraint firstItem="Dgz-cc-hxh" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="fub-Gu-JU4" secondAttribute="trailing" constant="5" id="Pgp-rb-Doz"/>
                             <constraint firstAttribute="bottom" secondItem="fub-Gu-JU4" secondAttribute="bottom" constant="5" id="VXe-sc-DUs"/>
                             <constraint firstAttribute="trailing" secondItem="QpU-NZ-jJG" secondAttribute="trailing" constant="5" id="Wa8-yI-BGo"/>
                             <constraint firstItem="fub-Gu-JU4" firstAttribute="top" secondItem="03K-Ad-UyC" secondAttribute="bottom" constant="10" id="dQS-c6-8dM"/>
@@ -2983,7 +2985,7 @@ Gw
                 </viewController>
                 <customObject id="Gdb-4K-uue" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2457.5" y="-243.5"/>
+            <point key="canvasLocation" x="2457.5" y="-236.5"/>
         </scene>
         <!--Suggestions View Controller-->
         <scene sceneID="Fm8-kC-hUX">
@@ -3661,14 +3663,14 @@ DQ
         <scene sceneID="Pcn-Xl-fFm">
             <objects>
                 <viewController storyboardIdentifier="sentenceController" id="dZx-NB-Ues" customClass="QBESentenceViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" wantsLayer="YES" id="OmE-kA-pRl">
+                    <view key="view" wantsLayer="YES" verticalCompressionResistancePriority="1000" id="OmE-kA-pRl">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="22"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <tokenField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi">
-                                <rect key="frame" x="2" y="0.0" width="403" height="22"/>
+                            <tokenField wantsLayer="YES" focusRingType="none" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" misplaced="YES" preferredMaxLayoutWidth="399" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi" customClass="QBESentenceTokenField" customModule="Warp" customModuleProvider="target">
+                                <rect key="frame" x="2" y="0.0" width="403" height="17"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="sHi-T4-777"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="17" id="sHi-T4-777"/>
                                 </constraints>
                                 <tokenFieldCell key="cell" selectable="YES" refusesFirstResponder="YES" focusRingType="none" alignment="left" allowsEditingTextAttributes="YES" id="D1b-0t-j6u">
                                     <font key="font" metaFont="system"/>
@@ -3698,7 +3700,7 @@ DQ
                             <constraint firstItem="CCw-Hx-VEJ" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="104-tr-vGe"/>
                             <constraint firstItem="fpC-FX-udi" firstAttribute="leading" secondItem="OmE-kA-pRl" secondAttribute="leading" constant="4" id="EiS-qj-N3o"/>
                             <constraint firstItem="fpC-FX-udi" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="TWE-fa-8LF"/>
-                            <constraint firstAttribute="bottom" secondItem="fpC-FX-udi" secondAttribute="bottom" id="gPC-1h-m9y"/>
+                            <constraint firstAttribute="bottom" secondItem="fpC-FX-udi" secondAttribute="bottom" constant="2" id="gPC-1h-m9y"/>
                             <constraint firstItem="CCw-Hx-VEJ" firstAttribute="leading" secondItem="fpC-FX-udi" secondAttribute="trailing" constant="4" id="nv3-C8-oEt"/>
                             <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="CCw-Hx-VEJ" secondAttribute="bottom" id="uBh-I7-BQb"/>
                         </constraints>
@@ -3710,7 +3712,7 @@ DQ
                 </viewController>
                 <customObject id="XoF-0a-53S" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1723" y="129"/>
+            <point key="canvasLocation" x="1723" y="170"/>
         </scene>
         <!--Chart Tablet View Controller-->
         <scene sceneID="U8A-1X-Ia3">
@@ -3850,6 +3852,6 @@ DQ
         <image name="ZoomOutIcon" width="51" height="51"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="87o-14-S5w"/>
+        <segue reference="ZgC-CH-SBh"/>
     </inferredMetricsTieBreakers>
 </document>
