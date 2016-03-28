@@ -110,6 +110,10 @@ public enum Function: String {
 	is deterministic and all arguments are constants, it is automatically replaced with a literal expression containing
 	its constant result). */
 	func prepare(args: [Expression]) -> Expression {
+		if self.isIdentityWithSingleArgument && args.count == 1 && self.arity.valid(1) {
+			return args.first!
+		}
+
 		var prepared = args.map({$0.prepare()})
 		
 		switch self {
@@ -1259,6 +1263,19 @@ public enum Function: String {
 			return nil
 		}
 	} }
+
+	/** True if the function - when called with just a single argument - would always return that single argument. */
+	public var isIdentityWithSingleArgument: Bool {
+		// Functions that require more than one argument are never identity for a single argument - they cannot even be called
+		if !self.arity.valid(1) {
+			return false
+		}
+
+		switch self {
+		case .Sum, .Min, .Max, .Average, .Concat, .Pack, .Median, .MedianLow, .MedianHigh, .And, .Or, .RandomItem: return true
+		default: return false
+		}
+	}
 
 	public static let allFunctions = [
 		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,

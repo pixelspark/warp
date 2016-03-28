@@ -567,6 +567,10 @@ public final class Call: Expression {
 			if otherFunction.type == self.type && self.arguments == otherFunction.arguments && self.type.isDeterministic {
 				return true
 			}
+
+			if self.type.isIdentityWithSingleArgument && self.arguments.count == 1 && expression is Identity {
+				return true
+			}
 		}
 		return false
 	}
