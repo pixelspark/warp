@@ -3667,8 +3667,8 @@ DQ
                         <rect key="frame" x="0.0" y="0.0" width="450" height="22"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <tokenField wantsLayer="YES" focusRingType="none" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" misplaced="YES" preferredMaxLayoutWidth="399" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi" customClass="QBESentenceTokenField" customModule="Warp" customModuleProvider="target">
-                                <rect key="frame" x="2" y="0.0" width="403" height="17"/>
+                            <tokenField wantsLayer="YES" focusRingType="none" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" preferredMaxLayoutWidth="399" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi" customClass="QBESentenceTokenField" customModule="Warp" customModuleProvider="target">
+                                <rect key="frame" x="2" y="2" width="403" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="17" id="sHi-T4-777"/>
                                 </constraints>

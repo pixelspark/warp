@@ -729,11 +729,10 @@ class WarpCoreTests: XCTestCase {
 	
 	func testInferer() {
 		let locale = Locale(language: Locale.defaultLanguage)
-		var suggestions: [Expression] = []
 		let cols = ["A","B","C","D"].map({Column($0)})
 		let row = [1,3,4,6].map({Value($0)})
-		Expression.infer(nil, toValue: Value(24), suggestions: &suggestions, level: 10, row: Row(row, columns: cols), column: 0, maxComplexity: Int.max, previousValues: [])
-		suggestions.forEach { trace($0.explain(locale)) }
+		let suggestions = Expression.infer(nil, toValue: Value(24), level: 4, row: Row(row, columns: cols), column: 0, maxComplexity: Int.max, previousValues: [])
+		suggestions.forEach { print("Solution: \($0.explain(locale))") }
 		XCTAssert(suggestions.count>0, "Can solve the 1-3-4-6 24 game.")
 	}
 	

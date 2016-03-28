@@ -157,9 +157,7 @@
 		65B3CC4E1CA2A4A3003FC6DF /* WarpUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC4D1CA2A4A3003FC6DF /* WarpUITests.swift */; };
 		65B3CC611CA3D055003FC6DF /* QBESetEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC601CA3D055003FC6DF /* QBESetEditorViewController.swift */; };
 		65B3CC631CA96408003FC6DF /* QBEMapTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC621CA96408003FC6DF /* QBEMapTabletViewController.swift */; };
-		65B3CC641CA96408003FC6DF /* QBEMapTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC621CA96408003FC6DF /* QBEMapTabletViewController.swift */; };
 		65B3CC661CA9642F003FC6DF /* QBEMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC651CA9642F003FC6DF /* QBEMap.swift */; };
-		65B3CC671CA9642F003FC6DF /* QBEMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC651CA9642F003FC6DF /* QBEMap.swift */; };
 		65B3CC691CA984FA003FC6DF /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65B3CC681CA984FA003FC6DF /* MapKit.framework */; };
 		65B3F6A31C73CFC0000983D0 /* Charts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65B3F69B1C73CF93000983D0 /* Charts.framework */; };
 		65B3F6A41C73CFC0000983D0 /* Charts.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65B3F69B1C73CF93000983D0 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -1434,8 +1432,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				65B3CC641CA96408003FC6DF /* QBEMapTabletViewController.swift in Sources */,
-				65B3CC671CA9642F003FC6DF /* QBEMap.swift in Sources */,
 				65B3CC4E1CA2A4A3003FC6DF /* WarpUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

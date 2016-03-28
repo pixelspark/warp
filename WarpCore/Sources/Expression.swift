@@ -15,7 +15,7 @@ public class Expression: NSObject, NSCoding {
 	}
 	
 	/** The complexity of an expression is an indication of how 'far fetched' it is */
-	var complexity: Int { get {
+	public var complexity: Int { get {
 		return 1
 	}}
 	
@@ -84,12 +84,29 @@ public class Expression: NSObject, NSCoding {
 	class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		return []
 	}
+
+	private var containsLiterals: Bool {
+		var contains = false
+		self.visit { e -> () in
+			if e is Literal {
+				contains = true
+			}
+		}
+		return contains
+	}
 	
 	/** The infer function implements an algorithm to find one or more formulas that are able to transform an
 	input value to a specific output value. It does so by looping over 'suggestions' (provided by Function
 	implementations) for the application of (usually unary) functions to the input value to obtain (or come closer to) the
 	output value. */
-	public class final func infer(fromValue: Expression?, toValue: Value, inout suggestions: [Expression], level: Int, row: Row, column: Int?, maxComplexity: Int = Int.max, previousValues: [Value] = [], job: Job? = nil) {
+	@warn_unused_result
+	public class final func infer(fromValue: Expression?, toValue: Value, level: Int, row: Row, column: Int?, maxComplexity inMaxComplexity: Int = Int.max, previousValues: [Value] = [], job: Job? = nil) -> [Expression] {
+		if level <= 0 {
+			return []
+		}
+		var outSuggestions: [Expression] = []
+		var inMaxComplexity = inMaxComplexity
+
 		let inputValue: Value
 		if let c = column {
 			inputValue = row.values[c]
@@ -99,63 +116,70 @@ public class Expression: NSObject, NSCoding {
 		}
 
 		if let c = job?.cancelled where c {
-			return
+			return outSuggestions
 		}
-		
+
+		var exploreFurther: [(Expression, maxComplexity: Int)] = []
+
 		// Try out combinations of formulas and see if they fit
 		for formulaType in expressions {
 			if let c = job?.cancelled where c {
-				return
+				return outSuggestions
 			}
 			
 			let suggestedFormulas = formulaType.suggest(fromValue, toValue: toValue, row: row, inputValue: inputValue, level: level, job: job);
-			var exploreFurther: [Expression] = []
 			
 			for formula in suggestedFormulas {
-				if formula.complexity > maxComplexity {
+				if formula.complexity > inMaxComplexity {
 					continue
 				}
 				
 				let result = formula.apply(row, foreign: nil, inputValue: inputValue)
 				if result == toValue {
-					suggestions.append(formula)
+					// This one is good, but look for a less complex one still
+					inMaxComplexity = min(inMaxComplexity, formula.complexity)
+					outSuggestions.append(formula)
+					exploreFurther.append((formula, maxComplexity: formula.complexity))
 				}
 				else {
-					if level > 0 {
-						exploreFurther.append(formula)
-					}
-				}
-			}
-
-			// Let's see if we can find something else
-			for formula in exploreFurther {
-				let result = formula.apply(row, foreign: nil, inputValue: inputValue)
-				
-				// Have we already seen this result? Then ignore
-				var found = false
-				for previous in previousValues {
-					if previous == result {
-						found = true
-						break
-					}
-				}
-				
-				if found {
-					continue
-				}
-				
-				var nextLevelSuggestions: [Expression] = []
-				var newPreviousValues = previousValues
-				newPreviousValues.append(result)
-				infer(formula, toValue: toValue, suggestions: &nextLevelSuggestions, level: level-1, row: row, column: column, maxComplexity: maxComplexity-1, previousValues: newPreviousValues, job: job)
-				
-				for nextLevelSuggestion in nextLevelSuggestions {
-					if nextLevelSuggestion.apply(row, foreign: nil, inputValue: inputValue) == toValue {
-						suggestions.append(nextLevelSuggestion)
-					}
+					exploreFurther.append((formula, maxComplexity: inMaxComplexity))
 				}
 			}
 		}
+
+		// Let's see if we can find something else
+		for (formula, maxComplexity) in exploreFurther {
+			if formula.complexity > inMaxComplexity {
+				continue
+			}
+
+			let result = formula.apply(row, foreign: nil, inputValue: inputValue)
+			
+			// Have we already seen this result? Then ignore
+			var found = false
+			for previous in previousValues {
+				if previous == result {
+					found = true
+					break
+				}
+			}
+			
+			if found {
+				continue
+			}
+
+			var newPreviousValues = previousValues
+			newPreviousValues.append(result)
+			let nextLevelSuggestions = infer(formula, toValue: toValue, level: level-1, row: row, column: column, maxComplexity: min(inMaxComplexity, maxComplexity-1), previousValues: newPreviousValues, job: job)
+			
+			for nextLevelSuggestion in nextLevelSuggestions {
+				if nextLevelSuggestion.apply(row, foreign: nil, inputValue: inputValue) == toValue {
+					outSuggestions.append(nextLevelSuggestion)
+				}
+			}
+		}
+
+		return outSuggestions
 	}
 }
 
@@ -173,7 +197,7 @@ public final class Literal: Expression {
 		return value.hashValue
 	}
 
-	override var complexity: Int { get {
+	override public var complexity: Int { get {
 		return 10
 	}}
 	
@@ -272,11 +296,19 @@ public class Identity: Expression {
 		return self.isEqual(expression)
 	}
 
+	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+		return [Identity()]
+	}
+
 	public override func isEqual(object: AnyObject?) -> Bool {
 		if object is Identity {
 			return true
 		}
 		return super.isEqual(object)
+	}
+
+	public override var complexity: Int {
+		return 0
 	}
 }
 
@@ -355,8 +387,8 @@ public final class Comparison: Expression {
 		return "\(start)\(second.toFormula(locale))\(type.toFormula(locale))\(first.toFormula(locale))\(end)"
 	}
 	
-	override var complexity: Int { get {
-		return first.complexity + second.complexity + 1
+	override public var complexity: Int { get {
+		return first.complexity + second.complexity + 5
 	}}
 	
 	public init(first: Expression, second: Expression, type: Binary) {
@@ -398,29 +430,35 @@ public final class Comparison: Expression {
 							// Suggest addition or subtraction
 							let difference = targetDouble - fromDouble
 							if difference != 0 {
-								var addSuggestions: [Expression] = []
-								Expression.infer(nil, toValue: Value(abs(difference)), suggestions: &addSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+								let addSuggestions = Expression.infer(nil, toValue: Value(abs(difference)), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
 								if difference > 0 {
-									addSuggestions.forEach({suggestions.append(Comparison(first: $0, second: from, type: Binary.Addition))})
+									addSuggestions.forEach {
+										suggestions.append(Comparison(first: $0, second: from, type: Binary.Addition))
+									}
 								}
 								else {
-									addSuggestions.forEach({suggestions.append(Comparison(first: $0, second: from, type: Binary.Subtraction))})
+									addSuggestions.forEach {
+										suggestions.append(Comparison(first: $0, second: from, type: Binary.Subtraction))
+									}
 								}
 							}
 							
 							// Suggest division or multiplication
 							if fromDouble != 0 {
 								let dividend = targetDouble / fromDouble
-								
-								var mulSuggestions: [Expression] = []
-								Expression.infer(nil, toValue: Value(dividend < 1 ? (1/dividend) : dividend), suggestions: &mulSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+
+								let mulSuggestions = Expression.infer(nil, toValue: Value(dividend < 1 ? (1/dividend) : dividend), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
 								if dividend >= 1 {
-									mulSuggestions.forEach({suggestions.append(Comparison(first: $0, second: from, type: Binary.Multiplication))})
+									mulSuggestions.forEach {
+										suggestions.append(Comparison(first: $0, second: from, type: Binary.Multiplication))
+									}
 								}
 								else {
-									mulSuggestions.forEach({suggestions.append(Comparison(first: $0, second: from, type: Binary.Division))})
+									mulSuggestions.forEach {
+										suggestions.append(Comparison(first: $0, second: from, type: Binary.Division))
+									}
 								}
 							}
 						}
@@ -432,11 +470,12 @@ public final class Comparison: Expression {
 							if fromString == targetPrefix {
 								let postfix = targetString.substringWithRange(targetString.startIndex.advancedBy(fromString.characters.count)..<targetString.endIndex)
 								print("'\(fromString)' => '\(targetString)' share prefix: '\(targetPrefix)' need postfix: '\(postfix)'")
+
+								let postfixSuggestions = Expression.infer(nil, toValue: Value.StringValue(postfix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
-								var postfixSuggestions: [Expression] = []
-								Expression.infer(nil, toValue: Value.StringValue(postfix), suggestions: &postfixSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
-								
-								postfixSuggestions.forEach({suggestions.append(Comparison(first: $0, second: from, type: Binary.Concatenation))})
+								postfixSuggestions.forEach {
+									suggestions.append(Comparison(first: $0, second: from, type: Binary.Concatenation))
+								}
 							}
 							else {
 								// See if the target string shares a postfix with the source string
@@ -446,10 +485,11 @@ public final class Comparison: Expression {
 									let prefix = targetString.substringWithRange(targetString.startIndex..<targetString.startIndex.advancedBy(prefixLength))
 									print("'\(fromString)' => '\(targetString)' share postfix: '\(targetPostfix)' need prefix: '\(prefix)'")
 									
-									var prefixSuggestions: [Expression] = []
-									Expression.infer(nil, toValue: Value.StringValue(prefix), suggestions: &prefixSuggestions, level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+									let prefixSuggestions = Expression.infer(nil, toValue: Value.StringValue(prefix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 									
-									prefixSuggestions.forEach({suggestions.append(Comparison(first: from, second: $0, type: Binary.Concatenation))})
+									prefixSuggestions.forEach {
+										suggestions.append(Comparison(first: from, second: $0, type: Binary.Concatenation))
+									}
 								}
 							}
 						}
@@ -529,14 +569,14 @@ public final class Call: Expression {
 		return "\(type.toFormula(locale))(\(args))"
 	}
 	
-	override var complexity: Int { get {
+	override public var complexity: Int {
 		var complexity = 1
 		for a in arguments {
-			complexity = max(complexity, a.complexity)
+			complexity += a.complexity
 		}
 		
-		return complexity + 1
-	}}
+		return complexity + 10
+	}
 	
 	public init(arguments: [Expression], type: Function) {
 		self.arguments = arguments
@@ -589,7 +629,7 @@ public final class Call: Expression {
 			if let f = fromValue?.apply(row, foreign: nil, inputValue: inputValue) {
 				// Check whether one of the unary functions can transform the input value to the output value
 				for op in Function.allFunctions {
-					if(op.arity.valid(1) && op.isDeterministic) {
+					if(op.arity.valid(1) && op.isDeterministic && !op.isIdentityWithSingleArgument) {
 						if op.apply([f]) == toValue {
 							suggestions.append(Call(arguments: [from], type: op))
 						}
@@ -676,6 +716,10 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 		super.init()
 	}
 
+	public override var complexity: Int {
+		return 2
+	}
+
 	public override var hashValue: Int {
 		return column.hashValue
 	}
@@ -704,11 +748,17 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 	
 	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		var s: [Expression] = []
-		if fromValue == nil {
-			for columnName in row.columns {
+		for columnName in row.columns {
+			if fromValue == nil || row[columnName] == toValue {
 				s.append(Sibling(columnName))
 			}
 		}
+
+		// If none of the siblings match, just return all of them, see if that helps
+		if s.count == 0 {
+			return row.columns.map { Sibling($0) }
+		}
+
 		return s
 	}
 	

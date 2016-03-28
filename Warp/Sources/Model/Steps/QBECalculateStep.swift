@@ -252,8 +252,8 @@ class QBECalculateStep: QBEStep {
 				}
 			}
 
-			Expression.infer(fromValue != nil ? Literal(fromValue!): nil, toValue: toValue, suggestions: &suggestions, level: 8, row: inRaster[row], column: column, job: job)
+			suggestions += Expression.infer(fromValue != nil ? Literal(fromValue!): nil, toValue: toValue, level: 3, row: inRaster[row], column: column, job: job)
 		}
-		return suggestions
+		return Array(Set(suggestions)).sort { a,b in return a.complexity < b.complexity }
 	}
 }
