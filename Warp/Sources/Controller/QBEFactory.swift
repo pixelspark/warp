@@ -208,4 +208,28 @@ class QBEFactory {
 	func iconForStepType(type: QBEStep.Type) -> String? {
 		return stepIcons[type.className()]
 	}
+
+	func viewControllerForTablet(tablet: QBETablet, storyboard: NSStoryboard) -> QBETabletViewController {
+		let tabletController: QBETabletViewController
+		if tablet is QBEChainTablet {
+			tabletController = storyboard.instantiateControllerWithIdentifier("chainTablet") as! QBEChainTabletViewController
+		}
+		else if tablet is QBENoteTablet {
+			tabletController = storyboard.instantiateControllerWithIdentifier("noteTablet") as! QBENoteTabletViewController
+		}
+		else if tablet is QBEChartTablet {
+			tabletController = storyboard.instantiateControllerWithIdentifier("chartTablet") as! QBEChartTabletViewController
+		}
+		else if tablet is QBEMapTablet {
+			tabletController = storyboard.instantiateControllerWithIdentifier("mapTablet") as! QBEMapTabletViewController
+		}
+		else {
+			fatalError("No view controller found for tablet type")
+		}
+
+		tabletController.tablet = tablet
+		tabletController.view.frame = tablet.frame!
+		return tabletController
+	}
+
 }

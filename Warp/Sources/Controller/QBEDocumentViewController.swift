@@ -178,23 +178,8 @@ import WarpCore
 	}
 
 	private func viewControllerForTablet(tablet: QBETablet) -> QBETabletViewController {
-		let tabletController: QBETabletViewController
-		if tablet is QBEChainTablet {
-			tabletController = self.storyboard?.instantiateControllerWithIdentifier("chainTablet") as! QBEChainTabletViewController
-		}
-		else if tablet is QBENoteTablet {
-			tabletController = self.storyboard?.instantiateControllerWithIdentifier("noteTablet") as! QBENoteTabletViewController
-		}
-		else if tablet is QBEChartTablet {
-			tabletController = self.storyboard?.instantiateControllerWithIdentifier("chartTablet") as! QBEChartTabletViewController
-		}
-		else {
-			fatalError("No view controller found for tablet type")
-		}
-
+		let tabletController = QBEFactory.sharedInstance.viewControllerForTablet(tablet, storyboard: self.storyboard!)
 		tabletController.delegate = self
-		tabletController.tablet = tablet
-		tabletController.view.frame = tablet.frame!
 		return tabletController
 	}
 	
@@ -736,6 +721,41 @@ private class QBEDropChainAction: NSObject {
 		}
 	}
 
+	@objc func addMap(sender: NSObject) {
+		if let sourceTablet = chain.tablet as? QBEChainTablet {
+			let job = Job(.UserInitiated)
+			let jobProgressView = QBEJobViewController(job: job, description: "Analyzing data...".localized)!
+			self.documentView.presentViewControllerAsSheet(jobProgressView)
+
+			sourceTablet.chain.head?.exampleData(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
+				switch result {
+				case .Success(let data):
+					data.columns(job) { result in
+						switch result {
+						case .Success(let columns):
+							asyncMain {
+								jobProgressView.dismissController(sender)
+								let tablet = QBEMapTablet(source: sourceTablet,columns: columns)
+								self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
+							}
+
+						case .Failure(let e):
+							asyncMain {
+								NSAlert.showSimpleAlert("Could not create a map of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+							}
+						}
+					}
+
+				case .Failure(let e):
+					asyncMain {
+						NSAlert.showSimpleAlert("Could not create a map of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+					}
+				}
+			})
+		}
+	}
+
+
 	@objc func addCopy(sender: NSObject) {
 		let job = Job(.UserInitiated)
 		QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: NSLocalizedString("Create copy of data here", comment: ""))
@@ -830,6 +850,10 @@ private class QBEDropChainAction: NSObject {
 			let chartItem = NSMenuItem(title: NSLocalizedString("Create chart of data here", comment: ""), action: #selector(QBEDropChainAction.addChart(_:)), keyEquivalent: "")
 			chartItem.target = self
 			menu.addItem(chartItem)
+
+			let mapItem = NSMenuItem(title: NSLocalizedString("Create map of data here", comment: ""), action: #selector(QBEDropChainAction.addMap(_:)), keyEquivalent: "")
+			mapItem.target = self
+			menu.addItem(mapItem)
 		}
 
 		let copyItem = NSMenuItem(title: NSLocalizedString("Create copy of data here", comment: ""), action: #selector(QBEDropChainAction.addCopy(_:)), keyEquivalent: "")

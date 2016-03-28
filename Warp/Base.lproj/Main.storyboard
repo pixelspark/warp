@@ -3,6 +3,7 @@
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10116"/>
+        <plugIn identifier="com.apple.MapKitIBPlugin" version="10116"/>
         <capability name="box content view" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
@@ -1775,7 +1776,7 @@ CA
                                     <customView translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="500" width="700" height="31"/>
                                         <subviews>
-                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
+                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="1000" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
                                                 <rect key="frame" x="4" y="4" width="688" height="23"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>
@@ -3664,7 +3665,7 @@ DQ
                         <rect key="frame" x="0.0" y="0.0" width="450" height="22"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <tokenField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi">
+                            <tokenField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi">
                                 <rect key="frame" x="2" y="0.0" width="403" height="22"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="sHi-T4-777"/>
@@ -3764,6 +3765,61 @@ DQ
                     </connections>
                 </viewController>
                 <customObject id="74i-uV-bg8" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1349" y="2154"/>
+        </scene>
+        <!--Map Tablet View Controller-->
+        <scene sceneID="L8T-Tk-Ho7">
+            <objects>
+                <viewController storyboardIdentifier="mapTablet" id="86T-9K-OHg" customClass="QBEMapTabletViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" wantsLayer="YES" id="KBq-J3-Rtp" customClass="QBETabletView" customModule="Warp" customModuleProvider="target">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="260"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <progressIndicator wantsLayer="YES" canDrawConcurrently="YES" maxValue="100" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="KAB-pz-ahK">
+                                <rect key="frame" x="175" y="120" width="100" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="GBX-JQ-N7P"/>
+                                </constraints>
+                            </progressIndicator>
+                            <button toolTip="Close and remove this card" horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="wC7-E5-Zf3">
+                                <rect key="frame" x="427" y="235" width="16" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="16" id="amf-1U-6pS"/>
+                                    <constraint firstAttribute="height" constant="16" id="btd-0d-vd8"/>
+                                </constraints>
+                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="CloseIcon" imagePosition="only" alignment="left" refusesFirstResponder="YES" imageScaling="proportionallyUpOrDown" id="kCK-R0-TAO">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="closeTablet:" target="86T-9K-OHg" id="MdZ-X4-Baf"/>
+                                </connections>
+                            </button>
+                            <mapView wantsLayer="YES" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="UZT-Ni-Cwc">
+                                <rect key="frame" x="0.0" y="0.0" width="450" height="226"/>
+                                <connections>
+                                    <outlet property="delegate" destination="86T-9K-OHg" id="jUz-DO-XWa"/>
+                                </connections>
+                            </mapView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="wC7-E5-Zf3" secondAttribute="trailing" constant="7" id="2jU-07-AHb"/>
+                            <constraint firstAttribute="bottom" secondItem="UZT-Ni-Cwc" secondAttribute="bottom" id="G27-aq-v7f"/>
+                            <constraint firstItem="UZT-Ni-Cwc" firstAttribute="leading" secondItem="KBq-J3-Rtp" secondAttribute="leading" id="Hcx-lQ-Z1f"/>
+                            <constraint firstItem="KAB-pz-ahK" firstAttribute="centerX" secondItem="KBq-J3-Rtp" secondAttribute="centerX" id="OeD-FG-g0D"/>
+                            <constraint firstItem="KAB-pz-ahK" firstAttribute="centerY" secondItem="KBq-J3-Rtp" secondAttribute="centerY" id="V02-Pf-PYK"/>
+                            <constraint firstItem="wC7-E5-Zf3" firstAttribute="top" secondItem="KBq-J3-Rtp" secondAttribute="top" constant="9" id="nrc-e1-XHL"/>
+                            <constraint firstAttribute="trailing" secondItem="UZT-Ni-Cwc" secondAttribute="trailing" id="tfy-fg-mmw"/>
+                            <constraint firstItem="UZT-Ni-Cwc" firstAttribute="top" secondItem="KBq-J3-Rtp" secondAttribute="top" constant="34" id="yWb-XC-sOO"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="mapView" destination="UZT-Ni-Cwc" id="05O-Fh-Rgv"/>
+                        <outlet property="progressView" destination="KAB-pz-ahK" id="GFm-gE-eIG"/>
+                    </connections>
+                </viewController>
+                <customObject id="WMy-Q2-l2y" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-1349" y="2154"/>
         </scene>
