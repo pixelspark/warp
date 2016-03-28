@@ -51,11 +51,14 @@ class QBEMapTablet: QBETablet {
 
 	private static let interestingColumnPairs = [
 		("latitude", "longitude"),
+		("hoogtegraad", "breedtegraad"),
 		("lat", "long"),
-		("lat", "lng"),
-		("lt", "ln"),
 		("lat", "lon"),
-		("hoogtegraad", "breedtegraad")
+		("lat", "lng"),
+		("lt", "lng"),
+		("lt", "ln"),
+		("la", "lo"),
+		("φ", "λ")
 	]
 
 	init(source: QBEChainTablet, latitudeExpression: Expression, longitudeExpression: Expression, titleExpression: Expression) {
