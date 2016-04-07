@@ -254,6 +254,7 @@ public class Job: JobDelegate {
 	private let mutex = Mutex()
 
 	#if DEBUG
+	private static let jobCounterMutex = Mutex()
 	private static var jobCounter = 0
 	private let jobID: Int
 	#endif
@@ -262,10 +263,12 @@ public class Job: JobDelegate {
 		let attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT, qos.qosClass, 0)
 
 		#if DEBUG
-			let jobNumber = Job.jobCounter + 1
-			Job.jobCounter += 1
-			jobID = jobNumber
-			self.queue = dispatch_queue_create("Job \(jobNumber)", attr)
+			self.jobID = Job.jobCounterMutex.locked {
+				 let jobNumber = Job.jobCounter + 1
+				 Job.jobCounter += 1
+				 return  jobNumber
+			}
+			self.queue = dispatch_queue_create("Job \(self.jobID)", attr)
 		#else
 			self.queue = dispatch_queue_create("nl.pixelspark.Warp.Job", attr)
 		#endif
@@ -277,8 +280,11 @@ public class Job: JobDelegate {
 		self.queue = parent.queue
 
 		#if DEBUG
-			Job.jobCounter += 1
-			jobID = Job.jobCounter
+			self.jobID = Job.jobCounterMutex.locked {
+				let jobNumber = Job.jobCounter + 1
+				Job.jobCounter += 1
+				return  jobNumber
+			}
 		#endif
 	}
 	
@@ -287,8 +293,11 @@ public class Job: JobDelegate {
 		self.parentJob = nil
 
 		#if DEBUG
-			Job.jobCounter += 1
-			jobID = Job.jobCounter
+			self.jobID = Job.jobCounterMutex.locked {
+				let jobNumber = Job.jobCounter + 1
+				Job.jobCounter += 1
+				return  jobNumber
+			}
 		#endif
 	}
 

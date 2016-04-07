@@ -129,14 +129,15 @@
 		656889461C14662E008D1A7D /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				655BD6551C14703F00634C66 /* Localizable.strings */,
+				6568894C1C146637008D1A7D /* Concurrency.swift */,
 				656889471C146637008D1A7D /* Data.swift */,
 				656889481C146637008D1A7D /* Date.swift */,
 				656889491C146637008D1A7D /* Expression.swift */,
 				6568894A1C146637008D1A7D /* Formula.swift */,
 				6568894B1C146637008D1A7D /* Function.swift */,
-				6568894C1C146637008D1A7D /* Concurrency.swift */,
+				656889671C146670008D1A7D /* Info.plist */,
 				6568894D1C146637008D1A7D /* Locale.swift */,
+				655BD6551C14703F00634C66 /* Localizable.strings */,
 				6568894E1C146637008D1A7D /* MutableData.swift */,
 				6568894F1C146637008D1A7D /* Raster.swift */,
 				656889501C146637008D1A7D /* Sequencer.swift */,
@@ -145,7 +146,6 @@
 				656889531C146637008D1A7D /* Stream.swift */,
 				656889541C146637008D1A7D /* Value.swift */,
 				656889681C146683008D1A7D /* WarpCore.h */,
-				656889671C146670008D1A7D /* Info.plist */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
