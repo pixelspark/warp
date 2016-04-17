@@ -1064,7 +1064,7 @@ CA
                                     <items>
                                         <menuItem title="Help" keyEquivalent="?" id="lfz-NF-FXv">
                                             <connections>
-                                                <action selector="showHelp:" target="Ady-hI-5gd" id="Alu-F6-NLJ"/>
+                                                <action selector="showHelp:" target="Voe-Tx-rLC" id="JZU-kM-zZE"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Guided tour..." id="FKE-Sm-Kum">

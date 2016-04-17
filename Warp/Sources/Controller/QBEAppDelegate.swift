@@ -72,4 +72,10 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 
 		return false
 	}
+
+	@IBAction func showHelp(sender: NSObject) {
+		if let u = NSBundle.mainBundle().infoDictionary?["WarpHelpURL"] as? String, let url = NSURL(string: u) {
+			NSWorkspace.sharedWorkspace().openURL(url)
+		}
+	}
 }

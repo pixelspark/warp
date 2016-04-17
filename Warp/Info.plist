@@ -209,5 +209,7 @@
 			</dict>
 		</dict>
 	</array>
+	<key>WarpHelpURL</key>
+	<string>http://docs.warp.one</string>
 </dict>
 </plist>
