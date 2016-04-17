@@ -1,15 +1,12 @@
 import Cocoa
 import WarpCore
 
-protocol QBEKeySelectionViewControllerDelegate: NSObjectProtocol {
-	func keySelectionViewController(controller: QBEKeySelectionViewController, didSelectKeyColumns: Set<Column>)
-}
-
 class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
+	typealias Callback = (Set<Column>) -> ()
+
 	var columns: [Column] = []
 	var keyColumns: Set<Column> = []
-
-	weak var delegate: QBEKeySelectionViewControllerDelegate? = nil
+	var callback: Callback?
 
 	@IBOutlet private var tableView: NSTableView!
 	@IBOutlet private var okButton: NSButton!
@@ -55,7 +52,7 @@ class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
 	}
 
 	@IBAction func confirm(sender: NSObject) {
-		self.delegate?.keySelectionViewController(self, didSelectKeyColumns: self.keyColumns)
+		self.callback?(self.keyColumns)
 		self.dismissController(sender)
 	}
 }

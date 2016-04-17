@@ -1273,6 +1273,7 @@ CA
                                         </constraints>
                                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        <font key="titleFont" metaFont="message" size="11"/>
                                     </box>
                                     <box autoresizesSubviews="NO" title="Selection working set" borderType="line" translatesAutoresizingMaskIntoConstraints="NO" id="Fdz-2y-7rL">
                                         <rect key="frame" x="7" y="90" width="457" height="108"/>
@@ -1361,6 +1362,7 @@ CA
                                         </constraints>
                                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        <font key="titleFont" metaFont="message" size="11"/>
                                     </box>
                                     <box autoresizesSubviews="NO" title="Language" borderType="line" translatesAutoresizingMaskIntoConstraints="NO" id="9pX-ll-oio">
                                         <rect key="frame" x="7" y="204" width="457" height="156"/>
@@ -1444,6 +1446,7 @@ CA
                                         </constraints>
                                         <color key="borderColor" white="0.0" alpha="0.41999999999999998" colorSpace="calibratedWhite"/>
                                         <color key="fillColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        <font key="titleFont" metaFont="message" size="11"/>
                                     </box>
                                 </subviews>
                                 <constraints>
@@ -2987,10 +2990,10 @@ Gw
             </objects>
             <point key="canvasLocation" x="2457.5" y="-236.5"/>
         </scene>
-        <!--Suggestions View Controller-->
+        <!--Suggestions List View Controller-->
         <scene sceneID="Fm8-kC-hUX">
             <objects>
-                <viewController storyboardIdentifier="suggestions" id="TDg-0B-lyo" customClass="QBESuggestionsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="suggestionsList" id="TDg-0B-lyo" customClass="QBESuggestionsListViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" focusRingType="none" id="y6U-4M-OI9">
                         <rect key="frame" x="0.0" y="0.0" width="358" height="314"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -2998,11 +3001,11 @@ Gw
                             <scrollView focusRingType="none" autohidesScrollers="YES" horizontalLineScroll="36" horizontalPageScroll="10" verticalLineScroll="36" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EGb-hU-fkL">
                                 <rect key="frame" x="7" y="7" width="344" height="300"/>
                                 <clipView key="contentView" focusRingType="none" drawsBackground="NO" id="1sO-PC-Eiu">
-                                    <rect key="frame" x="1" y="0.0" width="238" height="134"/>
+                                    <rect key="frame" x="1" y="1" width="342" height="298"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView focusRingType="none" appearanceType="vibrantLight" verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="34" id="LRg-Y6-Q5v">
-                                            <rect key="frame" x="0.0" y="0.0" width="342" height="36"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="342" height="298"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -3061,7 +3064,7 @@ Gw
                 </viewController>
                 <customObject id="hZp-iq-JdD" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1512" y="-947"/>
+            <point key="canvasLocation" x="1509" y="-886"/>
         </scene>
         <!--Tip View Controller-->
         <scene sceneID="ITy-71-tQC">
@@ -3104,7 +3107,7 @@ Gw
                 </viewController>
                 <customObject id="5qC-lz-geN" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1498" y="-649.5"/>
+            <point key="canvasLocation" x="1060" y="-639.5"/>
         </scene>
         <!--Export View Controller-->
         <scene sceneID="0nY-rF-gP4">
@@ -3340,7 +3343,7 @@ Gw
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="9VS-us-iqq">
-                                            <rect key="frame" x="0.0" y="0.0" width="253" height="284"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="253" height="19"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>

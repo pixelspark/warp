@@ -2,7 +2,16 @@ import Foundation
 import Cocoa
 import WarpCore
 
-class QBESuggestionsViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
+protocol QBESuggestionsViewDelegate: NSObjectProtocol {
+	func suggestionsView(view: NSViewController, didSelectStep: QBEStep)
+	func suggestionsView(view: NSViewController, didSelectAlternativeStep: QBEStep)
+	func suggestionsView(view: NSViewController, previewStep: QBEStep?)
+	var currentStep: QBEStep? { get }
+	var locale: Locale { get }
+	var undo: NSUndoManager? { get }
+}
+
+class QBESuggestionsListViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 	var suggestions: [QBEStep]?
 	@IBOutlet var tableView: NSTableView?
 	weak var delegate: QBESuggestionsViewDelegate?

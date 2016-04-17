@@ -1,15 +1,6 @@
 import Cocoa
 import WarpCore
 
-protocol QBESuggestionsViewDelegate: NSObjectProtocol {
-	func suggestionsView(view: NSViewController, didSelectStep: QBEStep)
-	func suggestionsView(view: NSViewController, didSelectAlternativeStep: QBEStep)
-	func suggestionsView(view: NSViewController, previewStep: QBEStep?)
-	var currentStep: QBEStep? { get }
-	var locale: Locale { get }
-	var undo: NSUndoManager? { get }
-}
-
 class QBEChainView: NSView {
 	override var acceptsFirstResponder: Bool { get { return true } }
 
@@ -51,7 +42,7 @@ internal enum QBEEditingMode {
 
 @objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate,
 	QBEDataViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget,
-	QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate, QBEKeySelectionViewControllerDelegate,
+	QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate,
 	QBEColumnViewDelegate {
 
 	private var suggestions: Future<[QBEStep]>?
@@ -1027,11 +1018,11 @@ internal enum QBEEditingMode {
 							let expressions = QBECalculateStep.suggest(change: oldValue, toValue: toValue, inRaster: raster, row: inRow, column: column, locale: self.locale, job: job)
 							callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: raster.columns[column], function: $0)}))
 						}
-						}, timeLimit: 5.0)
+					}, timeLimit: 5.0)
 
-					self.suggestions!.get {(steps) -> () in
+					self.suggestions!.get { steps in
 						asyncMain {
-							self.suggestSteps(steps)
+							self.suggestSteps(steps, afterChanging: oldValue, to: toValue, inColumn: column, inRow: inRow)
 						}
 					}
 				}
@@ -1254,9 +1245,54 @@ internal enum QBEEditingMode {
 		self.view.window?.update()
 		self.view.window?.toolbar?.validateVisibleItems()
 	}
-	
-	private func suggestSteps(steps: Array<QBEStep>) {
-		var steps = steps
+
+	private func suggestSteps(steps: [QBEStep], afterChanging from: Value, to: Value, inColumn: Int, inRow: Int) {
+		assertMainThread()
+
+		let supportsEditing = self.currentStep?.mutableData != nil && self.supportsEditing
+
+		if supportsEditing {
+			let alert = NSAlert()
+			alert.alertStyle = NSAlertStyle.InformationalAlertStyle
+			alert.messageText = String(format: "Changing '%@' to '%@'".localized, self.locale.localStringFor(to), self.locale.localStringFor(from))
+			alert.informativeText = "Warp can either change the value permanently in the source data set, or add a step that performs the change for all values in the column similarly.".localized
+			alert.addButtonWithTitle("Add step".localized)
+			alert.addButtonWithTitle("Change source data".localized)
+			alert.addButtonWithTitle("Cancel".localized)
+			alert.showsSuppressionButton = false
+
+			alert.beginSheetModalForWindow(self.view.window!, completionHandler: { res in
+				switch res {
+				case NSAlertFirstButtonReturn:
+					self.suggestSteps(steps)
+
+				case NSAlertSecondButtonReturn:
+					self.startEditingWithCallback {
+						switch self.editingMode {
+						case .Editing(identifiers: let ids, editingRaster: _):
+							self.editValue(from, toValue: to, inRow: inRow, column: inColumn, identifiers: ids)
+
+						case .NotEditing, .EnablingEditing:
+							let message = String(format: "Cannot change '%@' to '%@'".localized, self.locale.localStringFor(to), self.locale.localStringFor(from))
+							NSAlert.showSimpleAlert(message, infoText: "The data set cannot be edited".localized, style: .CriticalAlertStyle, window: self.view.window)
+						}
+					}
+
+				case NSAlertThirdButtonReturn:
+					// Cancel
+					break
+
+				default:
+					break
+				}
+			})
+		}
+		else {
+			self.suggestSteps(steps)
+		}
+	}
+
+	private func suggestSteps(steps: [QBEStep]) {
 		assertMainThread()
 		
 		if steps.isEmpty {
@@ -1268,17 +1304,13 @@ internal enum QBEEditingMode {
 		}
 		else {
 			let step = steps.first!
+			step.alternatives = Array(steps.dropFirst())
 			pushStep(step)
-			steps.remove(step)
-			step.alternatives = steps
 			updateView()
 			calculate()
-			
-			// Show a tip if there are alternatives
+
 			if steps.count > 1 {
-				QBESettings.sharedInstance.showTip("suggestionsTip") {
-					self.showTip(NSLocalizedString("Warp created a step based on your edits. To select an alternative step, right-click on the newly added step.", comment: "Tip for suggestions button"), atView: self.stepsViewController!.view)
-				}
+				self.showSuggestionsForStep(step, atView: self.stepsViewController!.view)
 			}
 		}
 	}
@@ -1299,10 +1331,10 @@ internal enum QBEEditingMode {
 		assertMainThread()
 		
 		if let alternatives = step.alternatives where alternatives.count > 0 {
-			if let sv = self.storyboard?.instantiateControllerWithIdentifier("suggestions") as? QBESuggestionsViewController {
+			if let sv = self.storyboard?.instantiateControllerWithIdentifier("suggestionsList") as? QBESuggestionsListViewController {
 				sv.delegate = self
 				sv.suggestions = Array(alternatives)
-				self.presentViewController(sv, asPopoverRelativeToRect: atView.bounds, ofView: atView, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Semitransient)
+				self.presentViewController(sv, asPopoverRelativeToRect: atView.bounds, ofView: atView, preferredEdge: NSRectEdge.MaxX, behavior: NSPopoverBehavior.Semitransient)
 			}
 		}
 	}
@@ -1801,6 +1833,10 @@ internal enum QBEEditingMode {
 	}
 
 	@IBAction func startEditing(sender: NSObject) {
+		self.startEditingWithCallback()
+	}
+
+	private func startEditingWithCallback(callback: (() -> ())? = nil) {
 		let forceCustomKeySelection = self.view.window?.currentEvent?.modifierFlags.contains(.AlternateKeyMask) ?? false
 
 		if let md = self.currentStep?.mutableData where self.supportsEditing {
@@ -1811,11 +1847,11 @@ internal enum QBEEditingMode {
 					switch self.editingMode {
 					case .EnablingEditing:
 						if case .Success(let ids) = result where ids != nil && !forceCustomKeySelection {
-							self.startEditingWithIdentifier(ids!)
+							self.startEditingWithIdentifier(ids!, callback: callback)
 						}
 						else if !forceCustomKeySelection && md.canPerformMutation(DataMutation.Edit(row: 0, column: Column("a"), old: Value.InvalidValue, new: Value.InvalidValue)) {
 							// This data set does not have key columns, but this isn't an issue, as it can be edited by row number
-							self.startEditingWithIdentifier([])
+							self.startEditingWithIdentifier([], callback: callback)
 						}
 						else {
 							// Cannot start editing right now
@@ -1827,10 +1863,15 @@ internal enum QBEEditingMode {
 									asyncMain {
 										let ctr = self.storyboard?.instantiateControllerWithIdentifier("keyViewController") as! QBEKeySelectionViewController
 										ctr.columns = columns
-										ctr.delegate = self
 
 										if case .Success(let ids) = result where ids != nil {
 											ctr.keyColumns = ids!
+										}
+
+										ctr.callback = { keys in
+											asyncMain {
+												self.startEditingWithIdentifier(keys, callback: callback)
+											}
 										}
 
 										self.presentViewControllerAsSheet(ctr)
@@ -1854,13 +1895,9 @@ internal enum QBEEditingMode {
 		self.view.window?.update()
 	}
 
-	func keySelectionViewController(controller: QBEKeySelectionViewController, didSelectKeyColumns columns: Set<Column>) {
-		self.startEditingWithIdentifier(columns)
-	}
-
 	/** Start editing using the given set of identifier keys. If the set is empty, the data set must support line-based
 	editing (DataMutation.Edit). */
-	private func startEditingWithIdentifier(ids: Set<Column>) {
+	private func startEditingWithIdentifier(ids: Set<Column>, callback: (() -> ())? = nil) {
 		asyncMain {
 			switch self.editingMode {
 			case .EnablingEditing, .NotEditing:
@@ -1870,18 +1907,21 @@ internal enum QBEEditingMode {
 						asyncMain {
 							self.editingMode = .Editing(identifiers: ids, editingRaster: editingRaster.clone(false))
 							self.view.window?.update()
+							callback?()
 						}
 
 					case .Failure(let e):
 						asyncMain {
 							NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .WarningAlertStyle, window: self.view.window)
 							self.editingMode = .NotEditing
+							callback?()
 						}
 					}
 				}
 
 			case .Editing(identifiers: _, editingRaster: _):
 				// Already editing
+				callback?()
 				break
 			}
 			self.view.window?.update()
