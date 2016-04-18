@@ -40,7 +40,7 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 			let vc = QBEAlterTableViewController()
 			vc.warehouse = warehouse
 			vc.delegate = self
-			vc.warehouseName = String(format: NSLocalizedString("MySQL database '%@'", comment: ""), self.step.databaseName)
+			vc.warehouseName = String(format: NSLocalizedString("MySQL database '%@'", comment: ""), self.step.databaseName ?? "(unknown)".localized)
 			self.presentViewControllerAsModalWindow(vc)
 		}
 	}
@@ -104,36 +104,35 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 		self.createTableButton?.enabled = false
 
 		checkConnectionJob!.async {
-			if let database = self.step.database {
-				switch database.connect() {
-				case .Success(let con):
-					con.serverInformation({ (fallibleInfo) -> () in
-						asyncMain {
-							self.infoProgress?.stopAnimation(nil)
-							switch fallibleInfo {
-							case .Success(let v):
-								self.infoLabel?.stringValue = String(format: NSLocalizedString("Connected (%@)", comment: ""),v)
-								self.infoIcon?.image = NSImage(named: "CheckIcon")
-								self.infoProgress?.hidden = true
-								self.infoIcon?.hidden = false
-								self.createTableButton?.enabled = self.step.warehouse != nil
-
-							case .Failure(let e):
-								self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
-								self.infoIcon?.image = NSImage(named: "SadIcon")
-								self.infoProgress?.hidden = true
-								self.infoIcon?.hidden = false
-							}
-						}
-					})
-
-				case .Failure(let e):
+			let database = QBEMySQLDatabase(host: self.step.hostToConnectTo, port: self.step.port, user: self.step.user, password: self.step.password.stringValue ?? "", database: self.step.databaseName)
+			switch database.connect() {
+			case .Success(let con):
+				con.serverInformation({ (fallibleInfo) -> () in
 					asyncMain {
-						self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
-						self.infoIcon?.image = NSImage(named: "SadIcon")
-						self.infoProgress?.hidden = true
-						self.infoIcon?.hidden = false
+						self.infoProgress?.stopAnimation(nil)
+						switch fallibleInfo {
+						case .Success(let v):
+							self.infoLabel?.stringValue = String(format: NSLocalizedString("Connected (%@)", comment: ""),v)
+							self.infoIcon?.image = NSImage(named: "CheckIcon")
+							self.infoProgress?.hidden = true
+							self.infoIcon?.hidden = false
+							self.createTableButton?.enabled = self.step.warehouse != nil
+
+						case .Failure(let e):
+							self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
+							self.infoIcon?.image = NSImage(named: "SadIcon")
+							self.infoProgress?.hidden = true
+							self.infoIcon?.hidden = false
+						}
 					}
+				})
+
+			case .Failure(let e):
+				asyncMain {
+					self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
+					self.infoIcon?.image = NSImage(named: "SadIcon")
+					self.infoProgress?.hidden = true
+					self.infoIcon?.hidden = false
 				}
 			}
 		}

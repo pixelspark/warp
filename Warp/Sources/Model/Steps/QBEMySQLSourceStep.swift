@@ -226,8 +226,9 @@ class QBEMySQLDatabase: SQLDatabase {
 	private let password: String
 	let databaseName: String?
 	let dialect: SQLDialect = QBEMySQLDialect()
-	
-	init(host: String, port: Int, user: String, password: String, database: String) {
+
+	/** When database is nil, the current database will be whatever default database MySQL starts with. */
+	init(host: String, port: Int, user: String, password: String, database: String? = nil) {
 		self.host = host
 		self.port = port
 		self.user = user
@@ -645,17 +646,17 @@ class QBEMySQLMutableData: SQLMutableData {
 }
 
 class QBEMySQLSourceStep: QBEStep {
-	var tableName: String = ""
+	var tableName: String? = nil
 	var host: String = "localhost"
 	var user: String = "root"
-	var databaseName: String = "mysql"
+	var databaseName: String? = nil
 	var port: Int = 3306
 
 	var password: QBESecret {
 		return QBESecret(serviceType: "mysql", host: host, port: port, account: user, friendlyName: String(format: NSLocalizedString("User %@ at MySQL server %@ (port %d)", comment: ""), user, host, port))
 	}
 	
-	init(host: String, port: Int, user: String, database: String, tableName: String) {
+	init(host: String, port: Int, user: String, database: String?, tableName: String?) {
 		self.host = host
 		self.user = user
 		self.port = port
@@ -704,87 +705,86 @@ class QBEMySQLSourceStep: QBEStep {
 
 		return QBESentence(format: NSLocalizedString(template, comment: ""),
 			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
-				if let d = self.database {
-					switch d.connect() {
-					case .Success(let con):
-						con.tables { tablesFallible in
-							switch tablesFallible {
-							case .Success(let tables):
-								callback(.Success(tables))
+				let d = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+				switch d.connect() {
+				case .Success(let con):
+					con.tables { tablesFallible in
+						switch tablesFallible {
+						case .Success(let tables):
+							callback(.Success(tables))
 
-							case .Failure(let e):
-								callback(.Failure(e))
-							}
+						case .Failure(let e):
+							callback(.Failure(e))
 						}
-
-					case .Failure(let e):
-						callback(.Failure(e))
 					}
+
+				case .Failure(let e):
+					callback(.Failure(e))
 				}
-				else {
-					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
-				}
-				}, callback: { (newTable) -> () in
+			}, callback: { (newTable) -> () in
 					self.tableName = newTable
 			}),
 
-			QBESentenceList(value: self.databaseName ?? "", provider: { (callback) -> () in
-				if let d = self.database {
-					switch d.connect() {
-					case .Success(let con):
-						con.databases { dbFallible in
-							switch dbFallible {
-								case .Success(let dbs):
-									callback(.Success(dbs))
+			QBESentenceList(value: self.databaseName ?? "", provider: { callback in
+				/* Connect without selecting a default database, because the database currently selected may not exists
+				(and then we get an error, and can't select another database). */
+				let d = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: nil)
+				switch d.connect() {
+				case .Success(let con):
+					con.databases { dbFallible in
+						switch dbFallible {
+							case .Success(let dbs):
+								callback(.Success(dbs))
 
-								case .Failure(let e):
-									callback(.Failure(e))
-							}
+							case .Failure(let e):
+								callback(.Failure(e))
 						}
-
-					case .Failure(let e):
-						callback(.Failure(e))
 					}
-				}
-				else {
-					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
+
+				case .Failure(let e):
+					callback(.Failure(e))
 				}
 			}, callback: { (newDatabase) -> () in
 				self.databaseName = newDatabase
 			})
 		)
 	}
-	
-	internal var database: QBEMySQLDatabase? { get {
+
+	internal var hostToConnectTo: String {
 		/* For MySQL, the hostname 'localhost' is special and indicates access through a local UNIX socket. This does
 		not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite
 		localhost here to 127.0.0.1 in order to force access through TCP/IP. */
-		let ha = (host == "localhost") ? "127.0.0.1" : host
-		return QBEMySQLDatabase(host: ha, port: port, user: user, password: password.stringValue ?? "", database: databaseName)
-	} }
+		return (host == "localhost") ? "127.0.0.1" : host
+	}
 
 	override var mutableData: MutableData? { get {
-		if let s = self.database where !self.tableName.isEmpty {
-			return QBEMySQLMutableData(database: s, schemaName: nil, tableName: self.tableName)
+		if let tn = self.tableName where !tn.isEmpty {
+			let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+			return QBEMySQLMutableData(database: s, schemaName: nil, tableName: tn)
 		}
 		return nil
 	} }
 
 	var warehouse: Warehouse? {
-		if let s = self.database {
-			return SQLWarehouse(database: s, schemaName: nil)
-		}
-		return nil
+		let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+		return SQLWarehouse(database: s, schemaName: nil)
 	}
 
 	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
 		job.async {
-			if let s = self.database {
-				let md = QBEMySQLData.create(s, tableName: self.tableName ?? "")
-				callback(md.use { $0.coalesced })
+			if let dbn = self.databaseName where !dbn.isEmpty {
+				let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+
+				if let tn = self.tableName where !tn.isEmpty {
+					let md = QBEMySQLData.create(s, tableName: tn)
+					callback(md.use { $0.coalesced })
+				}
+				else {
+					callback(.Failure(NSLocalizedString("Please select a table.", comment: "")))
+				}
 			}
 			else {
-				callback(.Failure(NSLocalizedString("Could not connect to the MySQL database.", comment: "")))
+				callback(.Failure(NSLocalizedString("Please select a database.", comment: "")))
 			}
 		}
 	}

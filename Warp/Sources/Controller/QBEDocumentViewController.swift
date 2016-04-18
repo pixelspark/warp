@@ -576,7 +576,7 @@ import WarpCore
 	}
 	
 	@IBAction func addTabletFromMySQL(sender: NSObject) {
-		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", database: "test", tableName: "test")
+		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", database: nil, tableName: nil)
 		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
