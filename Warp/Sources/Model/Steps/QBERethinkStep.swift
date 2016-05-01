@@ -784,8 +784,15 @@ class QBERethinkSourceStep: QBEStep {
 	var table: String = "test"
 	var server: String = "localhost"
 	var port: Int = 28015
+	var username: String = "admin"
+	var useUsernamePasswordAuthentication = true
 	var authenticationKey: String? = nil
 	var columns: [Column] = []
+
+	var password: QBESecret {
+		return QBESecret(serviceType: "rethinkdb", host: server, port: port, account: username, friendlyName:
+			String(format: NSLocalizedString("User %@ at RethinkDB server %@ (port %d)", comment: ""), username, server, port))
+	}
 
 	required override init(previous: QBEStep?) {
 		super.init()
@@ -800,14 +807,39 @@ class QBERethinkSourceStep: QBEStep {
 		self.table = aDecoder.decodeStringForKey("table") ?? "test"
 		self.database = aDecoder.decodeStringForKey("database") ?? "test"
 		self.port = max(1, min(65535, aDecoder.decodeIntegerForKey("port") ?? 28015));
-		self.authenticationKey = aDecoder.decodeStringForKey("authenticationKey")
+
+		let authenticationKey = aDecoder.decodeStringForKey("authenticationKey")
+		self.authenticationKey = authenticationKey
+		self.username = aDecoder.decodeStringForKey("username") ?? "admin"
+		self.useUsernamePasswordAuthentication = aDecoder.containsValueForKey("useUsernamePasswordAuthentication") ?
+			aDecoder.decodeBoolForKey("useUsernamePasswordAuthentication") :
+			(authenticationKey == nil || authenticationKey!.isEmpty)
+
 		let cols = (aDecoder.decodeObjectForKey("columns") as? [String]) ?? []
 		self.columns = cols.map { return Column($0) }
 		super.init(coder: aDecoder)
 	}
 
+	override func encodeWithCoder(coder: NSCoder) {
+		super.encodeWithCoder(coder)
+		coder.encodeString(self.server, forKey: "server")
+		coder.encodeString(self.database, forKey: "database")
+		coder.encodeString(self.table, forKey: "table")
+		coder.encodeInteger(self.port, forKey: "port")
+		coder.encodeObject(NSArray(array: self.columns.map { return $0.name }), forKey: "columns")
+		coder.encodeBool(self.useUsernamePasswordAuthentication, forKey: "useUsernamePasswordAuthentication")
+		if self.useUsernamePasswordAuthentication {
+			coder.encodeString(self.username, forKey: "username")
+		}
+		else {
+			if let s = self.authenticationKey {
+				coder.encodeString(s, forKey: "authenticationKey")
+			}
+		}
+	}
+
 	internal var url: NSURL? { get {
-		if let u = self.authenticationKey where !u.isEmpty {
+		if let u = self.authenticationKey where !u.isEmpty && !self.useUsernamePasswordAuthentication {
 			let urlString = "rethinkdb://\(u.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLUserAllowedCharacterSet())!)@\(self.server.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLHostAllowedCharacterSet())!):\(self.port)"
 			return NSURL(string: urlString)
 		}
@@ -820,13 +852,21 @@ class QBERethinkSourceStep: QBEStep {
 	private func sourceData(callback: (Fallible<Data>) -> ()) {
 		if let u = url {
 			let table = R.db(self.database).table(self.table)
+			let password: String
+			if useUsernamePasswordAuthentication {
+				password = self.password.stringValue ?? ""
+			}
+			else {
+				password = ""
+			}
 
 			if self.columns.count > 0 {
 				let q = table.withFields(self.columns.map { return R.expr($0.name) })
 				callback(.Success(QBERethinkData(url: u, query: q, columns: self.columns.count > 0 ? self.columns : nil)))
 			}
 			else {
-				R.connect(u, callback: { (err, connection) -> () in
+				// Username and password are ignored when using V0_4. The authentication key will be in the URL for V0_4 (if set)
+				R.connect(u, user: self.username, password: password, version: (self.useUsernamePasswordAuthentication ? .V1_0 : .V0_4), callback: { (err, connection) -> () in
 					if let e = err {
 						callback(.Failure(e.description))
 						return
@@ -859,18 +899,6 @@ class QBERethinkSourceStep: QBEStep {
 			case .Failure(let e): callback(.Failure(e))
 			case .Success(let d): callback(.Success(d.limit(maxInputRows)))
 			}
-		}
-	}
-
-	override func encodeWithCoder(coder: NSCoder) {
-		super.encodeWithCoder(coder)
-		coder.encodeString(self.server, forKey: "server")
-		coder.encodeString(self.database, forKey: "database")
-		coder.encodeString(self.table, forKey: "table")
-		coder.encodeInteger(self.port, forKey: "port")
-		coder.encodeObject(NSArray(array: self.columns.map { return $0.name }), forKey: "columns")
-		if let s = self.authenticationKey {
-			coder.encodeString(s, forKey: "authenticationKey")
 		}
 	}
 

@@ -8,10 +8,13 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 	@IBOutlet var serverField: NSTextField!
 	@IBOutlet var portField: NSTextField!
 	@IBOutlet var authenticationKeyField: NSTextField!
+	@IBOutlet var usernameField: NSTextField!
+	@IBOutlet var passwordField: NSTextField!
 	@IBOutlet var infoLabel: NSTextField?
 	@IBOutlet var infoProgress: NSProgressIndicator?
 	@IBOutlet var infoIcon: NSImageView?
 	@IBOutlet var createTableButton: NSButton?
+	@IBOutlet var authenticationTypeSwitch: NSSegmentedControl?
 
 	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
 		super.init(configurable: configurable, delegate: delegate, nibName: "QBERethinkStepView", bundle: nil)
@@ -35,6 +38,19 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 		self.serverField?.stringValue = self.step.server
 		self.portField?.stringValue = "\(self.step.port)"
 		self.authenticationKeyField?.stringValue = self.step.authenticationKey ?? ""
+		self.usernameField?.stringValue = self.step.username
+
+		if let d = self.step.password.stringValue {
+			self.passwordField?.stringValue = d
+		}
+		else {
+			self.passwordField?.stringValue = ""
+		}
+
+		self.authenticationTypeSwitch?.selectedSegment = self.step.useUsernamePasswordAuthentication ? 0 : 1
+		self.authenticationKeyField?.enabled = !self.step.useUsernamePasswordAuthentication
+		self.usernameField?.enabled = self.step.useUsernamePasswordAuthentication
+		self.passwordField?.enabled = self.step.useUsernamePasswordAuthentication
 
 		self.infoProgress?.hidden = false
 		self.infoLabel?.stringValue = NSLocalizedString("Trying to connect...", comment: "")
@@ -115,6 +131,21 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 				self.step.port = p
 				change = true
 			}
+		}
+
+		let useUserPass = self.authenticationTypeSwitch!.selectedSegment == 0
+		if useUserPass != self.step.useUsernamePasswordAuthentication {
+			self.step.useUsernamePasswordAuthentication = useUserPass
+			change = true
+		}
+		else if let u = self.passwordField?.stringValue where u != step.password.stringValue {
+			step.password.stringValue = u
+			change = true
+		}
+
+		if self.usernameField.stringValue != self.step.username {
+			self.step.username = self.usernameField.stringValue
+			change = true
 		}
 
 		if self.authenticationKeyField.stringValue != self.step.authenticationKey {
