@@ -122,7 +122,7 @@ public class QBESentenceSet: NSObject, QBESentenceToken {
 
 	public var label: String {
 		if self.value.count > 4 {
-			let first = self.value.prefix(4)
+			let first = self.value.sort().prefix(4)
 			return String(format: "%@ and %d more".localized, first.joinWithSeparator(", "), self.value.count - first.count)
 		}
 

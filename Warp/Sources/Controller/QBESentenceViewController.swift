@@ -362,6 +362,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 						if let editor = self.storyboard?.instantiateControllerWithIdentifier("setEditor") as? QBESetEditorViewController {
 							editor.delegate = self
 							editor.possibleValues = Array(options)
+							editor.possibleValues.sortInPlace()
 							editor.selection = inputToken.value
 							let windowRect = NSMakeRect(sender.locationInWindow.x + 5, sender.locationInWindow.y, 1, 1)
 							var viewRect = self.view.convertRect(windowRect, fromView: nil)
