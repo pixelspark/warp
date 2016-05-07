@@ -532,6 +532,35 @@ internal class QBEPostgresConnection: SQLConnection {
 		callback(.Success())
 	}
 
+	/** Fetches the server version number. This number can be used to enable/disable certain features by version. */
+	func serverVersion(callback: (Fallible<String>) -> ()) {
+		switch self.query("SHOW server_version") {
+		case .Success(let result):
+			if let rowFallible = result.row() {
+				result.finish()
+
+				switch rowFallible {
+				case .Success(let row):
+					if let version = row.first?.stringValue {
+						return callback(.Success(version))
+					}
+					else {
+						return callback(.Failure("No or invalid version string returned"))
+					}
+
+				case .Failure(let e):
+					return callback(.Failure(e))
+				}
+			}
+			else {
+				result.finish()
+				return callback(.Failure("No version returned"))
+			}
+
+		case .Failure(let e): callback(.Failure(e))
+		}
+	}
+
 	private func perform(block: () -> (Bool)) -> Bool {
 		var success: Bool = false
 		dispatch_sync(queue) {
