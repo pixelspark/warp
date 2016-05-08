@@ -2,18 +2,18 @@
   "images" : [
     {
       "idiom" : "universal",
-      "scale" : "1x",
-      "filename" : "Presto@32.png"
+      "filename" : "Presto@32.png",
+      "scale" : "1x"
     },
     {
       "idiom" : "universal",
-      "scale" : "2x",
-      "filename" : "Presto@64.png"
+      "filename" : "Presto@64.png",
+      "scale" : "2x"
     },
     {
       "idiom" : "universal",
-      "scale" : "3x",
-      "filename" : "Presto@128.png"
+      "filename" : "Presto@128.png",
+      "scale" : "3x"
     }
   ],
   "info" : {

@@ -2,18 +2,18 @@
   "images" : [
     {
       "idiom" : "universal",
-      "scale" : "1x",
-      "filename" : "MySQL@32.png"
+      "filename" : "MySQL@32.png",
+      "scale" : "1x"
     },
     {
       "idiom" : "universal",
-      "scale" : "2x",
-      "filename" : "MySQL@64.png"
+      "filename" : "MySQL@64.png",
+      "scale" : "2x"
     },
     {
       "idiom" : "universal",
-      "scale" : "3x",
-      "filename" : "MySQL@128.png"
+      "filename" : "MySQL@128.png",
+      "scale" : "3x"
     }
   ],
   "info" : {

@@ -2,18 +2,18 @@
   "images" : [
     {
       "idiom" : "universal",
-      "scale" : "1x",
-      "filename" : "Pivot@32.png"
+      "filename" : "Pivot@32.png",
+      "scale" : "1x"
     },
     {
       "idiom" : "universal",
-      "scale" : "2x",
-      "filename" : "Pivot@64.png"
+      "filename" : "Pivot@64.png",
+      "scale" : "2x"
     },
     {
       "idiom" : "universal",
-      "scale" : "3x",
-      "filename" : "Pivot@128.png"
+      "filename" : "Pivot@128.png",
+      "scale" : "3x"
     }
   ],
   "info" : {

@@ -2,18 +2,18 @@
   "images" : [
     {
       "idiom" : "universal",
-      "scale" : "1x",
-      "filename" : "Raster@32.png"
+      "filename" : "Raster@32.png",
+      "scale" : "1x"
     },
     {
       "idiom" : "universal",
-      "scale" : "2x",
-      "filename" : "Raster@64.png"
+      "filename" : "Raster@64.png",
+      "scale" : "2x"
     },
     {
       "idiom" : "universal",
-      "scale" : "3x",
-      "filename" : "Raster@128.png"
+      "filename" : "Raster@128.png",
+      "scale" : "3x"
     }
   ],
   "info" : {
