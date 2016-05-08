@@ -2,15 +2,13 @@ import Cocoa
 import WarpCore
 
 protocol QBEFilterViewDelegate: NSObjectProtocol {
-	func filterView(view: QBEFilterViewController, applyFilter: FilterSet?, permanent: Bool)
+	func filterView(view: QBEFilterViewController, didChangeFilter: FilterSet?)
 }
 
 class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, JobDelegate {
 	@IBOutlet weak var searchField: NSSearchField?
 	@IBOutlet weak var valueList: NSTableView?
 	@IBOutlet weak var progressBar: NSProgressIndicator!
-	@IBOutlet weak var addFilterButton: NSButton!
-	@IBOutlet weak var applyFilterButton: NSButton!
 	@IBOutlet weak var clearFilterButton: NSButton!
 	private var lastSearch: String? = nil
 	weak var delegate: QBEFilterViewDelegate?
@@ -190,19 +188,9 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		tableView.reloadData()
 	}
 	
-	@IBAction func applyFilter(sender: NSObject) {
-		self.delegate?.filterView(self, applyFilter: filter.selectedValues.count > 0 ? filter : nil, permanent: false)
-	}
-	
 	@IBAction func searchChanged(sender: NSObject) {
 		if let search = searchField?.stringValue where !search.isEmpty && search != lastSearch {
 			reloadData()
-		}
-	}
-	
-	@IBAction func addFilterAsStep(sender: NSObject) {
-		if filter.selectedValues.count > 0 {
-			self.delegate?.filterView(self, applyFilter: filter, permanent: true)
 		}
 	}
 	
@@ -210,9 +198,8 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		assertMainThread()
 		self.valueList?.reloadData()
 		let hasFilter = filter.selectedValues.count > 0
-		self.addFilterButton?.enabled = hasFilter
-		self.applyFilterButton?.enabled = hasFilter
 		self.clearFilterButton?.enabled = hasFilter
+		self.delegate?.filterView(self, didChangeFilter: filter.selectedValues.count > 0 ? filter : nil)
 	}
 	
 	@IBAction override func selectAll(sender: AnyObject?) {
@@ -244,7 +231,6 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	@IBAction func clearFilter(sender: NSObject) {
 		self.searchField?.stringValue = ""
 		filter.selectedValues = []
-		self.delegate?.filterView(self, applyFilter: nil, permanent: false)
 		reloadData()
 		filterChanged()
 	}

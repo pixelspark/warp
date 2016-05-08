@@ -31,13 +31,11 @@ public class QBEResultNotification: NSObject {
 	let raster: Raster
 	let isFull: Bool
 	let step: QBEStep
-	let filters: [Column:FilterSet]?
 
-	private init(raster: Raster, isFull: Bool, step: QBEStep, filters: [Column:FilterSet]?, calculator: QBECalculator) {
+	private init(raster: Raster, isFull: Bool, step: QBEStep, calculator: QBECalculator) {
 		self.raster = raster
 		self.isFull = isFull
 		self.step = step
-		self.filters = filters
 		self.calculator = calculator
 	}
 }
@@ -127,12 +125,12 @@ public class QBECalculator: NSObject {
 	
 	/** Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have 
 	been returned. The given callback is called as soon as the last calculation round has finished. */
-	public func calculateExample(sourceStep: QBEStep, maximumTime: Double? = nil,  columnFilters: [Column:FilterSet]? = nil, attempt: Int = 0, callback: () -> ()) {
+	public func calculateExample(sourceStep: QBEStep, maximumTime: Double? = nil, attempt: Int = 0, callback: () -> ()) {
 		let maxTime = maximumTime ?? maximumExampleTime
 		
 		let startTime = NSDate.timeIntervalSinceReferenceDate()
 		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maxTime)
-		self.calculate(sourceStep, fullData: false, maximumTime: maxTime, columnFilters: columnFilters)
+		self.calculate(sourceStep, fullData: false, maximumTime: maxTime)
 		
 		// Record extra information when calculating an example result
 		currentRaster!.get {[unowned self] (raster) in
@@ -166,13 +164,13 @@ public class QBECalculator: NSObject {
 				}
 
 				if startAnother && attempt < self.maximumIterations {
-					self.calculateExample(sourceStep, maximumTime: maxTime - duration, columnFilters: columnFilters, attempt: attempt + 1, callback: callback)
+					self.calculateExample(sourceStep, maximumTime: maxTime - duration, attempt: attempt + 1, callback: callback)
 				}
 				else {
 					// Send notification of finished raster
 					asyncMain {
 						NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
-							QBEResultNotification(raster: r, isFull: false, step: sourceStep, filters: columnFilters, calculator: self))
+							QBEResultNotification(raster: r, isFull: false, step: sourceStep, calculator: self))
 					}
 					callback()
 				}
@@ -183,7 +181,7 @@ public class QBECalculator: NSObject {
 		}
 	}
 	
-	public func calculate(sourceStep: QBEStep, fullData: Bool, maximumTime: Double? = nil, columnFilters: [Column:FilterSet]? = nil) {
+	public func calculate(sourceStep: QBEStep, fullData: Bool, maximumTime: Double? = nil) {
 		self.mutex.locked {
 			if sourceStep != calculationInProgressForStep || currentData?.cancelled ?? false || currentRaster?.cancelled ?? false {
 				currentData?.cancel()
@@ -212,47 +210,15 @@ public class QBECalculator: NSObject {
 						let dataJob = cd.get(job) { (data: Fallible<Data>) -> () in
 							switch data {
 								case .Success(let d):
-									// At this point, we know which columns will be available. We should now add the view filters (if any)
-									if let filters = columnFilters where filters.count > 0 {
-										d.columns(job, callback: { (fallibleColumns) -> () in
-											switch fallibleColumns {
-											case .Success(let columns):
-												var filteredData = d
-												for column in columns {
-													if let columnFilter = filters[column] {
-														let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(column))
-														filteredData = filteredData.filter(filterExpression)
-													}
-												}
-												
-												filteredData.raster(job) { result in
-													result.maybe { raster in
-														// Send notification of finished raster
-														asyncMain {
-															NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
-																QBEResultNotification(raster: raster, isFull: fullData, step: sourceStep, filters: columnFilters, calculator: self))
-														}
-													}
-													callback(result)
-												}
-												
-											case .Failure(let e):
-												callback(.Failure(e))
+									d.raster(job) { result in
+										result.maybe { raster in
+											// Send notification of finished raster
+											asyncMain {
+												NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
+													QBEResultNotification(raster: raster, isFull: fullData, step: sourceStep, calculator: self))
 											}
-										})
-										
-									}
-									else {
-										d.raster(job) { result in
-											result.maybe { raster in
-												// Send notification of finished raster
-												asyncMain {
-													NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
-														QBEResultNotification(raster: raster, isFull: fullData, step: sourceStep, filters: columnFilters, calculator: self))
-												}
-											}
-											callback(result)
 										}
+										callback(result)
 									}
 								
 								case .Failure(let s):

@@ -119,6 +119,7 @@ class QBEFactory {
 		QBEPivotStep.className(): "PivotIcon",
 		QBERandomStep.className(): "RandomIcon",
 		QBEFilterStep.className(): "FilterIcon",
+		QBEFilterSetStep.className(): "FilterSetIcon",
 		QBELimitStep.className(): "LimitIcon",
 		QBEOffsetStep.className(): "LimitIcon",
 		QBECSVSourceStep.className(): "CSVIcon",

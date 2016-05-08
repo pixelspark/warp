@@ -150,6 +150,94 @@ class QBEFilterStep: QBEStep {
 	}
 }
 
+class QBEFilterSetStep: QBEStep {
+	var filterSet: [Column: FilterSet] = [:]
+
+	required init() {
+		filterSet = [:]
+		super.init()
+	}
+
+	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+		let c = filterSet.count
+		if c == 1 {
+			let firstColumn = filterSet.keys.first!.name
+			return QBESentence(format: String(format: "Select rows using a filter on column %@".localized, firstColumn))
+		}
+		else if c > 1 {
+			let firstColumns = Array(filterSet.keys.sort { $0.name < $1.name }.prefix(4)).map { return $0.name }.joinWithSeparator(", ")
+			if c > 4 {
+				return QBESentence(format: String(format: "Select rows using filters on columns %@ and %d more".localized, firstColumns, c - 4))
+			}
+			else {
+				return QBESentence(format: String(format: "Select rows using filters on columns %@".localized, firstColumns))
+			}
+		}
+		else {
+			return QBESentence(format: "Select rows using a filter".localized)
+		}
+	}
+
+	required init(coder aDecoder: NSCoder) {
+		if let d = aDecoder.decodeObjectForKey("filters") as? NSDictionary {
+			for k in d.keyEnumerator() {
+				if let filter = d.objectForKey(k) as? FilterSet, let key = k as? String {
+					self.filterSet[Column(key)] = filter
+				}
+			}
+		}
+		super.init(coder: aDecoder)
+	}
+
+	override func encodeWithCoder(coder: NSCoder) {
+		super.encodeWithCoder(coder)
+
+		let d = NSMutableDictionary()
+		for (k, v) in self.filterSet {
+			d.setObject(v, forKey: k.name)
+		}
+		coder.encodeObject(d, forKey: "filters")
+	}
+
+	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+		// Editing filter steps is handled separately by the editor
+		return QBEStepMerge.Impossible
+	}
+
+	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
+		if !self.filterSet.isEmpty {
+			// Filter the data according to the specification
+			data.columns(job, callback: { fallibleColumns in
+				switch fallibleColumns {
+				case .Success(let columns):
+					var filteredData = data
+					for column in columns {
+						if let columnFilter = self.filterSet[column] {
+							let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(column))
+							filteredData = filteredData.filter(filterExpression)
+						}
+					}
+					return callback(.Success(filteredData))
+
+				case .Failure(let e):
+					return callback(.Failure(e))
+				}
+			})
+		}
+		else {
+			// Nothing to filter
+			return callback(.Success(data))
+		}
+	}
+
+	override var mutableData: MutableData? {
+		if let md = self.previous?.mutableData {
+			return QBEMutableDataWithRowsShuffled(original: md)
+		}
+		return nil
+	}
+}
+
 class QBELimitStep: QBEStep {
 	var numberOfRows: Int
 	

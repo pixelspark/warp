@@ -33,41 +33,48 @@ internal class QBEFilterCell: NSButtonCell {
 		NSColor.windowBackgroundColor().set()
 		NSRectFill(cellFrame)
 
-		// Calculate the 'bar code' of this colum
-		let stripes = numberOfStripes(cellFrame)
-
-		if let c = cached where c.count == stripes {
-			self.drawWithFrame(cellFrame, inView: controlView, values: c)
+		if active {
+			let h = cellFrame.size.height - 7.0
+			let iconRect = NSMakeRect(cellFrame.origin.x + (cellFrame.size.width - h) / 2.0, cellFrame.origin.y + (cellFrame.size.height - h) / 2.0, h, h)
+			NSImage(named: "FilterSetIcon")?.drawInRect(iconRect)
 		}
 		else {
-			let column = self.column
-			let raster = self.raster
-			cacheJob?.cancel()
-			let job = Job(.Background)
-			cacheJob = job
-			job.async { [weak self] in
-				var v = Array<Int>(count: stripes, repeatedValue: 0)
-				if let index = raster.indexOfColumnWithName(column) {
-					for row in raster.rows {
-						if job.cancelled {
-							return
-						}
+			// Calculate the 'bar code' of this colum
+			let stripes = numberOfStripes(cellFrame)
 
-						let value = row.values[index]
-						let hash: Int
-						if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
-							hash = Int(fmod(abs(i), Double(Int.max-1)))
+			if let c = cached where c.count == stripes {
+				self.drawWithFrame(cellFrame, inView: controlView, values: c)
+			}
+			else {
+				let column = self.column
+				let raster = self.raster
+				cacheJob?.cancel()
+				let job = Job(.Background)
+				cacheJob = job
+				job.async { [weak self] in
+					var v = Array<Int>(count: stripes, repeatedValue: 0)
+					if let index = raster.indexOfColumnWithName(column) {
+						for row in raster.rows {
+							if job.cancelled {
+								return
+							}
+
+							let value = row.values[index]
+							let hash: Int
+							if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
+								hash = Int(fmod(abs(i), Double(Int.max-1)))
+							}
+							else {
+								hash = abs(value.stringValue?.hashValue ?? 0)
+							}
+							v[hash % stripes] += 1
 						}
-						else {
-							hash = abs(value.stringValue?.hashValue ?? 0)
-						}
-						v[hash % stripes] += 1
 					}
-				}
-				asyncMain {
-					if let s = self where !job.cancelled {
-						s.cached = v
-						controlView.setNeedsDisplayInRect(cellFrame)
+					asyncMain {
+						if let s = self where !job.cancelled {
+							s.cached = v
+							controlView.setNeedsDisplayInRect(cellFrame)
+						}
 					}
 				}
 			}

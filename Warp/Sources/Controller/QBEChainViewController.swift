@@ -50,7 +50,6 @@ internal enum QBEEditingMode {
 	private var dataViewController: QBEDataViewController?
 	private var stepsViewController: QBEStepsViewController?
 	private var outletDropView: QBEOutletDropView!
-	private var viewFilters: [Column:FilterSet] = [:]
 	private var hasFullData = false
 	private var filterControllerJob: Job? = nil
 
@@ -105,6 +104,33 @@ internal enum QBEEditingMode {
 			
 			self.stepsViewController?.currentStep = currentStep
 			self.stepsChanged()
+		}
+	}
+
+	private var viewFilters: [Column:FilterSet]  {
+		get {
+			if let c = currentStep as? QBEFilterSetStep {
+				return c.filterSet
+			}
+			return [:]
+		}
+
+		set {
+			if let c = currentStep as? QBEFilterSetStep {
+				if newValue.isEmpty {
+					self.removeStep(self)
+				}
+				else {
+					c.filterSet = newValue
+				}
+			}
+			else {
+				if !newValue.isEmpty {
+					let fs = QBEFilterSetStep()
+					fs.filterSet = newValue
+					self.pushStep(fs)
+				}
+			}
 		}
 	}
 	
@@ -338,21 +364,14 @@ internal enum QBEEditingMode {
 		}
 	}
 	
-	func filterView(view: QBEFilterViewController, applyFilter filter: FilterSet?, permanent: Bool) {
+	func filterView(view: QBEFilterViewController, didChangeFilter filter: FilterSet?) {
 		assertMainThread()
 		
 		if let c = view.column {
-			if permanent {
-				if let realFilter = filter?.expression.expressionReplacingIdentityReferencesWith(Sibling(c)) {
-					self.suggestSteps([QBEFilterStep(previous: currentStep, condition: realFilter)])
-					self.viewFilters.removeValueForKey(c)
-				}
-			}
-			else {
-				// If filter is nil, the filter is removed from the set of view filters
-				self.viewFilters[c] = filter
-				calculate()
-			}
+			// If filter is nil, the filter is removed from the set of view filters
+			self.viewFilters[c] = filter
+			delegate?.chainView(self, configureStep: currentStep, necessary: false, delegate: self)
+			calculate()
 		}
 	}
 	
@@ -452,11 +471,11 @@ internal enum QBEEditingMode {
 					
 					// Start calculation
 					if useFullData {
-						calculator.calculate(sourceStep, fullData: useFullData, maximumTime: nil, columnFilters: self.viewFilters)
+						calculator.calculate(sourceStep, fullData: useFullData, maximumTime: nil)
 						refreshData()
 					}
 					else {
-						calculator.calculateExample(sourceStep, maximumTime: nil, columnFilters: self.viewFilters) {
+						calculator.calculateExample(sourceStep, maximumTime: nil) {
 							asyncMain {
 								self.refreshData()
 							}
@@ -1059,10 +1078,11 @@ internal enum QBEEditingMode {
 			filterControllerJob?.cancel()
 			let job = Job(.UserInitiated)
 			filterControllerJob = job
+			let sourceStep = (currentStep is QBEFilterSetStep) ? currentStep?.previous : currentStep
 
-			self.currentStep?.fullData(job) { result in
+			sourceStep?.fullData(job) { result in
 				result.maybe { fullData in
-					self.currentStep?.exampleData(job, maxInputRows: self.calculator.maximumExampleInputRows, maxOutputRows: self.calculator.desiredExampleRows) { result in
+					sourceStep?.exampleData(job, maxInputRows: self.calculator.maximumExampleInputRows, maxOutputRows: self.calculator.desiredExampleRows) { result in
 						result.maybe { exampleData in
 							asyncMain {
 								if let filterViewController = self.storyboard?.instantiateControllerWithIdentifier("filterView") as? QBEFilterViewController {
