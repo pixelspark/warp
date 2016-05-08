@@ -248,7 +248,10 @@ private extension Data {
 			case .Success(let r):
 				var histogram: [Value: Int] = [:]
 				for row in r.rows {
-					histogram[row[keyColumn]] = row[countColumn].intValue
+					let k = row[keyColumn]
+					if k.isValid {
+						histogram[k] = row[countColumn].intValue
+					}
 				}
 				callback(.Success(histogram))
 
