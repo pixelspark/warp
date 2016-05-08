@@ -5,6 +5,7 @@
   },
   "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
     "8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E" : 0,
+    "E26FDC45B7B8C84A0DD11DB7FB79D6DAFA155193" : 0,
     "67620B5EFA902936DF04070AF595B76AB0333747" : 0,
     "9025163822AAEA7A2D8AC9210D0874A56F62B462" : 0,
     "A5F18CC216C059F29632AA08FA9E5DF3898315E3" : 0,
@@ -16,6 +17,7 @@
   "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "0822F929-563D-423B-9198-B396980A69B5",
   "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
     "8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E" : "QBE\/Libraries\/MBTableGrid\/",
+    "E26FDC45B7B8C84A0DD11DB7FB79D6DAFA155193" : "Warp\/Libraries\/SwiftAI\/",
     "67620B5EFA902936DF04070AF595B76AB0333747" : "QBE\/Libraries\/Alamofire\/",
     "9025163822AAEA7A2D8AC9210D0874A56F62B462" : "Warp\/Libraries\/Charts\/",
     "A5F18CC216C059F29632AA08FA9E5DF3898315E3" : "QBE\/",
@@ -62,6 +64,11 @@
       "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:pixelspark\/rethink-swift.git",
       "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
       "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "B4ECFDB54DAEDE750287282DDD72484BDC32C452"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/collinhundley\/Swift-AI.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "E26FDC45B7B8C84A0DD11DB7FB79D6DAFA155193"
     },
     {
       "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:monkeydom\/TCMXMLWriter.git",

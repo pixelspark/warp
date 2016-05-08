@@ -158,6 +158,10 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 
+	public var writableCopy: Raster {
+		return Raster(data: self.raster, columns: self.columns, readOnly: false)
+	}
+
 	public func addRows(rows: [Tuple]) {
 		self.mutex.locked {
 			assert(!readOnly, "Data set is read-only")

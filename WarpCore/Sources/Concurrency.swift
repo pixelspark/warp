@@ -506,8 +506,12 @@ public class Mutex {
 		pthread_mutex_destroy(&self.mutex)
 	}
 
-	/** Execute the given block while holding a lock to this mutex. */
 	public final func locked<T>(file: StaticString = #file, line: UInt = #line, @noescape block: () -> (T)) -> T {
+		return try! self.tryLocked(file, line: line, block: block)
+	}
+
+	/** Execute the given block while holding a lock to this mutex. */
+	public final func tryLocked<T>(file: StaticString = #file, line: UInt = #line, @noescape block: () throws -> (T)) throws -> T {
 		#if DEBUG
 			let start = CFAbsoluteTimeGetCurrent()
 		#endif
@@ -519,7 +523,7 @@ public class Mutex {
 			}
 			self.locker = "\(file):\(line)"
 		#endif
-		let ret: T = block()
+		let ret: T = try block()
 		self.unlock()
 		return ret
 	}

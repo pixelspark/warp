@@ -18,3 +18,6 @@
 [submodule "Libraries/Charts"]
 	path = Libraries/Charts
 url=https://github.com/danielgindi/ios-charts.git
+[submodule "Libraries/SwiftAI"]
+	path = Libraries/SwiftAI
+	url = https://github.com/collinhundley/Swift-AI.git

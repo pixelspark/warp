@@ -143,7 +143,8 @@ class QBEFactory {
 		QBESequencerStep.className(): "SequenceIcon",
 		QBEDBFSourceStep.className(): "DBFIcon",
 		QBEExportStep.className(): "ExportStepIcon",
-		QBERethinkSourceStep.className(): "RethinkDBIcon"
+		QBERethinkSourceStep.className(): "RethinkDBIcon",
+		QBEClassifierStep.className(): "AIIcon"
 	]
 	
 	var fileExtensionsForWriting: Set<String> { get {
