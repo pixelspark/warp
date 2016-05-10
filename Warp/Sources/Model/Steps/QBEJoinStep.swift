@@ -229,7 +229,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 			return false
 		}
 		else {
-			return true
+			return false
 		}
 	}
 
