@@ -197,6 +197,11 @@ public struct Aggregator {
 public class Aggregation: NSObject, NSCoding {
 	public var aggregator: Aggregator
 	public var targetColumn: Column
+
+	public init(aggregator: Aggregator, targetColumn: Column) {
+		self.aggregator = aggregator
+		self.targetColumn = targetColumn
+	}
 	
 	public init(map: Expression, reduce: Function, targetColumn: Column) {
 		self.aggregator = Aggregator(map: map, reduce: reduce)

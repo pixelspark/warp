@@ -182,19 +182,24 @@ function. Once the reservoir is 'full', it will start randomly replacing items i
 this in such a way that the reservoir at any point in time contains a uniform random sample of the samples it has seen
 up to that point. If the reservoir is not completely filled, the sample will contain all items that have been fed to the
 reservoir up to that point. */
-internal class Reservoir<ValueType> {
-	private(set) var sample: [ValueType] = []
+public class Reservoir<ValueType> {
+	public private(set) var sample: [ValueType] = []
 	let sampleSize: Int
 	private(set) var samplesSeen: Int = 0
 
-	init(sampleSize: Int) {
+	public init(sampleSize: Int) {
 		self.sampleSize = sampleSize
+	}
+
+	public func clear() {
+		self.sample = []
+		self.samplesSeen = 0
 	}
 
 	/** Add items to the reservoir. The order of the items does not matter, as the reservoir will perform random sampling
 	in a uniform way. Note however that if the reservoir is not filled to at least full capacity, the sample is not 
 	randomized in any way (e.g. shuffled). */
-	func add(inRows: [ValueType]) {
+	public func add(inRows: [ValueType]) {
 		var rows = inRows
 		
 		// Reservoir initial fill
