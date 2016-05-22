@@ -6,6 +6,7 @@ private class QBESQLiteResult {
 	let db: QBESQLiteConnection
 	
 	static func create(sql: String, db: QBESQLiteConnection) -> Fallible<QBESQLiteResult> {
+		assert(sql.lengthOfBytesUsingEncoding(NSUTF8StringEncoding) < 1000000, "SQL statement for SQLite too long!")
 		var resultSet: COpaquePointer = nil
 		trace("SQL \(sql)")
 		if !db.perform({sqlite3_prepare_v2(db.db, sql, -1, &resultSet, nil)}) {

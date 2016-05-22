@@ -309,7 +309,7 @@ public class SQLMutableData: MutableData {
 	private func performInsertByPulling(connection: SQLConnection, data: Data, mapping: ColumnMapping, job: Job, callback: (Fallible<Void>) -> ()) {
 		let fields = mapping.keys.map { fn in return self.database.dialect.columnIdentifier(fn, table: nil, schema: nil, database: nil) }.joinWithSeparator(", ")
 		let insertStatement = "INSERT INTO \(self.tableIdentifier) (\(fields)) VALUES ";
-		print(insertStatement)
+		job.log(insertStatement)
 
 		// Fetch rows and insert!
 		data.columns(job) { columnsFallible in
@@ -521,7 +521,7 @@ public class SQLMutableData: MutableData {
 
 public class StandardSQLDialect: SQLDialect {
 	public var stringQualifier: String { get { return "\'" } }
-	public var stringQualifierEscape: String { get { return "\\\'" } }
+	public var stringQualifierEscape: String { get { return "\'\'" } }
 	public var identifierQualifier: String { get { return "\"" } }
 	public var identifierQualifierEscape: String { get { return "\\\"" } }
 	public var stringEscape: String { get { return "\\" } }
