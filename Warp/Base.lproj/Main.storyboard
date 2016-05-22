@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15E65" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10117"/>
@@ -2809,7 +2809,7 @@ z4M9Ew
             <objects>
                 <viewController storyboardIdentifier="uploadData" id="kej-0g-2dY" customClass="QBEUploadViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="grc-U0-uND">
-                        <rect key="frame" x="0.0" y="0.0" width="623" height="197"/>
+                        <rect key="frame" x="0.0" y="0.0" width="623" height="165"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="SYa-KY-zD8">
@@ -2841,17 +2841,8 @@ DQ
                                     <segue destination="dZx-NB-Ues" kind="embed" identifier="targetSentenceView" id="OiJ-tK-4iF"/>
                                 </connections>
                             </containerView>
-                            <containerView verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="613" placeholderIntrinsicHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="TPX-oT-EhC">
-                                <rect key="frame" x="5" y="138" width="613" height="22"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="6AW-yp-ho3"/>
-                                </constraints>
-                                <connections>
-                                    <segue destination="dZx-NB-Ues" kind="embed" identifier="sourceSentenceView" id="ZgC-CH-SBh"/>
-                                </connections>
-                            </containerView>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="X39-p6-DDO">
-                                <rect key="frame" x="8" y="170" width="83" height="17"/>
+                                <rect key="frame" x="8" y="138" width="83" height="17"/>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="17" id="Fup-4l-zMR"/>
                                 </constraints>
@@ -2916,17 +2907,15 @@ Gw
                         </subviews>
                         <constraints>
                             <constraint firstItem="fub-Gu-JU4" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="10" id="4GN-YU-xjX"/>
-                            <constraint firstItem="QpU-NZ-jJG" firstAttribute="top" secondItem="TPX-oT-EhC" secondAttribute="bottom" constant="10" id="6bo-Bs-2nQ"/>
                             <constraint firstAttribute="trailing" secondItem="SYa-KY-zD8" secondAttribute="trailing" constant="5" id="7Mc-vB-WOb"/>
                             <constraint firstItem="03K-Ad-UyC" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="15" id="Ede-Sg-U1Q"/>
-                            <constraint firstItem="TPX-oT-EhC" firstAttribute="top" secondItem="X39-p6-DDO" secondAttribute="bottom" constant="10" id="Ehg-Gh-WkO"/>
                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="P3i-Jl-l2t" secondAttribute="trailing" constant="5" id="HR3-cB-9wz"/>
-                            <constraint firstItem="TPX-oT-EhC" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="5" id="IfI-7m-rJv"/>
                             <constraint firstItem="P3i-Jl-l2t" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="15" id="JXC-3J-ntn"/>
                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="03K-Ad-UyC" secondAttribute="trailing" constant="5" id="Kml-R6-7Jx"/>
                             <constraint firstAttribute="bottom" secondItem="SYa-KY-zD8" secondAttribute="bottom" constant="5" id="N1Y-ht-Zts"/>
                             <constraint firstItem="P3i-Jl-l2t" firstAttribute="top" secondItem="QpU-NZ-jJG" secondAttribute="bottom" constant="10" id="ODr-L2-6wi"/>
                             <constraint firstItem="Dgz-cc-hxh" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="fub-Gu-JU4" secondAttribute="trailing" constant="5" id="Pgp-rb-Doz"/>
+                            <constraint firstItem="QpU-NZ-jJG" firstAttribute="top" secondItem="X39-p6-DDO" secondAttribute="bottom" constant="10" id="Qy5-Jy-U7R"/>
                             <constraint firstAttribute="bottom" secondItem="fub-Gu-JU4" secondAttribute="bottom" constant="5" id="VXe-sc-DUs"/>
                             <constraint firstAttribute="trailing" secondItem="QpU-NZ-jJG" secondAttribute="trailing" constant="5" id="Wa8-yI-BGo"/>
                             <constraint firstItem="fub-Gu-JU4" firstAttribute="top" secondItem="03K-Ad-UyC" secondAttribute="bottom" constant="10" id="dQS-c6-8dM"/>
@@ -2938,7 +2927,6 @@ Gw
                             <constraint firstItem="Unb-fA-YTw" firstAttribute="centerY" secondItem="Dgz-cc-hxh" secondAttribute="centerY" id="qyk-UW-WNI"/>
                             <constraint firstItem="SYa-KY-zD8" firstAttribute="leading" secondItem="Unb-fA-YTw" secondAttribute="trailing" constant="5" id="vTY-N3-A13"/>
                             <constraint firstItem="X39-p6-DDO" firstAttribute="leading" secondItem="grc-U0-uND" secondAttribute="leading" constant="10" id="yfG-B9-mtL"/>
-                            <constraint firstAttribute="trailing" secondItem="TPX-oT-EhC" secondAttribute="trailing" constant="5" id="z9E-My-Hng"/>
                             <constraint firstItem="X39-p6-DDO" firstAttribute="top" secondItem="grc-U0-uND" secondAttribute="top" constant="10" id="zq2-wh-Fhy"/>
                         </constraints>
                     </view>
@@ -3307,7 +3295,7 @@ Gw
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="9VS-us-iqq">
-                                            <rect key="frame" x="0.0" y="0.0" width="247" height="225"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="247" height="19"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -3347,7 +3335,7 @@ Gw
                                     </subviews>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </clipView>
-                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="gQP-eX-a4K">
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="gQP-eX-a4K">
                                     <rect key="frame" x="1" y="210" width="247" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
@@ -3860,6 +3848,6 @@ DQ
         <image name="ZoomOutIcon" width="51" height="51"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="ZgC-CH-SBh"/>
+        <segue reference="OiJ-tK-4iF"/>
     </inferredMetricsTieBreakers>
 </document>

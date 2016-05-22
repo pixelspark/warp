@@ -3,7 +3,6 @@ import WarpCore
 
 class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDelegate, QBEColumnMappingDelegate {
 	private var targetSentenceViewController: QBESentenceViewController? = nil
-	private var sourceSentenceViewController: QBESentenceViewController? = nil
 	@IBOutlet private var progressBar: NSProgressIndicator?
 	@IBOutlet private var okButton: NSButton?
 	@IBOutlet private var removeBeforeUpload: NSButton?
@@ -12,10 +11,8 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 
 	var afterSuccessfulUpload: (() -> ())? = nil
 	var mapping: ColumnMapping? = nil
-
-	var sourceStep: QBEStep? { didSet {
-		initializeView()
-	} }
+	var sourceStep: QBEStep? = nil
+	var retryUploadAfterMapping = false
 
 	var targetStep: QBEStep? { didSet {
 		initializeView()
@@ -27,17 +24,14 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 		if let s = targetStep {
 			self.targetSentenceViewController?.startConfiguring(s, variant: .Write, delegate: self)
 		}
-		if let s = sourceStep {
-			self.sourceSentenceViewController?.startConfiguring(s, variant: .Read, delegate: self)
-		}
 	}
 
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
-		if segue.identifier == "sourceSentenceView" {
-			self.sourceSentenceViewController = segue.destinationController as? QBESentenceViewController
-		}
-		else if segue.identifier == "targetSentenceView" {
+		if segue.identifier == "targetSentenceView" {
 			self.targetSentenceViewController = segue.destinationController as? QBESentenceViewController
+		}
+		else {
+			fatalError("Unknown segue")
 		}
 	}
 
@@ -78,7 +72,6 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 		self.progressBar?.hidden = self.uploadJob == nil
 		self.progressBar?.indeterminate = true
 		self.okButton?.enabled = self.canPerformUpload && self.uploadJob == nil
-		self.sourceSentenceViewController?.enabled = self.uploadJob == nil
 		self.targetSentenceViewController?.enabled = self.uploadJob == nil
 		self.removeBeforeUpload?.enabled = self.canPerformTruncateBeforeUpload && self.uploadJob == nil
 		self.columnMappingButton?.enabled = self.uploadJob == nil && needsColumnMapping && !shouldAlter
@@ -250,6 +243,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 
 	@IBAction func editColumnMapping(sender: NSObject) {
 		let job = Job(.UserInitiated)
+		self.retryUploadAfterMapping = false
 
 		// Get source and destination columns
 		if let destination = self.targetStep?.mutableData, let source = self.sourceStep {
@@ -293,6 +287,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 													vc.mapping = self.mapping!
 													vc.sourceColumns = sourceColumns
 													vc.delegate = self
+													self.retryUploadAfterMapping = true
 													self.presentViewControllerAsSheet(vc)
 												}
 											}
@@ -331,6 +326,10 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 	}
 
 	@IBAction func create(sender: NSObject) {
+		self.startUpload()
+	}
+
+	private func startUpload() {
 		assert(uploadJob == nil, "Cannot start two uploads at the same time")
 
 		if let source = sourceStep, let mutableData = targetStep?.mutableData where canPerformUpload {
@@ -339,7 +338,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 			self.uploadJob!.addObserver(self)
 			self.progressBar?.doubleValue = 0.0
 			self.progressBar?.indeterminate = true
-			self.progressBar?.startAnimation(sender)
+			self.progressBar?.startAnimation(self)
 			updateView()
 
 			source.fullData(uploadJob!) { data in
@@ -353,7 +352,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 								asyncMain {
 									self.uploadJob = nil
 									self.updateView()
-									self.editColumnMapping(sender)
+									self.editColumnMapping(self)
 								}
 							}
 							else {
@@ -396,6 +395,12 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 
 	func columnMappingView(view: QBEColumnMappingViewController, didChangeMapping: ColumnMapping) {
 		self.mapping = didChangeMapping
+
+		if retryUploadAfterMapping {
+			retryUploadAfterMapping = false
+			self.uploadJob = nil
+			self.startUpload()
+		}
 	}
 
 	func sentenceView(view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable) {
