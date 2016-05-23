@@ -114,7 +114,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			editingToken = QBEEditingToken(options)
 			let menu = NSMenu()
 			menu.autoenablesItems = false
-			let loadingItem = NSMenuItem(title: NSLocalizedString("Loading...", comment: ""), action: #selector(QBESentenceViewController.dismissInputEditor(_:)), keyEquivalent: "")
+			let loadingItem = NSMenuItem(title: NSLocalizedString("Loading...", comment: ""), action: nil, keyEquivalent: "")
 			loadingItem.enabled = false
 			menu.addItem(loadingItem)
 
@@ -127,12 +127,20 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 						switch itemsFallible {
 						case .Success(let items):
 							self?.editingToken?.options = items
-							var index = 0
-							for item in items {
-								let menuItem = NSMenuItem(title: item, action: #selector(QBESentenceViewController.selectListOption(_:)), keyEquivalent: "")
-								menuItem.tag = index
-								menu.addItem(menuItem)
-								index += 1
+
+							if items.isEmpty {
+								let loadingItem = NSMenuItem(title: NSLocalizedString("(no items)", comment: ""), action: nil, keyEquivalent: "")
+								loadingItem.enabled = false
+								menu.addItem(loadingItem)
+							}
+							else {
+								var index = 0
+								for item in items {
+									let menuItem = NSMenuItem(title: item, action: #selector(QBESentenceViewController.selectListOption(_:)), keyEquivalent: "")
+									menuItem.tag = index
+									menu.addItem(menuItem)
+									index += 1
+								}
 							}
 
 						case .Failure(let e):
@@ -196,18 +204,62 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			self.editingToken = QBEEditingToken(inputToken)
 
 			let menu = NSMenu()
+
+			// Items related to the currently selected file
+			let showItem = NSMenuItem(title: NSLocalizedString("Show in Finder", comment: ""), action: #selector(QBESentenceViewController.showFileInFinder(_:)), keyEquivalent: "")
+			showItem.enabled = inputToken.file != nil
+			menu.addItem(showItem)
+
+			menu.addItem(NSMenuItem.separatorItem())
+
+			// Items for selecting a new file
 			if inputToken.isDirectory {
 				menu.addItem(NSMenuItem(title: NSLocalizedString("Select directory...", comment: ""), action: #selector(QBESentenceViewController.selectFile(_:)), keyEquivalent: ""))
 			}
 			else {
 				menu.addItem(NSMenuItem(title: NSLocalizedString("Select file...", comment: ""), action: #selector(QBESentenceViewController.selectFile(_:)), keyEquivalent: ""))
 			}
-			let showItem = NSMenuItem(title: NSLocalizedString("Show in Finder", comment: ""), action: #selector(QBESentenceViewController.showFileInFinder(_:)), keyEquivalent: "")
-			showItem.enabled = inputToken.file != nil
-			menu.addItem(showItem)
+
+			if case .Reading(let canCreate) = inputToken.mode where canCreate {
+				let createItem = NSMenuItem(title: "New file...".localized, action: #selector(QBESentenceViewController.createNewFile(_:)), keyEquivalent: "")
+				menu.addItem(createItem)
+			}
+
+			// Items for selecting a recent file
+			if let recents = self.fileRecentsForSelectedToken?.loadRememberedFiles() {
+				menu.addItem(NSMenuItem.separatorItem())
+
+				let label = NSMenuItem(title: "Recent files".localized, action: nil, keyEquivalent: "")
+				label.enabled = false
+				menu.addItem(label)
+
+				for recent in recents {
+					if let u = recent.url, let title = u.lastPathComponent {
+						let recentItem = NSMenuItem(title:  title, action: #selector(QBESentenceViewController.selectURL(_:)), keyEquivalent: "")
+						recentItem.representedObject = u
+						menu.addItem(recentItem)
+					}
+				}
+			}
+
 			return menu
 		}
 		return nil
+	}
+
+	@IBAction func selectURL(sender: NSObject) {
+		if let nm = sender as? NSMenuItem, let url = nm.representedObject as? NSURL {
+			if let token = editingToken?.token as? QBESentenceFile, let s = editingConfigurable {
+				let fileRef = QBEFileReference.URL(url)
+				token.change(fileRef)
+				self.delegate?.sentenceView(self, didChangeConfigurable: s)
+				self.updateView()
+			}
+		}
+	}
+
+	@IBAction func createNewFile(sender: NSObject) {
+		self.selectFileWithPanel(true)
 	}
 
 	@IBAction func showFileInFinder(sender: NSObject) {
@@ -217,42 +269,55 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func selectFile(sender: NSObject) {
+		self.selectFileWithPanel(false)
+	}
+
+	private func selectFileWithPanel(createNew: Bool) {
 		if let token = editingToken?.token as? QBESentenceFile, let s = editingConfigurable {
-			if token.mustExist || token.isDirectory {
-				let no = NSOpenPanel()
+			let savePanel: NSSavePanel
+
+			switch token.mode {
+			case .Reading(canCreate: let canCreate):
 				if token.isDirectory {
+					let no = NSOpenPanel()
 					no.canChooseDirectories = true
-					no.canCreateDirectories = true
+					no.canCreateDirectories = canCreate
+					savePanel = no
+				}
+				else if canCreate && createNew {
+					savePanel = NSSavePanel()
 				}
 				else {
+					let no = NSOpenPanel()
 					no.canChooseFiles = true
 					no.allowedFileTypes = token.allowedFileTypes
+					savePanel = no
 				}
 
-				no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
-					if result==NSFileHandlingPanelOKButton {
-						let url = no.URLs[0]
-						token.change(QBEFileReference.URL(url))
+			case .Writing():
+				savePanel = NSSavePanel()
+			}
+
+			savePanel.allowedFileTypes = token.allowedFileTypes
+			savePanel.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
+				if result==NSFileHandlingPanelOKButton {
+					if let url = savePanel.URL {
+						let fileRef = QBEFileReference.URL(url)
+						token.change(fileRef)
+						self.fileRecentsForSelectedToken?.remember(fileRef)
 						self.delegate?.sentenceView(self, didChangeConfigurable: s)
 						self.updateView()
 					}
-				})
-
-			}
-			else {
-				let no = NSSavePanel()
-				no.allowedFileTypes = token.allowedFileTypes
-				no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
-					if result==NSFileHandlingPanelOKButton {
-						if let url = no.URL {
-							token.change(QBEFileReference.URL(url))
-							self.delegate?.sentenceView(self, didChangeConfigurable: s)
-							self.updateView()
-						}
-					}
-				})
-			}
+				}
+			})
 		}
+	}
+
+	private var fileRecentsForSelectedToken: QBEFileRecents? {
+		if let token = editingToken?.token as? QBESentenceFile {
+			return QBEFileRecents(key: token.allowedFileTypes.joinWithSeparator(";"))
+		}
+		return nil
 	}
 
 	@IBAction func dismissInputEditor(sender: NSObject) {

@@ -33,13 +33,17 @@ public enum QBEFileReference: Equatable {
 		}
 	}
 
-	public func bookmark(relativeToDocument: NSURL) -> QBEFileReference? {
+	public func bookmark(relativeToDocument: NSURL?) -> QBEFileReference? {
 		switch self {
 		case .URL(let u):
 			do {
-				let bookmark = try u.bookmarkDataWithOptions(NSURLBookmarkCreationOptions.WithSecurityScope, includingResourceValuesForKeys: nil, relativeToURL: nil)
+				let bookmark = try u.bookmarkDataWithOptions(NSURLBookmarkCreationOptions.WithSecurityScope, includingResourceValuesForKeys: nil, relativeToURL: relativeToDocument)
 				do {
-					let resolved = try NSURL(byResolvingBookmarkData: bookmark, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil)
+					var stale: ObjCBool = false
+					let resolved = try NSURL(byResolvingBookmarkData: bookmark, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: relativeToDocument, bookmarkDataIsStale: &stale)
+					if stale {
+						trace("Just-created URL bookmark is already stale! \(resolved)")
+					}
 					return QBEFileReference.ResolvedBookmark(bookmark, resolved)
 				}
 				catch let error as NSError {
@@ -59,14 +63,19 @@ public enum QBEFileReference: Equatable {
 		}
 	}
 
-	public func resolve(relativeToDocument: NSURL) -> QBEFileReference? {
+	public func resolve(relativeToDocument: NSURL?) -> QBEFileReference? {
 		switch self {
 		case .URL(_):
 			return self
 
 		case .ResolvedBookmark(let b, let oldURL):
 			do {
-				let u = try NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil)
+				var stale: ObjCBool = false
+				let u = try NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: relativeToDocument, bookmarkDataIsStale: &stale)
+				if stale {
+					trace("Resolved bookmark is stale: \(u)")
+					return QBEFileReference.URL(u)
+				}
 				return QBEFileReference.ResolvedBookmark(b, u)
 			}
 			catch let error as NSError {
@@ -77,7 +86,12 @@ public enum QBEFileReference: Equatable {
 
 		case .Bookmark(let b):
 			do {
-				let u = try NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: nil, bookmarkDataIsStale: nil)
+				var stale: ObjCBool = false
+				let u = try NSURL(byResolvingBookmarkData: b, options: NSURLBookmarkResolutionOptions.WithSecurityScope, relativeToURL: relativeToDocument, bookmarkDataIsStale: &stale)
+				if stale {
+					trace("Just-resolved bookmark is stale: \(u)")
+					return QBEFileReference.URL(u)
+				}
 				return QBEFileReference.ResolvedBookmark(b, u)
 			}
 			catch let error as NSError {
@@ -179,5 +193,35 @@ public class QBEFilePresenter: NSObject {
 	deinit {
 		trace("Removing file presenter for \(self.delegate.presentedItemURL!)")
 		NSFileCoordinator.removeFilePresenter(self.delegate)
+	}
+}
+
+public class QBEFileRecents {
+	private let maxRememberedFiles = 5
+	private let preferenceKey: String
+
+	init(key: String) {
+		self.preferenceKey = "recents.\(key)"
+	}
+
+	public func loadRememberedFiles() -> [QBEFileReference] {
+		let files: [String] = (NSUserDefaults.standardUserDefaults().arrayForKey(preferenceKey) as? [String]) ?? []
+		return files.flatMap { bookmarkString -> [QBEFileReference] in
+			if let bookmarkData = NSData(base64EncodedString: bookmarkString, options: []) {
+				let fileRef = QBEFileReference.Bookmark(bookmarkData)
+				if let resolved = fileRef.resolve(nil) {
+					return [resolved]
+				}
+			}
+			return []
+		}
+	}
+
+	public func remember(file: QBEFileReference) {
+		if let bookmarkData = file.bookmark(nil)?.bookmark {
+			var files: [String] = (NSUserDefaults.standardUserDefaults().arrayForKey(preferenceKey) as? [String]) ?? []
+			files.insert(bookmarkData.base64EncodedStringWithOptions([]), atIndex: 0)
+			NSUserDefaults.standardUserDefaults().setValue(Array(files.prefix(self.maxRememberedFiles)), forKey: preferenceKey)
+		}
 	}
 }

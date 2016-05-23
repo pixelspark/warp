@@ -200,6 +200,11 @@ public class QBESentenceFormula: NSObject, QBESentenceToken {
 	public var isToken: Bool { get { return true } }
 }
 
+public enum QBESentenceFileMode {
+	case Writing()
+	case Reading(canCreate: Bool)
+}
+
 /** Sentence item that refers to an (existing or yet to be created) file or directory. */
 public class QBESentenceFile: NSObject, QBESentenceToken {
 	public typealias Callback = (QBEFileReference) -> ()
@@ -207,14 +212,14 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 	public let allowedFileTypes: [String]
 	public let callback: Callback
 	public let isDirectory: Bool
-	public let mustExist: Bool
+	public let mode: QBESentenceFileMode
 
 	public init(directory: QBEFileReference?, callback: Callback) {
 		self.allowedFileTypes = []
 		self.file = directory
 		self.callback = callback
 		self.isDirectory = true
-		self.mustExist = true
+		self.mode = .Reading(canCreate: true)
 	}
 
 	public init(saveFile file: QBEFileReference?, allowedFileTypes: [String], callback: Callback) {
@@ -222,15 +227,15 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 		self.callback = callback
 		self.allowedFileTypes = allowedFileTypes
 		self.isDirectory = false
-		self.mustExist = false
+		self.mode = .Writing()
 	}
 
-	public init(file: QBEFileReference?, allowedFileTypes: [String], callback: Callback) {
+	public init(file: QBEFileReference?, allowedFileTypes: [String], canCreate: Bool = false, callback: Callback) {
 		self.file = file
 		self.callback = callback
 		self.allowedFileTypes = allowedFileTypes
 		self.isDirectory = false
-		self.mustExist = true
+		self.mode = .Reading(canCreate: canCreate)
 	}
 
 	public func change(newValue: QBEFileReference) {

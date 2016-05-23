@@ -926,9 +926,22 @@ class QBESQLiteSourceStep: QBEStep {
 	}
 
 	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
-		let fileSentenceItem = QBESentenceFile(file: self.file, allowedFileTypes: ["org.sqlite.v3"], callback: { [weak self] (newFile) -> () in
+		let fileSentenceItem = QBESentenceFile(file: self.file, allowedFileTypes: ["org.sqlite.v3"], canCreate: true, callback: { [weak self] (newFile) -> () in
+			// If a file was selected that does not exist yet, create a new database
+			var error: NSError? = nil
+			if let url = newFile.url where !url.checkResourceIsReachableAndReturnError(&error) {
+				let db = QBESQLiteDatabase(url: url, readOnly: false)
+				db.connect { result in
+					switch result {
+					case .Success(_): break
+					case .Failure(let e):
+						Swift.print("Failed to create SQLite database at \(url): \(e)")
+					}
+				}
+			}
+
 			self?.file = newFile
-		});
+		})
 
 		if self.file == nil {
 			let template: String
