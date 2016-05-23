@@ -1000,6 +1000,13 @@ class QBESQLiteSourceStep: QBEStep {
 		self.file = self.file?.bookmark(atURL)
 	}
 
+	var warehouse: Warehouse? {
+		if let u = self.file?.url {
+			return QBESQLiteDataWarehouse(database: QBESQLiteDatabase(url: u, readOnly: false), schemaName: nil)
+		}
+		return nil
+	}
+
 	override var mutableData: MutableData? {
 		if let u = self.file?.url, let tn = tableName {
 			return QBESQLiteMutableData(database: QBESQLiteDatabase(url: u, readOnly: false), schemaName: nil, tableName: tn)

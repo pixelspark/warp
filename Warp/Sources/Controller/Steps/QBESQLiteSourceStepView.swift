@@ -27,13 +27,13 @@ internal class QBESQLiteSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 	}
 
 	private func updateView() {
-		self.createTableButton?.enabled = self.step.mutableData?.warehouse.canPerformMutation(.Create("table", RasterData())) ?? false
+		self.createTableButton?.enabled = self.step.warehouse?.canPerformMutation(.Create("table", RasterData())) ?? false
 	}
 
 	@IBAction func createTable(sender: NSObject) {
-		if let mutableData = self.step.mutableData {
+		if let warehouse = self.step.warehouse {
 			let vc = QBEAlterTableViewController()
-			vc.warehouse = mutableData.warehouse
+			vc.warehouse = warehouse
 			vc.delegate = self
 			vc.warehouseName = String(format: NSLocalizedString("SQLite database '%@'", comment: ""), self.step.file?.url?.lastPathComponent ?? "")
 			self.presentViewControllerAsModalWindow(vc)
