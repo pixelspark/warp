@@ -201,6 +201,16 @@ internal enum QBEEditingMode {
 				}
 			}
 
+			/** Add a tablet to the document containing a raster table containing training data for a classifier on the source
+			data set. */
+			@objc private func joinWithClassifier(sender: NSObject) {
+				asyncMain {
+					let classifyStep = QBEClassifierStep(previous: nil)
+					classifyStep.right = self.otherChain
+					self.view.suggestSteps([classifyStep])
+				}
+			}
+
 			@objc func joinChains(sender: AnyObject) {
 				// Generate sensible join options
 				self.view.calculator.currentRaster?.get { (r) -> () in
@@ -261,6 +271,10 @@ internal enum QBEEditingMode {
 				let joinItem = NSMenuItem(title: NSLocalizedString("Join data set to this data set", comment: ""), action: #selector(QBEDropChainAction.joinChains(_:)), keyEquivalent: "")
 				joinItem.target = self
 				dropMenu.addItem(joinItem)
+
+				let classifyItem = NSMenuItem(title: "Add data using AI".localized, action: #selector(QBEDropChainAction.joinWithClassifier(_:)), keyEquivalent: "")
+				classifyItem.target = self
+				dropMenu.addItem(classifyItem)
 
 				let unionItem = NSMenuItem(title: NSLocalizedString("Append data set to this data set", comment: ""), action: #selector(QBEDropChainAction.unionChains(_:)), keyEquivalent: "")
 				unionItem.target = self

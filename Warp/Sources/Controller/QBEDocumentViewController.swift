@@ -846,48 +846,6 @@ private class QBEDropChainAction: NSObject {
 		}
 	}
 
-	/** Add a tablet to the document containing a raster table containing training data for a classifier on the source
-	data set. */
-	@objc private func addClassifier(sender: NSObject) {
-		if let sourceTablet = chain.tablet as? QBEChainTablet, let step = chain.head {
-			let job = Job(.UserInitiated)
-			let jobProgressView = QBEJobViewController(job: job, description: "Analzing data for classification...".localized)!
-			self.documentView.presentViewControllerAsSheet(jobProgressView)
-
-			step.fullData(job) { result in
-				switch result {
-				case .Success(let data):
-					data.raster(job) { result in
-						switch result {
-						case .Success(let raster):
-							let newRaster = raster.writableCopy
-							newRaster.addColumns([Column("Label".localized)])
-							let trainChain = QBEChain(head: QBERasterStep(raster: newRaster))
-							let trainTablet = QBEChainTablet(chain: trainChain)
-
-							asyncMain {
-								jobProgressView.dismissController(nil)
-								self.documentView.addTablet(trainTablet, atLocation: nil, undo: true)
-
-								let classifyStep = QBEClassifierStep(previous: nil)
-								classifyStep.right = trainChain
-								self.chain.insertStep(classifyStep, afterStep: self.chain.head)
-								self.documentView.updateView()
-								(self.documentView.tabletViewControllerForTablet(sourceTablet) as? QBEChainTabletViewController)?.chainViewController?.currentStep = classifyStep
-							}
-
-						case .Failure(_):
-							break
-						}
-					}
-
-				case .Failure(_):
-					break
-				}
-			}
-		}
-	}
-
 	func present() {
 		let menu = NSMenu()
 		menu.autoenablesItems = false
@@ -909,12 +867,6 @@ private class QBEDropChainAction: NSObject {
 		let copyItem = NSMenuItem(title: NSLocalizedString("Create copy of data here", comment: ""), action: #selector(QBEDropChainAction.addCopy(_:)), keyEquivalent: "")
 		copyItem.target = self
 		menu.addItem(copyItem)
-
-		if NSEvent.modifierFlags().contains(NSEventModifierFlags.AlternateKeyMask) {
-			let classifierItem = NSMenuItem(title: "Create table for classification".localized, action: #selector(QBEDropChainAction.addClassifier(_:)), keyEquivalent: "")
-			classifierItem.target = self
-			menu.addItem(classifierItem)
-		}
 
 		menu.addItem(NSMenuItem.separatorItem())
 

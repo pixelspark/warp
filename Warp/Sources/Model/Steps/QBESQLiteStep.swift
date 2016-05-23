@@ -926,24 +926,36 @@ class QBESQLiteSourceStep: QBEStep {
 	}
 
 	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
-		let template: String
-		switch variant {
-		case .Read, .Neutral: template = "Load table [#] from SQLite database [#]"
-		case .Write: template = "Write to table [#] in SQLite database [#]"
-		}
+		let fileSentenceItem = QBESentenceFile(file: self.file, allowedFileTypes: ["org.sqlite.v3"], callback: { [weak self] (newFile) -> () in
+			self?.file = newFile
+		});
 
-		return QBESentence(format: NSLocalizedString(template, comment: ""),
-			QBESentenceList(value: self.tableName ?? "", provider: { [weak self] (cb) -> () in
-				if let d = self?.db {
-					cb(d.tableNames)
-				}
-			}, callback: { [weak self] (newTable) -> () in
-				self?.tableName = newTable
-			}),
-			QBESentenceFile(file: self.file, allowedFileTypes: ["org.sqlite.v3"], callback: { [weak self] (newFile) -> () in
-				self?.file = newFile
-			})
-		)
+		if self.file == nil {
+			let template: String
+			switch variant {
+			case .Read, .Neutral: template = "Load data from SQLite database [#]"
+			case .Write: template = "Write to SQLite database [#]"
+			}
+			return QBESentence(format: NSLocalizedString(template, comment: ""), fileSentenceItem)
+		}
+		else {
+			let template: String
+			switch variant {
+			case .Read, .Neutral: template = "Load table [#] from SQLite database [#]"
+			case .Write: template = "Write to table [#] in SQLite database [#]"
+			}
+
+			return QBESentence(format: NSLocalizedString(template, comment: ""),
+				QBESentenceList(value: self.tableName ?? "", provider: { [weak self] (cb) -> () in
+					if let d = self?.db {
+						cb(d.tableNames)
+					}
+				}, callback: { [weak self] (newTable) -> () in
+					self?.tableName = newTable
+				}),
+				fileSentenceItem
+			)
+		}
 	}
 	
 	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {

@@ -2,36 +2,17 @@ import Foundation
 import WarpAI
 import WarpCore
 
-/** A descriptive is a statistic about a set of values, usually a column in a table. */
-private enum QBEDescriptiveType: String {
-	case Average = "av"
-	case Stdev = "sd"
-	case Min = "mn"
-	case Max = "mx"
-
-	/** An aggregator that can be used to calculate the desired descriptive on a column. */
-	var aggregator: Aggregator {
-		switch self {
-		case .Average: return Aggregator(map: Identity(), reduce: Function.Average)
-		case .Stdev: return Aggregator(map: Identity(), reduce: Function.StandardDeviationPopulation)
-		case .Max: return Aggregator(map: Identity(), reduce: Function.Max)
-		case .Min: return Aggregator(map: Identity(), reduce: Function.Min)
-		}
-	}
-}
-
-private typealias QBEColumnDescriptives = [QBEDescriptiveType: Value]
+private typealias QBEColumnDescriptives = [Function: Value]
 private typealias QBEDataDescriptives = [Column: QBEColumnDescriptives]
 
 private extension Data {
 	/** Calculate the requested set of descriptives for the given set of columns. */
-	func descriptives(columns: Set<Column>, types: Set<QBEDescriptiveType>, job: Job, callback: (Fallible<QBEDataDescriptives>) -> ()) {
+	func descriptives(columns: Set<Column>, types: Set<Function>, job: Job, callback: (Fallible<QBEDataDescriptives>) -> ()) {
 		var aggregators: [Column: Aggregator] = [:]
 		columns.forEach { column in
 			types.forEach { type in
 				let aggregateColumnName = Column("\(column.name)_\(type.rawValue)")
-				var agg = type.aggregator
-				agg.map = agg.map.expressionReplacingIdentityReferencesWith(Sibling(column))
+				let agg = Aggregator(map: Sibling(column), reduce: type)
 				aggregators[aggregateColumnName] = agg
 			}
 		}
@@ -61,16 +42,214 @@ private extension Data {
 	}
 }
 
+/** A mapping from Value to [Float]. */
+private protocol QBENeuronAllocation {
+	var count: Int { get } // The number of neurons allocated (size of the [Float])
+
+	func toFloats(value: Value) -> [Float]
+	func toValue(floats: [Float]) -> Value
+}
+
+private struct QBENormalizedNeuronAllocation: QBENeuronAllocation, CustomStringConvertible {
+	let count = 1
+	let standardDeviation: Double
+	let mean: Double
+
+	init(mean: Double, standardDeviation: Double) {
+		self.mean = mean
+		self.standardDeviation = standardDeviation
+	}
+
+	func toFloats(value: Value) -> [Float] {
+		let r = value.doubleValue ?? Double.NaN
+		return [Float((r - mean) / standardDeviation)]
+	}
+
+	func toValue(floats: [Float]) -> Value {
+		assert(floats.count == self.count, "invalid neuron count")
+		return Value.DoubleValue((Double(floats.first!) *  standardDeviation) + mean)
+	}
+
+	var description: String { return "1*D(\(self.mean), \(self.standardDeviation))" }
+}
+
+/** Linear allocation: a single float between 0...1, which is mapped to the original double value by linearly
+scaling between minimum and maximum observed value. */
+private struct QBELinearNeuronAllocation: QBENeuronAllocation, CustomStringConvertible {
+	let count = 1
+	let min: Double
+	let max: Double
+
+	init(min: Double, max: Double) {
+		assert(max >= min, "Max cannot be smaller than min")
+		self.min = min
+		self.max = max
+	}
+
+	func toFloats(value: Value) -> [Float] {
+		if max == min {
+			return [Float(min)]
+		}
+
+		let r = value.doubleValue ?? Double.NaN
+		return [Float((r - min) / (max - min))]
+	}
+
+	func toValue(floats: [Float]) -> Value {
+		assert(floats.count == self.count, "invalid neuron count")
+		return Value.DoubleValue((Double(floats.first!) *  (max - min)) + min)
+	}
+
+	var description: String { return "1*L(\(self.min), \(self.max))" }
+}
+
+/** Linear allocation: a single float between 0...1, which is mapped to the original double value by linearly
+scaling between minimum and maximum observed value. */
+private struct QBEDummyNeuronAllocation: QBENeuronAllocation, CustomStringConvertible {
+	var count: Int { return values.count }
+	let values: [Value]
+
+	init(values: [Value]) {
+		self.values = values
+	}
+
+	func toFloats(value: Value) -> [Float] {
+		return self.values.map { $0 == value ? Float(1.0) : Float(0.0) }
+	}
+
+	func toValue(floats: [Float]) -> Value {
+		assert(floats.count == self.values.count, "invalid vector length")
+
+		var maxValue: Float = 0.0
+		var maxIndex = 0
+
+		for (i, v) in floats.enumerate() {
+			if v > maxValue {
+				maxValue = v
+				maxIndex = i
+			}
+		}
+
+		return self.values[maxIndex]
+	}
+
+	var description: String { return "\(self.count)*[\(self.values)]" }
+}
+
+/** Provides a mapping between a row (list of Value) and a set of neurons (list of Float). The former is provided
+by Warp data sources, the latter are input and output to neural networks. 
+
+By default, the allocator will assign a single float value for each column. It will use the descriptives object to
+decide how to allocate additional floats to a column based on its type. An integer column that has been shown to
+only have two distinct values may for instance obtain two instead of one Float, where each value is represented as
+a dummy. */
+private class QBENeuronAllocator {
+	let columns: [Column]
+	let descriptives: QBEDataDescriptives
+	let neuronCount: Int
+	let allocations: [QBENeuronAllocation]
+
+	/** Allocate neurons to values from the identified columns. Use the column descriptives to decide which 
+	column receives which amount of neurons. The descriptives object should contain a dictionary for each column
+	specified, within which descriptives should be listed based on the aggregated outputs of the .Min, .Max,
+	.Average and .StandardDeviationPopulation, .Count and .CountDistinct functions over the values in the 
+	training data set for that column.
+	
+	The maximum number of neurons determines the number of neurons the allocator will assign at most -note that
+	each value will at least receive a single neuron, so if columns.count > maximumNumberOfNeurons,
+	the number of neurons is columns.count. 
+	
+	If set to 'output', the allocator will allocate neurons with a type that fits the output side of the network.
+	Output neurons take values between 0..1 whereas input neurons can be any value (but are usually normalized). */
+	init(descriptives: QBEDataDescriptives, columns: [Column], maximumNumberofNeurons: Int = 256, output: Bool) {
+		self.descriptives = descriptives
+		self.columns = columns
+
+		var allocatedCount = 0
+		var allocatedColumns = 0
+		self.allocations = columns.map { column -> QBENeuronAllocation in
+			let descriptive = (descriptives[column])!
+			let remainingCount = (maximumNumberofNeurons - allocatedCount)
+			allocatedColumns += 1
+
+			let v: QBENeuronAllocation
+			if output {
+				if let min = descriptive[.Min]!.intValue, let max = descriptive[.Max]!.intValue where max > min {
+					if (max - min) >= descriptive[.CountDistinct]!.intValue! &&
+						descriptive[.CountDistinct]!.intValue! <= remainingCount &&
+						descriptive[.CountAll]!.intValue! > 2 * descriptive[.CountDistinct]!.intValue! {
+						v = QBEDummyNeuronAllocation(values: Array(min..<max).map { Value($0) })
+					}
+					else {
+						v = QBELinearNeuronAllocation(
+							min: descriptive[.Min]!.doubleValue!,
+							max: descriptive[.Max]!.doubleValue!
+						)
+					}
+				}
+				else {
+					// Outputs are between 0..1, so we need to use a linear mapping
+					// TODO: perhaps base min and max on mu ± 2*sigma to reject outliers
+					v = QBELinearNeuronAllocation(
+						min: descriptive[.Min]!.doubleValue!,
+						max: descriptive[.Max]!.doubleValue!
+					)
+				}
+
+				allocatedCount += v.count
+				return v
+			}
+			else {
+				let v = QBENormalizedNeuronAllocation(
+					mean: descriptive[.Average]!.doubleValue!,
+					standardDeviation: descriptive[.StandardDeviationPopulation]!.doubleValue!
+				)
+				allocatedCount += v.count
+				return v
+			}
+		}
+
+		self.neuronCount = allocatedCount
+		trace("Allocations: \(self.allocations)")
+	}
+
+	private func floatsForRow(row: Row) -> [Float] {
+		return self.columns.enumerate().flatMap { (index, inputColumn) -> [Float] in
+			let v = row[inputColumn] ?? .InvalidValue
+			let allocation = self.allocations[index]
+			return allocation.toFloats(v)
+		}
+	}
+
+	private func valuesForFloats(row: [Float]) -> [Value] {
+		assert(self.neuronCount == row.count, "input vector has the wrong length (\(row.count) versus expected \(self.neuronCount))")
+
+		var offset = 0
+		return self.columns.enumerate().flatMap { (index, inputColumn) -> Value in
+			let allocation = self.allocations[index]
+			let v = Array(row[offset..<(offset + allocation.count)])
+			offset += allocation.count
+			return allocation.toValue(v)
+		}
+	}
+}
+
 /** A classifier model takes in a row with input values, and produces a new row with added 'output' values.
 To train, the classifier is fed rows that have both the input and output columns. */
 private class QBEClassifierModel {
 	/** Statistics on the columns in the training data set that allow them to be normalized **/
-	let trainingDescriptives: QBEDataDescriptives
 	let inputs: [Column]
 	let outputs: [Column]
+	let complexity: Double
+	let trainingDescriptives: QBEDataDescriptives
+
+	static let requiredDescriptiveTypes: [Function] = [.Average, .StandardDeviationPopulation, .Min, .Max, .CountAll, .CountDistinct]
 
 	private let model: FFNN
 	private let mutex = Mutex()
+
+	private let inputAllocator: QBENeuronAllocator
+	private let outputAllocator: QBENeuronAllocator
 
 	private let minValidationFraction = 0.3 // Percentage of rows that is added to validation set from each batch
 	private let maxValidationSize = 512 // Maximum number of rows in the validation set
@@ -83,27 +262,33 @@ private class QBEClassifierModel {
 	used as input and output for the model, respectively. The `descriptives` object should contain
 	descriptives for each column listed as either input or output. The descriptives should be the
 	Avg, Stdev, Min and Max descriptives. */
-	init(inputs: Set<Column>, outputs: Set<Column>, descriptives: QBEDataDescriptives) {
+	init(inputs: Set<Column>, outputs: Set<Column>, descriptives: QBEDataDescriptives, complexity: Double) {
+		assert(complexity > 0.0, "complexity must be above 0.0")
+
 		// Check if all descriptives are present
 		outputs.union(inputs).forEach { column in
 			assert(descriptives[column] != nil, "classifier model instantiated without descritives for column \(column.name)")
 			assert(descriptives[column]![.Average] != nil, "descriptives for \(column.name) are missing average")
-			assert(descriptives[column]![.Stdev] != nil, "descriptives for \(column.name) are missing average")
+			assert(descriptives[column]![.StandardDeviationPopulation] != nil, "descriptives for \(column.name) are missing average")
 			assert(descriptives[column]![.Min] != nil, "descriptives for \(column.name) are missing average")
 			assert(descriptives[column]![.Max] != nil, "descriptives for \(column.name) are missing average")
 		}
 
 		self.trainingDescriptives = descriptives
+		self.inputAllocator = QBENeuronAllocator(descriptives: descriptives, columns: Array(inputs), output: false)
+		self.outputAllocator = QBENeuronAllocator(descriptives: descriptives, columns: Array(outputs), output: true)
 		self.inputs = Array(inputs)
 		self.outputs = Array(outputs)
+		self.complexity = complexity
 
-		let hiddenNodes = (inputs.count * 2 / 3 ) + outputs.count
+		// TODO: make configurable. This manages the 'complexity' of the network, or the 'far-fetchedness' of its results
+		let hiddenNodes = max(inputAllocator.neuronCount, max(outputAllocator.neuronCount, Int(complexity * Double((inputAllocator.neuronCount * 2 / 3 ) + outputAllocator.neuronCount))))
 		self.validationReservoir = Reservoir<([Float],[Float])>(sampleSize: self.maxValidationSize)
 
 		self.model = FFNN(
-			inputs: inputs.count,
+			inputs: inputAllocator.neuronCount,
 			hidden: hiddenNodes,
-			outputs: outputs.count,
+			outputs: outputAllocator.neuronCount,
 			learningRate: 0.7,
 			momentum: 0.4,
 			weights: nil,
@@ -112,43 +297,15 @@ private class QBEClassifierModel {
 		)
 	}
 
-	private func floatsForInputRow(row: Row) -> [Float] {
-		return self.inputs.map { inputColumn -> Float in
-			// Normalize the value
-			let v = row[inputColumn] ?? .InvalidValue
-			let descriptive = (self.trainingDescriptives[inputColumn])!
-			return Float(((v - (descriptive[.Average])!) / (descriptive[.Stdev])!).doubleValue ?? Double.NaN)
-		}
-	}
-
-	private func floatsForOutputRow(row: Row) -> [Float] {
-		return self.outputs.map { outputColumn -> Float in
-			// Normalize the value, make it a value between 0..<1
-			let v = row[outputColumn] ?? .InvalidValue
-			let descriptive = (self.trainingDescriptives[outputColumn])!
-			let range = (descriptive[.Max]! - descriptive[.Min]!)
-			return Float(((v - (descriptive[.Min])!) / range).doubleValue ?? Double.NaN)
-		}
-	}
-
-	private func valuesForOutputRow(row: [Float]) -> [Value] {
-		return self.outputs.enumerate().map { index, column in
-			let v = row[index]
-			let descriptive = self.trainingDescriptives[column]!
-			let range = descriptive[.Max]! - descriptive[.Min]!
-			return Value.DoubleValue(Double(v)) * range + descriptive[.Min]!
-		}
-	}
-
 	/** Classify a single row, returns the set of output values (in order of output columns). */
 	func classify(input: Row) throws -> [Value] {
-		let inputValues = self.floatsForInputRow(input)
+		let inputValues = self.inputAllocator.floatsForRow(input)
 
 		let outputValues = try self.mutex.tryLocked {
 			return try self.model.update(inputs: inputValues)
 		}
 
-		return self.valuesForOutputRow(outputValues)
+		return self.outputAllocator.valuesForFloats(outputValues)
 	}
 
 	/** Classify multiple rows at once. If `appendOutputToInput` is set to true, the returned set of
@@ -203,18 +360,14 @@ private class QBEClassifierModel {
 			switch result {
 			case .Success(let tuples):
 				let values = tuples.map { tuple -> ([Float], [Float]) in
-					let inputValues = self.floatsForInputRow(Row(tuple, columns: trainingColumns))
-					let outputValues = self.floatsForOutputRow(Row(tuple, columns: trainingColumns))
-					job.log("TR \(inputValues) => \(outputValues)")
+					let inputValues = self.inputAllocator.floatsForRow(Row(tuple, columns: trainingColumns))
+					let outputValues = self.outputAllocator.floatsForRow(Row(tuple, columns: trainingColumns))
 					return (inputValues, outputValues)
 				}
 
 				let allInputs = values.map { return $0.0 }
 				let allOutputs = values.map { return $0.1 }
-
-				let localValidationReservoir = Reservoir<([Float],[Float])>(sampleSize: Int(floor(self.minValidationFraction * Double(tuples.count))))
-				localValidationReservoir.add(values)
-				self.validationReservoir.add(localValidationReservoir.sample)
+				self.validationReservoir.add(values)
 
 				do {
 					try self.mutex.tryLocked {
@@ -270,21 +423,33 @@ private class QBEClassifierModel {
 data set. */
 private class QBEClassifierStream: Stream {
 	let data: Stream
-	let training: Stream
+	let training: Stream!
+	let isTrained: Bool
 
 	private let model: QBEClassifierModel
 	private var trainingFuture: Future<Fallible<()>>! = nil
 	private var dataColumnsFuture: Future<Fallible<[Column]>>! = nil
 
-	init(data: Stream, training: Stream, descriptives: QBEDataDescriptives, inputs: Set<Column>, outputs: Set<Column>) {
+	init(data: Stream, trainedModel: QBEClassifierModel) {
 		self.data = data
-		self.training = training
-		self.model = QBEClassifierModel(inputs: inputs, outputs: outputs, descriptives: descriptives)
+		self.isTrained = true
+		self.training = nil
+		self.model = trainedModel
+		self.trainingFuture = Future<Fallible<()>>({ _, cb in
+			return cb(.Success())
+		})
+		
+		self.dataColumnsFuture = Future<Fallible<[Column]>>(self.data.columns)
+	}
 
+	init(data: Stream, training: Stream, descriptives: QBEDataDescriptives, inputs: Set<Column>, outputs: Set<Column>, complexity: Double) {
+		self.data = data
+		self.isTrained = false
+		self.training = training
+		self.model = QBEClassifierModel(inputs: inputs, outputs: outputs, descriptives: descriptives, complexity: complexity)
 		self.dataColumnsFuture = Future<Fallible<[Column]>>(self.data.columns)
 
 		self.trainingFuture = Future<Fallible<()>>({ [unowned self] job, cb in
-
 			// Build a model based on the training data
 			self.model.train(job, stream: self.training) { result in
 				switch result {
@@ -345,12 +510,21 @@ private class QBEClassifierStream: Stream {
 	}
 
 	private func clone() -> Stream {
-		return QBEClassifierStream(data: data, training: training, descriptives: self.model.trainingDescriptives, inputs: Set(self.model.inputs), outputs: Set(self.model.outputs))
+		if isTrained {
+			return QBEClassifierStream(data: data, trainedModel: model)
+		}
+		else {
+			return QBEClassifierStream(data: data, training: training, descriptives: self.model.trainingDescriptives, inputs: Set(self.model.inputs), outputs: Set(self.model.outputs), complexity: self.model.complexity)
+		}
 	}
 }
 
+/** Creates a neural network by training on the data from the `right` data set, then calculates results using that model
+on the `left` data set. The inputs of the neural network are the columns that overlap between the two sets. The outputs 
+are the columns that are present in the training data set, but not in the `left` data set. */
 class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	weak var right: QBEChain? = nil
+	var complexity: Double = 1.0
 
 	required init() {
 		super.init()
@@ -362,6 +536,10 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 
 	required init(coder aDecoder: NSCoder) {
 		right = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "right")
+		self.complexity = aDecoder.decodeDoubleForKey("complexity")
+		if self.complexity <= 0.0 {
+			self.complexity = 1.0
+		}
 		super.init(coder: aDecoder)
 	}
 
@@ -371,6 +549,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 
 	override func encodeWithCoder(coder: NSCoder) {
 		coder.encodeObject(right, forKey: "right")
+		coder.encodeDouble(self.complexity, forKey: "complexity")
 		super.encodeWithCoder(coder)
 	}
 
@@ -389,7 +568,15 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 
 	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence(format: "Classify using AI".localized)
+		return QBESentence(format: "Evaluate data using AI".localized,
+			QBESentenceTextInput(value: "\(self.complexity)", callback: { (nc) -> (Bool) in
+				if let d = Double(nc) {
+					self.complexity = d
+					return true
+				}
+				return false
+			})
+		)
 	}
 
 	private func classify(data: Data, withTrainingData trainingData: Data, job: Job, callback: (Fallible<Data>) -> ()) {
@@ -404,10 +591,12 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 						let allCols = inputCols.union(outputCols)
 
 						// Fetch descriptives of training set to be used for normalization
-						trainingData.descriptives(allCols, types: [.Average, .Stdev, .Min, .Max], job: job) { result in
+						trainingData.descriptives(allCols, types: Set(QBEClassifierModel.requiredDescriptiveTypes), job: job) { result in
 							switch result {
 							case .Success(let descriptives):
-								return callback(.Success(StreamData(source: QBEClassifierStream(data: data.stream(), training: trainingData.stream(), descriptives: descriptives, inputs: inputCols, outputs: outputCols))))
+								// TODO save model here
+								let classifierStream = QBEClassifierStream(data: data.stream(), training: trainingData.stream(), descriptives: descriptives, inputs: inputCols, outputs: outputCols, complexity: self.complexity)
+								return callback(.Success(StreamData(source: classifierStream)))
 
 							case .Failure(let e):
 								return callback(.Failure(e))

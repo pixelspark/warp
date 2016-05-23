@@ -98,7 +98,6 @@ class QBEColumnsStep: QBEStep {
 						}
 						return !self.select
 					}) ?? []
-					print("selectCols \(columns)")
 					callback(.Success(data.selectColumns(columns)))
 				
 				case .Failure(let error):
