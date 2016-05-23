@@ -236,6 +236,10 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		}
 	}
 
+	override func controlTextDidChange(obj: NSNotification) {
+		self.updateView()
+	}
+
 	func tableViewSelectionDidChange(notification: NSNotification) {
 		self.updateView()
 	}
