@@ -461,6 +461,36 @@ public class SQLMutableData: MutableData {
 		connection.run([query], job: job, callback: callback)
 	}
 
+	private func performInsert(connection: SQLConnection, row: Row, job: Job, callback: (Fallible<Void>) -> ()) {
+		self.columns(job) { result in
+			switch result {
+			case .Success(let columns):
+				let insertingColumns = Array(Set(row.columns).intersect(Set(columns)))
+				let insertingColumnsSQL = insertingColumns
+					.map { return self.database.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) }
+					.joinWithSeparator(", ")
+
+				var valuesSQL: [String] = []
+				for column in insertingColumns {
+					if let s = self.database.dialect.expressionToSQL(Literal(row[column]), alias: self.tableName, foreignAlias: nil, inputValue: nil) {
+						valuesSQL.append(s)
+					}
+					else {
+						// Value can't be written in this SQL dialect, bail out
+						return callback(.Failure("value type not supported: '\(row[column])'"))
+					}
+				}
+
+				let valuesSQLString = valuesSQL.joinWithSeparator(", ")
+				let query = "INSERT INTO \(self.tableIdentifier) (\(insertingColumnsSQL)) VALUES (\(valuesSQLString))"
+				connection.run([query], job: job, callback: callback)
+
+			case .Failure(let e):
+				return callback(.Failure(e))
+			}
+		}
+	}
+
 	public func performMutation(mutation: DataMutation, job: Job, callback: (Fallible<Void>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
@@ -491,7 +521,10 @@ public class SQLMutableData: MutableData {
 						case .Delete(keys: let k):
 							self.performDelete(con, keys:k, job: job, callback: callback)
 
-						case .Edit(_,_,_,_), .Insert(row: _), .Rename(_), .Remove(rows: _):
+						case .Insert(row: let row):
+							self.performInsert(con, row: row, job: job, callback: callback)
+
+						case .Edit(_,_,_,_), .Rename(_), .Remove(rows: _):
 							fatalError("Not supported")
 						}
 
