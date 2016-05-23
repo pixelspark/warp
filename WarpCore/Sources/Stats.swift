@@ -188,6 +188,7 @@ public class Reservoir<ValueType> {
 	private(set) var samplesSeen: Int = 0
 
 	public init(sampleSize: Int) {
+		assert(sampleSize > 0, "reservoir sample size must be 1 or higher")
 		self.sampleSize = sampleSize
 	}
 
@@ -223,7 +224,7 @@ public class Reservoir<ValueType> {
 			for i in 0..<rows.count {
 				/* The chance of choosing an item starts out at (1/s) and ends at (1/N), where s is the sample size and N
 				is the number of actual input rows. */
-				let probability = Int.random(0, upper: self.samplesSeen+i)
+				let probability = (self.samplesSeen + i) > 0 ? Int.random(0, upper: self.samplesSeen+i) : 0
 				if probability < self.sampleSize {
 					// Place this sample in the list at the randomly chosen position
 					self.sample[probability] = rows[i]
