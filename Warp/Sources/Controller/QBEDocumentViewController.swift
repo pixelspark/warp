@@ -555,7 +555,7 @@ import WarpCore
 	}
 
 	@IBAction func addSequencerTablet(sender: NSObject) {
-		let chain = QBEChain(head: QBESequencerStep(pattern: "[A-Z]{4}", column: Column(NSLocalizedString("Value", comment: ""))))
+		let chain = QBEChain(head: QBESequencerStep())
 		let tablet = QBEChainTablet(chain: chain)
 		self.addTablet(tablet, undo: true, animated: true)
 	}
