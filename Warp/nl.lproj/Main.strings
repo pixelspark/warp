@@ -362,9 +362,15 @@
 "tHM-tE-vur.title" = "Hernoem kolom";
 
 "Rpj-cE-DtD.title" = "Notitie toevoegen...";
-"GgE-eP-43x.title" = "Pas breedte aan inhoud aan";
-"lBm-8l-P8X.title" = "Pas breedte van alle kolommen aan inhoud aan";
-"7h7-YF-NyK.title" = "Weergave";
+"GgE-eP-43x.title" = "Pas aan inhoud aan";
+"lBm-8l-P8X.title" = "Pas aan inhoud aan";
+"K0V-c0-NsO.title" = "Standaardbreedte";
+"cSJ-s2-xhg.title" = "Standaardbreedte";
+"zUq-6r-gfU.title" = "Pas in tabel"; 
+"ymp-WD-FnK.title" = "Deze kolom";
+"w17-FJ-dMh.title" = "Alle kolommen";
+
+"7h7-YF-NyK.title" = "Vergroot/verklein";
 
 "ntV-Kx-g9d.title" = "Vertel Warp hoe het individuele rijen kan identificeren.";
 "x54-SG-KZu.title" = "Om wijzigingen te kunnen aanbrengen in deze dataset moet Warp weten welke kolommen uniek zijn voor een rij. Selecteer de kolommen die samen uniek zijn hieronder.";

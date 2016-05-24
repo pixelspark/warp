@@ -349,11 +349,14 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	
 	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
 		switch item.action() {
-		case #selector(QBEDataViewController.sizeAllColumnsToFit(_:)):
+		case #selector(QBEDataViewController.sizeAllColumnsToFit(_:)),
+		     #selector(QBEDataViewController.sizeAllColumnsToDefault(_:)),
+		     #selector(QBEDataViewController.sizeAllColumnsToFitTable(_:)):
 			return true
 
 		case #selector(QBEDataViewController.renameSelectedColumn(_:)),
-		     #selector(QBEDataViewController.sizeSelectedColumnToFit(_:)):
+		     #selector(QBEDataViewController.sizeSelectedColumnToFit(_:)),
+		     #selector(QBEDataViewController.sizeSelectedColumnToDefault(_:)):
 			if let si = self.tableView?.selectedColumnIndexes.firstIndex where si != NSNotFound {
 				return true
 			}
@@ -407,6 +410,35 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		if let tv = self.tableView {
 			for idx in tv.selectedColumnIndexes {
 				self.sizeColumnToFit(UInt(idx))
+			}
+		}
+	}
+
+	@IBAction func sizeSelectedColumnToDefault(sender: NSObject) {
+		if let tv = self.tableView {
+			for idx in tv.selectedColumnIndexes {
+				tv.resizeColumnWithIndex(UInt(idx), width: Float(DefaultColumnWidth))
+				self.tableGrid(tv, setWidth: Float(DefaultColumnWidth), forColumn: UInt(idx))
+			}
+		}
+	}
+
+	@IBAction func sizeAllColumnsToDefault(sender: NSObject) {
+		if let tv = self.tableView {
+			for idx in 0..<tv.numberOfColumns {
+				tv.resizeColumnWithIndex(UInt(idx), width: Float(DefaultColumnWidth))
+				self.tableGrid(tv, setWidth: Float(DefaultColumnWidth), forColumn: UInt(idx))
+			}
+		}
+	}
+
+	@IBAction func sizeAllColumnsToFitTable(sender: NSObject) {
+		if let tv = self.tableView {
+			let w = max(15.0, Double(tv.frame.size.width) / Double(tv.numberOfColumns))
+
+			for idx in 0..<tv.numberOfColumns {
+				tv.resizeColumnWithIndex(UInt(idx), width: Float(w))
+				self.tableGrid(tv, setWidth: Float(w), forColumn: UInt(idx))
 			}
 		}
 	}

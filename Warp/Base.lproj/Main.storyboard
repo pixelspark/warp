@@ -2345,20 +2345,45 @@ CA
                             </connections>
                         </menuItem>
                         <menuItem isSeparatorItem="YES" id="38R-9V-jBR"/>
-                        <menuItem title="View" id="7h7-YF-NyK">
+                        <menuItem title="Resize" id="7h7-YF-NyK">
                             <modifierMask key="keyEquivalentModifierMask"/>
-                            <menu key="submenu" title="View" id="Sph-Fk-S7I">
+                            <menu key="submenu" title="Resize" id="Sph-Fk-S7I">
                                 <items>
-                                    <menuItem title="Size this column to fit" id="GgE-eP-43x">
+                                    <menuItem title="This column" enabled="NO" id="ymp-WD-FnK">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                    </menuItem>
+                                    <menuItem title="Fit contents" id="GgE-eP-43x">
                                         <modifierMask key="keyEquivalentModifierMask"/>
                                         <connections>
                                             <action selector="sizeSelectedColumnToFit:" target="heg-Gg-TM4" id="fpj-Xe-f2q"/>
                                         </connections>
                                     </menuItem>
-                                    <menuItem title="Size all columns to fit" id="lBm-8l-P8X">
+                                    <menuItem title="Default width" id="cSJ-s2-xhg">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="sizeSelectedColumnToDefault:" target="PUg-Ve-SLp" id="TCS-hx-XTk"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem isSeparatorItem="YES" id="Z2v-2b-gHA"/>
+                                    <menuItem title="All columns" enabled="NO" id="w17-FJ-dMh">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                    </menuItem>
+                                    <menuItem title="Fit contents" id="lBm-8l-P8X">
                                         <modifierMask key="keyEquivalentModifierMask"/>
                                         <connections>
                                             <action selector="sizeAllColumnsToFit:" target="heg-Gg-TM4" id="GEz-Di-4r3"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem title="Fit table" id="zUq-6r-gfU">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="sizeAllColumnsToFitTable:" target="PUg-Ve-SLp" id="edI-st-Zza"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem title="Default width" id="K0V-c0-NsO">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="sizeAllColumnsToDefault:" target="PUg-Ve-SLp" id="ImA-aV-A8A"/>
                                         </connections>
                                     </menuItem>
                                 </items>
