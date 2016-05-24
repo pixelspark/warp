@@ -5,6 +5,10 @@ import SwiftParser
 that can be used to calculate values. Like in Excel, the language used for the formulas (e.g. for function names) depends
 on the user's preference and is therefore variable (Locale implements this). */
 public class Formula: Parser {
+	/** The character that indicates a formula starts. While it is not required in the formula syntax, it can be used to 
+	distinguish text and other static data from formulas. **/
+	public static let prefix = "="
+
 	public struct Fragment {
 		public let start: Int
 		public let end: Int
@@ -245,7 +249,7 @@ public class Formula: Parser {
 		add_named_rule("equal", rule: ("=" ~~ ^"concatenation") => pushEqual)
 		add_named_rule("notEqual", rule: ("<>" ~~ ^"concatenation") => pushNotEqual)
 		add_named_rule("logic", rule: ^"concatenation" ~~ (^"greaterEqual" | ^"greater" | ^"lesserEqual" | ^"lesser" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict" | ^"matchesRegex" | ^"matchesRegexStrict" )*)
-		let formula = ("=")/~ ~~ self.whitespace ~~ (^"logic")*!*
+		let formula = (Formula.prefix)/~ ~~ self.whitespace ~~ (^"logic")*!*
 		start_rule = formula
 	}
 }

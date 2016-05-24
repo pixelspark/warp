@@ -242,6 +242,11 @@ class QBECalculateStep: QBEStep {
 					return e
 				}
 				suggestions.append(newFormula)
+
+				// If this was definitely a formula, do not suggest anything else
+				if let tv = toValue.stringValue where tv.hasPrefix(Formula.prefix) {
+					return Array(Set(suggestions)).sort { a,b in return a.complexity < b.complexity }
+				}
 			}
 
 			// Maybe there is an expression in the history that may be of help
