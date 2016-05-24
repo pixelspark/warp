@@ -110,15 +110,23 @@ class QBESequencerStep: QBEStep {
 			return QBESentence(format: text,
 				typeItem,
 				QBESentenceTextInput(value: "\(from)", callback: { [weak self] (fromString) -> (Bool) in
-					if let fromInt = Int(fromString) where fromInt < to {
-						self?.type = .Range(from: fromInt, to: to)
+					if let fromInt = Int(fromString) {
+						var newTo = to
+						if fromInt >= to {
+							newTo = fromInt + abs(to - from)
+						}
+						self?.type = .Range(from: fromInt, to: newTo)
 						return true
 					}
 					return false
 				}),
 				QBESentenceTextInput(value: "\(to)", callback: { [weak self] (toString) -> (Bool) in
-					if let toInt = Int(toString) where toInt > from {
-						self?.type = .Range(from: from, to: toInt)
+					if let toInt = Int(toString) {
+						var newFrom = from
+						if toInt <= from {
+							newFrom = toInt - abs(to - from)
+						}
+						self?.type = .Range(from: newFrom, to: toInt)
 						return true
 					}
 					return false
