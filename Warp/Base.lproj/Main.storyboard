@@ -884,6 +884,13 @@ CA
                                                 <action selector="randomlySelectRows:" target="Ady-hI-5gd" id="ejq-Vh-tsl"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="8Y8-HF-ybD"/>
+                                        <menuItem title="Split lists in column to rows" keyEquivalent="e" id="rIy-ml-mKf">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <connections>
+                                                <action selector="explodeColumn:" target="Ady-hI-5gd" id="EFv-0b-WJ5"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="i3v-3U-dMz"/>
                                         <menuItem title="Aggregate rows (combine selected cells)" keyEquivalent="a" id="T5M-6C-O6U">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>

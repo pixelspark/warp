@@ -430,29 +430,21 @@ This class needs to be subclassed before it does any real work (in particular, t
 overridden). A subclass may also implement the `finish` method, which will be called after the final set of rows has been
 transformed, but before it is returned to the tranformer's customer. This provides an opportunity to alter the final 
 result (which is useful for transformers that only return rows after having seen all input rows). */
-private class Transformer: NSObject, Stream {
-	let source: Stream
+public class Transformer: NSObject, Stream {
+	public let source: Stream
 	var stopped = false
 	private var outstandingTransforms = 0 { didSet { assert(outstandingTransforms >= 0) } }
 	let mutex = Mutex()
 	
-	init(source: Stream) {
+	public init(source: Stream) {
 		self.source = source
 	}
 	
-	private func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
 		source.columns(job, callback: callback)
 	}
 	
-	/** Perform the stream transformation on the given set of rows. The function should call the callback exactly once
-	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
-	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
-	transform has been found already). */
-	private func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
-		fatalError("Transformer.transform should be implemented in a subclass")
-	}
-	
-	private func fetch(job: Job, consumer: Sink) {
+	public final func fetch(job: Job, consumer: Sink) {
 		let shouldContinue = self.mutex.locked { () -> Bool in
 			if !self.stopped {
 				self.outstandingTransforms += 1
@@ -510,12 +502,20 @@ private class Transformer: NSObject, Stream {
 	/** This method will be called after the last transformer has finished its job, but before the last result is returned
 	to the stream's consumer. This is the 'last chance' to do any work (i.e. transformers that only return any data after
 	having seen all data should do so here). The rows returned from the last call to transform are provided as parameter.*/
-	private func finish(lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
+	public func finish(lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
 		return callback(lastRows, .Finished)
 	}
 
+	/** Perform the stream transformation on the given set of rows. The function should call the callback exactly once
+	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
+	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
+	transform has been found already). */
+	public func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+		fatalError("Transformer.transform should be implemented in a subclass")
+	}
+
 	/** Returns a clone of the transformer. It should also clone the source stream. */
-	private func clone() -> Stream {
+	public func clone() -> Stream {
 		fatalError("Should be implemented by subclass")
 	}
 }

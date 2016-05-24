@@ -1583,6 +1583,26 @@ internal enum QBEEditingMode {
 	@IBAction func sortRows(sender: NSObject) {
 		sortRows(true)
 	}
+
+	@IBAction func explodeColumn(sender: NSObject) {
+		assertMainThread()
+
+		if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
+			let firstSelectedColumn = selectedColumns.firstIndex
+			if firstSelectedColumn != NSNotFound {
+				calculator.currentRaster?.get {(r) -> () in
+					r.maybe { (raster) -> () in
+						if firstSelectedColumn < raster.columns.count {
+							let columnName = raster.columns[firstSelectedColumn]
+							asyncMain {
+								self.suggestSteps([QBEExplodeStep(previous: self.currentStep, splitColumn: columnName)])
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 	
 	@IBAction func selectColumns(sender: NSObject) {
 		selectColumns(false)
@@ -2186,6 +2206,9 @@ internal enum QBEEditingMode {
 			return currentStep != nil && useFullData
 		}
 		else if selector==#selector(QBEChainViewController.sortRows(_:) as (QBEChainViewController) -> (NSObject) -> ()) {
+			return currentStep != nil
+		}
+		else if selector==#selector(QBEChainViewController.explodeColumn(_:)) {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.reverseSortRows(_:)) {
