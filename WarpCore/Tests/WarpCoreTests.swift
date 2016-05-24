@@ -333,6 +333,9 @@ class WarpCoreTests: XCTestCase {
 
 			case .Nth:
 				XCTAssert(Function.Nth.apply([Value("Foo,bar,baz"), Value(3)]) == Value("baz"), "Nth")
+				XCTAssert(!Function.Nth.apply([Value("Foo,bar,baz"), Value(4)]).isValid, "Nth")
+				XCTAssert(Function.Nth.apply([Value("foo,bar,baz,boo"), Value("foo")]) == Value("bar"), "Nth with dictionary")
+				XCTAssert(!Function.Nth.apply([Value("foo,bar,baz,boo"), Value("xxx")]).isValid, "Nth with dictionary")
 
 			case .Sign:
 				XCTAssert(Function.Sign.apply([Value(-1337)]) == Value(-1), "Sign")

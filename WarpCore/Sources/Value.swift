@@ -55,14 +55,14 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		else if let s = jsonObject as? String {
 			self = .StringValue(s)
 		}
+		else if let i = jsonObject as? Int, let d = jsonObject as? Double where d == Double(i) {
+			self = .IntValue(i)
+		}
 		else if let d = jsonObject as? Double {
 			self = .DoubleValue(d)
 		}
 		else if let b = jsonObject as? Bool {
 			self = .BoolValue(b)
-		}
-		else if let i = jsonObject as? Int {
-			self = .IntValue(i)
 		}
 		else if jsonObject is NSNull {
 			self = .EmptyValue
@@ -237,6 +237,10 @@ value cell (e.g. during aggregation) to later be unpacked again.
 
 Using ',' as separator, '$0' as separator escape and '$1' as escape-escape, packing the array ["a","b,", "c$"] leads to
 the following pack string: "a,b$0,c$1". Unpacking the pack string "$0$0$0,$1$0,," leads to the array [",,,", "$,","",""].
+
+The pack format can also be used to store dictionaries. These are serialized as pack arrays where keys alternate values.
+When interpreting a packed dictionary, the second appearance of a key that already appeared earlier is ignored. Also, a 
+key without a value is considered not to exist.
 */
 public struct Pack {
 	public static let Separator = ","
@@ -282,6 +286,15 @@ public struct Pack {
 		}
 	}
 
+	public init?(_ pack: Value) {
+		if let s = pack.stringValue {
+			self.init(s)
+		}
+		else {
+			return nil
+		}
+	}
+
 	public var count: Int { get {
 		return items.count
 	} }
@@ -290,6 +303,15 @@ public struct Pack {
 		assert(n >= 0, "Index on a pack cannot be negative")
 		assert(n < count, "Index out of bounds")
 		return items[n]
+	}
+
+	public subscript(n: String) -> String! {
+		for index in 0.stride(to: items.count, by: 2) {
+			if items[index] == n && items.count > (index+1) {
+				return items[index+1]
+			}
+		}
+		return nil
 	}
 
 	public mutating func append(value: Value) {

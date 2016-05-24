@@ -1026,18 +1026,22 @@ public enum Function: String {
 			
 			
 		case .Nth:
-			if let source = arguments[0].stringValue, let index = arguments[1].intValue {
-				let pack = WarpCore.Pack(source)
-				let adjustedIndex = index-1
-				if adjustedIndex < pack.count && adjustedIndex >= 0 {
-					return Value.StringValue(pack[adjustedIndex])
+			if let pack = WarpCore.Pack(arguments[0]) {
+				if let index = arguments[1].intValue {
+					let adjustedIndex = index-1
+					if adjustedIndex < pack.count && adjustedIndex >= 0 {
+						return Value.StringValue(pack[adjustedIndex])
+					}
+				}
+				else if let index = arguments[1].stringValue, let value = pack[index] {
+					return Value.StringValue(value)
 				}
 			}
 			return Value.InvalidValue
 			
 		case .Items:
-			if let source = arguments[0].stringValue {
-				return Value.IntValue(WarpCore.Pack(source).count)
+			if let pack = WarpCore.Pack(arguments[0]) {
+				return Value.IntValue(pack.count)
 			}
 			return Value.InvalidValue
 			
