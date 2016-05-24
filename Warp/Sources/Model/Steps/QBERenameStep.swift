@@ -115,6 +115,12 @@ class QBERenameStep: QBEStep {
 			// This step can ony be a further subset of the columns selected by the prior
 			return QBEStepMerge.Advised(self)
 		}
+		else if let p = prior as? QBECalculateStep {
+			if let firstRename = self.renames.first where self.renames.count == 1 && firstRename.0 == p.targetColumn {
+				let newCalculate = QBECalculateStep(previous: p.previous, targetColumn: firstRename.1, function: p.function)
+				return QBEStepMerge.Advised(newCalculate)
+			}
+		}
 		return QBEStepMerge.Impossible
 	}
 }
