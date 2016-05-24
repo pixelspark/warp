@@ -191,7 +191,8 @@ public class Locale {
 			"STDEV.P": Function.StandardDeviationPopulation,
 			"STDEV.S": Function.StandardDeviationSample,
 			"VAR.P": Function.VariancePopulation,
-			"VAR.S": Function.VarianceSample
+			"VAR.S": Function.VarianceSample,
+			"FROM.JSON": Function.JSONDecode
 		],
 		
 		"nl": [
@@ -282,7 +283,8 @@ public class Locale {
 			"STDEV.P": Function.StandardDeviationPopulation,
 			"STDEV.S": Function.StandardDeviationSample,
 			"VAR.P": Function.VariancePopulation,
-			"VAR.S": Function.VarianceSample
+			"VAR.S": Function.VarianceSample,
+			"VAN.JSON": Function.JSONDecode
 		]
 	]
 	

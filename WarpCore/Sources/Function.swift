@@ -104,6 +104,7 @@ public enum Function: String {
 	case StandardDeviationSample = "stdevSample"
 	case IsEmpty = "isEmpty"
 	case IsInvalid = "isInvalid"
+	case JSONDecode = "jsonArrayToPack"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -336,6 +337,7 @@ public enum Function: String {
 			case .StandardDeviationSample: return translationForString("standard deviation (of sample)")
 			case .IsInvalid: return translationForString("is invalid")
 			case .IsEmpty: return translationForString("is empty")
+			case .JSONDecode: return translationForString("read JSON value")
 		}
 	}
 	
@@ -591,6 +593,9 @@ public enum Function: String {
 
 		case .IsEmpty:
 			return [Parameter(name: translationForString("value"), exampleValue: Value.IntValue(3))]
+
+		case .JSONDecode:
+			return [Parameter(name: translationForString("JSON"), exampleValue: Value.StringValue("[1,2,3]"))]
 		}
 	} }
 	
@@ -686,6 +691,7 @@ public enum Function: String {
 		case .VarianceSample: return Arity.Any
 		case .IsInvalid: return Arity.Fixed(1)
 		case .IsEmpty: return Arity.Fixed(1)
+		case .JSONDecode: return Arity.Fixed(1)
 		}
 	} }
 	
@@ -1230,6 +1236,18 @@ public enum Function: String {
 		case .IsEmpty:
 			return Value.BoolValue(arguments[0].isEmpty)
 
+		case .JSONDecode:
+			do {
+				if let s = arguments[0].stringValue, let stringData = s.dataUsingEncoding(NSUTF8StringEncoding) {
+					let jsonDecoded = try NSJSONSerialization.JSONObjectWithData(stringData, options: [.AllowFragments])
+					return Value(jsonObject: jsonDecoded)
+				}
+			}
+			catch {
+				return Value.InvalidValue
+			}
+			return Value.InvalidValue
+
 		// The following functions are already implemented as a Reducer, just use that
 		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct, .Median, .MedianHigh,
 			.MedianLow, .MedianPack, .VarianceSample, .VariancePopulation, .StandardDeviationPopulation, .StandardDeviationSample:
@@ -1285,7 +1303,7 @@ public enum Function: String {
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
 		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID,
 		CountDistinct, MedianLow, MedianHigh, MedianPack, Median, VarianceSample, VariancePopulation, StandardDeviationSample,
-		StandardDeviationPopulation, IsEmpty, IsInvalid
+		StandardDeviationPopulation, IsEmpty, IsInvalid, JSONDecode
 	]
 }
 

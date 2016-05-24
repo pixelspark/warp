@@ -42,6 +42,35 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	public init(_ value: String) {
 		self = .StringValue(value)
 	}
+
+	public init(jsonObject: AnyObject)	{
+		if let d = jsonObject as? [String: AnyObject] {
+			let values = d.flatMap { (k, v) -> [Value] in return [.StringValue(k), Value(jsonObject: v)] }
+			self = Pack(values).value
+		}
+		else if let a = jsonObject as? [AnyObject] {
+			let values = a.map { return Value(jsonObject: $0) }
+			self = Pack(values).value
+		}
+		else if let s = jsonObject as? String {
+			self = .StringValue(s)
+		}
+		else if let d = jsonObject as? Double {
+			self = .DoubleValue(d)
+		}
+		else if let b = jsonObject as? Bool {
+			self = .BoolValue(b)
+		}
+		else if let i = jsonObject as? Int {
+			self = .IntValue(i)
+		}
+		else if jsonObject is NSNull {
+			self = .EmptyValue
+		}
+		else {
+			self = .InvalidValue
+		}
+	}
 	
 	public init(_ value: Double) {
 		if isnan(value) || isinf(value) {
@@ -220,6 +249,18 @@ public struct Pack {
 	public init() {
 		self.items = []
 	}
+
+	public init(_ items: [String: String]) {
+		self.items = items.flatMap { (k, v) -> [String] in
+			return [k, v]
+		}
+	}
+
+	public init(_ items: [String: Value]) {
+		self.items = items.flatMap { (k, v) -> [String] in
+			return [k, v.stringValue ?? ""]
+		}
+	}
 	
 	public init(_ items: [String]) {
 		self.items = items
@@ -253,6 +294,10 @@ public struct Pack {
 
 	public mutating func append(value: Value) {
 		self.items.append(value.stringValue ?? "")
+	}
+
+	public var value: Value {
+		return Value.StringValue(self.stringValue)
 	}
 	
 	public var stringValue: String { get {

@@ -458,6 +458,9 @@ class WarpCoreTests: XCTestCase {
 			case .IsInvalid:
 				XCTAssert(Function.IsInvalid.apply([Value.InvalidValue]) == Value.BoolValue(true), "invalid value is invalid")
 				XCTAssert(Function.IsInvalid.apply([Value.EmptyValue]) == Value.BoolValue(false), "empty value is not invalid")
+
+			case .JSONDecode:
+				XCTAssert(Function.JSONDecode.apply([Value.StringValue("[1,2,3]")]) == Pack(["1","2","3"]).value, "JSON decode array")
 			}
 		}
 

@@ -864,6 +864,9 @@ public class StandardSQLDialect: SQLDialect {
 
 			case .IsInvalid:
 				return nil
+
+			case .JSONDecode:
+				return nil
 		}
 	}
 	
