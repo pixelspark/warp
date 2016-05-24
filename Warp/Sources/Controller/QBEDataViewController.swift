@@ -299,6 +299,11 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 					}
 				}
 
+				// Force the 'new' column to a certain fixed size
+				if self.showNewColumn {
+					tv.resizeColumnWithIndex(UInt(r.columns.count), width: Float(self.DefaultColumnWidth / 2.0))
+				}
+
 				// Cache cell types: check the first row to see what kind of value is in this column
 				if columnCells == nil {
 					columnCells = []
