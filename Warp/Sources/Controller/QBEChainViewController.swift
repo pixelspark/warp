@@ -21,6 +21,10 @@ protocol QBEChainViewDelegate: NSObjectProtocol {
 	
 	/** Called when the chain has changed */
 	func chainViewDidChangeChain(view: QBEChainViewController)
+
+	/** Called when the chain view wants to export the chain (e.g. what would normally be accomplished by dragging out 
+	the outlet to another place outside the tablet). */
+	func chainView(view: QBEChainViewController, exportChain: QBEChain)
 }
 
 internal extension NSViewController {
@@ -293,7 +297,10 @@ internal enum QBEEditingMode {
 
 		if let myChain = chain {
 			if let otherChain = draggedObject as? QBEChain {
-				if otherChain == myChain || Array(otherChain.recursiveDependencies).map({$0.dependsOn}).contains(myChain) {
+				if otherChain == myChain {
+					// Drop on self, just ignore
+				}
+				else if Array(otherChain.recursiveDependencies).map({$0.dependsOn}).contains(myChain) {
 					// This would introduce a loop, don't do anything.
 					NSAlert.showSimpleAlert("The data set cannot be linked to this data set".localized, infoText: "Linking the data set to this data set would introduce a loop where the outcome of a calculation would depend on itself.".localized, style: .CriticalAlertStyle, window: self.view.window)
 				}
@@ -303,6 +310,13 @@ internal enum QBEEditingMode {
 				}
 			}
 		}
+	}
+
+	func outletViewWasClicked(view: QBEOutletView) {
+		if let c = self.chain {
+			self.delegate?.chainView(self, exportChain: c)
+		}
+		view.draggedObject = nil
 	}
 	
 	func outletViewDidEndDragging(view: QBEOutletView) {

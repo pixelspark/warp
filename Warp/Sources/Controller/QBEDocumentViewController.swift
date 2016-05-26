@@ -34,7 +34,16 @@ import WarpCore
 		}
 		return false
 	}
-	
+
+	func tabletView(view: QBETabletViewController, exportObject: NSObject) {
+		if let chain = exportObject as? QBEChain {
+			if let pointInWindow = self.view.window?.currentEvent?.locationInWindow {
+				let pointInView = self.view.convertPoint(pointInWindow, fromView: nil)
+				self.receiveChain(chain, atLocation: pointInView)
+			}
+		}
+	}
+
 	func tabletViewDidChangeContents(view: QBETabletViewController) {
 		if workspaceView.magnifiedView == nil {
 			documentView.resizeDocument()
@@ -381,14 +390,18 @@ import WarpCore
 		self.addTablet(tablet, atLocation: location, undo: true)
 	}
 
-	/** Called when an outlet is dropped onto the workspace itself (e.g. an empty spot). */
-	func workspaceView(view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
+	func receiveChain(chain: QBEChain, atLocation: CGPoint) {
 		assertMainThread()
 
 		if chain.head != nil {
 			let ac = QBEDropChainAction(chain: chain, documentView: self, location: atLocation)
 			ac.present()
 		}
+	}
+
+	/** Called when an outlet is dropped onto the workspace itself (e.g. an empty spot). */
+	func workspaceView(view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
+		receiveChain(chain, atLocation: atLocation)
 	}
 
 	/** Called when a set of columns was dropped onto the document. */

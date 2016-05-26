@@ -45,4 +45,8 @@ internal class QBEChainTabletViewController: QBETabletViewController, QBEChainVi
 	func chainViewDidChangeChain(view: QBEChainViewController) {
 		self.delegate?.tabletViewDidChangeContents(self)
 	}
+
+	func chainView(view: QBEChainViewController, exportChain chain: QBEChain) {
+		self.delegate?.tabletView(self, exportObject: chain)
+	}
 }

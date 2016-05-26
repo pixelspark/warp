@@ -198,6 +198,7 @@ private class QBELaceWindow: NSWindow {
 @objc protocol QBEOutletViewDelegate: NSObjectProtocol {
 	func outletViewWillStartDragging(view: QBEOutletView)
 	func outletViewDidEndDragging(view: QBEOutletView)
+	optional func outletViewWasClicked(view: QBEOutletView)
 	func outletView(view: QBEOutletView, didDropAtURL: NSURL)
 }
 
@@ -337,6 +338,16 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 		dragLineWindow = nil
 		setNeedsDisplayInRect(self.bounds)
 		NSCursor.closedHandCursor().pop()
+
+		let screenRect = CGRectMake(screenPoint.x, screenPoint.y, 0, 0)
+		if let windowRect = self.window?.convertRectFromScreen(screenRect) {
+			let viewRect = self.convertRect(windowRect, fromView: nil)
+			if self.bounds.contains(viewRect.origin) {
+				self.delegate?.outletViewWasClicked?(self)
+				return
+			}
+		}
+
 		self.delegate?.outletViewDidEndDragging(self)
 	}
 }
