@@ -912,6 +912,7 @@
 				6583EEC11C14758B00AE6C00 /* QBECSVStep.swift */,
 				6583EEC21C14758B00AE6C00 /* QBEDBFStep.swift */,
 				6583EEC31C14758B00AE6C00 /* QBEDebugStep.swift */,
+				6582E4C31CF4C8D700DAFC78 /* QBEExplodeStep.swift */,
 				6583EEC41C14758B00AE6C00 /* QBEExportStep.swift */,
 				6583EEC51C14758B00AE6C00 /* QBEFlattenStep.swift */,
 				6583EEC61C14758B00AE6C00 /* QBEJoinStep.swift */,
@@ -927,7 +928,6 @@
 				6583EED01C14758B00AE6C00 /* QBESortStep.swift */,
 				6583EED11C14758B00AE6C00 /* QBESQLiteStep.swift */,
 				6583EED21C14758B00AE6C00 /* QBEXMLStep.swift */,
-				6582E4C31CF4C8D700DAFC78 /* QBEExplodeStep.swift */,
 			);
 			path = Steps;
 			sourceTree = "<group>";

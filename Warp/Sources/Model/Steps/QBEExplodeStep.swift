@@ -3,16 +3,15 @@ import WarpCore
 
 class QBEExplodeTransformer: Transformer {
 	let splitColumn: Column
-	var columnFuture: Future<Fallible<[Column]>>!
+	let columnFuture: Future<Fallible<[Column]>>
 
 	init(source: Stream, splitColumn: Column) {
 		self.splitColumn = splitColumn
-		self.columnFuture = nil
-		super.init(source: source)
-
-		self.columnFuture = Future<Fallible<[Column]>>({ [weak self] (job, callback) in
-			self?.columns(job, callback: callback)
+		self.columnFuture = Future<Fallible<[Column]>>({ (job, callback) in
+			source.columns(job, callback: callback)
 		})
+
+		super.init(source: source)
 	}
 
 	override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
