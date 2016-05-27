@@ -117,8 +117,9 @@ import WarpCore
 			self.view.window?.makeFirstResponder(self.documentView)
 			self.updateView()
 
-			// If there are no tablets left in the currently visible rectangle, zoom back to the remaining tablets
-			if CGRectIsEmpty(CGRectIntersection(self.documentView.visibleRect, self.documentView.boundsOfAllTablets ?? CGRectZero)) {
+			/* If there are no tablets left in the currently visible rectangle, or there is only one tablet left, zoom
+			back to the remaining tablet(s) */
+			if (self.document?.tablets.count ?? 0) == 1 || CGRectIsEmpty(CGRectIntersection(self.documentView.visibleRect, self.documentView.boundsOfAllTablets ?? CGRectZero)) {
 				self.zoomToAll(true)
 			}
 			
