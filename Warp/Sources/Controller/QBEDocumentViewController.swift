@@ -39,7 +39,7 @@ import WarpCore
 		if let chain = exportObject as? QBEChain {
 			if let pointInWindow = self.view.window?.currentEvent?.locationInWindow {
 				let pointInView = self.view.convertPoint(pointInWindow, fromView: nil)
-				self.receiveChain(chain, atLocation: pointInView)
+				self.receiveChain(chain, atLocation: nil, isDestination: false)
 			}
 		}
 	}
@@ -390,18 +390,18 @@ import WarpCore
 		self.addTablet(tablet, atLocation: location, undo: true)
 	}
 
-	func receiveChain(chain: QBEChain, atLocation: CGPoint) {
+	func receiveChain(chain: QBEChain, atLocation: CGPoint?, isDestination: Bool) {
 		assertMainThread()
 
 		if chain.head != nil {
 			let ac = QBEDropChainAction(chain: chain, documentView: self, location: atLocation)
-			ac.present()
+			ac.present(isDestination)
 		}
 	}
 
 	/** Called when an outlet is dropped onto the workspace itself (e.g. an empty spot). */
 	func workspaceView(view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
-		receiveChain(chain, atLocation: atLocation)
+		receiveChain(chain, atLocation: atLocation, isDestination: true)
 	}
 
 	/** Called when a set of columns was dropped onto the document. */
@@ -688,9 +688,9 @@ import WarpCore
 private class QBEDropChainAction: NSObject {
 	private var chain: QBEChain
 	private var documentView: QBEDocumentViewController
-	private var location: CGPoint
+	private var location: CGPoint?
 
-	init(chain: QBEChain, documentView: QBEDocumentViewController, location: CGPoint) {
+	init(chain: QBEChain, documentView: QBEDocumentViewController, location: CGPoint?) {
 		self.chain = chain
 		self.documentView = documentView
 		self.location = location
@@ -859,25 +859,28 @@ private class QBEDropChainAction: NSObject {
 		}
 	}
 
-	func present() {
+	/** Present the menu with actions to perform with the chain. When `atDestination` is true, the menu uses wording that
+	is appropriate when the menu is shown at the location of the drop. When it is false, wording is used that fits when
+	the menu is presented at the source. */
+	func present(atDestination: Bool) {
 		let menu = NSMenu()
 		menu.autoenablesItems = false
 
-		let cloneItem = NSMenuItem(title: NSLocalizedString("Create linked clone of data here", comment: ""), action: #selector(QBEDropChainAction.addClone(_:)), keyEquivalent: "")
+		let cloneItem = NSMenuItem(title: (atDestination ? "Create linked clone of data here" : "Create a linked clone of data").localized, action: #selector(QBEDropChainAction.addClone(_:)), keyEquivalent: "")
 		cloneItem.target = self
 		menu.addItem(cloneItem)
 
 		if self.chain.tablet is QBEChainTablet {
-			let chartItem = NSMenuItem(title: NSLocalizedString("Create chart of data here", comment: ""), action: #selector(QBEDropChainAction.addChart(_:)), keyEquivalent: "")
+			let chartItem = NSMenuItem(title: (atDestination ? "Create chart of data here" : "Create a chart from the data").localized, action: #selector(QBEDropChainAction.addChart(_:)), keyEquivalent: "")
 			chartItem.target = self
 			menu.addItem(chartItem)
 
-			let mapItem = NSMenuItem(title: NSLocalizedString("Create map of data here", comment: ""), action: #selector(QBEDropChainAction.addMap(_:)), keyEquivalent: "")
+			let mapItem = NSMenuItem(title: (atDestination ? "Create map of data here" : "Create a map from the data").localized, action: #selector(QBEDropChainAction.addMap(_:)), keyEquivalent: "")
 			mapItem.target = self
 			menu.addItem(mapItem)
 		}
 
-		let copyItem = NSMenuItem(title: NSLocalizedString("Create copy of data here", comment: ""), action: #selector(QBEDropChainAction.addCopy(_:)), keyEquivalent: "")
+		let copyItem = NSMenuItem(title: (atDestination ? "Create copy of data here" : "Create a copy of the data").localized, action: #selector(QBEDropChainAction.addCopy(_:)), keyEquivalent: "")
 		copyItem.target = self
 		menu.addItem(copyItem)
 
@@ -888,7 +891,7 @@ private class QBEDropChainAction: NSObject {
 		for i in 0..<stepTypes.count {
 			let stepType = stepTypes[i]
 			if let name = QBEFactory.sharedInstance.dataWarehouseStepNames[stepType.className()] {
-				let saveItem = NSMenuItem(title: String(format: NSLocalizedString("Upload data to %@...", comment: ""), name), action: #selector(QBEDropChainAction.saveToWarehouse(_:)), keyEquivalent: "")
+				let saveItem = NSMenuItem(title: String(format: "Upload data to %@...".localized, name), action: #selector(QBEDropChainAction.saveToWarehouse(_:)), keyEquivalent: "")
 				saveItem.target = self
 				saveItem.tag = i
 				menu.addItem(saveItem)
@@ -896,7 +899,7 @@ private class QBEDropChainAction: NSObject {
 		}
 
 		menu.addItem(NSMenuItem.separatorItem())
-		let exportFileItem = NSMenuItem(title: NSLocalizedString("Export data to file...", comment: ""), action: #selector(QBEDropChainAction.exportFile(_:)), keyEquivalent: "")
+		let exportFileItem = NSMenuItem(title: "Export data to file...".localized, action: #selector(QBEDropChainAction.exportFile(_:)), keyEquivalent: "")
 		exportFileItem.target = self
 		menu.addItem(exportFileItem)
 
