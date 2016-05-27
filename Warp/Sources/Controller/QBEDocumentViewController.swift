@@ -116,6 +116,11 @@ import WarpCore
 		
 			self.view.window?.makeFirstResponder(self.documentView)
 			self.updateView()
+
+			// If there are no tablets left in the currently visible rectangle, zoom back to the remaining tablets
+			if CGRectIsEmpty(CGRectIntersection(self.documentView.visibleRect, self.documentView.boundsOfAllTablets ?? CGRectZero)) {
+				self.zoomToAll(true)
+			}
 			
 			// Register undo operation. Do not retain the QBETablet but instead serialize, so all caches are properly destroyed.
 			if undo {
