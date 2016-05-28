@@ -84,6 +84,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				inputToken.change(formula.root)
 				self.delegate?.sentenceView(self, didChangeConfigurable: s)
 				updateView()
+
 				return true
 			}
 			return false
@@ -408,6 +409,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			inputToken.change(newExpression ?? Literal(Value.EmptyValue))
 			self.delegate?.sentenceView(self, didChangeConfigurable: s)
 			updateView()
+			view.updateContextInformation(inputToken)
 		}
 	}
 
@@ -448,6 +450,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				let windowRect = NSMakeRect(sender.locationInWindow.x + 5, sender.locationInWindow.y, 1, 1)
 				var viewRect = self.view.convertRect(windowRect, fromView: nil)
 				viewRect.origin.y = 0.0
+				editor.updateContextInformation(inputToken)
 				self.presentViewController(editor, asPopoverRelativeToRect: viewRect, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
 			}
 		}
@@ -458,6 +461,32 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	func configurableView(view: QBEConfigurableViewController, didChangeConfigurationFor c: QBEConfigurable) {
 		asyncMain { self.updateView() }
 		self.delegate?.sentenceView(self, didChangeConfigurable: c)
+	}
+}
+
+private extension QBEFormulaEditorViewController {
+	func updateContextInformation(sentence: QBESentenceFormula) {
+		if let getContext = sentence.contextCallback {
+			let job = Job(.UserInitiated)
+			getContext(job) { result in
+				switch result {
+				case .Success(let r):
+					asyncMain {
+						self.exampleResult = self.expression?.apply(r.row, foreign: nil, inputValue: nil)
+						self.columns = r.columns.sort({ return $0.name < $1.name })
+					}
+
+				case .Failure(_):
+					asyncMain {
+						self.exampleResult = nil
+					}
+				}
+			}
+		}
+		else {
+			self.columns = []
+			self.exampleResult = nil
+		}
 	}
 }
 

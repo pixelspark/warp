@@ -174,17 +174,25 @@ public class QBESentenceTextInput: NSObject, QBESentenceToken {
 	public var isToken: Bool { get { return true } }
 }
 
+public struct QBESentenceFormulaContext {
+	var row: Row
+	var columns: [Column]
+}
+
 /** Sentence item that shows a friendly representation of a formula, and shows a formula editor on editing. */
 public class QBESentenceFormula: NSObject, QBESentenceToken {
+	public typealias ContextCallback = (Fallible<QBESentenceFormulaContext>) -> ()
 	public typealias Callback = (Expression) -> ()
 	public let expression: Expression
 	public let locale: Locale
-	public let callback: Callback
+	public let callback: Callback // Called when a new formula is set
+	public let contextCallback: ((Job, ContextCallback) -> ())? // Called to obtain context information (columns, example row, etc.)
 
-	public init(expression: Expression, locale: Locale, callback: Callback) {
+	public init(expression: Expression, locale: Locale, callback: Callback, contextCallback: ((Job, ContextCallback) -> ())? = nil) {
 		self.expression = expression
 		self.locale = locale
 		self.callback = callback
+		self.contextCallback = contextCallback
 	}
 
 	public func change(newValue: Expression) {
@@ -249,4 +257,34 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 	}
 
 	public var isToken: Bool { get { return true } }
+}
+
+extension QBEStep {
+	func contextCallbackForFormulaSentence(job: Job, callback: QBESentenceFormula.ContextCallback) {
+		if let sourceStep = self.previous {
+			sourceStep.exampleData(job, maxInputRows: 100, maxOutputRows: 1) { result in
+				switch result {
+				case .Success(let data):
+					data.limit(1).raster(job) { result in
+						switch result {
+						case .Success(let raster):
+							if raster.rowCount == 1 {
+								let ctx = QBESentenceFormulaContext(row: raster[0], columns: raster.columns)
+								return callback(.Success(ctx))
+							}
+
+						case .Failure(let e):
+							return callback(.Failure(e))
+						}
+					}
+
+				case .Failure(let e):
+					return callback(.Failure(e))
+				}
+			}
+		}
+		else {
+			return callback(.Failure("No data source for chart".localized))
+		}
+	}
 }

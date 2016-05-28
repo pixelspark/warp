@@ -5,15 +5,21 @@ protocol QBEFormulaEditorViewDelegate: NSObjectProtocol {
 	func formulaEditor(view: QBEFormulaEditorViewController, didChangeExpression: Expression?)
 }
 
-class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate, NSTextFieldDelegate {
+class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate, NSTextFieldDelegate, NSTableViewDataSource, NSTableViewDelegate {
+	weak var delegate: QBEFormulaEditorViewDelegate? = nil
+	var exampleResult: Value? = nil { didSet { assertMainThread(); self.updateView(false) } }
+	var columns: [Column] = [] { didSet { assertMainThread(); self.updateView(false) } }
+
 	private(set) var expression: Expression? = nil
 	private(set) var locale: Locale? = nil
-	weak var delegate: QBEFormulaEditorViewDelegate? = nil
-	@IBOutlet private var formulaField: NSTextField!
 	private var lastSelectedRange: NSRange? = nil
-	@IBOutlet private var referenceView: NSView!
-
 	private var syntaxColoringJob: Job? = nil
+
+	@IBOutlet private var formulaField: NSTextField!
+	@IBOutlet private var referenceView: NSView!
+	@IBOutlet private var exampleOutputField: NSTextField!
+	@IBOutlet private var columnsTableView: NSTableView!
+	@IBOutlet private var assistantTabView: NSTabView!
 
 	func referenceView(view: QBEReferenceViewController, didSelectFunction: Function) {
 		if let locale = self.locale {
@@ -61,7 +67,32 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		updateFromView(self.formulaField)
 	}
 
+	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+		if tableView == self.columnsTableView {
+			return self.columns.count
+		}
+
+		return 0
+	}
+
+	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+		if tableView == self.columnsTableView && tableColumn?.identifier == "column" && row < self.columns.count {
+			return self.columns[row].name
+		}
+
+		return nil
+	}
+
 	private func updateView(force: Bool) {
+		if let v = self.exampleResult {
+			self.exampleOutputField?.stringValue = self.locale?.localStringFor(v) ?? ""
+		}
+		else {
+			self.exampleOutputField?.stringValue = ""
+		}
+
+		self.columnsTableView?.reloadData()
+
 		if let ff = self.formulaField {
 			if let e = expression, let locale = self.locale {
 				let job = Job(.UserInitiated)
@@ -115,10 +146,50 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		}
 	}
 
+	@IBAction func insertColumnFromList(sender: NSObject) {
+		if let s = self.columnsTableView?.selectedRow where s != NSNotFound && s >= 0 && s < self.columns.count {
+			if let locale = self.locale {
+				let column = self.columns[s]
+				let replacement = Sibling(column).toFormula(locale, topLevel: true)
+
+				self.view.window?.makeFirstResponder(formulaField)
+				if let ed = formulaField.currentEditor() {
+					let er = lastSelectedRange ?? ed.selectedRange
+					if er.length > 0 {
+						ed.selectedRange = er
+						ed.replaceCharactersInRange(er, withString: replacement)
+						ed.selectedRange = NSMakeRange(er.location, replacement.characters.count)
+					}
+					else {
+						if self.expression is Sibling || self.expression == nil {
+							formulaField.stringValue = replacement
+						}
+						else {
+							formulaField.stringValue += replacement
+						}
+					}
+				}
+				else {
+					formulaField.stringValue += replacement
+				}
+			}
+			updateFromView(self.formulaField)
+		}
+	}
+
     override func viewDidLoad() {
         super.viewDidLoad()
 		updateView(true)
     }
+
+	override func viewWillAppear() {
+		if self.expression is Sibling {
+			self.assistantTabView?.selectTabViewItemWithIdentifier("columns")
+		}
+		else {
+			self.assistantTabView?.selectTabViewItemWithIdentifier("result")
+		}
+	}
 
 	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
 		if segue.identifier == "showReference" {

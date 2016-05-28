@@ -127,7 +127,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 			return QBESentence(format: NSLocalizedString("Join data on [#], [#] rows without matches", comment: ""),
 				QBESentenceFormula(expression: self.condition ?? Literal(Value.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
 					self?.condition = newExpression
-				}),
+				}, contextCallback: self.contextCallbackForFormulaSentence),
 				joinTypeSentenceItem
 			)
 		}

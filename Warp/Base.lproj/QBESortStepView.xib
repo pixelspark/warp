@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="15B42" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10117"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBESortStepView" customModule="Warp" customModuleProvider="target">
@@ -26,7 +27,6 @@
                             <tableView focusRingType="none" verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="sequential" alternatingRowBackgroundColors="YES" multipleSelection="NO" autosaveColumns="NO" typeSelect="NO" headerView="xGL-ZH-BpI" id="ncN-pP-TDp">
                                 <rect key="frame" x="0.0" y="0.0" width="252" height="206"/>
                                 <autoresizingMask key="autoresizingMask"/>
-                                <animations/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
@@ -75,29 +75,23 @@
                                 </connections>
                             </tableView>
                         </subviews>
-                        <animations/>
                         <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </clipView>
-                    <animations/>
                     <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="tC7-1N-Zfl">
                         <rect key="frame" x="1" y="119" width="223" height="15"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <animations/>
                     </scroller>
                     <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="eQr-Kp-7oj">
                         <rect key="frame" x="224" y="17" width="15" height="102"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <animations/>
                     </scroller>
                     <tableHeaderView key="headerView" id="xGL-ZH-BpI">
                         <rect key="frame" x="0.0" y="0.0" width="252" height="23"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <animations/>
                     </tableHeaderView>
                 </scrollView>
-                <popUpButton verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ln4-cR-sXQ">
-                    <rect key="frame" x="157" y="238" width="102" height="25"/>
-                    <animations/>
+                <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ln4-cR-sXQ">
+                    <rect key="frame" x="158" y="238" width="101" height="25"/>
                     <popUpButtonCell key="cell" type="roundTextured" title="Add order" bezelStyle="texturedRounded" alignment="center" lineBreakMode="truncatingTail" state="on" borderStyle="border" inset="2" arrowPosition="arrowAtCenter" selectedItem="FoX-Yu-r3o" id="b85-yb-oMs">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="menu"/>
@@ -113,12 +107,11 @@
                         <action selector="addFromPopupButton:" target="-2" id="fzm-5x-CwL"/>
                     </connections>
                 </popUpButton>
-                <button verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="iuF-Rj-GcC">
-                    <rect key="frame" x="120" y="238" width="32" height="25"/>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="iuF-Rj-GcC">
+                    <rect key="frame" x="121" y="238" width="32" height="25"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="32" id="1Py-gX-tcd"/>
                     </constraints>
-                    <animations/>
                     <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Hyi-qX-Vwp">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -142,7 +135,6 @@ CA
                 <constraint firstAttribute="trailing" secondItem="Ln4-cR-sXQ" secondAttribute="trailing" constant="5" id="i88-Ep-5Un"/>
                 <constraint firstItem="qI4-jF-mxK" firstAttribute="top" secondItem="Ln4-cR-sXQ" secondAttribute="bottom" constant="5" id="tyC-g6-Q3d"/>
             </constraints>
-            <animations/>
             <point key="canvasLocation" x="417" y="395"/>
         </customView>
     </objects>

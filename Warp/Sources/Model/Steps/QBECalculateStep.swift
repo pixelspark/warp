@@ -131,7 +131,7 @@ class QBECalculateStep: QBEStep {
 			}),
 			QBESentenceFormula(expression: self.function, locale: locale, callback: { [weak self] (newExpression) -> () in
 				self?.function = newExpression
-			})
+			}, contextCallback: self.contextCallbackForFormulaSentence)
 		)
 	}
 	

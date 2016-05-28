@@ -236,7 +236,7 @@ class QBECrawlStep: QBEStep {
 		return QBESentence(format: NSLocalizedString("For each row, fetch the web page at [#]", comment: ""),
 			QBESentenceFormula(expression: self.crawler.urlExpression, locale: locale, callback: { [weak self] (newExpression) -> () in
 				self?.crawler.urlExpression = newExpression
-			})
+			}, contextCallback: self.contextCallbackForFormulaSentence)
 		)
 	}
 	

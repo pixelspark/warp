@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9060" systemVersion="15B42" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9060"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10117"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBECSVStepView" customModule="Warp" customModuleProvider="target">
@@ -24,7 +25,6 @@
                     <constraints>
                         <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="fRE-yo-Yxf"/>
                     </constraints>
-                    <animations/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Field separator:" id="uyA-fK-gw8">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -36,7 +36,6 @@
                     <constraints>
                         <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="69" id="ydE-9v-VTe"/>
                     </constraints>
-                    <animations/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Interpret in language:" id="uwF-cJ-x1f">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -45,7 +44,6 @@
                 </textField>
                 <button translatesAutoresizingMaskIntoConstraints="NO" id="nIp-FI-Wyq">
                     <rect key="frame" x="3" y="18" width="302" height="18"/>
-                    <animations/>
                     <buttonCell key="cell" type="check" title="Has column headers" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="HQW-vd-TnC">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
@@ -59,7 +57,6 @@
                     <constraints>
                         <constraint firstAttribute="height" constant="20" id="84g-c7-gHZ"/>
                     </constraints>
-                    <animations/>
                     <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" focusRingType="none" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="Xmt-rF-B7G">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -73,7 +70,6 @@
                 </comboBox>
                 <comboBox verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gX1-Xm-cRG">
                     <rect key="frame" x="5" y="59" width="301" height="26"/>
-                    <animations/>
                     <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" completes="NO" usesDataSource="YES" numberOfVisibleItems="5" id="3se-FW-0au">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -87,7 +83,6 @@
                 </comboBox>
                 <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="f53-k8-p8G">
                     <rect key="frame" x="3" y="44" width="302" height="14"/>
-                    <animations/>
                     <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Multiline Label" id="45j-L0-Q4q">
                         <font key="font" metaFont="toolTip"/>
                         <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
@@ -116,7 +111,6 @@
                 <constraint firstItem="gX1-Xm-cRG" firstAttribute="leading" secondItem="6ha-w3-wZt" secondAttribute="leading" constant="5" id="vUD-YO-NuL"/>
                 <constraint firstAttribute="trailing" secondItem="Gqc-VY-pgW" secondAttribute="trailing" constant="5" id="xoK-RM-qHb"/>
             </constraints>
-            <animations/>
             <point key="canvasLocation" x="370" y="331.5"/>
         </customView>
     </objects>

@@ -31,7 +31,7 @@ class QBESortStep: QBEStep {
 			return QBESentence(format: NSLocalizedString("Sort rows on [#][#][#]", comment: ""),
 				QBESentenceFormula(expression: order.expression ?? Literal(.BoolValue(false)), locale: locale, callback: { (newExpression) -> () in
 					order.expression = newExpression
-				}),
+				}, contextCallback: self.contextCallbackForFormulaSentence),
 				QBESentenceOptions(options: [
 					"numeric": NSLocalizedString("numerically", comment: ""),
 					"alphabetic": NSLocalizedString("alphabetically", comment: "")

@@ -48,7 +48,7 @@ class QBEFlattenStep: QBEStep {
 			}),
 			QBESentenceFormula(expression: self.rowIdentifier ?? Literal(Value("")), locale: locale, callback: { [weak self] (expression) -> () in
 				self?.rowIdentifier = expression
-			})
+			}, contextCallback: self.contextCallbackForFormulaSentence)
 		)
 	}
 	

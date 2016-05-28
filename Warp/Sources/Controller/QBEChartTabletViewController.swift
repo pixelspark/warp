@@ -30,7 +30,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 		assertMainThread()
 
 		if let calculationNotification = notification.object as? QBEResultNotification where calculationNotification.calculator != calculator {
-			if let t = self.chartTablet, let source = t.sourceTablet, let step = source.chain.head {
+			if let t = self.chartTablet, let source = t.chart.sourceTablet, let step = source.chain.head {
 				if step == calculationNotification.step {
 					self.presentedRaster = calculationNotification.raster
 					self.presentedDataIsFullData = calculationNotification.isFull
@@ -89,7 +89,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 		self.calculator.cancel()
 		self.updateProgress()
 
-		if let t = self.chartTablet, let source = t.sourceTablet, let step = source.chain.head {
+		if let t = self.chartTablet, let source = t.chart.sourceTablet, let step = source.chain.head {
 			self.calculator.calculate(step, fullData: self.useFullData)
 			let job = Job(.UserInitiated)
 			job.addObserver(self)
@@ -310,7 +310,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	}
 
 	private func validateSelector(action: Selector) -> Bool {
-		if self.chartTablet?.sourceTablet?.chain.head != nil {
+		if self.chartTablet?.chart.sourceTablet?.chain.head != nil {
 			switch action {
 			case #selector(QBEChartTabletViewController.refreshData(_:)), #selector(QBEChartTabletViewController.exportFile(_:)): return true
 			case #selector(QBEChartTabletViewController.cancelCalculation(_:)): return self.calculator.calculating
