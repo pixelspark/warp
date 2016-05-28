@@ -37,10 +37,7 @@ import WarpCore
 
 	func tabletView(view: QBETabletViewController, exportObject: NSObject) {
 		if let chain = exportObject as? QBEChain {
-			if let pointInWindow = self.view.window?.currentEvent?.locationInWindow {
-				let pointInView = self.view.convertPoint(pointInWindow, fromView: nil)
-				self.receiveChain(chain, atLocation: nil, isDestination: false)
-			}
+			self.receiveChain(chain, atLocation: nil, isDestination: false)
 		}
 	}
 
