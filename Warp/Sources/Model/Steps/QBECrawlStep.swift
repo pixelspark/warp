@@ -198,7 +198,7 @@ class QBECrawlStream: Stream {
 	}
 
 	func clone() -> Stream {
-		return QBECrawlStream(source: source, crawler: crawler)
+		return QBECrawlStream(source: source.clone(), crawler: crawler)
 	}
 }
 
