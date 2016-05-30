@@ -286,6 +286,8 @@ public class Job: JobDelegate {
 				return  jobNumber
 			}
 		#endif
+
+		parent.reportProgress(0.0, forKey: unsafeAddressOf(self).hashValue)
 	}
 	
 	private init(queue: dispatch_queue_t) {

@@ -568,7 +568,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 
 	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence(format: "Evaluate data using AI".localized,
+		return QBESentence(format: "Evaluate data using AI with complexity [#]".localized,
 			QBESentenceTextInput(value: "\(self.complexity)", callback: { (nc) -> (Bool) in
 				if let d = Double(nc) {
 					self.complexity = d
@@ -580,10 +580,14 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 
 	private func classify(data: Data, withTrainingData trainingData: Data, job: Job, callback: (Fallible<Data>) -> ()) {
-		trainingData.columns(job) { result in
+		let columnsJob = Job(parent: job)
+		let dataColumnsJob = Job(parent: job)
+		let descriptivesJob = Job(parent: job)
+
+		trainingData.columns(columnsJob) { result in
 			switch result {
 			case .Success(let trainingCols):
-				data.columns(job) { result in
+				data.columns(dataColumnsJob) { result in
 					switch result {
 					case .Success(let dataCols):
 						let inputCols = Set(dataCols).intersect(trainingCols)
@@ -591,7 +595,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 						let allCols = inputCols.union(outputCols)
 
 						// Fetch descriptives of training set to be used for normalization
-						trainingData.descriptives(allCols, types: Set(QBEClassifierModel.requiredDescriptiveTypes), job: job) { result in
+						trainingData.descriptives(allCols, types: Set(QBEClassifierModel.requiredDescriptiveTypes), job: descriptivesJob) { result in
 							switch result {
 							case .Success(let descriptives):
 								// TODO save model here
@@ -615,15 +619,19 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 
 	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+		let leftJob = Job(parent: job)
+		let rightJob = Job(parent: job)
+		let classifyJob = Job(parent: job)
+
 		if let p = previous {
-			p.fullData(job) { leftData in
+			p.fullData(leftJob) { leftData in
 				switch leftData {
 				case .Success(let ld):
 					if let r = self.right, let h = r.head {
-						h.fullData(job) { rightData in
+						h.fullData(rightJob) { rightData in
 							switch rightData {
 							case .Success(let rd):
-								return self.classify(ld, withTrainingData: rd, job: job, callback: callback)
+								return self.classify(ld, withTrainingData: rd, job: classifyJob, callback: callback)
 
 							case .Failure(_):
 								return callback(rightData)

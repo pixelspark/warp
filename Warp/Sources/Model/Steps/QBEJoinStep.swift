@@ -141,10 +141,14 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 	
 	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+		// Create two separate jobs for left and right data, so progress is equally counted
+		let leftJob = Job(parent: job)
+		let rightJob = Job(parent: job)
+
 		if let p = previous {
-			p.fullData(job) {(leftData) -> () in
+			p.fullData(leftJob) { leftData in
 				if let r = self.right, let h = r.head {
-					h.fullData(job) { (rightData) -> () in
+					h.fullData(rightJob) { rightData in
 						switch rightData {
 							case .Success(let rd):
 								if let j = self.join(rd) {
@@ -171,11 +175,15 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	
 	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
 		if let p = previous {
-			p.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftData) -> () in
+			// Create two separate jobs for left and right data, so progress is equally counted
+			let leftJob = Job(parent: job)
+			let rightJob = Job(parent: job)
+
+			p.exampleData(leftJob, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftData) -> () in
 				switch leftData {
 					case .Success(let ld):
 						if let r = self.right, let h = r.head {
-							h.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightData) -> () in
+							h.exampleData(rightJob, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightData) -> () in
 								switch rightData {
 									case .Success(let rd):
 										if let j = self.join(rd) {
