@@ -704,8 +704,15 @@ public class Batch<T>: Job {
 				}
 			}
 			else {
-				assert(!cancelled, "Cannot enqueue on a Future that is cancelled")
-				self.waitingList.append(callback)
+				#if DEBUG
+				if cancelled {
+					log("Enqueueing on a cancelled future - callback will not be called!")
+				}
+				#endif
+
+				if !cancelled {
+					self.waitingList.append(callback)
+				}
 			}
 		}
 	}
