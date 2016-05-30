@@ -356,7 +356,7 @@ public class Job: JobDelegate {
 	/** Inform anyone waiting on this job that a particular sub-task has progressed. Progress needs to be between 0...1,
 	where 1 means 'complete'. Callers of this function should generate a sufficiently unique key that identifies the sub-
 	operation in the job of which the progress is reported (e.g. use '.hash' on an object private to the subtask). */
-	public func reportProgress(progress: Double, forKey: Int) {
+	public func reportProgress(progress: Double, forKey: Int, file: StaticString = #file, line: UInt = #line) {
 		if progress < 0.0 || progress > 1.0 {
 			// Ignore spurious progress reports
 			log("Ignoring spurious progress report \(progress) for key \(forKey)")
@@ -364,6 +364,12 @@ public class Job: JobDelegate {
 		}
 
 		mutex.locked {
+ 			#if DEBUG
+				if self.progressComponents[forKey] == nil && self.progress > 0 {
+					log("Adding progress component after having progressed \(self.progress), progressing backwards [\(file):\(line)]")
+				}
+			#endif
+
 			self.progressComponents[forKey] = progress
 			let currentProgress = self.progress
 			for observer in self.observers {
