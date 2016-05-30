@@ -339,8 +339,10 @@ public class Job: JobDelegate {
 			let t = CFAbsoluteTimeGetCurrent()
 			block()
 			let d = CFAbsoluteTimeGetCurrent() - t
-			
-			log("\(description)\t\(items) \(itemType):\t\(round(10*Double(items)/d)/10) \(itemType)/s")
+
+			if items > 0 {
+				log("\(description)\t\(items) \(itemType):\t\(round(10*Double(items)/d)/10) \(itemType)/s")
+			}
 			self.reportTime(description, time: d)
 		#else
 			block()
