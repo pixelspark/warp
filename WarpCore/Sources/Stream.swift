@@ -433,6 +433,7 @@ result (which is useful for transformers that only return rows after having seen
 public class Transformer: NSObject, Stream {
 	public let source: Stream
 	var stopped = false
+	var started = false
 	private var outstandingTransforms = 0 { didSet { assert(outstandingTransforms >= 0) } }
 	let mutex = Mutex()
 	
@@ -446,6 +447,11 @@ public class Transformer: NSObject, Stream {
 	
 	public final func fetch(job: Job, consumer: Sink) {
 		let shouldContinue = self.mutex.locked { () -> Bool in
+			if !started {
+				self.started = true
+				job.reportProgress(0.0, forKey: unsafeAddressOf(self).hashValue)
+			}
+
 			if !self.stopped {
 				self.outstandingTransforms += 1
 			}
@@ -476,7 +482,10 @@ public class Transformer: NSObject, Stream {
 											self.mutex.locked {
 												assert(self.stopped, "finish() called while not stopped yet")
 											}
-											self.finish(transformedRows, job: job, callback: consumer)
+											self.finish(transformedRows, job: job, callback: once { extraRows, finalStreamStatus in
+												job.reportProgress(1.0, forKey: unsafeAddressOf(self).hashValue)
+												consumer(extraRows, finalStreamStatus)
+											})
 										}
 										else {
 											consumer(transformedRows, .Finished)
