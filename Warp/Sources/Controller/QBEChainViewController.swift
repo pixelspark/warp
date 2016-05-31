@@ -2295,7 +2295,44 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func crawl(sender: NSObject) {
-		suggestSteps([QBECrawlStep()])
+		calculator.currentRaster?.get {(r) -> () in
+			r.maybe { (raster) -> () in
+				asyncMain {
+					var suggestions: [QBEStep] = []
+
+					// If a column is selected, use that as the column with the source URL
+					if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
+						let firstSelectedColumn = selectedColumns.firstIndex
+						if firstSelectedColumn != NSNotFound && firstSelectedColumn < raster.columns.count {
+							let columnName = raster.columns[firstSelectedColumn]
+
+							let cs = QBECrawlStep()
+							cs.crawler.urlExpression = Sibling(columnName)
+							cs.crawler.targetBodyColumn = Column("Content".localized)
+							suggestions.append(cs)
+						}
+					}
+
+					// Is there a column named 'URL' or 'Link'? Then use that
+					let candidates = ["URL", "Link", "Page", "URI", "Address"].map { Column($0.localized) }
+					for col in candidates {
+						if raster.columns.contains(col) {
+							let cs = QBECrawlStep()
+							cs.crawler.urlExpression = Sibling(col)
+							cs.crawler.targetBodyColumn = Column("Content".localized)
+							suggestions.append(cs)
+						}
+					}
+
+					// Suggest a generic crawl step
+					if suggestions.isEmpty {
+						suggestions.append(QBECrawlStep())
+					}
+
+					self.suggestSteps(suggestions)
+				}
+			}
+		}
 	}
 	
 	@IBAction func pivot(sender: NSObject) {
