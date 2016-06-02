@@ -147,6 +147,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	
 	// Call whenever tablets are added/removed or resized
 	private func tabletsChanged() {
+		assertMainThread()
 		self.flowchartView.frame = self.bounds
 		// Update flowchart
 		var arrows: [QBEArrow] = []
@@ -155,7 +156,14 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 				arrows += (vc.tabletController.tablet.arrows as [QBEArrow])
 			}
 		}
-		flowchartView.arrows = arrows
+
+		// Apply changes to flowchart and animate them
+		let tr = CATransition()
+		tr.duration = 0.3
+		tr.type = kCATransitionFade
+		tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+		self.flowchartView.layer?.addAnimation(tr, forKey: kCATransition)
+		self.flowchartView.arrows = arrows
 	}
 	
 	private var selectedView: QBEResizableTabletView? { get {
