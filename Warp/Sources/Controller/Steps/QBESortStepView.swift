@@ -13,7 +13,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 		fatalError("Should not be called")
 	}
 	
-	@IBAction func addFromPopupButton(sender: NSObject) {
+	@IBAction func addFromPopupButton(_ sender: NSObject) {
 		if let selected = self.addButton?.selectedItem {
 			let columnName = selected.title
 			let expression = Sibling(Column(columnName))
@@ -31,16 +31,16 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	}
 	
 	private func updateColumns() {
-		let job = Job(.UserInitiated)
+		let job = Job(.userInitiated)
 
 		if let previous = step.previous {
-			previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
+			previous.exampleDataset(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
 				data.maybe({$0.columns(job) {(columns) in
 					columns.maybe { (columns) in
 						asyncMain {
 							self.addButton?.removeAllItems()
-							self.addButton?.addItemWithTitle(NSLocalizedString("Add sorting criterion...", comment: ""))
-							self.addButton?.addItemsWithTitles(columns.map({return $0.name}))
+							self.addButton?.addItem(withTitle: NSLocalizedString("Add sorting criterion...", comment: ""))
+							self.addButton?.addItems(withTitles: columns.map({return $0.name}))
 							self.updateView()
 						}
 					}
@@ -57,21 +57,21 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 		tableView?.reloadData()
 	}
 	
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return step.orders.count ?? 0
 	}
 	
-	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
-		if item.action() == #selector(QBESortStepView.delete(_:)) {
+	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+		if item.action == #selector(QBESortStepView.delete(_:)) {
 			return tableView?.selectedRowIndexes.count > 0
 		}
-		else if item.action() == #selector(QBESortStepView.addFromPopupButton(_:)) {
+		else if item.action == #selector(QBESortStepView.addFromPopupButton(_:)) {
 			return true
 		}
 		return false
 	}
 	
-	@IBAction func delete(sender: NSObject) {
+	@IBAction func delete(_ sender: NSObject) {
 		if let selection = tableView?.selectedRowIndexes where selection.count > 0 {
 			step.orders.removeObjectsAtIndexes(selection, offset: 0)
 			tableView?.reloadData()
@@ -79,13 +79,13 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 		}
 	}
 	
-	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
 		if let identifier = tableColumn?.identifier {
 			let order = step.orders[row]
 			
 			if identifier == "formula" {
 				if let formulaString = object as? String {
-					if let formula = Formula(formula: formulaString, locale: self.delegate?.locale ?? Locale()) {
+					if let formula = Formula(formula: formulaString, locale: self.delegate?.locale ?? Language()) {
 						order.expression = formula.root
 						self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 					}
@@ -110,8 +110,8 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	
 	private let QBESortStepViewItemType = "nl.pixelspark.qbe.QBESortStepView.Item"
 	
-	func tableView(tableView: NSTableView, writeRowsWithIndexes rowIndexes: NSIndexSet, toPasteboard pboard: NSPasteboard) -> Bool {
-		let data = NSKeyedArchiver.archivedDataWithRootObject(rowIndexes)
+	func tableView(_ tableView: NSTableView, writeRowsWith rowIndexes: IndexSet, to pboard: NSPasteboard) -> Bool {
+		let data = NSKeyedArchiver.archivedData(withRootObject: rowIndexes)
 		
 		pboard.declareTypes([QBESortStepViewItemType], owner: nil)
 		pboard.setData(data, forType: QBESortStepViewItemType)
@@ -119,23 +119,23 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	}
 	
 	
-	func tableView(tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableViewDropOperation) -> NSDragOperation {
+	func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableViewDropOperation) -> NSDragOperation {
 		if info.draggingSource() as? NSTableView == tableView {
-			if dropOperation == NSTableViewDropOperation.On {
-				tableView.setDropRow(row+1, dropOperation: NSTableViewDropOperation.Above)
-				return NSDragOperation.Move
+			if dropOperation == NSTableViewDropOperation.on {
+				tableView.setDropRow(row+1, dropOperation: NSTableViewDropOperation.above)
+				return NSDragOperation.move
 			}
 		}
-		return NSDragOperation.None
+		return NSDragOperation()
 	}
 	
-	func tableView(tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableViewDropOperation) -> Bool {
+	func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableViewDropOperation) -> Bool {
 		let pboard = info.draggingPasteboard()
-		if let data = pboard.dataForType(QBESortStepViewItemType) {
-			if let rowIndexes = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? NSIndexSet {
+		if let data = pboard.data(forType: QBESortStepViewItemType) {
+			if let rowIndexes = NSKeyedUnarchiver.unarchiveObject(with: data) as? IndexSet {
 				let movedItems = step.orders.objectsAtIndexes(rowIndexes)
 				movedItems.forEach { self.step.orders.remove($0) }
-				step.orders.insertContentsOf(movedItems, at: min(step.orders.count, row))
+				step.orders.insert(contentsOf: movedItems, at: min(step.orders.count, row))
 			}
 		}
 		tableView.reloadData()
@@ -143,20 +143,20 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 		return true
 	}
 	
-	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if let identifier = tableColumn?.identifier {
 			let order = step.orders[row]
 			
 			if identifier == "formula" {
-				if let formulaString = order.expression?.toFormula(self.delegate?.locale ?? Locale(), topLevel: true) {
+				if let formulaString = order.expression?.toFormula(self.delegate?.locale ?? Language(), topLevel: true) {
 					return formulaString
 				}
 			}
 			else if identifier == "ascending" {
-				return NSNumber(bool: order.ascending)
+				return NSNumber(value: order.ascending)
 			}
 			else if identifier == "numeric" {
-				return NSNumber(bool: order.numeric)
+				return NSNumber(value: order.numeric)
 			}
 		}
 
@@ -165,6 +165,6 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	
 	override func awakeFromNib() {
 		super.awakeFromNib()
-		tableView?.registerForDraggedTypes([QBESortStepViewItemType])
+		tableView?.register(forDraggedTypes: [QBESortStepViewItemType])
 	}
 }

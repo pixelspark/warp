@@ -32,7 +32,7 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 	} }
 
 	private func updateView() {
-		self.checkConnectionJob = Job(.UserInitiated)
+		self.checkConnectionJob = Job(.userInitiated)
 
 		tableView?.reloadData()
 		self.serverField?.stringValue = self.step.server
@@ -48,15 +48,15 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 		}
 
 		self.authenticationTypeSwitch?.selectedSegment = self.step.useUsernamePasswordAuthentication ? 0 : 1
-		self.authenticationKeyField?.enabled = !self.step.useUsernamePasswordAuthentication
-		self.usernameField?.enabled = self.step.useUsernamePasswordAuthentication
-		self.passwordField?.enabled = self.step.useUsernamePasswordAuthentication
+		self.authenticationKeyField?.isEnabled = !self.step.useUsernamePasswordAuthentication
+		self.usernameField?.isEnabled = self.step.useUsernamePasswordAuthentication
+		self.passwordField?.isEnabled = self.step.useUsernamePasswordAuthentication
 
-		self.infoProgress?.hidden = false
+		self.infoProgress?.isHidden = false
 		self.infoLabel?.stringValue = NSLocalizedString("Trying to connect...", comment: "")
 		self.infoIcon?.image = nil
-		self.infoIcon?.hidden = true
-		self.createTableButton?.enabled = false
+		self.infoIcon?.isHidden = true
+		self.createTableButton?.isEnabled = false
 		self.infoProgress?.startAnimation(nil)
 
 		if let url = self.step.url {
@@ -66,8 +66,8 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 						asyncMain {
 							self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e._code)
 							self.infoIcon?.image = NSImage(named: "SadIcon")
-							self.infoProgress?.hidden = true
-							self.infoIcon?.hidden = false
+							self.infoProgress?.isHidden = true
+							self.infoIcon?.isHidden = false
 						}
 						return
 					}
@@ -75,19 +75,19 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 					R.now().run(connection) { res in
 						asyncMain {
 							self.infoProgress?.stopAnimation(nil)
-							if case .Error(let e) = res {
+							if case .error(let e) = res {
 								self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
 								self.infoIcon?.image = NSImage(named: "SadIcon")
-								self.createTableButton?.enabled = false
-								self.infoProgress?.hidden = true
-								self.infoIcon?.hidden = false
+								self.createTableButton?.isEnabled = false
+								self.infoProgress?.isHidden = true
+								self.infoIcon?.isHidden = false
 							}
 							else {
 								self.infoLabel?.stringValue = NSLocalizedString("Connected!", comment: "")
 								self.infoIcon?.image = NSImage(named: "CheckIcon")
-								self.createTableButton?.enabled = true
-								self.infoProgress?.hidden = true
-								self.infoIcon?.hidden = false
+								self.createTableButton?.isEnabled = true
+								self.infoProgress?.isHidden = true
+								self.infoIcon?.isHidden = false
 							}
 						}
 					}
@@ -96,28 +96,28 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 		}
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: MutableData?) {
-		if let s = table as? QBERethinkMutableData {
+	func alterTableView(_ view: QBEAlterTableViewController, didAlterTable table: MutableDataset?) {
+		if let s = table as? QBERethinkMutableDataset {
 			self.step.table = s.tableName
 			self.step.database = s.databaseName
 			self.step.server = s.url.host ?? self.step.server
-			self.step.port = s.url.port?.integerValue ?? self.step.port
+			self.step.port = s.url.port ?? self.step.port
 			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 			self.updateView()
 		}
 	}
 
-	@IBAction func createTable(sender: NSObject) {
-		if let mutableData = self.step.mutableData {
+	@IBAction func createTable(_ sender: NSObject) {
+		if let mutableDataset = self.step.mutableDataset {
 			let vc = QBEAlterTableViewController()
-			vc.warehouse = mutableData.warehouse
+			vc.warehouse = mutableDataset.warehouse
 			vc.delegate = self
 			vc.warehouseName = String(format: NSLocalizedString("RethinkDB database '%@'", comment: ""), self.step.database)
 			self.presentViewControllerAsModalWindow(vc)
 		}
 	}
 
-	@IBAction func updateFromFields(sender: NSObject) {
+	@IBAction func updateFromFields(_ sender: NSObject) {
 		var change = false
 
 		if self.serverField.stringValue != self.step.server {
@@ -159,16 +159,16 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 		}
 	}
 
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return step.columns.count
 	}
 
-	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
 		step.columns[row] = Column(object as! String)
 		self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 
-	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if let tc = tableColumn {
 			if (tc.identifier ?? "") == "column" {
 				return step.columns[row].name
@@ -177,7 +177,7 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 		return nil
 	}
 
-	@IBAction func addColumn(sender: NSObject) {
+	@IBAction func addColumn(_ sender: NSObject) {
 		let s = self.addColumnTextField.stringValue
 		if !s.isEmpty {
 			if !step.columns.contains(Column(s)) {
@@ -189,9 +189,9 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 		self.addColumnTextField.stringValue = ""
 	}
 
-	@IBAction func removeColumns(sender: NSObject) {
+	@IBAction func removeColumns(_ sender: NSObject) {
 		if let sr = self.tableView?.selectedRow where sr >= 0 && sr != NSNotFound && sr < self.step.columns.count {
-			self.step.columns.removeAtIndex(sr)
+			self.step.columns.remove(sr)
 			self.updateView()
 			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 		}

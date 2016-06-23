@@ -16,7 +16,7 @@
 		656889581C146637008D1A7D /* Formula.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894A1C146637008D1A7D /* Formula.swift */; };
 		656889591C146637008D1A7D /* Function.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894B1C146637008D1A7D /* Function.swift */; };
 		6568895A1C146637008D1A7D /* Concurrency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894C1C146637008D1A7D /* Concurrency.swift */; };
-		6568895B1C146637008D1A7D /* Locale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894D1C146637008D1A7D /* Locale.swift */; };
+		6568895B1C146637008D1A7D /* Language.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894D1C146637008D1A7D /* Language.swift */; };
 		6568895C1C146637008D1A7D /* MutableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894E1C146637008D1A7D /* MutableData.swift */; };
 		6568895D1C146637008D1A7D /* Raster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894F1C146637008D1A7D /* Raster.swift */; };
 		6568895E1C146637008D1A7D /* Sequencer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889501C146637008D1A7D /* Sequencer.swift */; };
@@ -72,11 +72,11 @@
 		6568894A1C146637008D1A7D /* Formula.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Formula.swift; path = Sources/Formula.swift; sourceTree = "<group>"; };
 		6568894B1C146637008D1A7D /* Function.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Function.swift; path = Sources/Function.swift; sourceTree = "<group>"; };
 		6568894C1C146637008D1A7D /* Concurrency.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Concurrency.swift; path = Sources/Concurrency.swift; sourceTree = "<group>"; };
-		6568894D1C146637008D1A7D /* Locale.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Locale.swift; path = Sources/Locale.swift; sourceTree = "<group>"; };
+		6568894D1C146637008D1A7D /* Language.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Language.swift; path = Sources/Language.swift; sourceTree = "<group>"; };
 		6568894E1C146637008D1A7D /* MutableData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MutableData.swift; path = Sources/MutableData.swift; sourceTree = "<group>"; };
-		6568894F1C146637008D1A7D /* Raster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Raster.swift; path = Sources/Raster.swift; sourceTree = "<group>"; };
+		6568894F1C146637008D1A7D /* Raster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = Raster.swift; path = Sources/Raster.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		656889501C146637008D1A7D /* Sequencer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Sequencer.swift; path = Sources/Sequencer.swift; sourceTree = "<group>"; };
-		656889511C146637008D1A7D /* SQL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SQL.swift; path = Sources/SQL.swift; sourceTree = "<group>"; };
+		656889511C146637008D1A7D /* SQL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = SQL.swift; path = Sources/SQL.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		656889521C146637008D1A7D /* Stats.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Stats.swift; path = Sources/Stats.swift; sourceTree = "<group>"; };
 		656889531C146637008D1A7D /* Stream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Stream.swift; path = Sources/Stream.swift; sourceTree = "<group>"; };
 		656889541C146637008D1A7D /* Value.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Value.swift; path = Sources/Value.swift; sourceTree = "<group>"; };
@@ -136,7 +136,7 @@
 				6568894A1C146637008D1A7D /* Formula.swift */,
 				6568894B1C146637008D1A7D /* Function.swift */,
 				656889671C146670008D1A7D /* Info.plist */,
-				6568894D1C146637008D1A7D /* Locale.swift */,
+				6568894D1C146637008D1A7D /* Language.swift */,
 				655BD6551C14703F00634C66 /* Localizable.strings */,
 				6568894E1C146637008D1A7D /* MutableData.swift */,
 				6568894F1C146637008D1A7D /* Raster.swift */,
@@ -227,14 +227,20 @@
 			attributes = {
 				LastSwiftMigration = 0710;
 				LastSwiftUpdateCheck = 0710;
-				LastUpgradeCheck = 0710;
+				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = Pixelspark;
 				TargetAttributes = {
 					6568891D1C1465CE008D1A7D = {
 						CreatedOnToolsVersion = 7.1.1;
+						DevelopmentTeam = 2T2T7HAA8S;
+						DevelopmentTeamName = Pixelspark;
+						LastSwiftMigration = 0800;
 					};
 					656889271C1465CE008D1A7D = {
 						CreatedOnToolsVersion = 7.1.1;
+						DevelopmentTeam = 2T2T7HAA8S;
+						DevelopmentTeamName = Pixelspark;
+						LastSwiftMigration = 0800;
 					};
 				};
 			};
@@ -315,7 +321,7 @@
 				6568895F1C146637008D1A7D /* SQL.swift in Sources */,
 				656889601C146637008D1A7D /* Stats.swift in Sources */,
 				656889621C146637008D1A7D /* Value.swift in Sources */,
-				6568895B1C146637008D1A7D /* Locale.swift in Sources */,
+				6568895B1C146637008D1A7D /* Language.swift in Sources */,
 				656889591C146637008D1A7D /* Function.swift in Sources */,
 				656889551C146637008D1A7D /* Data.swift in Sources */,
 			);
@@ -361,6 +367,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -409,6 +416,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -462,6 +470,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -482,6 +491,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.WarpCore;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -495,6 +506,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.WarpCoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -507,6 +519,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.WarpCoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};

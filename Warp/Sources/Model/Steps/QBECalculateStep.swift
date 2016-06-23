@@ -6,7 +6,7 @@ private extension Expression {
 
 	/** Generate all possible permutations of this expression by replacing sibling and identity references in this 
 	expression by sibling references in the given set of columns (or an identiy reference). */
-	private func permutationsUsing(columns: Set<Column>, limit: Int = Expression.permutationLimit) -> Set<Expression> {
+	private func permutationsUsing(_ columns: Set<Column>, limit: Int = Expression.permutationLimit) -> Set<Expression> {
 		let replacements = columns.map { Sibling($0) } + [Identity()]
 		let substitutes = self.siblingDependencies.map { Sibling($0) } + [Identity()]
 
@@ -15,7 +15,7 @@ private extension Expression {
 		return v
 	}
 
-	private func generateVariants(expression: Expression, replacing: ArraySlice<Expression>, with: [Expression], limit: Int) -> Set<Expression> {
+	private func generateVariants(_ expression: Expression, replacing: ArraySlice<Expression>, with: [Expression], limit: Int) -> Set<Expression> {
 		assert(limit >= 0, "Limit cannot be negative")
 		if limit == 0 {
 			return []
@@ -35,7 +35,7 @@ private extension Expression {
 
 				let subLimit = limit - results.count
 				if subLimit > 0 {
-					results.unionInPlace(self.generateVariants(newExpression, replacing: remaining, with: with, limit: subLimit))
+					results.formUnion(self.generateVariants(newExpression, replacing: remaining, with: with, limit: subLimit))
 				}
 				else {
 					break
@@ -54,22 +54,11 @@ expressions in which the sibling references are replaced with siblings that actu
 private class QBEHistory {
 	let historyLimit = 50
 
-	private class var sharedInstance : QBEHistory {
-		struct Static {
-			static var onceToken : dispatch_once_t = 0
-			static var instance : QBEHistory? = nil
-		}
-
-		dispatch_once(&Static.onceToken) {
-			Static.instance = QBEHistory()
-		}
-		return Static.instance!
-	}
-
+	static let sharedInstance = QBEHistory()
 	var expressions: Set<Expression> = []
 
 	/** Add an expression to the history, limiting the expression history list to a specified amount of entries. */
-	func addExpression(expression: Expression) {
+	func addExpression(_ expression: Expression) {
 		if !expressions.contains(expression) {
 			while expressions.count > (self.historyLimit - 1) {
 				expressions.removeFirst()
@@ -81,11 +70,11 @@ private class QBEHistory {
 
 	/** Suggest new expressions based on the older expressions, but given the presence of certain columns (columns that
 	existed in the original expression are assumed to be non-existent if they are not in the given set).*/
-	func suggestExpressionsGiven(columns: Set<Column>) -> Set<Expression> {
+	func suggestExpressionsGiven(_ columns: Set<Column>) -> Set<Expression> {
 		var variants: Set<Expression> = []
 
 		for e in expressions {
-			variants.unionInPlace(e.permutationsUsing(columns))
+			variants.formUnion(e.permutationsUsing(columns))
 		}
 
 		return variants
@@ -105,22 +94,22 @@ class QBECalculateStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		function = (aDecoder.decodeObjectForKey("function") as? Expression) ?? Identity()
-		targetColumn = Column((aDecoder.decodeObjectForKey("targetColumn") as? String) ?? "")
+		function = (aDecoder.decodeObject(forKey: "function") as? Expression) ?? Identity()
+		targetColumn = Column((aDecoder.decodeObject(forKey: "targetColumn") as? String) ?? "")
 		QBEHistory.sharedInstance.addExpression(function)
 		
-		if let after = aDecoder.decodeObjectForKey("insertAfter") as? String {
+		if let after = aDecoder.decodeObject(forKey: "insertAfter") as? String {
 			insertRelativeTo = Column(after)
 		}
 		
 		/* Older versions of Warp do not encode this key and assume insert after (hence the relative column is coded as 
 		'insertAfter'). As decodeBoolForKey defaults to false for keys it cannot find, this is the expected behaviour. */
-		self.insertBefore = aDecoder.decodeBoolForKey("insertBefore")
+		self.insertBefore = aDecoder.decodeBool(forKey: "insertBefore")
 		
 		super.init(coder: aDecoder)
 	}
 	
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("Calculate column [#] as [#]", comment: ""),
 			QBESentenceTextInput(value: self.targetColumn.name, callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {
@@ -135,12 +124,12 @@ class QBECalculateStep: QBEStep {
 		)
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(function, forKey: "function")
-		coder.encodeObject(targetColumn.name, forKey: "targetColumn")
-		coder.encodeObject(insertRelativeTo?.name, forKey: "insertAfter")
-		coder.encodeBool(insertBefore, forKey: "insertBefore")
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		coder.encode(function, forKey: "function")
+		coder.encode(targetColumn.name, forKey: "targetColumn")
+		coder.encode(insertRelativeTo?.name, forKey: "insertAfter")
+		coder.encode(insertBefore, forKey: "insertBefore")
+		super.encode(with: coder)
 	}
 	
 	required init(previous: QBEStep?, targetColumn: Column, function: Expression, insertRelativeTo: Column? = nil, insertBefore: Bool = false) {
@@ -151,20 +140,20 @@ class QBECalculateStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
 		let result = data.calculate([targetColumn: function])
 		if let relativeTo = insertRelativeTo {
 			// Reorder columns in the result set so that targetColumn is inserted after insertAfter
 			data.columns(job) { (columns) in
-				callback(columns.use { (cns: [Column]) -> Data in
+				callback(columns.use { (cns: [Column]) -> Dataset in
 					var cns = cns
 					cns.remove(self.targetColumn)
-					if let idx = cns.indexOf(relativeTo) {
+					if let idx = cns.index(of: relativeTo) {
 						if self.insertBefore {
-							cns.insert(self.targetColumn, atIndex: idx)
+							cns.insert(self.targetColumn, at: idx)
 						}
 						else {
-							cns.insert(self.targetColumn, atIndex: idx+1)
+							cns.insert(self.targetColumn, at: idx+1)
 						}
 					}
 					return result.selectColumns(cns)
@@ -176,24 +165,24 @@ class QBECalculateStep: QBEStep {
 			if insertRelativeTo == nil && insertBefore {
 				data.columns(job) { (columns: Fallible<[Column]>) -> () in
 					switch columns {
-						case .Success(let cns):
+						case .success(let cns):
 							var columns = cns
 							columns.remove(self.targetColumn)
-							columns.insert(self.targetColumn, atIndex: 0)
-							callback(.Success(result.selectColumns(columns)))
+							columns.insert(self.targetColumn, at: 0)
+							callback(.success(result.selectColumns(columns)))
 						
-						case .Failure(let error):
-							callback(.Failure(error))
+						case .failure(let error):
+							callback(.failure(error))
 					}
 				}
 			}
 			else {
-				callback(.Success(result))
+				callback(.success(result))
 			}
 		}
 	}
 	
-	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+	override func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
 		// FIXME: what to do with insertAfter?
 		if let p = prior as? QBECalculateStep where p.targetColumn == self.targetColumn {
 			var dependsOnPrevious = false
@@ -217,14 +206,14 @@ class QBECalculateStep: QBEStep {
 			if !dependsOnPrevious {
 				let relativeTo = self.insertRelativeTo ?? p.insertRelativeTo
 				let before = relativeTo == self.insertRelativeTo ? self.insertBefore : p.insertBefore
-				return QBEStepMerge.Advised(QBECalculateStep(previous: previous, targetColumn: targetColumn, function: function, insertRelativeTo: relativeTo, insertBefore: before))
+				return QBEStepMerge.advised(QBECalculateStep(previous: previous, targetColumn: targetColumn, function: function, insertRelativeTo: relativeTo, insertBefore: before))
 			}
 		}
 		
-		return QBEStepMerge.Impossible
+		return QBEStepMerge.impossible
 	}
 	
-	class func suggest(change fromValue: Value?, toValue: Value, inRaster: Raster, row: Int, column: Int?, locale: Locale, job: Job?) -> [Expression] {
+	class func suggest(change fromValue: Value?, toValue: Value, inRaster: Raster, row: Int, column: Int?, locale: Language, job: Job?) -> [Expression] {
 		var suggestions: [Expression] = []
 		if fromValue != toValue {
 			// Was a formula typed in?
@@ -236,7 +225,7 @@ class QBECalculateStep: QBEStep {
 							return Sibling(inRaster.columns[c])
 						}
 						else {
-							return Literal(.InvalidValue)
+							return Literal(.invalid)
 						}
 					}
 					return e
@@ -245,7 +234,7 @@ class QBECalculateStep: QBEStep {
 
 				// If this was definitely a formula, do not suggest anything else
 				if let tv = toValue.stringValue where tv.hasPrefix(Formula.prefix) {
-					return Array(Set(suggestions)).sort { a,b in return a.complexity < b.complexity }
+					return Array(Set(suggestions)).sorted { a,b in return a.complexity < b.complexity }
 				}
 			}
 
@@ -259,6 +248,6 @@ class QBECalculateStep: QBEStep {
 
 			suggestions += Expression.infer(fromValue != nil ? Literal(fromValue!): nil, toValue: toValue, level: 3, row: inRaster[row], column: column, job: job)
 		}
-		return Array(Set(suggestions)).sort { a,b in return a.complexity < b.complexity }
+		return Array(Set(suggestions)).sorted { a,b in return a.complexity < b.complexity }
 	}
 }

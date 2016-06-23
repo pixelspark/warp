@@ -1,7 +1,7 @@
 import Foundation
 
 public protocol Distribution {
-	func inverse(p: Double) -> Double
+	func inverse(_ p: Double) -> Double
 }
 
 public struct NormalDistribution: Distribution {
@@ -63,7 +63,7 @@ public struct NormalDistribution: Distribution {
 	private let low = 0.02425
 	private let high = 0.97575
 
-	private func ltqnorm(p: Double) -> Double {
+	private func ltqnorm(_ p: Double) -> Double {
 		assert(p >= 0 && p <= 1, "the p value for ltqnorm needs to be [0..1]")
 
 		if p == 0.0 {
@@ -94,7 +94,7 @@ public struct NormalDistribution: Distribution {
 		}
 	}
 
-	public func inverse(p: Double) -> Double {
+	public func inverse(_ p: Double) -> Double {
 		return ltqnorm(p)
 	}
 }
@@ -128,7 +128,7 @@ public struct Sample {
 	
 	/** Returns a confidence interval in which a value from the population falls with 90% probability, based on this
 	sample. */
-	public func confidenceInterval(confidenceLevel: ValueType, distribution: Distribution = NormalDistribution()) -> (ValueType, ValueType) {
+	public func confidenceInterval(_ confidenceLevel: ValueType, distribution: Distribution = NormalDistribution()) -> (ValueType, ValueType) {
 		let margin = (1.0 - confidenceLevel) / 2.0
 		let deviates = distribution.inverse(1.0 - margin) - distribution.inverse(margin)
 		return (self.mean - deviates * self.stdev, self.mean + deviates * self.stdev)
@@ -149,24 +149,24 @@ public class Moving: NSObject, NSCoding {
 	}
 	
 	public required init?(coder: NSCoder) {
-		self.values = (coder.decodeObjectForKey("values") as? [ValueType] ?? []).optionals
-		self.size = coder.decodeIntegerForKey("size")
+		self.values = (coder.decodeObject(forKey: "values") as? [ValueType] ?? []).optionals
+		self.size = coder.decodeInteger(forKey: "size")
 		super.init()
 	}
 	
-	public func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(Array.filterNils(values), forKey: "values")
-		aCoder.encodeInteger(size, forKey: "size")
+	public func encode(with aCoder: NSCoder) {
+		aCoder.encode(Array.filterNils(values), forKey: "values")
+		aCoder.encode(size, forKey: "size")
 	}
 	
-	public func add(value: ValueType) {
+	public func add(_ value: ValueType) {
 		values.append(value)
 		trim()
 	}
 	
 	private func trim() {
 		while values.count > size {
-			values.removeAtIndex(0)
+			values.remove(at: 0)
 		}
 	}
 	
@@ -200,14 +200,14 @@ public class Reservoir<ValueType> {
 	/** Add items to the reservoir. The order of the items does not matter, as the reservoir will perform random sampling
 	in a uniform way. Note however that if the reservoir is not filled to at least full capacity, the sample is not 
 	randomized in any way (e.g. shuffled). */
-	public func add(inRows: [ValueType]) {
+	public func add(_ inRows: [ValueType]) {
 		var rows = inRows
 		
 		// Reservoir initial fill
 		if sample.count < sampleSize {
 			let length = sampleSize - sample.count
 
-			sample.appendContentsOf(rows[0..<min(length,rows.count)])
+			sample.append(contentsOf: rows[0..<min(length,rows.count)])
 			self.samplesSeen += min(length,rows.count)
 
 			if length >= rows.count {

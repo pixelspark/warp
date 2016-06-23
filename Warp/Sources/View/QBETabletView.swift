@@ -9,24 +9,24 @@ internal class QBETabletView: NSView {
 
 	override func awakeFromNib() {
 		self.wantsLayer = true
-		self.layer?.backgroundColor = NSColor.windowBackgroundColor().CGColor
+		self.layer?.backgroundColor = NSColor.windowBackgroundColor().cgColor
 		self.layer?.cornerRadius = 3.0
 		self.layer?.masksToBounds = true
 	}
 
-	override func drawRect(dirtyRect: NSRect) {
+	override func draw(_ dirtyRect: NSRect) {
 		if NSGraphicsContext.currentContextDrawingToScreen() {
 			NSColor.windowBackgroundColor().set()
 			NSRectFill(self.bounds)
 
 
 			let gradientHeight: CGFloat = 30.0
-			let g = NSGradient(startingColor: NSColor(calibratedWhite: 1.0, alpha: 0.5), endingColor: NSColor(calibratedWhite: 1.0, alpha: 0.0))
+			let g = NSGradient(starting: NSColor(calibratedWhite: 1.0, alpha: 0.5), ending: NSColor(calibratedWhite: 1.0, alpha: 0.0))
 			let gradientFrame = NSMakeRect(self.bounds.origin.x, self.bounds.origin.y + self.bounds.size.height - gradientHeight, self.bounds.size.width, gradientHeight)
-			g?.drawInRect(gradientFrame, angle: 270.0)
+			g?.draw(in: gradientFrame, angle: 270.0)
 		}
 		else {
-			NSColor.clearColor().set()
+			NSColor.clear().set()
 			NSRectFill(dirtyRect)
 		}
 	}

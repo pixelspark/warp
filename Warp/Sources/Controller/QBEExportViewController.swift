@@ -2,13 +2,13 @@ import Foundation
 import WarpCore
 
 @objc protocol QBEExportViewDelegate: NSObjectProtocol {
-	optional func exportView(view: QBEExportViewController, didAddStep: QBEExportStep)
-	optional func exportView(view: QBEExportViewController, finishedExportingTo: NSURL)
+	@objc optional func exportView(_ view: QBEExportViewController, didAddStep: QBEExportStep)
+	@objc optional func exportView(_ view: QBEExportViewController, finishedExportingTo: URL)
 }
 
 class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDelegate {
 	var step: QBEExportStep?
-	var locale: Locale = Locale()
+	var locale: Language = Language()
 	weak var delegate: QBEExportViewDelegate? = nil
 
 	@IBOutlet var progressView: NSProgressIndicator?
@@ -21,20 +21,20 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 	private var notifyUser = false
 	private var job: Job? = nil
 
-	@IBAction func addAsStep(sender: NSObject) {
+	@IBAction func addAsStep(_ sender: NSObject) {
 		if let s = self.step {
 			delegate?.exportView?(self, didAddStep: s)
 		}
-		self.dismissController(sender)
+		self.dismiss(sender)
 	}
 
-	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
+	override func prepare(for segue: NSStoryboardSegue, sender: AnyObject?) {
 		if segue.identifier == "sentenceEditor" {
 			self.sentenceEditor = segue.destinationController as? QBESentenceViewController
 		}
 	}
 
-	func job(job: AnyObject, didProgress: Double) {
+	func job(_ job: AnyObject, didProgress: Double) {
 		self.progressView?.doubleValue = didProgress * 1000.0
 	}
 
@@ -42,23 +42,23 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 		super.viewWillAppear()
 		update()
 		if let s = step {
-			self.sentenceEditor?.startConfiguring(s, variant: .Write, delegate: self)
+			self.sentenceEditor?.startConfiguring(s, variant: .write, delegate: self)
 		}
 	}
 
-	func sentenceView(view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable) {
+	func sentenceView(_ view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable) {
 		// TODO check if export is possible
 	}
 
 	private func update() {
-		self.progressView?.hidden = !isExporting
-		self.backgroundButton?.hidden = !isExporting
-		self.addAsStepButton?.enabled = !isExporting
-		self.addAsStepButton?.hidden = self.delegate == nil || !(self.delegate?.respondsToSelector(#selector(QBEExportViewDelegate.exportView(_:didAddStep:))) ?? true)
-		self.exportButton?.enabled = !isExporting
+		self.progressView?.isHidden = !isExporting
+		self.backgroundButton?.isHidden = !isExporting
+		self.addAsStepButton?.isEnabled = !isExporting
+		self.addAsStepButton?.isHidden = self.delegate == nil || !(self.delegate?.responds(to: #selector(QBEExportViewDelegate.exportView(_:didAddStep:))) ?? true)
+		self.exportButton?.isEnabled = !isExporting
 	}
 
-	@IBAction func continueInBackground(sender: NSObject) {
+	@IBAction func continueInBackground(_ sender: NSObject) {
 		if let j = job {
 			if let url = self.step?.file?.url?.lastPathComponent {
 				let jobName = String(format: NSLocalizedString("Export data to '%@'", comment: ""), url)
@@ -67,12 +67,12 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 
 		}
 		self.notifyUser = true
-		self.dismissController(sender)
+		self.dismiss(sender)
 	}
 
-	@IBAction func exportOnce(sender: NSObject) {
-		let alertWindow = self.presentingViewController?.view.window
-		let job = Job(.UserInitiated)
+	@IBAction func exportOnce(_ sender: NSObject) {
+		let alertWindow = self.presenting?.view.window
+		let job = Job(.userInitiated)
 		self.job = job
 		job.addObserver(self)
 		isExporting = true
@@ -80,37 +80,37 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 		// What type of file are we exporting?
 		job.async {
 			if let cs = self.step {
-				cs.write(job) { (fallibleData: Fallible<Data>) -> () in
+				cs.write(job) { (fallibleDataset: Fallible<Dataset>) -> () in
 					asyncMain {
 						let alert = NSAlert()
 
-						switch fallibleData {
-						case .Success(_):
-							self.dismissController(sender)
+						switch fallibleDataset {
+						case .success(_):
+							self.dismiss(sender)
 							if self.notifyUser {
 								let un = NSUserNotification()
 								un.soundName = NSUserNotificationDefaultSoundName
-								un.deliveryDate = NSDate()
+								un.deliveryDate = Date()
 								un.title = NSLocalizedString("Export completed", comment: "")
 								if let url = self.step?.file?.url?.lastPathComponent {
 									un.informativeText = String(format: NSLocalizedString("The data has been saved to '%@'", comment: ""), url)
 								}
-								NSUserNotificationCenter.defaultUserNotificationCenter().scheduleNotification(un)
+								NSUserNotificationCenter.default().scheduleNotification(un)
 							}
 
 							if let url = self.step?.file?.url {
 								self.delegate?.exportView?(self, finishedExportingTo: url)
 							}
 
-						case .Failure(let errorMessage):
+						case .failure(let errorMessage):
 							self.isExporting = false
 							self.update()
 							alert.messageText = errorMessage
-							if let w = self.view.window where w.visible {
-								alert.beginSheetModalForWindow(w, completionHandler: nil)
+							if let w = self.view.window where w.isVisible {
+								alert.beginSheetModal(for: w, completionHandler: nil)
 							}
 							else if let w = alertWindow {
-								alert.beginSheetModalForWindow(w, completionHandler: nil)
+								alert.beginSheetModal(for: w, completionHandler: nil)
 							}
 						}
 					}

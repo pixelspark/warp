@@ -2,7 +2,7 @@ import Cocoa
 import WarpCore
 
 protocol QBESetEditorDelegate: NSObjectProtocol {
-	func setEditor(editor: QBESetEditorViewController, didChangeSelection: Set<String>)
+	func setEditor(_ editor: QBESetEditorViewController, didChangeSelection: Set<String>)
 }
 
 class QBESetEditorViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSource {
@@ -18,23 +18,23 @@ class QBESetEditorViewController: NSViewController, NSTableViewDelegate, NSTable
 		self.tableView?.reloadData()
 	}
 
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return filteredValues.count
 	}
 
-	@IBAction func selectAllVisibleItems(sender: NSObject) {
-		self.selection.unionInPlace(self.filteredValues)
+	@IBAction func selectAllVisibleItems(_ sender: NSObject) {
+		self.selection.formUnion(self.filteredValues)
 		self.delegate?.setEditor(self, didChangeSelection: selection)
 		self.tableView.reloadData()
 	}
 
-	@IBAction func deselectAllVisibleItems(sender: NSObject) {
-		self.selection.subtractInPlace(self.filteredValues)
+	@IBAction func deselectAllVisibleItems(_ sender: NSObject) {
+		self.selection.subtract(self.filteredValues)
 		self.delegate?.setEditor(self, didChangeSelection: selection)
 		self.tableView.reloadData()
 	}
 
-	@IBAction func searchFieldChanged(sender: NSObject) {
+	@IBAction func searchFieldChanged(_ sender: NSObject) {
 		self.updateFilter()
 		self.tableView.reloadData()
 	}
@@ -50,7 +50,7 @@ class QBESetEditorViewController: NSViewController, NSTableViewDelegate, NSTable
 		}
 	}
 
-	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
 		switch tableColumn?.identifier ?? "" {
 		case "selected":
 			let select = object?.boolValue ?? false
@@ -67,10 +67,10 @@ class QBESetEditorViewController: NSViewController, NSTableViewDelegate, NSTable
 		}
 	}
 
-	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		switch tableColumn?.identifier ?? "" {
 			case "selected":
-				return NSNumber(bool: selection.contains(filteredValues[row]))
+				return NSNumber(value: selection.contains(filteredValues[row]))
 
 			case "value":
 				return filteredValues[row]

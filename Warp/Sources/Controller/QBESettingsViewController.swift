@@ -10,19 +10,19 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 	@IBOutlet var exampleRowsLabel: NSTextField?
 	@IBOutlet var exampleTimeLabel: NSTextField?
 	
-	var locale: Locale! { get {
+	var locale: Language! { get {
 		return QBEAppDelegate.sharedInstance.locale
 	} }
 	
 	override func viewWillAppear() {
-		assert(locale != nil, "Locale needs to be set before presenting settings view controller")
+		assert(locale != nil, "Language needs to be set before presenting settings view controller")
 		self.view.window?.titlebarAppearsTransparent = true
 		updateView()
 	}
 	
 	private func updateView() {
-		let formatter = NSNumberFormatter()
-		formatter.numberStyle = .DecimalStyle
+		let formatter = NumberFormatter()
+		formatter.numberStyle = .decimal
 		formatter.usesSignificantDigits = false
 		formatter.minimumFractionDigits = 1
 		formatter.maximumFractionDigits = 1
@@ -30,20 +30,20 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 		self.exampleRowsSlider?.integerValue = QBESettings.sharedInstance.exampleMaximumRows
 		self.exampleTimeSlider?.doubleValue = QBESettings.sharedInstance.exampleMaximumTime
 		self.exampleRowsLabel?.integerValue = QBESettings.sharedInstance.exampleMaximumRows
-		self.exampleTimeLabel?.stringValue = formatter.stringFromNumber(NSNumber(double: QBESettings.sharedInstance.exampleMaximumTime)) ?? ""
+		self.exampleTimeLabel?.stringValue = formatter.string(from: NSNumber(value: QBESettings.sharedInstance.exampleMaximumTime)) ?? ""
 		
-		if let language = NSUserDefaults.standardUserDefaults().stringForKey("locale") {
-			if let name = Locale.languages[language] {
+		if let language = UserDefaults.standard().string(forKey: "locale") {
+			if let name = Language.languages[language] {
 				self.localeBox?.stringValue = name
 			}
 		}
 	}
 	
-	@IBAction func resetOnces(sender: NSObject) {
+	@IBAction func resetOnces(_ sender: NSObject) {
 		QBESettings.sharedInstance.resetOnces()
 	}
 	
-	@IBAction func valuesChanged(sender: NSObject) {
+	@IBAction func valuesChanged(_ sender: NSObject) {
 		if let mr = self.exampleRowsSlider?.integerValue {
 			QBESettings.sharedInstance.exampleMaximumRows = mr
 		}
@@ -52,32 +52,32 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 			QBESettings.sharedInstance.exampleMaximumTime = ms
 		}
 		
-		let langs = [String](Locale.languages.keys)
+		let langs = [String](Language.languages.keys)
 		if let index = self.localeBox?.indexOfSelectedItem where index >= 0 {
-			NSUserDefaults.standardUserDefaults().setObject(langs[index], forKey: "locale")
+			UserDefaults.standard().set(langs[index], forKey: "locale")
 		}
 		
 		updateView()
 	}
 	
-	func comboBox(aComboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> AnyObject {
+	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> AnyObject? {
 		if aComboBox == separatorBox {
 			return locale.commonFieldSeparators[index]
 		}
 		else if aComboBox == localeBox {
-			let langs = [String](Locale.languages.values)
+			let langs = [String](Language.languages.values)
 			return langs[index]
 		}
 		
 		return ""
 	}
 	
-	func numberOfItemsInComboBox(aComboBox: NSComboBox) -> Int {
+	func numberOfItems(in aComboBox: NSComboBox) -> Int {
 		if aComboBox == separatorBox {
 			return locale.commonFieldSeparators.count
 		}
 		else if aComboBox == localeBox {
-			return Locale.languages.count
+			return Language.languages.count
 		}
 		return 0
 	}

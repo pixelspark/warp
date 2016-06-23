@@ -22,32 +22,32 @@ public class QBESentence {
 
 		var startIndex = format.startIndex
 		for token in tokens {
-			if let nextToken = format.rangeOfString(QBESentence.formatStringTokenPlaceholder, options: [], range: startIndex..<format.endIndex) {
-				let constantString = format.substringWithRange(startIndex..<nextToken.startIndex)
+			if let nextToken = format.range(of: QBESentence.formatStringTokenPlaceholder, options: [], range: startIndex..<format.endIndex) {
+				let constantString = format.substring(with: startIndex..<nextToken.lowerBound)
 				self.tokens.append(QBESentenceText(constantString))
 				self.tokens.append(token)
-				startIndex = nextToken.endIndex
+				startIndex = nextToken.upperBound
 			}
 			else {
 				fatalError("There are more tokens than there can be placed in the format string '\(format)'")
 			}
 		}
 
-		if startIndex.distanceTo(format.endIndex) > 0 {
-			self.tokens.append(QBESentenceText(format.substringWithRange(startIndex..<format.endIndex)))
+		if format.distance(from: startIndex, to: format.endIndex) > 0 {
+			self.tokens.append(QBESentenceText(format.substring(with: startIndex..<format.endIndex)))
 		}
 	}
 
-	public func append(sentence: QBESentence) {
-		self.tokens.appendContentsOf(sentence.tokens)
+	public func append(_ sentence: QBESentence) {
+		self.tokens.append(contentsOf: sentence.tokens)
 	}
 
-	public func append(token: QBESentenceToken) {
+	public func append(_ token: QBESentenceToken) {
 		self.tokens.append(token)
 	}
 
 	public var stringValue: String { get {
-		return self.tokens.map({ return $0.label }).joinWithSeparator("")
+		return self.tokens.map({ return $0.label }).joined(separator: "")
 		} }
 }
 
@@ -77,7 +77,7 @@ public class QBESentenceList: NSObject, QBESentenceToken {
 
 	public var isToken: Bool { get { return true } }
 
-	public func select(key: String) {
+	public func select(_ key: String) {
 		if key != value {
 			callback(key)
 		}
@@ -103,7 +103,7 @@ public class QBESentenceOptions: NSObject, QBESentenceToken {
 
 	public var isToken: Bool { get { return true } }
 
-	public func select(key: String) {
+	public func select(_ key: String) {
 		assert(options[key] != nil, "Selecting an invalid option")
 		if key != value {
 			callback(key)
@@ -122,11 +122,11 @@ public class QBESentenceSet: NSObject, QBESentenceToken {
 
 	public var label: String {
 		if self.value.count > 4 {
-			let first = self.value.sort().prefix(4)
-			return String(format: "%@ and %d more".localized, first.joinWithSeparator(", "), self.value.count - first.count)
+			let first = self.value.sorted().prefix(4)
+			return String(format: "%@ and %d more".localized, first.joined(separator: ", "), self.value.count - first.count)
 		}
 
-		return self.value.joinWithSeparator(", ")
+		return self.value.joined(separator: ", ")
 	}
 
 	public init(value: Set<String>, provider: Provider, callback: Callback) {
@@ -137,7 +137,7 @@ public class QBESentenceSet: NSObject, QBESentenceToken {
 
 	public var isToken: Bool { get { return true } }
 
-	public func select(set: Set<String>) {
+	public func select(_ set: Set<String>) {
 		callback(set)
 	}
 }
@@ -164,7 +164,7 @@ public class QBESentenceTextInput: NSObject, QBESentenceToken {
 		self.callback = callback
 	}
 
-	public func change(newValue: String) -> Bool {
+	public func change(_ newValue: String) -> Bool {
 		if label != newValue {
 			return callback(newValue)
 		}
@@ -184,18 +184,18 @@ public class QBESentenceFormula: NSObject, QBESentenceToken {
 	public typealias ContextCallback = (Fallible<QBESentenceFormulaContext>) -> ()
 	public typealias Callback = (Expression) -> ()
 	public let expression: Expression
-	public let locale: Locale
+	public let locale: Language
 	public let callback: Callback // Called when a new formula is set
 	public let contextCallback: ((Job, ContextCallback) -> ())? // Called to obtain context information (columns, example row, etc.)
 
-	public init(expression: Expression, locale: Locale, callback: Callback, contextCallback: ((Job, ContextCallback) -> ())? = nil) {
+	public init(expression: Expression, locale: Language, callback: Callback, contextCallback: ((Job, ContextCallback) -> ())? = nil) {
 		self.expression = expression
 		self.locale = locale
 		self.callback = callback
 		self.contextCallback = contextCallback
 	}
 
-	public func change(newValue: Expression) {
+	public func change(_ newValue: Expression) {
 		callback(newValue)
 	}
 
@@ -209,8 +209,8 @@ public class QBESentenceFormula: NSObject, QBESentenceToken {
 }
 
 public enum QBESentenceFileMode {
-	case Writing()
-	case Reading(canCreate: Bool)
+	case writing()
+	case reading(canCreate: Bool)
 }
 
 /** Sentence item that refers to an (existing or yet to be created) file or directory. */
@@ -227,7 +227,7 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 		self.file = directory
 		self.callback = callback
 		self.isDirectory = true
-		self.mode = .Reading(canCreate: true)
+		self.mode = .reading(canCreate: true)
 	}
 
 	public init(saveFile file: QBEFileReference?, allowedFileTypes: [String], callback: Callback) {
@@ -235,7 +235,7 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 		self.callback = callback
 		self.allowedFileTypes = allowedFileTypes
 		self.isDirectory = false
-		self.mode = .Writing()
+		self.mode = .writing()
 	}
 
 	public init(file: QBEFileReference?, allowedFileTypes: [String], canCreate: Bool = false, callback: Callback) {
@@ -243,10 +243,10 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 		self.callback = callback
 		self.allowedFileTypes = allowedFileTypes
 		self.isDirectory = false
-		self.mode = .Reading(canCreate: canCreate)
+		self.mode = .reading(canCreate: canCreate)
 	}
 
-	public func change(newValue: QBEFileReference) {
+	public func change(_ newValue: QBEFileReference) {
 		callback(newValue)
 	}
 
@@ -260,31 +260,31 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 }
 
 extension QBEStep {
-	func contextCallbackForFormulaSentence(job: Job, callback: QBESentenceFormula.ContextCallback) {
+	func contextCallbackForFormulaSentence(_ job: Job, callback: QBESentenceFormula.ContextCallback) {
 		if let sourceStep = self.previous {
-			sourceStep.exampleData(job, maxInputRows: 100, maxOutputRows: 1) { result in
+			sourceStep.exampleDataset(job, maxInputRows: 100, maxOutputRows: 1) { result in
 				switch result {
-				case .Success(let data):
+				case .success(let data):
 					data.limit(1).raster(job) { result in
 						switch result {
-						case .Success(let raster):
+						case .success(let raster):
 							if raster.rowCount == 1 {
 								let ctx = QBESentenceFormulaContext(row: raster[0], columns: raster.columns)
-								return callback(.Success(ctx))
+								return callback(.success(ctx))
 							}
 
-						case .Failure(let e):
-							return callback(.Failure(e))
+						case .failure(let e):
+							return callback(.failure(e))
 						}
 					}
 
-				case .Failure(let e):
-					return callback(.Failure(e))
+				case .failure(let e):
+					return callback(.failure(e))
 				}
 			}
 		}
 		else {
-			return callback(.Failure("No data source for chart".localized))
+			return callback(.failure("No data source for chart".localized))
 		}
 	}
 }

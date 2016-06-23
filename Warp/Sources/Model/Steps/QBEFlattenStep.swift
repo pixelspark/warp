@@ -19,7 +19,7 @@ class QBEFlattenStep: QBEStep {
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("For each cell, put its value in column [#], the column name in [#], and in [#] the result of [#]", comment: ""),
 			QBESentenceTextInput(value: self.valueColumn.name, callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {
@@ -53,49 +53,49 @@ class QBEFlattenStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		if let cc = aDecoder.decodeObjectForKey("colColumn") as? String {
+		if let cc = aDecoder.decodeObject(forKey: "colColumn") as? String {
 			colColumn = Column(cc)
 		}
 		
-		if let rc = aDecoder.decodeObjectForKey("rowColumn") as? String {
+		if let rc = aDecoder.decodeObject(forKey: "rowColumn") as? String {
 			rowColumn = Column(rc)
 		}
 		
-		valueColumn = Column((aDecoder.decodeObjectForKey("valueColumn") as? String) ?? "")
-		rowIdentifier = aDecoder.decodeObjectForKey("rowIdentifier") as? Expression
+		valueColumn = Column((aDecoder.decodeObject(forKey: "valueColumn") as? String) ?? "")
+		rowIdentifier = aDecoder.decodeObject(forKey: "rowIdentifier") as? Expression
 		super.init(coder: aDecoder)
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(colColumn?.name, forKey: "colColumn")
-		coder.encodeObject(rowColumn?.name, forKey: "rowColumn")
-		coder.encodeObject(valueColumn.name, forKey: "valueColumn")
-		coder.encodeObject(rowIdentifier, forKey: "rowIdentifier")
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		coder.encode(colColumn?.name, forKey: "colColumn")
+		coder.encode(rowColumn?.name, forKey: "rowColumn")
+		coder.encode(valueColumn.name, forKey: "valueColumn")
+		coder.encode(rowIdentifier, forKey: "rowIdentifier")
+		super.encode(with: coder)
 	}
 	
-	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
 		/* If a column is set to put a row identifier in, but there is no expression, fill in an expression that uses the
 		value in the first column. */
 		if rowIdentifier == nil && rowColumn != nil {
 			data.columns(job) { (columns) -> () in
 				switch columns {
-					case .Success(let cs):
+					case .success(let cs):
 						if let firstColumn = cs.first {
 							let ri = Sibling(firstColumn)
-							callback(.Success(data.flatten(self.valueColumn, columnNameTo: self.colColumn, rowIdentifier: ri, to: self.rowColumn)))
+							callback(.success(data.flatten(self.valueColumn, columnNameTo: self.colColumn, rowIdentifier: ri, to: self.rowColumn)))
 						}
 						else {
-							callback(.Failure(NSLocalizedString("The data set that is to be flattened contained no rows.", comment: "")))
+							callback(.failure(NSLocalizedString("The data set that is to be flattened contained no rows.", comment: "")))
 						}
 					
-					case .Failure(let error):
-						callback(.Failure(error))
+					case .failure(let error):
+						callback(.failure(error))
 				}
 			}
 		}
 		else {
-			callback(.Success(data.flatten(valueColumn, columnNameTo: colColumn, rowIdentifier: rowIdentifier, to: rowColumn)))
+			callback(.success(data.flatten(valueColumn, columnNameTo: colColumn, rowIdentifier: rowIdentifier, to: rowColumn)))
 		}
 	}
 }

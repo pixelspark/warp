@@ -1,75 +1,75 @@
 import Foundation
 import SwiftParser
 
-public extension NSDate {
-	static func fromISO8601FormattedDate(date: String) -> NSDate? {
-		let dateFormatter = NSDateFormatter()
+public extension Date {
+	static func fromISO8601FormattedDate(_ date: String) -> Date? {
+		let dateFormatter = DateFormatter()
 		dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
-		return dateFormatter.dateFromString(date)
+		return dateFormatter.date(from: date)
 	}
 	
 	/** The 'Excel epoch', or the beginning of time according to Microsoft Excel. This is what the date '0' translates
 	to in Excel (actually on my PC it says '0 january 1900', which of course doesn't exist). */
-	static var excelEpoch: NSDate { get {
-		let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-		let comps = NSDateComponents()
+	static var excelEpoch: Date { get {
+		let calendar = Calendar(calendarIdentifier: Calendar.Identifier.gregorian)!
+		var comps = DateComponents()
 		comps.year = 1899
 		comps.month = 12
 		comps.day = 30
 		comps.hour = 0
 		comps.minute = 0
 		comps.second = 0
-		calendar.timeZone = NSTimeZone(abbreviation: "UTC")!
-		return calendar.dateFromComponents(comps)!
+		calendar.timeZone = TimeZone(abbreviation: "UTC")!
+		return calendar.date(from: comps)!
 	} }
 	
 	/** Returns the time at which the indicated Gregorian date starts in the UTC timezone. */
-	static func startOfGregorianDateInUTC(year: Int, month: Int, day: Int) -> NSDate {
-		let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-		let comps = NSDateComponents()
+	static func startOfGregorianDateInUTC(_ year: Int, month: Int, day: Int) -> Date {
+		let calendar = Calendar(calendarIdentifier: Calendar.Identifier.gregorian)!
+		var comps = DateComponents()
 		comps.year = year
 		comps.month = month
 		comps.day = day
 		comps.hour = 0
 		comps.minute = 0
 		comps.second = 0
-		calendar.timeZone = NSTimeZone(abbreviation: "UTC")!
-		return calendar.dateFromComponents(comps)!
+		calendar.timeZone = TimeZone(abbreviation: "UTC")!
+		return calendar.date(from: comps)!
 	}
 	
-	static func startOfLocalDate(locale: Locale, year: Int, month: Int, day: Int) -> NSDate {
-		let comps = NSDateComponents()
+	static func startOfLocalDate(_ locale: Language, year: Int, month: Int, day: Int) -> Date {
+		var comps = DateComponents()
 		comps.year = year
 		comps.month = month
 		comps.day = day
 		comps.hour = 0
 		comps.minute = 0
 		comps.second = 0
-		return locale.calendar.dateFromComponents(comps)!
+		return locale.calendar.date(from: comps)!
 	}
 	
-	func localComponents(locale: Locale) -> NSDateComponents {
-		return locale.calendar.componentsInTimeZone(locale.timeZone, fromDate: self)
+	func localComponents(_ locale: Language) -> DateComponents {
+		return locale.calendar.components(in: locale.timeZone, from: self)
 	}
 	
-	var gregorianComponentsInUTC: NSDateComponents { get {
-		let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-		return calendar.componentsInTimeZone(NSTimeZone(abbreviation: "UTC")!, fromDate: self)
+	var gregorianComponentsInUTC: DateComponents { get {
+		let calendar = Calendar(calendarIdentifier: Calendar.Identifier.gregorian)!
+		return calendar.components(in: TimeZone(abbreviation: "UTC")!, from: self)
 	} }
 	
-	func fullDaysTo(otherDate: NSDate) -> Int {
-		let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-		let  components = calendar.components(NSCalendarUnit.Day, fromDate: self, toDate: otherDate, options: [])
-		return components.day
+	func fullDaysTo(_ otherDate: Date) -> Int {
+		let calendar = Calendar(calendarIdentifier: Calendar.Identifier.gregorian)!
+		let  components = calendar.components(Calendar.Unit.day, from: self, to: otherDate, options: [])
+		return components.day!
 	}
 	
 	/** Calculates a date by adding the specified number of days. Note that this is not just doing time + x * 86400, but
 	takes leap seconds into account. */
-	func dateByAddingDays(days: Int) -> NSDate? {
-		let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-		let comps = NSDateComponents()
+	func dateByAddingDays(_ days: Int) -> Date? {
+		let calendar = Calendar(calendarIdentifier: Calendar.Identifier.gregorian)!
+		var comps = DateComponents()
 		comps.day = days
-		return calendar.dateByAddingComponents(comps, toDate: self, options: [])
+		return calendar.date(byAdding: comps, to: self, options: [])
 	}
 	
 	/** Returns the Excel representation of a date. This is a decimal number where the integer part indicates the number
@@ -83,31 +83,31 @@ public extension NSDate {
 	it may even use a calculation in UTC to determine the integer part of the Excel date, but show the time in the local
 	time zone. ',999' translates to 23:59 and I'm in UTC+2 currently). */
 	var excelDate: Double? { get {
-		return self.timeIntervalSinceDate(NSDate.excelEpoch) / 86400.0
+		return self.timeIntervalSince(Date.excelEpoch) / 86400.0
 	} }
 	
-	static func fromExcelDate(date: Double) -> NSDate? {
+	static func fromExcelDate(_ date: Double) -> Date? {
 		let daysSinceEpoch = Int(floor(date))
 		let fractionalPart = date - Double(daysSinceEpoch)
-		let startOfDaySinceEpoch = NSDate(timeIntervalSinceReferenceDate: NSDate.excelEpoch.timeIntervalSinceReferenceDate + (Double(daysSinceEpoch) * 86400.0))
-		return NSDate(timeInterval: 86400.0 * fractionalPart, sinceDate: startOfDaySinceEpoch)
+		let startOfDaySinceEpoch = Date(timeIntervalSinceReferenceDate: Date.excelEpoch.timeIntervalSinceReferenceDate + (Double(daysSinceEpoch) * 86400.0))
+		return Date(timeInterval: 86400.0 * fractionalPart, since: startOfDaySinceEpoch)
 	}
 	
 	/**	Returns an ISO-8601 formatted string of this date, in the locally preferred timezone. Should only be used for
 	presentational purposes. */
 	var iso8601FormattedLocalDate: String { get {
-		let dateFormatter = NSDateFormatter()
+		let dateFormatter = DateFormatter()
 		dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
-		return dateFormatter.stringFromDate(self)
+		return dateFormatter.string(from: self)
 		} }
 	
 	/** Returns an ISO-8601 formatted string representation of this date, in the UTC timezone ('Zulu time', that's why it
 	ends in 'Z'). */
 	var iso8601FormattedUTCDate: String { get {
-		let formatter = NSDateFormatter()
-		formatter.timeZone = NSTimeZone(abbreviation: "UTC")
+		let formatter = DateFormatter()
+		formatter.timeZone = TimeZone(abbreviation: "UTC")
 		formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
-		return formatter.stringFromDate(self)
+		return formatter.string(from: self)
 	} }
 	
 	var unixTime: Double { get {

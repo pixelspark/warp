@@ -20,17 +20,17 @@ class QBEMap: QBEConfigurable, NSSecureCoding {
 		super.init()
 	}
 
-	func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(self.latitudeExpression, forKey: "latitudeExpression")
-		aCoder.encodeObject(self.longitudeExpression, forKey: "longitudeExpression")
-		aCoder.encodeObject(self.titleExpression, forKey: "titleExpression")
+	func encode(with aCoder: NSCoder) {
+		aCoder.encode(self.latitudeExpression, forKey: "latitudeExpression")
+		aCoder.encode(self.longitudeExpression, forKey: "longitudeExpression")
+		aCoder.encode(self.titleExpression, forKey: "titleExpression")
 	}
 
 	@objc static func supportsSecureCoding() -> Bool {
 		return true
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: "Show locations at latitude [#] and longitude [#] with label [#]".localized,
 			QBESentenceFormula(expression: self.latitudeExpression, locale: locale, callback: { (newLatitudeExpression) -> () in
 				self.latitudeExpression = newLatitudeExpression
@@ -107,9 +107,9 @@ class QBEMapTablet: QBETablet {
 		super.init(coder: coder)
 	}
 
-	override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(self.map, forKey: "map")
-		aCoder.encodeObject(self.sourceTablet, forKey: "source")
+	override func encode(with aCoder: NSCoder) {
+		super.encode(with: aCoder)
+		aCoder.encode(self.map, forKey: "map")
+		aCoder.encode(self.sourceTablet, forKey: "source")
 	}
 }

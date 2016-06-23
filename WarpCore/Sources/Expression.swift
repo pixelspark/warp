@@ -10,7 +10,7 @@ internal let expressions: [Expression.Type] = [
 
 /** A Expression is a 'formula' that evaluates to a certain Value given a particular context. */
 public class Expression: NSObject, NSCoding {
-	public func explain(locale: Locale, topLevel: Bool = true) -> String {
+	public func explain(_ locale: Language, topLevel: Bool = true) -> String {
 		return "??"
 	}
 	
@@ -39,12 +39,12 @@ public class Expression: NSObject, NSCoding {
 	public required init?(coder aDecoder: NSCoder) {
 	}
 	
-	public func encodeWithCoder(aCoder: NSCoder) {
+	public func encode(with aCoder: NSCoder) {
 	}
 	
 	/** Returns a localized representation of this expression, which should (when parsed by Formula in the same locale)
 	result in an equivalent expression. */
-	public func toFormula(locale: Locale, topLevel: Bool = false) -> String {
+	public func toFormula(_ locale: Language, topLevel: Bool = false) -> String {
 		return ""
 	}
 	
@@ -57,17 +57,17 @@ public class Expression: NSObject, NSCoding {
 	  isEquivalentTo will return true.
 	- Call(x).isEqual(Call(x)) will return true if x is the same function, but isEquivalentTo will only do so when x is
 	  deterministic. */
-	public func isEquivalentTo(expression: Expression) -> Bool {
+	public func isEquivalentTo(_ expression: Expression) -> Bool {
 		return false
 	}
 	
 	/** Requests that callback be called on self, and visit() forwarded to all children. This can be used to implement
 	dependency searches, etc. */
-	public func visit(@noescape callback: (Expression) -> (Expression)) -> Expression {
+	@discardableResult public func visit( _ callback: @noescape (Expression) -> (Expression)) -> Expression {
 		return callback(self)
 	}
 	
-	@nonobjc public final func visit(@noescape callback: (Expression) -> ()) {
+	@nonobjc public final func visit( _ callback: @noescape (Expression) -> ()) {
 		self.visit { (e) -> Expression in
 			callback(e)
 			return e
@@ -75,13 +75,13 @@ public class Expression: NSObject, NSCoding {
 	}
 	
 	/** Calculate the result of this expression for the given row, columns and current input value. */
-	public func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
+	public func apply(_ row: Row, foreign: Row?, inputValue: Value?) -> Value {
 		fatalError("A Expression was called that isn't implemented")
 	}
 	
 	/** Returns a list of suggestions for applications of this expression on the given value (fromValue) that result in the
 	given 'to' value (or bring the value closer to the toValue). */
-	class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+	class func suggest(_ fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		return []
 	}
 
@@ -100,7 +100,7 @@ public class Expression: NSObject, NSCoding {
 	implementations) for the application of (usually unary) functions to the input value to obtain (or come closer to) the
 	output value. */
 	@warn_unused_result
-	public class final func infer(fromValue: Expression?, toValue: Value, level: Int, row: Row, column: Int?, maxComplexity inMaxComplexity: Int = Int.max, previousValues: [Value] = [], job: Job? = nil) -> [Expression] {
+	public class final func infer(_ fromValue: Expression?, toValue: Value, level: Int, row: Row, column: Int?, maxComplexity inMaxComplexity: Int = Int.max, previousValues: [Value] = [], job: Job? = nil) -> [Expression] {
 		if level <= 0 {
 			return []
 		}
@@ -112,7 +112,7 @@ public class Expression: NSObject, NSCoding {
 			inputValue = row.values[c]
 		}
 		else {
-			inputValue = Value.InvalidValue
+			inputValue = Value.invalid
 		}
 
 		if let c = job?.cancelled where c {
@@ -206,58 +206,58 @@ public final class Literal: Expression {
 	} }
 	
 	public required init?(coder aDecoder: NSCoder) {
-		self.value = ((aDecoder.decodeObjectForKey("value") as? ValueCoder) ?? ValueCoder()).value
+		self.value = ((aDecoder.decodeObject(forKey: "value") as? ValueCoder) ?? ValueCoder()).value
 		super.init(coder: aDecoder)
 	}
 	
-	public override func explain(locale: Locale, topLevel: Bool) -> String {
+	public override func explain(_ locale: Language, topLevel: Bool) -> String {
 		return locale.localStringFor(value)
 	}
 	
-	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
+	public override func toFormula(_ locale: Language, topLevel: Bool) -> String {
 		switch value {
-		case .StringValue(let s):
-			let escaped = s.stringByReplacingOccurrencesOfString(String(locale.stringQualifier), withString: locale.stringQualifierEscape)
+		case .string(let s):
+			let escaped = s.replacingOccurrences(of: String(locale.stringQualifier), with: locale.stringQualifierEscape)
 			return "\(locale.stringQualifier)\(escaped)\(locale.stringQualifier)"
 			
-		case .DoubleValue(let d):
-			return locale.numberFormatter.stringFromNumber(NSNumber(double: d)) ?? ""
+		case .double(let d):
+			return locale.numberFormatter.string(from: NSNumber(value: d)) ?? ""
 			
-		case .DateValue(let d):
-			return "@" + (locale.numberFormatter.stringFromNumber(NSNumber(double: d)) ?? "")
+		case .date(let d):
+			return "@" + (locale.numberFormatter.string(from: NSNumber(value: d)) ?? "")
 			
-		case .BoolValue(let b):
+		case .bool(let b):
 			return locale.constants[Value(b)]!
 			
-		case .IntValue(let i):
+		case .int(let i):
 			return "\(i)"
 		
-		case .InvalidValue: return locale.constants[Value.EmptyValue]!
-		case .EmptyValue: return locale.constants[Value.EmptyValue]!
+		case .invalid: return locale.constants[Value.empty]!
+		case .empty: return locale.constants[Value.empty]!
 		}
 	}
 	
-	public override func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(ValueCoder(self.value), forKey: "value")
-		super.encodeWithCoder(aCoder)
+	public override func encode(with aCoder: NSCoder) {
+		aCoder.encode(ValueCoder(self.value), forKey: "value")
+		super.encode(with: aCoder)
 	}
 	
-	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
+	public override func apply(_ row: Row, foreign: Row?, inputValue: Value?) -> Value {
 		return value
 	}
 	
-	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+	override class func suggest(_ fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		if fromValue == nil {
 			return [Literal(toValue)]
 		}
 		return []
 	}
 	
-	public override func isEquivalentTo(expression: Expression) -> Bool {
+	public override func isEquivalentTo(_ expression: Expression) -> Bool {
 		return self.isEqual(expression)
 	}
 
-	public override func isEqual(object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: AnyObject?) -> Bool {
 		if let o = object as? Literal where o.value == self.value {
 			return true
 		}
@@ -276,11 +276,11 @@ public class Identity: Expression {
 		return 0x1D377170
 	}
 
-	public override func explain(locale: Locale, topLevel: Bool) -> String {
+	public override func explain(_ locale: Language, topLevel: Bool) -> String {
 		return translationForString("current value")
 	}
 
-	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
+	public override func toFormula(_ locale: Language, topLevel: Bool) -> String {
 		return locale.currentCellIdentifier
 	}
 	
@@ -288,19 +288,19 @@ public class Identity: Expression {
 		super.init(coder: aDecoder)
 	}
 	
-	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
-		return inputValue ?? Value.InvalidValue
+	public override func apply(_ row: Row, foreign: Row?, inputValue: Value?) -> Value {
+		return inputValue ?? Value.invalid
 	}
 	
-	public override func isEquivalentTo(expression: Expression) -> Bool {
+	public override func isEquivalentTo(_ expression: Expression) -> Bool {
 		return self.isEqual(expression)
 	}
 
-	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+	override class func suggest(_ fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		return [Identity()]
 	}
 
-	public override func isEqual(object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: AnyObject?) -> Bool {
 		if object is Identity {
 			return true
 		}
@@ -333,7 +333,7 @@ public final class Comparison: Expression {
 	 the literal, allowing either variant:
 
 	 let (sibling, literal) = binaryExpression.pair(Sibling.self, Literal.self) */
-	public func commutativePair<U, V>(first: U.Type, _ second: V.Type) -> (U,V)? {
+	public func commutativePair<U, V>(_ first: U.Type, _ second: V.Type) -> (U,V)? {
 		if let a = self.first as? U, let b = self.second as? V {
 			return (a, b)
 		}
@@ -352,10 +352,10 @@ public final class Comparison: Expression {
 		if firstOptimized.isEquivalentTo(secondOptimized) {
 			switch self.type {
 				case .Equal, .LesserEqual, .GreaterEqual:
-					return Literal(Value.BoolValue(true))
+					return Literal(Value.bool(true))
 
 				case .NotEqual, .Greater, .Lesser:
-					return Literal(Value.BoolValue(false))
+					return Literal(Value.bool(false))
 				
 				default:
 					break;
@@ -370,18 +370,18 @@ public final class Comparison: Expression {
 		return optimized
 	}
 	
-	public override func visit(@noescape callback: (Expression) -> (Expression)) -> Expression {
+	public override func visit( _ callback: @noescape (Expression) -> (Expression)) -> Expression {
 		let first = self.first.visit(callback)
 		let second = self.second.visit(callback)
 		let newSelf = Comparison(first: first, second: second, type: self.type)
 		return callback(newSelf)
 	}
 	
-	public override func explain(locale: Locale, topLevel: Bool) -> String {
+	public override func explain(_ locale: Language, topLevel: Bool) -> String {
 		return (topLevel ? "": "(") + second.explain(locale, topLevel: false) + " " + type.explain(locale) + " " + first.explain(locale, topLevel: false) + (topLevel ? "": ")")
 	}
 	
-	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
+	public override func toFormula(_ locale: Language, topLevel: Bool) -> String {
 		let start = topLevel ? "" : "("
 		let end = topLevel ? "" : ")"
 		return "\(start)\(second.toFormula(locale))\(type.toFormula(locale))\(first.toFormula(locale))\(end)"
@@ -399,27 +399,27 @@ public final class Comparison: Expression {
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		self.first = (aDecoder.decodeObjectForKey("first") as? Expression) ?? Identity()
-		self.second = (aDecoder.decodeObjectForKey("second") as? Expression) ?? Identity()
-		let typeString = (aDecoder.decodeObjectForKey("type") as? String) ?? Binary.Addition.rawValue
+		self.first = (aDecoder.decodeObject(forKey: "first") as? Expression) ?? Identity()
+		self.second = (aDecoder.decodeObject(forKey: "second") as? Expression) ?? Identity()
+		let typeString = (aDecoder.decodeObject(forKey: "type") as? String) ?? Binary.Addition.rawValue
 		self.type = Binary(rawValue: typeString) ?? Binary.Addition
 		super.init(coder: aDecoder)
 	}
 	
-	public override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(first, forKey: "first")
-		aCoder.encodeObject(second, forKey: "second")
-		aCoder.encodeObject(type.rawValue, forKey: "type")
+	public override func encode(with aCoder: NSCoder) {
+		super.encode(with: aCoder)
+		aCoder.encode(first, forKey: "first")
+		aCoder.encode(second, forKey: "second")
+		aCoder.encode(type.rawValue, forKey: "type")
 	}
 	
-	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
+	public override func apply(_ row: Row, foreign: Row?, inputValue: Value?) -> Value {
 		let left = second.apply(row, foreign: foreign, inputValue: nil)
 		let right = first.apply(row, foreign: foreign, inputValue: nil)
 		return self.type.apply(left, right)
 	}
 	
-	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+	override class func suggest(_ fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		var suggestions: [Expression] = []
 		
 		if let from = fromValue {
@@ -466,12 +466,12 @@ public final class Comparison: Expression {
 					else if let targetString = toValue.stringValue, let fromString = f.stringValue {
 						if !targetString.isEmpty && !fromString.isEmpty && fromString.characters.count < targetString.characters.count {
 							// See if the target string shares a prefix with the source string
-							let targetPrefix = targetString.substringWithRange(targetString.startIndex..<targetString.startIndex.advancedBy(fromString.characters.count))
+							let targetPrefix = targetString.substring(with: targetString.startIndex..<targetString.characters.index(targetString.startIndex, offsetBy: fromString.characters.count))
 							if fromString == targetPrefix {
-								let postfix = targetString.substringWithRange(targetString.startIndex.advancedBy(fromString.characters.count)..<targetString.endIndex)
+								let postfix = targetString.substring(with: targetString.characters.index(targetString.startIndex, offsetBy: fromString.characters.count)..<targetString.endIndex)
 								print("'\(fromString)' => '\(targetString)' share prefix: '\(targetPrefix)' need postfix: '\(postfix)'")
 
-								let postfixSuggestions = Expression.infer(nil, toValue: Value.StringValue(postfix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+								let postfixSuggestions = Expression.infer(nil, toValue: Value.string(postfix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
 								postfixSuggestions.forEach {
 									suggestions.append(Comparison(first: $0, second: from, type: Binary.Concatenation))
@@ -480,12 +480,12 @@ public final class Comparison: Expression {
 							else {
 								// See if the target string shares a postfix with the source string
 								let prefixLength = targetString.characters.count - fromString.characters.count
-								let targetPostfix = targetString.substringWithRange(targetString.startIndex.advancedBy(prefixLength)..<targetString.endIndex)
+								let targetPostfix = targetString.substring(with: targetString.characters.index(targetString.startIndex, offsetBy: prefixLength)..<targetString.endIndex)
 								if fromString == targetPostfix {
-									let prefix = targetString.substringWithRange(targetString.startIndex..<targetString.startIndex.advancedBy(prefixLength))
+									let prefix = targetString.substring(with: targetString.startIndex..<targetString.characters.index(targetString.startIndex, offsetBy: prefixLength))
 									print("'\(fromString)' => '\(targetString)' share postfix: '\(targetPostfix)' need prefix: '\(prefix)'")
 									
-									let prefixSuggestions = Expression.infer(nil, toValue: Value.StringValue(prefix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+									let prefixSuggestions = Expression.infer(nil, toValue: Value.string(prefix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 									
 									prefixSuggestions.forEach {
 										suggestions.append(Comparison(first: from, second: $0, type: Binary.Concatenation))
@@ -501,7 +501,7 @@ public final class Comparison: Expression {
 		return suggestions
 	}
 	
-	public override func isEquivalentTo(expression: Expression) -> Bool {
+	public override func isEquivalentTo(_ expression: Expression) -> Bool {
 		if let otherBinary = expression as? Comparison {
 			if otherBinary.type == self.type && otherBinary.first.isEquivalentTo(self.first) && otherBinary.second.isEquivalentTo(self.second) {
 				return true
@@ -515,7 +515,7 @@ public final class Comparison: Expression {
 		return false
 	}
 
-	public override func isEqual(object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: AnyObject?) -> Bool {
 		if let o = object as? Comparison where o.first == self.first && o.second == self.second && o.type == self.type {
 			return true
 		}
@@ -547,7 +547,7 @@ public final class Call: Expression {
 		return true
 	} }
 	
-	public override func visit(@noescape callback: (Expression) -> (Expression)) -> Expression {
+	public override func visit( _ callback: @noescape (Expression) -> (Expression)) -> Expression {
 		let newArguments = arguments.map({$0.visit(callback)})
 		return callback(Call(arguments: newArguments, type: self.type))
 	}
@@ -556,16 +556,16 @@ public final class Call: Expression {
 		return self.type.prepare(arguments)
 	}
 	
-	public override func explain(locale: Locale, topLevel: Bool) -> String {
+	public override func explain(_ locale: Language, topLevel: Bool) -> String {
 		if arguments.count > 0 {
-			let argumentsList = arguments.map({$0.explain(locale, topLevel: false)}).joinWithSeparator(", ")
+			let argumentsList = arguments.map({$0.explain(locale, topLevel: false)}).joined(separator: ", ")
 			return "\(type.explain(locale))(\(argumentsList))"
 		}
 		return type.explain(locale)
 	}
 	
-	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
-		let args = arguments.map({$0.toFormula(locale)}).joinWithSeparator(locale.argumentSeparator)
+	public override func toFormula(_ locale: Language, topLevel: Bool) -> String {
+		let args = arguments.map({$0.toFormula(locale)}).joined(separator: locale.argumentSeparator)
 		return "\(type.toFormula(locale))(\(args))"
 	}
 	
@@ -585,24 +585,24 @@ public final class Call: Expression {
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		self.arguments = (aDecoder.decodeObjectForKey("args") as? [Expression]) ?? []
-		let typeString = (aDecoder.decodeObjectForKey("type") as? String) ?? Function.Identity.rawValue
+		self.arguments = (aDecoder.decodeObject(forKey: "args") as? [Expression]) ?? []
+		let typeString = (aDecoder.decodeObject(forKey: "type") as? String) ?? Function.Identity.rawValue
 		self.type = Function(rawValue: typeString) ?? Function.Identity
 		super.init(coder: aDecoder)
 	}
 	
-	public override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(arguments, forKey: "args")
-		aCoder.encodeObject(type.rawValue, forKey: "type")
+	public override func encode(with aCoder: NSCoder) {
+		super.encode(with: aCoder)
+		aCoder.encode(arguments, forKey: "args")
+		aCoder.encode(type.rawValue, forKey: "type")
 	}
 	
-	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
+	public override func apply(_ row: Row, foreign: Row?, inputValue: Value?) -> Value {
 		let vals = arguments.map({$0.apply(row, foreign: foreign, inputValue: inputValue)})
 		return self.type.apply(vals)
 	}
 	
-	public override func isEquivalentTo(expression: Expression) -> Bool {
+	public override func isEquivalentTo(_ expression: Expression) -> Bool {
 		if let otherFunction = expression as? Call {
 			if otherFunction.type == self.type && self.arguments == otherFunction.arguments && self.type.isDeterministic {
 				return true
@@ -615,14 +615,14 @@ public final class Call: Expression {
 		return false
 	}
 
-	public override func isEqual(object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: AnyObject?) -> Bool {
 		if let o = object as? Call where o.type == self.type && o.arguments == self.arguments {
 			return true
 		}
 		return super.isEqual(object)
 	}
 	
-	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+	override class func suggest(_ fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		var suggestions: [Expression] = []
 		
 		if let from = fromValue {
@@ -651,13 +651,13 @@ public final class Call: Expression {
 								break
 							}
 							
-							let splitted = sourceString.componentsSeparatedByString(separator)
+							let splitted = sourceString.components(separatedBy: separator)
 							if splitted.count > 1 {
 								let pack = Pack(splitted)
 								for i in 0..<pack.count {
 									let item = pack[i]
-									let splitExpression = Call(arguments: [from, Literal(Value.StringValue(separator))], type: Function.Split)
-									let nthExpression = Call(arguments: [splitExpression, Literal(Value.IntValue(i+1))], type: Function.Nth)
+									let splitExpression = Call(arguments: [from, Literal(Value.string(separator))], type: Function.Split)
+									let nthExpression = Call(arguments: [splitExpression, Literal(Value.int(i+1))], type: Function.Nth)
 									if targetString == item {
 										suggestions.append(nthExpression)
 										foundAsElement = true
@@ -675,12 +675,12 @@ public final class Call: Expression {
 								suggestions += incompleteSuggestions
 							}
 							else {
-								if let range = sourceString.rangeOfString(targetString) {
+								if let range = sourceString.range(of: targetString) {
 									suggestions.append(Call(arguments: [from, Literal(length)], type: Function.Right))
 
-									let startIndex = sourceString.startIndex.distanceTo(range.startIndex)
+									let startIndex = sourceString.characters.distance(from: sourceString.startIndex, to: range.lowerBound)
 									let start = Literal(Value(startIndex))
-									let length = Literal(Value(range.startIndex.distanceTo(range.endIndex)))
+									let length = Literal(Value(sourceString.distance(from: range.lowerBound, to: range.upperBound)))
 									if startIndex == 0 {
 										suggestions.append(Call(arguments: [from, length], type: Function.Left))
 									}
@@ -724,29 +724,29 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 		return column.hashValue
 	}
 	
-	public override func explain(locale: Locale, topLevel: Bool) -> String {
+	public override func explain(_ locale: Language, topLevel: Bool) -> String {
 		return String(format: translationForString("value in column %@"), column.name)
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		column = Column((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")
+		column = Column((aDecoder.decodeObject(forKey: "columnName") as? String) ?? "")
 		super.init(coder: aDecoder)
 	}
 	
-	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
+	public override func toFormula(_ locale: Language, topLevel: Bool) -> String {
 		return "[@\(column.name)]"
 	}
 	
-	public override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(column.name, forKey: "columnName")
+	public override func encode(with aCoder: NSCoder) {
+		super.encode(with: aCoder)
+		aCoder.encode(column.name, forKey: "columnName")
 	}
 	
-	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
-		return row[column] ?? Value.InvalidValue
+	public override func apply(_ row: Row, foreign: Row?, inputValue: Value?) -> Value {
+		return row[column] ?? Value.invalid
 	}
 	
-	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+	override class func suggest(_ fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		var s: [Expression] = []
 		for columnName in row.columns {
 			if fromValue == nil || row[columnName] == toValue {
@@ -762,14 +762,14 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 		return s
 	}
 	
-	public override func isEquivalentTo(expression: Expression) -> Bool {
+	public override func isEquivalentTo(_ expression: Expression) -> Bool {
 		if let otherSibling = expression as? Sibling {
 			return otherSibling.column == self.column
 		}
 		return false
 	}
 
-	public override func isEqual(object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: AnyObject?) -> Bool {
 		if let o = object as? Sibling where o.column == self.column {
 			return true
 		}
@@ -791,41 +791,41 @@ public final class Foreign: Expression, ColumnReferencingExpression {
 		return ~column.hashValue
 	}
 	
-	public override func explain(locale: Locale, topLevel: Bool) -> String {
+	public override func explain(_ locale: Language, topLevel: Bool) -> String {
 		return String(format: translationForString("value in foreign column %@"), column.name)
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		column = Column((aDecoder.decodeObjectForKey("columnName") as? String) ?? "")
+		column = Column((aDecoder.decodeObject(forKey: "columnName") as? String) ?? "")
 		super.init(coder: aDecoder)
 	}
 	
-	public override func toFormula(locale: Locale, topLevel: Bool) -> String {
+	public override func toFormula(_ locale: Language, topLevel: Bool) -> String {
 		return "[#\(column.name)]"
 	}
 	
-	public override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(column.name, forKey: "columnName")
+	public override func encode(with aCoder: NSCoder) {
+		super.encode(with: aCoder)
+		aCoder.encode(column.name, forKey: "columnName")
 	}
 	
-	public override func apply(row: Row, foreign: Row?, inputValue: Value?) -> Value {
-		return foreign?[column] ?? Value.InvalidValue
+	public override func apply(_ row: Row, foreign: Row?, inputValue: Value?) -> Value {
+		return foreign?[column] ?? Value.invalid
 	}
 	
-	override class func suggest(fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
+	override class func suggest(_ fromValue: Expression?, toValue: Value, row: Row, inputValue: Value?, level: Int, job: Job?) -> [Expression] {
 		// TODO: implement when we are going to implement foreign suggestions
 		return []
 	}
 	
-	public override func isEquivalentTo(expression: Expression) -> Bool {
+	public override func isEquivalentTo(_ expression: Expression) -> Bool {
 		if let otherForeign = expression as? Foreign {
 			return otherForeign.column == self.column
 		}
 		return false
 	}
 
-	public override func isEqual(object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: AnyObject?) -> Bool {
 		if let o = object as? Foreign where o.column == self.column {
 			return true
 		}
@@ -841,13 +841,13 @@ public class FilterSet: NSObject, NSCoding {
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		if let v = aDecoder.decodeObjectForKey("selectedValues") as? [ValueCoder] {
+		if let v = aDecoder.decodeObject(forKey: "selectedValues") as? [ValueCoder] {
 			selectedValues = Set(v.map({return $0.value}))
 		}
 	}
 	
-	public func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(Array<ValueCoder>(selectedValues.map({return ValueCoder($0)})), forKey: "selectedValues")
+	public func encode(with aCoder: NSCoder) {
+		aCoder.encode(Array<ValueCoder>(selectedValues.map({return ValueCoder($0)})), forKey: "selectedValues")
 	}
 	
 	/** Returns an expression representing this filter. The source column is represented as Identity. */
@@ -877,7 +877,7 @@ extension Expression {
 	/** Returns a version of this expression that can be used to find matching rows in a foreign table. It replaces all
 	occurences of Foreign with Sibling, and replaces instances Sibling with the
 	corresponding values from the row given. */
-	final func expressionForForeignFiltering(row: Row) -> Expression {
+	final func expressionForForeignFiltering(_ row: Row) -> Expression {
 		return visit { (oldExpression) in
 			if let old = oldExpression as? Sibling {
 				return Literal(old.apply(row, foreign: nil, inputValue: nil))
@@ -916,7 +916,7 @@ extension Expression {
 	}
 	
 	/** Returns this expression with all occurences of Identity replaced with the given new expression. */
-	public final func expressionReplacingIdentityReferencesWith(newExpression: Expression) -> Expression {
+	public final func expressionReplacingIdentityReferencesWith(_ newExpression: Expression) -> Expression {
 		return visit { (oldExpression) in
 			if oldExpression is Identity {
 				return newExpression

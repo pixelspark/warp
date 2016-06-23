@@ -1,14 +1,14 @@
 import Foundation
 import WarpCore
 
-extension RangeReplaceableCollectionType where Index : Comparable {
-	mutating func removeAtIndices<S : SequenceType where S.Generator.Element == Index>(indices: S) {
-		indices.sort().lazy.reverse().forEach{ removeAtIndex($0) }
+extension RangeReplaceableCollection where Index : Comparable {
+	mutating func removeAtIndices<S : Sequence where S.Iterator.Element == Index>(_ indices: S) {
+		indices.sorted().lazy.reversed().forEach{ remove(at: $0) }
 	}
 }
 
 protocol QBEAlterTableViewDelegate: NSObjectProtocol {
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable: MutableData?)
+	func alterTableView(_ view: QBEAlterTableViewController, didAlterTable: MutableDataset?)
 }
 
 class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDataSource, NSTableViewDelegate, NSUserInterfaceValidations {
@@ -24,13 +24,13 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	@IBOutlet var tableView: NSTableView!
 
 	weak var delegate: QBEAlterTableViewDelegate? = nil
-	var definition: DataDefinition = DataDefinition(columns: [])
+	var definition: DatasetDefinition = DatasetDefinition(columns: [])
 	var warehouse: Warehouse? = nil
-	var mutableData: MutableData? = nil
+	var mutableDataset: MutableDataset? = nil
 	var warehouseName: String? = nil
 	var createJob: Job? = nil
 
-	var isAltering: Bool { return mutableData != nil }
+	var isAltering: Bool { return mutableDataset != nil }
 
 	required init() {
 		super.init(nibName: "QBEAlterTableViewController", bundle: nil)!
@@ -40,7 +40,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		super.init(coder: coder)
 	}
 
-	@IBAction func addColumn(sender: NSObject) {
+	@IBAction func addColumn(_ sender: NSObject) {
 		var i = 1
 		while true {
 			let newName = Column(String(format: NSLocalizedString("Column_%d", comment: ""), self.definition.columns.count + i))
@@ -54,20 +54,20 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		}
 	}
 
-	@IBAction func delete(sender: AnyObject?) {
+	@IBAction func delete(_ sender: AnyObject?) {
 		self.removeColumn(sender)
 	}
 
-	func validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItem) -> Bool {
-		switch anItem.action() {
-		case #selector(QBEAlterTableViewController.delete(_:)):
+	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+		switch item.action {
+		case .some(#selector(QBEAlterTableViewController.delete(_:))):
 			return tableView.selectedRowIndexes.count > 0
 		default:
 			return false
 		}
 	}
 
-	@IBAction func removeColumn(sender: AnyObject?) {
+	@IBAction func removeColumn(_ sender: AnyObject?) {
 		let si = tableView.selectedRowIndexes
 		self.definition.columns.removeAtIndices(si)
 		self.tableView.deselectAll(sender)
@@ -75,7 +75,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		self.updateView()
 	}
 
-	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if row < 0 || row > self.definition.columns.count {
 			return nil
 		}
@@ -90,7 +90,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		return nil
 	}
 
-	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
 		if row < 0 || row > self.definition.columns.count {
 			return
 		}
@@ -107,8 +107,8 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 						let alert = NSAlert()
 						alert.messageText = String(format: NSLocalizedString("Cannot set this column's name to '%@'.", comment: ""), col.name)
 						alert.informativeText = String(format: NSLocalizedString("There can only be one column named '%@' in this table.", comment: ""), col.name)
-						alert.alertStyle = .WarningAlertStyle
-						alert.beginSheetModalForWindow(w, completionHandler: nil)
+						alert.alertStyle = .warning
+						alert.beginSheetModal(for: w, completionHandler: nil)
 					}
 				}
 			default: return
@@ -116,11 +116,11 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		}
 	}
 
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return self.definition.columns.count
 	}
 
-	@IBAction func createOrAlterTable(sender: NSObject) {
+	@IBAction func createOrAlterTable(_ sender: NSObject) {
 		if isAltering {
 			self.alterTable(sender)
 		}
@@ -129,13 +129,13 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		}
 	}
 
-	private func alterTable(sender: NSObject) {
+	private func alterTable(_ sender: NSObject) {
 		assert(self.createJob == nil, "Cannot start two create table jobs at the same time")
 
-		if let md = self.mutableData {
-			let mutation = DataMutation.Alter(self.definition)
+		if let md = self.mutableDataset {
+			let mutation = DatasetMutation.alter(self.definition)
 			if md.canPerformMutation(mutation) {
-				self.createJob = Job(.UserInitiated)
+				self.createJob = Job(.userInitiated)
 				self.updateView()
 				self.progressView.startAnimation(sender)
 
@@ -146,12 +146,12 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 						self.progressView.stopAnimation(sender)
 
 						switch result {
-						case .Success:
+						case .success:
 							self.delegate?.alterTableView(self, didAlterTable: md)
-							self.dismissController(sender)
+							self.dismiss(sender)
 
-						case .Failure(let e):
-							NSAlert.showSimpleAlert(NSLocalizedString("Could not change this table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+						case .failure(let e):
+							NSAlert.showSimpleAlert(NSLocalizedString("Could not change this table", comment: ""), infoText: e, style: .critical, window: self.view.window)
 						}
 					}
 				}
@@ -159,17 +159,17 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		}
 	}
 
-	private func createTable(sender: NSObject) {
+	private func createTable(_ sender: NSObject) {
 		assert(self.createJob == nil, "Cannot start two create table jobs at the same time")
 		if let dwh = warehouse {
 			let tableName = self.tableNameField.stringValue
 			if tableName.isEmpty && dwh.hasNamedTables {
 				return
 			}
-			let mutation = WarehouseMutation.Create(self.tableNameField.stringValue, RasterData(data: [], columns: self.definition.columns))
+			let mutation = WarehouseMutation.create(self.tableNameField.stringValue, RasterDataset(data: [], columns: self.definition.columns))
 
 			if dwh.canPerformMutation(mutation) {
-				self.createJob = Job(.UserInitiated)
+				self.createJob = Job(.userInitiated)
 				self.updateView()
 				self.progressView.startAnimation(sender)
 				dwh.performMutation(mutation, job: self.createJob!, callback: { (result) -> () in
@@ -178,17 +178,17 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 						self.progressView.stopAnimation(sender)
 
 						switch result {
-						case .Success(let d):
+						case .success(let d):
 							self.delegate?.alterTableView(self, didAlterTable: d)
-							self.dismissController(sender)
+							self.dismiss(sender)
 
-						case .Failure(let e):
+						case .failure(let e):
 							let a = NSAlert()
 							a.messageText = NSLocalizedString("Cannot create this table", comment: "")
 							a.informativeText = e
-							a.alertStyle = NSAlertStyle.CriticalAlertStyle
+							a.alertStyle = .critical
 							if let w = self.view.window {
-								a.beginSheetModalForWindow(w, completionHandler: { (response) -> Void in
+								a.beginSheetModal(for: w, completionHandler: { (response) -> Void in
 								})
 							}
 							self.updateView()
@@ -202,8 +202,8 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 				a.messageText = NSLocalizedString("Cannot create this table", comment: "")
 				a.informativeText = NSLocalizedString("The data source does not allow creation of new tables.", comment: "")
 				if let w = self.view.window {
-					a.beginSheetModalForWindow(w, completionHandler: { (response) -> Void in
-						self.dismissController(sender)
+					a.beginSheetModal(for: w, completionHandler: { (response) -> Void in
+						self.dismiss(sender)
 					})
 					updateView()
 					return
@@ -217,15 +217,15 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 
 		let working = createJob != nil
 		let needTableName = (self.warehouse?.hasNamedTables ?? true)
-		cancelButton.enabled = !working
-		createButton.enabled = !working && (isAltering || !needTableName || !self.tableNameField.stringValue.isEmpty) && (!(self.warehouse?.hasFixedColumns ?? true) || !self.definition.columns.isEmpty)
-		addColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
-		removeColumnButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columns.isEmpty && tableView.selectedRowIndexes.count > 0
-		removeAllColumnsButton.enabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columns.isEmpty && tableView.selectedRowIndexes.count > 0
-		tableView.enabled = !working && (self.warehouse?.hasFixedColumns ?? false)
-		progressView.hidden = !working
-		progressLabel.hidden = !working
-		tableNameField.enabled = !working && !isAltering && needTableName
+		cancelButton.isEnabled = !working
+		createButton.isEnabled = !working && (isAltering || !needTableName || !self.tableNameField.stringValue.isEmpty) && (!(self.warehouse?.hasFixedColumns ?? true) || !self.definition.columns.isEmpty)
+		addColumnButton.isEnabled = !working && (self.warehouse?.hasFixedColumns ?? false)
+		removeColumnButton.isEnabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columns.isEmpty && tableView.selectedRowIndexes.count > 0
+		removeAllColumnsButton.isEnabled = !working && (self.warehouse?.hasFixedColumns ?? false) && !self.definition.columns.isEmpty && tableView.selectedRowIndexes.count > 0
+		tableView.isEnabled = !working && (self.warehouse?.hasFixedColumns ?? false)
+		progressView.isHidden = !working
+		progressLabel.isHidden = !working
+		tableNameField.isEnabled = !working && !isAltering && needTableName
 		createButton.title = NSLocalizedString(self.isAltering ? "Modify table" : "Create table", comment: "")
 
 		if let title = self.warehouseName {
@@ -236,19 +236,19 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		}
 	}
 
-	override func controlTextDidChange(obj: NSNotification) {
+	override func controlTextDidChange(_ obj: Notification) {
 		self.updateView()
 	}
 
-	func tableViewSelectionDidChange(notification: NSNotification) {
+	func tableViewSelectionDidChange(_ notification: Notification) {
 		self.updateView()
 	}
 
-	@IBAction func tableNameDidChange(sender: NSObject) {
+	@IBAction func tableNameDidChange(_ sender: NSObject) {
 		self.updateView()
 	}
 
-	@IBAction func removeAllColumns(sender: NSObject) {
+	@IBAction func removeAllColumns(_ sender: NSObject) {
 		self.definition.columns.removeAll()
 		self.tableView.reloadData()
 		self.updateView()
@@ -257,8 +257,8 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	override func viewWillAppear() {
 		// Are we going to create a table? Then check if the pasteboard has a table definition for us we can propose
 		if self.definition.columns.isEmpty && (self.warehouse?.hasFixedColumns ?? false) {
-			let pb = NSPasteboard(name: DataDefinition.pasteboardName)
-			if let data = pb.dataForType(DataDefinition.pasteboardName), let def = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? DataDefinition {
+			let pb = NSPasteboard(name: DatasetDefinition.pasteboardName)
+			if let data = pb.data(forType: DatasetDefinition.pasteboardName), let def = NSKeyedUnarchiver.unarchiveObject(with: data) as? DatasetDefinition {
 				self.definition = def
 			}
 		}
@@ -267,6 +267,6 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		self.updateView()
 	}
 
-	func job(job: AnyObject, didProgress: Double) {
+	func job(_ job: AnyObject, didProgress: Double) {
 	}
 }

@@ -2,19 +2,19 @@ import  Cocoa
 import WarpCore
 
 extension Formula {
-	var syntaxColoredFormula: NSAttributedString { get {
-		let regularFont = NSFont.userFixedPitchFontOfSize(NSFont.systemFontSizeForControlSize(NSControlSize.RegularControlSize))!
+	var syntaxColoredFormula: AttributedString { get {
+		let regularFont = NSFont.userFixedPitchFont(ofSize: NSFont.systemFontSize(for: NSControlSize.regular))!
 		
 		let ma = NSMutableAttributedString(string: self.originalText, attributes: [
-			NSForegroundColorAttributeName: NSColor.blackColor(),
+			NSForegroundColorAttributeName: NSColor.black(),
 			NSFontAttributeName: regularFont
 		])
 		
-		for fragment in self.fragments.sort({return $0.length > $1.length}) {
+		for fragment in self.fragments.sorted(isOrderedBefore: {return $0.length > $1.length}) {
 			if fragment.expression is Literal {
 				ma.addAttributes([
 					NSFontAttributeName: regularFont,
-					NSForegroundColorAttributeName: NSColor.blueColor()
+					NSForegroundColorAttributeName: NSColor.blue()
 				], range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Sibling {

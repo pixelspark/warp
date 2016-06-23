@@ -3,11 +3,11 @@ import WarpAI
 import WarpCore
 
 private typealias QBEColumnDescriptives = [Function: Value]
-private typealias QBEDataDescriptives = [Column: QBEColumnDescriptives]
+private typealias QBEDatasetDescriptives = [Column: QBEColumnDescriptives]
 
-private extension Data {
+private extension Dataset {
 	/** Calculate the requested set of descriptives for the given set of columns. */
-	func descriptives(columns: Set<Column>, types: Set<Function>, job: Job, callback: (Fallible<QBEDataDescriptives>) -> ()) {
+	func descriptives(_ columns: Set<Column>, types: Set<Function>, job: Job, callback: (Fallible<QBEDatasetDescriptives>) -> ()) {
 		var aggregators: [Column: Aggregator] = [:]
 		columns.forEach { column in
 			types.forEach { type in
@@ -18,10 +18,10 @@ private extension Data {
 		}
 
 		self.aggregate([:], values: aggregators).raster(job) { result in
-			var descriptives = QBEDataDescriptives()
+			var descriptives = QBEDatasetDescriptives()
 
 			switch result {
-			case .Success(let raster):
+			case .success(let raster):
 				assert(raster.rowCount == 1, "Row count in an aggregation without groups must be 1")
 				let firstRow = raster.rows.first!
 
@@ -33,10 +33,10 @@ private extension Data {
 					}
 				}
 
-				return callback(.Success(descriptives))
+				return callback(.success(descriptives))
 
-			case .Failure(let e):
-				return callback(.Failure(e))
+			case .failure(let e):
+				return callback(.failure(e))
 			}
 		}
 	}
@@ -46,8 +46,8 @@ private extension Data {
 private protocol QBENeuronAllocation {
 	var count: Int { get } // The number of neurons allocated (size of the [Float])
 
-	func toFloats(value: Value) -> [Float]
-	func toValue(floats: [Float]) -> Value
+	func toFloats(_ value: Value) -> [Float]
+	func toValue(_ floats: [Float]) -> Value
 }
 
 private struct QBENormalizedNeuronAllocation: QBENeuronAllocation, CustomStringConvertible {
@@ -60,14 +60,14 @@ private struct QBENormalizedNeuronAllocation: QBENeuronAllocation, CustomStringC
 		self.standardDeviation = standardDeviation
 	}
 
-	func toFloats(value: Value) -> [Float] {
-		let r = value.doubleValue ?? Double.NaN
+	func toFloats(_ value: Value) -> [Float] {
+		let r = value.doubleValue ?? Double.nan
 		return [Float((r - mean) / standardDeviation)]
 	}
 
-	func toValue(floats: [Float]) -> Value {
+	func toValue(_ floats: [Float]) -> Value {
 		assert(floats.count == self.count, "invalid neuron count")
-		return Value.DoubleValue((Double(floats.first!) *  standardDeviation) + mean)
+		return Value.double((Double(floats.first!) *  standardDeviation) + mean)
 	}
 
 	var description: String { return "1*D(\(self.mean), \(self.standardDeviation))" }
@@ -86,18 +86,18 @@ private struct QBELinearNeuronAllocation: QBENeuronAllocation, CustomStringConve
 		self.max = max
 	}
 
-	func toFloats(value: Value) -> [Float] {
+	func toFloats(_ value: Value) -> [Float] {
 		if max == min {
 			return [Float(min)]
 		}
 
-		let r = value.doubleValue ?? Double.NaN
+		let r = value.doubleValue ?? Double.nan
 		return [Float((r - min) / (max - min))]
 	}
 
-	func toValue(floats: [Float]) -> Value {
+	func toValue(_ floats: [Float]) -> Value {
 		assert(floats.count == self.count, "invalid neuron count")
-		return Value.DoubleValue((Double(floats.first!) *  (max - min)) + min)
+		return Value.double((Double(floats.first!) *  (max - min)) + min)
 	}
 
 	var description: String { return "1*L(\(self.min), \(self.max))" }
@@ -113,17 +113,17 @@ private struct QBEDummyNeuronAllocation: QBENeuronAllocation, CustomStringConver
 		self.values = values
 	}
 
-	func toFloats(value: Value) -> [Float] {
+	func toFloats(_ value: Value) -> [Float] {
 		return self.values.map { $0 == value ? Float(1.0) : Float(0.0) }
 	}
 
-	func toValue(floats: [Float]) -> Value {
+	func toValue(_ floats: [Float]) -> Value {
 		assert(floats.count == self.values.count, "invalid vector length")
 
 		var maxValue: Float = 0.0
 		var maxIndex = 0
 
-		for (i, v) in floats.enumerate() {
+		for (i, v) in floats.enumerated() {
 			if v > maxValue {
 				maxValue = v
 				maxIndex = i
@@ -145,7 +145,7 @@ only have two distinct values may for instance obtain two instead of one Float, 
 a dummy. */
 private class QBENeuronAllocator {
 	let columns: [Column]
-	let descriptives: QBEDataDescriptives
+	let descriptives: QBEDatasetDescriptives
 	let neuronCount: Int
 	let allocations: [QBENeuronAllocation]
 
@@ -161,7 +161,7 @@ private class QBENeuronAllocator {
 	
 	If set to 'output', the allocator will allocate neurons with a type that fits the output side of the network.
 	Output neurons take values between 0..1 whereas input neurons can be any value (but are usually normalized). */
-	init(descriptives: QBEDataDescriptives, columns: [Column], maximumNumberofNeurons: Int = 256, output: Bool) {
+	init(descriptives: QBEDatasetDescriptives, columns: [Column], maximumNumberofNeurons: Int = 256, output: Bool) {
 		self.descriptives = descriptives
 		self.columns = columns
 
@@ -213,19 +213,19 @@ private class QBENeuronAllocator {
 		trace("Allocations: \(self.allocations)")
 	}
 
-	private func floatsForRow(row: Row) -> [Float] {
-		return self.columns.enumerate().flatMap { (index, inputColumn) -> [Float] in
-			let v = row[inputColumn] ?? .InvalidValue
+	private func floatsForRow(_ row: Row) -> [Float] {
+		return self.columns.enumerated().flatMap { (index, inputColumn) -> [Float] in
+			let v = row[inputColumn] ?? .invalid
 			let allocation = self.allocations[index]
 			return allocation.toFloats(v)
 		}
 	}
 
-	private func valuesForFloats(row: [Float]) -> [Value] {
+	private func valuesForFloats(_ row: [Float]) -> [Value] {
 		assert(self.neuronCount == row.count, "input vector has the wrong length (\(row.count) versus expected \(self.neuronCount))")
 
 		var offset = 0
-		return self.columns.enumerate().flatMap { (index, inputColumn) -> Value in
+		return self.columns.enumerated().flatMap { (index, inputColumn) -> Value in
 			let allocation = self.allocations[index]
 			let v = Array(row[offset..<(offset + allocation.count)])
 			offset += allocation.count
@@ -241,7 +241,7 @@ private class QBEClassifierModel {
 	let inputs: [Column]
 	let outputs: [Column]
 	let complexity: Double
-	let trainingDescriptives: QBEDataDescriptives
+	let trainingDescriptives: QBEDatasetDescriptives
 
 	static let requiredDescriptiveTypes: [Function] = [.Average, .StandardDeviationPopulation, .Min, .Max, .CountAll, .CountDistinct]
 
@@ -262,7 +262,7 @@ private class QBEClassifierModel {
 	used as input and output for the model, respectively. The `descriptives` object should contain
 	descriptives for each column listed as either input or output. The descriptives should be the
 	Avg, Stdev, Min and Max descriptives. */
-	init(inputs: Set<Column>, outputs: Set<Column>, descriptives: QBEDataDescriptives, complexity: Double) {
+	init(inputs: Set<Column>, outputs: Set<Column>, descriptives: QBEDatasetDescriptives, complexity: Double) {
 		assert(complexity > 0.0, "complexity must be above 0.0")
 
 		// Check if all descriptives are present
@@ -293,12 +293,12 @@ private class QBEClassifierModel {
 			momentum: 0.4,
 			weights: nil,
 			activationFunction: .Default,
-			errorFunction: .Default(average: true)
+			errorFunction: .default(average: true)
 		)
 	}
 
 	/** Classify a single row, returns the set of output values (in order of output columns). */
-	func classify(input: Row) throws -> [Value] {
+	func classify(_ input: Row) throws -> [Value] {
 		let inputValues = self.inputAllocator.floatsForRow(input)
 
 		let outputValues = try self.mutex.tryLocked {
@@ -310,55 +310,55 @@ private class QBEClassifierModel {
 
 	/** Classify multiple rows at once. If `appendOutputToInput` is set to true, the returned set of
 	rows will all each start with the input columns, followed by the output columns. */
-	func classify(inputs: [Row], appendOutputToInput: Bool, callback: (Fallible<[Tuple]>) -> ()) {
+	func classify(_ inputs: [Row], appendOutputToInput: Bool, callback: (Fallible<[Tuple]>) -> ()) {
 		// Clear the reservoir with validation rows, we don't need those anymore as training should have finished now
 		self.validationReservoir.clear()
 		do {
 			let outTuples = try inputs.map { row -> Tuple in
 				return (appendOutputToInput ? row.values : []) + (try self.classify(row))
 			}
-			callback(.Success(outTuples))
+			callback(.success(outTuples))
 		}
 		catch let e as FFNNError {
 			switch e {
-			case .InvalidAnswerError(let s):
-				return callback(.Failure(String(format: "Invalid answer for AI: %@".localized, s)))
-			case .InvalidInputsError(let s):
-				return callback(.Failure(String(format: "Invalid inputs for AI: %@".localized, s)))
-			case .InvalidWeightsError(let s):
-				return callback(.Failure(String(format: "Invalid weights for AI: %@".localized, s)))
+			case .invalidAnswerError(let s):
+				return callback(.failure(String(format: "Invalid answer for AI: %@".localized, s)))
+			case .invalidInputsError(let s):
+				return callback(.failure(String(format: "Invalid inputs for AI: %@".localized, s)))
+			case .invalidWeightsError(let s):
+				return callback(.failure(String(format: "Invalid weights for AI: %@".localized, s)))
 			}
 		}
 		catch let e as NSError {
-			return callback(.Failure(e.localizedDescription))
+			return callback(.failure(e.localizedDescription))
 		}
 	}
 
 	/** Train the model using data from the stream indicated. The `trainingColumns` list indicates */
-	func train(job: Job, stream: Stream, callback: (Fallible<()>) -> ()) {
+	func train(_ job: Job, stream: WarpCore.Stream, callback: (Fallible<()>) -> ()) {
 		if self.inputs.isEmpty {
-			return callback(.Failure("Please make sure there is data to use for classification".localized))
+			return callback(.failure("Please make sure there is data to use for classification".localized))
 		}
 
 		if self.outputs.isEmpty {
-			return callback(.Failure("Please make sure there is a target column for classification".localized))
+			return callback(.failure("Please make sure there is a target column for classification".localized))
 		}
 
 		stream.columns(job) { result in
 			switch result {
-			case .Success(let trainingColumns):
+			case .success(let trainingColumns):
 				self.train(job, stream: stream, trainingColumns: trainingColumns, callback: callback)
 
-			case .Failure(let e):
-				return callback(.Failure(e))
+			case .failure(let e):
+				return callback(.failure(e))
 			}
 		}
 	}
 
-	private func train(job: Job, stream: Stream, trainingColumns: [Column], callback: (Fallible<()>) -> ()) {
+	private func train(_ job: Job, stream: WarpCore.Stream, trainingColumns: [Column], callback: (Fallible<()>) -> ()) {
 		stream.fetch(job) { result, streamStatus in
 			switch result {
-			case .Success(let tuples):
+			case .success(let tuples):
 				let values = tuples.map { tuple -> ([Float], [Float]) in
 					let inputValues = self.inputAllocator.floatsForRow(Row(tuple, columns: trainingColumns))
 					let outputValues = self.outputAllocator.floatsForRow(Row(tuple, columns: trainingColumns))
@@ -372,13 +372,13 @@ private class QBEClassifierModel {
 				do {
 					try self.mutex.tryLocked {
 						for _ in 0..<self.maxIterations {
-							for (index, input) in allInputs.enumerate() {
+							for (index, input) in allInputs.enumerated() {
 								try self.model.update(inputs: input)
 								try self.model.backpropagate(answer: allOutputs[index])
 							}
 							// Calculate the total error of the validation set after each epoch
 							let errorSum: Float = try self.model.error(self.validationReservoir.sample.map { return $0.0 }, expected: self.validationReservoir.sample.map { return $0.1 })
-							if isnan(errorSum) || errorSum < self.errorThreshold {
+							if errorSum.isNaN || errorSum < self.errorThreshold {
 								job.log("BREAK \(errorSum) < \(self.errorThreshold)")
 								break
 							}
@@ -390,30 +390,30 @@ private class QBEClassifierModel {
 				}
 				catch let e as FFNNError {
 					switch e {
-					case .InvalidAnswerError(let s):
-						return callback(.Failure(String(format: "Invalid answer for AI: %@".localized, s)))
-					case .InvalidInputsError(let s):
-						return callback(.Failure(String(format: "Invalid inputs for AI: %@".localized, s)))
-					case .InvalidWeightsError(let s):
-						return callback(.Failure(String(format: "Invalid weights for AI: %@".localized, s)))
+					case .invalidAnswerError(let s):
+						return callback(.failure(String(format: "Invalid answer for AI: %@".localized, s)))
+					case .invalidInputsError(let s):
+						return callback(.failure(String(format: "Invalid inputs for AI: %@".localized, s)))
+					case .invalidWeightsError(let s):
+						return callback(.failure(String(format: "Invalid weights for AI: %@".localized, s)))
 					}
 				}
 				catch let e as NSError {
-					return callback(.Failure(e.localizedDescription))
+					return callback(.failure(e.localizedDescription))
 				}
 
 				// If we have more training data, fetch it
-				if streamStatus == .HasMore {
+				if streamStatus == .hasMore {
 					job.async {
 						self.train(job, stream: stream, trainingColumns: trainingColumns, callback: callback)
 					}
 				}
 				else {
-					return callback(.Success())
+					return callback(.success())
 				}
 
-			case .Failure(let e):
-				return callback(.Failure(e))
+			case .failure(let e):
+				return callback(.failure(e))
 			}
 		}
 	}
@@ -421,28 +421,28 @@ private class QBEClassifierModel {
 
 /** A classifier stream uses one data set to train a classifier model, then uses it to add values to another
 data set. */
-private class QBEClassifierStream: Stream {
-	let data: Stream
-	let training: Stream!
+private class QBEClassifierStream: WarpCore.Stream {
+	let data: WarpCore.Stream
+	let training: WarpCore.Stream!
 	let isTrained: Bool
 
 	private let model: QBEClassifierModel
 	private var trainingFuture: Future<Fallible<()>>! = nil
 	private var dataColumnsFuture: Future<Fallible<[Column]>>! = nil
 
-	init(data: Stream, trainedModel: QBEClassifierModel) {
+	init(data: WarpCore.Stream, trainedModel: QBEClassifierModel) {
 		self.data = data
 		self.isTrained = true
 		self.training = nil
 		self.model = trainedModel
 		self.trainingFuture = Future<Fallible<()>>({ _, cb in
-			return cb(.Success())
+			return cb(.success())
 		})
 		
 		self.dataColumnsFuture = Future<Fallible<[Column]>>(self.data.columns)
 	}
 
-	init(data: Stream, training: Stream, descriptives: QBEDataDescriptives, inputs: Set<Column>, outputs: Set<Column>, complexity: Double) {
+	init(data: WarpCore.Stream, training: WarpCore.Stream, descriptives: QBEDatasetDescriptives, inputs: Set<Column>, outputs: Set<Column>, complexity: Double) {
 		self.data = data
 		self.isTrained = false
 		self.training = training
@@ -453,63 +453,63 @@ private class QBEClassifierStream: Stream {
 			// Build a model based on the training data
 			self.model.train(job, stream: self.training) { result in
 				switch result {
-				case .Success():
-					return cb(.Success())
+				case .success():
+					return cb(.success())
 
-				case .Failure(let e):
-					return cb(.Failure(e))
+				case .failure(let e):
+					return cb(.failure(e))
 				}
 			}
 		})
 	}
 
-	private func fetch(job: Job, consumer: Sink) {
+	private func fetch(_ job: Job, consumer: Sink) {
 		// Make sure the model is trained before starting to classify result
 		self.trainingFuture.get(job) { result in
 			switch result {
-			case .Success:
+			case .success:
 				self.dataColumnsFuture.get(job) { result in
 					switch result {
-					case .Success(let dataCols):
+					case .success(let dataCols):
 						self.classify(job, columns: dataCols, consumer: consumer)
 
-					case .Failure(let e):
-						return consumer(.Failure(e), .Finished)
+					case .failure(let e):
+						return consumer(.failure(e), .finished)
 					}
 				}
 
-			case .Failure(let e):
-				return consumer(.Failure(e), .Finished)
+			case .failure(let e):
+				return consumer(.failure(e), .finished)
 			}
 		}
 	}
 
 	/** Fetch a batch of rows from the source data stream and let the model calculate outputs. */
-	private func classify(job: Job, columns: [Column], consumer: (Fallible<[Tuple]>, StreamStatus) -> ()) {
+	private func classify(_ job: Job, columns: [Column], consumer: (Fallible<[Tuple]>, StreamStatus) -> ()) {
 		self.data.fetch(job) { result, streamStatus in
 			switch result {
-			case .Success(let tuples):
+			case .success(let tuples):
 				self.model.classify(tuples.map { return Row($0, columns: columns) }, appendOutputToInput: true) { result in
 					switch result {
-					case .Success(let outTuples):
-						return consumer(.Success(outTuples), streamStatus)
+					case .success(let outTuples):
+						return consumer(.success(outTuples), streamStatus)
 
-					case .Failure(let e):
-						return consumer(.Failure(e), .Finished)
+					case .failure(let e):
+						return consumer(.failure(e), .finished)
 					}
 				}
 
-			case .Failure(let e):
-				return consumer(.Failure(e), .Finished)
+			case .failure(let e):
+				return consumer(.failure(e), .finished)
 			}
 		}
 	}
 
-	private func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		return callback(.Success(self.model.inputs + self.model.outputs))
+	private func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+		return callback(.success(self.model.inputs + self.model.outputs))
 	}
 
-	private func clone() -> Stream {
+	private func clone() -> WarpCore.Stream {
 		if isTrained {
 			return QBEClassifierStream(data: data, trainedModel: model)
 		}
@@ -536,7 +536,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 
 	required init(coder aDecoder: NSCoder) {
 		right = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "right")
-		self.complexity = aDecoder.decodeDoubleForKey("complexity")
+		self.complexity = aDecoder.decodeDouble(forKey: "complexity")
 		if self.complexity <= 0.0 {
 			self.complexity = 1.0
 		}
@@ -547,10 +547,10 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return true
 	}
 
-	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(right, forKey: "right")
-		coder.encodeDouble(self.complexity, forKey: "complexity")
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		coder.encode(right, forKey: "right")
+		coder.encode(self.complexity, forKey: "complexity")
+		super.encode(with: coder)
 	}
 
 	var recursiveDependencies: Set<QBEDependency> {
@@ -567,7 +567,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return []
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: "Evaluate data using AI with complexity [#]".localized,
 			QBESentenceTextInput(value: "\(self.complexity)", callback: { (nc) -> (Bool) in
 				if let d = Double(nc) {
@@ -579,109 +579,109 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		)
 	}
 
-	private func classify(data: Data, withTrainingData trainingData: Data, job: Job, callback: (Fallible<Data>) -> ()) {
+	private func classify(_ data: Dataset, withTrainingDataset trainingDataset: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
 		let columnsJob = Job(parent: job)
 		let dataColumnsJob = Job(parent: job)
 		let descriptivesJob = Job(parent: job)
 
-		trainingData.columns(columnsJob) { result in
+		trainingDataset.columns(columnsJob) { result in
 			switch result {
-			case .Success(let trainingCols):
+			case .success(let trainingCols):
 				data.columns(dataColumnsJob) { result in
 					switch result {
-					case .Success(let dataCols):
-						let inputCols = Set(dataCols).intersect(trainingCols)
-						let outputCols = Set(trainingCols).subtract(dataCols)
+					case .success(let dataCols):
+						let inputCols = Set(dataCols).intersection(trainingCols)
+						let outputCols = Set(trainingCols).subtracting(dataCols)
 						let allCols = inputCols.union(outputCols)
 
 						// Fetch descriptives of training set to be used for normalization
-						trainingData.descriptives(allCols, types: Set(QBEClassifierModel.requiredDescriptiveTypes), job: descriptivesJob) { result in
+						trainingDataset.descriptives(allCols, types: Set(QBEClassifierModel.requiredDescriptiveTypes), job: descriptivesJob) { result in
 							switch result {
-							case .Success(let descriptives):
+							case .success(let descriptives):
 								// TODO save model here
-								let classifierStream = QBEClassifierStream(data: data.stream(), training: trainingData.stream(), descriptives: descriptives, inputs: inputCols, outputs: outputCols, complexity: self.complexity)
-								return callback(.Success(StreamData(source: classifierStream)))
+								let classifierStream = QBEClassifierStream(data: data.stream(), training: trainingDataset.stream(), descriptives: descriptives, inputs: inputCols, outputs: outputCols, complexity: self.complexity)
+								return callback(.success(StreamDataset(source: classifierStream)))
 
-							case .Failure(let e):
-								return callback(.Failure(e))
+							case .failure(let e):
+								return callback(.failure(e))
 							}
 						}
 
-					case .Failure(let e):
-						return callback(.Failure(e))
+					case .failure(let e):
+						return callback(.failure(e))
 					}
 				}
 
-			case .Failure(let e):
-				return callback(.Failure(e))
+			case .failure(let e):
+				return callback(.failure(e))
 			}
 		}
 	}
 
-	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		let leftJob = Job(parent: job)
 		let rightJob = Job(parent: job)
 		let classifyJob = Job(parent: job)
 
 		if let p = previous {
-			p.fullData(leftJob) { leftData in
-				switch leftData {
-				case .Success(let ld):
+			p.fullDataset(leftJob) { leftDataset in
+				switch leftDataset {
+				case .success(let ld):
 					if let r = self.right, let h = r.head {
-						h.fullData(rightJob) { rightData in
-							switch rightData {
-							case .Success(let rd):
-								return self.classify(ld, withTrainingData: rd, job: classifyJob, callback: callback)
+						h.fullDataset(rightJob) { rightDataset in
+							switch rightDataset {
+							case .success(let rd):
+								return self.classify(ld, withTrainingDataset: rd, job: classifyJob, callback: callback)
 
-							case .Failure(_):
-								return callback(rightData)
+							case .failure(_):
+								return callback(rightDataset)
 							}
 						}
 					}
 					else {
-						callback(.Failure("The training data set was not found.".localized))
+						callback(.failure("The training data set was not found.".localized))
 					}
 
-				case .Failure(let e):
-					callback(.Failure(e))
+				case .failure(let e):
+					callback(.failure(e))
 				}
 			}
 		}
 		else {
-			callback(.Failure("The source data set was not found".localized))
+			callback(.failure("The source data set was not found".localized))
 		}
 	}
 
-	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
 		if let p = previous {
-			p.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) { leftData in
-				switch leftData {
-				case .Success(let ld):
+			p.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) { leftDataset in
+				switch leftDataset {
+				case .success(let ld):
 					if let r = self.right, let h = r.head {
-						h.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightData) -> () in
-							switch rightData {
-							case .Success(let rd):
-								return self.classify(ld, withTrainingData: rd, job: job, callback: callback)
+						h.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightDataset) -> () in
+							switch rightDataset {
+							case .success(let rd):
+								return self.classify(ld, withTrainingDataset: rd, job: job, callback: callback)
 
-							case .Failure(_):
-								callback(rightData)
+							case .failure(_):
+								callback(rightDataset)
 							}
 						})
 					}
 					else {
-						callback(.Failure("The training data set was not found.".localized))
+						callback(.failure("The training data set was not found.".localized))
 					}
-				case .Failure(_):
-					callback(leftData)
+				case .failure(_):
+					callback(leftDataset)
 				}
 			}
 		}
 		else {
-			callback(.Failure("The source data set was not found".localized))
+			callback(.failure("The source data set was not found".localized))
 		}
 	}
 
-	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
 		fatalError("QBEClassifierStep.apply should not be used")
 	}
 }

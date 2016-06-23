@@ -1,22 +1,20 @@
 import Cocoa
 
 @objc protocol QBEOutletDropTarget: NSObjectProtocol {
-	func receiveDropFromOutlet(draggedObject: AnyObject?)
+	func receiveDropFromOutlet(_ draggedObject: AnyObject?)
 }
 
 private extension NSPasteboard {
-	var pasteURL: NSURL? { get {
-		var pasteboardRef: Unmanaged<Pasteboard>? = nil
+	var pasteURL: URL? { get {
+		var pasteboardRef: Pasteboard? = nil
 		PasteboardCreate(self.name, &pasteboardRef)
 		if let realRef = pasteboardRef {
-			PasteboardSynchronize(realRef.takeUnretainedValue())
-			var pasteURL: Unmanaged<CFURL>? = nil
-			PasteboardCopyPasteLocation(realRef.takeUnretainedValue(), &pasteURL)
-			realRef.release()
+			PasteboardSynchronize(realRef)
+			var pasteURL: CFURL? = nil
+			PasteboardCopyPasteLocation(realRef, &pasteURL)
 
 			if let realURL = pasteURL {
-				let url = realURL.takeUnretainedValue() as NSURL
-				realURL.release()
+				let url = realURL as URL
 				return url
 			}
 		}
@@ -35,33 +33,33 @@ class QBEOutletDropView: NSView {
 	
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
-		registerForDraggedTypes([QBEOutletView.dragType])
+		register(forDraggedTypes: [QBEOutletView.dragType])
 	}
 
 	required init?(coder: NSCoder) {
 		super.init(coder: coder)
 	}
 	
-	override func draggingEntered(sender: NSDraggingInfo) -> NSDragOperation {
+	override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
 		isDraggingOver = true
-		setNeedsDisplayInRect(self.bounds)
-		return delegate != nil ? NSDragOperation.Private : NSDragOperation.None
+		setNeedsDisplay(self.bounds)
+		return delegate != nil ? NSDragOperation.private : NSDragOperation()
 	}
 	
-	override func draggingExited(sender: NSDraggingInfo?) {
+	override func draggingExited(_ sender: NSDraggingInfo?) {
 		isDraggingOver = false
-		setNeedsDisplayInRect(self.bounds)
+		setNeedsDisplay(self.bounds)
 	}
 	
-	override func draggingEnded(sender: NSDraggingInfo?) {
+	override func draggingEnded(_ sender: NSDraggingInfo?) {
 		isDraggingOver = false
-		setNeedsDisplayInRect(self.bounds)
+		setNeedsDisplay(self.bounds)
 	}
 	
-	override func performDragOperation(draggingInfo: NSDraggingInfo) -> Bool {
+	override func performDragOperation(_ draggingInfo: NSDraggingInfo) -> Bool {
 		let pboard = draggingInfo.draggingPasteboard()
 		
-		if let _ = pboard.dataForType(QBEOutletView.dragType) {
+		if let _ = pboard.data(forType: QBEOutletView.dragType) {
 			if let ov = draggingInfo.draggingSource() as? QBEOutletView {
 				delegate?.receiveDropFromOutlet(ov.draggedObject)
 				return true
@@ -70,16 +68,16 @@ class QBEOutletDropView: NSView {
 		return false
 	}
 	
-	override func hitTest(aPoint: NSPoint) -> NSView? {
+	override func hitTest(_ aPoint: NSPoint) -> NSView? {
 		return nil
 	}
 	
-	override func drawRect(dirtyRect: NSRect) {
+	override func draw(_ dirtyRect: NSRect) {
 		if isDraggingOver {
-			NSColor.blueColor().colorWithAlphaComponent(0.15).set()
+			NSColor.blue().withAlphaComponent(0.15).set()
 		}
 		else {
-			NSColor.clearColor().set()
+			NSColor.clear().set()
 		}
 		
 		NSRectFill(dirtyRect)
@@ -93,8 +91,8 @@ QBELaceView draws the actual 'lace' between source and dragging target when drag
 QBELaceWindow, which overlays both source and target point. 
 */
 private class QBELaceView: NSView {
-	weak var source: QBEOutletView? { didSet { setNeedsDisplayInRect(self.bounds) } }
-	var targetScreenPoint: CGPoint = CGPointMake(0, 0) { didSet { setNeedsDisplayInRect(self.bounds) } }
+	weak var source: QBEOutletView? { didSet { setNeedsDisplay(self.bounds) } }
+	var targetScreenPoint: CGPoint = CGPoint(x: 0, y: 0) { didSet { setNeedsDisplay(self.bounds) } }
 	
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
@@ -106,36 +104,36 @@ private class QBELaceView: NSView {
 	
 	private var sourceScreenRect: CGRect? { get {
 		if let s = source {
-			let frameInWindow = s.convertRect(s.bounds, toView: nil)
-			return s.window?.convertRectToScreen(frameInWindow)
+			let frameInWindow = s.convert(s.bounds, to: nil)
+			return s.window?.convertToScreen(frameInWindow)
 		}
 		return nil
 	} }
 	
-	private override func hitTest(aPoint: NSPoint) -> NSView? {
+	private override func hitTest(_ aPoint: NSPoint) -> NSView? {
 		return nil
 	}
 	
-	private override func drawRect(dirtyRect: NSRect) {
-		if let context = NSGraphicsContext.currentContext()?.CGContext {
-			CGContextSaveGState(context)
+	private override func draw(_ dirtyRect: NSRect) {
+		if let context = NSGraphicsContext.current()?.cgContext {
+			context.saveGState()
 			
 			if let sourceRect = sourceScreenRect, w = self.window {
 				// Translate screen point to point in this view
-				let sourcePointWindow = w.convertRectFromScreen(sourceRect).center
-				let sourcePointView = self.convertPoint(sourcePointWindow, fromView: nil)
-				let targetPointWindow = w.convertRectFromScreen(CGRectMake(targetScreenPoint.x, targetScreenPoint.y, 1, 1)).origin
-				let targetPointView = self.convertPoint(targetPointWindow, fromView: nil)
+				let sourcePointWindow = w.convertFromScreen(sourceRect).center
+				let sourcePointView = self.convert(sourcePointWindow, from: nil)
+				let targetPointWindow = w.convertFromScreen(CGRect(x: targetScreenPoint.x, y: targetScreenPoint.y, width: 1, height: 1)).origin
+				let targetPointView = self.convert(targetPointWindow, from: nil)
 				
 				// Draw a line
-				CGContextMoveToPoint(context, sourcePointView.x, sourcePointView.y)
-				CGContextAddLineToPoint(context, targetPointView.x, targetPointView.y)
-				NSColor.blueColor().setStroke()
-				CGContextSetLineWidth(context, 3.0)
-				CGContextStrokePath(context)
+				context.moveTo(x: sourcePointView.x, y: sourcePointView.y)
+				context.addLineTo(x: targetPointView.x, y: targetPointView.y)
+				NSColor.blue().setStroke()
+				context.setLineWidth(3.0)
+				context.strokePath()
 			}
 			
-			CGContextRestoreGState(context)
+			context.restoreGState()
 		}
 	}
 }
@@ -147,17 +145,17 @@ and dragging target (much like in Interface Builder)
 */
 private class QBELaceWindow: NSWindow {
 	weak var source: QBEOutletView? { didSet { updateGeometry() } }
-	var targetScreenPoint: CGPoint = CGPointMake(0, 0) { didSet { updateGeometry() } }
+	var targetScreenPoint: CGPoint = CGPoint(x: 0, y: 0) { didSet { updateGeometry() } }
 	private var laceView: QBELaceView
 	
 	init() {
 		laceView = QBELaceView(frame: NSZeroRect)
-		super.init(contentRect: NSZeroRect, styleMask: NSBorderlessWindowMask, backing: NSBackingStoreType.Buffered, defer: false)
-		backgroundColor = NSColor.clearColor()
-		releasedWhenClosed = false
-		opaque = false
-		movableByWindowBackground = false
-		excludedFromWindowsMenu = true
+		super.init(contentRect: NSZeroRect, styleMask: NSBorderlessWindowMask, backing: NSBackingStoreType.buffered, defer: false)
+		backgroundColor = NSColor.clear()
+		isReleasedWhenClosed = false
+		isOpaque = false
+		isMovableByWindowBackground = false
+		isExcludedFromWindowsMenu = true
 		self.hasShadow = true
 		self.acceptsMouseMovedEvents = false
 		laceView.frame = self.contentLayoutRect
@@ -165,41 +163,37 @@ private class QBELaceWindow: NSWindow {
 		unregisterDraggedTypes()
 		ignoresMouseEvents = true
 	}
-
-	required init?(coder: NSCoder) {
-	    fatalError("init(coder:) has not been implemented")
-	}
 	
 	var sourceScreenFrame: CGRect? { get {
 		if let s = source {
-			let frameInWindow = s.convertRect(s.bounds, toView: nil)
-			return s.window?.convertRectToScreen(frameInWindow)
+			let frameInWindow = s.convert(s.bounds, to: nil)
+			return s.window?.convertToScreen(frameInWindow)
 		}
 		return nil
 	} }
 	
 	private func updateGeometry() {
 		if let s = source, frameInScreen = sourceScreenFrame where targetScreenPoint.x.isFinite && targetScreenPoint.y.isFinite {
-			let rect = CGRectMake(
-				min(frameInScreen.center.x, targetScreenPoint.x),
-				min(frameInScreen.center.y, targetScreenPoint.y),
-				max(frameInScreen.center.x, targetScreenPoint.x) - min(frameInScreen.center.x, targetScreenPoint.x),
-				max(frameInScreen.center.y, targetScreenPoint.y) - min(frameInScreen.center.y, targetScreenPoint.y)
+			let rect = CGRect(
+				x: min(frameInScreen.center.x, targetScreenPoint.x),
+				y: min(frameInScreen.center.y, targetScreenPoint.y),
+				width: max(frameInScreen.center.x, targetScreenPoint.x) - min(frameInScreen.center.x, targetScreenPoint.x),
+				height: max(frameInScreen.center.y, targetScreenPoint.y) - min(frameInScreen.center.y, targetScreenPoint.y)
 			)
-			self.setFrame(CGRectInset(rect, -s.bounds.size.width, -s.bounds.size.height), display: true, animate: false)
+			self.setFrame(rect.insetBy(dx: -s.bounds.size.width, dy: -s.bounds.size.height), display: true, animate: false)
 		}
 		
 		laceView.source = source
 		laceView.targetScreenPoint = targetScreenPoint
-		laceView.setNeedsDisplayInRect(laceView.bounds)
+		laceView.setNeedsDisplay(laceView.bounds)
 	}
 }
 
 @objc protocol QBEOutletViewDelegate: NSObjectProtocol {
-	func outletViewWillStartDragging(view: QBEOutletView)
-	func outletViewDidEndDragging(view: QBEOutletView)
-	optional func outletViewWasClicked(view: QBEOutletView)
-	func outletView(view: QBEOutletView, didDropAtURL: NSURL)
+	func outletViewWillStartDragging(_ view: QBEOutletView)
+	func outletViewDidEndDragging(_ view: QBEOutletView)
+	@objc optional func outletViewWasClicked(_ view: QBEOutletView)
+	func outletView(_ view: QBEOutletView, didDropAtURL: URL)
 }
 
 /** 
@@ -211,35 +205,35 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 
 	@IBInspectable var progress: Double = 1.0 { didSet {
 		assert(progress >= 0.0 && progress <= 1.0, "progress must be [0,1]")
-		setNeedsDisplayInRect(self.bounds)
+		setNeedsDisplay(self.bounds)
 	} }
-	@IBInspectable var enabled: Bool = true { didSet { setNeedsDisplayInRect(self.bounds) } }
-	@IBInspectable var connected: Bool = false { didSet { setNeedsDisplayInRect(self.bounds) } }
+	@IBInspectable var enabled: Bool = true { didSet { setNeedsDisplay(self.bounds) } }
+	@IBInspectable var connected: Bool = false { didSet { setNeedsDisplay(self.bounds) } }
 	weak var delegate: QBEOutletViewDelegate? = nil
 	var draggedObject: AnyObject? = nil
 	
 	private var dragLineWindow: QBELaceWindow?
 	
-	override func mouseDown(theEvent: NSEvent) {
+	override func mouseDown(_ theEvent: NSEvent) {
 		if enabled {
 			delegate?.outletViewWillStartDragging(self)
 			
 			if draggedObject != nil {
 				let pboardItem = NSPasteboardItem()
-				pboardItem.setData("[dragged outlet]".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false), forType: QBEOutletView.dragType)
+				pboardItem.setData("[dragged outlet]".data(using: String.Encoding.utf8, allowLossyConversion: false), forType: QBEOutletView.dragType)
 
-				/* When this item is dragged to a finder window, promise to write a CSV file there. Our provideDataForType 
+				/* When this item is dragged to a finder window, promise to write a CSV file there. Our provideDatasetForType 
 				function is called as soon as the system actually wants us to write that file. */
 				pboardItem.setDataProvider(self, forTypes: [kPasteboardTypeFileURLPromise])
 				pboardItem.setString(kUTTypeCommaSeparatedText as String, forType: kPasteboardTypeFilePromiseContent)
 
 				let dragItem = NSDraggingItem(pasteboardWriter: pboardItem)
-				self.beginDraggingSessionWithItems([dragItem] as [NSDraggingItem], event: theEvent, source: self)
+				self.beginDraggingSession(with: [dragItem] as [NSDraggingItem], event: theEvent, source: self)
 			}
 		}
 	}
 
-	func pasteboard(pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: String) {
+	func pasteboard(_ pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: String) {
 		if type == kPasteboardTypeFileURLPromise {
 			// pasteURL is the directory to write something to. Now is a good time to pop up an export dialog
 			if let pu = pasteboard?.pasteURL {
@@ -249,15 +243,15 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 		}
 	}
 	
-	override func drawRect(dirtyRect: NSRect) {
-		if let context = NSGraphicsContext.currentContext()?.CGContext {
-			CGContextSaveGState(context)
+	override func draw(_ dirtyRect: NSRect) {
+		if let context = NSGraphicsContext.current()?.cgContext {
+			context.saveGState()
 			
 			// Largest square that fits in this view
 			let minDimension = min(self.bounds.size.width, self.bounds.size.height)
-			let square = CGRectInset(CGRectMake((self.bounds.size.width - minDimension) / 2, (self.bounds.size.height - minDimension) / 2, minDimension, minDimension), 3.0, 3.0)
+			let square = CGRect(x: (self.bounds.size.width - minDimension) / 2, y: (self.bounds.size.height - minDimension) / 2, width: minDimension, height: minDimension).insetBy(dx: 3.0, dy: 3.0)
 			
-			if !isinf(square.origin.x) && !isinf(square.origin.y) {
+			if !square.origin.x.isInfinite && !square.origin.y.isInfinite {
 				// Draw the outer ring (always visible, dimmed if no dragging item set)
 				let isProgressing = self.progress < 1.0
 				let isDragging = (draggedObject != nil)
@@ -280,70 +274,70 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 				}
 
 				baseColor.setStroke()
-				CGContextSetLineWidth(context, 3.0)
+				context.setLineWidth(3.0)
 
-				let ring = CGPathCreateMutable()
-				var t = CGAffineTransformMakeTranslation(square.center.x, square.center.y)
+				let ring = CGMutablePath()
+				var t = CGAffineTransform(translationX: square.center.x, y: square.center.y)
 				let progress = self.enabled ? 1.0 : self.progress
 				let offset: CGFloat = 3.14159 / 2.0
-				CGPathAddArc(ring, &t, 0, 0, square.size.width / 2, offset + CGFloat(2.0 * 3.141459 * (1.0 - progress)), offset + CGFloat(2.0 * 3.14159), false)
-				CGContextAddPath(context, ring)
-				CGContextStrokePath(context)
+				ring.addArc(&t, x: 0, y: 0, radius: square.size.width / 2, startAngle: offset + CGFloat(2.0 * 3.141459 * (1.0 - progress)), endAngle: offset + CGFloat(2.0 * 3.14159), clockwise: false)
+				context.addPath(ring)
+				context.strokePath()
 
 				//CGContextStrokeEllipseInRect(context, square)
 				
 				// Draw the inner circle (if the outlet is connected)
 				if connected || dragLineWindow !== nil {
 					if dragLineWindow !== nil {
-						NSColor.blueColor().setFill()
+						NSColor.blue().setFill()
 					}
 					else {
 						baseColor.setFill()
 					}
-					let connectedSquare = CGRectInset(square, 3.0, 3.0)
-					CGContextFillEllipseInRect(context, connectedSquare)
+					let connectedSquare = square.insetBy(dx: 3.0, dy: 3.0)
+					context.fillEllipse(in: connectedSquare)
 				}
 			}
 			
-			CGContextRestoreGState(context)
+			context.restoreGState()
 		}
 	}
 	
 	override func updateTrackingAreas() {
 		resetCursorRects()
-		addCursorRect(self.bounds, cursor: NSCursor.openHandCursor())
-		self.window?.invalidateCursorRectsForView(self)
+		addCursorRect(self.bounds, cursor: NSCursor.openHand())
+		self.window?.invalidateCursorRects(for: self)
 	}
 	
-	func draggingSession(session: NSDraggingSession, sourceOperationMaskForDraggingContext context: NSDraggingContext) -> NSDragOperation {
-		return NSDragOperation.Copy
+	func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
+		return NSDragOperation.copy
 	}
 	
-	func draggingSession(session: NSDraggingSession, willBeginAtPoint screenPoint: NSPoint) {
+	func draggingSession(_ session: NSDraggingSession, willBeginAt screenPoint: NSPoint) {
 		dragLineWindow = QBELaceWindow()
 		dragLineWindow!.source = self
 		dragLineWindow?.targetScreenPoint = screenPoint
 		dragLineWindow!.orderFront(nil)
-		setNeedsDisplayInRect(self.bounds)
-		NSCursor.closedHandCursor().push()
+		setNeedsDisplay(self.bounds)
+		NSCursor.closedHand().push()
 	}
 	
-	func draggingSession(session: NSDraggingSession, movedToPoint screenPoint: NSPoint) {
+	func draggingSession(_ session: NSDraggingSession, movedTo screenPoint: NSPoint) {
 		dragLineWindow?.targetScreenPoint = screenPoint
 		dragLineWindow?.update()
 	}
 	
-	func draggingSession(session: NSDraggingSession, endedAtPoint screenPoint: NSPoint, operation: NSDragOperation) {
+	func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
 		defer {
 			dragLineWindow?.close()
 			dragLineWindow = nil
-			setNeedsDisplayInRect(self.bounds)
-			NSCursor.closedHandCursor().pop()
+			setNeedsDisplay(self.bounds)
+			NSCursor.closedHand().pop()
 		}
 
-		let screenRect = CGRectMake(screenPoint.x, screenPoint.y, 0, 0)
-		if let windowRect = self.window?.convertRectFromScreen(screenRect) {
-			let viewRect = self.convertRect(windowRect, fromView: nil)
+		let screenRect = CGRect(x: screenPoint.x, y: screenPoint.y, width: 0, height: 0)
+		if let windowRect = self.window?.convertFromScreen(screenRect) {
+			let viewRect = self.convert(windowRect, from: nil)
 			if self.bounds.contains(viewRect.origin) {
 				self.delegate?.outletViewWasClicked?(self)
 				return

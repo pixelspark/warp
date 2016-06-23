@@ -23,9 +23,9 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return true
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(right, forKey: "right")
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		coder.encode(right, forKey: "right")
+		super.encode(with: coder)
 	}
 	
 	var recursiveDependencies: Set<QBEDependency> {
@@ -42,35 +42,35 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return []
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceText(NSLocalizedString("Cloned data", comment: ""))
 		])
 	}
 	
-	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		if let r = self.right, let h = r.head {
-			h.fullData(job, callback: callback)
+			h.fullDataset(job, callback: callback)
 		}
 		else {
-			callback(.Failure(NSLocalizedString("Clone step cannot find the original to clone from.", comment: "")))
+			callback(.failure(NSLocalizedString("Clone step cannot find the original to clone from.", comment: "")))
 		}
 	}
 	
-	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
 		if let r = self.right, let h = r.head {
-			h.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
+			h.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
 		}
 		else {
-			callback(.Failure(NSLocalizedString("Clone step cannot find the original to clone from.", comment: "")))
+			callback(.failure(NSLocalizedString("Clone step cannot find the original to clone from.", comment: "")))
 		}
 	}
 
-	override var mutableData: MutableData? {
-		return self.right?.head?.mutableData
+	override var mutableDataset: MutableDataset? {
+		return self.right?.head?.mutableDataset
 	}
 	
-	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
 		fatalError("QBECloneStep.apply should not be used")
 	}
 }

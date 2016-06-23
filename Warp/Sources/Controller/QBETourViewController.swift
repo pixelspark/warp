@@ -56,26 +56,26 @@ class QBETourViewController: NSViewController {
 	@IBOutlet var nextButton: NSButton!
 	@IBOutlet var skipButton: NSButton!
 
-	private func nextStep(animated: Bool) {
+	private func nextStep(_ animated: Bool) {
 		if animated {
 			let tr = CATransition()
 			tr.duration = 0.3
 			tr.type = kCATransitionFade
 			tr.subtype = kCATransitionFromRight
 			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-			animatedView.layer?.addAnimation(tr, forKey: kCATransition)
+			animatedView.layer?.add(tr, forKey: kCATransition)
 		}
 		self.currentStep += 1
 		updateView()
 	}
 
-	@IBAction func endTour(sender: NSObject) {
+	@IBAction func endTour(_ sender: NSObject) {
 		if let d = document, let ownController = self.view.window?.windowController {
 			d.removeWindowController(ownController)
 			d.makeWindowControllers()
 
 			if let w = d.windowControllers.first?.window, let ownWindow = self.view.window {
-				w.setFrame(ownWindow.convertRectToScreen(self.view.convertRect(self.imageView.frame, toView: nil)), display: false)
+				w.setFrame(ownWindow.convertToScreen(self.view.convert(self.imageView.frame, to: nil)), display: false)
 			}
 			d.showWindows()
 			self.document = nil
@@ -84,8 +84,8 @@ class QBETourViewController: NSViewController {
 	}
 
 	private func updateView() {
-		pageLabel.hidden = currentStep == (tourItemCount) || currentStep == 0
-		skipButton.hidden = pageLabel.hidden
+		pageLabel.isHidden = currentStep == (tourItemCount) || currentStep == 0
+		skipButton.isHidden = pageLabel.isHidden
 
 		if currentStep == 0 {
 			nextButton.title = NSLocalizedString("Okay, show me!", comment: "")
@@ -99,11 +99,11 @@ class QBETourViewController: NSViewController {
 		
 		pageLabel.stringValue = currentStep > 0 ? String(format:NSLocalizedString("Step %d of %d", comment: ""), currentStep, tourItemCount - 1) : ""
 		imageView.image = NSImage(named: "\(tourAssetPrefix)\(self.currentStep)")
-		textView.stringValue = NSLocalizedString("\(tourStringsPrefix).\(currentStep).title", tableName: self.tourStringsTable, bundle: NSBundle.mainBundle(), value: "", comment: "")
-		subTextView.stringValue = NSLocalizedString("\(tourStringsPrefix).\(currentStep).description", tableName: self.tourStringsTable, bundle: NSBundle.mainBundle(), value: "", comment: "")
+		textView.stringValue = NSLocalizedString("\(tourStringsPrefix).\(currentStep).title", tableName: self.tourStringsTable, bundle: Bundle.main(), value: "", comment: "")
+		subTextView.stringValue = NSLocalizedString("\(tourStringsPrefix).\(currentStep).description", tableName: self.tourStringsTable, bundle: Bundle.main(), value: "", comment: "")
 	}
 
-	@IBAction func next(sender: NSObject) {
+	@IBAction func next(_ sender: NSObject) {
 		if currentStep < tourItemCount {
 			nextStep(true)
 		}
@@ -116,8 +116,8 @@ class QBETourViewController: NSViewController {
 		self.currentStep = 0
 		self.view.window?.center()
 		self.view.window?.titlebarAppearsTransparent = true
-		self.view.window?.titleVisibility = NSWindowTitleVisibility.Hidden
-		self.view.window?.movableByWindowBackground = true
+		self.view.window?.titleVisibility = NSWindowTitleVisibility.hidden
+		self.view.window?.isMovableByWindowBackground = true
 		updateView()
 	}
 

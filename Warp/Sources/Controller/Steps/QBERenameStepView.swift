@@ -20,9 +20,9 @@ internal class QBERenameStepView: QBEConfigurableStepViewControllerFor<QBERename
 	}
 	
 	private func updateColumns() {
-		let job = Job(.UserInitiated)
+		let job = Job(.userInitiated)
 		if let previous = step.previous {
-			previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
+			previous.exampleDataset(job, maxInputRows: 100, maxOutputRows: 100) { (data) -> () in
 				data.maybe({ $0.columns(job) {(columns) in
 					columns.maybe {(cns) in
 						asyncMain {
@@ -43,24 +43,24 @@ internal class QBERenameStepView: QBEConfigurableStepViewControllerFor<QBERename
 		tableView?.reloadData()
 	}
 	
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return columns.count
 	}
 	
-	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
 		if let identifier = tableColumn?.identifier where identifier == "new" {
 			let name = columns[row]
 			if let newName = object as? String where !newName.isEmpty {
 				step.renames[name] = Column(newName)
 			}
 			else {
-				step.renames.removeValueForKey(name)
+				step.renames.removeValue(forKey: name)
 			}
 		}
 		self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 	
-	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if let tc = tableColumn {
 			if (tc.identifier ?? "") == "old" {
 				return columns[row].name

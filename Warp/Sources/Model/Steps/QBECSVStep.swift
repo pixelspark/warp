@@ -1,28 +1,28 @@
 import Foundation
 import WarpCore
 
-final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
+final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 	let parser: CHCSVParser
-	let url: NSURL
+	let url: URL
 
 	private var columns: [Column] = []
 	private var finished: Bool = false
 	private var templateRow: [String?] = []
 	private var row: [String?] = []
 	private var rows: [[String?]] = []
-	private var queue: dispatch_queue_t
+	private var queue: DispatchQueue
 	private var rowsRead: Int = 0
 	private var totalBytes: Int = 0
 	
 	let hasHeaders: Bool
 	let fieldSeparator: unichar
-	let locale: Locale?
+	let locale: Language?
 
 	#if DEBUG
-	private var totalTime: NSTimeInterval = 0.0
+	private var totalTime: TimeInterval = 0.0
 	#endif
 	
-	init(url: NSURL, fieldSeparator: unichar, hasHeaders: Bool, locale: Locale?) {
+	init(url: URL, fieldSeparator: unichar, hasHeaders: Bool, locale: Language?) {
 		self.url = url
 		self.hasHeaders = hasHeaders
 		self.fieldSeparator = fieldSeparator
@@ -31,8 +31,8 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 		// Get total file size
 		if let p = url.path {
 			do {
-				let attributes = try NSFileManager.defaultManager().attributesOfItemAtPath(p)
-				totalBytes = (attributes[NSFileSize] as? NSNumber)?.integerValue ?? 0
+				let attributes = try FileManager.default().attributesOfItem(atPath: p)
+				totalBytes = (attributes[FileAttributeKey.size.rawValue] as? NSNumber)?.intValue ?? 0
 			}
 			catch {
 				totalBytes = 0
@@ -40,9 +40,9 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 		}
 		
 		// Create a queue and initialize the parser
-		queue = dispatch_queue_create("nl.pixelspark.qbe.QBECSVStreamQueue", DISPATCH_QUEUE_SERIAL)
-		dispatch_set_target_queue(queue, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
-		parser = CHCSVParser(contentsOfDelimitedURL: url as NSURL!, delimiter: fieldSeparator)
+
+		queue = DispatchQueue(label: "nl.pixelspark.qbe.QBECSVStreamQueue", attributes: [DispatchQueueAttributes.serial], target: DispatchQueue.global(attributes: .qosUserInitiated))
+		parser = CHCSVParser(contentsOfDelimitedURL: url as NSURL! as URL!, delimiter: fieldSeparator)
 		parser.sanitizesFields = true
 		super.init()
 		
@@ -65,7 +65,7 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 				}
 			}
 			
-			rows.removeAll(keepCapacity: true)
+			rows.removeAll(keepingCapacity: true)
 		}
 		else {
 			for i in 0..<row.count {
@@ -73,15 +73,15 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 			}
 		}
 		
-		templateRow = Array<String?>(count: columns.count, repeatedValue: nil)
+		templateRow = Array<String?>(repeating: nil, count: columns.count)
 	}
 	
-	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		callback(.Success(columns))
+	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+		callback(.success(columns))
 	}
 	
-	func fetch(job: Job, consumer: Sink) {
-		dispatch_sync(queue) {
+	func fetch(_ job: Job, consumer: Sink) {
+		queue.sync {
 			job.time("Parse CSV", items: StreamDefaultBatchSize, itemType: "row") {
 				#if DEBUG
 				let startTime = NSDate.timeIntervalSinceReferenceDate()
@@ -102,17 +102,17 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 			}
 			
 			let r = Array(self.rows)
-			self.rows.removeAll(keepCapacity: true)
+			self.rows.removeAll(keepingCapacity: true)
 
 			job.async {
-				/* Convert the read string values to Values. Do this asynchronously because Locale.valueForLocalString 
+				/* Convert the read string values to Values. Do this asynchronously because Language.valueForLocalString 
 				may take a lot of time, and we really want the CSV parser to continue meanwhile */
 				let v = r.map { row -> [Value] in
 					var values = row.map { field -> Value in
 						if let value = field {
-							return self.locale != nil ? self.locale!.valueForLocalString(value) : Locale.valueForExchangedString(value)
+							return self.locale != nil ? self.locale!.valueForLocalString(value) : Language.valueForExchangedString(value)
 						}
-						return Value.EmptyValue
+						return Value.empty
 					}
 
 					// If the row contains more fields than we want, chop off the last ones
@@ -122,14 +122,14 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 					else {
 						// If there are less fields in the row then there are columns, pad with nils
 						while values.count < self.columns.count {
-							values.append(Value.EmptyValue)
+							values.append(Value.empty)
 						}
 					}
 
 					return values
 				}
 
-				consumer(.Success(v), self.finished ? .Finished : .HasMore)
+				consumer(.success(v), self.finished ? .finished : .hasMore)
 			}
 		}
 	}
@@ -142,15 +142,15 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 	}
 	#endif
 	
-	func parser(parser: CHCSVParser, didBeginLine line: UInt) {
+	func parser(_ parser: CHCSVParser, didBeginLine line: UInt) {
 		row = templateRow
 	}
 	
-	func parser(parser: CHCSVParser, didEndLine line: UInt) {
+	func parser(_ parser: CHCSVParser, didEndLine line: UInt) {
 		rows.append(row)
 	}
 	
-	func parser(parser: CHCSVParser, didReadField field: String, atIndex index: Int) {
+	func parser(_ parser: CHCSVParser, didReadField field: String, at index: Int) {
 		if index >= row.count {
 			row.append(field)
 		}
@@ -159,19 +159,19 @@ final class QBECSVStream: NSObject, Stream, CHCSVParserDelegate {
 		}
 	}
 	
-	func clone() -> Stream {
+	func clone() -> WarpCore.Stream {
 		return QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: self.hasHeaders, locale: self.locale)
 	}
 }
 
-class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
+class QBECSVWriter: NSObject, QBEFileWriter, StreamDelegate {
 	var separatorCharacter: UInt16
 	var newLineCharacter: String
 	var title: String?
 
 	class var fileTypes: Set<String> { get { return Set<String>(["csv", "tsv", "tab", "txt"]) } }
 
-	required init(locale: Locale, title: String?) {
+	required init(locale: Language, title: String?) {
 		self.newLineCharacter = locale.csvLineSeparator
 		self.separatorCharacter = locale.csvFieldSeparator.utf16[locale.csvFieldSeparator.utf16.startIndex]
 		self.title = title
@@ -184,15 +184,15 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 		self.title = aDecoder.decodeStringForKey("title")
 	}
 
-	func encodeWithCoder(aCoder: NSCoder) {
+	func encode(with aCoder: NSCoder) {
 		aCoder.encodeString(self.newLineCharacter, forKey: "newLine")
 		aCoder.encodeString(String(Character(UnicodeScalar(separatorCharacter))), forKey: "separator")
 	}
 
-	func sentence(locale: Locale) -> QBESentence? {
+	func sentence(_ locale: Language) -> QBESentence? {
 		return QBESentence(format: NSLocalizedString("fields separated by [#]", comment: ""),
 			QBESentenceList(value: String(Character(UnicodeScalar(separatorCharacter))), provider: { (pc) -> () in
-				pc(.Success(locale.commonFieldSeparators))
+				pc(.success(locale.commonFieldSeparators))
 			},
 			callback: { (newValue) -> () in
 				self.separatorCharacter = newValue.utf16[newValue.utf16.startIndex]
@@ -200,7 +200,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 		)
 	}
 
-	class func explain(fileExtension: String, locale: Locale) -> String {
+	class func explain(_ fileExtension: String, locale: Language) -> String {
 		switch fileExtension {
 			case "csv", "txt":
 				return NSLocalizedString("Comma separated values", comment: "")
@@ -213,71 +213,72 @@ class QBECSVWriter: NSObject, QBEFileWriter, NSStreamDelegate {
 		}
 	}
 
-	internal func writeData(data: Data, toStream: NSOutputStream, locale: Locale, job: Job, callback: (Fallible<Void>) -> ()) {
+	internal func writeDataset(_ data: Dataset, toStream: NSOutputStream, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
 		let stream = data.stream()
-		let csvOut = CHCSVWriter(outputStream: toStream, encoding: NSUTF8StringEncoding, delimiter: separatorCharacter)
-		csvOut.newlineCharacter = self.newLineCharacter
+		if let csvOut = CHCSVWriter(outputStream: toStream, encoding: String.Encoding.utf8.rawValue, delimiter: separatorCharacter) {
+			csvOut.newlineCharacter = self.newLineCharacter
 
-		// Write column headers
-		stream.columns(job) { (columns) -> () in
-			switch columns {
-			case .Success(let cns):
-				for col in cns {
-					csvOut.writeField(col.name)
-				}
-				csvOut.finishLine()
+			// Write column headers
+			stream.columns(job) { (columns) -> () in
+				switch columns {
+				case .success(let cns):
+					for col in cns {
+						csvOut.writeField(col.name)
+					}
+					csvOut.finishLine()
 
-				let csvOutMutex = Mutex()
+					let csvOutMutex = Mutex()
 
-				var cb: Sink? = nil
-				cb = { (rows: Fallible<Array<Tuple>>, streamStatus: StreamStatus) -> () in
-					switch rows {
-					case .Success(let rs):
-						// We want the next row, so fetch it while we start writing this one.
-						if streamStatus == .HasMore {
-							job.async {
-								stream.fetch(job, consumer: cb!)
-							}
-						}
-
-						job.time("Write CSV", items: rs.count, itemType: "rows") {
-							csvOutMutex.locked {
-								for row in rs {
-									for cell in row {
-										csvOut.writeField(locale.localStringFor(cell))
-									}
-									csvOut.finishLine()
+					var cb: Sink? = nil
+					cb = { (rows: Fallible<Array<Tuple>>, streamStatus: StreamStatus) -> () in
+						switch rows {
+						case .success(let rs):
+							// We want the next row, so fetch it while we start writing this one.
+							if streamStatus == .hasMore {
+								job.async {
+									stream.fetch(job, consumer: cb!)
 								}
 							}
-						}
 
-						if streamStatus == .Finished {
-							callback(.Success())
-						}
+							job.time("Write CSV", items: rs.count, itemType: "rows") {
+								csvOutMutex.locked {
+									for row in rs {
+										for cell in row {
+											csvOut.writeField(locale.localStringFor(cell))
+										}
+										csvOut.finishLine()
+									}
+								}
+							}
 
-					case .Failure(let e):
-						callback(.Failure(e))
+							if streamStatus == .finished {
+								callback(.success())
+							}
+
+						case .failure(let e):
+							callback(.failure(e))
+						}
 					}
+
+					stream.fetch(job, consumer: cb!)
+
+				case .failure(let e):
+					callback(.failure(e))
 				}
-
-				stream.fetch(job, consumer: cb!)
-
-			case .Failure(let e):
-				callback(.Failure(e))
 			}
 		}
 	}
 
-	func writeData(data: Data, toFile file: NSURL, locale: Locale, job: Job, callback: (Fallible<Void>) -> ()) {
+	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
 		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
 			outStream.open()
-			self.writeData(data, toStream: outStream, locale: locale, job: job, callback: { (result) in
+			self.writeDataset(data, toStream: outStream, locale: locale, job: job, callback: { (result) in
 				outStream.close()
 				callback(result)
 			})
 		}
 		else {
-			callback(.Failure("Could not create output stream"))
+			callback(.failure("Could not create output stream"))
 		}
 	}
 }
@@ -289,66 +290,68 @@ class QBEHTMLWriter: QBECSVWriter {
 		super.init(coder: aDecoder)
 	}
 
-	required init(locale: Locale, title: String?) {
-		let locale = Locale()
+	required init(locale: Language, title: String?) {
+		let locale = Language()
 		locale.numberFormatter.perMillSymbol = ""
 		locale.numberFormatter.decimalSeparator = "."
 		locale.csvFieldSeparator = ","
 		super.init(locale: locale, title: title)
 	}
 
-	override class func explain(fileExtension: String, locale: Locale) -> String {
+	override class func explain(_ fileExtension: String, locale: Language) -> String {
 		return NSLocalizedString("Interactive pivot table", comment: "")
 	}
 
-	override func writeData(data: Data, toFile file: NSURL, locale: Locale, job: Job, callback: (Fallible<Void>) -> ()) {
+	override func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
 		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
 			// Get pivot template from resources
-			if let path = NSBundle.mainBundle().pathForResource("pivot", ofType: "html") {
+			if let path = Bundle.main().pathForResource("pivot", ofType: "html") {
 				outStream.open()
 				do {
-					let template = try NSString(contentsOfFile: path, encoding: NSUTF8StringEncoding).stringByReplacingOccurrencesOfString("$$$TITLE$$$", withString: title ?? "")
-					let parts = template.componentsSeparatedByString("$$$CSV$$$")
+					let template = try NSString(contentsOfFile: path, encoding: String.Encoding.utf8.rawValue).replacingOccurrences(of: "$$$TITLE$$$", with: title ?? "")
+					let parts = template.components(separatedBy: "$$$CSV$$$")
 					let header = parts[0]
 					let footer = parts[1]
 
-					if let headerData = header.dataUsingEncoding(NSUTF8StringEncoding) {
-						outStream.write(UnsafePointer<UInt8>(headerData.bytes), maxLength: headerData.length)
-						super.writeData(data, toStream: outStream, locale: locale, job: job, callback: { (result) -> () in
+					if let headerDataset = header.data(using: String.Encoding.utf8) {
+						outStream.write(UnsafePointer<UInt8>((headerDataset as NSData).bytes), maxLength: headerDataset.count)
+						super.writeDataset(data, toStream: outStream, locale: locale, job: job, callback: { (result) -> () in
 							switch result {
-							case .Success:
-								if let footerData = footer.dataUsingEncoding(NSUTF8StringEncoding) {
-									outStream.write(UnsafePointer<UInt8>(footerData.bytes), maxLength: footerData.length)
-									outStream.close()
-									callback(.Success())
+							case .success:
+								if let footerData = footer.data(using: String.Encoding.utf8) {
+									footerData.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Void in
+										outStream.write(bytes, maxLength: footerData.count)
+										outStream.close()
+									}
+									callback(.success())
 									return
 								}
 								else {
-									callback(.Failure("Could not convert footer to UTF-8 data"))
+									callback(.failure("Could not convert footer to UTF-8 data"))
 								}
 
-							case .Failure(let e):
+							case .failure(let e):
 								outStream.close()
-								callback(.Failure(e))
+								callback(.failure(e))
 							}
 						})
 					}
 					else {
 						outStream.close()
-						callback(.Failure("Could not convert header to UTF-8 data"))
+						callback(.failure("Could not convert header to UTF-8 data"))
 					}
 				}
 				catch let e as NSError {
 					outStream.close()
-					callback(.Failure(e.localizedDescription))
+					callback(.failure(e.localizedDescription))
 				}
 			}
 			else {
-				callback(.Failure("Could not find template"))
+				callback(.failure("Could not find template"))
 			}
 		}
 		else {
-			callback(.Failure("Could not create output stream"))
+			callback(.failure("Could not create output stream"))
 		}
 	}
 }
@@ -356,7 +359,7 @@ class QBEHTMLWriter: QBECSVWriter {
 class QBECSVSourceStep: QBEStep {
 	var file: QBEFileReference? = nil
 	var fieldSeparator: unichar
-	var interpretLanguage: Locale.LanguageIdentifier? = nil
+	var interpretLanguage: Language.LanguageIdentifier? = nil
 	var hasHeaders: Bool = true
 
 	required init() {
@@ -365,9 +368,9 @@ class QBECSVSourceStep: QBEStep {
 		super.init()
 	}
 	
-	init(url: NSURL) {
+	init(url: URL) {
 		let defaultSeparator = QBESettings.sharedInstance.defaultFieldSeparator
-		self.file = QBEFileReference.URL(url)
+		self.file = QBEFileReference.absolute(url)
 		self.fieldSeparator = defaultSeparator.utf16[defaultSeparator.utf16.startIndex]
 		self.hasHeaders = true
 		self.interpretLanguage = nil
@@ -375,14 +378,14 @@ class QBECSVSourceStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		let d = aDecoder.decodeObjectForKey("fileBookmark") as? NSData
-		let u = aDecoder.decodeObjectForKey("fileURL") as? NSURL
+		let d = aDecoder.decodeObject(forKey: "fileBookmark") as? Data
+		let u = aDecoder.decodeObject(forKey: "fileURL") as? URL
 		self.file = QBEFileReference.create(u, d)
 		
-		let separator = (aDecoder.decodeObjectForKey("fieldSeparator") as? String) ?? ";"
+		let separator = (aDecoder.decodeObject(forKey: "fieldSeparator") as? String) ?? ";"
 		self.fieldSeparator = separator.utf16[separator.utf16.startIndex]
-		self.hasHeaders = aDecoder.decodeBoolForKey("hasHeaders")
-		self.interpretLanguage = aDecoder.decodeObjectForKey("interpretLanguage") as? Locale.LanguageIdentifier
+		self.hasHeaders = aDecoder.decodeBool(forKey: "hasHeaders")
+		self.interpretLanguage = aDecoder.decodeObject(forKey: "interpretLanguage") as? Language.LanguageIdentifier
 		super.init(coder: aDecoder)
 	}
 	
@@ -390,37 +393,37 @@ class QBECSVSourceStep: QBEStep {
 		self.file?.url?.stopAccessingSecurityScopedResource()
 	}
 	
-	private func sourceData() -> Fallible<Data> {
+	private func sourceDataset() -> Fallible<Dataset> {
 		if let url = file?.url {
-			let locale: Locale? = (interpretLanguage != nil) ? Locale(language: interpretLanguage!) : nil
-			let s = QBECSVStream(url: url, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders, locale: locale)
-			return .Success(StreamData(source: s))
+			let locale: Language? = (interpretLanguage != nil) ? Language(language: interpretLanguage!) : nil
+			let s = QBECSVStream(url: url as URL, fieldSeparator: fieldSeparator, hasHeaders: hasHeaders, locale: locale)
+			return .success(StreamDataset(source: s))
 		}
 		else {
-			return .Failure(NSLocalizedString("The location of the CSV source file is invalid.", comment: ""))
+			return .failure(NSLocalizedString("The location of the CSV source file is invalid.", comment: ""))
 		}
 	}
 	
-	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
-		callback(sourceData())
+	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+		callback(sourceDataset())
 	}
 	
-	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
-		callback(sourceData().use{ $0.limit(maxInputRows) })
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+		callback(sourceDataset().use{ $0.limit(maxInputRows) })
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		super.encode(with: coder)
 		
 		let separator = String(Character(UnicodeScalar(fieldSeparator)))
-		coder.encodeObject(separator, forKey: "fieldSeparator")
-		coder.encodeBool(hasHeaders, forKey: "hasHeaders")
-		coder.encodeObject(self.file?.url, forKey: "fileURL")
-		coder.encodeObject(self.file?.bookmark, forKey: "fileBookmark")
-		coder.encodeObject(self.interpretLanguage, forKey: "intepretLanguage")
+		coder.encode(separator, forKey: "fieldSeparator")
+		coder.encode(hasHeaders, forKey: "hasHeaders")
+		coder.encode(self.file?.url, forKey: "fileURL")
+		coder.encode(self.file?.bookmark, forKey: "fileBookmark")
+		coder.encode(self.interpretLanguage, forKey: "intepretLanguage")
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let fileTypes = [
 			"public.comma-separated-values-text",
 			"public.delimited-values-text",
@@ -436,12 +439,14 @@ class QBECSVSourceStep: QBEStep {
 		)
 	}
 	
-	override func willSaveToDocument(atURL: NSURL) {
-		self.file = self.file?.bookmark(atURL)
+	override func willSaveToDocument(_ atURL: URL) {
+		self.file = self.file?.persist(atURL)
 	}
 	
-	override func didLoadFromDocument(atURL: NSURL) {
+	override func didLoadFromDocument(_ atURL: URL) {
 		self.file = self.file?.resolve(atURL)
-		self.file?.url?.startAccessingSecurityScopedResource()
+		if let b = self.file?.url?.startAccessingSecurityScopedResource() where !b {
+			trace("startAccessingSecurityScopedResource for \(atURL) failed")
+		}
 	}
 }

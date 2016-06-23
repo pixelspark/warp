@@ -23,38 +23,38 @@ import WarpCore
 		}
 	} }
 	
-	internal var locale: Locale { get {
-		return QBEAppDelegate.sharedInstance.locale ?? Locale()
+	internal var locale: Language { get {
+		return QBEAppDelegate.sharedInstance.locale ?? Language()
 	} }
 	
-	func tabletViewDidClose(view: QBETabletViewController) -> Bool {
+	func tabletViewDidClose(_ view: QBETabletViewController) -> Bool {
 		if let t = view.tablet {
-			let force = self.view.window?.currentEvent?.modifierFlags.contains(.AlternateKeyMask) ?? false
+			let force = self.view.window?.currentEvent?.modifierFlags.contains(.option) ?? false
 			return removeTablet(t, undo: true, force: force)
 		}
 		return false
 	}
 
-	func tabletView(view: QBETabletViewController, exportObject: NSObject) {
+	func tabletView(_ view: QBETabletViewController, exportObject: NSObject) {
 		if let chain = exportObject as? QBEChain {
 			self.receiveChain(chain, atLocation: nil, isDestination: false)
 		}
 	}
 
-	func tabletViewDidChangeContents(view: QBETabletViewController) {
+	func tabletViewDidChangeContents(_ view: QBETabletViewController) {
 		if workspaceView.magnifiedView == nil {
 			documentView.resizeDocument()
 		}
 		documentView.reloadData()
 	}
 	
-	func tabletView(view: QBETabletViewController, didSelectConfigurable configurable: QBEConfigurable?, configureNow: Bool, delegate: QBESentenceViewDelegate) {
+	func tabletView(_ view: QBETabletViewController, didSelectConfigurable configurable: QBEConfigurable?, configureNow: Bool, delegate: QBESentenceViewDelegate) {
 		documentView.selectTablet(view.tablet, notifyDelegate: false)
 		view.view.superview?.orderFront()
 
 		// Only show this tablet in the sentence editor if it really has become the selected tablet
 		if self.documentView.selectedTablet == view.tablet {
-			self.sentenceEditor?.startConfiguring(configurable, variant: .Read, delegate: delegate)
+			self.sentenceEditor?.startConfiguring(configurable, variant: .read, delegate: delegate)
 		}
 
 		if configureNow {
@@ -65,11 +65,11 @@ import WarpCore
 		self.sentenceEditor?.nextResponder = self.view.window!.firstResponder
 	}
 	
-	@objc func removeTablet(tablet: QBETablet) {
+	@objc func removeTablet(_ tablet: QBETablet) {
 		removeTablet(tablet, undo: false, force: false)
 	}
 	
-	func removeTablet(tablet: QBETablet, undo: Bool, force: Bool = false) -> Bool {
+	@discardableResult func removeTablet(_ tablet: QBETablet, undo: Bool, force: Bool = false) -> Bool {
 		assert(tablet.document == document, "tablet should belong to our document")
 
 		// Who was dependent on this tablet?
@@ -89,7 +89,7 @@ import WarpCore
 						}
 						else {
 							// TODO: automatically remove this dependency. For now just bail out
-							NSAlert.showSimpleAlert("This item cannot be removed, because other items are still linked to it.".localized, infoText: "To remove the item, first remove any links to this item, then try to remove the table itself. Alternatively, if you hold the option key while removing the item, the linked items will be removed as well.".localized, style: .WarningAlertStyle, window: self.view.window)
+							NSAlert.showSimpleAlert("This item cannot be removed, because other items are still linked to it.".localized, infoText: "To remove the item, first remove any links to this item, then try to remove the table itself. Alternatively, if you hold the option key while removing the item, the linked items will be removed as well.".localized, style: .warning, window: self.view.window)
 							return false
 						}
 					}
@@ -98,7 +98,7 @@ import WarpCore
 		}
 
 		document?.removeTablet(tablet)
-		self.sentenceEditor?.startConfiguring(nil, variant: .Read, delegate: nil)
+		self.sentenceEditor?.startConfiguring(nil, variant: .read, delegate: nil)
 		documentView.removeTablet(tablet) {
 			assertMainThread()
 			self.workspaceView.magnifyView(nil)
@@ -116,16 +116,16 @@ import WarpCore
 
 			/* If there are no tablets left in the currently visible rectangle, or there is only one tablet left, zoom
 			back to the remaining tablet(s) */
-			if (self.document?.tablets.count ?? 0) == 1 || CGRectIsEmpty(CGRectIntersection(self.documentView.visibleRect, self.documentView.boundsOfAllTablets ?? CGRectZero)) {
+			if (self.document?.tablets.count ?? 0) == 1 || self.documentView.visibleRect.intersection(self.documentView.boundsOfAllTablets ?? CGRect.zero).isEmpty {
 				self.zoomToAll(true)
 			}
 			
 			// Register undo operation. Do not retain the QBETablet but instead serialize, so all caches are properly destroyed.
 			if undo {
-				let data = NSKeyedArchiver.archivedDataWithRootObject(tablet)
+				let data = NSKeyedArchiver.archivedData(withRootObject: tablet)
 				
 				if let um = self.undoManager {
-					um.registerUndoWithTarget(self, selector: #selector(QBEDocumentViewController.addTabletFromArchivedData(_:)), object: data)
+					um.registerUndo(withTarget: self, selector: #selector(QBEDocumentViewController.addTabletFromArchivedData(_:)), object: data)
 					um.setActionName(NSLocalizedString("Remove tablet", comment: ""))
 				}
 			}
@@ -140,15 +140,15 @@ import WarpCore
 		
 		// If this is not the first view, place it to the right of all other views
 		if let ab = documentView.boundsOfAllTablets {
-			return CGRectMake(ab.origin.x + ab.size.width + 25, ab.origin.y + ((ab.size.height - defaultHeight) / 2), defaultWidth, defaultHeight)
+			return CGRect(x: ab.origin.x + ab.size.width + 25, y: ab.origin.y + ((ab.size.height - defaultHeight) / 2), width: defaultWidth, height: defaultHeight)
 		}
 		else {
 			// If this is the first view, just center it in the visible rect
-			return CGRectMake(vr.origin.x + (vr.size.width - defaultWidth) / 2, vr.origin.y + (vr.size.height - defaultHeight) / 2, defaultWidth, defaultHeight)
+			return CGRect(x: vr.origin.x + (vr.size.width - defaultWidth) / 2, y: vr.origin.y + (vr.size.height - defaultHeight) / 2, width: defaultWidth, height: defaultHeight)
 		}
 	} }
 	
-	func addTablet(tablet: QBETablet, atLocation location: CGPoint?, undo: Bool) {
+	func addTablet(_ tablet: QBETablet, atLocation location: CGPoint?, undo: Bool) {
 		// By default, tablets get a size that (when at 100% zoom) fills about 61% horizontally/vertically
 		if tablet.frame == nil {
 			tablet.frame = defaultTabletFrame
@@ -161,13 +161,13 @@ import WarpCore
 		self.addTablet(tablet, undo: undo, animated: true)
 	}
 	
-	@objc func addTabletFromArchivedData(data: NSData) {
-		if let t = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBETablet {
+	@objc func addTabletFromArchivedData(_ data: Data) {
+		if let t = NSKeyedUnarchiver.unarchiveObject(with: data) as? QBETablet {
 			self.addTablet(t, undo: false, animated: true)
 		}
 	}
 	
-	@objc func addTablet(tablet: QBETablet, undo: Bool, animated: Bool, callback: ((QBETabletViewController) -> ())? = nil) {
+	@objc func addTablet(_ tablet: QBETablet, undo: Bool, animated: Bool, callback: ((QBETabletViewController) -> ())? = nil) {
 		self.workspaceView.magnifyView(nil) {
 			// Check if this tablet is also in the document
 			if let d = self.document where tablet.document != self.document {
@@ -189,7 +189,7 @@ import WarpCore
 		}
 	}
 
-	private func viewControllerForTablet(tablet: QBETablet) -> QBETabletViewController {
+	private func viewControllerForTablet(_ tablet: QBETablet) -> QBETabletViewController {
 		let tabletController = QBEFactory.sharedInstance.viewControllerForTablet(tablet, storyboard: self.storyboard!)
 		tabletController.delegate = self
 		return tabletController
@@ -198,14 +198,14 @@ import WarpCore
 	private func updateView() {
 		self.workspaceView.hasHorizontalScroller = (self.document?.tablets.count ?? 0) > 0
 		self.workspaceView.hasVerticalScroller = (self.document?.tablets.count ?? 0) > 0
-		self.welcomeLabel.hidden = (self.document?.tablets.count ?? 0) != 0
+		self.welcomeLabel.isHidden = (self.document?.tablets.count ?? 0) != 0
 
 		// Apparently, starting in El Capitan, the label does not repaint itself automatically and stays in view after setting hidden=true
 		self.welcomeLabel.setNeedsDisplay()
-		self.view.setNeedsDisplayInRect(self.view.bounds)
+		self.view.setNeedsDisplay(self.view.bounds)
 	}
 	
-	private func zoomToAll(animated: Bool = true) {
+	private func zoomToAll(_ animated: Bool = true) {
 		if let ab = documentView.boundsOfAllTablets {
 			if self.workspaceView.magnifiedView != nil {
 				self.workspaceView.magnifyView(nil) {
@@ -216,28 +216,28 @@ import WarpCore
 				if animated {
 					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
 						ac.duration = 0.3
-						self.workspaceView.animator().magnifyToFitRect(ab)
+						self.workspaceView.animator().magnify(toFit: ab)
 					}, completionHandler: nil)
 				}
 				else {
-					self.workspaceView.magnifyToFitRect(ab)
+					self.workspaceView.magnify(toFit: ab)
 				}
 			}
 		}
 	}
 
-	@IBAction func selectPreviousTablet(sender: NSObject) {
+	@IBAction func selectPreviousTablet(_ sender: NSObject) {
 		cycleTablets(-1)
 	}
 
-	@IBAction func selectNextTablet(sender: NSObject) {
+	@IBAction func selectNextTablet(_ sender: NSObject) {
 		cycleTablets(1)
 	}
 
-	private func cycleTablets(offset: Int) {
+	private func cycleTablets(_ offset: Int) {
 		if let d = self.document where d.tablets.count > 0 {
 			let currentTablet = documentView.selectedTablet ?? d.tablets[0]
-			if let index = d.tablets.indexOf(currentTablet) {
+			if let index = d.tablets.index(of: currentTablet) {
 				let nextIndex = (index+offset) % d.tablets.count
 				let nextTablet = d.tablets[nextIndex]
 				self.documentView.selectTablet(nextTablet)
@@ -246,7 +246,7 @@ import WarpCore
 						self.workspaceView.zoomView(selectedView)
 					}
 					else {
-						self.workspaceView.animator().magnifyToFitRect(selectedView.frame)
+						self.workspaceView.animator().magnify(toFit: selectedView.frame)
 						//selectedView.scrollRectToVisible(selectedView.bounds)
 					}
 				}
@@ -254,7 +254,7 @@ import WarpCore
 		}
 	}
 
-	@objc func exportView(view: QBEExportViewController, finishedExportingTo: NSURL) {
+	@objc func exportView(_ view: QBEExportViewController, finishedExportingTo: URL) {
 		if let ext = finishedExportingTo.pathExtension {
 			if QBEFactory.sharedInstance.fileTypesForReading.contains(ext) {
 				self.addTabletFromURL(finishedExportingTo)
@@ -262,55 +262,55 @@ import WarpCore
 		}
 	}
 
-	@IBAction func zoomToAll(sender: NSObject) {
+	@IBAction func zoomToAll(_ sender: NSObject) {
 		zoomToAll()
 	}
 	
-	func documentView(view: QBEDocumentView, wantsZoomToView: NSView) {
+	func documentView(_ view: QBEDocumentView, wantsZoomToView: NSView) {
 		workspaceView.zoomView(wantsZoomToView)
 		documentView.reloadData()
 	}
 	
-	@IBAction func zoomSelection(sender: NSObject) {
+	@IBAction func zoomSelection(_ sender: NSObject) {
 		if let selectedView = documentView.selectedTabletController?.view.superview {
 			workspaceView.zoomView(selectedView)
 			documentView.reloadData()
 		}
 	}
 
-	@IBAction func pasteAsPlainText(sender: AnyObject) {
-		let pboard = NSPasteboard.generalPasteboard()
+	@IBAction func pasteAsPlainText(_ sender: AnyObject) {
+		let pboard = NSPasteboard.general()
 
-		if let data = pboard.stringForType(NSPasteboardTypeString) {
+		if let data = pboard.string(forType: NSPasteboardTypeString) {
 			let note = QBENoteTablet()
-			note.note.text = NSAttributedString(string: data)
+			note.note.text = AttributedString(string: data)
 			self.addTablet(note, undo: true, animated: true)
 		}
 	}
 
-	@IBAction func paste(sender: NSObject) {
+	@IBAction func paste(_ sender: NSObject) {
 		// Pasting a step?
-		let pboard = NSPasteboard.generalPasteboard()
-		if let data = pboard.dataForType(QBEStep.dragType) {
-			if let step = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? QBEStep {
+		let pboard = NSPasteboard.general()
+		if let data = pboard.data(forType: QBEStep.dragType) {
+			if let step = NSKeyedUnarchiver.unarchiveObject(with: data) as? QBEStep {
 				self.addTablet(QBEChainTablet(chain: QBEChain(head: step)), undo: true, animated: true)
 			}
 		}
 		else {
 			// No? Maybe we're pasting TSV/CSV data...
-			var data = pboard.stringForType(NSPasteboardTypeString)
+			var data = pboard.string(forType: NSPasteboardTypeString)
 			if data == nil {
-				data = pboard.stringForType(NSPasteboardTypeTabularText)
+				data = pboard.string(forType: NSPasteboardTypeTabularText)
 			}
 			
 			if let tsvString = data {
 				var data: [Tuple] = []
 				var headerRow: Tuple? = nil
-				let rows = tsvString.componentsSeparatedByString("\r")
+				let rows = tsvString.components(separatedBy: "\r")
 				for row in rows {
 					var rowValues: [Value] = []
 					
-					let cells = row.componentsSeparatedByString("\t")
+					let cells = row.components(separatedBy: "\t")
 					for cell in cells {
 						rowValues.append(locale.valueForLocalString(cell))
 					}
@@ -333,7 +333,7 @@ import WarpCore
 		}
 	}
 	
-	@IBAction func addButtonClicked(sender: NSView) {
+	@IBAction func addButtonClicked(_ sender: NSView) {
 		// Populate the 'copy of source step' sub menu
 		class QBETemplateAdder: NSObject {
 			var templateSteps: [QBEStep] = []
@@ -343,11 +343,11 @@ import WarpCore
 				self.documentView = documentView
 			}
 
-			@objc func readdStep(sender: NSMenuItem) {
+			@objc func readdStep(_ sender: NSMenuItem) {
 				if sender.tag >= 0 && sender.tag < templateSteps.count {
 					let templateStep = templateSteps[sender.tag]
-					let templateData = NSKeyedArchiver.archivedDataWithRootObject(templateStep)
-					let newStep = NSKeyedUnarchiver.unarchiveObjectWithData(templateData) as? QBEStep
+					let templateDataset = NSKeyedArchiver.archivedData(withRootObject: templateStep)
+					let newStep = NSKeyedUnarchiver.unarchiveObject(with: templateDataset) as? QBEStep
 					let tablet = QBEChainTablet(chain: QBEChain(head: newStep))
 					self.documentView.addTablet(tablet, undo: true, animated: true) { _ in
 						self.documentView.sentenceEditor?.configure(self.documentView)
@@ -365,8 +365,8 @@ import WarpCore
 					for step in chainTablet.chain.steps {
 						if step.previous == nil {
 							// This is a source step
-							let item = NSMenuItem(title: step.sentence(self.locale, variant: .Read).stringValue, action: #selector(QBETemplateAdder.readdStep(_:)), keyEquivalent: "")
-							item.enabled = true
+							let item = NSMenuItem(title: step.sentence(self.locale, variant: .read).stringValue, action: #selector(QBETemplateAdder.readdStep(_:)), keyEquivalent: "")
+							item.isEnabled = true
 							item.tag = adder.templateSteps.count
 							item.target = adder
 							adder.templateSteps.append(step)
@@ -378,14 +378,14 @@ import WarpCore
 		}
 
 		// The re-add menu item is hidden when the menu is opened from the context menu
-		readdMenuItem.hidden = false
-		readdMenuItem.enabled = !adder.templateSteps.isEmpty
-		NSMenu.popUpContextMenu(self.addTabletMenu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.view)
-		readdMenuItem.enabled = false
-		readdMenuItem.hidden = true
+		readdMenuItem.isHidden = false
+		readdMenuItem.isEnabled = !adder.templateSteps.isEmpty
+		NSMenu.popUpContextMenu(self.addTabletMenu, with: NSApplication.shared().currentEvent!, for: self.view)
+		readdMenuItem.isEnabled = false
+		readdMenuItem.isHidden = true
 	}
 
-	func workspaceView(view: QBEWorkspaceView, didReceiveStep step: QBEStep, atLocation location: CGPoint) {
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveStep step: QBEStep, atLocation location: CGPoint) {
 		assertMainThread()
 
 		let chain = QBEChain(head: step)
@@ -393,7 +393,7 @@ import WarpCore
 		self.addTablet(tablet, atLocation: location, undo: true)
 	}
 
-	func receiveChain(chain: QBEChain, atLocation: CGPoint?, isDestination: Bool) {
+	func receiveChain(_ chain: QBEChain, atLocation: CGPoint?, isDestination: Bool) {
 		assertMainThread()
 
 		if chain.head != nil {
@@ -403,39 +403,39 @@ import WarpCore
 	}
 
 	/** Called when an outlet is dropped onto the workspace itself (e.g. an empty spot). */
-	func workspaceView(view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveChain chain: QBEChain, atLocation: CGPoint) {
 		receiveChain(chain, atLocation: atLocation, isDestination: true)
 	}
 
 	/** Called when a set of columns was dropped onto the document. */
-	func workspaceView(view: QBEWorkspaceView, didReceiveColumnSet colset: [Column], fromDataViewController dc: QBEDataViewController) {
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveColumnSet colset: [Column], fromDatasetViewController dc: QBEDatasetViewController) {
 		let action = QBEDropColumnsAction(columns: colset, dataViewController: dc, documentViewController: self)
 		action.present()
 	}
 	
-	func workspaceView(view: QBEWorkspaceView, didReceiveFiles files: [String], atLocation: CGPoint) {
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveFiles files: [String], atLocation: CGPoint) {
 		// Gather file paths
 		var tabletsAdded: [QBETablet] = []
 		
 		for file in files {
 			var isDirectory: ObjCBool = false
-			NSFileManager.defaultManager().fileExistsAtPath(file, isDirectory: &isDirectory)
+			FileManager.default().fileExists(atPath: file, isDirectory: &isDirectory)
 			if isDirectory {
 				// Find the contents of the directory, and add.
-				if let enumerator = NSFileManager.defaultManager().enumeratorAtPath(file) {
+				if let enumerator = FileManager.default().enumerator(atPath: file) {
 					for child in enumerator {
 						if let cn = child as? String {
 							let childName = NSString(string: cn)
 							// Skip UNIX hidden files (e.g. .DS_Store).
 							// TODO: check Finder 'hidden' bit here like so: http://stackoverflow.com/questions/1140235/is-the-file-hidden
 							if !childName.lastPathComponent.hasPrefix(".") {
-								let childPath = NSString(string: file).stringByAppendingPathComponent(childName as String)
+								let childPath = NSString(string: file).appendingPathComponent(childName as String)
 								
 								// Is  the enumerated item a directory? Then ignore it, the enumerator already recurses
 								var isChildDirectory: ObjCBool = false
-								NSFileManager.defaultManager().fileExistsAtPath(childPath, isDirectory: &isChildDirectory)
+								FileManager.default().fileExists(atPath: childPath, isDirectory: &isChildDirectory)
 								if !isChildDirectory {
-									if let t = addTabletFromURL(NSURL(fileURLWithPath: childPath)) {
+									if let t = addTabletFromURL(URL(fileURLWithPath: childPath)) {
 										tabletsAdded.append(t)
 									}
 								}
@@ -445,29 +445,29 @@ import WarpCore
 				}
 			}
 			else {
-				if let t = addTabletFromURL(NSURL(fileURLWithPath: file)) {
+				if let t = addTabletFromURL(URL(fileURLWithPath: file)) {
 					tabletsAdded.append(t)
 				}
 			}
 		}
 		
 		// Zoom to all newly added tablets
-		var allRect = CGRectZero
+		var allRect = CGRect.zero
 		for tablet in tabletsAdded {
 			if let f = tablet.frame {
-				allRect = CGRectUnion(allRect, f)
+				allRect = allRect.union(f)
 			}
 		}
-		self.workspaceView.magnifyToFitRect(allRect)
+		self.workspaceView.magnify(toFit: allRect)
 	}
 	
-	func documentView(view: QBEDocumentView, didSelectArrow arrow: QBETabletArrow?) {
+	func documentView(_ view: QBEDocumentView, didSelectArrow arrow: QBETabletArrow?) {
 		if let a = arrow, fromTablet = a.to {
 			findAndSelectArrow(a, inTablet: fromTablet)
 		}
 	}
 
-	func tabletViewControllerForTablet(tablet: QBETablet) -> QBETabletViewController? {
+	func tabletViewControllerForTablet(_ tablet: QBETablet) -> QBETabletViewController? {
 		for cvc in self.childViewControllers {
 			if let child = cvc as? QBETabletViewController {
 				if child.tablet == tablet {
@@ -478,7 +478,7 @@ import WarpCore
 		return nil
 	}
 	
-	func findAndSelectArrow(arrow: QBETabletArrow, inTablet tablet: QBETablet) {
+	func findAndSelectArrow(_ arrow: QBETabletArrow, inTablet tablet: QBETablet) {
 		if let child = self.tabletViewControllerForTablet(tablet) {
 			documentView.selectTablet(tablet)
 			child.view.superview?.orderFront()
@@ -487,8 +487,8 @@ import WarpCore
 		}
 	}
 	
-	private func didSelectTablet(tablet: QBETablet?) {
-		self.sentenceEditor?.startConfiguring(nil, variant: .Neutral, delegate: nil)
+	private func didSelectTablet(_ tablet: QBETablet?) {
+		self.sentenceEditor?.startConfiguring(nil, variant: .neutral, delegate: nil)
 
 		for childController in self.childViewControllers {
 			if let cvc = childController as? QBETabletViewController {
@@ -506,11 +506,11 @@ import WarpCore
 		self.view.window?.toolbar?.validateVisibleItems()
 	}
 	
-	func documentView(view: QBEDocumentView, didSelectTablet tablet: QBETablet?) {
+	func documentView(_ view: QBEDocumentView, didSelectTablet tablet: QBETablet?) {
 		didSelectTablet(tablet)
 	}
 	
-	private func addTabletFromURL(url: NSURL, atLocation: CGPoint? = nil) -> QBETablet? {
+	@discardableResult private func addTabletFromURL(_ url: URL, atLocation: CGPoint? = nil) -> QBETablet? {
 		assertMainThread()
 
 		if let sourceStep = QBEFactory.sharedInstance.stepForReadingFile(url) {
@@ -521,47 +521,47 @@ import WarpCore
 		else {
 			// This may be a warp document - open separately
 			if let p = url.path {
-				NSWorkspace.sharedWorkspace().openFile(p)
+				NSWorkspace.shared().openFile(p)
 			}
 		}
 
 		return nil
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable mutableData: MutableData?) {
-		let job = Job(.UserInitiated)
-		mutableData?.data(job) {result in
+	func alterTableView(_ view: QBEAlterTableViewController, didAlterTable mutableDataset: MutableDataset?) {
+		let job = Job(.userInitiated)
+		mutableDataset?.data(job) {result in
 			switch result {
-			case .Success(let data):
+			case .success(let data):
 				data.raster(job) { result in
 					switch result {
-					case .Success(let raster):
+					case .success(let raster):
 						asyncMain {
 							let tablet = QBEChainTablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
 							self.addTablet(tablet, atLocation: nil, undo: true)
 						}
 
-					case .Failure(let e):
+					case .failure(let e):
 						asyncMain {
-							NSAlert.showSimpleAlert(NSLocalizedString("Could not add table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+							NSAlert.showSimpleAlert(NSLocalizedString("Could not add table", comment: ""), infoText: e, style: .critical, window: self.view.window)
 						}
 					}
 				}
 
-			case .Failure(let e):
+			case .failure(let e):
 				asyncMain {
-					NSAlert.showSimpleAlert(NSLocalizedString("Could not add table", comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.view.window)
+					NSAlert.showSimpleAlert(NSLocalizedString("Could not add table", comment: ""), infoText: e, style: .critical, window: self.view.window)
 				}
 			}
 		}
 	}
 
-	@IBAction func addNoteTablet(sender: NSObject) {
+	@IBAction func addNoteTablet(_ sender: NSObject) {
 		let tablet = QBENoteTablet()
 		self.addTablet(tablet, undo: true, animated: true)
 	}
 
-	@IBAction func addRasterTablet(sender: NSObject) {
+	@IBAction func addRasterTablet(_ sender: NSObject) {
 		let raster = Raster(data: [], columns: [Column.defaultNameForNewColumn([])], readOnly: false)
 		let chain = QBEChain(head: QBERasterStep(raster: raster))
 		let tablet = QBEChainTablet(chain: chain)
@@ -570,71 +570,71 @@ import WarpCore
 		}
 	}
 
-	@IBAction func addSequencerTablet(sender: NSObject) {
+	@IBAction func addSequencerTablet(_ sender: NSObject) {
 		let chain = QBEChain(head: QBESequencerStep())
 		let tablet = QBEChainTablet(chain: chain)
 		self.addTablet(tablet, undo: true, animated: true)
 	}
 	
-	@IBAction func addTabletFromFile(sender: NSObject) {
+	@IBAction func addTabletFromFile(_ sender: NSObject) {
 		let no = NSOpenPanel()
 		no.canChooseFiles = true
 		no.allowsMultipleSelection = true
 		no.allowedFileTypes?.append("public.text")
 		//	= NSArray(arrayLiteral: "public.text") // QBEFactory.sharedInstance.fileTypesForReading
 		
-		no.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
+		no.beginSheetModal(for: self.view.window!, completionHandler: { (result: Int) -> Void in
 			if result==NSFileHandlingPanelOKButton {
-				for url in no.URLs {
+				for url in no.urls {
 					self.addTabletFromURL(url)
 				}
 			}
 		})
 	}
 	
-	@IBAction func addTabletFromPresto(sender: NSObject) {
+	@IBAction func addTabletFromPresto(_ sender: NSObject) {
 		self.addTablet(QBEChainTablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
 	}
 	
-	@IBAction func addTabletFromMySQL(sender: NSObject) {
+	@IBAction func addTabletFromMySQL(_ sender: NSObject) {
 		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", database: nil, tableName: nil)
 		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
 	}
 
-	@IBAction func addTabletFromRethinkDB(sender: NSObject) {
+	@IBAction func addTabletFromRethinkDB(_ sender: NSObject) {
 		let s = QBERethinkSourceStep(previous: nil)
 		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
 	}
 	
-	@IBAction func addTabletFromPostgres(sender: NSObject) {
+	@IBAction func addTabletFromPostgres(_ sender: NSObject) {
 		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", database: "postgres", schemaName: "public", tableName: "")
 		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
 	}
 	
-	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
+	override func prepare(for segue: NSStoryboardSegue, sender: AnyObject?) {
 		if segue.identifier == "sentence" {
 			self.sentenceEditor = segue.destinationController as? QBESentenceViewController
 			self.sentenceEditor?.view.translatesAutoresizingMaskIntoConstraints = false
 		}
 	}
 
-	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
-			return validateSelector(item.action())
+	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+			return validateSelector(item.action!)
 	}
 
-	override func validateToolbarItem(theItem: NSToolbarItem) -> Bool {
-		return validateSelector(theItem.action)
+	override func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+		return validateSelector(item.action!)
 	}
 
-	@IBAction func zoomSegment(sender: NSSegmentedControl) {
+	@IBAction func zoomSegment(_ sender: NSSegmentedControl) {
 		if sender.selectedSegment == 0 {
 			self.zoomToAll(sender)
 		}
@@ -643,7 +643,7 @@ import WarpCore
 		}
 	}
 
-	private func validateSelector(selector: Selector) -> Bool {
+	private func validateSelector(_ selector: Selector) -> Bool {
 		if selector == #selector(QBEDocumentViewController.selectNextTablet(_:)) { return (self.document?.tablets.count > 0) ?? false }
 		if selector == #selector(QBEDocumentViewController.selectPreviousTablet(_:)) { return (self.document?.tablets.count > 0) ?? false }
 		if selector == #selector(QBEDocumentViewController.addButtonClicked(_:)) { return true }
@@ -660,14 +660,14 @@ import WarpCore
 		if selector == #selector(QBEDocumentViewController.zoomSelection(_:)) { return documentView.selectedTablet != nil }
 		if selector == #selector(NSText.delete(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.paste(_:)) {
-			let pboard = NSPasteboard.generalPasteboard()
-			if pboard.dataForType(QBEStep.dragType) != nil || pboard.dataForType(NSPasteboardTypeString) != nil || pboard.dataForType(NSPasteboardTypeTabularText) != nil {
+			let pboard = NSPasteboard.general()
+			if pboard.data(forType: QBEStep.dragType) != nil || pboard.data(forType: NSPasteboardTypeString) != nil || pboard.data(forType: NSPasteboardTypeTabularText) != nil {
 				return true
 			}
 		}
 		if selector == #selector(QBEDocumentViewController.pasteAsPlainText(_:)) {
-			let pboard = NSPasteboard.generalPasteboard()
-			return pboard.dataForType(NSPasteboardTypeString) != nil
+			let pboard = NSPasteboard.general()
+			return pboard.data(forType: NSPasteboardTypeString) != nil
 		}
 		return false
 	}
@@ -699,80 +699,80 @@ private class QBEDropChainAction: NSObject {
 		self.location = location
 	}
 
-	@objc func addClone(sender: NSObject) {
+	@objc func addClone(_ sender: NSObject) {
 		let tablet = QBEChainTablet(chain: QBEChain(head: QBECloneStep(chain: chain)))
 		self.documentView.addTablet(tablet, atLocation: location, undo: true)
 	}
 
-	@objc func addChart(sender: NSObject) {
+	@objc func addChart(_ sender: NSObject) {
 		if let sourceTablet = chain.tablet as? QBEChainTablet {
-			let job = Job(.UserInitiated)
+			let job = Job(.userInitiated)
 			let jobProgressView = QBEJobViewController(job: job, description: "Analyzing data...".localized)!
 			self.documentView.presentViewControllerAsSheet(jobProgressView)
 
-			sourceTablet.chain.head?.exampleData(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
+			sourceTablet.chain.head?.exampleDataset(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
 				switch result {
-				case .Success(let data):
+				case .success(let data):
 					data.columns(job) { result in
 						switch result {
-						case .Success(let columns):
+						case .success(let columns):
 							asyncMain {
-								jobProgressView.dismissController(sender)
+								jobProgressView.dismiss(sender)
 								if let first = columns.first, let last = columns.last where columns.count > 1 {
 									let tablet = QBEChartTablet(source: sourceTablet, type: .Bar, xExpression: Sibling(first), yExpression: Sibling(last))
 									self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 								}
 								else {
 									asyncMain {
-										NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: "In order to be able to create a chart, the data set must contain at least two columns.".localized, style: .CriticalAlertStyle, window: self.documentView.view.window)
+										NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: "In order to be able to create a chart, the data set must contain at least two columns.".localized, style: .critical, window: self.documentView.view.window)
 									}
 								}
 							}
 
-						case .Failure(let e):
+						case .failure(let e):
 							asyncMain {
-								NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+								NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: e, style: .critical, window: self.documentView.view.window)
 							}
 						}
 					}
 
-				case .Failure(let e):
+				case .failure(let e):
 					asyncMain {
-						NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+						NSAlert.showSimpleAlert("Could not create a chart of this data".localized, infoText: e, style: .critical, window: self.documentView.view.window)
 					}
 				}
 			})
 		}
 	}
 
-	@objc func addMap(sender: NSObject) {
+	@objc func addMap(_ sender: NSObject) {
 		if let sourceTablet = chain.tablet as? QBEChainTablet {
-			let job = Job(.UserInitiated)
+			let job = Job(.userInitiated)
 			let jobProgressView = QBEJobViewController(job: job, description: "Analyzing data...".localized)!
 			self.documentView.presentViewControllerAsSheet(jobProgressView)
 
-			sourceTablet.chain.head?.exampleData(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
+			sourceTablet.chain.head?.exampleDataset(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
 				switch result {
-				case .Success(let data):
+				case .success(let data):
 					data.columns(job) { result in
 						switch result {
-						case .Success(let columns):
+						case .success(let columns):
 							asyncMain {
-								jobProgressView.dismissController(sender)
+								jobProgressView.dismiss(sender)
 								let tablet = QBEMapTablet(source: sourceTablet,columns: columns)
 								self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 							}
 
-						case .Failure(let e):
+						case .failure(let e):
 							asyncMain {
-								NSAlert.showSimpleAlert("Could not create a map of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+								NSAlert.showSimpleAlert("Could not create a map of this data".localized, infoText: e, style: .critical, window: self.documentView.view.window)
 							}
 						}
 					}
 
-				case .Failure(let e):
+				case .failure(let e):
 					asyncMain {
-						NSAlert.showSimpleAlert("Could not create a map of this data".localized, infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+						NSAlert.showSimpleAlert("Could not create a map of this data".localized, infoText: e, style: .critical, window: self.documentView.view.window)
 					}
 				}
 			})
@@ -780,34 +780,34 @@ private class QBEDropChainAction: NSObject {
 	}
 
 
-	@objc func addCopy(sender: NSObject) {
-		let job = Job(.UserInitiated)
+	@objc func addCopy(_ sender: NSObject) {
+		let job = Job(.userInitiated)
 		QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: NSLocalizedString("Create copy of data here", comment: ""))
-		chain.head?.fullData(job) { result in
+		chain.head?.fullDataset(job) { result in
 			switch result {
-			case .Success(let fd):
+			case .success(let fd):
 				fd.raster(job) { result in
 					switch result {
-					case .Success(let raster):
+					case .success(let raster):
 						asyncMain {
 							let tablet = QBEChainTablet(chain: QBEChain(head: QBERasterStep(raster: raster)))
 							self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 						}
-					case .Failure(let e):
+					case .failure(let e):
 						asyncMain {
-							NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+							NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .critical, window: self.documentView.view.window)
 						}
 					}
 				}
-			case .Failure(let e):
+			case .failure(let e):
 				asyncMain {
-					NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .CriticalAlertStyle, window: self.documentView.view.window)
+					NSAlert.showSimpleAlert(NSLocalizedString("Could not copy the data",comment: ""), infoText: e, style: .critical, window: self.documentView.view.window)
 				}
 			}
 		}
 	}
 
-	@objc func exportFile(sender: NSObject) {
+	@objc func exportFile(_ sender: NSObject) {
 		var exts: [String: String] = [:]
 		for ext in QBEFactory.sharedInstance.fileExtensionsForWriting {
 			let writer = QBEFactory.sharedInstance.fileWriterForType(ext)!
@@ -822,7 +822,7 @@ private class QBEDropChainAction: NSObject {
 		}
 	}
 
-	private func exportToFile(url: NSURL) {
+	private func exportToFile(_ url: URL) {
 		let writerType: QBEFileWriter.Type
 		if let ext = url.pathExtension {
 			writerType = QBEFactory.sharedInstance.fileWriterForType(ext) ?? QBECSVWriter.self
@@ -832,9 +832,9 @@ private class QBEDropChainAction: NSObject {
 		}
 
 		let title = chain.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
-		let s = QBEExportStep(previous: chain.head!, writer: writerType.init(locale: self.documentView.locale, title: title), file: QBEFileReference.URL(url))
+		let s = QBEExportStep(previous: chain.head!, writer: writerType.init(locale: self.documentView.locale, title: title), file: QBEFileReference.absolute(url))
 
-		if let editorController = self.documentView.storyboard?.instantiateControllerWithIdentifier("exportEditor") as? QBEExportViewController {
+		if let editorController = self.documentView.storyboard?.instantiateController(withIdentifier: "exportEditor") as? QBEExportViewController {
 			editorController.step = s
 			editorController.delegate = self.documentView
 			editorController.locale = self.documentView.locale
@@ -842,12 +842,12 @@ private class QBEDropChainAction: NSObject {
 		}
 	}
 
-	@objc func saveToWarehouse(sender: NSObject) {
+	@objc func saveToWarehouse(_ sender: NSObject) {
 		let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
 		if let s = sender as? NSMenuItem where s.tag >= 0 && s.tag <= stepTypes.count {
 			let stepType = stepTypes[s.tag]
 
-			let uploadView = self.documentView.storyboard?.instantiateControllerWithIdentifier("uploadData") as! QBEUploadViewController
+			let uploadView = self.documentView.storyboard?.instantiateController(withIdentifier: "uploadDataset") as! QBEUploadViewController
 			let targetStep = stepType.init()
 			uploadView.targetStep = targetStep
 			uploadView.sourceStep = chain.head
@@ -865,7 +865,7 @@ private class QBEDropChainAction: NSObject {
 	/** Present the menu with actions to perform with the chain. When `atDestination` is true, the menu uses wording that
 	is appropriate when the menu is shown at the location of the drop. When it is false, wording is used that fits when
 	the menu is presented at the source. */
-	func present(atDestination: Bool) {
+	func present(_ atDestination: Bool) {
 		let menu = NSMenu()
 		menu.autoenablesItems = false
 
@@ -887,7 +887,7 @@ private class QBEDropChainAction: NSObject {
 		copyItem.target = self
 		menu.addItem(copyItem)
 
-		menu.addItem(NSMenuItem.separatorItem())
+		menu.addItem(NSMenuItem.separator())
 
 		let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
 
@@ -901,12 +901,12 @@ private class QBEDropChainAction: NSObject {
 			}
 		}
 
-		menu.addItem(NSMenuItem.separatorItem())
+		menu.addItem(NSMenuItem.separator())
 		let exportFileItem = NSMenuItem(title: "Export data to file...".localized, action: #selector(QBEDropChainAction.exportFile(_:)), keyEquivalent: "")
 		exportFileItem.target = self
 		menu.addItem(exportFileItem)
 
-		NSMenu.popUpContextMenu(menu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.documentView.view)
+		NSMenu.popUpContextMenu(menu, with: NSApplication.shared().currentEvent!, for: self.documentView.view)
 	}
 }
 
@@ -915,9 +915,9 @@ controller. */
 private class QBEDropColumnsAction: NSObject {
 	let columns: [Column]
 	let documentViewController: QBEDocumentViewController
-	let dataViewController: QBEDataViewController
+	let dataViewController: QBEDatasetViewController
 
-	init(columns: [Column], dataViewController: QBEDataViewController, documentViewController: QBEDocumentViewController) {
+	init(columns: [Column], dataViewController: QBEDatasetViewController, documentViewController: QBEDocumentViewController) {
 		self.columns = columns
 		self.dataViewController = dataViewController
 		self.documentViewController = documentViewController
@@ -925,9 +925,9 @@ private class QBEDropColumnsAction: NSObject {
 
 	/** Add a tablet to the document containing a chain that calculates the histogram of this column (unique values and
 	their occurrence count). */
-	@objc private func addHistogram(sender: NSObject) {
+	@objc private func addHistogram(_ sender: NSObject) {
 		if columns.count == 1 {
-			if let sourceChainController = dataViewController.parentViewController as? QBEChainViewController, let sourceChain = sourceChainController.chain {
+			if let sourceChainController = dataViewController.parent as? QBEChainViewController, let sourceChain = sourceChainController.chain {
 				let countColumn = Column("Count".localized)
 				let cloneStep = QBECloneStep(chain: sourceChain)
 				let histogramStep = QBEPivotStep()
@@ -946,25 +946,25 @@ private class QBEDropColumnsAction: NSObject {
 
 	/** Add a tablet to the document containing a raster table containing all unique values in the original column. This
 	tablet is then joined to the original table. */
-	@objc private func addLookupTable(sender: NSObject) {
+	@objc private func addLookupTable(_ sender: NSObject) {
 		if columns.count == 1 {
-			if let sourceChainController = dataViewController.parentViewController as? QBEChainViewController, let step = sourceChainController.chain?.head {
-				let job = Job(.UserInitiated)
+			if let sourceChainController = dataViewController.parent as? QBEChainViewController, let step = sourceChainController.chain?.head {
+				let job = Job(.userInitiated)
 				let jobProgressView = QBEJobViewController(job: job, description: String(format: NSLocalizedString("Analyzing %d column(s)...", comment: ""), columns.count))!
 				self.documentViewController.presentViewControllerAsSheet(jobProgressView)
 
-				step.fullData(job) { result in
+				step.fullDataset(job) { result in
 					switch result {
-					case .Success(let data):
+					case .success(let data):
 						data.unique(Sibling(self.columns.first!), job: job) { result in
 							switch result {
-							case .Success(let uniqueValues):
+							case .success(let uniqueValues):
 								let rows = uniqueValues.map({ item in return [item] })
 								let raster = Raster(data: rows, columns: [self.columns.first!], readOnly: false)
 								let chain = QBEChain(head: QBERasterStep(raster: raster))
 								let tablet = QBEChainTablet(chain: chain)
 								asyncMain {
-									jobProgressView.dismissController(nil)
+									jobProgressView.dismiss(nil)
 									self.documentViewController.addTablet(tablet, atLocation: nil, undo: true)
 
 									let joinStep = QBEJoinStep(previous: nil)
@@ -975,13 +975,13 @@ private class QBEDropColumnsAction: NSObject {
 									sourceChainController.currentStep = joinStep
 								}
 
-							case .Failure(_):
+							case .failure(_):
 								break
 							}
 
 						}
 
-					case .Failure(_):
+					case .failure(_):
 						break
 					}
 				}
@@ -994,7 +994,7 @@ private class QBEDropColumnsAction: NSObject {
 		menu.autoenablesItems = false
 
 		if columns.count == 1 {
-			if let sourceChainController = dataViewController.parentViewController as? QBEChainViewController where sourceChainController.chain?.head != nil {
+			if let sourceChainController = dataViewController.parent as? QBEChainViewController where sourceChainController.chain?.head != nil {
 				let item = NSMenuItem(title: "Create a look-up table for this column".localized, action: #selector(QBEDropColumnsAction.addLookupTable(_:)), keyEquivalent: "")
 				item.target = self
 				menu.addItem(item)
@@ -1008,6 +1008,6 @@ private class QBEDropColumnsAction: NSObject {
 			// Do something with more than one column (multijoin)
 		}
 
-		NSMenu.popUpContextMenu(menu, withEvent: NSApplication.sharedApplication().currentEvent!, forView: self.documentViewController.view)
+		NSMenu.popUpContextMenu(menu, with: NSApplication.shared().currentEvent!, for: self.documentViewController.view)
 	}
 }

@@ -24,18 +24,18 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 	}
 	
 	override func viewWillDisappear() {
-		NSNotificationCenter.defaultCenter().removeObserver(self)
+		NotificationCenter.default().removeObserver(self)
 		super.viewWillDisappear()
 	}
 	
-	func comboBox(aComboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> AnyObject {
+	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> AnyObject? {
 		if let c = existingColumns where index >= 0 && index < c.count {
 			return c[index].name
 		}
 		return ""
 	}
 	
-	func numberOfItemsInComboBox(aComboBox: NSComboBox) -> Int {
+	func numberOfItems(in aComboBox: NSComboBox) -> Int {
 		return existingColumns?.count ?? 0
 	}
 	
@@ -43,20 +43,20 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 	private func updateView() {
 		assertMainThread()
 
-		let job = Job(.UserInitiated)
+		let job = Job(.userInitiated)
 		self.insertAfterField?.stringValue = step.insertRelativeTo?.name ?? ""
-		self.insertPositionPopup.selectItemWithTag(step.insertBefore ? 1 : 0)
+		self.insertPositionPopup.selectItem(withTag: step.insertBefore ? 1 : 0)
 		self.existingColumns = nil
 		
-		step.exampleData(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
+		step.exampleDataset(job, maxInputRows: 100, maxOutputRows: 100) { (data) in
 			switch data {
-				case .Success(let d):
+				case .success(let d):
 					d.columns(job) {(cns) in
 						switch cns {
-							case .Success(let e):
+							case .success(let e):
 								self.existingColumns = e
 							
-							case .Failure(_):
+							case .failure(_):
 								// Error is ignored
 								self.existingColumns = nil
 								break;
@@ -67,19 +67,19 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 						}
 					}
 			
-				case .Failure(_):
+				case .failure(_):
 					break
 			}
 		}
 	
-		let f = step.function.toFormula(self.delegate?.locale ?? Locale(), topLevel: true)
+		let f = step.function.toFormula(self.delegate?.locale ?? Language(), topLevel: true)
 		let fullFormula = f
-		if let parsed = Formula(formula: fullFormula, locale: (self.delegate?.locale ?? Locale())) {
+		if let parsed = Formula(formula: fullFormula, locale: (self.delegate?.locale ?? Language())) {
 			self.formulaField?.attributedStringValue = parsed.syntaxColoredFormula
 		}
 	}
 	
-	@IBAction func update(sender: NSObject) {
+	@IBAction func update(_ sender: NSObject) {
 		if sender == insertPositionPopup {
 			if let position = insertPositionPopup.selectedItem {
 				let before = position.tag == 1
@@ -102,7 +102,7 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 		
 		step.targetColumn = Column(self.targetColumnNameField?.stringValue ?? step.targetColumn.name)
 		if let f = self.formulaField?.stringValue {
-			if let parsed = Formula(formula: f, locale: (self.delegate?.locale ?? Locale())) {
+			if let parsed = Formula(formula: f, locale: (self.delegate?.locale ?? Language())) {
 				step.function = parsed.root
 				updateView()
 			}
@@ -110,8 +110,8 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 				// TODO: this should be a bit more informative
 				let a = NSAlert()
 				a.messageText = NSLocalizedString("The formula you typed is not valid.", comment: "")
-				a.alertStyle = NSAlertStyle.WarningAlertStyle
-				a.beginSheetModalForWindow(self.view.window!, completionHandler: nil)
+				a.alertStyle = NSAlertStyle.warning
+				a.beginSheetModal(for: self.view.window!, completionHandler: nil)
 			}
 		}
 		delegate?.configurableView(self, didChangeConfigurationFor: step)

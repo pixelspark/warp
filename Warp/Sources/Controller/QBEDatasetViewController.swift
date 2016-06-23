@@ -1,33 +1,33 @@
 import Cocoa
 import WarpCore
 
-protocol QBEDataViewDelegate: NSObjectProtocol {
+protocol QBEDatasetViewDelegate: NSObjectProtocol {
 	// Returns true if the delegate has handled the change (e.g. converted it to a strutural one)
-	func dataView(view: QBEDataViewController, didChangeValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool
-	func dataView(view: QBEDataViewController, didOrderColumns: [Column], toIndex: Int) -> Bool
-	func dataView(view: QBEDataViewController, didSelectValue: Value, changeable: Bool)
-	func dataView(view: QBEDataViewController, viewControllerForColumn: Column, info: Bool, callback: (NSViewController) -> ())
-	func dataView(view: QBEDataViewController, addValue: Value, inRow: Int?, column: Int?, callback: (Bool) -> ())
-	func dataView(view: QBEDataViewController, hasFilterForColumn: Column) -> Bool
-	func dataView(view: QBEDataViewController, didRenameColumn: Column, to: Column)
+	@discardableResult func dataView(_ view: QBEDatasetViewController, didChangeValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool
+	@discardableResult func dataView(_ view: QBEDatasetViewController, didOrderColumns: [Column], toIndex: Int) -> Bool
+	func dataView(_ view: QBEDatasetViewController, didSelectValue: Value, changeable: Bool)
+	func dataView(_ view: QBEDatasetViewController, viewControllerForColumn: Column, info: Bool, callback: (NSViewController) -> ())
+	func dataView(_ view: QBEDatasetViewController, addValue: Value, inRow: Int?, column: Int?, callback: (Bool) -> ())
+	func dataView(_ view: QBEDatasetViewController, hasFilterForColumn: Column) -> Bool
+	func dataView(_ view: QBEDatasetViewController, didRenameColumn: Column, to: Column)
 }
 
 extension NSFont {
-	func sizeOfString(string: String) -> NSSize {
+	func sizeOfString(_ string: String) -> NSSize {
 		let s = NSString(string: string)
-		return s.sizeWithAttributes([NSFontAttributeName: self])
+		return s.size(withAttributes: [NSFontAttributeName: self])
 	}
 }
 
 /** A data view shows data in a Raster as a table. It can also show a progress bar to indicate loading progress, and has
 footer cells that allow filtering of the data. */
-class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, NSUserInterfaceValidations {
+class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, NSUserInterfaceValidations {
 	var tableView: MBTableGrid?
 	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var columnContextMenu: NSMenu!
 	@IBOutlet var errorLabel: NSTextField!
-	weak var delegate: QBEDataViewDelegate?
-	var locale: Locale!
+	weak var delegate: QBEDatasetViewDelegate?
+	var locale: Language!
 	private var textCell: MBTableGridCell!
 	private var numberCell: MBTableGridCell!
 	private let DefaultColumnWidth = 100.0
@@ -75,7 +75,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			assertMainThread()
 
 			columnCells = nil
-			footerCells.removeAll(keepCapacity: true)
+			footerCells.removeAll(keepingCapacity: true)
 			if raster != nil {
 				errorMessage = nil
 				calculating = false
@@ -84,25 +84,25 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 	
-	func numberOfColumnsInTableGrid(aTableGrid: MBTableGrid!) -> UInt {
+	func numberOfColumns(in aTableGrid: MBTableGrid!) -> UInt {
 		if let r = raster {
 			return (r.columns.count > 0 ? UInt(r.columns.count) : 0) + (self.showNewColumn ? 1 : 0)
 		}
 		return (self.showNewColumn ? 1 : 0)
 	}
 	
-	func numberOfRowsInTableGrid(aTableGrid: MBTableGrid!) -> UInt {
+	func numberOfRows(in aTableGrid: MBTableGrid!) -> UInt {
 		if let r = raster {
 			return (r.rowCount > 0 ? UInt(r.rowCount) : 0) + (self.showNewRow ? 1 : 0)
 		}
 		return (self.showNewRow ? 1 : 0)
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, shouldEditColumn columnIndex: UInt, row rowIndex: UInt) -> Bool {
+	func tableGrid(_ aTableGrid: MBTableGrid!, shouldEditColumn columnIndex: UInt, row rowIndex: UInt) -> Bool {
 		return delegate != nil
 	}
 	
-	private func setValue(value: Value, inRow: Int, inColumn: Int) {
+	private func setValue(_ value: Value, inRow: Int, inColumn: Int) {
 		if let r = raster {
 			if inRow < r.rowCount && inColumn < r.columns.count {
 				let oldValue = r[Int(inRow), Int(inColumn)]
@@ -130,12 +130,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, setObjectValue anObject: AnyObject?, forColumn columnIndex: UInt, row rowIndex: UInt) {
-		let valueObject = anObject==nil ? Value.EmptyValue : locale.valueForLocalString(anObject!.description)
+	func tableGrid(_ aTableGrid: MBTableGrid!, setObjectValue anObject: AnyObject?, forColumn columnIndex: UInt, row rowIndex: UInt) {
+		let valueObject = anObject==nil ? Value.empty : locale.valueForLocalString(anObject!.description)
 		setValue(valueObject, inRow: Int(rowIndex), inColumn: Int(columnIndex))
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> AnyObject! {
+	func tableGrid(_ aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> AnyObject! {
 		if let r = raster {
 			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
 				// Template row, return empty string
@@ -149,20 +149,20 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return ""
 	}
 
-	func tableGrid(aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
+	func tableGrid(_ aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
 		if let r = raster {
 			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
-				return NSColor.blackColor().colorWithAlphaComponent(0.05)
+				return NSColor.black().withAlphaComponent(0.05)
 			}
 			else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && Int(rowIndex) >= 0 && Int(rowIndex) < r.rowCount {
 				let x = r[Int(rowIndex), Int(columnIndex)]
 
 				// Invalid values are colored red
 				if !x.isValid {
-					return NSColor.redColor().colorWithAlphaComponent(0.3)
+					return NSColor.red().withAlphaComponent(0.3)
 				}
 				else if x.isEmpty {
-					return NSColor.blackColor().colorWithAlphaComponent(0.05)
+					return NSColor.black().withAlphaComponent(0.05)
 				}
 
 				return NSColor.controlAlternatingRowBackgroundColors()[0]
@@ -172,7 +172,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return NSColor.controlAlternatingRowBackgroundColors()[0]
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, headerStringForColumn columnIndex: UInt) -> String! {
+	func tableGrid(_ aTableGrid: MBTableGrid!, headerStringForColumn columnIndex: UInt) -> String! {
 		if Int(columnIndex) == raster?.columns.count {
 			// Template column
 			return "+"
@@ -186,23 +186,23 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, canMoveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
+	func tableGrid(_ aTableGrid: MBTableGrid!, canMoveColumns columnIndexes: IndexSet!, to index: UInt) -> Bool {
 		// Make sure we are not dragging the template column, and not past the template column
-		if let r = raster where !columnIndexes.containsIndex(r.columns.count) && Int(index) < r.columns.count {
+		if let r = raster where !columnIndexes.contains(r.columns.count) && Int(index) < r.columns.count {
 			return true
 		}
 		return false
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, writeColumnsWithIndexes columnIndexes: NSIndexSet!, toPasteboard pboard: NSPasteboard!) -> Bool {
+	func tableGrid(_ aTableGrid: MBTableGrid!, writeColumnsWith columnIndexes: IndexSet!, to pboard: NSPasteboard!) -> Bool {
 		return true
 	}
 
-	func tableGrid(aTableGrid: MBTableGrid!, moveColumns columnIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
+	func tableGrid(_ aTableGrid: MBTableGrid!, moveColumns columnIndexes: IndexSet!, to index: UInt) -> Bool {
 		if let r = raster {
 			var columnsOrdered: [Column] = []
 			for columnIndex in 0..<r.columns.count {
-				if columnIndexes.containsIndex(columnIndex) {
+				if columnIndexes.contains(columnIndex) {
 					columnsOrdered.append(r.columns[columnIndex])
 				}
 			}
@@ -213,22 +213,22 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		return false
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, moveRows rowIndexes: NSIndexSet!, toIndex index: UInt) -> Bool {
+	func tableGrid(_ aTableGrid: MBTableGrid!, moveRows rowIndexes: IndexSet!, to index: UInt) -> Bool {
 		return true
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, writeRowsWithIndexes rowIndexes: NSIndexSet!, toPasteboard pboard: NSPasteboard!) -> Bool {
+	func tableGrid(_ aTableGrid: MBTableGrid!, writeRowsWith rowIndexes: IndexSet!, to pboard: NSPasteboard!) -> Bool {
 		return false
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt) -> NSCell! {
+	func tableGrid(_ aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt) -> NSCell! {
 		if let ct = self.columnCells where Int(columnIndex) < ct.count {
 			return ct[Int(columnIndex)]
 		}
 		return textCell
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt)  {
+	func tableGrid(_ aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt)  {
 		if let r = raster {
 			if Int(columnIndex) < r.columns.count {
 				let cn = r.columns[Int(columnIndex)]
@@ -241,7 +241,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, headerStringForRow rowIndex: UInt) -> String! {
+	func tableGrid(_ aTableGrid: MBTableGrid!, headerStringForRow rowIndex: UInt) -> String! {
 		if Int(rowIndex) == raster?.rowCount {
 			return "+"
 		}
@@ -251,12 +251,12 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	private func updateProgress() {
 		assertMainThread()
 		// Set visibility
-		errorLabel.hidden = calculating || errorMessage == nil
+		errorLabel.isHidden = calculating || errorMessage == nil
 		errorLabel.stringValue = errorMessage ?? ""
-		tableView?.hidden = errorMessage != nil
+		tableView?.isHidden = errorMessage != nil
 		
-		progressView?.hidden = !calculating
-		progressView?.indeterminate = progress <= 0.0
+		progressView?.isHidden = !calculating
+		progressView?.isIndeterminate = progress <= 0.0
 		progressView?.doubleValue = progress
 		progressView?.minValue = 0.0
 		progressView?.maxValue = 1.0
@@ -281,7 +281,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 				tr.type = kCATransitionFade
 				tr.subtype = kCATransitionFromBottom
 				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-				self.tableView?.layer?.addAnimation(tr, forKey: kCATransition)
+				self.tableView?.layer?.add(tr, forKey: kCATransition)
 			}
 
 			updateFonts()
@@ -292,16 +292,16 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 				for i in 0..<r.columns.count {
 					let cn = r.columns[i]
 					if let w = QBESettings.sharedInstance.defaultWidthForColumn(cn) where w > 0 {
-						tv.resizeColumnWithIndex(UInt(i), width: Float(w))
+						tv.resizeColumn(with: UInt(i), width: Float(w))
 					}
 					else {
-						tv.resizeColumnWithIndex(UInt(i), width: Float(self.DefaultColumnWidth))
+						tv.resizeColumn(with: UInt(i), width: Float(self.DefaultColumnWidth))
 					}
 				}
 
 				// Force the 'new' column to a certain fixed size
 				if self.showNewColumn {
-					tv.resizeColumnWithIndex(UInt(r.columns.count), width: Float(self.DefaultColumnWidth / 2.0))
+					tv.resizeColumn(with: UInt(r.columns.count), width: Float(self.DefaultColumnWidth / 2.0))
 				}
 
 				// Cache cell types: check the first row to see what kind of value is in this column
@@ -320,10 +320,10 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 
 							let cell: NSCell
 							switch prototypeValue {
-							case .IntValue(_):
+							case .int(_):
 								cell = numberCell
 
-							case .DoubleValue(_):
+							case .double(_):
 								cell = numberCell
 
 							default:
@@ -347,17 +347,17 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 	
-	func validateUserInterfaceItem(item: NSValidatedUserInterfaceItem) -> Bool {
-		switch item.action() {
-		case #selector(QBEDataViewController.sizeAllColumnsToFit(_:)),
-		     #selector(QBEDataViewController.sizeAllColumnsToDefault(_:)),
-		     #selector(QBEDataViewController.sizeAllColumnsToFitTable(_:)):
+	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+		switch item.action {
+		case .some(#selector(QBEDatasetViewController.sizeAllColumnsToFit(_:))),
+			 .some(#selector(QBEDatasetViewController.sizeAllColumnsToDefault(_:))),
+			 .some(#selector(QBEDatasetViewController.sizeAllColumnsToFitTable(_:))):
 			return true
 
-		case #selector(QBEDataViewController.renameSelectedColumn(_:)),
-		     #selector(QBEDataViewController.sizeSelectedColumnToFit(_:)),
-		     #selector(QBEDataViewController.sizeSelectedColumnToDefault(_:)):
-			if let si = self.tableView?.selectedColumnIndexes.firstIndex where si != NSNotFound {
+		case .some(#selector(QBEDatasetViewController.renameSelectedColumn(_:))),
+			 .some(#selector(QBEDatasetViewController.sizeSelectedColumnToFit(_:))),
+			 .some(#selector(QBEDatasetViewController.sizeSelectedColumnToDefault(_:))):
+			if self.tableView?.selectedColumnIndexes.first != nil {
 				return true
 			}
 			return false
@@ -367,7 +367,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, footerCellForColumn columnIndex: UInt) -> NSCell! {
+	func tableGrid(_ aTableGrid: MBTableGrid!, footerCellForColumn columnIndex: UInt) -> NSCell! {
 		assertMainThread()
 
 		if let r = raster where Int(columnIndex) >= 0 && Int(columnIndex) < r.columns.count {
@@ -384,29 +384,29 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 			}
 
 			filterCell.active = delegate?.dataView(self, hasFilterForColumn: cn) ?? false
-			filterCell.selected = aTableGrid.selectedColumnIndexes.containsIndex(Int(columnIndex))
+			filterCell.selected = aTableGrid.selectedColumnIndexes.contains(Int(columnIndex))
 			return filterCell
 		}
 		return nil
 	}
 
-	@IBAction func renameSelectedColumn(sender: NSObject) {
-		if let si = self.tableView?.selectedColumnIndexes.firstIndex where si != NSNotFound {
+	@IBAction func renameSelectedColumn(_ sender: NSObject) {
+		if let si = self.tableView?.selectedColumnIndexes.first {
 			self.renameColumnPopup(UInt(si))
 		}
 	}
 
-	private func renameColumnPopup(columnIndex: UInt) {
+	private func renameColumnPopup(_ columnIndex: UInt) {
 		if let r = raster where Int(columnIndex) < r.columns.count {
 			self.delegate?.dataView(self, viewControllerForColumn: r.columns[Int(columnIndex)], info: true, callback: { vc in
-				if let rect = self.tableView?.headerRectOfColumn(columnIndex) {
-					self.presentViewController(vc, asPopoverRelativeToRect: rect, ofView: self.tableView!, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
+				if let rect = self.tableView?.headerRect(ofColumn: columnIndex) {
+					self.presentViewController(vc, asPopoverRelativeTo: rect, of: self.tableView!, preferredEdge: NSRectEdge.minY, behavior: NSPopoverBehavior.transient)
 				}
 			})
 		}
 	}
 
-	@IBAction func sizeSelectedColumnToFit(sender: NSObject) {
+	@IBAction func sizeSelectedColumnToFit(_ sender: NSObject) {
 		if let tv = self.tableView {
 			for idx in tv.selectedColumnIndexes {
 				self.sizeColumnToFit(UInt(idx))
@@ -414,56 +414,56 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 
-	@IBAction func sizeSelectedColumnToDefault(sender: NSObject) {
+	@IBAction func sizeSelectedColumnToDefault(_ sender: NSObject) {
 		if let tv = self.tableView {
 			for idx in tv.selectedColumnIndexes {
-				tv.resizeColumnWithIndex(UInt(idx), width: Float(DefaultColumnWidth))
+				tv.resizeColumn(with: UInt(idx), width: Float(DefaultColumnWidth))
 				self.tableGrid(tv, setWidth: Float(DefaultColumnWidth), forColumn: UInt(idx))
 			}
 		}
 	}
 
-	@IBAction func sizeAllColumnsToDefault(sender: NSObject) {
+	@IBAction func sizeAllColumnsToDefault(_ sender: NSObject) {
 		if let tv = self.tableView {
 			for idx in 0..<tv.numberOfColumns {
-				tv.resizeColumnWithIndex(UInt(idx), width: Float(DefaultColumnWidth))
+				tv.resizeColumn(with: UInt(idx), width: Float(DefaultColumnWidth))
 				self.tableGrid(tv, setWidth: Float(DefaultColumnWidth), forColumn: UInt(idx))
 			}
 		}
 	}
 
-	@IBAction func sizeAllColumnsToFitTable(sender: NSObject) {
+	@IBAction func sizeAllColumnsToFitTable(_ sender: NSObject) {
 		if let tv = self.tableView {
 			let w = max(15.0, Double(tv.frame.size.width) / Double(tv.numberOfColumns))
 
 			for idx in 0..<tv.numberOfColumns {
-				tv.resizeColumnWithIndex(UInt(idx), width: Float(w))
+				tv.resizeColumn(with: UInt(idx), width: Float(w))
 				self.tableGrid(tv, setWidth: Float(w), forColumn: UInt(idx))
 			}
 		}
 	}
 
-	func sizeColumnToFit(name: Column) {
+	func sizeColumnToFit(_ name: Column) {
 		if let idx = self.raster?.indexOfColumnWithName(name) {
 			self.sizeColumnToFit(UInt(idx))
 		}
 	}
 
-	@IBAction func sizeAllColumnsToFit(sender: NSObject) {
+	@IBAction func sizeAllColumnsToFit(_ sender: NSObject) {
 		self.sizeAllColumnsToFit()
 	}
 
-	private func sizeColumnToFit(columnIndex: UInt) {
+	private func sizeColumnToFit(_ columnIndex: UInt) {
 		let maxWidth: CGFloat = 250.0
 		let maxRowsToConsider = 500
 
 		if let tv = self.tableView {
 			var w: CGFloat = 25.0 // minimum width
 			let vr = tv.contentView().visibleRect
-			let firstRow = max(0, tv.rowAtPoint(CGPointMake(vr.origin.x + 3.0, vr.origin.y + 3.0)))
-			let lastRow = min(firstRow + maxRowsToConsider, tv.rowAtPoint(CGPointMake(3.0 + vr.origin.x + vr.size.width, 3.0 + vr.origin.y + vr.size.height)))
+			let firstRow = max(0, tv.row(at: CGPoint(x: vr.origin.x + 3.0, y: vr.origin.y + 3.0)))
+			let lastRow = min(firstRow + maxRowsToConsider, tv.row(at: CGPoint(x: 3.0 + vr.origin.x + vr.size.width, y: 3.0 + vr.origin.y + vr.size.height)))
 			let columnCell = self.tableGrid(tv, cellForColumn: columnIndex)
-			let font = columnCell.font ?? NSFont.systemFontOfSize(NSFont.systemFontSize())
+			let font = columnCell?.font ?? NSFont.systemFont(ofSize: NSFont.systemFontSize())
 
 			for rowNumber in firstRow...lastRow {
 				if let stringValue = self.tableGrid(tv, objectValueForColumn: columnIndex, row: UInt(rowNumber)) as? String {
@@ -471,7 +471,7 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 				}
 			}
 
-			tv.resizeColumnWithIndex(columnIndex, width: Float(min(maxWidth, w + 10.0)))
+			tv.resizeColumn(with: columnIndex, width: Float(min(maxWidth, w + 10.0)))
 			self.tableGrid(tv, setWidth: Float(w), forColumn: columnIndex)
 		}
 	}
@@ -484,34 +484,34 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 
-	func tableGrid(aTableGrid: MBTableGrid!, didDoubleClickColumn columnIndex: UInt) {
+	func tableGrid(_ aTableGrid: MBTableGrid!, didDoubleClickColumn columnIndex: UInt) {
 		//self.sizeColumnToFit(columnIndex)
 		self.renameColumnPopup(columnIndex)
 	}
 
-	func tableGrid(aTableGrid: MBTableGrid!, footerCellClicked cell: NSCell!, forColumn columnIndex: UInt, withEvent theEvent: NSEvent!) {
+	func tableGrid(_ aTableGrid: MBTableGrid!, footerCellClicked cell: NSCell!, forColumn columnIndex: UInt, with theEvent: NSEvent!) {
 		showFilterPopup(Int(columnIndex), atFooter: true)
 	}
 
-	private func showFilterPopup(columnIndex: Int, atFooter: Bool) {
+	private func showFilterPopup(_ columnIndex: Int, atFooter: Bool) {
 		if let tv = self.tableView, let r = raster where columnIndex < r.columns.count {
 			self.delegate?.dataView(self, viewControllerForColumn: r.columns[Int(columnIndex)], info: false) { viewFilterController in
 				assertMainThread()
 				let pv = NSPopover()
-				pv.behavior = NSPopoverBehavior.Semitransient
+				pv.behavior = NSPopoverBehavior.semitransient
 				pv.contentViewController = viewFilterController
 
-				let columnRect = tv.rectOfColumn(UInt(columnIndex))
+				let columnRect = tv.rect(ofColumn: UInt(columnIndex))
 				let footerHeight = tv.columnFooterView.frame.size.height
 				let filterRect: CGRect
 				if atFooter {
-					filterRect = CGRectMake(columnRect.origin.x, tv.frame.size.height - footerHeight, columnRect.size.width, footerHeight)
+					filterRect = CGRect(x: columnRect.origin.x, y: tv.frame.size.height - footerHeight, width: columnRect.size.width, height: footerHeight)
 				}
 				else {
-					filterRect = CGRectMake(columnRect.origin.x, 0, columnRect.size.width, footerHeight)
+					filterRect = CGRect(x: columnRect.origin.x, y: 0, width: columnRect.size.width, height: footerHeight)
 				}
 
-				pv.showRelativeToRect(filterRect, ofView: tv, preferredEdge: atFooter ? NSRectEdge.MaxY : NSRectEdge.MinY)
+				pv.show(relativeTo: filterRect, of: tv, preferredEdge: atFooter ? NSRectEdge.maxY : NSRectEdge.minY)
 			}
 		}
 	}
@@ -521,41 +521,41 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		let selectedCols = tableView!.selectedColumnIndexes
 
 		if selectedRows?.count > 1 || selectedCols?.count > 1 {
-			delegate?.dataView(self, didSelectValue: Value.InvalidValue, changeable: false)
+			delegate?.dataView(self, didSelectValue: Value.invalid, changeable: false)
 		}
 		else {
 			if let r = raster, let sr = selectedRows {
-				let rowIndex = sr.firstIndex
-				let colIndex = sr.firstIndex
-				if rowIndex >= 0 && colIndex >= 0 && rowIndex < r.rowCount && colIndex < r.columns.count {
-					let x = r[rowIndex, colIndex]
-					delegate?.dataView(self, didSelectValue: x, changeable: true)
-				}
-				else {
-					delegate?.dataView(self, didSelectValue: Value.InvalidValue, changeable: false)
+				if let rowIndex = sr.first, let colIndex = sr.first {
+					if rowIndex >= 0 && colIndex >= 0 && rowIndex < r.rowCount && colIndex < r.columns.count {
+						let x = r[rowIndex, colIndex]
+						delegate?.dataView(self, didSelectValue: x, changeable: true)
+					}
+					else {
+						delegate?.dataView(self, didSelectValue: Value.invalid, changeable: false)
+					}
 				}
 			}
 			else {
-				delegate?.dataView(self, didSelectValue: Value.InvalidValue, changeable: false)
+				delegate?.dataView(self, didSelectValue: Value.invalid, changeable: false)
 			}
 		}
 	}
 	
-	func changeSelectedValue(toValue: Value) {
-		if let selectedRows = tableView?.selectedRowIndexes {
-			if let selectedColumns = tableView?.selectedColumnIndexes {
-				setValue(toValue, inRow: selectedRows.firstIndex, inColumn: selectedColumns.firstIndex)
+	func changeSelectedValue(_ toValue: Value) {
+		if let selectedRows = tableView?.selectedRowIndexes, let first = selectedRows.first {
+			if let selectedColumns = tableView?.selectedColumnIndexes, let firstColumn = selectedColumns.first {
+				setValue(toValue, inRow: first, inColumn: firstColumn)
 			}
 		}
 	}
 
-	func tableGridDidChangeSelection(aNotification: NSNotification!) {
+	func tableGridDidChangeSelection(_ aNotification: Notification!) {
 		updateFormulaField()
 	}
 	
 	private func updateFonts() {
 		let monospace = QBESettings.sharedInstance.monospaceFont
-		let font = monospace ? NSFont.userFixedPitchFontOfSize(9.0) : NSFont.userFontOfSize(11.0)
+		let font = monospace ? NSFont.userFixedPitchFont(ofSize: 9.0) : NSFont.userFont(ofSize: 11.0)
 		self.textCell.font = font
 		self.numberCell.font = font
 		if let tv = self.tableView {
@@ -568,34 +568,34 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 	override func awakeFromNib() {
 		self.textCell = MBTableGridCell(textCell: "")
 		self.numberCell = MBTableGridCell(textCell: "")
-		self.numberCell.alignment = NSTextAlignment.Right
+		self.numberCell.alignment = NSTextAlignment.right
 		
-		self.view.focusRingType = NSFocusRingType.None
-		self.view.layerContentsRedrawPolicy = NSViewLayerContentsRedrawPolicy.OnSetNeedsDisplay
+		self.view.focusRingType = NSFocusRingType.none
+		self.view.layerContentsRedrawPolicy = NSViewLayerContentsRedrawPolicy.onSetNeedsDisplay
 		self.view.wantsLayer = true
-		self.view.layer?.opaque = true
+		self.view.layer?.isOpaque = true
 		
 		if self.tableView == nil {
 			self.tableView = MBTableGrid(frame: view.frame)
 			self.tableView!.wantsLayer = true
-			self.tableView!.layer?.opaque = true
+			self.tableView!.layer?.isOpaque = true
 			self.tableView!.layer?.drawsAsynchronously = true
-			self.tableView!.layerContentsRedrawPolicy = NSViewLayerContentsRedrawPolicy.OnSetNeedsDisplay
-			self.tableView!.focusRingType = NSFocusRingType.None
+			self.tableView!.layerContentsRedrawPolicy = NSViewLayerContentsRedrawPolicy.onSetNeedsDisplay
+			self.tableView!.focusRingType = NSFocusRingType.none
 			self.tableView!.translatesAutoresizingMaskIntoConstraints = false
-			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Horizontal)
-			self.tableView!.setContentHuggingPriority(1, forOrientation: NSLayoutConstraintOrientation.Vertical)
+			self.tableView!.setContentHuggingPriority(1, for: NSLayoutConstraintOrientation.horizontal)
+			self.tableView!.setContentHuggingPriority(1, for: NSLayoutConstraintOrientation.vertical)
 			self.tableView!.awakeFromNib()
-			self.tableView?.registerForDraggedTypes([])
+			self.tableView?.register(forDraggedTypes: [])
 			self.tableView!.columnHeaderView.menu = self.columnContextMenu
 			self.view.addSubview(tableView!)
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0));
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0));
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0));
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: self.view, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.left, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.left, multiplier: 1.0, constant: 0.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.right, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.right, multiplier: 1.0, constant: 0.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.bottom, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0));
 			
 			for vw in self.tableView!.subviews {
-				vw.focusRingType = NSFocusRingType.None
+				vw.focusRingType = NSFocusRingType.none
 			}
 		}
 		
@@ -621,31 +621,31 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		super.viewDidLoad()
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, formatterForColumn columnIndex: UInt) -> NSFormatter! {
+	func tableGrid(_ aTableGrid: MBTableGrid!, formatterForColumn columnIndex: UInt) -> Formatter! {
 		return nil
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, copyCellsAtColumns columnIndexes: NSIndexSet!, rows rowIndexes: NSIndexSet!) {
+	func tableGrid(_ aTableGrid: MBTableGrid!, copyCellsAtColumns columnIndexes: IndexSet!, rows rowIndexes: IndexSet!) {
 		if let r = raster {
-			var rowData: [String] = []
+			var rowDataset: [String] = []
 			
-			rowIndexes.enumerateIndexesUsingBlock { (rowIndex, stop) -> Void in
-				var colData: [String] = []
-				columnIndexes.enumerateIndexesUsingBlock({ (colIndex, stop) -> Void in
+			rowIndexes.enumerated().forEach { (rowIndex, stop) -> Void in
+				var colDataset: [String] = []
+				columnIndexes.enumerated().forEach { (colIndex, stop) -> Void in
 					if let cellValue = r[rowIndex, colIndex].stringValue {
 						// FIXME formatting
-						colData.append(cellValue)
+						colDataset.append(cellValue)
 					}
 					else {
-						colData.append("")
+						colDataset.append("")
 					}
-				})
+				}
 				
-				rowData.append(colData.joinWithSeparator("\t"))
+				rowDataset.append(colDataset.joined(separator: "\t"))
 			}
 			
-			let tsv = rowData.joinWithSeparator("\r\n")
-			let pasteboard = NSPasteboard.generalPasteboard()
+			let tsv = rowDataset.joined(separator: "\r\n")
+			let pasteboard = NSPasteboard.general()
 			pasteboard.clearContents()
 			pasteboard.declareTypes([NSPasteboardTypeTabularText, NSPasteboardTypeString], owner: nil)
 			pasteboard.setString(tsv, forType: NSPasteboardTypeTabularText)
@@ -653,27 +653,21 @@ class QBEDataViewController: NSViewController, MBTableGridDataSource, MBTableGri
 		}
 	}
 	
-	func tableGrid(aTableGrid: MBTableGrid!, pasteCellsAtColumns columnIndexes: NSIndexSet!, rows rowIndexes: NSIndexSet!) {
+	func tableGrid(_ aTableGrid: MBTableGrid!, pasteCellsAtColumns columnIndexes: IndexSet!, rows rowIndexes: IndexSet!) {
 		if let r = raster {
-			let tsvString = NSPasteboard.generalPasteboard().stringForType(NSPasteboardTypeTabularText)
+			let tsvString = NSPasteboard.general().string(forType: NSPasteboardTypeTabularText)
 			
-			var startRow = rowIndexes.firstIndex
-			var startColumn = columnIndexes.firstIndex
-			if startRow == NSNotFound {
-				startRow = 0
-			}
-			if startColumn == NSNotFound {
-				startColumn = 0
-			}
+			let startRow: Int = rowIndexes.first ?? 0
+			let startColumn: Int = columnIndexes.first ?? 0
 			
 			let rowCount = r.rowCount
 			let columnCount = r.columns.count
 			
-			if let rowStrings = tsvString?.componentsSeparatedByString("\r\n") {
+			if let rowStrings = tsvString?.components(separatedBy: "\r\n") {
 				var row = startRow
 				if row < rowCount {
 					for rowString in rowStrings {
-						let cellStrings = rowString.componentsSeparatedByString("\t")
+						let cellStrings = rowString.components(separatedBy: "\t")
 						var col = startColumn
 						for cellString in cellStrings {
 							if col < columnCount {

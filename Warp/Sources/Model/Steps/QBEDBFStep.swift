@@ -1,20 +1,20 @@
 import Foundation
 import WarpCore
 
-final class QBEDBFStream: NSObject, Stream {
-	let url: NSURL
+final class QBEDBFStream: NSObject, WarpCore.Stream {
+	let url: URL
 
-	private var queue = dispatch_queue_create("nl.pixelspark.Warp.QBEDBFStream", DISPATCH_QUEUE_SERIAL)
-	private let handle: DBFHandle
+	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.QBEDBFStream", attributes: DispatchQueueAttributes.serial)
+	private let handle: DBFHandle?
 	private let recordCount: Int32
 	private let fieldCount: Int32
 	private var columns: [Column]? = nil
 	private var types: [DBFFieldType]? = nil
 	private var position: Int32 = 0
 
-	init(url: NSURL) {
+	init(url: URL) {
 		self.url = url
-		self.handle = DBFOpen(url.fileSystemRepresentation, "rb")
+		self.handle = DBFOpen((url as NSURL).fileSystemRepresentation, "rb")
 		if self.handle == nil {
 			self.fieldCount = 0
 			self.recordCount = 0
@@ -29,15 +29,15 @@ final class QBEDBFStream: NSObject, Stream {
 		DBFClose(handle)
 	}
 
-	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		if self.columns == nil {
 			let fieldCount = self.fieldCount
 			var fields: [Column] = []
 			var types: [DBFFieldType] = []
 			for i in 0..<fieldCount {
-				var fieldName =  [CChar](count: 12, repeatedValue: 0)
+				var fieldName =  [CChar](repeating: 0, count: 12)
 				let type = DBFGetFieldInfo(handle, i, &fieldName, nil, nil)
-				if let fieldNameString = String(CString: fieldName, encoding: NSUTF8StringEncoding) {
+				if let fieldNameString = String(cString: fieldName, encoding: String.Encoding.utf8) {
 					fields.append(Column(fieldNameString))
 					types.append(type)
 				}
@@ -46,11 +46,11 @@ final class QBEDBFStream: NSObject, Stream {
 			columns = fields
 		}
 
-		callback(.Success(columns!))
+		callback(.success(columns!))
 	}
 
-	func fetch(job: Job, consumer: Sink) {
-		dispatch_async(self.queue) {
+	func fetch(_ job: Job, consumer: Sink) {
+		(self.queue).async {
 			self.columns(job) { (columns) -> () in
 				let end = min(self.recordCount, self.position + StreamDefaultBatchSize)
 
@@ -60,33 +60,33 @@ final class QBEDBFStream: NSObject, Stream {
 						var row: Tuple = []
 						for fieldIndex in 0..<self.fieldCount {
 							if DBFIsAttributeNULL(self.handle, recordIndex, fieldIndex) != 0 {
-								row.append(Value.EmptyValue)
+								row.append(Value.empty)
 							}
 							else {
 								switch self.types![Int(fieldIndex)].rawValue {
 									case FTString.rawValue:
-										if let s = String(CString: DBFReadStringAttribute(self.handle, recordIndex, fieldIndex), encoding: NSUTF8StringEncoding) {
-											row.append(Value.StringValue(s))
+										if let s = String(cString: DBFReadStringAttribute(self.handle, recordIndex, fieldIndex), encoding: String.Encoding.utf8) {
+											row.append(Value.string(s))
 										}
 										else {
-											row.append(Value.InvalidValue)
+											row.append(Value.invalid)
 										}
 
 									case FTInteger.rawValue:
-										row.append(Value.IntValue(Int(DBFReadIntegerAttribute(self.handle, recordIndex, fieldIndex))))
+										row.append(Value.int(Int(DBFReadIntegerAttribute(self.handle, recordIndex, fieldIndex))))
 
 									case FTDouble.rawValue:
-										row.append(Value.DoubleValue(DBFReadDoubleAttribute(self.handle, recordIndex, fieldIndex)))
+										row.append(Value.double(DBFReadDoubleAttribute(self.handle, recordIndex, fieldIndex)))
 
 									case FTInvalid.rawValue:
-										row.append(Value.InvalidValue)
+										row.append(Value.invalid)
 
 									case FTLogical.rawValue:
 										// TODO: this needs to be translated to a BoolValue. However, no idea how logical values are stored in DBF..
-										row.append(Value.InvalidValue)
+										row.append(Value.invalid)
 
 									default:
-										row.append(Value.InvalidValue)
+										row.append(Value.invalid)
 								}
 							}
 						}
@@ -97,19 +97,19 @@ final class QBEDBFStream: NSObject, Stream {
 
 				self.position = end
 				job.async {
-					consumer(.Success(Array(rows)), (self.position < (self.recordCount-1)) ? .HasMore : .Finished)
+					consumer(.success(Array(rows)), (self.position < (self.recordCount-1)) ? .hasMore : .finished)
 				}
 			}
 		}
 	}
 
-	func clone() -> Stream {
+	func clone() -> WarpCore.Stream {
 		return QBEDBFStream(url: self.url)
 	}
 }
 
 class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
-	class func explain(fileExtension: String, locale: Locale) -> String {
+	class func explain(_ fileExtension: String, locale: Language) -> String {
 		return NSLocalizedString("dBase III", comment: "")
 	}
 
@@ -117,34 +117,34 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 		return Set<String>(["dbf"])
 	} }
 
-	required init(locale: Locale, title: String?) {
+	required init(locale: Language, title: String?) {
 	}
 
-	func encodeWithCoder(aCoder: NSCoder) {
+	func encode(with aCoder: NSCoder) {
 	}
 
 	required init?(coder aDecoder: NSCoder) {
 	}
 
-	func writeData(data: Data, toFile file: NSURL, locale: Locale, job: Job, callback: (Fallible<Void>) -> ()) {
+	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
 		let stream = data.stream()
 
-		let handle = DBFCreate(file.fileSystemRepresentation)
+		let handle = DBFCreate((file as NSURL).fileSystemRepresentation)
 		var rowIndex = 0
 
 		// Write column headers
 		stream.columns(job) { (columns) -> () in
 			switch columns {
-			case .Success(let cns):
+			case .success(let cns):
 				var fieldIndex = 0
 				for col in cns {
 					// make field
-					if let name = col.name.cStringUsingEncoding(NSUTF8StringEncoding) {
+					if let name = col.name.cString(using: String.Encoding.utf8) {
 						DBFAddField(handle, name, FTString, 255, 0)
 					}
 					else {
 						let name = "COL\(fieldIndex)"
-						DBFAddField(handle, name.cStringUsingEncoding(NSUTF8StringEncoding)!, FTString, 255, 0)
+						DBFAddField(handle, name.cString(using: String.Encoding.utf8)!, FTString, 255, 0)
 					}
 					fieldIndex += 1
 				}
@@ -154,9 +154,9 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 				var cb: Sink? = nil
 				cb = { (rows: Fallible<Array<Tuple>>, streamStatus: StreamStatus) -> () in
 					switch rows {
-					case .Success(let rs):
+					case .success(let rs):
 						// We want the next row, so fetch it while we start writing this one.
-						if streamStatus == .HasMore {
+						if streamStatus == .hasMore {
 							job.async {
 								stream.fetch(job, consumer: cb!)
 							}
@@ -167,7 +167,7 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 								for row in rs {
 									var cellIndex = 0
 									for cell in row {
-										if let s = cell.stringValue?.cStringUsingEncoding(NSUTF8StringEncoding) {
+										if let s = cell.stringValue?.cString(using: String.Encoding.utf8) {
 											DBFWriteStringAttribute(handle, Int32(rowIndex), Int32(cellIndex), s)
 										}
 										else {
@@ -181,27 +181,27 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 							}
 						}
 
-						if streamStatus == .Finished {
+						if streamStatus == .finished {
 							dbfMutex.locked {
 								DBFClose(handle)
 							}
-							callback(.Success())
+							callback(.success())
 						}
 
-					case .Failure(let e):
-						callback(.Failure(e))
+					case .failure(let e):
+						callback(.failure(e))
 					}
 				}
 
 				stream.fetch(job, consumer: cb!)
 
-			case .Failure(let e):
-				callback(.Failure(e))
+			case .failure(let e):
+				callback(.failure(e))
 			}
 		}
 	}
 
-	func sentence(locale: Locale) -> QBESentence? {
+	func sentence(_ locale: Language) -> QBESentence? {
 		return nil
 	}
 }
@@ -213,14 +213,14 @@ class QBEDBFSourceStep: QBEStep {
 		super.init()
 	}
 
-	init(url: NSURL) {
-		self.file = QBEFileReference.URL(url)
+	init(url: URL) {
+		self.file = QBEFileReference.absolute(url)
 		super.init()
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		let d = aDecoder.decodeObjectForKey("fileBookmark") as? NSData
-		let u = aDecoder.decodeObjectForKey("fileURL") as? NSURL
+		let d = aDecoder.decodeObject(forKey: "fileBookmark") as? Data
+		let u = aDecoder.decodeObject(forKey: "fileURL") as? URL
 		self.file = QBEFileReference.create(u, d)
 		super.init(coder: aDecoder)
 	}
@@ -229,31 +229,31 @@ class QBEDBFSourceStep: QBEStep {
 		self.file?.url?.stopAccessingSecurityScopedResource()
 	}
 
-	private func sourceData() -> Fallible<Data> {
+	private func sourceDataset() -> Fallible<Dataset> {
 		if let url = file?.url {
-			let s = QBEDBFStream(url: url)
-			return .Success(StreamData(source: s))
+			let s = QBEDBFStream(url: url as URL)
+			return .success(StreamDataset(source: s))
 		}
 		else {
-			return .Failure(NSLocalizedString("The location of the DBF source file is invalid.", comment: ""))
+			return .failure(NSLocalizedString("The location of the DBF source file is invalid.", comment: ""))
 		}
 	}
 
-	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
-		callback(sourceData())
+	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+		callback(sourceDataset())
 	}
 
-	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
-		callback(sourceData().use({ d in return d.limit(maxInputRows) }))
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+		callback(sourceDataset().use({ d in return d.limit(maxInputRows) }))
 	}
 
-	override func encodeWithCoder(coder: NSCoder) {
-		super.encodeWithCoder(coder)
-		coder.encodeObject(self.file?.url, forKey: "fileURL")
-		coder.encodeObject(self.file?.bookmark, forKey: "fileBookmark")
+	override func encode(with coder: NSCoder) {
+		super.encode(with: coder)
+		coder.encode(self.file?.url, forKey: "fileURL")
+		coder.encode(self.file?.bookmark, forKey: "fileBookmark")
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let fileTypes = [
 			"dbf"
 		]
@@ -265,12 +265,14 @@ class QBEDBFSourceStep: QBEStep {
 		)
 	}
 
-	override func willSaveToDocument(atURL: NSURL) {
-		self.file = self.file?.bookmark(atURL)
+	override func willSaveToDocument(_ atURL: URL) {
+		self.file = self.file?.persist(atURL)
 	}
 
-	override func didLoadFromDocument(atURL: NSURL) {
+	override func didLoadFromDocument(_ atURL: URL) {
 		self.file = self.file?.resolve(atURL)
-		self.file?.url?.startAccessingSecurityScopedResource()
+		if let b = self.file?.url?.startAccessingSecurityScopedResource() where !b {
+			trace("startAccessingSecurityScopedResource failed for \(self.file?.url)")
+		}
 	}
 }

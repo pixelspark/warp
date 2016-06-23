@@ -34,8 +34,8 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 		head = aDecoder.decodeObjectOfClass(QBEStep.self, forKey: "head")
 	}
 	
-	func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(head, forKey: "head")
+	func encode(with aCoder: NSCoder) {
+		aCoder.encode(head, forKey: "head")
 	}
 	
 	static func supportsSecureCoding() -> Bool {
@@ -47,7 +47,7 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 		
 		for s in steps {
 			if let sd = s as? QBEChainDependent {
-				deps.unionInPlace(sd.recursiveDependencies)
+				deps.formUnion(sd.recursiveDependencies)
 			}
 		}
 		
@@ -59,7 +59,7 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 
 		for s in steps {
 			if let sd = s as? QBEChainDependent {
-				deps.unionInPlace(sd.directDependencies)
+				deps.formUnion(sd.directDependencies)
 			}
 		}
 
@@ -79,10 +79,10 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 			current = current!.previous
 		}
 		
-		return Array(s.reverse())
+		return Array(s.reversed())
 	}
 	
-	func insertStep(step: QBEStep, afterStep: QBEStep?) {
+	func insertStep(_ step: QBEStep, afterStep: QBEStep?) {
 		if afterStep == nil {
 			// Insert at beginning
 			if head != nil {
@@ -108,12 +108,12 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 	/** This method is called right before a document is saved to disk using encodeWithCoder. Steps that reference
 	external files should take the opportunity to create security bookmarks to these files (as required by Apple's
 	App Sandbox) and store them. */
-	func willSaveToDocument(atURL: NSURL) {
+	func willSaveToDocument(_ atURL: URL) {
 		self.steps.forEach { $0.willSaveToDocument(atURL) }
 	}
 	
 	/** This method is called right after a document has been loaded from disk. */
-	func didLoadFromDocument(atURL: NSURL) {
+	func didLoadFromDocument(_ atURL: URL) {
 		self.steps.forEach { $0.didLoadFromDocument(atURL) }
 	}
 }

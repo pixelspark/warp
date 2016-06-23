@@ -20,7 +20,7 @@ class QBEJobViewController: NSViewController, JobDelegate {
 
 	override func viewWillAppear() {
 		self.progressIndicator.startAnimation(nil)
-		self.progressIndicator.indeterminate = true
+		self.progressIndicator.isIndeterminate = true
 		self.update()
 	}
 
@@ -28,18 +28,18 @@ class QBEJobViewController: NSViewController, JobDelegate {
 		self.progressIndicator.stopAnimation(nil)
 	}
 
-	@IBAction func cancel(sender: NSObject) {
+	@IBAction func cancel(_ sender: NSObject) {
 		self.job.cancel()
-		self.dismissController(sender)
+		self.dismiss(sender)
 	}
 
 	private func update() {
 		self.descriptionLabel?.stringValue = jobDescription
-		self.progressIndicator.indeterminate = false
+		self.progressIndicator.isIndeterminate = false
 		self.progressIndicator.doubleValue = job.progress
 	}
 
-	func job(job: AnyObject, didProgress: Double) {
+	func job(_ job: AnyObject, didProgress: Double) {
 		asyncMain {
 			self.update()
 		}
@@ -60,11 +60,11 @@ class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
 		QBEAppDelegate.sharedInstance.jobsManager.removeObserver(self)
 	}
 
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return self.jobs.count
 	}
 
-	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		let info = jobs[row]
 
 		switch tableColumn?.identifier ?? "" {
@@ -74,21 +74,21 @@ class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
 		}
 	}
 
-	func tableView(tableView: NSTableView, viewForTableColumn tableColumn: NSTableColumn?, row: Int) -> NSView? {
+	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
 		let info = jobs[row]
 
 		switch tableColumn?.identifier ?? "" {
 		case "description":
 			let vw = NSTextField()
-			vw.bordered = false
-			vw.backgroundColor = NSColor.clearColor()
+			vw.isBordered = false
+			vw.backgroundColor = NSColor.clear()
 			vw.stringValue = info.description
 			return vw
 
 		case "progress":
 			let vw = NSProgressIndicator()
-			vw.style = .BarStyle
-			vw.indeterminate = false
+			vw.style = .barStyle
+			vw.isIndeterminate = false
 			vw.doubleValue = info.progress
 			vw.maxValue = 1.0
 			vw.minValue = 0.0
@@ -104,13 +104,13 @@ class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
 		self.tableView?.reloadData()
 	}
 
-	func jobManager(manager: QBEJobsManager, jobDidStart: AnyObject) {
+	func jobManager(_ manager: QBEJobsManager, jobDidStart: AnyObject) {
 		asyncMain {
 			self.updateView()
 		}
 	}
 
-	func jobManagerJobsProgressed(manager: QBEJobsManager) {
+	func jobManagerJobsProgressed(_ manager: QBEJobsManager) {
 		asyncMain {
 			self.updateView()
 		}

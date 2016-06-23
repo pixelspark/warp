@@ -51,15 +51,15 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(false.toInt()==0, "False is integer 0")
 
 		// Invalid value
-		XCTAssert(Value.InvalidValue != Value.InvalidValue, "Invalid value does not equal itself")
-		XCTAssert(Value.InvalidValue != Value.EmptyValue, "Invalid value does not equal empty value")
-		XCTAssert(Value.InvalidValue != Value.BoolValue(false), "Invalid value does not equal false value")
+		XCTAssert(Value.invalid != Value.invalid, "Invalid value does not equal itself")
+		XCTAssert(Value.invalid != Value.empty, "Invalid value does not equal empty value")
+		XCTAssert(Value.invalid != Value.bool(false), "Invalid value does not equal false value")
 
 		// Empty value
-		XCTAssert(Value.EmptyValue == Value.EmptyValue, "Empty equals empty")
-		XCTAssert(Value.EmptyValue != Value.StringValue(""), "Empty does not equal empty string")
-		XCTAssert(Value.EmptyValue != Value.IntValue(0), "Empty does not equal zero integer")
-		XCTAssert(Value.EmptyValue != Value.BoolValue(false), "Empty does not equal false")
+		XCTAssert(Value.empty == Value.empty, "Empty equals empty")
+		XCTAssert(Value.empty != Value.string(""), "Empty does not equal empty string")
+		XCTAssert(Value.empty != Value.int(0), "Empty does not equal zero integer")
+		XCTAssert(Value.empty != Value.bool(false), "Empty does not equal false")
 
 		// Numeric operations
 		XCTAssert(Value(12) * Value(13) == Value(156), "Integer multiplication")
@@ -74,21 +74,21 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(Value("1337") & Value("h4x0r") == Value("1337h4x0r"), "String string concatenation")
 
 		// Implicit conversions
-		XCTAssert((Value(13) + Value("37")) == Value.IntValue(50), "Integer plus string results in integer")
-		XCTAssert(Value("13") + Value(37) == Value.IntValue(50), "String plus integer results in integer")
-		XCTAssert(Value("13") + Value("37") == Value.IntValue(50), "String plus integer results in integer")
-		XCTAssert(Value(true) + Value(true) == Value.IntValue(2), "True + true == 2")
-		XCTAssert(!(Value(1) + Value.EmptyValue).isValid, "1 + Empty is not valid")
-		XCTAssert(!(Value.EmptyValue + Value.EmptyValue).isValid, "Empty + Empty is not valud")
-		XCTAssert(!(Value(12) + Value.InvalidValue).isValid, "Int + Invalid is not valid")
+		XCTAssert((Value(13) + Value("37")) == Value.int(50), "Integer plus string results in integer")
+		XCTAssert(Value("13") + Value(37) == Value.int(50), "String plus integer results in integer")
+		XCTAssert(Value("13") + Value("37") == Value.int(50), "String plus integer results in integer")
+		XCTAssert(Value(true) + Value(true) == Value.int(2), "True + true == 2")
+		XCTAssert(!(Value(1) + Value.empty).isValid, "1 + Empty is not valid")
+		XCTAssert(!(Value.empty + Value.empty).isValid, "Empty + Empty is not valud")
+		XCTAssert(!(Value(12) + Value.invalid).isValid, "Int + Invalid is not valid")
 
-		XCTAssert((Value(13) - Value("37")) == Value.IntValue(-24), "Integer minus string results in integer")
-		XCTAssert(Value("13") - Value(37) == Value.IntValue(-24), "String minus integer results in integer")
-		XCTAssert(Value("13") - Value("37") == Value.IntValue(-24), "String minus integer results in integer")
-		XCTAssert(Value(true) - Value(true) == Value.IntValue(0), "True + true == 2")
-		XCTAssert(!(Value(1) - Value.EmptyValue).isValid, "1 - Empty is not valid")
-		XCTAssert(!(Value.EmptyValue - Value.EmptyValue).isValid, "Empty - Empty is  ot valud")
-		XCTAssert(!(Value(12) - Value.InvalidValue).isValid, "Int - Invalid is not valid")
+		XCTAssert((Value(13) - Value("37")) == Value.int(-24), "Integer minus string results in integer")
+		XCTAssert(Value("13") - Value(37) == Value.int(-24), "String minus integer results in integer")
+		XCTAssert(Value("13") - Value("37") == Value.int(-24), "String minus integer results in integer")
+		XCTAssert(Value(true) - Value(true) == Value.int(0), "True + true == 2")
+		XCTAssert(!(Value(1) - Value.empty).isValid, "1 - Empty is not valid")
+		XCTAssert(!(Value.empty - Value.empty).isValid, "Empty - Empty is  ot valud")
+		XCTAssert(!(Value(12) - Value.invalid).isValid, "Int - Invalid is not valid")
 
 		// Numeric comparisons
 		XCTAssert((Value(12) < Value(25)) == Value(true), "Less than")
@@ -105,14 +105,14 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert((Value(12) != Value(12.0)) == Value(false), "Int != double")
 		XCTAssert(Value("12") == Value(12), "String number is treated as number")
 		XCTAssert((Value("12") + Value("13")) == Value(25), "String number is treated as number")
-		XCTAssert(Value.EmptyValue == Value.EmptyValue, "Empty equals empty")
-		XCTAssert(!(Value.InvalidValue == Value.InvalidValue), "Invalid value equals nothing")
+		XCTAssert(Value.empty == Value.empty, "Empty equals empty")
+		XCTAssert(!(Value.invalid == Value.invalid), "Invalid value equals nothing")
 
 		// Inequality
-		XCTAssert(Value.EmptyValue != Value(0), "Empty is not equal to zero")
-		XCTAssert(Value.EmptyValue != Value(Double.NaN), "Empty is not equal to double NaN")
-		XCTAssert(Value.EmptyValue != Value(""), "Empty is not equal to empty string")
-		XCTAssert(Value.InvalidValue != Value.InvalidValue, "Invalid value inequals other invalid value")
+		XCTAssert(Value.empty != Value(0), "Empty is not equal to zero")
+		XCTAssert(Value.empty != Value(Double.nan), "Empty is not equal to double NaN")
+		XCTAssert(Value.empty != Value(""), "Empty is not equal to empty string")
+		XCTAssert(Value.invalid != Value.invalid, "Invalid value inequals other invalid value")
 
 		// Packs
 		XCTAssert(Pack("a,b,c,d").count == 4, "Pack format parser works")
@@ -140,7 +140,7 @@ class WarpCoreTests: XCTestCase {
 
 			case .And:
 				XCTAssert(Function.And.apply([Value(true), Value(true)]) == Value(true), "AND(true, true)")
-				XCTAssert(!Function.And.apply([Value(true), Value.InvalidValue]).isValid, "AND(true, invalid)")
+				XCTAssert(!Function.And.apply([Value(true), Value.invalid]).isValid, "AND(true, invalid)")
 				XCTAssert(Function.And.apply([Value(true), Value(false)]) == Value(false), "AND(true, false)")
 				XCTAssert(Function.And.apply([Value(false), Value(false)]) == Value(false), "AND(false, false)")
 
@@ -175,30 +175,30 @@ class WarpCoreTests: XCTestCase {
 
 			case .Count:
 				XCTAssert(Function.Count.apply([]) == Value(0), "Empty count returns zero")
-				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.InvalidValue, Value.EmptyValue]) == Value(2), "Count does not include invalid values and empty values")
+				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(2), "Count does not include invalid values and empty values")
 
 			case .Median:
-				XCTAssert(Function.Median.apply([Value(1), Value(1), Value(2), Value.InvalidValue, Value.EmptyValue]) == Value(1), "Median ignores invalid values and takes averages")
+				XCTAssert(Function.Median.apply([Value(1), Value(1), Value(2), Value.invalid, Value.empty]) == Value(1), "Median ignores invalid values and takes averages")
 
 			case .MedianLow:
-				XCTAssert(Function.MedianLow.apply([Value(1), Value(1), Value(2), Value(2), Value.InvalidValue, Value.EmptyValue]) == Value(1), "Median low ignores invalid values and takes lower value")
+				XCTAssert(Function.MedianLow.apply([Value(1), Value(1), Value(2), Value(2), Value.invalid, Value.empty]) == Value(1), "Median low ignores invalid values and takes lower value")
 
 			case .MedianHigh:
-				XCTAssert(Function.MedianHigh.apply([Value(1), Value(1), Value(2), Value(2), Value.InvalidValue, Value.EmptyValue]) == Value(2), "Median high ignores invalid values and takes higher value")
+				XCTAssert(Function.MedianHigh.apply([Value(1), Value(1), Value(2), Value(2), Value.invalid, Value.empty]) == Value(2), "Median high ignores invalid values and takes higher value")
 
 			case .MedianPack:
-				XCTAssert(Function.MedianPack.apply([Value(1), Value(1), Value(2), Value(2), Value.InvalidValue, Value.EmptyValue]) == Value(Pack([Value(1), Value(2)]).stringValue), "Median pack ignores invalid values and returns pack value")
+				XCTAssert(Function.MedianPack.apply([Value(1), Value(1), Value(2), Value(2), Value.invalid, Value.empty]) == Value(Pack([Value(1), Value(2)]).stringValue), "Median pack ignores invalid values and returns pack value")
 
 			case .CountDistinct:
 				XCTAssert(Function.Count.apply([]) == Value(0), "Empty count distinct returns zero")
-				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.InvalidValue, Value.EmptyValue]) == Value(2), "Count distinct does not include invalid values")
+				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(2), "Count distinct does not include invalid values")
 
 			case .Items:
 				XCTAssert(Function.Items.apply([Value("")]) == Value(0), "Empty count returns zero")
 				XCTAssert(Function.Items.apply([Value("Foo,bar,baz")]) == Value(3), "Count does not include invalid values and empty values")
 
 			case .CountAll:
-				XCTAssert(Function.CountAll.apply([Value(1), Value(1), Value.InvalidValue, Value.EmptyValue]) == Value(4), "CountAll includes invalid values and empty values")
+				XCTAssert(Function.CountAll.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(4), "CountAll includes invalid values and empty values")
 
 			case .Negate:
 				XCTAssert(Function.Negate.apply([Value(1337)]) == Value(-1337), "Negate")
@@ -207,7 +207,7 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.Or.apply([Value(true), Value(true)]) == Value(true), "OR(true, true)")
 				XCTAssert(Function.Or.apply([Value(true), Value(false)]) == Value(true), "OR(true, false)")
 				XCTAssert(Function.Or.apply([Value(false), Value(false)]) == Value(false), "OR(false, false)")
-				XCTAssert(!Function.Or.apply([Value(true), Value.InvalidValue]).isValid, "OR(true, invalid)")
+				XCTAssert(!Function.Or.apply([Value(true), Value.invalid]).isValid, "OR(true, invalid)")
 
 			case .Acos:
 				XCTAssert(Function.Acos.apply([Value(0.337)]) == Value(acos(0.337)), "Acos")
@@ -269,7 +269,7 @@ class WarpCoreTests: XCTestCase {
 			case .If:
 				XCTAssert(Function.If.apply([Value(true), Value(13), Value(37)]) == Value(13), "If")
 				XCTAssert(Function.If.apply([Value(false), Value(13), Value(37)]) == Value(37), "If")
-				XCTAssert(!Function.If.apply([Value.InvalidValue, Value(13), Value(37)]).isValid, "If")
+				XCTAssert(!Function.If.apply([Value.invalid, Value(13), Value(37)]).isValid, "If")
 
 			case .Left:
 				XCTAssert(Function.Left.apply([Value(1337), Value(3)]) == Value(133), "Left")
@@ -343,7 +343,7 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.Sign.apply([Value(1337)]) == Value(1), "Sign")
 
 			case .IfError:
-				XCTAssert(Function.IfError.apply([Value.InvalidValue, Value(1337)]) == Value(1337), "IfError")
+				XCTAssert(Function.IfError.apply([Value.invalid, Value(1337)]) == Value(1337), "IfError")
 				XCTAssert(Function.IfError.apply([Value(1336), Value(1337)]) == Value(1336), "IfError")
 
 			case .Levenshtein:
@@ -353,7 +353,7 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.RegexSubstitute.apply([Value("Tommy"), Value("m+"), Value("@")]) == Value("To@y"), "RegexSubstitute")
 
 			case .Coalesce:
-				XCTAssert(Function.Coalesce.apply([Value.InvalidValue, Value.InvalidValue, Value(1337)]) == Value(1337), "Coalesce")
+				XCTAssert(Function.Coalesce.apply([Value.invalid, Value.invalid, Value(1337)]) == Value(1337), "Coalesce")
 
 			case .Capitalize:
 				XCTAssert(Function.Capitalize.apply([Value("tommy van DER vorst")]) == Value("Tommy Van Der Vorst"), "Capitalize")
@@ -363,72 +363,72 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.URLEncode.apply([Value("tommy%/van DER vorst")]) == Value("tommy%25/van%20DER%20vorst"), "URLEncode")
 
 			case .In:
-				XCTAssert(Function.In.apply([Value(1), Value(1), Value(2)]) == Value.BoolValue(true), "In")
-				XCTAssert(Function.In.apply([Value(1), Value(3), Value(2)]) == Value.BoolValue(false), "In")
+				XCTAssert(Function.In.apply([Value(1), Value(1), Value(2)]) == Value.bool(true), "In")
+				XCTAssert(Function.In.apply([Value(1), Value(3), Value(2)]) == Value.bool(false), "In")
 
 			case .NotIn:
-				XCTAssert(Function.NotIn.apply([Value(1), Value(2), Value(2)]) == Value.BoolValue(true), "NotIn")
-				XCTAssert(Function.NotIn.apply([Value(1), Value(1), Value(2)]) == Value.BoolValue(false), "NotIn")
+				XCTAssert(Function.NotIn.apply([Value(1), Value(2), Value(2)]) == Value.bool(true), "NotIn")
+				XCTAssert(Function.NotIn.apply([Value(1), Value(1), Value(2)]) == Value.bool(false), "NotIn")
 
 			case .ToUnixTime:
-				let d = NSDate()
+				let d = Date()
 				XCTAssert(Function.ToUnixTime.apply([Value(d)]) == Value(d.timeIntervalSince1970), "ToUnixTime")
-				let epoch = NSDate(timeIntervalSince1970: 0)
+				let epoch = Date(timeIntervalSince1970: 0)
 				XCTAssert(Function.ToUnixTime.apply([Value(epoch)]) == Value(0), "ToUnixTime")
 
 			case .FromUnixTime:
-				XCTAssert(Function.FromUnixTime.apply([Value(0)]) == Value(NSDate(timeIntervalSince1970: 0)), "FromUnixTime")
+				XCTAssert(Function.FromUnixTime.apply([Value(0)]) == Value(Date(timeIntervalSince1970: 0)), "FromUnixTime")
 
 			case .Now:
 				break
 
 			case .FromISO8601:
-				XCTAssert(Function.FromISO8601.apply([Value("1970-01-01T00:00:00Z")]) == Value(NSDate(timeIntervalSince1970: 0)), "FromISO8601")
+				XCTAssert(Function.FromISO8601.apply([Value("1970-01-01T00:00:00Z")]) == Value(Date(timeIntervalSince1970: 0)), "FromISO8601")
 
 			case .ToLocalISO8601:
 				break
 
 			case .ToUTCISO8601:
-				XCTAssert(Function.ToUTCISO8601.apply([Value(NSDate(timeIntervalSince1970: 0))]) == Value("1970-01-01T00:00:00Z"), "ToUTCISO8601")
+				XCTAssert(Function.ToUTCISO8601.apply([Value(Date(timeIntervalSince1970: 0))]) == Value("1970-01-01T00:00:00Z"), "ToUTCISO8601")
 
 			case .FromExcelDate:
-				XCTAssert(Function.FromExcelDate.apply([Value(25569.0)]) == Value(NSDate(timeIntervalSince1970: 0.0)), "FromExcelDate")
-				XCTAssert(Function.FromExcelDate.apply([Value(42210.8330092593)]) == Value(NSDate(timeIntervalSinceReferenceDate: 459547172.0)), "FromExcelDate")
+				XCTAssert(Function.FromExcelDate.apply([Value(25569.0)]) == Value(Date(timeIntervalSince1970: 0.0)), "FromExcelDate")
+				XCTAssert(Function.FromExcelDate.apply([Value(42210.8330092593)]) == Value(Date(timeIntervalSinceReferenceDate: 459547172.0)), "FromExcelDate")
 
 			case .ToExcelDate:
-				XCTAssert(Function.ToExcelDate.apply([Value(NSDate(timeIntervalSince1970: 0.0))]) == Value(25569.0), "ToExcelDate")
-				XCTAssert(Function.ToExcelDate.apply([Value(NSDate(timeIntervalSinceReferenceDate: 459547172))]).doubleValue!.approximates(42210.8330092593, epsilon: 0.01), "ToExcelDate")
+				XCTAssert(Function.ToExcelDate.apply([Value(Date(timeIntervalSince1970: 0.0))]) == Value(25569.0), "ToExcelDate")
+				XCTAssert(Function.ToExcelDate.apply([Value(Date(timeIntervalSinceReferenceDate: 459547172))]).doubleValue!.approximates(42210.8330092593, epsilon: 0.01), "ToExcelDate")
 
 			case .UTCDate:
-				XCTAssert(Function.UTCDate.apply([Value(2001), Value(1), Value(1)]) == Value.DateValue(0.0), "UTCDate")
+				XCTAssert(Function.UTCDate.apply([Value(2001), Value(1), Value(1)]) == Value.date(0.0), "UTCDate")
 
 			case .UTCYear:
-				XCTAssert(Function.UTCYear.apply([Value.DateValue(0)]) == Value(2001), "UTCYear")
+				XCTAssert(Function.UTCYear.apply([Value.date(0)]) == Value(2001), "UTCYear")
 
 			case .UTCMonth:
-				XCTAssert(Function.UTCMonth.apply([Value.DateValue(0)]) == Value(1), "UTCMonth")
+				XCTAssert(Function.UTCMonth.apply([Value.date(0)]) == Value(1), "UTCMonth")
 
 			case .UTCDay:
-				XCTAssert(Function.UTCDay.apply([Value.DateValue(0)]) == Value(1), "UTCDay")
+				XCTAssert(Function.UTCDay.apply([Value.date(0)]) == Value(1), "UTCDay")
 
 			case .UTCHour:
-				XCTAssert(Function.UTCHour.apply([Value.DateValue(0)]) == Value(0), "UTCHour")
+				XCTAssert(Function.UTCHour.apply([Value.date(0)]) == Value(0), "UTCHour")
 
 			case .UTCMinute:
-				XCTAssert(Function.UTCMinute.apply([Value.DateValue(0)]) == Value(0), "UTCMinute")
+				XCTAssert(Function.UTCMinute.apply([Value.date(0)]) == Value(0), "UTCMinute")
 
 			case .UTCSecond:
-				XCTAssert(Function.UTCSecond.apply([Value.DateValue(0)]) == Value(0), "UTCSecond")
+				XCTAssert(Function.UTCSecond.apply([Value.date(0)]) == Value(0), "UTCSecond")
 
 			case .Duration:
-				let start = Value(NSDate(timeIntervalSinceReferenceDate: 1337.0))
-				let end = Value(NSDate(timeIntervalSinceReferenceDate: 1346.0))
+				let start = Value(Date(timeIntervalSinceReferenceDate: 1337.0))
+				let end = Value(Date(timeIntervalSinceReferenceDate: 1346.0))
 				XCTAssert(Function.Duration.apply([start, end]) == Value(9.0), "Duration")
 				XCTAssert(Function.Duration.apply([end, start]) == Value(-9.0), "Duration")
 
 			case .After:
-				let start = Value(NSDate(timeIntervalSinceReferenceDate: 1337.0))
-				let end = Value(NSDate(timeIntervalSinceReferenceDate: 1346.0))
+				let start = Value(Date(timeIntervalSinceReferenceDate: 1337.0))
+				let end = Value(Date(timeIntervalSinceReferenceDate: 1346.0))
 				XCTAssert(Function.After.apply([start, Value(9.0)]) == end, "After")
 				XCTAssert(Function.After.apply([end, Value(-9.0)]) == start, "After")
 
@@ -442,28 +442,28 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.RandomString.apply([Value("[0-9]")]).stringValue!.characters.count == 1, "RandomString")
 
 			case .ToUnicodeDateString:
-				XCTAssert(Function.ToUnicodeDateString.apply([Value.DateValue(460226561.0), Value("yyy-MM-dd")]) == Value("2015-08-02"), "ToUnicodeDateString")
+				XCTAssert(Function.ToUnicodeDateString.apply([Value.date(460226561.0), Value("yyy-MM-dd")]) == Value("2015-08-02"), "ToUnicodeDateString")
 
 			case .FromUnicodeDateString:
-				XCTAssert(Function.FromUnicodeDateString.apply([Value("1988-08-11"), Value("yyyy-MM-dd")]) == Value(NSDate.fromISO8601FormattedDate("1988-08-11T00:00:00Z")!), "FromUnicodeDateString")
+				XCTAssert(Function.FromUnicodeDateString.apply([Value("1988-08-11"), Value("yyyy-MM-dd")]) == Value(Date.fromISO8601FormattedDate("1988-08-11T00:00:00Z")!), "FromUnicodeDateString")
 
 			case .Power:
 				XCTAssert(Function.Power.apply([Value(2), Value(0)]) == Value(1), "Power")
 
 			case .UUID:
-				XCTAssert(Function.UUID.apply([]).stringValue!.lengthOfBytesUsingEncoding(NSUTF8StringEncoding) == 36, "UUID must be 36 characters long")
+				XCTAssert(Function.UUID.apply([]).stringValue!.lengthOfBytes(using: String.Encoding.utf8) == 36, "UUID must be 36 characters long")
 
 			case .IsEmpty:
-				XCTAssert(Function.IsEmpty.apply([Value.EmptyValue]) == Value.BoolValue(true), "empty value is empty")
-				XCTAssert(Function.IsEmpty.apply([Value.IntValue(1)]) == Value.BoolValue(false), "value is not empty")
-				XCTAssert(Function.IsEmpty.apply([Value.InvalidValue]) == Value.BoolValue(false), "invalid value is not empty")
+				XCTAssert(Function.IsEmpty.apply([Value.empty]) == Value.bool(true), "empty value is empty")
+				XCTAssert(Function.IsEmpty.apply([Value.int(1)]) == Value.bool(false), "value is not empty")
+				XCTAssert(Function.IsEmpty.apply([Value.invalid]) == Value.bool(false), "invalid value is not empty")
 
 			case .IsInvalid:
-				XCTAssert(Function.IsInvalid.apply([Value.InvalidValue]) == Value.BoolValue(true), "invalid value is invalid")
-				XCTAssert(Function.IsInvalid.apply([Value.EmptyValue]) == Value.BoolValue(false), "empty value is not invalid")
+				XCTAssert(Function.IsInvalid.apply([Value.invalid]) == Value.bool(true), "invalid value is invalid")
+				XCTAssert(Function.IsInvalid.apply([Value.empty]) == Value.bool(false), "empty value is not invalid")
 
 			case .JSONDecode:
-				XCTAssert(Function.JSONDecode.apply([Value.StringValue("[1,2,3]")]) == Pack(["1","2","3"]).value, "JSON decode array")
+				XCTAssert(Function.JSONDecode.apply([Value.string("[1,2,3]")]) == Pack(["1","2","3"]).value, "JSON decode array")
 			}
 		}
 
@@ -509,12 +509,12 @@ class WarpCoreTests: XCTestCase {
 	}
 	
 	func testSequencer() {
-		func checkSequence(formula: String, _ expected: [String]) {
+		func checkSequence(_ formula: String, _ expected: [String]) {
 			let expectedValues = Set(expected.map { return Value($0) })
 			let sequencer = Sequencer(formula)!
 			let result = Set(Array(sequencer.root!))
 			XCTAssert(result.count == sequencer.cardinality, "Expected number of items matches with the actual number of items for sequence \(formula)")
-			XCTAssert(result.isSupersetOf(expectedValues) && expectedValues.isSupersetOf(result), "Sequence \(formula) returns \(expectedValues), got \(result)")
+			XCTAssert(result.isSuperset(of: expectedValues) && expectedValues.isSuperset(of: result), "Sequence \(formula) returns \(expectedValues), got \(result)")
 		}
 
 		checkSequence("[AB]{2}", ["AA","AB","BA","BB"])
@@ -555,7 +555,7 @@ class WarpCoreTests: XCTestCase {
 	}
 	
 	func testFormulaParser() {
-		let locale = Locale(language: Locale.defaultLanguage)
+		let locale = Language(language: Language.defaultLanguage)
 		
 		// Test whether parsing goes right
 		XCTAssert(Formula(formula: "1.337", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(1.337), "Parse decimal numbers")
@@ -610,35 +610,35 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(!Comparison(first: Literal(Value(13.45)), second: Call(arguments: [], type: Function.RandomItem), type: Binary.Equal).isConstant, "Binary operator applied to at least one non-constant expression should not be constant itself")
 		
 		
-		let locale = Locale(language: Locale.defaultLanguage)
+		let locale = Language(language: Language.defaultLanguage)
 		
 		let a = Formula(formula: "([@x]+1)>([@x]+1)", locale: locale)!.root.prepare()
-		XCTAssert(a is Literal && a.apply(Row(), foreign: nil, inputValue: nil) == Value.BoolValue(false), "Equivalence is optimized away for '>' operator in x+1 > x+1")
+		XCTAssert(a is Literal && a.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(false), "Equivalence is optimized away for '>' operator in x+1 > x+1")
 		
 		let b = Formula(formula: "(1+[@x])>([@x]+1)", locale: locale)!.root.prepare()
-		XCTAssert(b is Literal && b.apply(Row(), foreign: nil, inputValue: nil) == Value.BoolValue(false), "Equivalence is optimized away for '>' operator in x+1 > 1+x")
+		XCTAssert(b is Literal && b.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(false), "Equivalence is optimized away for '>' operator in x+1 > 1+x")
 		
 		let c = Formula(formula: "(1+[@x])>=([@x]+1)", locale: locale)!.root.prepare()
-		XCTAssert(c is Literal && c.apply(Row(), foreign: nil, inputValue: nil) == Value.BoolValue(true), "Equivalence is optimized away for '>=' operator in x+1 > 1+x")
+		XCTAssert(c is Literal && c.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(true), "Equivalence is optimized away for '>=' operator in x+1 > 1+x")
 		
 		let d = Formula(formula: "(1+[@x])<>([@x]+1)", locale: locale)!.root.prepare()
-		XCTAssert(d is Literal && d.apply(Row(), foreign: nil, inputValue: nil) == Value.BoolValue(false), "Equivalence is optimized away for '<>' operator in x+1 > x+2")
+		XCTAssert(d is Literal && d.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(false), "Equivalence is optimized away for '<>' operator in x+1 > x+2")
 		
 		let f = Formula(formula: "(1+[@x])<>([@x]+2)", locale: locale)!.root.prepare()
 		XCTAssert(f is Comparison, "Equivalence is NOT optimized away for '<>' operator in x+1 > x+2")
 		
 		// Optimizer is not smart enough to do the following
 		//let e = Formula(formula: "(1+2+[@x])>(2+[@x]+1)", locale: locale)!.root.prepare()
-		//XCTAssert(e is Literal && e.apply(Row(), foreign: nil, inputValue: nil) == Value.BoolValue(false), "Equivalence is optimized away for '>' operator in 1+2+x > 2+x+1")
+		//XCTAssert(e is Literal && e.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(false), "Equivalence is optimized away for '>' operator in 1+2+x > 2+x+1")
 	}
 	
-	func compareData(job: Job, _ a: Data, _ b: Data, callback: (Bool) -> ()) {
+	func compareDataset(_ job: Job, _ a: WarpCore.Dataset, _ b: WarpCore.Dataset, callback: (Bool) -> ()) {
 		a.raster(job, callback: { (aRasterFallible) -> () in
 			switch aRasterFallible {
-				case .Success(let aRaster):
+				case .success(let aRaster):
 					b.raster(job, callback: { (bRasterFallible) -> () in
 						switch bRasterFallible {
-							case .Success(let bRaster):
+							case .success(let bRaster):
 								let equal = aRaster.compare(bRaster)
 								if !equal {
 									job.log("A: \(aRaster.debugDescription)")
@@ -646,12 +646,12 @@ class WarpCoreTests: XCTestCase {
 								}
 								callback(equal)
 							
-							case .Failure(let error):
+							case .failure(let error):
 								XCTFail(error)
 						}
 					})
 				
-				case .Failure(let error):
+				case .failure(let error):
 					XCTFail(error)
 			}
 		})
@@ -659,35 +659,35 @@ class WarpCoreTests: XCTestCase {
 	
 	func testCoalescer() {
 		let raster = Raster(data: [
-			[Value.IntValue(1), Value.IntValue(2), Value.IntValue(3)],
-			[Value.IntValue(4), Value.IntValue(5), Value.IntValue(6)],
-			[Value.IntValue(7), Value.IntValue(8), Value.IntValue(9)]
+			[Value.int(1), Value.int(2), Value.int(3)],
+			[Value.int(4), Value.int(5), Value.int(6)],
+			[Value.int(7), Value.int(8), Value.int(9)]
 		], columns: [Column("a"), Column("b"), Column("c")], readOnly: true)
 		
-		let inData = RasterData(raster: raster)
-		let inOptData = inData.coalesced
-		let job = Job(.UserInitiated)
+		let inDataset = RasterDataset(raster: raster)
+		let inOptDataset = inDataset.coalesced
+		let job = Job(.userInitiated)
 
-		inData.filter(Literal(Value(false))).raster(job) { rf in
+		inDataset.filter(Literal(Value(false))).raster(job) { rf in
 			switch rf {
-			case .Success(let r):
-				XCTAssert(r.columns.count > 0, "Data set that is filtered to be empty should still contains column names")
+			case .success(let r):
+				XCTAssert(r.columns.count > 0, "Dataset set that is filtered to be empty should still contains column names")
 
-			case .Failure(let e):
+			case .failure(let e):
 				XCTFail(e)
 			}
 
 		}
 		
-		compareData(job, inData.limit(2).limit(1), inOptData.limit(2).limit(1)) { (equal) -> () in
+		compareDataset(job, inDataset.limit(2).limit(1), inOptDataset.limit(2).limit(1)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for limit(2).limit(1) should equal normal result")
 		}
 		
-		compareData(job, inData.offset(2).offset(1), inOptData.offset(2).offset(1)) { (equal) -> () in
+		compareDataset(job, inDataset.offset(2).offset(1), inOptDataset.offset(2).offset(1)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for offset(2).offset(1) should equal normal result")
 		}
 		
-		compareData(job, inData.offset(3), inOptData.offset(2).offset(1)) { (equal) -> () in
+		compareDataset(job, inDataset.offset(3), inOptDataset.offset(2).offset(1)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for offset(2).offset(1) should equal offset(3)")
 		}
 		
@@ -701,40 +701,40 @@ class WarpCoreTests: XCTestCase {
 			Order(expression: Sibling("c"), ascending: true, numeric: true)
 		]
 		
-		compareData(job, inData.sort(aSorts).sort(bSorts), inData.sort(bSorts + aSorts)) { (equal) -> () in
+		compareDataset(job, inDataset.sort(aSorts).sort(bSorts), inDataset.sort(bSorts + aSorts)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for sort().sort() should equal normal result")
 		}
 		
-		compareData(job, inData.sort(aSorts).sort(bSorts), inOptData.sort(aSorts).sort(bSorts)) { (equal) -> () in
+		compareDataset(job, inDataset.sort(aSorts).sort(bSorts), inOptDataset.sort(aSorts).sort(bSorts)) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for sort().sort() should equal normal result")
 		}
 		
 		// Verify coalesced transpose
-		compareData(job, inData.transpose().transpose(), inOptData.transpose().transpose()) { (equal) -> () in
+		compareDataset(job, inDataset.transpose().transpose(), inOptDataset.transpose().transpose()) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for transpose().transpose() should equal normal result")
 		}
 		
-		compareData(job, inData.transpose().transpose().transpose(), inOptData.transpose().transpose().transpose()) { (equal) -> () in
+		compareDataset(job, inDataset.transpose().transpose().transpose(), inOptDataset.transpose().transpose().transpose()) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for transpose().transpose().transpose() should equal normal result")
 		}
 		
-		compareData(job, inData, inOptData.transpose().transpose()) { (equal) -> () in
+		compareDataset(job, inDataset, inOptDataset.transpose().transpose()) { (equal) -> () in
 			XCTAssert(equal, "Coalescer result for transpose().transpose() should equal original result")
 		}
 
-		let seqData = StreamData(source: Sequencer("[a-z]{4}")!.stream("Value"))
-		seqData.random(1).random(1).raster(job) { rf in
+		let seqDataset = StreamDataset(source: Sequencer("[a-z]{4}")!.stream("Value"))
+		seqDataset.random(1).random(1).raster(job) { rf in
 			switch rf {
-			case .Success(let r):
+			case .success(let r):
 				XCTAssert(r.rowCount == 1, "Random.Random returns the wrong row count")
 
-			case .Failure(let e): XCTFail(e)
+			case .failure(let e): XCTFail(e)
 			}
 		}
 	}
 	
 	func testInferer() {
-		let locale = Locale(language: Locale.defaultLanguage)
+		let locale = Language(language: Language.defaultLanguage)
 		let cols = ["A","B","C","D"].map({Column($0)})
 		let row = [1,3,4,6].map({Value($0)})
 		let suggestions = Expression.infer(nil, toValue: Value(24), level: 4, row: Row(row, columns: cols), column: 0, maxComplexity: Int.max, previousValues: [])
@@ -742,25 +742,25 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(suggestions.count>0, "Can solve the 1-3-4-6 24 game.")
 	}
 	
-	func testDataImplementations() {
-		let job = Job(.UserInitiated)
+	func testDatasetImplementations() {
+		let job = Job(.userInitiated)
 		
 		var d: [[Value]] = []
 		for i in 0..<1000 {
 			d.append([Value(i), Value(i+1), Value(i+2)])
 		}
 		
-		func assertRaster(raster: Fallible<Raster>, message: String, condition: (Raster) -> Bool) {
+		func assertRaster(_ raster: Fallible<Raster>, message: String, condition: (Raster) -> Bool) {
 			switch raster {
-				case .Success(let r):
+				case .success(let r):
 					XCTAssertTrue(condition(r), message)
 				
-				case .Failure(let error):
+				case .failure(let error):
 					XCTFail("\(message) failed: \(error)")
 			}
 		}
 		
-		let data = RasterData(data: d, columns: [Column("X"), Column("Y"), Column("Z")])
+		let data = RasterDataset(data: d, columns: [Column("X"), Column("Y"), Column("Z")])
 		
 		// Limit
 		data.limit(5).raster(job) { assertRaster($0, message: "Limit actually works") { $0.rowCount == 5 } }
@@ -775,8 +775,8 @@ class WarpCoreTests: XCTestCase {
 		}
 		
 		// Union
-		let secondData = RasterData(data: d, columns: [Column("X"), Column("B"), Column("C")])
-		data.union(secondData).raster(job) {
+		let secondDataset = RasterDataset(data: d, columns: [Column("X"), Column("B"), Column("C")])
+		data.union(secondDataset).raster(job) {
 			assertRaster($0, message: "Union creates the proper number of columns", condition: { $0.columns.count == 5 })
 			assertRaster($0, message: "Union creates the proper number of rows", condition: { $0.rowCount == 2000 })
 		}
@@ -786,13 +786,13 @@ class WarpCoreTests: XCTestCase {
 		}
 		
 		// Join
-		data.join(Join(type: .LeftJoin, foreignData: secondData, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .Equal))).raster(job) {
+		data.join(Join(type: .LeftJoin, foreignDataset: secondDataset, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .Equal))).raster(job) {
 			assertRaster($0, message: "Join returns the appropriate number of rows in a one-to-one scenario", condition: { (x) in
 				x.rowCount == 1000
 			})
 			assertRaster($0, message: "Join returns the appropriate number of columns", condition: { $0.columns.count == 5 })
 		}
-		data.join(Join(type: .LeftJoin, foreignData: data, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .Equal))).raster(job) {
+		data.join(Join(type: .LeftJoin, foreignDataset: data, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .Equal))).raster(job) {
 			assertRaster($0, message: "Join returns the appropriate number of rows in a self-join one-to-one scenario", condition: { $0.rowCount == 1000 })
 			assertRaster($0, message: "Join returns the appropriate number of columns in a self-join", condition: { $0.columns.count == 3 })
 		}
@@ -800,10 +800,10 @@ class WarpCoreTests: XCTestCase {
 		// Select columns
 		data.selectColumns(["THIS_DOESNT_EXIST"]).columns(job) { (r) -> () in
 			switch r {
-				case .Success(let cns):
+				case .success(let cns):
 					XCTAssert(cns.isEmpty, "Selecting an invalid column returns a set without columns")
 				
-				case .Failure(let error):
+				case .failure(let error):
 					XCTFail(error)
 			}
 		}
@@ -811,12 +811,12 @@ class WarpCoreTests: XCTestCase {
 		// Transpose (repeatedly transpose and see if we end up with the initial value)
 		data.raster(job) { (r) -> () in
 			switch r {
-				case .Success(let raster):
+				case .success(let raster):
 					let rowsBefore = raster.rowCount
 					let columnsBefore = raster.columns.count
 					
-					self.measureBlock {
-						var td: Data = data
+					self.measure {
+						var td: WarpCore.Dataset = data
 						for _ in 1...11 {
 							td = td.transpose()
 						}
@@ -825,36 +825,36 @@ class WarpCoreTests: XCTestCase {
 						td.raster(job) { assertRaster($0, message: "Column count matches") { $0.columns.count == rowsBefore + 1 } }
 					}
 			
-				case .Failure(let error):
+				case .failure(let error):
 					XCTFail(error)
 			}
 			
 		}
 		
 		// Empty raster behavior
-		let emptyRasterData = RasterData(data: [], columns: [])
-		emptyRasterData.limit(5).raster(job) { assertRaster($0, message: "Limit works when number of rows > available rows") { $0.rowCount == 0 } }
-		emptyRasterData.selectColumns([Column("THIS_DOESNT_EXIST")]).raster(job) { assertRaster($0, message: "Selecting an invalid column works properly in empty raster") { $0.columns.isEmpty } }
+		let emptyRasterDataset = RasterDataset(data: [], columns: [])
+		emptyRasterDataset.limit(5).raster(job) { assertRaster($0, message: "Limit works when number of rows > available rows") { $0.rowCount == 0 } }
+		emptyRasterDataset.selectColumns([Column("THIS_DOESNT_EXIST")]).raster(job) { assertRaster($0, message: "Selecting an invalid column works properly in empty raster") { $0.columns.isEmpty } }
 	}
 	
     func testRaster() {
-		let job = Job(.UserInitiated)
+		let job = Job(.userInitiated)
 		
 		var d: [[Value]] = []
 		for i in 0...1000 {
 			d.append([Value(i), Value(i+1), Value(i+2)])
 		}
 		
-		let rasterData = RasterData(data: d, columns: [Column("X"), Column("Y"), Column("Z")])
-		rasterData.raster(job) { (raster) -> () in
+		let rasterDataset = RasterDataset(data: d, columns: [Column("X"), Column("Y"), Column("Z")])
+		rasterDataset.raster(job) { (raster) -> () in
 			switch raster {
-				case .Success(let r):
+				case .success(let r):
 					XCTAssert(r.indexOfColumnWithName("X")==0, "First column has index 0")
 					XCTAssert(r.indexOfColumnWithName("x")==0, "Column names should be case-insensitive")
 					XCTAssert(r.rowCount == 1001, "Row count matches")
 					XCTAssert(r.columns.count == 3, "Column count matches")
 				
-				case .Failure(let error):
+				case .failure(let error):
 					XCTFail(error)
 			}
 		}
@@ -863,30 +863,30 @@ class WarpCoreTests: XCTestCase {
 		let cols = [Column("X"), Column("Y"), Column("Z")]
 		let testRaster = Raster(data: d, columns: cols)
 		XCTAssert(testRaster.rowCount == d.count, "Row count matches")
-		testRaster.addRows([[Value.EmptyValue, Value.EmptyValue, Value.EmptyValue]])
+		testRaster.addRows([[Value.empty, Value.empty, Value.empty]])
 		XCTAssert(testRaster.rowCount == d.count+1, "Row count matches after insert")
 
 		testRaster.addColumns([Column("W")])
 		XCTAssert(testRaster.columns.count == 3+1, "Column count matches after insert")
 
-		// Raster modifications through RasterMutableData
-		let mutableRaster = RasterMutableData(raster: testRaster)
-		mutableRaster.performMutation(.Alter(DataDefinition(columns: cols)), job: job) { result in
+		// Raster modifications through RasterMutableDataset
+		let mutableRaster = RasterMutableDataset(raster: testRaster)
+		mutableRaster.performMutation(.alter(DatasetDefinition(columns: cols)), job: job) { result in
 			switch result {
-			case .Success:
+			case .success:
 				XCTAssert(testRaster.columns.count == 3, "Column count matches again after mutation")
 
-				mutableRaster.performMutation(.Truncate, job: job) { result in
+				mutableRaster.performMutation(.truncate, job: job) { result in
 					switch result {
-					case .Success:
+					case .success:
 						XCTAssert(testRaster.columns.count == 3, "Column count matches again after mutation")
 						XCTAssert(testRaster.rowCount == 0, "Row count matches again after mutation")
 
-					case .Failure(let e): XCTFail(e)
+					case .failure(let e): XCTFail(e)
 					}
 				}
 
-			case .Failure(let e): XCTFail(e)
+			case .failure(let e): XCTFail(e)
 			}
 		}
     }
@@ -900,12 +900,11 @@ class WarpCoreTests: XCTestCase {
 	}
 	
 	func testThreading() {
-		let data = Array<Int>(0...5000000)
-		let expectFinish = self.expectationWithDescription("Parallel map finishes in time")
+		let data = Array<Int>(0...500000)
+		let expectFinish = self.expectation(withDescription: "Parallel map finishes in time")
 		
 		let future = data.parallel(
 			map: { (slice: Array<Int>) -> [Int] in
-				//println("Worker \(slice)")
 				return Array(slice.map({return $0 * 2}))
 			},
 			reduce: {(s, r: Int?) -> (Int) in
@@ -917,12 +916,12 @@ class WarpCoreTests: XCTestCase {
 			}
 		)
 		
-		future.get {(result) in
-			XCTAssert(result != nil && result! == 10000000, "Parallel M/R delivers the correct result")
+		future.get { result in
+			XCTAssert(result != nil && result! == 1000000, "Parallel M/R delivers the correct result")
 			expectFinish.fulfill()
 		}
 		
-		self.waitForExpectationsWithTimeout(15.0, handler: { (err) -> Void in
+		self.waitForExpectations(withTimeout: 15.0, handler: { (err) -> Void in
 			if let e = err {
 				print("Error=\(e)")
 			}
@@ -932,18 +931,18 @@ class WarpCoreTests: XCTestCase {
 	func testAggregation() {
 		let n = 10000
 		let rows = (0..<n).map { i in
-			return [i, 0, 1].map { Value.IntValue($0) }
+			return [i, 0, 1].map { Value.int($0) }
 		}
 
 		let raster = Raster(data: rows, columns: ["a", "b", "c"])
-		let rasterData = RasterData(raster: raster)
-		let job = Job(.UserInitiated)
+		let rasterDataset = RasterDataset(raster: raster)
+		let job = Job(.userInitiated)
 
 		asyncTest { callback in
-			rasterData.aggregate([:], values: ["x": Aggregator(map: Sibling(Column("c")), reduce: .Sum)]).raster(job) { result in
+			rasterDataset.aggregate([:], values: ["x": Aggregator(map: Sibling(Column("c")), reduce: .Sum)]).raster(job) { result in
 				result.require { outRaster in
 					XCTAssert(WarpCoreTests.rasterEquals(outRaster, grid: [
-						[Value.IntValue(n)]
+						[Value.int(n)]
 					]), "Simple aggregation works")
 
 					callback()
@@ -952,14 +951,14 @@ class WarpCoreTests: XCTestCase {
 		}
 	}
 
-	private func asyncTest(block: (callback: () -> ()) -> ()) {
-		let expectFinish = self.expectationWithDescription("CSV tests")
+	private func asyncTest(_ block: (callback: () -> ()) -> ()) {
+		let expectFinish = self.expectation(withDescription: "CSV tests")
 
 		block {
 			expectFinish.fulfill()
 		}
 
-		self.waitForExpectationsWithTimeout(5.0) { (err) -> Void in
+		self.waitForExpectations(withTimeout: 5.0) { (err) -> Void in
 			if let e = err {
 				// Note: referencing self here deliberately to prevent test from being destroyed prematurely
 				print("Error=\(e) \(self)")
@@ -967,7 +966,7 @@ class WarpCoreTests: XCTestCase {
 		}
 	}
 
-	private static func rasterEquals(raster: Raster, grid: [[Value]]) -> Bool {
+	private static func rasterEquals(_ raster: Raster, grid: [[Value]]) -> Bool {
 		for row in 0..<raster.rowCount {
 			if raster[row].values != grid[row] {
 				return false

@@ -18,7 +18,7 @@ internal class QBECrawlStepView: QBEConfigurableStepViewControllerFor<QBECrawlSt
 		fatalError("Should not be called")
 	}
 	
-	@IBAction func updateFromView(sender: NSObject) {
+	@IBAction func updateFromView(_ sender: NSObject) {
 		let c = step.crawler
 		var changed = false
 		

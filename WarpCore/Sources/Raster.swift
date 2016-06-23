@@ -4,7 +4,7 @@ internal typealias Filter = (Raster, Job?, Int) -> (Raster)
 
 /** Raster represents a mutable, in-memory dataset. It is stored as a simple array of Row, which in turn is an array 
 of Value. Column names are stored separately. Each Row should contain the same number of values as there are columns
-in the columns array. However, if rows are shorter, Raster will act as if there is a Value.EmptyValue in its
+in the columns array. However, if rows are shorter, Raster will act as if there is a Value.empty in its
 place. 
 
 Raster is pedantic. It will assert and cause fatal errors on misuse, e.g. if a modification attempt is made to a read-
@@ -42,15 +42,15 @@ public class Raster: NSObject, NSCoding {
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		let codedRaster = (aDecoder.decodeObjectForKey("raster") as? [[ValueCoder]]) ?? []
+		let codedRaster = (aDecoder.decodeObject(forKey: "raster") as? [[ValueCoder]]) ?? []
 		raster = codedRaster.map({$0.map({return $0.value})})
 		
-		let saveColumns = aDecoder.decodeObjectForKey("columns") as? [String] ?? []
+		let saveColumns = aDecoder.decodeObject(forKey: "columns") as? [String] ?? []
 		columns = saveColumns.map({return Column($0)})
-		readOnly = aDecoder.decodeBoolForKey("readOnly")
+		readOnly = aDecoder.decodeBool(forKey: "readOnly")
 	}
 
-	public func clone(readOnly: Bool) -> Raster {
+	public func clone(_ readOnly: Bool) -> Raster {
 		return self.mutex.locked {
 			return Raster(data: self.raster, columns: self.columns, readOnly: readOnly)
 		}
@@ -73,25 +73,25 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	public func encodeWithCoder(aCoder: NSCoder) {
+	public func encode(with aCoder: NSCoder) {
 		self.mutex.locked {
 			let saveValues = raster.map({return $0.map({return ValueCoder($0)})})
-			aCoder.encodeObject(saveValues, forKey: "raster")
+			aCoder.encode(saveValues, forKey: "raster")
 			
 			let saveColumns = columns.map({return $0.name})
-			aCoder.encodeObject(saveColumns, forKey: "columns")
-			aCoder.encodeBool(readOnly, forKey: "readOnly")
+			aCoder.encode(saveColumns, forKey: "columns")
+			aCoder.encode(readOnly, forKey: "readOnly")
 		}
 	}
 	
-	public func removeRows(set: NSIndexSet) {
+	public func removeRows(_ set: IndexSet) {
 		self.mutex.locked {
-			assert(!readOnly, "Data set is read-only")
+			assert(!readOnly, "Dataset set is read-only")
 			self.raster.removeObjectsAtIndexes(set, offset: 0)
 		}
 	}
 
-	public func removeRows(keys: [[Column: Value]]) {
+	public func removeRows(_ keys: [[Column: Value]]) {
 		self.mutex.locked {
 			let keysByNumber = keys.map { key in
 				return key.mapDictionary { k, v in
@@ -120,9 +120,9 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	public func removeColumns(set: NSIndexSet) {
+	public func removeColumns(_ set: IndexSet) {
 		self.mutex.locked {
-			assert(!readOnly, "Data set is read-only")
+			assert(!readOnly, "Dataset set is read-only")
 			columns.removeObjectsAtIndexes(set, offset: 0)
 			
 			for i in 0..<raster.count {
@@ -131,28 +131,28 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 
-	public func addColumns(names: [Column]) {
+	public func addColumns(_ names: [Column]) {
 		self.mutex.locked {
-			assert(!readOnly, "Data set is read-only")
+			assert(!readOnly, "Dataset set is read-only")
 			let oldCount = self.columns.count
 			let newColumns = names.filter { !self.columns.contains($0) }
-			self.columns.appendContentsOf(newColumns)
-			let template = Array<Value>(count: newColumns.count, repeatedValue: Value.EmptyValue)
+			self.columns.append(contentsOf: newColumns)
+			let template = Array<Value>(repeating: Value.empty, count: newColumns.count)
 
 			for rowIndex in 0..<raster.count {
 				let cellCount = raster[rowIndex].count
 				if cellCount == oldCount {
-					raster[rowIndex].appendContentsOf(template)
+					raster[rowIndex].append(contentsOf: template)
 				}
 				else if cellCount > oldCount {
 					// Cut off at the old count
 					var oldRow = Array(raster[rowIndex][0..<oldCount])
-					oldRow.appendContentsOf(template)
+					oldRow.append(contentsOf: template)
 					raster[rowIndex] = oldRow
 				}
 				else if cellCount < oldCount {
-					let largerTemplate = Array<Value>(count: newColumns.count, repeatedValue: Value.EmptyValue)
-					raster[rowIndex].appendContentsOf(largerTemplate)
+					let largerTemplate = Array<Value>(repeating: Value.empty, count: newColumns.count)
+					raster[rowIndex].append(contentsOf: largerTemplate)
 				}
 			}
 		}
@@ -162,24 +162,24 @@ public class Raster: NSObject, NSCoding {
 		return Raster(data: self.raster, columns: self.columns, readOnly: false)
 	}
 
-	public func addRows(rows: [Tuple]) {
+	public func addRows(_ rows: [Tuple]) {
 		self.mutex.locked {
-			assert(!readOnly, "Data set is read-only")
+			assert(!readOnly, "Dataset set is read-only")
 			self.mutex.locked {
-				raster.appendContentsOf(rows)
+				raster.append(contentsOf: rows)
 			}
 		}
 	}
 	
 	public func addRow() {
 		self.mutex.locked {
-			assert(!readOnly, "Data set is read-only")
-			let row = Array<Value>(count: self.columns.count, repeatedValue: Value.EmptyValue)
+			assert(!readOnly, "Dataset set is read-only")
+			let row = Array<Value>(repeating: Value.empty, count: self.columns.count)
 			raster.append(row)
 		}
 	}
 	
-	public func indexOfColumnWithName(name: Column) -> Int? {
+	public func indexOfColumnWithName(_ name: Column) -> Int? {
 		return self.mutex.locked { () -> Int? in
 			for i in 0..<columns.count {
 				if columns[i] == name {
@@ -224,11 +224,11 @@ public class Raster: NSObject, NSCoding {
 			assert(row < self.raster.count)
 			assert(col < self.columns.count)
 			
-			let rowData = raster[row]
-			if(col >= rowData.count) {
-				return Value.EmptyValue
+			let rowDataset = raster[row]
+			if(col >= rowDataset.count) {
+				return Value.empty
 			}
-			return rowData[col]
+			return rowDataset[col]
 		}
 	}
 
@@ -236,10 +236,10 @@ public class Raster: NSObject, NSCoding {
 	value of `ifMatched`, or the value will not be changed. This function returns true if the value was successfully
 	changed, and false if it was not (which can only happen when ifMatches is not nil and doesn't match the current
 	value). The change is made atomically. */
-	public func setValue(value: Value, forColumn: Column, inRow row: Int, ifMatches: Value? = nil) -> Bool {
+	public func setValue(_ value: Value, forColumn: Column, inRow row: Int, ifMatches: Value? = nil) -> Bool {
 		return self.mutex.locked {
 			assert(row < self.rowCount)
-			assert(!readOnly, "Data set is read-only")
+			assert(!readOnly, "Dataset set is read-only")
 			
 			if let col = indexOfColumnWithName(forColumn) {
 				if ifMatches == nil || raster[row][col] == ifMatches! || (!raster[row][col].isValid && !ifMatches!.isValid) {
@@ -256,7 +256,7 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 
-	public func update(key: [Column: Value], column: Column, old: Value, new: Value) -> Int {
+	@discardableResult public func update(_ key: [Column: Value], column: Column, old: Value, new: Value) -> Int {
 		return self.mutex.locked {
 			var changes = 0
 
@@ -318,7 +318,7 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	public func compare(other: Raster) -> Bool {
+	public func compare(_ other: Raster) -> Bool {
 		return self.mutex.locked {
 			// Compare row count
 			if self.rowCount != other.rowCount {
@@ -350,15 +350,15 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	internal func innerJoin(expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
+	internal func innerJoin(_ expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
 		self.hashOrCarthesianJoin(true, expression: expression, raster: rightRaster, job: job, callback: callback)
 	}
 	
-	internal func leftJoin(expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
+	internal func leftJoin(_ expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
 		self.hashOrCarthesianJoin(false, expression: expression, raster: rightRaster, job: job, callback: callback)
 	}
 	
-	private func hashOrCarthesianJoin(inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
+	private func hashOrCarthesianJoin(_ inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
 		// If no columns from the right table will ever show up, we don't have to do the join
 		let rightColumns = rightRaster.columns
 		let rightColumnsInResult = rightColumns.filter({return !self.columns.contains($0)})
@@ -382,19 +382,19 @@ public class Raster: NSObject, NSCoding {
 	corresponding rows on the right. While the carthesianProduct implementation needs to perform m*n comparisons, this 
 	function needs to calculate m+n hashes and perform m look-ups (hash-table assumed to be log n). Performance is 
 	therefore much better on larger data sets (m+n+log n compared to m*n) */
-	private func hashJoin(inner: Bool, comparison: HashComparison, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
+	private func hashJoin(_ inner: Bool, comparison: HashComparison, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
 		self.mutex.locked {
 			assert(comparison.comparisonOperator == Binary.Equal, "hashJoin does not (yet) support hash joins based on non-equality")
 
 			// Prepare a template row for the result
 			let rightColumns = rightRaster.columns
 			let rightColumnsInResult = rightColumns.filter({return !self.columns.contains($0)})
-			let templateRow = Row(Array<Value>(count: self.columns.count + rightColumnsInResult.count, repeatedValue: Value.InvalidValue), columns: self.columns + rightColumnsInResult)
+			let templateRow = Row(Array<Value>(repeating: Value.invalid, count: self.columns.count + rightColumnsInResult.count), columns: self.columns + rightColumnsInResult)
 			
 			// Create a list of indices of the columns from the right table that need to be copied over
-			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.indexOf($0)! })
+			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.index(of: $0)! })
 			let rightIndicesInResultSet = NSMutableIndexSet()
-			rightIndicesInResult.forEach({rightIndicesInResultSet.addIndex($0)})
+			rightIndicesInResult.forEach({rightIndicesInResultSet.add($0)})
 			
 			// Build the hash map of the foreign table
 			var rightHash: [Value: [Int]] = [:]
@@ -412,7 +412,7 @@ public class Raster: NSObject, NSCoding {
 			// Iterate over the rows on the left side and join rows from the right side using the hash table
 			let future = self.raster.parallel(
 				map: { (chunk) -> ([Tuple]) in
-					var newData: [Tuple] = []
+					var newDataset: [Tuple] = []
 					job?.time("hashJoin", items: chunk.count, itemType: "rows") {
 						var myTemplateRow = templateRow
 						
@@ -422,25 +422,25 @@ public class Raster: NSObject, NSCoding {
 							if let rightMatches = rightHash[hash] {
 								for rightRowNumber in rightMatches {
 									let rightRow = Row(rightRaster.raster[rightRowNumber], columns: rightColumns)
-									myTemplateRow.values.removeAll(keepCapacity: true)
-									myTemplateRow.values.appendContentsOf(leftRow.values)
-									myTemplateRow.values.appendContentsOf(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
-									newData.append(myTemplateRow.values)
+									myTemplateRow.values.removeAll(keepingCapacity: true)
+									myTemplateRow.values.append(contentsOf: leftRow.values)
+									myTemplateRow.values.append(contentsOf: rightRow.values.objectsAtIndexes(rightIndicesInResultSet as IndexSet))
+									newDataset.append(myTemplateRow.values)
 								}
 							}
 							else {
 								/* If there was no matching row in the right table, we need to add the left row regardless if this
 								is a left (non-inner) join */
 								if !inner {
-									myTemplateRow.values.removeAll(keepCapacity: true)
-									myTemplateRow.values.appendContentsOf(leftRow.values)
-									rightIndicesInResult.forEach({(Int) -> () in myTemplateRow.values.append(Value.EmptyValue)})
-									newData.append(myTemplateRow.values)
+									myTemplateRow.values.removeAll(keepingCapacity: true)
+									myTemplateRow.values.append(contentsOf: leftRow.values)
+									rightIndicesInResult.forEach({(Int) -> () in myTemplateRow.values.append(Value.empty)})
+									newDataset.append(myTemplateRow.values)
 								}
 							}
 						}
 					}
-					return newData
+					return newDataset
 				},
 				reduce: { (a: [Tuple], b: [Tuple]?) -> ([Tuple]) in
 					if let br = b {
@@ -449,31 +449,31 @@ public class Raster: NSObject, NSCoding {
 					return a
 			})
 			
-			future.get(job) { (newData: [Tuple]?) -> () in
-				callback(Raster(data: newData ?? [], columns: templateRow.columns, readOnly: true))
+			future.get(job) { (newDataset: [Tuple]?) -> () in
+				callback(Raster(data: newDataset ?? [], columns: templateRow.columns, readOnly: true))
 			}
 		}
 	}
 	
-	private func carthesianProduct(inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
+	private func carthesianProduct(_ inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
 		self.mutex.locked {
 			// Which columns are going to show up in the result set?
 			let rightColumns = rightRaster.columns
 			let rightColumnsInResult = rightColumns.filter({return !self.columns.contains($0)})
 
 			// Create a list of indices of the columns from the right table that need to be copied over
-			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.indexOf($0)! })
+			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.index(of: $0)! })
 			let rightIndicesInResultSet = NSMutableIndexSet()
-			rightIndicesInResult.forEach({rightIndicesInResultSet.addIndex($0)})
+			rightIndicesInResult.forEach({rightIndicesInResultSet.add($0)})
 			
 			// Start joining rows
 			let joinExpression = expression.prepare()
-			let templateRow = Row(Array<Value>(count: self.columns.count + rightColumnsInResult.count, repeatedValue: Value.InvalidValue), columns: self.columns + rightColumnsInResult)
+			let templateRow = Row(Array<Value>(repeating: Value.invalid, count: self.columns.count + rightColumnsInResult.count), columns: self.columns + rightColumnsInResult)
 			
 			// Perform carthesian product (slow, so in parallel)
 			let future = self.raster.parallel(
 				map: { (chunk) -> ([Tuple]) in
-					var newData: [Tuple] = []
+					var newDataset: [Tuple] = []
 					job?.time("carthesianProduct", items: chunk.count * rightRaster.rowCount, itemType: "pairs") {
 						var myTemplateRow = templateRow
 						
@@ -484,11 +484,11 @@ public class Raster: NSObject, NSCoding {
 							for rightTuple in rightRaster.raster {
 								let rightRow = Row(rightTuple, columns: rightColumns)
 								
-								if joinExpression.apply(leftRow, foreign: rightRow, inputValue: nil) == Value.BoolValue(true) {
-									myTemplateRow.values.removeAll(keepCapacity: true)
-									myTemplateRow.values.appendContentsOf(leftRow.values)
-									myTemplateRow.values.appendContentsOf(rightRow.values.objectsAtIndexes(rightIndicesInResultSet))
-									newData.append(myTemplateRow.values)
+								if joinExpression.apply(leftRow, foreign: rightRow, inputValue: nil) == Value.bool(true) {
+									myTemplateRow.values.removeAll(keepingCapacity: true)
+									myTemplateRow.values.append(contentsOf: leftRow.values)
+									myTemplateRow.values.append(contentsOf: rightRow.values.objectsAtIndexes(rightIndicesInResultSet as IndexSet))
+									newDataset.append(myTemplateRow.values)
 									foundRightMatch = true
 								}
 							}
@@ -496,14 +496,14 @@ public class Raster: NSObject, NSCoding {
 							/* If there was no matching row in the right table, we need to add the left row regardless if this
 							is a left (non-inner) join */
 							if !inner && !foundRightMatch {
-								myTemplateRow.values.removeAll(keepCapacity: true)
-								myTemplateRow.values.appendContentsOf(leftRow.values)
-								rightIndicesInResult.forEach({(Int) -> () in myTemplateRow.values.append(Value.EmptyValue)})
-								newData.append(myTemplateRow.values)
+								myTemplateRow.values.removeAll(keepingCapacity: true)
+								myTemplateRow.values.append(contentsOf: leftRow.values)
+								rightIndicesInResult.forEach({(Int) -> () in myTemplateRow.values.append(Value.empty)})
+								newDataset.append(myTemplateRow.values)
 							}
 						}
 					}
-					return newData
+					return newDataset
 				},
 				reduce: { (a: [Tuple], b: [Tuple]?) -> ([Tuple]) in
 					if let br = b {
@@ -512,29 +512,29 @@ public class Raster: NSObject, NSCoding {
 					return a
 				})
 			
-			future.get(job) { (newData: [Tuple]?) -> () in
-				callback(Raster(data: newData ?? [], columns: templateRow.columns, readOnly: true))
+			future.get(job) { (newDataset: [Tuple]?) -> () in
+				callback(Raster(data: newDataset ?? [], columns: templateRow.columns, readOnly: true))
 			}
 		}
 	}
 	
 	/** Finds out whether a set of columns exists for which the indicates rows all have the same value. Returns a
 	dictionary of the column names in this set, with the values for which the condition holds. */
-	public func commonalitiesOf(rows: NSIndexSet, inColumns columns: Set<Column>) -> [Column: Value] {
+	public func commonalitiesOf(_ rows: IndexSet, inColumns columns: Set<Column>) -> [Column: Value] {
 		return self.mutex.locked {
 			// Check to see if the selected rows have similar values for other than the relevant columns
 			var sameValues = Dictionary<Column, Value>()
 			var sameColumns = columns
 			
 			for index in 0..<rowCount {
-				if rows.containsIndex(index) {
+				if rows.contains(index) {
 					for column in columns {
 						if let ci = indexOfColumnWithName(column) {
 							let value = self[index][ci]
 							if let previous = sameValues[column] {
 								if previous != value {
 									sameColumns.remove(column)
-									sameValues.removeValueForKey(column)
+									sameValues.removeValue(forKey: column)
 								}
 							}
 							else {
@@ -554,83 +554,83 @@ public class Raster: NSObject, NSCoding {
 	}
 }
 
-public class RasterData: NSObject, Data {
+public class RasterDataset: NSObject, Dataset {
 	private let future: Future<Fallible<Raster>>.Producer
 	
 	public override init() {
 		future = {(job: Job, cb: Future<Fallible<Raster>>.Callback) in
-			cb(.Success(Raster()))
+			cb(.success(Raster()))
 		}
 	}
 	
-	public func raster(job: Job, callback: (Fallible<Raster>) -> ()) {
+	public func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
 		future(job, callback)
 	}
 	
 	public init(raster: Raster) {
-		future = {(job, callback) in callback(.Success(raster))}
+		future = {(job, callback) in callback(.success(raster))}
 	}
 	
 	public init(data: [[Value]], columns: [Column]) {
 		let raster = Raster(data: data, columns: columns)
-		future = {(job, callback) in callback(.Success(raster))}
+		future = {(job, callback) in callback(.success(raster))}
 	}
 	
 	public init(future: Future<Fallible<Raster>>.Producer) {
 		self.future = future
 	}
 	
-	public func clone() -> Data {
-		return RasterData(future: future)
+	public func clone() -> Dataset {
+		return RasterDataset(future: future)
 	}
 	
-	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		raster(job, callback: { (r) -> () in
 			callback(r.use({$0.columns}))
 		})
 	}
 	
-	internal func apply(description: String? = nil, filter: Filter) -> Data {
+	internal func apply(_ description: String? = nil, filter: Filter) -> Dataset {
 		let ownFuture = self.future
 		
 		let newFuture = {(job: Job, cb: Future<Fallible<Raster>>.Callback) -> () in
-			let progressKey = unsafeAddressOf(self).hashValue
+			let progressKey = unsafeAddress(of: self).hashValue
 			job.reportProgress(0.0, forKey: progressKey)
 
 			ownFuture(job, {(fallibleRaster) in
 				switch fallibleRaster {
-					case .Success(let r):
+					case .success(let r):
 						job.time(description ?? "raster apply", items: r.rowCount, itemType: "rows") {
-							cb(.Success(filter(r, job, progressKey)))
+							cb(.success(filter(r, job, progressKey)))
 						}
 					
-					case .Failure(let error):
-						cb(.Failure(error))
+					case .failure(let error):
+						cb(.failure(error))
 				}
 			})
 		}
-		return RasterData(future: newFuture)
+		return RasterDataset(future: newFuture)
 	}
 	
-	internal func applyAsynchronous(description: String? = nil, filter: (Job, Raster, (Fallible<Raster>) -> ()) -> ()) -> Data {
+	internal func applyAsynchronous(_ description: String? = nil, filter: (Job, Raster, (Fallible<Raster>) -> ()) -> ()) -> Dataset {
 		let newFuture = {(job: Job, cb: Future<Fallible<Raster>>.Callback) -> () in
 			self.future(job) {(fallibleRaster) in
 				switch fallibleRaster {
-					case .Success(let raster):
+					case .success(let raster):
 						job.time(description ?? "raster async apply", items: raster.rowCount, itemType: "rows") {
 							filter(job, raster, cb)
 							return
 						}
 					
-					case .Failure(let error):
-						cb(.Failure(error))
+					case .failure(let error):
+						cb(.failure(error))
 				}
 			}
 		}
-		return RasterData(future: newFuture)
+		return RasterDataset(future: newFuture)
 	}
 	
-	public func transpose() -> Data {
+	public func transpose() -> Dataset {
 		return apply("transpose") {(r: Raster, job, progressKey) -> Raster in
 			// Find new column names (first column stays in place)
 			if r.columns.count > 0 {
@@ -646,7 +646,7 @@ public class RasterData: NSObject, Data {
 					}
 				}
 				
-				var newData: [[Value]] = []
+				var newDataset: [[Value]] = []
 
 				for colNumber in 1..<r.columns.count {
 					let columnName = r.columns[colNumber]
@@ -654,10 +654,10 @@ public class RasterData: NSObject, Data {
 					for rowNumber in 0..<r.rowCount {
 						row.append(r[rowNumber, colNumber])
 					}
-					newData.append(row)
+					newDataset.append(row)
 				}
 				
-				return Raster(data: newData, columns: columns, readOnly: true)
+				return Raster(data: newDataset, columns: columns, readOnly: true)
 			}
 			else {
 				return Raster()
@@ -665,7 +665,7 @@ public class RasterData: NSObject, Data {
 		}
 	}
 	
-	public func selectColumns(columns: [Column]) -> Data {
+	public func selectColumns(_ columns: [Column]) -> Dataset {
 		return apply("selectColumns") {(r: Raster, job, progressKey) -> Raster in
 			var indexesToKeep: [Int] = []
 			var namesToKeep: [Column] = []
@@ -678,14 +678,14 @@ public class RasterData: NSObject, Data {
 			}
 			
 			// Select columns for each row
-			var newData: [Tuple] = []
+			var newDataset: [Tuple] = []
 			for rowNumber in 0..<r.rowCount {
 				let oldRow = r[rowNumber]
 				var newRow: Tuple = []
 				for i in indexesToKeep {
 					newRow.append(oldRow[i])
 				}
-				newData.append(newRow)
+				newDataset.append(newRow)
 
 				if (rowNumber % Raster.progressReportRowInterval) == 0 {
 					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
@@ -695,45 +695,45 @@ public class RasterData: NSObject, Data {
 				}
 			}
 			
-			return Raster(data: newData, columns: namesToKeep, readOnly: true)
+			return Raster(data: newDataset, columns: namesToKeep, readOnly: true)
 		}
 	}
 	
-	/** The fallback data object implements data operators not implemented here. Because RasterData is the fallback
-	for StreamData and the other way around, neither should call the fallback for an operation it implements itself,
+	/** The fallback data object implements data operators not implemented here. Because RasterDataset is the fallback
+	for StreamDataset and the other way around, neither should call the fallback for an operation it implements itself,
 	and at least one of the classes has to implement each operation. */
-	private func fallback() -> Data {
-		return StreamData(source: RasterDataStream(self))
+	private func fallback() -> Dataset {
+		return StreamDataset(source: RasterDatasetStream(self))
 	}
 	
-	public func calculate(calculations: Dictionary<Column, Expression>) -> Data {
+	public func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset {
 		return fallback().calculate(calculations)
 	}
 	
-	public func unique(expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
+	public func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
 		self.raster(job, callback: { (raster) -> () in
 			callback(raster.use({(r) in Set<Value>(r.raster.map({expression.apply(Row($0, columns: r.columns), foreign: nil, inputValue: nil)}))}))
 		})
 	}
 	
-	public func limit(numberOfRows: Int) -> Data {
+	public func limit(_ numberOfRows: Int) -> Dataset {
 		return apply("limit") {(r: Raster, job, progressKey) -> Raster in
-			var newData: [[Value]] = []
+			var newDataset: [[Value]] = []
 			
 			let resultingNumberOfRows = min(numberOfRows, r.rowCount)
 			for rowNumber in 0..<resultingNumberOfRows {
-				newData.append(r[rowNumber].values)
+				newDataset.append(r[rowNumber].values)
 			}
 			
-			return Raster(data: newData, columns: r.columns, readOnly: true)
+			return Raster(data: newDataset, columns: r.columns, readOnly: true)
 		}
 	}
 	
-	public func sort(by: [Order]) -> Data {
+	public func sort(_ by: [Order]) -> Dataset {
 		return apply("sort") {(r: Raster, job, progressKey) -> Raster in
 			let columns = r.columns
 			
-			let newData = r.raster.sort({ (a, b) -> Bool in
+			let newDataset = r.raster.sorted(isOrderedBefore: { (a, b) -> Bool in
 				// Return true if a comes before b
 				for order in by {
 					if let aValue = order.expression?.apply(Row(a, columns: columns), foreign: nil, inputValue: nil),
@@ -759,10 +759,10 @@ public class RasterData: NSObject, Data {
 						else {
 							if let aString = aValue.stringValue, let bString = bValue.stringValue {
 								let res = aString.compare(bString)
-								if res == NSComparisonResult.OrderedAscending {
+								if res == ComparisonResult.orderedAscending {
 									return order.ascending
 								}
-								else if res == NSComparisonResult.OrderedDescending {
+								else if res == ComparisonResult.orderedDescending {
 									return !order.ascending
 								}
 								else {
@@ -777,17 +777,17 @@ public class RasterData: NSObject, Data {
 
 			// FIXME: more detailed progress reporting
 			job?.reportProgress(1.0, forKey: progressKey)
-			return Raster(data: newData, columns: columns, readOnly: true)
+			return Raster(data: newDataset, columns: columns, readOnly: true)
 		}
 	}
 
-	public func offset(numberOfRows: Int) -> Data {
+	public func offset(_ numberOfRows: Int) -> Dataset {
 		return apply {(r: Raster, job, progressKey) -> Raster in
-			var newData: [[Value]] = []
+			var newDataset: [[Value]] = []
 			
 			let skipRows = min(numberOfRows, r.rowCount)
 			for rowNumber in skipRows..<r.rowCount {
-				newData.append(r[rowNumber].values)
+				newDataset.append(r[rowNumber].values)
 
 				if (rowNumber % Raster.progressReportRowInterval) == 0 {
 					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
@@ -797,11 +797,11 @@ public class RasterData: NSObject, Data {
 				}
 			}
 			
-			return Raster(data: newData, columns: r.columns, readOnly: true)
+			return Raster(data: newDataset, columns: r.columns, readOnly: true)
 		}
 	}
 	
-	public func filter(condition: Expression) -> Data {
+	public func filter(_ condition: Expression) -> Dataset {
 		let optimizedCondition = condition.prepare()
 		if optimizedCondition.isConstant {
 			let constantValue = optimizedCondition.apply(Row(), foreign: nil, inputValue: nil)
@@ -818,12 +818,12 @@ public class RasterData: NSObject, Data {
 		}
 
 		return apply { (r: Raster, job, progressKey) -> Raster in
-			var newData: [Tuple] = []
+			var newDataset: [Tuple] = []
 			
 			for rowNumber in 0..<r.rowCount {
 				let row = r[rowNumber]
-				if optimizedCondition.apply(row, foreign: nil, inputValue: nil) == Value.BoolValue(true) {
-					newData.append(row.values)
+				if optimizedCondition.apply(row, foreign: nil, inputValue: nil) == Value.bool(true) {
+					newDataset.append(row.values)
 				}
 
 				if (rowNumber % Raster.progressReportRowInterval) == 0 {
@@ -834,20 +834,20 @@ public class RasterData: NSObject, Data {
 				}
 			}
 			
-			return Raster(data: newData, columns: r.columns, readOnly: true)
+			return Raster(data: newDataset, columns: r.columns, readOnly: true)
 		}
 	}
 	
-	public func flatten(valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to rowColumn: Column?) -> Data {
+	public func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to rowColumn: Column?) -> Dataset {
 		return fallback().flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowColumn)
 	}
 	
-	public func union(data: Data) -> Data {
+	public func union(_ data: Dataset) -> Dataset {
 		return applyAsynchronous("union") {(job: Job, leftRaster: Raster, callback: (Fallible<Raster>) -> ()) in
 			data.raster(job) { (rightRasterFallible) in
 				switch rightRasterFallible {
-					case .Success(let rightRaster):
-						var newData: [Tuple] = []
+					case .success(let rightRaster):
+						var newDataset: [Tuple] = []
 						
 						// Determine result raster columns
 						var columns = leftRaster.columns
@@ -858,16 +858,16 @@ public class RasterData: NSObject, Data {
 						}
 					
 						// Fill in the data from the left side
-						let fillRight = Array<Value>(count: columns.count - leftRaster.columns.count, repeatedValue: Value.EmptyValue)
+						let fillRight = Array<Value>(repeating: Value.empty, count: columns.count - leftRaster.columns.count)
 						for row in leftRaster.raster {
 							var rowClone = row
-							rowClone.appendContentsOf(fillRight)
-							newData.append(rowClone)
+							rowClone.append(contentsOf: fillRight)
+							newDataset.append(rowClone)
 						}
 					
 						// Fill in data from the right side
-						let indices = rightRaster.columns.map({return columns.indexOf($0)})
-						let empty = Array<Value>(count: columns.count, repeatedValue: Value.EmptyValue)
+						let indices = rightRaster.columns.map({return columns.index(of: $0)})
+						let empty = Array<Value>(repeating: Value.empty, count: columns.count)
 						for row in rightRaster.raster {
 							var rowClone = empty
 							for sourceIndex in 0..<row.count {
@@ -875,47 +875,47 @@ public class RasterData: NSObject, Data {
 									rowClone[destinationIndex] = row[sourceIndex]
 								}
 							}
-							newData.append(rowClone)
+							newDataset.append(rowClone)
 						}
 					
-						callback(.Success(Raster(data: newData, columns: columns)))
+						callback(.success(Raster(data: newDataset, columns: columns)))
 					
-					case .Failure(let error):
-						callback(.Failure(error))
+					case .failure(let error):
+						callback(.failure(error))
 				}
 			}
 		}
 	}
 	
-	public func join(join: Join) -> Data {
+	public func join(_ join: Join) -> Dataset {
 		return applyAsynchronous("join") {(job: Job, leftRaster: Raster, callback: (Fallible<Raster>) -> ()) in
-			join.foreignData.raster(job) { (rightRasterFallible) in
+			join.foreignDataset.raster(job) { (rightRasterFallible) in
 				switch rightRasterFallible {
-					case .Success(let rightRaster):
+					case .success(let rightRaster):
 						switch join.type {
 						case .LeftJoin:
 							leftRaster.leftJoin(join.expression, raster: rightRaster, job: job) { (raster) in
-								callback(.Success(raster))
+								callback(.success(raster))
 							}
 							
 						case .InnerJoin:
 							leftRaster.innerJoin(join.expression, raster: rightRaster, job: job) { (raster) in
-								callback(.Success(raster))
+								callback(.success(raster))
 							}
 						}
 					
-					case .Failure(let error):
-						callback(.Failure(error))
+					case .failure(let error):
+						callback(.failure(error))
 				}
 			}
 		}
 	}
 	
-	public func aggregate(groups: [Column : Expression], values: [Column : Aggregator]) -> Data {
+	public func aggregate(_ groups: [Column : Expression], values: [Column : Aggregator]) -> Dataset {
 		return fallback().aggregate(groups, values: values)
 	}
 	
-	public func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data {
+	public func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset {
 		if horizontal.isEmpty {
 			return self
 		}
@@ -930,10 +930,10 @@ public class RasterData: NSObject, Data {
 			
 			// Group all rows to horizontal and vertical groups
 			r.raster.forEach({ (row) -> () in
-				let verticalGroup = HashableArray(verticalIndexes.map({$0 == nil ? Value.InvalidValue : row[$0!]}))
-				let horizontalGroup = HashableArray(horizontalIndexes.map({$0 == nil ? Value.InvalidValue : row[$0!]}))
+				let verticalGroup = HashableArray(verticalIndexes.map({$0 == nil ? Value.invalid : row[$0!]}))
+				let horizontalGroup = HashableArray(horizontalIndexes.map({$0 == nil ? Value.invalid : row[$0!]}))
 				horizontalGroups.insert(horizontalGroup)
-				let rowValues = valuesIndexes.map({$0 == nil ? Value.InvalidValue : row[$0!]})
+				let rowValues = valuesIndexes.map({$0 == nil ? Value.invalid : row[$0!]})
 				
 				if verticalGroups[verticalGroup] == nil {
 					verticalGroups[verticalGroup] = [horizontalGroup: rowValues]
@@ -969,12 +969,12 @@ public class RasterData: NSObject, Data {
 					}
 					else {
 						for _ in 0..<values.count {
-							row.append(Value.InvalidValue)
+							row.append(Value.invalid)
 						}
 					}
 				}
 				rows.append(row)
-				row.removeAll(keepCapacity: true)
+				row.removeAll(keepingCapacity: true)
 			}
 
 			// FIXME: more detailed progress reports
@@ -983,29 +983,29 @@ public class RasterData: NSObject, Data {
 		}
 	}
 	
-	public func distinct() -> Data {
+	public func distinct() -> Dataset {
 		return apply {(r: Raster, job, progressKey) -> Raster in
-			var newData: Set<HashableArray<Value>> = []
+			var newDataset: Set<HashableArray<Value>> = []
 			var rowNumber = 0
 			r.raster.forEach {
-				newData.insert(HashableArray<Value>($0))
+				newDataset.insert(HashableArray<Value>($0))
 				rowNumber += 1
 				if (rowNumber % Raster.progressReportRowInterval) == 0 {
 					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
 				}
 				// FIXME: check job.cancelled
 			}
-			// FIXME: include newData.map in progress reporting
-			return Raster(data: newData.map({$0.row}), columns: r.columns, readOnly: true)
+			// FIXME: include newDataset.map in progress reporting
+			return Raster(data: newDataset.map({$0.row}), columns: r.columns, readOnly: true)
 		}
 	}
 	
-	public func random(numberOfRows: Int) -> Data {
+	public func random(_ numberOfRows: Int) -> Dataset {
 		return fallback().random(numberOfRows)
 	}
 	
 	public func stream() -> Stream {
-		return RasterDataStream(self)
+		return RasterDatasetStream(self)
 	}
 }
 
@@ -1016,30 +1016,30 @@ public class RasterWarehouse: Warehouse {
 	public init() {
 	}
 
-	public func canPerformMutation(mutation: WarehouseMutation) -> Bool {
+	public func canPerformMutation(_ mutation: WarehouseMutation) -> Bool {
 		switch mutation {
-		case .Create(_,_):
+		case .create(_,_):
 			return true
 		}
 	}
 
-	public func performMutation(mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableData?>) -> ()) {
+	public func performMutation(_ mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableDataset?>) -> ()) {
 		switch mutation {
-		case .Create(_, let data):
+		case .create(_, let data):
 			data.columns(job) { result in
 				switch result {
-				case .Success(let cns):
+				case .success(let cns):
 					let raster = Raster(data: [], columns: cns, readOnly: false)
-					let mutableData = RasterMutableData(raster: raster)
+					let mutableDataset = RasterMutableDataset(raster: raster)
 					let mapping = cns.mapDictionary({ return ($0,$0) })
-					mutableData.performMutation(.Import(data: data, withMapping: mapping), job: job) { result in
+					mutableDataset.performMutation(.import(data: data, withMapping: mapping), job: job) { result in
 						switch result {
-						case .Success: callback(.Success(mutableData))
-						case .Failure(let e): callback(.Failure(e))
+						case .success: callback(.success(mutableDataset))
+						case .failure(let e): callback(.failure(e))
 						}
 					}
 
-				case .Failure(let e): callback(.Failure(e))
+				case .failure(let e): callback(.failure(e))
 				}
 			}
 		}
@@ -1057,7 +1057,7 @@ private class RasterInsertPuller: StreamPuller {
 
 		self.fastMapping = self.raster.columns.map { cn -> Int? in
 			if let sn = mapping[cn] {
-				return sourceColumns.indexOf(sn)
+				return sourceColumns.index(of: sn)
 			}
 			return nil
 		}
@@ -1065,13 +1065,13 @@ private class RasterInsertPuller: StreamPuller {
 		super.init(stream: source, job: job)
 	}
 
-	private override func onReceiveRows(rows: [Tuple], callback: (Fallible<Void>) -> ()) {
+	private override func onReceiveRows(_ rows: [Tuple], callback: (Fallible<Void>) -> ()) {
 		let newRows = rows.map { row in
-			return self.fastMapping.map { v in return v == nil ? Value.EmptyValue : row[v!] }
+			return self.fastMapping.map { v in return v == nil ? Value.empty : row[v!] }
 		}
 
 		self.raster.addRows(newRows)
-		callback(.Success())
+		callback(.success())
 	}
 
 	override func onDoneReceiving() {
@@ -1079,24 +1079,24 @@ private class RasterInsertPuller: StreamPuller {
 			let cb = self.callback!
 			self.callback = nil
 			self.job.async {
-				cb(.Success())
+				cb(.success())
 			}
 		}
 	}
 
-	override func onError(error: String) {
+	override func onError(_ error: String) {
 		self.mutex.locked {
 			let cb = self.callback!
 			self.callback = nil
 
 			self.job.async {
-				cb(.Failure(error))
+				cb(.failure(error))
 			}
 		}
 	}
 }
 
-public class RasterMutableData: MutableData {
+public class RasterMutableDataset: MutableDataset {
 	let raster: Raster
 
 	public init(raster: Raster) {
@@ -1107,150 +1107,151 @@ public class RasterMutableData: MutableData {
 		return RasterWarehouse()
 	}
 
-	public func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
-		callback(.Success(nil))
+	public func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+		callback(.success(nil))
 	}
 
-	public func canPerformMutation(mutation: DataMutation) -> Bool {
+	public func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
 		if self.raster.readOnly {
 			return false
 		}
 
 		switch mutation {
-		case .Truncate, .Alter(_), .Import(_, _), .Update(_,_,_,_), .Edit(row: _, column: _, old: _, new: _), .Insert(_), .Rename(_), .Remove(rows: _), .Delete(keys: _):
+		case .truncate, .alter(_), .import(_, _), .update(_,_,_,_), .edit(row: _, column: _, old: _, new: _), .insert(_), .rename(_), .remove(rows: _), .delete(keys: _):
 			return true
 
-		case .Drop:
+		case .drop:
 			return false
 		}
 	}
 
-	public func performMutation(mutation: DataMutation, job: Job, callback: (Fallible<Void>) -> ()) {
+	public func performMutation(_ mutation: DatasetMutation, job: Job, callback: (Fallible<Void>) -> ()) {
 		switch mutation {
-		case .Truncate:
+		case .truncate:
 			self.raster.raster.removeAll()
-			callback(.Success())
+			callback(.success())
 
-		case .Rename(let mapping):
+		case .rename(let mapping):
 			self.raster.columns = self.raster.columns.map { cn -> Column in
 				if let newName = mapping[cn] {
 					return newName
 				}
 				return cn
 			}
-			callback(.Success())
+			callback(.success())
 
-		case .Alter(let def):
+		case .alter(let def):
 			let removedColumns = self.raster.columns.filter { return !def.columns.contains($0) }
 			let addedColumns = def.columns.filter { return !self.raster.columns.contains($0) }
 
 			let removeIndices = NSMutableIndexSet()
-			removedColumns.forEach { removeIndices.addIndex(self.raster.indexOfColumnWithName($0)!) }
-			self.raster.removeColumns(removeIndices)
+			removedColumns.forEach { removeIndices.add(self.raster.indexOfColumnWithName($0)!) }
+			self.raster.removeColumns(removeIndices as IndexSet)
 			self.raster.addColumns(addedColumns)
-			callback(.Success())
+			callback(.success())
 
-		case .Import(data: let data, withMapping: let mapping):
+		case .import(data: let data, withMapping: let mapping):
 			let stream = data.stream()
 			stream.columns(job) { result in
 				switch result {
-				case .Success(let columns):
+				case .success(let columns):
 					let puller = RasterInsertPuller(target: self.raster, mapping: mapping, source: data.stream(), sourceColumns: columns, job: job, callback: callback)
 					puller.start()
 
-				case .Failure(let e):
-					callback(.Failure(e))
+				case .failure(let e):
+					callback(.failure(e))
 				}
 			}
 
-		case .Insert(row: let row):
+		case .insert(row: let row):
 			let values = raster.columns.map { cn -> Value in
-				return row[cn] ?? Value.EmptyValue
+				return row[cn] ?? Value.empty
 			}
 
 			raster.addRows([values])
-			callback(.Success())
+			callback(.success())
 
-		case .Edit(row: let row, column: let column, old: let old, new: let new):
+		case .edit(row: let row, column: let column, old: let old, new: let new):
 			if raster.indexOfColumnWithName(column) == nil {
-				callback(.Failure("Column '\(column.name)' does not exist in raster and therefore cannot be updated"))
+				callback(.failure("Column '\(column.name)' does not exist in raster and therefore cannot be updated"))
 				return
 			}
 
-			raster.setValue(new, forColumn: column, inRow: row, ifMatches: old)
-			callback(.Success())
+			_ = raster.setValue(new, forColumn: column, inRow: row, ifMatches: old)
+			callback(.success())
 
-		case .Update(key: let key, column: let column, old: let old, new: let new):
+		case .update(key: let key, column: let column, old: let old, new: let new):
 			// Do all the specified columns exist?
 			if raster.indexOfColumnWithName(column) == nil {
-				callback(.Failure("Column '\(column.name)' does not exist in raster and therefore cannot be updated"))
+				callback(.failure("Column '\(column.name)' does not exist in raster and therefore cannot be updated"))
 				return
 			}
 
 			for (col, _) in key {
 				if raster.indexOfColumnWithName(col) == nil {
-					callback(.Failure("Column '\(col.name)' does not exist in raster and therefore cannot be updated"))
+					callback(.failure("Column '\(col.name)' does not exist in raster and therefore cannot be updated"))
 					return
 				}
 			}
 
 			raster.update(key, column: column, old: old, new: new)
-			callback(.Success())
+			callback(.success())
 
-		case .Remove(rows: let rowNumbers):
+		case .remove(rows: let rowNumbers):
 			let indexSet = NSMutableIndexSet()
 			for row in rowNumbers {
-				indexSet.addIndex(row)
+				indexSet.add(row)
 			}
 
-			raster.removeRows(indexSet)
-			callback(.Success())
+			raster.removeRows(indexSet as IndexSet)
+			callback(.success())
 
-		case .Delete(keys: let keys):
+		case .delete(keys: let keys):
 			raster.removeRows(keys)
-			callback(.Success())
+			callback(.success())
 
-		case .Drop:
-			callback(.Failure("Not supported"))
+		case .drop:
+			callback(.failure("Not supported"))
 		}
 	}
 
-	public func data(job: Job, callback: (Fallible<Data>) -> ()) {
-		callback(.Success(RasterData(raster: self.raster)))
+	public func data(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+		callback(.success(RasterDataset(raster: self.raster)))
 	}
 }
 
-/** RasterDataStream is a data stream that streams the contents of an in-memory raster. It is used by RasterData
-to make use of stream-based implementations of certain operations. It is also returned by RasterData.stream. */
-private class RasterDataStream: NSObject, Stream {
-	let data: RasterData
+/** RasterDatasetStream is a data stream that streams the contents of an in-memory raster. It is used by RasterDataset
+to make use of stream-based implementations of certain operations. It is also returned by RasterDataset.stream. */
+private class RasterDatasetStream: NSObject, Stream {
+	let data: RasterDataset
 	private var raster: Future<Fallible<Raster>>
 	private var position = 0
 	private let mutex = Mutex()
 	
-	init(_ data: RasterData) {
+	init(_ data: RasterDataset) {
 		self.data = data
 		self.raster = Future(data.raster)
 	}
 	
-	private func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.raster.get { (fallibleRaster) in
 			callback(fallibleRaster.use({ return $0.columns }))
 		}
 	}
 	
 	private func clone() -> Stream {
-		return RasterDataStream(data)
+		return RasterDatasetStream(data)
 	}
 	
-	func fetch(job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: Sink) {
 		job.reportProgress(0.0, forKey: self.hashValue)
 		self.raster.get(job) { (fallibleRaster) in
 			switch fallibleRaster {
-				case .Success(let raster):
+				case .success(let raster):
 					let (rows, hasNext) = self.mutex.locked { () -> ([Tuple], Bool) in
+						let progress = Double(self.position) / Double(raster.rowCount)
 						job.async {
-							job.reportProgress(Double(self.position) / Double(raster.rowCount), forKey: self.hashValue)
+							job.reportProgress(progress, forKey: self.hashValue)
 						}
 
 						if self.position < raster.rowCount {
@@ -1265,10 +1266,10 @@ private class RasterDataStream: NSObject, Stream {
 						}
 					}
 
-					consumer(.Success(rows), hasNext ? .HasMore : .Finished)
+					consumer(.success(rows), hasNext ? .hasMore : .finished)
 				
-				case .Failure(let error):
-					consumer(.Failure(error), .Finished)
+				case .failure(let error):
+					consumer(.failure(error), .finished)
 			}
 		}
 	}
@@ -1309,7 +1310,7 @@ internal class Catalog<ValueType>: NSObject {
 	var children = Dictionary<Value, Catalog<ValueType>>()
 	var values: [Column: ValueType]? = nil
 
-	final func leafForRow(row: Row, groups: [Expression]) -> Catalog {
+	final func leafForRow(_ row: Row, groups: [Expression]) -> Catalog {
 		var currentCatalog = self
 
 		for groupExpression in groups {
@@ -1330,7 +1331,7 @@ internal class Catalog<ValueType>: NSObject {
 		return currentCatalog
 	}
 
-	final func visit(path: [Value] = [], @noescape block: ([Value], [Column: ValueType]) -> ()) {
+	final func visit(_ path: [Value] = [], block: @noescape ([Value], [Column: ValueType]) -> ()) {
 		self.mutex.locked {
 			if let v = values {
 				block(path, v)

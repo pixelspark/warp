@@ -1,72 +1,72 @@
-import Foundation
 import WarpCore
+import Foundation
 
 /** QBESettings stores application-wide settings, primarily user preferences. These settings are currently stored in OS X
 user defaults, but in the future may also be saved to iCloud or any other place. No security-sensitive information (e.g.
 passwords) should be stored using QBESettings. */
 class QBESettings {
 	static let sharedInstance = QBESettings()
-	private let defaults: NSUserDefaults
+	private let defaults: UserDefaults
 	
 	init () {
-		defaults = NSUserDefaults.standardUserDefaults()
+		defaults = UserDefaults.standard()
 		
 		#if DEBUG
 			resetOnces()
 		#endif
 	}
 
-	private var lastTip: NSDate? {
+	private var lastTip: Date? {
 		get {
-			let i = defaults.doubleForKey("lastTip")
-			return i > 0 ? NSDate(timeIntervalSinceReferenceDate: i) : nil
+			let i = defaults.double(forKey: "lastTip")
+			return i > 0 ? Date(timeIntervalSinceReferenceDate: i) : nil
 		}
 		set {
 			if let d = newValue {
-				defaults.setDouble(d.timeIntervalSinceReferenceDate, forKey: "lastTip")
+				defaults.set(d.timeIntervalSinceReferenceDate, forKey: "lastTip")
 			}
 		}
 	}
 
-	private let timeBetweenTips: NSTimeInterval = 30.0
+	private let timeBetweenTips: TimeInterval = 30.0
 
 	/** Calls the given block if the last time this function was called more than `timeBetweenTips` seconds ago, and no
 	call to showTip or once has been made with the given key before. This is useful for ensuring that tip balloons don't 
 	show up to soon after each other. */
-	func showTip(onceKey: String, block: () -> ()) {
+	func showTip(_ onceKey: String, block: () -> ()) {
 		let last = self.lastTip
 		if last == nil || abs(last!.timeIntervalSinceNow) > timeBetweenTips {
 			once(onceKey) {
 				block()
-				self.lastTip = NSDate()
+				self.lastTip = Date()
 			}
 		}
 	}
 	
 	var monospaceFont: Bool {
 		get {
-			return defaults.boolForKey("monospaceFont") ?? false
+			return defaults.bool(forKey: "monospaceFont") ?? false
 		}
 		set {
-			defaults.setBool(newValue, forKey: "monospaceFont")
+			defaults.set(newValue, forKey: "monospaceFont")
 		}
 	}
 	
-	var locale: Locale.LanguageIdentifier {
+	var locale: Language.LanguageIdentifier {
 		get {
-			return defaults.stringForKey("locale") ?? Locale.defaultLanguage
+			return defaults.string(forKey: "locale") ?? Language.defaultLanguage
 		}
 	}
 	
 	var defaultFieldSeparator: String {
 		get {
-			return defaults.stringForKey("defaultSeparator") ?? ","
+			return defaults.string(forKey: "defaultSeparator") ?? ","
 		}
 	}
 	
 	var exampleMaximumTime: Double {
 		get {
-			let maxTime = defaults.doubleForKey("exampleMaximumTime")
+			let maxTime = defaults.double(forKey: "exampleMaximumTime")
 			if maxTime <= 0.0 {
 				return 1.5
 			}
@@ -74,13 +74,13 @@ class QBESettings {
 		}
 		
 		set {
-			defaults.setDouble(max(0.25, newValue), forKey: "exampleMaximumTime")
+			defaults.set(max(0.25, newValue), forKey: "exampleMaximumTime")
 		}
 	}
 	
 	var exampleMaximumRows: Int {
 		get {
-			let maxRows = defaults.integerForKey("exampleMaximumRows")
+			let maxRows = defaults.integer(forKey: "exampleMaximumRows")
 			if maxRows <= 0 {
 				return 500
 			}
@@ -88,16 +88,16 @@ class QBESettings {
 		}
 		
 		set {
-			defaults.setInteger(max(100, newValue), forKey: "exampleMaximumRows")
+			defaults.set(max(100, newValue), forKey: "exampleMaximumRows")
 		}
 	}
 	
-	func defaultWidthForColumn(withName: Column) -> Double? {
-		return defaults.doubleForKey("width.\(withName.name)")
+	func defaultWidthForColumn(_ withName: Column) -> Double? {
+		return defaults.double(forKey: "width.\(withName.name)")
 	}
 	
-	func setDefaultWidth(width: Double, forColumn: Column) {
-		defaults.setDouble(width, forKey: "width.\(forColumn.name)")
+	func setDefaultWidth(_ width: Double, forColumn: Column) {
+		defaults.set(width, forKey: "width.\(forColumn.name)")
 	}
 	
 	/** Return whether it is allowable to cache a file of the indicated size in the indicated location. This function
@@ -105,11 +105,11 @@ class QBESettings {
 	only use a particular fraction of it). In the future, it may use preferences exposed to the user. The result of this
 	function should be used to set the default preference for caching in steps that allow the user to toggle caching.
 	Caching explicitly requested by the user should be disabled anyway if this function returns false. */
-	func shouldCacheFile(ofEstimatedSize size: Int, atLocation: NSURL) -> Bool {
+	func shouldCacheFile(ofEstimatedSize size: Int, atLocation: URL) -> Bool {
 		// Let's find out how much disk space is left in the proposed cache location
 		do {
-			let attrs = try NSFileManager.defaultManager().attributesOfFileSystemForPath(atLocation.path!)
-			if let freeSpace = attrs[NSFileSystemFreeSize] as? NSNumber {
+			let attrs = try FileManager.default().attributesOfFileSystem(forPath: atLocation.path!)
+			if let freeSpace = attrs[FileAttributeKey.systemFreeSize.rawValue] as? NSNumber {
 				let freeSize = Double(size) / Double(freeSpace)
 				if freeSize < 0.8 {
 					return true
@@ -121,10 +121,10 @@ class QBESettings {
 	
 	/** Call the provided callback only when this function has not been called before with the same key. This can be used
 	to show the user certain things (such as tips) only once. Returns true if the block was executed. */
-	func once(key: String, callback: () -> ()) -> Bool {
+	@discardableResult func once(_ key: String, callback: () -> ()) -> Bool {
 		let onceKey = "once.\(key)"
-		if !defaults.boolForKey(onceKey) {
-			defaults.setBool(true, forKey: onceKey)
+		if !defaults.bool(forKey: onceKey) {
+			defaults.set(true, forKey: onceKey)
 			callback()
 			return true
 		}
@@ -136,8 +136,8 @@ class QBESettings {
 		first-time tips. */
 		let dict = defaults.dictionaryRepresentation()
 		for (key, _) in dict {
-			if let r = key.rangeOfString("once.", options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) where r.startIndex==key.startIndex {
-				defaults.removeObjectForKey(key)
+			if let r = key.range(of: "once.", options: NSString.CompareOptions.caseInsensitiveSearch, range: nil, locale: nil) where r.lowerBound==key.startIndex {
+				defaults.removeObject(forKey: key)
 			}
 		}
 	}

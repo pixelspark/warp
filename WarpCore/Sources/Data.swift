@@ -17,13 +17,13 @@ public struct Row {
 		self.columns = columns
 	}
 	
-	public func indexOfColumnWithName(name: Column) -> Int? {
-		return columns.indexOf(name)
+	public func indexOfColumnWithName(_ name: Column) -> Int? {
+		return columns.index(of: name)
 	}
 	
 	public subscript(column: Column) -> Value! {
 		get {
-			if let i = columns.indexOf(column) {
+			if let i = columns.index(of: column) {
 				return values[i]
 			}
 			return nil
@@ -37,8 +37,8 @@ public struct Row {
 		return values[column]
 	}
 	
-	public mutating func setValue(value: Value, forColumn column: Column) {
-		if let i = columns.indexOf(column) {
+	public mutating func setValue(_ value: Value, forColumn column: Column) {
+		if let i = columns.index(of: column) {
 			values[i] = value
 		}
 		else {
@@ -48,8 +48,8 @@ public struct Row {
 	}
 }
 
-/** Column represents a column (identifier) in a Data dataset. Column names in Data are case-insensitive when
-compared, but do retain case. There cannot be two or more columns in a Data dataset that are equal to each other when
+/** Column represents a column (identifier) in a Dataset dataset. Column names in Dataset are case-insensitive when
+compared, but do retain case. There cannot be two or more columns in a Dataset dataset that are equal to each other when
 compared case-insensitively. */
 public struct Column: StringLiteralConvertible, Hashable, CustomDebugStringConvertible {
 	public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
@@ -74,7 +74,7 @@ public struct Column: StringLiteralConvertible, Hashable, CustomDebugStringConve
 	}
 
 	public var hashValue: Int { get {
-		return self.name.lowercaseString.hashValue
+		return self.name.lowercased().hashValue
 	} }
 	
 	public var debugDescription: String { get {
@@ -82,7 +82,7 @@ public struct Column: StringLiteralConvertible, Hashable, CustomDebugStringConve
 	} }
 
 	/** Returns a new, unique name for the next column given a set of existing columns. */
-	public static func defaultNameForNewColumn(existing: [Column]) -> Column {
+	public static func defaultNameForNewColumn(_ existing: [Column]) -> Column {
 		var index = existing.count
 		while true {
 			let newName = Column.defaultNameForIndex(index)
@@ -96,7 +96,7 @@ public struct Column: StringLiteralConvertible, Hashable, CustomDebugStringConve
 	/** Return Excel-style column name for column at a given index (starting at 0). Note: do not use to generate the name
 	of a column that is to be added to an existing set (column names must be unique). Use defaultNameForNewColumn to 
 	generate a new, unique name. */
-	public static func defaultNameForIndex(index: Int) -> Column {
+	public static func defaultNameForIndex(_ index: Int) -> Column {
 		var myIndex = index
 		let x = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
 		var str: String = ""
@@ -110,7 +110,7 @@ public struct Column: StringLiteralConvertible, Hashable, CustomDebugStringConve
 		return Column(str)
 	}
 	
-	public func newName(accept: (Column) -> Bool) -> Column {
+	public func newName(_ accept: (Column) -> Bool) -> Column {
 		var i = 0
 		repeat {
 			let newName = Column("\(self.name)_\(Column.defaultNameForIndex(i).name)")
@@ -125,7 +125,7 @@ public struct Column: StringLiteralConvertible, Hashable, CustomDebugStringConve
 
 /** Column names retain case, but they are compared case-insensitively */
 public func == (lhs: Column, rhs: Column) -> Bool {
-	return lhs.name.caseInsensitiveCompare(rhs.name) == NSComparisonResult.OrderedSame
+	return lhs.name.caseInsensitiveCompare(rhs.name) == ComparisonResult.orderedSame
 }
 
 public func != (lhs: Column, rhs: Column) -> Bool {
@@ -133,7 +133,7 @@ public func != (lhs: Column, rhs: Column) -> Bool {
 }
 
 /** This helper function can be used to create a lazily-computed variable. */
-func memoize<T>(result: () -> T) -> () -> T {
+func memoize<T>(_ result: () -> T) -> () -> T {
 	var cached: T? = nil
 	
 	return {() in
@@ -160,18 +160,18 @@ public class Order: NSObject, NSCoding {
 	}
 	
 	public required init?(coder aDecoder: NSCoder) {
-		self.expression = (aDecoder.decodeObjectForKey("expression") as? Expression) ?? nil
-		self.ascending = aDecoder.decodeBoolForKey("ascending")
-		self.numeric = aDecoder.decodeBoolForKey("numeric")
+		self.expression = (aDecoder.decodeObject(forKey: "expression") as? Expression) ?? nil
+		self.ascending = aDecoder.decodeBool(forKey: "ascending")
+		self.numeric = aDecoder.decodeBool(forKey: "numeric")
 	}
 	
-	public func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(expression, forKey: "expression")
-		aCoder.encodeBool(ascending, forKey: "ascending")
-		aCoder.encodeBool(numeric, forKey: "numeric")
+	public func encode(with aCoder: NSCoder) {
+		aCoder.encode(expression, forKey: "expression")
+		aCoder.encode(ascending, forKey: "ascending")
+		aCoder.encode(numeric, forKey: "numeric")
 	}
 
-	public override func isEqual(object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: AnyObject?) -> Bool {
 		if let o = object as? Order where o.ascending == self.ascending && o.numeric == self.numeric && o.expression == self.expression {
 			return true
 		}
@@ -209,10 +209,10 @@ public class Aggregation: NSObject, NSCoding {
 	}
 	
 	required public init?(coder: NSCoder) {
-		targetColumn = Column((coder.decodeObjectForKey("targetColumnName") as? String) ?? "")
-		let map = (coder.decodeObjectForKey("map") as? Expression) ?? Identity()
+		targetColumn = Column((coder.decodeObject(forKey: "targetColumnName") as? String) ?? "")
+		let map = (coder.decodeObject(forKey: "map") as? Expression) ?? Identity()
 		let reduce: Function
-		if let rawReduce = coder.decodeObjectForKey("reduce") as? String {
+		if let rawReduce = coder.decodeObject(forKey: "reduce") as? String {
 			reduce = Function(rawValue: rawReduce) ?? Function.Identity
 		}
 		else {
@@ -221,10 +221,10 @@ public class Aggregation: NSObject, NSCoding {
 		self.aggregator = Aggregator(map: map, reduce: reduce)
 	}
 	
-	public func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(targetColumn.name, forKey: "targetColumnName")
-		aCoder.encodeObject(aggregator.map, forKey: "map")
-		aCoder.encodeObject(aggregator.reduce.rawValue, forKey: "reduce")
+	public func encode(with aCoder: NSCoder) {
+		aCoder.encode(targetColumn.name, forKey: "targetColumnName")
+		aCoder.encode(aggregator.map, forKey: "map")
+		aCoder.encode(aggregator.reduce.rawValue, forKey: "reduce")
 	}
 }
 
@@ -252,12 +252,12 @@ The expression should reference both columns from the source table (sibling refe
 database (foreign references). */
 public struct Join {
 	public let type: JoinType
-	public let foreignData: Data
+	public let foreignDataset: Dataset
 	public let expression: Expression
 	
-	public init(type: JoinType, foreignData: Data, expression: Expression) {
+	public init(type: JoinType, foreignDataset: Dataset, expression: Expression) {
 		self.type = type
-		self.foreignData = foreignData
+		self.foreignDataset = foreignDataset
 		self.expression = expression
 	}
 }
@@ -315,60 +315,60 @@ internal struct HashComparison {
 	}
 }
 
-/** Data represents a data set. A data set consists of a set of column names (Column) and rows that each have a
-value for all columns in the data set. Values are represented as Value. Data supports various data manipulation
-operations. The exact semantics of the operations are described here, but Data does not implement the operations. 
-Internally, Data may be represented as a two-dimensional array of Value, which may or may not include the column
-names ('column header row'). Data manipulations do not operate on the column header row unless explicitly stated otherwise. */
-public protocol Data {
+/** Dataset represents a data set. A data set consists of a set of column names (Column) and rows that each have a
+value for all columns in the data set. Values are represented as Value. Dataset supports various data manipulation
+operations. The exact semantics of the operations are described here, but Dataset does not implement the operations. 
+Internally, Dataset may be represented as a two-dimensional array of Value, which may or may not include the column
+names ('column header row'). Dataset manipulations do not operate on the column header row unless explicitly stated otherwise. */
+public protocol Dataset {
 	/** Transpose the data set, e.g. columns become rows and vice versa. In the full raster (including column names), a
 	cell at [x][y] will end up at position [y][x]. */
-	func transpose() -> Data
+	func transpose() -> Dataset
 	
 	/** For each row, compute the given expressions and put the result in the desired columns. If that column does not
 	yet exist in the data set, it is created and appended as last column. The order of existing columns remains intact.
 	If the column already exists, the column's values are overwritten by the results of the calculation. Note that in this
-	case the old value in the column is an input value to the formula (this value is Value.EmptyValue in the case where
+	case the old value in the column is an input value to the formula (this value is Value.empty in the case where
 	the target column doesn't exist yet). Calculations do not apply to the column headers. 
 	
 	The specified calculations are executed in no particular order. Expressions that read data from the row (e.g. from
 	another column) are read from the previous version of the row as if none of the specified calculations have 
 	happened. */
-	func calculate(calculations: Dictionary<Column, Expression>) -> Data
+	func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset
 	
 	/** Limit the number of rows in the data set to the specified number of rows. The number of rows does not include
 	column headers. */
-	func limit(numberOfRows: Int) -> Data
+	func limit(_ numberOfRows: Int) -> Dataset
 	
 	/** Skip the specified number of rows in the data set. The number of rows does not include column headers. The number
 	of rows cannot be negative (but can be zero, in which case offset is a no-op). */
-	func offset(numberOfRows: Int) -> Data
+	func offset(_ numberOfRows: Int) -> Dataset
 	
 	/** Randomly select the indicated amount of rows from the source data set, using sampling without replacement. If the
 	number of rows specified is greater than the number of rows available in the set, the resulting data set will contain
 	all rows of the original data set. */
-	func random(numberOfRows: Int) -> Data
+	func random(_ numberOfRows: Int) -> Dataset
 	
 	/** Returns a dataset with only unique rows from the data set. */
-	func distinct() -> Data
+	func distinct() -> Dataset
 	
 	/** Selects only those rows from the data set for which the supplied expression evaluates to a value that equals
-	Value.BoolValue(true). */
-	func filter(condition: Expression) -> Data
+	Value.bool(true). */
+	func filter(_ condition: Expression) -> Dataset
 	
 	/** Returns a set of all unique result values in this data set for the given expression. */
-	func unique(expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ())
+	func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ())
 	
 	/** Select only the columns from the data set that are in the array, in the order specified. If a column named in the
 	array does not exist, it is ignored. */
-	func selectColumns(columns: [Column]) -> Data
+	func selectColumns(_ columns: [Column]) -> Dataset
 	
 	/** Aggregate data in this set. The 'groups' parameter defines different aggregation 'buckets'. Items are mapped in
 	into each bucket. Subsequently, the aggregations specified in the 'values' parameter are run on each bucket 
 	separately. The resulting data set starts with the group identifier columns, followed by the aggregation results. */
-	func aggregate(groups: [Column: Expression], values: [Column: Aggregator]) -> Data
+	func aggregate(_ groups: [Column: Expression], values: [Column: Aggregator]) -> Dataset
 	
-	func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data
+	func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset
 	
 	/** Request streaming of the data contained in this dataset to the specified callback. */
 	func stream() -> Stream
@@ -379,156 +379,156 @@ public protocol Data {
 	- A column containing the result of applying the rowIdentifier expression on the original row (if rowIdentifier is
 	  non-nil AND the to parameter is non-nil)
 	- The original cell value */
-	func flatten(valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Data
+	func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset
 	
 	/** Returns an in-memory representation (Raster) of the data set. */
-	func raster(job: Job, callback: (Fallible<Raster>) -> ())
+	func raster(_ job: Job, callback: (Fallible<Raster>) -> ())
 	
 	/** Returns the names of the columns in the data set. The list of column names is ordered. */
-	func columns(job: Job, callback: (Fallible<[Column]>) -> ())
+	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ())
 	
 	/** Sort the dataset in the indicates ways. The sorts are applied in-order, e.g. the dataset is sorted by the first
 	order specified, in case of ties by the second, et cetera. If there are ties and there is no further order to sort by,
 	ordering is unspecified. If no orders are specified, sort is a no-op. */
-	func sort(by: [Order]) -> Data
+	func sort(_ by: [Order]) -> Dataset
 	
 	/** Perform the specified join operation on this data set and return the resulting data. */
-	func join(join: Join) -> Data
+	func join(_ join: Join) -> Dataset
 	
 	/**	Combine all rows from the first data set with all rows from the second data set in no particular order. Duplicate
 	rows are retained (i.e. this works like SQL's UNION ALL, not UNION). The resulting data set contains the union of
 	columns from both data sets (no duplicates). Rows have empty values inserted for values of columns not present in
 	the source data set. */
-	func union(data: Data) -> Data
+	func union(_ data: Dataset) -> Dataset
 }
 
-/** Utility class that allows for easy swapping of Data objects. This can for instance be used to swap-in a cached
+/** Utility class that allows for easy swapping of Dataset objects. This can for instance be used to swap-in a cached
 version of a particular data object. */
-public class ProxyData: NSObject, Data {
-	public var data: Data
+public class ProxyDataset: NSObject, Dataset {
+	public var data: Dataset
 	
-	public init(data: Data) {
+	public init(data: Dataset) {
 		self.data = data
 	}
 	
-	public func transpose() -> Data { return data.transpose() }
-	public func calculate(calculations: Dictionary<Column, Expression>) -> Data { return data.calculate(calculations) }
-	public func limit(numberOfRows: Int) -> Data { return data.limit(numberOfRows) }
-	public func random(numberOfRows: Int) -> Data { return data.random(numberOfRows) }
-	public func distinct() -> Data { return data.distinct() }
-	public func filter(condition: Expression) -> Data { return data.filter(condition) }
-	public func unique(expression: Expression,  job: Job, callback: (Fallible<Set<Value>>) -> ()) { return data.unique(expression, job: job, callback: callback) }
-	public func selectColumns(columns: [Column]) -> Data { return data.selectColumns(columns) }
-	public func aggregate(groups: [Column: Expression], values: [Column: Aggregator]) -> Data { return data.aggregate(groups, values: values) }
-	public func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data { return data.pivot(horizontal, vertical: vertical, values: values) }
+	public func transpose() -> Dataset { return data.transpose() }
+	public func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset { return data.calculate(calculations) }
+	public func limit(_ numberOfRows: Int) -> Dataset { return data.limit(numberOfRows) }
+	public func random(_ numberOfRows: Int) -> Dataset { return data.random(numberOfRows) }
+	public func distinct() -> Dataset { return data.distinct() }
+	public func filter(_ condition: Expression) -> Dataset { return data.filter(condition) }
+	public func unique(_ expression: Expression,  job: Job, callback: (Fallible<Set<Value>>) -> ()) { return data.unique(expression, job: job, callback: callback) }
+	public func selectColumns(_ columns: [Column]) -> Dataset { return data.selectColumns(columns) }
+	public func aggregate(_ groups: [Column: Expression], values: [Column: Aggregator]) -> Dataset { return data.aggregate(groups, values: values) }
+	public func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset { return data.pivot(horizontal, vertical: vertical, values: values) }
 	public func stream() -> Stream { return data.stream() }
-	public func raster(job: Job, callback: (Fallible<Raster>) -> ()) { return data.raster(job, callback: callback) }
-	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) { return data.columns(job, callback: callback) }
-	public func flatten(valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Data { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
-	public func offset(numberOfRows: Int) -> Data { return data.offset(numberOfRows) }
-	public func sort(by: [Order]) -> Data { return data.sort(by) }
-	public func join(join: Join) -> Data { return data.join(join) }
-	public func union(data: Data) -> Data { return data.union(data) }
+	public func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) { return data.raster(job, callback: callback) }
+	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) { return data.columns(job, callback: callback) }
+	public func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
+	public func offset(_ numberOfRows: Int) -> Dataset { return data.offset(numberOfRows) }
+	public func sort(_ by: [Order]) -> Dataset { return data.sort(by) }
+	public func join(_ join: Join) -> Dataset { return data.join(join) }
+	public func union(_ data: Dataset) -> Dataset { return data.union(data) }
 }
 
-public extension Data {
-	var coalesced: Data { get {
-		return CoalescedData(self)
+public extension Dataset {
+	var coalesced: Dataset { get {
+		return CoalescedDataset(self)
 	} }
 }
 
-/** CoalescedData is a class that optimizes data operations by combining (coalescing) them. For instance, the operation
-data.limit(10).limit(5) can be simplified to data.limit(5). CoalescedData is a first optimization step that acts purely
-at the highest level of the Data interface. Implementation (e.g. SQLData) are encouraged to implement further 
+/** CoalescedDataset is a class that optimizes data operations by combining (coalescing) them. For instance, the operation
+data.limit(10).limit(5) can be simplified to data.limit(5). CoalescedDataset is a first optimization step that acts purely
+at the highest level of the Dataset interface. Implementation (e.g. SQLDataset) are encouraged to implement further 
 optimizations (e.g. coalescing multiple data operations into a single SQL statement).
 
-Technically, CoalescedData represents a Data coupled with a data operation that is deferred (e.g.
-CoalescedData.Limiting(data, 10) means it should eventually be equivalent to the result of data.limit(10)). Operations
-on CoalescedData will either cause the deferred operation to be executed (before the new one is applied) or to combine
+Technically, CoalescedDataset represents a Dataset coupled with a data operation that is deferred (e.g.
+CoalescedDataset.Limiting(data, 10) means it should eventually be equivalent to the result of data.limit(10)). Operations
+on CoalescedDataset will either cause the deferred operation to be executed (before the new one is applied) or to combine
 the deferred operation with the newly applied operation. */
-enum CoalescedData: Data {
-	case None(Data)
-	case Limiting(Data, Int)
-	case Offsetting(Data, Int)
-	case Transposing(Data)
-	case Filtering(Data, Expression)
-	case Sorting(Data, [Order])
-	case SelectingColumns(Data, [Column])
-	case Calculating(Data, [Column: Expression])
-	case CalculatingThenSelectingColumns(Data, OrderedDictionary<Column, Expression>)
-	case Distincting(Data)
+enum CoalescedDataset: Dataset {
+	case none(Dataset)
+	case limiting(Dataset, Int)
+	case offsetting(Dataset, Int)
+	case transposing(Dataset)
+	case filtering(Dataset, Expression)
+	case sorting(Dataset, [Order])
+	case selectingColumns(Dataset, [Column])
+	case calculating(Dataset, [Column: Expression])
+	case calculatingThenSelectingColumns(Dataset, OrderedDictionary<Column, Expression>)
+	case distincting(Dataset)
 	
-	init(_ data: Data) {
-		self = CoalescedData.None(data)
+	init(_ data: Dataset) {
+		self = CoalescedDataset.none(data)
 	}
 	
 	/** Applies the deferred operation represented by this coalesced data object and returns the result. */
-	var data: Data { get {
+	var data: Dataset { get {
 		switch self {
-			case .Limiting(let data, let numberOfRows):
+			case .limiting(let data, let numberOfRows):
 				return data.limit(numberOfRows)
 			
-			case .Transposing(let data):
+			case .transposing(let data):
 				return data.transpose()
 			
-			case .Offsetting(let data, let nr):
+			case .offsetting(let data, let nr):
 				return data.offset(nr)
 			
-			case .Filtering(let data, let filter):
+			case .filtering(let data, let filter):
 				return data.filter(filter)
 			
-			case .Sorting(let data, let order):
+			case .sorting(let data, let order):
 				return data.sort(order)
 			
-			case .SelectingColumns(let data, let cols):
+			case .selectingColumns(let data, let cols):
 				return data.selectColumns(cols)
 			
-			case .Distincting(let data):
+			case .distincting(let data):
 				return data.distinct()
 			
-			case .Calculating(let data, let calculations):
+			case .calculating(let data, let calculations):
 				return data.calculate(calculations)
 			
-			case .CalculatingThenSelectingColumns(let data, let calculations):
+			case .calculatingThenSelectingColumns(let data, let calculations):
 				return data.calculate(calculations.values).selectColumns(calculations.keys)
 			
-			case .None(let data):
+			case .none(let data):
 				return data
 		}
 	} }
 	
 	/** data.transpose().transpose() is equivalent to data. */
-	func transpose() -> Data {
+	func transpose() -> Dataset {
 		switch self {
-		case .Transposing(let data):
-			return CoalescedData.None(data)
+		case .transposing(let data):
+			return CoalescedDataset.none(data)
 			
 		default:
-			return CoalescedData.Transposing(self.data)
+			return CoalescedDataset.transposing(self.data)
 		}
 	}
 
 	/** No optimzations are currently done on joins. */
-	func join(join: Join) -> Data {
-		return CoalescedData.None(data.join(join))
+	func join(_ join: Join) -> Dataset {
+		return CoalescedDataset.none(data.join(join))
 	}
 	
 	/** Combine calculations under the following circumstances:
 	- calculate(A: x).calculate(B: y) is equivalent to calculate(A: x, B: y) if y does not depend on A and A!=B
 	- calculate(A: x).calculate(A: y) is equivalent to calculate(A: y) if x is an identity expression (e.g. just returns
 	  the content A had before the calculation) */
-	func calculate(calculations: Dictionary<Column, Expression>) -> Data {
+	func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset {
 		var newCalculations = OrderedDictionary<Column, Expression>()
 		
-		let source: Data
+		let source: Dataset
 		let keepOrder: Bool
 		switch self {
-			case .Calculating(let data, let calculations):
+			case .calculating(let data, let calculations):
 				newCalculations = OrderedDictionary(dictionaryInAnyOrder: calculations)
 				source = data
 				keepOrder = false
 			
-			case .CalculatingThenSelectingColumns(let data, let calculations):
+			case .calculatingThenSelectingColumns(let data, let calculations):
 				newCalculations = calculations
 				source = data
 				keepOrder = true
@@ -572,17 +572,17 @@ enum CoalescedData: Data {
 			}
 		}
 		
-		let result: CoalescedData
+		let result: CoalescedDataset
 		if keepOrder {
-			result = CoalescedData.CalculatingThenSelectingColumns(source, newCalculations)
+			result = CoalescedDataset.calculatingThenSelectingColumns(source, newCalculations)
 		}
 		else {
-			result = CoalescedData.Calculating(source, newCalculations.values)
+			result = CoalescedDataset.calculating(source, newCalculations.values)
 		}
 		
 		// If we have deferred some of the calculations to a second call to calculate, append it here
 		if deferred.count > 0 {
-			return CoalescedData.Calculating(result.data, deferred)
+			return CoalescedDataset.calculating(result.data, deferred)
 		}
 		
 		return result
@@ -591,32 +591,32 @@ enum CoalescedData: Data {
 	/** Axioms for limit:
 	data.limit(x).limit(y) is equivalent to data.limit(min(x,y))
 	data.calculate(...).limit(x) is equivalent to data.limit(x).calculate(...) */
-	func limit(numberOfRows: Int) -> Data {
+	func limit(_ numberOfRows: Int) -> Dataset {
 		switch self {
-			case .Calculating(let data, let calculations):
-				return CoalescedData.Calculating(CoalescedData.Limiting(data, numberOfRows), calculations)
+			case .calculating(let data, let calculations):
+				return CoalescedDataset.calculating(CoalescedDataset.limiting(data, numberOfRows), calculations)
 
-			case .Limiting(let data, let nr):
-				return CoalescedData.Limiting(data, min(numberOfRows, nr))
+			case .limiting(let data, let nr):
+				return CoalescedDataset.limiting(data, min(numberOfRows, nr))
 			
 			default:
-				return CoalescedData.Limiting(self.data, numberOfRows)
+				return CoalescedDataset.limiting(self.data, numberOfRows)
 		}
 	}
 	
-	func random(numberOfRows: Int) -> Data {
-		return CoalescedData.None(data.random(numberOfRows))
+	func random(_ numberOfRows: Int) -> Dataset {
+		return CoalescedDataset.none(data.random(numberOfRows))
 	}
 	
 	/** data.distinct().distinct() is equivalent to data.distinct() (after the first distinct(), there are only distinct
 	rows left). */
-	func distinct() -> Data {
+	func distinct() -> Dataset {
 		switch self {
-			case .Distincting(_):
+			case .distincting(_):
 				return self
 			
 			default:
-				return CoalescedData.Distincting(self.data)
+				return CoalescedDataset.distincting(self.data)
 		}
 	}
 	
@@ -626,28 +626,28 @@ enum CoalescedData: Data {
 		- data.filter(e).calculate(...) is equivalent to data.calculate(...).filter(e) if the filter does not rely on 
 		  the outcome of the calculate operation
 	*/
-	func filter(condition: Expression) -> Data {
+	func filter(_ condition: Expression) -> Dataset {
 		let prepared = condition.prepare()
 		if prepared.isConstant {
 			let value = prepared.apply(Row(), foreign: nil, inputValue: nil)
-			if value == Value.BoolValue(true) {
+			if value == Value.bool(true) {
 				// This filter operation will never filter out any rows
 				return self
 			}
 		}
 		
 		switch self {
-		case .Sorting(let data, let order):
+		case .sorting(let data, let order):
 			/** Filtering is transparent to ordering, and so should be ordered before it, so it is 'closer to the index'. */
-			return CoalescedData.Sorting(CoalescedData.Filtering(data, condition), order)
+			return CoalescedDataset.sorting(CoalescedDataset.filtering(data, condition), order)
 
-		case .Calculating(let data, let calculations):
+		case .calculating(let data, let calculations):
 			/** If the filter does not depend on the outcome of the calculations, then it can simply be ordered before 
 			the calculations. This is usually more efficient, because the less steps away from the source data, the 
 			higher the chance that there is a usable index. */
 			let deps = prepared.siblingDependencies
-			if deps.isDisjointWith(calculations.keys) {
-				return CoalescedData.Calculating(CoalescedData.Filtering(data, condition), calculations)
+			if deps.isDisjoint(with: calculations.keys) {
+				return CoalescedDataset.calculating(CoalescedDataset.filtering(data, condition), calculations)
 			}
 			else {
 				/** If the filter expression depends on a newly calculated column, then we can substitute the calculation
@@ -665,18 +665,18 @@ enum CoalescedData: Data {
 					}
 					return e
 				}
-				return CoalescedData.Calculating(CoalescedData.Filtering(data, changedExpression), calculations)
+				return CoalescedDataset.calculating(CoalescedDataset.filtering(data, changedExpression), calculations)
 			}
 
-		case .Filtering(let data, let oldFilter):
-			return CoalescedData.Filtering(data, Call(arguments: [oldFilter, condition], type: Function.And))
+		case .filtering(let data, let oldFilter):
+			return CoalescedDataset.filtering(data, Call(arguments: [oldFilter, condition], type: Function.And))
 
 		default:
-			return CoalescedData.Filtering(self.data, condition)
+			return CoalescedDataset.filtering(self.data, condition)
 		}
 	}
 
-	func unique(expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
+	func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
 		return data.unique(expression, job: job, callback: callback)
 	}
 	
@@ -686,18 +686,18 @@ enum CoalescedData: Data {
 		- data.selectColumns(a) is equivalent to an empty data set if a is empty
 		- data.calculate().selectColumns() can be combined: calculations that result into columns that are not selected 
 		  are not included */
-	func selectColumns(columns: [Column]) -> Data {
+	func selectColumns(_ columns: [Column]) -> Dataset {
 		if columns.isEmpty {
-			return RasterData()
+			return RasterDataset()
 		}
 		
 		switch self {
-			case .SelectingColumns(let data, let oldColumns):
+			case .selectingColumns(let data, let oldColumns):
 				let oldSet = Set(oldColumns)
 				let newColumns = columns.filter({return oldSet.contains($0)})
-				return CoalescedData.SelectingColumns(data, newColumns)
+				return CoalescedDataset.selectingColumns(data, newColumns)
 			
-			case .Calculating(let data, let calculations):
+			case .calculating(let data, let calculations):
 				var newCalculations = OrderedDictionary<Column, Expression>()
 				for column in columns {
 					if let expression = calculations[column] {
@@ -707,78 +707,78 @@ enum CoalescedData: Data {
 						newCalculations.append(Identity(), forKey: column)
 					}
 				}
-				return CoalescedData.CalculatingThenSelectingColumns(data, newCalculations)
+				return CoalescedDataset.calculatingThenSelectingColumns(data, newCalculations)
 			
-			case .CalculatingThenSelectingColumns(let data, let calculations):
+			case .calculatingThenSelectingColumns(let data, let calculations):
 				var newCalculations = calculations
 				newCalculations.filterAndOrder(columns)
-				return CoalescedData.CalculatingThenSelectingColumns(data, newCalculations)
+				return CoalescedDataset.calculatingThenSelectingColumns(data, newCalculations)
 			
 			default:
-				return CoalescedData.SelectingColumns(data, columns)
+				return CoalescedDataset.selectingColumns(data, columns)
 		}
 	}
 	
-	func aggregate(groups: [Column: Expression], values: [Column: Aggregator]) -> Data {
-		return CoalescedData.None(data.aggregate(groups, values: values))
+	func aggregate(_ groups: [Column: Expression], values: [Column: Aggregator]) -> Dataset {
+		return CoalescedDataset.none(data.aggregate(groups, values: values))
 	}
 	
-	func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data {
-		return CoalescedData.None(data.pivot(horizontal, vertical: vertical, values: values))
+	func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset {
+		return CoalescedDataset.none(data.pivot(horizontal, vertical: vertical, values: values))
 	}
 	
 	func stream() -> Stream {
 		return data.stream()
 	}
 	
-	func raster(job: Job, callback: (Fallible<Raster>) -> ()) {
+	func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
 		return data.raster(job, callback: callback)
 	}
 	
-	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		return data.columns(job, callback: callback)
 	}
 	
-	func flatten(valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Data {
-		return CoalescedData.None(data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
+	func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset {
+		return CoalescedDataset.none(data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
 	}
 	
-	func union(data: Data) -> Data {
-		return CoalescedData.None(self.data.union(data))
+	func union(_ data: Dataset) -> Dataset {
+		return CoalescedDataset.none(self.data.union(data))
 	}
 	
 	/** Axioms for offset:
 	- data.offset(x).offset(y) is equivalent to data.offset(x+y).
 	- data.calculate(...).offset(x) is equivalent to data.offset(x).calculate(...)
 	*/
-	func offset(numberOfRows: Int) -> Data {
+	func offset(_ numberOfRows: Int) -> Dataset {
 		assert(numberOfRows > 0)
 		
 		switch self {
-		case .Calculating(let data, let calculations):
-			return CoalescedData.Calculating(CoalescedData.Offsetting(data, numberOfRows),calculations)
+		case .calculating(let data, let calculations):
+			return CoalescedDataset.calculating(CoalescedDataset.offsetting(data, numberOfRows),calculations)
 
-		case .Offsetting(let data, let offset):
-			return CoalescedData.Offsetting(data, offset + numberOfRows)
+		case .offsetting(let data, let offset):
+			return CoalescedDataset.offsetting(data, offset + numberOfRows)
 
 		default:
-			return CoalescedData.Offsetting(data, numberOfRows)
+			return CoalescedDataset.offsetting(data, numberOfRows)
 		}
 	}
 	
 	/** - data.sort([a,b]).sort([c,d]) is equivalent to data.sort([c,d, a,b]) 
 		- data.sort([]) is equivalent to data. */
-	func sort(orders: [Order]) -> Data {
+	func sort(_ orders: [Order]) -> Dataset {
 		if orders.isEmpty {
 			return self
 		}
 		
 		switch self {
-			case .Sorting(let data, let oldOrders):
-				return CoalescedData.Sorting(data, orders + oldOrders)
+			case .sorting(let data, let oldOrders):
+				return CoalescedDataset.sorting(data, orders + oldOrders)
 			
 			default:
-				return CoalescedData.Sorting(self.data, orders)
+				return CoalescedDataset.sorting(self.data, orders)
 		}
 	}
 }

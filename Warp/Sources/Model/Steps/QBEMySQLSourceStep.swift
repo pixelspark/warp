@@ -7,8 +7,8 @@ private final class QBEMySQLDialect: StandardSQLDialect {
 	override var identifierQualifier: String { get { return  "`" } }
 	override var identifierQualifierEscape: String { get { return  "\\`" } }
 	
-	override func unaryToSQL(type: Function, args: [String]) -> String? {
-		let value = args.joinWithSeparator(", ")
+	override func unaryToSQL(_ type: Function, args: [String]) -> String? {
+		let value = args.joined(separator: ", ")
 		
 		if type == Function.Random {
 			return "RAND(\(value))"
@@ -16,7 +16,7 @@ private final class QBEMySQLDialect: StandardSQLDialect {
 		return super.unaryToSQL(type, args: args)
 	}
 	
-	private override func aggregationToSQL(aggregation: Aggregator, alias: String) -> String? {
+	private override func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
 		// For Function.Count, we should count numeric values only. In MySQL this can be done using REGEXP
 		if aggregation.reduce == Function.Count {
 			if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
@@ -28,18 +28,18 @@ private final class QBEMySQLDialect: StandardSQLDialect {
 		return super.aggregationToSQL(aggregation, alias: alias)
 	}
 	
-	private override func forceStringExpression(expression: String) -> String {
+	private override func forceStringExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS BINARY)"
 	}
 	
-	private override func forceNumericExpression(expression: String) -> String {
+	private override func forceNumericExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS DECIMAL)"
 	}
 }
 
-internal final class QBEMySQLResult: SequenceType, GeneratorType {
+internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 	typealias Element = Fallible<Tuple>
-	typealias Generator = QBEMySQLResult
+	typealias Iterator = QBEMySQLResult
 	
 	private let connection: QBEMySQLConnection
 	private let result: UnsafeMutablePointer<MYSQL_RES>
@@ -47,33 +47,32 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 	private(set) var columnTypes: [MYSQL_FIELD] = []
 	private(set) var finished = false
 	
-	static func create(result: UnsafeMutablePointer<MYSQL_RES>, connection: QBEMySQLConnection) -> Fallible<QBEMySQLResult> {
+	static func create(_ result: UnsafeMutablePointer<MYSQL_RES>, connection: QBEMySQLConnection) -> Fallible<QBEMySQLResult> {
 		// Get column names from result set
-		var resultSet: Fallible<QBEMySQLResult> = .Failure("Unknown error")
+		var resultSet: Fallible<QBEMySQLResult> = .failure("Unknown error")
 		
-		dispatch_sync(QBEMySQLConnection.sharedQueue) {
+		QBEMySQLConnection.sharedClient.queue.sync {
 			let realResult = QBEMySQLResult(result: result, connection: connection)
 			
 			let colCount = mysql_field_count(connection.connection)
 			for _ in 0..<colCount {
-				let column = mysql_fetch_field(result)
-				if column != nil {
-					if let name = NSString(bytes: column.memory.name, length: Int(column.memory.name_length), encoding: NSUTF8StringEncoding) {
+				if let column = mysql_fetch_field(result) {
+					if let name = String(bytesNoCopy: column.pointee.name, length: Int(column.pointee.name_length), encoding: String.Encoding.utf8, freeWhenDone: false) {
 						realResult.columns.append(Column(String(name)))
-						realResult.columnTypes.append(column.memory)
+						realResult.columnTypes.append(column.pointee)
 					}
 					else {
-						resultSet = .Failure(NSLocalizedString("The MySQL data contains an invalid column name.", comment: ""))
+						resultSet = .failure(NSLocalizedString("The MySQL data contains an invalid column name.", comment: ""))
 						return
 					}
 				}
 				else {
-					resultSet = .Failure(NSLocalizedString("MySQL returned an invalid column.", comment: ""))
+					resultSet = .failure(NSLocalizedString("MySQL returned an invalid column.", comment: ""))
 					return
 				}
 			}
 			
-			resultSet = .Success(realResult)
+			resultSet = .success(realResult)
 		}
 		
 		return resultSet
@@ -88,7 +87,7 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 		_finish(false)
 	}
 	
-	private func _finish(warn: Bool) {
+	private func _finish(_ warn: Bool) {
 		if !self.finished {
 			/* A new query cannot be started before all results from the previous one have been fetched, because packets
 			will get out of order. */
@@ -110,34 +109,33 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 		_finish(true)
 		
 		let result = self.result
-		dispatch_sync(QBEMySQLConnection.sharedQueue) {
+		QBEMySQLConnection.sharedClient.queue.sync {
 			mysql_free_result(result)
 			return
 		}
 	}
 	
-	func generate() -> Generator {
+	func makeIterator() -> Iterator {
 		return self
 	}
 	
 	func next() -> Element? {
 		let r = row()
-		return r == nil ? nil : .Success(r!)
+		return r == nil ? nil : .success(r!)
 	}
 	
 	func row() -> [Value]? {
-		var rowData: [Value]? = nil
+		var rowDataset: [Value]? = nil
 		
-		dispatch_sync(QBEMySQLConnection.sharedQueue) {
-			let row: MYSQL_ROW = mysql_fetch_row(self.result)
-			if row != nil {
-				rowData = []
-				rowData!.reserveCapacity(self.columns.count)
+		QBEMySQLConnection.sharedClient.queue.sync {
+			if let row = mysql_fetch_row(self.result) {
+				rowDataset = []
+				rowDataset!.reserveCapacity(self.columns.count)
 				
 				for cn in 0..<self.columns.count {
 					let val = row[cn]
 					if val == nil {
-						rowData!.append(Value.EmptyValue)
+						rowDataset!.append(Value.empty)
 					}
 					else {
 						// Is this a numeric field?
@@ -148,26 +146,26 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 						 type.type.rawValue == MYSQL_TYPE_TIMESTAMP.rawValue {
 							
 							/* Only MySQL TIMESTAMP values are actual dates in UTC. The rest can be anything, in any time
-							zone, so we cannot convert these to Value.DateValue. */
-							if let str = String(CString: val, encoding: NSUTF8StringEncoding) {
+							zone, so we cannot convert these to Value.date. */
+							if let ptr = val, let str = String(cString: ptr, encoding: String.Encoding.utf8) {
 								if type.type.rawValue == MYSQL_TYPE_TIMESTAMP.rawValue {
 									// Datetime string is formatted as YYYY-MM-dd HH:mm:ss and is in UTC
-									let dateFormatter = NSDateFormatter()
+									let dateFormatter = DateFormatter()
 									dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-									dateFormatter.timeZone = NSTimeZone(abbreviation: "UTC")
-									if let d = dateFormatter.dateFromString(str) {
-										rowData!.append(Value(d))
+									dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+									if let d = dateFormatter.date(from: str) {
+										rowDataset!.append(Value(d))
 									}
 									else {
-										rowData!.append(Value.InvalidValue)
+										rowDataset!.append(Value.invalid)
 									}
 								}
 								else {
-									rowData!.append(Value.StringValue(str))
+									rowDataset!.append(Value.string(str))
 								}
 							}
 							else {
-								rowData!.append(Value.InvalidValue)
+								rowDataset!.append(Value.invalid)
 							}
 						}
 						else if (Int32(type.flags) & NUM_FLAG) != 0 {
@@ -176,35 +174,34 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 								|| type.type.rawValue == MYSQL_TYPE_LONG.rawValue
 								|| type.type.rawValue == MYSQL_TYPE_INT24.rawValue
 								|| type.type.rawValue == MYSQL_TYPE_LONGLONG.rawValue {
-									if let str = String(CString: val, encoding: NSUTF8StringEncoding), let nt = Int(str) {
-										rowData!.append(Value.IntValue(nt))
+									if let ptr = val, let str = String(cString: ptr, encoding: String.Encoding.utf8), let nt = Int(str) {
+										rowDataset!.append(Value.int(nt))
 									}
 									else {
-										rowData!.append(Value.InvalidValue)
+										rowDataset!.append(Value.invalid)
 									}
 									
 							}
 							else {
-								if let str = String(CString: val, encoding: NSUTF8StringEncoding) {
+								if let ptr = val, let str = String(cString: ptr, encoding: String.Encoding.utf8) {
 									if let dbl = str.toDouble() {
-										rowData!.append(Value.DoubleValue(dbl))
+										rowDataset!.append(Value.double(dbl))
 									}
 									else {
-										rowData!.append(Value.StringValue(str))
+										rowDataset!.append(Value.string(str))
 									}
 								}
 								else {
-									rowData!.append(Value.InvalidValue)
+									rowDataset!.append(Value.invalid)
 								}
 							}
 						}
 						else {
-							//let value = NSString(bytes: row, length: Int(column.memory.name_length), encoding: NSUTF8StringEncoding);
-							if let str = String(CString: val, encoding: NSUTF8StringEncoding) {
-								rowData!.append(Value.StringValue(str))
+							if let ptr = val, let str = String(cString: ptr, encoding: String.Encoding.utf8) {
+								rowDataset!.append(Value.string(str))
 							}
 							else {
-								rowData!.append(Value.InvalidValue)
+								rowDataset!.append(Value.invalid)
 							}
 						}
 					}
@@ -215,11 +212,11 @@ internal final class QBEMySQLResult: SequenceType, GeneratorType {
 			}
 		}
 		
-		return rowData
+		return rowDataset
 	}
 }
 
-class QBEMySQLDatabase: SQLDatabase {
+class QBEMySQLDatasetbase: SQLDatasetbase {
 	private let host: String
 	private let port: Int
 	private let user: String
@@ -236,11 +233,11 @@ class QBEMySQLDatabase: SQLDatabase {
 		self.databaseName = database
 	}
 	
-	func isCompatible(other: QBEMySQLDatabase) -> Bool {
+	func isCompatible(_ other: QBEMySQLDatasetbase) -> Bool {
 		return self.host == other.host && self.user == other.user && self.password == other.password && self.port == other.port
 	}
 
-	func connect(callback: (Fallible<SQLConnection>) -> ()) {
+	func connect(_ callback: (Fallible<SQLConnection>) -> ()) {
 		callback(self.connect().use { return $0 })
 	}
 	
@@ -249,9 +246,9 @@ class QBEMySQLDatabase: SQLDatabase {
 		
 		if !connection.perform({ () -> Int32 in
 			mysql_real_connect(connection.connection,
-				self.host.cStringUsingEncoding(NSUTF8StringEncoding)!,
-				self.user.cStringUsingEncoding(NSUTF8StringEncoding)!,
-				self.password.cStringUsingEncoding(NSUTF8StringEncoding)!,
+				self.host.cString(using: String.Encoding.utf8)!,
+				self.user.cString(using: String.Encoding.utf8)!,
+				self.password.cString(using: String.Encoding.utf8)!,
 				nil,
 				UInt32(self.port),
 				UnsafePointer<Int8>(nil),
@@ -259,14 +256,14 @@ class QBEMySQLDatabase: SQLDatabase {
 			)
 			return Int32(mysql_errno(connection.connection))
 		}) {
-			return .Failure(connection.lastError)
+			return .failure(connection.lastError)
 		}
 		
-		if let dbn = databaseName, let dbc = dbn.cStringUsingEncoding(NSUTF8StringEncoding) where !dbn.isEmpty {
+		if let dbn = databaseName, let dbc = dbn.cString(using: String.Encoding.utf8) where !dbn.isEmpty {
 			if !connection.perform({() -> Int32 in
 				return mysql_select_db(connection.connection, dbc)
 			}) {
-				return .Failure(connection.lastError)
+				return .failure(connection.lastError)
 			}
 		}
 		
@@ -282,15 +279,31 @@ class QBEMySQLDatabase: SQLDatabase {
 			// We're not using the response from this query
 			res.finish()
 		}
-		return .Success(connection)
+		return .success(connection)
 	}
 
-	func dataForTable(table: String, schema: String?, job: Job, callback: (Fallible<Data>) -> ()) {
-		switch QBEMySQLData.create(self, tableName: table) {
-		case .Success(let md):
-			callback(.Success(md))
-		case .Failure(let e):
-			callback(.Failure(e))
+	func dataForTable(_ table: String, schema: String?, job: Job, callback: (Fallible<Dataset>) -> ()) {
+		switch QBEMySQLDataset.create(self, tableName: table) {
+		case .success(let md):
+			callback(.success(md))
+		case .failure(let e):
+			callback(.failure(e))
+		}
+	}
+}
+
+private class QBEMySQLClient {
+	let queue: DispatchQueue
+
+	init() {
+		/* Mysql_library_init is what we should call, but as it is #defined to mysql_server_init, Swift doesn't see it.
+		So we just call mysql_server_int. */
+		if mysql_server_init(0, nil, nil) == 0 {
+			let target = DispatchQueue.global(attributes: .qosUserInitiated)
+			queue = DispatchQueue(label: "QBEMySQLConnection.Queue", attributes: .serial, target: target)
+		}
+		else {
+			fatalError("Error initializing MySQL library")
 		}
 	}
 }
@@ -299,56 +312,38 @@ class QBEMySQLDatabase: SQLDatabase {
 Implements a connection to a MySQL database (corresponding to a MYSQL object in the MySQL library). The connection ensures
 that any operations are serialized (for now using a global queue for all MySQL operations). */
 internal class QBEMySQLConnection: SQLConnection {
-	private(set) var database: QBEMySQLDatabase
-	private var connection: UnsafeMutablePointer<MYSQL>
+	private static var sharedClient = QBEMySQLClient()
+
+	private(set) var database: QBEMySQLDatasetbase
+	private var connection: UnsafeMutablePointer<MYSQL>?
 	private(set) weak var result: QBEMySQLResult?
 	
-	// TODO: make this a per-connection queue if the library is thread-safe per connection
-	class var sharedQueue : dispatch_queue_t {
-		struct Static {
-			static var onceToken : dispatch_once_t = 0
-			static var instance : dispatch_queue_t? = nil
-		}
-		dispatch_once(&Static.onceToken) {
-			/* Mysql_library_init is what we should call, but as it is #defined to mysql_server_init, Swift doesn't see it. 
-			So we just call mysql_server_int. */
-			if mysql_server_init(0, nil, nil) == 0 {
-				Static.instance = dispatch_queue_create("QBEMySQLConnection.Queue", DISPATCH_QUEUE_SERIAL)
-				dispatch_set_target_queue(Static.instance, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
-			}
-			else {
-				trace("Error initializing MySQL library")
-			}
-		}
-		return Static.instance!
-	}
-	
-	private init(database: QBEMySQLDatabase, connection: UnsafeMutablePointer<MYSQL>) {
+	private init(database: QBEMySQLDatasetbase, connection: UnsafeMutablePointer<MYSQL>) {
 		self.database = database
 		self.connection = connection
 	}
 	
 	deinit {
 		if connection != nil {
-			dispatch_sync(QBEMySQLConnection.sharedQueue) {
+			QBEMySQLConnection.sharedClient.queue.sync {
 				mysql_close(self.connection)
 			}
 		}
 	}
 
-	func run(sql: [String], job: Job, callback: (Fallible<Void>) -> ()) {
+	func run(_ sql: [String], job: Job, callback: (Fallible<Void>) -> ()) {
 		for query in sql {
 			switch self.query(query) {
-			case .Success(_):
+			case .success(_):
 				break
 
-			case .Failure(let e):
-				callback(.Failure(e))
+			case .failure(let e):
+				callback(.failure(e))
 				return
 			}
 		}
 
-		callback(.Success())
+		callback(.success())
 	}
 
 	func clone() -> Fallible<QBEMySQLConnection> {
@@ -357,29 +352,29 @@ internal class QBEMySQLConnection: SQLConnection {
 
 	/** Fetches the server information string (containing version number and other useful information). This is mostly
 	used to check whether a connection can be made. */
-	func serverInformation(callback: (Fallible<String>) -> ()) {
+	func serverInformation(_ callback: (Fallible<String>) -> ()) {
 		switch self.query("SELECT version()") {
-		case .Success(let result):
+		case .success(let result):
 			if let row = result.row() {
 				if let version = row.first?.stringValue {
-					callback(.Success(version))
+					callback(.success(version))
 				}
 				else {
-					callback(.Failure("No or invalid version string returned"))
+					callback(.failure("No or invalid version string returned"))
 				}
 			}
 			else {
-				callback(.Failure("No version returned"))
+				callback(.failure("No version returned"))
 			}
 
-		case .Failure(let e): callback(.Failure(e))
+		case .failure(let e): callback(.failure(e))
 		}
 	}
 
-	func databases(callback: (Fallible<[String]>) -> ()) {
+	func databases(_ callback: (Fallible<[String]>) -> ()) {
 		let resultFallible = self.query("SHOW DATABASES")
 		switch resultFallible {
-			case .Success(let result):
+			case .success(let result):
 				var dbs: [String] = []
 				while let d = result.row() {
 					if let name = d[0].stringValue {
@@ -387,36 +382,36 @@ internal class QBEMySQLConnection: SQLConnection {
 					}
 				}
 				
-				callback(.Success(dbs))
+				callback(.success(dbs))
 			
-			case .Failure(let error):
-				callback(.Failure(error))
+			case .failure(let error):
+				callback(.failure(error))
 		}
 	}
 	
-	func tables(callback: (Fallible<[String]>) -> ()) {
+	func tables(_ callback: (Fallible<[String]>) -> ()) {
 		let fallibleResult = self.query("SHOW TABLES")
 		switch fallibleResult {
-			case .Success(let result):
+			case .success(let result):
 				var dbs: [String] = []
 				while let d = result.row() {
 					if let name = d[0].stringValue {
 						dbs.append(name)
 					}
 				}
-				callback(.Success(dbs))
+				callback(.success(dbs))
 			
-			case .Failure(let error):
-				callback(.Failure(error))
+			case .failure(let error):
+				callback(.failure(error))
 		}
 	}
 	
-	private func perform(block: () -> (Int32)) -> Bool {
+	private func perform(_ block: () -> (Int32)) -> Bool {
 		var success: Bool = false
-		dispatch_sync(QBEMySQLConnection.sharedQueue) {
+		QBEMySQLConnection.sharedClient.queue.sync {
 			let result = block()
 			if result != 0 {
-				let message = String(CString: mysql_error(self.connection), encoding: NSUTF8StringEncoding) ?? "(unknown)"
+				let message = String(cString: mysql_error(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
 				trace("MySQL perform error: \(message)")
 				success = false
 			}
@@ -428,10 +423,10 @@ internal class QBEMySQLConnection: SQLConnection {
 	}
 	
 	private var lastError: String { get {
-		return String(CString: mysql_error(self.connection), encoding: NSUTF8StringEncoding) ?? "(unknown)"
+		return String(CString: mysql_error(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
 	} }
 	
-	func query(sql: String) -> Fallible<QBEMySQLResult> {
+	func query(_ sql: String) -> Fallible<QBEMySQLResult> {
 		if self.result != nil && !self.result!.finished {
 			fatalError("Cannot start a query when the previous result is not finished yet")
 		}
@@ -441,58 +436,58 @@ internal class QBEMySQLConnection: SQLConnection {
 			trace("MySQL Query \(sql)")
 		#endif
 
-		if self.perform({return mysql_query(self.connection, sql.cStringUsingEncoding(NSUTF8StringEncoding)!)}) {
+		if self.perform({return mysql_query(self.connection, sql.cString(using: String.Encoding.utf8)!)}) {
 			let result = QBEMySQLResult.create(mysql_use_result(self.connection), connection: self)
-			return result.use({self.result = $0; return .Success($0)})
+			return result.use({self.result = $0; return .success($0)})
 		}
 		else {
-			return .Failure(self.lastError)
+			return .failure(self.lastError)
 		}
 	}
 }
 
 /** 
-Represents the result of a MySQL query as a Data object. */
-final class QBEMySQLData: SQLData {
-	private let database: QBEMySQLDatabase
+Represents the result of a MySQL query as a Dataset object. */
+final class QBEMySQLDataset: SQLDataset {
+	private let database: QBEMySQLDatasetbase
 	
-	static func create(database: QBEMySQLDatabase, tableName: String) -> Fallible<QBEMySQLData> {
+	static func create(_ database: QBEMySQLDatasetbase, tableName: String) -> Fallible<QBEMySQLDataset> {
 		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, schema: nil, database: database.databaseName)) LIMIT 1"
 		
 		let fallibleConnection = database.connect()
 		switch fallibleConnection {
-			case .Success(let connection):
+			case .success(let connection):
 				let fallibleResult = connection.query(query)
 				
 				switch fallibleResult {
-					case .Success(let result):
+					case .success(let result):
 						result.finish() // We're not interested in that one row we just requested, just the column names
-						return .Success(QBEMySQLData(database: database, table: tableName, columns: result.columns))
+						return .success(QBEMySQLDataset(database: database, table: tableName, columns: result.columns))
 					
-					case .Failure(let error):
-						return .Failure(error)
+					case .failure(let error):
+						return .failure(error)
 				}
 			
-			case .Failure(let error):
-				return .Failure(error)
+			case .failure(let error):
+				return .failure(error)
 		}
 	}
 	
-	private init(database: QBEMySQLDatabase, fragment: SQLFragment, columns: [Column]) {
+	private init(database: QBEMySQLDatasetbase, fragment: SQLFragment, columns: [Column]) {
 		self.database = database
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(database: QBEMySQLDatabase, table: String, columns: [Column]) {
+	private init(database: QBEMySQLDatasetbase, table: String, columns: [Column]) {
 		self.database = database
 		super.init(table: table, schema: nil, database: database.databaseName!, dialect: database.dialect, columns: columns)
 	}
 	
-	override func apply(fragment: SQLFragment, resultingColumns: [Column]) -> Data {
-		return QBEMySQLData(database: self.database, fragment: fragment, columns: resultingColumns)
+	override func apply(_ fragment: SQLFragment, resultingColumns: [Column]) -> Dataset {
+		return QBEMySQLDataset(database: self.database, fragment: fragment, columns: resultingColumns)
 	}
 	
-	override func stream() -> Stream {
+	override func stream() -> WarpCore.Stream {
 		return QBEMySQLStream(data: self)
 	}
 	
@@ -500,8 +495,8 @@ final class QBEMySQLData: SQLData {
 		return self.database.connect().use { $0.query(self.sql.sqlSelect(nil).sql) }
 	}
 	
-	override func isCompatibleWith(other: SQLData) -> Bool {
-		if let om = other as? QBEMySQLData {
+	override func isCompatibleWith(_ other: SQLDataset) -> Bool {
+		if let om = other as? QBEMySQLDataset {
 			if self.database.isCompatible(om.database) {
 				return true
 			}
@@ -518,30 +513,30 @@ private final class QBEMySQLResultStream: SequenceStream {
 		super.init(AnySequence<Fallible<Tuple>>(result), columns: result.columns)
 	}
 	
-	override func clone() -> Stream {
+	override func clone() -> WarpCore.Stream {
 		fatalError("QBEMySQLResultStream cannot be cloned, because a result cannot be iterated multiple times. Clone QBEMySQLStream instead")
 	}
 }
 
 /** 
 Stream that lazily queries and streams results from a MySQL query. */
-final class QBEMySQLStream: Stream {
-	private var resultStream: Stream?
-	private let data: QBEMySQLData
+final class QBEMySQLStream: WarpCore.Stream {
+	private var resultStream: WarpCore.Stream?
+	private let data: QBEMySQLDataset
 	private let mutex = Mutex()
 	
-	init(data: QBEMySQLData) {
+	init(data: QBEMySQLDataset) {
 		self.data = data
 	}
 	
-	private func stream() -> Stream {
+	private func stream() -> WarpCore.Stream {
 		return self.mutex.locked {
 			if resultStream == nil {
 				switch data.result() {
-					case .Success(let result):
+					case .success(let result):
 						resultStream = QBEMySQLResultStream(result: result)
 					
-					case .Failure(let error):
+					case .failure(let error):
 						resultStream = ErrorStream(error)
 				}
 			}
@@ -550,54 +545,54 @@ final class QBEMySQLStream: Stream {
 		}
 	}
 	
-	func fetch(job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: Sink) {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		return stream().columns(job, callback: callback)
 	}
 	
-	func clone() -> Stream {
+	func clone() -> WarpCore.Stream {
 		return QBEMySQLStream(data: data)
 	}
 }
 
-class QBEMySQLMutableData: SQLMutableData {
-	override func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
-		let db = self.database as! QBEMySQLDatabase
+class QBEMySQLMutableDataset: SQLMutableDataset {
+	override func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+		let db = self.database as! QBEMySQLDatasetbase
 		switch db.connect() {
-			case .Success(let connection):
+			case .success(let connection):
 				let dbn = self.database.dialect.expressionToSQL(Literal(Value(self.database.databaseName ?? "")), alias: "", foreignAlias: nil, inputValue: nil)!
 				let tbn = self.database.dialect.expressionToSQL(Literal(Value(self.tableName)), alias: "", foreignAlias: nil, inputValue: nil)!
 				switch connection.query("SELECT `COLUMN_NAME` FROM `information_schema`.`COLUMNS` WHERE (`TABLE_SCHEMA` = \(dbn)) AND (`TABLE_NAME` = \(tbn)) AND (`COLUMN_KEY` = 'PRI')") {
-				case .Success(let result):
+				case .success(let result):
 					var primaryColumns = Set<Column>()
 					for row in result {
 						switch row {
-						case .Success(let r):
+						case .success(let r):
 							if let c = r[0].stringValue {
 								primaryColumns.insert(Column(c))
 							}
 							else {
-								return callback(.Failure("Invalid column name received"))
+								return callback(.failure("Invalid column name received"))
 							}
 
-						case .Failure(let e):
-							return callback(.Failure(e))
+						case .failure(let e):
+							return callback(.failure(e))
 						}
 					}
 
 					if primaryColumns.count == 0 {
 						// No primary key, find a unique key instead
 						switch connection.query("SELECT `COLUMN_NAME`,`INDEX_NAME` FROM `information_schema`.`STATISTICS` WHERE (`TABLE_SCHEMA` = \(dbn)) AND (`TABLE_NAME` = \(tbn)) AND NOT(`NULLABLE`) AND NOT(`NON_UNIQUE`) ORDER BY index_name ASC") {
-						case .Success(let r):
+						case .success(let r):
 							var uniqueColumns = Set<Column>()
 							var uniqueIndexName: String? = nil
 
 							for row in r {
 								switch row {
-								case .Success(let row):
+								case .success(let row):
 									// Use all columns from the first index we see
 									if let indexName = row[1].stringValue {
 										if uniqueIndexName == nil {
@@ -612,35 +607,35 @@ class QBEMySQLMutableData: SQLMutableData {
 										uniqueColumns.insert(Column(c))
 									}
 									else {
-										return callback(.Failure("Invalid column name received"))
+										return callback(.failure("Invalid column name received"))
 									}
-								case .Failure(let e):
-									return callback(.Failure(e))
+								case .failure(let e):
+									return callback(.failure(e))
 								}
 							}
 
 							if uniqueColumns.isEmpty {
-								return callback(.Failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
+								return callback(.failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
 							}
 							else {
-								return callback(.Success(uniqueColumns))
+								return callback(.success(uniqueColumns))
 							}
 
-						case .Failure(let e):
-							return callback(.Failure(e))
+						case .failure(let e):
+							return callback(.failure(e))
 
 						}
 					}
 					else {
-						callback(.Success(primaryColumns))
+						callback(.success(primaryColumns))
 					}
 
-				case .Failure(let e):
-					return callback(.Failure(e))
+				case .failure(let e):
+					return callback(.failure(e))
 			}
 
-			case .Failure(let e):
-				return callback(.Failure(e))
+			case .failure(let e):
+				return callback(.failure(e))
 		}
 	}
 }
@@ -668,16 +663,16 @@ class QBEMySQLSourceStep: QBEStep {
 	required init(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
 
-		let host = (aDecoder.decodeObjectForKey("host") as? String) ?? self.host
-		let user = (aDecoder.decodeObjectForKey("user") as? String) ?? self.user
-		let port = Int(aDecoder.decodeIntForKey("port"))
+		let host = (aDecoder.decodeObject(forKey: "host") as? String) ?? self.host
+		let user = (aDecoder.decodeObject(forKey: "user") as? String) ?? self.user
+		let port = Int(aDecoder.decodeInteger(forKey: "port"))
 
 		if let pw = aDecoder.decodeStringForKey("password") {
 			self.password.stringValue = pw
 		}
 
-		self.tableName = (aDecoder.decodeObjectForKey("tableName") as? String) ?? self.tableName
-		self.databaseName = (aDecoder.decodeObjectForKey("database") as? String) ?? self.databaseName
+		self.tableName = (aDecoder.decodeObject(forKey: "tableName") as? String) ?? self.tableName
+		self.databaseName = (aDecoder.decodeObject(forKey: "database") as? String) ?? self.databaseName
 		self.user = user
 		self.host = host
 		self.port = port
@@ -687,39 +682,39 @@ class QBEMySQLSourceStep: QBEStep {
 	    super.init()
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		super.encodeWithCoder(coder)
-		coder.encodeObject(tableName, forKey: "tableName")
-		coder.encodeObject(host, forKey: "host")
-		coder.encodeObject(user, forKey: "user")
-		coder.encodeObject(databaseName, forKey: "database")
-		coder.encodeInt(Int32(port ?? 0), forKey: "port")
+	override func encode(with coder: NSCoder) {
+		super.encode(with: coder)
+		coder.encode(tableName, forKey: "tableName")
+		coder.encode(host, forKey: "host")
+		coder.encode(user, forKey: "user")
+		coder.encode(databaseName, forKey: "database")
+		coder.encode(port ?? 0, forKey: "port")
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let template: String
 		switch variant {
-		case .Neutral, .Read: template = "Load table [#] from MySQL database [#]"
-		case .Write: template = "Write to table [#] in MySQL database [#]"
+		case .neutral, .read: template = "Load table [#] from MySQL database [#]"
+		case .write: template = "Write to table [#] in MySQL database [#]"
 		}
 
 		return QBESentence(format: NSLocalizedString(template, comment: ""),
 			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
-				let d = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+				let d = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 				switch d.connect() {
-				case .Success(let con):
+				case .success(let con):
 					con.tables { tablesFallible in
 						switch tablesFallible {
-						case .Success(let tables):
-							callback(.Success(tables))
+						case .success(let tables):
+							callback(.success(tables))
 
-						case .Failure(let e):
-							callback(.Failure(e))
+						case .failure(let e):
+							callback(.failure(e))
 						}
 					}
 
-				case .Failure(let e):
-					callback(.Failure(e))
+				case .failure(let e):
+					callback(.failure(e))
 				}
 			}, callback: { (newTable) -> () in
 					self.tableName = newTable
@@ -728,24 +723,24 @@ class QBEMySQLSourceStep: QBEStep {
 			QBESentenceList(value: self.databaseName ?? "", provider: { callback in
 				/* Connect without selecting a default database, because the database currently selected may not exists
 				(and then we get an error, and can't select another database). */
-				let d = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: nil)
+				let d = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: nil)
 				switch d.connect() {
-				case .Success(let con):
+				case .success(let con):
 					con.databases { dbFallible in
 						switch dbFallible {
-							case .Success(let dbs):
-								callback(.Success(dbs))
+							case .success(let dbs):
+								callback(.success(dbs))
 
-							case .Failure(let e):
-								callback(.Failure(e))
+							case .failure(let e):
+								callback(.failure(e))
 						}
 					}
 
-				case .Failure(let e):
-					callback(.Failure(e))
+				case .failure(let e):
+					callback(.failure(e))
 				}
-			}, callback: { (newDatabase) -> () in
-				self.databaseName = newDatabase
+			}, callback: { (newDatasetbase) -> () in
+				self.databaseName = newDatasetbase
 			})
 		)
 	}
@@ -757,40 +752,40 @@ class QBEMySQLSourceStep: QBEStep {
 		return (host == "localhost") ? "127.0.0.1" : host
 	}
 
-	override var mutableData: MutableData? { get {
+	override var mutableDataset: MutableDataset? { get {
 		if let tn = self.tableName where !tn.isEmpty {
-			let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
-			return QBEMySQLMutableData(database: s, schemaName: nil, tableName: tn)
+			let s = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+			return QBEMySQLMutableDataset(database: s, schemaName: nil, tableName: tn)
 		}
 		return nil
 	} }
 
 	var warehouse: Warehouse? {
-		let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+		let s = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 		return SQLWarehouse(database: s, schemaName: nil)
 	}
 
-	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		job.async {
 			if let dbn = self.databaseName where !dbn.isEmpty {
-				let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+				let s = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 
 				if let tn = self.tableName where !tn.isEmpty {
-					let md = QBEMySQLData.create(s, tableName: tn)
+					let md = QBEMySQLDataset.create(s, tableName: tn)
 					callback(md.use { $0.coalesced })
 				}
 				else {
-					callback(.Failure(NSLocalizedString("Please select a table.", comment: "")))
+					callback(.failure(NSLocalizedString("Please select a table.", comment: "")))
 				}
 			}
 			else {
-				callback(.Failure(NSLocalizedString("Please select a database.", comment: "")))
+				callback(.failure(NSLocalizedString("Please select a database.", comment: "")))
 			}
 		}
 	}
 	
-	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
-		self.fullData(job, callback: { (fd) -> () in
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+		self.fullDataset(job, callback: { (fd) -> () in
 			callback(fd.use({$0.random(maxInputRows)}))
 		})
 	}

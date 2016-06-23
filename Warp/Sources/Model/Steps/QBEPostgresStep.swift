@@ -7,13 +7,13 @@ private class QBEPostgresDialect: StandardSQLDialect {
 	override var identifierQualifier: String { get { return  "\"" } }
 	override var identifierQualifierEscape: String { get { return  "\\\"" } }
 
-	override func literalString(string: String) -> String {
+	override func literalString(_ string: String) -> String {
 		/* PostgreSQL needs its string literals prefixed with 'E' to make C-style backslash escapes work.
 		    See http://www.postgresql.org/docs/9.2/static/sql-syntax-lexical.html */
 		return "E\(super.literalString(string))"
 	}
 	
-	private override func unaryToSQL(type: Function, args: [String]) -> String? {
+	private override func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		switch type {
 			case .Random: return "RANDOM()"
 			case .Left: return "SUBSTR(\(args[0]), 1, (\(args[1]))::integer)"
@@ -25,7 +25,7 @@ private class QBEPostgresDialect: StandardSQLDialect {
 		}
 	}
 	
-	private override func aggregationToSQL(aggregation: Aggregator, alias: String) -> String? {
+	private override func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
 		// For Function.Count, we should count numeric values only. In PostgreSQL this can be done using REGEXP
 		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
 			switch aggregation.reduce {
@@ -49,7 +49,7 @@ private class QBEPostgresDialect: StandardSQLDialect {
 		return super.aggregationToSQL(aggregation, alias: alias)
 	}
 	
-	private override func binaryToSQL(type: Binary, first: String, second: String) -> String? {
+	private override func binaryToSQL(_ type: Binary, first: String, second: String) -> String? {
 		switch type {
 			case .MatchesRegex: return "(\(forceStringExpression(second)) ~* \(forceStringExpression(first)))"
 			case .MatchesRegexStrict: return "(\(forceStringExpression(second)) ~ \(forceStringExpression(first)))"
@@ -57,21 +57,21 @@ private class QBEPostgresDialect: StandardSQLDialect {
 		}
 	}
 	
-	private override func forceStringExpression(expression: String) -> String {
+	private override func forceStringExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS VARCHAR)"
 	}
 	
-	private override func forceNumericExpression(expression: String) -> String {
+	private override func forceNumericExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS DECIMAL)"
 	}
 }
 
-internal class QBEPostgresResult: SequenceType, GeneratorType {
+internal class QBEPostgresResult: Sequence, IteratorProtocol {
 	typealias Element = Fallible<Tuple>
-	typealias Generator = QBEPostgresResult
+	typealias Iterator = QBEPostgresResult
 	
 	private let connection: QBEPostgresConnection
-	private var result: COpaquePointer
+	private var result: OpaquePointer?
 	private let columns: [Column]
 	private let columnTypes: [Oid]
 	private(set) var finished = false
@@ -120,20 +120,15 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 	private static let kTypeCardinal_Number : Oid = 11761
 	private static let kTypeTime_Stamp : Oid = 11768
 	
-	static func create(connection: QBEPostgresConnection) -> Fallible<QBEPostgresResult> {
+	static func create(_ connection: QBEPostgresConnection) -> Fallible<QBEPostgresResult> {
 		// Get column names from result set
-		var resultFallible: Fallible<QBEPostgresResult> = .Failure("Unknown error")
+		var resultFallible: Fallible<QBEPostgresResult> = .failure("Unknown error")
 		
-		dispatch_sync(connection.queue) {
-			let result = PQgetResult(connection.connection)
-
-			if result == nil {
-				resultFallible = .Failure(connection.lastError)
-			}
-			else {
+		(connection.queue).sync {
+			if let result = PQgetResult(connection.connection) {
 				let status = PQresultStatus(result)
 				if status.rawValue != PGRES_TUPLES_OK.rawValue && status.rawValue != PGRES_SINGLE_TUPLE.rawValue && status.rawValue != PGRES_COMMAND_OK.rawValue {
-					resultFallible = .Failure(connection.lastError)
+					resultFallible = .failure(connection.lastError)
 
 					// On error, call PQgetresult anyway to ensure that the command has fully finished
 					while PQgetResult(connection.connection) != nil {
@@ -144,7 +139,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 
 				if status.rawValue == PGRES_COMMAND_OK.rawValue {
 					// This result code indicates our command completed successfully. There is no data, so no need to enumerate columns, etc.
-					resultFallible = .Success(QBEPostgresResult(connection: connection, result: result, columns: [], columnTypes: []))
+					resultFallible = .success(QBEPostgresResult(connection: connection, result: result, columns: [], columnTypes: []))
 
 					// On PGRES_COMMAND_OK, call PQgetresult anyway to ensure that the command has fully finished
 					while PQgetResult(connection.connection) != nil {
@@ -158,32 +153,34 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 				
 				let colCount = PQnfields(result)
 				for colIndex in 0..<colCount {
-					let column = PQfname(result, colIndex)
-					if column != nil {
-						if let name = NSString(bytes: column, length: Int(strlen(column)), encoding: NSUTF8StringEncoding) {
+					if let column = PQfname(result, colIndex) {
+						if let name = String(cString: column, encoding: String.Encoding.utf8) {
 							columns.append(Column(String(name)))
 							let type = PQftype(result, colIndex)
 							columnTypes.append(type)
 						}
 						else {
-							resultFallible = .Failure(NSLocalizedString("PostgreSQL returned an invalid column name.", comment: ""))
+							resultFallible = .failure(NSLocalizedString("PostgreSQL returned an invalid column name.", comment: ""))
 							return
 						}
 					}
 					else {
-						resultFallible = .Failure(NSLocalizedString("PostgreSQL returned an invalid column.", comment: ""))
+						resultFallible = .failure(NSLocalizedString("PostgreSQL returned an invalid column.", comment: ""))
 						return
 					}
 				}
 				
-				resultFallible = .Success(QBEPostgresResult(connection: connection, result: result, columns: columns, columnTypes: columnTypes))
+				resultFallible = .success(QBEPostgresResult(connection: connection, result: result, columns: columns, columnTypes: columnTypes))
+			}
+			else {
+				resultFallible = .failure(connection.lastError)
 			}
 		}
 		
 		return resultFallible
 	}
 	
-	private init(connection: QBEPostgresConnection, result: COpaquePointer, columns: [Column], columnTypes: [Oid]) {
+	private init(connection: QBEPostgresConnection, result: OpaquePointer, columns: [Column], columnTypes: [Oid]) {
 		self.connection = connection
 		self.result = result
 		self.columns = columns
@@ -194,13 +191,13 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 		_finish(false)
 	}
 	
-	private func _finish(warn: Bool) {
+	private func _finish(_ warn: Bool) {
 		if !self.finished {
 			/* A new query cannot be started before all results from the previous one have been fetched, because packets
 			will get out of order. */
 			var n = 0
 			while let r = self.row() {
-				if case .Failure(let e) = r {
+				if case .failure(let e) = r {
 					#if DEBUG
 						if warn {
 							trace("Unfinished result was destroyed, drained \(n) rows to prevent packet errors, errored \(e). This is a performance issue!")
@@ -225,7 +222,7 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 		_finish(true)
 	}
 	
-	func generate() -> Generator {
+	func makeIterator() -> Iterator {
 		return self
 	}
 	
@@ -234,9 +231,9 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 	}
 	
 	func row() -> Fallible<Tuple>? {
-		var rowData: [Value]? = nil
+		var rowDataset: [Value]? = nil
 		
-		dispatch_sync(self.connection.queue) {
+		self.connection.queue.sync {
 			if self.result == nil {
 				self.result = PQgetResult(self.connection.connection)
 			}
@@ -244,44 +241,55 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 			// Because we are in single-row mode, each result set should only contain a single tuple.
 			if self.result != nil {
 				if PQntuples(self.result) == 1 && PQresultStatus(self.result).rawValue == PGRES_SINGLE_TUPLE.rawValue {
-					rowData = []
-					rowData!.reserveCapacity(self.columns.count)
+					rowDataset = []
+					rowDataset!.reserveCapacity(self.columns.count)
 					
 					for colIndex in 0..<self.columns.count {
-						let val = PQgetvalue(self.result, Int32(0), Int32(colIndex))
-						if val == nil {
-							rowData!.append(Value.InvalidValue)
-						}
-						else if PQgetisnull(self.result, Int32(0), Int32(colIndex)) == 1 {
-							rowData!.append(Value.EmptyValue)
-						}
-						else {
-							if let stringValue = NSString(bytes: val, length: Int(strlen(val)), encoding: NSUTF8StringEncoding) {
-								let type = PQftype(self.result, Int32(colIndex))
-								if type == QBEPostgresResult.kTypeInt8 || type == QBEPostgresResult.kTypeInt4 || type == QBEPostgresResult.kTypeInt2 {
-									rowData!.append(Value.IntValue(stringValue.integerValue))
-								}
-								else if type == QBEPostgresResult.kTypeFloat4 || type == QBEPostgresResult.kTypeFloat8 {
-									rowData!.append(Value.DoubleValue(stringValue.doubleValue))
-								}
-								else if type == QBEPostgresResult.kTypeBool {
-									rowData!.append(Value.BoolValue(stringValue == "t"))
-								}
-								else {
-									rowData!.append(Value.StringValue(stringValue as String))
-								}
+						if let val = PQgetvalue(self.result, Int32(0), Int32(colIndex)) {
+							if PQgetisnull(self.result, Int32(0), Int32(colIndex)) == 1 {
+								rowDataset!.append(Value.empty)
 							}
 							else {
-								rowData!.append(Value.EmptyValue)
+								if let stringValue = String(cString: val, encoding: String.Encoding.utf8) {
+									let type = PQftype(self.result, Int32(colIndex))
+									if type == QBEPostgresResult.kTypeInt8 || type == QBEPostgresResult.kTypeInt4 || type == QBEPostgresResult.kTypeInt2 {
+										if let iv = stringValue.toInt() {
+											rowDataset!.append(Value.int(iv))
+										}
+										else {
+											rowDataset!.append(Value.invalid)
+										}
+									}
+									else if type == QBEPostgresResult.kTypeFloat4 || type == QBEPostgresResult.kTypeFloat8 {
+										if let dv = stringValue.toDouble() {
+											rowDataset!.append(Value.double(dv))
+										}
+										else {
+											rowDataset!.append(Value.invalid)
+										}
+									}
+									else if type == QBEPostgresResult.kTypeBool {
+										rowDataset!.append(Value.bool(stringValue == "t"))
+									}
+									else {
+										rowDataset!.append(Value.string(stringValue as String))
+									}
+								}
+								else {
+									rowDataset!.append(Value.empty)
+								}
 							}
+						}
+						else {
+							rowDataset!.append(Value.invalid)
 						}
 					}
 				}
 				else {
 					self.finished = true
 					if PQresultStatus(self.result).rawValue != PGRES_TUPLES_OK.rawValue && PQresultStatus(self.result).rawValue != PGRES_COMMAND_OK.rawValue {
-						let status = String(CString: PQresStatus(PQresultStatus(self.result)), encoding: NSUTF8StringEncoding) ?? "(unknown status)"
-						let error = String(CString: PQresultErrorMessage(self.result), encoding: NSUTF8StringEncoding) ?? "(unknown error)"
+						let status = String(CString: PQresStatus(PQresultStatus(self.result)), encoding: String.Encoding.utf8) ?? "(unknown status)"
+						let error = String(CString: PQresultErrorMessage(self.result), encoding: String.Encoding.utf8) ?? "(unknown error)"
 						self.error = error
 						trace("PostgreSQL no result: \(status) \(error)")
 					}
@@ -297,10 +305,10 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 		}
 
 		if let e = self.error {
-			return .Failure(e)
+			return .failure(e)
 		}
-		else if let r = rowData {
-			return .Success(r)
+		else if let r = rowDataset {
+			return .success(r)
 		}
 		else {
 			return nil
@@ -308,48 +316,48 @@ internal class QBEPostgresResult: SequenceType, GeneratorType {
 	}
 }
 
-class QBEPostgresMutableData: SQLMutableData {
-	override func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
-		let s = self.database as! QBEPostgresDatabase
+class QBEPostgresMutableDataset: SQLMutableDataset {
+	override func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+		let s = self.database as! QBEPostgresDatasetbase
 		let tableIdentifier = s.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: nil)
 		let query = "SELECT a.attname AS attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE  i.indrelid = '\(tableIdentifier)'::regclass AND i.indisprimary"
 		switch s.connect() {
-		case .Success(let connection):
+		case .success(let connection):
 			switch connection.query(query)  {
-			case .Success(let result):
+			case .success(let result):
 				var primaryColumns = Set<Column>()
 				for row in result {
 					switch row {
-					case .Success(let r):
+					case .success(let r):
 						if let c = r[0].stringValue {
 							primaryColumns.insert(Column(c))
 						}
 						else {
-							return callback(.Failure("Invalid column name received"))
+							return callback(.failure("Invalid column name received"))
 						}
 
-					case .Failure(let e):
-						return callback(.Failure(e))
+					case .failure(let e):
+						return callback(.failure(e))
 					}
 				}
 
 				if primaryColumns.count == 0 {
-					return callback(.Failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
+					return callback(.failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
 				}
 
-				callback(.Success(primaryColumns))
+				callback(.success(primaryColumns))
 
-			case .Failure(let e):
-				return callback(.Failure(e))
+			case .failure(let e):
+				return callback(.failure(e))
 			}
 
-		case .Failure(let e):
-			return callback(.Failure(e))
+		case .failure(let e):
+			return callback(.failure(e))
 		}
 	}
 }
 
-class QBEPostgresDatabase: SQLDatabase {
+class QBEPostgresDatasetbase: SQLDatasetbase {
 	private let host: String
 	private let port: Int
 	private let user: String
@@ -367,24 +375,24 @@ class QBEPostgresDatabase: SQLDatabase {
 		self.database = database
 	}
 	
-	func isCompatible(other: QBEPostgresDatabase) -> Bool {
+	func isCompatible(_ other: QBEPostgresDatasetbase) -> Bool {
 		return self.host == other.host && self.user == other.user && self.password == other.password && self.port == other.port
 	}
 
-	func dataForTable(table: String, schema: String?, job: Job, callback: (Fallible<Data>) -> ()) {
-		switch QBEPostgresData.create(database: self, tableName: table, schemaName: schema ?? "", locale: nil) {
-		case .Success(let d): callback(.Success(d))
-		case .Failure(let e): callback(.Failure(e))
+	func dataForTable(_ table: String, schema: String?, job: Job, callback: (Fallible<Dataset>) -> ()) {
+		switch QBEPostgresDataset.create(database: self, tableName: table, schemaName: schema ?? "", locale: nil) {
+		case .success(let d): callback(.success(d))
+		case .failure(let e): callback(.failure(e))
 		}
 	}
 	
-	func databases(callback: (Fallible<[String]>) -> ()) {
+	func databases(_ callback: (Fallible<[String]>) -> ()) {
 		let sql = "SELECT datname FROM pg_catalog.pg_database WHERE NOT datistemplate"
 		callback(self.connect().use {
 			$0.query(sql).use {(result) -> [String] in
 				var dbs: [String] = []
 				while let d = result.row() {
-					if case .Success(let infoRow) = d {
+					if case .success(let infoRow) = d {
 						if let name = infoRow[0].stringValue {
 							dbs.append(name)
 						}
@@ -395,7 +403,7 @@ class QBEPostgresDatabase: SQLDatabase {
 		})
 	}
 	
-	func tables(databaseName: String, schemaName: String, callback: (Fallible<[String]>) -> ()) {
+	func tables(_ databaseName: String, schemaName: String, callback: (Fallible<[String]>) -> ()) {
 		let ts = self.dialect.expressionToSQL(Literal(Value(schemaName)), alias: "s", foreignAlias: nil, inputValue: nil)!
 		let tc = self.dialect.expressionToSQL(Literal(Value(databaseName)), alias: "s", foreignAlias: nil, inputValue: nil)!
 
@@ -404,7 +412,7 @@ class QBEPostgresDatabase: SQLDatabase {
 			$0.query(sql).use { (result) -> [String] in
 				var dbs: [String] = []
 				while let d = result.row() {
-					if case .Success(let infoRow) = d {
+					if case .success(let infoRow) = d {
 						if let tableName = infoRow[0].stringValue {
 							dbs.append(tableName)
 						}
@@ -417,44 +425,44 @@ class QBEPostgresDatabase: SQLDatabase {
 
 	/** Fetches the server information string (containing version number and other useful information). This is mostly
 	used to check whether a connection can be made. */
-	func serverInformation(callback: (Fallible<String>) -> ()) {
+	func serverInformation(_ callback: (Fallible<String>) -> ()) {
 		switch self.connect() {
-		case .Success(let con):
+		case .success(let con):
 			switch con.query("SELECT version()") {
-			case .Success(let result):
+			case .success(let result):
 				if let rowFallible = result.row() {
 					switch rowFallible {
-					case .Success(let row):
+					case .success(let row):
 						if let version = row.first?.stringValue {
-							callback(.Success(version))
+							callback(.success(version))
 						}
 						else {
-							callback(.Failure("No or invalid version string returned"))
+							callback(.failure("No or invalid version string returned"))
 						}
 
-					case .Failure(let e):
-						callback(.Failure(e))
+					case .failure(let e):
+						callback(.failure(e))
 					}
 				}
 				else {
-					callback(.Failure("No version returned"))
+					callback(.failure("No version returned"))
 				}
 
-			case .Failure(let e): callback(.Failure(e))
+			case .failure(let e): callback(.failure(e))
 			}
 
-		case .Failure(let e): callback(.Failure(e))
+		case .failure(let e): callback(.failure(e))
 		}
 	}
 
-	func schemas(databaseName: String, callback: (Fallible<[String]>) -> ()) {
+	func schemas(_ databaseName: String, callback: (Fallible<[String]>) -> ()) {
 		let cn = self.dialect.expressionToSQL(Literal(Value(databaseName)), alias: "s", foreignAlias: nil, inputValue: nil)!
 		let sql = "SELECT s.schema_name FROM information_schema.schemata s WHERE catalog_name=\(cn)"
 		callback(self.connect().use {
 			$0.query(sql).use { (result) -> [String] in
 				var dbs: [String] = []
 				while let d = result.row() {
-					if case .Success(let infoRow) = d {
+					if case .success(let infoRow) = d {
 						if let schemaName = infoRow[0].stringValue {
 							dbs.append(schemaName)
 						}
@@ -465,29 +473,32 @@ class QBEPostgresDatabase: SQLDatabase {
 		})
 	}
 
-	func connect(callback: (Fallible<SQLConnection>) -> ()) {
+	func connect(_ callback: (Fallible<SQLConnection>) -> ()) {
 		callback(self.connect().use { return $0 })
 	}
 
 	func connect() -> Fallible<QBEPostgresConnection> {
-		let userEscaped = self.user.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLUserAllowedCharacterSet())!
-		let passwordEscaped = self.password.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLPasswordAllowedCharacterSet())!
-		let hostEscaped = self.host.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLHostAllowedCharacterSet())!
+		let userEscaped = self.user.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlUserAllowed)!
+		let passwordEscaped = self.password.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPasswordAllowed)!
+		let hostEscaped = self.host.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlHostAllowed)!
 		let databaseEscaped = self.database.isEmpty ? "" : ("/"+(self.database.urlEncoded ?? ""))
 		let url = "postgres://\(userEscaped):\(passwordEscaped)@\(hostEscaped):\(self.port)\(databaseEscaped)"
 		
-		let connection = PQconnectdb(url)
-		
-		switch PQstatus(connection).rawValue {
-			case CONNECTION_OK.rawValue:
-				return .Success(QBEPostgresConnection(database: self, connection: connection))
-			
-			case CONNECTION_BAD.rawValue:
-				let error = String(CString:  PQerrorMessage(connection), encoding: NSUTF8StringEncoding) ?? "(unknown error)"
-				return .Failure(error)
+		if let connection = PQconnectdb(url) {
+			switch PQstatus(connection).rawValue {
+				case CONNECTION_OK.rawValue:
+					return .success(QBEPostgresConnection(database: self, connection: connection))
 				
-			default:
-				return .Failure(String(format: NSLocalizedString("Unknown connection status: %d", comment: ""), PQstatus(connection).rawValue))
+				case CONNECTION_BAD.rawValue:
+					let error = String(CString:  PQerrorMessage(connection), encoding: String.Encoding.utf8) ?? "(unknown error)"
+					return .failure(error)
+					
+				default:
+					return .failure(String(format: NSLocalizedString("Unknown connection status: %d", comment: ""), PQstatus(connection).rawValue))
+			}
+		}
+		else {
+			return .failure("(uknown error)")
 		}
 	}
 }
@@ -496,21 +507,20 @@ class QBEPostgresDatabase: SQLDatabase {
 Implements a connection to a PostgreSQL database (corresponding to a MYSQL object in the PostgreSQL library). The connection ensures
 that any operations are serialized (for now using a global queue for all PostgreSQL operations). */
 internal class QBEPostgresConnection: SQLConnection {
-	private(set) var database: QBEPostgresDatabase
-	private var connection: COpaquePointer
+	private(set) var database: QBEPostgresDatasetbase
+	private var connection: OpaquePointer?
 	private(set) weak var result: QBEPostgresResult?
-	private let queue : dispatch_queue_t
+	private let queue : DispatchQueue
 	
-	private init(database: QBEPostgresDatabase, connection: COpaquePointer) {
+	private init(database: QBEPostgresDatasetbase, connection: OpaquePointer) {
 		self.connection = connection
 		self.database = database
-		self.queue = dispatch_queue_create("QBEPostgresConnection.Queue", DISPATCH_QUEUE_SERIAL)
-		dispatch_set_target_queue(self.queue, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
+		self.queue = DispatchQueue(label: "QBEPostgresConnection.Queue", attributes: DispatchQueueAttributes.serial, target: DispatchQueue.global(attributes: .qosUserInitiated))
 	}
 	
 	deinit {
 		if connection != nil {
-			dispatch_sync(queue) {
+			queue.sync {
 				PQfinish(self.connection)
 			}
 		}
@@ -520,53 +530,53 @@ internal class QBEPostgresConnection: SQLConnection {
 		return self.database.connect()
 	}
 
-	func run(sql: [String], job: Job, callback: (Fallible<Void>) -> ()) {
+	func run(_ sql: [String], job: Job, callback: (Fallible<Void>) -> ()) {
 		for q in sql {
 			let res = self.query(q)
-			if case .Failure(let e) = res {
-				callback(.Failure(e))
+			if case .failure(let e) = res {
+				callback(.failure(e))
 				return
 			}
 		}
 
-		callback(.Success())
+		callback(.success())
 	}
 
 	/** Fetches the server version number. This number can be used to enable/disable certain features by version. */
-	func serverVersion(callback: (Fallible<String>) -> ()) {
+	func serverVersion(_ callback: (Fallible<String>) -> ()) {
 		switch self.query("SHOW server_version") {
-		case .Success(let result):
+		case .success(let result):
 			if let rowFallible = result.row() {
 				result.finish()
 
 				switch rowFallible {
-				case .Success(let row):
+				case .success(let row):
 					if let version = row.first?.stringValue {
-						return callback(.Success(version))
+						return callback(.success(version))
 					}
 					else {
-						return callback(.Failure("No or invalid version string returned"))
+						return callback(.failure("No or invalid version string returned"))
 					}
 
-				case .Failure(let e):
-					return callback(.Failure(e))
+				case .failure(let e):
+					return callback(.failure(e))
 				}
 			}
 			else {
 				result.finish()
-				return callback(.Failure("No version returned"))
+				return callback(.failure("No version returned"))
 			}
 
-		case .Failure(let e): callback(.Failure(e))
+		case .failure(let e): callback(.failure(e))
 		}
 	}
 
-	private func perform(block: () -> (Bool)) -> Bool {
+	private func perform(_ block: () -> (Bool)) -> Bool {
 		var success: Bool = false
-		dispatch_sync(queue) {
+		queue.sync {
 			let result = block()
 			if !result {
-				let message = String(CString:  PQerrorMessage(self.connection), encoding: NSUTF8StringEncoding) ?? "(unknown)"
+				let message = String(CString:  PQerrorMessage(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
 				trace("PostgreSQL perform error: \(message)")
 				success = false
 			}
@@ -578,10 +588,10 @@ internal class QBEPostgresConnection: SQLConnection {
 	}
 	
 	private var lastError: String { get {
-			return String(CString:  PQerrorMessage(self.connection), encoding: NSUTF8StringEncoding) ?? "(unknown)"
+			return String(CString:  PQerrorMessage(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
 	} }
 	
-	func query(sql: String) -> Fallible<QBEPostgresResult> {
+	func query(_ sql: String) -> Fallible<QBEPostgresResult> {
 		if self.result != nil && !self.result!.finished {
 			fatalError("Cannot start a query when the previous result is not finished yet")
 		}
@@ -591,7 +601,7 @@ internal class QBEPostgresConnection: SQLConnection {
 		#endif
 		
 		if self.perform({
-			if PQsendQuery(self.connection, sql.cStringUsingEncoding(NSUTF8StringEncoding)!) == 1 {
+			if PQsendQuery(self.connection, sql.cString(using: String.Encoding.utf8)!) == 1 {
 				PQsetSingleRowMode(self.connection)
 				return true
 			}
@@ -599,52 +609,52 @@ internal class QBEPostgresConnection: SQLConnection {
 		}) {
 			let result = QBEPostgresResult.create(self)
 			switch result {
-				case .Success(let r):
+				case .success(let r):
 					self.result = r
 				
-				case .Failure(_):
+				case .failure(_):
 					self.result = nil
 			}
 			return result
 		}
 		
-		return .Failure(self.lastError)
+		return .failure(self.lastError)
 	}
 }
 
 /**
-Represents the result of a PostgreSQL query as a Data object. */
-class QBEPostgresData: SQLData {
-	private let database: QBEPostgresDatabase
-	private let locale: Locale?
+Represents the result of a PostgreSQL query as a Dataset object. */
+class QBEPostgresDataset: SQLDataset {
+	private let database: QBEPostgresDatasetbase
+	private let locale: Language?
 
-	static func create(database database: QBEPostgresDatabase, tableName: String, schemaName: String, locale: Locale?) -> Fallible<QBEPostgresData> {
+	static func create(database: QBEPostgresDatasetbase, tableName: String, schemaName: String, locale: Language?) -> Fallible<QBEPostgresDataset> {
 		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, schema: schemaName, database: database.database)) LIMIT 1"
 		return database.connect().use {
-			$0.query(query).use {(result) -> QBEPostgresData in
+			$0.query(query).use {(result) -> QBEPostgresDataset in
 				result.finish() // We're not interested in that one row we just requested, just the column names
-				return QBEPostgresData(database: database, schema: schemaName, table: tableName, columns: result.columns, locale: locale)
+				return QBEPostgresDataset(database: database, schema: schemaName, table: tableName, columns: result.columns, locale: locale)
 			}
 		}
 	}
 	
-	private init(database: QBEPostgresDatabase, fragment: SQLFragment, columns: [Column], locale: Locale?) {
+	private init(database: QBEPostgresDatasetbase, fragment: SQLFragment, columns: [Column], locale: Language?) {
 		self.database = database
 		self.locale = locale
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(database: QBEPostgresDatabase, schema: String, table: String, columns: [Column], locale: Locale?) {
+	private init(database: QBEPostgresDatasetbase, schema: String, table: String, columns: [Column], locale: Language?) {
 		self.database = database
 		self.locale = locale
 		super.init(table: table, schema: schema, database: database.database, dialect: database.dialect, columns: columns)
 	}
 	
-	override func apply(fragment: SQLFragment, resultingColumns: [Column]) -> Data {
-		return QBEPostgresData(database: self.database, fragment: fragment, columns: resultingColumns, locale: locale)
+	override func apply(_ fragment: SQLFragment, resultingColumns: [Column]) -> Dataset {
+		return QBEPostgresDataset(database: self.database, fragment: fragment, columns: resultingColumns, locale: locale)
 	}
 	
-	override func stream() -> Stream {
+	override func stream() -> WarpCore.Stream {
 		return QBEPostgresStream(data: self)
 	}
 	
@@ -654,8 +664,8 @@ class QBEPostgresData: SQLData {
 		}
 	}
 	
-	override func isCompatibleWith(other: SQLData) -> Bool {
-		if let om = other as? QBEPostgresData {
+	override func isCompatibleWith(_ other: SQLDataset) -> Bool {
+		if let om = other as? QBEPostgresDataset {
 			if self.database.isCompatible(om.database) {
 				return true
 			}
@@ -672,30 +682,30 @@ private class QBEPostgresResultStream: SequenceStream {
 		super.init(AnySequence<Fallible<Tuple>>(result), columns: result.columns)
 	}
 	
-	override func clone() -> Stream {
+	override func clone() -> WarpCore.Stream {
 		fatalError("QBEPostgresResultStream cannot be cloned, because a result cannot be iterated multiple times. Clone QBEPostgresStream instead")
 	}
 }
 
 /** Stream that lazily queries and streams results from a PostgreSQL query.
 */
-class QBEPostgresStream: Stream {
-	private var resultStream: Stream?
-	private let data: QBEPostgresData
+class QBEPostgresStream: WarpCore.Stream {
+	private var resultStream: WarpCore.Stream?
+	private let data: QBEPostgresDataset
 	private let mutex = Mutex()
 	
-	init(data: QBEPostgresData) {
+	init(data: QBEPostgresDataset) {
 		self.data = data
 	}
 	
-	private func stream() -> Stream {
+	private func stream() -> WarpCore.Stream {
 		return mutex.locked {
 			if resultStream == nil {
 				switch data.result() {
-					case .Success(let rs):
+					case .success(let rs):
 						resultStream = QBEPostgresResultStream(result: rs)
 					
-					case .Failure(let error):
+					case .failure(let error):
 						resultStream = ErrorStream(error)
 				}
 			}
@@ -704,15 +714,15 @@ class QBEPostgresStream: Stream {
 		}
 	}
 	
-	func fetch(job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: Sink) {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		return stream().columns(job, callback: callback)
 	}
 	
-	func clone() -> Stream {
+	func clone() -> WarpCore.Stream {
 		return QBEPostgresStream(data: data)
 	}
 }
@@ -745,36 +755,36 @@ class QBEPostgresSourceStep: QBEStep {
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		self.tableName = (aDecoder.decodeObjectForKey("tableName") as? String) ?? ""
-		self.host = (aDecoder.decodeObjectForKey("host") as? String) ?? ""
-		self.databaseName = (aDecoder.decodeObjectForKey("database") as? String) ?? ""
-		self.user = (aDecoder.decodeObjectForKey("user") as? String) ?? ""
-		self.port = Int(aDecoder.decodeIntForKey("port"))
+		self.tableName = (aDecoder.decodeObject(forKey: "tableName") as? String) ?? ""
+		self.host = (aDecoder.decodeObject(forKey: "host") as? String) ?? ""
+		self.databaseName = (aDecoder.decodeObject(forKey: "database") as? String) ?? ""
+		self.user = (aDecoder.decodeObject(forKey: "user") as? String) ?? ""
+		self.port = Int(aDecoder.decodeInteger(forKey: "port"))
 		self.schemaName = aDecoder.decodeStringForKey("schema") ?? ""
 		super.init(coder: aDecoder)
 
-		if let pw = (aDecoder.decodeObjectForKey("password") as? String) {
+		if let pw = (aDecoder.decodeObject(forKey: "password") as? String) {
 			self.password.stringValue = pw
 		}
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		super.encodeWithCoder(coder)
-		coder.encodeObject(tableName, forKey: "tableName")
-		coder.encodeObject(host, forKey: "host")
-		coder.encodeObject(user, forKey: "user")
-		coder.encodeObject(databaseName, forKey: "database")
-		coder.encodeInt(Int32(port ?? 0), forKey: "port")
+	override func encode(with coder: NSCoder) {
+		super.encode(with: coder)
+		coder.encode(tableName, forKey: "tableName")
+		coder.encode(host, forKey: "host")
+		coder.encode(user, forKey: "user")
+		coder.encode(databaseName, forKey: "database")
+		coder.encode(port ?? 0, forKey: "port")
 		coder.encodeString(schemaName ?? "", forKey: "schema")
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let template: String
 		switch variant {
-		case .Neutral, .Read:
+		case .neutral, .read:
 			template = "Load table [#] from schema [#] in PostgreSQL database [#]"
 
-		case .Write:
+		case .write:
 			template = "Write to table [#] in schema [#] in PostgreSQL database [#]"
 		}
 
@@ -783,16 +793,16 @@ class QBEPostgresSourceStep: QBEStep {
 				if let d = self.database {
 					d.tables(self.databaseName ?? "", schemaName: self.schemaName ?? self.defaultSchemaName) { tablesFallible in
 						switch tablesFallible {
-						case .Success(let tables):
-							callback(.Success(tables))
+						case .success(let tables):
+							callback(.success(tables))
 
-						case .Failure(let e):
-							callback(.Failure(e))
+						case .failure(let e):
+							callback(.failure(e))
 						}
 					}
 				}
 				else {
-					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
+					callback(.failure(NSLocalizedString("Could not connect to database", comment: "")))
 				}
 			}, callback: { (newTable) -> () in
 				self.tableName = newTable
@@ -802,16 +812,16 @@ class QBEPostgresSourceStep: QBEStep {
 				if let d = self.database {
 					d.schemas(self.databaseName ?? "") { schemaFallible in
 						switch schemaFallible {
-						case .Success(let dbs):
-							callback(.Success(dbs))
+						case .success(let dbs):
+							callback(.success(dbs))
 
-						case .Failure(let e):
-							callback(.Failure(e))
+						case .failure(let e):
+							callback(.failure(e))
 						}
 					}
 				}
 				else {
-					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
+					callback(.failure(NSLocalizedString("Could not connect to database", comment: "")))
 				}
 			}, callback: { (newSchema) -> () in
 					self.schemaName = newSchema
@@ -821,34 +831,34 @@ class QBEPostgresSourceStep: QBEStep {
 				if let d = self.database {
 					d.databases { dbFallible in
 						switch dbFallible {
-						case .Success(let dbs):
-							callback(.Success(dbs))
+						case .success(let dbs):
+							callback(.success(dbs))
 
-						case .Failure(let e):
-							callback(.Failure(e))
+						case .failure(let e):
+							callback(.failure(e))
 						}
 					}
 				}
 				else {
-					callback(.Failure(NSLocalizedString("Could not connect to database", comment: "")))
+					callback(.failure(NSLocalizedString("Could not connect to database", comment: "")))
 				}
-				}, callback: { (newDatabase) -> () in
-					self.databaseName = newDatabase
+				}, callback: { (newDatasetbase) -> () in
+					self.databaseName = newDatasetbase
 			})
 		)
 	}
 	
-	internal var database: QBEPostgresDatabase? {
+	internal var database: QBEPostgresDatasetbase? {
 		/* For PostgreSQL, the hostname 'localhost' is special and indicates access through a local UNIX socket. This does
 		not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite
 		localhost here to 127.0.0.1 in order to force access through TCP/IP. */
 		let ha = (host == "localhost") ? "127.0.0.1" : host
-		return QBEPostgresDatabase(host: ha, port: port, user: user, password: self.password.stringValue ?? "", database: databaseName)
+		return QBEPostgresDatasetbase(host: ha, port: port, user: user, password: self.password.stringValue ?? "", database: databaseName)
 	}
 
-	override var mutableData: MutableData? {
+	override var mutableDataset: MutableDataset? {
 		if let d = self.database where !tableName.isEmpty && !schemaName.isEmpty {
-			return QBEPostgresMutableData(database: d, schemaName: schemaName, tableName: tableName)
+			return QBEPostgresMutableDataset(database: d, schemaName: schemaName, tableName: tableName)
 		}
 		return nil
 	}
@@ -860,19 +870,19 @@ class QBEPostgresSourceStep: QBEStep {
 		return nil
 	}
 
-	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		job.async {
 			if let s = self.database where !self.tableName.isEmpty {
-				callback(QBEPostgresData.create(database: s, tableName: self.tableName, schemaName: self.schemaName, locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
+				callback(QBEPostgresDataset.create(database: s, tableName: self.tableName, schemaName: self.schemaName, locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
 			}
 			else {
-				callback(.Failure(NSLocalizedString("No database or table selected", comment: "")))
+				callback(.failure(NSLocalizedString("No database or table selected", comment: "")))
 			}
 		}
 	}
 	
-	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
-		self.fullData(job, callback: { (fd) -> () in
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+		self.fullDataset(job, callback: { (fd) -> () in
 			callback(fd.use({$0.random(maxInputRows)}))
 		})
 	}

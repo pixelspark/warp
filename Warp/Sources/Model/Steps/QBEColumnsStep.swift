@@ -15,7 +15,7 @@ class QBEColumnsStep: QBEStep {
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let typeItem = QBESentenceOptions(options: [
 			"select": (columns.count <= 1 ? "Select column".localized : "Select columns".localized),
 			"remove": (columns.count <= 1 ? "Remove column".localized : "Remove columns".localized)
@@ -24,27 +24,27 @@ class QBEColumnsStep: QBEStep {
 		}
 
 		let columnsItem = QBESentenceSet(value: Set(self.columns.map { $0.name }), provider: { cb in
-			let job = Job(.UserInitiated)
+			let job = Job(.userInitiated)
 			if let previous = self.previous {
-				previous.exampleData(job, maxInputRows: 100, maxOutputRows: 100) {result in
+				previous.exampleDataset(job, maxInputRows: 100, maxOutputRows: 100) {result in
 					switch result {
-					case .Success(let data):
+					case .success(let data):
 						data.columns(job) { result in
 							switch result {
-							case .Success(let cns):
-								cb(.Success(Set(cns.map { $0.name })))
+							case .success(let cns):
+								cb(.success(Set(cns.map { $0.name })))
 
-							case .Failure(let e):
-								cb(.Failure(e))
+							case .failure(let e):
+								cb(.failure(e))
 							}
 						}
-					case .Failure(let e):
-						cb(.Failure(e))
+					case .failure(let e):
+						cb(.failure(e))
 					}
 				}
 			}
 			else {
-				cb(.Success([]))
+				cb(.success([]))
 			}
 		},
 		callback: { [weak self] newSet in
@@ -73,23 +73,23 @@ class QBEColumnsStep: QBEStep {
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		select = aDecoder.decodeBoolForKey("select")
-		let names = (aDecoder.decodeObjectForKey("columnNames") as? [String]) ?? []
+		select = aDecoder.decodeBool(forKey: "select")
+		let names = (aDecoder.decodeObject(forKey: "columnNames") as? [String]) ?? []
 		columns = names.map({Column($0)})
 		super.init(coder: aDecoder)
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
+	override func encode(with coder: NSCoder) {
 		let columnNameStrings = columns.map({$0.name})
-		coder.encodeObject(columnNameStrings, forKey: "columnNames")
-		coder.encodeBool(select, forKey: "select")
-		super.encodeWithCoder(coder)
+		coder.encode(columnNameStrings, forKey: "columnNames")
+		coder.encode(select, forKey: "select")
+		super.encode(with: coder)
 	}
 	
-	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
 		data.columns(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
-				case .Success(let existingColumns):
+				case .success(let existingColumns):
 					let columns = existingColumns.filter({column -> Bool in
 						for c in self.columns {
 							if c == column {
@@ -98,18 +98,18 @@ class QBEColumnsStep: QBEStep {
 						}
 						return !self.select
 					}) ?? []
-					callback(.Success(data.selectColumns(columns)))
+					callback(.success(data.selectColumns(columns)))
 				
-				case .Failure(let error):
-					callback(.Failure(error))
+				case .failure(let error):
+					callback(.failure(error))
 			}
 		}
 	}
 	
-	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+	override func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
 		if let p = prior as? QBEColumnsStep where p.select && self.select {
 			// This step can ony be a further subset of the columns selected by the prior
-			return QBEStepMerge.Advised(self)
+			return QBEStepMerge.advised(self)
 		}
 		else if let p = prior as? QBEColumnsStep where !p.select && !self.select {
 			// This step removes additional columns after the previous one
@@ -120,22 +120,22 @@ class QBEColumnsStep: QBEStep {
 				}
 			}
 
-			return QBEStepMerge.Advised(QBEColumnsStep(previous: previous, columns: newColumns, select: false))
+			return QBEStepMerge.advised(QBEColumnsStep(previous: previous, columns: newColumns, select: false))
 		}
 		else if let p = prior as? QBECalculateStep {
 			let contained = columns.contains(p.targetColumn)
 			if (select && !contained) || (!select && contained) {
 				let newColumns = columns.filter({$0 != p.targetColumn})
 				if newColumns.isEmpty {
-					return QBEStepMerge.Cancels
+					return QBEStepMerge.cancels
 				}
 				else {
-					return QBEStepMerge.Advised(QBEColumnsStep(previous: previous, columns: newColumns, select: self.select))
+					return QBEStepMerge.advised(QBEColumnsStep(previous: previous, columns: newColumns, select: self.select))
 				}
 			}
 		}
 		
-		return QBEStepMerge.Impossible
+		return QBEStepMerge.impossible
 	}
 }
 
@@ -153,7 +153,7 @@ class QBESortColumnsStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	private func explanation(locale: Locale) -> String {
+	private func explanation(_ locale: Language) -> String {
 		let destination = before != nil ? String(format: NSLocalizedString("before %@", comment: ""), before!.name) : NSLocalizedString("at the end", comment: "")
 		
 		if sortColumns.count > 5 {
@@ -163,19 +163,19 @@ class QBESortColumnsStep: QBEStep {
 			return String(format: NSLocalizedString("Place column %@ %@", comment: ""), sortColumns[0].name, destination)
 		}
 		else {
-			let names = sortColumns.map({it in return it.name}).joinWithSeparator(", ")
+			let names = sortColumns.map({it in return it.name}).joined(separator: ", ")
 			return String(format: NSLocalizedString("Place columns %@ %@", comment: ""), names, destination)
 		}
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		let names = (aDecoder.decodeObjectForKey("sortColumns") as? [String]) ?? []
+		let names = (aDecoder.decodeObject(forKey: "sortColumns") as? [String]) ?? []
 		sortColumns = names.map({Column($0)})
-		let beforeName = aDecoder.decodeObjectForKey("before") as? String
+		let beforeName = aDecoder.decodeObject(forKey: "before") as? String
 		if let b = beforeName {
 			self.before = Column(b)
 		}
@@ -185,17 +185,17 @@ class QBESortColumnsStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
+	override func encode(with coder: NSCoder) {
 		let columnNameStrings = sortColumns.map({$0.name})
-		coder.encodeObject(columnNameStrings, forKey: "sortColumns")
-		coder.encodeObject(before?.name ?? nil, forKey: "before")
-		super.encodeWithCoder(coder)
+		coder.encode(columnNameStrings, forKey: "sortColumns")
+		coder.encode(before?.name ?? nil, forKey: "before")
+		super.encode(with: coder)
 	}
 	
-	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
 		data.columns(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
-				case .Success(let existingColumns):
+				case .success(let existingColumns):
 					let columnSet = Set(existingColumns)
 					var newColumns = existingColumns
 					var sortColumns = self.sortColumns
@@ -213,8 +213,8 @@ class QBESortColumnsStep: QBEStep {
 					}
 					
 					// If we have an insertion point for the set of reordered columns, insert them there
-					if let before = self.before, let newIndex = newColumns.indexOf(before) {
-						newColumns.insertContentsOf(self.sortColumns, at: newIndex)
+					if let before = self.before, let newIndex = newColumns.index(of: before) {
+						newColumns.insert(contentsOf: self.sortColumns, at: newIndex)
 					}
 					else {
 						// Just append at the end. Happens when self.before is nil or the column indicated in self.before doesn't exist
@@ -223,10 +223,10 @@ class QBESortColumnsStep: QBEStep {
 					
 					// The re-ordering operation may never drop or add columns (even if specified columns do not exist)
 					assert(newColumns.count == existingColumns.count, "Re-ordering operation resulted in loss of columns")
-					callback(.Success(data.selectColumns(newColumns)))
+					callback(.success(data.selectColumns(newColumns)))
 				
-				case .Failure(let error):
-					callback(.Failure(error))
+				case .failure(let error):
+					callback(.failure(error))
 			}
 		}
 	}

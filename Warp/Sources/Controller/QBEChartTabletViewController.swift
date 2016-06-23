@@ -8,8 +8,8 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	private var chartBaseView: ChartViewBase? = nil
 	private var chartTablet: QBEChartTablet? { return self.tablet as? QBEChartTablet }
 	private var presentedRaster: Raster? = nil
-	private var presentedDataIsFullData: Bool = false
-	private var useFullData: Bool = false
+	private var presentedDatasetIsFullDataset: Bool = false
+	private var useFullDataset: Bool = false
 	private var calculator = QBECalculator()
 
 	var chart: QBEChart? = nil { didSet {
@@ -23,17 +23,17 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	override func viewWillAppear() {
 		self.chart = self.chartTablet?.chart
 		self.reloadData()
-		NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(QBEChartTabletViewController.resultNotificationReceived(_:)), name: QBEResultNotification.name, object: nil)
+		NotificationCenter.default().addObserver(self, selector: #selector(QBEChartTabletViewController.resultNotificationReceived(_:)), name: QBEResultNotification.name, object: nil)
 	}
 
-	@objc private func resultNotificationReceived(notification: NSNotification) {
+	@objc private func resultNotificationReceived(_ notification: Notification) {
 		assertMainThread()
 
 		if let calculationNotification = notification.object as? QBEResultNotification where calculationNotification.calculator != calculator {
 			if let t = self.chartTablet, let source = t.chart.sourceTablet, let step = source.chain.head {
 				if step == calculationNotification.step {
 					self.presentedRaster = calculationNotification.raster
-					self.presentedDataIsFullData = calculationNotification.isFull
+					self.presentedDatasetIsFullDataset = calculationNotification.isFull
 					self.calculator.cancel()
 					self.updateProgress()
 					self.updateChart(false)
@@ -43,39 +43,39 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	}
 
 	override func viewWillDisappear() {
-		NSNotificationCenter.defaultCenter().removeObserver(self)
+		NotificationCenter.default().removeObserver(self)
 	}
 
-	func job(job: AnyObject, didProgress: Double) {
+	func job(_ job: AnyObject, didProgress: Double) {
 		asyncMain {
 			self.progressView.doubleValue = (job as! Job).progress * 100.0
-			self.progressView.indeterminate = false
+			self.progressView.isIndeterminate = false
 		}
 	}
 
 	private func updateProgress() {
 		asyncMain {
 			if self.calculator.calculating {
-				if self.progressView.hidden {
-					self.progressView.indeterminate = true
+				if self.progressView.isHidden {
+					self.progressView.isIndeterminate = true
 					self.progressView.startAnimation(nil)
 				}
-				self.progressView.hidden = false
+				self.progressView.isHidden = false
 
 			}
 			else {
 				self.progressView.stopAnimation(nil)
 				self.progressView.doubleValue = 0.0
-				self.progressView.hidden = true
+				self.progressView.isHidden = true
 			}
 		}
 	}
 
-	func sentenceView(view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable) {
+	func sentenceView(_ view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable) {
 		self.updateChart()
 	}
 
-	var locale: Locale {
+	var locale: Language {
 		return QBEAppDelegate.sharedInstance.locale
 	}
 
@@ -90,21 +90,21 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 		self.updateProgress()
 
 		if let t = self.chartTablet, let source = t.chart.sourceTablet, let step = source.chain.head {
-			self.calculator.calculate(step, fullData: self.useFullData)
-			let job = Job(.UserInitiated)
+			self.calculator.calculate(step, fullDataset: self.useFullDataset)
+			let job = Job(.userInitiated)
 			job.addObserver(self)
 
 			self.calculator.currentRaster?.get(job) { result in
 				switch result {
-				case .Success(let raster):
+				case .success(let raster):
 					asyncMain {
 						self.presentedRaster = raster
-						self.presentedDataIsFullData = self.useFullData
+						self.presentedDatasetIsFullDataset = self.useFullDataset
 						self.updateProgress()
 						self.updateChart(true)
 					}
 
-				case .Failure(let e):
+				case .failure(let e):
 					/// FIXME show failure
 					self.updateProgress()
 					print("Failed to rasterize: \(e)")
@@ -114,7 +114,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	}
 
 	/** Repaint the chart based on the current data and parameters. Draws no chart in case we are still loading it. */
-	private func updateChart(animated: Bool = false) {
+	private func updateChart(_ animated: Bool = false) {
 		assertMainThread()
 
 		// Fade any changes in smoothly
@@ -123,7 +123,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 		tr.type = kCATransitionFade
 		tr.subtype = kCATransitionFromRight
 		tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-		self.chartView.layer?.addAnimation(tr, forKey: kCATransition)
+		self.chartView.layer?.add(tr, forKey: kCATransition)
 
 		// Remove existing chart views
 		self.chartView.subviews.forEach { $0.removeFromSuperview() }
@@ -148,12 +148,12 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				self.chartBaseView = lineChartView
 
 				if r.columns.count >= 2 {
-					let data = LineChartData(xVals: xs.map { return $0.doubleValue ?? Double.NaN })
+					let data = LineChartData(xVals: xs.map { return $0.doubleValue ?? Double.nan })
 
 					// FIXME: add support for multiple series in QBEChart
 					for ySeriesIndex in 1..<2 {
-						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
-						let yse = ys.enumerate().map { idx, i in return ChartDataEntry(value: i, xIndex: idx) }
+						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
+						let yse = ys.enumerated().map { idx, i in return ChartDataEntry(value: i, xIndex: idx) }
 
 						let ds = LineChartDataSet(yVals: yse, label: r.columns[ySeriesIndex].name)
 						ds.drawValuesEnabled = false
@@ -163,7 +163,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 					}
 
 					lineChartView.data = data
-					lineChartView.gridBackgroundColor = NSUIColor.whiteColor()
+					lineChartView.gridBackgroundColor = NSUIColor.white()
 					lineChartView.doubleTapToZoomEnabled = false
 					lineChartView.pinchZoomEnabled = false
 				}
@@ -173,11 +173,11 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				self.chartBaseView = radarChartView
 
 				if r.columns.count >= 2 {
-					let data = RadarChartData(xVals: xs.map { return $0.doubleValue ?? Double.NaN })
+					let data = RadarChartData(xVals: xs.map { return $0.doubleValue ?? Double.nan })
 
 					for ySeriesIndex in 1..<2 {
-						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
-						let yse = ys.enumerate().map { idx, i in return ChartDataEntry(value: i, xIndex: idx) }
+						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
+						let yse = ys.enumerated().map { idx, i in return ChartDataEntry(value: i, xIndex: idx) }
 
 						let ds = RadarChartDataSet(yVals: yse, label: r.columns[ySeriesIndex].name)
 						ds.drawValuesEnabled = false
@@ -196,9 +196,9 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				if r.columns.count >= 2 {
 					let data = BarChartData(xVals: [1])
 
-					let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
+					let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
 
-					for (idx, y) in ys.enumerate() {
+					for (idx, y) in ys.enumerated() {
 						let yse = [BarChartDataEntry(value: y, xIndex: 0)]
 						let ds = BarChartDataSet(yVals: yse, label: xs[idx].stringValue ?? "")
 						ds.drawValuesEnabled = false
@@ -207,7 +207,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 					}
 
 					barChartView.data = data
-					barChartView.gridBackgroundColor = NSUIColor.whiteColor()
+					barChartView.gridBackgroundColor = NSUIColor.white()
 					barChartView.doubleTapToZoomEnabled = false
 					barChartView.pinchZoomEnabled = false
 				}
@@ -218,7 +218,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 
 				// Do any additional setup after loading the view.
 				let data = PieChartData(xVals: xs.map { return $0.stringValue })
-				let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.NaN }
+				let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
 
 				let yse = ys.map { ChartDataEntry(value: $0, xIndex: 0) }
 				let ds = PieChartDataSet(yVals: yse, label: "Data")
@@ -226,8 +226,8 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				ds.colors = colors
 				data.addDataSet(ds)
 
-				let nf = NSNumberFormatter()
-				nf.numberStyle = NSNumberFormatterStyle.DecimalStyle
+				let nf = NumberFormatter()
+				nf.numberStyle = NumberFormatter.Style.decimal
 				nf.maximumFractionDigits = 1
 				data.setValueFormatter(nf)
 
@@ -243,57 +243,65 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 			cb.translatesAutoresizingMaskIntoConstraints = false
 			self.chartView.addSubview(cb)
 			self.chartView.addConstraints([
-				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.Top, relatedBy: NSLayoutRelation.Equal, toItem: self.chartView, attribute: NSLayoutAttribute.Top, multiplier: 1.0, constant: 0.0),
-				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: self.chartView, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: 0.0),
-				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self.chartView, attribute: NSLayoutAttribute.Left, multiplier: 1.0, constant: 0.0),
-				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self.chartView, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: 0.0)
+				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: self.chartView, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0),
+				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.bottom, relatedBy: NSLayoutRelation.equal, toItem: self.chartView, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0),
+				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.left, relatedBy: NSLayoutRelation.equal, toItem: self.chartView, attribute: NSLayoutAttribute.left, multiplier: 1.0, constant: 0.0),
+				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.right, relatedBy: NSLayoutRelation.equal, toItem: self.chartView, attribute: NSLayoutAttribute.right, multiplier: 1.0, constant: 0.0)
 			])
 			cb.canDrawConcurrently = true
 
 			if animated {
 				cb.animate(xAxisDuration: 1.0, yAxisDuration: 1.0)
 			}
-			cb.descriptionFont = NSUIFont.systemFontOfSize(12.0)
+			cb.descriptionFont = NSUIFont.systemFont(ofSize: 12.0)
 			cb.descriptionText = ""
 		}
 	}
 
-	@IBAction func refreshData(sender: AnyObject) {
+	@IBAction func refreshDataset(_ sender: AnyObject) {
 		self.reloadData()
 	}
 
-	@IBAction func exportFile(sender: NSObject) {
+	@IBAction func exportFile(_ sender: NSObject) {
 		if let w = self.view.window, let chartView = self.chartBaseView {
 			let panel = NSSavePanel()
 			panel.allowedFileTypes = ["png"]
-			panel.beginSheetModalForWindow(w) { (result) -> Void in
+			panel.beginSheetModal(for: w) { (result) -> Void in
 				if result == NSFileHandlingPanelOKButton {
-					if let path = panel.URL?.path {
-						chartView.saveToPath(path, format: .PNG, compressionQuality: 1.0)
+					if let path = panel.url?.path {
+						do {
+							if !(try chartView.saveToPath(path, format: .png, compressionQuality: 1.0)) {
+								trace("saveToPath returned false")
+							}
+						}
+						catch _ {
+							trace("saveToPath failed")
+						}
 					}
 				}
 			}
 		}
 	}
 
-	@IBAction func cancelCalculation(sender: NSObject) {
+	@IBAction func cancelCalculation(_ sender: NSObject) {
 		self.calculator.cancel()
 		self.updateProgress()
 	}
 
-	@IBAction func toggleFullData(sender: NSObject) {
-		useFullData = !(useFullData || presentedDataIsFullData)
+	@IBAction func toggleFullDataset(_ sender: NSObject) {
+		useFullDataset = !(useFullDataset || presentedDatasetIsFullDataset)
 		self.reloadData()
 		self.view.window?.update()
 	}
 
-	@IBAction func toggleEditing(sender: NSObject) {
+	@IBAction func toggleEditing(_ sender: NSObject) {
 	}
 
-	override func validateToolbarItem(item: NSToolbarItem) -> Bool {
-		if item.action == #selector(QBEChartTabletViewController.toggleFullData(_:)) {
+
+	override func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+		if item.action == #selector(QBEChartTabletViewController.toggleFullDataset(_:)) {
 			if let c = item.view as? NSButton {
-				c.state = (useFullData || presentedDataIsFullData) ? NSOnState: NSOffState
+				c.state = (useFullDataset || presentedDatasetIsFullDataset) ? NSOnState: NSOffState
 			}
 		}
 		else if item.action == #selector(QBEChartTabletViewController.toggleEditing(_:)) {
@@ -302,19 +310,19 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 			}
 		}
 
-		return validateSelector(item.action)
+		return validateSelector(item.action!)
 	}
 
-	func validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItem) -> Bool {
-		return validateSelector(anItem.action())
+	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+		return validateSelector(item.action!)
 	}
 
-	private func validateSelector(action: Selector) -> Bool {
+	private func validateSelector(_ action: Selector) -> Bool {
 		if self.chartTablet?.chart.sourceTablet?.chain.head != nil {
 			switch action {
-			case #selector(QBEChartTabletViewController.refreshData(_:)), #selector(QBEChartTabletViewController.exportFile(_:)): return true
+			case #selector(QBEChartTabletViewController.refreshDataset(_:)), #selector(QBEChartTabletViewController.exportFile(_:)): return true
 			case #selector(QBEChartTabletViewController.cancelCalculation(_:)): return self.calculator.calculating
-			case #selector(QBEChartTabletViewController.toggleFullData(_:)): return true
+			case #selector(QBEChartTabletViewController.toggleFullDataset(_:)): return true
 			default: return false
 			}
 		}

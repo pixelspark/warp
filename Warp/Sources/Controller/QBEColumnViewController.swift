@@ -2,11 +2,11 @@ import Cocoa
 import WarpCore
 
 protocol QBEColumnViewDelegate: NSObjectProtocol {
-	func columnViewControllerDidRename(controller: QBEColumnViewController, column: Column, to: Column)
-	func columnViewControllerDidRemove(controller: QBEColumnViewController, column: Column)
-	func columnViewControllerDidSort(controller: QBEColumnViewController, column: Column, ascending: Bool)
-	func columnViewControllerDidAutosize(controller: QBEColumnViewController, column: Column)
-	func columnViewControllerSetFullData(controller: QBEColumnViewController, fullData: Bool)
+	func columnViewControllerDidRename(_ controller: QBEColumnViewController, column: Column, to: Column)
+	func columnViewControllerDidRemove(_ controller: QBEColumnViewController, column: Column)
+	func columnViewControllerDidSort(_ controller: QBEColumnViewController, column: Column, ascending: Bool)
+	func columnViewControllerDidAutosize(_ controller: QBEColumnViewController, column: Column)
+	func columnViewControllerSetFullDataset(_ controller: QBEColumnViewController, fullDataset: Bool)
 }
 
 private struct QBEColumnDescriptives {
@@ -22,8 +22,8 @@ private struct QBEColumnDescriptives {
 class QBEColumnViewController: NSViewController {
 	weak var delegate: QBEColumnViewDelegate? = nil
 	var column: Column? = nil { didSet { asyncMain { self.update() } } }
-	var data: Data? = nil { didSet { asyncMain { self.update() } } }
-	var isFullData: Bool = false { didSet { asyncMain { self.update() } } }
+	var data: Dataset? = nil { didSet { asyncMain { self.update() } } }
+	var isFullDataset: Bool = false { didSet { asyncMain { self.update() } } }
 
 	private var descriptives: QBEColumnDescriptives? = nil
 	private var descriptivesJob: Job? = nil
@@ -37,7 +37,7 @@ class QBEColumnViewController: NSViewController {
 	@IBOutlet private var distinctLabel: NSTextField!
 	@IBOutlet private var progressIndicator: NSProgressIndicator!
 	@IBOutlet private var descriptivesView: NSView!
-	@IBOutlet private var fullDataButton: NSButton!
+	@IBOutlet private var fullDatasetButton: NSButton!
 	@IBOutlet private var emptyLabel: NSTextField!
 
 	deinit {
@@ -63,12 +63,12 @@ class QBEColumnViewController: NSViewController {
 
 			if let d = self.data, let cn = self.column {
 				asyncMain {
-					self.descriptivesJob = Job(.Background)
+					self.descriptivesJob = Job(.background)
 					self.update()
 					self.progressIndicator?.startAnimation(nil)
 
 					// Todo fetch descriptives
-					let descriptiveData = d.aggregate([:], values: [
+					let descriptiveDataset = d.aggregate([:], values: [
 						"mu": Aggregator(map: Sibling(cn), reduce: .Average),
 						"s": Aggregator(map: Sibling(cn), reduce: .StandardDeviationSample),
 						"mn": Aggregator(map: Sibling(cn), reduce: .Min),
@@ -78,12 +78,12 @@ class QBEColumnViewController: NSViewController {
 						"mt": Aggregator(map: Call(arguments: [Call(arguments:[Sibling(cn)], type: Function.IsEmpty), Literal(Value(1)), Literal(Value(0))], type: Function.If), reduce: .Sum)
 					])
 
-					descriptiveData.raster(self.descriptivesJob!) { result in
+					descriptiveDataset.raster(self.descriptivesJob!) { result in
 						switch result {
-						case .Success(let raster):
+						case .success(let raster):
 							asyncMain {
 								if raster.rowCount == 1 {
-									let row = raster.rows.generate().next()!
+									let row = raster.rows.makeIterator().next()!
 									self.descriptives = QBEColumnDescriptives(
 										average: row["mu"].doubleValue,
 										standardDeviation: row["s"].doubleValue,
@@ -102,7 +102,7 @@ class QBEColumnViewController: NSViewController {
 								self.update()
 							}
 
-						case .Failure(let e):
+						case .failure(let e):
 							print("Descriptives failure: \(e)")
 							self.update()
 						}
@@ -124,29 +124,29 @@ class QBEColumnViewController: NSViewController {
 				tr.type = kCATransitionPush
 				tr.subtype = kCATransitionFromBottom
 				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-				vv.layer?.addAnimation(tr, forKey: kCATransition)
+				vv.layer?.add(tr, forKey: kCATransition)
 			}
 		}
 
 		let locale = QBEAppDelegate.sharedInstance.locale
 		self.nameField?.stringValue = column?.name ?? ""
-		self.progressIndicator?.hidden = self.descriptivesJob == nil
-		self.descriptivesView?.hidden = self.descriptives == nil
-		self.fullDataButton?.state = self.isFullData ? NSOnState: NSOffState
-		self.fullDataButton?.image =  NSImage(named: self.isFullData ? "BigIcon" : "SmallIcon")
+		self.progressIndicator?.isHidden = self.descriptivesJob == nil
+		self.descriptivesView?.isHidden = self.descriptives == nil
+		self.fullDatasetButton?.state = self.isFullDataset ? NSOnState: NSOffState
+		self.fullDatasetButton?.image =  NSImage(named: self.isFullDataset ? "BigIcon" : "SmallIcon")
 
-		if let d = self.descriptives {
-			let avg = d.average == nil ? Value.InvalidValue: Value.DoubleValue(d.average!)
+		if let d = self.descriptives, let locale = locale {
+			let avg = d.average == nil ? Value.invalid: Value.double(d.average!)
 			self.muLabel?.stringValue = locale.localStringFor(avg)
 
-			let sd = d.standardDeviation == nil ? Value.InvalidValue: Value.DoubleValue(d.standardDeviation!)
+			let sd = d.standardDeviation == nil ? Value.invalid: Value.double(d.standardDeviation!)
 			self.sigmaLabel?.stringValue = locale.localStringFor(sd)
 
 			self.minLabel?.stringValue = locale.localStringFor(d.minimumValue)
 			self.maxLabel?.stringValue = locale.localStringFor(d.maximumValue)
-			self.countLabel?.stringValue = locale.localStringFor(Value.IntValue(d.count))
-			self.distinctLabel?.stringValue = locale.localStringFor(Value.IntValue(d.countUnique))
-			self.emptyLabel?.stringValue = locale.localStringFor(Value.IntValue(d.countEmpty))
+			self.countLabel?.stringValue = locale.localStringFor(Value.int(d.count))
+			self.distinctLabel?.stringValue = locale.localStringFor(Value.int(d.countUnique))
+			self.emptyLabel?.stringValue = locale.localStringFor(Value.int(d.countEmpty))
 		}
 		else {
 			if self.descriptivesJob == nil {
@@ -161,35 +161,35 @@ class QBEColumnViewController: NSViewController {
 		}
 	}
 
-	@IBAction func toggleFullData(sender: NSObject) {
-		self.delegate?.columnViewControllerSetFullData(self, fullData: !self.isFullData)
+	@IBAction func toggleFullDataset(_ sender: NSObject) {
+		self.delegate?.columnViewControllerSetFullDataset(self, fullDataset: !self.isFullDataset)
 	}
 
-	@IBAction func removeColumn(sender: NSObject) {
+	@IBAction func removeColumn(_ sender: NSObject) {
 		if let c = self.column {
 			self.delegate?.columnViewControllerDidRemove(self, column: c)
 		}
 	}
 
-	@IBAction func autosizeColumn(sender: NSObject) {
+	@IBAction func autosizeColumn(_ sender: NSObject) {
 		if let c = self.column {
 			self.delegate?.columnViewControllerDidAutosize(self, column: c)
 		}
 	}
 
-	@IBAction func sortAscending(sender: NSObject) {
+	@IBAction func sortAscending(_ sender: NSObject) {
 		if let c = self.column {
 			self.delegate?.columnViewControllerDidSort(self, column: c, ascending: true)
 		}
 	}
 
-	@IBAction func sortDescending(sender: NSObject) {
+	@IBAction func sortDescending(_ sender: NSObject) {
 		if let c = self.column {
 			self.delegate?.columnViewControllerDidSort(self, column: c, ascending: false)
 		}
 	}
 
-	@IBAction func rename(sender: NSObject) {
+	@IBAction func rename(_ sender: NSObject) {
 		if let c = self.column {
 			let newName = Column(nameField.stringValue)
 			if c != newName {

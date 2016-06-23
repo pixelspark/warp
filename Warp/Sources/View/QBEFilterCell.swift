@@ -20,23 +20,23 @@ internal class QBEFilterCell: NSButtonCell {
 		cacheJob?.cancel()
 	}
 	
-	required init?(coder aDecoder: NSCoder) {
+	required init(coder aDecoder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
 
-	private func numberOfStripes(cellFrame: NSRect) -> Int {
-		let stripeFrame = CGRectInset(cellFrame, 2, 6)
+	private func numberOfStripes(_ cellFrame: NSRect) -> Int {
+		let stripeFrame = cellFrame.insetBy(dx: 2, dy: 6)
 		return Int(stripeFrame.size.width) / 8
 	}
 	
-	override func drawWithFrame(cellFrame: NSRect, inView controlView: NSView) {
+	override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
 		NSColor.windowBackgroundColor().set()
 		NSRectFill(cellFrame)
 
 		if active {
 			let h = cellFrame.size.height - 7.0
 			let iconRect = NSMakeRect(cellFrame.origin.x + (cellFrame.size.width - h) / 2.0, cellFrame.origin.y + (cellFrame.size.height - h) / 2.0, h, h)
-			NSImage(named: "FilterSetIcon")?.drawInRect(iconRect)
+			NSImage(named: "FilterSetIcon")?.draw(in: iconRect)
 		}
 		else {
 			// Calculate the 'bar code' of this colum
@@ -49,10 +49,10 @@ internal class QBEFilterCell: NSButtonCell {
 				let column = self.column
 				let raster = self.raster
 				cacheJob?.cancel()
-				let job = Job(.Background)
+				let job = Job(.background)
 				cacheJob = job
 				job.async { [weak self] in
-					var v = Array<Int>(count: stripes, repeatedValue: 0)
+					var v = Array<Int>(repeating: 0, count: stripes)
 					if let index = raster.indexOfColumnWithName(column) {
 						for row in raster.rows {
 							if job.cancelled {
@@ -61,7 +61,7 @@ internal class QBEFilterCell: NSButtonCell {
 
 							let value = row.values[index]
 							let hash: Int
-							if case .DoubleValue(let i) = value where !isinf(i) && !isnan(i) {
+							if case .double(let i) = value where !i.isInfinite && !i.isNaN {
 								hash = Int(fmod(abs(i), Double(Int.max-1)))
 							}
 							else {
@@ -73,7 +73,7 @@ internal class QBEFilterCell: NSButtonCell {
 					asyncMain {
 						if let s = self where !job.cancelled {
 							s.cached = v
-							controlView.setNeedsDisplayInRect(cellFrame)
+							controlView.setNeedsDisplay(cellFrame)
 						}
 					}
 				}
@@ -81,7 +81,7 @@ internal class QBEFilterCell: NSButtonCell {
 		}
 	}
 
-	private func drawWithFrame(cellFrame: NSRect, inView controlView: NSView, values: [Int]) {
+	private func drawWithFrame(_ cellFrame: NSRect, inView controlView: NSView, values: [Int]) {
 		// How many stripes are non-zero?
 		var nonZeroValues: [Int] = []
 		var largestStripe: Int = 0
@@ -96,10 +96,10 @@ internal class QBEFilterCell: NSButtonCell {
 			}
 		}
 
-		nonZeroValues.sortInPlace({return $0 < $1})
+		nonZeroValues.sort(isOrderedBefore: {return $0 < $1})
 
 		// Draw the bar code
-		let stripeFrame = CGRectInset(cellFrame, 2, 6)
+		let stripeFrame = cellFrame.insetBy(dx: 2, dy: 6)
 		let nonZeroStripes = nonZeroValues.count
 		let stripeWidth = stripeFrame.size.width / CGFloat(nonZeroStripes)
 		let stripeMargin = CGFloat(1)
@@ -122,14 +122,14 @@ internal class QBEFilterCell: NSButtonCell {
 
 				let stripeHeight = stripeFrame.size.height * scaled
 				let stripeVerticalMargin = stripeFrame.size.height * (1.0-scaled)
-				let stripeRect = CGRectMake(stripeFrame.origin.x + CGFloat(i) * stripeWidth, stripeFrame.origin.y + stripeVerticalMargin / 2.0, stripeWidth - stripeMargin, stripeHeight)
+				let stripeRect = CGRect(x: stripeFrame.origin.x + CGFloat(i) * stripeWidth, y: stripeFrame.origin.y + stripeVerticalMargin / 2.0, width: stripeWidth - stripeMargin, height: stripeHeight)
 				stripeColor.set()
 				NSRectFill(stripeRect)
 			}
 		}
 	}
 	
-	@objc func drawWithFrame(cellFrame: NSRect, inView: NSView, withBackgroundColor: NSColor) {
-		self.drawWithFrame(cellFrame, inView: inView)
+	@objc func drawWithFrame(_ cellFrame: NSRect, inView: NSView, withBackgroundColor: NSColor) {
+		self.draw(withFrame: cellFrame, in: inView)
 	}
 }

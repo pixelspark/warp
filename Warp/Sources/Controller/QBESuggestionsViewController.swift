@@ -3,12 +3,12 @@ import Cocoa
 import WarpCore
 
 protocol QBESuggestionsViewDelegate: NSObjectProtocol {
-	func suggestionsView(view: NSViewController, didSelectStep: QBEStep)
-	func suggestionsView(view: NSViewController, didSelectAlternativeStep: QBEStep)
-	func suggestionsView(view: NSViewController, previewStep: QBEStep?)
+	func suggestionsView(_ view: NSViewController, didSelectStep: QBEStep)
+	func suggestionsView(_ view: NSViewController, didSelectAlternativeStep: QBEStep)
+	func suggestionsView(_ view: NSViewController, previewStep: QBEStep?)
 	var currentStep: QBEStep? { get }
-	var locale: Locale { get }
-	var undo: NSUndoManager? { get }
+	var locale: Language { get }
+	var undo: UndoManager? { get }
 }
 
 class QBESuggestionsListViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
@@ -16,13 +16,13 @@ class QBESuggestionsListViewController: NSViewController, NSTableViewDataSource,
 	@IBOutlet var tableView: NSTableView?
 	weak var delegate: QBESuggestionsViewDelegate?
 	
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return suggestions?.count ?? 0
 	}
 	
-	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if tableColumn?.identifier == "suggestionLabel" {
-			return suggestions?[row].explain(delegate?.locale ?? Locale())
+			return suggestions?[row].explain(delegate?.locale ?? Language())
 		}
 		else if tableColumn?.identifier == "suggestionIcon" {
 			if let suggestedStep = suggestions?[row] {
@@ -35,7 +35,7 @@ class QBESuggestionsListViewController: NSViewController, NSTableViewDataSource,
 		return nil
 	}
 	
-	func tableViewSelectionDidChange(notification: NSNotification) {
+	func tableViewSelectionDidChange(_ notification: Notification) {
 		if let selectedRow = tableView?.selectedRow {
 			if selectedRow >= 0 {
 				if let selectedSuggestion = suggestions?[selectedRow] {

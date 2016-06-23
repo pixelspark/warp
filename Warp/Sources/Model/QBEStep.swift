@@ -3,9 +3,9 @@ import WarpCore
 
 /** Indicates a type of sentence. */
 public enum QBESentenceVariant {
-	case Neutral // "Table x from y"
-	case Read // "Read table x from y"
-	case Write // "Write to table x from y"
+	case neutral // "Table x from y"
+	case read // "Read table x from y"
+	case write // "Write to table x from y"
 }
 
 /** Represents a data manipulation step. Steps usually connect to (at least) one previous step and (sometimes) a next step.
@@ -34,128 +34,128 @@ public class QBEStep: QBEConfigurable, NSCoding {
 	}
 
 	public required init(coder aDecoder: NSCoder) {
-		previous = aDecoder.decodeObjectForKey("previousStep") as? QBEStep
-		next = aDecoder.decodeObjectForKey("nextStep") as? QBEStep
-		alternatives = aDecoder.decodeObjectForKey("alternatives") as? [QBEStep]
+		previous = aDecoder.decodeObject(forKey: "previousStep") as? QBEStep
+		next = aDecoder.decodeObject(forKey: "nextStep") as? QBEStep
+		alternatives = aDecoder.decodeObject(forKey: "alternatives") as? [QBEStep]
 	}
 
-	public func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(previous, forKey: "previousStep")
-		coder.encodeObject(next, forKey: "nextStep")
-		coder.encodeObject(alternatives, forKey: "alternatives")
+	public func encode(with coder: NSCoder) {
+		coder.encode(previous, forKey: "previousStep")
+		coder.encode(next, forKey: "nextStep")
+		coder.encode(alternatives, forKey: "alternatives")
 	}
 
 	/** Creates a data object representing the result of an 'example' calculation of the result of this QBEStep. The
 	maxInputRows parameter defines the maximum number of input rows a source step should generate. The maxOutputRows
 	parameter defines the maximum number of rows a step should strive to produce. */
-	public func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
+	public func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
 		if let p = self.previous {
-			p.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: {(data) in
+			p.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: {(data) in
 				switch data {
-					case .Success(let d):
+					case .success(let d):
 						self.apply(d, job: job, callback: callback)
 					
-					case .Failure(let error):
-						callback(.Failure(error))
+					case .failure(let error):
+						callback(.failure(error))
 				}
 			})
 		}
 		else {
-			callback(.Failure(NSLocalizedString("This step requires a previous step, but none was found.", comment: "")))
+			callback(.failure(NSLocalizedString("This step requires a previous step, but none was found.", comment: "")))
 		}
 	}
 	
-	public func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+	public func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		if let p = self.previous {
-			p.fullData(job, callback: {(data) in
+			p.fullDataset(job, callback: {(data) in
 				switch data {
-					case .Success(let d):
+					case .success(let d):
 						self.apply(d, job: job, callback: callback)
 					
-					case .Failure(let error):
-						callback(.Failure(error))
+					case .failure(let error):
+						callback(.failure(error))
 				}
 			})
 		}
 		else {
-			callback(.Failure(NSLocalizedString("This step requires a previous step, but none was found.", comment: "")))
+			callback(.failure(NSLocalizedString("This step requires a previous step, but none was found.", comment: "")))
 		}
 	}
 
-	public var mutableData: MutableData? { get {
+	public var mutableDataset: MutableDataset? { get {
 		return nil
 	} }
 	
 	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific
 	configuration of the step. */
-	public final func explain(locale: Locale) -> String {
-		return sentence(locale, variant: .Neutral).stringValue
+	public final func explain(_ locale: Language) -> String {
+		return sentence(locale, variant: .neutral).stringValue
 	}
 
-	public override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	public override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([])
 	}
 	
-	public func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
+	public func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
 		fatalError("Child class of QBEStep should implement apply()")
 	}
 	
 	/** This method is called right before a document is saved to disk using encodeWithCoder. Steps that reference 
 	external files should take the opportunity to create security bookmarks to these files (as required by Apple's
 	App Sandbox) and store them. */
-	public func willSaveToDocument(atURL: NSURL) {
+	public func willSaveToDocument(_ atURL: URL) {
 	}
 	
 	/** This method is called right after a document has been loaded from disk. */
-	public func didLoadFromDocument(atURL: NSURL) {
+	public func didLoadFromDocument(_ atURL: URL) {
 	}
 
 	/** Returns whether this step can be merged with the specified previous step. */
-	public func mergeWith(prior: QBEStep) -> QBEStepMerge {
-		return QBEStepMerge.Impossible
+	public func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
+		return QBEStepMerge.impossible
 	}
 }
 
 public enum QBEStepMerge {
-	case Impossible
-	case Advised(QBEStep)
-	case Possible(QBEStep)
-	case Cancels
+	case impossible
+	case advised(QBEStep)
+	case possible(QBEStep)
+	case cancels
 }
 
 /** Component that can write a data set to a file in a particular format. */
 public protocol QBEFileWriter: NSObjectProtocol, NSCoding {
 	/** A description of the type of file exported by instances of this file writer, e.g. "XML file". */
-	static func explain(fileExtension: String, locale: Locale) -> String
+	static func explain(_ fileExtension: String, locale: Language) -> String
 
 	/** The UTIs and file extensions supported by this type of file writer. */
 	static var fileTypes: Set<String> { get }
 
 	/** Create a file writer with default settings for the given locale. */
-	init(locale: Locale, title: String?)
+	init(locale: Language, title: String?)
 
 	/** Write data to the given URL. The file writer calls back once after success or failure. */
-	func writeData(data: Data, toFile file: NSURL, locale: Locale, job: Job, callback: (Fallible<Void>) -> ())
+	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ())
 
 	/** Returns a sentence for configuring this writer */
-	func sentence(locale: Locale) -> QBESentence?
+	func sentence(_ locale: Language) -> QBESentence?
 }
 
-/** The transpose step implements a row-column switch. It has no configuration and relies on the Data transpose()
+/** The transpose step implements a row-column switch. It has no configuration and relies on the Dataset transpose()
 implementation to do the actual work. */
 public class QBETransposeStep: QBEStep {
-	public override func apply(data: Data, job: Job? = nil, callback: (Fallible<Data>) -> ()) {
-		callback(.Success(data.transpose()))
+	public override func apply(_ data: Dataset, job: Job? = nil, callback: (Fallible<Dataset>) -> ()) {
+		callback(.success(data.transpose()))
 	}
 
-	public override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	public override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(NSLocalizedString("Switch rows/columns", comment: ""))])
 	}
 
-	public override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+	public override func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
 		if prior is QBETransposeStep {
-			return QBEStepMerge.Cancels
+			return QBEStepMerge.cancels
 		}
-		return QBEStepMerge.Impossible
+		return QBEStepMerge.impossible
 	}
 }

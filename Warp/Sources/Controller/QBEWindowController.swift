@@ -19,7 +19,7 @@ internal class QBEWindowController: NSWindowController {
 		else {
 			saved = false
 		}
-		self.window?.titleVisibility =  saved ? .Visible : .Hidden
+		self.window?.titleVisibility =  saved ? .visible : .hidden
 	}
 
 	override func windowDidLoad() {
@@ -29,11 +29,11 @@ internal class QBEWindowController: NSWindowController {
 
 class QBEToolbarItem: NSToolbarItem {
 	var isValid: Bool {
-		if let f = NSApp.targetForAction(#selector(NSObject.validateToolbarItem(_:))) {
+		if let f = NSApp.target(forAction: #selector(NSObject.validateToolbarItem(_:))) {
 			var responder: AnyObject? = f
 
 			while responder != nil {
-				if responder!.respondsToSelector(#selector(NSObject.validateToolbarItem(_:))) && responder!.validateToolbarItem(self) {
+				if responder!.responds(to: #selector(NSObject.validateToolbarItem(_:))) && responder!.validateToolbarItem(self) {
 					return true
 				}
 				else {
@@ -48,9 +48,9 @@ class QBEToolbarItem: NSToolbarItem {
 	}
 
 	override func validate() {
-		self.enabled = isValid
+		self.isEnabled = isValid
 		if let b = self.view as? NSButton {
-			if !self.enabled {
+			if !self.isEnabled {
 				b.state = NSOffState
 			}
 		}

@@ -1,8 +1,8 @@
 import Foundation
 
 public enum StreamStatus {
-	case HasMore
-	case Finished
+	case hasMore
+	case finished
 }
 
 /** A Sink is a function used as a callback in response to Stream.fetch. It receives a set of rows from the stream
@@ -20,7 +20,7 @@ by the stream (for now).
 Streams are drained using concurrent calls to the 'fetch' method (multiple 'wavefronts'). */
 public protocol Stream {
 	/** The column names associated with the rows produced by this stream. */
-	func columns(job: Job, callback: (Fallible<[Column]>) -> ())
+	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ())
 	
 	/** 
 	Request the next batch of rows from the stream; when it is available, asynchronously call (on the main queue) the
@@ -34,7 +34,7 @@ public protocol Stream {
 	Note that fetch may be called multiple times concurrently (i.e. multiple 'wavefronts') - it is the stream's job to 
 	ensure ordered and consistent delivery of data. Streams may use a serial dispatch queue to serialize requests if 
 	necessary. */
-	func fetch(job: Job, consumer: Sink)
+	func fetch(_ job: Job, consumer: Sink)
 	
 	/** Create a copy of this stream. The copied stream is reset to the initial position (e.g. will return the first row
 	of the data set during the first call to fetch on the copy). */
@@ -60,7 +60,7 @@ public class StreamPuller {
 	public init(stream: Stream, job: Job) {
 		self.stream = stream
 		self.job = job
-		self.concurrentWavefronts = NSProcessInfo.processInfo().processorCount
+		self.concurrentWavefronts = ProcessInfo.processInfo().processorCount
 	}
 
 	/** Start up to self.concurrentFetches number of fetch 'wavefronts' that will deliver their data to the
@@ -82,13 +82,13 @@ public class StreamPuller {
 							if self.lastSinkedWavefront == waveFrontId-1 {
 								// This result arrives just in time (all predecessors have been received already). Sink it directly
 								self.lastSinkedWavefront = waveFrontId
-								self.sink(rows, hasNext: streamStatus == .HasMore)
+								self.sink(rows, hasNext: streamStatus == .hasMore)
 
 								// Maybe now we can sink other results we already received, but were too early.
 								while let earlierRows = self.earlyResults[self.lastSinkedWavefront+1] {
-									self.earlyResults.removeValueForKey(self.lastSinkedWavefront+1)
+									self.earlyResults.removeValue(forKey: self.lastSinkedWavefront+1)
 									self.lastSinkedWavefront += 1
-									self.sink(earlierRows, hasNext: streamStatus == .HasMore)
+									self.sink(earlierRows, hasNext: streamStatus == .hasMore)
 								}
 							}
 							else {
@@ -105,7 +105,7 @@ public class StreamPuller {
 	/** Receives batches of data from streams and appends them to the buffer of rows. It will spawn new wavefronts
 	through 'start' each time it is called, unless the stream indicates there are no more records. When the last
 	wavefront has reported in, sink will call self.callback. */
-	private func sink(rows: Fallible<Array<Tuple>>, hasNext: Bool) {
+	private func sink(_ rows: Fallible<Array<Tuple>>, hasNext: Bool) {
 		self.mutex.locked {
 			if self.outstandingWavefronts == 0 {
 				// We errored, any following wave fronts are ignored
@@ -115,15 +115,15 @@ public class StreamPuller {
 			self.outstandingWavefronts -= 1
 
 			switch rows {
-			case .Success(let r):
+			case .success(let r):
 				self.onReceiveRows(r) { receiveResult in
 					self.mutex.locked {
 						switch receiveResult {
-						case .Failure(let e):
+						case .failure(let e):
 							self.outstandingWavefronts = 0
 							self.onError(e)
 
-						case .Success(_):
+						case .success(_):
 							if !hasNext {
 								let isLast = self.outstandingWavefronts == 0
 								if isLast {
@@ -150,14 +150,14 @@ public class StreamPuller {
 					}
 				}
 
-			case .Failure(let errorMessage):
+			case .failure(let errorMessage):
 				self.outstandingWavefronts = 0
 				self.onError(errorMessage)
 			}
 		}
 	}
 
-	public func onReceiveRows(rows: [Tuple], callback: (Fallible<Void>) -> ()) {
+	public func onReceiveRows(_ rows: [Tuple], callback: (Fallible<Void>) -> ()) {
 		fatalError("Meant to be overridden")
 	}
 
@@ -165,7 +165,7 @@ public class StreamPuller {
 		fatalError("Meant to be overridden")
 	}
 
-	public func onError(error: String) {
+	public func onError(_ error: String) {
 		fatalError("Meant to be overridden")
 	}
 }
@@ -181,127 +181,127 @@ private class RasterStreamPuller: StreamPuller {
 		super.init(stream: stream, job: job)
 	}
 
-	override func onReceiveRows(rows: [Tuple], callback: (Fallible<Void>) -> ()) {
+	override func onReceiveRows(_ rows: [Tuple], callback: (Fallible<Void>) -> ()) {
 		self.mutex.locked {
 			// Append the rows to our buffered raster
-			self.data.appendContentsOf(rows)
-			callback(.Success())
+			self.data.append(contentsOf: rows)
+			callback(.success())
 		}
 	}
 
 	override func onDoneReceiving() {
 		job.async {
-			self.callback(.Success(Raster(data: self.data, columns: self.columns, readOnly: true)))
+			self.callback(.success(Raster(data: self.data, columns: self.columns, readOnly: true)))
 		}
 	}
 
-	override func onError(error: String) {
+	override func onError(_ error: String) {
 		job.async {
-			self.callback(.Failure(error))
+			self.callback(.failure(error))
 		}
 	}
 }
 
-/** StreamData is an implementation of Data that performs data operations on a stream. StreamData will consume
+/** StreamDataset is an implementation of Dataset that performs data operations on a stream. StreamDataset will consume
 the whole stream and proxy to a raster-based implementation for operations that cannot efficiently be performed on a 
 stream. */
-public class StreamData: Data {
+public class StreamDataset: Dataset {
 	public let source: Stream
 	
 	public init(source: Stream) {
 		self.source = source
 	}
 	
-	/** The fallback data object implements data operators not implemented here. Because RasterData is the fallback
-	for StreamData and the other way around, neither should call the fallback for an operation it implements itself,
+	/** The fallback data object implements data operators not implemented here. Because RasterDataset is the fallback
+	for StreamDataset and the other way around, neither should call the fallback for an operation it implements itself,
 	and at least one of the classes has to implement each operation. */
-	private func fallback() -> Data {
-		return RasterData(future: raster)
+	private func fallback() -> Dataset {
+		return RasterDataset(future: raster)
 	}
 
-	public func raster(job: Job, callback: (Fallible<Raster>) -> ()) {
+	public func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
 		let s = source.clone()
 		job.async {
 			s.columns(job) { (columns) -> () in
 				switch columns {
-					case .Success(let cns):
+					case .success(let cns):
 						let h = RasterStreamPuller(stream: s, job: job, columns: cns, callback: callback)
 						h.start()
 
-					case .Failure(let e):
-						callback(.Failure(e))
+					case .failure(let e):
+						callback(.failure(e))
 				}
 			}
 		}
 	}
 
-	public func transpose() -> Data {
+	public func transpose() -> Dataset {
 		// This cannot be streamed
 		return fallback().transpose()
 	}
 	
-	public func aggregate(groups: [Column : Expression], values: [Column : Aggregator]) -> Data {
-		return StreamData(source: AggregateTransformer(source: source, groups: groups, values: values))
+	public func aggregate(_ groups: [Column : Expression], values: [Column : Aggregator]) -> Dataset {
+		return StreamDataset(source: AggregateTransformer(source: source, groups: groups, values: values))
 	}
 	
-	public func distinct() -> Data {
+	public func distinct() -> Dataset {
 		return fallback().distinct()
 	}
 	
-	public func union(data: Data) -> Data {
+	public func union(_ data: Dataset) -> Dataset {
 		// TODO: this can be implemented efficiently as a streaming operation
 		return fallback().union(data)
 	}
 	
-	public func flatten(valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Data {
-		return StreamData(source: FlattenTransformer(source: source, valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
+	public func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset {
+		return StreamDataset(source: FlattenTransformer(source: source, valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
 	}
 	
-	public func selectColumns(columns: [Column]) -> Data {
+	public func selectColumns(_ columns: [Column]) -> Dataset {
 		// Implemented by ColumnsTransformer
-		return StreamData(source: ColumnsTransformer(source: source, selectColumns: columns))
+		return StreamDataset(source: ColumnsTransformer(source: source, selectColumns: columns))
 	}
 	
-	public func offset(numberOfRows: Int) -> Data {
-		return StreamData(source: OffsetTransformer(source: source, numberOfRows: numberOfRows))
+	public func offset(_ numberOfRows: Int) -> Dataset {
+		return StreamDataset(source: OffsetTransformer(source: source, numberOfRows: numberOfRows))
 	}
 	
-	public func limit(numberOfRows: Int) -> Data {
+	public func limit(_ numberOfRows: Int) -> Dataset {
 		// Limit has a streaming implementation in LimitTransformer
-		return StreamData(source: LimitTransformer(source: source, numberOfRows: numberOfRows))
+		return StreamDataset(source: LimitTransformer(source: source, numberOfRows: numberOfRows))
 	}
 	
-	public func random(numberOfRows: Int) -> Data {
-		return StreamData(source: RandomTransformer(source: source, numberOfRows: numberOfRows))
+	public func random(_ numberOfRows: Int) -> Dataset {
+		return StreamDataset(source: RandomTransformer(source: source, numberOfRows: numberOfRows))
 	}
 	
-	public func unique(expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
+	public func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
 		// TODO: this can be implemented as a stream with some memory
 		return fallback().unique(expression, job: job, callback: callback)
 	}
 	
-	public func sort(by: [Order]) -> Data {
+	public func sort(_ by: [Order]) -> Dataset {
 		return fallback().sort(by)
 	}
 	
-	public func calculate(calculations: Dictionary<Column, Expression>) -> Data {
+	public func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset {
 		// Implemented as stream by CalculateTransformer
-		return StreamData(source: CalculateTransformer(source: source, calculations: calculations))
+		return StreamDataset(source: CalculateTransformer(source: source, calculations: calculations))
 	}
 	
-	public func pivot(horizontal: [Column], vertical: [Column], values: [Column]) -> Data {
+	public func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset {
 		return fallback().pivot(horizontal, vertical: vertical, values: values)
 	}
 	
-	public func join(join: Join) -> Data {
-		return StreamData(source: JoinTransformer(source: source, join: join))
+	public func join(_ join: Join) -> Dataset {
+		return StreamDataset(source: JoinTransformer(source: source, join: join))
 	}
 	
-	public func filter(condition: Expression) -> Data {
-		return StreamData(source: FilterTransformer(source: source, condition: condition))
+	public func filter(_ condition: Expression) -> Dataset {
+		return StreamDataset(source: FilterTransformer(source: source, condition: condition))
 	}
 	
-	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		source.columns(job, callback: callback)
 	}
 	
@@ -317,16 +317,16 @@ public class ErrorStream: Stream {
 		self.error = error
 	}
 	
-	public func fetch(job: Job, consumer: Sink) {
-		consumer(.Failure(self.error), .Finished)
+	public func fetch(_ job: Job, consumer: Sink) {
+		consumer(.failure(self.error), .finished)
 	}
 	
 	public func clone() -> Stream {
 		return ErrorStream(self.error)
 	}
 	
-	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		callback(.Failure(self.error))
+	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+		callback(.failure(self.error))
 	}
 }
 
@@ -336,16 +336,16 @@ public class EmptyStream: Stream {
 	public init() {
 	}
 
-	public func fetch(job: Job, consumer: Sink) {
-		consumer(.Success([]), .Finished)
+	public func fetch(_ job: Job, consumer: Sink) {
+		consumer(.success([]), .finished)
 	}
 	
 	public func clone() -> Stream {
 		return EmptyStream()
 	}
 	
-	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		callback(.Success([]))
+	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+		callback(.success([]))
 	}
 }
 
@@ -353,27 +353,27 @@ public class EmptyStream: Stream {
 A stream that sources from a Swift generator of Tuple. */
 public class SequenceStream: Stream {
 	private let sequence: AnySequence<Fallible<Tuple>>
-	private var generator: AnyGenerator<Fallible<Tuple>>
+	private var generator: AnyIterator<Fallible<Tuple>>
 	private let columns: [Column]
 	private var position: Int = 0
 	private var rowCount: Int? = nil // nil = number of rows is yet unknown
-	private var queue = dispatch_queue_create("nl.pixelspark.Warp.SequenceStream", DISPATCH_QUEUE_SERIAL)
+	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.SequenceStream", attributes: DispatchQueueAttributes.serial)
 	private var error: String? = nil
 	
 	public init(_ sequence: AnySequence<Fallible<Tuple>>, columns: [Column], rowCount: Int? = nil) {
 		self.sequence = sequence
-		self.generator = sequence.generate()
+		self.generator = sequence.makeIterator()
 		self.columns = columns
 		self.rowCount = rowCount
 	}
 	
-	public func fetch(job: Job, consumer: Sink) {
+	public func fetch(_ job: Job, consumer: Sink) {
 		if let e = error {
-			consumer(.Failure(e), .Finished)
+			consumer(.failure(e), .finished)
 			return
 		}
 
-		dispatch_async(queue) {
+		queue.async {
 			job.time("sequence", items: StreamDefaultBatchSize, itemType: "rows") {
 				var done = false
 				var rows :[Tuple] = []
@@ -382,10 +382,10 @@ public class SequenceStream: Stream {
 				for _ in 0..<StreamDefaultBatchSize {
 					if let next = self.generator.next() {
 						switch next {
-							case .Success(let f):
+							case .success(let f):
 								rows.append(f)
 
-							case .Failure(let e):
+							case .failure(let e):
 								self.error = e
 								done = true
 								break
@@ -401,23 +401,23 @@ public class SequenceStream: Stream {
 				}
 				self.position += rows.count
 				if let rc = self.rowCount where rc > 0 {
-					job.reportProgress(Double(self.position) / Double(rc), forKey: unsafeAddressOf(self).hashValue)
+					job.reportProgress(Double(self.position) / Double(rc), forKey: unsafeAddress(of: self).hashValue)
 				}
 
 				job.async {
 					if let e = self.error {
-						consumer(.Failure(e), .Finished)
+						consumer(.failure(e), .finished)
 					}
 					else {
-						consumer(.Success(Array(rows)), done ? .Finished : .HasMore)
+						consumer(.success(Array(rows)), done ? .finished : .hasMore)
 					}
 				}
 			}
 		}
 	}
 	
-	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		callback(.Success(self.columns))
+	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+		callback(.success(self.columns))
 	}
 	
 	public func clone() -> Stream {
@@ -441,15 +441,15 @@ public class Transformer: NSObject, Stream {
 		self.source = source
 	}
 	
-	public func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		source.columns(job, callback: callback)
 	}
 	
-	public final func fetch(job: Job, consumer: Sink) {
+	public final func fetch(_ job: Job, consumer: Sink) {
 		let shouldContinue = self.mutex.locked { () -> Bool in
 			if !started {
 				self.started = true
-				job.reportProgress(0.0, forKey: unsafeAddressOf(self).hashValue)
+				job.reportProgress(0.0, forKey: unsafeAddress(of: self).hashValue)
 			}
 
 			if !self.stopped {
@@ -460,18 +460,18 @@ public class Transformer: NSObject, Stream {
 
 		if shouldContinue {
 			source.fetch(job, consumer: once { (fallibleRows, streamStatus) -> () in
-				if streamStatus == .Finished {
+				if streamStatus == .finished {
 					self.mutex.locked {
 						self.stopped = true
 					}
 				}
 				
 				switch fallibleRows {
-					case .Success(let rows):
+					case .success(let rows):
 						job.async {
 							self.transform(rows, streamStatus: streamStatus, job: job, callback: once { (transformedRows, newStreamStatus) -> () in
 								let (sourceStopped, outstandingTransforms) = self.mutex.locked { () -> (Bool, Int) in
-									self.stopped = self.stopped || newStreamStatus != .HasMore
+									self.stopped = self.stopped || newStreamStatus != .hasMore
 									self.outstandingTransforms -= 1
 									return (self.stopped, self.outstandingTransforms)
 								}
@@ -483,12 +483,12 @@ public class Transformer: NSObject, Stream {
 												assert(self.stopped, "finish() called while not stopped yet")
 											}
 											self.finish(transformedRows, job: job, callback: once { extraRows, finalStreamStatus in
-												job.reportProgress(1.0, forKey: unsafeAddressOf(self).hashValue)
+												job.reportProgress(1.0, forKey: unsafeAddress(of: self).hashValue)
 												consumer(extraRows, finalStreamStatus)
 											})
 										}
 										else {
-											consumer(transformedRows, .Finished)
+											consumer(transformedRows, .finished)
 										}
 									}
 									else {
@@ -498,28 +498,28 @@ public class Transformer: NSObject, Stream {
 							})
 						}
 					
-					case .Failure(let error):
-						consumer(.Failure(error), .Finished)
+					case .failure(let error):
+						consumer(.failure(error), .finished)
 				}
 			})
 		}
 		else {
-			consumer(.Success([]), .Finished)
+			consumer(.success([]), .finished)
 		}
 	}
 
 	/** This method will be called after the last transformer has finished its job, but before the last result is returned
 	to the stream's consumer. This is the 'last chance' to do any work (i.e. transformers that only return any data after
 	having seen all data should do so here). The rows returned from the last call to transform are provided as parameter.*/
-	public func finish(lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
-		return callback(lastRows, .Finished)
+	public func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
+		return callback(lastRows, .finished)
 	}
 
 	/** Perform the stream transformation on the given set of rows. The function should call the callback exactly once
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). */
-	public func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	public func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		fatalError("Transformer.transform should be implemented in a subclass")
 	}
 
@@ -569,7 +569,7 @@ private class FlattenTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	private func prepare(job: Job, callback: () -> ()) {
+	private func prepare(_ job: Job, callback: () -> ()) {
 		if self.originalColumns == nil {
 			source.columns(job) { (cols) -> () in
 				self.originalColumns = cols
@@ -581,21 +581,21 @@ private class FlattenTransformer: Transformer {
 		}
 	}
 	
-	private override func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		callback(.Success(columns))
+	private override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+		callback(.success(columns))
 	}
 	
 	private override func clone() -> Stream {
 		return FlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
 	}
 	
-	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		prepare(job) {
 			switch self.originalColumns! {
-			case .Success(let originalColumns):
+			case .success(let originalColumns):
 				var newRows: [Tuple] = []
 				newRows.reserveCapacity(self.columns.count * rows.count)
-				var templateRow: [Value] = self.columns.map({(c) -> (Value) in return Value.InvalidValue})
+				var templateRow: [Value] = self.columns.map({(c) -> (Value) in return Value.invalid})
 				let valueIndex = (self.writeRowIdentifier ? 1 : 0) + (self.writeColumnIdentifier ? 1 : 0);
 				
 				job.time("flatten", items: self.columns.count * rows.count, itemType: "cells") {
@@ -614,10 +614,10 @@ private class FlattenTransformer: Transformer {
 						}
 					}
 				}
-				callback(.Success(Array(newRows)), streamStatus)
+				callback(.success(Array(newRows)), streamStatus)
 				
-			case .Failure(let error):
-				callback(.Failure(error), .Finished)
+			case .failure(let error):
+				callback(.failure(error), .finished)
 			}
 		}
 	}
@@ -632,20 +632,20 @@ private class FilterTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		source.columns(job) { (columns) -> () in
 			switch columns {
-			case .Success(let cns):
+			case .success(let cns):
 				job.time("Stream filter", items: rows.count, itemType: "row") {
 					let newRows = Array(rows.filter({(row) -> Bool in
-						return self.condition.apply(Row(row, columns: cns), foreign: nil, inputValue: nil) == Value.BoolValue(true)
+						return self.condition.apply(Row(row, columns: cns), foreign: nil, inputValue: nil) == Value.bool(true)
 					}))
 					
-					callback(.Success(Array(newRows)), streamStatus)
+					callback(.success(Array(newRows)), streamStatus)
 				}
 				
-			case .Failure(let error):
-				callback(.Failure(error), .Finished)
+			case .failure(let error):
+				callback(.failure(error), .finished)
 			}
 		}
 	}
@@ -665,19 +665,19 @@ private class RandomTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		self.mutex.locked {
 			job.time("Reservoir fill", items: rows.count, itemType: "rows") {
 				self.reservoir.add(rows)
 			}
 
-			callback(.Success([]), streamStatus)
+			callback(.success([]), streamStatus)
 		}
 	}
 
-	private override func finish(lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
+	private override func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
 		self.mutex.locked {
-			callback(.Success(Array(self.reservoir.sample)), .Finished)
+			callback(.success(Array(self.reservoir.sample)), .finished)
 		}
 	}
 	
@@ -696,12 +696,12 @@ private class OffsetTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		self.mutex.locked {
 			if self.position > self.offset {
 				self.position += rows.count
 				job.async {
-					callback(.Success(rows), streamStatus)
+					callback(.success(rows), streamStatus)
 				}
 			}
 			else {
@@ -710,12 +710,12 @@ private class OffsetTransformer: Transformer {
 				self.position += count
 				if rest > count {
 					job.async {
-						callback(.Success([]), streamStatus)
+						callback(.success([]), streamStatus)
 					}
 				}
 				else {
 					job.async {
-						callback(.Success(Array(rows[rest..<count])), streamStatus)
+						callback(.success(Array(rows[rest..<count])), streamStatus)
 					}
 				}
 			}
@@ -738,15 +738,15 @@ private class LimitTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		self.mutex.locked {
 			// We haven't reached the limit yet, not even after streaming this chunk
 			if (self.position + rows.count) < self.limit {
 				self.position += rows.count
 
 				job.async {
-					job.reportProgress(Double(self.position) / Double(self.limit), forKey: unsafeAddressOf(self).hashValue)
-					callback(.Success(rows), streamStatus)
+					job.reportProgress(Double(self.position) / Double(self.limit), forKey: unsafeAddress(of: self).hashValue)
+					callback(.success(rows), streamStatus)
 				}
 			}
 			// We will reach the limit before streaming this full chunk, split it and call it a day
@@ -754,14 +754,14 @@ private class LimitTransformer: Transformer {
 				let n = self.limit - self.position
 				self.position += rows.count
 				job.async {
-					job.reportProgress(1.0, forKey: unsafeAddressOf(self).hashValue)
-					callback(.Success(Array(rows[0..<n])), .Finished)
+					job.reportProgress(1.0, forKey: unsafeAddress(of: self).hashValue)
+					callback(.success(Array(rows[0..<n])), .finished)
 				}
 			}
 			// The limit has already been met fully
 			else {
 				job.async {
-					callback(.Success([]), .Finished)
+					callback(.success([]), .finished)
 				}
 			}
 		}
@@ -781,28 +781,28 @@ private class ColumnsTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	override private func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	override private func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		source.columns(job) { (sourceColumns) -> () in
 			switch sourceColumns {
-			case .Success(let cns):
+			case .success(let cns):
 				self.ensureIndexes(job) {
 					callback(self.indexes!.use({(idxs) in
 						return idxs.map({return cns[$0]})
 					}))
 				}
 				
-			case .Failure(let error):
-				callback(.Failure(error))
+			case .failure(let error):
+				callback(.failure(error))
 			}
 		}
 	}
 	
-	override private func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	override private func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		ensureIndexes(job) {
 			assert(self.indexes != nil)
 			
 			switch self.indexes! {
-				case .Success(let idxs):
+				case .success(let idxs):
 					var result: [Tuple] = []
 					
 					for row in rows {
@@ -813,31 +813,31 @@ private class ColumnsTransformer: Transformer {
 						}
 						result.append(newRow)
 					}
-					callback(.Success(Array(result)), streamStatus)
+					callback(.success(Array(result)), streamStatus)
 				
-				case .Failure(let error):
-					callback(.Failure(error), .Finished)
+				case .failure(let error):
+					callback(.failure(error), .finished)
 			}
 		}
 	}
 	
-	private func ensureIndexes(job: Job, callback: () -> ()) {
+	private func ensureIndexes(_ job: Job, callback: () -> ()) {
 		if indexes == nil {
 			var idxs: [Int] = []
 			source.columns(job) { (sourceColumnNames: Fallible<[Column]>) -> () in
 				switch sourceColumnNames {
-					case .Success(let sourceCols):
+					case .success(let sourceCols):
 						for column in self.columns {
-							if let idx = sourceCols.indexOf(column) {
+							if let idx = sourceCols.index(of: column) {
 								idxs.append(idx)
 							}
 						}
 						
-						self.indexes = .Success(idxs)
+						self.indexes = .success(idxs)
 						callback()
 					
-					case .Failure(let error):
-						self.indexes = .Failure(error)
+					case .failure(let error):
+						self.indexes = .failure(error)
 				}
 				
 			}
@@ -856,7 +856,7 @@ private class CalculateTransformer: Transformer {
 	let calculations: Dictionary<Column, Expression>
 	private var indices: Fallible<Dictionary<Column, Int>>? = nil
 	private var columns: Fallible<[Column]>? = nil
-	private let queue = dispatch_queue_create("nl.pixelspark.Warp.CalculateTransformer", DISPATCH_QUEUE_SERIAL)
+	private let queue = DispatchQueue(label: "nl.pixelspark.Warp.CalculateTransformer", attributes: DispatchQueueAttributes.serial)
 	private var ensureIndexes: Future<Void>! = nil
 
 	init(source: Stream, calculations: Dictionary<Column, Expression>) {
@@ -873,25 +873,25 @@ private class CalculateTransformer: Transformer {
 			if s!.indices == nil {
 				source.columns(job) { (columns) -> () in
 					switch columns {
-					case .Success(let cns):
+					case .success(let cns):
 						var columns = cns
 						var indices = Dictionary<Column, Int>()
 
 						// Create newly calculated columns
 						for (targetColumn, _) in s!.calculations {
-							var columnIndex = cns.indexOf(targetColumn) ?? -1
+							var columnIndex = cns.index(of: targetColumn) ?? -1
 							if columnIndex == -1 {
 								columns.append(targetColumn)
 								columnIndex = columns.count-1
 							}
 							indices[targetColumn] = columnIndex
 						}
-						s!.indices = .Success(indices)
-						s!.columns = .Success(columns)
+						s!.indices = .success(indices)
+						s!.columns = .success(columns)
 
-					case .Failure(let error):
-						s!.columns = .Failure(error)
-						s!.indices = .Failure(error)
+					case .failure(let error):
+						s!.columns = .failure(error)
+						s!.indices = .failure(error)
 					}
 
 					s = nil
@@ -905,23 +905,23 @@ private class CalculateTransformer: Transformer {
 		})
 	}
 	
-	private override func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.ensureIndexes.get(job) {
 			callback(self.columns!)
 		}
 	}
 	
-	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		self.ensureIndexes.get(job) {
 			job.time("Stream calculate", items: rows.count, itemType: "row") {
 				switch self.columns! {
-				case .Success(let cns):
+				case .success(let cns):
 					switch self.indices! {
-					case .Success(let idcs):
-						let newData = Array(rows.map({ (inRow: Tuple) -> Tuple in
+					case .success(let idcs):
+						let newDataset = Array(rows.map({ (inRow: Tuple) -> Tuple in
 							var row = inRow
 							for _ in 0..<max(0, cns.count - row.count) {
-								row.append(Value.EmptyValue)
+								row.append(Value.empty)
 							}
 							
 							for (targetColumn, formula) in self.calculations {
@@ -933,14 +933,14 @@ private class CalculateTransformer: Transformer {
 							return row
 						}))
 						
-						callback(.Success(Array(newData)), streamStatus)
+						callback(.success(Array(newDataset)), streamStatus)
 						
-					case .Failure(let error):
-						callback(.Failure(error), .Finished)
+					case .failure(let error):
+						callback(.failure(error), .finished)
 					}
 					
-				case .Failure(let error):
-					callback(.Failure(error), .Finished)
+				case .failure(let error):
+					callback(.failure(error), .finished)
 				}
 			}
 		}
@@ -972,7 +972,7 @@ private class JoinTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	private override func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		if let c = self.columnNamesCached {
 			callback(c)
 		}
@@ -984,28 +984,28 @@ private class JoinTransformer: Transformer {
 		}
 	}
 	
-	private func getColumnNames(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private func getColumnNames(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.leftColumnNames.get(job) { (leftColumnsFallible) in
 			switch leftColumnsFallible {
-			case .Success(let leftColumns):
+			case .success(let leftColumns):
 				switch self.join.type {
 				case .LeftJoin, .InnerJoin:
-					self.join.foreignData.columns(job) { (rightColumnsFallible) -> () in
+					self.join.foreignDataset.columns(job) { (rightColumnsFallible) -> () in
 						switch rightColumnsFallible {
-						case .Success(let rightColumns):
+						case .success(let rightColumns):
 							// Only new columns from the right side will be added
 							let rightColumnsInResult = rightColumns.filter({return !leftColumns.contains($0)})
 							self.isIneffectiveJoin = rightColumnsInResult.isEmpty
-							callback(.Success(leftColumns + rightColumnsInResult))
+							callback(.success(leftColumns + rightColumnsInResult))
 							
-						case .Failure(let e):
-							callback(.Failure(e))
+						case .failure(let e):
+							callback(.failure(e))
 						}
 					}
 				}
 				
-				case .Failure(let e):
-					callback(.Failure(e))
+				case .failure(let e):
+					callback(.failure(e))
 			}
 		}
 	}
@@ -1014,21 +1014,21 @@ private class JoinTransformer: Transformer {
 		return JoinTransformer(source: self.source.clone(), join: self.join)
 	}
 	
-	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		self.leftColumnNames.get(job) { (leftColumnNamesFallible) in
 			switch leftColumnNamesFallible {
-			case .Success(let leftColumnNames):
+			case .success(let leftColumnNames):
 				// The columns function checks whether this join will actually add columns to the result.
 				self.columns(job) { (columnNamesFallible) -> () in
 					switch columnNamesFallible {
-					case .Success(_):
+					case .success(_):
 						// Do we have any new columns at all?
 						if self.isIneffectiveJoin {
-							callback(.Success(rows), streamStatus)
+							callback(.success(rows), streamStatus)
 						}
 						else {
 							// We need to do work
-							let foreignData = self.join.foreignData
+							let foreignDataset = self.join.foreignDataset
 							let joinExpression = self.join.expression
 							
 							// Create a filter expression that fetches all rows that we could possibly match to our own rows
@@ -1039,9 +1039,9 @@ private class JoinTransformer: Transformer {
 							let foreignFilter = Call(arguments: foreignFilters, type: Function.Or)
 							
 							// Find relevant rows from the foreign data set
-							foreignData.filter(foreignFilter).raster(job, callback: { (foreignRasterFallible) -> () in
+							foreignDataset.filter(foreignFilter).raster(job, callback: { (foreignRasterFallible) -> () in
 								switch foreignRasterFallible {
-								case .Success(let foreignRaster):
+								case .success(let foreignRaster):
 									// Perform the actual join using our own set of rows and the raster of possible matches from the foreign table
 									let ourRaster = Raster(data: Array(rows), columns: leftColumnNames, readOnly: true)
 									
@@ -1049,29 +1049,29 @@ private class JoinTransformer: Transformer {
 									case .LeftJoin:
 										ourRaster.leftJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
 											let joinedTuples = Array<Tuple>(joinedRaster.raster)
-											callback(.Success(joinedTuples), streamStatus)
+											callback(.success(joinedTuples), streamStatus)
 										}
 										
 									case .InnerJoin:
 										ourRaster.innerJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
 											let joinedTuples = Array<Tuple>(joinedRaster.raster)
-											callback(.Success(joinedTuples), streamStatus)
+											callback(.success(joinedTuples), streamStatus)
 										}
 									}
 								
-								case .Failure(let e):
-									callback(.Failure(e), .Finished)
+								case .failure(let e):
+									callback(.failure(e), .finished)
 								}
 							})
 						}
 					
-					case .Failure(let e):
-						callback(.Failure(e), .Finished)
+					case .failure(let e):
+						callback(.failure(e), .finished)
 					}
 				}
 				
-			case .Failure(let e):
-				callback(.Failure(e), .Finished)
+			case .failure(let e):
+				callback(.failure(e), .finished)
 			}
 		}
 	}
@@ -1117,11 +1117,11 @@ private class AggregateTransformer: Transformer {
 		self.init(source: source, groups: OrderedDictionary(dictionaryInAnyOrder: groups), values: OrderedDictionary(dictionaryInAnyOrder: values))
 	}
 
-	private override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		let reducerTemplate = self.values.mapDictionary { (c,a) in return (c, a.reduce.reducer!) }
 		self.sourceColumnNames.get(job) { sourceColumnsFallible in
 			switch sourceColumnsFallible {
-			case .Success(let sourceColumns):
+			case .success(let sourceColumns):
 				job.async {
 					job.time("Stream reduce collect", items: rows.count, itemType: "rows") {
 						var leafs: [Catalog<Reducer>: [Row]] = [:]
@@ -1154,16 +1154,16 @@ private class AggregateTransformer: Transformer {
 						}
 					}
 
-					callback(.Success([]), streamStatus)
+					callback(.success([]), streamStatus)
 				}
 
-			case .Failure(let e):
-				callback(.Failure(e), .Finished)
+			case .failure(let e):
+				callback(.failure(e), .finished)
 			}
 		}
 	}
 
-	private override func finish(lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
+	private override func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
 		// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
 		job.async {
 			var rows: [Tuple] = []
@@ -1176,12 +1176,12 @@ private class AggregateTransformer: Transformer {
 				}
 			}
 
-			callback(.Success(rows), .Finished)
+			callback(.success(rows), .finished)
 		}
 	}
 
-	private override func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
-		callback(.Success(self.groups.keys + self.values.keys))
+	private override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+		callback(.success(self.groups.keys + self.values.keys))
 	}
 
 	private override func clone() -> Stream {

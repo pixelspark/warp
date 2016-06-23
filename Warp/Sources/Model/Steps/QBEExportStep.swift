@@ -11,13 +11,13 @@ class QBEExportStep: QBEStep {
 		self.file = file
 	}
 
-	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(self.writer, forKey: "writer")
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		coder.encode(self.writer, forKey: "writer")
+		super.encode(with: coder)
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		self.writer = aDecoder.decodeObjectForKey("writer") as? QBEFileWriter
+		self.writer = aDecoder.decodeObject(forKey: "writer") as? QBEFileWriter
 		super.init(coder: aDecoder)
 	}
 
@@ -27,58 +27,58 @@ class QBEExportStep: QBEStep {
 		super.init()
 	}
 
-	override func willSaveToDocument(atURL: NSURL) {
-		self.file = self.file?.bookmark(atURL)
+	override func willSaveToDocument(_ atURL: URL) {
+		self.file = self.file?.persist(atURL)
 	}
 
-	override func didLoadFromDocument(atURL: NSURL) {
+	override func didLoadFromDocument(_ atURL: URL) {
 		self.file = self.file?.resolve(atURL)
 	}
 
-	func write(job: Job, callback: (Fallible<Data>) -> ()) {
-		super.fullData(job) { (fallibleData) -> () in
-			switch fallibleData {
-			case .Success(let data):
+	func write(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+		super.fullDataset(job) { (fallibleDataset) -> () in
+			switch fallibleDataset {
+			case .success(let data):
 				if let w = self.writer, let url = self.file?.url {
 					job.async {
-						w.writeData(data, toFile: url, locale: Locale(), job: job, callback: { (result) -> () in
+						w.writeDataset(data, toFile: url, locale: Language(), job: job, callback: { (result) -> () in
 							switch result {
-							case .Success:
-								callback(.Success(data))
+							case .success:
+								callback(.success(data))
 
-							case .Failure(let e):
-								callback(.Failure(e))
+							case .failure(let e):
+								callback(.failure(e))
 							}
 						})
 					}
 				}
 				else {
-					callback(.Failure("Export is configured incorrectly, or not file to export to"))
+					callback(.failure("Export is configured incorrectly, or not file to export to"))
 				}
 
-			case .Failure(let e):
-				callback(.Failure(e))
+			case .failure(let e):
+				callback(.failure(e))
 			}
 		}
 	}
 
-	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		self.write(job, callback: callback)
 	}
 
-	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
-		return callback(.Success(data))
+	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+		return callback(.success(data))
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let factory = QBEFactory.sharedInstance
 
 		var options: [String: String] = [:]
 		var currentKey: String = ""
 		for writer in factory.fileWriters {
 			if let ext = writer.fileTypes.first {
-				let allExtensions = writer.fileTypes.joinWithSeparator(", ")
-				options[ext] = "\(writer.explain(ext, locale: locale)) (\(allExtensions.uppercaseString))"
+				let allExtensions = writer.fileTypes.joined(separator: ", ")
+				options[ext] = "\(writer.explain(ext, locale: locale)) (\(allExtensions.uppercased()))"
 				if writer == self.writer?.dynamicType {
 					currentKey = ext
 				}

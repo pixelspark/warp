@@ -11,27 +11,27 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 	@IBOutlet var infoProgress: NSProgressIndicator?
 	@IBOutlet var infoIcon: NSImageView?
 	@IBOutlet var createTableButton: NSButton?
-	let serviceDataSource = QBESecretsDataSource(serviceType: "postgres")
+	let serviceDatasetSource = QBESecretsDataSource(serviceType: "postgres")
 
 	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
 		super.init(configurable: configurable, delegate: delegate, nibName: "QBEPostgresStepView", bundle: nil)
 	}
 	
 	internal override func viewWillAppear() {
-		self.hostField?.dataSource = self.serviceDataSource
+		self.hostField?.dataSource = self.serviceDatasetSource
 		super.viewWillAppear()
 		updateView()
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: MutableData?) {
-		if let s = table as? SQLMutableData {
+	func alterTableView(_ view: QBEAlterTableViewController, didAlterTable table: MutableDataset?) {
+		if let s = table as? SQLMutableDataset {
 			self.step.tableName = s.tableName
 			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 			self.updateView()
 		}
 	}
 
-	@IBAction func createTable(sender: NSObject) {
+	@IBAction func createTable(_ sender: NSObject) {
 		if let warehouse = step.warehouse {
 			let vc = QBEAlterTableViewController()
 			vc.warehouse = warehouse
@@ -41,7 +41,7 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 		}
 	}
 
-	@IBAction func updateStep(sender: NSObject) {
+	@IBAction func updateStep(_ sender: NSObject) {
 		var changed = false
 		
 		if let u = self.userField?.stringValue where u != step.user {
@@ -54,10 +54,10 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 		}
 		
 		if let u = self.hostField?.stringValue where u != step.host {
-			if let url = NSURL(string: u) {
+			if let url = URL(string: u) {
 				step.user = url.user ?? step.user
 				step.host = url.host ?? step.host
-				step.port = url.port?.integerValue ?? step.port
+				step.port = (url as NSURL).port?.intValue ?? step.port
 			}
 			else {
 				step.host = u
@@ -83,7 +83,7 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 	} }
 
 	private func updateView() {
-		checkConnectionJob = Job(.UserInitiated)
+		checkConnectionJob = Job(.userInitiated)
 
 		self.hostField?.reloadData()
 
@@ -92,12 +92,12 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 		self.hostField?.stringValue = step.host ?? ""
 		self.portField?.stringValue = "\(step.port ?? 0)"
 
-		self.infoProgress?.hidden = false
+		self.infoProgress?.isHidden = false
 		self.infoLabel?.stringValue = NSLocalizedString("Trying to connect...", comment: "")
 		self.infoIcon?.image = nil
-		self.infoIcon?.hidden = true
+		self.infoIcon?.isHidden = true
 		self.infoProgress?.startAnimation(nil)
-		self.createTableButton?.enabled = false
+		self.createTableButton?.isEnabled = false
 
 		if let database = step.database {
 			checkConnectionJob!.async {
@@ -106,18 +106,18 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 					asyncMain {
 						self.infoProgress?.stopAnimation(nil)
 						switch fallibleInfo {
-						case .Success(let v):
+						case .success(let v):
 							self.infoLabel?.stringValue = String(format: NSLocalizedString("Connected (%@)", comment: ""),v)
 							self.infoIcon?.image = NSImage(named: "CheckIcon")
-							self.infoProgress?.hidden = true
-							self.infoIcon?.hidden = false
-							self.createTableButton?.enabled = self.step.warehouse != nil
+							self.infoProgress?.isHidden = true
+							self.infoIcon?.isHidden = false
+							self.createTableButton?.isEnabled = self.step.warehouse != nil
 
-						case .Failure(let e):
+						case .failure(let e):
 							self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e)
 							self.infoIcon?.image = NSImage(named: "SadIcon")
-							self.infoProgress?.hidden = true
-							self.infoIcon?.hidden = false
+							self.infoProgress?.isHidden = true
+							self.infoIcon?.isHidden = false
 						}
 					}
 				})

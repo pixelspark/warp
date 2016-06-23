@@ -27,11 +27,11 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return true
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(right, forKey: "right")
-		coder.encodeObject(condition, forKey: "condition")
-		coder.encodeObject(NSString(UTF8String: joinType.rawValue), forKey: "joinType")
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		coder.encode(right, forKey: "right")
+		coder.encode(condition, forKey: "condition")
+		coder.encode(String(utf8String: joinType.rawValue), forKey: "joinType")
+		super.encode(with: coder)
 	}
 	
 	var recursiveDependencies: Set<QBEDependency> {
@@ -48,7 +48,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return []
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let joinTypeSentenceItem = QBESentenceOptions(options: [
 			JoinType.LeftJoin.rawValue: NSLocalizedString("including", comment: ""),
 			JoinType.InnerJoin.rawValue: NSLocalizedString("ignoring", comment: "")
@@ -63,27 +63,27 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		if self.isSimple {
 			return QBESentence(format: "Join data on [#] [#] [#], [#] rows without matches".localized,
 				QBESentenceList(value: self.simpleSibling?.name ?? "", provider: { cb in
-					let job = Job(.UserInitiated)
+					let job = Job(.userInitiated)
 					if let previous = self.previous {
-						previous.exampleData(job, maxInputRows: 100, maxOutputRows: 1, callback: { result in
+						previous.exampleDataset(job, maxInputRows: 100, maxOutputRows: 1, callback: { result in
 							switch result {
-							case .Success(let data):
+							case .success(let data):
 								data.columns(job) { result in
 									switch result {
-									case .Success(let columns):
-										cb(.Success(columns.map { $0.name }))
+									case .success(let columns):
+										cb(.success(columns.map { $0.name }))
 
-									case .Failure(let e):
-										cb(.Failure(e))
+									case .failure(let e):
+										cb(.failure(e))
 									}
 								}
-							case .Failure(let e):
-								return cb(.Failure(e))
+							case .failure(let e):
+								return cb(.failure(e))
 							}
 						})
 					}
 					else {
-						cb(.Failure("No previous step"))
+						cb(.failure("No previous step"))
 					}
 				}, callback: { [weak self] newValue in
 					self?.simpleSibling = Column(newValue)
@@ -94,27 +94,27 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 				}),
 
 				QBESentenceList(value: self.simpleForeign?.name ?? "", provider: { cb in
-					let job = Job(.UserInitiated)
+					let job = Job(.userInitiated)
 					if let right = self.right?.head {
-						right.exampleData(job, maxInputRows: 100, maxOutputRows: 1, callback: { result in
+						right.exampleDataset(job, maxInputRows: 100, maxOutputRows: 1, callback: { result in
 							switch result {
-							case .Success(let data):
+							case .success(let data):
 								data.columns(job) { result in
 									switch result {
-									case .Success(let columns):
-										cb(.Success(columns.map { $0.name }))
+									case .success(let columns):
+										cb(.success(columns.map { $0.name }))
 
-									case .Failure(let e):
-										cb(.Failure(e))
+									case .failure(let e):
+										cb(.failure(e))
 									}
 								}
-							case .Failure(let e):
-								return cb(.Failure(e))
+							case .failure(let e):
+								return cb(.failure(e))
 							}
 						})
 					}
 					else {
-						cb(.Failure("No data to join to"))
+						cb(.failure("No data to join to"))
 					}
 					}, callback: { [weak self] newValue in
 						self?.simpleForeign = Column(newValue)
@@ -125,7 +125,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 		else {
 			return QBESentence(format: NSLocalizedString("Join data on [#], [#] rows without matches", comment: ""),
-				QBESentenceFormula(expression: self.condition ?? Literal(Value.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
+				QBESentenceFormula(expression: self.condition ?? Literal(Value.bool(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
 					self?.condition = newExpression
 				}, contextCallback: self.contextCallbackForFormulaSentence),
 				joinTypeSentenceItem
@@ -133,85 +133,85 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	private func join(right: Data) -> Join? {
+	private func join(_ right: Dataset) -> Join? {
 		if let c = condition {
-			return Join(type: joinType, foreignData: right, expression: c)
+			return Join(type: joinType, foreignDataset: right, expression: c)
 		}
 		return nil
 	}
 	
-	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		// Create two separate jobs for left and right data, so progress is equally counted
 		let leftJob = Job(parent: job)
 		let rightJob = Job(parent: job)
 
 		if let p = previous {
-			p.fullData(leftJob) { leftData in
+			p.fullDataset(leftJob) { leftDataset in
 				if let r = self.right, let h = r.head {
-					h.fullData(rightJob) { rightData in
-						switch rightData {
-							case .Success(let rd):
+					h.fullDataset(rightJob) { rightDataset in
+						switch rightDataset {
+							case .success(let rd):
 								if let j = self.join(rd) {
-									callback(leftData.use({$0.join(j)}))
+									callback(leftDataset.use({$0.join(j)}))
 								}
 								else {
-									callback(.Failure(NSLocalizedString("Not all information was available to perform the join.", comment: "")))
+									callback(.failure(NSLocalizedString("Not all information was available to perform the join.", comment: "")))
 								}
 							
-							case .Failure(_):
-								callback(rightData)
+							case .failure(_):
+								callback(rightDataset)
 						}
 					}
 				}
 				else {
-					callback(.Failure(NSLocalizedString("The data to join with was not found.", comment: "")))
+					callback(.failure(NSLocalizedString("The data to join with was not found.", comment: "")))
 				}
 			}
 		}
 		else {
-			callback(.Failure(NSLocalizedString("A join step was not placed after another step.", comment: "")))
+			callback(.failure(NSLocalizedString("A join step was not placed after another step.", comment: "")))
 		}
 	}
 	
-	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
 		if let p = previous {
 			// Create two separate jobs for left and right data, so progress is equally counted
 			let leftJob = Job(parent: job)
 			let rightJob = Job(parent: job)
 
-			p.exampleData(leftJob, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftData) -> () in
-				switch leftData {
-					case .Success(let ld):
+			p.exampleDataset(leftJob, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftDataset) -> () in
+				switch leftDataset {
+					case .success(let ld):
 						if let r = self.right, let h = r.head {
-							h.exampleData(rightJob, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightData) -> () in
-								switch rightData {
-									case .Success(let rd):
+							h.exampleDataset(rightJob, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightDataset) -> () in
+								switch rightDataset {
+									case .success(let rd):
 										if let j = self.join(rd) {
-											callback(.Success(ld.join(j)))
+											callback(.success(ld.join(j)))
 										}
 										else {
-											callback(.Failure(NSLocalizedString("Not all information was available to perform the join.", comment: "")))
+											callback(.failure(NSLocalizedString("Not all information was available to perform the join.", comment: "")))
 										}
 									
-									case .Failure(_):
-										callback(rightData)
+									case .failure(_):
+										callback(rightDataset)
 								}
 							})
 						}
 						else {
-							callback(.Failure(NSLocalizedString("The data to join with was not found.", comment: "")))
+							callback(.failure(NSLocalizedString("The data to join with was not found.", comment: "")))
 						}
-					case .Failure(_):
-						callback(leftData)
+					case .failure(_):
+						callback(leftDataset)
 				}
 			}
 		}
 		else {
-			callback(.Failure(NSLocalizedString("A join step was not placed after another step.", comment: "")))
+			callback(.failure(NSLocalizedString("A join step was not placed after another step.", comment: "")))
 		}
 	}
 	
-	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
 		fatalError("QBEJoinStep.apply should not be used")
 	}
 
@@ -229,7 +229,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 
 			if c.isConstant {
 				let constantValue = c.apply(Row(), foreign: nil, inputValue: nil)
-				if !constantValue.isValid || constantValue == Value.BoolValue(false) {
+				if !constantValue.isValid || constantValue == Value.bool(false) {
 					return true
 				}
 			}
@@ -284,10 +284,10 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 
-	private func setSimpleCondition(sibling sibling: Column?, foreign: Column?) {
+	private func setSimpleCondition(sibling: Column?, foreign: Column?) {
 		let currentType = self.simpleType ?? Binary.Equal
-		let first: Expression = (foreign != nil) ? Foreign(foreign!) : Literal(Value.InvalidValue)
-		let second: Expression = (sibling != nil) ? Sibling(sibling!) : Literal(Value.InvalidValue)
+		let first: Expression = (foreign != nil) ? Foreign(foreign!) : Literal(Value.invalid)
+		let second: Expression = (sibling != nil) ? Sibling(sibling!) : Literal(Value.invalid)
 		self.condition = Comparison(first: first, second: second, type: currentType)
 	}
 }
@@ -313,9 +313,9 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return true
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(right, forKey: "right")
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		coder.encode(right, forKey: "right")
+		super.encode(with: coder)
 	}
 	
 	var recursiveDependencies: Set<QBEDependency> {
@@ -332,64 +332,64 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return []
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(NSLocalizedString("Merge data", comment: ""))])
 	}
 	
-	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
+	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		if let p = previous {
-			p.fullData(job) {(leftData) -> () in
+			p.fullDataset(job) {(leftDataset) -> () in
 				if let r = self.right, let h = r.head {
-					h.fullData(job) { (rightData) -> () in
-						switch rightData {
-							case .Success(let rd):
-								callback(leftData.use {$0.union(rd)})
+					h.fullDataset(job) { (rightDataset) -> () in
+						switch rightDataset {
+							case .success(let rd):
+								callback(leftDataset.use {$0.union(rd)})
 								
-							case .Failure(_):
-								callback(rightData)
+							case .failure(_):
+								callback(rightDataset)
 						}
 					}
 				}
 				else {
-					callback(.Failure(NSLocalizedString("The data to merge with was not found.", comment: "")))
+					callback(.failure(NSLocalizedString("The data to merge with was not found.", comment: "")))
 				}
 			}
 		}
 		else {
-			callback(.Failure(NSLocalizedString("A merge step was not placed after another step.", comment: "")))
+			callback(.failure(NSLocalizedString("A merge step was not placed after another step.", comment: "")))
 		}
 	}
 	
-	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
 		if let p = previous {
-			p.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftData) -> () in
-				switch leftData {
-				case .Success(let ld):
+			p.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftDataset) -> () in
+				switch leftDataset {
+				case .success(let ld):
 					if let r = self.right, let h = r.head {
-						h.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightData) -> () in
-							switch rightData {
-								case .Success(let rd):
-									callback(.Success(ld.union(rd)))
+						h.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: { (rightDataset) -> () in
+							switch rightDataset {
+								case .success(let rd):
+									callback(.success(ld.union(rd)))
 									
-								case .Failure(_):
-									callback(rightData)
+								case .failure(_):
+									callback(rightDataset)
 							}
 						})
 					}
 					else {
-						callback(.Failure(NSLocalizedString("The data to merge with was not found.", comment: "")))
+						callback(.failure(NSLocalizedString("The data to merge with was not found.", comment: "")))
 					}
-				case .Failure(_):
-					callback(leftData)
+				case .failure(_):
+					callback(leftDataset)
 				}
 			}
 		}
 		else {
-			callback(.Failure(NSLocalizedString("A merge step was not placed after another step.", comment: "")))
+			callback(.failure(NSLocalizedString("A merge step was not placed after another step.", comment: "")))
 		}
 	}
 	
-	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
 		fatalError("QBEMergeStep.apply should not be used")
 	}
 }

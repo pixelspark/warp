@@ -3,7 +3,7 @@ import SwiftParser
 
 /** Formula parses formulas written down in an Excel-like syntax (e.g. =SUM(SQRT(1+2/3);IF(1>2;3;4))) as a Expression
 that can be used to calculate values. Like in Excel, the language used for the formulas (e.g. for function names) depends
-on the user's preference and is therefore variable (Locale implements this). */
+on the user's preference and is therefore variable (Language implements this). */
 public class Formula: Parser {
 	/** The character that indicates a formula starts. While it is not required in the formula syntax, it can be used to 
 	distinguish text and other static data from formulas. **/
@@ -21,7 +21,7 @@ public class Formula: Parser {
 	
 	private var stack = Stack<Expression>()
 	private var callStack = Stack<CallSite>()
-	let locale: Locale
+	let locale: Language
 	public let originalText: String
 	public private(set) var fragments: [Fragment] = []
 	private var error: Bool = false
@@ -32,7 +32,7 @@ public class Formula: Parser {
 		}
 	}
 	
-	public init?(formula: String, locale: Locale) {
+	public init?(formula: String, locale: Language) {
 		self.originalText = formula
 		self.locale = locale
 		self.fragments = []
@@ -40,10 +40,10 @@ public class Formula: Parser {
 		if !self.parse(formula) || self.error {
 			return nil
 		}
-		super.captures.removeAll(keepCapacity: false)
+		super.captures.removeAll(keepingCapacity: false)
 	}
 	
-	private func annotate(expression: Expression) {
+	private func annotate(_ expression: Expression) {
 		if let cc = super.current_capture {
 			fragments.append(Fragment(start: cc.start, end: cc.end, expression: expression))
 		}
@@ -54,27 +54,27 @@ public class Formula: Parser {
 	}
 	
 	private func pushDouble() {
-		if let n = self.locale.numberFormatter.numberFromString(self.text.stringByReplacingOccurrencesOfString(self.locale.groupingSeparator, withString: "")) {
-			annotate(stack.push(Literal(Value.DoubleValue(n.doubleValue))))
+		if let n = self.locale.numberFormatter.number(from: self.text.replacingOccurrences(of: self.locale.groupingSeparator, with: "")) {
+			annotate(stack.push(Literal(Value.double(n.doubleValue))))
 		}
 		else {
-			annotate(stack.push(Literal(Value.InvalidValue)))
+			annotate(stack.push(Literal(Value.invalid)))
 			error = true
 		}
 	}
 	
 	private func pushTimestamp() {
-		let ts = self.text.substringFromIndex(self.text.startIndex.advancedBy(1))
-		if let n = self.locale.numberFormatter.numberFromString(ts) {
-			annotate(stack.push(Literal(Value.DateValue(n.doubleValue))))
+		let ts = self.text.substring(from: self.text.characters.index(self.text.startIndex, offsetBy: 1))
+		if let n = self.locale.numberFormatter.number(from: ts) {
+			annotate(stack.push(Literal(Value.date(n.doubleValue))))
 		}
 		else {
-			annotate(stack.push(Literal(Value.InvalidValue)))
+			annotate(stack.push(Literal(Value.invalid)))
 		}
 	}
 	
 	private func pushString() {
-		let text = self.text.stringByReplacingOccurrencesOfString("\"\"", withString: "\"")
+		let text = self.text.replacingOccurrences(of: "\"\"", with: "\"")
 		annotate(stack.push(Literal(Value(text))))
 	}
 	
@@ -117,19 +117,19 @@ public class Formula: Parser {
 	
 	private func pushConstant() {
 		for (constant, name) in locale.constants {
-			if name.caseInsensitiveCompare(self.text) == NSComparisonResult.OrderedSame {
+			if name.caseInsensitiveCompare(self.text) == ComparisonResult.orderedSame {
 				annotate(stack.push(Literal(constant)))
 				return
 			}
 		}
 	}
 
-	private func pushPostfixMultiplier(factor: Value) {
+	private func pushPostfixMultiplier(_ factor: Value) {
 		let a = stack.pop()
 		annotate(stack.push(Comparison(first: Literal(factor), second: a, type: Binary.Multiplication)))
 	}
 	
-	private func pushBinary(type: Binary) {
+	private func pushBinary(_ type: Binary) {
 		let a = stack.pop()
 		let b = stack.pop()
 		stack.push(Comparison(first:a, second: b, type: type))
@@ -199,7 +199,7 @@ public class Formula: Parser {
 		would also match  (parser is dumb) */
 		var functionRules: [ParserRule] = []
 		let functionNames = Function.allFunctions
-			.map({return self.locale.nameForFunction($0) ?? ""}).sort({(a,b) in return a.characters.count > b.characters.count})
+			.map({return self.locale.nameForFunction($0) ?? ""}).sorted(isOrderedBefore: {(a,b) in return a.characters.count > b.characters.count})
 		
 		functionNames.forEach {(functionName) in
 			if !functionName.isEmpty {
@@ -255,7 +255,7 @@ public class Formula: Parser {
 }
 
 internal extension Parser {
-	static func matchAnyCharacterExcept(characters: [Character]) -> ParserRule {
+	static func matchAnyCharacterExcept(_ characters: [Character]) -> ParserRule {
 		return {(parser: Parser, reader: Reader) -> Bool in
 			if reader.eof() {
 				return false
@@ -273,7 +273,7 @@ internal extension Parser {
 		}
 	}
 	
-	static func matchAnyFrom(rules: [ParserRule]) -> ParserRule {
+	static func matchAnyFrom(_ rules: [ParserRule]) -> ParserRule {
 		return {(parser: Parser, reader: Reader) -> Bool in
 			let pos = reader.position
 			for rule in rules {
@@ -287,16 +287,16 @@ internal extension Parser {
 		}
 	}
 	
-	static func matchList(item: ParserRule, separator: ParserRule) -> ParserRule {
+	static func matchList(_ item: ParserRule, separator: ParserRule) -> ParserRule {
 		return item/~ ~~ (separator ~~ item)*
 	}
 	
-	static func matchLiteralInsensitive(string:String) -> ParserRule {
+	static func matchLiteralInsensitive(_ string:String) -> ParserRule {
 		return {(parser: Parser, reader: Reader) -> Bool in
 			let pos = reader.position
 			
 			for ch in string.characters {
-				let flag = (String(ch).caseInsensitiveCompare(String(reader.read())) == NSComparisonResult.OrderedSame)
+				let flag = (String(ch).caseInsensitiveCompare(String(reader.read())) == ComparisonResult.orderedSame)
 				
 				if !flag {
 					reader.seek(pos)
@@ -307,7 +307,7 @@ internal extension Parser {
 		}
 	}
 
-	static func matchLiteral(string:String) -> ParserRule {
+	static func matchLiteral(_ string:String) -> ParserRule {
 		return {(parser: Parser, reader: Reader) -> Bool in
 			let pos = reader.position
 

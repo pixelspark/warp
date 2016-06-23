@@ -1,12 +1,12 @@
 import Foundation
 
-internal func translationForString(text: String) -> String {
-	let bundle = NSBundle(forClass: Locale.self)
+internal func translationForString(_ text: String) -> String {
+	let bundle = Bundle(for: Language.self)
 	return NSLocalizedString(text, tableName: nil, bundle: bundle, value: text, comment: "")
 }
 
 /** The default dialect for formulas reflects the English version of Excel closely. */
-public class Locale {
+public class Language {
 	public typealias LanguageIdentifier = String
 	
 	public var decimalSeparator: String
@@ -20,10 +20,10 @@ public class Locale {
 	public var csvStringQualifier = "\""
 	public var csvStringEscaper = "\"\""
 	public var commonFieldSeparators = [";",",","|","\t"]
-	public var numberFormatter: NSNumberFormatter
-	public var dateFormatter: NSDateFormatter
-	public var timeZone: NSTimeZone
-	public var calendar: NSCalendar
+	public var numberFormatter: NumberFormatter
+	public var dateFormatter: DateFormatter
+	public var timeZone: TimeZone
+	public var calendar: Calendar
 	public var constants: [Value: String]
 	public let functions: [String: Function]
 	public let postfixes: [String: Value]
@@ -40,16 +40,16 @@ public class Locale {
 			Value(true): "TRUE",
 			Value(false): "FALSE",
 			Value(3.141592654): "PI",
-			Value.EmptyValue: "NULL",
-			Value.InvalidValue: "ERROR"
+			Value.empty: "NULL",
+			Value.invalid: "ERROR"
 		],
 		
 		"nl": [
 			Value(true): "WAAR",
 			Value(false): "ONWAAR",
 			Value(3.141592654): "PI",
-			Value.EmptyValue: "LEEG",
-			Value.InvalidValue: "FOUT"
+			Value.empty: "LEEG",
+			Value.invalid: "FOUT"
 		]
 	]
 
@@ -288,39 +288,39 @@ public class Locale {
 		]
 	]
 	
-	public init(language: LanguageIdentifier = Locale.defaultLanguage) {
-		functions = Locale.allFunctions[language] ?? Locale.allFunctions[Locale.defaultLanguage]!
-		constants = Locale.allConstants[language] ?? Locale.allConstants[Locale.defaultLanguage]!
-		self.decimalSeparator = Locale.decimalSeparators[language]!
-		self.groupingSeparator = Locale.groupingSeparators[language]!
-		self.argumentSeparator = Locale.argumentSeparators[language]!
-		self.postfixes = Locale.allPostfixes[language] ?? Locale.allPostfixes[Locale.defaultLanguage]!
+	public init(language: LanguageIdentifier = Language.defaultLanguage) {
+		functions = Language.allFunctions[language] ?? Language.allFunctions[Language.defaultLanguage]!
+		constants = Language.allConstants[language] ?? Language.allConstants[Language.defaultLanguage]!
+		self.decimalSeparator = Language.decimalSeparators[language]!
+		self.groupingSeparator = Language.groupingSeparators[language]!
+		self.argumentSeparator = Language.argumentSeparators[language]!
+		self.postfixes = Language.allPostfixes[language] ?? Language.allPostfixes[Language.defaultLanguage]!
 		
-		numberFormatter = NSNumberFormatter()
+		numberFormatter = NumberFormatter()
 		numberFormatter.decimalSeparator = self.decimalSeparator
 		numberFormatter.groupingSeparator = self.groupingSeparator
-		numberFormatter.numberStyle = NSNumberFormatterStyle.DecimalStyle
+		numberFormatter.numberStyle = NumberFormatter.Style.decimal
 		
 		/* Currently, we always use the user's current calendar, regardless of the locale set. In the future, we might 
 		also provide locales that set a particular time zone (e.g. a 'UTC locale'). */
-		calendar = NSCalendar.autoupdatingCurrentCalendar()
+		calendar = Calendar.autoupdatingCurrent()
 		timeZone = calendar.timeZone
 		
-		dateFormatter = NSDateFormatter()
-		dateFormatter.dateStyle = NSDateFormatterStyle.MediumStyle
-		dateFormatter.timeStyle = NSDateFormatterStyle.MediumStyle
+		dateFormatter = DateFormatter()
+		dateFormatter.dateStyle = DateFormatter.Style.mediumStyle
+		dateFormatter.timeStyle = DateFormatter.Style.mediumStyle
 		dateFormatter.timeZone = timeZone
 		dateFormatter.calendar = calendar
 	}
 	
-	public func functionWithName(name: String) -> Function? {
+	public func functionWithName(_ name: String) -> Function? {
 		if let qu = functions[name] {
 			return qu
 		}
 		else {
 			// Case insensitive function find (slower)
 			for (functionName, function) in functions {
-				if name.caseInsensitiveCompare(functionName) == NSComparisonResult.OrderedSame {
+				if name.caseInsensitiveCompare(functionName) == ComparisonResult.orderedSame {
 					return function
 				}
 			}
@@ -328,7 +328,7 @@ public class Locale {
 		return nil
 	}
 	
-	public func nameForFunction(function: Function) -> String? {
+	public func nameForFunction(_ function: Function) -> String? {
 		for (name, f) in functions {
 			if function == f {
 				return name
@@ -338,37 +338,37 @@ public class Locale {
 	}
 	
 	/** Return a string representation of the value in the user's locale. */
-	public func localStringFor(value: Value) -> String {
+	public func localStringFor(_ value: Value) -> String {
 		switch value {
-			case .StringValue(let s):
+			case .string(let s):
 				return s
 			
-			case .BoolValue(let b):
+			case .bool(let b):
 				return constants[Value(b)]!
 			
-			case .IntValue(let i):
-				return numberFormatter.stringFromNumber(i)!
+			case .int(let i):
+				return numberFormatter.string(from: i)!
 			
-			case .DoubleValue(let d):
-				return numberFormatter.stringFromNumber(d)!
+			case .double(let d):
+				return numberFormatter.string(from: d)!
 			
-			case .InvalidValue:
+			case .invalid:
 				return translationForString("n/a")
 			
-			case .DateValue(let d):
-				return dateFormatter.stringFromDate(NSDate(timeIntervalSinceReferenceDate: d))
+			case .date(let d):
+				return dateFormatter.string(from: Date(timeIntervalSinceReferenceDate: d))
 			
-			case .EmptyValue:
+			case .empty:
 				return ""
 		}
 	}
 	
-	public static func stringForExchangedValue(value: Value) -> String {
+	public static func stringForExchangedValue(_ value: Value) -> String {
 		switch value {
-			case .DoubleValue(let d):
+			case .double(let d):
 				return d.toString()
 			
-			case .IntValue(let i):
+			case .int(let i):
 				return i.toString()
 			
 			default:
@@ -378,69 +378,69 @@ public class Locale {
 	
 	/** Return the Value for the given string in 'universal'  format (e.g. as used in exchangeable files). This uses
 	 the C locale (decimal separator is '.'). */
-	public static func valueForExchangedString(value: String) -> Value {
+	public static func valueForExchangedString(_ value: String) -> Value {
 		if value.isEmpty {
-			return Value.EmptyValue
+			return Value.empty
 		}
 		
 		// Can this string be interpreted as a number?
 		if let n = value.toDouble() {
 			if let i = value.toInt() where Double(i) == n {
 				// This number is an integer
-				return Value.IntValue(i)
+				return Value.int(i)
 			}
 			else {
-				return Value.DoubleValue(n)
+				return Value.double(n)
 			}
 		}
 		
-		return Value.StringValue(value)
+		return Value.string(value)
 	}
 	
 	/** Return the Value for the given string in the user's locale (e.g. as presented and entered in the UI). This is
 	a bit slower than the valueForExchangedString function (NSNumberFormatter.numberFromString is slower but accepts more
 	formats than strtod_l, which is used in our String.toDouble implementation). */
-	public func valueForLocalString(value: String) -> Value {
+	public func valueForLocalString(_ value: String) -> Value {
 		if value.isEmpty {
-			return Value.EmptyValue
+			return Value.empty
 		}
 		
-		if let n = numberFormatter.numberFromString(value) {
-			if n.isEqualToNumber(NSNumber(integer: n.integerValue)) {
-				return Value.IntValue(n.integerValue)
+		if let n = numberFormatter.number(from: value) {
+			if n.isEqual(to: NSNumber(value: n.intValue)) {
+				return Value.int(n.intValue)
 			}
 			else {
-				return Value.DoubleValue(n.doubleValue)
+				return Value.double(n.doubleValue)
 			}
 		}
-		return Value.StringValue(value)
+		return Value.string(value)
 	}
 	
-	public func csvRow(row: [Value]) -> String {
+	public func csvRow(_ row: [Value]) -> String {
 		var line = ""
 		for columnIndex in 0...row.count-1 {
 			let value = row[columnIndex]
 			switch value {
-			case .StringValue(let s):
-				line += "\(csvStringQualifier)\(s.stringByReplacingOccurrencesOfString(csvStringQualifier, withString: csvStringEscaper))\(csvStringQualifier)"
+			case .string(let s):
+				line += "\(csvStringQualifier)\(s.replacingOccurrences(of: csvStringQualifier, with: csvStringEscaper))\(csvStringQualifier)"
 			
-			case .DoubleValue(let d):
+			case .double(let d):
 				// FIXME: use decimalSeparator from locale
 				line += "\(d)"
 				
-			case .IntValue(let i):
+			case .int(let i):
 				line += "\(i)"
 				
-			case .BoolValue(let b):
+			case .bool(let b):
 				line += (b ? "1" : "0")
 				
-			case .InvalidValue:
+			case .invalid:
 				break
 				
-			case .DateValue(let d):
-				line += NSDate(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate
+			case .date(let d):
+				line += Date(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate
 				
-			case .EmptyValue:
+			case .empty:
 				break
 			}
 			

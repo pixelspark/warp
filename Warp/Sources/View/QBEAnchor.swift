@@ -1,73 +1,73 @@
 import Foundation
 
 internal enum QBEAnchor {
-	case None
-	case North
-	case NorthEast
-	case East
-	case SouthEast
-	case South
-	case SouthWest
-	case West
-	case NorthWest
+	case none
+	case north
+	case northEast
+	case east
+	case southEast
+	case south
+	case southWest
+	case west
+	case northWest
 	
 	var debugDescription: String { get {
 		switch self {
-		case .None: return "NONE"
-		case .North: return "N"
-		case .NorthEast: return "NE"
-		case .East: return "E"
-		case .SouthEast: return "SE"
-		case .South: return "S"
-		case .SouthWest: return "SW"
-		case .West: return "W"
-		case .NorthWest: return "NW"
+		case .none: return "NONE"
+		case .north: return "N"
+		case .northEast: return "NE"
+		case .east: return "E"
+		case .southEast: return "SE"
+		case .south: return "S"
+		case .southWest: return "SW"
+		case .west: return "W"
+		case .northWest: return "NW"
 		}
 	} }
 	
 	var mirror: QBEAnchor {
 		get {
 			switch self {
-			case .North: return .South
-			case .NorthEast: return .SouthWest
-			case .East: return .West
-			case .SouthEast: return .NorthWest
-			case .South: return .North
-			case .SouthWest: return .NorthEast
-			case .West: return .East
-			case .NorthWest: return .SouthEast
-			case .None: return .None
+			case .north: return .south
+			case .northEast: return .southWest
+			case .east: return .west
+			case .southEast: return .northWest
+			case .south: return .north
+			case .southWest: return .northEast
+			case .west: return .east
+			case .northWest: return .southEast
+			case .none: return .none
 			}
 		}
 	}
 	
 	/** Calculate the location of the bend points of a flowchart arrow between two rectangles, starting and ending at the
 		specified anchor. */
-	static func bendpointsBetween(from: CGRect, fromAnchor: QBEAnchor, to: CGRect, toAnchor: QBEAnchor) -> [CGPoint] {
+	static func bendpointsBetween(_ from: CGRect, fromAnchor: QBEAnchor, to: CGRect, toAnchor: QBEAnchor) -> [CGPoint] {
 		let sourcePoint = fromAnchor.pointInBounds(from, isDestination: false)
 		let targetPoint = toAnchor.pointInBounds(to, isDestination: true)
 		
-		let overlaps = CGRectIntersectsRect(from, to)
+		let overlaps = from.intersects(to)
 		
 		// Anchors opposite to each other: two bends
 		if !overlaps && fromAnchor.mirror == toAnchor {
-			if fromAnchor == .North || toAnchor == .North {
+			if fromAnchor == .north || toAnchor == .north {
 				// Meet in the middle vertically
-				return [CGPointMake(sourcePoint.x, (sourcePoint.y + targetPoint.y) / 2), CGPointMake(targetPoint.x, (sourcePoint.y + targetPoint.y) / 2)]
+				return [CGPoint(x: sourcePoint.x, y: (sourcePoint.y + targetPoint.y) / 2), CGPoint(x: targetPoint.x, y: (sourcePoint.y + targetPoint.y) / 2)]
 			}
 			else {
 				// Meet in the middle horizontally
-				return [CGPointMake((sourcePoint.x + targetPoint.x) / 2, sourcePoint.y), CGPointMake((sourcePoint.x + targetPoint.x) / 2, targetPoint.y)]
+				return [CGPoint(x: (sourcePoint.x + targetPoint.x) / 2, y: sourcePoint.y), CGPoint(x: (sourcePoint.x + targetPoint.x) / 2, y: targetPoint.y)]
 			}
 		}
 		else {
-			return [CGPointMake(sourcePoint.x, targetPoint.y)]
+			return [CGPoint(x: sourcePoint.x, y: targetPoint.y)]
 		}
 	}
 	
 	/** Determines the anchors that should be used for drawing a flowchart arrow between two rectangles. Returns a tuple
 		of the (sourceAnchor, targetAnchor). */
-	static func anchorsForArrow(from: CGRect, to: CGRect) -> (QBEAnchor, QBEAnchor) {
+	static func anchorsForArrow(_ from: CGRect, to: CGRect) -> (QBEAnchor, QBEAnchor) {
 		let fromXStart = from.origin.x
 		let fromXEnd = from.origin.x + from.size.width
 		let toXStart = to.origin.x
@@ -81,104 +81,104 @@ internal enum QBEAnchor {
 		if toXEnd < fromXStart {
 			// Target is completely under the source (from anchor = NORTH)
 			if toYEnd < fromYStart {
-				return (.North, .East)
+				return (.north, .east)
 			}
 			// Target is completely above the source (from anchor = SOUTH)
 			else if toYStart > fromYEnd {
-				return (.South, .East)
+				return (.south, .east)
 			}
 			// Target overlaps the source vertically (from anchor = WEST in most cases)
 			else {
-				return (.West, .East)
+				return (.west, .east)
 			}
 		}
 		// Target is completely to the right of the source (target anchor = WEST)
 		else if toXStart > fromXEnd {
 			// Target is completely under the source (from anchor = NORTH)
 			if toYEnd < fromYStart {
-				return (.North, .West)
+				return (.north, .west)
 			}
 				// Target is completely above the source (from anchor = SOUTH)
 			else if toYStart > fromYEnd {
-				return (.South, .West)
+				return (.south, .west)
 			}
 				// Target overlaps the source vertically (from anchor = EAST in most cases)
 			else {
-				return (.East, .West)
+				return (.east, .west)
 			}
 		}
 		// Target partially or fully overlaps horizontally with the source
 		else {
 			// Target is completely under the source (from anchor = NORTH)
 			if toYEnd < fromYStart {
-				return (.North, .South)
+				return (.north, .south)
 			}
 			// Target is completely above the source (from anchor = SOUTH)
 			else if toYStart > fromYEnd {
-				return (.South, .North)
+				return (.south, .north)
 			}
 				// Target overlaps the source vertically (from anchor = EAST in most cases)
 			else {
-				let closestFrom = to.center.x > from.center.x ? QBEAnchor.West : QBEAnchor.East
-				let closestTo = to.center.y > from.center.y ? QBEAnchor.South : QBEAnchor.North
+				let closestFrom = to.center.x > from.center.x ? QBEAnchor.west : QBEAnchor.east
+				let closestTo = to.center.y > from.center.y ? QBEAnchor.south : QBEAnchor.north
 				
 				if !from.contains(closestFrom.pointInBounds(to)) && !to.contains(closestTo.pointInBounds(from)) {
 					return (closestTo, closestFrom)
 				}
-				return (.None, .None)
+				return (.none, .none)
 			}
 		}
 	}
 	
-	func offset(rect: CGRect, horizontal: CGFloat, vertical: CGFloat) -> CGRect {
+	func offset(_ rect: CGRect, horizontal: CGFloat, vertical: CGFloat) -> CGRect {
 		switch self {
-		case .North: return CGRectMake(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height + vertical)
-		case .South: return CGRectMake(rect.origin.x, rect.origin.y + vertical, rect.size.width, rect.size.height - vertical)
-		case .East: return CGRectMake(rect.origin.x, rect.origin.y, rect.size.width + horizontal, rect.size.height)
-		case .West: return CGRectMake(rect.origin.x + horizontal, rect.origin.y, rect.size.width - horizontal, rect.size.height)
+		case .north: return CGRect(x: rect.origin.x, y: rect.origin.y, width: rect.size.width, height: rect.size.height + vertical)
+		case .south: return CGRect(x: rect.origin.x, y: rect.origin.y + vertical, width: rect.size.width, height: rect.size.height - vertical)
+		case .east: return CGRect(x: rect.origin.x, y: rect.origin.y, width: rect.size.width + horizontal, height: rect.size.height)
+		case .west: return CGRect(x: rect.origin.x + horizontal, y: rect.origin.y, width: rect.size.width - horizontal, height: rect.size.height)
 			
-		case .NorthEast: return CGRectMake(rect.origin.x, rect.origin.y, rect.size.width + horizontal, rect.size.height + vertical)
-		case .SouthEast: return CGRectMake(rect.origin.x, rect.origin.y + vertical, rect.size.width + horizontal, rect.size.height - vertical)
-		case .NorthWest: return CGRectMake(rect.origin.x + horizontal, rect.origin.y, rect.size.width - horizontal, rect.size.height + vertical)
-		case .SouthWest: return CGRectMake(rect.origin.x + horizontal, rect.origin.y + vertical, rect.size.width - horizontal, rect.size.height - vertical)
+		case .northEast: return CGRect(x: rect.origin.x, y: rect.origin.y, width: rect.size.width + horizontal, height: rect.size.height + vertical)
+		case .southEast: return CGRect(x: rect.origin.x, y: rect.origin.y + vertical, width: rect.size.width + horizontal, height: rect.size.height - vertical)
+		case .northWest: return CGRect(x: rect.origin.x + horizontal, y: rect.origin.y, width: rect.size.width - horizontal, height: rect.size.height + vertical)
+		case .southWest: return CGRect(x: rect.origin.x + horizontal, y: rect.origin.y + vertical, width: rect.size.width - horizontal, height: rect.size.height - vertical)
 			
-		case .None: return CGRectMake(rect.origin.x + horizontal, rect.origin.y + vertical, rect.size.width, rect.size.height)
+		case .none: return CGRect(x: rect.origin.x + horizontal, y: rect.origin.y + vertical, width: rect.size.width, height: rect.size.height)
 		}
 	}
 	
-	func pointInBounds(bounds: CGRect, isDestination: Bool = false) -> CGPoint {
+	func pointInBounds(_ bounds: CGRect, isDestination: Bool = false) -> CGPoint {
 		return self.frameInBounds(bounds, withInset: 0.0, isDestination: isDestination).center
 	}
 
 	/** Return the frame surrounding this anchor with the specified inset. If `isDestination` is set, the anchor is 
 	shifted a little to ensure that arrows going to and from an object do not overlap (this only affects non-corner
 	anchors, e.g. only north, south, east and west). */
-	func frameInBounds(bounds: CGRect, withInset inset: CGFloat, isDestination: Bool = false) -> CGRect {
+	func frameInBounds(_ bounds: CGRect, withInset inset: CGFloat, isDestination: Bool = false) -> CGRect {
 		let destOffset: CGFloat = isDestination ? 10.0 : -10.0
 		switch self {
-		case .SouthWest: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + inset/2, inset, inset)
-		case .SouthEast: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + inset/2, inset, inset)
-		case .NorthEast: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + bounds.size.height - 1.5*inset, inset, inset)
-		case .NorthWest: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + bounds.size.height - 1.5*inset, inset, inset)
-		case .North: return CGRectMake(bounds.origin.x + inset/2 + destOffset, bounds.origin.y + inset/2, bounds.size.width - inset/2.0, inset)
-		case .South: return CGRectMake(bounds.origin.x + inset/2 + destOffset, bounds.origin.y + bounds.size.height - 1.5*inset, bounds.size.width - inset/2.0, inset)
-		case .West: return CGRectMake(bounds.origin.x + inset/2, bounds.origin.y + inset/2.0 + destOffset, inset, bounds.size.height - inset/2.0)
-		case .East: return CGRectMake(bounds.origin.x + bounds.size.width - 1.5*inset, bounds.origin.y + inset/2.0 + destOffset, inset, bounds.size.height - inset/2.0)
-		case .None: return CGRectZero
+		case .southWest: return CGRect(x: bounds.origin.x + inset/2, y: bounds.origin.y + inset/2, width: inset, height: inset)
+		case .southEast: return CGRect(x: bounds.origin.x + bounds.size.width - 1.5*inset, y: bounds.origin.y + inset/2, width: inset, height: inset)
+		case .northEast: return CGRect(x: bounds.origin.x + bounds.size.width - 1.5*inset, y: bounds.origin.y + bounds.size.height - 1.5*inset, width: inset, height: inset)
+		case .northWest: return CGRect(x: bounds.origin.x + inset/2, y: bounds.origin.y + bounds.size.height - 1.5*inset, width: inset, height: inset)
+		case .north: return CGRect(x: bounds.origin.x + inset/2 + destOffset, y: bounds.origin.y + inset/2, width: bounds.size.width - inset/2.0, height: inset)
+		case .south: return CGRect(x: bounds.origin.x + inset/2 + destOffset, y: bounds.origin.y + bounds.size.height - 1.5*inset, width: bounds.size.width - inset/2.0, height: inset)
+		case .west: return CGRect(x: bounds.origin.x + inset/2, y: bounds.origin.y + inset/2.0 + destOffset, width: inset, height: bounds.size.height - inset/2.0)
+		case .east: return CGRect(x: bounds.origin.x + bounds.size.width - 1.5*inset, y: bounds.origin.y + inset/2.0 + destOffset, width: inset, height: bounds.size.height - inset/2.0)
+		case .none: return CGRect.zero
 		}
 	}
 	
 	var cursor: NSCursor? { get {
 		switch self {
-		case .North: return NSCursor.resizeDownCursor()
-		case .South: return NSCursor.resizeUpCursor()
-		case .East: return NSCursor.resizeRightCursor()
-		case .West: return NSCursor.resizeLeftCursor()
-		case .NorthEast: return NSCursor.resizeRightCursor()
-		case .SouthEast: return NSCursor.resizeRightCursor()
-		case .NorthWest: return NSCursor.resizeLeftCursor()
-		case .SouthWest: return NSCursor.resizeLeftCursor()
-		default: return NSCursor.openHandCursor()
+		case .north: return NSCursor.resizeDown()
+		case .south: return NSCursor.resizeUp()
+		case .east: return NSCursor.resizeRight()
+		case .west: return NSCursor.resizeLeft()
+		case .northEast: return NSCursor.resizeRight()
+		case .southEast: return NSCursor.resizeRight()
+		case .northWest: return NSCursor.resizeLeft()
+		case .southWest: return NSCursor.resizeLeft()
+		default: return NSCursor.openHand()
 		}
 	} }
 }

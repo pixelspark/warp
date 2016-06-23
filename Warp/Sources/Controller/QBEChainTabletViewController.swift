@@ -16,13 +16,13 @@ internal class QBEChainTabletViewController: QBETabletViewController, QBEChainVi
 		self.chainViewController?.delegate = self
 	}
 
-	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
+	override func prepare(for segue: NSStoryboardSegue, sender: AnyObject?) {
 		if segue.identifier == "chain" {
 			self.chainViewController = segue.destinationController as? QBEChainViewController
 		}
 	}
 
-	override func selectArrow(arrow: QBETabletArrow) {
+	override func selectArrow(_ arrow: QBETabletArrow) {
 		if let s = arrow.fromStep where s != self.chainViewController?.currentStep {
 			self.chainViewController?.currentStep = s
 			self.chainViewController?.calculate()
@@ -34,19 +34,19 @@ internal class QBEChainTabletViewController: QBETabletViewController, QBEChainVi
 	}
 
 	/** Chain view delegate implementation */
-	func chainViewDidClose(view: QBEChainViewController) -> Bool {
+	func chainViewDidClose(_ view: QBEChainViewController) -> Bool {
 		return self.delegate?.tabletViewDidClose(self) ?? true
 	}
 
-	func chainView(view: QBEChainViewController, configureStep step: QBEStep?, necessary: Bool, delegate: QBESentenceViewDelegate) {
+	func chainView(_ view: QBEChainViewController, configureStep step: QBEStep?, necessary: Bool, delegate: QBESentenceViewDelegate) {
 		self.delegate?.tabletView(self, didSelectConfigurable:step, configureNow: necessary, delegate: delegate)
 	}
 
-	func chainViewDidChangeChain(view: QBEChainViewController) {
+	func chainViewDidChangeChain(_ view: QBEChainViewController) {
 		self.delegate?.tabletViewDidChangeContents(self)
 	}
 
-	func chainView(view: QBEChainViewController, exportChain chain: QBEChain) {
+	func chainView(_ view: QBEChainViewController, exportChain chain: QBEChain) {
 		self.delegate?.tabletView(self, exportObject: chain)
 	}
 }

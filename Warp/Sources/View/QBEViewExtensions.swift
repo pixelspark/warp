@@ -2,40 +2,40 @@ import Cocoa
 import WarpCore
 
 internal extension CGRect {
-	func inset(inset: CGFloat) -> CGRect {
-		return CGRectMake(
-			self.origin.x + inset,
-			self.origin.y + inset,
-			self.size.width - 2*inset,
-			self.size.height - 2*inset
+	func inset(_ inset: CGFloat) -> CGRect {
+		return CGRect(
+			x: self.origin.x + inset,
+			y: self.origin.y + inset,
+			width: self.size.width - 2*inset,
+			height: self.size.height - 2*inset
 		)
 	}
 	
 	var center: CGPoint {
-		return CGPointMake(self.origin.x + self.size.width/2, self.origin.y + self.size.height/2)
+		return CGPoint(x: self.origin.x + self.size.width/2, y: self.origin.y + self.size.height/2)
 	}
 	
-	func centeredAt(point: CGPoint) -> CGRect {
-		return CGRectMake(point.x - self.size.width/2, point.y - self.size.height/2, self.size.width, self.size.height)
+	func centeredAt(_ point: CGPoint) -> CGRect {
+		return CGRect(x: point.x - self.size.width/2, y: point.y - self.size.height/2, width: self.size.width, height: self.size.height)
 	}
 	
 	var rounded: CGRect { get {
-		return CGRectMake(round(self.origin.x), round(self.origin.y), round(self.size.width), round(self.size.height))
+		return CGRect(x: round(self.origin.x), y: round(self.origin.y), width: round(self.size.width), height: round(self.size.height))
 	} }
 }
 
 internal extension CGPoint {
-	func offsetBy(point: CGPoint) -> CGPoint {
-		return CGPointMake(self.x + point.x, self.y + point.y)
+	func offsetBy(_ point: CGPoint) -> CGPoint {
+		return CGPoint(x: self.x + point.x, y: self.y + point.y)
 	}
 	
-	func distanceTo(point: CGPoint) -> CGFloat {
+	func distanceTo(_ point: CGPoint) -> CGFloat {
 		return hypot(point.x - self.x, point.y - self.y)
 	}
 }
 
 internal extension NSAlert {
-	static func showSimpleAlert(message: String, infoText: String, style: NSAlertStyle, window: NSWindow?) {
+	static func showSimpleAlert(_ message: String, infoText: String, style: NSAlertStyle, window: NSWindow?) {
 		assertMainThread()
 		let av = NSAlert()
 		av.messageText = message
@@ -43,7 +43,7 @@ internal extension NSAlert {
 		av.alertStyle = style
 
 		if let w = window {
-			av.beginSheetModalForWindow(w, completionHandler: nil)
+			av.beginSheetModal(for: w, completionHandler: nil)
 		}
 		else {
 			av.runModal()
@@ -56,36 +56,36 @@ internal extension NSAlert {
 	@IBInspectable var topBorder: Bool = false
 	@IBInspectable var rightBorder: Bool = false
 	@IBInspectable var bottomBorder: Bool = false
-	@IBInspectable var backgroundColor: NSColor = NSColor.windowFrameColor() { didSet { self.setNeedsDisplayInRect(self.bounds) } }
-	@IBInspectable var borderColor: NSColor = NSColor.windowFrameColor() { didSet { self.setNeedsDisplayInRect(self.bounds) } }
+	@IBInspectable var backgroundColor: NSColor = NSColor.windowFrameColor() { didSet { self.setNeedsDisplay(self.bounds) } }
+	@IBInspectable var borderColor: NSColor = NSColor.windowFrameColor() { didSet { self.setNeedsDisplay(self.bounds) } }
 	
-	override func drawRect(dirtyRect: NSRect) {
+	override func draw(_ dirtyRect: NSRect) {
 		backgroundColor.set()
 		NSRectFill(self.bounds)
 
-		let start = NSColor.controlBackgroundColor().colorWithAlphaComponent(0.7)
-		let end = NSColor.controlBackgroundColor().colorWithAlphaComponent(0.6)
-		let g = NSGradient(startingColor: start, endingColor: end)
-		g?.drawInRect(self.bounds, angle: 270.0)
+		let start = NSColor.controlBackgroundColor().withAlphaComponent(0.7)
+		let end = NSColor.controlBackgroundColor().withAlphaComponent(0.6)
+		let g = NSGradient(starting: start, ending: end)
+		g?.draw(in: self.bounds, angle: 270.0)
 
 		borderColor.set()
 		var bounds = self.bounds
-		bounds.intersectInPlace(dirtyRect)
+		bounds.formIntersection(dirtyRect)
 		
 		if leftBorder {
-			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y, 1, bounds.size.height))
+			NSRectFill(CGRect(x: bounds.origin.x, y: bounds.origin.y, width: 1, height: bounds.size.height))
 		}
 		
 		if rightBorder {
-			NSRectFill(CGRectMake(bounds.origin.x + bounds.size.width, bounds.origin.y, 1, bounds.size.height))
+			NSRectFill(CGRect(x: bounds.origin.x + bounds.size.width, y: bounds.origin.y, width: 1, height: bounds.size.height))
 		}
 		
 		if topBorder {
-			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y + bounds.size.height - 1, bounds.size.width, 1))
+			NSRectFill(CGRect(x: bounds.origin.x, y: bounds.origin.y + bounds.size.height - 1, width: bounds.size.width, height: 1))
 		}
 		
 		if bottomBorder {
-			NSRectFill(CGRectMake(bounds.origin.x, bounds.origin.y, bounds.size.width, 1))
+			NSRectFill(CGRect(x: bounds.origin.x, y: bounds.origin.y, width: bounds.size.width, height: 1))
 		}
 	}
 }
@@ -95,7 +95,7 @@ internal extension NSView {
 		self.superview?.addSubview(self)
 	}
 
-	func removeFromSuperview(animated: Bool, completion: (() -> ())? = nil) {
+	func removeFromSuperview(_ animated: Bool, completion: (() -> ())? = nil) {
 		if !animated {
 			self.removeFromSuperview()
 			completion?()
@@ -125,23 +125,23 @@ internal extension NSView {
 		begin = CATransform3DTranslate(begin, -self.bounds.size.width/2, -self.bounds.size.height/2, 0.0)
 
 		// Fade in
-		ta.fromValue = NSValue(CATransform3D: begin)
-		ta.toValue = NSValue(CATransform3D: end)
+		ta.fromValue = NSValue(caTransform3D: begin)
+		ta.toValue = NSValue(caTransform3D: end)
 		ta.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
-		self.layer?.addAnimation(ta, forKey: "transformAnimation")
+		self.layer?.add(ta, forKey: "transformAnimation")
 
 		let oa = CABasicAnimation(keyPath: "opacity")
 		oa.fromValue = 1.0
 		oa.toValue = 0.0
 		oa.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
 		oa.fillMode = kCAFillModeForwards
-		oa.removedOnCompletion = false
-		self.layer?.addAnimation(oa, forKey: "opacityAnimation")
+		oa.isRemovedOnCompletion = false
+		self.layer?.add(oa, forKey: "opacityAnimation")
 
 		CATransaction.commit()
 	}
 	
-	func addSubview(view: NSView, animated: Bool, completion: (() -> ())? = nil) {
+	func addSubview(_ view: NSView, animated: Bool, completion: (() -> ())? = nil) {
 		if !animated {
 			self.addSubview(view)
 			completion?()
@@ -151,7 +151,7 @@ internal extension NSView {
 		let duration = 0.35
 		view.wantsLayer = true
 		self.addSubview(view)
-		view.scrollRectToVisible(view.bounds)
+		view.scrollToVisible(view.bounds)
 		
 		CATransaction.begin()
 		CATransaction.setAnimationDuration(duration)
@@ -170,16 +170,16 @@ internal extension NSView {
 		end = CATransform3DTranslate(end, -view.bounds.size.width/2, -view.bounds.size.height/2, 0.0)
 		
 		// Fade in
-		ta.fromValue = NSValue(CATransform3D: begin)
-		ta.toValue = NSValue(CATransform3D: end)
+		ta.fromValue = NSValue(caTransform3D: begin)
+		ta.toValue = NSValue(caTransform3D: end)
 		ta.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
-		view.layer?.addAnimation(ta, forKey: "transformAnimation")
+		view.layer?.add(ta, forKey: "transformAnimation")
 		
 		let oa = CABasicAnimation(keyPath: "opacity")
 		oa.fromValue = 0.0
 		oa.toValue = 1.0
 		oa.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
-		view.layer?.addAnimation(oa, forKey: "opacityAnimation")
+		view.layer?.add(oa, forKey: "opacityAnimation")
 		
 		CATransaction.commit()
 	}

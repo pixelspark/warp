@@ -2,11 +2,11 @@ import Foundation
 import WarpCore
 import  Rethink
 
-final class QBERethinkStream: NSObject, Stream {
-	let url: NSURL
+final class QBERethinkStream: NSObject, WarpCore.Stream {
+	let url: URL
 	let query: ReQuery
 
-	private var queue = dispatch_queue_create("nl.pixelspark.Warp.QBERethinkStream", DISPATCH_QUEUE_SERIAL)
+	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.QBERethinkStream", attributes: DispatchQueueAttributes.serial)
 	private var connection: Future<Fallible<(ReConnection, [Column])>>!
 	private var continuation: ReResponse.ContinuationCallback? = nil
 	private var firstResponse: ReResponse? = nil
@@ -14,7 +14,7 @@ final class QBERethinkStream: NSObject, Stream {
 	private var ended = false
 	private var columns: [Column]? = nil // A list of all columns in the result set, or nil if unknown
 
-	init(url: NSURL, query: ReQuery, columns: [Column]? = nil) {
+	init(url: URL, query: ReQuery, columns: [Column]? = nil) {
 		self.url = url
 		self.query = query
 		self.connection = nil
@@ -24,20 +24,20 @@ final class QBERethinkStream: NSObject, Stream {
 			if let s = self {
 				R.connect(url) { (err, connection) in
 					if let e = err {
-						callback(.Failure(e.description))
+						callback(.failure(e.description))
 					}
 					else {
 						s.query.run(connection) { response in
-							dispatch_sync(s.queue) {
+							s.queue.sync {
 								s.firstResponse = response
 							}
 
 							switch response {
-							case .Unknown:
-								callback(.Failure("Unknown first response"))
+							case .unknown:
+								callback(.failure("Unknown first response"))
 
-							case .Error(let e):
-								callback(.Failure(e))
+							case .error(let e):
+								callback(.failure(e))
 
 							case .Value(let v):
 								if let av = v as? [AnyObject] {
@@ -48,7 +48,7 @@ final class QBERethinkStream: NSObject, Stream {
 											doc.keys.forEach { k in colSet.insert(Column(k)) }
 										}
 										else {
-											callback(.Failure("Received array value that contains non-document: \(v)"))
+											callback(.failure("Received array value that contains non-document: \(v)"))
 											return
 										}
 									}
@@ -56,13 +56,13 @@ final class QBERethinkStream: NSObject, Stream {
 									// Treat as any other regular result set
 									let columns = Array(colSet)
 									let result = (connection, columns)
-									callback(.Success(result))
+									callback(.success(result))
 								}
 								else {
-									callback(.Failure("Received non-array value \(v)"))
+									callback(.failure("Received non-array value \(v)"))
 								}
 
-							case .Rows(let docs, let cnt):
+							case .rows(let docs, let cnt):
 								// Find columns and set them now
 								var colSet = Set<Column>()
 								for d in docs {
@@ -72,20 +72,20 @@ final class QBERethinkStream: NSObject, Stream {
 								let result = (connection, columns)
 								s.continuation = cnt
 								//s.continueWith(cnt, job: job)
-								callback(.Success(result))
+								callback(.success(result))
 							}
 						}
 					}
 				}
 			}
 			else {
-				callback(.Failure("Stream was destroyed"))
+				callback(.failure("Stream was destroyed"))
 			}
 		})
 	}
 
-	private func continueWith(continuation: ReResponse.ContinuationCallback?, job: Job) {
-		dispatch_async(self.queue) { [weak self] in
+	private func continueWith(_ continuation: ReResponse.ContinuationCallback?, job: Job) {
+		self.queue.async { [weak self] in
 			if let s = self {
 				// We first have to get rid of the first response
 				if let fr = s.firstResponse {
@@ -122,7 +122,7 @@ final class QBERethinkStream: NSObject, Stream {
 
 					// Done, empty the waiting list
 					s.waitingList.forEach {
-						$0(.Success([]), .Finished)
+						$0(.success([]), .finished)
 					}
 					s.waitingList.removeAll()
 					s.firstResponse = nil
@@ -132,65 +132,65 @@ final class QBERethinkStream: NSObject, Stream {
 		}
 	}
 
-	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		if let fc = self.columns {
-			callback(.Success(fc))
+			callback(.success(fc))
 		}
 		else {
 			self.connection.get(job) { res in
 				callback(res.use { p in
 					/* Capture `self` explicitly here so it doesn't get destroyed while we are performing self.connection.get. */
 					self.columns = p.1
-					return .Success(p.1)
+					return .success(p.1)
 				})
 			}
 		}
 	}
 
-	private func ingest(response: ReResponse, consumer: Sink, job: Job) {
+	private func ingest(_ response: ReResponse, consumer: Sink, job: Job) {
 		switch response {
-			case .Error(let e):
-				consumer(.Failure(e), .Finished)
+			case .error(let e):
+				consumer(.failure(e), .finished)
 
-			case .Rows(let docs, let continuation):
+			case .rows(let docs, let continuation):
 				self.columns(job, callback: { (columnsFallible) -> () in
 					switch columnsFallible {
-						case .Success(let columns):
+						case .success(let columns):
 							let rows = docs.map { (document) -> [Value] in
 								var newDocument: [Value] = []
 								for column in columns {
 									if let value = document[column.name] {
 										if let x = value as? NSNumber {
-											newDocument.append(Value.DoubleValue(x.doubleValue))
+											newDocument.append(Value.double(x.doubleValue))
 										}
 										else if let y = value as? String {
-											newDocument.append(Value.StringValue(y))
+											newDocument.append(Value.string(y))
 										}
 										else if let _ = value as? NSNull {
-											newDocument.append(Value.EmptyValue)
+											newDocument.append(Value.empty)
 										}
-										else if let x = value as? NSDate {
+										else if let x = value as? Date {
 											newDocument.append(Value(x))
 										}
 										else {
 											// Probably arrays (NSArray), dictionaries (NSDictionary) and binary data (NSData)
-											newDocument.append(Value.InvalidValue)
+											newDocument.append(Value.invalid)
 										}
 									}
 									else {
-										newDocument.append(Value.EmptyValue)
+										newDocument.append(Value.empty)
 									}
 								}
 								return newDocument
 							}
 
-							dispatch_async(self.queue) {
-								consumer(.Success(rows), continuation != nil ? .HasMore : .Finished)
+							self.queue.async {
+								consumer(.success(rows), continuation != nil ? .hasMore : .finished)
 								self.continueWith(continuation, job: job)
 							}
 
-						case .Failure(let e):
-							consumer(.Failure(e), .Finished)
+						case .failure(let e):
+							consumer(.failure(e), .finished)
 					}
 				})
 
@@ -198,29 +198,29 @@ final class QBERethinkStream: NSObject, Stream {
 				// Maybe this value is an array that contains rows
 				if let av = v as? [ReDocument] {
 					// Treat as any other regular result set
-					self.ingest(ReResponse.Rows(av, nil), consumer: consumer, job: job)
+					self.ingest(ReResponse.rows(av, nil), consumer: consumer, job: job)
 				}
 				else if let av = v as? ReDocument {
 					// Treat as single document
-					self.ingest(ReResponse.Rows([av], nil), consumer: consumer, job: job)
+					self.ingest(ReResponse.rows([av], nil), consumer: consumer, job: job)
 				}
 				else {
-					consumer(.Failure("Received single value: \(v)"), .Finished)
+					consumer(.failure("Received single value: \(v)"), .finished)
 				}
 
-			case .Unknown:
-				consumer(.Failure("Unknown response received"), .Finished)
+			case .unknown:
+				consumer(.failure("Unknown response received"), .finished)
 		}
 	}
 
-	func fetch(job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: Sink) {
 		self.connection.get(job) { resFallible in
-			dispatch_async(self.queue) {
+			(self.queue).async {
 				if self.ended {
 					resFallible.maybe({ (connection, columns) -> Void in
 						connection.close()
 					})
-					consumer(.Success([]), .Finished)
+					consumer(.success([]), .finished)
 					return
 				}
 
@@ -245,24 +245,24 @@ final class QBERethinkStream: NSObject, Stream {
 		}
 	}
 
-	func clone() -> Stream {
+	func clone() -> WarpCore.Stream {
 		return QBERethinkStream(url: self.url, query: self.query, columns: self.columns)
 	}
 }
 
 /** This class provides the expressionToQuery function that translates Expression expression trees to ReSQL expressions. */
 private class QBERethinkExpression {
-	static func expressionToQuery(expression: Expression, prior: ReQueryValue? = nil) -> ReQueryValue? {
+	static func expressionToQuery(_ expression: Expression, prior: ReQueryValue? = nil) -> ReQueryValue? {
 		if let sibling = expression as? Sibling, let p = prior {
 			return p[sibling.column.name]
 		}
 		else if let literal = expression as? Literal {
 			switch literal.value {
-			case .DoubleValue(let d): return R.expr(d)
-			case .BoolValue(let b): return R.expr(b)
-			case .StringValue(let s): return R.expr(s)
-			case .IntValue(let i): return R.expr(i)
-			case .EmptyValue: return R.expr()
+			case .double(let d): return R.expr(d)
+			case .bool(let b): return R.expr(b)
+			case .string(let s): return R.expr(s)
+			case .int(let i): return R.expr(i)
+			case .empty: return R.expr()
 			default: return nil
 			}
 		}
@@ -389,8 +389,8 @@ private class QBERethinkExpression {
 	}
 }
 
-class QBERethinkData: StreamData {
-	private let url: NSURL
+class QBERethinkDataset: StreamDataset {
+	private let url: URL
 	private let query: ReQuerySequence
 	private let columns: [Column]? // List of all columns in the result, or nil if unknown
 	private let indices: Set<Column>? // List of usable indices, or nil if no indices can be used
@@ -398,7 +398,7 @@ class QBERethinkData: StreamData {
 	/** Create a data object with the result of the given query from the server at the given URL. If the array of column
 	names is set, the query *must* never return any other columns than the given columns (missing columns lead to empty
 	values). In order to guarantee this, add a .withFields(columns) to any query given to this constructor. */
-	init(url: NSURL, query: ReQuerySequence, columns: [Column]? = nil, indices: Set<Column>? = nil) {
+	init(url: URL, query: ReQuerySequence, columns: [Column]? = nil, indices: Set<Column>? = nil) {
 		self.url = url
 		self.query = query
 		self.columns = columns
@@ -406,23 +406,23 @@ class QBERethinkData: StreamData {
 		super.init(source: QBERethinkStream(url: url, query: query, columns: columns))
 	}
 
-	override func limit(numberOfRows: Int) -> Data {
-		return QBERethinkData(url: self.url, query: self.query.limit(numberOfRows), columns: columns)
+	override func limit(_ numberOfRows: Int) -> Dataset {
+		return QBERethinkDataset(url: self.url, query: self.query.limit(numberOfRows), columns: columns)
 	}
 
-	override func offset(numberOfRows: Int) -> Data {
-		return QBERethinkData(url: self.url, query: self.query.skip(numberOfRows), columns: columns)
+	override func offset(_ numberOfRows: Int) -> Dataset {
+		return QBERethinkDataset(url: self.url, query: self.query.skip(numberOfRows), columns: columns)
 	}
 
-	override func random(numberOfRows: Int) -> Data {
-		return QBERethinkData(url: self.url, query: self.query.sample(numberOfRows), columns: columns)
+	override func random(_ numberOfRows: Int) -> Dataset {
+		return QBERethinkDataset(url: self.url, query: self.query.sample(numberOfRows), columns: columns)
 	}
 
-	override func distinct() -> Data {
-		return QBERethinkData(url: self.url, query: self.query.distinct(), columns: columns)
+	override func distinct() -> Dataset {
+		return QBERethinkDataset(url: self.url, query: self.query.distinct(), columns: columns)
 	}
 
-	override func filter(condition: Expression) -> Data {
+	override func filter(_ condition: Expression) -> Dataset {
 		let optimized = condition.prepare()
 
 		if QBERethinkExpression.expressionToQuery(optimized, prior: R.expr()) != nil {
@@ -432,19 +432,19 @@ class QBERethinkData: StreamData {
 				if let (sibling, literal) = binary.commutativePair(Sibling.self, Literal.self) {
 					if self.indices?.contains(sibling.column) ?? false {
 						// We can use a secondary index
-						return QBERethinkData(url: self.url, query: tbl.getAll(QBERethinkExpression.expressionToQuery(literal)!, index: sibling.column.name), columns: columns)
+						return QBERethinkDataset(url: self.url, query: tbl.getAll(QBERethinkExpression.expressionToQuery(literal)!, index: sibling.column.name), columns: columns)
 					}
 				}
 			}
 
-			return QBERethinkData(url: self.url, query: self.query.filter {
+			return QBERethinkDataset(url: self.url, query: self.query.filter {
 				i in return QBERethinkExpression.expressionToQuery(optimized, prior: i)!
 			}, columns: columns)
 		}
 		return super.filter(condition)
 	}
 
-	override func calculate(calculations: Dictionary<Column, Expression>) -> Data {
+	override func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset {
 		/* Some calculations cannot be translated to ReQL. If there is one in the list, fall back. This is to satisfy
 		the requirement that calculations fed to calculate() 'see' the old values in columns even while that column is
 		also recalculated by the calculation set. */
@@ -467,49 +467,49 @@ class QBERethinkData: StreamData {
 		let newColumns: [Column]?
 		if let columns = self.columns {
 			// Add newly added columns to the end in no particular order
-			let newlyAdded = Set(calculations.keys).subtract(columns)
+			let newlyAdded = Set(calculations.keys).subtracting(columns)
 			var all = columns
-			all.appendContentsOf(newlyAdded)
+			all.append(contentsOf: newlyAdded)
 			newColumns = all
 		}
 		else {
 			newColumns = nil
 		}
 
-		return QBERethinkData(url: self.url, query: q, columns: newColumns)
+		return QBERethinkDataset(url: self.url, query: q, columns: newColumns)
 	}
 
-	override func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		// If the column names are known for this data set, simply return them
 		if let c = self.columns {
-			callback(.Success(c))
+			callback(.success(c))
 			return
 		}
 
 		return super.columns(job, callback: callback)
 	}
 
-	override func selectColumns(columns: [Column]) -> Data {
-		return QBERethinkData(url: self.url, query: self.query.withFields(columns.map { return R.expr($0.name) }), columns: columns)
+	override func selectColumns(_ columns: [Column]) -> Dataset {
+		return QBERethinkDataset(url: self.url, query: self.query.withFields(columns.map { return R.expr($0.name) }), columns: columns)
 	}
 
-	private func isCompatibleWith(data: QBERethinkData) -> Bool {
+	private func isCompatibleWith(_ data: QBERethinkDataset) -> Bool {
 		return data.url == self.url
 	}
 
-	override func union(data: Data) -> Data {
-		if let d = data as? QBERethinkData where self.isCompatibleWith(d) {
+	override func union(_ data: Dataset) -> Dataset {
+		if let d = data as? QBERethinkDataset where self.isCompatibleWith(d) {
 			// Are the columns for the other data set known?
 			let resultingColumns: [Column]?
 			if let dc = d.columns, var oc = self.columns {
-				oc.appendContentsOf(dc)
+				oc.append(contentsOf: dc)
 				resultingColumns = Array(Set(oc))
 			}
 			else {
 				resultingColumns = nil
 			}
 
-			return QBERethinkData(url: self.url, query: self.query.union(d.query), columns: resultingColumns)
+			return QBERethinkDataset(url: self.url, query: self.query.union(d.query), columns: resultingColumns)
 		}
 		else {
 			return super.union(data)
@@ -517,45 +517,45 @@ class QBERethinkData: StreamData {
 	}
 }
 
-class QBERethinkDataWarehouse: Warehouse {
-	let url: NSURL
+class QBERethinkDatasetWarehouse: Warehouse {
+	let url: URL
 	let databaseName: String
 	let hasFixedColumns: Bool = false
 	let hasNamedTables: Bool = true
 
-	init(url: NSURL, databaseName: String) {
+	init(url: URL, databaseName: String) {
 		self.url = url
 		self.databaseName = databaseName
 	}
 
-	func canPerformMutation(mutation: WarehouseMutation) -> Bool {
+	func canPerformMutation(_ mutation: WarehouseMutation) -> Bool {
 		switch mutation {
-		case .Create(_,_):
+		case .create(_,_):
 			return true
 		}
 	}
 
-	func performMutation(mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableData?>) -> ()) {
+	func performMutation(_ mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableDataset?>) -> ()) {
 		if !canPerformMutation(mutation) {
-			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
+			callback(.failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
 		}
 
 		switch mutation {
-		case .Create(let name, _):
+		case .create(let name, _):
 			R.connect(self.url, callback: { (error, connection) -> () in
 				if error != nil {
-					callback(.Failure(error!.description))
+					callback(.failure(error!.description))
 					return
 				}
 
 				R.db(self.databaseName).tableCreate(name).run(connection) { response in
 					switch response {
-					case .Error(let e):
-						callback(.Failure(e))
+					case .error(let e):
+						callback(.failure(e))
 
 					default:
-						callback(.Success(QBERethinkMutableData(url: self.url, databaseName: self.databaseName, tableName: name)))
+						callback(.success(QBERethinkMutableDataset(url: self.url, databaseName: self.databaseName, tableName: name)))
 					}
 				}
 			})
@@ -569,7 +569,7 @@ private class QBERethinkInsertPuller: StreamPuller {
 	let table: ReQueryTable
 	var callback: ((Fallible<Void>) -> ())?
 
-	init(stream: Stream, job: Job, columns: [Column], table: ReQueryTable, connection: ReConnection, callback: (Fallible<Void>) -> ()) {
+	init(stream: WarpCore.Stream, job: Job, columns: [Column], table: ReQueryTable, connection: ReConnection, callback: (Fallible<Void>) -> ()) {
 		self.callback = callback
 		self.table = table
 		self.connection = connection
@@ -577,12 +577,12 @@ private class QBERethinkInsertPuller: StreamPuller {
 		super.init(stream: stream, job: job)
 	}
 
-	override func onReceiveRows(rows: [Tuple], callback: (Fallible<Void>) -> ()) {
+	override func onReceiveRows(_ rows: [Tuple], callback: (Fallible<Void>) -> ()) {
 		self.mutex.locked {
 			let documents = rows.map { row -> ReDocument in
 				assert(row.count == self.columns.count, "Mismatching column counts")
 				var document: ReDocument = [:]
-				for (index, element) in self.columns.enumerate()
+				for (index, element) in self.columns.enumerated()
 				{
 					document[element.name] = row[index].nativeValue ?? NSNull()
 				}
@@ -591,11 +591,11 @@ private class QBERethinkInsertPuller: StreamPuller {
 
 			self.table.insert(documents).run(self.connection) { result in
 				switch result {
-				case .Error(let e):
-					callback(.Failure(e))
+				case .error(let e):
+					callback(.failure(e))
 
 				default:
-					callback(.Success())
+					callback(.success())
 				}
 			}
 		}
@@ -606,146 +606,146 @@ private class QBERethinkInsertPuller: StreamPuller {
 			let cb = self.callback!
 			self.callback = nil
 			self.job.async {
-				cb(.Success())
+				cb(.success())
 			}
 		}
 	}
 
-	override func onError(error: String) {
+	override func onError(_ error: String) {
 		self.mutex.locked {
 			let cb = self.callback!
 			self.callback = nil
 
 			self.job.async {
-				cb(.Failure(error))
+				cb(.failure(error))
 			}
 		}
 	}
 }
 
-class QBERethinkMutableData: MutableData {
-	let url: NSURL
+class QBERethinkMutableDataset: MutableDataset {
+	let url: URL
 	let databaseName: String
 	let tableName: String
 
-	var warehouse: Warehouse { return QBERethinkDataWarehouse(url: url, databaseName: databaseName) }
+	var warehouse: Warehouse { return QBERethinkDatasetWarehouse(url: url, databaseName: databaseName) }
 
-	init(url: NSURL, databaseName: String, tableName: String) {
+	init(url: URL, databaseName: String, tableName: String) {
 		self.url = url
 		self.databaseName = databaseName
 		self.tableName = tableName
 	}
 
-	func identifier(job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+	func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
 		R.connect(self.url) { err, connection in
 			if let e = err {
-				callback(.Failure(e.description))
+				callback(.failure(e.description))
 				return
 			}
 
 			R.db(self.databaseName).table(self.tableName).info().run(connection) { response in
-				if case ReResponse.Error(let e) = response {
-					callback(.Failure(e))
+				if case ReResponse.error(let e) = response {
+					callback(.failure(e))
 					return
 				}
 				else {
 					if let info = response.value as? [String: AnyObject] {
 						if let pk = info["primary_key"] as? String {
-							callback(.Success(Set<Column>([Column(pk)])))
+							callback(.success(Set<Column>([Column(pk)])))
 						}
 						else {
-							callback(.Failure("RethinkDB failed to tell us what the primary key is"))
+							callback(.failure("RethinkDB failed to tell us what the primary key is"))
 						}
 					}
 					else {
-						callback(.Failure("RethinkDB returned unreadable information on the table"))
+						callback(.failure("RethinkDB returned unreadable information on the table"))
 					}
 				}
 			}
 		}
 	}
 
-	func data(job: Job, callback: (Fallible<Data>) -> ()) {
-		callback(.Success(QBERethinkData(url: self.url, query: R.db(databaseName).table(tableName))))
+	func data(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+		callback(.success(QBERethinkDataset(url: self.url, query: R.db(databaseName).table(tableName))))
 	}
 
-	func canPerformMutation(mutation: DataMutation) -> Bool {
+	func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
 		switch mutation {
-		case .Truncate, .Drop, .Import(_,_), .Alter(_), .Update(_,_,_,_), .Insert(row: _), .Delete(keys: _):
+		case .truncate, .drop, .import(_,_), .alter(_), .update(_,_,_,_), .insert(row: _), .delete(keys: _):
 			return true
 
-		case .Edit(_,_,_,_), .Rename(_), .Remove(rows: _):
+		case .edit(_,_,_,_), .rename(_), .remove(rows: _):
 			return false
 		}
 	}
 
-	func performMutation(mutation: DataMutation, job: Job, callback: (Fallible<Void>) -> ()) {
+	func performMutation(_ mutation: DatasetMutation, job: Job, callback: (Fallible<Void>) -> ()) {
 		if !canPerformMutation(mutation) {
-			callback(.Failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
+			callback(.failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
 		}
 
 		job.async {
 			R.connect(self.url) { (err, connection) -> () in
 				if let e = err {
-					callback(.Failure(e.description))
+					callback(.failure(e.description))
 					return
 				}
 
 				let q: ReQuery
 				switch mutation {
-				case .Alter:
+				case .alter:
 					// RethinkDB does not have fixed columns, hence Alter is a no-op
-					callback(.Success())
+					callback(.success())
 					return
 
-				case .Update(let key, let column, _, let newValue):
+				case .update(let key, let column, _, let newValue):
 					// the identifier function returns only the primary key for this table as key. Updates may not use any other key.
 					if let pkeyValue = key.first {
 						let document: ReDocument = [column.name: newValue.nativeValue ?? NSNull()]
 						q = R.db(self.databaseName).table(self.tableName).get(pkeyValue.1.nativeValue ?? NSNull()).update(document)
 					}
 					else {
-						return callback(.Failure("Invalid key"))
+						return callback(.failure("Invalid key"))
 					}
 
-				case .Truncate:
+				case .truncate:
 					q = R.db(self.databaseName).table(self.tableName).delete()
 
-				case .Drop:
+				case .drop:
 					q = R.db(self.databaseName).tableDrop(self.tableName)
 
-				case .Import(let sourceData, _):
+				case .import(let sourceDataset, _):
 					/* If the source rows are produced on the same server, we might as well let the server do the
 					heavy lifting. */
-					if let sourceRethinkData = sourceData as? QBERethinkData where sourceRethinkData.url == self.url {
-						q = sourceRethinkData.query.forEach { doc in R.db(self.databaseName).table(self.tableName).insert([doc]) }
+					if let sourceRethinkDataset = sourceDataset as? QBERethinkDataset where sourceRethinkDataset.url == self.url {
+						q = sourceRethinkDataset.query.forEach { doc in R.db(self.databaseName).table(self.tableName).insert([doc]) }
 					}
 					else {
-						let stream = sourceData.stream()
+						let stream = sourceDataset.stream()
 
 						stream.columns(job) { cns in
 							switch cns {
-							case .Success(let columns):
+							case .success(let columns):
 								let table = R.db(self.databaseName).table(self.tableName)
 								let puller = QBERethinkInsertPuller(stream: stream, job: job, columns: columns, table: table, connection: connection, callback: callback)
 								puller.start()
 
-							case .Failure(let e):
-								callback(.Failure(e))
+							case .failure(let e):
+								callback(.failure(e))
 							}
 						}
 						return
 					}
 
-					case .Insert(let row):
+					case .insert(let row):
 						var doc = ReDocument()
 						for name in row.columns {
 							doc[name.name] = row[name].nativeValue ?? NSNull()
 						}
 						q = R.db(self.databaseName).table(self.tableName).insert([doc])
 
-					case .Delete(keys: let keys):
+					case .delete(keys: let keys):
 						// TODO: if we're deleting by primary key, then .get(pk).delete() is much faster than .filter().delete()
 						q = R.db(self.databaseName).table(self.tableName).filter({ row in
 							var predicate: ReQueryValue = R.expr(false)
@@ -761,17 +761,17 @@ class QBERethinkMutableData: MutableData {
 							return predicate
 						}).delete()
 
-				case .Edit(_,_,_,_), .Rename(_), .Remove(rows: _):
+				case .edit(_,_,_,_), .rename(_), .remove(rows: _):
 						fatalError("Not supported")
 				}
 
 				q.run(connection, callback: { (response) -> () in
-					if case ReResponse.Error(let e) = response {
-						callback(.Failure(e))
+					if case ReResponse.error(let e) = response {
+						callback(.failure(e))
 						return
 					}
 					else {
-						callback(.Success())
+						callback(.success())
 					}
 				})
 			}
@@ -806,28 +806,28 @@ class QBERethinkSourceStep: QBEStep {
 		self.server = aDecoder.decodeStringForKey("server") ?? "localhost"
 		self.table = aDecoder.decodeStringForKey("table") ?? "test"
 		self.database = aDecoder.decodeStringForKey("database") ?? "test"
-		self.port = max(1, min(65535, aDecoder.decodeIntegerForKey("port") ?? 28015));
+		self.port = max(1, min(65535, aDecoder.decodeInteger(forKey: "port") ?? 28015));
 
 		let authenticationKey = aDecoder.decodeStringForKey("authenticationKey")
 		self.authenticationKey = authenticationKey
 		self.username = aDecoder.decodeStringForKey("username") ?? "admin"
-		self.useUsernamePasswordAuthentication = aDecoder.containsValueForKey("useUsernamePasswordAuthentication") ?
-			aDecoder.decodeBoolForKey("useUsernamePasswordAuthentication") :
+		self.useUsernamePasswordAuthentication = aDecoder.containsValue(forKey: "useUsernamePasswordAuthentication") ?
+			aDecoder.decodeBool(forKey: "useUsernamePasswordAuthentication") :
 			(authenticationKey == nil || authenticationKey!.isEmpty)
 
-		let cols = (aDecoder.decodeObjectForKey("columns") as? [String]) ?? []
+		let cols = (aDecoder.decodeObject(forKey: "columns") as? [String]) ?? []
 		self.columns = cols.map { return Column($0) }
 		super.init(coder: aDecoder)
 	}
 
-	override func encodeWithCoder(coder: NSCoder) {
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		super.encode(with: coder)
 		coder.encodeString(self.server, forKey: "server")
 		coder.encodeString(self.database, forKey: "database")
 		coder.encodeString(self.table, forKey: "table")
-		coder.encodeInteger(self.port, forKey: "port")
-		coder.encodeObject(NSArray(array: self.columns.map { return $0.name }), forKey: "columns")
-		coder.encodeBool(self.useUsernamePasswordAuthentication, forKey: "useUsernamePasswordAuthentication")
+		coder.encode(self.port, forKey: "port")
+		coder.encode(NSArray(array: self.columns.map { return $0.name }), forKey: "columns")
+		coder.encode(self.useUsernamePasswordAuthentication, forKey: "useUsernamePasswordAuthentication")
 		if self.useUsernamePasswordAuthentication {
 			coder.encodeString(self.username, forKey: "username")
 		}
@@ -838,18 +838,18 @@ class QBERethinkSourceStep: QBEStep {
 		}
 	}
 
-	internal var url: NSURL? { get {
+	internal var url: URL? { get {
 		if let u = self.authenticationKey where !u.isEmpty && !self.useUsernamePasswordAuthentication {
-			let urlString = "rethinkdb://\(u.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLUserAllowedCharacterSet())!)@\(self.server.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLHostAllowedCharacterSet())!):\(self.port)"
-			return NSURL(string: urlString)
+			let urlString = "rethinkdb://\(u.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlUserAllowed)!)@\(self.server.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlHostAllowed)!):\(self.port)"
+			return URL(string: urlString)
 		}
 		else {
-			let urlString = "rethinkdb://\(self.server.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLHostAllowedCharacterSet())!):\(self.port)"
-			return NSURL(string: urlString)
+			let urlString = "rethinkdb://\(self.server.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlHostAllowed)!):\(self.port)"
+			return URL(string: urlString)
 		}
 	} }
 
-	private func sourceData(callback: (Fallible<Data>) -> ()) {
+	private func sourceDataset(_ callback: (Fallible<Dataset>) -> ()) {
 		if let u = url {
 			let table = R.db(self.database).table(self.table)
 			let password: String
@@ -862,58 +862,58 @@ class QBERethinkSourceStep: QBEStep {
 
 			if self.columns.count > 0 {
 				let q = table.withFields(self.columns.map { return R.expr($0.name) })
-				callback(.Success(QBERethinkData(url: u, query: q, columns: self.columns.count > 0 ? self.columns : nil)))
+				callback(.success(QBERethinkDataset(url: u, query: q, columns: self.columns.count > 0 ? self.columns : nil)))
 			}
 			else {
 				// Username and password are ignored when using V0_4. The authentication key will be in the URL for V0_4 (if set)
-				R.connect(u, user: self.username, password: password, version: (self.useUsernamePasswordAuthentication ? .V1_0 : .V0_4), callback: { (err, connection) -> () in
+				R.connect(u, user: self.username, password: password, version: (self.useUsernamePasswordAuthentication ? .v1_0 : .v0_4), callback: { (err, connection) -> () in
 					if let e = err {
-						callback(.Failure(e.description))
+						callback(.failure(e.description))
 						return
 					}
 
 					table.indexList().run(connection) { response in
 						if case .Value(let indices) = response, let indexList = indices as? [String] {
-							callback(.Success(QBERethinkData(url: u, query: table, columns: !self.columns.isEmpty ? self.columns : nil, indices: Set(indexList.map { return Column($0) }))))
+							callback(.success(QBERethinkDataset(url: u, query: table, columns: !self.columns.isEmpty ? self.columns : nil, indices: Set(indexList.map { return Column($0) }))))
 						}
 						else {
 							// Carry on without indexes
-							callback(.Success(QBERethinkData(url: u, query: table, columns: !self.columns.isEmpty ? self.columns : nil, indices: nil)))
+							callback(.success(QBERethinkDataset(url: u, query: table, columns: !self.columns.isEmpty ? self.columns : nil, indices: nil)))
 						}
 					}
 				})
 			}
 		}
 		else {
-			callback(.Failure(NSLocalizedString("The location of the RethinkDB server is invalid.", comment: "")))
+			callback(.failure(NSLocalizedString("The location of the RethinkDB server is invalid.", comment: "")))
 		}
 	}
 
-	override func fullData(job: Job, callback: (Fallible<Data>) -> ()) {
-		sourceData(callback)
+	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+		sourceDataset(callback)
 	}
 
-	override func exampleData(job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
-		sourceData { t in
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+		sourceDataset { t in
 			switch t {
-			case .Failure(let e): callback(.Failure(e))
-			case .Success(let d): callback(.Success(d.limit(maxInputRows)))
+			case .failure(let e): callback(.failure(e))
+			case .success(let d): callback(.success(d.limit(maxInputRows)))
 			}
 		}
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let template: String
 		switch variant {
-		case .Read, .Neutral: template = "Read table [#] from RethinkDB database [#]"
-		case .Write: template = "Write to table [#] in RethinkDB database [#]";
+		case .read, .neutral: template = "Read table [#] from RethinkDB database [#]"
+		case .write: template = "Write to table [#] in RethinkDB database [#]";
 		}
 
 		return QBESentence(format: NSLocalizedString(template, comment: ""),
 			QBESentenceList(value: self.table, provider: { pc in
 				R.connect(self.url!, callback: { (err, connection) in
 					if err != nil {
-						pc(.Failure(err!.description))
+						pc(.failure(err!.description))
 						return
 					}
 
@@ -921,16 +921,16 @@ class QBERethinkSourceStep: QBEStep {
 						/* While it is not strictly necessary to close the connection explicitly, we do it here to keep 
 						a reference to the connection, as to keep the connection alive until the query returns. */
 						connection.close()
-						if case .Error(let e) = response {
-							pc(.Failure(e))
+						if case .error(let e) = response {
+							pc(.failure(e))
 							return
 						}
 
 						if let v = response.value as? [String] {
-							pc(.Success(v))
+							pc(.success(v))
 						}
 						else {
-							pc(.Failure("invalid list received"))
+							pc(.failure("invalid list received"))
 						}
 					}
 				})
@@ -942,7 +942,7 @@ class QBERethinkSourceStep: QBEStep {
 			QBESentenceList(value: self.database, provider: { pc in
 				R.connect(self.url!, callback: { (err, connection) in
 					if err != nil {
-						pc(.Failure(err!.description))
+						pc(.failure(err!.description))
 						return
 					}
 
@@ -950,28 +950,28 @@ class QBERethinkSourceStep: QBEStep {
 						/* While it is not strictly necessary to close the connection explicitly, we do it here to keep
 						a reference to the connection, as to keep the connection alive until the query returns. */
 						connection.close()
-						if case .Error(let e) = response {
-							pc(.Failure(e))
+						if case .error(let e) = response {
+							pc(.failure(e))
 							return
 						}
 
 						if let v = response.value as? [String] {
-							pc(.Success(v))
+							pc(.success(v))
 						}
 						else {
-							pc(.Failure("invalid list received"))
+							pc(.failure("invalid list received"))
 						}
 					}
 				})
-			}, callback: { (newDatabase) -> () in
-				self.database = newDatabase
+			}, callback: { (newDatasetbase) -> () in
+				self.database = newDatasetbase
 			})
 		)
 	}
 
-	override var mutableData: MutableData? {
+	override var mutableDataset: MutableDataset? {
 		if let u = self.url where !self.table.isEmpty {
-			return QBERethinkMutableData(url: u, databaseName: self.database, tableName: self.table)
+			return QBERethinkMutableDataset(url: u, databaseName: self.database, tableName: self.table)
 		}
 		return nil
 	}
@@ -980,13 +980,13 @@ class QBERethinkSourceStep: QBEStep {
 extension Value {
 	var rethinkValue: ReQueryValue {
 		switch self {
-		case .StringValue(let s): return R.expr(s)
-		case .BoolValue(let b): return R.expr(b)
-		case .DoubleValue(let d): return R.expr(d)
-		case .DateValue(let d): return R.expr(d) // FIXME!
-		case .IntValue(let i): return R.expr(i)
-		case .InvalidValue: return R.expr(1).div(0)
-		case .EmptyValue: return R.expr()
+		case .string(let s): return R.expr(s)
+		case .bool(let b): return R.expr(b)
+		case .double(let d): return R.expr(d)
+		case .date(let d): return R.expr(d) // FIXME!
+		case .int(let i): return R.expr(i)
+		case .invalid: return R.expr(1).div(0)
+		case .empty: return R.expr()
 		}
 	}
 }

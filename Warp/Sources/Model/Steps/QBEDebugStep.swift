@@ -27,7 +27,7 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 		super.init()
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceOptions(options: [
 				QBEDebugType.None.rawValue: QBEDebugType.None.description,
@@ -50,27 +50,27 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 		return true
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
+	override func encode(with coder: NSCoder) {
 		coder.encodeString(self.type.rawValue, forKey: "type")
-		super.encodeWithCoder(coder)
+		super.encode(with: coder)
 	}
 	
-	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
 		switch type {
 			case .None:
-				callback(.Success(data))
+				callback(.success(data))
 			
 			case .Rasterize:
 				data.raster(job, callback: { (raster) -> () in
-					callback(raster.use({RasterData(raster: $0)}))
+					callback(raster.use({RasterDataset(raster: $0)}))
 				})
 			
 			case .Cache:
-				/* Make sure the QBESQLiteCachedData object stays around until completion by capturing it in the
+				/* Make sure the QBESQLiteCachedDataset object stays around until completion by capturing it in the
 				completion callback. Under normal circumstances the object will not keep references to itself 
 				and would be released automatically without this trick, because we don't store it. */
-				var x: QBESQLiteCachedData? = nil
-				x = QBESQLiteCachedData(source: data, job: job, completion: {(_) in callback(.Success(x!))})
+				var x: QBESQLiteCachedDataset? = nil
+				x = QBESQLiteCachedDataset(source: data, job: job, completion: {(_) in callback(.success(x!))})
 			}
 	}
 }

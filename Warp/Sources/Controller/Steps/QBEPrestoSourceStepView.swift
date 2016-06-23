@@ -23,7 +23,7 @@ internal class QBEPrestoSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 		updateView()
 	}
 	
-	@IBAction func update(sender: NSObject) {
+	@IBAction func update(_ sender: NSObject) {
 		step.url = urlField?.stringValue ?? step.url
 		step.catalogName = catalogField?.stringValue ?? step.catalogName
 		step.schemaName = schemaField?.stringValue ?? step.schemaName
@@ -32,7 +32,7 @@ internal class QBEPrestoSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 	}
 	
 	private func updateView() {
-		let job = Job(.UserInitiated)
+		let job = Job(.userInitiated)
 
 		urlField?.stringValue = step.url ?? ""
 		catalogField?.stringValue = step.catalogName ?? ""
@@ -66,7 +66,7 @@ internal class QBEPrestoSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 						let currentTable = self.step.tableName
 						for i in 0..<self.tableNames!.count {
 							if self.tableNames![i]==currentTable {
-								self.tableView?.selectRowIndexes(NSIndexSet(index: i), byExtendingSelection: false)
+								self.tableView?.selectRowIndexes(NSIndexSet(index: i) as IndexSet, byExtendingSelection: false)
 								break
 							}
 						}
@@ -76,7 +76,7 @@ internal class QBEPrestoSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 		}
 	}
 	
-	internal func tableViewSelectionDidChange(notification: NSNotification) {
+	internal func tableViewSelectionDidChange(_ notification: Notification) {
 		let selection = tableView?.selectedRow ?? -1
 		if tableNames != nil && selection >= 0 && selection < tableNames!.count {
 			let selectedName = tableNames![selection]
@@ -85,15 +85,15 @@ internal class QBEPrestoSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 		}
 	}
 	
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return tableNames?.count ?? 0
 	}
 	
-	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		return tableNames?[row] ?? ""
 	}
 	
-	func numberOfItemsInComboBox(aComboBox: NSComboBox) -> Int {
+	func numberOfItems(in aComboBox: NSComboBox) -> Int {
 		if aComboBox == catalogField {
 			return catalogNames?.count ?? 0
 		}
@@ -103,7 +103,7 @@ internal class QBEPrestoSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 		return 0
 	}
 	
-	func comboBox(aComboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> AnyObject {
+	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> AnyObject? {
 		if aComboBox == catalogField {
 			return catalogNames?[index] ?? ""
 		}

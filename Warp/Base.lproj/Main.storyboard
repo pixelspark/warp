@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11129.15" systemVersion="15F34" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10117"/>
-        <plugIn identifier="com.apple.MapKitIBPlugin" version="10117"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11129.15"/>
+        <plugIn identifier="com.apple.MapKitIBPlugin" version="11129.15"/>
         <capability name="box content view" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
@@ -1753,6 +1753,7 @@ CA
                                                     <subviews>
                                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CDw-5V-yTY">
                                                             <rect key="frame" x="16" y="44" width="77" height="200"/>
+                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                         </view>
                                                     </subviews>
                                                 </clipView>
@@ -2266,7 +2267,7 @@ Gw
         <!--Data view controller-->
         <scene sceneID="BjY-ZD-Y7M">
             <objects>
-                <viewController title="Data view controller" storyboardIdentifier="dataViewController" id="heg-Gg-TM4" customClass="QBEDataViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="Data view controller" storyboardIdentifier="dataViewController" id="heg-Gg-TM4" customClass="QBEDatasetViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" wantsLayer="YES" canDrawConcurrently="YES" focusRingType="none" id="qWX-f7-1Jq">
                         <rect key="frame" x="0.0" y="0.0" width="667" height="395"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -3355,7 +3356,7 @@ Gw
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <subviews>
                                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="xj3-6c-xSH">
-                                                                <rect key="frame" x="0.0" y="0.0" width="587" height="135"/>
+                                                                <rect key="frame" x="0.0" y="0.0" width="403" height="19"/>
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <size key="intercellSpacing" width="3" height="2"/>
                                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>

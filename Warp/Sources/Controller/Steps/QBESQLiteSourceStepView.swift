@@ -18,8 +18,8 @@ internal class QBESQLiteSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 		updateView()
 	}
 
-	func alterTableView(view: QBEAlterTableViewController, didAlterTable table: MutableData?) {
-		if let s = table as? SQLMutableData {
+	func alterTableView(_ view: QBEAlterTableViewController, didAlterTable table: MutableDataset?) {
+		if let s = table as? SQLMutableDataset {
 			self.step.tableName = s.tableName
 			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 			self.updateView()
@@ -27,10 +27,10 @@ internal class QBESQLiteSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 	}
 
 	private func updateView() {
-		self.createTableButton?.enabled = self.step.warehouse?.canPerformMutation(.Create("table", RasterData())) ?? false
+		self.createTableButton?.isEnabled = self.step.warehouse?.canPerformMutation(.create("table", RasterDataset())) ?? false
 	}
 
-	@IBAction func createTable(sender: NSObject) {
+	@IBAction func createTable(_ sender: NSObject) {
 		if let warehouse = self.step.warehouse {
 			let vc = QBEAlterTableViewController()
 			vc.warehouse = warehouse

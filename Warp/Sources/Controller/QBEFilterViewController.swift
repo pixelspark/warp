@@ -2,7 +2,7 @@ import Cocoa
 import WarpCore
 
 protocol QBEFilterViewDelegate: NSObjectProtocol {
-	func filterView(view: QBEFilterViewController, didChangeFilter: FilterSet?)
+	func filterView(_ view: QBEFilterViewController, didChangeFilter: FilterSet?)
 }
 
 class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate, JobDelegate {
@@ -13,11 +13,11 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	private var lastSearch: String? = nil
 	weak var delegate: QBEFilterViewDelegate?
 	
-	var data: Data?
+	var data: Dataset?
 
-	/* Data set used for searching. Can be the full data set if the other data set is an example one. If this is nil, 
+	/* Dataset set used for searching. Can be the full data set if the other data set is an example one. If this is nil, 
 	the normal one is used. */
-	var searchData: Data?
+	var searchDataset: Dataset?
 	var column: Column?
 	
 	private var reloadJob: Job? = nil
@@ -29,7 +29,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		reloadData()
 	} }
 	
-	func job(job: AnyObject, didProgress: Double) {
+	func job(_ job: AnyObject, didProgress: Double) {
 		asyncMain {
 			self.updateProgress()
 		}
@@ -42,16 +42,16 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	private func updateProgress() {
 		assertMainThread()
 		if let j = self.reloadJob {
-			self.progressBar?.hidden = false
-			self.valueList?.enabled = false
+			self.progressBar?.isHidden = false
+			self.valueList?.isEnabled = false
 			self.valueList?.layer?.opacity = 0.5
 			let p = j.progress
-			self.progressBar?.indeterminate = (p <= 0.0)
+			self.progressBar?.isIndeterminate = (p <= 0.0)
 			self.progressBar?.doubleValue = p * 1000
 		}
 		else {
-			self.progressBar?.hidden = true
-			self.valueList?.enabled = true
+			self.progressBar?.isHidden = true
+			self.valueList?.isEnabled = true
 			self.valueList?.layer?.opacity = 1.0
 		}
 	}
@@ -62,21 +62,21 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		reloadJob = nil
 		
 		if let d = data, let c = column {
-			var filteredData = d
+			var filteredDataset = d
 			if let search = searchField?.stringValue where !search.isEmpty {
 				lastSearch = search
-				filteredData = searchData ?? filteredData
-				filteredData = filteredData.filter(Comparison(first: Literal(Value(search)), second: Sibling(c), type: Binary.MatchesRegex))
+				filteredDataset = searchDataset ?? filteredDataset
+				filteredDataset = filteredDataset.filter(Comparison(first: Literal(Value(search)), second: Sibling(c), type: Binary.MatchesRegex))
 			}
 
-			let job = Job(.UserInitiated)
+			let job = Job(.userInitiated)
 			reloadJob = job
 			reloadJob?.addObserver(self)
 			self.updateProgress()
 
-			filteredData.histogram(Sibling(c), job: job) { result in
+			filteredDataset.histogram(Sibling(c), job: job) { result in
 				switch result {
-					case .Success(let values):
+					case .success(let values):
 						var ordered = OrderedDictionary(dictionaryInAnyOrder: values)
 						ordered.sortKeysInPlace { a,b in return a.stringValue < b.stringValue }
 						var count = 0
@@ -94,18 +94,18 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 							}
 						}
 					
-					case .Failure(let e):
+					case .failure(let e):
 						trace("Error fetching unique values: \(e)")
 				}
 			}
 		}
 	}
 	
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return values.count
 	}
 	
-	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
 		if row < values.count {
 			switch tableColumn?.identifier ?? "" {
 				case "selected":
@@ -123,17 +123,17 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		}
 	}
 	
-	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if row < values.count {
 			let value = values[row].0
 
 			switch tableColumn?.identifier ?? "" {
 				case "value":
 					switch value {
-						case .EmptyValue:
+						case .empty:
 							return NSLocalizedString("(missing)", comment: "")
 
-						case .InvalidValue:
+						case .invalid:
 							return NSLocalizedString("(error)", comment: "")
 
 						default:
@@ -147,7 +147,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 					return 0.0
 				
 				case "selected":
-					return NSNumber(bool: filter.selectedValues.contains(value))
+					return NSNumber(value: filter.selectedValues.contains(value))
 
 				default:
 					return nil
@@ -156,8 +156,8 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		return nil
 	}
 
-	func tableView(tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
-		for d in tableView.sortDescriptors.reverse() {
+	func tableView(_ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [SortDescriptor]) {
+		for d in tableView.sortDescriptors.reversed() {
 			if let k = d.key {
 				switch k {
 					case "value":
@@ -188,7 +188,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		tableView.reloadData()
 	}
 	
-	@IBAction func searchChanged(sender: NSObject) {
+	@IBAction func searchChanged(_ sender: NSObject) {
 		if let search = searchField?.stringValue where !search.isEmpty && search != lastSearch {
 			reloadData()
 		}
@@ -198,25 +198,25 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		assertMainThread()
 		self.valueList?.reloadData()
 		let hasFilter = filter.selectedValues.count > 0
-		self.clearFilterButton?.enabled = hasFilter
+		self.clearFilterButton?.isEnabled = hasFilter
 		self.delegate?.filterView(self, didChangeFilter: filter.selectedValues.count > 0 ? filter : nil)
 	}
 	
-	@IBAction override func selectAll(sender: AnyObject?) {
-		filter.selectedValues.unionInPlace(values.keys)
+	@IBAction override func selectAll(_ sender: AnyObject?) {
+		filter.selectedValues.formUnion(Set(values.keys))
 		self.valueList?.reloadData()
 		filterChanged()
 	}
 	
-	@IBAction func selectNone(sender: AnyObject?) {
-		filter.selectedValues.subtractInPlace(values.keys)
+	@IBAction func selectNone(_ sender: AnyObject?) {
+		filter.selectedValues.subtract(Set(values.keys))
 		self.valueList?.reloadData()
 		filterChanged()
 	}
 	
 	override func viewWillAppear() {
-		if let tc = self.valueList?.tableColumnWithIdentifier("value"), let cell = tc.dataCell as? NSCell {
-			cell.font = QBESettings.sharedInstance.monospaceFont ? NSFont.userFixedPitchFontOfSize(10.0) : NSFont.userFontOfSize(12.0)
+		if let tc = self.valueList?.tableColumn(withIdentifier: "value"), let cell = tc.dataCell as? NSCell {
+			cell.font = QBESettings.sharedInstance.monospaceFont ? NSFont.userFixedPitchFont(ofSize: 10.0) : NSFont.userFont(ofSize: 12.0)
 		}
 
 		self.reloadData()
@@ -228,7 +228,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		self.reloadJob?.cancel()
 	}
 	
-	@IBAction func clearFilter(sender: NSObject) {
+	@IBAction func clearFilter(_ sender: NSObject) {
 		self.searchField?.stringValue = ""
 		filter.selectedValues = []
 		reloadData()
@@ -236,27 +236,26 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	}
 }
 
-private extension Data {
+private extension Dataset {
 	/** Returns a histogram of the values for the given expression (each unique value that occurs, and the number of times
 	it occurs). */
-	func histogram(expression: Expression, job: Job, callback: (Fallible<[Value: Int]>) -> ()) {
+	func histogram(_ expression: Expression, job: Job, callback: (Fallible<[Value: Int]>) -> ()) {
 		let keyColumn = Column("k")
 		let countColumn = Column("n")
 		let d = self.aggregate([keyColumn: expression], values: [countColumn: Aggregator(map: expression, reduce: .Count)])
 		d.raster(job) { result in
 			switch result {
-			case .Success(let r):
+			case .success(let r):
 				var histogram: [Value: Int] = [:]
 				for row in r.rows {
-					let k = row[keyColumn]
-					if k.isValid {
+					if let k = row[keyColumn] where k.isValid {
 						histogram[k] = row[countColumn].intValue
 					}
 				}
-				callback(.Success(histogram))
+				callback(.success(histogram))
 
-			case .Failure(let e):
-				callback(.Failure(e))
+			case .failure(let e):
+				callback(.failure(e))
 			}
 		}
 	}

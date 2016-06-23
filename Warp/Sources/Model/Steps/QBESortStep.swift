@@ -14,14 +14,14 @@ class QBESortStep: QBEStep {
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		self.orders = (aDecoder.decodeObjectForKey("orders") as? [Order]) ?? []
+		self.orders = (aDecoder.decodeObject(forKey: "orders") as? [Order]) ?? []
 		super.init(coder: aDecoder)
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		if orders.isEmpty {
 			return QBESentence(format: NSLocalizedString("Sort rows on [#]", comment: ""),
-				QBESentenceFormula(expression: Literal(Value.BoolValue(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
+				QBESentenceFormula(expression: Literal(Value.bool(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
 					self?.orders.append(Order(expression: newExpression, ascending: true, numeric: true))
 				})
 			)
@@ -29,7 +29,7 @@ class QBESortStep: QBEStep {
 		if orders.count == 1 {
 			let order = orders[0]
 			return QBESentence(format: NSLocalizedString("Sort rows on [#][#][#]", comment: ""),
-				QBESentenceFormula(expression: order.expression ?? Literal(.BoolValue(false)), locale: locale, callback: { (newExpression) -> () in
+				QBESentenceFormula(expression: order.expression ?? Literal(.bool(false)), locale: locale, callback: { (newExpression) -> () in
 					order.expression = newExpression
 				}, contextCallback: self.contextCallbackForFormulaSentence),
 				QBESentenceOptions(options: [
@@ -53,31 +53,31 @@ class QBESortStep: QBEStep {
 		}
 	}
 
-	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+	override func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
 		if let p = prior as? QBESortStep {
 			if p.orders == self.orders {
-				return .Advised(p)
+				return .advised(p)
 			}
 			else if p.orders.count == 1 && self.orders.count == 1 && p.orders.first!.expression == self.orders.first!.expression {
 				// Same field, different settings, last one counts
-				return .Advised(self)
+				return .advised(self)
 			}
 		}
-		return .Impossible
+		return .impossible
 	}
 
-	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(self.orders, forKey: "orders")
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		coder.encode(self.orders, forKey: "orders")
+		super.encode(with: coder)
 	}
 	
-	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
-		callback(.Success(data.sort(orders)))
+	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+		callback(.success(data.sort(orders)))
 	}
 
-	override var mutableData: MutableData? {
-		if let md = self.previous?.mutableData {
-			return QBEMutableDataWithRowsShuffled(original: md)
+	override var mutableDataset: MutableDataset? {
+		if let md = self.previous?.mutableDataset {
+			return QBEMutableDatasetWithRowsShuffled(original: md)
 		}
 		return nil
 	}

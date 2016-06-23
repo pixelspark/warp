@@ -2,9 +2,9 @@ import Cocoa
 import WarpCore
 
 @objc protocol QBEDocumentViewDelegate: NSObjectProtocol {
-	func documentView(view: QBEDocumentView, didSelectTablet: QBETablet?)
-	func documentView(view: QBEDocumentView, didSelectArrow: QBETabletArrow?)
-	func documentView(view: QBEDocumentView, wantsZoomToView: NSView)
+	func documentView(_ view: QBEDocumentView, didSelectTablet: QBETablet?)
+	func documentView(_ view: QBEDocumentView, didSelectArrow: QBETabletArrow?)
+	func documentView(_ view: QBEDocumentView, wantsZoomToView: NSView)
 }
 
 internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDelegate {
@@ -20,8 +20,8 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		addSubview(flowchartView)
 		self.wantsLayer = true
 	}
-	
-	override func prepareForDragOperation(sender: NSDraggingInfo) -> Bool {
+
+	override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
 		return true
 	}
 	
@@ -29,7 +29,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		subviews.forEach { ($0 as? QBEResizableTabletView)?.removeFromSuperview() }
 	}
 	
-	func selectTablet(tablet: QBETablet?, notifyDelegate: Bool = true) {
+	func selectTablet(_ tablet: QBETablet?, notifyDelegate: Bool = true) {
 		if let t = tablet {
 			for sv in subviews {
 				if let tv = sv as? QBEResizableTabletView {
@@ -45,14 +45,14 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		}
 	}
 	
-	func flowchartView(view: QBEFlowchartView, didSelectArrow arrow: QBEArrow?) {
+	func flowchartView(_ view: QBEFlowchartView, didSelectArrow arrow: QBEArrow?) {
 		selectView(nil)
 		if let tabletArrow = arrow as? QBETabletArrow {
 			delegate?.documentView(self, didSelectArrow: tabletArrow)
 		}
 	}
 	
-	private func selectView(view: QBEResizableTabletView?, notifyDelegate: Bool = true) {
+	private func selectView(_ view: QBEResizableTabletView?, notifyDelegate: Bool = true) {
 		// Deselect other views
 		for sv in subviews {
 			if let tv = sv as? QBEResizableTabletView {
@@ -75,30 +75,30 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		}
 	}
 	
-	private func zoomToView(view: QBEResizableTabletView) {
+	private func zoomToView(_ view: QBEResizableTabletView) {
 		delegate?.documentView(self, wantsZoomToView: view)
 	}
 	
-	func resizableViewWasSelected(view: QBEResizableView) {
+	func resizableViewWasSelected(_ view: QBEResizableView) {
 		flowchartView.selectedArrow = nil
 		selectView(view as? QBEResizableTabletView)
 	}
 	
-	func resizableViewWasDoubleClicked(view: QBEResizableView) {
+	func resizableViewWasDoubleClicked(_ view: QBEResizableView) {
 		zoomToView(view as! QBEResizableTabletView)
 	}
 	
-	func resizableView(view: QBEResizableView, changedFrameTo frame: CGRect) {
+	func resizableView(_ view: QBEResizableView, changedFrameTo frame: CGRect) {
 		if let tv = view as? QBEResizableTabletView {
 			let tablet = tv.tabletController.tablet
-			let sizeChanged = tablet.frame == nil || tablet.frame!.size.width != frame.size.width || tablet.frame!.size.height != frame.size.height
-			tablet.frame = frame
+			let sizeChanged = tablet?.frame == nil || tablet?.frame!.size.width != frame.size.width || tablet?.frame!.size.height != frame.size.height
+			tablet?.frame = frame
 			tabletsChanged()
 			if tv.selected && sizeChanged {
-				tv.scrollRectToVisible(tv.bounds)
+				tv.scrollToVisible(tv.bounds)
 			}
 		}
-		setNeedsDisplayInRect(self.bounds)
+		setNeedsDisplay(self.bounds)
 	}
 	
 	var boundsOfAllTablets: CGRect? { get {
@@ -106,7 +106,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		var allBounds: CGRect? = nil
 		for vw in subviews {
 			if vw !== flowchartView {
-				allBounds = allBounds == nil ? vw.frame : CGRectUnion(allBounds!, vw.frame)
+				allBounds = allBounds == nil ? vw.frame : allBounds!.union(vw.frame)
 			}
 		}
 		return allBounds
@@ -117,13 +117,13 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	}
 	
 	func resizeDocument() {
-		let parentSize = self.superview?.bounds ?? CGRectMake(0,0,500,500)
+		let parentSize = self.superview?.bounds ?? CGRect(x: 0,y: 0,width: 500,height: 500)
 		let contentMinSize = boundsOfAllTablets ?? parentSize
 		
 		// Determine new size of the document
 		let margin: CGFloat = 500
 		var newBounds = contentMinSize.insetBy(dx: -margin, dy: -margin)
-		let offset = CGPointMake(-newBounds.origin.x, -newBounds.origin.y)
+		let offset = CGPoint(x: -newBounds.origin.x, y: -newBounds.origin.y)
 		newBounds.offsetInPlace(dx: offset.x, dy: offset.y)
 		
 		// Translate the 'visible rect' (just like we will translate tablets)
@@ -133,16 +133,16 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		for vw in subviews {
 			if let tv = vw as? QBEResizableTabletView {
 				let tablet = tv.tabletController.tablet
-				if let tabletFrame = tablet.frame {
-					tablet.frame = tabletFrame.offsetBy(dx: offset.x, dy: offset.y)
-					tv.frame = tablet.frame!
+				if let tabletFrame = tablet?.frame {
+					tablet?.frame = tabletFrame.offsetBy(dx: offset.x, dy: offset.y)
+					tv.frame = (tablet?.frame!)!
 				}
 			}
 		}
 		
 		// Set new document bounds and scroll to the 'old' location in the new coordinate system
-		self.frame = CGRectMake(0, 0, newBounds.size.width, newBounds.size.height)
-		self.scrollRectToVisible(newVisible)
+		self.frame = CGRect(x: 0, y: 0, width: newBounds.size.width, height: newBounds.size.height)
+		self.scrollToVisible(newVisible)
 	}
 	
 	// Call whenever tablets are added/removed or resized
@@ -162,7 +162,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		tr.duration = 0.3
 		tr.type = kCATransitionFade
 		tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-		self.flowchartView.layer?.addAnimation(tr, forKey: kCATransition)
+		self.flowchartView.layer?.add(tr, forKey: kCATransition)
 		self.flowchartView.arrows = arrows
 	}
 	
@@ -185,7 +185,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		return selectedView?.tabletController
 	} }
 	
-	override func mouseDown(theEvent: NSEvent) {
+	override func mouseDown(_ theEvent: NSEvent) {
 		selectView(nil)
 	}
 	
@@ -193,7 +193,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		super.init(coder: coder)
 	}
 	
-	func removeTablet(tablet: QBETablet, completion: (() -> ())? = nil) {
+	func removeTablet(_ tablet: QBETablet, completion: (() -> ())? = nil) {
 		for subview in subviews {
 			if let rv = subview as? QBEResizableTabletView {
 				let ct = rv.tabletController.tablet
@@ -210,7 +210,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		}
 	}
 	
-	func addTablet(tabletController: QBETabletViewController, animated: Bool = true, completion: (() -> ())? = nil) {
+	func addTablet(_ tabletController: QBETabletViewController, animated: Bool = true, completion: (() -> ())? = nil) {
 		let resizer = QBEResizableTabletView(frame: tabletController.tablet.frame!, controller: tabletController)
 		resizer.contentView = tabletController.view
 		resizer.delegate = self
@@ -242,12 +242,12 @@ class QBEScrollView: NSScrollView {
 	private(set) var magnifiedView: NSView? = nil
 	private var magnificationInProgress = false
 	
-	func zoomView(view: NSView, completion: (() -> ())? = nil) {
+	func zoomView(_ view: NSView, completion: (() -> ())? = nil) {
 		// First just try to magnify to the tablet
 		if self.magnification < 1.0 {
 			NSAnimationContext.runAnimationGroup({ (ac) -> Void in
 				ac.duration = 0.3
-				self.animator().magnifyToFitRect(view.frame)
+				self.animator().magnify(toFit: view.frame)
 			}, completionHandler: {
 				// If the tablet is too large, we are still zoomed out a bit. Force zoom in by zooming in on a part of the tablet
 				if self.magnification < 1.0 {
@@ -256,8 +256,8 @@ class QBEScrollView: NSScrollView {
 						let maxSize = self.bounds
 						let frame = view.frame
 						let zoomedHeight = min(maxSize.size.height, frame.size.height)
-						let zoom = CGRectMake(frame.origin.x, frame.origin.y + (frame.size.height - zoomedHeight), min(maxSize.size.width, frame.size.width), zoomedHeight)
-						self.animator().magnifyToFitRect(zoom)
+						let zoom = CGRect(x: frame.origin.x, y: frame.origin.y + (frame.size.height - zoomedHeight), width: min(maxSize.size.width, frame.size.width), height: zoomedHeight)
+						self.animator().magnify(toFit: zoom)
 					}, completionHandler: completion)
 				}
 			})
@@ -267,7 +267,7 @@ class QBEScrollView: NSScrollView {
 		}
 	}
 	
-	func magnifyView(view: NSView?, completion: (() -> ())? = nil) {
+	func magnifyView(_ view: NSView?, completion: (() -> ())? = nil) {
 		assertMainThread()
 
 		if magnificationInProgress {
@@ -318,7 +318,7 @@ class QBEScrollView: NSScrollView {
 					self.magnifiedView = nil
 					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
 						ac.duration = 0.3
-						oldView.animator().scrollRectToVisible(oldView.bounds)
+						oldView.animator().scrollToVisible(oldView.bounds)
 					}, completionHandler: completer)
 				}
 				else {
@@ -329,7 +329,7 @@ class QBEScrollView: NSScrollView {
 		
 		// Un-zoom the old view (if any)
 		if let old = self.magnifiedView, oldRect = self.oldZoomedRect {
-			old.autoresizingMask = NSAutoresizingMaskOptions.ViewNotSizable
+			old.autoresizingMask = NSAutoresizingMaskOptions()
 			NSAnimationContext.runAnimationGroup({ (ac) -> Void in
 				ac.duration = 0.3
 				old.animator().frame = oldRect
@@ -345,7 +345,7 @@ class QBEScrollView: NSScrollView {
 		super.init(coder: coder)
 	}
 	
-	override func scrollWheel(theEvent: NSEvent) {
+	override func scrollWheel(_ theEvent: NSEvent) {
 		if magnifiedView == nil {
 			super.scrollWheel(theEvent)
 		}
@@ -357,16 +357,16 @@ class QBEScrollView: NSScrollView {
 
 protocol QBEWorkspaceViewDelegate: NSObjectProtocol {
 	/** Files were dropped in the workspace. */
-	func workspaceView(view: QBEWorkspaceView, didReceiveFiles: [String], atLocation: CGPoint)
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveFiles: [String], atLocation: CGPoint)
 
 	/** A chain was dropped to the workspace. The chain already exists in the workspace. */
-	func workspaceView(view: QBEWorkspaceView, didReceiveChain: QBEChain, atLocation: CGPoint)
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveChain: QBEChain, atLocation: CGPoint)
 
 	/** A step was dropped to the workspace. The step is not an existing step instance (e.g. it is created anew). */
-	func workspaceView(view: QBEWorkspaceView, didReceiveStep: QBEStep, atLocation: CGPoint)
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveStep: QBEStep, atLocation: CGPoint)
 
 	/** A column set was dropped in the workspace */
-	func workspaceView(view: QBEWorkspaceView, didReceiveColumnSet:[Column], fromDataViewController: QBEDataViewController)
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveColumnSet:[Column], fromDatasetViewController: QBEDatasetViewController)
 }
 
 class QBEWorkspaceView: QBEScrollView {
@@ -378,69 +378,69 @@ class QBEWorkspaceView: QBEScrollView {
 	}
 	
 	override func awakeFromNib() {
-		registerForDraggedTypes([NSFilenamesPboardType, QBEOutletView.dragType, MBTableGridColumnDataType, QBEStep.dragType])
+		register(forDraggedTypes: [NSFilenamesPboardType, QBEOutletView.dragType, MBTableGridColumnDataType, QBEStep.dragType])
 	}
 	
-	override func draggingEntered(sender: NSDraggingInfo) -> NSDragOperation {
+	override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
 		let pboard = sender.draggingPasteboard()
 		
-		if let _: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
+		if let _: [String] = pboard.propertyList(forType: NSFilenamesPboardType) as? [String] {
 			draggingOver = true
-			setNeedsDisplayInRect(self.bounds)
-			return NSDragOperation.Copy
+			setNeedsDisplay(self.bounds)
+			return NSDragOperation.copy
 		}
-		else if let _ = pboard.dataForType(QBEStep.dragType) {
+		else if let _ = pboard.data(forType: QBEStep.dragType) {
 			draggingOver = true
-			setNeedsDisplayInRect(self.bounds)
-			return NSDragOperation.Copy
+			setNeedsDisplay(self.bounds)
+			return NSDragOperation.copy
 		}
-		else if let _ = pboard.dataForType(QBEOutletView.dragType) {
+		else if let _ = pboard.data(forType: QBEOutletView.dragType) {
 			draggingOver = true
-			setNeedsDisplayInRect(self.bounds)
-			return NSDragOperation.Link
+			setNeedsDisplay(self.bounds)
+			return NSDragOperation.link
 		}
-		else if let _ = pboard.dataForType(MBTableGridColumnDataType) {
+		else if let _ = pboard.data(forType: MBTableGridColumnDataType) {
 			draggingOver = true
-			setNeedsDisplayInRect(self.bounds)
-			return NSDragOperation.Link
+			setNeedsDisplay(self.bounds)
+			return NSDragOperation.link
 		}
-		return NSDragOperation.None
+		return NSDragOperation()
 	}
 	
-	override func draggingUpdated(sender: NSDraggingInfo) -> NSDragOperation {
+	override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
 		return draggingEntered(sender)
 	}
 	
-	override func draggingExited(sender: NSDraggingInfo?) {
+	override func draggingExited(_ sender: NSDraggingInfo?) {
 		draggingOver = false
-		setNeedsDisplayInRect(self.bounds)
+		setNeedsDisplay(self.bounds)
 	}
 	
-	override func draggingEnded(sender: NSDraggingInfo?) {
+	override func draggingEnded(_ sender: NSDraggingInfo?) {
 		draggingOver = false
-		setNeedsDisplayInRect(self.bounds)
+		setNeedsDisplay(self.bounds)
 	}
 	
-	override func drawRect(dirtyRect: NSRect) {
+	override func draw(_ dirtyRect: NSRect) {
 		if draggingOver {
-			NSColor.blueColor().colorWithAlphaComponent(0.15).set()
+			NSColor.blue().withAlphaComponent(0.15).set()
 		}
 		else {
-			NSColor.clearColor().set()
+			NSColor.clear().set()
 		}
 		NSRectFill(dirtyRect)
 	}
 	
-	override func prepareForDragOperation(sender: NSDraggingInfo) -> Bool {
+	override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
 		return true
 	}
 	
-	override func performDragOperation(draggingInfo: NSDraggingInfo) -> Bool {
+	override func performDragOperation(_ draggingInfo: NSDraggingInfo) -> Bool {
 		let pboard = draggingInfo.draggingPasteboard()
-		let pointInWorkspace = self.convertPoint(draggingInfo.draggingLocation(), fromView: nil)
-		let pointInDocument = self.convertPoint(pointInWorkspace, toView: self.documentView as? NSView)
+		let pointInWorkspace = self.convert(draggingInfo.draggingLocation(), from: nil)
+		let pointInDocument = self.convert(pointInWorkspace, to: self.documentView)
 		
-		if let _ = pboard.dataForType(QBEOutletView.dragType) {
+		if pboard.data(forType: QBEOutletView.dragType) != nil {
 			if let ov = draggingInfo.draggingSource() as? QBEOutletView {
 				if let draggedChain = ov.draggedObject as? QBEChain {
 					delegate?.workspaceView(self, didReceiveChain: draggedChain, atLocation: pointInDocument)
@@ -448,21 +448,21 @@ class QBEWorkspaceView: QBEScrollView {
 				}
 			}
 		}
-		else if let stepData = pboard.dataForType(QBEStep.dragType) {
-			if let step = NSKeyedUnarchiver.unarchiveObjectWithData(stepData) as? QBEStep {
+		else if let stepDataset = pboard.data(forType: QBEStep.dragType) {
+			if let step = NSKeyedUnarchiver.unarchiveObject(with: stepDataset) as? QBEStep {
 				delegate?.workspaceView(self, didReceiveStep: step, atLocation: pointInDocument)
 				return true
 			}
 		}
-		else if let d = pboard.dataForType(MBTableGridColumnDataType) {
+		else if let d = pboard.data(forType: MBTableGridColumnDataType) {
 			if	let grid = draggingInfo.draggingSource() as? MBTableGrid,
-				let dc = grid.dataSource as? QBEDataViewController,
-				let indexSet = NSKeyedUnarchiver.unarchiveObjectWithData(d) as? NSIndexSet,
+				let dc = grid.dataSource as? QBEDatasetViewController,
+				let indexSet = NSKeyedUnarchiver.unarchiveObject(with: d) as? IndexSet,
 				let names = dc.raster?.columns.objectsAtIndexes(indexSet) {
-					delegate?.workspaceView(self, didReceiveColumnSet:names, fromDataViewController: dc)
+					delegate?.workspaceView(self, didReceiveColumnSet:names, fromDatasetViewController: dc)
 			}
 		}
-		else if let files: [String] = pboard.propertyListForType(NSFilenamesPboardType) as? [String] {
+		else if let files: [String] = pboard.propertyList(forType: NSFilenamesPboardType) as? [String] {
 			delegate?.workspaceView(self, didReceiveFiles: files, atLocation: pointInDocument)
 		}
 		return true

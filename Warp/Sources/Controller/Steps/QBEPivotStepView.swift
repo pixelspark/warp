@@ -30,9 +30,9 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		super.viewWillAppear()
 	
 		if let sourceStep = self.step.previous {
-			let job = Job(.UserInitiated)
-			sourceStep.exampleData(job, maxInputRows: 100, maxOutputRows: 100, callback: { (exData: Fallible<Data>) -> () in
-				exData.maybe({ (ed) in ed.columns(job) { (columns: Fallible<[Column]>) -> () in
+			let job = Job(.userInitiated)
+			sourceStep.exampleDataset(job, maxInputRows: 100, maxOutputRows: 100, callback: { (exDataset: Fallible<Dataset>) -> () in
+				exDataset.maybe({ (ed) in ed.columns(job) { (columns: Fallible<[Column]>) -> () in
 					columns.maybe { (cs) in
 						asyncMain {
 							self.sourceColumns = cs
@@ -49,12 +49,12 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 	internal override func awakeFromNib() {
 		super.awakeFromNib()
 		
-		allTable?.registerForDraggedTypes([dragType])
-		rowsTable?.registerForDraggedTypes([dragType])
-		columnsTable?.registerForDraggedTypes([dragType])
-		aggregatesTable?.registerForDraggedTypes([dragType])
+		allTable?.register(forDraggedTypes: [dragType])
+		rowsTable?.register(forDraggedTypes: [dragType])
+		columnsTable?.register(forDraggedTypes: [dragType])
+		aggregatesTable?.register(forDraggedTypes: [dragType])
 
-		let locale = delegate?.locale ?? Locale()
+		let locale = delegate?.locale ?? Language()
 		
 		aggregatorsMenu = NSMenu()
 		for fun in Function.allFunctions {
@@ -66,10 +66,10 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		}
 	}
 	
-	internal func tableView(tableView: NSTableView, writeRowsWithIndexes rowIndexes: NSIndexSet, toPasteboard pboard: NSPasteboard) -> Bool {
+	internal func tableView(_ tableView: NSTableView, writeRowsWith rowIndexes: IndexSet, to pboard: NSPasteboard) -> Bool {
 		var cols: [AnyObject] = []
 		
-		rowIndexes.enumerateIndexesUsingBlock({ (index, stop) -> Void in
+		(rowIndexes as NSIndexSet).enumerate({ (index, stop) -> Void in
 			if tableView == self.allTable! {
 				if let column = self.sourceColumns?[index].name {
 					cols.append(column)
@@ -86,27 +86,27 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 			}
 		})
 		
-		let data = NSKeyedArchiver.archivedDataWithRootObject(cols)
+		let data = NSKeyedArchiver.archivedData(withRootObject: cols)
 		pboard.declareTypes([dragType], owner: nil)
 		pboard.setData(data, forType: dragType)
 		return true
 	}
 	
-	internal func tableView(tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableViewDropOperation) -> NSDragOperation {
+	internal func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableViewDropOperation) -> NSDragOperation {
 		let pboard = info.draggingPasteboard()
-		if pboard.dataForType(dragType) != nil {
+		if pboard.data(forType: dragType) != nil {
 			// Dragging from self is disallowed
 			if info.draggingSource() as? NSTableView == tableView {
-				return NSDragOperation.None
+				return NSDragOperation()
 			}
 			
-			return (tableView == self.allTable!) ? NSDragOperation.Delete : NSDragOperation.Copy
+			return (tableView == self.allTable!) ? NSDragOperation.delete : NSDragOperation.copy
 		}
 		
-		return NSDragOperation.None
+		return NSDragOperation()
 	}
 	
-	override func validateMenuItem(menuItem: NSMenuItem) -> Bool {
+	override func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
 		if menuItem.action == #selector(QBEPivotStepView.delete(_:)) {
 			if let fr = self.view.window?.firstResponder {
 				return fr == rowsTable || fr == columnsTable || fr == aggregatesTable
@@ -115,12 +115,12 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		return false
 	}
 	
-	@IBAction func delete(sender: NSObject) {
+	@IBAction func delete(_ sender: NSObject) {
 		// Is one of our table views selected?
 		if rowsTable == self.view.window?.firstResponder {
 			if let index = rowsTable?.selectedRow {
 				if index >= 0 {
-					self.step.rows.removeAtIndex(index)
+					self.step.rows.remove(index)
 					rowsTable!.reloadData()
 				}
 			}
@@ -128,7 +128,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		else if columnsTable == self.view.window?.firstResponder {
 			if let index = columnsTable?.selectedRow {
 				if index >= 0 {
-					self.step.columns.removeAtIndex(index)
+					self.step.columns.remove(index)
 					columnsTable!.reloadData()
 				}
 			}
@@ -136,7 +136,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		else if aggregatesTable == self.view.window?.firstResponder {
 			if let index = aggregatesTable?.selectedRow {
 				if index >= 0 {
-					self.step.aggregates.removeAtIndex(index)
+					self.step.aggregates.remove(index)
 					aggregatesTable!.reloadData()
 				}
 			}
@@ -148,16 +148,16 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 	
-	internal func tableView(tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableViewDropOperation) -> Bool {
+	internal func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableViewDropOperation) -> Bool {
 		let pboard = info.draggingPasteboard()
-		if let data = pboard.dataForType(dragType) {
+		if let data = pboard.data(forType: dragType) {
 			// Dragging from self is disallowed
 			if info.draggingSource() as? NSTableView == tableView {
 				return false
 			}
 			
 			// Unpack data and add
-			if let cols = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? [AnyObject] {
+			if let cols = NSKeyedUnarchiver.unarchiveObject(with: data) as? [AnyObject] {
 				for col in cols {
 					if let columnName = col as? String {
 						let column = Column(columnName)
@@ -208,10 +208,10 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		return false
 	}
 	
-	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
 		if tableView == aggregatesTable {
 			if tableColumn?.identifier == "aggregator" {
-				if let menuItem = aggregatorsMenu?.itemAtIndex(object?.integerValue ?? 0) {
+				if let menuItem = aggregatorsMenu?.item(at: object?.intValue ?? 0) {
 					if let rep = menuItem.representedObject as? Function.RawValue {
 						if let fun = Function(rawValue: rep) {
 							step.aggregates[row].aggregator.reduce = fun
@@ -229,14 +229,14 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		}
 	}
 	
-	func tableView(tableView: NSTableView, shouldEditTableColumn tableColumn: NSTableColumn?, row: Int) -> Bool {
+	func tableView(_ tableView: NSTableView, shouldEdit tableColumn: NSTableColumn?, row: Int) -> Bool {
 		if tableView == aggregatesTable {
 			return true
 		}
 		return false
 	}
 	
-	func tableView(tableView: NSTableView, dataCellForTableColumn tableColumn: NSTableColumn?, row: Int) -> NSCell? {
+	func tableView(_ tableView: NSTableView, dataCellFor tableColumn: NSTableColumn?, row: Int) -> NSCell? {
 		if tableColumn?.identifier == "aggregator" {
 			if let cell = tableColumn?.dataCell as? NSPopUpButtonCell {
 				cell.menu = self.aggregatorsMenu
@@ -246,12 +246,12 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		return nil
 	}
 	
-	internal func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if tableColumn?.identifier == "aggregator" {
 			let reducer = step.aggregates[row].aggregator.reduce ?? Function.Identity
 			
 			for index in 0..<aggregatorsMenu!.numberOfItems {
-				if let mi = aggregatorsMenu!.itemAtIndex(index) {
+				if let mi = aggregatorsMenu!.item(at: index) {
 					if (mi.representedObject as? Function.RawValue) == reducer.rawValue {
 						return index
 					}
@@ -278,7 +278,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		}
 	}
 	
-	internal func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	internal func numberOfRows(in tableView: NSTableView) -> Int {
 		switch tableView {
 			case allTable!:
 				return sourceColumns?.count ?? 0

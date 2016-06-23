@@ -1,4 +1,5 @@
 import Foundation
+import WarpCore
 
 /** QBESecret represents a secret (usually a password) stored in the OS X Keychain. After initialization use the `stringValue`
 property to set or get the password/secret. Note that this may block: the Keychain will sometimes ask the user whether
@@ -8,7 +9,7 @@ public class QBESecret {
 	let accountName: String
 	let friendlyName: String
 
-	public static func secretsForService(serviceType: String) -> [QBESecret] {
+	public static func secretsForService(_ serviceType: String) -> [QBESecret] {
 		let q = [
 			kSecClass as String: kSecClassGenericPassword,
 			//kSecAttrService as String: serviceType,
@@ -27,10 +28,10 @@ public class QBESecret {
 				var services: [QBESecret] = []
 				for item in items {
 					if	let sn = item[kSecAttrService as String] as? String,
-						let serviceURL = NSURL(string: sn) ,
+						let serviceURL = URL(string: sn) ,
 						let accountName = item[kSecAttrAccount as String] as? String
 						where serviceURL.scheme == serviceType {
-						services.append(QBESecret(serviceType: serviceType, host: serviceURL.host!, port: serviceURL.port!.integerValue, account: accountName, friendlyName: sn))
+						services.append(QBESecret(serviceType: serviceType, host: serviceURL.host!, port: (serviceURL as NSURL).port!.intValue, account: accountName, friendlyName: sn))
 					}
 				}
 				return services
@@ -72,15 +73,15 @@ public class QBESecret {
 		]
 	}
 
-	public var url: NSURL? {
-		if let url = NSURLComponents(string: self.serviceName) {
+	public var url: URL? {
+		if var url = URLComponents(string: self.serviceName) {
 			url.user = self.accountName
-			return url.URL
+			return url.url
 		}
 		return nil
 	}
 
-	public var data: NSData? {
+	public var data: Data? {
 		get {
 			var q = self.query
 			q[kSecReturnData as String] = kCFBooleanTrue
@@ -90,14 +91,14 @@ public class QBESecret {
 			let status = withUnsafeMutablePointer(&result) {
 				SecItemCopyMatching(q, UnsafeMutablePointer($0))
 			}
-			return status == noErr ? (result as? NSData) : nil
+			return status == noErr ? (result as? Data) : nil
 		}
 		set(newValue) {
-			setData(newValue)
+			_ = setData(newValue)
 		}
 	}
 
-	private func setData(data: NSData?, update: Bool = false) -> Bool {
+	private func setData(_ data: Data?, update: Bool = false) -> Fallible<Void> {
 		var q = self.query
 
 		if let d = data {
@@ -117,37 +118,43 @@ public class QBESecret {
 			}
 
 			if status == noErr {
-				return true
+				return .success()
 			}
 			else if status == errSecDuplicateItem && !update {
 				// TODO Update existing item
 				return self.setData(data, update: true)
 			}
 			else {
-				return false
+				return .failure("unknown error: \(status)")
 			}
 		}
 		else {
-			return SecItemDelete(query) == noErr
+			let s = SecItemDelete(query)
+			if s == noErr {
+				return .success()
+			}
+			else {
+				return .failure("SecItemDelete failed: \(s)")
+			}
 		}
 	}
 
 	/** Deletes the secret key from the Keychain. Getting `stringValue` or `data` after calling `delete` will return nil.
 	Setting `stringValue` or `data` after calling delete will set a new secret. */
-	public func delete() -> Bool {
+	public func delete() -> Fallible<Void> {
 		return setData(nil)
 	}
 
 	var stringValue: String? {
 		get {
 			if let data = self.data {
-				return String(data: data, encoding: NSUTF8StringEncoding)
+				return String(data: data, encoding: String.Encoding.utf8)
 			}
 			return nil
 		}
 		set(newValue) {
-			let data = newValue?.dataUsingEncoding(NSUTF8StringEncoding)
-			setData(data)
+			let data = newValue?.data(using: String.Encoding.utf8)
+			_ = setData(data)
 		}
 	}
 }
@@ -160,11 +167,11 @@ internal class QBESecretsDataSource: NSObject, NSComboBoxDataSource {
 		self.serviceType = serviceType
 	}
 
-	@objc func comboBox(aComboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> AnyObject {
+	@objc func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> AnyObject? {
 		return self.secrets[index].url ?? ""
 	}
 
-	@objc func numberOfItemsInComboBox(aComboBox: NSComboBox) -> Int {
+	@objc func numberOfItems(in aComboBox: NSComboBox) -> Int {
 		self.secrets = QBESecret.secretsForService(self.serviceType)
 		return self.secrets.count
 	}

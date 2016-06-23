@@ -12,7 +12,7 @@ handled in Excel and SQL (striving for a greatest common denominator where possi
 
 - 'invalid' reprsesents the result of an invalid operation and should trigger subsequent operations on the value to also
   return 'invalid'. This type is best compared with NaN (not a number); or the result of (1/0) in SQL. It is impossible
-  to create a value of type Double with a NaN (e.g. Value(1.0/0.0) will return Value.InvalidValue).
+  to create a value of type Double with a NaN (e.g. Value(1.0/0.0) will return Value.invalid).
 
 Note that Excel does not have an 'empty' type (instead it treats empty cells as if they contain an empty string) and 
 represents invalid types differently.
@@ -31,21 +31,21 @@ to 2001-01-01T00:00:00Z in UTC, which is also what NSDate uses). A date cannot '
 or string value. Only for debugging purposes it will be displayed as an ISO8601 formatted date in UTC.
 */
 public enum Value: Hashable, CustomDebugStringConvertible {
-	case StringValue(String)
-	case IntValue(Int)
-	case BoolValue(Bool)
-	case DoubleValue(Double)
-	case DateValue(Double) // Number of seconds passed since 2001-01-01T00:00:00Z (=UTC) (what NSDate uses)
-	case EmptyValue		// Any empty value that has no specific type. Use to indicate deliberately missing values (much like NULL in SQL).
-	case InvalidValue	// The result of any invalid operation (e.g. division by zero). Treat as NaN
+	case string(String)
+	case int(Int)
+	case bool(Bool)
+	case double(Double)
+	case date(Double) // Number of seconds passed since 2001-01-01T00:00:00Z (=UTC) (what NSDate uses)
+	case empty		// Any empty value that has no specific type. Use to indicate deliberately missing values (much like NULL in SQL).
+	case invalid	// The result of any invalid operation (e.g. division by zero). Treat as NaN
 	
 	public init(_ value: String) {
-		self = .StringValue(value)
+		self = .string(value)
 	}
 
 	public init(jsonObject: AnyObject)	{
 		if let d = jsonObject as? [String: AnyObject] {
-			let values = d.flatMap { (k, v) -> [Value] in return [.StringValue(k), Value(jsonObject: v)] }
+			let values = d.flatMap { (k, v) -> [Value] in return [.string(k), Value(jsonObject: v)] }
 			self = Pack(values).value
 		}
 		else if let a = jsonObject as? [AnyObject] {
@@ -53,55 +53,55 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 			self = Pack(values).value
 		}
 		else if let s = jsonObject as? String {
-			self = .StringValue(s)
+			self = .string(s)
 		}
 		else if let i = jsonObject as? Int, let d = jsonObject as? Double where d == Double(i) {
-			self = .IntValue(i)
+			self = .int(i)
 		}
 		else if let d = jsonObject as? Double {
-			self = .DoubleValue(d)
+			self = .double(d)
 		}
 		else if let b = jsonObject as? Bool {
-			self = .BoolValue(b)
+			self = .bool(b)
 		}
 		else if jsonObject is NSNull {
-			self = .EmptyValue
+			self = .empty
 		}
 		else {
-			self = .InvalidValue
+			self = .invalid
 		}
 	}
 	
 	public init(_ value: Double) {
-		if isnan(value) || isinf(value) {
-			self = .InvalidValue
+		if value.isNaN || value.isInfinite {
+			self = .invalid
 		}
 		else {
-			self = .DoubleValue(value)
+			self = .double(value)
 		}
 	}
 	
 	public init(_ value: Int) {
-		self = .IntValue(value)
+		self = .int(value)
 	}
 	
 	public init(_ value: Bool) {
-		self = .BoolValue(value)
+		self = .bool(value)
 	}
 	
-	public init(_ value: NSDate) {
-		self = .DateValue(value.timeIntervalSinceReferenceDate)
+	public init(_ value: Date) {
+		self = .date(value.timeIntervalSinceReferenceDate)
 	}
 	
 	public var hashValue: Int { get  {
 		switch self {
-		case .DoubleValue(let d): return d.hashValue
-		case .IntValue(let i): return i.hashValue
-		case .BoolValue(let b): return b.hashValue
-		case .StringValue(let s): return s.hashValue
-		case .EmptyValue: return 0
-		case .InvalidValue: return 1
-		case .DateValue(let d): return d.hashValue
+		case .double(let d): return d.hashValue
+		case .int(let i): return i.hashValue
+		case .bool(let b): return b.hashValue
+		case .string(let s): return s.hashValue
+		case .empty: return 0
+		case .invalid: return 1
+		case .date(let d): return d.hashValue
 		}
 	}}
 	
@@ -110,13 +110,13 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	value type do not have a string representation, as they require separate handling. */
 	public var stringValue: String? { get {
 		switch self {
-		case .StringValue(let s): return s
-		case .IntValue(let i): return i.toString()
-		case .BoolValue(let b): return b.toString()
-		case .DoubleValue(let d): return d.toString()
-		case .DateValue(let d): return NSDate(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate
-		case .EmptyValue: return nil
-		case .InvalidValue: return nil
+		case .string(let s): return s
+		case .int(let i): return i.toString()
+		case .bool(let b): return b.toString()
+		case .double(let d): return d.toString()
+		case .date(let d): return Date(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate
+		case .empty: return nil
+		case .invalid: return nil
 		}
 	} }
 	
@@ -125,22 +125,22 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	 properly formatted double or integer literals. */
 	public var doubleValue: Double? { get {
 		switch self {
-			case .StringValue(let s): return s.toDouble()
-			case .IntValue(let i): return i.toDouble()
-			case .BoolValue(let b): return b.toDouble()
-			case .DoubleValue(let d): return d
-			case .DateValue(_): return nil
-			case .EmptyValue: return nil
-			case .InvalidValue: return nil
+			case .string(let s): return s.toDouble()
+			case .int(let i): return i.toDouble()
+			case .bool(let b): return b.toDouble()
+			case .double(let d): return d
+			case .date(_): return nil
+			case .empty: return nil
+			case .invalid: return nil
 		}
 	} }
 	
 	/** Returns the date represented by this value. String or numeric values are never interpreted as a date, because
 	in general we don't know in which time zone they are. */
-	public var dateValue: NSDate? { get {
+	public var dateValue: Date? { get {
 		switch self {
 			case
-				.DateValue(let d): return NSDate(timeIntervalSinceReferenceDate: d)
+				.date(let d): return Date(timeIntervalSinceReferenceDate: d)
 			
 			default:
 				return nil
@@ -152,15 +152,15 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	properly formatted integer literals. */
 	public var intValue: Int? { get {
 		switch self {
-			case .StringValue(let s): return Int(s)
-			case .IntValue(let i): return i
-			case .BoolValue(let b): return b.toInt()
+			case .string(let s): return Int(s)
+			case .int(let i): return i
+			case .bool(let b): return b.toInt()
 			/* A double can be much larger or smaller than what can be stored in an integer. Swift will cause a fatal 
 			error if Int() is used to convert such a double to Int. Therefore return nil if the double is too large */
-			case .DoubleValue(let d): return (d < Double(Int.max) && d > Double(Int.min)) ? Int(d) : nil
-			case .DateValue(_): return nil
-			case .EmptyValue: return nil
-			case .InvalidValue: return nil
+			case .double(let d): return (d < Double(Int.max) && d > Double(Int.min)) ? Int(d) : nil
+			case .date(_): return nil
+			case .empty: return nil
+			case .invalid: return nil
 		}
 	} }
 	
@@ -170,37 +170,37 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	as a boolean. */
 	public var boolValue: Bool? { get {
 		switch self {
-		case .StringValue(let s): return Int(s) == 1
-		case .IntValue(let i): return i == 1
-		case .BoolValue(let b): return b
-		case .DateValue(_): return nil
-		case .DoubleValue(_): return nil
-		case .EmptyValue: return nil
-		case .InvalidValue: return nil
+		case .string(let s): return Int(s) == 1
+		case .int(let i): return i == 1
+		case .bool(let b): return b
+		case .date(_): return nil
+		case .double(_): return nil
+		case .empty: return nil
+		case .invalid: return nil
 		}
 	} }
 
 	public var nativeValue: AnyObject? {
 		switch self {
-		case .StringValue(let s): return s
-		case .IntValue(let i): return i
-		case .BoolValue(let b): return b
-		case .DateValue(let d): return NSDate(timeIntervalSinceReferenceDate: d)
-		case .DoubleValue(let d): return d
-		case .EmptyValue: return nil
-		case .InvalidValue: return nil
+		case .string(let s): return s
+		case .int(let i): return i
+		case .bool(let b): return b
+		case .date(let d): return Date(timeIntervalSinceReferenceDate: d)
+		case .double(let d): return d
+		case .empty: return nil
+		case .invalid: return nil
 		}
 	}
 	
 	public var debugDescription: String { get {
 		switch self {
-		case .StringValue(let s): return "Value.String('\(s)')"
-		case .IntValue(let i): return "Value.Int(\(i))"
-		case .BoolValue(let b): return "Value.Bool(\(b))"
-		case .DoubleValue(let d): return "Value.Double(\(d))"
-		case .DateValue(let d): return "Value.DateValue(\(NSDate(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate)))"
-		case .EmptyValue: return "Value.Empty"
-		case .InvalidValue: return "Value.Invalid"
+		case .string(let s): return "Value.String('\(s)')"
+		case .int(let i): return "Value.Int(\(i))"
+		case .bool(let b): return "Value.Bool(\(b))"
+		case .double(let d): return "Value.Double(\(d))"
+		case .date(let d): return "Value.date(\(Date(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate)))"
+		case .empty: return "Value.Empty"
+		case .invalid: return "Value.Invalid"
 		}
 	} }
 	
@@ -211,7 +211,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	/** Returns true if this value is an invalid value. None of the other value types are considered to be 'invalid'. */
 	public var isValid: Bool { get {
 		switch self {
-			case .InvalidValue: return false
+			case .invalid: return false
 			default: return true
 		}
 	} }
@@ -220,7 +220,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	'empty', nor is any integer, boolean or double value. The invalid value is not empty either. */
 	public var isEmpty: Bool { get {
 		switch self {
-			case .EmptyValue:
+			case .empty:
 				return true
 				
 			default:
@@ -279,9 +279,9 @@ public struct Pack {
 			items = []
 		}
 		else {
-			items = pack.componentsSeparatedByString(Pack.Separator).map({
-				return $0.stringByReplacingOccurrencesOfString(Pack.EscapeEscape, withString: Pack.Escape)
-					.stringByReplacingOccurrencesOfString(Pack.SeparatorEscape, withString: Pack.Separator)
+			items = pack.components(separatedBy: Pack.Separator).map({
+				return $0.replacingOccurrences(of: Pack.EscapeEscape, with: Pack.Escape)
+					.replacingOccurrences(of: Pack.SeparatorEscape, with: Pack.Separator)
 			})
 		}
 	}
@@ -306,7 +306,7 @@ public struct Pack {
 	}
 
 	public subscript(n: String) -> String! {
-		for index in 0.stride(to: items.count, by: 2) {
+		for index in stride(from: 0, to: items.count, by: 2) {
 			if items[index] == n && items.count > (index+1) {
 				return items[index+1]
 			}
@@ -314,21 +314,21 @@ public struct Pack {
 		return nil
 	}
 
-	public mutating func append(value: Value) {
+	public mutating func append(_ value: Value) {
 		self.items.append(value.stringValue ?? "")
 	}
 
 	public var value: Value {
-		return Value.StringValue(self.stringValue)
+		return Value.string(self.stringValue)
 	}
 	
 	public var stringValue: String { get {
 		let res = items.map({
-			$0.stringByReplacingOccurrencesOfString(Pack.Escape, withString: Pack.EscapeEscape)
-			  .stringByReplacingOccurrencesOfString(Pack.Separator, withString: Pack.SeparatorEscape) ?? ""
+			$0.replacingOccurrences(of: Pack.Escape, with: Pack.EscapeEscape)
+			  .replacingOccurrences(of: Pack.Separator, with: Pack.SeparatorEscape) ?? ""
 		})
 
-		return res.joinWithSeparator(Pack.Separator)
+		return res.joined(separator: Pack.Separator)
 	} }
 }
 
@@ -337,7 +337,7 @@ public class ValueCoder: NSObject, NSSecureCoding {
 	let value: Value
 	
 	override init() {
-		self.value = .EmptyValue
+		self.value = .empty
 	}
 	
 	init(_ value: Value) {
@@ -345,46 +345,46 @@ public class ValueCoder: NSObject, NSSecureCoding {
 	}
 	
 	required public init?(coder aDecoder: NSCoder) {
-		let t = aDecoder.decodeIntForKey("type")
+		let t = aDecoder.decodeInteger(forKey: "type")
 		switch t {
-			case 1: value = .StringValue((aDecoder.decodeObjectForKey("value") as? String) ?? "")
-			case 2: value = .IntValue(aDecoder.decodeIntegerForKey("value"))
-			case 3: value = .BoolValue(aDecoder.decodeBoolForKey("value"))
-			case 4: value = .DoubleValue(aDecoder.decodeDoubleForKey("value"))
-			case 7: value = .DateValue(aDecoder.decodeDoubleForKey("value"))
-			case 5: value = .EmptyValue
-			case 6: value = .InvalidValue
-			default: value = .EmptyValue
+			case 1: value = .string((aDecoder.decodeObject(forKey: "value") as? String) ?? "")
+			case 2: value = .int(aDecoder.decodeInteger(forKey: "value"))
+			case 3: value = .bool(aDecoder.decodeBool(forKey: "value"))
+			case 4: value = .double(aDecoder.decodeDouble(forKey: "value"))
+			case 7: value = .date(aDecoder.decodeDouble(forKey: "value"))
+			case 5: value = .empty
+			case 6: value = .invalid
+			default: value = .empty
 		}
 	}
 	
-	public func encodeWithCoder(coder: NSCoder) {
+	public func encode(with coder: NSCoder) {
 		switch value {
-		case .StringValue(let s):
-			coder.encodeInt(1, forKey: "type")
-			coder.encodeObject(s, forKey: "value")
+		case .string(let s):
+			coder.encode(1, forKey: "type")
+			coder.encode(s, forKey: "value")
 			
-		case .IntValue(let i):
-			coder.encodeInt(2, forKey: "type")
-			coder.encodeInteger(i, forKey: "value")
+		case .int(let i):
+			coder.encode(2, forKey: "type")
+			coder.encode(i, forKey: "value")
 			
-		case .BoolValue(let b):
-			coder.encodeInt(3, forKey: "type")
-			coder.encodeBool(b, forKey: "value")
+		case .bool(let b):
+			coder.encode(3, forKey: "type")
+			coder.encode(b, forKey: "value")
 			
-		case .DoubleValue(let d):
-			coder.encodeInt(4, forKey: "type")
-			coder.encodeDouble(d, forKey: "value")
+		case .double(let d):
+			coder.encode(4, forKey: "type")
+			coder.encode(d, forKey: "value")
 			
-		case .DateValue(let d):
-			coder.encodeInt(7, forKey: "type")
-			coder.encodeDouble(d, forKey: "value")
+		case .date(let d):
+			coder.encode(7, forKey: "type")
+			coder.encode(d, forKey: "value")
 			
-		case .EmptyValue:
-			coder.encodeInt(5, forKey: "type")
+		case .empty:
+			coder.encode(5, forKey: "type")
 			
-		case .InvalidValue:
-			coder.encodeInt(6, forKey: "type")
+		case .invalid:
+			coder.encode(6, forKey: "type")
 		}
 	}
 	
@@ -396,64 +396,64 @@ public class ValueCoder: NSObject, NSSecureCoding {
 public func / (lhs: Value, rhs: Value) -> Value {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			// Division by zero will result in Value.InvalidValue (handled in Value initializer, which checks isnan/isinf)
+			// Division by zero will result in Value.invalid (handled in Value initializer, which checks isnan/isinf)
 			return Value(ld / rd)
 		}
 	}
-	return Value.InvalidValue
+	return Value.invalid
 }
 
 public func % (lhs: Value, rhs: Value) -> Value {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			return Value(ld % rd)
+			return Value(ld.truncatingRemainder(dividingBy: rd))
 		}
 	}
-	return Value.InvalidValue
+	return Value.invalid
 }
 
 public func & (lhs: Value, rhs: Value) -> Value {
 	if !lhs.isValid || !rhs.isValid {
-		return Value.InvalidValue
+		return Value.invalid
 	}
 	
-	return Value.StringValue((lhs.stringValue ?? "") + (rhs.stringValue ?? ""))
+	return Value.string((lhs.stringValue ?? "") + (rhs.stringValue ?? ""))
 }
 
 public func * (lhs: Value, rhs: Value) -> Value {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			return Value.DoubleValue(ld * rd)
+			return Value.double(ld * rd)
 		}
 	}
-	return Value.InvalidValue
+	return Value.invalid
 }
 
 public func ^ (lhs: Value, rhs: Value) -> Value {
 	if let lh = lhs.doubleValue {
 		if let rh = rhs.doubleValue {
-			return Value.DoubleValue(pow(lh, rh));
+			return Value.double(pow(lh, rh));
 		}
 	}
-	return Value.InvalidValue
+	return Value.invalid
 }
 
 public func + (lhs: Value, rhs: Value) -> Value {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			return Value.DoubleValue(ld + rd)
+			return Value.double(ld + rd)
 		}
 	}
-	return Value.InvalidValue
+	return Value.invalid
 }
 
 public func - (lhs: Value, rhs: Value) -> Value {
 	if let ld = lhs.doubleValue {
 		if let rd = rhs.doubleValue {
-			return Value.DoubleValue(ld - rd)
+			return Value.double(ld - rd)
 		}
 	}
-	return Value.InvalidValue
+	return Value.invalid
 }
 
 public func == (lhs: Value, rhs: Value) -> Bool {
@@ -463,28 +463,28 @@ public func == (lhs: Value, rhs: Value) -> Bool {
 	}
 	
 	switch (lhs, rhs) {
-	case (.IntValue, .IntValue):
+	case (.int, .int):
 		return lhs.intValue == rhs.intValue
 		
-	case (.DoubleValue, .DoubleValue):
+	case (.double, .double):
 		return lhs.doubleValue == rhs.doubleValue
 		
-	case (.IntValue, .DoubleValue):
+	case (.int, .double):
 		return lhs.doubleValue == rhs.doubleValue
 		
-	case (.DoubleValue, .IntValue):
+	case (.double, .int):
 		return lhs.doubleValue == rhs.doubleValue
 		
-	case (.StringValue, .DoubleValue):
+	case (.string, .double):
 		return lhs.doubleValue == rhs.doubleValue
 		
-	case (.DoubleValue, .StringValue):
+	case (.double, .string):
 		return lhs.doubleValue == rhs.doubleValue
 		
-	case (.StringValue, .IntValue):
+	case (.string, .int):
 		return lhs.intValue == rhs.intValue
 		
-	case (.IntValue, .StringValue):
+	case (.int, .string):
 		return lhs.intValue == rhs.intValue
 		
 	default:
@@ -506,7 +506,7 @@ public func > (lhs: Value, rhs: Value) -> Bool {
 	}
 	
 	switch(lhs, rhs) {
-	case (.IntValue, .IntValue):
+	case (.int, .int):
 		return lhs.intValue > rhs.intValue
 		
 	default:
@@ -520,7 +520,7 @@ public func < (lhs: Value, rhs: Value) -> Bool {
 	}
 	
 	switch(lhs, rhs) {
-	case (.IntValue, .IntValue):
+	case (.int, .int):
 		return lhs.intValue < rhs.intValue
 		
 	default:
@@ -534,7 +534,7 @@ public func >= (lhs: Value, rhs: Value) -> Bool {
 	}
 	
 	switch(lhs, rhs) {
-	case (.IntValue, .IntValue):
+	case (.int, .int):
 		return lhs.intValue >= rhs.intValue
 		
 	default:
@@ -548,7 +548,7 @@ public func <= (lhs: Value, rhs: Value) -> Bool {
 	}
 	
 	switch(lhs, rhs) {
-	case (.IntValue, .IntValue):
+	case (.int, .int):
 		return lhs.intValue <= rhs.intValue
 		
 	default:
@@ -582,9 +582,9 @@ public func > (lhs: Value, rhs: Value) -> Value {
 
 public func ~= (lhs: Value, rhs: Value) -> Value {
 	if let l = lhs.stringValue, r = rhs.stringValue {
-		return Value.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions.CaseInsensitiveSearch, range: nil, locale: nil) != nil)
+		return Value.bool(l.range(of: r, options: NSString.CompareOptions.caseInsensitiveSearch, range: nil, locale: nil) != nil)
 	}
-	return Value.InvalidValue
+	return Value.invalid
 }
 
 infix operator ~~= {
@@ -601,42 +601,42 @@ infix operator ±±= {
 
 public func ~~= (lhs: Value, rhs: Value) -> Value {
 	if let l = lhs.stringValue, r = rhs.stringValue {
-		return Value.BoolValue(l.rangeOfString(r, options: NSStringCompareOptions(), range: nil, locale: nil) != nil)
+		return Value.bool(l.range(of: r, options: NSString.CompareOptions(), range: nil, locale: nil) != nil)
 	}
-	return Value.InvalidValue
+	return Value.invalid
 }
 
 public func ±= (lhs: Value, rhs: Value) -> Value {
 	if let l = lhs.stringValue, r = rhs.stringValue, matches = l.matches(r, caseSensitive: false) {
-		return Value.BoolValue(matches)
+		return Value.bool(matches)
 	}
-	return Value.InvalidValue
+	return Value.invalid
 }
 
 public func ±±= (lhs: Value, rhs: Value) -> Value {
 	if let l = lhs.stringValue, r = rhs.stringValue, matches = l.matches(r, caseSensitive: true) {
-		return Value.BoolValue(matches)
+		return Value.bool(matches)
 	}
-	return Value.InvalidValue
+	return Value.invalid
 }
 
 public prefix func - (lhs: Value) -> Value {
 	switch lhs {
-	case .IntValue(let i):
-		return Value.IntValue(-i)
+	case .int(let i):
+		return Value.int(-i)
 		
-	case .DoubleValue(let d):
-		return Value.DoubleValue(-d)
+	case .double(let d):
+		return Value.double(-d)
 		
 	default:
-		return Value.InvalidValue
+		return Value.invalid
 	}
 }
 
 internal struct Stack<T> {
 	var items = [T]()
 	
-	mutating func push(item: T) -> T {
+	@discardableResult mutating func push(_ item: T) -> T {
 		items.append(item)
 		return item
 	}
@@ -653,22 +653,22 @@ internal struct Stack<T> {
 }
 
 public extension NSCoder {
-	public func encodeString(string: String, forKey: String) {
-		self.encodeObject(string, forKey: forKey)
+	public func encodeString(_ string: String, forKey: String) {
+		self.encode(string, forKey: forKey)
 	}
 	
-	public func decodeStringForKey(key: String) -> String? {
+	public func decodeStringForKey(_ key: String) -> String? {
 		return self.decodeObjectOfClass(NSString.self, forKey: key) as? String
 	}
 }
 
 public extension String {
 	var urlEncoded: String? { get {
-		return self.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLPathAllowedCharacterSet())
+		return self.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)
 	} }
 	
 	var urlDecoded: String? { get {
-		return self.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLPathAllowedCharacterSet())
+		return self.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)
 	} }
 	
 	func toDouble() -> Double? {
@@ -677,40 +677,40 @@ public extension String {
 		}
 		
 		return self.withCString() { p -> Double? in
-			var end: UnsafeMutablePointer<Int8> = nil
+			var end: UnsafeMutablePointer<Int8>? = nil
 			let result = strtod(p, &end)
-			return end.memory != 0 ? nil : result
+			return end?.pointee != 0 ? nil : result
 		}
 	}
 	
-	func toInt(base: Int = 10) -> Int? {
+	func toInt(_ base: Int = 10) -> Int? {
 		if self.isEmpty || self.hasPrefix(" ") {
 			return nil
 		}
 		
 		return self.withCString() { p -> Int? in
-			var end: UnsafeMutablePointer<Int8> = nil
+			var end: UnsafeMutablePointer<Int8>? = nil
 			let b = Int32(base)
 			let result = strtol(p, &end, b)
-			return end.memory != 0 ? nil : result
+			return end?.pointee != 0 ? nil : result
 		}
 	}
 	
-	static func randomStringWithLength (len : Int) -> String {
+	static func randomStringWithLength (_ len : Int) -> String {
 		let letters : NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 		let randomString : NSMutableString = NSMutableString(capacity: len)
 		let length = UInt32 (letters.length)
 		
 		for _ in 0..<len {
 			let r = arc4random_uniform(length)
-			randomString.appendFormat("%C", letters.characterAtIndex(Int(r)))
+			randomString.appendFormat("%C", letters.character(at: Int(r)))
 		}
-		return String(randomString)
+		return randomString as String
 	}
-	
+
 	/**
 	Calculates the Levenshtein (edit) distance between this string and another string. */
-	func levenshteinDistance(toString: String) -> Int {
+	func levenshteinDistance(_ toString: String) -> Int {
 		// create character arrays
 		let a = Array(self.characters)
 		let b = Array(toString.characters)
@@ -718,7 +718,7 @@ public extension String {
 		// initialize matrix of size |a|+1 * |b|+1 to zero
 		var dist = [[Int]]()
 		for _ in 0...a.count {
-			dist.append([Int](count: b.count + 1, repeatedValue: 0))
+			dist.append([Int](repeating: 0, count: b.count + 1))
 		}
 		
 		// 'a' prefixes can be transformed into empty string by deleting every char
@@ -758,21 +758,21 @@ public extension String {
 		return histogram
 	}
 	
-	func replace(pattern: String, withTemplate replacement: String, caseSensitive: Bool = true) -> String? {
+	func replace(_ pattern: String, withTemplate replacement: String, caseSensitive: Bool = true) -> String? {
 		do {
-			let re = try NSRegularExpression(pattern: pattern, options: (caseSensitive ? NSRegularExpressionOptions(): NSRegularExpressionOptions.CaseInsensitive))
+			let re = try RegularExpression(pattern: pattern, options: (caseSensitive ? RegularExpression.Options(): RegularExpression.Options.caseInsensitive))
 			let range = NSMakeRange(0, self.characters.count)
-			return re.stringByReplacingMatchesInString(self, options: NSMatchingOptions(), range: range, withTemplate: replacement)
+			return re.stringByReplacingMatches(in: self, options: RegularExpression.MatchingOptions(), range: range, withTemplate: replacement)
 		} catch _ {
 		}
 		return nil
 	}
 	
-	func matches(pattern: String, caseSensitive: Bool = true) -> Bool? {
+	func matches(_ pattern: String, caseSensitive: Bool = true) -> Bool? {
 		do {
-			let re = try NSRegularExpression(pattern: pattern, options: (caseSensitive ? NSRegularExpressionOptions() : NSRegularExpressionOptions.CaseInsensitive))
+			let re = try RegularExpression(pattern: pattern, options: (caseSensitive ? RegularExpression.Options() : RegularExpression.Options.caseInsensitive))
 			let range = NSMakeRange(0, self.characters.count)
-			return re.rangeOfFirstMatchInString(self, options: NSMatchingOptions(), range: range).location != NSNotFound
+			return re.rangeOfFirstMatch(in: self, options: RegularExpression.MatchingOptions(), range: range).location != NSNotFound
 		} catch _ {
 		}
 		return nil
@@ -780,11 +780,11 @@ public extension String {
 }
 
 
-public extension SequenceType {
+public extension Sequence {
 	/** For each element in the sequence, evaluate block, and insert the returned tuple in a dictionary. If a particular
 	key appears more than once in a returned tuple, one of the values will end up in the dictionary, but which is not
 	defined. */
-	func mapDictionary<K, V>(@noescape block: (Generator.Element) -> (K, V)) -> [K:V] {
+	func mapDictionary<K, V>( _ block: @noescape (Iterator.Element) -> (K, V)) -> [K:V] {
 		var dict: [K:V] = [:]
 		self.forEach { (element) -> () in
 			let v = block(element)
@@ -794,20 +794,20 @@ public extension SequenceType {
 	}
 }
 
-internal extension CollectionType {
-	func mapMany(@noescape block: (Generator.Element) -> [Generator.Element]) -> [Generator.Element] {
-		var result: [Generator.Element] = []
+internal extension Collection {
+	func mapMany(_ block: @noescape (Iterator.Element) -> [Iterator.Element]) -> [Iterator.Element] {
+		var result: [Iterator.Element] = []
 		self.forEach { (item) in
-			result.appendContentsOf(block(item))
+			result.append(contentsOf: block(item))
 		}
 		return result
 	}
 	
-	static func filterNils(array: [Generator.Element?]) -> [Generator.Element] {
+	static func filterNils(_ array: [Iterator.Element?]) -> [Iterator.Element] {
 		return array.filter { $0 != nil }.map { $0! }
 	}
 	
-	var optionals: [Generator.Element?] {
+	var optionals: [Iterator.Element?] {
 		get {
 			return self.map { return Optional($0) }
 		}
@@ -820,9 +820,9 @@ public extension Array {
 		return (self.count > 0) ? self[idx] : nil
 	} }
 	
-	mutating func remove <U: Equatable> (element: U) {
+	mutating func remove <U: Equatable> (_ element: U) {
 		let anotherSelf = self
-		removeAll(keepCapacity: true)
+		removeAll(keepingCapacity: true)
 		
 		anotherSelf.forEach {
 			(current: Element) in
@@ -832,7 +832,7 @@ public extension Array {
 		}
 	}
 	
-	func contains<T: Equatable>(value: T) -> Bool {
+	func contains<T: Equatable>(_ value: T) -> Bool {
 		for i in self {
 			if (i as? T) == value {
 				return true
@@ -841,16 +841,16 @@ public extension Array {
 		return false
 	}
 	
-	mutating func removeObjectsAtIndexes(indexes: NSIndexSet, offset: Int) {
-		for (_, index) in indexes.enumerate().reverse() {
-			self.removeAtIndex(index + offset)
+	mutating func removeObjectsAtIndexes(_ indexes: IndexSet, offset: Int) {
+		for (_, index) in indexes.enumerated().reversed() {
+			self.remove(at: index + offset)
 		}
 	}
 	
-	func objectsAtIndexes(indexes: NSIndexSet) -> [Element] {
+	func objectsAtIndexes(_ indexes: IndexSet) -> [Element] {
 		var items: [Element] = []
-		
-		indexes.enumerateIndexesUsingBlock {(idx, stop) -> () in
+
+		for idx in indexes {
 			items.append(self[idx])
 		}
 		
@@ -891,29 +891,29 @@ internal extension Int {
 		return Double(self)
 	}
 	
-	static func random(range: Range<Int>) -> Int {
+	static func random(_ range: Range<Int>) -> Int {
 		var offset = 0
 		
-		if range.startIndex < 0   // allow negative ranges
+		if range.lowerBound < 0   // allow negative ranges
 		{
-			offset = abs(range.startIndex)
+			offset = abs(range.lowerBound)
 		}
 		
-		let mini = UInt32(range.startIndex + offset)
-		let maxi = UInt32(range.endIndex   + offset)
+		let mini = UInt32(range.lowerBound + offset)
+		let maxi = UInt32(range.upperBound   + offset)
 		
 		return Int(mini + arc4random_uniform(maxi - mini)) - offset
 	}
 }
 
-internal func arc4random <T: IntegerLiteralConvertible> (type: T.Type) -> T {
+internal func arc4random <T: IntegerLiteralConvertible> (_ type: T.Type) -> T {
 	var r: T = 0
 	arc4random_buf(&r, sizeof(T))
 	return r
 }
 
 internal extension UInt64 {
-	static func random(lower: UInt64 = min, upper: UInt64 = max) -> UInt64 {
+	static func random(_ lower: UInt64 = min, upper: UInt64 = max) -> UInt64 {
 		var m: UInt64
 		let u = upper - lower
 		var r = arc4random(UInt64)
@@ -933,7 +933,7 @@ internal extension UInt64 {
 }
 
 internal extension Int64 {
-	static func random(lower: Int64 = min, upper: Int64 = max) -> Int64 {
+	static func random(_ lower: Int64 = min, upper: Int64 = max) -> Int64 {
 		let (s, overflow) = Int64.subtractWithOverflow(upper, lower)
 		let u = overflow ? UInt64.max - UInt64(~s) : UInt64(s)
 		let r = UInt64.random(upper: u)
@@ -947,26 +947,26 @@ internal extension Int64 {
 }
 
 internal extension UInt32 {
-	static func random(lower: UInt32 = min, upper: UInt32 = max) -> UInt32 {
+	static func random(_ lower: UInt32 = min, upper: UInt32 = max) -> UInt32 {
 		return arc4random_uniform(upper - lower) + lower
 	}
 }
 
 internal extension Int32 {
-	static func random(lower: Int32 = min, upper: Int32 = max) -> Int32 {
+	static func random(_ lower: Int32 = min, upper: Int32 = max) -> Int32 {
 		let r = arc4random_uniform(UInt32(Int64(upper) - Int64(lower)))
 		return Int32(Int64(r) + Int64(lower))
 	}
 }
 
 internal extension UInt {
-	static func random(lower: UInt = min, upper: UInt = max) -> UInt {
+	static func random(_ lower: UInt = min, upper: UInt = max) -> UInt {
 		return UInt(UInt64.random(UInt64(lower), upper: UInt64(upper)))
 	}
 }
 
 internal extension Int {
-	static func random(lower: Int = min, upper: Int = max) -> Int {
+	static func random(_ lower: Int = min, upper: Int = max) -> Int {
 		return Int(Int64.random(Int64(lower), upper: Int64(upper)))
 	}
 }
@@ -976,19 +976,19 @@ internal extension Double {
 		return Double(Int64.random(0, upper: Int64.max)) / Double(Int64.max)
 	}
 	
-	func approximates(otherDouble: Double, epsilon: Double) -> Bool {
+	func approximates(_ otherDouble: Double, epsilon: Double) -> Bool {
 		return self > (otherDouble - epsilon) && self < (otherDouble + epsilon)
 	}
 }
 
-public struct OrderedDictionaryGenerator<KeyType: Hashable, ValueType>: GeneratorType {
+public struct OrderedDictionaryGenerator<KeyType: Hashable, ValueType>: IteratorProtocol {
 	public typealias Element = (KeyType, ValueType)
 	private let orderedDictionary: OrderedDictionary<KeyType, ValueType>
-	private var keyGenerator: IndexingGenerator<[KeyType]>
+	private var keyGenerator: IndexingIterator<[KeyType]>
 	
 	init(orderedDictionary: OrderedDictionary<KeyType, ValueType>) {
 		self.orderedDictionary = orderedDictionary
-		self.keyGenerator = self.orderedDictionary.keys.generate()
+		self.keyGenerator = self.orderedDictionary.keys.makeIterator()
 	}
 	
 	mutating public func next() -> Element? {
@@ -999,10 +999,10 @@ public struct OrderedDictionaryGenerator<KeyType: Hashable, ValueType>: Generato
 	}
 }
 
-public struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
+public struct OrderedDictionary<KeyType: Hashable, ValueType>: Sequence {
 	public typealias KeyArrayType = [KeyType]
 	public typealias DictionaryType = [KeyType: ValueType]
-	public typealias Generator = OrderedDictionaryGenerator<KeyType, ValueType>
+	public typealias Iterator = OrderedDictionaryGenerator<KeyType, ValueType>
 	public typealias PairType = (key: KeyType, value: ValueType)
 	
 	public private(set) var keys = KeyArrayType()
@@ -1017,7 +1017,7 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 		self.keys = [KeyType](dictionaryInAnyOrder.keys)
 	}
 	
-	public func generate() -> Generator {
+	public func makeIterator() -> Iterator {
 		return OrderedDictionaryGenerator(orderedDictionary: self)
 	}
 	
@@ -1025,35 +1025,35 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 		return keys.count
 	}
 
-	public mutating func remove(key: KeyType) {
+	public mutating func remove(_ key: KeyType) {
 		keys.remove(key)
-		values.removeValueForKey(key)
+		values.removeValue(forKey: key)
 	}
 	
-	public mutating func insert(value: ValueType, forKey key: KeyType, atIndex index: Int) -> ValueType? {
+	public mutating func insert(_ value: ValueType, forKey key: KeyType, atIndex index: Int) -> ValueType? {
 		var adjustedIndex = index
 		let existingValue = self.values[key]
 		if existingValue != nil {
-			let existingIndex = self.keys.indexOf(key)!
+			let existingIndex = self.keys.index(of: key)!
 			
 			if existingIndex < index {
 				adjustedIndex -= 1
 			}
-			self.keys.removeAtIndex(existingIndex)
+			self.keys.remove(at: existingIndex)
 		}
 		
-		self.keys.insert(key, atIndex:adjustedIndex)
+		self.keys.insert(key, at:adjustedIndex)
 		self.values[key] = value
 		return existingValue
 	}
 	
-	public func contains(key: KeyType) -> Bool {
+	public func contains(_ key: KeyType) -> Bool {
 		return self.values[key] != nil
 	}
 	
 	/** Keeps only the keys present in the 'keys' parameter and puts them in the specified order. The 'keys' parameter is
 	not allowed to contain keys that do not exist in the ordered dictionary, or contain the same key twice. */
-	public mutating func filterAndOrder(keyOrder: [KeyType]) {
+	public mutating func filterAndOrder(_ keyOrder: [KeyType]) {
 		var newKeySet = Set<KeyType>()
 		for k in keyOrder {
 			if contains(k) {
@@ -1072,20 +1072,20 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 		// Remove keys that weren't ordered
 		for k in self.keys {
 			if !newKeySet.contains(k) {
-				self.values.removeValueForKey(k)
+				self.values.removeValue(forKey: k)
 			}
 		}
 		self.keys = keyOrder
 	}
 	
-	public mutating func orderKey(key: KeyType, toIndex: Int) {
-		precondition(self.keys.indexOf(key) != nil, "key to be ordered must exist")
+	public mutating func orderKey(_ key: KeyType, toIndex: Int) {
+		precondition(self.keys.index(of: key) != nil, "key to be ordered must exist")
 		self.keys.remove(key)
-		self.keys.insertContentsOf([key], at: toIndex)
+		self.keys.insert(contentsOf: [key], at: toIndex)
 	}
 	
-	public mutating func orderKey(key: KeyType, beforeKey: KeyType) {
-		if let newIndex = self.keys.indexOf(beforeKey) {
+	public mutating func orderKey(_ key: KeyType, beforeKey: KeyType) {
+		if let newIndex = self.keys.index(of: beforeKey) {
 			orderKey(key, toIndex: newIndex)
 		}
 		else {
@@ -1093,33 +1093,33 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType>: SequenceType {
 		}
 	}
 	
-	public mutating func removeAtIndex(index: Int) -> (KeyType, ValueType)
+	public mutating func removeAtIndex(_ index: Int) -> (KeyType, ValueType)
 	{
 		precondition(index < self.keys.count, "Index out-of-bounds")
-		let key = self.keys.removeAtIndex(index)
-		let value = self.values.removeValueForKey(key)!
+		let key = self.keys.remove(at: index)
+		let value = self.values.removeValue(forKey: key)!
 		return (key, value)
 	}
 	
-	public mutating func append(value: ValueType, forKey: KeyType) {
+	public mutating func append(_ value: ValueType, forKey: KeyType) {
 		precondition(!contains(forKey), "Ordered dictionary already contains value")
 		self.keys.append(forKey)
 		self.values[forKey] = value
 	}
 	
-	public mutating func replaceOrAppend(value: ValueType, forKey key: KeyType) {
+	public mutating func replaceOrAppend(_ value: ValueType, forKey key: KeyType) {
 		if !contains(key) {
 			self.keys.append(key)
 		}
 		self.values[key] = value
 	}
 
-	public mutating func sortKeysInPlace(isOrderedBefore: (a: KeyType, b: KeyType) -> Bool) {
-		self.keys.sortInPlace(isOrderedBefore)
+	public mutating func sortKeysInPlace(_ isOrderedBefore: (a: KeyType, b: KeyType) -> Bool) {
+		self.keys.sort(isOrderedBefore: isOrderedBefore)
 	}
 
-	public mutating func sortPairsInPlace(isOrderedBefore: (PairType, PairType) -> Bool) {
-		self.keys.sortInPlace { a, b in
+	public mutating func sortPairsInPlace(_ isOrderedBefore: (PairType, PairType) -> Bool) {
+		self.keys.sort { a, b in
 			return isOrderedBefore((a, self.values[a]!), (b, self.values[b]!))
 		}
 	}

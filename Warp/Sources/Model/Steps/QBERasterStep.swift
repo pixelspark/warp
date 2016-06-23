@@ -10,7 +10,7 @@ class QBERasterStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.raster = (aDecoder.decodeObjectForKey("raster") as? Raster) ?? Raster()
+		self.raster = (aDecoder.decodeObject(forKey: "raster") as? Raster) ?? Raster()
 		super.init(coder: aDecoder)
 	}
 
@@ -19,30 +19,30 @@ class QBERasterStep: QBEStep {
 		super.init()
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		switch variant {
-		case .Neutral, .Read:
+		case .neutral, .read:
 			return QBESentence([QBESentenceText(NSLocalizedString("Data table", comment: ""))])
 
-		case .Write:
+		case .write:
 			return QBESentence([QBESentenceText(NSLocalizedString("Write to data table", comment: ""))])
 		}
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(raster, forKey: "raster")
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		coder.encode(raster, forKey: "raster")
+		super.encode(with: coder)
 	}
 	
-	override func fullData(job: Job?, callback: (Fallible<Data>) -> ()) {
-		callback(.Success(RasterData(raster: self.raster)))
+	override func fullDataset(_ job: Job?, callback: (Fallible<Dataset>) -> ()) {
+		callback(.success(RasterDataset(raster: self.raster)))
 	}
 	
-	override func exampleData(job: Job?, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Data>) -> ()) {
-		callback(.Success(RasterData(raster: self.raster).limit(min(maxInputRows, maxOutputRows))))
+	override func exampleDataset(_ job: Job?, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+		callback(.success(RasterDataset(raster: self.raster).limit(min(maxInputRows, maxOutputRows))))
 	}
 
-	override internal var mutableData: MutableData? {
-		return RasterMutableData(raster: self.raster)
+	override internal var mutableDataset: MutableDataset? {
+		return RasterMutableDataset(raster: self.raster)
 	}
 }

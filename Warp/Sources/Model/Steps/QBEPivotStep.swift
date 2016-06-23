@@ -1,7 +1,7 @@
 import Foundation
 import WarpCore
 
-private func toDictionary<E, K, V>(array: [E], transformer: (element: E) -> (key: K, value: V)?) -> Dictionary<K, V> {
+private func toDictionary<E, K, V>(_ array: [E], transformer: (element: E) -> (key: K, value: V)?) -> Dictionary<K, V> {
 	return array.reduce([:]) { dict, e in
 		var dict = dict
 
@@ -24,31 +24,31 @@ class QBEPivotStep: QBEStep {
 	required init(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
 		
-		aggregates = (aDecoder.decodeObjectForKey("aggregates") as? [Aggregation]) ?? []
+		aggregates = (aDecoder.decodeObject(forKey: "aggregates") as? [Aggregation]) ?? []
 		
-		if let r = aDecoder.decodeObjectForKey("rows") as? [String] {
+		if let r = aDecoder.decodeObject(forKey: "rows") as? [String] {
 			rows = r.map({Column($0)})
 		}
 		
-		if let c = aDecoder.decodeObjectForKey("columns") as? [String] {
+		if let c = aDecoder.decodeObject(forKey: "columns") as? [String] {
 			columns = c.map({Column($0)})
 		}
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		super.encode(with: coder)
 		fixupColumnNames()
 		
 		// NSCoder can't store Column, so we store the raw names
 		let c = columns.map({$0.name})
 		let r = rows.map({$0.name})
 		
-		coder.encodeObject(r, forKey: "rows")
-		coder.encodeObject(c, forKey: "columns")
-		coder.encodeObject(aggregates, forKey: "aggregates")
+		coder.encode(r, forKey: "rows")
+		coder.encode(c, forKey: "columns")
+		coder.encode(aggregates, forKey: "aggregates")
 	}
 	
-	private func explanation(locale: Locale) -> String {
+	private func explanation(_ locale: Language) -> String {
 		if aggregates.count == 1 {
 			let aggregation = aggregates[0]
 			if rows.count != 1 || !columns.isEmpty {
@@ -68,7 +68,7 @@ class QBEPivotStep: QBEStep {
 		return NSLocalizedString("Pivot data", comment: "")
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
@@ -83,7 +83,7 @@ class QBEPivotStep: QBEStep {
 			}
 		}
 		
-		columns.unionInPlace(Set(columns))
+		columns.formUnion(Set(columns))
 		
 		for idx in 0..<aggregates.count {
 			let aggregation = aggregates[idx]
@@ -94,9 +94,9 @@ class QBEPivotStep: QBEStep {
 		}
 	}
 	
-	override func apply(data: Data, job: Job?, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
 		if self.rows.isEmpty && self.columns.isEmpty && self.aggregates.isEmpty {
-			callback(.Failure(NSLocalizedString("Click the settings button to configure the pivot table.", comment: "")))
+			callback(.failure(NSLocalizedString("Click the settings button to configure the pivot table.", comment: "")))
 			return
 		}
 
@@ -108,23 +108,23 @@ class QBEPivotStep: QBEStep {
 		}
 		
 		let values = toDictionary(aggregates, transformer: { ($0.targetColumn, $0.aggregator) })
-		let resultData = data.aggregate(rowGroups, values: values)
+		let resultDataset = data.aggregate(rowGroups, values: values)
 		if columns.isEmpty {
-			callback(.Success(resultData))
+			callback(.success(resultDataset))
 		}
 		else {
-			let pivotedData = resultData.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumn}))
-			callback(.Success(pivotedData))
+			let pivotedDataset = resultDataset.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumn}))
+			callback(.success(pivotedDataset))
 		}
 	}
 	
-	class func suggest(aggregateRows: NSIndexSet, columns aggregateColumns: Set<Column>, inRaster raster: Raster, fromStep: QBEStep?) -> [QBEStep] {
+	class func suggest(_ aggregateRows: IndexSet, columns aggregateColumns: Set<Column>, inRaster raster: Raster, fromStep: QBEStep?) -> [QBEStep] {
 		if aggregateColumns.isEmpty {
 			return []
 		}
 		
 		// Check to see if the selected rows have similar values for other than the relevant columns
-		let groupColumnCandidates = Set<Column>(raster.columns).subtract(aggregateColumns)
+		let groupColumnCandidates = Set<Column>(raster.columns).subtracting(aggregateColumns)
 		let sameValues = aggregateRows.count > 1 ? raster.commonalitiesOf(aggregateRows, inColumns: groupColumnCandidates) : [:]
 		
 		// What are our aggregate functions? Select the most likely ones (user can always change)

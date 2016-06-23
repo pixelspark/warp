@@ -25,31 +25,31 @@ import WarpCore
 	}
 	
 	private func setup() {
-		self.addToolTipRect(frame, owner: self, userData: nil)
-		self.addTrackingArea(NSTrackingArea(rect: frame, options: [NSTrackingAreaOptions.MouseEnteredAndExited, NSTrackingAreaOptions.ActiveInActiveApp], owner: self, userInfo: nil))
+		self.addToolTip(frame, owner: self, userData: nil)
+		self.addTrackingArea(NSTrackingArea(rect: frame, options: [NSTrackingAreaOptions.mouseEnteredAndExited, NSTrackingAreaOptions.activeInActiveApp], owner: self, userInfo: nil))
 	}
 	
-	override func mouseEntered(theEvent: NSEvent) {
+	override func mouseEntered(_ theEvent: NSEvent) {
 		highlighted = true
 		update()
-		setNeedsDisplayInRect(self.bounds)
+		setNeedsDisplay(self.bounds)
 	}
 	
-	override func mouseExited(theEvent: NSEvent) {
+	override func mouseExited(_ theEvent: NSEvent) {
 		highlighted = false
 		update()
-		setNeedsDisplayInRect(self.bounds)
+		setNeedsDisplay(self.bounds)
 	}
 	
-	override func view(view: NSView, stringForToolTip tag: NSToolTipTag, point: NSPoint, userData data: UnsafeMutablePointer<Void>) -> String {
-		return step?.explain(Locale()) ?? ""
+	override func view(_ view: NSView, stringForToolTip tag: NSToolTipTag, point: NSPoint, userData data: UnsafeMutablePointer<Void>?) -> String {
+		return step?.explain(Language()) ?? ""
 	}
 	
 	var step: QBEStep? { didSet {
 		update()
 	} }
 	
-	@IBAction func remove(sender: NSObject) {
+	@IBAction func remove(_ sender: NSObject) {
 		if let s = step {
 			if let cv = self.superview as? NSCollectionView {
 				if let sc = cv.delegate as? QBEStepsViewController {
@@ -59,7 +59,7 @@ import WarpCore
 		}
 	}
 	
-	override func validateMenuItem(menuItem: NSMenuItem) -> Bool {
+	override func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
 		if menuItem.action == #selector(QBEStepsItemView.remove(_:)) {
 			return true
 		}
@@ -72,7 +72,7 @@ import WarpCore
 		return false
 	}
 	
-	@IBAction func showSuggestions(sender: NSObject) {
+	@IBAction func showSuggestions(_ sender: NSObject) {
 		if let s = step, let alternatives = s.alternatives where alternatives.count > 0 {
 			if let cv = self.superview as? NSCollectionView {
 				if let sc = cv.delegate as? QBEStepsViewController {
@@ -82,7 +82,7 @@ import WarpCore
 		}
 	}
 	
-	override func hitTest(aPoint: NSPoint) -> NSView? {
+	override func hitTest(_ aPoint: NSPoint) -> NSView? {
 		if self.selected {
 			return super.hitTest(aPoint)
 		}
@@ -90,20 +90,20 @@ import WarpCore
 	}
 	
 	private func update() {
-		label?.attributedStringValue = NSAttributedString(string: step?.explain(Locale()) ?? "??")
+		label?.attributedStringValue = AttributedString(string: step?.explain(Language()) ?? "??")
 		
 		if let s = step {
 			if let icon = QBEFactory.sharedInstance.iconForStep(s) {
 				imageView?.image = NSImage(named: icon)
 			}
 			
-			nextImageView?.hidden = (s.next == nil) || selected || highlighted
-			previousImageView?.hidden = (s.previous == nil) // || selected || highlighted
+			nextImageView?.isHidden = (s.next == nil) || selected || highlighted
+			previousImageView?.isHidden = (s.previous == nil) // || selected || highlighted
 		}
 	}
 	
-	override func drawRect(dirtyRect: NSRect) {
-		NSColor.clearColor().set()
+	override func draw(_ dirtyRect: NSRect) {
+		NSColor.clear().set()
 		NSRectFill(dirtyRect)
 
 		if self.selected {
@@ -111,7 +111,7 @@ import WarpCore
 				NSColor.secondarySelectedControlColor().set()
 			}
 			else {
-				NSColor.blueColor().colorWithAlphaComponent(0.2).set()
+				NSColor.blue().withAlphaComponent(0.2).set()
 			}
 			//NSColor.selectedControlColor().set()
 		}
@@ -142,10 +142,10 @@ class QBEStepsItem: NSCollectionViewItem {
 		}
 	} }
 	
-	override var selected: Bool { didSet {
+	override var isSelected: Bool { didSet {
 		if let v = self.view as? QBEStepsItemView {
-			v.selected = selected
-			v.setNeedsDisplayInRect(v.bounds)
+			v.selected = isSelected
+			v.setNeedsDisplay(v.bounds)
 		}
 	} }
 }

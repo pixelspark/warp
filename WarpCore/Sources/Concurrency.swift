@@ -1,18 +1,18 @@
 import Foundation
 
-public func trace(message: String, file: StaticString = #file, line: UInt = #line) {
+public func trace(_ message: String, file: StaticString = #file, line: UInt = #line) {
 	#if DEBUG
-		dispatch_async(dispatch_get_main_queue()) {
+		DispatchQueue.main.async {
 			print(message)
 		}
 	#endif
 }
 
-public func assertMainThread(file: StaticString = #file, line: UInt = #line) {
-	assert(NSThread.isMainThread(), "Code at \(file):\(line) must run on main thread!")
+public func assertMainThread(_ file: StaticString = #file, line: UInt = #line) {
+	assert(Thread.isMainThread(), "Code at \(file):\(line) must run on main thread!")
 }
 
-public func once<P, R>(block: ((P) -> (R))) -> ((P) -> (R)) {
+public func once<P, R>(_ block: ((P) -> (R))) -> ((P) -> (R)) {
 	var run = false
 
 	#if DEBUG
@@ -27,21 +27,21 @@ public func once<P, R>(block: ((P) -> (R))) -> ((P) -> (R)) {
 }
 
 /** Runs the given block of code asynchronously on the main queue. */
-public func asyncMain(block: () -> ()) {
-	dispatch_async(dispatch_get_main_queue(), block)
+public func asyncMain(_ block: () -> ()) {
+	DispatchQueue.main.async(execute: block)
 }
 
-public extension SequenceType {
-	typealias Element = Generator.Element
+public extension Sequence {
+	typealias Element = Iterator.Element
 	
 	/** Iterate over the items in this array, and call the 'each' block for each element. At most `maxConcurrent` calls
 	to `each` may be 'in flight' concurrently. After each has been called and called back for each of the items, the
 	completion block is called. */
-	func eachConcurrently(maxConcurrent maxConcurrent: Int, maxPerSecond: Int?, each: (Element, () -> ()) -> (), completion: () -> ()) {
-		var iterator = self.generate()
+	func eachConcurrently(_ maxConcurrent: Int, maxPerSecond: Int?, each: (Element, () -> ()) -> (), completion: () -> ()) {
+		var iterator = self.makeIterator()
 		var outstanding = 0
-		
-		func eachTimed(element: Element) {
+
+		func eachTimed(_ element: Element) {
 			let start = CFAbsoluteTimeGetCurrent()
 			each(element, {
 				let end = CFAbsoluteTimeGetCurrent()
@@ -49,7 +49,7 @@ public extension SequenceType {
 			})
 		}
 		
-		func advance(duration: Double) {
+		func advance(_ duration: Double) {
 			// There are more elements, call the each function on the next one
 			if let next = iterator.next() {
 				/* If we can make at most x requests per second, each request should take at least
@@ -58,7 +58,7 @@ public extension SequenceType {
 				if let mrps = maxPerSecond {
 					let minimumTime = Double(maxConcurrent) / Double(mrps)
 					if minimumTime > duration {
-						dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64((minimumTime - duration) * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+						DispatchQueue.main.after(when: DispatchTime.now() + Double(Int64((minimumTime - duration) * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) {
 							eachTimed(next)
 						}
 						return
@@ -92,20 +92,23 @@ public extension SequenceType {
 }
 
 internal extension Array {
-	func parallel<T, ResultType>(map map: ((Array<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> Future<ResultType?> {
+	func parallel<T, ResultType>(map: ((Array<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> Future<ResultType?> {
 		let chunkSize = StreamDefaultBatchSize/8
 		
 		return Future<ResultType?>({ (job, completion) -> () in
-			let group = dispatch_group_create()
+			let group = DispatchGroup()
 			var buffer: [T] = []
 			var finishedItems = 0
 			
 			// Chunk the contents of the array and dispatch jobs that map each chunk
-			for i in 0.stride(to: self.count, by: chunkSize) {
-				let view = Array(self[i..<min(i+chunkSize, self.count)])
+			for i in stride(from: 0, to: self.count, by: chunkSize) {
+				let x = i + chunkSize
+				let n = (x < self.count) ? x : self.count
+
+				let view = Array(self[i..<n])
 				let count: Int = view.count
 				
-				dispatch_group_async(group, job.queue) {
+				job.queue.async(group: group) {
 					// Check whether we still need to process this chunk
 					if job.cancelled {
 						return
@@ -115,7 +118,7 @@ internal extension Array {
 					let workerOutput = map(view)
 					
 					// Dispatch a block that adds our result (synchronously) to the intermediate result buffer
-					dispatch_group_async(group, dispatch_get_main_queue()) {
+					DispatchQueue.main.async(group: group) {
 						finishedItems += count
 						let p = Double(finishedItems) / Double(self.count)
 						job.reportProgress(p, forKey: 1)
@@ -125,7 +128,7 @@ internal extension Array {
 			}
 			
 			// Reduce stage: loop over all intermediate results in the buffer and merge
-			dispatch_group_notify(group, job.queue) {
+			group.notify(queue: job.queue) {
 				if job.cancelled {
 					return
 				}
@@ -142,83 +145,83 @@ internal extension Array {
 }
 
 @objc public protocol JobDelegate {
-	func job(job: AnyObject, didProgress: Double)
+	func job(_ job: AnyObject, didProgress: Double)
 }
 
 public enum QoS {
-	case UserInitiated
-	case Background
+	case userInitiated
+	case background
 	
-	var qosClass: dispatch_qos_class_t {
+	var qosClass: DispatchQueueAttributes {
 		switch self {
-			case .UserInitiated:
-				return QOS_CLASS_USER_INITIATED
+			case .userInitiated:
+				return DispatchQueueAttributes.qosUserInitiated
 			
-			case .Background:
-				return QOS_CLASS_BACKGROUND
+			case .background:
+				return DispatchQueueAttributes.qosBackground
 		}
 	}
 }
 
 /** Fallible<T> represents the outcome of an operation that can either fail (with an error message) or succeed 
 (returning an instance of T). */
-public enum Fallible<T> {
-	case Success(T)
-	case Failure(String)
+public enum Fallible<T>: ErrorProtocol {
+	case success(T)
+	case failure(String)
 	
 	public init<P>(_ other: Fallible<P>) {
 		switch other {
-			case .Success(let s):
-				self = .Success(s as! T)
+			case .success(let s):
+				self = .success(s as! T)
 			
-			case .Failure(let e):
-				self = .Failure(e)
+			case .failure(let e):
+				self = .failure(e)
 		}
 	}
 	
 	/** If the result is successful, execute `block` on its return value, and return the (fallible) return value of that block
 	(if any). Otherwise return a new, failed result with the error message of this result. This can be used to chain 
 	operations on fallible operations, propagating the error once an operation fails. */
-	@warn_unused_result(message="Deal with potential failure returned by .use, .require to force success or .maybe to ignore failure.")
-	public func use<P>(@noescape block: T -> P) -> Fallible<P> {
+	@warn_unused_result(message: "Deal with potential failure returned by .use, .require to force success or .maybe to ignore failure.")
+	public func use<P>( _ block: @noescape (T) -> P) -> Fallible<P> {
 		switch self {
-			case Success(let value):
-				return .Success(block(value))
+			case success(let value):
+				return .success(block(value))
 			
-			case Failure(let errString):
-				return .Failure(errString)
+			case failure(let errString):
+				return .failure(errString)
 		}
 	}
 	
-	@warn_unused_result(message="Deal with potential failure returned by .use, .require to force success or .maybe to ignore failure.")
-	public func use<P>(@noescape block: T -> Fallible<P>) -> Fallible<P> {
+	@warn_unused_result(message: "Deal with potential failure returned by .use, .require to force success or .maybe to ignore failure.")
+	public func use<P>( _ block: @noescape (T) -> Fallible<P>) -> Fallible<P> {
 		switch self {
-		case Success(let box):
+		case success(let box):
 			return block(box)
 			
-		case Failure(let errString):
-			return .Failure(errString)
+		case failure(let errString):
+			return .failure(errString)
 		}
 	}
 	
 	/** If this result is a success, execute the block with its value. Otherwise cause a fatal error.  */
-	public func require(@noescape block: T -> Void) {
+	public func require( _ block: @noescape (T) -> Void) {
 		switch self {
-		case Success(let value):
+		case success(let value):
 			block(value)
 			
-		case Failure(let errString):
+		case failure(let errString):
 			fatalError("Cannot continue with failure: \(errString)")
 		}
 	}
 
 	/** If this result is a success, execute the block with its value. Otherwise silently ignore the failure (but log in debug mode) */
-	public func maybe(@noescape block: T -> Void) {
+	public func maybe( _ block: @noescape (T) -> Void) {
 		switch self {
-		case Success(let value):
+		case success(let value):
 			block(value)
 			
-		case Failure(let errString):
+		case failure(let errString):
 			trace("Silently ignoring failure: \(errString)")
 		}
 	}
@@ -246,7 +249,7 @@ When used with Future, a job represents a single attempt at the calculation of a
 Future receives the Job object and should use it to check whether calculation of the future is still necessary (or
 the job has been cancelled) and report progress information. */
 public class Job: JobDelegate {
-	public let queue: dispatch_queue_t
+	public let queue: DispatchQueue
 	let parentJob: Job?
 	public private(set) var cancelled: Bool = false
 	private var progressComponents: [Int: Double] = [:]
@@ -260,18 +263,17 @@ public class Job: JobDelegate {
 	#endif
 	
 	public init(_ qos: QoS) {
-		let attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_CONCURRENT, qos.qosClass, 0)
-
 		#if DEBUG
 			self.jobID = Job.jobCounterMutex.locked {
 				 let jobNumber = Job.jobCounter + 1
 				 Job.jobCounter += 1
 				 return  jobNumber
 			}
-			self.queue = dispatch_queue_create("Job \(self.jobID)", attr)
+			self.queue = DispatchQueue(label: "Job \(self.jobID)", attributes: [.concurrent, qos.qosClass], target: nil)
 		#else
-			self.queue = dispatch_queue_create("nl.pixelspark.Warp.Job", attr)
+			self.queue = DispatchQueue(label: "nl.pixelspark.Warp.Job", attributes: [.concurrent, qos.qosClass], target: nil)
 		#endif
+
 		self.parentJob = nil
 	}
 	
@@ -287,10 +289,10 @@ public class Job: JobDelegate {
 			}
 		#endif
 
-		parent.reportProgress(0.0, forKey: unsafeAddressOf(self).hashValue)
+		parent.reportProgress(0.0, forKey: unsafeAddress(of: self).hashValue)
 	}
 	
-	private init(queue: dispatch_queue_t) {
+	private init(queue: DispatchQueue) {
 		self.queue = queue
 		self.parentJob = nil
 
@@ -312,7 +314,7 @@ public class Job: JobDelegate {
 	/** Shorthand function to run a block asynchronously in the queue associated with this job. Because async() will often
 	be called with an 'expensive' block, it also checks the jobs cancellation status. If the job is cancelled, the block
 	will not be executed, nor will any timing information be reported. */
-	public func async(block: () -> ()) {
+	public func async(_ block: () -> ()) {
 		if cancelled {
 			return
 		}
@@ -321,14 +323,14 @@ public class Job: JobDelegate {
 			return
 		}
 		
-		dispatch_async(queue, block)
+		queue.async(execute: block)
 	}
 	
 	/** Records the time taken to execute the given block and writes it to the console. In release builds, the block is 
 	simply called and no timing information is gathered. Because time() will often be called with an 'expensive' block, 
 	it also checks the jobs cancellation status. If the job is cancelled, the block will not be executed, nor will any 
 	timing information be reported. */
-	public func time(description: String, items: Int, itemType: String, @noescape block: () -> ()) {
+	public func time(_ description: String, items: Int, itemType: String, block: @noescape () -> ()) {
 		if cancelled {
 			return
 		}
@@ -351,7 +353,7 @@ public class Job: JobDelegate {
 		#endif
 	}
 	
-	public func addObserver(observer: JobDelegate) {
+	public func addObserver(_ observer: JobDelegate) {
 		mutex.locked {
 			self.observers.append(Weak(observer))
 		}
@@ -360,7 +362,7 @@ public class Job: JobDelegate {
 	/** Inform anyone waiting on this job that a particular sub-task has progressed. Progress needs to be between 0...1,
 	where 1 means 'complete'. Callers of this function should generate a sufficiently unique key that identifies the sub-
 	operation in the job of which the progress is reported (e.g. use '.hash' on an object private to the subtask). */
-	public func reportProgress(progress: Double, forKey: Int, file: StaticString = #file, line: UInt = #line) {
+	public func reportProgress(_ progress: Double, forKey: Int, file: StaticString = #file, line: UInt = #line) {
 		if progress < 0.0 || progress > 1.0 {
 			// Ignore spurious progress reports
 			log("Ignoring spurious progress report \(progress) for key \(forKey)")
@@ -381,7 +383,7 @@ public class Job: JobDelegate {
 			}
 			
 			// Report our progress back up to our parent
-			self.parentJob?.reportProgress(currentProgress, forKey: unsafeAddressOf(self).hashValue)
+			self.parentJob?.reportProgress(currentProgress, forKey: unsafeAddress(of: self).hashValue)
 		}
 	}
 	
@@ -410,16 +412,16 @@ public class Job: JobDelegate {
 		}
 	}
 	
-	@objc public func job(job: AnyObject, didProgress: Double) {
-		self.reportProgress(didProgress, forKey: unsafeAddressOf(job).hashValue)
+	@objc public func job(_ job: AnyObject, didProgress: Double) {
+		self.reportProgress(didProgress, forKey: unsafeAddress(of: job).hashValue)
 	}
 	
 	/** Print a message to the debug log. The message is sent to the console asynchronously (but ordered) and prepended
 	with the 'job ID'. No messages will be logged when not compiled in debug mode. */
-	public func log(message: String, file: StaticString = #file, line: UInt = #line) {
+	public func log(_ message: String, file: StaticString = #file, line: UInt = #line) {
 		#if DEBUG
 			let id = self.jobID
-			dispatch_async(dispatch_get_main_queue()) {
+			DispatchQueue.main.async {
 				print("[\(id)] \(message)")
 			}
 		#endif
@@ -428,7 +430,7 @@ public class Job: JobDelegate {
 	#if DEBUG
 	private var timeComponents: [String: Double] = [:]
 	
-	func reportTime(component: String, time: Double) {
+	func reportTime(_ component: String, time: Double) {
 		mutex.locked {
 			if let t = self.timeComponents[component] {
 				self.timeComponents[component] = t + time
@@ -516,12 +518,16 @@ public class Mutex {
 		pthread_mutex_destroy(&self.mutex)
 	}
 
-	public final func locked<T>(file: StaticString = #file, line: UInt = #line, @noescape block: () -> (T)) -> T {
+	@discardableResult public final func locked<T>(_ file: StaticString = #file, line: UInt = #line, block: @noescape () throws -> (T)) throws -> T {
+		return try self.tryLocked(file, line: line, block: block)
+	}
+
+	@discardableResult public final func locked<T>(_ file: StaticString = #file, line: UInt = #line, block: @noescape () -> (T)) -> T {
 		return try! self.tryLocked(file, line: line, block: block)
 	}
 
 	/** Execute the given block while holding a lock to this mutex. */
-	public final func tryLocked<T>(file: StaticString = #file, line: UInt = #line, @noescape block: () throws -> (T)) throws -> T {
+	@discardableResult public final func tryLocked<T>(_ file: StaticString = #file, line: UInt = #line, block: @noescape () throws -> (T)) throws -> T {
 		#if DEBUG
 			let start = CFAbsoluteTimeGetCurrent()
 		#endif
@@ -566,7 +572,7 @@ public class Future<T> {
 			if let batch = self.batch {
 				if let tl = timeLimit {
 					// Set a timer to cancel this job
-					dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(tl * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+					DispatchQueue.main.after(when: DispatchTime.now() + Double(Int64(tl * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) {
 						batch.log("Timed out after \(tl) seconds")
 						batch.expire()
 					}
@@ -620,7 +626,7 @@ public class Future<T> {
 	The get() function performs work in its own Job.	If a job is set as parameter, this job will be a child of the 
 	given job, and will use its preferred queue. Otherwise it will perform the work in the user initiated QoS concurrent
 	queue. This function always returns its own child Job. */
-	public func get(job: Job? = nil, _ callback: Callback) -> Job {
+	@discardableResult public func get(_ job: Job? = nil, _ callback: Callback) -> Job {
 		var first = false
 		self.mutex.locked {
 			if self.batch == nil {
@@ -629,7 +635,7 @@ public class Future<T> {
 					self.batch = Batch<T>(parent: j)
 				}
 				else {
-					self.batch = Batch<T>(queue: dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0))
+					self.batch = Batch<T>(queue: DispatchQueue.global(attributes: DispatchQueue.GlobalAttributes(rawValue: UInt64(DispatchQueueAttributes.qosUserInitiated.rawValue))))
 				}
 			}
 
@@ -652,7 +658,7 @@ public class Batch<T>: Job {
 		return cached != nil
 	} }
 	
-	override init(queue: dispatch_queue_t) {
+	override init(queue: DispatchQueue) {
 		super.init(queue: queue)
 	}
 	
@@ -662,7 +668,7 @@ public class Batch<T>: Job {
 	
 	/** Called by a producer to return the result of a job. This method will call all callbacks on the waiting list (on the
 	main thread) and subsequently empty the waiting list. Enqueue can only be called once on a batch. */
-	private func satisfy(value: T) {
+	private func satisfy(_ value: T) {
 		self.mutex.locked {
 			assert(cached == nil, "Batch.satisfy called with cached!=nil: \(cached) \(value)")
 			assert(!satisfied, "Batch already satisfied")
@@ -691,17 +697,17 @@ public class Batch<T>: Job {
 	public override func cancel() {
 		self.mutex.locked {
 			if !self.satisfied {
-				self.waitingList.removeAll(keepCapacity: false)
+				self.waitingList.removeAll(keepingCapacity: false)
 				self.cancelled = true
 			}
 			super.cancel()
 		}
 	}
 	
-	func enqueue(callback: Callback) {
+	func enqueue(_ callback: Callback) {
 		self.mutex.locked {
 			if satisfied {
-				dispatch_async(self.queue) { [unowned self] in
+				self.queue.async { [unowned self] in
 					callback(self.cached!)
 				}
 			}

@@ -2,8 +2,8 @@ import Foundation
 import WarpCore
 
 @objc internal protocol JobsManagerDelegate: NSObjectProtocol {
-	func jobManager(manager: QBEJobsManager, jobDidStart: AnyObject)
-	func jobManagerJobsProgressed(manager: QBEJobsManager)
+	func jobManager(_ manager: QBEJobsManager, jobDidStart: AnyObject)
+	func jobManagerJobsProgressed(_ manager: QBEJobsManager)
 }
 
 internal class QBEJobsManager: NSObject, JobDelegate {
@@ -21,7 +21,7 @@ internal class QBEJobsManager: NSObject, JobDelegate {
 			job.addObserver(self)
 		}
 
-		@objc func job(job: AnyObject, didProgress progress: Double) {
+		@objc func job(_ job: AnyObject, didProgress progress: Double) {
 			mutex.locked {
 				self.progress = progress
 			}
@@ -43,13 +43,13 @@ internal class QBEJobsManager: NSObject, JobDelegate {
 	override init() {
 	}
 
-	func addObserver(delegate: JobsManagerDelegate) {
+	func addObserver(_ delegate: JobsManagerDelegate) {
 		mutex.locked {
 			self.observers.append(Weak(delegate))
 		}
 	}
 
-	func removeObserver(delegate: JobsManagerDelegate) {
+	func removeObserver(_ delegate: JobsManagerDelegate) {
 		mutex.locked {
 			self.observers = self.observers.filter { w in
 				if let observer = w.value {
@@ -60,7 +60,7 @@ internal class QBEJobsManager: NSObject, JobDelegate {
 		}
 	}
 
-	func addJob(job: Job, description: String) {
+	func addJob(_ job: Job, description: String) {
 		let info = JobInfo(job: job, description: description)
 		info.delegate = self
 		mutex.locked {
@@ -70,26 +70,26 @@ internal class QBEJobsManager: NSObject, JobDelegate {
 	}
 
 	private let progressUpdateInterval = 1.0
-	private var lastProgressUpdate: NSDate? = nil
+	private var lastProgressUpdate: Date? = nil
 	private var progressUpdateScheduled = false
 
-	@objc func job(job: AnyObject, didProgress progress: Double) {
+	@objc func job(_ job: AnyObject, didProgress progress: Double) {
 		mutex.locked {
 			if !progressUpdateScheduled {
 				let now = NSDate()
-				if let lp = lastProgressUpdate where now.timeIntervalSinceDate(lp) < progressUpdateInterval {
+				if let lp = lastProgressUpdate where now.timeIntervalSince(lp) < progressUpdateInterval {
 					// Throttle
 					progressUpdateScheduled = true
-					dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(progressUpdateInterval * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+					DispatchQueue.main.after(when: DispatchTime.now() + progressUpdateInterval) {
 						self.mutex.locked {
 							self.progressUpdateScheduled = false
-							self.lastProgressUpdate = NSDate()
+							self.lastProgressUpdate = Date()
 						}
 						self.observers.forEach { d in d.value?.jobManagerJobsProgressed(self) }
 					}
 				}
 				else {
-					self.lastProgressUpdate = now
+					self.lastProgressUpdate = now as Date
 					asyncMain {
 						self.observers.forEach { d in d.value?.jobManagerJobsProgressed(self) }
 					}

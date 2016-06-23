@@ -13,10 +13,10 @@ internal class QBEChangeNotification: NSObject {
 		self.chain = chain
 	}
 
-	internal static func broadcastChange(chain: QBEChain) {
+	internal static func broadcastChange(_ chain: QBEChain) {
 		let n = QBEChangeNotification(chain: chain)
 		asyncMain {
-			NSNotificationCenter.defaultCenter().postNotification(NSNotification(name: QBEChangeNotification.name, object: n))
+			NotificationCenter.default().post(Notification(name: Notification.Name(rawValue: QBEChangeNotification.name), object: n))
 		}
 	}
 }
@@ -43,7 +43,7 @@ public class QBEResultNotification: NSObject {
 /** The QBECalculator class coordinates execution of steps. In particular, it models the performance of steps and can
 estimate the number of input rows required to arrive at a certain number of output rows (e.g. in example calculations). */
 public class QBECalculator: NSObject {
-	public var currentData: Future<Fallible<Data>>?
+	public var currentDataset: Future<Fallible<Dataset>>?
 	public var currentRaster: Future<Fallible<Raster>>?
 	private var mutex: Mutex = Mutex()
 	
@@ -81,14 +81,14 @@ public class QBECalculator: NSObject {
 	constraints set for examples (e.g. desired number of rows, maximum execution time). The estimates are based on 
 	information on previous executions (time per input row, amplification factor). If there is no information, a default
 	is used with an exponentially increasing number of input rows. */
-	private func inputRowsForExample(step: QBEStep, maximumTime: Double) -> Int {
+	private func inputRowsForExample(_ step: QBEStep, maximumTime: Double) -> Int {
 		if maximumTime <= 0 {
 			return 0
 		}
 		var inputRows = self.desiredExampleRows
 
 		self.mutex.locked {
-			let index = unsafeAddressOf(step).hashValue
+			let index = unsafeAddress(of: step).hashValue
 			
 			if let performance = self.stepPerformance[index] {
 				// If we have no data on amplification, we have to guess... double on each execution
@@ -125,21 +125,21 @@ public class QBECalculator: NSObject {
 	
 	/** Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have 
 	been returned. The given callback is called as soon as the last calculation round has finished. */
-	public func calculateExample(sourceStep: QBEStep, maximumTime: Double? = nil, attempt: Int = 0, callback: () -> ()) {
+	public func calculateExample(_ sourceStep: QBEStep, maximumTime: Double? = nil, attempt: Int = 0, callback: () -> ()) {
 		let maxTime = maximumTime ?? maximumExampleTime
 		
-		let startTime = NSDate.timeIntervalSinceReferenceDate()
+		let startTime = Date.timeIntervalSinceReferenceDate
 		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maxTime)
-		self.calculate(sourceStep, fullData: false, maximumTime: maxTime)
+		self.calculate(sourceStep, fullDataset: false, maximumTime: maxTime)
 		
 		// Record extra information when calculating an example result
 		currentRaster!.get {[unowned self] (raster) in
 			switch raster {
-			case .Success(let r):
+			case .success(let r):
 				let duration = Double(NSDate.timeIntervalSinceReferenceDate()) - startTime
 
 				// Record performance information for example execution
-				let index = unsafeAddressOf(sourceStep).hashValue
+				let index = unsafeAddress(of: sourceStep).hashValue
 				var startAnother = false
 
 				self.mutex.locked {
@@ -169,66 +169,66 @@ public class QBECalculator: NSObject {
 				else {
 					// Send notification of finished raster
 					asyncMain {
-						NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
+						NotificationCenter.default().post(name: NSNotification.Name(rawValue: QBEResultNotification.name), object:
 							QBEResultNotification(raster: r, isFull: false, step: sourceStep, calculator: self))
 					}
 					callback()
 				}
 				
-			case .Failure(_):
+			case .failure(_):
 				break;
 			}
 		}
 	}
 	
-	public func calculate(sourceStep: QBEStep, fullData: Bool, maximumTime: Double? = nil) {
+	public func calculate(_ sourceStep: QBEStep, fullDataset: Bool, maximumTime: Double? = nil) {
 		self.mutex.locked {
-			if sourceStep != calculationInProgressForStep || currentData?.cancelled ?? false || currentRaster?.cancelled ?? false {
-				currentData?.cancel()
+			if sourceStep != calculationInProgressForStep || currentDataset?.cancelled ?? false || currentRaster?.cancelled ?? false {
+				currentDataset?.cancel()
 				currentRaster?.cancel()
 				calculationInProgressForStep = sourceStep
 				var maxInputRows = 0
 				
 				// Set up calculation for the data object
-				if fullData {
-					currentData = Future<Fallible<Data>>(sourceStep.fullData)
+				if fullDataset {
+					currentDataset = Future<Fallible<Dataset>>(sourceStep.fullDataset)
 				}
 				else {
 					maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime ?? maximumExampleTime)
 					let maxOutputRows = desiredExampleRows
 					trace("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
-					currentData = Future<Fallible<Data>>({ (job, callback) in
-						sourceStep.exampleData(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
+					currentDataset = Future<Fallible<Dataset>>({ (job, callback) in
+						sourceStep.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
 					})
 				}
 
-				let calculationJob = Job(QoS.UserInitiated)
+				let calculationJob = Job(QoS.userInitiated)
 				
 				// Set up calculation for the raster
 				currentRaster = Future<Fallible<Raster>>({ [unowned self] (job: Job, callback: Future<Fallible<Raster>>.Callback) in
-					if let cd = self.currentData {
-						let dataJob = cd.get(job) { (data: Fallible<Data>) -> () in
+					if let cd = self.currentDataset {
+						let dataJob = cd.get(job) { (data: Fallible<Dataset>) -> () in
 							switch data {
-								case .Success(let d):
+								case .success(let d):
 									d.raster(job) { result in
 										result.maybe { raster in
 											// Send notification of finished raster
 											asyncMain {
-												NSNotificationCenter.defaultCenter().postNotificationName(QBEResultNotification.name, object:
-													QBEResultNotification(raster: raster, isFull: fullData, step: sourceStep, calculator: self))
+												NotificationCenter.default().post(name: NSNotification.Name(rawValue: QBEResultNotification.name), object:
+													QBEResultNotification(raster: raster, isFull: fullDataset, step: sourceStep, calculator: self))
 											}
 										}
 										callback(result)
 									}
 								
-								case .Failure(let s):
-									callback(.Failure(s))
+								case .failure(let s):
+									callback(.failure(s))
 							}
 						}
 						dataJob.addObserver(job)
 					}
 					else {
-						callback(.Failure(NSLocalizedString("No data available.", comment: "")))
+						callback(.failure(NSLocalizedString("No data available.", comment: "")))
 					}
 				})
 				
@@ -242,9 +242,9 @@ public class QBECalculator: NSObject {
 	
 	public func cancel() {
 		self.mutex.locked {
-			currentData?.cancel()
+			currentDataset?.cancel()
 			currentRaster?.cancel()
-			currentData = nil
+			currentDataset = nil
 			currentRaster = nil
 			calculationInProgressForStep = nil
 		}

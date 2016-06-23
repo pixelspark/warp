@@ -2,8 +2,8 @@ import Cocoa
 import WarpCore
 
 protocol QBESentenceViewDelegate: NSObjectProtocol {
-	func sentenceView(view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable)
-	var locale: Locale { get }
+	func sentenceView(_ view: QBESentenceViewController, didChangeConfigurable: QBEConfigurable)
+	var locale: Language { get }
 }
 
 class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate,
@@ -11,18 +11,18 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	@IBOutlet var tokenField: NSTokenField!
 	@IBOutlet var configureButton: NSButton!
 
-	var variant: QBESentenceVariant = .Neutral
+	var variant: QBESentenceVariant = .neutral
 	private var editingToken: QBEEditingToken? = nil
 	private var editingConfigurable: QBEConfigurable? = nil
 	private weak var delegate: QBESentenceViewDelegate? = nil
 
 	var enabled: Bool {
 		get {
-			return tokenField.enabled
+			return tokenField.isEnabled
 		}
 		set {
 			assertMainThread()
-			tokenField.enabled = enabled
+			tokenField.isEnabled = enabled
 		}
 	}
 
@@ -44,25 +44,25 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		super.viewDidLoad()
 	}
 
-	func tokenField(tokenField: NSTokenField, styleForRepresentedObject representedObject: AnyObject) -> NSTokenStyle {
+	func tokenField(_ tokenField: NSTokenField, styleForRepresentedObject representedObject: AnyObject) -> NSTokenStyle {
 		if let r = representedObject as? QBESentenceToken {
-			return r.isToken ? NSTokenStyle.Default : NSTokenStyle.None
+			return r.isToken ? NSTokenStyle.default : NSTokenStyle.none
 		}
-		return NSTokenStyle.None
+		return NSTokenStyle.none
 	}
 
-	func tokenField(tokenField: NSTokenField, displayStringForRepresentedObject representedObject: AnyObject) -> String? {
+	func tokenField(_ tokenField: NSTokenField, displayStringForRepresentedObject representedObject: AnyObject) -> String? {
 		if let x = representedObject as? QBESentenceToken {
 			return x.label
 		}
 		return nil
 	}
 
-	func tokenField(tokenField: NSTokenField, hasMenuForRepresentedObject representedObject: AnyObject) -> Bool {
+	func tokenField(_ tokenField: NSTokenField, hasMenuForRepresentedObject representedObject: AnyObject) -> Bool {
 		return true
 	}
 
-	func control(control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
+	func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
 		var text = control.stringValue
 		if let inputToken = editingToken?.token as? QBESentenceTextInput, let s = editingConfigurable {
 			// Was a formula typed in?
@@ -93,7 +93,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		return true
 	}
 
-	func tokenField(tokenField: NSTokenField, menuForRepresentedObject representedObject: AnyObject) -> NSMenu? {
+	func tokenField(_ tokenField: NSTokenField, menuForRepresentedObject representedObject: AnyObject) -> NSMenu? {
 		editingToken = nil
 
 		if let options = representedObject as? QBESentenceOptions {
@@ -116,22 +116,22 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			let menu = NSMenu()
 			menu.autoenablesItems = false
 			let loadingItem = NSMenuItem(title: NSLocalizedString("Loading...", comment: ""), action: nil, keyEquivalent: "")
-			loadingItem.enabled = false
+			loadingItem.isEnabled = false
 			menu.addItem(loadingItem)
 
-			let queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)
-			dispatch_async(queue) {
+			let queue = DispatchQueue.global(attributes: .qosUserInitiated)
+			queue.async {
 				options.optionsProvider { [weak self] (itemsFallible) in
 					asyncMain {
 						menu.removeAllItems()
 
 						switch itemsFallible {
-						case .Success(let items):
+						case .success(let items):
 							self?.editingToken?.options = items
 
 							if items.isEmpty {
 								let loadingItem = NSMenuItem(title: NSLocalizedString("(no items)", comment: ""), action: nil, keyEquivalent: "")
-								loadingItem.enabled = false
+								loadingItem.isEnabled = false
 								menu.addItem(loadingItem)
 							}
 							else {
@@ -144,9 +144,9 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 								}
 							}
 
-						case .Failure(let e):
+						case .failure(let e):
 							let errorItem = NSMenuItem(title: e, action: #selector(QBESentenceViewController.dismissInputEditor(_:)), keyEquivalent: "")
-							errorItem.enabled = false
+							errorItem.isEnabled = false
 							menu.addItem(errorItem)
 							break
 						}
@@ -208,10 +208,10 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 			// Items related to the currently selected file
 			let showItem = NSMenuItem(title: NSLocalizedString("Show in Finder", comment: ""), action: #selector(QBESentenceViewController.showFileInFinder(_:)), keyEquivalent: "")
-			showItem.enabled = inputToken.file != nil
+			showItem.isEnabled = inputToken.file != nil
 			menu.addItem(showItem)
 
-			menu.addItem(NSMenuItem.separatorItem())
+			menu.addItem(NSMenuItem.separator())
 
 			// Items for selecting a new file
 			if inputToken.isDirectory {
@@ -221,17 +221,17 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				menu.addItem(NSMenuItem(title: NSLocalizedString("Select file...", comment: ""), action: #selector(QBESentenceViewController.selectFile(_:)), keyEquivalent: ""))
 			}
 
-			if case .Reading(let canCreate) = inputToken.mode where canCreate {
+			if case .reading(let canCreate) = inputToken.mode where canCreate {
 				let createItem = NSMenuItem(title: "New file...".localized, action: #selector(QBESentenceViewController.createNewFile(_:)), keyEquivalent: "")
 				menu.addItem(createItem)
 			}
 
 			// Items for selecting a recent file
 			if let recents = self.fileRecentsForSelectedToken?.loadRememberedFiles() {
-				menu.addItem(NSMenuItem.separatorItem())
+				menu.addItem(NSMenuItem.separator())
 
 				let label = NSMenuItem(title: "Recent files".localized, action: nil, keyEquivalent: "")
-				label.enabled = false
+				label.isEnabled = false
 				menu.addItem(label)
 
 				for recent in recents {
@@ -248,10 +248,10 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		return nil
 	}
 
-	@IBAction func selectURL(sender: NSObject) {
-		if let nm = sender as? NSMenuItem, let url = nm.representedObject as? NSURL {
+	@IBAction func selectURL(_ sender: NSObject) {
+		if let nm = sender as? NSMenuItem, let url = nm.representedObject as? URL {
 			if let token = editingToken?.token as? QBESentenceFile, let s = editingConfigurable {
-				let fileRef = QBEFileReference.URL(url)
+				let fileRef = QBEFileReference.absolute(url)
 				token.change(fileRef)
 				self.delegate?.sentenceView(self, didChangeConfigurable: s)
 				self.updateView()
@@ -259,26 +259,26 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
-	@IBAction func createNewFile(sender: NSObject) {
+	@IBAction func createNewFile(_ sender: NSObject) {
 		self.selectFileWithPanel(true)
 	}
 
-	@IBAction func showFileInFinder(sender: NSObject) {
+	@IBAction func showFileInFinder(_ sender: NSObject) {
 		if let token = editingToken?.token as? QBESentenceFile, let file = token.file?.url {
-			NSWorkspace.sharedWorkspace().activateFileViewerSelectingURLs([file])
+			NSWorkspace.shared().activateFileViewerSelecting([file as URL])
 		}
 	}
 
-	@IBAction func selectFile(sender: NSObject) {
+	@IBAction func selectFile(_ sender: NSObject) {
 		self.selectFileWithPanel(false)
 	}
 
-	private func selectFileWithPanel(createNew: Bool) {
+	private func selectFileWithPanel(_ createNew: Bool) {
 		if let token = editingToken?.token as? QBESentenceFile, let s = editingConfigurable {
 			let savePanel: NSSavePanel
 
 			switch token.mode {
-			case .Reading(canCreate: let canCreate):
+			case .reading(canCreate: let canCreate):
 				if token.isDirectory {
 					let no = NSOpenPanel()
 					no.canChooseDirectories = true
@@ -295,15 +295,15 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 					savePanel = no
 				}
 
-			case .Writing():
+			case .writing():
 				savePanel = NSSavePanel()
 			}
 
 			savePanel.allowedFileTypes = token.allowedFileTypes
-			savePanel.beginSheetModalForWindow(self.view.window!, completionHandler: { (result: Int) -> Void in
+			savePanel.beginSheetModal(for: self.view.window!, completionHandler: { (result: Int) -> Void in
 				if result==NSFileHandlingPanelOKButton {
-					if let url = savePanel.URL {
-						let fileRef = QBEFileReference.URL(url)
+					if let url = savePanel.url {
+						let fileRef = QBEFileReference.absolute(url)
 						token.change(fileRef)
 						self.fileRecentsForSelectedToken?.remember(fileRef)
 						self.delegate?.sentenceView(self, didChangeConfigurable: s)
@@ -316,24 +316,24 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 	private var fileRecentsForSelectedToken: QBEFileRecents? {
 		if let token = editingToken?.token as? QBESentenceFile {
-			return QBEFileRecents(key: token.allowedFileTypes.joinWithSeparator(";"))
+			return QBEFileRecents(key: token.allowedFileTypes.joined(separator: ";"))
 		}
 		return nil
 	}
 
-	@IBAction func dismissInputEditor(sender: NSObject) {
+	@IBAction func dismissInputEditor(_ sender: NSObject) {
 		// Do nothing
 	}
 
-	private func showPopoverAtToken(viewController: NSViewController) {
+	private func showPopoverAtToken(_ viewController: NSViewController) {
 		let displayRect = NSMakeRect((NSEvent.mouseLocation().x - 2.5), (NSEvent.mouseLocation().y - 2.5), 5, 5)
-		if let realRect = self.view.window?.convertRectFromScreen(displayRect) {
-			let viewRect = self.view.convertRect(realRect, fromView: nil)
-			self.presentViewController(viewController, asPopoverRelativeToRect: viewRect, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
+		if let realRect = self.view.window?.convertFromScreen(displayRect) {
+			let viewRect = self.view.convert(realRect, from: nil)
+			self.presentViewController(viewController, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: NSRectEdge.minY, behavior: NSPopoverBehavior.transient)
 		}
 	}
 
-	@IBAction func selectOption(sender: NSObject) {
+	@IBAction func selectOption(_ sender: NSObject) {
 		if let options = editingToken?.token as? QBESentenceOptions, let menuItem = sender as? NSMenuItem, let s = editingConfigurable {
 			let keys = Array(options.options.keys)
 			if keys.count > menuItem.tag {
@@ -346,7 +346,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
-	@IBAction func selectListOption(sender: NSObject) {
+	@IBAction func selectListOption(_ sender: NSObject) {
 		if let listToken = editingToken?.token as? QBESentenceList, let options = editingToken?.options, let menuItem = sender as? NSMenuItem, let s = editingConfigurable {
 			let value = options[menuItem.tag]
 			listToken.select(value)
@@ -357,28 +357,28 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	private func updateView() {
-		self.tokenField.hidden =  self.editingConfigurable == nil
-		self.configureButton.hidden = self.editingConfigurable == nil
+		self.tokenField.isHidden =  self.editingConfigurable == nil
+		self.configureButton.isHidden = self.editingConfigurable == nil
 
 		if let s = editingConfigurable, let locale = delegate?.locale {
 			let sentence = s.sentence(locale, variant: self.variant)
 			tokenField.objectValue = sentence.tokens.map({ return $0 as! NSObject })
-			configureButton.enabled = QBEFactory.sharedInstance.hasViewForConfigurable(s)
+			configureButton.isEnabled = QBEFactory.sharedInstance.hasViewForConfigurable(s)
 		}
 		else {
 			tokenField.objectValue = []
-			configureButton.enabled = false
+			configureButton.isEnabled = false
 		}
 	}
 
-	func startConfiguring(configurable: QBEConfigurable?, variant: QBESentenceVariant, delegate: QBESentenceViewDelegate?) {
+	func startConfiguring(_ configurable: QBEConfigurable?, variant: QBESentenceVariant, delegate: QBESentenceViewDelegate?) {
 		if self.editingConfigurable != configurable || configurable == nil {
 			let tr = CATransition()
 			tr.duration = 0.3
 			tr.type = kCATransitionPush
 			tr.subtype = self.editingConfigurable == nil ? kCATransitionFromTop : kCATransitionFromBottom
 			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-			self.view.layer?.addAnimation(tr, forKey: kCATransition)
+			self.view.layer?.add(tr, forKey: kCATransition)
 
 			self.editingConfigurable = configurable
 			self.variant = variant
@@ -390,7 +390,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 		/* Check whether the window is visible before showing the tip, because this may get called early while setting
 		up views, or while we are editing a formula (which occludes the configure button) */
-		if let s = configurable where QBEFactory.sharedInstance.hasViewForConfigurable(s) && (self.view.window?.visible == true) {
+		if let s = configurable where QBEFactory.sharedInstance.hasViewForConfigurable(s) && (self.view.window?.isVisible == true) {
 			QBESettings.sharedInstance.showTip("sentenceView.configureButton") {
 				self.showTip(NSLocalizedString("Click here to change additional settings for this step.", comment: ""), atView: self.configureButton)
 			}
@@ -398,22 +398,22 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	/** Opens the popover containing more detailed configuration options for the current configurable. */
-	@IBAction func configure(sender: AnyObject) {
+	@IBAction func configure(_ sender: AnyObject) {
 		if let s = self.editingConfigurable, let stepView = QBEFactory.sharedInstance.viewForConfigurable(s.self, delegate: self) {
-			self.presentViewController(stepView, asPopoverRelativeToRect: configureButton.frame, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Semitransient)
+			self.presentViewController(stepView, asPopoverRelativeTo: configureButton.frame, of: self.view, preferredEdge: NSRectEdge.minY, behavior: NSPopoverBehavior.semitransient)
 		}
 	}
 
-	func formulaEditor(view: QBEFormulaEditorViewController, didChangeExpression newExpression: Expression?) {
+	func formulaEditor(_ view: QBEFormulaEditorViewController, didChangeExpression newExpression: Expression?) {
 		if let inputToken = editingToken?.token as? QBESentenceFormula, let s = self.editingConfigurable {
-			inputToken.change(newExpression ?? Literal(Value.EmptyValue))
+			inputToken.change(newExpression ?? Literal(Value.empty))
 			self.delegate?.sentenceView(self, didChangeConfigurable: s)
 			updateView()
 			view.updateContextInformation(inputToken)
 		}
 	}
 
-	func setEditor(editor: QBESetEditorViewController, didChangeSelection selection: Set<String>) {
+	func setEditor(_ editor: QBESetEditorViewController, didChangeSelection selection: Set<String>) {
 		if let inputToken = editingToken?.token as? QBESentenceSet, let s = self.editingConfigurable {
 			inputToken.select(selection)
 			self.delegate?.sentenceView(self, didChangeConfigurable: s)
@@ -421,20 +421,20 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
-	func editSet(sender: NSEvent) {
+	func editSet(_ sender: NSEvent) {
 		if let inputToken = editingToken?.token as? QBESentenceSet {
 			inputToken.provider { result in
 				result.maybe { options in
 					asyncMain {
-						if let editor = self.storyboard?.instantiateControllerWithIdentifier("setEditor") as? QBESetEditorViewController {
+						if let editor = self.storyboard?.instantiateController(withIdentifier: "setEditor") as? QBESetEditorViewController {
 							editor.delegate = self
 							editor.possibleValues = Array(options)
-							editor.possibleValues.sortInPlace()
+							editor.possibleValues.sort()
 							editor.selection = inputToken.value
 							let windowRect = NSMakeRect(sender.locationInWindow.x + 5, sender.locationInWindow.y, 1, 1)
-							var viewRect = self.view.convertRect(windowRect, fromView: nil)
+							var viewRect = self.view.convert(windowRect, from: nil)
 							viewRect.origin.y = 0.0
-							self.presentViewController(editor, asPopoverRelativeToRect: viewRect, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
+							self.presentViewController(editor, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: .minY, behavior: .transient)
 						}
 					}
 				}
@@ -442,41 +442,41 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
-	func editFormula(sender: NSEvent) {
+	func editFormula(_ sender: NSEvent) {
 		if let inputToken = editingToken?.token as? QBESentenceFormula, let locale = self.delegate?.locale {
-			if let editor = self.storyboard?.instantiateControllerWithIdentifier("formulaEditor") as? QBEFormulaEditorViewController {
+			if let editor = self.storyboard?.instantiateController(withIdentifier: "formulaEditor") as? QBEFormulaEditorViewController {
 				editor.delegate = self
 				editor.startEditingExpression(inputToken.expression, locale: locale)
 				let windowRect = NSMakeRect(sender.locationInWindow.x + 5, sender.locationInWindow.y, 1, 1)
-				var viewRect = self.view.convertRect(windowRect, fromView: nil)
+				var viewRect = self.view.convert(windowRect, from: nil)
 				viewRect.origin.y = 0.0
 				editor.updateContextInformation(inputToken)
-				self.presentViewController(editor, asPopoverRelativeToRect: viewRect, ofView: self.view, preferredEdge: NSRectEdge.MinY, behavior: NSPopoverBehavior.Transient)
+				self.presentViewController(editor, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: NSRectEdge.minY, behavior: NSPopoverBehavior.transient)
 			}
 		}
 	}
 
-	var locale: Locale { return self.delegate!.locale }
+	var locale: Language { return self.delegate!.locale }
 
-	func configurableView(view: QBEConfigurableViewController, didChangeConfigurationFor c: QBEConfigurable) {
+	func configurableView(_ view: QBEConfigurableViewController, didChangeConfigurationFor c: QBEConfigurable) {
 		asyncMain { self.updateView() }
 		self.delegate?.sentenceView(self, didChangeConfigurable: c)
 	}
 }
 
 private extension QBEFormulaEditorViewController {
-	func updateContextInformation(sentence: QBESentenceFormula) {
+	func updateContextInformation(_ sentence: QBESentenceFormula) {
 		if let getContext = sentence.contextCallback {
-			let job = Job(.UserInitiated)
+			let job = Job(.userInitiated)
 			getContext(job) { result in
 				switch result {
-				case .Success(let r):
+				case .success(let r):
 					asyncMain {
 						self.exampleResult = self.expression?.apply(r.row, foreign: nil, inputValue: nil)
-						self.columns = r.columns.sort({ return $0.name < $1.name })
+						self.columns = r.columns.sorted(isOrderedBefore: { return $0.name < $1.name })
 					}
 
-				case .Failure(_):
+				case .failure(_):
 					asyncMain {
 						self.exampleResult = nil
 					}

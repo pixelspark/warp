@@ -1,19 +1,19 @@
 import Foundation
 
 class QBENote: NSObject, NSSecureCoding {
-	var text: NSAttributedString = NSAttributedString(string: "")
+	var text: AttributedString = AttributedString(string: "")
 
 	override init() {
 		super.init()
 	}
 
 	required init?(coder: NSCoder) {
-		text = coder.decodeObjectOfClass(NSAttributedString.self, forKey: "text") ?? NSAttributedString()
+		text = coder.decodeObjectOfClass(AttributedString.self, forKey: "text") ?? AttributedString()
 		super.init()
 	}
 
-	func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(self.text, forKey: "text")
+	func encode(with aCoder: NSCoder) {
+		aCoder.encode(self.text, forKey: "text")
 	}
 
 	@objc static func supportsSecureCoding() -> Bool {
@@ -34,8 +34,8 @@ class QBENoteTablet: QBETablet {
 		super.init(coder: coder)
 	}
 
-	override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(self.note, forKey: "note")
+	override func encode(with aCoder: NSCoder) {
+		super.encode(with: aCoder)
+		aCoder.encode(self.note, forKey: "note")
 	}
 }

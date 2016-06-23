@@ -9,18 +9,18 @@ public class QBERectangle: NSObject, NSSecureCoding {
 	
 	@objc required public init?(coder aDecoder: NSCoder) {
 		rect = CGRect(
-			x: aDecoder.decodeDoubleForKey("x") ?? Double.NaN,
-			y: aDecoder.decodeDoubleForKey("y") ?? Double.NaN,
-			width: aDecoder.decodeDoubleForKey("w") ?? Double.NaN,
-			height: aDecoder.decodeDoubleForKey("h") ?? Double.NaN
+			x: aDecoder.decodeDouble(forKey: "x") ?? Double.nan,
+			y: aDecoder.decodeDouble(forKey: "y") ?? Double.nan,
+			width: aDecoder.decodeDouble(forKey: "w") ?? Double.nan,
+			height: aDecoder.decodeDouble(forKey: "h") ?? Double.nan
 		)
 	}
 	
-	@objc public func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeDouble(Double(rect.origin.x), forKey: "x")
-		aCoder.encodeDouble(Double(rect.origin.y), forKey: "y")
-		aCoder.encodeDouble(Double(rect.size.width), forKey: "w")
-		aCoder.encodeDouble(Double(rect.size.height), forKey: "h")
+	@objc public func encode(with aCoder: NSCoder) {
+		aCoder.encode(Double(rect.origin.x), forKey: "x")
+		aCoder.encode(Double(rect.origin.y), forKey: "y")
+		aCoder.encode(Double(rect.size.width), forKey: "w")
+		aCoder.encode(Double(rect.size.height), forKey: "h")
 	}
 	
 	@objc public static func supportsSecureCoding() -> Bool {
@@ -42,11 +42,11 @@ class QBETabletArrow: NSObject, QBEArrow {
 	}
 
 	var sourceFrame: CGRect { get {
-		return from?.frame ?? CGRectZero
+		return from?.frame ?? CGRect.zero
 	} }
 
 	var targetFrame: CGRect { get {
-		return to?.frame ?? CGRectZero
+		return to?.frame ?? CGRect.zero
 	} }
 }
 
@@ -76,8 +76,8 @@ of data. A tablet has a rectangular shape and a certain position in the document
 		super.init()
 	}
 	
-	func encodeWithCoder(aCoder: NSCoder) {
-		aCoder.encodeObject(frame == nil ? nil : QBERectangle(frame!), forKey: "frame")
+	func encode(with aCoder: NSCoder) {
+		aCoder.encode(frame == nil ? nil : QBERectangle(frame!), forKey: "frame")
 	}
 	
 	static func supportsSecureCoding() -> Bool {
@@ -87,11 +87,11 @@ of data. A tablet has a rectangular shape and a certain position in the document
 	/** This method is called right before a document is saved to disk using encodeWithCoder. Steps that reference
 	external files should take the opportunity to create security bookmarks to these files (as required by Apple's
 	App Sandbox) and store them. */
-	func willSaveToDocument(atURL: NSURL) {
+	func willSaveToDocument(_ atURL: URL) {
 	}
 	
 	/** This method is called right after a document has been loaded from disk. */
-	func didLoadFromDocument(atURL: NSURL) {
+	func didLoadFromDocument(_ atURL: URL) {
 	}
 }
 
@@ -131,16 +131,16 @@ of data. A tablet has a rectangular shape and a certain position in the document
 		return arrows
 	}
 
-	override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(chain, forKey: "chain")
+	override func encode(with aCoder: NSCoder) {
+		super.encode(with: aCoder)
+		aCoder.encode(chain, forKey: "chain")
 	}
 
-	override func willSaveToDocument(atURL: NSURL) {
+	override func willSaveToDocument(_ atURL: URL) {
 		self.chain.willSaveToDocument(atURL)
 	}
 
-	override func didLoadFromDocument(atURL: NSURL) {
+	override func didLoadFromDocument(_ atURL: URL) {
 		self.chain.didLoadFromDocument(atURL)
 	}
 	

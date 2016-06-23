@@ -74,14 +74,14 @@ public class Sequencer: Parser {
 		}
 	}
 	
-	private func unescape(text: String) -> String {
+	private func unescape(_ text: String) -> String {
 		var unescapedText = text
 		for reserved in reservedCharacters {
-			unescapedText = unescapedText.stringByReplacingOccurrencesOfString("\\\(reserved)", withString: String(reserved))
+			unescapedText = unescapedText.replacingOccurrences(of: "\\\(reserved)", with: String(reserved))
 		}
 		
 		for (specialBefore, specialAfter) in specialCharacters {
-			unescapedText = unescapedText.stringByReplacingOccurrencesOfString("\\\(specialBefore)", withString: String(specialAfter))
+			unescapedText = unescapedText.replacingOccurrences(of: "\\\(specialBefore)", with: String(specialAfter))
 		}
 		return unescapedText
 	}
@@ -105,7 +105,7 @@ public class Sequencer: Parser {
 	
 	private func pushRange() {
 		if let r = stack.head as? ValueSetSequence {
-			let items = self.text.componentsSeparatedByString("-")
+			let items = self.text.components(separatedBy: "-")
 			assert(items.count == 2, "Invalid range")
 			let startChar: unichar = items[0].utf16.first!
 			let endChar: unichar = items[1].utf16.first!
@@ -155,14 +155,14 @@ public class Sequencer: Parser {
 		start_rule = ^"alternatives"
 	}
 	
-	public func stream(column: Column) -> Stream {
+	public func stream(_ column: Column) -> Stream {
 		return SequenceStream(AnySequence<Fallible<Tuple>>({ () -> SequencerRowGenerator in
 			return SequencerRowGenerator(source: self.root!)
 		}), columns: [column], rowCount: stack.head.cardinality)
 	}
 }
 
-private class ValueGenerator: GeneratorType {
+private class ValueGenerator: IteratorProtocol {
 	typealias Element = Value
 
 	func next() -> Value? {
@@ -170,7 +170,7 @@ private class ValueGenerator: GeneratorType {
 	}
 }
 
-private class ProxyValueGenerator<G: GeneratorType where G.Element == Value>: ValueGenerator {
+private class ProxyValueGenerator<G: IteratorProtocol where G.Element == Value>: ValueGenerator {
 	private var generator: G
 	
 	init(_ generator: G) {
@@ -182,14 +182,14 @@ private class ProxyValueGenerator<G: GeneratorType where G.Element == Value>: Va
 	}
 }
 
-private class ValueSequence: SequenceType {
-	typealias Generator = ValueGenerator
+private class ValueSequence: Sequence {
+	typealias Iterator = ValueGenerator
 	
 	func random() -> Value? {
 		fatalError("This should never be called")
 	}
 	
-	func generate() -> ValueGenerator {
+	func makeIterator() -> ValueGenerator {
 		return ValueGenerator()
 	}
 	
@@ -214,8 +214,8 @@ private class ValueSetSequence: ValueSequence {
 		return Array(values).randomElement
 	}
 	
-	override func generate() -> Generator {
-		return ProxyValueGenerator(values.generate())
+	override func makeIterator() -> Iterator {
+		return ProxyValueGenerator(values.makeIterator())
 	}
 	
 	override var cardinality: Int { get {
@@ -236,7 +236,7 @@ private class MaybeGenerator: ValueGenerator {
 			return g.next()
 		}
 		else {
-			generator = sequence.generate()
+			generator = sequence.makeIterator()
 			return Value("")
 		}
 	}
@@ -251,11 +251,11 @@ private class RepeatGenerator: ValueGenerator {
 	init(_ sequence: ValueSequence, count: Int) {
 		self.sequence = sequence
 		for _ in 0..<count {
-			let gen = sequence.generate()
+			let gen = sequence.makeIterator()
 			self.generators.append(gen)
-			values.append(gen.next() ?? Value.InvalidValue)
+			values.append(gen.next() ?? Value.invalid)
 		}
-		self.generators[self.generators.count-1] = sequence.generate()
+		self.generators[self.generators.count-1] = sequence.makeIterator()
 	}
 	
 	private override func next() -> Value? {
@@ -277,14 +277,14 @@ private class RepeatGenerator: ValueGenerator {
 					return nil
 				}
 				
-				generators[index] = sequence.generate()
-				values[index] = generators[index].next() ?? Value.InvalidValue
+				generators[index] = sequence.makeIterator()
+				values[index] = generators[index].next() ?? Value.invalid
 				// And do not break, go on to increment next (carry)
 			}
 		}
 		
 		// Return value
-		return Value(values.map({ return $0.stringValue ?? "" }).joinWithSeparator(""))
+		return Value(values.map({ return $0.stringValue ?? "" }).joined(separator: ""))
 	}
 }
 
@@ -300,12 +300,12 @@ private class RepeatSequence: ValueSequence {
 	private override func random() -> Value? {
 		var str = Value("")
 		for _ in 0..<repeatCount {
-			str = str & (self.sequence.random() ?? Value.InvalidValue)
+			str = str & (self.sequence.random() ?? Value.invalid)
 		}
 		return str
 	}
 	
-	private override func generate() -> ValueGenerator {
+	private override func makeIterator() -> ValueGenerator {
 		return RepeatGenerator(sequence, count: repeatCount)
 	}
 	
@@ -337,7 +337,7 @@ private class MaybeSequence: ValueSequence {
 		return self.sequence.random()
 	}
 	
-	private override func generate() -> ValueGenerator {
+	private override func makeIterator() -> ValueGenerator {
 		return MaybeGenerator(sequence)
 	}
 	
@@ -353,8 +353,8 @@ private class CombinatorGenerator: ValueGenerator {
 	private var leftValue: Value?
 	
 	init(left: ValueSequence, right: ValueSequence) {
-		self.leftGenerator = left.generate()
-		self.rightGenerator = right.generate()
+		self.leftGenerator = left.makeIterator()
+		self.rightGenerator = right.makeIterator()
 		self.rightSequence = right
 		self.leftValue = self.leftGenerator.next()
 	}
@@ -367,7 +367,7 @@ private class CombinatorGenerator: ValueGenerator {
 			}
 			else {
 				// need a new left value, reset right value
-				self.rightGenerator = self.rightSequence.generate()
+				self.rightGenerator = self.rightSequence.makeIterator()
 				leftValue = self.leftGenerator.next()
 				if let l = leftValue {
 					if let r = self.rightGenerator.next() {
@@ -393,8 +393,8 @@ private class AfterGenerator: ValueGenerator {
 	private var thenGenerator: ValueGenerator
 	
 	init(first: ValueSequence, then: ValueSequence) {
-		self.firstGenerator = first.generate()
-		self.thenGenerator = then.generate()
+		self.firstGenerator = first.makeIterator()
+		self.thenGenerator = then.makeIterator()
 	}
 	
 	override func next() -> Value? {
@@ -423,7 +423,7 @@ private class CombinatorSequence: ValueSequence {
 		return nil
 	}
 	
-	override func generate() -> ValueGenerator {
+	override func makeIterator() -> ValueGenerator {
 		return CombinatorGenerator(left: self.left, right: self.right)
 	}
 	
@@ -453,7 +453,7 @@ private class AfterSequence: ValueSequence {
 		}
 	}
 	
-	override func generate() -> ValueGenerator {
+	override func makeIterator() -> ValueGenerator {
 		return AfterGenerator(first: self.first, then: self.then)
 	}
 	
@@ -465,17 +465,17 @@ private class AfterSequence: ValueSequence {
 	} }
 }
 
-private class SequencerRowGenerator: GeneratorType {
-	let source: AnyGenerator<Value>
+private class SequencerRowGenerator: IteratorProtocol {
+	let source: AnyIterator<Value>
 	typealias Element = Fallible<Tuple>
 	
 	init(source: AnySequence<Value>) {
-		self.source = source.generate()
+		self.source = source.makeIterator()
 	}
 	
 	func next() -> Fallible<Tuple>? {
 		if let n = source.next() {
-			return .Success([n])
+			return .success([n])
 		}
 		return nil
 	}

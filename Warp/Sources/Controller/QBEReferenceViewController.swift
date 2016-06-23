@@ -2,7 +2,7 @@ import Cocoa
 import WarpCore
 
 protocol QBEReferenceViewDelegate: NSObjectProtocol {
-	func referenceView(view: QBEReferenceViewController, didSelectFunction: Function)
+	func referenceView(_ view: QBEReferenceViewController, didSelectFunction: Function)
 }
 
 class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTableViewDelegate {
@@ -10,11 +10,11 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 	@IBOutlet private var valueList: NSTableView?
 	@IBOutlet private var exampleLabel: NSTextField!
 	
-	private var locale: Locale?
+	private var locale: Language?
 	private var functions: [String] = []
 	weak var delegate: QBEReferenceViewDelegate? = nil
 	
-	@IBAction func insertFormula(sender: NSObject) {
+	@IBAction func insertFormula(_ sender: NSObject) {
 		if let selectedRow = valueList?.selectedRow {
 			if selectedRow >= 0 && selectedRow < functions.count {
 				let selectedName = functions[selectedRow]
@@ -25,7 +25,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 		}
 	}
 	
-	@IBAction func searchChanged(sender: NSObject) {
+	@IBAction func searchChanged(_ sender: NSObject) {
 		reloadData()
 	}
 	
@@ -36,7 +36,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 		super.viewWillAppear()
 	}
 	
-	func tableViewSelectionDidChange(notification: NSNotification) {
+	func tableViewSelectionDidChange(_ notification: Notification) {
 		updateExample()
 	}
 	
@@ -52,9 +52,9 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 					let formula = expression.toFormula(locale!, topLevel: true)
 					if let parsedFormula = Formula(formula: formula, locale: locale!) {
 						let ma = NSMutableAttributedString()
-						ma.appendAttributedString(parsedFormula.syntaxColoredFormula)
-						ma.appendAttributedString(NSAttributedString(string: " = ", attributes: [:]))
-						ma.appendAttributedString(NSAttributedString(string: locale!.localStringFor(result), attributes: [:]))
+						ma.append(parsedFormula.syntaxColoredFormula)
+						ma.append(AttributedString(string: " = ", attributes: [:]))
+						ma.append(AttributedString(string: locale!.localStringFor(result), attributes: [:]))
 						self.exampleLabel.attributedStringValue = ma
 					}
 					return
@@ -62,17 +62,17 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 			}
 		}
 		
-		self.exampleLabel?.attributedStringValue = NSAttributedString(string: "")
+		self.exampleLabel?.attributedStringValue = AttributedString(string: "")
 	}
 	
 	private func reloadData() {
 		let search = searchField?.stringValue ?? ""
-		let functionNames = Array(locale!.functions.keys).sort()
+		let functionNames = Array(locale!.functions.keys).sorted()
 		
 		var foundFunctionNames: [String] = []
 		for name in functionNames {
 			let function = locale!.functionWithName(name)
-			if search.isEmpty || name.rangeOfString(search, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil || function?.explain(locale!).rangeOfString(search, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil {
+			if search.isEmpty || name.range(of: search, options: String.CompareOptions.caseInsensitiveSearch) != nil || function?.explain(locale!).range(of: search, options: String.CompareOptions.caseInsensitiveSearch) != nil {
 				foundFunctionNames.append(name)
 			}
 		}
@@ -80,7 +80,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 		self.valueList?.reloadData()
 	}
 	
-	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if row >= 0 && row < functions.count {
 			let functionName = functions[row]
 			if let function = locale?.functionWithName(functionName) {
@@ -96,13 +96,13 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 							if let parameters = function.parameters {
 								var parameterNames = parameters.map({ return $0.name })
 								switch function.arity {
-									case .Between(_, _), .AtLeast(_), .Any:
+									case .between(_, _), .atLeast(_), .any:
 										parameterNames.append("...")
 									
 									default:
 										break
 								}
-								return parameterNames.joinWithSeparator(locale!.argumentSeparator + " ")
+								return parameterNames.joined(separator: locale!.argumentSeparator + " ")
 							}
 							else {
 								return function.arity.explanation
@@ -118,11 +118,11 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 		return nil
 	}
 	
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return functions.count
 	}
 
-	@IBAction func didDoubleClickRow(sender: NSObject) {
+	@IBAction func didDoubleClickRow(_ sender: NSObject) {
 		insertFormula(sender)
 	}
 

@@ -5,7 +5,7 @@ result, and does not have to store all values. The 'average'  function for insta
 as well as a count, and determine the result at any point by dividing the sum by the count. */
 // TODO: implement hierarchical reducers (e.g. so that two SumReducers can be summed, and the reduction can be done in parallel)
 public protocol Reducer {
-	mutating func add(values: [Value])
+	mutating func add(_ values: [Value])
 	var result: Value { get }
 }
 
@@ -110,7 +110,7 @@ public enum Function: String {
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
 	is deterministic and all arguments are constants, it is automatically replaced with a literal expression containing
 	its constant result). */
-	func prepare(args: [Expression]) -> Expression {
+	func prepare(_ args: [Expression]) -> Expression {
 		if self.isIdentityWithSingleArgument && args.count == 1 && self.arity.valid(1) {
 			return args.first!
 		}
@@ -147,8 +147,8 @@ public enum Function: String {
 				
 				// If at least one of the arguments to an AND is a constant false, then this And always evaluates to false
 				for p in prepared {
-					if p.isConstant && p.apply(Row(), foreign: nil, inputValue: nil) == Value.BoolValue(false) {
-						return Literal(Value.BoolValue(false))
+					if p.isConstant && p.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(false) {
+						return Literal(Value.bool(false))
 					}
 				}
 			
@@ -163,8 +163,8 @@ public enum Function: String {
 				
 				// If at least one of the arguments to an OR is a constant true, this OR always evaluates to true
 				for p in prepared {
-					if p.isConstant && p.apply(Row(), foreign: nil, inputValue: nil) == Value.BoolValue(true) {
-						return Literal(Value.BoolValue(true))
+					if p.isConstant && p.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(true) {
+						return Literal(Value.bool(true))
 					}
 				}
 				
@@ -223,7 +223,7 @@ public enum Function: String {
 				}
 				
 				if let ce = columnExpression as? Expression, let bt = binaryType where valueExpressions.count > 1 {
-					valueExpressions.insert(ce, atIndex: 0)
+					valueExpressions.insert(ce, at: 0)
 
 					switch bt {
 						case .Equal:
@@ -244,7 +244,7 @@ public enum Function: String {
 		return Call(arguments: prepared, type: self)
 	}
 	
-	public func explain(locale: Locale) -> String {
+	public func explain(_ locale: Language) -> String {
 		switch self {
 			// TODO: make tihs more detailed. E.g., "5 leftmost characters of" instead of just "leftmost characters"
 			case .Uppercase: return translationForString("uppercase")
@@ -359,7 +359,7 @@ public enum Function: String {
 		}
 	} }
 	
-	func toFormula(locale: Locale) -> String {
+	func toFormula(_ locale: Language) -> String {
 		return locale.nameForFunction(self) ?? ""
 	}
 	
@@ -372,28 +372,28 @@ public enum Function: String {
 		case .Left, .Right:
 			return [
 				Parameter(name: translationForString("text"), exampleValue: Value("john doe")),
-				Parameter(name: translationForString("index"), exampleValue: Value.IntValue(3))
+				Parameter(name: translationForString("index"), exampleValue: Value.int(3))
 			]
 			
 		case .Mid:
 			return [
 				Parameter(name: translationForString("text"), exampleValue: Value("john doe")),
-				Parameter(name: translationForString("index"), exampleValue: Value.IntValue(5)),
-				Parameter(name: translationForString("length"), exampleValue: Value.IntValue(3))
+				Parameter(name: translationForString("index"), exampleValue: Value.int(5)),
+				Parameter(name: translationForString("length"), exampleValue: Value.int(3))
 			]
 			
 		case .Not:
-			return [Parameter(name: translationForString("boolean"), exampleValue: Value.BoolValue(false))]
+			return [Parameter(name: translationForString("boolean"), exampleValue: Value.bool(false))]
 			
 		case .And, .Or, .Xor:
 			return [
-				Parameter(name: translationForString("boolean"), exampleValue: Value.BoolValue(false)),
-				Parameter(name: translationForString("boolean"), exampleValue: Value.BoolValue(true))
+				Parameter(name: translationForString("boolean"), exampleValue: Value.bool(false)),
+				Parameter(name: translationForString("boolean"), exampleValue: Value.bool(true))
 			]
 			
 		case .If:
 			return [
-				Parameter(name: translationForString("boolean"), exampleValue: Value.BoolValue(false)),
+				Parameter(name: translationForString("boolean"), exampleValue: Value.bool(false)),
 				Parameter(name: translationForString("value if true"), exampleValue: Value(translationForString("yes"))),
 				Parameter(name: translationForString("value if false"), exampleValue: Value(translationForString("no")))
 			]
@@ -406,13 +406,13 @@ public enum Function: String {
 		
 		case .Duration:
 			return [
-				Parameter(name: translationForString("start date"), exampleValue: Value(NSDate(timeIntervalSinceReferenceDate: 0.0))),
-				Parameter(name: translationForString("end date"), exampleValue: Value(NSDate()))
+				Parameter(name: translationForString("start date"), exampleValue: Value(Date(timeIntervalSinceReferenceDate: 0.0))),
+				Parameter(name: translationForString("end date"), exampleValue: Value(Date()))
 			]
 			
 		case .After:
 			return [
-				Parameter(name: translationForString("start date"), exampleValue: Value(NSDate())),
+				Parameter(name: translationForString("start date"), exampleValue: Value(Date())),
 				Parameter(name: translationForString("seconds"), exampleValue: Value(3600.0))
 			]
 			
@@ -446,19 +446,19 @@ public enum Function: String {
 			]
 			
 		case .UTCDay, .UTCYear, .UTCMonth, .UTCHour, .UTCMinute, .UTCSecond:
-			return [Parameter(name: translationForString("date"), exampleValue: Value(NSDate()))]
+			return [Parameter(name: translationForString("date"), exampleValue: Value(Date()))]
 			
 		case .FromUnixTime:
-			return [Parameter(name: translationForString("UNIX timestamp"), exampleValue: Value.DoubleValue(NSDate().timeIntervalSince1970))]
+			return [Parameter(name: translationForString("UNIX timestamp"), exampleValue: Value.double(Date().timeIntervalSince1970))]
 			
 		case .FromISO8601:
-			return [Parameter(name: translationForString("UNIX timestamp"), exampleValue: Value.StringValue(NSDate().iso8601FormattedLocalDate))]
+			return [Parameter(name: translationForString("UNIX timestamp"), exampleValue: Value.string(Date().iso8601FormattedLocalDate))]
 		
 		case .FromExcelDate:
-			return [Parameter(name: translationForString("Excel timestamp"), exampleValue: Value.DoubleValue(NSDate().excelDate ?? 0))]
+			return [Parameter(name: translationForString("Excel timestamp"), exampleValue: Value.double(Date().excelDate ?? 0))]
 			
 		case .ToUnixTime, .ToUTCISO8601, .ToLocalISO8601, .ToExcelDate:
-			return [Parameter(name: translationForString("date"), exampleValue: Value(NSDate()))]
+			return [Parameter(name: translationForString("date"), exampleValue: Value(Date()))]
 			
 		case .Levenshtein:
 			return [
@@ -475,15 +475,15 @@ public enum Function: String {
 		
 		case .UTCDate:
 			return [
-				Parameter(name: translationForString("year"), exampleValue: Value.IntValue(1988)),
-				Parameter(name: translationForString("month"), exampleValue: Value.IntValue(8)),
-				Parameter(name: translationForString("day"), exampleValue: Value.IntValue(11))
+				Parameter(name: translationForString("year"), exampleValue: Value.int(1988)),
+				Parameter(name: translationForString("month"), exampleValue: Value.int(8)),
+				Parameter(name: translationForString("day"), exampleValue: Value.int(11))
 			]
 			
 		case .RandomBetween:
 			return [
-				Parameter(name: translationForString("lower bound"), exampleValue: Value.IntValue(0)),
-				Parameter(name: translationForString("upper bound"), exampleValue: Value.IntValue(100))
+				Parameter(name: translationForString("lower bound"), exampleValue: Value.int(0)),
+				Parameter(name: translationForString("upper bound"), exampleValue: Value.int(100))
 			]
 		
 		case .Round:
@@ -525,7 +525,7 @@ public enum Function: String {
 			
 		case .Choose:
 			return [
-				Parameter(name: translationForString("index"), exampleValue: Value.IntValue(2)),
+				Parameter(name: translationForString("index"), exampleValue: Value.int(2)),
 				Parameter(name: translationForString("value"), exampleValue: Value("horse")),
 				Parameter(name: translationForString("value"), exampleValue: Value("correct")),
 				Parameter(name: translationForString("value"), exampleValue: Value("battery")),
@@ -544,7 +544,7 @@ public enum Function: String {
 		case .Nth:
 			return [
 				Parameter(name: translationForString("pack"), exampleValue: Value(WarpCore.Pack(["correct","horse", "battery", "staple"]).stringValue)),
-				Parameter(name: translationForString("index"), exampleValue: Value.IntValue(2))
+				Parameter(name: translationForString("index"), exampleValue: Value.int(2))
 			]
 			
 		case .Items:
@@ -566,7 +566,7 @@ public enum Function: String {
 			
 		case .Coalesce:
 			return [
-				Parameter(name: translationForString("value"), exampleValue: Value.InvalidValue),
+				Parameter(name: translationForString("value"), exampleValue: Value.invalid),
 				Parameter(name: translationForString("value"), exampleValue: Value("horse"))
 			]
 			
@@ -577,128 +577,128 @@ public enum Function: String {
 			return [Parameter(name: translationForString("text"), exampleValue: Value("1988-08-11")), Parameter(name: translationForString("format"), exampleValue: Value("yyyy-MM-dd"))]
 			
 		case .ToUnicodeDateString:
-			return [Parameter(name: translationForString("date"), exampleValue: Value(NSDate())), Parameter(name: translationForString("format"), exampleValue: Value("yyyy-MM-dd"))]
+			return [Parameter(name: translationForString("date"), exampleValue: Value(Date())), Parameter(name: translationForString("format"), exampleValue: Value("yyyy-MM-dd"))]
 			
 		case .Power:
 			return [
-				Parameter(name: translationForString("base"), exampleValue: Value.IntValue(2)),
-				Parameter(name: translationForString("exponent"), exampleValue: Value.IntValue(32))
+				Parameter(name: translationForString("base"), exampleValue: Value.int(2)),
+				Parameter(name: translationForString("exponent"), exampleValue: Value.int(32))
 			]
 
 		case .UUID:
 			return []
 
 		case .IsInvalid:
-			return [Parameter(name: translationForString("value"), exampleValue: Value.IntValue(3))]
+			return [Parameter(name: translationForString("value"), exampleValue: Value.int(3))]
 
 		case .IsEmpty:
-			return [Parameter(name: translationForString("value"), exampleValue: Value.IntValue(3))]
+			return [Parameter(name: translationForString("value"), exampleValue: Value.int(3))]
 
 		case .JSONDecode:
-			return [Parameter(name: translationForString("JSON"), exampleValue: Value.StringValue("[1,2,3]"))]
+			return [Parameter(name: translationForString("JSON"), exampleValue: Value.string("[1,2,3]"))]
 		}
 	} }
 	
 	public var arity: Arity { get {
 		switch self {
-		case .Uppercase: return Arity.Fixed(1)
-		case .Lowercase: return Arity.Fixed(1)
-		case .Negate: return Arity.Fixed(1)
-		case .Absolute: return Arity.Fixed(1)
-		case .Identity: return Arity.Fixed(1)
-		case .And: return Arity.Any
-		case .Or: return Arity.Any
-		case .Cos: return Arity.Fixed(1)
-		case .Sin: return Arity.Fixed(1)
-		case .Tan: return Arity.Fixed(1)
-		case .Cosh: return Arity.Fixed(1)
-		case .Sinh: return Arity.Fixed(1)
-		case .Tanh: return Arity.Fixed(1)
-		case .Acos: return Arity.Fixed(1)
-		case .Asin: return Arity.Fixed(1)
-		case .Atan: return Arity.Fixed(1)
-		case .Sqrt: return Arity.Fixed(1)
-		case .If: return Arity.Fixed(3)
-		case .Concat: return Arity.Any
-		case .Left: return Arity.Fixed(2)
-		case .Right: return Arity.Fixed(2)
-		case .Length: return Arity.Fixed(1)
-		case .Mid: return Arity.Fixed(3)
-		case .Log: return Arity.Between(1,2)
-		case .Not: return Arity.Fixed(1)
-		case .Substitute: return Arity.Fixed(3)
-		case .Xor: return Arity.Fixed(2)
-		case .Trim: return Arity.Fixed(1)
-		case .Coalesce: return Arity.Any
-		case .IfError: return Arity.Fixed(2)
-		case .Count: return Arity.Any
-		case .Sum: return Arity.Any
-		case .Average: return Arity.Any
-		case .Max: return Arity.Any
-		case .Min: return Arity.Any
-		case .RandomItem: return Arity.Any
-		case .CountAll: return Arity.Any
-		case .Pack: return Arity.Any
-		case .Exp: return Arity.Fixed(1)
-		case .Ln: return Arity.Fixed(1)
-		case .Round: return Arity.Between(1,2)
-		case .Choose: return Arity.Any
-		case .RandomBetween: return Arity.Fixed(2)
-		case .Random: return Arity.Fixed(0)
-		case .RegexSubstitute: return Arity.Fixed(3)
-		case .NormalInverse: return Arity.Fixed(3)
-		case .Sign: return Arity.Fixed(1)
-		case .Split: return Arity.Fixed(2)
-		case .Nth: return Arity.Fixed(2)
-		case .Items: return Arity.Fixed(1)
-		case .Levenshtein: return Arity.Fixed(2)
-		case .URLEncode: return Arity.Fixed(1)
-		case .In: return Arity.AtLeast(2)
-		case .NotIn: return Arity.AtLeast(2)
-		case .Capitalize: return Arity.Fixed(1)
-		case .Now: return Arity.Fixed(0)
-		case .FromUnixTime: return Arity.Fixed(1)
-		case .ToUnixTime: return Arity.Fixed(1)
-		case .FromISO8601: return Arity.Fixed(1)
-		case .ToLocalISO8601: return Arity.Fixed(1)
-		case .ToUTCISO8601: return Arity.Fixed(1)
-		case .ToExcelDate: return Arity.Fixed(1)
-		case .FromExcelDate: return Arity.Fixed(1)
-		case .UTCDate: return Arity.Fixed(3)
-		case .UTCDay: return Arity.Fixed(1)
-		case .UTCMonth: return Arity.Fixed(1)
-		case .UTCYear: return Arity.Fixed(1)
-		case .UTCMinute: return Arity.Fixed(1)
-		case .UTCHour: return Arity.Fixed(1)
-		case .UTCSecond: return Arity.Fixed(1)
-		case .Duration: return Arity.Fixed(2)
-		case .After: return Arity.Fixed(2)
-		case .Ceiling: return Arity.Fixed(1)
-		case .Floor: return Arity.Fixed(1)
-		case .RandomString: return Arity.Fixed(1)
-		case .ToUnicodeDateString: return Arity.Fixed(2)
-		case .FromUnicodeDateString: return Arity.Fixed(2)
-		case .Power: return Arity.Fixed(2)
-		case .UUID: return Arity.Fixed(0)
-		case .CountDistinct: return Arity.Any
-		case .MedianPack: return Arity.Any
-		case .MedianHigh: return Arity.Any
-		case .MedianLow: return Arity.Any
-		case .Median: return Arity.Any
-		case .StandardDeviationPopulation: return Arity.Any
-		case .StandardDeviationSample: return Arity.Any
-		case .VariancePopulation: return Arity.Any
-		case .VarianceSample: return Arity.Any
-		case .IsInvalid: return Arity.Fixed(1)
-		case .IsEmpty: return Arity.Fixed(1)
-		case .JSONDecode: return Arity.Fixed(1)
+		case .Uppercase: return Arity.fixed(1)
+		case .Lowercase: return Arity.fixed(1)
+		case .Negate: return Arity.fixed(1)
+		case .Absolute: return Arity.fixed(1)
+		case .Identity: return Arity.fixed(1)
+		case .And: return Arity.any
+		case .Or: return Arity.any
+		case .Cos: return Arity.fixed(1)
+		case .Sin: return Arity.fixed(1)
+		case .Tan: return Arity.fixed(1)
+		case .Cosh: return Arity.fixed(1)
+		case .Sinh: return Arity.fixed(1)
+		case .Tanh: return Arity.fixed(1)
+		case .Acos: return Arity.fixed(1)
+		case .Asin: return Arity.fixed(1)
+		case .Atan: return Arity.fixed(1)
+		case .Sqrt: return Arity.fixed(1)
+		case .If: return Arity.fixed(3)
+		case .Concat: return Arity.any
+		case .Left: return Arity.fixed(2)
+		case .Right: return Arity.fixed(2)
+		case .Length: return Arity.fixed(1)
+		case .Mid: return Arity.fixed(3)
+		case .Log: return Arity.between(1,2)
+		case .Not: return Arity.fixed(1)
+		case .Substitute: return Arity.fixed(3)
+		case .Xor: return Arity.fixed(2)
+		case .Trim: return Arity.fixed(1)
+		case .Coalesce: return Arity.any
+		case .IfError: return Arity.fixed(2)
+		case .Count: return Arity.any
+		case .Sum: return Arity.any
+		case .Average: return Arity.any
+		case .Max: return Arity.any
+		case .Min: return Arity.any
+		case .RandomItem: return Arity.any
+		case .CountAll: return Arity.any
+		case .Pack: return Arity.any
+		case .Exp: return Arity.fixed(1)
+		case .Ln: return Arity.fixed(1)
+		case .Round: return Arity.between(1,2)
+		case .Choose: return Arity.any
+		case .RandomBetween: return Arity.fixed(2)
+		case .Random: return Arity.fixed(0)
+		case .RegexSubstitute: return Arity.fixed(3)
+		case .NormalInverse: return Arity.fixed(3)
+		case .Sign: return Arity.fixed(1)
+		case .Split: return Arity.fixed(2)
+		case .Nth: return Arity.fixed(2)
+		case .Items: return Arity.fixed(1)
+		case .Levenshtein: return Arity.fixed(2)
+		case .URLEncode: return Arity.fixed(1)
+		case .In: return Arity.atLeast(2)
+		case .NotIn: return Arity.atLeast(2)
+		case .Capitalize: return Arity.fixed(1)
+		case .Now: return Arity.fixed(0)
+		case .FromUnixTime: return Arity.fixed(1)
+		case .ToUnixTime: return Arity.fixed(1)
+		case .FromISO8601: return Arity.fixed(1)
+		case .ToLocalISO8601: return Arity.fixed(1)
+		case .ToUTCISO8601: return Arity.fixed(1)
+		case .ToExcelDate: return Arity.fixed(1)
+		case .FromExcelDate: return Arity.fixed(1)
+		case .UTCDate: return Arity.fixed(3)
+		case .UTCDay: return Arity.fixed(1)
+		case .UTCMonth: return Arity.fixed(1)
+		case .UTCYear: return Arity.fixed(1)
+		case .UTCMinute: return Arity.fixed(1)
+		case .UTCHour: return Arity.fixed(1)
+		case .UTCSecond: return Arity.fixed(1)
+		case .Duration: return Arity.fixed(2)
+		case .After: return Arity.fixed(2)
+		case .Ceiling: return Arity.fixed(1)
+		case .Floor: return Arity.fixed(1)
+		case .RandomString: return Arity.fixed(1)
+		case .ToUnicodeDateString: return Arity.fixed(2)
+		case .FromUnicodeDateString: return Arity.fixed(2)
+		case .Power: return Arity.fixed(2)
+		case .UUID: return Arity.fixed(0)
+		case .CountDistinct: return Arity.any
+		case .MedianPack: return Arity.any
+		case .MedianHigh: return Arity.any
+		case .MedianLow: return Arity.any
+		case .Median: return Arity.any
+		case .StandardDeviationPopulation: return Arity.any
+		case .StandardDeviationSample: return Arity.any
+		case .VariancePopulation: return Arity.any
+		case .VarianceSample: return Arity.any
+		case .IsInvalid: return Arity.fixed(1)
+		case .IsEmpty: return Arity.fixed(1)
+		case .JSONDecode: return Arity.fixed(1)
 		}
 	} }
 	
-	public func apply(arguments: [Value]) -> Value {
+	public func apply(_ arguments: [Value]) -> Value {
 		// Check arity
 		if !arity.valid(arguments.count) {
-			return Value.InvalidValue
+			return Value.invalid
 		}
 		
 		switch self {
@@ -707,15 +707,15 @@ public enum Function: String {
 			
 		case .Uppercase:
 			if let s = arguments[0].stringValue {
-				return Value(s.uppercaseString)
+				return Value(s.uppercased())
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Lowercase:
 			if let s = arguments[0].stringValue {
-				return Value(s.lowercaseString)
+				return Value(s.lowercased())
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Absolute:
 			return arguments[0].absolute
@@ -726,7 +726,7 @@ public enum Function: String {
 		case .And:
 			for a in arguments {
 				if !a.isValid {
-					return Value.InvalidValue
+					return Value.invalid
 				}
 				
 				if a != Value(true) {
@@ -741,18 +741,18 @@ public enum Function: String {
 					return a
 				}
 			}
-			return Value.EmptyValue
+			return Value.empty
 			
 		case .Not:
 			if let b = arguments[0].boolValue {
 				return Value(!b)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 		
 		case .Or:
 			for a in arguments {
 				if !a.isValid {
-					return Value.InvalidValue
+					return Value.invalid
 				}
 			}
 			
@@ -769,13 +769,13 @@ public enum Function: String {
 					return Value((a != b) && (a || b))
 				}
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .If:
 			if let d = arguments[0].boolValue {
 				return d ? arguments[1] : arguments[2]
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .IfError:
 			return (!arguments[0].isValid) ? arguments[1] : arguments[0]
@@ -784,19 +784,19 @@ public enum Function: String {
 			if let d = arguments[0].doubleValue {
 				return Value(cos(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 		
 		case .Ln:
 			if let d = arguments[0].doubleValue {
 				return Value(log10(d) / log10(exp(1.0)))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Exp:
 			if let d = arguments[0].doubleValue {
 				return Value(exp(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Log:
 			if let d = arguments[0].doubleValue {
@@ -804,87 +804,87 @@ public enum Function: String {
 					if let base = arguments[1].doubleValue {
 						return Value(log(d) / log(base))
 					}
-					return Value.InvalidValue
+					return Value.invalid
 				}
 				return Value(log10(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Sin:
 			if let d = arguments[0].doubleValue {
 				return Value(sin(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Tan:
 			if let d = arguments[0].doubleValue {
 				return Value(tan(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Cosh:
 			if let d = arguments[0].doubleValue {
 				return Value(cosh(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Sinh:
 			if let d = arguments[0].doubleValue {
 				return Value(sinh(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Tanh:
 			if let d = arguments[0].doubleValue {
 				return Value(tanh(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Acos:
 			if let d = arguments[0].doubleValue {
 				return Value(acos(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Asin:
 			if let d = arguments[0].doubleValue {
 				return Value(asin(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Atan:
 			if let d = arguments[0].doubleValue {
 				return Value(atan(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Sqrt:
 			if let d = arguments[0].doubleValue {
 				return Value(sqrt(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Left:
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
 					if s.characters.count >= idx {
-						let index = s.startIndex.advancedBy(idx)
-						return Value(s.substringToIndex(index))
+						let index = s.characters.index(s.startIndex, offsetBy: idx)
+						return Value(s.substring(to: index))
 					}
 				}
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Right:
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
 					if s.characters.count >= idx {
-						let index = s.endIndex.advancedBy(-idx)
-						return Value(s.substringFromIndex(index))
+						let index = s.characters.index(s.endIndex, offsetBy: -idx)
+						return Value(s.substring(from: index))
 					}
 				}
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Mid:
 			if let s = arguments[0].stringValue {
@@ -892,42 +892,42 @@ public enum Function: String {
 					if let length = arguments[2].intValue {
 						let sourceLength = s.characters.count
 						if sourceLength >= start {
-							let index = s.startIndex.advancedBy(start)
-							let end = sourceLength >= (start+length) ? index.advancedBy(length) : s.endIndex
+							let index = s.characters.index(s.startIndex, offsetBy: start)
+							let end = sourceLength >= (start+length) ? s.characters.index(index, offsetBy: length) : s.endIndex
 							
-							return Value(s.substringWithRange(index..<end))
+							return Value(s.substring(with: index..<end))
 						}
 					}
 				}
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Length:
 			if let s = arguments[0].stringValue {
 				return Value(s.characters.count)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 		
 		case .Substitute:
 			if let source = arguments[0].stringValue {
 				if let replace = arguments[1].stringValue {
 					if let replaceWith = arguments[2].stringValue {
 						// TODO: add case-insensitive and regex versions of this
-						return Value(source.stringByReplacingOccurrencesOfString(replace, withString: replaceWith))
+						return Value(source.replacingOccurrences(of: replace, with: replaceWith))
 					}
 				}
 			}
-			return Value.InvalidValue
+			return Value.invalid
 		
 		case .Trim:
 			if let s = arguments[0].stringValue {
-				return Value(s.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()))
+				return Value(s.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .RandomItem:
 			if arguments.isEmpty {
-				return Value.EmptyValue
+				return Value.empty
 			}
 			else {
 				let index = Int.random(0..<arguments.count)
@@ -942,12 +942,12 @@ public enum Function: String {
 			}
 			
 			if decimals < 0 {
-				return Value.InvalidValue
+				return Value.invalid
 			}
 			
 			if let d = arguments[0].doubleValue {
 				if decimals == 0 {
-					return Value.IntValue(Int(round(d)))
+					return Value.int(Int(round(d)))
 				}
 				else {
 					let filler = pow(10.0, Double(decimals))
@@ -955,11 +955,11 @@ public enum Function: String {
 				}
 			}
 			
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Choose:
 			if arguments.count < 2 {
-				return Value.InvalidValue
+				return Value.invalid
 			}
 			
 			if let index = arguments[0].intValue {
@@ -967,19 +967,19 @@ public enum Function: String {
 					return arguments[index]
 				}
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .RandomBetween:
 			if let bottom = arguments[0].intValue {
 				if let top = arguments[1].intValue {
 					if top <= bottom {
-						return Value.InvalidValue
+						return Value.invalid
 					}
 					
 					return Value(Int.random(bottom, upper: top+1))
 				}
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Random:
 			return Value(Double.random())
@@ -990,39 +990,39 @@ public enum Function: String {
 				let pattern = arguments[1].stringValue,
 				let replacement = arguments[2].stringValue,
 				let result = source.replace(pattern, withTemplate: replacement, caseSensitive: true) {
-					return Value.StringValue(result)
+					return Value.string(result)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .NormalInverse:
 			if	let p = arguments[0].doubleValue,
 				let mu = arguments[1].doubleValue,
 				let sigma = arguments[2].doubleValue {
 				if p < 0.0 || p > 1.0 {
-					return Value.InvalidValue
+					return Value.invalid
 				}
 					
 				let deviations = NormalDistribution().inverse(p)
-				return Value.DoubleValue(mu + sigma * deviations)
+				return Value.double(mu + sigma * deviations)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Sign:
 			if let d = arguments[0].doubleValue {
 				let sign = (d==0) ? 0 : (d>0 ? 1 : -1)
-				return Value.IntValue(sign)
+				return Value.int(sign)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 			
 		case .Split:
 			if let s = arguments[0].stringValue {
 				let separator = (arguments.count > 1 ? arguments[1].stringValue : nil) ?? " "
-				let splitted = s.componentsSeparatedByString(separator)
+				let splitted = s.components(separatedBy: separator)
 				let pack = WarpCore.Pack(splitted)
-				return Value.StringValue(pack.stringValue)
+				return Value.string(pack.stringValue)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 			
 		case .Nth:
@@ -1030,36 +1030,36 @@ public enum Function: String {
 				if let index = arguments[1].intValue {
 					let adjustedIndex = index-1
 					if adjustedIndex < pack.count && adjustedIndex >= 0 {
-						return Value.StringValue(pack[adjustedIndex])
+						return Value.string(pack[adjustedIndex])
 					}
 				}
 				else if let index = arguments[1].stringValue, let value = pack[index] {
-					return Value.StringValue(value)
+					return Value.string(value)
 				}
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Items:
 			if let pack = WarpCore.Pack(arguments[0]) {
-				return Value.IntValue(pack.count)
+				return Value.int(pack.count)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Levenshtein:
 			if let a = arguments[0].stringValue, let b = arguments[1].stringValue {
-				return Value.IntValue(a.levenshteinDistance(b))
+				return Value.int(a.levenshteinDistance(b))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .URLEncode:
 			if let s = arguments[0].stringValue, let enc = s.urlEncoded {
 				return Value(enc)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .In:
 			if arguments.count < 2 {
-				return Value.InvalidValue
+				return Value.invalid
 			}
 			else {
 				let needle = arguments[0]
@@ -1073,7 +1073,7 @@ public enum Function: String {
 			
 		case .NotIn:
 			if arguments.count < 2 {
-				return Value.InvalidValue
+				return Value.invalid
 			}
 			else {
 				let needle = arguments[0]
@@ -1087,170 +1087,170 @@ public enum Function: String {
 			
 		case .Capitalize:
 			if let s = arguments[0].stringValue {
-				return Value.StringValue(s.capitalizedString)
+				return Value.string(s.capitalized)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Now:
-			return Value(NSDate())
+			return Value(Date())
 			
 		case .FromUnixTime:
 			if let s = arguments[0].doubleValue {
-				return Value(NSDate(timeIntervalSince1970: s))
+				return Value(Date(timeIntervalSince1970: s))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .ToUnixTime:
 			if let d = arguments[0].dateValue {
 				return Value(d.timeIntervalSince1970)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .FromISO8601:
-			if let s = arguments[0].stringValue, d = NSDate.fromISO8601FormattedDate(s) {
+			if let s = arguments[0].stringValue, d = Date.fromISO8601FormattedDate(s) {
 				return Value(d)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .ToLocalISO8601:
 			if let d = arguments[0].dateValue {
 				return Value(d.iso8601FormattedLocalDate)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .ToUTCISO8601:
 			if let d = arguments[0].dateValue {
 				return Value(d.iso8601FormattedUTCDate)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .ToExcelDate:
 			if let d = arguments[0].dateValue, let e = d.excelDate {
 				return Value(e)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .FromExcelDate:
-			if let d = arguments[0].doubleValue, let x = NSDate.fromExcelDate(d) {
+			if let d = arguments[0].doubleValue, let x = Date.fromExcelDate(d) {
 				return Value(x)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .UTCDate:
 			if let year = arguments[0].intValue, let month = arguments[1].intValue, let day = arguments[2].intValue {
-				return Value(NSDate.startOfGregorianDateInUTC(year, month: month, day: day))
+				return Value(Date.startOfGregorianDateInUTC(year, month: month, day: day))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .UTCDay:
-			if let date = arguments[0].dateValue {
-				return Value(date.gregorianComponentsInUTC.day)
+			if let date = arguments[0].dateValue, let d = date.gregorianComponentsInUTC.day {
+				return Value(d)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 
 		case .UTCMonth:
-			if let date = arguments[0].dateValue {
-				return Value(date.gregorianComponentsInUTC.month)
+			if let date = arguments[0].dateValue, let m = date.gregorianComponentsInUTC.month {
+				return Value(m)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 
 		case .UTCYear:
-			if let date = arguments[0].dateValue {
-				return Value(date.gregorianComponentsInUTC.year)
+			if let date = arguments[0].dateValue, let y = date.gregorianComponentsInUTC.year {
+				return Value(y)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 
 		case .UTCHour:
-			if let date = arguments[0].dateValue {
-				return Value(date.gregorianComponentsInUTC.hour)
+			if let date = arguments[0].dateValue, let h = date.gregorianComponentsInUTC.hour {
+				return Value(h)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 
 		case .UTCMinute:
-			if let date = arguments[0].dateValue {
-				return Value(date.gregorianComponentsInUTC.minute)
+			if let date = arguments[0].dateValue, let m = date.gregorianComponentsInUTC.minute {
+				return Value(m)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 
 		case .UTCSecond:
-			if let date = arguments[0].dateValue {
-				return Value(date.gregorianComponentsInUTC.second)
+			if let date = arguments[0].dateValue, let s = date.gregorianComponentsInUTC.second {
+				return Value(s)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Duration:
 			if let start = arguments[0].dateValue, let end = arguments[1].dateValue {
 				return Value(end.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate)
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .After:
 			if let start = arguments[0].dateValue, let duration = arguments[1].doubleValue {
-				return Value(NSDate(timeInterval: duration, sinceDate: start))
+				return Value(Date(timeInterval: duration, since: start as Date))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Floor:
 			if let d = arguments[0].doubleValue {
 				return Value(floor(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Ceiling:
 			if let d = arguments[0].doubleValue {
 				return Value(ceil(d))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .RandomString:
 			if let p = arguments[0].stringValue, let sequencer = Sequencer(p) {
-				return sequencer.randomValue ?? Value.EmptyValue
+				return sequencer.randomValue ?? Value.empty
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .ToUnicodeDateString:
 			if let d = arguments[0].dateValue, let format = arguments[1].stringValue {
-				let formatter = NSDateFormatter()
+				let formatter = DateFormatter()
 				formatter.dateFormat = format
-				formatter.timeZone = NSTimeZone(abbreviation: "UTC")
-				return Value.StringValue(formatter.stringFromDate(d))
+				formatter.timeZone = TimeZone(abbreviation: "UTC")
+				return Value.string(formatter.string(from: d as Date))
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .FromUnicodeDateString:
 			if let d = arguments[0].stringValue, let format = arguments[1].stringValue {
-				let formatter = NSDateFormatter()
+				let formatter = DateFormatter()
 				formatter.dateFormat = format
-				formatter.timeZone = NSTimeZone(abbreviation: "UTC")
-				if let date = formatter.dateFromString(d) {
+				formatter.timeZone = TimeZone(abbreviation: "UTC")
+				if let date = formatter.date(from: d) {
 					return Value(date)
 				}
 			}
-			return Value.InvalidValue
+			return Value.invalid
 			
 		case .Power:
 			return arguments[0] ^ arguments[1]
 
 		case .UUID:
-			return .StringValue(NSUUID().UUIDString)
+			return .string(Foundation.UUID().uuidString)
 
 		case .IsInvalid:
-			return Value.BoolValue(!arguments[0].isValid)
+			return Value.bool(!arguments[0].isValid)
 
 		case .IsEmpty:
-			return Value.BoolValue(arguments[0].isEmpty)
+			return Value.bool(arguments[0].isEmpty)
 
 		case .JSONDecode:
 			do {
-				if let s = arguments[0].stringValue, let stringData = s.dataUsingEncoding(NSUTF8StringEncoding) {
-					let jsonDecoded = try NSJSONSerialization.JSONObjectWithData(stringData, options: [.AllowFragments])
+				if let s = arguments[0].stringValue, let stringDataset = s.data(using: String.Encoding.utf8) {
+					let jsonDecoded = try JSONSerialization.jsonObject(with: stringDataset, options: [.allowFragments])
 					return Value(jsonObject: jsonDecoded)
 				}
 			}
 			catch {
-				return Value.InvalidValue
+				return Value.invalid
 			}
-			return Value.InvalidValue
+			return Value.invalid
 
 		// The following functions are already implemented as a Reducer, just use that
 		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct, .Median, .MedianHigh,
@@ -1272,14 +1272,14 @@ public enum Function: String {
 		case .Average: return AverageReducer()
 		case .Concat: return ConcatenationReducer()
 		case .Pack: return PackReducer()
-		case .MedianPack: return MedianReducer(medianType: .Pack)
-		case .MedianHigh: return MedianReducer(medianType: .High)
-		case .MedianLow: return MedianReducer(medianType: .Low)
-		case .Median: return MedianReducer(medianType: .Average)
-		case .VariancePopulation: return VarianceReducer(varianceType: .Population)
-		case .VarianceSample: return VarianceReducer(varianceType: .Sample)
-		case .StandardDeviationPopulation: return StandardDeviationReducer(varianceType: .Population)
-		case .StandardDeviationSample: return StandardDeviationReducer(varianceType: .Sample)
+		case .MedianPack: return MedianReducer(medianType: .pack)
+		case .MedianHigh: return MedianReducer(medianType: .high)
+		case .MedianLow: return MedianReducer(medianType: .low)
+		case .Median: return MedianReducer(medianType: .average)
+		case .VariancePopulation: return VarianceReducer(varianceType: .population)
+		case .VarianceSample: return VarianceReducer(varianceType: .sample)
+		case .StandardDeviationPopulation: return StandardDeviationReducer(varianceType: .population)
+		case .StandardDeviationSample: return StandardDeviationReducer(varianceType: .sample)
 
 		default:
 			return nil
@@ -1338,7 +1338,7 @@ public enum Binary: String {
 	                                 ContainsStringStrict, MatchesRegex, MatchesRegexStrict]
 
 	/** Returns a human-readable, localized explanation of what this binary operator does. */
-	public func explain(locale: Locale) -> String {
+	public func explain(_ locale: Language) -> String {
 		switch self {
 		case .Addition: return "+"
 		case .Subtraction: return "-"
@@ -1360,7 +1360,7 @@ public enum Binary: String {
 		}
 	}
 	
-	public func toFormula(locale: Locale) -> String {
+	public func toFormula(_ locale: Language) -> String {
 		switch self {
 		case .Addition: return "+"
 		case .Subtraction: return "-"
@@ -1417,7 +1417,7 @@ public enum Binary: String {
 		}
 	} }
 	
-	public func apply(left: Value, _ right: Value) -> Value {
+	public func apply(_ left: Value, _ right: Value) -> Value {
 		switch self {
 		case .Addition:
 			return left + right
@@ -1484,39 +1484,39 @@ of a function can either be 'fixed' (a function with an arity of '1' is called u
 binary), constrained ('between x and y') or anything. Functions that can take any number of arguments can also be used
 as aggregating functions (if they are adhere to the property that (e.g.) SUM(1;2;3;4) == SUM(SUM(1;2);SUM(3;4)). */
 public enum Arity: Equatable {
-	case Fixed(Int)
-	case AtLeast(Int)
-	case Between(Int, Int)
-	case Any
+	case fixed(Int)
+	case atLeast(Int)
+	case between(Int, Int)
+	case any
 	
-	public func valid(count: Int) -> Bool {
+	public func valid(_ count: Int) -> Bool {
 		switch self {
-		case .Fixed(let i):
+		case .fixed(let i):
 			return count == i
 			
-		case .AtLeast(let i):
+		case .atLeast(let i):
 			return count >= i
 			
-		case .Between(let a, let b):
+		case .between(let a, let b):
 			return count >= a && count <= b
 			
-		case .Any:
+		case .any:
 			return true
 		}
 	}
 	
 	public var explanation: String { get {
 		switch self {
-		case .Fixed(let i):
+		case .fixed(let i):
 			return String(format: translationForString("exactly %d"), i)
 			
-		case .AtLeast(let i):
+		case .atLeast(let i):
 			return String(format: translationForString("at least %d"), i)
 			
-		case .Between(let a, let b):
+		case .between(let a, let b):
 			return String(format: translationForString("between %d and %d"), a, b)
 			
-		case .Any:
+		case .any:
 			return String(format: translationForString("zero or more"))
 		}
 	} }
@@ -1524,9 +1524,9 @@ public enum Arity: Equatable {
 
 public func ==(lhs: Arity, rhs: Arity) -> Bool {
 	switch (lhs, rhs) {
-	case (.Any, .Any):
+	case (.any, .any):
 		return true
-	case (.Fixed(let lf), .Fixed(let rf)):
+	case (.fixed(let lf), .fixed(let rf)):
 		return lf == rf
 	default:
 		return false
@@ -1537,7 +1537,7 @@ private struct AverageReducer: Reducer {
 	var total: Value = Value(0.0)
 	var count: Int = 0
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		values.forEach { v in
 			// Ignore any invalid values
 			if v.isValid {
@@ -1553,7 +1553,7 @@ private struct AverageReducer: Reducer {
 private struct SumReducer: Reducer {
 	var result: Value = Value(0.0)
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		values.forEach { v in
 			// Ignore any invalid values
 			if v.isValid {
@@ -1564,9 +1564,9 @@ private struct SumReducer: Reducer {
 }
 
 private struct MaxReducer: Reducer {
-	var result: Value = Value.InvalidValue
+	var result: Value = Value.invalid
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		for value in values {
 			if !self.result.isValid || (value.isValid && value > self.result) {
 				self.result = value
@@ -1576,9 +1576,9 @@ private struct MaxReducer: Reducer {
 }
 
 private struct MinReducer: Reducer {
-	var result: Value = Value.InvalidValue
+	var result: Value = Value.invalid
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		for value in values {
 			if !self.result.isValid || (value.isValid && value < self.result) {
 				self.result = value
@@ -1595,7 +1595,7 @@ private struct CountReducer: Reducer {
 		self.all = all
 	}
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		if all {
 			self.count += values.count
 		}
@@ -1615,7 +1615,7 @@ private struct CountReducer: Reducer {
 private struct ConcatenationReducer: Reducer {
 	var result: Value = Value("")
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		for a in values {
 			result = result & a
 		}
@@ -1625,7 +1625,7 @@ private struct ConcatenationReducer: Reducer {
 private struct PackReducer: Reducer {
 	var pack = Pack()
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		for a in values {
 			pack.append(a)
 		}
@@ -1637,7 +1637,7 @@ private struct PackReducer: Reducer {
 private struct CountDistinctReducer: Reducer {
 	var valueSet = Set<Value>()
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		for a in values {
 			if a.isValid && !a.isEmpty {
 				valueSet.insert(a)
@@ -1649,10 +1649,10 @@ private struct CountDistinctReducer: Reducer {
 }
 
 private enum MedianType {
-	case Low
-	case High
-	case Average
-	case Pack
+	case low
+	case high
+	case average
+	case pack
 }
 
 private struct MedianReducer: Reducer {
@@ -1663,16 +1663,16 @@ private struct MedianReducer: Reducer {
 		self.medianType = medianType
 	}
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		self.values += values.filter { return $0.isValid && !$0.isEmpty }
 	}
 
 	var result: Value {
-		let sorted = values.sort({ return $0 < $1 })
+		let sorted = values.sorted(isOrderedBefore: { return $0 < $1 })
 		let count = sorted.count
 
 		if count == 0 {
-			return Value.InvalidValue
+			return Value.invalid
 		}
 
 		/* The code below is adapted from SigmaSwift (https://github.com/evgenyneu/SigmaSwiftStatistics) used under MIT license. */
@@ -1682,17 +1682,17 @@ private struct MedianReducer: Reducer {
 			let rightValue = sorted[leftIndex + 1]
 
 			switch medianType {
-			case .Average:
+			case .average:
 				// FIXME: this messes up string values, obviously.
 				return (leftValue + rightValue) / Value(2.0)
 
-			case .Low:
+			case .low:
 				return leftValue
 
-			case .High:
+			case .high:
 				return rightValue
 
-			case .Pack:
+			case .pack:
 				return Value(Pack([leftValue, rightValue]).stringValue)
 			}
 		}
@@ -1704,8 +1704,8 @@ private struct MedianReducer: Reducer {
 }
 
 private enum VarianceType {
-	case Population
-	case Sample
+	case population
+	case sample
 }
 
 private struct VarianceReducer: Reducer {
@@ -1717,7 +1717,7 @@ private struct VarianceReducer: Reducer {
 		self.varianceType = varianceType
 	}
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		for v in values {
 			if v.isValid && !v.isEmpty {
 				if let d = v.doubleValue {
@@ -1734,17 +1734,17 @@ private struct VarianceReducer: Reducer {
 
 	var result: Value {
 		if self.invalid {
-			return Value.InvalidValue
+			return Value.invalid
 		}
 
 		// An empty list of values does not have variance
 		if self.values.count == 0 {
-			return Value.InvalidValue
+			return Value.invalid
 		}
 
 		// Sample variance is undefined for a list of values with only one value
-		if self.varianceType == .Sample && self.values.count == 1 {
-			return Value.InvalidValue
+		if self.varianceType == .sample && self.values.count == 1 {
+			return Value.invalid
 		}
 
 		let sum = self.values.reduce(0.0) { t, v in t + v }
@@ -1755,8 +1755,8 @@ private struct VarianceReducer: Reducer {
 		}
 
 		switch self.varianceType {
-		case .Population: return Value.DoubleValue(numerator / Double(self.values.count))
-		case .Sample: return Value.DoubleValue(numerator / Double(self.values.count - 1))
+		case .population: return Value.double(numerator / Double(self.values.count))
+		case .sample: return Value.double(numerator / Double(self.values.count - 1))
 		}
 	}
 }
@@ -1768,7 +1768,7 @@ private struct StandardDeviationReducer: Reducer {
 		self.varianceReducer = VarianceReducer(varianceType: varianceType)
 	}
 
-	mutating func add(values: [Value]) {
+	mutating func add(_ values: [Value]) {
 		self.varianceReducer.add(values)
 	}
 
@@ -1776,8 +1776,8 @@ private struct StandardDeviationReducer: Reducer {
 		let r = varianceReducer.result
 
 		if let d = r.doubleValue {
-			return Value.DoubleValue(sqrt(d))
+			return Value.double(sqrt(d))
 		}
-		return Value.InvalidValue
+		return Value.invalid
 	}
 }

@@ -17,20 +17,20 @@ class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
 		super.viewWillAppear()
 	}
 
-	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		switch tableColumn?.identifier ?? "" {
 		case "columnName":
 			return self.columns[row].name
 
 		case "include":
-			return NSNumber(bool: keyColumns.contains(self.columns[row]))
+			return NSNumber(value: keyColumns.contains(self.columns[row]))
 
 		default:
 			return nil
 		}
 	}
 
-	func tableView(tableView: NSTableView, setObjectValue object: AnyObject?, forTableColumn tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
 		if tableColumn?.identifier == "include" {
 			let col = self.columns[row]
 			if object?.boolValue ?? false {
@@ -43,16 +43,16 @@ class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
 		self.updateView()
 	}
 
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		return columns.count
 	}
 
 	private func updateView() {
-		self.okButton.enabled = !self.keyColumns.isEmpty
+		self.okButton.isEnabled = !self.keyColumns.isEmpty
 	}
 
-	@IBAction func confirm(sender: NSObject) {
+	@IBAction func confirm(_ sender: NSObject) {
 		self.callback?(self.keyColumns)
-		self.dismissController(sender)
+		self.dismiss(sender)
 	}
 }

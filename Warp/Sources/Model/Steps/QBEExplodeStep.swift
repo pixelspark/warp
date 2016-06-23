@@ -5,7 +5,7 @@ class QBEExplodeTransformer: Transformer {
 	let splitColumn: Column
 	let columnFuture: Future<Fallible<[Column]>>
 
-	init(source: Stream, splitColumn: Column) {
+	init(source: WarpCore.Stream, splitColumn: Column) {
 		self.splitColumn = splitColumn
 		self.columnFuture = Future<Fallible<[Column]>>({ (job, callback) in
 			source.columns(job, callback: callback)
@@ -14,10 +14,10 @@ class QBEExplodeTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	override func transform(rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		self.columnFuture.get { result in
 			switch result {
-			case .Success(let columns):
+			case .success(let columns):
 				let tuples = rows.flatMap { tuple -> [[Value]] in
 					var row = Row(tuple, columns: columns)
 					if let valueToSplit = row[self.splitColumn], let packToSplit = Pack(valueToSplit) {
@@ -32,15 +32,15 @@ class QBEExplodeTransformer: Transformer {
 						return [tuple]
 					}
 				}
-				return callback(.Success(tuples), streamStatus)
+				return callback(.success(tuples), streamStatus)
 
-			case .Failure(let e):
-				return callback(.Failure(e), .Finished)
+			case .failure(let e):
+				return callback(.failure(e), .finished)
 			}
 		}
 	}
 
-	override func clone() -> Stream {
+	override func clone() ->  WarpCore.Stream {
 		return QBEExplodeTransformer(source: self.source.clone(), splitColumn: self.splitColumn)
 	}
 }
@@ -58,25 +58,25 @@ class QBEExplodeStep: QBEStep {
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("Split the lists in column [#] and create a row for each item", comment: ""),
 		   QBESentenceList(value: self.splitColumn.name, provider: { [weak self] (callback) in
-				let job = Job(.UserInitiated)
-				self?.previous?.exampleData(job, maxInputRows: 0, maxOutputRows: 0, callback: { result in
+				let job = Job(.userInitiated)
+				self?.previous?.exampleDataset(job, maxInputRows: 0, maxOutputRows: 0, callback: { result in
 					switch result {
-					case .Success(let data):
+					case .success(let data):
 						data.columns(job) { result in
 							switch result {
-							case .Success(let columns):
-								return callback(.Success(columns.map { return $0.name }))
+							case .success(let columns):
+								return callback(.success(columns.map { return $0.name }))
 
-							case .Failure(let e):
-								return callback(.Failure(e))
+							case .failure(let e):
+								return callback(.failure(e))
 							}
 						}
 
-					case .Failure(let e):
-						return callback(.Failure(e))
+					case .failure(let e):
+						return callback(.failure(e))
 					}
 				})
 
@@ -91,12 +91,12 @@ class QBEExplodeStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 
-	override func encodeWithCoder(coder: NSCoder) {
+	override func encode(with coder: NSCoder) {
 		coder.encodeString(self.splitColumn.name, forKey: "splitColumn")
-		super.encodeWithCoder(coder)
+		super.encode(with: coder)
 	}
 
-	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
-		callback(.Success(StreamData(source: QBEExplodeTransformer(source: data.stream(), splitColumn: self.splitColumn))))
+	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+		callback(.success(StreamDataset(source: QBEExplodeTransformer(source: data.stream(), splitColumn: self.splitColumn))))
 	}
 }

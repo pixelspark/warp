@@ -45,18 +45,18 @@ class QBEChart: QBEConfigurable, NSSecureCoding {
 		super.init()
 	}
 
-	func encodeWithCoder(aCoder: NSCoder) {
+	func encode(with aCoder: NSCoder) {
 		aCoder.encodeString(self.type.rawValue, forKey: "type")
-		aCoder.encodeObject(self.xExpression, forKey: "xExpression")
-		aCoder.encodeObject(self.yExpression, forKey: "yExpression")
-		aCoder.encodeObject(self.sourceTablet, forKey: "source")
+		aCoder.encode(self.xExpression, forKey: "xExpression")
+		aCoder.encode(self.yExpression, forKey: "yExpression")
+		aCoder.encode(self.sourceTablet, forKey: "source")
 	}
 
 	@objc static func supportsSecureCoding() -> Bool {
 		return true
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let opts = [QBEChartType.Bar, QBEChartType.Line, QBEChartType.Radar, QBEChartType.Pie].mapDictionary { return ($0.rawValue, $0.localizedName) }
 
 		let mainSentence = QBESentence(format: "Draw a [#]".localized,
@@ -67,29 +67,29 @@ class QBEChart: QBEConfigurable, NSSecureCoding {
 
 		let contextCallback = { [weak self] (job: Job, callback: QBESentenceFormula.ContextCallback) -> () in
 			if let sourceStep = self?.sourceTablet?.chain.head {
-				sourceStep.exampleData(job, maxInputRows: 100, maxOutputRows: 1) { result in
+				sourceStep.exampleDataset(job, maxInputRows: 100, maxOutputRows: 1) { result in
 					switch result {
-					case .Success(let data):
+					case .success(let data):
 						data.limit(1).raster(job) { result in
 							switch result {
-							case .Success(let raster):
+							case .success(let raster):
 								if raster.rowCount == 1 {
 									let ctx = QBESentenceFormulaContext(row: raster[0], columns: raster[0].columns)
-									return callback(.Success(ctx))
+									return callback(.success(ctx))
 								}
 
-							case .Failure(let e):
-								return callback(.Failure(e))
+							case .failure(let e):
+								return callback(.failure(e))
 							}
 						}
 
-					case .Failure(let e):
-						return callback(.Failure(e))
+					case .failure(let e):
+						return callback(.failure(e))
 					}
 				}
 			}
 			else {
-				return callback(.Failure("No data source for chart".localized))
+				return callback(.failure("No data source for chart".localized))
 			}
 		}
 
@@ -142,8 +142,8 @@ class QBEChartTablet: QBETablet {
 		super.init(coder: coder)
 	}
 
-	override func encodeWithCoder(aCoder: NSCoder) {
-		super.encodeWithCoder(aCoder)
-		aCoder.encodeObject(self.chart, forKey: "chart")
+	override func encode(with aCoder: NSCoder) {
+		super.encode(with: aCoder)
+		aCoder.encode(self.chart, forKey: "chart")
 	}
 }

@@ -12,7 +12,7 @@ class QBENoteTabletViewController: QBETabletViewController, NSTextStorageDelegat
 		}
 	}
 
-	func textStorage(textStorage: NSTextStorage, didProcessEditing editedMask: NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
+	func textStorage(_ textStorage: NSTextStorage, didProcessEditing editedMask: NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
 		self.noteTablet?.note.text = textField.attributedString()
 	}
 }

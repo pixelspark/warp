@@ -2,7 +2,7 @@ import Cocoa
 import WarpCore
 
 protocol QBEFormulaEditorViewDelegate: NSObjectProtocol {
-	func formulaEditor(view: QBEFormulaEditorViewController, didChangeExpression: Expression?)
+	func formulaEditor(_ view: QBEFormulaEditorViewController, didChangeExpression: Expression?)
 }
 
 class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate, NSTextFieldDelegate, NSTableViewDataSource, NSTableViewDelegate {
@@ -11,7 +11,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 	var columns: [Column] = [] { didSet { assertMainThread(); self.updateView(false) } }
 
 	private(set) var expression: Expression? = nil
-	private(set) var locale: Locale? = nil
+	private(set) var locale: Language? = nil
 	private var lastSelectedRange: NSRange? = nil
 	private var syntaxColoringJob: Job? = nil
 
@@ -21,14 +21,14 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 	@IBOutlet private var columnsTableView: NSTableView!
 	@IBOutlet private var assistantTabView: NSTabView!
 
-	func referenceView(view: QBEReferenceViewController, didSelectFunction: Function) {
+	func referenceView(_ view: QBEReferenceViewController, didSelectFunction: Function) {
 		if let locale = self.locale {
 			self.view.window?.makeFirstResponder(formulaField)
 			if let ed = formulaField.currentEditor() {
 				let er = lastSelectedRange ?? ed.selectedRange
 				if er.length > 0 {
 					ed.selectedRange = er
-					let selectedText = NSString(string: ed.string ?? "").substringWithRange(er)
+					let selectedText = NSString(string: ed.string ?? "").substring(with: er)
 					let replacement: String
 					if let f = Formula(formula: selectedText, locale: locale) {
 						let wrapped = Call(arguments: [f.root], type: didSelectFunction)
@@ -37,7 +37,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 					else {
 						replacement = "\(locale.nameForFunction(didSelectFunction)!)(\(selectedText))"
 					}
-					ed.replaceCharactersInRange(er, withString: replacement)
+					ed.replaceCharacters(in: er, with: replacement)
 					ed.selectedRange = NSMakeRange(er.location, replacement.characters.count)
 				}
 				else {
@@ -51,23 +51,23 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		updateFromView(self.formulaField)
 	}
 
-	func startEditingExpression(expression: Expression, locale: Locale) {
+	func startEditingExpression(_ expression: Expression, locale: Language) {
 		self.locale = locale
 		self.expression = expression
 		updateView(true)
 	}
 
-	override func controlTextDidEndEditing(obj: NSNotification) {
+	override func controlTextDidEndEditing(_ obj: Notification) {
 		if let r = self.formulaField.currentEditor()?.selectedRange {
 			lastSelectedRange = r
 		}
 	}
 
-	override func controlTextDidChange(obj: NSNotification) {
+	override func controlTextDidChange(_ obj: Notification) {
 		updateFromView(self.formulaField)
 	}
 
-	func numberOfRowsInTableView(tableView: NSTableView) -> Int {
+	func numberOfRows(in tableView: NSTableView) -> Int {
 		if tableView == self.columnsTableView {
 			return self.columns.count
 		}
@@ -75,7 +75,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		return 0
 	}
 
-	func tableView(tableView: NSTableView, objectValueForTableColumn tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
 		if tableView == self.columnsTableView && tableColumn?.identifier == "column" && row < self.columns.count {
 			return self.columns[row].name
 		}
@@ -83,7 +83,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		return nil
 	}
 
-	private func updateView(force: Bool) {
+	private func updateView(_ force: Bool) {
 		if let v = self.exampleResult {
 			self.exampleOutputField?.stringValue = self.locale?.localStringFor(v) ?? ""
 		}
@@ -95,7 +95,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 
 		if let ff = self.formulaField {
 			if let e = expression, let locale = self.locale {
-				let job = Job(.UserInitiated)
+				let job = Job(.userInitiated)
 				self.syntaxColoringJob?.cancel()
 				self.syntaxColoringJob = job
 				job.async {
@@ -120,7 +120,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		}
 	}
 	
-	@IBAction func updateFromView(sender: NSObject) {
+	@IBAction func updateFromView(_ sender: NSObject) {
 		if sender == self.formulaField {
 			if let r = self.formulaField.currentEditor()?.selectedRange {
 				lastSelectedRange = r
@@ -130,7 +130,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		if let formulaText = self.formulaField?.stringValue, let locale = self.locale {
 			self.syntaxColoringJob?.cancel()
 
-			let job = Job(.UserInitiated)
+			let job = Job(.userInitiated)
 			self.syntaxColoringJob = job
 			job.async {
 				if let formula = Formula(formula: formulaText, locale: locale) where formula.root != self.expression {
@@ -146,7 +146,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		}
 	}
 
-	@IBAction func insertColumnFromList(sender: NSObject) {
+	@IBAction func insertColumnFromList(_ sender: NSObject) {
 		if let s = self.columnsTableView?.selectedRow where s != NSNotFound && s >= 0 && s < self.columns.count {
 			if let locale = self.locale {
 				let column = self.columns[s]
@@ -157,7 +157,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 					let er = lastSelectedRange ?? ed.selectedRange
 					if er.length > 0 {
 						ed.selectedRange = er
-						ed.replaceCharactersInRange(er, withString: replacement)
+						ed.replaceCharacters(in: er, with: replacement)
 						ed.selectedRange = NSMakeRange(er.location, replacement.characters.count)
 					}
 					else {
@@ -184,14 +184,14 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 
 	override func viewWillAppear() {
 		if self.expression is Sibling {
-			self.assistantTabView?.selectTabViewItemWithIdentifier("columns")
+			self.assistantTabView?.selectTabViewItem(withIdentifier: "columns")
 		}
 		else {
-			self.assistantTabView?.selectTabViewItemWithIdentifier("result")
+			self.assistantTabView?.selectTabViewItem(withIdentifier: "result")
 		}
 	}
 
-	override func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
+	override func prepare(for segue: NSStoryboardSegue, sender: AnyObject?) {
 		if segue.identifier == "showReference" {
 			if let dest = segue.destinationController as? QBEReferenceViewController {
 				dest.delegate = self

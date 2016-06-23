@@ -2,15 +2,15 @@ import Foundation
 import WarpCore
 
 public class QBEConfigurable: NSObject {
-	public func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	public func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		fatalError("Not implemented")
 	}
 }
 
 protocol QBEConfigurableViewDelegate: NSObjectProtocol {
-	var locale: Locale { get }
+	var locale: Language { get }
 
-	func configurableView(view: QBEConfigurableViewController, didChangeConfigurationFor: QBEConfigurable)
+	func configurableView(_ view: QBEConfigurableViewController, didChangeConfigurationFor: QBEConfigurable)
 }
 
 class QBEConfigurableViewController: NSViewController {
@@ -18,7 +18,7 @@ class QBEConfigurableViewController: NSViewController {
 		fatalError("Do not call")
 	}
 
-	override init?(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
+	override init?(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
 		super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
 	}
 
@@ -31,7 +31,7 @@ class QBEConfigurableStepViewControllerFor<StepType: QBEStep>: QBEConfigurableVi
 	weak var delegate: QBEConfigurableViewDelegate?
 	var step: StepType
 
-	init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate, nibName: String?, bundle: NSBundle?) {
+	init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate, nibName: String?, bundle: Bundle?) {
 		self.step = configurable as! StepType
 		self.delegate = delegate
 		super.init(nibName: nibName, bundle: bundle)
@@ -48,19 +48,9 @@ class QBEConfigurableStepViewControllerFor<StepType: QBEStep>: QBEConfigurableVi
 
 class QBEFactory {
 	typealias QBEStepViewCreator = (step: QBEStep?, delegate: QBESuggestionsViewDelegate) -> NSViewController?
-	typealias QBEFileReaderCreator = (url: NSURL) -> QBEStep?
+	typealias QBEFileReaderCreator = (url: URL) -> QBEStep?
 
-	class var sharedInstance : QBEFactory {
-		struct Static {
-			static var onceToken : dispatch_once_t = 0
-			static var instance : QBEFactory? = nil
-		}
-
-		dispatch_once(&Static.onceToken) {
-			Static.instance = QBEFactory()
-		}
-		return Static.instance!
-	}
+	static var sharedInstance = QBEFactory()
 	
 	let fileWriters: [QBEFileWriter.Type] = [
 		QBECSVWriter.self,
@@ -151,7 +141,7 @@ class QBEFactory {
 	var fileExtensionsForWriting: Set<String> { get {
 		var exts = Set<String>()
 		for writer in fileWriters {
-			exts.unionInPlace(writer.fileTypes)
+			exts.formUnion(writer.fileTypes)
 		}
 		return exts
 	} }
@@ -160,12 +150,12 @@ class QBEFactory {
 		return [String](fileReaders.keys)
 	} }
 	
-	func stepForReadingFile(atURL: NSURL) -> QBEStep? {
+	func stepForReadingFile(_ atURL: URL) -> QBEStep? {
 		do {
 			// Try to find reader by UTI type
-			let type = try NSWorkspace.sharedWorkspace().typeOfFile(atURL.path!)
+			let type = try NSWorkspace.shared().type(ofFile: atURL.path!)
 			for (readerType, creator) in fileReaders {
-				if NSWorkspace.sharedWorkspace().type(type, conformsToType: readerType) {
+				if NSWorkspace.shared().type(type, conformsToType: readerType) {
 					return creator(url: atURL)
 				}
 			}
@@ -184,7 +174,7 @@ class QBEFactory {
 		return nil
 	}
 	
-	func fileWriterForType(type: String) -> QBEFileWriter.Type? {
+	func fileWriterForType(_ type: String) -> QBEFileWriter.Type? {
 		for writer in fileWriters {
 			if writer.fileTypes.contains(type) {
 				return writer
@@ -193,38 +183,38 @@ class QBEFactory {
 		return nil
 	}
 
-	func hasViewForConfigurable(configurable: NSObject) -> Bool {
+	func hasViewForConfigurable(_ configurable: NSObject) -> Bool {
 		return configurableViews[configurable.className] != nil
 	}
 
-	func viewForConfigurable<StepType: QBEConfigurable>(step: StepType, delegate: QBEConfigurableViewDelegate) -> QBEConfigurableViewController? {
+	func viewForConfigurable<StepType: QBEConfigurable>(_ step: StepType, delegate: QBEConfigurableViewDelegate) -> QBEConfigurableViewController? {
 		if let viewType = configurableViews[step.self.className] {
 			return viewType.init(configurable: step, delegate: delegate)
 		}
 		return nil
 	}
 	
-	func iconForStep(step: QBEStep) -> String? {
+	func iconForStep(_ step: QBEStep) -> String? {
 		return stepIcons[step.className]
 	}
 	
-	func iconForStepType(type: QBEStep.Type) -> String? {
+	func iconForStepType(_ type: QBEStep.Type) -> String? {
 		return stepIcons[type.className()]
 	}
 
-	func viewControllerForTablet(tablet: QBETablet, storyboard: NSStoryboard) -> QBETabletViewController {
+	func viewControllerForTablet(_ tablet: QBETablet, storyboard: NSStoryboard) -> QBETabletViewController {
 		let tabletController: QBETabletViewController
 		if tablet is QBEChainTablet {
-			tabletController = storyboard.instantiateControllerWithIdentifier("chainTablet") as! QBEChainTabletViewController
+			tabletController = storyboard.instantiateController(withIdentifier: "chainTablet") as! QBEChainTabletViewController
 		}
 		else if tablet is QBENoteTablet {
-			tabletController = storyboard.instantiateControllerWithIdentifier("noteTablet") as! QBENoteTabletViewController
+			tabletController = storyboard.instantiateController(withIdentifier: "noteTablet") as! QBENoteTabletViewController
 		}
 		else if tablet is QBEChartTablet {
-			tabletController = storyboard.instantiateControllerWithIdentifier("chartTablet") as! QBEChartTabletViewController
+			tabletController = storyboard.instantiateController(withIdentifier: "chartTablet") as! QBEChartTabletViewController
 		}
 		else if tablet is QBEMapTablet {
-			tabletController = storyboard.instantiateControllerWithIdentifier("mapTablet") as! QBEMapTabletViewController
+			tabletController = storyboard.instantiateController(withIdentifier: "mapTablet") as! QBEMapTabletViewController
 		}
 		else {
 			fatalError("No view controller found for tablet type")

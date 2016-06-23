@@ -16,14 +16,14 @@ class QBECrawler: NSObject, NSSecureCoding {
 		self.urlExpression = urlExpression
 	}
 	
-	func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(urlExpression, forKey: "url")
-		coder.encodeObject(targetBodyColumn?.name, forKey: "bodyColumn")
-		coder.encodeObject(targetStatusColumn?.name, forKey: "statusColumn")
-		coder.encodeObject(targetResponseTimeColumn?.name, forKey: "responseTimeColumn")
-		coder.encodeObject(targetErrorColumn?.name, forKey: "errorColumn")
-		coder.encodeInteger(maxConcurrentRequests, forKey: "maxConcurrentRequests")
-		coder.encodeInteger(maxRequestsPerSecond ?? -1, forKey: "maxRequestsPerSecond")
+	func encode(with coder: NSCoder) {
+		coder.encode(urlExpression, forKey: "url")
+		coder.encode(targetBodyColumn?.name, forKey: "bodyColumn")
+		coder.encode(targetStatusColumn?.name, forKey: "statusColumn")
+		coder.encode(targetResponseTimeColumn?.name, forKey: "responseTimeColumn")
+		coder.encode(targetErrorColumn?.name, forKey: "errorColumn")
+		coder.encode(maxConcurrentRequests, forKey: "maxConcurrentRequests")
+		coder.encode(maxRequestsPerSecond ?? -1, forKey: "maxRequestsPerSecond")
 	}
 	
 	required init?(coder: NSCoder) {
@@ -33,8 +33,8 @@ class QBECrawler: NSObject, NSSecureCoding {
 		let targetResponseTimeColumn = coder.decodeObjectOfClass(NSString.self, forKey: "responseTimeColumn") as? String
 		let targetErrorColumn = coder.decodeObjectOfClass(NSString.self, forKey: "errorColumn") as? String
 		
-		self.maxConcurrentRequests = coder.decodeIntegerForKey("maxConcurrentRequests")
-		self.maxRequestsPerSecond = coder.decodeIntegerForKey("maxRequestsPerSecond")
+		self.maxConcurrentRequests = coder.decodeInteger(forKey: "maxConcurrentRequests")
+		self.maxRequestsPerSecond = coder.decodeInteger(forKey: "maxRequestsPerSecond")
 		if self.maxRequestsPerSecond < 1 {
 			self.maxRequestsPerSecond = nil
 		}
@@ -55,18 +55,18 @@ class QBECrawler: NSObject, NSSecureCoding {
 	}
 }
 
-class QBECrawlStream: Stream {
-	let source: Stream
+class QBECrawlStream: WarpCore.Stream {
+	let source: WarpCore.Stream
 	var sourceColumnNames: Future<Fallible<[Column]>>
 	let crawler: QBECrawler
 	
-	init(source: Stream, crawler: QBECrawler) {
+	init(source: WarpCore.Stream, crawler: QBECrawler) {
 		self.source = source
 		self.sourceColumnNames = Future({(j, cb) in source.columns(j, callback: cb) })
 		self.crawler = crawler
 	}
 	
-	func columns(job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
 		self.sourceColumnNames.get { (sourceColumns) in
 			callback(sourceColumns.use({ (sourceColumns) -> [Column] in
 				var sourceColumns = sourceColumns
@@ -101,18 +101,18 @@ class QBECrawlStream: Stream {
 		}
 	}
 	
-	func fetch(job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: Sink) {
 		// First obtain the column names from the source stream
 		self.sourceColumnNames.get { (sourceColumnsFallible) in
 			switch sourceColumnsFallible {
-				case .Success(let sourceColumns):
+				case .success(let sourceColumns):
 				// Fetch a bunch of rows
 				self.source.fetch(job) { (rows, hasMore) -> () in
 					switch rows {
-					case .Success(let rows):
+					case .success(let rows):
 						var outRows: [Tuple] = []
 						
-						Array(rows).eachConcurrently(maxConcurrent: self.crawler.maxConcurrentRequests, maxPerSecond: self.crawler.maxRequestsPerSecond, each: { (tuple, callback) -> () in
+						Array(rows).eachConcurrently(self.crawler.maxConcurrentRequests, maxPerSecond: self.crawler.maxRequestsPerSecond, each: { (tuple, callback) -> () in
 							// Check if we should continue
 							if job.cancelled {
 								callback()
@@ -122,29 +122,29 @@ class QBECrawlStream: Stream {
 							job.async {
 								// Find out what URL we need to fetch
 								var row = Row(tuple, columns: sourceColumns)
-								if let urlString = self.crawler.urlExpression.apply(row, foreign: nil, inputValue: nil).stringValue, url = NSURL(string: urlString) {
-									let request = NSMutableURLRequest(URL: url)
+								if let urlString = self.crawler.urlExpression.apply(row, foreign: nil, inputValue: nil).stringValue, url = URL(string: urlString) {
+									let request = NSMutableURLRequest(url: url)
 									// TODO: make configurable
-									request.HTTPMethod = "GET"
-									request.cachePolicy = .ReturnCacheDataElseLoad
+									request.httpMethod = "GET"
+									request.cachePolicy = .returnCacheDataElseLoad
 									
 									let startTime = CFAbsoluteTimeGetCurrent()
-									Alamofire.request(request).responseString(encoding: NSUTF8StringEncoding) { response in
+									Alamofire.request(request as URLRequest).responseString(encoding: String.Encoding.utf8) { response in
 										let data = response.result.value
 
 										let duration = CFAbsoluteTimeGetCurrent() - startTime
 										
 										// Store results in the row
 										if let bodyColumn = self.crawler.targetBodyColumn {
-											row.setValue(data != nil ? Value(data!) : Value.InvalidValue, forColumn: bodyColumn)
+											row.setValue(data != nil ? Value(data!) : Value.invalid, forColumn: bodyColumn)
 										}
 										
 										if let statusColumn = self.crawler.targetStatusColumn {
-											row.setValue(response.response != nil ? Value(response.response!.statusCode) : Value.InvalidValue, forColumn: statusColumn)
+											row.setValue(response.response != nil ? Value(response.response!.statusCode) : Value.invalid, forColumn: statusColumn)
 										}
 										
 										if let errorColumn = self.crawler.targetErrorColumn {
-											row.setValue(response.result.isFailure ? Value("\(response.result.error!)") : Value.EmptyValue, forColumn: errorColumn)
+											row.setValue(response.result.isFailure ? Value("\(response.result.error!)") : Value.empty, forColumn: errorColumn)
 										}
 										
 										if let timeColumn = self.crawler.targetResponseTimeColumn {
@@ -160,11 +160,11 @@ class QBECrawlStream: Stream {
 								else {
 									// Invalid URL
 									if let bodyColumn = self.crawler.targetBodyColumn {
-										row.setValue(Value.InvalidValue, forColumn: bodyColumn)
+										row.setValue(Value.invalid, forColumn: bodyColumn)
 									}
 									
 									if let statusColumn = self.crawler.targetStatusColumn {
-										row.setValue(Value.InvalidValue, forColumn: statusColumn)
+										row.setValue(Value.invalid, forColumn: statusColumn)
 									}
 									
 									if let errorColumn = self.crawler.targetErrorColumn {
@@ -172,7 +172,7 @@ class QBECrawlStream: Stream {
 									}
 									
 									if let timeColumn = self.crawler.targetResponseTimeColumn {
-										row.setValue(Value.InvalidValue, forColumn: timeColumn)
+										row.setValue(Value.invalid, forColumn: timeColumn)
 									}
 
 									
@@ -183,28 +183,28 @@ class QBECrawlStream: Stream {
 								}
 							}
 						}, completion: {
-							consumer(.Success(Array<Tuple>(outRows)), hasMore)
+							consumer(.success(Array<Tuple>(outRows)), hasMore)
 						})
 						
-					case .Failure(let e):
-						consumer(.Failure(e), hasMore)
+					case .failure(let e):
+						consumer(.failure(e), hasMore)
 					}
 				}
 				
-				case .Failure(let e):
-					consumer(.Failure(e), .Finished)
+				case .failure(let e):
+					consumer(.failure(e), .finished)
 			}
 		}
 	}
 
-	func clone() -> Stream {
+	func clone() -> WarpCore.Stream {
 		return QBECrawlStream(source: source.clone(), crawler: crawler)
 	}
 }
 
-extension Data {
-	func crawl(crawler: QBECrawler) -> Data {
-		return StreamData(source: QBECrawlStream(source: self.stream(), crawler: crawler))
+extension Dataset {
+	func crawl(_ crawler: QBECrawler) -> Dataset {
+		return StreamDataset(source: QBECrawlStream(source: self.stream(), crawler: crawler))
 	}
 }
 
@@ -232,7 +232,7 @@ class QBECrawlStep: QBEStep {
 		super.init()
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("For each row, fetch the web page at [#]", comment: ""),
 			QBESentenceFormula(expression: self.crawler.urlExpression, locale: locale, callback: { [weak self] (newExpression) -> () in
 				self?.crawler.urlExpression = newExpression
@@ -240,12 +240,12 @@ class QBECrawlStep: QBEStep {
 		)
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
-		coder.encodeObject(self.crawler, forKey: "crawler")
-		super.encodeWithCoder(coder)
+	override func encode(with coder: NSCoder) {
+		coder.encode(self.crawler, forKey: "crawler")
+		super.encode(with: coder)
 	}
 	
-	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
-		callback(.Success(data.crawl(crawler)))
+	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+		callback(.success(data.crawl(crawler)))
 	}
 }

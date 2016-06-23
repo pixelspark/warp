@@ -13,7 +13,7 @@ class QBERenameStep: QBEStep {
 		super.init(previous: previous)
 	}
 
-	override func sentence(locale: Locale, variant: QBESentenceVariant) -> QBESentence {
+	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		if renames.isEmpty {
 			return QBESentence([QBESentenceText(NSLocalizedString("Rename columns", comment: ""))])
 		}
@@ -22,7 +22,7 @@ class QBERenameStep: QBEStep {
 			return QBESentence(format: NSLocalizedString("Rename column [#] to [#]", comment: ""),
 				QBESentenceTextInput(value: rename.0.name, callback: { [weak self] (newName) -> (Bool) in
 					if !newName.isEmpty {
-						let oldTo = self?.renames.removeValueForKey(rename.0)
+						let oldTo = self?.renames.removeValue(forKey: rename.0)
 						self?.renames[Column(newName)] = oldTo
 						return true
 					}
@@ -43,7 +43,7 @@ class QBERenameStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		let renames = (aDecoder.decodeObjectForKey("renames") as? [String:String]) ?? [:]
+		let renames = (aDecoder.decodeObject(forKey: "renames") as? [String:String]) ?? [:]
 		self.renames = [:]
 		
 		for (key, value) in renames {
@@ -52,24 +52,24 @@ class QBERenameStep: QBEStep {
 		super.init(coder: aDecoder)
 	}
 	
-	override func encodeWithCoder(coder: NSCoder) {
+	override func encode(with coder: NSCoder) {
 		var renames: [String: String] = [:]
 		for (key, value) in self.renames {
 			renames[key.name] = value.name
 		}
-		coder.encodeObject(renames, forKey: "renames")
-		super.encodeWithCoder(coder)
+		coder.encode(renames, forKey: "renames")
+		super.encode(with: coder)
 	}
 	
-	override func apply(data: Data, job: Job, callback: (Fallible<Data>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
 		// If we have nothing to rename, bypass this step
 		if self.renames.isEmpty {
-			callback(.Success(data))
+			callback(.success(data))
 			return
 		}
 		
 		data.columns(job) { (existingColumnsFallible) -> () in
-			callback(existingColumnsFallible.use {(existingColumnNames) -> Data in
+			callback(existingColumnsFallible.use {(existingColumnNames) -> Dataset in
 				var calculations: [Column: Expression] = [:]
 				var newColumns: [Column] = []
 				
@@ -90,7 +90,7 @@ class QBERenameStep: QBEStep {
 		}
 	}
 	
-	override func mergeWith(prior: QBEStep) -> QBEStepMerge {
+	override func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
 		if let p = prior as? QBERenameStep {
 			var renames = p.renames
 			
@@ -113,14 +113,14 @@ class QBERenameStep: QBEStep {
 			self.renames = renames
 			
 			// This step can ony be a further subset of the columns selected by the prior
-			return QBEStepMerge.Advised(self)
+			return QBEStepMerge.advised(self)
 		}
 		else if let p = prior as? QBECalculateStep {
 			if let firstRename = self.renames.first where self.renames.count == 1 && firstRename.0 == p.targetColumn {
 				let newCalculate = QBECalculateStep(previous: p.previous, targetColumn: firstRename.1, function: p.function)
-				return QBEStepMerge.Advised(newCalculate)
+				return QBEStepMerge.advised(newCalculate)
 			}
 		}
-		return QBEStepMerge.Impossible
+		return QBEStepMerge.impossible
 	}
 }

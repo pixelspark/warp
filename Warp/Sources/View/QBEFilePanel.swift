@@ -15,7 +15,7 @@ class QBEFilePanelAccessoryView: NSViewController {
 		for ext in extensions {
 			options.append("\(allowedFileTypes[ext]!) (*.\(ext))")
 		}
-		self.popupButton.addItemsWithTitles(options)
+		self.popupButton.addItems(withTitles: options)
 	} }
 
 	var selectedExtension: String? { get {
@@ -25,7 +25,7 @@ class QBEFilePanelAccessoryView: NSViewController {
 		return nil
 	} }
 
-	@IBAction func didSelectType(sender: NSObject) {
+	@IBAction func didSelectType(_ sender: NSObject) {
 		if popupButton.indexOfSelectedItem >= 0 && popupButton.indexOfSelectedItem < self.extensions.count {
 			let ext = extensions[popupButton.indexOfSelectedItem]
 			if let sp = savePanel {
@@ -43,11 +43,11 @@ class QBEFilePanel {
 		self.allowedFileTypes = allowedFileTypes
 	}
 
-	func askForSaveFile(inWindow: NSWindow, callback: (Fallible<NSURL>) -> ()) {
+	func askForSaveFile(_ inWindow: NSWindow, callback: (Fallible<URL>) -> ()) {
 		let no = NSSavePanel()
 		no.allowedFileTypes = Array(allowedFileTypes.keys)
 		no.allowsOtherFileTypes = self.allowsOtherFileTypes
-		no.extensionHidden = true
+		no.isExtensionHidden = true
 
 		// Create accessory view
 		if let accessoryView = QBEFilePanelAccessoryView(nibName: "QBEFilePanelAccessoryView", bundle: nil) {
@@ -55,14 +55,14 @@ class QBEFilePanel {
 			accessoryView.savePanel = no
 			accessoryView.allowedFileTypes = self.allowedFileTypes
 
-			no.beginSheetModalForWindow(inWindow) { (result) -> Void in
+			no.beginSheetModal(for: inWindow) { (result) -> Void in
 				let x = accessoryView
 				x.allowedFileTypes.removeAll()
 				if result == NSFileHandlingPanelOKButton {
-					callback(.Success(no.URL!))
+					callback(.success(no.url!))
 				}
 				else {
-					callback(.Failure(NSLocalizedString("No file was selected.", comment: "")))
+					callback(.failure(NSLocalizedString("No file was selected.", comment: "")))
 				}
 			}
 		}

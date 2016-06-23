@@ -9,48 +9,48 @@ extension String {
 
 @NSApplicationMain
 class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
-	internal var locale: Locale!
+	internal var locale: Language!
 	internal let jobsManager = QBEJobsManager()
 	
-	func applicationDidFinishLaunching(aNotification: NSNotification) {
+	func applicationDidFinishLaunching(_ aNotification: Notification) {
 		applyDefaults()
-		NSUserNotificationCenter.defaultUserNotificationCenter().delegate = self
-		NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(QBEAppDelegate.defaultsChanged(_:)), name: NSUserDefaultsDidChangeNotification, object: nil)
+		NSUserNotificationCenter.default().delegate = self
+		NotificationCenter.default().addObserver(self, selector: #selector(QBEAppDelegate.defaultsChanged(_:)), name: UserDefaults.didChangeNotification, object: nil)
 	}
 	
-	func defaultsChanged(nf: NSNotification) {
+	func defaultsChanged(_ nf: Notification) {
 		applyDefaults()
 	}
 	
 	private func applyDefaults() {
-		let language = NSUserDefaults.standardUserDefaults().stringForKey("locale") ?? Locale.defaultLanguage
-		self.locale = Locale(language: language)
+		let language = UserDefaults.standard().string(forKey: "locale") ?? Language.defaultLanguage
+		self.locale = Language(language: language)
 	}
 	
-	func applicationWillTerminate(aNotification: NSNotification) {
+	func applicationWillTerminate(_ aNotification: Notification) {
 		// Insert code here to tear down your application
 	}
 	
 	class var sharedInstance: QBEAppDelegate { get {
-		return NSApplication.sharedApplication().delegate as! QBEAppDelegate
+		return NSApplication.shared().delegate as! QBEAppDelegate
 	} }
 
 	/** This ensures that all our user notifications are shown at all times, even when the application is still frontmost. */
-	func userNotificationCenter(center: NSUserNotificationCenter, shouldPresentNotification notification: NSUserNotification) -> Bool {
+	func userNotificationCenter(_ center: NSUserNotificationCenter, shouldPresent notification: NSUserNotification) -> Bool {
 		return true
 	}
 
-	func application(sender: NSApplication, openFile filename: String) -> Bool {
-		let dc = NSDocumentController.sharedDocumentController()
-		let u = NSURL(fileURLWithPath: filename)
+	func application(_ sender: NSApplication, openFile filename: String) -> Bool {
+		let dc = NSDocumentController.shared()
+		let u = URL(fileURLWithPath: filename)
 
 		// Check to see if the file being opened is a document
 		var type: AnyObject? = nil
 		do {
-			try u.getResourceValue(&type, forKey: NSURLTypeIdentifierKey)
+			try (u as NSURL).getResourceValue(&type, forKey: URLResourceKey.typeIdentifierKey)
 			if let uti = type as? String {
-				if NSWorkspace.sharedWorkspace().type(uti, conformsToType: "nl.pixelspark.Warp.Document") {
-					dc.openDocumentWithContentsOfURL(u, display: true, completionHandler: { (doc, alreadyOpen, error) -> Void in
+				if NSWorkspace.shared().type(uti, conformsToType: "nl.pixelspark.Warp.Document") {
+					dc.openDocument(withContentsOf: u, display: true, completionHandler: { (doc, alreadyOpen, error) -> Void in
 					})
 					return true
 				}
@@ -73,9 +73,9 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 		return false
 	}
 
-	@IBAction func showHelp(sender: NSObject) {
-		if let u = NSBundle.mainBundle().infoDictionary?["WarpHelpURL"] as? String, let url = NSURL(string: u) {
-			NSWorkspace.sharedWorkspace().openURL(url)
+	@IBAction func showHelp(_ sender: NSObject) {
+		if let u = Bundle.main().infoDictionary?["WarpHelpURL"] as? String, let url = URL(string: u) {
+			NSWorkspace.shared().open(url)
 		}
 	}
 }
