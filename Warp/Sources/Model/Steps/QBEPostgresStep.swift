@@ -288,8 +288,8 @@ internal class QBEPostgresResult: Sequence, IteratorProtocol {
 				else {
 					self.finished = true
 					if PQresultStatus(self.result).rawValue != PGRES_TUPLES_OK.rawValue && PQresultStatus(self.result).rawValue != PGRES_COMMAND_OK.rawValue {
-						let status = String(CString: PQresStatus(PQresultStatus(self.result)), encoding: String.Encoding.utf8) ?? "(unknown status)"
-						let error = String(CString: PQresultErrorMessage(self.result), encoding: String.Encoding.utf8) ?? "(unknown error)"
+						let status = String(cString: PQresStatus(PQresultStatus(self.result)), encoding: String.Encoding.utf8) ?? "(unknown status)"
+						let error = String(cString: PQresultErrorMessage(self.result), encoding: String.Encoding.utf8) ?? "(unknown error)"
 						self.error = error
 						trace("PostgreSQL no result: \(status) \(error)")
 					}
@@ -490,7 +490,7 @@ class QBEPostgresDatasetbase: SQLDatasetbase {
 					return .success(QBEPostgresConnection(database: self, connection: connection))
 				
 				case CONNECTION_BAD.rawValue:
-					let error = String(CString:  PQerrorMessage(connection), encoding: String.Encoding.utf8) ?? "(unknown error)"
+					let error = String(cString:  PQerrorMessage(connection), encoding: String.Encoding.utf8) ?? "(unknown error)"
 					return .failure(error)
 					
 				default:
@@ -576,7 +576,7 @@ internal class QBEPostgresConnection: SQLConnection {
 		queue.sync {
 			let result = block()
 			if !result {
-				let message = String(CString:  PQerrorMessage(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
+				let message = String(cString:  PQerrorMessage(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
 				trace("PostgreSQL perform error: \(message)")
 				success = false
 			}
@@ -588,7 +588,7 @@ internal class QBEPostgresConnection: SQLConnection {
 	}
 	
 	private var lastError: String { get {
-			return String(CString:  PQerrorMessage(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
+			return String(cString:  PQerrorMessage(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
 	} }
 	
 	func query(_ sql: String) -> Fallible<QBEPostgresResult> {

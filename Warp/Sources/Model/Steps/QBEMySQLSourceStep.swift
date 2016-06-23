@@ -423,7 +423,7 @@ internal class QBEMySQLConnection: SQLConnection {
 	}
 	
 	private var lastError: String { get {
-		return String(CString: mysql_error(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
+		return String(cString: mysql_error(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
 	} }
 	
 	func query(_ sql: String) -> Fallible<QBEMySQLResult> {
