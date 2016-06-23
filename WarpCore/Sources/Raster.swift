@@ -640,7 +640,7 @@ public class RasterDataset: NSObject, Dataset {
 
 					if (i % Raster.progressReportRowInterval) == 0 {
 						job?.reportProgress(Double(i) / Double(r.rowCount), forKey: progressKey)
-						if job?.cancelled == true {
+						if job?.isCancelled == true {
 							return Raster()
 						}
 					}
@@ -689,7 +689,7 @@ public class RasterDataset: NSObject, Dataset {
 
 				if (rowNumber % Raster.progressReportRowInterval) == 0 {
 					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
-					if job?.cancelled == true {
+					if job?.isCancelled == true {
 						return Raster()
 					}
 				}
@@ -791,7 +791,7 @@ public class RasterDataset: NSObject, Dataset {
 
 				if (rowNumber % Raster.progressReportRowInterval) == 0 {
 					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
-					if job?.cancelled == true {
+					if job?.isCancelled == true {
 						return Raster()
 					}
 				}
@@ -828,7 +828,7 @@ public class RasterDataset: NSObject, Dataset {
 
 				if (rowNumber % Raster.progressReportRowInterval) == 0 {
 					job?.reportProgress(Double(rowNumber) / Double(r.rowCount), forKey: progressKey)
-					if job?.cancelled == true {
+					if job?.isCancelled == true {
 						return Raster()
 					}
 				}

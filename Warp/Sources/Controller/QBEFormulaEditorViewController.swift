@@ -101,7 +101,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 				job.async {
 					// Parse the formula to get coloring information. This can take a while, so do it in the background
 					if let formula = Formula(formula: e.toFormula(locale, topLevel: true), locale: locale) {
-						if !job.cancelled {
+						if !job.isCancelled {
 							asyncMain {
 								ff.attributedStringValue = formula.syntaxColoredFormula
 							}
@@ -134,7 +134,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 			self.syntaxColoringJob = job
 			job.async {
 				if let formula = Formula(formula: formulaText, locale: locale) where formula.root != self.expression {
-					if !job.cancelled {
+					if !job.isCancelled {
 						asyncMain {
 							self.expression = formula.root
 							self.delegate?.formulaEditor(self, didChangeExpression: self.expression)

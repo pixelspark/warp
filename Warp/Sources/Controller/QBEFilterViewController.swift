@@ -85,7 +85,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 						}
 
 						asyncMain { [weak self] in
-							if !job.cancelled {
+							if !job.isCancelled {
 								self?.values = ordered
 								self?.reloadJob = nil
 								self?.valueCount = count

@@ -633,7 +633,7 @@ private class QBESQLiteWriterSession {
 	private func ingest(_ rows: Fallible<Array<Tuple>>, streamStatus: StreamStatus) {
 		switch rows {
 		case .success(let r):
-			if streamStatus == .hasMore && !self.job!.cancelled {
+			if streamStatus == .hasMore && !self.job!.isCancelled {
 				self.stream?.fetch(self.job!, consumer: self.ingest)
 			}
 

@@ -222,7 +222,7 @@ public class StreamDataset: Dataset {
 	public func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
 		let s = source.clone()
 		job.async {
-			s.columns(job) { (columns) -> () in
+			s.columns(job, callback: once { (columns) -> () in
 				switch columns {
 					case .success(let cns):
 						let h = RasterStreamPuller(stream: s, job: job, columns: cns, callback: callback)
@@ -231,7 +231,7 @@ public class StreamDataset: Dataset {
 					case .failure(let e):
 						callback(.failure(e))
 				}
-			}
+			})
 		}
 	}
 
@@ -743,9 +743,10 @@ private class LimitTransformer: Transformer {
 			// We haven't reached the limit yet, not even after streaming this chunk
 			if (self.position + rows.count) < self.limit {
 				self.position += rows.count
+				let progress = Double(self.position) / Double(self.limit)
 
 				job.async {
-					job.reportProgress(Double(self.position) / Double(self.limit), forKey: unsafeAddress(of: self).hashValue)
+					job.reportProgress(progress, forKey: unsafeAddress(of: self).hashValue)
 					callback(.success(rows), streamStatus)
 				}
 			}
@@ -868,39 +869,39 @@ private class CalculateTransformer: Transformer {
 		self.calculations = optimizedCalculations
 		super.init(source: source)
 
-		var s: CalculateTransformer? = self
+		weak var s: CalculateTransformer? = self
 		self.ensureIndexes = Future({ (job, callback) -> () in
-			if s!.indices == nil {
-				source.columns(job) { (columns) -> () in
-					switch columns {
-					case .success(let cns):
-						var columns = cns
-						var indices = Dictionary<Column, Int>()
+			if let s = s {
+				if s.indices == nil {
+					source.columns(job) { (columns) -> () in
+						switch columns {
+						case .success(let cns):
+							var columns = cns
+							var indices = Dictionary<Column, Int>()
 
-						// Create newly calculated columns
-						for (targetColumn, _) in s!.calculations {
-							var columnIndex = cns.index(of: targetColumn) ?? -1
-							if columnIndex == -1 {
-								columns.append(targetColumn)
-								columnIndex = columns.count-1
+							// Create newly calculated columns
+							for (targetColumn, _) in s.calculations {
+								var columnIndex = cns.index(of: targetColumn) ?? -1
+								if columnIndex == -1 {
+									columns.append(targetColumn)
+									columnIndex = columns.count-1
+								}
+								indices[targetColumn] = columnIndex
 							}
-							indices[targetColumn] = columnIndex
+							s.indices = .success(indices)
+							s.columns = .success(columns)
+
+						case .failure(let error):
+							s.columns = .failure(error)
+							s.indices = .failure(error)
 						}
-						s!.indices = .success(indices)
-						s!.columns = .success(columns)
 
-					case .failure(let error):
-						s!.columns = .failure(error)
-						s!.indices = .failure(error)
+						callback()
 					}
-
-					s = nil
+				}
+				else {
 					callback()
 				}
-			}
-			else {
-				s = nil
-				callback()
 			}
 		})
 	}

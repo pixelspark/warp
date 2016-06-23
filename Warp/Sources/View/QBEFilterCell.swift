@@ -55,7 +55,7 @@ internal class QBEFilterCell: NSButtonCell {
 					var v = Array<Int>(repeating: 0, count: stripes)
 					if let index = raster.indexOfColumnWithName(column) {
 						for row in raster.rows {
-							if job.cancelled {
+							if job.isCancelled {
 								return
 							}
 
@@ -71,7 +71,7 @@ internal class QBEFilterCell: NSButtonCell {
 						}
 					}
 					asyncMain {
-						if let s = self where !job.cancelled {
+						if let s = self where !job.isCancelled {
 							s.cached = v
 							controlView.setNeedsDisplay(cellFrame)
 						}

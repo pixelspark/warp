@@ -115,7 +115,7 @@ public class Expression: NSObject, NSCoding {
 			inputValue = Value.invalid
 		}
 
-		if let c = job?.cancelled where c {
+		if let c = job?.isCancelled where c {
 			return outSuggestions
 		}
 
@@ -123,7 +123,7 @@ public class Expression: NSObject, NSCoding {
 
 		// Try out combinations of formulas and see if they fit
 		for formulaType in expressions {
-			if let c = job?.cancelled where c {
+			if let c = job?.isCancelled where c {
 				return outSuggestions
 			}
 			
@@ -647,7 +647,7 @@ public final class Call: Expression {
 						var foundAsElement = false
 						let separators = [" ", ",", ";", "\t", "|", "-", ".", "/", ":", "\\", "#", "=", "_", "(", ")", "[", "]"]
 						for separator in separators {
-							if let c = job?.cancelled where c {
+							if let c = job?.isCancelled where c {
 								break
 							}
 							

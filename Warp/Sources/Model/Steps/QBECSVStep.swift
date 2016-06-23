@@ -87,7 +87,7 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 				let startTime = NSDate.timeIntervalSinceReferenceDate()
 				#endif
 				var fetched = 0
-				while !self.finished && (fetched < StreamDefaultBatchSize) && !job.cancelled {
+				while !self.finished && (fetched < StreamDefaultBatchSize) && !job.isCancelled {
 					self.finished = !self.parser._parseRecord()
 					fetched += 1
 				}

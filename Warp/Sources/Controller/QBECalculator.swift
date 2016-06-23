@@ -68,9 +68,11 @@ public class QBECalculator: NSObject {
 
 	private var calculationInProgressForStep: QBEStep? = nil
 	private var stepPerformance: [Int: QBEStepPerformance] = [:]
-	
+
 	public var calculating: Bool { get {
-		return self.calculationInProgressForStep != nil
+		return self.mutex.locked {
+			return self.calculationInProgressForStep != nil
+		}
 	} }
 
 	public override init() {
@@ -234,7 +236,9 @@ public class QBECalculator: NSObject {
 				
 				// Wait for the raster to arrive so we can indicate the calculation has ended
 				currentRaster!.get(calculationJob) { [unowned self] (r) in
-					self.calculationInProgressForStep = nil
+					self.mutex.locked {
+						self.calculationInProgressForStep = nil
+					}
 				}
 			}
 		}

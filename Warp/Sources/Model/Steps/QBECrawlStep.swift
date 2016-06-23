@@ -114,7 +114,7 @@ class QBECrawlStream: WarpCore.Stream {
 						
 						Array(rows).eachConcurrently(self.crawler.maxConcurrentRequests, maxPerSecond: self.crawler.maxRequestsPerSecond, each: { (tuple, callback) -> () in
 							// Check if we should continue
-							if job.cancelled {
+							if job.isCancelled {
 								callback()
 								return
 							}

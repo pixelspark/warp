@@ -12,17 +12,27 @@ public func assertMainThread(_ file: StaticString = #file, line: UInt = #line) {
 	assert(Thread.isMainThread(), "Code at \(file):\(line) must run on main thread!")
 }
 
+/** Wrap a block so that it can be called only once. Calling the returned block twice results in a fatal error. After
+the first call but before returning the result from the wrapped block, the wrapped block is dereferenced. */
 public func once<P, R>(_ block: ((P) -> (R))) -> ((P) -> (R)) {
-	var run = false
+	var blockReference: ((P) -> (R))? = block
+	let mutex = Mutex()
 
 	#if DEBUG
-	return {(p: P) -> (R) in
-		assert(!run, "callback called twice!")
-		run = true
-		return block(p)
-	}
+		return {(p: P) -> (R) in
+			return mutex.locked {
+				assert(blockReference != nil, "callback called twice!")
+				let r = blockReference!(p)
+				blockReference = nil
+				return r
+			}
+		}
 	#else
-		return block
+		return mutex.locked {
+			let r = blockReference!()
+			blockReference = nil
+			return r
+		}
 	#endif
 }
 
@@ -39,6 +49,7 @@ public extension Sequence {
 	completion block is called. */
 	func eachConcurrently(_ maxConcurrent: Int, maxPerSecond: Int?, each: (Element, () -> ()) -> (), completion: () -> ()) {
 		var iterator = self.makeIterator()
+		let mutex = Mutex()
 		var outstanding = 0
 
 		func eachTimed(_ element: Element) {
@@ -67,10 +78,12 @@ public extension Sequence {
 				eachTimed(next)
 			}
 			else {
-				outstanding -= 1
-				// No elements left to call each for, but there may be some elements in flight. The last one calls completion
-				if outstanding == 0 {
-					completion()
+				mutex.locked {
+					outstanding -= 1
+					// No elements left to call each for, but there may be some elements in flight. The last one calls completion
+					if outstanding == 0 {
+						completion()
+					}
 				}
 			}
 		}
@@ -251,7 +264,7 @@ the job has been cancelled) and report progress information. */
 public class Job: JobDelegate {
 	public let queue: DispatchQueue
 	let parentJob: Job?
-	public private(set) var cancelled: Bool = false
+	private var cancelled: Bool = false
 	private var progressComponents: [Int: Double] = [:]
 	private var observers: [Weak<JobDelegate>] = []
 	private let mutex = Mutex()
@@ -310,16 +323,22 @@ public class Job: JobDelegate {
 		log("Job deinit; \(timeComponents)")
 	}
 	#endif
+
+	public var isCancelled: Bool {
+		return self.mutex.locked {
+			return self.cancelled
+		}
+	}
 	
 	/** Shorthand function to run a block asynchronously in the queue associated with this job. Because async() will often
 	be called with an 'expensive' block, it also checks the jobs cancellation status. If the job is cancelled, the block
 	will not be executed, nor will any timing information be reported. */
 	public func async(_ block: () -> ()) {
-		if cancelled {
+		if isCancelled {
 			return
 		}
 		
-		if let p = parentJob where p.cancelled {
+		if let p = parentJob where p.isCancelled {
 			return
 		}
 		
@@ -331,11 +350,11 @@ public class Job: JobDelegate {
 	it also checks the jobs cancellation status. If the job is cancelled, the block will not be executed, nor will any 
 	timing information be reported. */
 	public func time(_ description: String, items: Int, itemType: String, block: @noescape () -> ()) {
-		if cancelled {
+		if self.isCancelled {
 			return
 		}
 		
-		if let p = parentJob where p.cancelled {
+		if let p = parentJob where p.isCancelled {
 			return
 		}
 		
