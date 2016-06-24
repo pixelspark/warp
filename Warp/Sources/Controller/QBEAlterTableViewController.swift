@@ -58,6 +58,10 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		self.removeColumn(sender)
 	}
 
+	func validate(_ item: NSValidatedUserInterfaceItem) -> Bool {
+		return self.validateUserInterfaceItem(item)
+	}
+
 	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		switch item.action {
 		case .some(#selector(QBEAlterTableViewController.delete(_:))):

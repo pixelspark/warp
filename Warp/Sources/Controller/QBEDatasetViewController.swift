@@ -346,6 +346,10 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			}
 		}
 	}
+
+	func validate(_ item: NSValidatedUserInterfaceItem) -> Bool {
+		return self.validateUserInterfaceItem(item)
+	}
 	
 	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		switch item.action {

@@ -60,6 +60,10 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	func numberOfRows(in tableView: NSTableView) -> Int {
 		return step.orders.count ?? 0
 	}
+
+	func validate(_ item: NSValidatedUserInterfaceItem) -> Bool {
+		return self.validateUserInterfaceItem(item)
+	}
 	
 	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action == #selector(QBESortStepView.delete(_:)) {

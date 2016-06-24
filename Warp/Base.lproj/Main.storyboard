@@ -1527,7 +1527,7 @@ CA
                                         </buttonCell>
                                     </button>
                                     <connections>
-                                        <action selector="toggleFullData:" target="6f7-a7-6o1" id="8Cd-Bx-Yk6"/>
+                                        <action selector="toggleFullDataset:" target="6f7-a7-6o1" id="fUS-5g-p9O"/>
                                     </connections>
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="C0BBED5C-8A5D-46E9-89F2-27F44E59EA83" label="Zoom" paletteLabel="Zoom" id="JIm-dh-FPE" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
@@ -1614,7 +1614,7 @@ CA
                                         </buttonCell>
                                     </button>
                                     <connections>
-                                        <action selector="refreshData:" target="6f7-a7-6o1" id="UA6-kD-hkq"/>
+                                        <action selector="refreshDataset:" target="6f7-a7-6o1" id="XXK-0N-jNB"/>
                                     </connections>
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="2845B5F4-9D99-4268-9384-2E570B668763" label="Show alternatives" paletteLabel="Show alternatives" image="ChangeIcon" id="qo5-X1-gJ6" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">

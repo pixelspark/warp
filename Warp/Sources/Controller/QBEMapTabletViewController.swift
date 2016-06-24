@@ -249,6 +249,10 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 		return validateSelector(item.action!)
 	}
 
+	func validate(_ item: NSValidatedUserInterfaceItem) -> Bool {
+		return self.validateUserInterfaceItem(item)
+	}
+
 	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		return validateSelector(item.action!)
 	}
