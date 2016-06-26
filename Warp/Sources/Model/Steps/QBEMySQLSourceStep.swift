@@ -437,8 +437,13 @@ internal class QBEMySQLConnection: SQLConnection {
 		#endif
 
 		if self.perform({return mysql_query(self.connection, sql.cString(using: String.Encoding.utf8)!)}) {
-			let result = QBEMySQLResult.create(mysql_use_result(self.connection), connection: self)
-			return result.use({self.result = $0; return .success($0)})
+			if let r = mysql_use_result(self.connection) {
+				let result = QBEMySQLResult.create(r, connection: self)
+				return result.use({self.result = $0; return .success($0)})
+			}
+			else {
+				return .failure(self.lastError)
+			}
 		}
 		else {
 			return .failure(self.lastError)
