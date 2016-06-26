@@ -561,8 +561,11 @@ public class Mutex {
 			}
 			self.locker = "\(file):\(line)"
 		#endif
+
+		defer {
+			self.unlock()
+		}
 		let ret: T = try block()
-		self.unlock()
 		return ret
 	}
 }
