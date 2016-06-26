@@ -536,6 +536,7 @@ public class Mutex {
 	}
 
 	deinit {
+		assert(pthread_mutex_trylock(&self.mutex) == 0 && pthread_mutex_unlock(&self.mutex) == 0, "deinitialization of a locked mutex results in undefined behavior!")
 		pthread_mutex_destroy(&self.mutex)
 	}
 
