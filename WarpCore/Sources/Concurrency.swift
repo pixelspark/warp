@@ -20,12 +20,14 @@ public func once<P, R>(_ block: ((P) -> (R))) -> ((P) -> (R)) {
 
 	#if DEBUG
 		return {(p: P) -> (R) in
-			return mutex.locked {
+			let block = mutex.locked { () -> ((P) -> (R)) in
 				assert(blockReference != nil, "callback called twice!")
-				let r = blockReference!(p)
+				let r = blockReference!
 				blockReference = nil
 				return r
 			}
+
+			return block(p)
 		}
 	#else
 		return mutex.locked {
