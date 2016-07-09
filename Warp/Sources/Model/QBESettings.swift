@@ -9,7 +9,7 @@ class QBESettings {
 	private let defaults: UserDefaults
 	
 	init () {
-		defaults = UserDefaults.standard()
+		defaults = UserDefaults.standard
 		
 		#if DEBUG
 			resetOnces()
@@ -108,8 +108,8 @@ class QBESettings {
 	func shouldCacheFile(ofEstimatedSize size: Int, atLocation: URL) -> Bool {
 		// Let's find out how much disk space is left in the proposed cache location
 		do {
-			let attrs = try FileManager.default().attributesOfFileSystem(forPath: atLocation.path!)
-			if let freeSpace = attrs[FileAttributeKey.systemFreeSize.rawValue] as? NSNumber {
+			let attrs = try FileManager.default.attributesOfFileSystem(forPath: atLocation.path!)
+			if let freeSpace = attrs[FileAttributeKey.systemFreeSize] as? NSNumber {
 				let freeSize = Double(size) / Double(freeSpace)
 				if freeSize < 0.8 {
 					return true
@@ -136,7 +136,7 @@ class QBESettings {
 		first-time tips. */
 		let dict = defaults.dictionaryRepresentation()
 		for (key, _) in dict {
-			if let r = key.range(of: "once.", options: NSString.CompareOptions.caseInsensitiveSearch, range: nil, locale: nil) where r.lowerBound==key.startIndex {
+			if let r = key.range(of: "once.", options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) where r.lowerBound==key.startIndex {
 				defaults.removeObject(forKey: key)
 			}
 		}

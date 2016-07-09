@@ -303,12 +303,12 @@ public class Language {
 		
 		/* Currently, we always use the user's current calendar, regardless of the locale set. In the future, we might 
 		also provide locales that set a particular time zone (e.g. a 'UTC locale'). */
-		calendar = Calendar.autoupdatingCurrent()
+		calendar = Calendar.autoupdatingCurrent
 		timeZone = calendar.timeZone
 		
 		dateFormatter = DateFormatter()
-		dateFormatter.dateStyle = DateFormatter.Style.mediumStyle
-		dateFormatter.timeStyle = DateFormatter.Style.mediumStyle
+		dateFormatter.dateStyle = DateFormatter.Style.medium
+		dateFormatter.timeStyle = DateFormatter.Style.medium
 		dateFormatter.timeZone = timeZone
 		dateFormatter.calendar = calendar
 	}

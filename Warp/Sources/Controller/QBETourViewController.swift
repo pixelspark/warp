@@ -99,8 +99,8 @@ class QBETourViewController: NSViewController {
 		
 		pageLabel.stringValue = currentStep > 0 ? String(format:NSLocalizedString("Step %d of %d", comment: ""), currentStep, tourItemCount - 1) : ""
 		imageView.image = NSImage(named: "\(tourAssetPrefix)\(self.currentStep)")
-		textView.stringValue = NSLocalizedString("\(tourStringsPrefix).\(currentStep).title", tableName: self.tourStringsTable, bundle: Bundle.main(), value: "", comment: "")
-		subTextView.stringValue = NSLocalizedString("\(tourStringsPrefix).\(currentStep).description", tableName: self.tourStringsTable, bundle: Bundle.main(), value: "", comment: "")
+		textView.stringValue = NSLocalizedString("\(tourStringsPrefix).\(currentStep).title", tableName: self.tourStringsTable, bundle: Bundle.main, value: "", comment: "")
+		subTextView.stringValue = NSLocalizedString("\(tourStringsPrefix).\(currentStep).description", tableName: self.tourStringsTable, bundle: Bundle.main, value: "", comment: "")
 	}
 
 	@IBAction func next(_ sender: NSObject) {

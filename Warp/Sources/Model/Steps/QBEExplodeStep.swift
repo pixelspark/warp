@@ -87,7 +87,7 @@ class QBEExplodeStep: QBEStep {
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		splitColumn = Column(aDecoder.decodeStringForKey("splitColumn") ?? "")
+		splitColumn = Column(aDecoder.decodeString(forKey:"splitColumn") ?? "")
 		super.init(coder: aDecoder)
 	}
 

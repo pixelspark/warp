@@ -37,11 +37,11 @@ class QBESequencerStep: QBEStep {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		let type = aDecoder.decodeStringForKey("type") ?? "pattern"
+		let type = aDecoder.decodeString(forKey:"type") ?? "pattern"
 
 		if type == "pattern" {
 			self.type = .pattern(
-				pattern: aDecoder.decodeStringForKey("pattern") ?? ""
+				pattern: aDecoder.decodeString(forKey:"pattern") ?? ""
 			)
 		}
 		else if type == "range" {
@@ -54,7 +54,7 @@ class QBESequencerStep: QBEStep {
 			self.type = .pattern(pattern: "")
 		}
 
-		column = Column(aDecoder.decodeStringForKey("columnName") ?? "")
+		column = Column(aDecoder.decodeString(forKey:"columnName") ?? "")
 		super.init(coder: aDecoder)
 	}
 	

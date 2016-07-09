@@ -343,11 +343,13 @@ public class ValueCoder: NSObject, NSSecureCoding {
 	init(_ value: Value) {
 		self.value = value
 	}
+
+	public static var supportsSecureCoding: Bool = true
 	
 	required public init?(coder aDecoder: NSCoder) {
 		let t = aDecoder.decodeInteger(forKey: "type")
 		switch t {
-			case 1: value = .string((aDecoder.decodeObject(forKey: "value") as? String) ?? "")
+			case 1: value = .string(aDecoder.decodeString(forKey: "value") ?? "")
 			case 2: value = .int(aDecoder.decodeInteger(forKey: "value"))
 			case 3: value = .bool(aDecoder.decodeBool(forKey: "value"))
 			case 4: value = .double(aDecoder.decodeDouble(forKey: "value"))
@@ -386,10 +388,6 @@ public class ValueCoder: NSObject, NSSecureCoding {
 		case .invalid:
 			coder.encode(6, forKey: "type")
 		}
-	}
-	
-	public class func supportsSecureCoding() -> Bool {
-		return true
 	}
 }
 
@@ -582,7 +580,7 @@ public func > (lhs: Value, rhs: Value) -> Value {
 
 public func ~= (lhs: Value, rhs: Value) -> Value {
 	if let l = lhs.stringValue, r = rhs.stringValue {
-		return Value.bool(l.range(of: r, options: NSString.CompareOptions.caseInsensitiveSearch, range: nil, locale: nil) != nil)
+		return Value.bool(l.range(of: r, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil)
 	}
 	return Value.invalid
 }
@@ -657,7 +655,7 @@ public extension NSCoder {
 		self.encode(string, forKey: forKey)
 	}
 	
-	public func decodeStringForKey(_ key: String) -> String? {
+	public func decodeString(forKey key: String) -> String? {
 		return self.decodeObjectOfClass(NSString.self, forKey: key) as? String
 	}
 }
@@ -908,7 +906,7 @@ internal extension Int {
 
 internal func arc4random <T: IntegerLiteralConvertible> (_ type: T.Type) -> T {
 	var r: T = 0
-	arc4random_buf(&r, sizeof(T))
+	arc4random_buf(&r, sizeof(T.self))
 	return r
 }
 
@@ -916,7 +914,7 @@ internal extension UInt64 {
 	static func random(_ lower: UInt64 = min, upper: UInt64 = max) -> UInt64 {
 		var m: UInt64
 		let u = upper - lower
-		var r = arc4random(UInt64)
+		var r = arc4random(UInt64.self)
 		
 		if u > UInt64(Int64.max) {
 			m = 1 + ~u
@@ -925,7 +923,7 @@ internal extension UInt64 {
 		}
 		
 		while r < m {
-			r = arc4random(UInt64)
+			r = arc4random(UInt64.self)
 		}
 		
 		return (r % u) + lower

@@ -95,7 +95,7 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 								if let url = self.step?.file?.url?.lastPathComponent {
 									un.informativeText = String(format: NSLocalizedString("The data has been saved to '%@'", comment: ""), url)
 								}
-								NSUserNotificationCenter.default().scheduleNotification(un)
+								NSUserNotificationCenter.default.scheduleNotification(un)
 							}
 
 							if let url = self.step?.file?.url {

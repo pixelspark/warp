@@ -16,7 +16,7 @@ internal class QBEChangeNotification: NSObject {
 	internal static func broadcastChange(_ chain: QBEChain) {
 		let n = QBEChangeNotification(chain: chain)
 		asyncMain {
-			NotificationCenter.default().post(Notification(name: Notification.Name(rawValue: QBEChangeNotification.name), object: n))
+			NotificationCenter.default.post(Notification(name: Notification.Name(rawValue: QBEChangeNotification.name), object: n))
 		}
 	}
 }
@@ -138,7 +138,7 @@ public class QBECalculator: NSObject {
 		currentRaster!.get {[unowned self] (raster) in
 			switch raster {
 			case .success(let r):
-				let duration = Double(NSDate.timeIntervalSinceReferenceDate()) - startTime
+				let duration = Double(NSDate.timeIntervalSinceReferenceDate) - startTime
 
 				// Record performance information for example execution
 				let index = unsafeAddress(of: sourceStep).hashValue
@@ -171,7 +171,7 @@ public class QBECalculator: NSObject {
 				else {
 					// Send notification of finished raster
 					asyncMain {
-						NotificationCenter.default().post(name: NSNotification.Name(rawValue: QBEResultNotification.name), object:
+						NotificationCenter.default.post(name: NSNotification.Name(rawValue: QBEResultNotification.name), object:
 							QBEResultNotification(raster: r, isFull: false, step: sourceStep, calculator: self))
 					}
 					callback()
@@ -216,7 +216,7 @@ public class QBECalculator: NSObject {
 										result.maybe { raster in
 											// Send notification of finished raster
 											asyncMain {
-												NotificationCenter.default().post(name: NSNotification.Name(rawValue: QBEResultNotification.name), object:
+												NotificationCenter.default.post(name: NSNotification.Name(rawValue: QBEResultNotification.name), object:
 													QBEResultNotification(raster: raster, isFull: fullDataset, step: sourceStep, calculator: self))
 											}
 										}

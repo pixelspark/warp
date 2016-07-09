@@ -32,7 +32,7 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 		self.exampleRowsLabel?.integerValue = QBESettings.sharedInstance.exampleMaximumRows
 		self.exampleTimeLabel?.stringValue = formatter.string(from: NSNumber(value: QBESettings.sharedInstance.exampleMaximumTime)) ?? ""
 		
-		if let language = UserDefaults.standard().string(forKey: "locale") {
+		if let language = UserDefaults.standard.string(forKey: "locale") {
 			if let name = Language.languages[language] {
 				self.localeBox?.stringValue = name
 			}
@@ -54,7 +54,7 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 		
 		let langs = [String](Language.languages.keys)
 		if let index = self.localeBox?.indexOfSelectedItem where index >= 0 {
-			UserDefaults.standard().set(langs[index], forKey: "locale")
+			UserDefaults.standard.set(langs[index], forKey: "locale")
 		}
 		
 		updateView()

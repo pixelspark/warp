@@ -23,9 +23,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		super.init(coder: aDecoder)
 	}
 	
-	static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 	
 	override func encode(with coder: NSCoder) {
 		coder.encode(right, forKey: "right")
@@ -309,9 +307,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		super.init(coder: aDecoder)
 	}
 	
-	static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 	
 	override func encode(with coder: NSCoder) {
 		coder.encode(right, forKey: "right")

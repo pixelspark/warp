@@ -17,6 +17,10 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 		super.init(configurable: configurable, delegate: delegate, nibName: "QBEPostgresStepView", bundle: nil)
 	}
 	
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+	
 	internal override func viewWillAppear() {
 		self.hostField?.dataSource = self.serviceDatasetSource
 		super.viewWillAppear()

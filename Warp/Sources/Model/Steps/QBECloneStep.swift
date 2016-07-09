@@ -19,9 +19,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		super.init()
 	}
 
-	static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 	
 	override func encode(with coder: NSCoder) {
 		coder.encode(right, forKey: "right")

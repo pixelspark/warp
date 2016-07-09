@@ -50,9 +50,7 @@ class QBECrawler: NSObject, NSSecureCoding {
 		self.targetErrorColumn = targetErrorColumn != nil ? Column(targetErrorColumn!) : nil
 	}
 	
-	static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 }
 
 class QBECrawlStream: WarpCore.Stream {

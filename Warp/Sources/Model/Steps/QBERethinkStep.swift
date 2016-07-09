@@ -803,14 +803,14 @@ class QBERethinkSourceStep: QBEStep {
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		self.server = aDecoder.decodeStringForKey("server") ?? "localhost"
-		self.table = aDecoder.decodeStringForKey("table") ?? "test"
-		self.database = aDecoder.decodeStringForKey("database") ?? "test"
+		self.server = aDecoder.decodeString(forKey:"server") ?? "localhost"
+		self.table = aDecoder.decodeString(forKey:"table") ?? "test"
+		self.database = aDecoder.decodeString(forKey:"database") ?? "test"
 		self.port = max(1, min(65535, aDecoder.decodeInteger(forKey: "port") ?? 28015));
 
-		let authenticationKey = aDecoder.decodeStringForKey("authenticationKey")
+		let authenticationKey = aDecoder.decodeString(forKey:"authenticationKey")
 		self.authenticationKey = authenticationKey
-		self.username = aDecoder.decodeStringForKey("username") ?? "admin"
+		self.username = aDecoder.decodeString(forKey:"username") ?? "admin"
 		self.useUsernamePasswordAuthentication = aDecoder.containsValue(forKey: "useUsernamePasswordAuthentication") ?
 			aDecoder.decodeBool(forKey: "useUsernamePasswordAuthentication") :
 			(authenticationKey == nil || authenticationKey!.isEmpty)

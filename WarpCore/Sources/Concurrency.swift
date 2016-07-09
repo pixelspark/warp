@@ -9,7 +9,7 @@ public func trace(_ message: String, file: StaticString = #file, line: UInt = #l
 }
 
 public func assertMainThread(_ file: StaticString = #file, line: UInt = #line) {
-	assert(Thread.isMainThread(), "Code at \(file):\(line) must run on main thread!")
+	assert(Thread.isMainThread, "Code at \(file):\(line) must run on main thread!")
 }
 
 /** Wrap a block so that it can be called only once. Calling the returned block twice results in a fatal error. After
@@ -95,7 +95,9 @@ public extension Sequence {
 		for _ in 0..<maxConcurrent {
 			if let next = iterator.next() {
 				atLeastOne = true
-				outstanding += 1
+				mutex.locked {
+					outstanding += 1
+				}
 				eachTimed(next)
 			}
 		}
@@ -197,7 +199,6 @@ public enum Fallible<T>: ErrorProtocol {
 	/** If the result is successful, execute `block` on its return value, and return the (fallible) return value of that block
 	(if any). Otherwise return a new, failed result with the error message of this result. This can be used to chain 
 	operations on fallible operations, propagating the error once an operation fails. */
-	@warn_unused_result(message: "Deal with potential failure returned by .use, .require to force success or .maybe to ignore failure.")
 	public func use<P>( _ block: @noescape (T) -> P) -> Fallible<P> {
 		switch self {
 			case success(let value):
@@ -207,8 +208,7 @@ public enum Fallible<T>: ErrorProtocol {
 				return .failure(errString)
 		}
 	}
-	
-	@warn_unused_result(message: "Deal with potential failure returned by .use, .require to force success or .maybe to ignore failure.")
+
 	public func use<P>( _ block: @noescape (T) -> Fallible<P>) -> Fallible<P> {
 		switch self {
 		case success(let box):

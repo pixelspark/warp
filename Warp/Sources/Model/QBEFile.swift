@@ -38,7 +38,7 @@ public enum QBEFileReference: Equatable {
 		case .absolute(let u):
 			do {
 				if let url = u {
-					let bookmark = try url.bookmarkData(URL.BookmarkCreationOptions.withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: relativeToDocument)
+					let bookmark = try url.bookmarkData(options: URL.BookmarkCreationOptions.withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: relativeToDocument)
 					do {
 						var stale: Bool = false
 						if let resolved = try URL(resolvingBookmarkData: bookmark, options: URL.BookmarkResolutionOptions.withSecurityScope, relativeTo: relativeToDocument, bookmarkDataIsStale: &stale) {
@@ -186,7 +186,7 @@ private class QBEFilePresenterDelegate: NSObject, NSFilePresenter {
 	}
 
 	@objc var presentedItemOperationQueue: OperationQueue {
-		return OperationQueue.main()
+		return OperationQueue.main
 	}
 }
 
@@ -202,7 +202,7 @@ public class QBEFilePresenter: NSObject {
 
 		/* FIXME this is a bad way to force the file coordinator to sync and actually finish creating the file presenters.
 		See: http://thebesthacker.com/question/osx-related-file-creation.html */
-		NSFileCoordinator.filePresenters()
+		let _ = NSFileCoordinator.filePresenters
 	}
 
 	deinit {
@@ -220,7 +220,7 @@ public class QBEFileRecents {
 	}
 
 	public func loadRememberedFiles() -> [QBEFileReference] {
-		let files: [String] = (UserDefaults.standard().array(forKey: preferenceKey) as? [String]) ?? []
+		let files: [String] = (UserDefaults.standard.array(forKey: preferenceKey) as? [String]) ?? []
 		return files.flatMap { bookmarkString -> [QBEFileReference] in
 			if let bookmarkData = Data(base64Encoded: bookmarkString, options: []) {
 				let fileRef = QBEFileReference.bookmark(bookmarkData)
@@ -234,9 +234,9 @@ public class QBEFileRecents {
 
 	public func remember(_ file: QBEFileReference) {
 		if let bookmarkData = file.persist(nil)?.bookmark {
-			var files: [String] = (UserDefaults.standard().array(forKey: preferenceKey) as? [String]) ?? []
-			files.insert(bookmarkData.base64EncodedString([]), at: 0)
-			UserDefaults.standard().setValue(Array(files.prefix(self.maxRememberedFiles)), forKey: preferenceKey)
+			var files: [String] = (UserDefaults.standard.array(forKey: preferenceKey) as? [String]) ?? []
+			files.insert(bookmarkData.base64EncodedString(options: []), at: 0)
+			UserDefaults.standard.setValue(Array(files.prefix(self.maxRememberedFiles)), forKey: preferenceKey)
 		}
 	}
 }

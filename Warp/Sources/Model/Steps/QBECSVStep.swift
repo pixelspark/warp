@@ -31,8 +31,8 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 		// Get total file size
 		if let p = url.path {
 			do {
-				let attributes = try FileManager.default().attributesOfItem(atPath: p)
-				totalBytes = (attributes[FileAttributeKey.size.rawValue] as? NSNumber)?.intValue ?? 0
+				let attributes = try FileManager.default.attributesOfItem(atPath: p)
+				totalBytes = (attributes[FileAttributeKey.size] as? NSNumber)?.intValue ?? 0
 			}
 			catch {
 				totalBytes = 0
@@ -84,7 +84,7 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 		queue.sync {
 			job.time("Parse CSV", items: StreamDefaultBatchSize, itemType: "row") {
 				#if DEBUG
-				let startTime = NSDate.timeIntervalSinceReferenceDate()
+				let startTime = NSDate.timeIntervalSinceReferenceDate
 				#endif
 				var fetched = 0
 				while !self.finished && (fetched < StreamDefaultBatchSize) && !job.isCancelled {
@@ -97,7 +97,7 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 				let progress = Double(self.parser.totalBytesRead) / Double(self.totalBytes)
 				job.reportProgress(progress, forKey: self.hashValue);
 				#if DEBUG
-				self.totalTime += (NSDate.timeIntervalSinceReferenceDate() - startTime)
+				self.totalTime += (NSDate.timeIntervalSinceReferenceDate - startTime)
 				#endif
 			}
 			
@@ -178,10 +178,10 @@ class QBECSVWriter: NSObject, QBEFileWriter, StreamDelegate {
 	}
 
 	required init?(coder aDecoder: NSCoder) {
-		self.newLineCharacter = aDecoder.decodeStringForKey("newLine") ?? "\r\n"
-		let separatorString = aDecoder.decodeStringForKey("separator") ?? ","
+		self.newLineCharacter = aDecoder.decodeString(forKey:"newLine") ?? "\r\n"
+		let separatorString = aDecoder.decodeString(forKey:"separator") ?? ","
 		separatorCharacter = separatorString.utf16[separatorString.utf16.startIndex]
-		self.title = aDecoder.decodeStringForKey("title")
+		self.title = aDecoder.decodeString(forKey:"title")
 	}
 
 	func encode(with aCoder: NSCoder) {
@@ -305,7 +305,7 @@ class QBEHTMLWriter: QBECSVWriter {
 	override func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
 		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
 			// Get pivot template from resources
-			if let path = Bundle.main().pathForResource("pivot", ofType: "html") {
+			if let path = Bundle.main.pathForResource("pivot", ofType: "html") {
 				outStream.open()
 				do {
 					let template = try NSString(contentsOfFile: path, encoding: String.Encoding.utf8.rawValue).replacingOccurrences(of: "$$$TITLE$$$", with: title ?? "")

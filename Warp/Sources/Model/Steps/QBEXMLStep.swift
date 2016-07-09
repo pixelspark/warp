@@ -11,7 +11,7 @@ class QBEXMLWriter: NSObject, QBEFileWriter, StreamDelegate {
 	}
 
 	required init?(coder aDecoder: NSCoder) {
-		self.title = aDecoder.decodeStringForKey("title")
+		self.title = aDecoder.decodeString(forKey:"title")
 	}
 
 	func encode(with aCoder: NSCoder) {

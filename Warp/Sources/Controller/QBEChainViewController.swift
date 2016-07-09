@@ -2353,7 +2353,8 @@ internal enum QBEEditingMode {
 		super.viewWillAppear()
 		stepsChanged()
 		calculate()
-		NotificationCenter.default().addObserver(self, selector: #selector(QBEChainViewController.changeNotificationReceived(_:)), name: QBEChangeNotification.name, object: nil)
+		let name = NSNotification.Name(rawValue: QBEChangeNotification.name)
+		NotificationCenter.default.addObserver(self, selector: #selector(QBEChainViewController.changeNotificationReceived(_:)), name: name, object: nil)
 	}
 
 	@objc private func changeNotificationReceived(_ notification: Notification) {
@@ -2378,7 +2379,7 @@ internal enum QBEEditingMode {
 	}
 
 	override func viewWillDisappear() {
-		NotificationCenter.default().removeObserver(self)
+		NotificationCenter.default.removeObserver(self)
 	}
 
 	override func viewDidAppear() {
@@ -2486,7 +2487,7 @@ extension URL {
 	var isDirectory: Bool? { get {
 		if let p = self.path {
 			var isDirectory: ObjCBool = false
-			if FileManager.default().fileExists(atPath: p, isDirectory: &isDirectory) {
+			if FileManager.default.fileExists(atPath: p, isDirectory: &isDirectory) {
 				return isDirectory.boolValue
 			}
 		}

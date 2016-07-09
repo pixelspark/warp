@@ -78,7 +78,7 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 	override func viewWillAppear() {
 		self.map = self.mapTablet?.map
 		self.reloadData()
-		NotificationCenter.default().addObserver(self, selector: #selector(QBEMapTabletViewController.resultNotificationReceived(_:)), name: QBEResultNotification.name, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(QBEMapTabletViewController.resultNotificationReceived(_:)), name: NSNotification.Name(rawValue: QBEResultNotification.name), object: nil)
 	}
 
 	@objc private func resultNotificationReceived(_ notification: Notification) {
@@ -98,7 +98,7 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 	}
 
 	override func viewWillDisappear() {
-		NotificationCenter.default().removeObserver(self)
+		NotificationCenter.default.removeObserver(self)
 	}
 
 	func job(_ job: AnyObject, didProgress: Double) {
@@ -206,7 +206,7 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 									let rep = NSBitmapImageRep(focusedViewRect: NSMakeRect(0, 0, s.image.size.width, s.image.size.height))
 									s.image.unlockFocus()
 									if let data = rep?.representation(using: .PNG, properties: [:]) {
-										if !((try? data.write(to: url, options: [.dataWritingAtomic])) != nil) {
+										if !((try? data.write(to: url, options: [.atomic])) != nil) {
 											NSAlert.showSimpleAlert("Could save a snapshot of this map".localized, infoText: "", style: .critical, window: w)
 										}
 									}

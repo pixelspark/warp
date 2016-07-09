@@ -760,7 +760,7 @@ class QBEPostgresSourceStep: QBEStep {
 		self.databaseName = (aDecoder.decodeObject(forKey: "database") as? String) ?? ""
 		self.user = (aDecoder.decodeObject(forKey: "user") as? String) ?? ""
 		self.port = Int(aDecoder.decodeInteger(forKey: "port"))
-		self.schemaName = aDecoder.decodeStringForKey("schema") ?? ""
+		self.schemaName = aDecoder.decodeString(forKey:"schema") ?? ""
 		super.init(coder: aDecoder)
 
 		if let pw = (aDecoder.decodeObject(forKey: "password") as? String) {

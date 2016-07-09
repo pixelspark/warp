@@ -23,7 +23,8 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	override func viewWillAppear() {
 		self.chart = self.chartTablet?.chart
 		self.reloadData()
-		NotificationCenter.default().addObserver(self, selector: #selector(QBEChartTabletViewController.resultNotificationReceived(_:)), name: QBEResultNotification.name, object: nil)
+		let name = NSNotification.Name(rawValue: QBEResultNotification.name)
+		NotificationCenter.default.addObserver(self, selector: #selector(QBEChartTabletViewController.resultNotificationReceived(_:)), name: name, object: nil)
 	}
 
 	@objc private func resultNotificationReceived(_ notification: Notification) {
@@ -43,7 +44,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	}
 
 	override func viewWillDisappear() {
-		NotificationCenter.default().removeObserver(self)
+		NotificationCenter.default.removeObserver(self)
 	}
 
 	func job(_ job: AnyObject, didProgress: Double) {

@@ -14,8 +14,8 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 	
 	func applicationDidFinishLaunching(_ aNotification: Notification) {
 		applyDefaults()
-		NSUserNotificationCenter.default().delegate = self
-		NotificationCenter.default().addObserver(self, selector: #selector(QBEAppDelegate.defaultsChanged(_:)), name: UserDefaults.didChangeNotification, object: nil)
+		NSUserNotificationCenter.default.delegate = self
+		NotificationCenter.default.addObserver(self, selector: #selector(QBEAppDelegate.defaultsChanged(_:)), name: UserDefaults.didChangeNotification, object: nil)
 	}
 	
 	func defaultsChanged(_ nf: Notification) {
@@ -23,7 +23,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 	}
 	
 	private func applyDefaults() {
-		let language = UserDefaults.standard().string(forKey: "locale") ?? Language.defaultLanguage
+		let language = UserDefaults.standard.string(forKey: "locale") ?? Language.defaultLanguage
 		self.locale = Language(language: language)
 	}
 	
@@ -74,7 +74,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 	}
 
 	@IBAction func showHelp(_ sender: NSObject) {
-		if let u = Bundle.main().infoDictionary?["WarpHelpURL"] as? String, let url = URL(string: u) {
+		if let u = Bundle.main.infoDictionary?["WarpHelpURL"] as? String, let url = URL(string: u) {
 			NSWorkspace.shared().open(url)
 		}
 	}

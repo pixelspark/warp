@@ -32,7 +32,7 @@ class QBEChart: QBEConfigurable, NSSecureCoding {
 	}
 
 	required init?(coder: NSCoder) {
-		if let t = coder.decodeStringForKey("type"), let tt = QBEChartType(rawValue: t) {
+		if let t = coder.decodeString(forKey:"type"), let tt = QBEChartType(rawValue: t) {
 			self.type = tt
 		}
 		else {
@@ -52,9 +52,7 @@ class QBEChart: QBEConfigurable, NSSecureCoding {
 		aCoder.encode(self.sourceTablet, forKey: "source")
 	}
 
-	@objc static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let opts = [QBEChartType.Bar, QBEChartType.Line, QBEChartType.Radar, QBEChartType.Pie].mapDictionary { return ($0.rawValue, $0.localizedName) }

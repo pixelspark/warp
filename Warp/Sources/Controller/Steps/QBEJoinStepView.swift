@@ -53,6 +53,6 @@ class QBEJoinStepView: QBEConfigurableStepViewControllerFor<QBEJoinStep> {
 	}
 	
 	override func viewWillDisappear() {
-		NotificationCenter.default().removeObserver(self)
+		NotificationCenter.default.removeObserver(self)
 	}
 }

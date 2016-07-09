@@ -26,9 +26,7 @@ class QBEMap: QBEConfigurable, NSSecureCoding {
 		aCoder.encode(self.titleExpression, forKey: "titleExpression")
 	}
 
-	@objc static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: "Show locations at latitude [#] and longitude [#] with label [#]".localized,

@@ -23,9 +23,7 @@ public class QBERectangle: NSObject, NSSecureCoding {
 		aCoder.encode(Double(rect.size.height), forKey: "h")
 	}
 	
-	@objc public static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	public static var supportsSecureCoding: Bool = true
 }
 
 /** An arrow that exists between two tablets, indicating some sort of dependency. */
@@ -80,9 +78,7 @@ of data. A tablet has a rectangular shape and a certain position in the document
 		aCoder.encode(frame == nil ? nil : QBERectangle(frame!), forKey: "frame")
 	}
 	
-	static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 	
 	/** This method is called right before a document is saved to disk using encodeWithCoder. Steps that reference
 	external files should take the opportunity to create security bookmarks to these files (as required by Apple's

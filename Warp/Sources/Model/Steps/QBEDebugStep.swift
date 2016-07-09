@@ -42,13 +42,11 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.type = QBEDebugType(rawValue: aDecoder.decodeStringForKey("type") ?? "") ?? QBEDebugType.None
+		self.type = QBEDebugType(rawValue: aDecoder.decodeString(forKey:"type") ?? "") ?? QBEDebugType.None
 		super.init(coder: aDecoder)
 	}
 	
-	static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 	
 	override func encode(with coder: NSCoder) {
 		coder.encodeString(self.type.rawValue, forKey: "type")

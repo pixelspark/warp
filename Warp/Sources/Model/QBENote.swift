@@ -16,9 +16,7 @@ class QBENote: NSObject, NSSecureCoding {
 		aCoder.encode(self.text, forKey: "text")
 	}
 
-	@objc static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 }
 
 class QBENoteTablet: QBETablet {

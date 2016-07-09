@@ -672,7 +672,7 @@ class QBEMySQLSourceStep: QBEStep {
 		let user = (aDecoder.decodeObject(forKey: "user") as? String) ?? self.user
 		let port = Int(aDecoder.decodeInteger(forKey: "port"))
 
-		if let pw = aDecoder.decodeStringForKey("password") {
+		if let pw = aDecoder.decodeString(forKey:"password") {
 			self.password.stringValue = pw
 		}
 

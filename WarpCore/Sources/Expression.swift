@@ -99,7 +99,6 @@ public class Expression: NSObject, NSCoding {
 	input value to a specific output value. It does so by looping over 'suggestions' (provided by Function
 	implementations) for the application of (usually unary) functions to the input value to obtain (or come closer to) the
 	output value. */
-	@warn_unused_result
 	public class final func infer(_ fromValue: Expression?, toValue: Value, level: Int, row: Row, column: Int?, maxComplexity inMaxComplexity: Int = Int.max, previousValues: [Value] = [], job: Job? = nil) -> [Expression] {
 		if level <= 0 {
 			return []

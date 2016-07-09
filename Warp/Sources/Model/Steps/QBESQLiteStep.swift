@@ -694,7 +694,7 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 	}
 
 	required init?(coder aDecoder: NSCoder) {
-		tableName = aDecoder.decodeStringForKey("tableName") ?? "data"
+		tableName = aDecoder.decodeString(forKey:"tableName") ?? "data"
 	}
 
 	func encode(with aCoder: NSCoder) {

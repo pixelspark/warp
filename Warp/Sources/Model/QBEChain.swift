@@ -38,9 +38,7 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 		aCoder.encode(head, forKey: "head")
 	}
 	
-	static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 	
 	var recursiveDependencies: Set<QBEDependency> {
 		var deps: Set<QBEDependency> = []

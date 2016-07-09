@@ -19,6 +19,10 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
 		super.init(configurable: configurable, delegate: delegate, nibName: "QBERethinkStepView", bundle: nil)
 	}
+	
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
 
 	internal override func viewWillAppear() {
 		super.viewWillAppear()

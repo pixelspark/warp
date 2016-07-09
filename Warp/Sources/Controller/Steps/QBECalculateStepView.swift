@@ -24,7 +24,7 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 	}
 	
 	override func viewWillDisappear() {
-		NotificationCenter.default().removeObserver(self)
+		NotificationCenter.default.removeObserver(self)
 		super.viewWillDisappear()
 	}
 	

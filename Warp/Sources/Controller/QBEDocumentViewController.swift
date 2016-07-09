@@ -419,10 +419,10 @@ import WarpCore
 		
 		for file in files {
 			var isDirectory: ObjCBool = false
-			FileManager.default().fileExists(atPath: file, isDirectory: &isDirectory)
+			FileManager.default.fileExists(atPath: file, isDirectory: &isDirectory)
 			if isDirectory {
 				// Find the contents of the directory, and add.
-				if let enumerator = FileManager.default().enumerator(atPath: file) {
+				if let enumerator = FileManager.default.enumerator(atPath: file) {
 					for child in enumerator {
 						if let cn = child as? String {
 							let childName = NSString(string: cn)
@@ -433,7 +433,7 @@ import WarpCore
 								
 								// Is  the enumerated item a directory? Then ignore it, the enumerator already recurses
 								var isChildDirectory: ObjCBool = false
-								FileManager.default().fileExists(atPath: childPath, isDirectory: &isChildDirectory)
+								FileManager.default.fileExists(atPath: childPath, isDirectory: &isChildDirectory)
 								if !isChildDirectory {
 									if let t = addTabletFromURL(URL(fileURLWithPath: childPath)) {
 										tabletsAdded.append(t)

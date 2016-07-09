@@ -60,9 +60,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 		coder.encode(tablets, forKey: "tablets")
 	}
 	
-	static func supportsSecureCoding() -> Bool {
-		return true
-	}
+	static var supportsSecureCoding: Bool = true
 	
 	override func data(ofType typeName: String) throws -> Data {
 		let data = NSMutableData()

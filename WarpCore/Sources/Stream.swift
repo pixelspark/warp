@@ -60,7 +60,7 @@ public class StreamPuller {
 	public init(stream: Stream, job: Job) {
 		self.stream = stream
 		self.job = job
-		self.concurrentWavefronts = ProcessInfo.processInfo().processorCount
+		self.concurrentWavefronts = ProcessInfo.processInfo.processorCount
 	}
 
 	/** Start up to self.concurrentFetches number of fetch 'wavefronts' that will deliver their data to the
