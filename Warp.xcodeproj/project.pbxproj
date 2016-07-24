@@ -149,7 +149,6 @@
 		6583F0361C1475E700AE6C00 /* QBESortStepView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583F0211C1475E700AE6C00 /* QBESortStepView.strings */; };
 		6583F0371C1475E700AE6C00 /* QBESQLiteSourceStepView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583F0231C1475E700AE6C00 /* QBESQLiteSourceStepView.strings */; };
 		6583F0381C1475E700AE6C00 /* QBEStepsItem.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583F0251C1475E700AE6C00 /* QBEStepsItem.strings */; };
-		658AFC431CB589D500DB9E0B /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 658AFC421CB589D500DB9E0B /* MapKit.framework */; };
 		65A115041BCD96A6007BC661 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A115011BCD969A007BC661 /* Rethink.framework */; };
 		65A115051BCD96A6007BC661 /* Rethink.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65A115011BCD969A007BC661 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65A176931B8B9769004D4A21 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176911B8B9769004D4A21 /* dbfopen.c */; };
@@ -609,7 +608,6 @@
 		6583F0241C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = Warp/nl.lproj/QBESQLiteSourceStepView.strings; sourceTree = SOURCE_ROOT; };
 		6583F0261C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = Warp/nl.lproj/QBEStepsItem.strings; sourceTree = SOURCE_ROOT; };
 		6583F0271C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = Warp/nl.lproj/Tour.strings; sourceTree = SOURCE_ROOT; };
-		658AFC421CB589D500DB9E0B /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		65A114F71BCD969A007BC661 /* Rethink.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rethink.xcodeproj; path = Libraries/Rethink/Rethink.xcodeproj; sourceTree = "<group>"; };
 		65A176911B8B9769004D4A21 /* dbfopen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = dbfopen.c; path = Libraries/Shapelib/dbfopen.c; sourceTree = "<group>"; };
 		65A176921B8B9769004D4A21 /* shapefil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = shapefil.h; path = Libraries/Shapelib/shapefil.h; sourceTree = "<group>"; };
@@ -670,7 +668,6 @@
 				65A115041BCD96A6007BC661 /* Rethink.framework in Frameworks */,
 				65F2DCC81CDF4B380099B3DB /* WarpAI.framework in Frameworks */,
 				65B3F6A31C73CFC0000983D0 /* Charts.framework in Frameworks */,
-				658AFC431CB589D500DB9E0B /* MapKit.framework in Frameworks */,
 				6510A7391A4D9832005633EF /* MBTableGrid.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1062,7 +1059,6 @@
 		65E3C2AB1A05222F007BB3C8 = {
 			isa = PBXGroup;
 			children = (
-				658AFC421CB589D500DB9E0B /* MapKit.framework */,
 				65B92BD71C86196900397014 /* Warp.entitlements */,
 				655BD6481C146F5000634C66 /* SwiftParser.xcodeproj */,
 				655BD61E1C146BE800634C66 /* WarpCore.xcodeproj */,

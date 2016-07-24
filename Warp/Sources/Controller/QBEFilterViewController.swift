@@ -193,12 +193,17 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 			reloadData()
 		}
 	}
-	
-	private func filterChanged() {
+
+	private func update() {
 		assertMainThread()
 		self.valueList?.reloadData()
 		let hasFilter = filter.selectedValues.count > 0
 		self.clearFilterButton?.isEnabled = hasFilter
+	}
+	
+	private func filterChanged() {
+		assertMainThread()
+		self.update()
 		self.delegate?.filterView(self, didChangeFilter: filter.selectedValues.count > 0 ? filter : nil)
 	}
 	
@@ -220,7 +225,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		}
 
 		self.reloadData()
-		self.filterChanged()
+		self.update()
 		super.viewWillAppear()
 	}
 
