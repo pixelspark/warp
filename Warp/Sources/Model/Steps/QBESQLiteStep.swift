@@ -914,6 +914,31 @@ class QBESQLiteMutableDataset: SQLMutableDataset {
 	}
 }
 
+/** Usually, an example data set provides a random sample of a source data set. For SQL data sets, this means that we
+select randomly rows from the table. This however implies a full table scan. This class wraps around a full SQL data set
+to provide an example data set where certain operations are applied to the original rather than the samples data set,
+for efficiency. */
+class QBESQLiteExampleDataset: ProxyDataset {
+	let maxInputRows: Int
+	let maxOutputRows: Int
+	let fullData: Dataset
+
+	init(data: Dataset, maxInputRows: Int, maxOutputRows: Int) {
+		self.maxInputRows = maxInputRows
+		self.maxOutputRows = maxOutputRows
+		self.fullData = data
+		super.init(data: data.random(maxInputRows))
+	}
+
+	override func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
+		return fullData.unique(expression, job: job, callback: callback)
+	}
+
+	override func filter(_ condition: Expression) -> Dataset {
+		return fullData.filter(condition).random(max(maxInputRows, maxOutputRows))
+	}
+}
+
 class QBESQLiteSourceStep: QBEStep {
 	var file: QBEFileReference? = nil { didSet {
 		oldValue?.url?.stopAccessingSecurityScopedResource()
@@ -1012,7 +1037,7 @@ class QBESQLiteSourceStep: QBEStep {
 	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
 		self.fullDataset(job, callback: { (fd) -> () in
 			callback(fd.use {(x) -> Dataset in
-				return x.random(maxInputRows)
+				return QBESQLiteExampleDataset(data: x, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows)
 			})
 		})
 	}
