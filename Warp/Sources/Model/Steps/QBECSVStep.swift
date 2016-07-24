@@ -104,6 +104,8 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 			let r = Array(self.rows)
 			self.rows.removeAll(keepingCapacity: true)
 
+			let finished = self.finished
+
 			job.async {
 				/* Convert the read string values to Values. Do this asynchronously because Language.valueForLocalString 
 				may take a lot of time, and we really want the CSV parser to continue meanwhile */
@@ -129,7 +131,7 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 					return values
 				}
 
-				consumer(.success(v), self.finished ? .finished : .hasMore)
+				consumer(.success(v), finished ? .finished : .hasMore)
 			}
 		}
 	}
