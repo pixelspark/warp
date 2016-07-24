@@ -242,14 +242,14 @@ private extension Dataset {
 	func histogram(_ expression: Expression, job: Job, callback: (Fallible<[Value: Int]>) -> ()) {
 		let keyColumn = Column("k")
 		let countColumn = Column("n")
-		let d = self.aggregate([keyColumn: expression], values: [countColumn: Aggregator(map: expression, reduce: .Count)])
+		let d = self.aggregate([keyColumn: expression], values: [countColumn: Aggregator(map: expression, reduce: .CountAll)])
 		d.raster(job) { result in
 			switch result {
 			case .success(let r):
 				var histogram: [Value: Int] = [:]
 				for row in r.rows {
 					if let k = row[keyColumn], k.isValid {
-						histogram[k] = row[countColumn].intValue
+						histogram[k] = row[countColumn].intValue ?? 1
 					}
 				}
 				callback(.success(histogram))
