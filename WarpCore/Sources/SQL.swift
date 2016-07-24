@@ -1064,7 +1064,7 @@ public class SQLFragment {
 	currently in. This can be used to add another filter to the query without creating a new subquery layer, only for
 	conditions for which WHERE and HAVING have the same effect. */
 	public func sqlWhereOrHaving(_ part: String?) -> SQLFragment {
-		if self.type == .group || self.type == .where {
+		if self.type == .group {
 			return sqlHaving(part)
 		}
 		return sqlWhere(part)
