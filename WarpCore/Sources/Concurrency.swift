@@ -555,11 +555,13 @@ public class Mutex {
 		#endif
 		self.lock()
 		#if DEBUG
-			let duration = CFAbsoluteTimeGetCurrent() - start
-			if duration > 0.05 {
-				trace("Waited \(duration)s for mutex (\(file):\(line)) last locked by \(self.locker)")
+			if Thread.isMainThread {
+				let duration = CFAbsoluteTimeGetCurrent() - start
+				if duration > 0.05 {
+					trace("Waited \(duration)s  on main thread for mutex (\(file):\(line)) last locked by \(self.locker)")
+				}
+				self.locker = "\(file):\(line)"
 			}
-			self.locker = "\(file):\(line)"
 		#endif
 
 		defer {
