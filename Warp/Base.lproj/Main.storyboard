@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11163.2" systemVersion="15F34" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11173.2" systemVersion="15F34" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11163.2"/>
-        <plugIn identifier="com.apple.MapKitIBPlugin" version="11163.2"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11173.2"/>
+        <plugIn identifier="com.apple.MapKitIBPlugin" version="11173.2"/>
         <capability name="box content view" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
@@ -1965,15 +1965,13 @@ CA
                                     <rect key="frame" x="1" y="1" width="438" height="218"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <textView importsGraphics="NO" findStyle="panel" continuousSpellChecking="YES" allowsUndo="YES" usesRuler="YES" usesFontPanel="YES" verticallyResizable="YES" allowsNonContiguousLayout="YES" quoteSubstitution="YES" dashSubstitution="YES" smartInsertDelete="YES" id="Ogm-8T-YNE">
+                                        <textView importsGraphics="NO" usesFontPanel="YES" findStyle="panel" continuousSpellChecking="YES" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" quoteSubstitution="YES" dashSubstitution="YES" smartInsertDelete="YES" id="Ogm-8T-YNE">
                                             <rect key="frame" x="0.0" y="0.0" width="438" height="218"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <size key="minSize" width="438" height="218"/>
                                             <size key="maxSize" width="463" height="10000000"/>
                                             <color key="insertionPointColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                            <size key="minSize" width="438" height="218"/>
-                                            <size key="maxSize" width="463" height="10000000"/>
                                         </textView>
                                     </subviews>
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -2140,7 +2138,7 @@ CA
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="UDJ-gV-4Hz">
-                                            <rect key="frame" x="0.0" y="0.0" width="498" height="19"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="498" height="199"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -2981,7 +2979,7 @@ Gw
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView focusRingType="none" appearanceType="vibrantLight" verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="34" id="LRg-Y6-Q5v">
-                                            <rect key="frame" x="0.0" y="0.0" width="342" height="36"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="342" height="298"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -3346,7 +3344,7 @@ Gw
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                         <subviews>
                                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="xj3-6c-xSH">
-                                                                <rect key="frame" x="0.0" y="0.0" width="403" height="19"/>
+                                                                <rect key="frame" x="0.0" y="0.0" width="587" height="135"/>
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <size key="intercellSpacing" width="3" height="2"/>
                                                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -3435,7 +3433,7 @@ Gw
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="9VS-us-iqq">
-                                            <rect key="frame" x="0.0" y="0.0" width="247" height="19"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="247" height="225"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -3967,30 +3965,30 @@ DQ
         </scene>
     </scenes>
     <resources>
-        <image name="AlterIcon" width="51" height="51"/>
-        <image name="AutosizeToolIcon" width="32" height="18"/>
-        <image name="BigIcon" width="51" height="51"/>
-        <image name="ChangeIcon" width="51" height="51"/>
-        <image name="CloseIcon" width="26" height="26"/>
-        <image name="ColumnsIcon" width="32" height="32"/>
-        <image name="EditIcon" width="51" height="51"/>
-        <image name="EditingIcon" width="51" height="51"/>
-        <image name="ExportIcon" width="51" height="51"/>
+        <image name="AlterIcon" width="102" height="102"/>
+        <image name="AutosizeToolIcon" width="64" height="36"/>
+        <image name="BigIcon" width="102" height="102"/>
+        <image name="ChangeIcon" width="102" height="102"/>
+        <image name="CloseIcon" width="51" height="51"/>
+        <image name="ColumnsIcon" width="64" height="64"/>
+        <image name="EditIcon" width="102" height="102"/>
+        <image name="EditingIcon" width="102" height="102"/>
+        <image name="ExportIcon" width="102" height="102"/>
         <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSGoRightTemplate" width="9" height="12"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
-        <image name="ReloadIcon" width="51" height="51"/>
-        <image name="ShredIcon" width="51" height="51"/>
-        <image name="SmallIcon" width="26" height="26"/>
-        <image name="SortAscendingToolIcon" width="32" height="18"/>
-        <image name="SortDescendingToolIcon" width="32" height="18"/>
-        <image name="StopIcon" width="51" height="51"/>
-        <image name="TipIcon" width="32" height="32"/>
-        <image name="TrashIcon" width="51" height="51"/>
-        <image name="TrashToolIcon" width="32" height="18"/>
-        <image name="ZoomInIcon" width="51" height="51"/>
-        <image name="ZoomOutIcon" width="51" height="51"/>
+        <image name="ReloadIcon" width="102" height="102"/>
+        <image name="ShredIcon" width="102" height="102"/>
+        <image name="SmallIcon" width="51" height="51"/>
+        <image name="SortAscendingToolIcon" width="64" height="36"/>
+        <image name="SortDescendingToolIcon" width="64" height="36"/>
+        <image name="StopIcon" width="102" height="102"/>
+        <image name="TipIcon" width="64" height="64"/>
+        <image name="TrashIcon" width="102" height="102"/>
+        <image name="TrashToolIcon" width="64" height="36"/>
+        <image name="ZoomInIcon" width="102" height="102"/>
+        <image name="ZoomOutIcon" width="102" height="102"/>
         <image name="sort-asc" width="8" height="9"/>
     </resources>
     <inferredMetricsTieBreakers>

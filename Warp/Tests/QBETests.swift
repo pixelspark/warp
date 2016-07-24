@@ -27,13 +27,13 @@ class QBETests: XCTestCase {
 	}
 
 	private func asyncTest(_ block: (callback: () -> ()) -> ()) {
-		let expectFinish = self.expectation(withDescription: "CSV tests")
+		let expectFinish = self.expectation(description: "CSV tests")
 
 		block {
 			expectFinish.fulfill()
 		}
 
-		self.waitForExpectations(withTimeout: 5.0) { (err) -> Void in
+		self.waitForExpectations(timeout: 5.0) { (err) -> Void in
 			if let e = err {
 				// Note: referencing self here deliberately to prevent test from being destroyed prematurely
 				print("Error=\(e) \(self)")

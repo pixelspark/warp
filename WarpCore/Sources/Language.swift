@@ -385,7 +385,7 @@ public class Language {
 		
 		// Can this string be interpreted as a number?
 		if let n = value.toDouble() {
-			if let i = value.toInt() where Double(i) == n {
+			if let i = value.toInt(), Double(i) == n {
 				// This number is an integer
 				return Value.int(i)
 			}

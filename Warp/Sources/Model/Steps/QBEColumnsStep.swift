@@ -107,11 +107,11 @@ class QBEColumnsStep: QBEStep {
 	}
 	
 	override func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
-		if let p = prior as? QBEColumnsStep where p.select && self.select {
+		if let p = prior as? QBEColumnsStep, p.select && self.select {
 			// This step can ony be a further subset of the columns selected by the prior
 			return QBEStepMerge.advised(self)
 		}
-		else if let p = prior as? QBEColumnsStep where !p.select && !self.select {
+		else if let p = prior as? QBEColumnsStep, !p.select && !self.select {
 			// This step removes additional columns after the previous one
 			var newColumns = p.columns
 			self.columns.forEach { cn in

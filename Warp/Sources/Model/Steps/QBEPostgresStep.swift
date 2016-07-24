@@ -857,14 +857,14 @@ class QBEPostgresSourceStep: QBEStep {
 	}
 
 	override var mutableDataset: MutableDataset? {
-		if let d = self.database where !tableName.isEmpty && !schemaName.isEmpty {
+		if let d = self.database, !tableName.isEmpty && !schemaName.isEmpty {
 			return QBEPostgresMutableDataset(database: d, schemaName: schemaName, tableName: tableName)
 		}
 		return nil
 	}
 
 	var warehouse: Warehouse? {
-		if let d = self.database where !schemaName.isEmpty {
+		if let d = self.database, !schemaName.isEmpty {
 			return SQLWarehouse(database: d, schemaName: schemaName)
 		}
 		return nil
@@ -872,7 +872,7 @@ class QBEPostgresSourceStep: QBEStep {
 
 	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		job.async {
-			if let s = self.database where !self.tableName.isEmpty {
+			if let s = self.database, !self.tableName.isEmpty {
 				callback(QBEPostgresDataset.create(database: s, tableName: self.tableName, schemaName: self.schemaName, locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
 			}
 			else {

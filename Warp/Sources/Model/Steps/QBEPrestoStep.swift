@@ -343,7 +343,7 @@ class QBEPrestoSourceStep: QBEStep {
 	}
 	
 	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
-		if let d = db where !self.tableName.isEmpty {
+		if let d = db, !self.tableName.isEmpty {
 			QBEPrestoDataset.tableDataset(job, db: d, tableName: tableName, callback: { (fd) -> () in
 				callback(fd.use({return $0}))
 			})

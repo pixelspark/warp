@@ -53,7 +53,7 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 		}
 		
 		let langs = [String](Language.languages.keys)
-		if let index = self.localeBox?.indexOfSelectedItem where index >= 0 {
+		if let index = self.localeBox?.indexOfSelectedItem, index >= 0 {
 			UserDefaults.standard.set(langs[index], forKey: "locale")
 		}
 		

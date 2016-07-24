@@ -188,7 +188,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	
 	func tableGrid(_ aTableGrid: MBTableGrid!, canMoveColumns columnIndexes: IndexSet!, to index: UInt) -> Bool {
 		// Make sure we are not dragging the template column, and not past the template column
-		if let r = raster where !columnIndexes.contains(r.columns.count) && Int(index) < r.columns.count {
+		if let r = raster, !columnIndexes.contains(r.columns.count) && Int(index) < r.columns.count {
 			return true
 		}
 		return false
@@ -222,7 +222,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	}
 	
 	func tableGrid(_ aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt) -> NSCell! {
-		if let ct = self.columnCells where Int(columnIndex) < ct.count {
+		if let ct = self.columnCells, Int(columnIndex) < ct.count {
 			return ct[Int(columnIndex)]
 		}
 		return textCell
@@ -291,7 +291,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 				// Update column sizes
 				for i in 0..<r.columns.count {
 					let cn = r.columns[i]
-					if let w = QBESettings.sharedInstance.defaultWidthForColumn(cn) where w > 0 {
+					if let w = QBESettings.sharedInstance.defaultWidthForColumn(cn), w > 0 {
 						tv.resizeColumn(with: UInt(i), width: Float(w))
 					}
 					else {
@@ -374,7 +374,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	func tableGrid(_ aTableGrid: MBTableGrid!, footerCellForColumn columnIndex: UInt) -> NSCell! {
 		assertMainThread()
 
-		if let r = raster where Int(columnIndex) >= 0 && Int(columnIndex) < r.columns.count {
+		if let r = raster, Int(columnIndex) >= 0 && Int(columnIndex) < r.columns.count {
 			let cn = r.columns[Int(columnIndex)]
 
 			// If we have a cached instance, use that
@@ -401,7 +401,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	}
 
 	private func renameColumnPopup(_ columnIndex: UInt) {
-		if let r = raster where Int(columnIndex) < r.columns.count {
+		if let r = raster, Int(columnIndex) < r.columns.count {
 			self.delegate?.dataView(self, viewControllerForColumn: r.columns[Int(columnIndex)], info: true, callback: { vc in
 				if let rect = self.tableView?.headerRect(ofColumn: columnIndex) {
 					self.presentViewController(vc, asPopoverRelativeTo: rect, of: self.tableView!, preferredEdge: NSRectEdge.minY, behavior: NSPopoverBehavior.transient)
@@ -498,7 +498,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	}
 
 	private func showFilterPopup(_ columnIndex: Int, atFooter: Bool) {
-		if let tv = self.tableView, let r = raster where columnIndex < r.columns.count {
+		if let tv = self.tableView, let r = raster, columnIndex < r.columns.count {
 			self.delegate?.dataView(self, viewControllerForColumn: r.columns[Int(columnIndex)], info: false) { viewFilterController in
 				assertMainThread()
 				let pv = NSPopover()

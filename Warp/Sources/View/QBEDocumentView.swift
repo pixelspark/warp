@@ -328,7 +328,7 @@ class QBEScrollView: NSScrollView {
 		}
 		
 		// Un-zoom the old view (if any)
-		if let old = self.magnifiedView, oldRect = self.oldZoomedRect {
+		if let old = self.magnifiedView, let oldRect = self.oldZoomedRect {
 			old.autoresizingMask = NSAutoresizingMaskOptions()
 			NSAnimationContext.runAnimationGroup({ (ac) -> Void in
 				ac.duration = 0.3
@@ -430,8 +430,8 @@ class QBEWorkspaceView: QBEScrollView {
 		}
 		NSRectFill(dirtyRect)
 	}
-	
-	override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+
+	@objc override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
 		return true
 	}
 	

@@ -332,7 +332,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 	private func startUpload() {
 		assert(uploadJob == nil, "Cannot start two uploads at the same time")
 
-		if let source = sourceStep, let mutableDataset = targetStep?.mutableDataset where canPerformUpload {
+		if let source = sourceStep, let mutableDataset = targetStep?.mutableDataset, canPerformUpload {
 			let shouldTruncate = self.removeBeforeUpload?.state == NSOnState && self.canPerformTruncateBeforeUpload
 			self.uploadJob = Job(.userInitiated)
 			self.uploadJob!.addObserver(self)

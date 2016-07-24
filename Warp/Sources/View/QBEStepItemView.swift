@@ -58,13 +58,17 @@ import WarpCore
 			}
 		}
 	}
-	
+
 	override func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+		return self.validate(menuItem)
+	}
+	
+	func validate(_ menuItem: NSMenuItem) -> Bool {
 		if menuItem.action == #selector(QBEStepsItemView.remove(_:)) {
 			return true
 		}
 		else if menuItem.action == #selector(QBEStepsItemView.showSuggestions(_:)) {
-			if let s = step, let alternatives = s.alternatives where alternatives.count > 0 {
+			if let s = step, let alternatives = s.alternatives, alternatives.count > 0 {
 				return true
 			}
 		}
@@ -73,7 +77,7 @@ import WarpCore
 	}
 	
 	@IBAction func showSuggestions(_ sender: NSObject) {
-		if let s = step, let alternatives = s.alternatives where alternatives.count > 0 {
+		if let s = step, let alternatives = s.alternatives, alternatives.count > 0 {
 			if let cv = self.superview as? NSCollectionView {
 				if let sc = cv.delegate as? QBEStepsViewController {
 					sc.delegate?.stepsController(sc, showSuggestionsForStep: s, atView: self)
@@ -107,7 +111,7 @@ import WarpCore
 		NSRectFill(dirtyRect)
 
 		if self.selected {
-			if let sv = self.superview as? QBECollectionView where !sv.active {
+			if let sv = self.superview as? QBECollectionView , !sv.active {
 				NSColor.secondarySelectedControlColor().set()
 			}
 			else {

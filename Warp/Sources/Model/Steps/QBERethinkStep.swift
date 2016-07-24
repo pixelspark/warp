@@ -428,7 +428,7 @@ class QBERethinkDataset: StreamDataset {
 		if QBERethinkExpression.expressionToQuery(optimized, prior: R.expr()) != nil {
 			/* A filter is much faster if it can use an index. If this data set represents a table *and* the filter is
 			of the form column=value, *and* we have an index for that column, then use getAll. */
-			if let tbl = self.query as? ReQueryTable, let binary = optimized as? Comparison where binary.type == .Equal {
+			if let tbl = self.query as? ReQueryTable, let binary = optimized as? Comparison, binary.type == .Equal {
 				if let (sibling, literal) = binary.commutativePair(Sibling.self, Literal.self) {
 					if self.indices?.contains(sibling.column) ?? false {
 						// We can use a secondary index
@@ -498,7 +498,7 @@ class QBERethinkDataset: StreamDataset {
 	}
 
 	override func union(_ data: Dataset) -> Dataset {
-		if let d = data as? QBERethinkDataset where self.isCompatibleWith(d) {
+		if let d = data as? QBERethinkDataset, self.isCompatibleWith(d) {
 			// Are the columns for the other data set known?
 			let resultingColumns: [Column]?
 			if let dc = d.columns, var oc = self.columns {
@@ -718,7 +718,7 @@ class QBERethinkMutableDataset: MutableDataset {
 				case .import(let sourceDataset, _):
 					/* If the source rows are produced on the same server, we might as well let the server do the
 					heavy lifting. */
-					if let sourceRethinkDataset = sourceDataset as? QBERethinkDataset where sourceRethinkDataset.url == self.url {
+					if let sourceRethinkDataset = sourceDataset as? QBERethinkDataset, sourceRethinkDataset.url == self.url {
 						q = sourceRethinkDataset.query.forEach { doc in R.db(self.databaseName).table(self.tableName).insert([doc]) }
 					}
 					else {
@@ -839,7 +839,7 @@ class QBERethinkSourceStep: QBEStep {
 	}
 
 	internal var url: URL? { get {
-		if let u = self.authenticationKey where !u.isEmpty && !self.useUsernamePasswordAuthentication {
+		if let u = self.authenticationKey, !u.isEmpty && !self.useUsernamePasswordAuthentication {
 			let urlString = "rethinkdb://\(u.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlUserAllowed)!)@\(self.server.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlHostAllowed)!):\(self.port)"
 			return URL(string: urlString)
 		}
@@ -970,7 +970,7 @@ class QBERethinkSourceStep: QBEStep {
 	}
 
 	override var mutableDataset: MutableDataset? {
-		if let u = self.url where !self.table.isEmpty {
+		if let u = self.url, !self.table.isEmpty {
 			return QBERethinkMutableDataset(url: u, databaseName: self.database, tableName: self.table)
 		}
 		return nil

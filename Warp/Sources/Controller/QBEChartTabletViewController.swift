@@ -23,14 +23,14 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	override func viewWillAppear() {
 		self.chart = self.chartTablet?.chart
 		self.reloadData()
-		let name = NSNotification.Name(rawValue: QBEResultNotification.name)
+		let name = Notification.Name(rawValue: QBEResultNotification.name)
 		NotificationCenter.default.addObserver(self, selector: #selector(QBEChartTabletViewController.resultNotificationReceived(_:)), name: name, object: nil)
 	}
 
 	@objc private func resultNotificationReceived(_ notification: Notification) {
 		assertMainThread()
 
-		if let calculationNotification = notification.object as? QBEResultNotification where calculationNotification.calculator != calculator {
+		if let calculationNotification = notification.object as? QBEResultNotification, calculationNotification.calculator != calculator {
 			if let t = self.chartTablet, let source = t.chart.sourceTablet, let step = source.chain.head {
 				if step == calculationNotification.step {
 					self.presentedRaster = calculationNotification.raster

@@ -114,7 +114,7 @@ public class Expression: NSObject, NSCoding {
 			inputValue = Value.invalid
 		}
 
-		if let c = job?.isCancelled where c {
+		if let c = job?.isCancelled, c {
 			return outSuggestions
 		}
 
@@ -122,7 +122,7 @@ public class Expression: NSObject, NSCoding {
 
 		// Try out combinations of formulas and see if they fit
 		for formulaType in expressions {
-			if let c = job?.isCancelled where c {
+			if let c = job?.isCancelled, c {
 				return outSuggestions
 			}
 			
@@ -257,7 +257,7 @@ public final class Literal: Expression {
 	}
 
 	public override func isEqual(_ object: AnyObject?) -> Bool {
-		if let o = object as? Literal where o.value == self.value {
+		if let o = object as? Literal, o.value == self.value {
 			return true
 		}
 		return super.isEqual(object)
@@ -506,7 +506,7 @@ public final class Comparison: Expression {
 				return true
 			}
 			// A <> B is equivalent to B = A, so in these cases the binary expression is equivalent
-			else if let mirror = self.type.mirror where otherBinary.type == mirror && otherBinary.first.isEquivalentTo(self.second) && otherBinary.second.isEquivalentTo(self.first) {
+			else if let mirror = self.type.mirror, otherBinary.type == mirror && otherBinary.first.isEquivalentTo(self.second) && otherBinary.second.isEquivalentTo(self.first) {
 				return true
 			}
 		}
@@ -515,7 +515,7 @@ public final class Comparison: Expression {
 	}
 
 	public override func isEqual(_ object: AnyObject?) -> Bool {
-		if let o = object as? Comparison where o.first == self.first && o.second == self.second && o.type == self.type {
+		if let o = object as? Comparison, o.first == self.first && o.second == self.second && o.type == self.type {
 			return true
 		}
 		return super.isEqual(object)
@@ -615,7 +615,7 @@ public final class Call: Expression {
 	}
 
 	public override func isEqual(_ object: AnyObject?) -> Bool {
-		if let o = object as? Call where o.type == self.type && o.arguments == self.arguments {
+		if let o = object as? Call, o.type == self.type && o.arguments == self.arguments {
 			return true
 		}
 		return super.isEqual(object)
@@ -646,7 +646,7 @@ public final class Call: Expression {
 						var foundAsElement = false
 						let separators = [" ", ",", ";", "\t", "|", "-", ".", "/", ":", "\\", "#", "=", "_", "(", ")", "[", "]"]
 						for separator in separators {
-							if let c = job?.isCancelled where c {
+							if let c = job?.isCancelled, c {
 								break
 							}
 							
@@ -769,7 +769,7 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 	}
 
 	public override func isEqual(_ object: AnyObject?) -> Bool {
-		if let o = object as? Sibling where o.column == self.column {
+		if let o = object as? Sibling, o.column == self.column {
 			return true
 		}
 		return super.isEqual(object)
@@ -825,7 +825,7 @@ public final class Foreign: Expression, ColumnReferencingExpression {
 	}
 
 	public override func isEqual(_ object: AnyObject?) -> Bool {
-		if let o = object as? Foreign where o.column == self.column {
+		if let o = object as? Foreign, o.column == self.column {
 			return true
 		}
 		return super.isEqual(object)

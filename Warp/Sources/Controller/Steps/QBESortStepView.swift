@@ -76,7 +76,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	}
 	
 	@IBAction func delete(_ sender: NSObject) {
-		if let selection = tableView?.selectedRowIndexes where selection.count > 0 {
+		if let selection = tableView?.selectedRowIndexes, selection.count > 0 {
 			step.orders.removeObjectsAtIndexes(selection, offset: 0)
 			tableView?.reloadData()
 			self.delegate?.configurableView(self, didChangeConfigurationFor: step)

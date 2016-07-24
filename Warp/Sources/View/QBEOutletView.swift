@@ -118,7 +118,7 @@ private class QBELaceView: NSView {
 		if let context = NSGraphicsContext.current()?.cgContext {
 			context.saveGState()
 			
-			if let sourceRect = sourceScreenRect, w = self.window {
+			if let sourceRect = sourceScreenRect, let w = self.window {
 				// Translate screen point to point in this view
 				let sourcePointWindow = w.convertFromScreen(sourceRect).center
 				let sourcePointView = self.convert(sourcePointWindow, from: nil)
@@ -173,7 +173,7 @@ private class QBELaceWindow: NSWindow {
 	} }
 	
 	private func updateGeometry() {
-		if let s = source, frameInScreen = sourceScreenFrame where targetScreenPoint.x.isFinite && targetScreenPoint.y.isFinite {
+		if let s = source, let frameInScreen = sourceScreenFrame, targetScreenPoint.x.isFinite && targetScreenPoint.y.isFinite {
 			let rect = CGRect(
 				x: min(frameInScreen.center.x, targetScreenPoint.x),
 				y: min(frameInScreen.center.y, targetScreenPoint.y),

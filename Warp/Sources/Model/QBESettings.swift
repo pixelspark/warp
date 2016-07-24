@@ -136,7 +136,7 @@ class QBESettings {
 		first-time tips. */
 		let dict = defaults.dictionaryRepresentation()
 		for (key, _) in dict {
-			if let r = key.range(of: "once.", options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) where r.lowerBound==key.startIndex {
+			if let r = key.range(of: "once.", options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil), r.lowerBound==key.startIndex {
 				defaults.removeObject(forKey: key)
 			}
 		}

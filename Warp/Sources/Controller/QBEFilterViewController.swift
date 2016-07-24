@@ -63,7 +63,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		
 		if let d = data, let c = column {
 			var filteredDataset = d
-			if let search = searchField?.stringValue where !search.isEmpty {
+			if let search = searchField?.stringValue, !search.isEmpty {
 				lastSearch = search
 				filteredDataset = searchDataset ?? filteredDataset
 				filteredDataset = filteredDataset.filter(Comparison(first: Literal(Value(search)), second: Sibling(c), type: Binary.MatchesRegex))
@@ -109,7 +109,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		if row < values.count {
 			switch tableColumn?.identifier ?? "" {
 				case "selected":
-					if let b = object?.boolValue where b {
+					if let b = object?.boolValue, b {
 						filter.selectedValues.insert(values[row].0)
 					}
 					else {
@@ -189,7 +189,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	}
 	
 	@IBAction func searchChanged(_ sender: NSObject) {
-		if let search = searchField?.stringValue where !search.isEmpty && search != lastSearch {
+		if let search = searchField?.stringValue, !search.isEmpty && search != lastSearch {
 			reloadData()
 		}
 	}
@@ -248,7 +248,7 @@ private extension Dataset {
 			case .success(let r):
 				var histogram: [Value: Int] = [:]
 				for row in r.rows {
-					if let k = row[keyColumn] where k.isValid {
+					if let k = row[keyColumn], k.isValid {
 						histogram[k] = row[countColumn].intValue
 					}
 				}

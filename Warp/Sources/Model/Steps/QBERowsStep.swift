@@ -123,7 +123,7 @@ class QBEFilterStep: QBEStep {
 			// This filter step can be AND'ed with the previous
 			let combinedCondition: Expression
 
-			if let rootAnd = p.condition as? Call where rootAnd.type == Function.And {
+			if let rootAnd = p.condition as? Call, rootAnd.type == Function.And {
 				let args: [Expression] = rootAnd.arguments + [self.condition]
 				combinedCondition = Call(arguments: args, type: Function.And)
 			}
@@ -278,7 +278,7 @@ class QBELimitStep: QBEStep {
 	}
 	
 	override func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
-		if let p = prior as? QBELimitStep where !(p is QBERandomStep) {
+		if let p = prior as? QBELimitStep, !(p is QBERandomStep) {
 			return QBEStepMerge.advised(QBELimitStep(previous: nil, numberOfRows: min(self.numberOfRows, p.numberOfRows)))
 		}
 		return QBEStepMerge.impossible

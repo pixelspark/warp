@@ -56,7 +56,7 @@ class QBEResizableView: NSView {
 			// Dirty hack to find out when one of our subviews is clicked, so we can select ourselves
 			let pt = convert(aPoint, from: superview)
 			if let ht = cv.hitTest(pt) {
-				if let ev = self.window?.currentEvent where ev.type == NSEventType.leftMouseDown {
+				if let ev = self.window?.currentEvent, ev.type == NSEventType.leftMouseDown {
 					self.resizerView.mouseDownInSubiew(ev)
 				}
 
@@ -158,7 +158,7 @@ internal class QBEResizerView: NSView {
 		// If a subview is about to receive a mouse down event, then this tablet should be selected.
 		if self.bounds.contains(pt) {
 			if !self.selected {
-				if let ev = self.window?.currentEvent where ev.type == NSEventType.leftMouseDown {
+				if let ev = self.window?.currentEvent, ev.type == NSEventType.leftMouseDown {
 					self.mouseDownInSubiew(ev)
 				}
 			}
@@ -254,7 +254,7 @@ internal class QBEResizerView: NSView {
 	var canResize: Bool { get {
 		// Find scroll view, if it is in zoomed mode we cannot resize
 		var sv: NSView? = self
-		while let svx = sv where !(svx is QBEWorkspaceView) {
+		while let svx = sv, !(svx is QBEWorkspaceView) {
 			sv = svx.superview
 		}
 		
@@ -274,7 +274,7 @@ internal class QBEResizerView: NSView {
 			let realAnchor = visibleAnchors.contains(closestAnchor) ? closestAnchor : .none
 			
 			// Order view to front
-			if let sv = superview, psv = sv.superview {
+			if let sv = superview, let psv = sv.superview {
 				psv.addSubview(sv)
 			}
 			

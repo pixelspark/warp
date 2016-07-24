@@ -48,9 +48,9 @@ internal class QBERenameStepView: QBEConfigurableStepViewControllerFor<QBERename
 	}
 	
 	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
-		if let identifier = tableColumn?.identifier where identifier == "new" {
+		if let identifier = tableColumn?.identifier, identifier == "new" {
 			let name = columns[row]
-			if let newName = object as? String where !newName.isEmpty {
+			if let newName = object as? String, !newName.isEmpty {
 				step.renames[name] = Column(newName)
 			}
 			else {

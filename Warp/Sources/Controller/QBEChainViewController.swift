@@ -192,7 +192,7 @@ internal enum QBEEditingMode {
 
 
 			@objc func uploadDataset(_ sender: AnyObject) {
-				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep, let destMutable = destStep.mutableDataset where destMutable.canPerformMutation(.import(data: RasterDataset(), withMapping: [:])) {
+				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep, let destMutable = destStep.mutableDataset, destMutable.canPerformMutation(.import(data: RasterDataset(), withMapping: [:])) {
 					let uploadView = self.view.storyboard?.instantiateController(withIdentifier: "uploadDataset") as! QBEUploadViewController
 					uploadView.sourceStep = sourceStep
 					uploadView.targetStep = destStep
@@ -284,7 +284,7 @@ internal enum QBEEditingMode {
 				unionItem.target = self
 				dropMenu.addItem(unionItem)
 
-				if let destStep = self.view.currentStep, let destMutable = destStep.mutableDataset where destMutable.canPerformMutation(.import(data: RasterDataset(), withMapping: [:])) {
+				if let destStep = self.view.currentStep, let destMutable = destStep.mutableDataset, destMutable.canPerformMutation(.import(data: RasterDataset(), withMapping: [:])) {
 					dropMenu.addItem(NSMenuItem.separator())
 					let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .write).stringValue + "...", action: #selector(QBEDropChainAction.uploadDataset(_:)), keyEquivalent: "")
 					createItem.target = self
@@ -350,7 +350,7 @@ internal enum QBEEditingMode {
 	}
 
 	func outletView(_ view: QBEOutletView, didDropAtURL url: URL) {
-		if let isd = url.isDirectory where isd {
+		if let isd = url.isDirectory, isd {
 			// Ask for a file rather than a directory
 			var exts: [String: String] = [:]
 			for ext in QBEFactory.sharedInstance.fileExtensionsForWriting {
@@ -618,7 +618,7 @@ internal enum QBEEditingMode {
 				after?.next?.previous = didMoveStep
 				didMoveStep.previous = after
 				
-				if let h = chain?.head where after == h {
+				if let h = chain?.head, after == h {
 					chain?.head = didMoveStep
 				}
 			}
@@ -657,7 +657,7 @@ internal enum QBEEditingMode {
 	
 	func dataView(_ view: QBEDatasetViewController, didOrderColumns columns: [Column], toIndex: Int) -> Bool {
 		// Construct a new column ordering
-		if let r = view.raster where toIndex >= 0 && toIndex < r.columns.count {
+		if let r = view.raster, toIndex >= 0 && toIndex < r.columns.count {
 			/* If the current step is already a sort columns step, do not create another one; instead create a new sort
 			step that combines both sorts. This cannot be implemented as QBESortColumnStep.mergeWith, because from there
 			the full list of columns is not available. */
@@ -720,7 +720,7 @@ internal enum QBEEditingMode {
 
 		case .editing(identifiers: _, editingRaster: let editingRaster):
 			// If a formula was typed in, calculate the result first
-			if let f = Formula(formula: value.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
+			if let f = Formula(formula: value.stringValue ?? "", locale: locale), !(f.root is Literal) && !(f.root is Identity) {
 				let row = inRow == nil ? Row() : editingRaster[inRow!]
 				value = f.root.apply(row, foreign: nil, inputValue: nil)
 			}
@@ -909,7 +909,7 @@ internal enum QBEEditingMode {
 		// In editing mode, we perform the edit on the mutable data set
 		if let md = self.currentStep?.mutableDataset, case .editing(identifiers:_, editingRaster: let editingRaster) = self.editingMode {
 			// If a formula was typed in, calculate the result first
-			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
+			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale), !(f.root is Literal) && !(f.root is Identity) {
 				toValue = f.root.apply(editingRaster[inRow], foreign: nil, inputValue: oldValue)
 			}
 
@@ -1378,7 +1378,7 @@ internal enum QBEEditingMode {
 	private func showSuggestionsForStep(_ step: QBEStep, atView: NSView) {
 		assertMainThread()
 		
-		if let alternatives = step.alternatives where alternatives.count > 0 {
+		if let alternatives = step.alternatives, alternatives.count > 0 {
 			if let sv = self.storyboard?.instantiateController(withIdentifier: "suggestionsList") as? QBESuggestionsListViewController {
 				sv.delegate = self
 				sv.suggestions = Array(alternatives)
@@ -1402,7 +1402,7 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func chooseFirstAlternativeStep(_ sender: NSObject) {
-		if let s = currentStep?.alternatives where s.count > 0 {
+		if let s = currentStep?.alternatives, s.count > 0 {
 			selectAlternativeStep(s.first!)
 		}
 	}
@@ -1443,7 +1443,7 @@ internal enum QBEEditingMode {
 								}
 							}
 							else {
-								if let lastSelectedColumn = selectedColumns.last where lastSelectedColumn < cols.count {
+								if let lastSelectedColumn = selectedColumns.last, lastSelectedColumn < cols.count {
 									let insertAfter = cols[lastSelectedColumn]
 									let step = QBECalculateStep(previous: self.currentStep, targetColumn: name, function: Literal(Value.empty), insertRelativeTo: insertAfter, insertBefore: false)
 
@@ -1787,7 +1787,7 @@ internal enum QBEEditingMode {
 
 	private func performMutation(_ mutation: DatasetMutation) {
 		assertMainThread()
-		guard let cs = currentStep, let store = cs.mutableDataset where store.canPerformMutation(mutation) else {
+		guard let cs = currentStep, let store = cs.mutableDataset, store.canPerformMutation(mutation) else {
 			let a = NSAlert()
 			a.messageText = NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")
 			a.alertStyle = NSAlertStyle.warning
@@ -1849,7 +1849,7 @@ internal enum QBEEditingMode {
 	}
 
 	@IBAction func alterStore(_ sender: NSObject) {
-		if let md = self.currentStep?.mutableDataset where md.canPerformMutation(.alter(DatasetDefinition(columns: []))) {
+		if let md = self.currentStep?.mutableDataset, md.canPerformMutation(.alter(DatasetDefinition(columns: []))) {
 			let alterViewController = QBEAlterTableViewController()
 			alterViewController.mutableDataset = md
 			alterViewController.warehouse = md.warehouse
@@ -1899,14 +1899,14 @@ internal enum QBEEditingMode {
 	private func startEditingWithCallback(_ callback: (() -> ())? = nil) {
 		let forceCustomKeySelection = self.view.window?.currentEvent?.modifierFlags.contains(.option) ?? false
 
-		if let md = self.currentStep?.mutableDataset where self.supportsEditing {
+		if let md = self.currentStep?.mutableDataset, self.supportsEditing {
 			self.editingMode = .enablingEditing
 			let job = Job(.userInitiated)
 			md.identifier(job) { result in
 				asyncMain {
 					switch self.editingMode {
 					case .enablingEditing:
-						if case .success(let ids) = result where ids != nil && !forceCustomKeySelection {
+						if case .success(let ids) = result, ids != nil && !forceCustomKeySelection {
 							self.startEditingWithIdentifier(ids!, callback: callback)
 						}
 						else if !forceCustomKeySelection && md.canPerformMutation(DatasetMutation.edit(row: 0, column: Column("a"), old: Value.invalid, new: Value.invalid)) {
@@ -1924,7 +1924,7 @@ internal enum QBEEditingMode {
 										let ctr = self.storyboard?.instantiateController(withIdentifier: "keyViewController") as! QBEKeySelectionViewController
 										ctr.columns = columns
 
-										if case .success(let ids) = result where ids != nil {
+										if case .success(let ids) = result, ids != nil {
 											ctr.keyColumns = ids!
 										}
 
@@ -2019,7 +2019,11 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	override func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+	@objc override func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+		return self.validate(item)
+	}
+
+	func validate(_ item: NSToolbarItem) -> Bool {
 		if item.action == #selector(QBEChainViewController.toggleFullDataset(_:)) {
 			if let c = item.view as? NSButton {
 				c.state = (currentStep != nil && (hasFullDataset || useFullDataset)) ? NSOnState: NSOffState
@@ -2042,12 +2046,8 @@ internal enum QBEEditingMode {
 
 		return validateSelector(item.action!)
 	}
-
-	func validate(_ item: NSValidatedUserInterfaceItem) -> Bool {
-		return self.validateUserInterfaceItem(item)
-	}
 	
-	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+	@objc func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		return validateSelector(item.action!)
 	}
 
@@ -2058,7 +2058,7 @@ internal enum QBEEditingMode {
 		else if selector == #selector(QBEChainViewController.truncateStore(_:))  {
 			switch editingMode {
 			case .editing:
-				if let cs = self.currentStep?.mutableDataset where cs.canPerformMutation(.truncate) {
+				if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.truncate) {
 					return true
 				}
 				return false
@@ -2070,7 +2070,7 @@ internal enum QBEEditingMode {
 		else if selector == #selector(QBEChainViewController.dropStore(_:))  {
 			switch editingMode {
 			case .editing:
-				if let cs = self.currentStep?.mutableDataset where cs.canPerformMutation(.drop) {
+				if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.drop) {
 					return true
 				}
 				return false
@@ -2082,7 +2082,7 @@ internal enum QBEEditingMode {
 		else if selector == #selector(QBEChainViewController.alterStore(_:))  {
 			switch editingMode {
 			case .editing:
-				if let cs = self.currentStep?.mutableDataset where cs.canPerformMutation(.alter(DatasetDefinition(columns: []))) {
+				if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.alter(DatasetDefinition(columns: []))) {
 					return true
 				}
 				return false
@@ -2252,7 +2252,7 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func removeTablet(_ sender: AnyObject?) {
-		if let d = self.delegate where d.chainViewDidClose(self) {
+		if let d = self.delegate, d.chainViewDidClose(self) {
 			self.chain = nil
 			self.dataViewController = nil
 			self.delegate = nil
@@ -2353,7 +2353,7 @@ internal enum QBEEditingMode {
 		super.viewWillAppear()
 		stepsChanged()
 		calculate()
-		let name = NSNotification.Name(rawValue: QBEChangeNotification.name)
+		let name = Notification.Name(rawValue: QBEChangeNotification.name)
 		NotificationCenter.default.addObserver(self, selector: #selector(QBEChainViewController.changeNotificationReceived(_:)), name: name, object: nil)
 	}
 

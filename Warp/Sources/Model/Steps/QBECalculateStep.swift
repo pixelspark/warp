@@ -184,7 +184,7 @@ class QBECalculateStep: QBEStep {
 	
 	override func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
 		// FIXME: what to do with insertAfter?
-		if let p = prior as? QBECalculateStep where p.targetColumn == self.targetColumn {
+		if let p = prior as? QBECalculateStep, p.targetColumn == self.targetColumn {
 			var dependsOnPrevious = false
 			
 			// If this function is not constant, it may depend on another column
@@ -217,7 +217,7 @@ class QBECalculateStep: QBEStep {
 		var suggestions: [Expression] = []
 		if fromValue != toValue {
 			// Was a formula typed in?
-			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale) where !(f.root is Literal) && !(f.root is Identity) {
+			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale), !(f.root is Literal) && !(f.root is Identity) {
 				// Replace occurrences of the identity with a reference to this column (so users can type '@/1000')
 				let newFormula = f.root.visit { e -> Expression in
 					if e is Identity {
@@ -233,7 +233,7 @@ class QBECalculateStep: QBEStep {
 				suggestions.append(newFormula)
 
 				// If this was definitely a formula, do not suggest anything else
-				if let tv = toValue.stringValue where tv.hasPrefix(Formula.prefix) {
+				if let tv = toValue.stringValue, tv.hasPrefix(Formula.prefix) {
 					return Array(Set(suggestions)).sorted { a,b in return a.complexity < b.complexity }
 				}
 			}

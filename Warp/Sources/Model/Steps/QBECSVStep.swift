@@ -445,7 +445,7 @@ class QBECSVSourceStep: QBEStep {
 	
 	override func didLoadFromDocument(_ atURL: URL) {
 		self.file = self.file?.resolve(atURL)
-		if let b = self.file?.url?.startAccessingSecurityScopedResource() where !b {
+		if let b = self.file?.url?.startAccessingSecurityScopedResource(), !b {
 			trace("startAccessingSecurityScopedResource for \(atURL) failed")
 		}
 	}

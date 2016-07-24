@@ -116,7 +116,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 			
 			// Check if we're doing an internal move
 			if	let data = pboard.data(forType: QBEStepsViewController.dragType),
-				let ds = draggingInfo.draggingSource() as? NSCollectionView where ds == collectionView {
+				let ds = draggingInfo.draggingSource() as? NSCollectionView, ds == collectionView {
 				if let indices = NSKeyedUnarchiver.unarchiveObject(with: data) as? IndexSet {
 					let draggedIndex = indices.first
 					

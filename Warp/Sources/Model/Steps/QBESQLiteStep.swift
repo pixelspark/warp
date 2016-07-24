@@ -917,7 +917,7 @@ class QBESQLiteMutableDataset: SQLMutableDataset {
 class QBESQLiteSourceStep: QBEStep {
 	var file: QBEFileReference? = nil { didSet {
 		oldValue?.url?.stopAccessingSecurityScopedResource()
-		if let b = file?.url?.startAccessingSecurityScopedResource() where !b {
+		if let b = file?.url?.startAccessingSecurityScopedResource(), !b {
 			trace("startAccessingSecurityScopedResource failed for \(file!.url!)")
 		}
 		switchDatasetbase()
@@ -958,7 +958,7 @@ class QBESQLiteSourceStep: QBEStep {
 		let fileSentenceItem = QBESentenceFile(file: self.file, allowedFileTypes: ["org.sqlite.v3"], canCreate: true, callback: { [weak self] (newFile) -> () in
 			// If a file was selected that does not exist yet, create a new database
 			var error: NSError? = nil
-			if let url = newFile.url where !(url as NSURL).checkResourceIsReachableAndReturnError(&error) {
+			if let url = newFile.url, !(url as NSURL).checkResourceIsReachableAndReturnError(&error) {
 				let db = QBESQLiteDatasetbase(url: url as URL, readOnly: false)
 				db.connect { result in
 					switch result {

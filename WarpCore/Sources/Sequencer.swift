@@ -417,7 +417,7 @@ private class CombinatorSequence: ValueSequence {
 	}
 	
 	private override func random() -> Value? {
-		if let a = left.random(), b = right.random() {
+		if let a = left.random(), let b = right.random() {
 			return a & b
 		}
 		return nil

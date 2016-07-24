@@ -48,16 +48,16 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 	@IBAction func updateStep(_ sender: NSObject) {
 		var changed = false
 		
-		if let u = self.userField?.stringValue where u != step.user {
+		if let u = self.userField?.stringValue, u != step.user {
 			step.user = u
 			changed = true
 		}
-		else if let u = self.passwordField?.stringValue where u != step.password.stringValue {
+		else if let u = self.passwordField?.stringValue, u != step.password.stringValue {
 			step.password.stringValue = u
 			changed = true
 		}
 		
-		if let u = self.hostField?.stringValue where u != step.host {
+		if let u = self.hostField?.stringValue, u != step.host {
 			if let url = URL(string: u) {
 				step.user = url.user ?? step.user
 				step.host = url.host ?? step.host
@@ -69,7 +69,7 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 			changed = true
 		}
 		
-		if let u = self.portField?.stringValue where Int(u) != step.port {
+		if let u = self.portField?.stringValue, Int(u) != step.port {
 			step.port = Int(u) ?? step.port
 			changed = true
 		}

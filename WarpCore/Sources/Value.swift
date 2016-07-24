@@ -55,7 +55,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		else if let s = jsonObject as? String {
 			self = .string(s)
 		}
-		else if let i = jsonObject as? Int, let d = jsonObject as? Double where d == Double(i) {
+		else if let i = jsonObject as? Int, let d = jsonObject as? Double, d == Double(i) {
 			self = .int(i)
 		}
 		else if let d = jsonObject as? Double {
@@ -579,7 +579,7 @@ public func > (lhs: Value, rhs: Value) -> Value {
 }
 
 public func ~= (lhs: Value, rhs: Value) -> Value {
-	if let l = lhs.stringValue, r = rhs.stringValue {
+	if let l = lhs.stringValue, let r = rhs.stringValue {
 		return Value.bool(l.range(of: r, options: NSString.CompareOptions.caseInsensitive, range: nil, locale: nil) != nil)
 	}
 	return Value.invalid
@@ -598,21 +598,21 @@ infix operator ±±= {
 }
 
 public func ~~= (lhs: Value, rhs: Value) -> Value {
-	if let l = lhs.stringValue, r = rhs.stringValue {
+	if let l = lhs.stringValue, let r = rhs.stringValue {
 		return Value.bool(l.range(of: r, options: NSString.CompareOptions(), range: nil, locale: nil) != nil)
 	}
 	return Value.invalid
 }
 
 public func ±= (lhs: Value, rhs: Value) -> Value {
-	if let l = lhs.stringValue, r = rhs.stringValue, matches = l.matches(r, caseSensitive: false) {
+	if let l = lhs.stringValue, let r = rhs.stringValue, let matches = l.matches(r, caseSensitive: false) {
 		return Value.bool(matches)
 	}
 	return Value.invalid
 }
 
 public func ±±= (lhs: Value, rhs: Value) -> Value {
-	if let l = lhs.stringValue, r = rhs.stringValue, matches = l.matches(r, caseSensitive: true) {
+	if let l = lhs.stringValue, let r = rhs.stringValue, let matches = l.matches(r, caseSensitive: true) {
 		return Value.bool(matches)
 	}
 	return Value.invalid

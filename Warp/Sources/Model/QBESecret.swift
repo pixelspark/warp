@@ -29,8 +29,8 @@ public class QBESecret {
 				for item in items {
 					if	let sn = item[kSecAttrService as String] as? String,
 						let serviceURL = URL(string: sn) ,
-						let accountName = item[kSecAttrAccount as String] as? String
-						where serviceURL.scheme == serviceType {
+						let accountName = item[kSecAttrAccount as String] as? String,
+						serviceURL.scheme == serviceType {
 						services.append(QBESecret(serviceType: serviceType, host: serviceURL.host!, port: (serviceURL as NSURL).port!.intValue, account: accountName, friendlyName: sn))
 					}
 				}

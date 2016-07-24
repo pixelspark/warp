@@ -67,7 +67,7 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 	}
 
 	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
-		if let n = object as? NSNumber, let tc = tableColumn where tc.identifier == "source" {
+		if let n = object as? NSNumber, let tc = tableColumn, tc.identifier == "source" {
 			let dest = self.destinationColumns[row]
 
 			if let item = self.sourceColumnsMenu.item(at: n.intValue) {

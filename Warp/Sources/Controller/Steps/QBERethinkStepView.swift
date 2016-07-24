@@ -142,7 +142,7 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 			self.step.useUsernamePasswordAuthentication = useUserPass
 			change = true
 		}
-		else if let u = self.passwordField?.stringValue where u != step.password.stringValue {
+		else if let u = self.passwordField?.stringValue, u != step.password.stringValue {
 			step.password.stringValue = u
 			change = true
 		}
@@ -194,7 +194,7 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 	}
 
 	@IBAction func removeColumns(_ sender: NSObject) {
-		if let sr = self.tableView?.selectedRow where sr >= 0 && sr != NSNotFound && sr < self.step.columns.count {
+		if let sr = self.tableView?.selectedRow, sr >= 0 && sr != NSNotFound && sr < self.step.columns.count {
 			self.step.columns.remove(sr)
 			self.updateView()
 			self.delegate?.configurableView(self, didChangeConfigurationFor: step)

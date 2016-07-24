@@ -259,7 +259,7 @@ class QBEMySQLDatasetbase: SQLDatasetbase {
 			return .failure(connection.lastError)
 		}
 		
-		if let dbn = databaseName, let dbc = dbn.cString(using: String.Encoding.utf8) where !dbn.isEmpty {
+		if let dbn = databaseName, let dbc = dbn.cString(using: String.Encoding.utf8), !dbn.isEmpty {
 			if !connection.perform({() -> Int32 in
 				return mysql_select_db(connection.connection, dbc)
 			}) {
@@ -758,7 +758,7 @@ class QBEMySQLSourceStep: QBEStep {
 	}
 
 	override var mutableDataset: MutableDataset? { get {
-		if let tn = self.tableName where !tn.isEmpty {
+		if let tn = self.tableName, !tn.isEmpty {
 			let s = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 			return QBEMySQLMutableDataset(database: s, schemaName: nil, tableName: tn)
 		}
@@ -772,10 +772,10 @@ class QBEMySQLSourceStep: QBEStep {
 
 	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		job.async {
-			if let dbn = self.databaseName where !dbn.isEmpty {
+			if let dbn = self.databaseName, !dbn.isEmpty {
 				let s = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 
-				if let tn = self.tableName where !tn.isEmpty {
+				if let tn = self.tableName, !tn.isEmpty {
 					let md = QBEMySQLDataset.create(s, tableName: tn)
 					callback(md.use { $0.coalesced })
 				}

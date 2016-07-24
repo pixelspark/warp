@@ -48,7 +48,7 @@ internal class QBEColumnsStepView: QBEConfigurableStepViewControllerFor<QBEColum
 	}
 	
 	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
-		if let identifier = tableColumn?.identifier where identifier == "selected" {
+		if let identifier = tableColumn?.identifier, identifier == "selected" {
 			let select = object?.boolValue ?? false
 			let name = columns[row]
 			step.columns.remove(name)

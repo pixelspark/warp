@@ -337,7 +337,7 @@ public class SQLMutableDataset: MutableDataset {
 			self.data(job) { result in
 				switch result {
 				case .success(let myDataset):
-					if let mySQLDataset  = myDataset as? SQLDataset where mySQLDataset.isCompatibleWith(otherSQL) {
+					if let mySQLDataset  = myDataset as? SQLDataset, mySQLDataset.isCompatibleWith(otherSQL) {
 						// Perform INSERT INTO ... SELECT ...
 						self.database.connect { result in
 							switch result {
@@ -1197,7 +1197,7 @@ public class SQLDataset: NSObject, Dataset {
 	}
 	
 	public func union(_ data: Dataset) -> Dataset {
-		if let rightSQL = data as? SQLDataset where isCompatibleWith(rightSQL) {
+		if let rightSQL = data as? SQLDataset, isCompatibleWith(rightSQL) {
 			// Find out what columns we will end up with
 			var cols = self.columns
 			for rightColumn in rightSQL.columns {
@@ -1229,7 +1229,7 @@ public class SQLDataset: NSObject, Dataset {
 				}
 				
 				// Check if the other data set is a compatible SQL data set
-				if let rightSQL = rightDataset as? SQLDataset where isCompatibleWith(rightSQL) {
+				if let rightSQL = rightDataset as? SQLDataset, isCompatibleWith(rightSQL) {
 					// Get SQL from right dataset
 					let rightQuery = rightSQL.sql.sqlSelect(nil).sql
 					let leftAlias = self.sql.aliasFor(.join)

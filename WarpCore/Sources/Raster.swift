@@ -367,7 +367,7 @@ public class Raster: NSObject, NSCoding {
 			return
 		}
 		
-		if let hc = HashComparison(expression: expression) where hc.comparisonOperator == Binary.Equal {
+		if let hc = HashComparison(expression: expression), hc.comparisonOperator == Binary.Equal {
 			// This join can be performed as a hash join
 			self.hashJoin(inner, comparison: hc, raster: rightRaster, job: job, callback: callback)
 		}
@@ -411,7 +411,7 @@ public class Raster: NSObject, NSCoding {
 			
 			// Iterate over the rows on the left side and join rows from the right side using the hash table
 			let future = self.raster.parallel(
-				map: { (chunk) -> ([Tuple]) in
+				{ (chunk) -> ([Tuple]) in
 					var newDataset: [Tuple] = []
 					job?.time("hashJoin", items: chunk.count, itemType: "rows") {
 						var myTemplateRow = templateRow
@@ -472,7 +472,7 @@ public class Raster: NSObject, NSCoding {
 			
 			// Perform carthesian product (slow, so in parallel)
 			let future = self.raster.parallel(
-				map: { (chunk) -> ([Tuple]) in
+				{ (chunk) -> ([Tuple]) in
 					var newDataset: [Tuple] = []
 					job?.time("carthesianProduct", items: chunk.count * rightRaster.rowCount, itemType: "pairs") {
 						var myTemplateRow = templateRow

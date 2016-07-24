@@ -120,7 +120,7 @@ class QBECrawlStream: WarpCore.Stream {
 							job.async {
 								// Find out what URL we need to fetch
 								var row = Row(tuple, columns: sourceColumns)
-								if let urlString = self.crawler.urlExpression.apply(row, foreign: nil, inputValue: nil).stringValue, url = URL(string: urlString) {
+								if let urlString = self.crawler.urlExpression.apply(row, foreign: nil, inputValue: nil).stringValue, let url = URL(string: urlString) {
 									let request = NSMutableURLRequest(url: url)
 									// TODO: make configurable
 									request.httpMethod = "GET"

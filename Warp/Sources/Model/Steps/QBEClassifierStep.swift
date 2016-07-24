@@ -174,7 +174,7 @@ private class QBENeuronAllocator {
 
 			let v: QBENeuronAllocation
 			if output {
-				if let min = descriptive[.Min]!.intValue, let max = descriptive[.Max]!.intValue where max > min {
+				if let min = descriptive[.Min]!.intValue, let max = descriptive[.Max]!.intValue, max > min {
 					if (max - min) >= descriptive[.CountDistinct]!.intValue! &&
 						descriptive[.CountDistinct]!.intValue! <= remainingCount &&
 						descriptive[.CountAll]!.intValue! > 2 * descriptive[.CountDistinct]!.intValue! {

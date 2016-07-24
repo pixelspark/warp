@@ -106,7 +106,7 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 							self.isExporting = false
 							self.update()
 							alert.messageText = errorMessage
-							if let w = self.view.window where w.isVisible {
+							if let w = self.view.window, w.isVisible {
 								alert.beginSheetModal(for: w, completionHandler: nil)
 							}
 							else if let w = alertWindow {

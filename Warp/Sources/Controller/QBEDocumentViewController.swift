@@ -170,7 +170,7 @@ import WarpCore
 	@objc func addTablet(_ tablet: QBETablet, undo: Bool, animated: Bool, callback: ((QBETabletViewController) -> ())? = nil) {
 		self.workspaceView.magnifyView(nil) {
 			// Check if this tablet is also in the document
-			if let d = self.document where tablet.document != self.document {
+			if let d = self.document, tablet.document != self.document {
 				d.addTablet(tablet)
 			}
 			
@@ -235,7 +235,7 @@ import WarpCore
 	}
 
 	private func cycleTablets(_ offset: Int) {
-		if let d = self.document where d.tablets.count > 0 {
+		if let d = self.document, d.tablets.count > 0 {
 			let currentTablet = documentView.selectedTablet ?? d.tablets[0]
 			if let index = d.tablets.index(of: currentTablet) {
 				let nextIndex = (index+offset) % d.tablets.count
@@ -462,7 +462,7 @@ import WarpCore
 	}
 	
 	func documentView(_ view: QBEDocumentView, didSelectArrow arrow: QBETabletArrow?) {
-		if let a = arrow, fromTablet = a.to {
+		if let a = arrow, let fromTablet = a.to {
 			findAndSelectArrow(a, inTablet: fromTablet)
 		}
 	}
@@ -722,7 +722,7 @@ private class QBEDropChainAction: NSObject {
 						case .success(let columns):
 							asyncMain {
 								jobProgressView.dismiss(sender)
-								if let first = columns.first, let last = columns.last where columns.count > 1 {
+								if let first = columns.first, let last = columns.last, columns.count > 1 {
 									let tablet = QBEChartTablet(source: sourceTablet, type: .Bar, xExpression: Sibling(first), yExpression: Sibling(last))
 									self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 								}
@@ -848,7 +848,7 @@ private class QBEDropChainAction: NSObject {
 
 	@objc func saveToWarehouse(_ sender: NSObject) {
 		let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
-		if let s = sender as? NSMenuItem where s.tag >= 0 && s.tag <= stepTypes.count {
+		if let s = sender as? NSMenuItem, s.tag >= 0 && s.tag <= stepTypes.count {
 			let stepType = stepTypes[s.tag]
 
 			let uploadView = self.documentView.storyboard?.instantiateController(withIdentifier: "uploadDataset") as! QBEUploadViewController
@@ -998,7 +998,7 @@ private class QBEDropColumnsAction: NSObject {
 		menu.autoenablesItems = false
 
 		if columns.count == 1 {
-			if let sourceChainController = dataViewController.parent as? QBEChainViewController where sourceChainController.chain?.head != nil {
+			if let sourceChainController = dataViewController.parent as? QBEChainViewController, sourceChainController.chain?.head != nil {
 				let item = NSMenuItem(title: "Create a look-up table for this column".localized, action: #selector(QBEDropColumnsAction.addLookupTable(_:)), keyEquivalent: "")
 				item.target = self
 				menu.addItem(item)

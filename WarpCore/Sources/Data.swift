@@ -172,7 +172,7 @@ public class Order: NSObject, NSCoding {
 	}
 
 	public override func isEqual(_ object: AnyObject?) -> Bool {
-		if let o = object as? Order where o.ascending == self.ascending && o.numeric == self.numeric && o.expression == self.expression {
+		if let o = object as? Order, o.ascending == self.ascending && o.numeric == self.numeric && o.expression == self.expression {
 			return true
 		}
 		return false
@@ -547,7 +547,7 @@ enum CoalescedDataset: Dataset {
 			// Find out if the new calculation depends on anything that was calculated earlier
 			var dependsOnCurrent = false
 			
-			if let se = newCalculations[targetColumn] as? Sibling where se.column == targetColumn {
+			if let se = newCalculations[targetColumn] as? Sibling, se.column == targetColumn {
 				// The old calculation is just an identity one, it can safely be overwritten
 			}
 			else if newCalculations[targetColumn] is Identity {

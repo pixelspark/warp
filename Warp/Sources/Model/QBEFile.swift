@@ -134,10 +134,10 @@ public enum QBEFileReference: Equatable {
 }
 
 public func == (lhs: QBEFileReference, rhs: QBEFileReference) -> Bool {
-	if let lu = lhs.url, ru = rhs.url {
+	if let lu = lhs.url, let ru = rhs.url {
 		return lu == ru
 	}
-	else if let lb = lhs.bookmark, rb = rhs.bookmark {
+	else if let lb = lhs.bookmark, let rb = rhs.bookmark {
 		return lb == rb
 	}
 	return false

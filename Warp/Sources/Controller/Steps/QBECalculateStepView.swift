@@ -29,7 +29,7 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 	}
 	
 	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> AnyObject? {
-		if let c = existingColumns where index >= 0 && index < c.count {
+		if let c = existingColumns, index >= 0 && index < c.count {
 			return c[index].name
 		}
 		return ""

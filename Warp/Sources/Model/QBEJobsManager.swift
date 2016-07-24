@@ -77,7 +77,7 @@ internal class QBEJobsManager: NSObject, JobDelegate {
 		mutex.locked {
 			if !progressUpdateScheduled {
 				let now = NSDate()
-				if let lp = lastProgressUpdate where now.timeIntervalSince(lp) < progressUpdateInterval {
+				if let lp = lastProgressUpdate, now.timeIntervalSince(lp) < progressUpdateInterval {
 					// Throttle
 					progressUpdateScheduled = true
 					DispatchQueue.main.after(when: DispatchTime.now() + progressUpdateInterval) {

@@ -109,7 +109,7 @@ public extension Sequence {
 }
 
 internal extension Array {
-	func parallel<T, ResultType>(map: ((Array<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> Future<ResultType?> {
+	func parallel<T, ResultType>(_ map: ((Array<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> Future<ResultType?> {
 		let chunkSize = StreamDefaultBatchSize/8
 		
 		return Future<ResultType?>({ (job, completion) -> () in
@@ -340,7 +340,7 @@ public class Job: JobDelegate {
 			return
 		}
 		
-		if let p = parentJob where p.isCancelled {
+		if let p = parentJob, p.isCancelled {
 			return
 		}
 		
@@ -356,7 +356,7 @@ public class Job: JobDelegate {
 			return
 		}
 		
-		if let p = parentJob where p.isCancelled {
+		if let p = parentJob, p.isCancelled {
 			return
 		}
 		

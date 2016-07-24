@@ -121,15 +121,15 @@ public enum Function: String {
 			case .Not:
 				if args.count == 1 {
 					// NOT(a=b) should be replaced with simply a!=b
-					if let a = args[0] as? Comparison where a.type == Binary.Equal {
+					if let a = args[0] as? Comparison, a.type == Binary.Equal {
 						return Comparison(first: a.first, second: a.second, type: Binary.NotEqual).prepare()
 					}
 					// Not(In(..)) should be written as NotIn(..)
-					else if let a = args[0] as? Call where a.type == Function.In {
+					else if let a = args[0] as? Call, a.type == Function.In {
 						return Call(arguments: a.arguments, type: Function.NotIn).prepare()
 					}
 					// Not(Not(..)) cancels out
-					else if let a = args[0] as? Call where a.type == Function.Not && a.arguments.count == 1 {
+					else if let a = args[0] as? Call, a.type == Function.Not && a.arguments.count == 1 {
 						return a.arguments[0].prepare()
 					}
 				}
@@ -137,7 +137,7 @@ public enum Function: String {
 			case .And:
 				// Insert arguments that are Ands themselves in this and
 				prepared = prepared.mapMany {(item) -> [Expression] in
-					if let a = item as? Call where a.type == Function.And {
+					if let a = item as? Call, a.type == Function.And {
 						return a.arguments
 					}
 					else {
@@ -155,7 +155,7 @@ public enum Function: String {
 			case .Or:
 				// Insert arguments that are Ors themselves in this or
 				prepared = prepared.mapMany({
-					if let a = $0 as? Call where a.type == Function.Or {
+					if let a = $0 as? Call, a.type == Function.Or {
 						return a.arguments
 					}
 					return [$0]
@@ -175,7 +175,7 @@ public enum Function: String {
 				let allowedBinaryTypes = [Binary.Equal]
 				
 				for p in prepared {
-					if let binary = p as? Comparison where allowedBinaryTypes.contains(binary.type) && (binaryType == nil || binaryType == binary.type) {
+					if let binary = p as? Comparison, allowedBinaryTypes.contains(binary.type) && (binaryType == nil || binaryType == binary.type) {
 						binaryType = binary.type
 						
 						// See if one of the sides of this binary expression is a column reference
@@ -222,7 +222,7 @@ public enum Function: String {
 					}
 				}
 				
-				if let ce = columnExpression as? Expression, let bt = binaryType where valueExpressions.count > 1 {
+				if let ce = columnExpression as? Expression, let bt = binaryType, valueExpressions.count > 1 {
 					valueExpressions.insert(ce, at: 0)
 
 					switch bt {
@@ -1107,7 +1107,7 @@ public enum Function: String {
 			return Value.invalid
 			
 		case .FromISO8601:
-			if let s = arguments[0].stringValue, d = Date.fromISO8601FormattedDate(s) {
+			if let s = arguments[0].stringValue, let d = Date.fromISO8601FormattedDate(s) {
 				return Value(d)
 			}
 			return Value.invalid

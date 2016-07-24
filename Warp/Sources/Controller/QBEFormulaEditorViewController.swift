@@ -133,7 +133,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 			let job = Job(.userInitiated)
 			self.syntaxColoringJob = job
 			job.async {
-				if let formula = Formula(formula: formulaText, locale: locale) where formula.root != self.expression {
+				if let formula = Formula(formula: formulaText, locale: locale), formula.root != self.expression {
 					if !job.isCancelled {
 						asyncMain {
 							self.expression = formula.root
@@ -147,7 +147,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 	}
 
 	@IBAction func insertColumnFromList(_ sender: NSObject) {
-		if let s = self.columnsTableView?.selectedRow where s != NSNotFound && s >= 0 && s < self.columns.count {
+		if let s = self.columnsTableView?.selectedRow, s != NSNotFound && s >= 0 && s < self.columns.count {
 			if let locale = self.locale {
 				let column = self.columns[s]
 				let replacement = Sibling(column).toFormula(locale, topLevel: true)

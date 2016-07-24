@@ -901,10 +901,10 @@ class WarpCoreTests: XCTestCase {
 	
 	func testThreading() {
 		let data = Array<Int>(0...500000)
-		let expectFinish = self.expectation(withDescription: "Parallel map finishes in time")
+		let expectFinish = self.expectation(description: "Parallel map finishes in time")
 		
 		let future = data.parallel(
-			map: { (slice: Array<Int>) -> [Int] in
+			{ (slice: Array<Int>) -> [Int] in
 				return Array(slice.map({return $0 * 2}))
 			},
 			reduce: {(s, r: Int?) -> (Int) in
@@ -921,7 +921,7 @@ class WarpCoreTests: XCTestCase {
 			expectFinish.fulfill()
 		}
 		
-		self.waitForExpectations(withTimeout: 15.0, handler: { (err) -> Void in
+		self.waitForExpectations(timeout: 15.0, handler: { (err) -> Void in
 			if let e = err {
 				print("Error=\(e)")
 			}
@@ -952,13 +952,13 @@ class WarpCoreTests: XCTestCase {
 	}
 
 	private func asyncTest(_ block: (callback: () -> ()) -> ()) {
-		let expectFinish = self.expectation(withDescription: "CSV tests")
+		let expectFinish = self.expectation(description: "CSV tests")
 
 		block {
 			expectFinish.fulfill()
 		}
 
-		self.waitForExpectations(withTimeout: 5.0) { (err) -> Void in
+		self.waitForExpectations(timeout: 5.0) { (err) -> Void in
 			if let e = err {
 				// Note: referencing self here deliberately to prevent test from being destroyed prematurely
 				print("Error=\(e) \(self)")

@@ -42,7 +42,7 @@ internal class QBEFilterCell: NSButtonCell {
 			// Calculate the 'bar code' of this colum
 			let stripes = numberOfStripes(cellFrame)
 
-			if let c = cached where c.count == stripes {
+			if let c = cached, c.count == stripes {
 				self.drawWithFrame(cellFrame, inView: controlView, values: c)
 			}
 			else {
@@ -61,7 +61,7 @@ internal class QBEFilterCell: NSButtonCell {
 
 							let value = row.values[index]
 							let hash: Int
-							if case .double(let i) = value where !i.isInfinite && !i.isNaN {
+							if case .double(let i) = value, !i.isInfinite && !i.isNaN {
 								hash = Int(fmod(abs(i), Double(Int.max-1)))
 							}
 							else {
@@ -71,7 +71,7 @@ internal class QBEFilterCell: NSButtonCell {
 						}
 					}
 					asyncMain {
-						if let s = self where !job.isCancelled {
+						if let s = self, !job.isCancelled {
 							s.cached = v
 							controlView.setNeedsDisplay(cellFrame)
 						}

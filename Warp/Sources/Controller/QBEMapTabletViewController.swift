@@ -19,15 +19,15 @@ class QBEMapAnnotation: NSObject, MKAnnotation {
 		var description = ""
 
 		for col in row.columns {
-			if let latSibling = map.latitudeExpression as? Sibling where latSibling.column == col {
+			if let latSibling = map.latitudeExpression as? Sibling, latSibling.column == col {
 				continue
 			}
 
-			if let lngSibling = map.longitudeExpression as? Sibling where lngSibling.column == col {
+			if let lngSibling = map.longitudeExpression as? Sibling, lngSibling.column == col {
 				continue
 			}
 
-			if let titleSibling = map.titleExpression as? Sibling where titleSibling.column == col {
+			if let titleSibling = map.titleExpression as? Sibling, titleSibling.column == col {
 				continue
 			}
 
@@ -84,7 +84,7 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 	@objc private func resultNotificationReceived(_ notification: Notification) {
 		assertMainThread()
 
-		if let calculationNotification = notification.object as? QBEResultNotification where calculationNotification.calculator != calculator {
+		if let calculationNotification = notification.object as? QBEResultNotification, calculationNotification.calculator != calculator {
 			if let t = self.mapTablet, let source = t.sourceTablet, let step = source.chain.head {
 				if step == calculationNotification.step {
 					self.presentedRaster = calculationNotification.raster

@@ -67,7 +67,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		if let inputToken = editingToken?.token as? QBESentenceTextInput, let s = editingConfigurable {
 			// Was a formula typed in?
 			if text.hasPrefix("=") {
-				if let formula = Formula(formula: text, locale: self.locale) where formula.root.isConstant {
+				if let formula = Formula(formula: text, locale: self.locale), formula.root.isConstant {
 					text = locale.localStringFor(formula.root.apply(Row(), foreign: nil, inputValue: nil))
 				}
 			}
@@ -221,7 +221,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				menu.addItem(NSMenuItem(title: NSLocalizedString("Select file...", comment: ""), action: #selector(QBESentenceViewController.selectFile(_:)), keyEquivalent: ""))
 			}
 
-			if case .reading(let canCreate) = inputToken.mode where canCreate {
+			if case .reading(let canCreate) = inputToken.mode, canCreate {
 				let createItem = NSMenuItem(title: "New file...".localized, action: #selector(QBESentenceViewController.createNewFile(_:)), keyEquivalent: "")
 				menu.addItem(createItem)
 			}
@@ -390,7 +390,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 		/* Check whether the window is visible before showing the tip, because this may get called early while setting
 		up views, or while we are editing a formula (which occludes the configure button) */
-		if let s = configurable where QBEFactory.sharedInstance.hasViewForConfigurable(s) && (self.view.window?.isVisible == true) {
+		if let s = configurable, QBEFactory.sharedInstance.hasViewForConfigurable(s) && (self.view.window?.isVisible == true) {
 			QBESettings.sharedInstance.showTip("sentenceView.configureButton") {
 				self.showTip(NSLocalizedString("Click here to change additional settings for this step.", comment: ""), atView: self.configureButton)
 			}
