@@ -1,14 +1,18 @@
 import Foundation
 import WarpCore
 
+public protocol QBESubSentence {
+
+}
+
 /** A sentence is a string of tokens that describe the action performed by a step in natural language, and allow for the
 configuration of that step. For example, a step that limits the number of rows in a result set may have a sentence like
 "limit to [x] rows". In this case, the sentence consists of three tokens: a constant text ('limit to'), a configurable
 number token ('x') and another constant text ('rows'). */
-public class QBESentence {
+public class QBESentence: QBESubSentence {
 	public private(set) var tokens: [QBESentenceToken]
 
-	public init(_ tokens: [QBESentenceToken]) {
+	public init(_ tokens: [QBESentenceToken] = []) {
 		self.tokens = tokens
 	}
 
@@ -17,7 +21,7 @@ public class QBESentence {
 	/** Create a sentence based on a formatting string and a set of tokens. This allows for flexible localization of
 	sentences. The format string may contain instances of '[#]' as placeholders for tokens. This is the preferred way
 	of constructing sentences, since it allows for proper localization (word order may be different between languages).*/
-	public init(format: String, _ tokens: QBESentenceToken...) {
+	public init(format: String, _ tokens: QBESubSentence...) {
 		self.tokens = []
 
 		var startIndex = format.startIndex
@@ -25,7 +29,17 @@ public class QBESentence {
 			if let nextToken = format.range(of: QBESentence.formatStringTokenPlaceholder, options: [], range: startIndex..<format.endIndex) {
 				let constantString = format.substring(with: startIndex..<nextToken.lowerBound)
 				self.tokens.append(QBESentenceText(constantString))
-				self.tokens.append(token)
+
+				if let s = token as? QBESentence {
+					self.tokens.append(contentsOf: s.tokens)
+				}
+				else if let t = token as? QBESentenceToken {
+					self.tokens.append(t)
+				}
+				else {
+					fatalError("Unrecognized subsentence type")
+				}
+
 				startIndex = nextToken.upperBound
 			}
 			else {
@@ -36,6 +50,25 @@ public class QBESentence {
 		if format.distance(from: startIndex, to: format.endIndex) > 0 {
 			self.tokens.append(QBESentenceText(format.substring(with: startIndex..<format.endIndex)))
 		}
+
+		self.tokens = self.sanitizedTokens
+	}
+
+	/** NSTokenField will put a comma between two text tokens, we want that to be spaces. This merges successive text tokens. */
+	private var sanitizedTokens: [QBESentenceToken] {
+		var newTokens: [QBESentenceToken] = []
+
+		for token in self.tokens {
+			if let last = newTokens.last, token is QBESentenceText && last is QBESentenceText {
+				newTokens.removeLast()
+				let newToken = QBESentenceText(last.label + token.label)
+				newTokens.append(newToken)
+			}
+			else {
+				newTokens.append(token)
+			}
+		}
+		return newTokens
 	}
 
 	public func append(_ sentence: QBESentence) {
@@ -51,7 +84,7 @@ public class QBESentence {
 		} }
 }
 
-public protocol QBESentenceToken: NSObjectProtocol {
+public protocol QBESentenceToken: NSObjectProtocol, QBESubSentence {
 	var label: String { get }
 	var isToken: Bool { get }
 }
@@ -172,6 +205,16 @@ public class QBESentenceTextInput: NSObject, QBESentenceToken {
 	}
 
 	public var isToken: Bool { get { return true } }
+}
+
+public class QBESentenceValueInput: QBESentenceTextInput {
+	public typealias ValueCallback = (Value) -> (Bool)
+
+	public init(value: Value, locale: Language, callback: ValueCallback) {
+		super.init(value: locale.localStringFor(value)) { s -> Bool in
+			return callback(locale.valueForLocalString(s))
+		}
+	}
 }
 
 public struct QBESentenceFormulaContext {

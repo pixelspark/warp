@@ -150,6 +150,31 @@ class QBEFilterStep: QBEStep {
 	}
 }
 
+private extension FilterSet {
+	func sentenceToken(locale: Language, provider: (callback: (Fallible<Set<Value>>) -> ()) -> ()) -> QBESentenceToken {
+		let selectedStrings = Set(self.selectedValues.map { return locale.localStringFor($0) })
+
+		return QBESentenceSet(value: selectedStrings, provider: { callback in
+			provider { result in
+				switch result {
+				case .success(let availableValues):
+					var av = Set(availableValues.map { return locale.localStringFor($0) })
+
+					/* As we are probably working with a limited example set to gather available values, the selected 
+					values may not be present in that set. Make sure these values are present as well. */
+					av.formUnion(selectedStrings)
+					callback(.success(av))
+
+				case .failure(let e):
+					callback(.failure(e))
+				}
+			}
+		}, callback: { (newStrings) in
+			self.selectedValues = Set(newStrings.map { locale.valueForLocalString($0) })
+		})
+	}
+}
+
 class QBEFilterSetStep: QBEStep {
 	var filterSet: [Column: FilterSet] = [:]
 
@@ -158,19 +183,46 @@ class QBEFilterSetStep: QBEStep {
 		super.init()
 	}
 
+	private func sentenceTokenForValue(filteringColumn column: Column, locale: Language) -> QBESentenceToken {
+		return self.filterSet[column]!.sentenceToken(locale: locale, provider: { (callback) in
+			let job = Job(.userInitiated)
+
+			if let p = self.previous {
+				p.exampleDataset(job, maxInputRows: 1000, maxOutputRows: 1000, callback: { (ds) in
+					switch ds {
+					case .success(let exampleData):
+						exampleData.unique(Sibling(column), job: job, callback: callback)
+
+					case .failure(let e):
+						callback(.failure(e))
+					}
+				})
+			}
+			else {
+				callback(.failure("No input data!"))
+			}
+		})
+	}
+
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let c = filterSet.count
 		if c == 1 {
 			let firstColumn = filterSet.keys.first!.name
-			return QBESentence(format: String(format: "Select rows using a filter on column %@".localized, firstColumn))
+			return QBESentence(format: String(format: "Select rows where %@ = [#]".localized, firstColumn), self.sentenceTokenForValue(filteringColumn: filterSet.keys.first!, locale: locale))
 		}
 		else if c > 1 {
-			let firstColumns = Array(filterSet.keys.sorted { $0.name < $1.name }.prefix(4)).map { return $0.name }.joined(separator: ", ")
 			if c > 4 {
+				let firstColumns = Array(filterSet.keys.sorted { $0.name < $1.name }.prefix(4)).map { return $0.name }.joined(separator: ", ")
 				return QBESentence(format: String(format: "Select rows using filters on columns %@ and %d more".localized, firstColumns, c - 4))
 			}
 			else {
-				return QBESentence(format: String(format: "Select rows using filters on columns %@".localized, firstColumns))
+				let sentence = QBESentence()
+
+				for (column, _) in filterSet {
+					sentence.append(QBESentence(format: String(format: "column %@ = [#]".localized, column.name), self.sentenceTokenForValue(filteringColumn: column, locale: locale)))
+				}
+
+				return QBESentence(format: "Select rows where [#]".localized, sentence)
 			}
 		}
 		else {
