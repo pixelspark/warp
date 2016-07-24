@@ -585,6 +585,10 @@ private class QBESQLiteWriterSession {
 			self.source.columns(job) { (columns) -> () in
 				switch columns {
 				case .success(let cns):
+					if cns.isEmpty {
+						return callback(.failure("Cannot cache data: data set does not contain columns".localized))
+					}
+
 					// Create SQL field specifications for the columns
 					let columnSpec = cns.map({ (column) -> String in
 						let colString = dialect.columnIdentifier(column, table: nil, schema: nil, database: nil)

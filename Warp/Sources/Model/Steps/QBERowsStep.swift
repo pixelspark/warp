@@ -100,12 +100,11 @@ class QBEFilterStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence([
-			QBESentenceText(NSLocalizedString("Select rows where", comment: "")),
+		return QBESentence(format: "Select rows where [#]".localized,
 			QBESentenceFormula(expression: condition, locale: locale, callback: {[weak self] (expr) in
 				self?.condition = expr
 			})
-		])
+		)
 	}
 	
 	required init(coder aDecoder: NSCoder) {

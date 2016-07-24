@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="11173.2" systemVersion="15F34" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11173.2"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="QBECacheStepView" customModule="Warp" customModuleProvider="target">
+            <connections>
+                <outlet property="view" destination="6Hb-4o-yI3" id="0mF-NJ-pSh"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView placeholderIntrinsicWidth="376" placeholderIntrinsicHeight="249" id="6Hb-4o-yI3">
+            <rect key="frame" x="0.0" y="0.0" width="315" height="41"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aSG-EN-l1w">
+                    <rect key="frame" x="102" y="3" width="112" height="32"/>
+                    <buttonCell key="cell" type="push" title="Clear cache" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="TvR-XM-GSN">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="evictCache:" target="-2" id="38R-G1-FSD"/>
+                    </connections>
+                </button>
+            </subviews>
+            <constraints>
+                <constraint firstItem="aSG-EN-l1w" firstAttribute="top" secondItem="6Hb-4o-yI3" secondAttribute="top" constant="10" id="HEQ-ja-uN7"/>
+                <constraint firstAttribute="bottom" secondItem="aSG-EN-l1w" secondAttribute="bottom" constant="10" id="cUV-cS-wte"/>
+                <constraint firstItem="aSG-EN-l1w" firstAttribute="centerX" secondItem="6Hb-4o-yI3" secondAttribute="centerX" id="eJR-d7-IpC"/>
+            </constraints>
+            <point key="canvasLocation" x="300.5" y="139"/>
+        </customView>
+    </objects>
+</document>

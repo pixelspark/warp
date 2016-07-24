@@ -3,25 +3,21 @@ import WarpCore
 
 class QBEDebugStep: QBEStep, NSSecureCoding {
 	enum QBEDebugType: String {
-		case None = "none"
-		case Rasterize = "rasterize"
-		case Cache = "cache"
+		case none = "none"
+		case rasterize = "rasterize"
 		
 		var description: String { get {
 			switch self {
-				case .None:
+				case .none:
 					return NSLocalizedString("(No action)", comment: "")
 				
-				case .Rasterize:
+				case .rasterize:
 					return NSLocalizedString("Download data to memory", comment: "")
-				
-				case .Cache:
-					return NSLocalizedString("Download data to SQLite", comment: "")
 			}
 		} }
 	}
 	
-	var type: QBEDebugType = .None
+	var type: QBEDebugType = .none
 	
 	required init() {
 		super.init()
@@ -30,9 +26,8 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
 			QBESentenceOptions(options: [
-				QBEDebugType.None.rawValue: QBEDebugType.None.description,
-				QBEDebugType.Rasterize.rawValue: QBEDebugType.Rasterize.description,
-				QBEDebugType.Cache.rawValue: QBEDebugType.Cache.description
+				QBEDebugType.none.rawValue: QBEDebugType.none.description,
+				QBEDebugType.rasterize.rawValue: QBEDebugType.rasterize.description,
 			], value: self.type.rawValue, callback: { [weak self] (newType) -> () in
 				if let x = QBEDebugType(rawValue: newType) {
 					self?.type = x
@@ -42,7 +37,7 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		self.type = QBEDebugType(rawValue: aDecoder.decodeString(forKey:"type") ?? "") ?? QBEDebugType.None
+		self.type = QBEDebugType(rawValue: aDecoder.decodeString(forKey:"type") ?? "") ?? QBEDebugType.none
 		super.init(coder: aDecoder)
 	}
 	
@@ -55,20 +50,13 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 	
 	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
 		switch type {
-			case .None:
-				callback(.success(data))
-			
-			case .Rasterize:
-				data.raster(job, callback: { (raster) -> () in
-					callback(raster.use({RasterDataset(raster: $0)}))
-				})
-			
-			case .Cache:
-				/* Make sure the QBESQLiteCachedDataset object stays around until completion by capturing it in the
-				completion callback. Under normal circumstances the object will not keep references to itself 
-				and would be released automatically without this trick, because we don't store it. */
-				var x: QBESQLiteCachedDataset? = nil
-				x = QBESQLiteCachedDataset(source: data, job: job, completion: {(_) in callback(.success(x!))})
-			}
+		case .none:
+			callback(.success(data))
+
+		case .rasterize:
+			data.raster(job, callback: { (raster) -> () in
+				callback(raster.use({RasterDataset(raster: $0)}))
+			})
+		}
 	}
 }

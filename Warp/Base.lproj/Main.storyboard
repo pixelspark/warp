@@ -992,6 +992,12 @@ CA
                                                 <action selector="flatten:" target="Ady-hI-5gd" id="fyP-TI-xwT"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Cache data" id="2wP-01-4F7">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="addCacheStep:" target="Ady-hI-5gd" id="ebi-h4-rwL"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem title="Developer tools..." alternate="YES" keyEquivalent="L" id="kZg-eL-T5Y">
                                             <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                             <connections>

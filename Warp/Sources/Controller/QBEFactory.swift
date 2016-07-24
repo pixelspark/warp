@@ -101,7 +101,8 @@ class QBEFactory {
 		QBECrawlStep.className(): QBECrawlStepView.self,
 		QBERethinkSourceStep.className(): QBERethinkStepView.self,
 		QBEJoinStep.className(): QBEJoinStepView.self,
-		QBESQLiteSourceStep.className(): QBESQLiteSourceStepView.self
+		QBESQLiteSourceStep.className(): QBESQLiteSourceStepView.self,
+		QBECacheStep.className(): QBECacheStepView.self
 	]
 	
 	private let stepIcons = [
@@ -135,7 +136,8 @@ class QBEFactory {
 		QBEExportStep.className(): "ExportStepIcon",
 		QBERethinkSourceStep.className(): "RethinkDBIcon",
 		QBEClassifierStep.className(): "AIIcon",
-		QBEExplodeStep.className(): "ExplodeIcon"
+		QBEExplodeStep.className(): "ExplodeIcon",
+		QBECacheStep.className(): "DebugIcon",
 	]
 	
 	var fileExtensionsForWriting: Set<String> { get {

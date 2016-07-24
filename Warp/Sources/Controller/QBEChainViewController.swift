@@ -1556,6 +1556,10 @@ internal enum QBEEditingMode {
 			undo?.setActionName(NSLocalizedString("Remove step", comment: ""))
 		}
 	}
+
+	@IBAction func addCacheStep(_ sender: NSObject) {
+		suggestSteps([QBECacheStep()])
+	}
 	
 	@IBAction func addDebugStep(_ sender: NSObject) {
 		suggestSteps([QBEDebugStep()])
@@ -2101,6 +2105,9 @@ internal enum QBEEditingMode {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.addDebugStep(_:)) {
+			return currentStep != nil
+		}
+		else if selector==#selector(QBEChainViewController.addCacheStep(_:)) {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.aggregateRowsByCells(_:)) {
