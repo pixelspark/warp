@@ -17,6 +17,9 @@ class QBEFlowchartView: NSView {
 	} }
 	
 	var arrows: [QBEArrow] = [] { didSet {
+		if let sa = self.selectedArrow, !arrows.contains({ a in return sa.isEqual(a) }) {
+			self.selectedArrow = nil
+		}
 		setNeedsDisplay(self.bounds)
 	} }
 	
