@@ -117,7 +117,6 @@ import WarpCore
 			else {
 				NSColor.blue().withAlphaComponent(0.2).set()
 			}
-			//NSColor.selectedControlColor().set()
 		}
 		else if self.highlighted {
 			NSColor.secondarySelectedControlColor().set()
@@ -126,13 +125,82 @@ import WarpCore
 			NSColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0).set()
 		}
 
-		let rr = NSBezierPath(roundedRect: self.bounds.inset(2.0), xRadius: 3.0, yRadius: 3.0)
+		var corners = Set<QBECorner>()
+		if step?.previous == nil {
+			corners.insert(.topLeft)
+		}
+
+		let rr = NSBezierPath.rounded(rectangle: self.bounds.inset(2.0), withRadius: QBEResizableView.cornerRadius - 1.0, corners: corners)
 		rr.fill()
 	}
 	
 	override var allowsVibrancy: Bool { get {
 		return true
 	} }
+}
+
+private extension NSRect {
+	var topCenter: NSPoint { return NSMakePoint(NSMidX(self), NSMaxY(self)) }
+	var topLeft: NSPoint { return NSMakePoint(NSMinX(self), NSMaxY(self)) }
+	var topRight: NSPoint { return NSMakePoint(NSMaxX(self), NSMaxY(self)) }
+	var leftCenter: NSPoint { return NSMakePoint(NSMinX(self), NSMidY(self)) }
+	var bottomCenter: NSPoint { return NSMakePoint(NSMidX(self), NSMinY(self)) }
+	var bottomLeft: NSPoint { return self.origin }
+	var bottomRight: NSPoint { return NSMakePoint(NSMaxX(self), NSMinY(self)) }
+	var rightCenter: NSPoint { return NSMakePoint(NSMaxX(self), NSMidY(self)) }
+}
+
+private enum QBECorner {
+	case topLeft
+	case topRight
+	case bottomLeft
+	case bottomRight
+}
+
+private extension NSBezierPath {
+	class func rounded(rectangle rect: NSRect, withRadius radius: CGFloat, corners: Set<QBECorner>? = nil) -> NSBezierPath {
+		let corners = corners ?? Set<QBECorner>([.topLeft, .topRight, .bottomLeft, .bottomRight])
+		// Make sure silly values simply lead to un-rounded corners
+		if radius <= 0 {
+			return NSBezierPath(rect: rect)
+		}
+
+		let innerRect = rect.inset(radius)
+		let path = NSBezierPath()
+
+		// Bottom left
+		if corners.contains(.bottomLeft) {
+			path.move(to: NSMakePoint(rect.origin.x, rect.origin.y + radius))
+			path.appendArc(withCenter: innerRect.bottomLeft, radius: radius, startAngle: 180.0, endAngle: 270.0)
+		}
+		else {
+			path.move(to: NSMakePoint(rect.origin.x, rect.origin.y))
+		}
+
+		path.relativeLine(to: NSMakePoint(NSWidth(innerRect) + (corners.contains(.bottomRight) ? 0.0 : radius) + (corners.contains(.bottomLeft) ? 0.0 : radius), 0.0)) // Bottom edge.
+
+		// Bottom right
+		if corners.contains(.bottomRight) {
+			path.appendArc(withCenter: innerRect.bottomRight, radius: radius, startAngle: 270.0, endAngle: 360.0)
+		}
+		path.relativeLine(to: NSMakePoint(0.0, NSHeight(innerRect) + (corners.contains(.topRight) ? 0.0 : radius) + (corners.contains(.bottomRight) ? 0.0 : radius)))	// Right edge.
+
+		// Top right
+		if corners.contains(.topRight) {
+			path.appendArc(withCenter: innerRect.topRight, radius: radius, startAngle: 0.0, endAngle: 90.0)
+		}
+		path.relativeLine(to: NSMakePoint(-NSWidth(innerRect) - (corners.contains(.topLeft) ? 0.0 : radius) - (corners.contains(.topRight) ? 0.0 : radius), 0.0)) // Top edge
+
+		// Top left
+		if corners.contains(.topLeft) {
+			path.appendArc(withCenter: innerRect.topLeft, radius: radius, startAngle: 90.0, endAngle: 180.0)
+		}
+
+		path.close()  // Implicitly causes left edge.
+			
+		return path
+	}
+
 }
 
 class QBEStepsItem: NSCollectionViewItem {
