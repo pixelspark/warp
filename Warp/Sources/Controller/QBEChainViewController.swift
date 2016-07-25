@@ -2454,7 +2454,7 @@ internal enum QBEEditingMode {
 		self.sortRowsInColumn(column, ascending: ascending)
 	}
 
-	func columnViewControllerSetFullDataset(_ controller: QBEColumnViewController, fullDataset: Bool) {
+	func columnViewControllerSetFullData(_ controller: QBEColumnViewController, fullDataset: Bool) {
 		let job = Job(.userInitiated)
 
 		if fullDataset {

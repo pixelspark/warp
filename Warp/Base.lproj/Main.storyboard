@@ -2819,7 +2819,7 @@ z4M9Ew
                         <outlet property="descriptivesView" destination="lce-hq-Ftr" id="v73-zK-87y"/>
                         <outlet property="distinctLabel" destination="krp-nd-kTw" id="ilR-0a-fv5"/>
                         <outlet property="emptyLabel" destination="u82-34-bpB" id="XSa-HC-Dqc"/>
-                        <outlet property="fullDataButton" destination="dHD-q1-0Zq" id="nms-R3-nFO"/>
+                        <outlet property="fullDatasetButton" destination="dHD-q1-0Zq" id="PDa-6r-Ub8"/>
                         <outlet property="maxLabel" destination="saO-D2-045" id="5JR-in-PAj"/>
                         <outlet property="minLabel" destination="c6l-w0-pC0" id="zLx-JO-oQH"/>
                         <outlet property="muLabel" destination="eDJ-QB-TO6" id="gle-4s-aFZ"/>

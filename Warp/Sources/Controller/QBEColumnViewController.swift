@@ -6,7 +6,7 @@ protocol QBEColumnViewDelegate: NSObjectProtocol {
 	func columnViewControllerDidRemove(_ controller: QBEColumnViewController, column: Column)
 	func columnViewControllerDidSort(_ controller: QBEColumnViewController, column: Column, ascending: Bool)
 	func columnViewControllerDidAutosize(_ controller: QBEColumnViewController, column: Column)
-	func columnViewControllerSetFullDataset(_ controller: QBEColumnViewController, fullDataset: Bool)
+	func columnViewControllerSetFullData(_ controller: QBEColumnViewController, fullDataset: Bool)
 }
 
 private struct QBEColumnDescriptives {
@@ -161,8 +161,8 @@ class QBEColumnViewController: NSViewController {
 		}
 	}
 
-	@IBAction func toggleFullDataset(_ sender: NSObject) {
-		self.delegate?.columnViewControllerSetFullDataset(self, fullDataset: !self.isFullDataset)
+	@IBAction func toggleFullData(_ sender: NSObject) {
+		self.delegate?.columnViewControllerSetFullData(self, fullDataset: !self.isFullDataset)
 	}
 
 	@IBAction func removeColumn(_ sender: NSObject) {
