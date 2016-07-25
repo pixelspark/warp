@@ -27,6 +27,14 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	
 	func removeAllTablets() {
 		subviews.forEach { ($0 as? QBEResizableTabletView)?.removeFromSuperview() }
+		self.tabletsChanged()
+	}
+
+	private func selectAnArrow(forTablet tablet: QBETablet) {
+		if let a = self.flowchartView.selectedArrow as? QBETabletArrow, a.from == tablet || a.to == tablet {
+			return
+		}
+		self.flowchartView.selectedArrow = tablet.arrows.first
 	}
 	
 	func selectTablet(_ tablet: QBETablet?, notifyDelegate: Bool = true) {
@@ -35,6 +43,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 				if let tv = sv as? QBEResizableTabletView {
 					if tv.tabletController.tablet == t {
 						selectView(tv, notifyDelegate: notifyDelegate)
+						self.selectAnArrow(forTablet: t)
 						return
 					}
 				}
@@ -42,6 +51,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		}
 		else {
 			selectView(nil)
+			self.flowchartView.selectedArrow = nil
 		}
 	}
 	
@@ -200,9 +210,8 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 				if ct == tablet {
 					subview.removeFromSuperview(true) {
 						assertMainThread()
-						
-						self.tabletsChanged()
 						completion?()
+						self.tabletsChanged()
 					}
 					return
 				}

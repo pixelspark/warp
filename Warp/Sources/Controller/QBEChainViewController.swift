@@ -8,7 +8,7 @@ class QBEChainView: NSView {
 		return true
 	}
 
-	override var allowsVibrancy: Bool { return true }
+	override var allowsVibrancy: Bool { return false }
 }
 
 protocol QBEChainViewDelegate: NSObjectProtocol {

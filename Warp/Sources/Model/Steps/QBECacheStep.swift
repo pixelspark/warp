@@ -29,7 +29,7 @@ class QBECacheStep: QBEStep, NSSecureCoding {
 								case .failure(let e):
 									callback(.failure(e))
 
-								case .success(let _):
+								case .success( _):
 									callback(.success(cd!.coalesced))
 								}
 

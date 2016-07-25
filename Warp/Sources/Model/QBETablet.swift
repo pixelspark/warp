@@ -96,7 +96,7 @@ of data. A tablet has a rectangular shape and a certain position in the document
 	var chain: QBEChain { didSet {
 		assert(chain.tablet == nil, "chain must not be associated with another tablet already")
 		chain.tablet = self
-		} }
+	} }
 
 	init(chain: QBEChain) {
 		self.chain = chain

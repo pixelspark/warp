@@ -3,6 +3,8 @@ import Cocoa
 /** The view of a QBETabletViewController should subclass this view. It is used to identify pieces of the tablet that are
 draggable (see QBEResizableView's hitTest). */
 internal class QBETabletView: NSView {
+	
+
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 	}
@@ -10,7 +12,7 @@ internal class QBETabletView: NSView {
 	override func awakeFromNib() {
 		self.wantsLayer = true
 		self.layer?.backgroundColor = NSColor.windowBackgroundColor().cgColor
-		self.layer?.cornerRadius = 3.0
+		self.layer?.cornerRadius = QBEResizableView.cornerRadius
 		self.layer?.masksToBounds = true
 	}
 

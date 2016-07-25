@@ -34,6 +34,9 @@ class QBEOutletDropView: NSView {
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 		register(forDraggedTypes: [QBEOutletView.dragType])
+		self.wantsLayer = true
+		self.layer!.cornerRadius = QBEResizableView.cornerRadius
+		self.layer!.masksToBounds = true
 	}
 
 	required init?(coder: NSCoder) {

@@ -8,23 +8,28 @@ protocol QBEResizableDelegate: NSObjectProtocol {
 }
 
 class QBEResizableView: NSView {
+	static let cornerRadius: CGFloat = 8.0
 	private var resizerView: QBEResizerView! = nil
 	weak var delegate: QBEResizableDelegate?
 	
 	var selected: Bool = false { didSet {
 		setNeedsDisplay(self.bounds)
 		resizerView.setNeedsDisplay(resizerView.bounds)
+		DispatchQueue.main.async {
+			self.addSubview(self.resizerView, positioned: .above, relativeTo: nil)
+		}
 	} }
 	
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 		self.wantsLayer = true
-		self.layer?.isOpaque = true
-		self.layer?.drawsAsynchronously = true
-		self.layer?.cornerRadius = 3.0
-		self.layer?.shadowRadius = 3.0
-		self.layer?.shadowColor = NSColor.shadowColor().cgColor
-		self.layer?.shadowOpacity = 0.3
+		self.layer!.isOpaque = false
+		self.layer!.drawsAsynchronously = true
+		self.layer!.masksToBounds = true
+		self.layer!.cornerRadius = self.dynamicType.cornerRadius
+		self.layer!.shadowRadius = 3.0
+		self.layer!.shadowColor = NSColor.shadowColor().cgColor
+		self.layer!.shadowOpacity = 0.3
 
 		resizerView = QBEResizerView(frame: self.bounds)
 		resizerView.autoresizingMask = [NSAutoresizingMaskOptions.viewHeightSizable, NSAutoresizingMaskOptions.viewWidthSizable]
@@ -41,10 +46,15 @@ class QBEResizableView: NSView {
 		
 		if let c = contentView {
 			c.removeFromSuperview()
-			resizerView.contentView = contentView
+			c.wantsLayer = true
+			c.layer!.cornerRadius = self.dynamicType.cornerRadius
+			c.layer!.masksToBounds = true
+
+			resizerView.contentView = c
 			c.frame = self.bounds.inset(self.resizerView.inset)
 			c.autoresizingMask = [NSAutoresizingMaskOptions.viewHeightSizable, NSAutoresizingMaskOptions.viewWidthSizable]
 			self.addSubview(c, positioned: NSWindowOrderingMode.below, relativeTo: resizerView)
+			self.addSubview(resizerView, positioned: .above, relativeTo: nil)
 		}
 		else {
 			resizerView.contentView = nil
@@ -130,6 +140,8 @@ internal class QBEResizerView: NSView {
 		super.init(frame: frameRect)
 		self.wantsLayer = true
 		self.layer?.drawsAsynchronously = true
+		self.layer?.cornerRadius = QBEResizableView.cornerRadius
+		self.layer?.masksToBounds = true
 	}
 	
 	required init?(coder: NSCoder) {
@@ -293,7 +305,7 @@ internal class QBEResizerView: NSView {
 			let borderColor = selected ? NSColor.blue().withAlphaComponent(0.3) : NSColor.clear()
 			context.setStrokeColor(borderColor.cgColor)
 			let bounds = self.bounds.inset(inset - 1.0)
-			let rr = NSBezierPath(roundedRect: bounds, xRadius: 3.0, yRadius: 3.0)
+			let rr = NSBezierPath(roundedRect: bounds, xRadius: QBEResizableView.cornerRadius, yRadius: QBEResizableView.cornerRadius)
 			rr.lineWidth = 3.0
 			rr.stroke()
 		}
