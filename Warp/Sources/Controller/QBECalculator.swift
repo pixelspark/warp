@@ -40,31 +40,48 @@ public class QBEResultNotification: NSObject {
 	}
 }
 
+public struct QBECalculatorParameters {
+	/** Statistical level of certainty that is used when calculating upper limits */
+	public var certainty = 0.95
+
+	/** The desired number of example rows; the number of rows should with `certainty` be below this limit */
+	public var desiredExampleRows = 500
+
+	/** The absolute maximum number of input rows for an example calculation */
+	public var maximumExampleInputRows = 25000
+
+	/** The absolute minimum number of input rows for an example calculation */
+	public var minimumExampleInputRows = 256
+
+	/** The time that example calculation must not exceed with `certainty` */
+	public var maximumExampleTime = 1.5
+
+	/** The maximum number of attempts that should be made to obtain more rows while there is still time left within the
+	given time limit */
+	public var maximumIterations = 10
+}
+
 /** The QBECalculator class coordinates execution of steps. In particular, it models the performance of steps and can
 estimate the number of input rows required to arrive at a certain number of output rows (e.g. in example calculations). */
 public class QBECalculator: NSObject {
 	public var currentDataset: Future<Fallible<Dataset>>?
 	public var currentRaster: Future<Fallible<Raster>>?
 	private var mutex: Mutex = Mutex()
-	
-	/** Statistical level of certainty that is used when calculating upper limits */
-	public var certainty = 0.95
-	
-	/** The desired number of example rows; the number of rows should with `certainty` be below this limit */
-	public var desiredExampleRows = 500
-	
-	/** The absolute maximum number of input rows for an example calculation */
-	public var maximumExampleInputRows = 25000
-	
-	/** The absolute minimum number of input rows for an example calculation */
-	public var minimumExampleInputRows = 256
-	
-	/** The time that example calculation must not exceed with `certainty` */
-	public var maximumExampleTime = 1.5
 
-	/** The maximum number of attempts that should be made to obtain more rows while there is still time left within the 
-	given time limit */
-	public var maximumIterations = 10
+	private var currentParameters = QBECalculatorParameters()
+	
+	public var parameters: QBECalculatorParameters {
+		set {
+			self.mutex.locked {
+				self.currentParameters = newValue
+			}
+		}
+		get {
+			return self.mutex.locked {
+				return self.currentParameters
+			}
+		}
+	}
 
 	private var calculationInProgressForStep: QBEStep? = nil
 	private var stepPerformance: [Int: QBEStepPerformance] = [:]
@@ -87,9 +104,10 @@ public class QBECalculator: NSObject {
 		if maximumTime <= 0 {
 			return 0
 		}
-		var inputRows = self.desiredExampleRows
 
-		self.mutex.locked {
+		return self.mutex.locked {
+			var inputRows = self.currentParameters.desiredExampleRows
+
 			let index = unsafeAddress(of: step).hashValue
 			
 			if let performance = self.stepPerformance[index] {
@@ -99,15 +117,15 @@ public class QBECalculator: NSObject {
 				}
 				else {
 					// Calculate the lower and upper estimate for the amplification factor (result rows / input rows).
-					let (_, upperAmp) = performance.inputAmplificationFactor.sample.confidenceInterval(self.certainty)
+					let (_, upperAmp) = performance.inputAmplificationFactor.sample.confidenceInterval(self.currentParameters.certainty)
 					if upperAmp > 0 {
 						// If the source step amplifies input by two, request calculation with half the number of input rows
-						inputRows = Int(Double(self.desiredExampleRows) / upperAmp)
+						inputRows = Int(Double(self.currentParameters.desiredExampleRows) / upperAmp)
 					}
 				}
 				
 				// Check to see if the newly calculated number of needed input rows would create a time-consuming calculation
-				let (_, upperTime) = performance.timePerInputRow.sample.confidenceInterval(self.certainty)
+				let (_, upperTime) = performance.timePerInputRow.sample.confidenceInterval(self.currentParameters.certainty)
 				if upperTime > 0 {
 					let upperEstimatedTime = Double(inputRows) * upperTime
 					if upperEstimatedTime > maximumTime {
@@ -120,15 +138,15 @@ public class QBECalculator: NSObject {
 			}
 
 			// Make sure we never exceed the absolute limits
-			inputRows = min(self.maximumExampleInputRows, max(self.minimumExampleInputRows, inputRows))
+			inputRows = min(self.currentParameters.maximumExampleInputRows, max(self.currentParameters.minimumExampleInputRows, inputRows))
+			return inputRows
 		}
-		return inputRows
 	}
 	
 	/** Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have 
 	been returned. The given callback is called as soon as the last calculation round has finished. */
 	public func calculateExample(_ sourceStep: QBEStep, maximumTime: Double? = nil, attempt: Int = 0, callback: () -> ()) {
-		let maxTime = maximumTime ?? maximumExampleTime
+		let maxTime = maximumTime ?? self.currentParameters.maximumExampleTime
 		
 		let startTime = Date.timeIntervalSinceReferenceDate
 		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maxTime)
@@ -158,14 +176,14 @@ public class QBECalculator: NSObject {
 				
 					/* If we got zero rows, but there is stil time left, just try again. In many cases the back-end
 					is much faster than we think and we have plenty of time left to fill in our time budget. */
-					let maxExampleRows = self.maximumExampleInputRows
-					if r.rowCount < self.desiredExampleRows && (maxTime - duration) > duration && (maxInputRows < maxExampleRows) {
+					let maxExampleRows = self.currentParameters.maximumExampleInputRows
+					if r.rowCount < self.currentParameters.desiredExampleRows && (maxTime - duration) > duration && (maxInputRows < maxExampleRows) {
 						trace("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
 						startAnother = true
 					}
 				}
 
-				if startAnother && attempt < self.maximumIterations {
+				if startAnother && attempt < self.currentParameters.maximumIterations {
 					self.calculateExample(sourceStep, maximumTime: maxTime - duration, attempt: attempt + 1, callback: callback)
 				}
 				else {
@@ -196,8 +214,8 @@ public class QBECalculator: NSObject {
 					currentDataset = Future<Fallible<Dataset>>(sourceStep.fullDataset)
 				}
 				else {
-					maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime ?? maximumExampleTime)
-					let maxOutputRows = desiredExampleRows
+					maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime ?? self.currentParameters.maximumExampleTime)
+					let maxOutputRows = self.currentParameters.desiredExampleRows
 					trace("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
 					currentDataset = Future<Fallible<Dataset>>({ (job, callback) in
 						sourceStep.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)

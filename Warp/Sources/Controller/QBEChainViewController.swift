@@ -492,8 +492,10 @@ internal enum QBEEditingMode {
 			}
 			else {
 				if let s = currentStep {
-					calculator.desiredExampleRows = QBESettings.sharedInstance.exampleMaximumRows
-					calculator.maximumExampleTime = QBESettings.sharedInstance.exampleMaximumTime
+					var parameters = calculator.parameters
+					parameters.desiredExampleRows = QBESettings.sharedInstance.exampleMaximumRows
+					parameters.maximumExampleTime = QBESettings.sharedInstance.exampleMaximumTime
+					calculator.parameters = parameters
 					
 					let sourceStep = previewStep ?? s
 					
@@ -1110,7 +1112,9 @@ internal enum QBEEditingMode {
 
 			sourceStep?.fullDataset(job) { result in
 				result.maybe { fullDataset in
-					sourceStep?.exampleDataset(job, maxInputRows: self.calculator.maximumExampleInputRows, maxOutputRows: self.calculator.desiredExampleRows) { result in
+					let params = self.calculator.parameters
+
+					sourceStep?.exampleDataset(job, maxInputRows: params.maximumExampleInputRows, maxOutputRows: params.desiredExampleRows) { result in
 						result.maybe { exampleDataset in
 							asyncMain {
 								if let filterViewController = self.storyboard?.instantiateController(withIdentifier: "filterView") as? QBEFilterViewController {
