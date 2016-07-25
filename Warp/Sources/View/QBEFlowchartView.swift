@@ -56,12 +56,12 @@ class QBEFlowchartView: NSView {
 		// Select an arrow?
 		for arrow in arrows {
 			let path = pathForArrow(arrow)
-			let strokedPath = CGPath(copyByStroking: path, transform: nil, lineWidth: 16.0, lineCap: CGLineCap.butt, lineJoin: CGLineJoin.miter, miterLimit: 0.5)
-			if ((strokedPath?.containsPoint(nil, point: point, eoFill: true)) != nil) {
+			if let strokedPath = CGPath(copyByStroking: path, transform: nil, lineWidth: 16.0, lineCap: CGLineCap.butt, lineJoin: CGLineJoin.miter, miterLimit: 0.5),
+			strokedPath.containsPoint(nil, point: point, eoFill: true) {
 				return arrow
 			}
 		}
-		
+
 		return nil
 	}
 
