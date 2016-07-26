@@ -248,7 +248,7 @@ public struct Pack {
 	public static let separatorEscape = "$0"
 	public static let escapeEscape = "$1"
 	
-	private var items: [String]
+	public private(set) var items: [String]
 
 	public init() {
 		self.items = []
