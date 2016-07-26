@@ -1319,7 +1319,7 @@ internal enum QBEEditingMode {
 					self.suggestSteps(steps)
 
 				case NSAlertSecondButtonReturn:
-					self.startEditingWithCallback {
+					self.enterEditingMode {
 						switch self.editingMode {
 						case .editing(identifiers: let ids, editingRaster: _):
 							self.editValue(from, toValue: to, inRow: inRow, column: inColumn, identifiers: ids)
@@ -1793,64 +1793,100 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	private func performMutation(_ mutation: DatasetMutation) {
+	private func performMutation(_ mutation: DatasetMutation, callback: (() -> ())? = nil) {
 		assertMainThread()
-		guard let cs = currentStep, let store = cs.mutableDataset, store.canPerformMutation(mutation) else {
+
+		switch self.editingMode {
+		case .notEditing:
+			// Need to start editing first
+			self.enterEditingMode {
+				asyncMain {
+					self.performMutation(mutation) {
+						// stop editing here again
+						self.leaveEditingMode()
+						callback?()
+					}
+				}
+			}
+			return
+
+		case .enablingEditing:
+			// Not now, another action in progress
 			let a = NSAlert()
-			a.messageText = NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")
+			a.messageText = "The selected action cannot be performed on this data set right now.".localized
 			a.alertStyle = NSAlertStyle.warning
 			if let w = self.view.window {
 				a.beginSheetModal(for: w, completionHandler: nil)
 			}
+			callback?()
 			return
-		}
 
-		let confirmationAlert = NSAlert()
-
-		switch mutation {
-		case .truncate:
-			confirmationAlert.messageText = NSLocalizedString("Are you sure you want to remove all rows in the source data set?", comment: "")
-
-		case .drop:
-			confirmationAlert.messageText = NSLocalizedString("Are you sure you want to completely remove the source data set?", comment: "")
-
-		default: fatalError("Mutation not supported here")
-		}
-
-		confirmationAlert.informativeText = NSLocalizedString("This will modify the original data, and cannot be undone.", comment: "")
-		confirmationAlert.alertStyle = NSAlertStyle.informational
-		let yesButton = confirmationAlert.addButton(withTitle: NSLocalizedString("Perform modifications", comment: ""))
-		let noButton = confirmationAlert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
-		yesButton.tag = 1
-		noButton.tag = 2
-		confirmationAlert.beginSheetModal(for: self.view.window!) { (response) -> Void in
-			if response == 1 {
-				// Confirmed
-				let job = Job(.userInitiated)
-
-				// Register this job with the background job manager
-				let name: String
-				switch mutation {
-				case .truncate: name = NSLocalizedString("Truncate data set", comment: "")
-				case .drop: name = NSLocalizedString("Remove data set", comment: "")
-				default: fatalError("Mutation not supported here")
+		case .editing(identifiers: _, editingRaster: _):
+			guard let cs = currentStep, let store = cs.mutableDataset, store.canPerformMutation(mutation) else {
+				let a = NSAlert()
+				a.messageText = "The selected action cannot be performed on this data set.".localized
+				a.alertStyle = NSAlertStyle.warning
+				if let w = self.view.window {
+					a.beginSheetModal(for: w, completionHandler: nil)
 				}
-				QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: name)
+				callback?()
+				return
+			}
 
-				// Start the mutation
-				store.performMutation(mutation, job: job) { result in
-					asyncMain {
-						switch result {
-						case .success:
-							//NSAlert.showSimpleAlert(NSLocalizedString("Command completed successfully", comment: ""), style: NSAlertStyle.InformationalAlertStyle, window: self.view.window!)
-							self.useFullDataset = false
-							self.calculate()
+			let confirmationAlert = NSAlert()
 
-						case .failure(let e):
-							NSAlert.showSimpleAlert(NSLocalizedString("The selected action cannot be performed on this data set.",comment: ""), infoText: e, style: .warning, window: self.view.window!)
+			switch mutation {
+			case .truncate:
+				confirmationAlert.messageText = NSLocalizedString("Are you sure you want to remove all rows in the source data set?", comment: "")
 
+			case .drop:
+				confirmationAlert.messageText = NSLocalizedString("Are you sure you want to completely remove the source data set?", comment: "")
+
+			default: fatalError("Mutation not supported here")
+			}
+
+			confirmationAlert.informativeText = NSLocalizedString("This will modify the original data, and cannot be undone.", comment: "")
+			confirmationAlert.alertStyle = NSAlertStyle.informational
+			let yesButton = confirmationAlert.addButton(withTitle: NSLocalizedString("Perform modifications", comment: ""))
+			let noButton = confirmationAlert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+			yesButton.tag = 1
+			noButton.tag = 2
+			confirmationAlert.beginSheetModal(for: self.view.window!) { (response) -> Void in
+				if response == 1 {
+					// Confirmed
+					let job = Job(.userInitiated)
+
+					// Register this job with the background job manager
+					let name: String
+					switch mutation {
+					case .truncate: name = NSLocalizedString("Truncate data set", comment: "")
+					case .drop: name = NSLocalizedString("Remove data set", comment: "")
+					default: fatalError("Mutation not supported here")
+					}
+
+					QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: name)
+
+					// Start the mutation
+					store.performMutation(mutation, job: job) { result in
+						asyncMain {
+							switch result {
+							case .success:
+								//NSAlert.showSimpleAlert(NSLocalizedString("Command completed successfully", comment: ""), style: NSAlertStyle.InformationalAlertStyle, window: self.view.window!)
+								self.useFullDataset = false
+								self.calculate()
+
+							case .failure(let e):
+								NSAlert.showSimpleAlert(NSLocalizedString("The selected action cannot be performed on this data set.",comment: ""), infoText: e, style: .warning, window: self.view.window!)
+
+							}
+							callback?()
+							return
 						}
 					}
+				}
+				else {
+					callback?()
+					return
 				}
 			}
 		}
@@ -1901,10 +1937,10 @@ internal enum QBEEditingMode {
 	}
 
 	@IBAction func startEditing(_ sender: NSObject) {
-		self.startEditingWithCallback()
+		self.enterEditingMode()
 	}
 
-	private func startEditingWithCallback(_ callback: (() -> ())? = nil) {
+	private func enterEditingMode(callback: (() -> ())? = nil) {
 		let forceCustomKeySelection = self.view.window?.currentEvent?.modifierFlags.contains(.option) ?? false
 
 		if let md = self.currentStep?.mutableDataset, self.supportsEditing {
@@ -1997,9 +2033,16 @@ internal enum QBEEditingMode {
 	}
 
 	@IBAction func stopEditing(_ sender: NSObject) {
+		self.leaveEditingMode()
+	}
+
+	private func leaveEditingMode() {
 		self.editingMode = .notEditing
-		self.calculate()
-		self.view.window?.update()
+
+		asyncMain {
+			self.calculate()
+			self.view.window?.update()
+		}
 	}
 
 	@IBAction func toggleEditing(_ sender: NSObject) {
@@ -2064,40 +2107,22 @@ internal enum QBEEditingMode {
 			return currentStep != nil
 		}
 		else if selector == #selector(QBEChainViewController.truncateStore(_:))  {
-			switch editingMode {
-			case .editing:
-				if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.truncate) {
-					return true
-				}
-				return false
-
-			default:
-				return false
+			if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.truncate) {
+				return true
 			}
+			return false
 		}
 		else if selector == #selector(QBEChainViewController.dropStore(_:))  {
-			switch editingMode {
-			case .editing:
-				if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.drop) {
-					return true
-				}
-				return false
-
-			default:
-				return false
+			if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.drop) {
+				return true
 			}
+			return false
 		}
 		else if selector == #selector(QBEChainViewController.alterStore(_:))  {
-			switch editingMode {
-			case .editing:
-				if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.alter(DatasetDefinition(columns: []))) {
-					return true
-				}
-				return false
-
-			default:
-				return false
+			if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.alter(DatasetDefinition(columns: []))) {
+				return true
 			}
+			return false
 		}
 		else if selector==#selector(QBEChainViewController.clearAllFilters(_:)) {
 			return self.viewFilters.count > 0
