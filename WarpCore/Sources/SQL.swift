@@ -678,7 +678,7 @@ public class StandardSQLDialect: SQLDialect {
 				case .Concat: return "GROUP_CONCAT(\(expressionSQL),'')"
 				
 				case .Pack:
-					return "GROUP_CONCAT(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.Escape)),\(literalString(Pack.EscapeEscape))),\(literalString(Pack.Separator)),\(literalString(Pack.SeparatorEscape))), \(literalString(Pack.Separator)))"
+					return "GROUP_CONCAT(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.escape)),\(literalString(Pack.escapeEscape))),\(literalString(Pack.separator)),\(literalString(Pack.separatorEscape))), \(literalString(Pack.separator)))"
 				
 				default:
 					/* TODO: RandomItem can be implemented using a UDF aggregation function in PostgreSQL. Implementing it in

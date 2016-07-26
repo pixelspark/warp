@@ -7,7 +7,7 @@ protocol QBESentenceViewDelegate: NSObjectProtocol {
 }
 
 class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextFieldDelegate,
-	QBEFormulaEditorViewDelegate, QBEConfigurableViewDelegate, QBESetEditorDelegate {
+	QBEFormulaEditorViewDelegate, QBEConfigurableViewDelegate, QBESetEditorDelegate, QBEListEditorDelegate {
 	@IBOutlet var tokenField: NSTokenField!
 	@IBOutlet var configureButton: NSButton!
 
@@ -196,6 +196,19 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			if let event = self.view.window?.currentEvent {
 				asyncMain {
 					self.editSet(event)
+				}
+			}
+
+			return NSMenu()
+		}
+		else if let inputToken = representedObject as? QBESentenceColumns {
+			editingToken = QBEEditingToken(inputToken)
+
+			/* We want to show a popover, but NSTokenField only lets us show a menu. So return an empty menu and
+			asynchronously present a popover right at this location */
+			if let event = self.view.window?.currentEvent {
+				asyncMain {
+					self.editList(event)
 				}
 			}
 
@@ -418,6 +431,31 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			inputToken.select(selection)
 			self.delegate?.sentenceView(self, didChangeConfigurable: s)
 			updateView()
+		}
+	}
+
+	func listEditor(_ editor: QBEListEditorViewController, didChangeSelection selection: [String]) {
+		if let inputToken = editingToken?.token as? QBESentenceColumns, let s = self.editingConfigurable {
+			let cols = selection.map { Column($0) }.uniqueElements
+			inputToken.select(cols)
+			editor.selection = cols.map { $0.name }
+			self.delegate?.sentenceView(self, didChangeConfigurable: s)
+			updateView()
+		}
+	}
+
+	func editList(_ sender: NSEvent) {
+		if let inputToken = editingToken?.token as? QBESentenceColumns {
+			asyncMain {
+				if let editor = self.storyboard?.instantiateController(withIdentifier: "listEditor") as? QBEListEditorViewController {
+					editor.delegate = self
+					editor.selection = inputToken.value.map { $0.name }
+					let windowRect = NSMakeRect(sender.locationInWindow.x + 5, sender.locationInWindow.y, 1, 1)
+					var viewRect = self.view.convert(windowRect, from: nil)
+					viewRect.origin.y = 0.0
+					self.presentViewController(editor, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: .minY, behavior: .transient)
+				}
+			}
 		}
 	}
 

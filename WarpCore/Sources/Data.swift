@@ -10,8 +10,15 @@ public struct Row {
 		self.values = []
 		self.columns = []
 	}
+
+	public init(columns: [Column]) {
+		assert(Set(columns).count == columns.count, "duplicate column names are not allowed!")
+		self.columns = columns
+		self.values = Array(repeating: Value.empty, count: columns.count)
+	}
 	
 	public init(_ values: Tuple, columns: [Column]) {
+		assert(Set(columns).count == columns.count, "duplicate column names are not allowed!")
 		assert(values.count == columns.count, "All values should have column names")
 		self.values = values
 		self.columns = columns

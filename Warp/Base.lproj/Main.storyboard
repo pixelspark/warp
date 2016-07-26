@@ -888,7 +888,7 @@ CA
                                         <menuItem title="Split lists in column to rows" keyEquivalent="e" id="rIy-ml-mKf">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
-                                                <action selector="explodeColumn:" target="Ady-hI-5gd" id="EFv-0b-WJ5"/>
+                                                <action selector="explodeColumnVertically:" target="Ady-hI-5gd" id="Ngf-ao-5dN"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="i3v-3U-dMz"/>
@@ -949,6 +949,13 @@ CA
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="uR9-s2-uyO"/>
+                                        <menuItem title="Split column to multiple columns" keyEquivalent="e" id="tdu-D3-PwF">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="explodeColumnHorizontally:" target="Ady-hI-5gd" id="JNa-Om-wJp"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="vbC-zd-c4x"/>
                                         <menuItem title="Remove selected column(s)" id="ShO-0r-bmP">
                                             <string key="keyEquivalent" base64-UTF8="YES">
 CA
@@ -3543,6 +3550,114 @@ Gw
                 <customObject id="ze7-sW-1W0" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1778.5" y="1562"/>
+        </scene>
+        <!--List Editor View Controller-->
+        <scene sceneID="IeO-or-dOq">
+            <objects>
+                <viewController storyboardIdentifier="listEditor" id="mYo-KL-eOW" customClass="QBEListEditorViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="eaZ-Ya-Xpt">
+                        <rect key="frame" x="0.0" y="0.0" width="226" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="smd-GG-na3">
+                                <rect key="frame" x="5" y="5" width="216" height="258"/>
+                                <clipView key="contentView" id="kXp-i0-PLI">
+                                    <rect key="frame" x="1" y="1" width="214" height="256"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="agG-RL-ik8">
+                                            <rect key="frame" x="0.0" y="0.0" width="214" height="256"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <size key="intercellSpacing" width="3" height="2"/>
+                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
+                                            <tableColumns>
+                                                <tableColumn identifier="value" width="211" minWidth="40" maxWidth="1000" id="rd5-4f-fso">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
+                                                        <font key="font" metaFont="smallSystem"/>
+                                                        <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                                        <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
+                                                    </tableHeaderCell>
+                                                    <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" title="Text Cell" id="mwU-cx-opI">
+                                                        <font key="font" metaFont="system"/>
+                                                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                    </textFieldCell>
+                                                    <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
+                                                </tableColumn>
+                                            </tableColumns>
+                                            <connections>
+                                                <outlet property="dataSource" destination="mYo-KL-eOW" id="fxf-sf-tel"/>
+                                                <outlet property="delegate" destination="mYo-KL-eOW" id="4ak-v3-6fg"/>
+                                            </connections>
+                                        </tableView>
+                                    </subviews>
+                                </clipView>
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="ESO-qV-RKE">
+                                    <rect key="frame" x="1" y="216" width="161" height="16"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                                <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="b5c-K7-rd1">
+                                    <rect key="frame" x="224" y="17" width="15" height="102"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                            </scrollView>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="3FA-Mt-8oe">
+                                <rect key="frame" x="140" y="267" width="47" height="32"/>
+                                <buttonCell key="cell" type="push" bezelStyle="rounded" image="NSAddTemplate" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Noq-A8-pXK">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="addValue:" target="mYo-KL-eOW" id="scE-M1-xNJ"/>
+                                </connections>
+                            </button>
+                            <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="QUC-3D-SRX">
+                                <rect key="frame" x="5" y="273" width="136" height="22"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" placeholderString="Add..." drawsBackground="YES" id="nyB-Hn-5iz">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <action selector="addValue:" target="mYo-KL-eOW" id="6of-Az-aNc"/>
+                                </connections>
+                            </textField>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="p6v-Oi-fud">
+                                <rect key="frame" x="180" y="267" width="47" height="32"/>
+                                <buttonCell key="cell" type="push" bezelStyle="rounded" image="NSRemoveTemplate" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Qpd-4j-58l">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="removeSelectedValue:" target="mYo-KL-eOW" id="Unq-wJ-mIh"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="smd-GG-na3" firstAttribute="top" secondItem="QUC-3D-SRX" secondAttribute="bottom" constant="10" id="38j-La-tjU"/>
+                            <constraint firstAttribute="trailing" secondItem="p6v-Oi-fud" secondAttribute="trailing" constant="5" id="40M-Mc-tMY"/>
+                            <constraint firstAttribute="trailing" secondItem="smd-GG-na3" secondAttribute="trailing" constant="5" id="Enx-RF-lv0"/>
+                            <constraint firstAttribute="bottom" secondItem="smd-GG-na3" secondAttribute="bottom" constant="5" id="Psc-xi-BSQ"/>
+                            <constraint firstItem="3FA-Mt-8oe" firstAttribute="top" secondItem="eaZ-Ya-Xpt" secondAttribute="top" constant="5" id="RM7-dL-7Ga"/>
+                            <constraint firstItem="QUC-3D-SRX" firstAttribute="top" secondItem="eaZ-Ya-Xpt" secondAttribute="top" constant="5" id="RhN-l8-FVO"/>
+                            <constraint firstItem="p6v-Oi-fud" firstAttribute="top" secondItem="eaZ-Ya-Xpt" secondAttribute="top" constant="5" id="Rww-Te-cSx"/>
+                            <constraint firstItem="smd-GG-na3" firstAttribute="leading" secondItem="eaZ-Ya-Xpt" secondAttribute="leading" constant="5" id="V99-km-trO"/>
+                            <constraint firstItem="QUC-3D-SRX" firstAttribute="leading" secondItem="eaZ-Ya-Xpt" secondAttribute="leading" constant="5" id="X74-Ba-Lc6"/>
+                            <constraint firstItem="p6v-Oi-fud" firstAttribute="leading" secondItem="3FA-Mt-8oe" secondAttribute="trailing" constant="5" id="gSh-XK-rQo"/>
+                            <constraint firstItem="3FA-Mt-8oe" firstAttribute="leading" secondItem="QUC-3D-SRX" secondAttribute="trailing" constant="5" id="tTs-nc-eJk"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="addButton" destination="3FA-Mt-8oe" id="HFm-aV-FGr"/>
+                        <outlet property="addField" destination="QUC-3D-SRX" id="dxN-eR-WDw"/>
+                        <outlet property="removeButton" destination="p6v-Oi-fud" id="NkR-M7-r9X"/>
+                        <outlet property="tableView" destination="agG-RL-ik8" id="5yl-di-pMd"/>
+                    </connections>
+                </viewController>
+                <customObject id="iGg-xP-oNv" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2072" y="1568"/>
         </scene>
         <!--Column Mapping View Controller-->
         <scene sceneID="lDh-VV-0TI">

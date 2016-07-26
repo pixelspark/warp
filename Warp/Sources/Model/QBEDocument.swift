@@ -129,6 +129,7 @@ class QBEDocument: NSDocument, NSSecureCoding {
 		unarchiver.setClass(Comparison.classForKeyedUnarchiver(), forClassName: "WarpCore.QBEBinaryExpression")
 		unarchiver.setClass(Identity.classForKeyedUnarchiver(), forClassName: "WarpCore.QBEIdentityExpression")
 		unarchiver.setClass(QBEChainTablet.classForKeyedUnarchiver(), forClassName: "Warp.QBETablet")
+		unarchiver.setClass(QBEExplodeVerticallyStep.classForKeyedUnarchiver(), forClassName: "Warp.QBEExplodeStep")
 
 		if let x = unarchiver.decodeObject(forKey: "root") as? QBEDocument {
 			tablets = x.tablets

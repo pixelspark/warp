@@ -1601,7 +1601,7 @@ internal enum QBEEditingMode {
 		sortRows(true)
 	}
 
-	@IBAction func explodeColumn(_ sender: NSObject) {
+	@IBAction func explodeColumnVertically(_ sender: NSObject) {
 		assertMainThread()
 
 		if let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes, let firstSelectedColumn = selectedColumns.first {
@@ -1610,7 +1610,24 @@ internal enum QBEEditingMode {
 					if firstSelectedColumn < raster.columns.count {
 						let columnName = raster.columns[firstSelectedColumn]
 						asyncMain {
-							self.suggestSteps([QBEExplodeStep(previous: self.currentStep, splitColumn: columnName)])
+							self.suggestSteps([QBEExplodeVerticallyStep(previous: self.currentStep, splitColumn: columnName)])
+						}
+					}
+				}
+			}
+		}
+	}
+
+	@IBAction func explodeColumnHorizontally(_ sender: NSObject) {
+		assertMainThread()
+
+		if let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes, let firstSelectedColumn = selectedColumns.first {
+			calculator.currentRaster?.get {(r) -> () in
+				r.maybe { (raster) -> () in
+					if firstSelectedColumn < raster.columns.count {
+						let columnName = raster.columns[firstSelectedColumn]
+						asyncMain {
+							self.suggestSteps([QBEExplodeHorizontallyStep(previous: self.currentStep, splitColumn: columnName)])
 						}
 					}
 				}
@@ -2254,7 +2271,10 @@ internal enum QBEEditingMode {
 		else if selector==#selector(QBEChainViewController.sortRows(_:) as (QBEChainViewController) -> (NSObject) -> ()) {
 			return currentStep != nil
 		}
-		else if selector==#selector(QBEChainViewController.explodeColumn(_:)) {
+		else if selector==#selector(QBEChainViewController.explodeColumnHorizontally(_:)) {
+			return currentStep != nil
+		}
+		else if selector==#selector(QBEChainViewController.explodeColumnVertically(_:)) {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.reverseSortRows(_:)) {

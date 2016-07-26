@@ -136,7 +136,8 @@ class QBEFactory {
 		QBEExportStep.className(): "ExportStepIcon",
 		QBERethinkSourceStep.className(): "RethinkDBIcon",
 		QBEClassifierStep.className(): "AIIcon",
-		QBEExplodeStep.className(): "ExplodeIcon",
+		QBEExplodeVerticallyStep.className(): "ExplodeIcon",
+		QBEExplodeHorizontallyStep.className(): "ExplodeIcon",
 		QBECacheStep.className(): "DebugIcon",
 	]
 	

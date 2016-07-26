@@ -243,10 +243,10 @@ When interpreting a packed dictionary, the second appearance of a key that alrea
 key without a value is considered not to exist.
 */
 public struct Pack {
-	public static let Separator = ","
-	public static let Escape = "$"
-	public static let SeparatorEscape = "$0"
-	public static let EscapeEscape = "$1"
+	public static let separator = ","
+	public static let escape = "$"
+	public static let separatorEscape = "$0"
+	public static let escapeEscape = "$1"
 	
 	private var items: [String]
 
@@ -279,9 +279,9 @@ public struct Pack {
 			items = []
 		}
 		else {
-			items = pack.components(separatedBy: Pack.Separator).map({
-				return $0.replacingOccurrences(of: Pack.EscapeEscape, with: Pack.Escape)
-					.replacingOccurrences(of: Pack.SeparatorEscape, with: Pack.Separator)
+			items = pack.components(separatedBy: Pack.separator).map({
+				return $0.replacingOccurrences(of: Pack.escapeEscape, with: Pack.escape)
+					.replacingOccurrences(of: Pack.separatorEscape, with: Pack.separator)
 			})
 		}
 	}
@@ -324,11 +324,11 @@ public struct Pack {
 	
 	public var stringValue: String { get {
 		let res = items.map({
-			$0.replacingOccurrences(of: Pack.Escape, with: Pack.EscapeEscape)
-			  .replacingOccurrences(of: Pack.Separator, with: Pack.SeparatorEscape) ?? ""
+			$0.replacingOccurrences(of: Pack.escape, with: Pack.escapeEscape)
+			  .replacingOccurrences(of: Pack.separator, with: Pack.separatorEscape) ?? ""
 		})
 
-		return res.joined(separator: Pack.Separator)
+		return res.joined(separator: Pack.separator)
 	} }
 }
 
@@ -791,6 +791,15 @@ public extension Sequence {
 		return dict
 	}
 }
+
+public extension Sequence where Iterator.Element: Equatable {
+	var uniqueElements: [Iterator.Element] {
+		return self.reduce([]) { uniqueElements, element in
+			uniqueElements.contains(element) ? uniqueElements : uniqueElements + [element]
+		}
+	}
+}
+
 
 internal extension Collection {
 	func mapMany(_ block: @noescape (Iterator.Element) -> [Iterator.Element]) -> [Iterator.Element] {

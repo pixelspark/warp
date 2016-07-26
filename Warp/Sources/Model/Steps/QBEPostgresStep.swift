@@ -39,7 +39,7 @@ private class QBEPostgresDialect: StandardSQLDialect {
 			case .VarianceSample: return "VAR_SAMP((\(expressionSQL))::float)"
 			case .Concat: return "STRING_AGG(\(expressionSQL),'')"
 			case .Pack:
-				return "STRING_AGG(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.Escape)),\(literalString(Pack.EscapeEscape))),\(literalString(Pack.Separator)),\(literalString(Pack.SeparatorEscape))), \(literalString(Pack.Separator)))"
+				return "STRING_AGG(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.escape)),\(literalString(Pack.escapeEscape))),\(literalString(Pack.separator)),\(literalString(Pack.separatorEscape))), \(literalString(Pack.separator)))"
 
 			default:
 				break
