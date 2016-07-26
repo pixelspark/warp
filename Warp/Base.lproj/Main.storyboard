@@ -955,6 +955,12 @@ CA
                                                 <action selector="explodeColumnHorizontally:" target="Ady-hI-5gd" id="JNa-Om-wJp"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Create dummy columns from column" id="b7w-hF-1ts">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="createDummyColumns:" target="Ady-hI-5gd" id="ZSJ-E8-eAJ"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="vbC-zd-c4x"/>
                                         <menuItem title="Remove selected column(s)" id="ShO-0r-bmP">
                                             <string key="keyEquivalent" base64-UTF8="YES">

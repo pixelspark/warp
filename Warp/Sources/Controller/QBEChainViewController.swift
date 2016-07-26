@@ -1601,6 +1601,23 @@ internal enum QBEEditingMode {
 		sortRows(true)
 	}
 
+	@IBAction func createDummyColumns(_ sender: NSObject) {
+		assertMainThread()
+
+		if let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes, let firstSelectedColumn = selectedColumns.first {
+			calculator.currentRaster?.get {(r) -> () in
+				r.maybe { (raster) -> () in
+					if firstSelectedColumn < raster.columns.count {
+						let columnName = raster.columns[firstSelectedColumn]
+						asyncMain {
+							self.suggestSteps([QBEDummiesStep(previous: self.currentStep, sourceColumn: columnName)])
+						}
+					}
+				}
+			}
+		}
+	}
+
 	@IBAction func explodeColumnVertically(_ sender: NSObject) {
 		assertMainThread()
 
@@ -2275,6 +2292,9 @@ internal enum QBEEditingMode {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.explodeColumnVertically(_:)) {
+			return currentStep != nil
+		}
+		else if selector==#selector(QBEChainViewController.createDummyColumns(_:)) {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.reverseSortRows(_:)) {

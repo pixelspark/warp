@@ -136,9 +136,10 @@ class QBEFactory {
 		QBEExportStep.className(): "ExportStepIcon",
 		QBERethinkSourceStep.className(): "RethinkDBIcon",
 		QBEClassifierStep.className(): "AIIcon",
-		QBEExplodeVerticallyStep.className(): "ExplodeIcon",
-		QBEExplodeHorizontallyStep.className(): "ExplodeIcon",
+		QBEExplodeVerticallyStep.className(): "ExplodeVerticalIcon",
+		QBEExplodeHorizontallyStep.className(): "ExplodeHorizontalIcon",
 		QBECacheStep.className(): "DebugIcon",
+		QBEDummiesStep.className(): "DummiesIcon"
 	]
 	
 	var fileExtensionsForWriting: Set<String> { get {
