@@ -89,6 +89,10 @@ public class Formula: Parser {
 	private func pushMultiplication() {
 		pushBinary(Binary.Multiplication)
 	}
+
+	private func pushModulus() {
+		pushBinary(Binary.Modulus)
+	}
 	
 	private func pushDivision() {
 		pushBinary(Binary.Division)
@@ -233,7 +237,7 @@ public class Formula: Parser {
 		add_named_rule("value", rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"foreign" | ^"subexpression")
 		add_named_rule("exponent", rule: ^"value" ~~ (("^" ~~ ^"value") => pushPower)*)
 		
-		let factor = ^"exponent" ~~ ((("*" ~~ ^"exponent") => pushMultiplication) | (("/" ~~ ^"exponent") => pushDivision))*
+		let factor = ^"exponent" ~~ ((("*" ~~ ^"exponent") => pushMultiplication) | (("/" ~~ ^"exponent") => pushDivision) | (("~" ~~ ^"exponent") => pushModulus))*
 		let addition = factor ~~ (("+" ~~ factor => pushAddition) | ("-" ~~ factor => pushSubtraction))*
 		add_named_rule("concatenation", rule: addition ~~ (("&" ~~ addition) => pushConcat)*)
 		

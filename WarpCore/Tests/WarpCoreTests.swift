@@ -565,6 +565,8 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(Formula(formula: "13%", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(0.13), "Parse percentages")
 		XCTAssert(Formula(formula: "10Ki", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(10 * 1024), "Parse SI postfixes")
 
+		XCTAssert(Formula(formula: "6~2", locale: locale) != nil, "Parse modulus operator")
+
 		XCTAssert(Formula(formula: "6/ 2", locale: locale) != nil, "Parse whitespace around binary operator: right side")
 		XCTAssert(Formula(formula: "6 / 2", locale: locale) != nil, "Parse whitespace around binary operator: both sides")
 		XCTAssert(Formula(formula: "6 /2", locale: locale) != nil, "Parse whitespace around binary operator: left side")
@@ -584,6 +586,7 @@ class WarpCoreTests: XCTestCase {
 		
 		// Test results
 		XCTAssert(Formula(formula: "6/(1-3/4)", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(24), "Formula in default dialect")
+		XCTAssert(Formula(formula: "7~2", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(1), "Modulus operator")
 		
 		// Test whether parsing goes wrong when it should
 		XCTAssert(Formula(formula: "", locale: locale) == nil, "Empty formula")
