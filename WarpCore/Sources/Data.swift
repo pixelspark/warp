@@ -374,7 +374,8 @@ public protocol Dataset {
 	Value.bool(true). */
 	func filter(_ condition: Expression) -> Dataset
 	
-	/** Returns a set of all unique result values in this data set for the given expression. */
+	/** Returns a set of all unique result values in this data set for the given expression. The callee should not
+	make any assumptions about the queue on which the callback is dispatched, or whether it is asynchronous. */
 	func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ())
 	
 	/** Select only the columns from the data set that are in the array, in the order specified. If a column named in the
@@ -399,10 +400,18 @@ public protocol Dataset {
 	- The original cell value */
 	func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset
 	
-	/** Returns an in-memory representation (Raster) of the data set. */
+	/** Computes an in-memory representation (Raster) of the data set. When `delivery` is .onceComplete, the `callback`
+	will be called exactly once, with the final result raster and a stream status of .finished (also in the case of an
+	error). When `delivery` is set to .incremental, the callback may be called more than once with intermediate result
+	rasters. The callback will be called exactly once with a stream status of .finished, and may be called additional
+	times beforehand (but not afterwards) with a status of .hasMore. Consecutive calls to the callback may provide an 
+	unchanged raster. If an error occurs, it must be set as the result when calling back with status .finished. Errors
+	provided for intermediate callbacks do not necessarily indicate that processing has stopped. The callee should not
+	make any assumptions about the queue on which the callback is dispatched, or whether it is asynchronous. */
 	func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ())
 	
-	/** Returns the names of the columns in the data set. The list of column names is ordered. */
+	/** Returns the names of the columns in the data set. The list of column names is ordered. The callee should not
+	make any assumptions about the queue on which the callback is dispatched, or whether it is asynchronous. */
 	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ())
 	
 	/** Sort the dataset in the indicates ways. The sorts are applied in-order, e.g. the dataset is sorted by the first
@@ -421,7 +430,7 @@ public protocol Dataset {
 }
 
 public extension Dataset {
-	/** Shorthand for single-delivery rasterization). */
+	/** Shorthand for single-delivery rasterization. */
 	func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
 		self.raster(job, deliver: .onceComplete, callback: once { result, streamStatus in
 			assert(streamStatus == .finished, "Data.raster implementation should never return statuses other than .finished when not in incremental mode")

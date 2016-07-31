@@ -1,7 +1,13 @@
 import Foundation
 
+/** Indicates the status of a streaming data source. */
 public enum StreamStatus {
+	/** The source has more data that will be provided in subsequent calls back (i.e. may already be in flight), or 
+	after requesting additional data. */
 	case hasMore
+
+	/** The source has no more data and subsequent calls back will not provide any. Additional requests for data may
+	fail or be an error. */
 	case finished
 }
 
@@ -33,7 +39,10 @@ public protocol Stream {
 	
 	Note that fetch may be called multiple times concurrently (i.e. multiple 'wavefronts') - it is the stream's job to 
 	ensure ordered and consistent delivery of data. Streams may use a serial dispatch queue to serialize requests if 
-	necessary. */
+	necessary. 
+	
+	The consumer callee should not make any assumptions about the queue on which the callback is dispatched, or whether 
+	it is asynchronous. */
 	func fetch(_ job: Job, consumer: Sink)
 	
 	/** Create a copy of this stream. The copied stream is reset to the initial position (e.g. will return the first row
