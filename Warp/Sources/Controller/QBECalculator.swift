@@ -269,10 +269,24 @@ public class QBECalculator: NSObject {
 
 								case .failure(let e):
 									rasterFuture.satisfy(.failure(e), queue: calculationJob.queue)
+
+									self.mutex.locked {
+										if streamStatus == .finished {
+											self.calculationInProgress = nil
+										}
+
+										calculationJob.async {
+											callback(.finished)
+										}
+									}
 								}
 							}
 
 						case .failure(let e):
+							self.mutex.locked {
+								self.calculationInProgress = nil
+							}
+
 							rasterFuture.satisfy(.failure(e), queue: calculationJob.queue)
 						}
 					}
