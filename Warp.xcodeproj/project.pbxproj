@@ -175,6 +175,7 @@
 		65B774771CA05596006480B2 /* escapes.csv in Resources */ = {isa = PBXBuildFile; fileRef = 65B774761CA05596006480B2 /* escapes.csv */; };
 		65B7F9691C31E37D00A55972 /* QBEJobViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65B7F96B1C31E37D00A55972 /* QBEJobViewController.xib */; };
 		65B7F9701C31ECC100A55972 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65B7F9721C31ECC100A55972 /* Main.storyboard */; };
+		65D1C8A31D4E86D300967C26 /* QBEHTTPStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D1C8A21D4E86D300967C26 /* QBEHTTPStep.swift */; };
 		65EC97971C9DFB8D0098A330 /* QBEColumnViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */; };
 		65F2DCC81CDF4B380099B3DB /* WarpAI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F2DCC71CDF4B290099B3DB /* WarpAI.framework */; };
 		65F2DCC91CDF4B380099B3DB /* WarpAI.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65F2DCC71CDF4B290099B3DB /* WarpAI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -650,6 +651,7 @@
 		65B7F9711C31ECC100A55972 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		65B7F9731C31ECC400A55972 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; lineEnding = 0; name = nl; path = nl.lproj/Main.strings; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		65B92BD71C86196900397014 /* Warp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = Warp.entitlements; path = Warp/Warp.entitlements; sourceTree = "<group>"; };
+		65D1C8A21D4E86D300967C26 /* QBEHTTPStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEHTTPStep.swift; sourceTree = "<group>"; };
 		65E3C2EC1A062E5E007BB3C8 /* Warp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E3C2FF1A062E5E007BB3C8 /* WarpTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WarpTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEColumnViewController.swift; sourceTree = "<group>"; };
@@ -950,6 +952,7 @@
 				6583EED11C14758B00AE6C00 /* QBESQLiteStep.swift */,
 				6583EED21C14758B00AE6C00 /* QBEXMLStep.swift */,
 				650238D51D47F63F000BE0F2 /* QBEDummiesStep.swift */,
+				65D1C8A21D4E86D300967C26 /* QBEHTTPStep.swift */,
 			);
 			path = Steps;
 			sourceTree = "<group>";
@@ -1526,6 +1529,7 @@
 				6583EF071C14758B00AE6C00 /* QBESettings.swift in Sources */,
 				6583EF251C14758B00AE6C00 /* QBEFlowchartView.swift in Sources */,
 				6583EF1C1C14758B00AE6C00 /* QBESequencerStep.swift in Sources */,
+				65D1C8A31D4E86D300967C26 /* QBEHTTPStep.swift in Sources */,
 				6583EF0E1C14758B00AE6C00 /* QBECSVStep.swift in Sources */,
 				6583EEFC1C14758B00AE6C00 /* QBEPrestoSourceStepView.swift in Sources */,
 				6583EF041C14758B00AE6C00 /* QBEJobsManager.swift in Sources */,

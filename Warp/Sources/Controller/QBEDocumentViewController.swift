@@ -591,6 +591,12 @@ import WarpCore
 			}
 		})
 	}
+
+	@IBAction func addTabletFromWeb(_ sender: NSObject) {
+		self.addTablet(QBEChainTablet(chain: QBEChain(head: QBEHTTPStep())), undo: true, animated: true) { _ in
+			self.sentenceEditor?.configure(self)
+		}
+	}
 	
 	@IBAction func addTabletFromPresto(_ sender: NSObject) {
 		self.addTablet(QBEChainTablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true) { _ in
@@ -654,6 +660,7 @@ import WarpCore
 		if selector == #selector(QBEDocumentViewController.addSequencerTablet(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addRasterTablet(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addNoteTablet(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.addTabletFromWeb(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromFile(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromPresto(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromMySQL(_:)) { return true }

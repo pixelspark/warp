@@ -40,19 +40,37 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	}
 
 	var showNewRow = false { didSet {
+		assertMainThread()
 		if showNewRow != oldValue {
 			update()
 		}
 	} }
 
 	var showNewColumn = false { didSet {
+		assertMainThread()
 		if showNewColumn != oldValue {
 			update()
 		}
 	} }
 
+	var showFooters: Bool = true {
+		didSet {
+			assertMainThread()
+
+			if !showFooters {
+				footerCells.forEach { $0.value.cancel() }
+				footerCells.removeAll(keepingCapacity: true)
+
+				if let fv = self.tableView?.columnFooterView {
+					fv.setNeedsDisplay(fv.bounds)
+				}
+			}
+		}
+	}
+
 	// When an error message is set, no raster can be set (and vice-versa)
 	var errorMessage: String? { didSet {
+		assertMainThread()
 		if errorMessage != nil {
 			raster = nil
 		}
@@ -64,6 +82,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			assertMainThread()
 
 			columnCells = nil
+			footerCells.forEach { $0.value.cancel() }
 			footerCells.removeAll(keepingCapacity: true)
 			if raster != nil {
 				errorMessage = nil
@@ -349,6 +368,10 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 
 		if let r = raster, Int(columnIndex) >= 0 && Int(columnIndex) < r.columns.count {
 			let cn = r.columns[Int(columnIndex)]
+
+			if !self.showFooters {
+				return QBEFilterPlaceholderCell()
+			}
 
 			// If we have a cached instance, use that
 			let filterCell: QBEFilterCell

@@ -139,7 +139,8 @@ class QBEFactory {
 		QBEExplodeVerticallyStep.className(): "ExplodeVerticalIcon",
 		QBEExplodeHorizontallyStep.className(): "ExplodeHorizontalIcon",
 		QBECacheStep.className(): "DebugIcon",
-		QBEDummiesStep.className(): "DummiesIcon"
+		QBEDummiesStep.className(): "DummiesIcon",
+		QBEHTTPStep.className(): "DownloadIcon"
 	]
 	
 	var fileExtensionsForWriting: Set<String> { get {

@@ -1,6 +1,32 @@
 import Cocoa
 import WarpCore
 
+internal class QBEFilterPlaceholderCell: NSButtonCell {
+	required init(coder aDecoder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+
+	init() {
+		super.init(textCell: "")
+	}
+
+	override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
+		NSColor.windowBackgroundColor().set()
+		NSRectFill(cellFrame)
+		QBEFilterPlaceholderCell.drawPlaceholder(frame: cellFrame)
+	}
+
+	static func drawPlaceholder(frame cellFrame: NSRect) {
+		let h = cellFrame.size.height - 7.0
+		let iconRect = NSMakeRect(cellFrame.origin.x + (cellFrame.size.width - h) / 2.0, cellFrame.origin.y + (cellFrame.size.height - h) / 2.0, h, h)
+		NSImage(named: "UnavailableIcon")?.draw(in: iconRect)
+	}
+
+	@objc func drawWithFrame(_ cellFrame: NSRect, inView: NSView, withBackgroundColor: NSColor) {
+		self.draw(withFrame: cellFrame, in: inView)
+	}
+}
+
 internal class QBEFilterCell: NSButtonCell {
 	let raster: Raster
 	let column: Column
@@ -22,6 +48,10 @@ internal class QBEFilterCell: NSButtonCell {
 	
 	required init(coder aDecoder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
+	}
+
+	func cancel() {
+		self.cacheJob?.cancel()
 	}
 
 	private func numberOfStripes(_ cellFrame: NSRect) -> Int {
@@ -46,6 +76,10 @@ internal class QBEFilterCell: NSButtonCell {
 				self.drawWithFrame(cellFrame, inView: controlView, values: c)
 			}
 			else {
+				// Draw a placeholder
+				QBEFilterPlaceholderCell.drawPlaceholder(frame: cellFrame)
+
+				// Start gathering the data necessary to show our 'bar code'
 				let column = self.column
 				let raster = self.raster
 				cacheJob?.cancel()

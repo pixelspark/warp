@@ -1297,6 +1297,7 @@ internal enum QBEEditingMode {
 		self.outletView?.enabled = hasRaster
 		self.outletView?.progress = calculationProgress
 		self.outletView?.animating = self.calculator.calculating && calculationProgress < 1.0
+		self.dataViewController?.showFooters = !self.calculator.calculating && hasRaster
 
 		// Update editing status
 		switch self.editingMode {

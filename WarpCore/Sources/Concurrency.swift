@@ -15,10 +15,10 @@ public func assertMainThread(_ file: StaticString = #file, line: UInt = #line) {
 /** Wrap a block so that it can be called only once. Calling the returned block twice results in a fatal error. After
 the first call but before returning the result from the wrapped block, the wrapped block is dereferenced. */
 public func once<P, R>(_ block: ((P) -> (R))) -> ((P) -> (R)) {
-	var blockReference: ((P) -> (R))? = block
-	let mutex = Mutex()
-
 	#if DEBUG
+		var blockReference: ((P) -> (R))? = block
+		let mutex = Mutex()
+
 		return {(p: P) -> (R) in
 			let block = mutex.locked { () -> ((P) -> (R)) in
 				assert(blockReference != nil, "callback called twice!")
@@ -30,11 +30,7 @@ public func once<P, R>(_ block: ((P) -> (R))) -> ((P) -> (R)) {
 			return block(p)
 		}
 	#else
-		return mutex.locked {
-			let r = blockReference!()
-			blockReference = nil
-			return r
-		}
+		return block
 	#endif
 }
 

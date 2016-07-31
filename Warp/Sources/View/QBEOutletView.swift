@@ -239,7 +239,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 	
 	@IBInspectable var enabled: Bool = true { didSet { setNeedsDisplay(self.bounds) } }
 	@IBInspectable var connected: Bool = false { didSet { setNeedsDisplay(self.bounds) } }
-	weak var delegate: QBEOutletViewDelegate? = nil { didSet { Swift.print("didSetDelegate \(self) \(delegate)") } }
+	weak var delegate: QBEOutletViewDelegate? = nil
 	var draggedObject: AnyObject? = nil
 	
 	private var dragLineWindow: QBELaceWindow?

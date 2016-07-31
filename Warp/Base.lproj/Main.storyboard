@@ -1876,6 +1876,12 @@ CA
                                             <action selector="addTabletFromFile:" target="0Jp-3X-LwR" id="Nyt-Jp-DnU"/>
                                         </connections>
                                     </menuItem>
+                                    <menuItem title="Load data from the web..." id="b3i-bJ-LGz">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="addTabletFromWeb:" target="0Jp-3X-LwR" id="M0k-b7-ntx"/>
+                                        </connections>
+                                    </menuItem>
                                     <menuItem isSeparatorItem="YES" id="Aka-j6-jVL"/>
                                     <menuItem title="Load data from Presto..." id="PBU-iY-SYv">
                                         <modifierMask key="keyEquivalentModifierMask"/>
@@ -4109,6 +4115,6 @@ DQ
         <image name="sort-asc" width="8" height="9"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="OiJ-tK-4iF"/>
+        <segue reference="87o-14-S5w"/>
     </inferredMetricsTieBreakers>
 </document>
