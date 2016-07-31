@@ -280,8 +280,10 @@ public struct Pack {
 		}
 		else {
 			items = pack.components(separatedBy: Pack.separator).map({
-				return $0.replacingOccurrences(of: Pack.escapeEscape, with: Pack.escape)
+				return $0
 					.replacingOccurrences(of: Pack.separatorEscape, with: Pack.separator)
+					.replacingOccurrences(of: Pack.escapeEscape, with: Pack.escape)
+
 			})
 		}
 	}
