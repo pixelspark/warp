@@ -38,6 +38,62 @@ public func once<P, R>(_ block: ((P) -> (R))) -> ((P) -> (R)) {
 	#endif
 }
 
+/** Throttle wraps a block with throttling logic, guarantueeing that the block will never be called (by enquueing 
+asynchronously on `queue`) more than once each `interval` seconds. If the wrapper callback is called more than once
+in an interval, it will use the most recent call's parameters when eventually calling the wrapped block (after `interval`
+has elapsed since the last call to the wrapped function) - i.e. calls are not queued and may get 'lost' by being superseded
+by a newer call. */
+public func throttle<P>(interval: TimeInterval, queue: DispatchQueue, _ block: ((P) -> ())) -> ((P) -> ()) {
+	var lastExecutionTime: TimeInterval? = nil
+	var scheduledExecutionParameters: P? = nil
+	let mutex = Mutex()
+
+	return { (p: P) -> () in
+		return mutex.locked {
+			let currentTime = NSDate.timeIntervalSinceReferenceDate
+
+			if let lastExecuted = lastExecutionTime {
+				if (currentTime - lastExecuted) > interval {
+					// Not the first execution, but the last execution was more than interval ago. Execute now.
+					lastExecutionTime = currentTime
+					queue.async {
+						block(p)
+					}
+				}
+				else {
+					// Last execution was less than interval ago
+					if scheduledExecutionParameters != nil {
+						// Another execution was already planned, just mae sure it will use latest parameters
+						scheduledExecutionParameters = p
+					}
+					else {
+						// Schedule execution
+						scheduledExecutionParameters = p
+						let scheduleDelay = lastExecuted + interval - currentTime
+
+						queue.after(when: DispatchTime.now() + scheduleDelay) {
+							// Delayed execution
+							let p = mutex.locked { () -> P in
+								let params = scheduledExecutionParameters!
+								scheduledExecutionParameters = nil
+								return params
+							}
+							block(p)
+						}
+					}
+				}
+			}
+			else {
+				// First time this function is executed
+				lastExecutionTime = currentTime
+				queue.async {
+					block(p)
+				}
+			}
+		}
+	}
+}
+
 /** Runs the given block of code asynchronously on the main queue. */
 public func asyncMain(_ block: () -> ()) {
 	DispatchQueue.main.async(execute: block)

@@ -503,7 +503,7 @@ internal enum QBEEditingMode {
 					
 					// Start calculation
 					if useFullDataset {
-						let job = calculator.calculate(sourceStep, fullDataset: useFullDataset, maximumTime: nil) { streamStatus in
+						let job = calculator.calculate(sourceStep, fullDataset: useFullDataset, maximumTime: nil, callback: throttle(interval: 1.0, queue: DispatchQueue.main) { streamStatus in
 							asyncMain {
 								self.refreshDataset(incremental: true)
 								self.updateView()
@@ -512,16 +512,16 @@ internal enum QBEEditingMode {
 									self.useFullDataset = false
 								}
 							}
-						}
+						})
 						job.addObserver(self)
 					}
 					else {
-						calculator.calculateExample(sourceStep, maximumTime: nil) {
+						calculator.calculateExample(sourceStep, maximumTime: nil, callback: throttle(interval: 0.5, queue: DispatchQueue.main) {
 							asyncMain {
 								self.refreshDataset(incremental: true)
 								self.updateView()
 							}
-						}
+						})
 						self.refreshDataset(incremental: false)
 					}
 				}
