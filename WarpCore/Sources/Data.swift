@@ -421,12 +421,12 @@ public protocol Dataset {
 }
 
 public extension Dataset {
-	/** Shorthand for single-delivery rasterization. */
+	/** Shorthand for single-delivery rasterization). */
 	func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
-		self.raster(job, deliver: .onceComplete) { result, streamStatus in
+		self.raster(job, deliver: .onceComplete, callback: once { result, streamStatus in
 			assert(streamStatus == .finished, "Data.raster implementation should never return statuses other than .finished when not in incremental mode")
 			callback(result)
-		}
+		})
 	}
 }
 
