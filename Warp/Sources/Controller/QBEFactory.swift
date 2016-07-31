@@ -138,7 +138,7 @@ class QBEFactory {
 		QBEClassifierStep.className(): "AIIcon",
 		QBEExplodeVerticallyStep.className(): "ExplodeVerticalIcon",
 		QBEExplodeHorizontallyStep.className(): "ExplodeHorizontalIcon",
-		QBECacheStep.className(): "DebugIcon",
+		QBECacheStep.className(): "CacheIcon",
 		QBEDummiesStep.className(): "DummiesIcon",
 		QBEHTTPStep.className(): "DownloadIcon"
 	]
