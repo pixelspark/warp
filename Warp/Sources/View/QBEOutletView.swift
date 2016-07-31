@@ -206,17 +206,53 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 @IBDesignable class QBEOutletView: NSView, NSDraggingSource, NSPasteboardItemDataProvider {
 	static let dragType = "nl.pixelspark.Warp.Outlet"
 
+	@IBInspectable var animating: Bool {
+		get {
+			return self.timer != nil && self.endTimerAfter == nil
+		}
+
+		set(animate) {
+			let wasAnimating = self.timer != nil && self.endTimerAfter == nil
+			if animate == wasAnimating {
+				return
+			}
+
+			if animate {
+				self.endTimerAfter = nil
+				if self.timer == nil {
+					self.timer = Timer(timeInterval: 1.0 / 60.0, target: self, selector: #selector(updateFromTimer(_:)), userInfo: nil, repeats: true)
+					RunLoop.current.add(self.timer, forMode: RunLoopMode.defaultRunLoopMode)
+				}
+			}
+			else {
+				self.endTimerAfter = NSDate.timeIntervalSinceReferenceDate + 1.0
+			}
+		}
+	}
+
 	@IBInspectable var progress: Double = 1.0 { didSet {
 		assert(progress >= 0.0 && progress <= 1.0, "progress must be [0,1]")
 		setNeedsDisplay(self.bounds)
 	} }
+
+	private var endTimerAfter: TimeInterval? = nil
+	
 	@IBInspectable var enabled: Bool = true { didSet { setNeedsDisplay(self.bounds) } }
 	@IBInspectable var connected: Bool = false { didSet { setNeedsDisplay(self.bounds) } }
-	weak var delegate: QBEOutletViewDelegate? = nil
+	weak var delegate: QBEOutletViewDelegate? = nil { didSet { Swift.print("didSetDelegate \(self) \(delegate)") } }
 	var draggedObject: AnyObject? = nil
 	
 	private var dragLineWindow: QBELaceWindow?
-	
+	private var timer: Timer!
+
+	@objc private func updateFromTimer(_ timer: Timer) {
+		if let et = self.endTimerAfter, NSDate.timeIntervalSinceReferenceDate > et {
+			self.timer?.invalidate()
+			self.timer = nil
+		}
+		setNeedsDisplay(self.bounds)
+	}
+
 	override func mouseDown(_ theEvent: NSEvent) {
 		if enabled {
 			delegate?.outletViewWillStartDragging(self)
@@ -258,36 +294,59 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 				// Draw the outer ring (always visible, dimmed if no dragging item set)
 				let isProgressing = self.progress < 1.0
 				let isDragging = (draggedObject != nil)
+
+				let opacity: Double
+				if let et = self.endTimerAfter {
+					opacity = max(0.0, et - NSDate.timeIntervalSinceReferenceDate)
+				}
+				else {
+					opacity = 1.0
+				}
+
 				let baseColor: NSColor
 				if enabled {
 					if isDragging {
-						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: 1.0)
+						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: CGFloat(1.0 * (1.0 - opacity)))
 					}
 					else {
-						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: 0.5)
+						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: CGFloat(0.5 * (1.0 - opacity)))
 					}
 				}
 				else {
 					if isProgressing {
-						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: 0.2)
+						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: CGFloat(0.2 * (1.0 - opacity)))
 					}
 					else {
-						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: 0.2)
+						baseColor = NSColor(calibratedRed: 100.0/255.0, green: 97.0/255.0, blue: 97.0/255.0, alpha: CGFloat(0.2 * (1.0 - opacity)))
 					}
 				}
 
-				baseColor.setStroke()
 				context.setLineWidth(3.0)
-
-				let ring = CGMutablePath()
-				var t = CGAffineTransform(translationX: square.center.x, y: square.center.y)
-				let progress = self.enabled ? 1.0 : self.progress
 				let offset: CGFloat = 3.14159 / 2.0
-				ring.addArc(&t, x: 0, y: 0, radius: square.size.width / 2, startAngle: offset + CGFloat(2.0 * 3.141459 * (1.0 - progress)), endAngle: offset + CGFloat(2.0 * 3.14159), clockwise: false)
-				context.addPath(ring)
-				context.strokePath()
+				var t = CGAffineTransform(translationX: square.center.x, y: square.center.y)
 
-				//CGContextStrokeEllipseInRect(context, square)
+				if self.timer != nil {
+					let progressRing = CGMutablePath()
+					let time = fmod(NSDate.timeIntervalSinceReferenceDate, 1.0)
+					let timeForAnimation = 0.5 * time + 0.5 * (time * time)
+					let progressForAnimation = 0.25 + 0.75 * (progress * progress)
+
+					let progressAngle = CGFloat(2.0 * 3.141459 * (1.0 - timeForAnimation)) + offset
+					let progressEndAngle = progressAngle + CGFloat(2.0 * 3.141459 * progressForAnimation)
+					progressRing.addArc(&t, x: 0, y: 0, radius: square.size.width / 2, startAngle: progressAngle, endAngle: progressEndAngle, clockwise: false)
+					context.addPath(progressRing)
+					NSColor(calibratedRed: 0.0, green: 0.0, blue: 0.5, alpha: 0.5 * CGFloat(opacity)).setStroke()
+					context.strokePath()
+				}
+
+				if self.timer == nil || self.endTimerAfter != nil {
+					baseColor.setStroke()
+					let ring = CGMutablePath()
+					let progress = 1.0
+					ring.addArc(&t, x: 0, y: 0, radius: square.size.width / 2, startAngle: offset + CGFloat(2.0 * 3.141459 * (1.0 - progress)), endAngle: offset + CGFloat(2.0 * 3.14159), clockwise: false)
+					context.addPath(ring)
+					context.strokePath()
+				}
 				
 				// Draw the inner circle (if the outlet is connected)
 				if connected || dragLineWindow !== nil {

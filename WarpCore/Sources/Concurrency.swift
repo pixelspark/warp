@@ -574,13 +574,15 @@ public class Mutex {
 
 /** Future represents a result of a (potentially expensive) calculation. Code that needs the result of the
 operation express their interest by enqueuing a callback with the get() function. The callback gets called immediately
-if the result of the calculation was available in cache, or as soon as the result has been calculated. 
+if the result of the calculation was available in cache, or as soon as the result has been calculated. **/
 
-The calculation itself is done by the 'producer' block. When the producer block is changed, the cached result is 
+
+/** The calculation itself is done by the 'producer' block. When the producer block is changed, the cached result is
 invalidated (pre-registered callbacks may still receive the stale result when it has been calculated). */
 public class Future<T> {
-	public typealias Callback = Batch<T>.Callback
+	public typealias Callback = (T) -> ()
 	public typealias Producer = (Job, Callback) -> ()
+
 	private var batch: Batch<T>?
 	private let mutex: Mutex = Mutex()
 	
@@ -654,8 +656,9 @@ public class Future<T> {
 	given job, and will use its preferred queue. Otherwise it will perform the work in the user initiated QoS concurrent
 	queue. This function always returns its own child Job. */
 	@discardableResult public func get(_ job: Job? = nil, _ callback: Callback) -> Job {
-		var first = false
-		self.mutex.locked {
+		return self.mutex.locked {
+			var first = false
+
 			if self.batch == nil {
 				first = true
 				if let j = job {
@@ -667,23 +670,45 @@ public class Future<T> {
 			}
 
 			batch!.enqueue(callback)
-		}
 
-		if(first) {
-			calculate()
+			if(first) {
+				calculate()
+			}
+
+			return batch!
 		}
-		return batch!
 	}
 }
 
-public class Batch<T>: Job {
-	public typealias Callback = (T) -> ()
+/** A MutableFuture is like a future, but (1) it does not obtain its result from a producer but is externally satisfied, 
+and (2) it can be satisfied multiple times. */
+public class MutableFuture<T>: Future<T> {
+	public init() {
+		super.init({ (job, callback) in
+			// Never calls back
+		})
+	}
+
+	public func satisfy(_ value: T, queue: DispatchQueue = DispatchQueue.main) {
+		self.mutex.locked {
+			if self.batch == nil || self.batch!.satisfied {
+				self.batch = Batch<T>(queue: queue)
+			}
+			self.batch?.satisfy(value)
+		}
+	}
+}
+
+class Batch<T>: Job {
+	typealias Callback = Future<T>.Callback
 	private var cached: T? = nil
 	private var waitingList: [Callback] = []
 	
-	private var satisfied: Bool { get {
-		return cached != nil
-	} }
+	private var satisfied: Bool {
+		return self.mutex.locked {
+			return cached != nil
+		}
+	}
 	
 	override init(queue: DispatchQueue) {
 		super.init(queue: queue)
@@ -695,7 +720,7 @@ public class Batch<T>: Job {
 	
 	/** Called by a producer to return the result of a job. This method will call all callbacks on the waiting list (on the
 	main thread) and subsequently empty the waiting list. Enqueue can only be called once on a batch. */
-	private func satisfy(_ value: T) {
+	func satisfy(_ value: T) {
 		self.mutex.locked {
 			assert(cached == nil, "Batch.satisfy called with cached!=nil: \(cached) \(value)")
 			assert(!satisfied, "Batch already satisfied")
@@ -721,7 +746,7 @@ public class Batch<T>: Job {
 	}
 	
 	/** Cancel this job and remove all waiting listeners (they will never be called back). */
-	public override func cancel() {
+	override func cancel() {
 		self.mutex.locked {
 			if !self.satisfied {
 				self.waitingList.removeAll(keepingCapacity: false)
@@ -734,8 +759,9 @@ public class Batch<T>: Job {
 	func enqueue(_ callback: Callback) {
 		self.mutex.locked {
 			if satisfied {
-				self.queue.async { [unowned self] in
-					callback(self.cached!)
+				let c = self.cached!
+				self.queue.async {
+					callback(c)
 				}
 			}
 			else {

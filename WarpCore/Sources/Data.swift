@@ -322,6 +322,17 @@ internal struct HashComparison {
 	}
 }
 
+/** Indicates the way the result from a stream is delivered to a consumer. */
+public enum Delivery {
+	/** The consumer will receive a callback once, when all data has been received (the stream has indicated there is no 
+	more data). */
+	case onceComplete
+
+	/** The consumer will receive a callback every time there is new data. The callback will provide all data received up 
+	to that point. If the source does not support incremental delivery, it is allowed to deliver only once complete. */
+	case incremental
+}
+
 /** Dataset represents a data set. A data set consists of a set of column names (Column) and rows that each have a
 value for all columns in the data set. Values are represented as Value. Dataset supports various data manipulation
 operations. The exact semantics of the operations are described here, but Dataset does not implement the operations. 
@@ -389,7 +400,7 @@ public protocol Dataset {
 	func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset
 	
 	/** Returns an in-memory representation (Raster) of the data set. */
-	func raster(_ job: Job, callback: (Fallible<Raster>) -> ())
+	func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ())
 	
 	/** Returns the names of the columns in the data set. The list of column names is ordered. */
 	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ())
@@ -407,6 +418,16 @@ public protocol Dataset {
 	columns from both data sets (no duplicates). Rows have empty values inserted for values of columns not present in
 	the source data set. */
 	func union(_ data: Dataset) -> Dataset
+}
+
+public extension Dataset {
+	/** Shorthand for single-delivery rasterization. */
+	func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
+		self.raster(job, deliver: .onceComplete) { result, streamStatus in
+			assert(streamStatus == .finished, "Data.raster implementation should never return statuses other than .finished when not in incremental mode")
+			callback(result)
+		}
+	}
 }
 
 /** Utility class that allows for easy swapping of Dataset objects. This can for instance be used to swap-in a cached
@@ -429,7 +450,7 @@ public class ProxyDataset: NSObject, Dataset {
 	public func aggregate(_ groups: [Column: Expression], values: [Column: Aggregator]) -> Dataset { return data.aggregate(groups, values: values) }
 	public func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset { return data.pivot(horizontal, vertical: vertical, values: values) }
 	public func stream() -> Stream { return data.stream() }
-	public func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) { return data.raster(job, callback: callback) }
+	public func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) { return data.raster(job, deliver: deliver, callback: callback) }
 	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) { return data.columns(job, callback: callback) }
 	public func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
 	public func offset(_ numberOfRows: Int) -> Dataset { return data.offset(numberOfRows) }
@@ -738,8 +759,8 @@ enum CoalescedDataset: Dataset {
 		return data.stream()
 	}
 	
-	func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
-		return data.raster(job, callback: callback)
+	func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) {
+		return data.raster(job, deliver: deliver, callback: callback)
 	}
 	
 	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {

@@ -563,8 +563,11 @@ public class RasterDataset: NSObject, Dataset {
 		}
 	}
 	
-	public func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
-		future(job, callback)
+	public func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) {
+		switch deliver {
+		case .onceComplete, .incremental:
+			future(job, { r in callback(r, .finished) })
+		}
 	}
 	
 	public init(raster: Raster) {
@@ -844,7 +847,7 @@ public class RasterDataset: NSObject, Dataset {
 	
 	public func union(_ data: Dataset) -> Dataset {
 		return applyAsynchronous("union") {(job: Job, leftRaster: Raster, callback: (Fallible<Raster>) -> ()) in
-			data.raster(job) { (rightRasterFallible) in
+			data.raster(job) { rightRasterFallible in
 				switch rightRasterFallible {
 					case .success(let rightRaster):
 						var newDataset: [Tuple] = []
@@ -889,7 +892,7 @@ public class RasterDataset: NSObject, Dataset {
 	
 	public func join(_ join: Join) -> Dataset {
 		return applyAsynchronous("join") {(job: Job, leftRaster: Raster, callback: (Fallible<Raster>) -> ()) in
-			join.foreignDataset.raster(job) { (rightRasterFallible) in
+			join.foreignDataset.raster(job) { rightRasterFallible in
 				switch rightRasterFallible {
 					case .success(let rightRaster):
 						switch join.type {
@@ -1230,7 +1233,9 @@ private class RasterDatasetStream: NSObject, Stream {
 	
 	init(_ data: RasterDataset) {
 		self.data = data
-		self.raster = Future(data.raster)
+		self.raster = Future({ job, callback in
+			data.raster(job, callback: callback)
+		})
 	}
 	
 	private func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {

@@ -1177,9 +1177,9 @@ public class SQLDataset: NSObject, Dataset {
 		callback(.success(columns))
 	}
 	
-	public func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
+	public func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) {
 		job.async {
-			StreamDataset(source: self.stream()).raster(job, callback: once(callback))
+			StreamDataset(source: self.stream()).raster(job, deliver: deliver, callback: once(callback))
 		}
 	}
 	

@@ -50,7 +50,7 @@ internal enum QBEEditingMode {
 	QBEColumnViewDelegate {
 
 	private var suggestions: Future<[QBEStep]>?
-	private let calculator: QBECalculator = QBECalculator()
+	private let calculator: QBECalculator = QBECalculator(incremental: true)
 	private var dataViewController: QBEDatasetViewController?
 	private var stepsViewController: QBEStepsViewController?
 	private var outletDropView: QBEOutletDropView!
@@ -162,7 +162,7 @@ internal enum QBEEditingMode {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		outletView.delegate = self
+		outletView!.delegate = self
 		outletDropView = QBEOutletDropView(frame: self.view.bounds)
 		outletDropView.translatesAutoresizingMaskIntoConstraints = false
 		outletDropView.delegate = self
@@ -432,14 +432,14 @@ internal enum QBEEditingMode {
 		switch fallibleRaster {
 			case .success(let raster):
 				self.presentRaster(raster)
-				self.useFullDataset = false
 			
 			case .failure(let errorMessage):
 				self.presentRaster(nil)
-				self.useFullDataset = false
-				self.dataViewController?.calculating = false
 				self.dataViewController?.errorMessage = errorMessage
 		}
+
+		self.useFullDataset = false
+		self.updateView()
 	}
 	
 	private func presentRaster(_ raster: Raster?) {
@@ -455,7 +455,8 @@ internal enum QBEEditingMode {
 				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
 				self.outletView.layer?.add(tr, forKey: kCATransition)
 			}
-			self.outletView.enabled = raster != nil
+
+			self.updateView()
 			
 			if raster != nil && raster!.rowCount > 0 && !useFullDataset {
 				if let toolbar = self.view.window?.toolbar {
@@ -488,7 +489,8 @@ internal enum QBEEditingMode {
 					a.beginSheetModal(for: w, completionHandler: nil)
 				}
 				calculator.cancel()
-				refreshDataset()
+				refreshDataset(incremental: false)
+				self.updateView()
 			}
 			else {
 				if let s = currentStep {
@@ -501,25 +503,37 @@ internal enum QBEEditingMode {
 					
 					// Start calculation
 					if useFullDataset {
-						calculator.calculate(sourceStep, fullDataset: useFullDataset, maximumTime: nil)
-						refreshDataset()
+						let job = calculator.calculate(sourceStep, fullDataset: useFullDataset, maximumTime: nil) { streamStatus in
+							asyncMain {
+								self.refreshDataset(incremental: true)
+								self.updateView()
+
+								if streamStatus == .finished {
+									self.useFullDataset = false
+								}
+							}
+						}
+						job.addObserver(self)
 					}
 					else {
 						calculator.calculateExample(sourceStep, maximumTime: nil) {
 							asyncMain {
-								self.refreshDataset()
+								self.refreshDataset(incremental: true)
+								self.updateView()
 							}
 						}
-						self.refreshDataset()
+						self.refreshDataset(incremental: false)
 					}
 				}
 				else {
 					calculator.cancel()
-					refreshDataset()
+					refreshDataset(incremental: false)
+					self.updateView()
 				}
 			}
 		}
-		
+
+		self.updateView()
 		self.view.window?.update() // So that the 'cancel calculation' toolbar button autovalidates
 	}
 	
@@ -534,27 +548,25 @@ internal enum QBEEditingMode {
 		self.view.window?.toolbar?.validateVisibleItems()
 	}
 	
-	private func refreshDataset() {
-		self.presentDataset(nil)
-		dataViewController?.calculating = calculator.calculating
+	private func refreshDataset(incremental: Bool) {
+		if !incremental {
+			self.presentDataset(nil)
+		}
 		
-		let job = calculator.currentRaster?.get { (fallibleRaster) -> () in
+		calculator.currentRaster?.get { (fallibleRaster) -> () in
 			asyncMain {
 				self.presentRaster(fallibleRaster)
-				self.useFullDataset = false
 				self.view.window?.toolbar?.validateVisibleItems()
 				self.view.window?.update()
 			}
 		}
-		job?.addObserver(self)
 		self.view.window?.toolbar?.validateVisibleItems()
 		self.view.window?.update() // So that the 'cancel calculation' toolbar button autovalidates
 	}
 	
 	@objc func job(_ job: AnyObject, didProgress: Double) {
 		asyncMain {
-			self.outletView.progress = didProgress
-			self.dataViewController?.progress = didProgress
+			self.updateView()
 		}
 	}
 	
@@ -1278,6 +1290,15 @@ internal enum QBEEditingMode {
 	private func updateView() {
 		assertMainThread()
 
+		// Update calculation status
+		let hasRaster = dataViewController?.raster != nil
+		let hasError = self.dataViewController?.errorMessage != nil
+		let calculationProgress = hasError ? 1.0 : (self.calculator.currentCalculation?.job.progress ?? 1.0)
+		self.outletView?.enabled = hasRaster
+		self.outletView?.progress = calculationProgress
+		self.outletView?.animating = self.calculator.calculating && calculationProgress < 1.0
+
+		// Update editing status
 		switch self.editingMode {
 		case .editing(identifiers: _):
 			// In editing mode, rows and columns can be added

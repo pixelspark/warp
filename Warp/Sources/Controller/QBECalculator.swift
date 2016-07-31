@@ -61,15 +61,30 @@ public struct QBECalculatorParameters {
 	public var maximumIterations = 10
 }
 
+public struct QBECalculation {
+	var job: Job
+	var forStep: QBEStep
+}
+
 /** The QBECalculator class coordinates execution of steps. In particular, it models the performance of steps and can
 estimate the number of input rows required to arrive at a certain number of output rows (e.g. in example calculations). */
 public class QBECalculator: NSObject {
-	public var currentDataset: Future<Fallible<Dataset>>?
-	public var currentRaster: Future<Fallible<Raster>>?
+	private var _currentDataset: Future<Fallible<Dataset>>?
+	private var _currentRaster: Future<Fallible<Raster>>?
 	private var mutex: Mutex = Mutex()
-
+	private var calculationInProgress: QBECalculation? = nil
+	private var stepPerformance: [Int: QBEStepPerformance] = [:]
 	private var currentParameters = QBECalculatorParameters()
-	
+
+	/** Whether the calculator will request incremental rasterization. If false, the calculator will request a rasterization
+	and you should use currentRaster.get() to obtain the raster. If true, the calculator will request incremental
+	rasterization. You use currentRaster.get() to obtain the first result */
+	public let incremental: Bool
+
+	public var currentDataset: Future<Fallible<Dataset>>? { return self.mutex.locked { return self._currentDataset } }
+	public var currentRaster: Future<Fallible<Raster>>? { return self.mutex.locked { return self._currentRaster } }
+	public var currentCalculation: QBECalculation? { return self.mutex.locked { return self.calculationInProgress } }
+
 	public var parameters: QBECalculatorParameters {
 		set {
 			self.mutex.locked {
@@ -83,16 +98,14 @@ public class QBECalculator: NSObject {
 		}
 	}
 
-	private var calculationInProgressForStep: QBEStep? = nil
-	private var stepPerformance: [Int: QBEStepPerformance] = [:]
-
 	public var calculating: Bool { get {
 		return self.mutex.locked {
-			return self.calculationInProgressForStep != nil
+			return self.calculationInProgress != nil
 		}
 	} }
 
-	public override init() {
+	public init(incremental: Bool) {
+		self.incremental = incremental
 		super.init()
 	}
 	
@@ -150,87 +163,136 @@ public class QBECalculator: NSObject {
 		
 		let startTime = Date.timeIntervalSinceReferenceDate
 		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maxTime)
-		self.calculate(sourceStep, fullDataset: false, maximumTime: maxTime)
-		
-		// Record extra information when calculating an example result
-		currentRaster!.get {[unowned self] (raster) in
-			switch raster {
-			case .success(let r):
-				let duration = Double(NSDate.timeIntervalSinceReferenceDate) - startTime
+		self.calculate(sourceStep, fullDataset: false, maximumTime: maxTime) { streamStatus in
+			// Record extra information when calculating an example result
+			self.currentRaster!.get {[unowned self] (raster) in
+				switch raster {
+				case .success(let r):
+					let duration = Double(NSDate.timeIntervalSinceReferenceDate) - startTime
 
-				// Record performance information for example execution
-				let index = unsafeAddress(of: sourceStep).hashValue
-				var startAnother = false
+					// Record performance information for example execution
+					let index = unsafeAddress(of: sourceStep).hashValue
+					var startAnother = false
 
-				self.mutex.locked {
-					var perf = self.stepPerformance[index] ?? QBEStepPerformance()
-					perf.timePerInputRow.add(duration / Double(maxInputRows))
-					if r.rowCount > 0 {
-						perf.inputAmplificationFactor.add(Double(r.rowCount) / Double(maxInputRows))
-					}
-					else {
-						perf.emptyCount += 1
-					}
-					perf.executionCount += 1
-					self.stepPerformance[index] = perf
-				
-					/* If we got zero rows, but there is stil time left, just try again. In many cases the back-end
-					is much faster than we think and we have plenty of time left to fill in our time budget. */
-					let maxExampleRows = self.currentParameters.maximumExampleInputRows
-					if r.rowCount < self.currentParameters.desiredExampleRows && (maxTime - duration) > duration && (maxInputRows < maxExampleRows) {
-						trace("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
-						startAnother = true
-					}
-				}
+					self.mutex.locked {
+						var perf = self.stepPerformance[index] ?? QBEStepPerformance()
+						perf.timePerInputRow.add(duration / Double(maxInputRows))
+						if r.rowCount > 0 {
+							perf.inputAmplificationFactor.add(Double(r.rowCount) / Double(maxInputRows))
+						}
+						else {
+							perf.emptyCount += 1
+						}
+						perf.executionCount += 1
+						self.stepPerformance[index] = perf
+					
+						/* If we got zero rows, but there is stil time left, just try again. In many cases the back-end
+						is much faster than we think and we have plenty of time left to fill in our time budget. */
+						let maxExampleRows = self.currentParameters.maximumExampleInputRows
+						if r.rowCount < self.currentParameters.desiredExampleRows && (maxTime - duration) > duration && (maxInputRows < maxExampleRows) {
+							trace("Example took \(duration), we still have \(maxTime - duration) left, starting another (longer) calculation")
+							startAnother = true
+						}
 
-				if startAnother && attempt < self.currentParameters.maximumIterations {
-					self.calculateExample(sourceStep, maximumTime: maxTime - duration, attempt: attempt + 1, callback: callback)
-				}
-				else {
-					// Send notification of finished raster
-					asyncMain {
-						NotificationCenter.default.post(name: NSNotification.Name(rawValue: QBEResultNotification.name), object:
-							QBEResultNotification(raster: r, isFull: false, step: sourceStep, calculator: self))
+						if startAnother && attempt < self.currentParameters.maximumIterations {
+							self.calculateExample(sourceStep, maximumTime: maxTime - duration, attempt: attempt + 1, callback: callback)
+						}
+						else {
+							// Send notification of finished raster
+							asyncMain {
+								NotificationCenter.default.post(name: NSNotification.Name(rawValue: QBEResultNotification.name), object:
+									QBEResultNotification(raster: r, isFull: false, step: sourceStep, calculator: self))
+							}
+							callback()
+						}
 					}
-					callback()
+					
+				case .failure(_):
+					break;
 				}
-				
-			case .failure(_):
-				break;
 			}
 		}
 	}
 	
-	public func calculate(_ sourceStep: QBEStep, fullDataset: Bool, maximumTime: Double? = nil) {
-		self.mutex.locked {
-			if sourceStep != calculationInProgressForStep || currentDataset?.cancelled ?? false || currentRaster?.cancelled ?? false {
-				currentDataset?.cancel()
-				currentRaster?.cancel()
-				calculationInProgressForStep = sourceStep
-				var maxInputRows = 0
-				
-				// Set up calculation for the data object
-				if fullDataset {
-					currentDataset = Future<Fallible<Dataset>>(sourceStep.fullDataset)
+	@discardableResult public func calculate(_ sourceStep: QBEStep, fullDataset: Bool, maximumTime: Double? = nil, callback: ((StreamStatus) -> ())) -> Job {
+		return self.mutex.locked {
+			let calculationJob = Job(QoS.userInitiated)
+
+			currentDataset?.cancel()
+			self.calculationInProgress?.job.cancel()
+
+			self.calculationInProgress = QBECalculation(job: calculationJob, forStep: sourceStep)
+			var maxInputRows = 0
+			
+			// Set up calculation for the data object
+			if fullDataset {
+				self._currentDataset = Future<Fallible<Dataset>>(sourceStep.fullDataset)
+			}
+			else {
+				maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime ?? self.currentParameters.maximumExampleTime)
+				let maxOutputRows = self.currentParameters.desiredExampleRows
+				trace("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
+				self._currentDataset = Future<Fallible<Dataset>>({ (job, callback) in
+					sourceStep.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
+				})
+			}
+
+			if incremental {
+				let rasterFuture = MutableFuture<Fallible<Raster>>()
+				self._currentRaster = rasterFuture
+
+				if let cd = self.currentDataset {
+					cd.get(calculationJob) { result in
+						switch result {
+						case .success(let dataset):
+							dataset.raster(calculationJob, deliver: .incremental) { result, streamStatus in
+								switch result {
+								case .success(let raster):
+									result.maybe { raster in
+										// Send notification of finished raster
+										asyncMain {
+											NotificationCenter.default.post(name: NSNotification.Name(rawValue: QBEResultNotification.name), object:
+												QBEResultNotification(raster: raster, isFull: fullDataset, step: sourceStep, calculator: self))
+										}
+									}
+									rasterFuture.satisfy(.success(raster), queue: calculationJob.queue)
+
+									self.mutex.locked {
+										if streamStatus == .finished {
+											self.calculationInProgress = nil
+										}
+
+										calculationJob.async {
+											callback(streamStatus)
+										}
+									}
+
+								case .failure(let e):
+									rasterFuture.satisfy(.failure(e), queue: calculationJob.queue)
+								}
+							}
+
+						case .failure(let e):
+							rasterFuture.satisfy(.failure(e), queue: calculationJob.queue)
+						}
+					}
 				}
 				else {
-					maxInputRows = inputRowsForExample(sourceStep, maximumTime: maximumTime ?? self.currentParameters.maximumExampleTime)
-					let maxOutputRows = self.currentParameters.desiredExampleRows
-					trace("Setting up example calculation with maxout=\(maxOutputRows) maxin=\(maxInputRows)")
-					currentDataset = Future<Fallible<Dataset>>({ (job, callback) in
-						sourceStep.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
-					})
+					rasterFuture.satisfy(.failure("no data availble"), queue: calculationJob.queue)
 				}
-
-				let calculationJob = Job(QoS.userInitiated)
-				
+			}
+			else {
 				// Set up calculation for the raster
-				currentRaster = Future<Fallible<Raster>>({ [unowned self] (job: Job, callback: Future<Fallible<Raster>>.Callback) in
+				self._currentRaster = Future<Fallible<Raster>>({ [unowned self] (job: Job, producerCallback: Future<Fallible<Raster>>.Callback) in
 					if let cd = self.currentDataset {
 						let dataJob = cd.get(job) { (data: Fallible<Dataset>) -> () in
 							switch data {
 								case .success(let d):
 									d.raster(job) { result in
+										self.mutex.locked {
+											self.calculationInProgress = nil
+										}
+
 										result.maybe { raster in
 											// Send notification of finished raster
 											asyncMain {
@@ -238,37 +300,48 @@ public class QBECalculator: NSObject {
 													QBEResultNotification(raster: raster, isFull: fullDataset, step: sourceStep, calculator: self))
 											}
 										}
-										callback(result)
+
+										producerCallback(result)
 									}
 								
 								case .failure(let s):
-									callback(.failure(s))
+									self.mutex.locked {
+										self.calculationInProgress = nil
+									}
+									producerCallback(.failure(s))
 							}
 						}
 						dataJob.addObserver(job)
 					}
 					else {
-						callback(.failure(NSLocalizedString("No data available.", comment: "")))
+						self.mutex.locked {
+							self.calculationInProgress = nil
+						}
+						producerCallback(.failure(NSLocalizedString("No data available.", comment: "")))
 					}
 				})
 				
 				// Wait for the raster to arrive so we can indicate the calculation has ended
 				currentRaster!.get(calculationJob) { [unowned self] (r) in
 					self.mutex.locked {
-						self.calculationInProgressForStep = nil
+						self.calculationInProgress = nil
+						calculationJob.async {
+							callback(.finished)
+						}
 					}
 				}
 			}
+			return calculationJob
 		}
 	}
 	
 	public func cancel() {
 		self.mutex.locked {
 			currentDataset?.cancel()
-			currentRaster?.cancel()
-			currentDataset = nil
-			currentRaster = nil
-			calculationInProgressForStep = nil
+			calculationInProgress?.job.cancel()
+			self._currentDataset = nil
+			self._currentRaster = nil
+			self.calculationInProgress = nil
 		}
 	}
 }

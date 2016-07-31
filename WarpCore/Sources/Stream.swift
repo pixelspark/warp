@@ -172,12 +172,14 @@ public class StreamPuller {
 
 private class RasterStreamPuller: StreamPuller {
 	var data: [Tuple] = []
-	let callback: (Fallible<Raster>) -> ()
+	let callback: (Fallible<Raster>, StreamStatus) -> ()
 	let columns: [Column]
+	let delivery: Delivery
 
-	init(stream: Stream, job: Job, columns: [Column], callback: (Fallible<Raster>) -> ()) {
+	init(stream: Stream, job: Job, columns: [Column], deliver: Delivery = .onceComplete, callback: (Fallible<Raster>, StreamStatus) -> ()) {
 		self.callback = callback
 		self.columns = columns
+		self.delivery = deliver
 		super.init(stream: stream, job: job)
 	}
 
@@ -186,18 +188,28 @@ private class RasterStreamPuller: StreamPuller {
 			// Append the rows to our buffered raster
 			self.data.append(contentsOf: rows)
 			callback(.success())
+
+			if self.delivery == .incremental {
+				self.deliver(status: .hasMore)
+			}
 		}
 	}
 
 	override func onDoneReceiving() {
+		self.deliver(status: .finished)
+	}
+
+	private func deliver(status: StreamStatus) {
 		job.async {
-			self.callback(.success(Raster(data: self.data, columns: self.columns, readOnly: true)))
+			self.mutex.locked {
+				self.callback(.success(Raster(data: self.data, columns: self.columns, readOnly: true)), status)
+			}
 		}
 	}
 
 	override func onError(_ error: String) {
 		job.async {
-			self.callback(.failure(error))
+			self.callback(.failure(error), .finished)
 		}
 	}
 }
@@ -216,20 +228,22 @@ public class StreamDataset: Dataset {
 	for StreamDataset and the other way around, neither should call the fallback for an operation it implements itself,
 	and at least one of the classes has to implement each operation. */
 	private func fallback() -> Dataset {
-		return RasterDataset(future: raster)
+		return RasterDataset(future: { job, callback in
+			return self.raster(job, callback: callback)
+		})
 	}
 
-	public func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
+	public func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) {
 		let s = source.clone()
 		job.async {
 			s.columns(job, callback: once { (columns) -> () in
 				switch columns {
 					case .success(let cns):
-						let h = RasterStreamPuller(stream: s, job: job, columns: cns, callback: callback)
+						let h = RasterStreamPuller(stream: s, job: job, columns: cns, deliver: deliver, callback: callback)
 						h.start()
 
 					case .failure(let e):
-						callback(.failure(e))
+						callback(.failure(e), .finished)
 				}
 			})
 		}

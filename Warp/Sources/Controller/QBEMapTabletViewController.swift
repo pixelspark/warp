@@ -52,7 +52,7 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 	private var presentedDatasetIsFullDataset = false
 	private var mapTablet: QBEMapTablet? { return self.tablet as? QBEMapTablet }
 	private var useFullDataset: Bool = false
-	private var calculator = QBECalculator()
+	private var calculator = QBECalculator(incremental: false)
 
 	private func updateMap(_ animated: Bool) {
 		let zoomToFit = self.mapView.annotations.count == 0
@@ -145,24 +145,25 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 		self.updateProgress()
 
 		if let t = self.mapTablet, let source = t.sourceTablet, let step = source.chain.head {
-			self.calculator.calculate(step, fullDataset: self.useFullDataset)
-			let job = Job(.userInitiated)
-			job.addObserver(self)
+			self.calculator.calculate(step, fullDataset: self.useFullDataset) { _ in
+				let job = Job(.userInitiated)
+				job.addObserver(self)
 
-			self.calculator.currentRaster?.get(job) { result in
-				switch result {
-				case .success(let raster):
-					asyncMain {
-						self.presentedRaster = raster
-						self.presentedDatasetIsFullDataset = self.useFullDataset
+				self.calculator.currentRaster?.get(job) { result in
+					switch result {
+					case .success(let raster):
+						asyncMain {
+							self.presentedRaster = raster
+							self.presentedDatasetIsFullDataset = self.useFullDataset
+							self.updateProgress()
+							self.updateMap(true)
+						}
+
+					case .failure(let e):
+						/// FIXME show failure
 						self.updateProgress()
-						self.updateMap(true)
+						print("Failed to rasterize: \(e)")
 					}
-
-				case .failure(let e):
-					/// FIXME show failure
-					self.updateProgress()
-					print("Failed to rasterize: \(e)")
 				}
 			}
 		}

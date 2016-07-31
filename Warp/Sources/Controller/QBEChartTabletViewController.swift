@@ -10,7 +10,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	private var presentedRaster: Raster? = nil
 	private var presentedDatasetIsFullDataset: Bool = false
 	private var useFullDataset: Bool = false
-	private var calculator = QBECalculator()
+	private var calculator = QBECalculator(incremental: true)
 
 	var chart: QBEChart? = nil { didSet {
 		self.updateChart()
@@ -91,24 +91,25 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 		self.updateProgress()
 
 		if let t = self.chartTablet, let source = t.chart.sourceTablet, let step = source.chain.head {
-			self.calculator.calculate(step, fullDataset: self.useFullDataset)
-			let job = Job(.userInitiated)
-			job.addObserver(self)
+			self.calculator.calculate(step, fullDataset: self.useFullDataset) { _ in
+				let job = Job(.userInitiated)
+				job.addObserver(self)
 
-			self.calculator.currentRaster?.get(job) { result in
-				switch result {
-				case .success(let raster):
-					asyncMain {
-						self.presentedRaster = raster
-						self.presentedDatasetIsFullDataset = self.useFullDataset
+				self.calculator.currentRaster?.get(job) { result in
+					switch result {
+					case .success(let raster):
+						asyncMain {
+							self.presentedRaster = raster
+							self.presentedDatasetIsFullDataset = self.useFullDataset
+							self.updateProgress()
+							self.updateChart(true)
+						}
+
+					case .failure(let e):
+						/// FIXME show failure
 						self.updateProgress()
-						self.updateChart(true)
+						print("Failed to rasterize: \(e)")
 					}
-
-				case .failure(let e):
-					/// FIXME show failure
-					self.updateProgress()
-					print("Failed to rasterize: \(e)")
 				}
 			}
 		}

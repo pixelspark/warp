@@ -23,7 +23,6 @@ extension NSFont {
 footer cells that allow filtering of the data. */
 class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, NSUserInterfaceValidations {
 	var tableView: MBTableGrid?
-	@IBOutlet var progressView: NSProgressIndicator!
 	@IBOutlet var columnContextMenu: NSMenu!
 	@IBOutlet var errorLabel: NSTextField!
 	weak var delegate: QBEDatasetViewDelegate?
@@ -39,16 +38,6 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		self.tableView?.dataSource = nil
 		self.tableView?.delegate = nil
 	}
-	
-	var calculating: Bool = false { didSet {
-		if calculating != oldValue {
-			update()
-		}
-	} }
-	
-	var progress: Double = 0.0 { didSet {
-		updateProgress()
-	} }
 
 	var showNewRow = false { didSet {
 		if showNewRow != oldValue {
@@ -78,7 +67,6 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			footerCells.removeAll(keepingCapacity: true)
 			if raster != nil {
 				errorMessage = nil
-				calculating = false
 			}
 			update()
 		}
@@ -251,24 +239,9 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	private func updateProgress() {
 		assertMainThread()
 		// Set visibility
-		errorLabel.isHidden = calculating || errorMessage == nil
+		errorLabel.isHidden = errorMessage == nil
 		errorLabel.stringValue = errorMessage ?? ""
 		tableView?.isHidden = errorMessage != nil
-		
-		progressView?.isHidden = !calculating
-		progressView?.isIndeterminate = progress <= 0.0
-		progressView?.doubleValue = progress
-		progressView?.minValue = 0.0
-		progressView?.maxValue = 1.0
-		progressView?.layer?.zPosition = 2.0
-		progressView.usesThreadedAnimation = false // This is to prevent lock-ups involving __psync_cvwait, NSViewHierarchyLock + NSCollectionView
-		
-		if calculating {
-			progressView?.startAnimation(nil)
-		}
-		else {
-			progressView?.stopAnimation(nil)
-		}
 	}
 	
 	private func update() {
