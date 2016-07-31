@@ -138,6 +138,12 @@ public class Formula: Parser {
 		let b = stack.pop()
 		stack.push(Comparison(first:a, second: b, type: type))
 	}
+
+	private func pushIndex() {
+		let a = stack.pop()
+		let b = stack.pop()
+		stack.push(Call(arguments: [b, a], type: .Nth))
+	}
 	
 	private func pushGreater() {
 		pushBinary(Binary.Greater)
@@ -235,8 +241,8 @@ public class Formula: Parser {
 		add_named_rule("postfixedNumber",  rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"numberPostfix")
 		
 		add_named_rule("value", rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"foreign" | ^"subexpression")
-		add_named_rule("exponent", rule: ^"value" ~~ (("^" ~~ ^"value") => pushPower)*)
-		
+		add_named_rule("indexedValue", rule: ^"value" ~~ (("[" ~~ ^"value" ~~ "]") => pushIndex)*)
+		add_named_rule("exponent", rule: ^"indexedValue" ~~ (("^" ~~ ^"indexedValue") => pushPower)*)
 		let factor = ^"exponent" ~~ ((("*" ~~ ^"exponent") => pushMultiplication) | (("/" ~~ ^"exponent") => pushDivision) | (("~" ~~ ^"exponent") => pushModulus))*
 		let addition = factor ~~ (("+" ~~ factor => pushAddition) | ("-" ~~ factor => pushSubtraction))*
 		add_named_rule("concatenation", rule: addition ~~ (("&" ~~ addition) => pushConcat)*)

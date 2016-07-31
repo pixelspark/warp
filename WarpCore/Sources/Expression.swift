@@ -564,8 +564,15 @@ public final class Call: Expression {
 	}
 	
 	public override func toFormula(_ locale: Language, topLevel: Bool) -> String {
-		let args = arguments.map({$0.toFormula(locale)}).joined(separator: locale.argumentSeparator)
-		return "\(type.toFormula(locale))(\(args))"
+		switch self.type {
+		case .Nth where arguments.count == 2:
+			let args = arguments.map({$0.toFormula(locale)})
+			return "\(args[0])[\(args[1])]"
+
+		default:
+			let args = arguments.map({$0.toFormula(locale)}).joined(separator: locale.argumentSeparator)
+			return "\(type.toFormula(locale))(\(args))"
+		}
 	}
 	
 	override public var complexity: Int {
