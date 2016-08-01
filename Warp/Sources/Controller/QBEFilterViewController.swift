@@ -156,7 +156,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		return nil
 	}
 
-	func tableView(_ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [SortDescriptor]) {
+	func tableView(_ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
 		for d in tableView.sortDescriptors.reversed() {
 			if let k = d.key {
 				switch k {

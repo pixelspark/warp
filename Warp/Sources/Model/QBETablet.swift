@@ -67,7 +67,7 @@ of data. A tablet has a rectangular shape and a certain position in the document
 	}
 	
 	required init?(coder aDecoder: NSCoder) {
-		if let rect = aDecoder.decodeObjectOfClass(QBERectangle.self, forKey: "frame") {
+		if let rect = aDecoder.decodeObject(of: QBERectangle.self, forKey: "frame") {
 			frame = rect.rect
 		}
 		
@@ -105,7 +105,7 @@ of data. A tablet has a rectangular shape and a certain position in the document
 	}
 
 	required init?(coder aDecoder: NSCoder) {
-		if let c = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "chain") {
+		if let c = aDecoder.decodeObject(of: QBEChain.self, forKey: "chain") {
 			chain = c
 		}
 		else {

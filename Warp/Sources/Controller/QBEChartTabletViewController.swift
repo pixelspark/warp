@@ -165,7 +165,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 					}
 
 					lineChartView.data = data
-					lineChartView.gridBackgroundColor = NSUIColor.white()
+					lineChartView.gridBackgroundColor = NSUIColor.white
 					lineChartView.doubleTapToZoomEnabled = false
 					lineChartView.pinchZoomEnabled = false
 				}
@@ -209,7 +209,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 					}
 
 					barChartView.data = data
-					barChartView.gridBackgroundColor = NSUIColor.white()
+					barChartView.gridBackgroundColor = NSUIColor.white
 					barChartView.doubleTapToZoomEnabled = false
 					barChartView.pinchZoomEnabled = false
 				}

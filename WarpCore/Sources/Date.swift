@@ -11,7 +11,7 @@ public extension Date {
 	/** The 'Excel epoch', or the beginning of time according to Microsoft Excel. This is what the date '0' translates
 	to in Excel (actually on my PC it says '0 january 1900', which of course doesn't exist). */
 	static var excelEpoch: Date { get {
-		let calendar = Calendar(calendarIdentifier: Calendar.Identifier.gregorian)!
+		var calendar = Calendar(identifier: Calendar.Identifier.gregorian)
 		var comps = DateComponents()
 		comps.year = 1899
 		comps.month = 12
@@ -25,7 +25,7 @@ public extension Date {
 	
 	/** Returns the time at which the indicated Gregorian date starts in the UTC timezone. */
 	static func startOfGregorianDateInUTC(_ year: Int, month: Int, day: Int) -> Date {
-		let calendar = Calendar(calendarIdentifier: Calendar.Identifier.gregorian)!
+		var calendar = Calendar(identifier: Calendar.Identifier.gregorian)
 		var comps = DateComponents()
 		comps.year = year
 		comps.month = month
@@ -49,27 +49,27 @@ public extension Date {
 	}
 	
 	func localComponents(_ locale: Language) -> DateComponents {
-		return locale.calendar.components(in: locale.timeZone, from: self)
+		return locale.calendar.dateComponents(in: locale.timeZone, from: self)
 	}
 	
 	var gregorianComponentsInUTC: DateComponents { get {
-		let calendar = Calendar(calendarIdentifier: Calendar.Identifier.gregorian)!
-		return calendar.components(in: TimeZone(abbreviation: "UTC")!, from: self)
+		let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
+		return calendar.dateComponents(in: TimeZone(abbreviation: "UTC")!, from: self)
 	} }
-	
+
 	func fullDaysTo(_ otherDate: Date) -> Int {
-		let calendar = Calendar(calendarIdentifier: Calendar.Identifier.gregorian)!
-		let  components = calendar.components(Calendar.Unit.day, from: self, to: otherDate, options: [])
+		let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
+		let components = calendar.dateComponents([.day], from: self)
 		return components.day!
 	}
 	
 	/** Calculates a date by adding the specified number of days. Note that this is not just doing time + x * 86400, but
 	takes leap seconds into account. */
 	func dateByAddingDays(_ days: Int) -> Date? {
-		let calendar = Calendar(calendarIdentifier: Calendar.Identifier.gregorian)!
+		let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
 		var comps = DateComponents()
 		comps.day = days
-		return calendar.date(byAdding: comps, to: self, options: [])
+		return calendar.date(byAdding: comps, to: self)
 	}
 	
 	/** Returns the Excel representation of a date. This is a decimal number where the integer part indicates the number

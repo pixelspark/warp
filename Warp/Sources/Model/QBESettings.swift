@@ -108,7 +108,7 @@ class QBESettings {
 	func shouldCacheFile(ofEstimatedSize size: Int, atLocation: URL) -> Bool {
 		// Let's find out how much disk space is left in the proposed cache location
 		do {
-			let attrs = try FileManager.default.attributesOfFileSystem(forPath: atLocation.path!)
+			let attrs = try FileManager.default.attributesOfFileSystem(forPath: atLocation.path)
 			if let freeSpace = attrs[FileAttributeKey.systemFreeSize] as? NSNumber {
 				let freeSize = Double(size) / Double(freeSpace)
 				if freeSize < 0.8 {

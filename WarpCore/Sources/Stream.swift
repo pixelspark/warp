@@ -380,7 +380,7 @@ public class SequenceStream: Stream {
 	private let columns: [Column]
 	private var position: Int = 0
 	private var rowCount: Int? = nil // nil = number of rows is yet unknown
-	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.SequenceStream", attributes: DispatchQueueAttributes.serial)
+	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.SequenceStream", attributes: [])
 	private var error: String? = nil
 	
 	public init(_ sequence: AnySequence<Fallible<Tuple>>, columns: [Column], rowCount: Int? = nil) {
@@ -880,7 +880,7 @@ private class CalculateTransformer: Transformer {
 	let calculations: Dictionary<Column, Expression>
 	private var indices: Fallible<Dictionary<Column, Int>>? = nil
 	private var columns: Fallible<[Column]>? = nil
-	private let queue = DispatchQueue(label: "nl.pixelspark.Warp.CalculateTransformer", attributes: DispatchQueueAttributes.serial)
+	private let queue = DispatchQueue(label: "nl.pixelspark.Warp.CalculateTransformer", attributes: [])
 	private var ensureIndexes: Future<Void>! = nil
 
 	init(source: Stream, calculations: Dictionary<Column, Expression>) {

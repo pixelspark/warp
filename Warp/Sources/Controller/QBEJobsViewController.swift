@@ -81,7 +81,7 @@ class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
 		case "description":
 			let vw = NSTextField()
 			vw.isBordered = false
-			vw.backgroundColor = NSColor.clear()
+			vw.backgroundColor = NSColor.clear
 			vw.stringValue = info.description
 			return vw
 

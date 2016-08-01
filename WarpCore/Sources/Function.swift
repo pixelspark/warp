@@ -570,7 +570,7 @@ public enum Function: String {
 				Parameter(name: translationForString("value"), exampleValue: Value("horse"))
 			]
 			
-		case RandomString:
+		case .RandomString:
 			return [Parameter(name: translationForString("pattern"), exampleValue: Value("[0-9]{4}[A-Z]{2}"))]
 			
 		case .FromUnicodeDateString:
@@ -1440,22 +1440,22 @@ public enum Binary: String {
 		case .Power:
 			return left ^ right
 			
-		case Greater:
+		case .Greater:
 			return left > right
 			
-		case Lesser:
+		case .Lesser:
 			return left < right
 			
-		case GreaterEqual:
+		case .GreaterEqual:
 			return left >= right
 			
-		case LesserEqual:
+		case .LesserEqual:
 			return left <= right
 			
-		case Equal:
+		case .Equal:
 			return left == right
 			
-		case NotEqual:
+		case .NotEqual:
 			return left != right
 			
 		case .ContainsString:
@@ -1668,7 +1668,7 @@ private struct MedianReducer: Reducer {
 	}
 
 	var result: Value {
-		let sorted = values.sorted(isOrderedBefore: { return $0 < $1 })
+		let sorted = values.sorted(by: { return $0 < $1 })
 		let count = sorted.count
 
 		if count == 0 {

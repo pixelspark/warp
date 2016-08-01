@@ -112,14 +112,14 @@ public struct Sample {
 	}
 	
 	public init(values: [ValueType]) {
-		self.sum = values.reduce(ValueType(0.0), combine: { (u, t) -> ValueType in
+		self.sum = values.reduce(ValueType(0.0), { (u, t) -> ValueType in
 			return t + u
 		})
 		
 		self.n = values.count
 		let mean = self.sum / ValueType(n)
 		
-		let sumOfSquares = values.reduce(ValueType(0.0), combine: {(u, t) -> ValueType in
+		let sumOfSquares = values.reduce(ValueType(0.0), {(u, t) -> ValueType in
 			return pow(t - mean, 2)
 		})
 		self.mean = mean

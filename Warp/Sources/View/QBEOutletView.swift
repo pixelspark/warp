@@ -77,10 +77,10 @@ class QBEOutletDropView: NSView {
 	
 	override func draw(_ dirtyRect: NSRect) {
 		if isDraggingOver {
-			NSColor.blue().withAlphaComponent(0.15).set()
+			NSColor.blue.withAlphaComponent(0.15).set()
 		}
 		else {
-			NSColor.clear().set()
+			NSColor.clear.set()
 		}
 		
 		NSRectFill(dirtyRect)
@@ -131,7 +131,7 @@ private class QBELaceView: NSView {
 				// Draw a line
 				context.moveTo(x: sourcePointView.x, y: sourcePointView.y)
 				context.addLineTo(x: targetPointView.x, y: targetPointView.y)
-				NSColor.blue().setStroke()
+				NSColor.blue.setStroke()
 				context.setLineWidth(3.0)
 				context.strokePath()
 			}
@@ -154,7 +154,7 @@ private class QBELaceWindow: NSWindow {
 	init() {
 		laceView = QBELaceView(frame: NSZeroRect)
 		super.init(contentRect: NSZeroRect, styleMask: NSBorderlessWindowMask, backing: NSBackingStoreType.buffered, defer: false)
-		backgroundColor = NSColor.clear()
+		backgroundColor = NSColor.clear
 		isReleasedWhenClosed = false
 		isOpaque = false
 		isMovableByWindowBackground = false
@@ -253,7 +253,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 		setNeedsDisplay(self.bounds)
 	}
 
-	override func mouseDown(_ theEvent: NSEvent) {
+	override func mouseDown(with theEvent: NSEvent) {
 		if enabled {
 			delegate?.outletViewWillStartDragging(self)
 			
@@ -351,7 +351,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 				// Draw the inner circle (if the outlet is connected)
 				if connected || dragLineWindow !== nil {
 					if dragLineWindow !== nil {
-						NSColor.blue().setFill()
+						NSColor.blue.setFill()
 					}
 					else {
 						baseColor.setFill()

@@ -4,7 +4,7 @@ import WarpCore
 final class QBEDBFStream: NSObject, WarpCore.Stream {
 	let url: URL
 
-	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.QBEDBFStream", attributes: DispatchQueueAttributes.serial)
+	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.QBEDBFStream")
 	private let handle: DBFHandle?
 	private let recordCount: Int32
 	private let fieldCount: Int32

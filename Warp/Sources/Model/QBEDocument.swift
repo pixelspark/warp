@@ -9,13 +9,12 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	}
 	
 	required init?(coder aDecoder: NSCoder) {
-		if let head = aDecoder.decodeObjectOfClass(QBEStep.self, forKey: "head") {
+		if let head = aDecoder.decodeObject(of: QBEStep.self, forKey: "head") {
 			let legacyTablet = QBEChainTablet(chain: QBEChain(head: head))
 			tablets.append(legacyTablet)
 		}
 		else {
-			let classes = Set<NSObject>(arrayLiteral: [QBETablet.self, NSArray.self])
-			tablets = aDecoder.decodeObjectOfClasses(classes, forKey: "tablets") as? [QBETablet] ?? []
+			tablets = aDecoder.decodeObject(of: [QBETablet.self, NSArray.self], forKey: "tablets") as? [QBETablet] ?? []
 		}
 		
 		super.init()

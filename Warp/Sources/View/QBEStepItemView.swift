@@ -29,13 +29,13 @@ import WarpCore
 		self.addTrackingArea(NSTrackingArea(rect: frame, options: [NSTrackingAreaOptions.mouseEnteredAndExited, NSTrackingAreaOptions.activeInActiveApp], owner: self, userInfo: nil))
 	}
 	
-	override func mouseEntered(_ theEvent: NSEvent) {
+	override func mouseEntered(with theEvent: NSEvent) {
 		highlighted = true
 		update()
 		setNeedsDisplay(self.bounds)
 	}
 	
-	override func mouseExited(_ theEvent: NSEvent) {
+	override func mouseExited(with theEvent: NSEvent) {
 		highlighted = false
 		update()
 		setNeedsDisplay(self.bounds)
@@ -94,7 +94,7 @@ import WarpCore
 	}
 	
 	private func update() {
-		label?.attributedStringValue = AttributedString(string: step?.explain(Language()) ?? "??")
+		label?.attributedStringValue = NSAttributedString(string: step?.explain(Language()) ?? "??")
 		
 		if let s = step {
 			if let icon = QBEFactory.sharedInstance.iconForStep(s) {
@@ -107,19 +107,19 @@ import WarpCore
 	}
 	
 	override func draw(_ dirtyRect: NSRect) {
-		NSColor.clear().set()
+		NSColor.clear.set()
 		NSRectFill(dirtyRect)
 
 		if self.selected {
 			if let sv = self.superview as? QBECollectionView , !sv.active {
-				NSColor.secondarySelectedControlColor().set()
+				NSColor.secondarySelectedControlColor.set()
 			}
 			else {
-				NSColor.blue().withAlphaComponent(0.2).set()
+				NSColor.blue.withAlphaComponent(0.2).set()
 			}
 		}
 		else if self.highlighted {
-			NSColor.secondarySelectedControlColor().set()
+			NSColor.secondarySelectedControlColor.set()
 		}
 		else {
 			NSColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0).set()

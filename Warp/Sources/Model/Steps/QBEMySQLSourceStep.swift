@@ -299,8 +299,7 @@ private class QBEMySQLClient {
 		/* Mysql_library_init is what we should call, but as it is #defined to mysql_server_init, Swift doesn't see it.
 		So we just call mysql_server_int. */
 		if mysql_server_init(0, nil, nil) == 0 {
-			let target = DispatchQueue.global(attributes: .qosUserInitiated)
-			queue = DispatchQueue(label: "QBEMySQLConnection.Queue", attributes: .serial, target: target)
+			queue = DispatchQueue(label: "QBEMySQLConnection.Queue")
 		}
 		else {
 			fatalError("Error initializing MySQL library")

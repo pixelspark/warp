@@ -165,7 +165,8 @@ public class QBECalculator: NSObject {
 		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maxTime)
 		self.calculate(sourceStep, fullDataset: false, maximumTime: maxTime) { streamStatus in
 			// Record extra information when calculating an example result
-			self.currentRaster!.get {[unowned self] (raster) in
+
+			self.currentRaster!.get(Job(.userInitiated)) {[unowned self] (raster) in
 				switch raster {
 				case .success(let r):
 					let duration = Double(NSDate.timeIntervalSinceReferenceDate) - startTime
@@ -216,7 +217,7 @@ public class QBECalculator: NSObject {
 	
 	@discardableResult public func calculate(_ sourceStep: QBEStep, fullDataset: Bool, maximumTime: Double? = nil, callback: ((StreamStatus) -> ())) -> Job {
 		return self.mutex.locked {
-			let calculationJob = Job(QoS.userInitiated)
+			let calculationJob = Job(.userInitiated)
 
 			currentDataset?.cancel()
 			self.calculationInProgress?.job.cancel()

@@ -134,7 +134,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		let margin: CGFloat = 500
 		var newBounds = contentMinSize.insetBy(dx: -margin, dy: -margin)
 		let offset = CGPoint(x: -newBounds.origin.x, y: -newBounds.origin.y)
-		newBounds.offsetInPlace(dx: offset.x, dy: offset.y)
+		newBounds = newBounds.offsetBy(dx: offset.x, dy: offset.y)
 		
 		// Translate the 'visible rect' (just like we will translate tablets)
 		let newVisible = self.visibleRect.offsetBy(dx: offset.x, dy: offset.y)
@@ -195,7 +195,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		return selectedView?.tabletController
 	} }
 	
-	override func mouseDown(_ theEvent: NSEvent) {
+	override func mouseDown(with theEvent: NSEvent) {
 		selectView(nil)
 	}
 	
@@ -354,9 +354,9 @@ class QBEScrollView: NSScrollView {
 		super.init(coder: coder)
 	}
 	
-	override func scrollWheel(_ theEvent: NSEvent) {
+	override func scrollWheel(with theEvent: NSEvent) {
 		if magnifiedView == nil {
-			super.scrollWheel(theEvent)
+			super.scrollWheel(with: theEvent)
 		}
 		else {
 			self.magnifyView(nil)
@@ -432,10 +432,10 @@ class QBEWorkspaceView: QBEScrollView {
 	
 	override func draw(_ dirtyRect: NSRect) {
 		if draggingOver {
-			NSColor.blue().withAlphaComponent(0.15).set()
+			NSColor.blue.withAlphaComponent(0.15).set()
 		}
 		else {
-			NSColor.clear().set()
+			NSColor.clear.set()
 		}
 		NSRectFill(dirtyRect)
 	}

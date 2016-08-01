@@ -159,24 +159,24 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	func tableGrid(_ aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
 		if let r = raster {
 			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
-				return NSColor.black().withAlphaComponent(0.05)
+				return NSColor.black.withAlphaComponent(0.05)
 			}
 			else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && Int(rowIndex) >= 0 && Int(rowIndex) < r.rowCount {
 				let x = r[Int(rowIndex), Int(columnIndex)]
 
 				// Invalid values are colored red
 				if !x.isValid {
-					return NSColor.red().withAlphaComponent(0.3)
+					return NSColor.red.withAlphaComponent(0.3)
 				}
 				else if x.isEmpty {
-					return NSColor.black().withAlphaComponent(0.05)
+					return NSColor.black.withAlphaComponent(0.05)
 				}
 
-				return NSColor.controlAlternatingRowBackgroundColors()[0]
+				return NSColor.controlAlternatingRowBackgroundColors[0]
 			}
 		}
 
-		return NSColor.controlAlternatingRowBackgroundColors()[0]
+		return NSColor.controlAlternatingRowBackgroundColors[0]
 	}
 	
 	func tableGrid(_ aTableGrid: MBTableGrid!, headerStringForColumn columnIndex: UInt) -> String! {

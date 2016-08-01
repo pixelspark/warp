@@ -75,7 +75,7 @@ class QBEListEditorViewController: NSViewController, NSTableViewDelegate, NSTabl
 			droppingItems.append(self.selection[oldIndex])
 		}
 
-		for oldIndex in oldIndexes.sorted(isOrderedBefore: { $0 > $1 }) {
+		for oldIndex in oldIndexes.sorted(by: { $0 > $1 }) {
 			if oldIndex < dropRow {
 				dropRow = dropRow - 1
 			}

@@ -515,7 +515,7 @@ internal class QBEPostgresConnection: SQLConnection {
 	private init(database: QBEPostgresDatasetbase, connection: OpaquePointer) {
 		self.connection = connection
 		self.database = database
-		self.queue = DispatchQueue(label: "QBEPostgresConnection.Queue", attributes: DispatchQueueAttributes.serial, target: DispatchQueue.global(attributes: .qosUserInitiated))
+		self.queue = DispatchQueue(label: "QBEPostgresConnection.Queue")
 	}
 	
 	deinit {

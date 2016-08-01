@@ -350,15 +350,15 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	internal func innerJoin(_ expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
+	internal func innerJoin(_ expression: Expression, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
 		self.hashOrCarthesianJoin(true, expression: expression, raster: rightRaster, job: job, callback: callback)
 	}
 	
-	internal func leftJoin(_ expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
+	internal func leftJoin(_ expression: Expression, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
 		self.hashOrCarthesianJoin(false, expression: expression, raster: rightRaster, job: job, callback: callback)
 	}
 	
-	private func hashOrCarthesianJoin(_ inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
+	private func hashOrCarthesianJoin(_ inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
 		// If no columns from the right table will ever show up, we don't have to do the join
 		let rightColumns = rightRaster.columns
 		let rightColumnsInResult = rightColumns.filter({return !self.columns.contains($0)})
@@ -382,7 +382,7 @@ public class Raster: NSObject, NSCoding {
 	corresponding rows on the right. While the carthesianProduct implementation needs to perform m*n comparisons, this 
 	function needs to calculate m+n hashes and perform m look-ups (hash-table assumed to be log n). Performance is 
 	therefore much better on larger data sets (m+n+log n compared to m*n) */
-	private func hashJoin(_ inner: Bool, comparison: HashComparison, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
+	private func hashJoin(_ inner: Bool, comparison: HashComparison, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
 		self.mutex.locked {
 			assert(comparison.comparisonOperator == Binary.Equal, "hashJoin does not (yet) support hash joins based on non-equality")
 
@@ -413,7 +413,7 @@ public class Raster: NSObject, NSCoding {
 			let future = self.raster.parallel(
 				{ (chunk) -> ([Tuple]) in
 					var newDataset: [Tuple] = []
-					job?.time("hashJoin", items: chunk.count, itemType: "rows") {
+					job.time("hashJoin", items: chunk.count, itemType: "rows") {
 						var myTemplateRow = templateRow
 						
 						for leftTuple in chunk {
@@ -455,7 +455,7 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	private func carthesianProduct(_ inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job? = nil, callback: (Raster) -> ()) {
+	private func carthesianProduct(_ inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
 		self.mutex.locked {
 			// Which columns are going to show up in the result set?
 			let rightColumns = rightRaster.columns
@@ -474,7 +474,7 @@ public class Raster: NSObject, NSCoding {
 			let future = self.raster.parallel(
 				{ (chunk) -> ([Tuple]) in
 					var newDataset: [Tuple] = []
-					job?.time("carthesianProduct", items: chunk.count * rightRaster.rowCount, itemType: "pairs") {
+					job.time("carthesianProduct", items: chunk.count * rightRaster.rowCount, itemType: "pairs") {
 						var myTemplateRow = templateRow
 						
 						for leftTuple in chunk {
@@ -736,7 +736,7 @@ public class RasterDataset: NSObject, Dataset {
 		return apply("sort") {(r: Raster, job, progressKey) -> Raster in
 			let columns = r.columns
 			
-			let newDataset = r.raster.sorted(isOrderedBefore: { (a, b) -> Bool in
+			let newDataset = r.raster.sorted(by: { (a, b) -> Bool in
 				// Return true if a comes before b
 				for order in by {
 					if let aValue = order.expression?.apply(Row(a, columns: columns), foreign: nil, inputValue: nil),
@@ -949,7 +949,7 @@ public class RasterDataset: NSObject, Dataset {
 			// Generate column names
 			var newColumnNames: [Column] = vertical
 			for hGroup in horizontalGroups {
-				let hGroupLabel = hGroup.row.reduce("", combine: { (label, value) -> String in
+				let hGroupLabel = hGroup.row.reduce("", { (label, value) -> String in
 					return label + (value.stringValue ?? "") + "_"
 				})
 				
@@ -1239,7 +1239,7 @@ private class RasterDatasetStream: NSObject, Stream {
 	}
 	
 	private func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
-		self.raster.get { (fallibleRaster) in
+		self.raster.get(job) { (fallibleRaster) in
 			callback(fallibleRaster.use({ return $0.columns }))
 		}
 	}

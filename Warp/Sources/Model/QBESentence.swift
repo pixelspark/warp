@@ -154,7 +154,7 @@ public class QBESentenceColumns: NSObject, QBESentenceToken {
 
 	public var label: String {
 		if self.value.count > 4 {
-			let first = self.value.sorted(isOrderedBefore: { $0.name < $1.name }).map { $0.name }.prefix(4)
+			let first = self.value.sorted(by: { $0.name < $1.name }).map { $0.name }.prefix(4)
 			return String(format: "%@ and %d more".localized, first.joined(separator: ", "), self.value.count - first.count)
 		}
 

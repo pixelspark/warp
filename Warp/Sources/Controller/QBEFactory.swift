@@ -158,7 +158,7 @@ class QBEFactory {
 	func stepForReadingFile(_ atURL: URL) -> QBEStep? {
 		do {
 			// Try to find reader by UTI type
-			let type = try NSWorkspace.shared().type(ofFile: atURL.path!)
+			let type = try NSWorkspace.shared().type(ofFile: atURL.path)
 			for (readerType, creator) in fileReaders {
 				if NSWorkspace.shared().type(type, conformsToType: readerType) {
 					return creator(url: atURL)
@@ -166,11 +166,10 @@ class QBEFactory {
 			}
 
 			// Try by file extension
-			if let p = atURL.path {
-				let ext = NSString(string: p).pathExtension
-				if let creator = fileReaders[ext] {
-					return creator(url: atURL)
-				}
+			let p = atURL.path
+			let ext = NSString(string: p).pathExtension
+			if let creator = fileReaders[ext] {
+				return creator(url: atURL)
 			}
 
 			return nil

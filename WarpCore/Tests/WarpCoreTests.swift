@@ -921,8 +921,9 @@ class WarpCoreTests: XCTestCase {
 				return r ?? 0
 			}
 		)
-		
-		future.get { result in
+
+		let job = Job(.userInitiated)
+		future.get(job) { result in
 			XCTAssert(result != nil && result! == 1000000, "Parallel M/R delivers the correct result")
 			expectFinish.fulfill()
 		}

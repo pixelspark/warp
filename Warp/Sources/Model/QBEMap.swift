@@ -14,9 +14,9 @@ class QBEMap: QBEConfigurable, NSSecureCoding {
 	}
 
 	required init?(coder: NSCoder) {
-		self.latitudeExpression = coder.decodeObjectOfClass(Expression.self, forKey: "latitudeExpression") ?? Identity()
-		self.longitudeExpression = coder.decodeObjectOfClass(Expression.self, forKey: "longitudeExpression") ?? Identity()
-		self.titleExpression = coder.decodeObjectOfClass(Expression.self, forKey: "titleExpression") ?? Identity()
+		self.latitudeExpression = coder.decodeObject(of: Expression.self, forKey: "latitudeExpression") ?? Identity()
+		self.longitudeExpression = coder.decodeObject(of: Expression.self, forKey: "longitudeExpression") ?? Identity()
+		self.titleExpression = coder.decodeObject(of: Expression.self, forKey: "titleExpression") ?? Identity()
 		super.init()
 	}
 
@@ -100,8 +100,8 @@ class QBEMapTablet: QBETablet {
 	}
 
 	required init?(coder: NSCoder) {
-		map = coder.decodeObjectOfClass(QBEMap.self, forKey: "map") ?? QBEMap(latitudeExpression: Identity(), longitudeExpression: Identity(), titleExpression: Identity())
-		sourceTablet = coder.decodeObjectOfClass(QBEChainTablet.self, forKey: "source")
+		map = coder.decodeObject(of: QBEMap.self, forKey: "map") ?? QBEMap(latitudeExpression: Identity(), longitudeExpression: Identity(), titleExpression: Identity())
+		sourceTablet = coder.decodeObject(of: QBEChainTablet.self, forKey: "source")
 		super.init(coder: coder)
 	}
 

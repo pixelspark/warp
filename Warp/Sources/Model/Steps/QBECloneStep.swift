@@ -10,7 +10,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		right = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "right")
+		right = aDecoder.decodeObject(of: QBEChain.self, forKey: "right")
 		super.init(coder: aDecoder)
 	}
 

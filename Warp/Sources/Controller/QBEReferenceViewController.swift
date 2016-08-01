@@ -53,8 +53,8 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 					if let parsedFormula = Formula(formula: formula, locale: locale!) {
 						let ma = NSMutableAttributedString()
 						ma.append(parsedFormula.syntaxColoredFormula)
-						ma.append(AttributedString(string: " = ", attributes: [:]))
-						ma.append(AttributedString(string: locale!.localStringFor(result), attributes: [:]))
+						ma.append(NSAttributedString(string: " = ", attributes: [:]))
+						ma.append(NSAttributedString(string: locale!.localStringFor(result), attributes: [:]))
 						self.exampleLabel.attributedStringValue = ma
 					}
 					return
@@ -62,7 +62,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 			}
 		}
 		
-		self.exampleLabel?.attributedStringValue = AttributedString(string: "")
+		self.exampleLabel?.attributedStringValue = NSAttributedString(string: "")
 	}
 	
 	private func reloadData() {

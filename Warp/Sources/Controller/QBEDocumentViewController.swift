@@ -255,10 +255,9 @@ import WarpCore
 	}
 
 	@objc func exportView(_ view: QBEExportViewController, finishedExportingTo: URL) {
-		if let ext = finishedExportingTo.pathExtension {
-			if QBEFactory.sharedInstance.fileTypesForReading.contains(ext) {
-				self.addTabletFromURL(finishedExportingTo)
-			}
+		let ext = finishedExportingTo.pathExtension
+		if QBEFactory.sharedInstance.fileTypesForReading.contains(ext) {
+			self.addTabletFromURL(finishedExportingTo)
 		}
 	}
 
@@ -283,7 +282,7 @@ import WarpCore
 
 		if let data = pboard.string(forType: NSPasteboardTypeString) {
 			let note = QBENoteTablet()
-			note.note.text = AttributedString(string: data)
+			note.note.text = NSAttributedString(string: data)
 			self.addTablet(note, undo: true, animated: true)
 		}
 	}
@@ -420,7 +419,7 @@ import WarpCore
 		for file in files {
 			var isDirectory: ObjCBool = false
 			FileManager.default.fileExists(atPath: file, isDirectory: &isDirectory)
-			if isDirectory {
+			if isDirectory.boolValue {
 				// Find the contents of the directory, and add.
 				if let enumerator = FileManager.default.enumerator(atPath: file) {
 					for child in enumerator {
@@ -434,7 +433,7 @@ import WarpCore
 								// Is  the enumerated item a directory? Then ignore it, the enumerator already recurses
 								var isChildDirectory: ObjCBool = false
 								FileManager.default.fileExists(atPath: childPath, isDirectory: &isChildDirectory)
-								if !isChildDirectory {
+								if !isChildDirectory.boolValue {
 									if let t = addTabletFromURL(URL(fileURLWithPath: childPath)) {
 										tabletsAdded.append(t)
 									}
@@ -520,9 +519,8 @@ import WarpCore
 		}
 		else {
 			// This may be a warp document - open separately
-			if let p = url.path {
-				NSWorkspace.shared().openFile(p)
-			}
+			let p = url.path
+			NSWorkspace.shared().openFile(p)
 		}
 
 		return nil
@@ -835,12 +833,8 @@ private class QBEDropChainAction: NSObject {
 
 	private func exportToFile(_ url: URL) {
 		let writerType: QBEFileWriter.Type
-		if let ext = url.pathExtension {
-			writerType = QBEFactory.sharedInstance.fileWriterForType(ext) ?? QBECSVWriter.self
-		}
-		else {
-			writerType = QBECSVWriter.self
-		}
+		let ext = url.pathExtension
+		writerType = QBEFactory.sharedInstance.fileWriterForType(ext) ?? QBECSVWriter.self
 
 		let title = chain.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
 		let s = QBEExportStep(previous: chain.head!, writer: writerType.init(locale: self.documentView.locale, title: title), file: QBEFileReference.absolute(url))

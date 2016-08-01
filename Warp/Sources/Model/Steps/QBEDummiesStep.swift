@@ -140,7 +140,7 @@ class QBEDummiesStep: QBEStep {
 		data.unique(Sibling(self.sourceColumn), job: job) { result in
 			switch result {
 			case .success(let uniqueValues):
-				callback(.success(StreamDataset(source: QBEDummiesTransformer(source: data.stream(), sourceColumn: self.sourceColumn, values: uniqueValues.sorted(isOrderedBefore: { $0.stringValue < $1.stringValue })))))
+				callback(.success(StreamDataset(source: QBEDummiesTransformer(source: data.stream(), sourceColumn: self.sourceColumn, values: uniqueValues.sorted(by: { $0.stringValue < $1.stringValue })))))
 
 			case .failure(let e):
 				return callback(.failure(e))

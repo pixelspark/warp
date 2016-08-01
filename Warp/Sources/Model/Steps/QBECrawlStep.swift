@@ -27,11 +27,11 @@ class QBECrawler: NSObject, NSSecureCoding {
 	}
 	
 	required init?(coder: NSCoder) {
-		let urlExpression = coder.decodeObjectOfClass(Expression.self, forKey: "url")
-		let targetBodyColumn = coder.decodeObjectOfClass(NSString.self, forKey: "bodyColumn") as? String
-		let targetStatusColumn = coder.decodeObjectOfClass(NSString.self, forKey: "statusColumn") as? String
-		let targetResponseTimeColumn = coder.decodeObjectOfClass(NSString.self, forKey: "responseTimeColumn") as? String
-		let targetErrorColumn = coder.decodeObjectOfClass(NSString.self, forKey: "errorColumn") as? String
+		let urlExpression = coder.decodeObject(of: Expression.self, forKey: "url")
+		let targetBodyColumn = coder.decodeObject(of: NSString.self, forKey: "bodyColumn") as? String
+		let targetStatusColumn = coder.decodeObject(of: NSString.self, forKey: "statusColumn") as? String
+		let targetResponseTimeColumn = coder.decodeObject(of: NSString.self, forKey: "responseTimeColumn") as? String
+		let targetErrorColumn = coder.decodeObject(of: NSString.self, forKey: "errorColumn") as? String
 		
 		self.maxConcurrentRequests = coder.decodeInteger(forKey: "maxConcurrentRequests")
 		self.maxRequestsPerSecond = coder.decodeInteger(forKey: "maxRequestsPerSecond")
@@ -65,7 +65,7 @@ class QBECrawlStream: WarpCore.Stream {
 	}
 	
 	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
-		self.sourceColumnNames.get { (sourceColumns) in
+		self.sourceColumnNames.get(job) { (sourceColumns) in
 			callback(sourceColumns.use({ (sourceColumns) -> [Column] in
 				var sourceColumns = sourceColumns
 
@@ -101,7 +101,7 @@ class QBECrawlStream: WarpCore.Stream {
 	
 	func fetch(_ job: Job, consumer: Sink) {
 		// First obtain the column names from the source stream
-		self.sourceColumnNames.get { (sourceColumnsFallible) in
+		self.sourceColumnNames.get(job) { (sourceColumnsFallible) in
 			switch sourceColumnsFallible {
 				case .success(let sourceColumns):
 				// Fetch a bunch of rows
@@ -210,7 +210,7 @@ class QBECrawlStep: QBEStep {
 	var crawler: QBECrawler
 	
 	required init(coder aDecoder: NSCoder) {
-		if let c = aDecoder.decodeObjectOfClass(QBECrawler.self, forKey: "crawler") {
+		if let c = aDecoder.decodeObject(of: QBECrawler.self, forKey: "crawler") {
 			self.crawler = c
 		}
 		else {

@@ -62,7 +62,7 @@ class QBEHTTPStep: QBEStep {
 	var url: Expression
 
 	required init(coder aDecoder: NSCoder) {
-		self.url = aDecoder.decodeObjectOfClass(Expression.self, forKey: "url") ?? Literal(Value("http://localhost"))
+		self.url = aDecoder.decodeObject(of: Expression.self, forKey: "url") ?? Literal(Value("http://localhost"))
 		super.init(coder: aDecoder)
 	}
 

@@ -706,7 +706,7 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 	}
 
 	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
-		if let p = file.path, let database = QBESQLiteConnection(path: p) {
+		if let database = QBESQLiteConnection(path: file.path) {
 			// We must disable the WAL because the sandbox doesn't allow us to write to the WAL file (created separately)
 			database.query("PRAGMA journal_mode = MEMORY").require { s in
 				if case .failure(let m) = s.run() {
@@ -829,7 +829,7 @@ class QBESQLiteDatasetbase: SQLDatasetbase {
 	}
 
 	func connect(_ callback: (Fallible<SQLConnection>) -> ()) {
-		if let c = QBESQLiteConnection(path: self.url.path!, readOnly: self.readOnly) {
+		if let c = QBESQLiteConnection(path: self.url.path, readOnly: self.readOnly) {
 			callback(.success(c))
 		}
 		else {
@@ -843,7 +843,7 @@ class QBESQLiteDatasetbase: SQLDatasetbase {
 			return
 		}
 
-		if let con = QBESQLiteConnection(path: self.url.path!, readOnly: self.readOnly) {
+		if let con = QBESQLiteConnection(path: self.url.path, readOnly: self.readOnly) {
 			switch QBESQLiteDataset.create(con, tableName: table) {
 			case .success(let d): callback(.success(d))
 			case .failure(let e): callback(.failure(e))
@@ -973,7 +973,7 @@ class QBESQLiteSourceStep: QBEStep {
 		self.db = nil
 		
 		if let url = file?.url {
-			self.db = QBESQLiteConnection(path: url.path!, readOnly: true)
+			self.db = QBESQLiteConnection(path: url.path, readOnly: true)
 			
 			if self.tableName == nil {
 				self.db?.tableNames.maybe {(tns) in
@@ -1058,7 +1058,7 @@ class QBESQLiteSourceStep: QBEStep {
 			if !url.startAccessingSecurityScopedResource() {
 				trace("startAccessingSecurityScopedResource failed for \(url)")
 			}
-			self.db = QBESQLiteConnection(path: url.path!, readOnly: true)
+			self.db = QBESQLiteConnection(path: url.path, readOnly: true)
 		}
 	}
 	
@@ -1093,7 +1093,7 @@ class QBESQLiteSourceStep: QBEStep {
 			if !url.startAccessingSecurityScopedResource() {
 				trace("startAccessingSecurityScopedResource failed for \(url)")
 			}
-			self.db = QBESQLiteConnection(path: url.path!, readOnly: true)
+			self.db = QBESQLiteConnection(path: url.path, readOnly: true)
 		}
 	}
 }

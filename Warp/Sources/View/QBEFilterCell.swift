@@ -11,7 +11,7 @@ internal class QBEFilterPlaceholderCell: NSButtonCell {
 	}
 
 	override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
-		NSColor.windowBackgroundColor().set()
+		NSColor.windowBackgroundColor.set()
 		NSRectFill(cellFrame)
 		QBEFilterPlaceholderCell.drawPlaceholder(frame: cellFrame)
 	}
@@ -60,7 +60,7 @@ internal class QBEFilterCell: NSButtonCell {
 	}
 	
 	override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
-		NSColor.windowBackgroundColor().set()
+		NSColor.windowBackgroundColor.set()
 		NSRectFill(cellFrame)
 
 		if active {
@@ -130,7 +130,7 @@ internal class QBEFilterCell: NSButtonCell {
 			}
 		}
 
-		nonZeroValues.sort(isOrderedBefore: {return $0 < $1})
+		nonZeroValues.sort(by: {return $0 < $1})
 
 		// Draw the bar code
 		let stripeFrame = cellFrame.insetBy(dx: 2, dy: 6)

@@ -68,7 +68,7 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 				R.connect(url) { err, connection in
 					if let e = err {
 						asyncMain {
-							self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e._code)
+							self.infoLabel?.stringValue = String(format: NSLocalizedString("Could not connect: %@", comment: ""), e.localizedDescription)
 							self.infoIcon?.image = NSImage(named: "SadIcon")
 							self.infoProgress?.isHidden = true
 							self.infoIcon?.isHidden = false

@@ -39,9 +39,9 @@ class QBEChart: QBEConfigurable, NSSecureCoding {
 			self.type = .Line
 		}
 
-		self.xExpression = coder.decodeObjectOfClass(Expression.self, forKey: "xExpression") ?? Identity()
-		self.yExpression = coder.decodeObjectOfClass(Expression.self, forKey: "yExpression") ?? Identity()
-		self.sourceTablet = coder.decodeObjectOfClass(QBEChainTablet.self, forKey: "source")
+		self.xExpression = coder.decodeObject(of: Expression.self, forKey: "xExpression") ?? Identity()
+		self.yExpression = coder.decodeObject(of: Expression.self, forKey: "yExpression") ?? Identity()
+		self.sourceTablet = coder.decodeObject(of: QBEChainTablet.self, forKey: "source")
 		super.init()
 	}
 
@@ -133,8 +133,8 @@ class QBEChartTablet: QBETablet {
 	}
 
 	required init?(coder: NSCoder) {
-		chart = coder.decodeObjectOfClass(QBEChart.self, forKey: "chart") ?? QBEChart(type: .Line, xExpression: Identity(), yExpression: Identity(), sourceTablet: nil)
-		if let sourceTablet = coder.decodeObjectOfClass(QBEChainTablet.self, forKey: "source") {
+		chart = coder.decodeObject(of: QBEChart.self, forKey: "chart") ?? QBEChart(type: .Line, xExpression: Identity(), yExpression: Identity(), sourceTablet: nil)
+		if let sourceTablet = coder.decodeObject(of: QBEChainTablet.self, forKey: "source") {
 			chart.sourceTablet = sourceTablet
 		}
 		super.init(coder: coder)

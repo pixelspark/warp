@@ -29,19 +29,17 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 		self.locale = locale
 		
 		// Get total file size
-		if let p = url.path {
-			do {
-				let attributes = try FileManager.default.attributesOfItem(atPath: p)
-				totalBytes = (attributes[FileAttributeKey.size] as? NSNumber)?.intValue ?? 0
-			}
-			catch {
-				totalBytes = 0
-			}
+		let p = url.path
+		do {
+			let attributes = try FileManager.default.attributesOfItem(atPath: p)
+			totalBytes = (attributes[FileAttributeKey.size] as? NSNumber)?.intValue ?? 0
+		}
+		catch {
+			totalBytes = 0
 		}
 		
 		// Create a queue and initialize the parser
-
-		queue = DispatchQueue(label: "nl.pixelspark.qbe.QBECSVStreamQueue", attributes: [DispatchQueueAttributes.serial], target: DispatchQueue.global(attributes: .qosUserInitiated))
+		queue = DispatchQueue(label: "nl.pixelspark.qbe.QBECSVStreamQueue", qos: .userInitiated, attributes: [], target: nil)
 		parser = CHCSVParser(contentsOfDelimitedURL: url as NSURL! as URL!, delimiter: fieldSeparator)
 		parser.sanitizesFields = true
 		super.init()
@@ -57,7 +55,7 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 			
 			for columnName in columns {
 				if self.columns.contains(columnName) {
-					let count = self.columns.reduce(0, combine: { (n, item) in return n + (item == columnName ? 1 : 0) })
+					let count = self.columns.reduce(0, { (n, item) in return n + (item == columnName ? 1 : 0) })
 					self.columns.append(Column("\(columnName.name)_\(Column.defaultNameForIndex(count).name)"))
 				}
 				else {
@@ -272,7 +270,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, StreamDelegate {
 	}
 
 	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
-		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
+		if let outStream = NSOutputStream(toFileAtPath: file.path, append: false) {
 			outStream.open()
 			self.writeDataset(data, toStream: outStream, locale: locale, job: job, callback: { (result) in
 				outStream.close()
@@ -305,9 +303,9 @@ class QBEHTMLWriter: QBECSVWriter {
 	}
 
 	override func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
-		if let outStream = NSOutputStream(toFileAtPath: file.path!, append: false) {
+		if let outStream = NSOutputStream(toFileAtPath: file.path, append: false) {
 			// Get pivot template from resources
-			if let path = Bundle.main.pathForResource("pivot", ofType: "html") {
+			if let path = Bundle.main.path(forResource: "pivot", ofType: "html") {
 				outStream.open()
 				do {
 					let template = try NSString(contentsOfFile: path, encoding: String.Encoding.utf8.rawValue).replacingOccurrences(of: "$$$TITLE$$$", with: title ?? "")

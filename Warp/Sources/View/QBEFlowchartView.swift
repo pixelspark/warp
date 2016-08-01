@@ -17,7 +17,7 @@ class QBEFlowchartView: NSView {
 	} }
 	
 	var arrows: [QBEArrow] = [] { didSet {
-		if let sa = self.selectedArrow, !arrows.contains({ a in return sa.isEqual(a) }) {
+		if let sa = self.selectedArrow, !arrows.contains(where: { a in return sa.isEqual(a) }) {
 			self.selectedArrow = nil
 		}
 		setNeedsDisplay(self.bounds)
@@ -33,7 +33,7 @@ class QBEFlowchartView: NSView {
 	
 	override var allowsVibrancy: Bool { get { return true } }
 	
-	override func mouseDown(_ theEvent: NSEvent) {
+	override func mouseDown(with theEvent: NSEvent) {
 		let location = self.convert(theEvent.locationInWindow, from: nil)
 		selectedArrow = arrowAtPoint(location)
 		self.delegate?.flowchartView(self, didSelectArrow: selectedArrow)
@@ -116,7 +116,7 @@ class QBEFlowchartView: NSView {
 	}
 
 	private func drawArrow(_ arrow: QBEArrow, context: CGContext) {
-		let color = (arrow === selectedArrow) ? NSColor(calibratedRed: 0.3, green: 0.3, blue: 0.8, alpha: 1.0) : NSColor.gray()
+		let color = (arrow === selectedArrow) ? NSColor(calibratedRed: 0.3, green: 0.3, blue: 0.8, alpha: 1.0) : NSColor.gray
 		color.set()
 
 		// Draw arrow line

@@ -58,7 +58,7 @@ public struct Row {
 /** Column represents a column (identifier) in a Dataset dataset. Column names in Dataset are case-insensitive when
 compared, but do retain case. There cannot be two or more columns in a Dataset dataset that are equal to each other when
 compared case-insensitively. */
-public struct Column: StringLiteralConvertible, Hashable, CustomDebugStringConvertible {
+public struct Column: ExpressibleByStringLiteral, Hashable, CustomDebugStringConvertible {
 	public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType
 	public typealias UnicodeScalarLiteralType = StringLiteralType
 	

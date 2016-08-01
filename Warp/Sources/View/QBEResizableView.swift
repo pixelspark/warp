@@ -28,7 +28,7 @@ class QBEResizableView: NSView {
 		self.layer!.masksToBounds = true
 		self.layer!.cornerRadius = self.dynamicType.cornerRadius
 		self.layer!.shadowRadius = 3.0
-		self.layer!.shadowColor = NSColor.shadowColor().cgColor
+		self.layer!.shadowColor = NSColor.shadowColor.cgColor
 		self.layer!.shadowOpacity = 0.3
 
 		resizerView = QBEResizerView(frame: self.bounds)
@@ -104,19 +104,19 @@ class QBEResizableView: NSView {
 		}
 	}
 	
-	override func mouseEntered(_ theEvent: NSEvent) {
+	override func mouseEntered(with theEvent: NSEvent) {
 		self.resizerView.hide = false
 	}
 	
-	override func mouseExited(_ theEvent: NSEvent) {
+	override func mouseExited(with theEvent: NSEvent) {
 		self.resizerView.hide = true
 	}
 	
-	override func mouseDown(_ theEvent: NSEvent) {
+	override func mouseDown(with theEvent: NSEvent) {
 		self.window?.invalidateCursorRects(for: self)
 	}
 	
-	override func mouseUp(_ theEvent: NSEvent) {
+	override func mouseUp(with theEvent: NSEvent) {
 		self.window?.invalidateCursorRects(for: self)
 	}
 	
@@ -277,7 +277,7 @@ internal class QBEResizerView: NSView {
 		return true
 	} }
 	
-	override func mouseDown(_ theEvent: NSEvent) {
+	override func mouseDown(with theEvent: NSEvent) {
 		if canResize {
 			let locationInView = self.convert(theEvent.locationInWindow, from: nil)
 			let locationInSuperView = superview!.superview!.convert(theEvent.locationInWindow, from: nil)
@@ -302,7 +302,7 @@ internal class QBEResizerView: NSView {
 
 			// Draw the bounding box
 			let selected = (self.superview as! QBEResizableView).selected
-			let borderColor = selected ? NSColor.blue().withAlphaComponent(0.3) : NSColor.clear()
+			let borderColor = selected ? NSColor.blue.withAlphaComponent(0.3) : NSColor.clear
 			context.setStrokeColor(borderColor.cgColor)
 			let bounds = self.bounds.inset(inset - 1.0)
 			let rr = NSBezierPath(roundedRect: bounds, xRadius: QBEResizableView.cornerRadius, yRadius: QBEResizableView.cornerRadius)
@@ -311,7 +311,7 @@ internal class QBEResizerView: NSView {
 		}
 	}
 	
-	override func mouseDragged(_ theEvent: NSEvent) {
+	override func mouseDragged(with theEvent: NSEvent) {
 		updateSize(theEvent)
 	}
 
@@ -325,7 +325,7 @@ internal class QBEResizerView: NSView {
 		}
 	}
 
-	override func mouseUp(_ theEvent: NSEvent) {
+	override func mouseUp(with theEvent: NSEvent) {
 		if theEvent.clickCount > 1 {
 			if let p = superview as? QBEResizableView {
 				p.delegate?.resizableViewWasDoubleClicked(p)

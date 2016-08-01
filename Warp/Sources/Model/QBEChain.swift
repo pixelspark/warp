@@ -31,7 +31,7 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 	}
 	
 	required init?(coder aDecoder: NSCoder) {
-		head = aDecoder.decodeObjectOfClass(QBEStep.self, forKey: "head")
+		head = aDecoder.decodeObject(of: QBEStep.self, forKey: "head")
 	}
 	
 	func encode(with aCoder: NSCoder) {

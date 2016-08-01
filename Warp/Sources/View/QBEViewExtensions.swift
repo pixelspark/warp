@@ -56,21 +56,21 @@ internal extension NSAlert {
 	@IBInspectable var topBorder: Bool = false
 	@IBInspectable var rightBorder: Bool = false
 	@IBInspectable var bottomBorder: Bool = false
-	@IBInspectable var backgroundColor: NSColor = NSColor.windowFrameColor() { didSet { self.setNeedsDisplay(self.bounds) } }
-	@IBInspectable var borderColor: NSColor = NSColor.windowFrameColor() { didSet { self.setNeedsDisplay(self.bounds) } }
+	@IBInspectable var backgroundColor: NSColor = NSColor.windowFrameColor { didSet { self.setNeedsDisplay(self.bounds) } }
+	@IBInspectable var borderColor: NSColor = NSColor.windowFrameColor { didSet { self.setNeedsDisplay(self.bounds) } }
 	
 	override func draw(_ dirtyRect: NSRect) {
 		backgroundColor.set()
 		NSRectFill(self.bounds)
 
-		let start = NSColor.controlBackgroundColor().withAlphaComponent(0.7)
-		let end = NSColor.controlBackgroundColor().withAlphaComponent(0.6)
+		let start = NSColor.controlBackgroundColor.withAlphaComponent(0.7)
+		let end = NSColor.controlBackgroundColor.withAlphaComponent(0.6)
 		let g = NSGradient(starting: start, ending: end)
 		g?.draw(in: self.bounds, angle: 270.0)
 
 		borderColor.set()
 		var bounds = self.bounds
-		bounds.formIntersection(dirtyRect)
+		bounds = bounds.intersection(dirtyRect)
 		
 		if leftBorder {
 			NSRectFill(CGRect(x: bounds.origin.x, y: bounds.origin.y, width: 1, height: bounds.size.height))

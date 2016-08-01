@@ -658,7 +658,7 @@ public extension NSCoder {
 	}
 	
 	public func decodeString(forKey key: String) -> String? {
-		return self.decodeObjectOfClass(NSString.self, forKey: key) as? String
+		return self.decodeObject(of: NSString.self, forKey: key) as? String
 	}
 }
 
@@ -760,9 +760,9 @@ public extension String {
 	
 	func replace(_ pattern: String, withTemplate replacement: String, caseSensitive: Bool = true) -> String? {
 		do {
-			let re = try RegularExpression(pattern: pattern, options: (caseSensitive ? RegularExpression.Options(): RegularExpression.Options.caseInsensitive))
+			let re = try NSRegularExpression(pattern: pattern, options: (caseSensitive ? []: [.caseInsensitive]))
 			let range = NSMakeRange(0, self.characters.count)
-			return re.stringByReplacingMatches(in: self, options: RegularExpression.MatchingOptions(), range: range, withTemplate: replacement)
+			return re.stringByReplacingMatches(in: self, options: NSRegularExpression.MatchingOptions(), range: range, withTemplate: replacement)
 		} catch _ {
 		}
 		return nil
@@ -770,9 +770,9 @@ public extension String {
 	
 	func matches(_ pattern: String, caseSensitive: Bool = true) -> Bool? {
 		do {
-			let re = try RegularExpression(pattern: pattern, options: (caseSensitive ? RegularExpression.Options() : RegularExpression.Options.caseInsensitive))
+			let re = try NSRegularExpression(pattern: pattern, options: (caseSensitive ? [] : [.caseInsensitive]))
 			let range = NSMakeRange(0, self.characters.count)
-			return re.rangeOfFirstMatch(in: self, options: RegularExpression.MatchingOptions(), range: range).location != NSNotFound
+			return re.rangeOfFirstMatch(in: self, options: NSRegularExpression.MatchingOptions(), range: range).location != NSNotFound
 		} catch _ {
 		}
 		return nil
@@ -905,7 +905,7 @@ internal extension Int {
 		
 		if range.lowerBound < 0   // allow negative ranges
 		{
-			offset = abs(range.lowerBound)
+			offset = Swift.abs(range.lowerBound)
 		}
 		
 		let mini = UInt32(range.lowerBound + offset)
@@ -915,7 +915,7 @@ internal extension Int {
 	}
 }
 
-internal func arc4random <T: IntegerLiteralConvertible> (_ type: T.Type) -> T {
+internal func arc4random <T: ExpressibleByIntegerLiteral> (_ type: T.Type) -> T {
 	var r: T = 0
 	arc4random_buf(&r, sizeof(T.self))
 	return r
@@ -1124,7 +1124,7 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType>: Sequence {
 	}
 
 	public mutating func sortKeysInPlace(_ isOrderedBefore: (a: KeyType, b: KeyType) -> Bool) {
-		self.keys.sort(isOrderedBefore: isOrderedBefore)
+		self.keys.sort(by: isOrderedBefore)
 	}
 
 	public mutating func sortPairsInPlace(_ isOrderedBefore: (PairType, PairType) -> Bool) {

@@ -55,7 +55,7 @@ class QBETests: XCTestCase {
 		let job = Job(.userInitiated)
 
 		// Test general functioning of CSV stream
-		let url = Bundle(for: QBETests.self).urlForResource("regular", withExtension: "csv")
+		let url = Bundle(for: QBETests.self).url(forResource: "regular", withExtension: "csv")
 		let csv = QBECSVStream(url: url!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
 
 		asyncTest { callback in
@@ -83,7 +83,7 @@ class QBETests: XCTestCase {
 		}
 
 		// Test functioning of CSV stream with file that contains rows that have more columns than specified
-		let url2 = Bundle(for: QBETests.self).urlForResource("extraneous-columns", withExtension: "csv")
+		let url2 = Bundle(for: QBETests.self).url(forResource: "extraneous-columns", withExtension: "csv")
 		let csv2 = QBECSVStream(url: url2!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
 
 		asyncTest { callback in
@@ -102,7 +102,7 @@ class QBETests: XCTestCase {
 		}
 
 		// Test functioning of CSV stream with file that contains rows that have less columns then specified
-		let url3 = Bundle(for: QBETests.self).urlForResource("missing-columns", withExtension: "csv")
+		let url3 = Bundle(for: QBETests.self).url(forResource: "missing-columns", withExtension: "csv")
 		let csv3 = QBECSVStream(url: url3!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
 
 		asyncTest { callback in
@@ -121,7 +121,7 @@ class QBETests: XCTestCase {
 		}
 
 		// Test escapes in CSV
-		let url4 = Bundle(for: QBETests.self).urlForResource("escapes", withExtension: "csv")
+		let url4 = Bundle(for: QBETests.self).url(forResource: "escapes", withExtension: "csv")
 		let csv4 = QBECSVStream(url: url4!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
 
 		asyncTest { callback in

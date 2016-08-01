@@ -6,7 +6,7 @@ final class QBERethinkStream: NSObject, WarpCore.Stream {
 	let url: URL
 	let query: ReQuery
 
-	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.QBERethinkStream", attributes: DispatchQueueAttributes.serial)
+	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.QBERethinkStream")
 	private var connection: Future<Fallible<(ReConnection, [Column])>>!
 	private var continuation: ReResponse.ContinuationCallback? = nil
 	private var firstResponse: ReResponse? = nil
@@ -24,7 +24,7 @@ final class QBERethinkStream: NSObject, WarpCore.Stream {
 			if let s = self {
 				R.connect(url) { (err, connection) in
 					if let e = err {
-						callback(.failure(e.description))
+						callback(.failure(e.localizedDescription))
 					}
 					else {
 						s.query.run(connection) { response in
@@ -545,7 +545,7 @@ class QBERethinkDatasetWarehouse: Warehouse {
 		case .create(let name, _):
 			R.connect(self.url, callback: { (error, connection) -> () in
 				if error != nil {
-					callback(.failure(error!.description))
+					callback(.failure(error!.localizedDescription))
 					return
 				}
 
@@ -639,7 +639,7 @@ class QBERethinkMutableDataset: MutableDataset {
 	func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
 		R.connect(self.url) { err, connection in
 			if let e = err {
-				callback(.failure(e.description))
+				callback(.failure(e.localizedDescription))
 				return
 			}
 
@@ -688,7 +688,7 @@ class QBERethinkMutableDataset: MutableDataset {
 		job.async {
 			R.connect(self.url) { (err, connection) -> () in
 				if let e = err {
-					callback(.failure(e.description))
+					callback(.failure(e.localizedDescription))
 					return
 				}
 
@@ -868,7 +868,7 @@ class QBERethinkSourceStep: QBEStep {
 				// Username and password are ignored when using V0_4. The authentication key will be in the URL for V0_4 (if set)
 				R.connect(u, user: self.username, password: password, version: (self.useUsernamePasswordAuthentication ? .v1_0 : .v0_4), callback: { (err, connection) -> () in
 					if let e = err {
-						callback(.failure(e.description))
+						callback(.failure(e.localizedDescription))
 						return
 					}
 
@@ -913,7 +913,7 @@ class QBERethinkSourceStep: QBEStep {
 			QBESentenceList(value: self.table, provider: { pc in
 				R.connect(self.url!, callback: { (err, connection) in
 					if err != nil {
-						pc(.failure(err!.description))
+						pc(.failure(err!.localizedDescription))
 						return
 					}
 
@@ -942,7 +942,7 @@ class QBERethinkSourceStep: QBEStep {
 			QBESentenceList(value: self.database, provider: { pc in
 				R.connect(self.url!, callback: { (err, connection) in
 					if err != nil {
-						pc(.failure(err!.description))
+						pc(.failure(err!.localizedDescription))
 						return
 					}
 

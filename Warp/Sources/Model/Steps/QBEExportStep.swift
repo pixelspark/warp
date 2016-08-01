@@ -94,9 +94,12 @@ class QBEExportStep: QBEStep {
 
 			QBESentenceFile(saveFile: self.file, allowedFileTypes: Array(factory.fileExtensionsForWriting), callback: { [weak self] (newFile) -> () in
 				self?.file = newFile
-				if let url = newFile.url, let fileExtension = url.pathExtension, let w = self?.writer, !w.dynamicType.fileTypes.contains(fileExtension) {
-					if let newWriter = factory.fileWriterForType(fileExtension) {
-						self?.writer = newWriter.init(locale: locale, title: "")
+				if let url = newFile.url {
+					let fileExtension = url.pathExtension
+					if let w = self?.writer, !w.dynamicType.fileTypes.contains(fileExtension) {
+						if let newWriter = factory.fileWriterForType(fileExtension) {
+							self?.writer = newWriter.init(locale: locale, title: "")
+						}
 					}
 				}
 			})

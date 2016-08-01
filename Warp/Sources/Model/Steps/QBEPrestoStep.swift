@@ -51,7 +51,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 		self.sql = sql
 		self.schema = schema
 		self.catalog = catalog
-		self.nextURI = try! self.url.appendingPathComponent("/v1/statement")
+		self.nextURI = self.url.appendingPathComponent("/v1/statement")
 		super.init()
 		
 		let c = { [weak self] (job: Job, callback: (Fallible<[Column]>) -> ()) -> () in
@@ -166,8 +166,8 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 				else {
 					if response.response?.statusCode == 503 {
 						// Status code 503 means that we should wait a bit
-						let queue = DispatchQueue.global(attributes: .qosUserInitiated)
-						queue.after(when: DispatchTime.now() + 0.1) {
+						let queue = DispatchQueue.global(qos: .userInitiated)
+						queue.asyncAfter(deadline: DispatchTime.now() + 0.1) {
 							callback()
 						}
 						return

@@ -16,15 +16,15 @@
   },
   "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "0822F929-563D-423B-9198-B396980A69B5",
   "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
-    "8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E" : "QBE\/Libraries\/MBTableGrid\/",
+    "8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E" : "Warp\/Libraries\/MBTableGrid\/",
     "E26FDC45B7B8C84A0DD11DB7FB79D6DAFA155193" : "Warp\/Libraries\/SwiftAI\/",
-    "67620B5EFA902936DF04070AF595B76AB0333747" : "QBE\/Libraries\/Alamofire\/",
+    "67620B5EFA902936DF04070AF595B76AB0333747" : "Warp\/Libraries\/Alamofire\/",
     "9025163822AAEA7A2D8AC9210D0874A56F62B462" : "Warp\/Libraries\/Charts\/",
-    "A5F18CC216C059F29632AA08FA9E5DF3898315E3" : "QBE\/",
-    "B4ECFDB54DAEDE750287282DDD72484BDC32C452" : "QBE\/Libraries\/Rethink\/",
-    "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA" : "QBE\/WarpCore\/Libraries\/SwiftParserGenerator\/",
+    "A5F18CC216C059F29632AA08FA9E5DF3898315E3" : "Warp\/",
+    "B4ECFDB54DAEDE750287282DDD72484BDC32C452" : "Warp\/Libraries\/Rethink\/",
+    "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA" : "Warp\/WarpCore\/Libraries\/SwiftParserGenerator\/",
     "06F0302FC5744DD4772589F58F2C7058FE802308" : "QBE\/Libraries\/Rethink\/MAMirroredQueue\/",
-    "EE61EABCF181C4E4998F7E1EA6B7D0AAED720562" : "QBE\/Libraries\/TCMXMLWriter\/"
+    "EE61EABCF181C4E4998F7E1EA6B7D0AAED720562" : "Warp\/Libraries\/TCMXMLWriter\/"
   },
   "DVTSourceControlWorkspaceBlueprintNameKey" : "Warp",
   "DVTSourceControlWorkspaceBlueprintVersion" : 204,

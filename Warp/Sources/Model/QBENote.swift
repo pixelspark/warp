@@ -1,14 +1,14 @@
 import Foundation
 
 class QBENote: NSObject, NSSecureCoding {
-	var text: AttributedString = AttributedString(string: "")
+	var text: NSAttributedString = NSAttributedString(string: "")
 
 	override init() {
 		super.init()
 	}
 
 	required init?(coder: NSCoder) {
-		text = coder.decodeObjectOfClass(AttributedString.self, forKey: "text") ?? AttributedString()
+		text = coder.decodeObject(of: NSAttributedString.self, forKey: "text") ?? NSAttributedString()
 		super.init()
 	}
 
@@ -28,7 +28,7 @@ class QBENoteTablet: QBETablet {
 	}
 
 	required init?(coder: NSCoder) {
-		note = coder.decodeObjectOfClass(QBENote.self, forKey: "note") ?? QBENote()
+		note = coder.decodeObject(of: QBENote.self, forKey: "note") ?? QBENote()
 		super.init(coder: coder)
 	}
 

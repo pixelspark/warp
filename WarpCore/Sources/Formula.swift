@@ -209,7 +209,8 @@ public class Formula: Parser {
 		would also match  (parser is dumb) */
 		var functionRules: [ParserRule] = []
 		let functionNames = Function.allFunctions
-			.map({return self.locale.nameForFunction($0) ?? ""}).sorted(isOrderedBefore: {(a,b) in return a.characters.count > b.characters.count})
+			.map({ return self.locale.nameForFunction($0) ?? "" })
+			.sorted(by: { (a,b) in return a.characters.count > b.characters.count})
 		
 		functionNames.forEach {(functionName) in
 			if !functionName.isEmpty {

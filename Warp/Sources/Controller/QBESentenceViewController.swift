@@ -201,7 +201,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			loadingItem.isEnabled = false
 			menu.addItem(loadingItem)
 
-			let queue = DispatchQueue.global(attributes: .qosUserInitiated)
+			let queue = DispatchQueue.global(qos: .userInitiated)
 			queue.async {
 				options.optionsProvider { [weak self] (itemsFallible) in
 					asyncMain {
@@ -330,7 +330,8 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				menu.addItem(label)
 
 				for recent in recents {
-					if let u = recent.url, let title = u.lastPathComponent {
+					if let u = recent.url {
+						let title = u.lastPathComponent
 						let recentItem = NSMenuItem(title:  title, action: #selector(QBESentenceViewController.selectURL(_:)), keyEquivalent: "")
 						recentItem.representedObject = u
 						menu.addItem(recentItem)
@@ -583,7 +584,7 @@ private extension QBEFormulaEditorViewController {
 				case .success(let r):
 					asyncMain {
 						self.exampleResult = self.expression?.apply(r.row, foreign: nil, inputValue: nil)
-						self.columns = r.columns.sorted(isOrderedBefore: { return $0.name < $1.name })
+						self.columns = r.columns.sorted(by: { return $0.name < $1.name })
 					}
 
 				case .failure(_):

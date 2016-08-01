@@ -67,7 +67,7 @@ public func throttle<P>(interval: TimeInterval, queue: DispatchQueue, _ block: (
 						scheduledExecutionParameters = p
 						let scheduleDelay = lastExecuted + interval - currentTime
 
-						queue.after(when: DispatchTime.now() + scheduleDelay) {
+						queue.asyncAfter(deadline: DispatchTime.now() + scheduleDelay) {
 							// Delayed execution
 							let p = mutex.locked { () -> P in
 								let params = scheduledExecutionParameters!
@@ -123,7 +123,7 @@ public extension Sequence {
 				if let mrps = maxPerSecond {
 					let minimumTime = Double(maxConcurrent) / Double(mrps)
 					if minimumTime > duration {
-						DispatchQueue.main.after(when: DispatchTime.now() + Double(Int64((minimumTime - duration) * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) {
+						DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64((minimumTime - duration) * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) {
 							eachTimed(next)
 						}
 						return
@@ -217,24 +217,9 @@ internal extension Array {
 	func job(_ job: AnyObject, didProgress: Double)
 }
 
-public enum QoS {
-	case userInitiated
-	case background
-	
-	var qosClass: DispatchQueueAttributes {
-		switch self {
-			case .userInitiated:
-				return DispatchQueueAttributes.qosUserInitiated
-			
-			case .background:
-				return DispatchQueueAttributes.qosBackground
-		}
-	}
-}
-
 /** Fallible<T> represents the outcome of an operation that can either fail (with an error message) or succeed 
 (returning an instance of T). */
-public enum Fallible<T>: ErrorProtocol {
+public enum Fallible<T> {
 	case success(T)
 	case failure(String)
 	
@@ -253,20 +238,20 @@ public enum Fallible<T>: ErrorProtocol {
 	operations on fallible operations, propagating the error once an operation fails. */
 	public func use<P>( _ block: @noescape (T) -> P) -> Fallible<P> {
 		switch self {
-			case success(let value):
+			case .success(let value):
 				return .success(block(value))
 			
-			case failure(let errString):
+			case .failure(let errString):
 				return .failure(errString)
 		}
 	}
 
 	public func use<P>( _ block: @noescape (T) -> Fallible<P>) -> Fallible<P> {
 		switch self {
-		case success(let box):
+		case .success(let box):
 			return block(box)
 			
-		case failure(let errString):
+		case .failure(let errString):
 			return .failure(errString)
 		}
 	}
@@ -274,10 +259,10 @@ public enum Fallible<T>: ErrorProtocol {
 	/** If this result is a success, execute the block with its value. Otherwise cause a fatal error.  */
 	public func require( _ block: @noescape (T) -> Void) {
 		switch self {
-		case success(let value):
+		case .success(let value):
 			block(value)
 			
-		case failure(let errString):
+		case .failure(let errString):
 			fatalError("Cannot continue with failure: \(errString)")
 		}
 	}
@@ -285,10 +270,10 @@ public enum Fallible<T>: ErrorProtocol {
 	/** If this result is a success, execute the block with its value. Otherwise silently ignore the failure (but log in debug mode) */
 	public func maybe( _ block: @noescape (T) -> Void) {
 		switch self {
-		case success(let value):
+		case .success(let value):
 			block(value)
 			
-		case failure(let errString):
+		case .failure(let errString):
 			trace("Silently ignoring failure: \(errString)")
 		}
 	}
@@ -329,16 +314,17 @@ public class Job: JobDelegate {
 	private let jobID: Int
 	#endif
 	
-	public init(_ qos: QoS) {
+	public init(_ qos: DispatchQoS) {
 		#if DEBUG
 			self.jobID = Job.jobCounterMutex.locked {
 				 let jobNumber = Job.jobCounter + 1
 				 Job.jobCounter += 1
 				 return  jobNumber
 			}
-			self.queue = DispatchQueue(label: "Job \(self.jobID)", attributes: [.concurrent, qos.qosClass], target: nil)
+
+			self.queue = DispatchQueue(label: "Job \(self.jobID)", qos: qos, attributes: [.concurrent], autoreleaseFrequency: .inherit, target: nil)
 		#else
-			self.queue = DispatchQueue(label: "nl.pixelspark.Warp.Job", attributes: [.concurrent, qos.qosClass], target: nil)
+			self.queue = DispatchQueue(label: "nl.pixelspark.Warp.Job", qos: qos, attributes: [.concurrent], autoreleaseFrequency: .inherit, target: nil)
 		#endif
 
 		self.parentJob = nil
@@ -653,7 +639,7 @@ public class Future<T> {
 			if let batch = self.batch {
 				if let tl = timeLimit {
 					// Set a timer to cancel this job
-					DispatchQueue.main.after(when: DispatchTime.now() + Double(Int64(tl * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) {
+					DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(tl * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) {
 						batch.log("Timed out after \(tl) seconds")
 						batch.expire()
 					}
@@ -707,18 +693,13 @@ public class Future<T> {
 	The get() function performs work in its own Job.	If a job is set as parameter, this job will be a child of the 
 	given job, and will use its preferred queue. Otherwise it will perform the work in the user initiated QoS concurrent
 	queue. This function always returns its own child Job. */
-	@discardableResult public func get(_ job: Job? = nil, _ callback: Callback) -> Job {
+	@discardableResult public func get(_ job: Job, _ callback: Callback) -> Job {
 		return self.mutex.locked {
 			var first = false
 
 			if self.batch == nil {
 				first = true
-				if let j = job {
-					self.batch = Batch<T>(parent: j)
-				}
-				else {
-					self.batch = Batch<T>(queue: DispatchQueue.global(attributes: DispatchQueue.GlobalAttributes(rawValue: UInt64(DispatchQueueAttributes.qosUserInitiated.rawValue))))
-				}
+				self.batch = Batch<T>(parent: job)
 			}
 
 			batch!.enqueue(callback)

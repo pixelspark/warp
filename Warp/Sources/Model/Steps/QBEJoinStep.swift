@@ -16,9 +16,9 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		right = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "right")
-		condition = aDecoder.decodeObjectOfClass(Expression.self, forKey: "condition")
-		joinType = JoinType(rawValue: aDecoder.decodeObjectOfClass(NSString.self, forKey: "joinType") as? String ?? "") ?? .LeftJoin
+		right = aDecoder.decodeObject(of: QBEChain.self, forKey: "right")
+		condition = aDecoder.decodeObject(of: Expression.self, forKey: "condition")
+		joinType = JoinType(rawValue: aDecoder.decodeObject(of: NSString.self, forKey: "joinType") as? String ?? "") ?? .LeftJoin
 		
 		super.init(coder: aDecoder)
 	}
@@ -303,7 +303,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 	
 	required init(coder aDecoder: NSCoder) {
-		right = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "right")
+		right = aDecoder.decodeObject(of: QBEChain.self, forKey: "right")
 		super.init(coder: aDecoder)
 	}
 	

@@ -216,12 +216,12 @@ internal enum QBEEditingMode {
 			}
 
 			@objc func joinChains(_ sender: AnyObject) {
+				let job = Job(.userInitiated)
 				// Generate sensible join options
-				self.view.calculator.currentRaster?.get { (r) -> () in
+				self.view.calculator.currentRaster?.get(job) { (r) -> () in
 					r.maybe { (raster) -> () in
 						let myColumns = raster.columns
 
-						let job = Job(.userInitiated)
 						self.otherChain.head?.fullDataset(job) { (otherDatasetFallible) -> () in
 							otherDatasetFallible.maybe { (otherDataset) -> () in
 								otherDataset.columns(job) { (otherColumnsFallible) -> () in
@@ -325,12 +325,8 @@ internal enum QBEEditingMode {
 
 	private func exportToFile(_ url: URL) {
 		let writerType: QBEFileWriter.Type
-		if let ext = url.pathExtension {
-			writerType = QBEFactory.sharedInstance.fileWriterForType(ext) ?? QBECSVWriter.self
-		}
-		else {
-			writerType = QBECSVWriter.self
-		}
+		let ext = url.pathExtension
+		writerType = QBEFactory.sharedInstance.fileWriterForType(ext) ?? QBECSVWriter.self
 
 		let title = self.chain?.tablet?.displayName ?? NSLocalizedString("Warp data", comment: "")
 		let s = QBEExportStep(previous: currentStep, writer: writerType.init(locale: self.locale, title: title), file: QBEFileReference.absolute(url))
@@ -350,7 +346,7 @@ internal enum QBEEditingMode {
 	}
 
 	func outletView(_ view: QBEOutletView, didDropAtURL url: URL) {
-		if let isd = url.isDirectory, isd {
+		if url.isDirectory {
 			// Ask for a file rather than a directory
 			var exts: [String: String] = [:]
 			for ext in QBEFactory.sharedInstance.fileExtensionsForWriting {
@@ -553,7 +549,7 @@ internal enum QBEEditingMode {
 			self.presentDataset(nil)
 		}
 		
-		calculator.currentRaster?.get { (fallibleRaster) -> () in
+		calculator.currentRaster?.get(Job(.userInitiated)) { (fallibleRaster) -> () in
 			asyncMain {
 				self.presentRaster(fallibleRaster)
 				self.view.window?.toolbar?.validateVisibleItems()
@@ -705,14 +701,14 @@ internal enum QBEEditingMode {
 	/** This delegate method is called by the data view whenever a value is added using the template new row/column. */
 	func dataView(_ view: QBEDatasetViewController, addValue value: Value, inRow: Int?, column: Int?, callback: (Bool) -> ()) {
 		var value = value
-
 		suggestions?.cancel()
+		let job = Job(.userInitiated)
 
 		switch self.editingMode {
 		case .notEditing:
 			if let row = inRow {
 				// If we are not editing the source data, the only thing that can be done is calculate a new column
-				calculator.currentRaster?.get { (fallibleRaster) -> () in
+				calculator.currentRaster?.get(job) { (fallibleRaster) -> () in
 					fallibleRaster.maybe { (raster) -> () in
 						let targetColumn = Column.defaultNameForNewColumn(raster.columns)
 
@@ -723,7 +719,7 @@ internal enum QBEEditingMode {
 							}
 						}, timeLimit: 5.0)
 
-						self.suggestions!.get {(steps) -> () in
+						self.suggestions!.get(job) {(steps) -> () in
 							asyncMain {
 								self.suggestSteps(steps)
 							}
@@ -741,8 +737,6 @@ internal enum QBEEditingMode {
 
 			// If we are in editing mode, the new value will actually be added to the source data set.
 			if let md = self.currentStep?.mutableDataset {
-				let job = Job(.userInitiated)
-
 				md.columns(job) { result in
 					switch result {
 					case .success(let columns):
@@ -1068,11 +1062,12 @@ internal enum QBEEditingMode {
 
 	@discardableResult func dataView(_ view: QBEDatasetViewController, didChangeValue oldValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool {
 		suggestions?.cancel()
+		let job = Job(.userInitiated)
 
 		switch self.editingMode {
 		case .notEditing:
 			// In non-editing mode, we make a suggestion for a calculation
-			calculator.currentRaster?.get { (fallibleRaster) -> () in
+			calculator.currentRaster?.get(job) { (fallibleRaster) -> () in
 				fallibleRaster.maybe { (raster) -> () in
 					self.suggestions = Future<[QBEStep]>({(job, callback) -> () in
 						job.async {
@@ -1081,7 +1076,7 @@ internal enum QBEEditingMode {
 						}
 					}, timeLimit: 5.0)
 
-					self.suggestions!.get { steps in
+					self.suggestions!.get(job) { steps in
 						asyncMain {
 							self.suggestSteps(steps, afterChanging: oldValue, to: toValue, inColumn: column, inRow: inRow)
 						}
@@ -1101,9 +1096,11 @@ internal enum QBEEditingMode {
 	}
 
 	func dataView(_ view: QBEDatasetViewController, viewControllerForColumn column: Column, info: Bool, callback: (NSViewController) -> ()) {
+		let job = Job(.userInitiated)
+
 		if info {
 			if let popover = self.storyboard?.instantiateController(withIdentifier: "columnPopup") as? QBEColumnViewController {
-				self.calculator.currentDataset?.get { result in
+				self.calculator.currentDataset?.get(job) { result in
 					result.maybe { data in
 						asyncMain {
 							popover.column = column
@@ -1118,7 +1115,6 @@ internal enum QBEEditingMode {
 		}
 		else {
 			filterControllerJob?.cancel()
-			let job = Job(.userInitiated)
 			filterControllerJob = job
 			let sourceStep = (currentStep is QBEFilterSetStep) ? currentStep?.previous : currentStep
 
@@ -1446,10 +1442,10 @@ internal enum QBEEditingMode {
 	}
 	
 	private func addColumnBeforeAfterCurrent(_ before: Bool) {
-		calculator.currentDataset?.get { (d) -> () in
+		let job = Job(.userInitiated)
+
+		calculator.currentDataset?.get(job) { (d) -> () in
 			d.maybe { (data) -> () in
-				let job = Job(.userInitiated)
-				
 				data.columns(job) { (columnNamesFallible) -> () in
 					columnNamesFallible.maybe { (cols) -> () in
 						if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
@@ -1501,10 +1497,9 @@ internal enum QBEEditingMode {
 	
 	@IBAction func addColumnAtEnd(_ sender: NSObject) {
 		assertMainThread()
+		let job = Job(.userInitiated)
 		
-		calculator.currentDataset?.get {(data) in
-			let job = Job(.userInitiated)
-			
+		calculator.currentDataset?.get(job) {(data) in
 			data.maybe {$0.columns(job) {(columnsFallible) in
 				columnsFallible.maybe { (cols) -> () in
 					asyncMain {
@@ -1520,10 +1515,9 @@ internal enum QBEEditingMode {
 	
 	@IBAction func addColumnAtBeginning(_ sender: NSObject) {
 		assertMainThread()
+		let job = Job(.userInitiated)
 		
-		calculator.currentDataset?.get {(data) in
-			let job = Job(.userInitiated)
-			
+		calculator.currentDataset?.get(job) {(data) in
 			data.maybe {$0.columns(job) {(columnsFallible) in
 				columnsFallible.maybe { (cols) -> () in
 					asyncMain {
@@ -1593,9 +1587,10 @@ internal enum QBEEditingMode {
 	
 	private func sortRows(_ ascending: Bool) {
 		assertMainThread()
+		let job = Job(.userInitiated)
 
 		if let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes, let firstSelectedColumn = selectedColumns.first {
-			calculator.currentRaster?.get {(r) -> () in
+			calculator.currentRaster?.get(job) {(r) -> () in
 				r.maybe { (raster) -> () in
 					if firstSelectedColumn < raster.columns.count {
 						let columnName = raster.columns[firstSelectedColumn]
@@ -1625,9 +1620,10 @@ internal enum QBEEditingMode {
 
 	@IBAction func createDummyColumns(_ sender: NSObject) {
 		assertMainThread()
+		let job = Job(.userInitiated)
 
 		if let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes, let firstSelectedColumn = selectedColumns.first {
-			calculator.currentRaster?.get {(r) -> () in
+			calculator.currentRaster?.get(job) {(r) -> () in
 				r.maybe { (raster) -> () in
 					if firstSelectedColumn < raster.columns.count {
 						let columnName = raster.columns[firstSelectedColumn]
@@ -1642,9 +1638,10 @@ internal enum QBEEditingMode {
 
 	@IBAction func explodeColumnVertically(_ sender: NSObject) {
 		assertMainThread()
+		let job = Job(.userInitiated)
 
 		if let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes, let firstSelectedColumn = selectedColumns.first {
-			calculator.currentRaster?.get {(r) -> () in
+			calculator.currentRaster?.get(job) {(r) -> () in
 				r.maybe { (raster) -> () in
 					if firstSelectedColumn < raster.columns.count {
 						let columnName = raster.columns[firstSelectedColumn]
@@ -1659,9 +1656,10 @@ internal enum QBEEditingMode {
 
 	@IBAction func explodeColumnHorizontally(_ sender: NSObject) {
 		assertMainThread()
+		let job = Job(.userInitiated)
 
 		if let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes, let firstSelectedColumn = selectedColumns.first {
-			calculator.currentRaster?.get {(r) -> () in
+			calculator.currentRaster?.get(job) {(r) -> () in
 				r.maybe { (raster) -> () in
 					if firstSelectedColumn < raster.columns.count {
 						let columnName = raster.columns[firstSelectedColumn]
@@ -1683,9 +1681,11 @@ internal enum QBEEditingMode {
 	}
 	
 	private func selectColumns(_ remove: Bool) {
+		let job = Job(.userInitiated)
+
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			// Get the names of the columns to remove
-			calculator.currentRaster?.get { (raster) -> () in
+			calculator.currentRaster?.get(job) { (raster) -> () in
 				raster.maybe { (r) -> () in
 					var namesToRemove: [Column] = []
 					var namesToSelect: [Column] = []
@@ -1726,6 +1726,8 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func removeRows(_ sender: NSObject) {
+		let job = Job(.userInitiated)
+
 		switch self.editingMode {
 		case .editing(identifiers: _, editingRaster: _):
 			if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
@@ -1735,7 +1737,7 @@ internal enum QBEEditingMode {
 		case .notEditing:
 			if let rowsToRemove = dataViewController?.tableView?.selectedRowIndexes {
 				if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-					calculator.currentRaster?.get { (r) -> () in
+					calculator.currentRaster?.get(job) { (r) -> () in
 						r.maybe { (raster) -> () in
 							// Invert the selection
 							let selectedToKeep = NSMutableIndexSet()
@@ -1804,9 +1806,10 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func aggregateRowsByCells(_ sender: NSObject) {
+		let job = Job(.userInitiated)
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				calculator.currentRaster?.get { (fallibleRaster) -> ()in
+				calculator.currentRaster?.get(job) { (fallibleRaster) -> ()in
 					fallibleRaster.maybe { (raster) -> () in
 						var relevantColumns = Set<Column>()
 						for columnIndex in 0..<raster.columns.count {
@@ -1827,9 +1830,11 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func selectRows(_ sender: NSObject) {
+		let job = Job(.userInitiated)
+
 		if let selectedRows = dataViewController?.tableView?.selectedRowIndexes {
 			if  let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes {
-				calculator.currentRaster?.get { (fallibleRaster) -> () in
+				calculator.currentRaster?.get(job) { (fallibleRaster) -> () in
 					fallibleRaster.maybe { (raster) -> () in
 						var relevantColumns = Set<Column>()
 						for columnIndex in 0..<raster.columns.count {
@@ -2058,10 +2063,12 @@ internal enum QBEEditingMode {
 	/** Start editing using the given set of identifier keys. If the set is empty, the data set must support line-based
 	editing (DatasetMutation.edit). */
 	private func startEditingWithIdentifier(_ ids: Set<Column>, callback: (() -> ())? = nil) {
+		let job = Job(.userInitiated)
+
 		asyncMain {
 			switch self.editingMode {
 			case .enablingEditing, .notEditing:
-				self.calculator.currentRaster?.get { result in
+				self.calculator.currentRaster?.get(job) { result in
 					switch result {
 					case .success(let editingRaster):
 						asyncMain {
@@ -2389,7 +2396,9 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func crawl(_ sender: NSObject) {
-		calculator.currentRaster?.get {(r) -> () in
+		let job = Job(.userInitiated)
+
+		calculator.currentRaster?.get(job) {(r) -> () in
 			r.maybe { (raster) -> () in
 				asyncMain {
 					var suggestions: [QBEStep] = []
@@ -2582,13 +2591,12 @@ class QBETipViewController: NSViewController {
 }
 
 extension URL {
-	var isDirectory: Bool? { get {
-		if let p = self.path {
-			var isDirectory: ObjCBool = false
-			if FileManager.default.fileExists(atPath: p, isDirectory: &isDirectory) {
-				return isDirectory.boolValue
-			}
+	var isDirectory: Bool { get {
+		let p = self.path
+		var isDirectory: ObjCBool = false
+		if FileManager.default.fileExists(atPath: p, isDirectory: &isDirectory) {
+			return isDirectory.boolValue
 		}
-		return nil
+		return false
 	} }
 }

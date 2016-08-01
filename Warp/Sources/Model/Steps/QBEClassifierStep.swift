@@ -535,7 +535,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		right = aDecoder.decodeObjectOfClass(QBEChain.self, forKey: "right")
+		right = aDecoder.decodeObject(of: QBEChain.self, forKey: "right")
 		self.complexity = aDecoder.decodeDouble(forKey: "complexity")
 		if self.complexity <= 0.0 {
 			self.complexity = 1.0
