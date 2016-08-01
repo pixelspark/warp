@@ -58,7 +58,7 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 		}
 		
 		if let u = self.hostField?.stringValue, u != step.host {
-			if let url = URL(string: u) {
+			if let url = URL(string: u), url.scheme != nil {
 				step.user = url.user ?? step.user
 				step.host = url.host ?? step.host
 				step.port = (url as NSURL).port?.intValue ?? step.port
