@@ -62,32 +62,114 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		return true
 	}
 
+	/** The 'change' functions execute changes to tokens while also managing undo/redo actions. */
+	@discardableResult private func change(token inputToken: QBESentenceTextInput, to text: String) -> Bool {
+		let oldValue = inputToken.label
+		if inputToken.change(text) {
+			undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+				self?.change(token: inputToken, to: oldValue)
+			}
+			undoManager?.setActionName(String(format: "change '%@' to '%@'".localized, oldValue, text))
+
+			if let s = self.editingConfigurable {
+				self.delegate?.sentenceView(self, didChangeConfigurable: s)
+			}
+			updateView()
+			return true
+		}
+		return false
+	}
+
+	@discardableResult private func change(token inputToken: QBESentenceFormula, to expression: Expression) -> Bool {
+		let oldValue = inputToken.expression
+		let oldFormula = oldValue.toFormula(self.delegate?.locale ?? Language())
+		let newFormula = expression.toFormula(self.delegate?.locale ?? Language())
+
+		if inputToken.change(expression) {
+			undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+				self?.change(token: inputToken, to: oldValue)
+			}
+			undoManager?.setActionName(String(format: "change '%@' to '%@'".localized, oldFormula, newFormula))
+
+			if let s = self.editingConfigurable {
+				self.delegate?.sentenceView(self, didChangeConfigurable: s)
+			}
+			updateView()
+			return true
+		}
+		return false
+	}
+
+	private func change(token inputToken: QBESentenceSet, to set: Set<String>) {
+		let oldValue = inputToken.value
+		inputToken.select(set)
+		undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+			self?.change(token: inputToken, to: oldValue)
+		}
+		undoManager?.setActionName(String(format: "change selection".localized))
+
+		if let s = self.editingConfigurable {
+			self.delegate?.sentenceView(self, didChangeConfigurable: s)
+		}
+		updateView()
+	}
+
+	@discardableResult private func change(token inputToken: QBESentenceColumns, to selection: [Column]) {
+		let oldValue = inputToken.value
+
+		inputToken.select(selection)
+		undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+			self?.change(token: inputToken, to: oldValue)
+		}
+
+		if let s = self.editingConfigurable {
+			undoManager?.setActionName(String(format: "change selection".localized))
+			self.delegate?.sentenceView(self, didChangeConfigurable: s)
+		}
+		updateView()
+	}
+
+	@discardableResult private func change(token inputToken: QBESentenceList, to value: String) -> Bool {
+		let oldValue = inputToken.value
+		inputToken.select(value)
+		undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+			self?.change(token: inputToken, to: oldValue)
+		}
+		undoManager?.setActionName(String(format: "change '%@' to '%@'".localized, oldValue, value))
+
+		if let s = self.editingConfigurable {
+			self.delegate?.sentenceView(self, didChangeConfigurable: s)
+		}
+		updateView()
+		return true
+	}
+
+	@discardableResult private func change(token inputToken: QBESentenceOptions, to value: String) -> Bool {
+		let oldValue = inputToken.value
+		inputToken.select(value)
+		undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+			self?.change(token: inputToken, to: oldValue)
+		}
+
+		undoManager?.setActionName(String(format: "change '%@' to '%@'".localized, inputToken.options[oldValue]!, inputToken.options[value]!))
+
+		if let s = self.editingConfigurable {
+			self.delegate?.sentenceView(self, didChangeConfigurable: s)
+		}
+		updateView()
+		return true
+	}
+
 	func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
 		var text = control.stringValue
-		if let inputToken = editingToken?.token as? QBESentenceTextInput, let s = editingConfigurable {
+		if let inputToken = editingToken?.token as? QBESentenceTextInput {
 			// Was a formula typed in?
 			if text.hasPrefix("=") {
 				if let formula = Formula(formula: text, locale: self.locale), formula.root.isConstant {
 					text = locale.localStringFor(formula.root.apply(Row(), foreign: nil, inputValue: nil))
 				}
 			}
-
-			if inputToken.change(text) {
-				self.delegate?.sentenceView(self, didChangeConfigurable: s)
-				updateView()
-				return true
-			}
-			return false
-		}
-		else if let inputToken = editingToken?.token as? QBESentenceFormula, let s = editingConfigurable, let locale = self.delegate?.locale {
-			if let formula = Formula(formula: text, locale: locale) {
-				inputToken.change(formula.root)
-				self.delegate?.sentenceView(self, didChangeConfigurable: s)
-				updateView()
-
-				return true
-			}
-			return false
+			return self.change(token: inputToken, to: text)
 		}
 
 		return true
@@ -347,24 +429,20 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func selectOption(_ sender: NSObject) {
-		if let options = editingToken?.token as? QBESentenceOptions, let menuItem = sender as? NSMenuItem, let s = editingConfigurable {
+		if let options = editingToken?.token as? QBESentenceOptions, let menuItem = sender as? NSMenuItem {
 			let keys = Array(options.options.keys)
 			if keys.count > menuItem.tag {
 				let value = keys[menuItem.tag]
-				options.select(value)
-				self.delegate?.sentenceView(self, didChangeConfigurable: s)
-				updateView()
+				change(token: options, to: value)
 			}
 			self.editingToken = nil
 		}
 	}
 
 	@IBAction func selectListOption(_ sender: NSObject) {
-		if let listToken = editingToken?.token as? QBESentenceList, let options = editingToken?.options, let menuItem = sender as? NSMenuItem, let s = editingConfigurable {
+		if let listToken = editingToken?.token as? QBESentenceList, let options = editingToken?.options, let menuItem = sender as? NSMenuItem {
 			let value = options[menuItem.tag]
-			listToken.select(value)
-			self.delegate?.sentenceView(self, didChangeConfigurable: s)
-			updateView()
+			self.change(token: listToken, to: value)
 		}
 		self.editingToken = nil
 	}
@@ -418,29 +496,23 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	func formulaEditor(_ view: QBEFormulaEditorViewController, didChangeExpression newExpression: Expression?) {
-		if let inputToken = editingToken?.token as? QBESentenceFormula, let s = self.editingConfigurable {
-			inputToken.change(newExpression ?? Literal(Value.empty))
-			self.delegate?.sentenceView(self, didChangeConfigurable: s)
-			updateView()
+		if let inputToken = editingToken?.token as? QBESentenceFormula {
+			self.change(token: inputToken, to: newExpression ?? Identity())
 			view.updateContextInformation(inputToken)
 		}
 	}
 
 	func setEditor(_ editor: QBESetEditorViewController, didChangeSelection selection: Set<String>) {
-		if let inputToken = editingToken?.token as? QBESentenceSet, let s = self.editingConfigurable {
-			inputToken.select(selection)
-			self.delegate?.sentenceView(self, didChangeConfigurable: s)
-			updateView()
+		if let inputToken = editingToken?.token as? QBESentenceSet {
+			self.change(token: inputToken, to: selection)
 		}
 	}
 
 	func listEditor(_ editor: QBEListEditorViewController, didChangeSelection selection: [String]) {
-		if let inputToken = editingToken?.token as? QBESentenceColumns, let s = self.editingConfigurable {
+		if let inputToken = editingToken?.token as? QBESentenceColumns {
 			let cols = selection.map { Column($0) }.uniqueElements
-			inputToken.select(cols)
 			editor.selection = cols.map { $0.name }
-			self.delegate?.sentenceView(self, didChangeConfigurable: s)
-			updateView()
+			self.change(token: inputToken, to: cols)
 		}
 	}
 

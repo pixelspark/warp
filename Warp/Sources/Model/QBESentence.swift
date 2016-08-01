@@ -113,6 +113,7 @@ public class QBESentenceList: NSObject, QBESentenceToken {
 	public func select(_ key: String) {
 		if key != value {
 			callback(key)
+			self.value = key
 		}
 	}
 }
@@ -126,7 +127,7 @@ public class QBESentenceOptions: NSObject, QBESentenceToken {
 
 	public var label: String { get {
 		return options[value] ?? ""
-		} }
+	} }
 
 	public init(options: [String: String], value: String, callback: Callback) {
 		self.options = options
@@ -140,6 +141,7 @@ public class QBESentenceOptions: NSObject, QBESentenceToken {
 		assert(options[key] != nil, "Selecting an invalid option")
 		if key != value {
 			callback(key)
+			self.value = key
 		}
 	}
 }
@@ -167,6 +169,7 @@ public class QBESentenceColumns: NSObject, QBESentenceToken {
 	public var isToken: Bool { get { return true } }
 
 	public func select(_ set: [Column]) {
+		self.value = set
 		callback(set)
 	}
 }
@@ -198,6 +201,7 @@ public class QBESentenceSet: NSObject, QBESentenceToken {
 	public var isToken: Bool { get { return true } }
 
 	public func select(_ set: Set<String>) {
+		self.value = set
 		callback(set)
 	}
 }
@@ -216,7 +220,7 @@ public class QBESentenceText: NSObject, QBESentenceToken {
 /** Sentence item that shows editable text. */
 public class QBESentenceTextInput: NSObject, QBESentenceToken {
 	public typealias Callback = (String) -> (Bool)
-	public let label: String
+	public var label: String
 	public let callback: Callback
 
 	public init(value: String, callback: Callback) {
@@ -226,7 +230,11 @@ public class QBESentenceTextInput: NSObject, QBESentenceToken {
 
 	public func change(_ newValue: String) -> Bool {
 		if label != newValue {
-			return callback(newValue)
+			if callback(newValue) {
+				self.label = newValue
+				return true
+			}
+			return false
 		}
 		return true
 	}
@@ -253,7 +261,7 @@ public struct QBESentenceFormulaContext {
 public class QBESentenceFormula: NSObject, QBESentenceToken {
 	public typealias ContextCallback = (Fallible<QBESentenceFormulaContext>) -> ()
 	public typealias Callback = (Expression) -> ()
-	public let expression: Expression
+	public var expression: Expression
 	public let locale: Language
 	public let callback: Callback // Called when a new formula is set
 	public let contextCallback: ((Job, ContextCallback) -> ())? // Called to obtain context information (columns, example row, etc.)
@@ -265,8 +273,13 @@ public class QBESentenceFormula: NSObject, QBESentenceToken {
 		self.contextCallback = contextCallback
 	}
 
-	public func change(_ newValue: Expression) {
-		callback(newValue)
+	@discardableResult public func change(_ newValue: Expression) -> Bool {
+		if !self.expression.isEqual(to: newValue) {
+			self.expression = newValue
+			callback(newValue)
+			return true
+		}
+		return false
 	}
 
 	public var label: String {
