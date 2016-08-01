@@ -316,6 +316,10 @@ public class Job: JobDelegate {
 	
 	public init(_ qos: DispatchQoS) {
 		#if DEBUG
+			if qos == .userInitiated && !Thread.isMainThread {
+				fatalError("Should not create user-initiated jobs from a non-main thread")
+			}
+
 			self.jobID = Job.jobCounterMutex.locked {
 				 let jobNumber = Job.jobCounter + 1
 				 Job.jobCounter += 1

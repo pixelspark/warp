@@ -143,12 +143,11 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 
 		self.calculator.cancel()
 		self.updateProgress()
+		let job = Job(.userInitiated)
+		job.addObserver(self)
 
 		if let t = self.mapTablet, let source = t.sourceTablet, let step = source.chain.head {
-			self.calculator.calculate(step, fullDataset: self.useFullDataset) { _ in
-				let job = Job(.userInitiated)
-				job.addObserver(self)
-
+			self.calculator.calculate(step, fullDataset: self.useFullDataset, job: job) { _ in
 				self.calculator.currentRaster?.get(job) { result in
 					switch result {
 					case .success(let raster):

@@ -474,7 +474,10 @@ internal enum QBEEditingMode {
 	
 	func calculate() {
 		assertMainThread()
-		
+
+		let job = Job(.userInitiated)
+		job.addObserver(self)
+
 		if let ch = chain {
 			if ch.isPartOfDependencyLoop {
 				if let w = self.view.window {
@@ -499,7 +502,7 @@ internal enum QBEEditingMode {
 					
 					// Start calculation
 					if useFullDataset {
-						let job = calculator.calculate(sourceStep, fullDataset: useFullDataset, maximumTime: nil, callback: throttle(interval: 1.0, queue: DispatchQueue.main) { streamStatus in
+						calculator.calculate(sourceStep, fullDataset: useFullDataset, maximumTime: nil, job: job, callback: throttle(interval: 1.0, queue: DispatchQueue.main) { streamStatus in
 							asyncMain {
 								self.refreshDataset(incremental: true)
 								self.updateView()
@@ -509,10 +512,9 @@ internal enum QBEEditingMode {
 								}
 							}
 						})
-						job.addObserver(self)
 					}
 					else {
-						calculator.calculateExample(sourceStep, maximumTime: nil, callback: throttle(interval: 0.5, queue: DispatchQueue.main) {
+						calculator.calculateExample(sourceStep, maximumTime: nil, job: job, callback: throttle(interval: 0.5, queue: DispatchQueue.main) {
 							asyncMain {
 								self.refreshDataset(incremental: true)
 								self.updateView()

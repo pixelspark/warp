@@ -158,15 +158,15 @@ public class QBECalculator: NSObject {
 	
 	/** Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have 
 	been returned. The given callback is called as soon as the last calculation round has finished. */
-	public func calculateExample(_ sourceStep: QBEStep, maximumTime: Double? = nil, attempt: Int = 0, callback: () -> ()) {
+	public func calculateExample(_ sourceStep: QBEStep, maximumTime: Double? = nil, attempt: Int = 0, job: Job, callback: () -> ()) {
 		let maxTime = maximumTime ?? self.currentParameters.maximumExampleTime
 		
 		let startTime = Date.timeIntervalSinceReferenceDate
 		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maxTime)
-		self.calculate(sourceStep, fullDataset: false, maximumTime: maxTime) { streamStatus in
+		self.calculate(sourceStep, fullDataset: false, maximumTime: maxTime, job: job, callback: once { streamStatus in
 			// Record extra information when calculating an example result
 
-			self.currentRaster!.get(Job(.userInitiated)) {[unowned self] (raster) in
+			self.currentRaster!.get(job) {[unowned self] (raster) in
 				switch raster {
 				case .success(let r):
 					let duration = Double(NSDate.timeIntervalSinceReferenceDate) - startTime
@@ -196,7 +196,7 @@ public class QBECalculator: NSObject {
 						}
 
 						if startAnother && attempt < self.currentParameters.maximumIterations {
-							self.calculateExample(sourceStep, maximumTime: maxTime - duration, attempt: attempt + 1, callback: callback)
+							self.calculateExample(sourceStep, maximumTime: maxTime - duration, attempt: attempt + 1, job: job, callback: callback)
 						}
 						else {
 							// Send notification of finished raster
@@ -212,13 +212,11 @@ public class QBECalculator: NSObject {
 					break;
 				}
 			}
-		}
+		})
 	}
 	
-	@discardableResult public func calculate(_ sourceStep: QBEStep, fullDataset: Bool, maximumTime: Double? = nil, callback: ((StreamStatus) -> ())) -> Job {
+	public func calculate(_ sourceStep: QBEStep, fullDataset: Bool, maximumTime: Double? = nil, job calculationJob: Job, callback: ((StreamStatus) -> ())) {
 		return self.mutex.locked {
-			let calculationJob = Job(.userInitiated)
-
 			currentDataset?.cancel()
 			self.calculationInProgress?.job.cancel()
 
@@ -238,7 +236,7 @@ public class QBECalculator: NSObject {
 				})
 			}
 
-			if incremental {
+			if incremental && fullDataset {
 				let rasterFuture = MutableFuture<Fallible<Raster>>()
 				self._currentRaster = rasterFuture
 
@@ -346,7 +344,6 @@ public class QBECalculator: NSObject {
 					}
 				}
 			}
-			return calculationJob
 		}
 	}
 	
