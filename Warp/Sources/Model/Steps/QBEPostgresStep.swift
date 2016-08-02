@@ -872,8 +872,20 @@ class QBEPostgresSourceStep: QBEStep {
 
 	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		job.async {
-			if let s = self.database, !self.tableName.isEmpty {
-				callback(QBEPostgresDataset.create(database: s, tableName: self.tableName, schemaName: self.schemaName, locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
+			if let s = self.database {
+				// Check whether the connection details are right
+				switch s.connect() {
+				case .success(_):
+					if !self.tableName.isEmpty {
+						callback(QBEPostgresDataset.create(database: s, tableName: self.tableName, schemaName: self.schemaName, locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
+					}
+					else {
+						callback(.failure(NSLocalizedString("No database or table selected", comment: "")))
+					}
+
+				case .failure(let e):
+					callback(.failure(e))
+				}
 			}
 			else {
 				callback(.failure(NSLocalizedString("No database or table selected", comment: "")))

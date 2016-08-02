@@ -771,19 +771,24 @@ class QBEMySQLSourceStep: QBEStep {
 
 	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		job.async {
-			if let dbn = self.databaseName, !dbn.isEmpty {
-				let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
-
-				if let tn = self.tableName, !tn.isEmpty {
-					let md = QBEMySQLDataset.create(s, tableName: tn)
-					callback(md.use { $0.coalesced })
+			// First check whether the connection details are right
+			let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+			switch  s.connect() {
+			case .success(_):
+				if let dbn = self.databaseName, !dbn.isEmpty {
+					if let tn = self.tableName, !tn.isEmpty {
+						let md = QBEMySQLDataset.create(s, tableName: tn)
+						callback(md.use { $0.coalesced })
+					}
+					else {
+						callback(.failure(NSLocalizedString("Please select a table.", comment: "")))
+					}
 				}
 				else {
-					callback(.failure(NSLocalizedString("Please select a table.", comment: "")))
+					callback(.failure(NSLocalizedString("Please select a database.", comment: "")))
 				}
-			}
-			else {
-				callback(.failure(NSLocalizedString("Please select a database.", comment: "")))
+			case .failure(let e):
+				callback(.failure(e))
 			}
 		}
 	}
