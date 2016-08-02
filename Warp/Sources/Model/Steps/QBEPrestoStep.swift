@@ -215,7 +215,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 	}
 }
 
-private class QBEPrestoDatasetbase {
+private class QBEPrestoDatabase {
 	let url: URL
 	let schema: String
 	let catalog: String
@@ -265,9 +265,9 @@ private class QBEPrestoDatasetbase {
 }
 
 private class QBEPrestoDataset: SQLDataset {
-	private let db: QBEPrestoDatasetbase
+	private let db: QBEPrestoDatabase
 	
-	class func tableDataset(_ job: Job, db: QBEPrestoDatasetbase, tableName: String, callback: (Fallible<QBEPrestoDataset>) -> ()) {
+	class func tableDataset(_ job: Job, db: QBEPrestoDatabase, tableName: String, callback: (Fallible<QBEPrestoDataset>) -> ()) {
 		let sql = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, schema: nil, database: nil))"
 		
 		db.query(sql).columns(job) { (columns) -> () in
@@ -275,7 +275,7 @@ private class QBEPrestoDataset: SQLDataset {
 		}
 	}
 	
-	init(db: QBEPrestoDatasetbase, fragment: SQLFragment, columns: [Column]) {
+	init(db: QBEPrestoDatabase, fragment: SQLFragment, columns: [Column]) {
 		self.db = db
 		super.init(fragment: fragment, columns: columns)
 	}
@@ -290,12 +290,12 @@ private class QBEPrestoDataset: SQLDataset {
 }
 
 class QBEPrestoSourceStep: QBEStep {
-	var catalogName: String = "default" { didSet { switchDatasetbase() } }
-	var schemaName: String = "default" { didSet { switchDatasetbase() } }
-	var tableName: String = "default" { didSet { switchDatasetbase() } }
-	var url: String = "http://localhost:8080" { didSet { switchDatasetbase() } }
+	var catalogName: String = "default" { didSet { switchDatabase() } }
+	var schemaName: String = "default" { didSet { switchDatabase() } }
+	var tableName: String = "default" { didSet { switchDatabase() } }
+	var url: String = "http://localhost:8080" { didSet { switchDatabase() } }
 	
-	private var db: QBEPrestoDatasetbase?
+	private var db: QBEPrestoDatabase?
 
 	required init() {
 		super.init()
@@ -304,7 +304,7 @@ class QBEPrestoSourceStep: QBEStep {
 	init(url: String?) {
 		super.init()
 		self.url = url ?? self.url
-		switchDatasetbase()
+		switchDatabase()
 	}
 	
 	required init(coder aDecoder: NSCoder) {
@@ -332,12 +332,12 @@ class QBEPrestoSourceStep: QBEStep {
 		return QBESentence([QBESentenceText(self.explanation(locale))])
 	}
 	
-	private func switchDatasetbase() {
+	private func switchDatabase() {
 		self.db = nil
 		
 		if !self.url.isEmpty {
 			if let url = URL(string: self.url) {
-				db = QBEPrestoDatasetbase(url: url, catalog: catalogName, schema: schemaName)
+				db = QBEPrestoDatabase(url: url, catalog: catalogName, schema: schemaName)
 			}
 		}
 	}

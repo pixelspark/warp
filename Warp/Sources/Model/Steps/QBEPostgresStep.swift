@@ -318,7 +318,7 @@ internal class QBEPostgresResult: Sequence, IteratorProtocol {
 
 class QBEPostgresMutableDataset: SQLMutableDataset {
 	override func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
-		let s = self.database as! QBEPostgresDatasetbase
+		let s = self.database as! QBEPostgresDatabase
 		let tableIdentifier = s.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: nil)
 		let query = "SELECT a.attname AS attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE  i.indrelid = '\(tableIdentifier)'::regclass AND i.indisprimary"
 		switch s.connect() {
@@ -357,7 +357,7 @@ class QBEPostgresMutableDataset: SQLMutableDataset {
 	}
 }
 
-class QBEPostgresDatasetbase: SQLDatasetbase {
+class QBEPostgresDatabase: SQLDatabase {
 	private let host: String
 	private let port: Int
 	private let user: String
@@ -375,7 +375,7 @@ class QBEPostgresDatasetbase: SQLDatasetbase {
 		self.database = database
 	}
 	
-	func isCompatible(_ other: QBEPostgresDatasetbase) -> Bool {
+	func isCompatible(_ other: QBEPostgresDatabase) -> Bool {
 		return self.host == other.host && self.user == other.user && self.password == other.password && self.port == other.port
 	}
 
@@ -507,12 +507,12 @@ class QBEPostgresDatasetbase: SQLDatasetbase {
 Implements a connection to a PostgreSQL database (corresponding to a MYSQL object in the PostgreSQL library). The connection ensures
 that any operations are serialized (for now using a global queue for all PostgreSQL operations). */
 internal class QBEPostgresConnection: SQLConnection {
-	private(set) var database: QBEPostgresDatasetbase
+	private(set) var database: QBEPostgresDatabase
 	private var connection: OpaquePointer?
 	private(set) weak var result: QBEPostgresResult?
 	private let queue : DispatchQueue
 	
-	private init(database: QBEPostgresDatasetbase, connection: OpaquePointer) {
+	private init(database: QBEPostgresDatabase, connection: OpaquePointer) {
 		self.connection = connection
 		self.database = database
 		self.queue = DispatchQueue(label: "QBEPostgresConnection.Queue")
@@ -625,10 +625,10 @@ internal class QBEPostgresConnection: SQLConnection {
 /**
 Represents the result of a PostgreSQL query as a Dataset object. */
 class QBEPostgresDataset: SQLDataset {
-	private let database: QBEPostgresDatasetbase
+	private let database: QBEPostgresDatabase
 	private let locale: Language?
 
-	static func create(database: QBEPostgresDatasetbase, tableName: String, schemaName: String, locale: Language?) -> Fallible<QBEPostgresDataset> {
+	static func create(database: QBEPostgresDatabase, tableName: String, schemaName: String, locale: Language?) -> Fallible<QBEPostgresDataset> {
 		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, schema: schemaName, database: database.database)) LIMIT 1"
 		return database.connect().use {
 			$0.query(query).use {(result) -> QBEPostgresDataset in
@@ -638,13 +638,13 @@ class QBEPostgresDataset: SQLDataset {
 		}
 	}
 	
-	private init(database: QBEPostgresDatasetbase, fragment: SQLFragment, columns: [Column], locale: Language?) {
+	private init(database: QBEPostgresDatabase, fragment: SQLFragment, columns: [Column], locale: Language?) {
 		self.database = database
 		self.locale = locale
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(database: QBEPostgresDatasetbase, schema: String, table: String, columns: [Column], locale: Language?) {
+	private init(database: QBEPostgresDatabase, schema: String, table: String, columns: [Column], locale: Language?) {
 		self.database = database
 		self.locale = locale
 		super.init(table: table, schema: schema, database: database.database, dialect: database.dialect, columns: columns)
@@ -842,18 +842,18 @@ class QBEPostgresSourceStep: QBEStep {
 				else {
 					callback(.failure(NSLocalizedString("Could not connect to database", comment: "")))
 				}
-				}, callback: { (newDatasetbase) -> () in
-					self.databaseName = newDatasetbase
+				}, callback: { (newDatabase) -> () in
+					self.databaseName = newDatabase
 			})
 		)
 	}
 	
-	internal var database: QBEPostgresDatasetbase? {
+	internal var database: QBEPostgresDatabase? {
 		/* For PostgreSQL, the hostname 'localhost' is special and indicates access through a local UNIX socket. This does
 		not work from a sandboxed application unless special privileges are obtained. To avoid confusion we rewrite
 		localhost here to 127.0.0.1 in order to force access through TCP/IP. */
 		let ha = (host == "localhost") ? "127.0.0.1" : host
-		return QBEPostgresDatasetbase(host: ha, port: port, user: user, password: self.password.stringValue ?? "", database: databaseName)
+		return QBEPostgresDatabase(host: ha, port: port, user: user, password: self.password.stringValue ?? "", database: databaseName)
 	}
 
 	override var mutableDataset: MutableDataset? {

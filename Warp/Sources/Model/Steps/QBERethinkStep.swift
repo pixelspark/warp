@@ -963,8 +963,8 @@ class QBERethinkSourceStep: QBEStep {
 						}
 					}
 				})
-			}, callback: { (newDatasetbase) -> () in
-				self.database = newDatasetbase
+			}, callback: { (newDatabase) -> () in
+				self.database = newDatabase
 			})
 		)
 	}

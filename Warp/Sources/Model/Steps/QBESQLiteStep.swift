@@ -570,7 +570,7 @@ private class QBESQLiteWriterSession {
 	private var insertStatement: QBESQLiteResult?
 	private var completion: ((Fallible<Void>) -> ())?
 
-	init(data source: Dataset, toDatasetbase database: QBESQLiteConnection, tableName: String) {
+	init(data source: Dataset, toDatabase database: QBESQLiteConnection, tableName: String) {
 		self.database = database
 		self.tableName = tableName
 		self.source = source
@@ -717,7 +717,7 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 					if case .failure(let m) = s.run() {
 						return callback(.failure(m))
 					}
-					QBESQLiteWriterSession(data: data, toDatasetbase: database, tableName: self.tableName).start(job, callback: callback)
+					QBESQLiteWriterSession(data: data, toDatabase: database, tableName: self.tableName).start(job, callback: callback)
 				}
 			}
 		}
@@ -762,7 +762,7 @@ private class QBESQLiteSharedCacheDatabase {
 /**
 Cache a given Dataset data set in a SQLite table. Loading the data set into SQLite is performed asynchronously in the
 background, and the SQLite-cached data set is swapped with the original one at completion transparently. The cache is
-placed in a shared, temporary 'cache' database (sharedCacheDatasetbase) so that cached tables can efficiently be joined by
+placed in a shared, temporary 'cache' database (sharedCacheDatabase) so that cached tables can efficiently be joined by
 SQLite. Users of this class can set a completion callback if they want to wait until caching has finished. */
 class QBESQLiteCachedDataset: ProxyDataset {
 	private static var sharedCacheDatabase = QBESQLiteSharedCacheDatabase()
@@ -779,7 +779,7 @@ class QBESQLiteCachedDataset: ProxyDataset {
 		self.cacheJob = job ?? Job(.background)
 		super.init(data: source)
 		
-		QBESQLiteWriterSession(data: source, toDatasetbase: database, tableName: tableName).start(cacheJob) { (result) -> () in
+		QBESQLiteWriterSession(data: source, toDatabase: database, tableName: tableName).start(cacheJob) { (result) -> () in
 			switch result {
 			case .success:
 				// Swap out the original source with our new cached source
@@ -817,7 +817,7 @@ class QBESQLiteCachedDataset: ProxyDataset {
 	}
 }
 
-class QBESQLiteDatasetbase: SQLDatasetbase {
+class QBESQLiteDatabase: SQLDatabase {
 	let url: URL
 	let readOnly: Bool
 	let dialect: SQLDialect = QBESQLiteDialect()
@@ -856,7 +856,7 @@ class QBESQLiteDatasetbase: SQLDatasetbase {
 }
 
 class QBESQLiteDatasetWarehouse: SQLWarehouse {
-	override init(database: SQLDatasetbase, schemaName: String?) {
+	override init(database: SQLDatabase, schemaName: String?) {
 		super.init(database: database, schemaName: schemaName)
 	}
 
@@ -864,7 +864,7 @@ class QBESQLiteDatasetWarehouse: SQLWarehouse {
 		switch mutation {
 		case .create(_, _):
 			// A read-only database cannot be mutated
-			let db = self.database as! QBESQLiteDatasetbase
+			let db = self.database as! QBESQLiteDatabase
 			return !db.readOnly
 		}
 	}
@@ -874,7 +874,7 @@ class QBESQLiteMutableDataset: SQLMutableDataset {
 	override var warehouse: Warehouse { return QBESQLiteDatasetWarehouse(database: self.database, schemaName: self.schemaName) }
 
 	override func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
-		let s = self.database as! QBESQLiteDatasetbase
+		let s = self.database as! QBESQLiteDatabase
 		s.connect { result in
 			switch result {
 			case .success(let con):
@@ -949,7 +949,7 @@ class QBESQLiteSourceStep: QBEStep {
 		if let b = file?.url?.startAccessingSecurityScopedResource(), !b {
 			trace("startAccessingSecurityScopedResource failed for \(file!.url!)")
 		}
-		switchDatasetbase()
+		switchDatabase()
 	} }
 	
 	var tableName: String? = nil
@@ -962,14 +962,14 @@ class QBESQLiteSourceStep: QBEStep {
 	init?(url: URL) {
 		self.file = QBEFileReference.absolute(url)
 		super.init()
-		switchDatasetbase()
+		switchDatabase()
 	}
 	
 	deinit {
 		self.file?.url?.stopAccessingSecurityScopedResource()
 	}
 	
-	private func switchDatasetbase() {
+	private func switchDatabase() {
 		self.db = nil
 		
 		if let url = file?.url {
@@ -988,7 +988,7 @@ class QBESQLiteSourceStep: QBEStep {
 			// If a file was selected that does not exist yet, create a new database
 			var error: NSError? = nil
 			if let url = newFile.url, !(url as NSURL).checkResourceIsReachableAndReturnError(&error) {
-				let db = QBESQLiteDatasetbase(url: url as URL, readOnly: false)
+				let db = QBESQLiteDatabase(url: url as URL, readOnly: false)
 				db.connect { result in
 					switch result {
 					case .success(_): break
@@ -1075,14 +1075,14 @@ class QBESQLiteSourceStep: QBEStep {
 
 	var warehouse: Warehouse? {
 		if let u = self.file?.url {
-			return QBESQLiteDatasetWarehouse(database: QBESQLiteDatasetbase(url: u, readOnly: false), schemaName: nil)
+			return QBESQLiteDatasetWarehouse(database: QBESQLiteDatabase(url: u, readOnly: false), schemaName: nil)
 		}
 		return nil
 	}
 
 	override var mutableDataset: MutableDataset? {
 		if let u = self.file?.url, let tn = tableName {
-			return QBESQLiteMutableDataset(database: QBESQLiteDatasetbase(url: u, readOnly: false), schemaName: nil, tableName: tn)
+			return QBESQLiteMutableDataset(database: QBESQLiteDatabase(url: u, readOnly: false), schemaName: nil, tableName: tn)
 		}
 		return nil
 	}

@@ -216,7 +216,7 @@ internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 	}
 }
 
-class QBEMySQLDatasetbase: SQLDatasetbase {
+class QBEMySQLDatabase: SQLDatabase {
 	private let host: String
 	private let port: Int
 	private let user: String
@@ -233,7 +233,7 @@ class QBEMySQLDatasetbase: SQLDatasetbase {
 		self.databaseName = database
 	}
 	
-	func isCompatible(_ other: QBEMySQLDatasetbase) -> Bool {
+	func isCompatible(_ other: QBEMySQLDatabase) -> Bool {
 		return self.host == other.host && self.user == other.user && self.password == other.password && self.port == other.port
 	}
 
@@ -313,11 +313,11 @@ that any operations are serialized (for now using a global queue for all MySQL o
 internal class QBEMySQLConnection: SQLConnection {
 	private static var sharedClient = QBEMySQLClient()
 
-	private(set) var database: QBEMySQLDatasetbase
+	private(set) var database: QBEMySQLDatabase
 	private var connection: UnsafeMutablePointer<MYSQL>?
 	private(set) weak var result: QBEMySQLResult?
 	
-	private init(database: QBEMySQLDatasetbase, connection: UnsafeMutablePointer<MYSQL>) {
+	private init(database: QBEMySQLDatabase, connection: UnsafeMutablePointer<MYSQL>) {
 		self.database = database
 		self.connection = connection
 	}
@@ -453,9 +453,9 @@ internal class QBEMySQLConnection: SQLConnection {
 /** 
 Represents the result of a MySQL query as a Dataset object. */
 final class QBEMySQLDataset: SQLDataset {
-	private let database: QBEMySQLDatasetbase
+	private let database: QBEMySQLDatabase
 	
-	static func create(_ database: QBEMySQLDatasetbase, tableName: String) -> Fallible<QBEMySQLDataset> {
+	static func create(_ database: QBEMySQLDatabase, tableName: String) -> Fallible<QBEMySQLDataset> {
 		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, schema: nil, database: database.databaseName)) LIMIT 1"
 		
 		let fallibleConnection = database.connect()
@@ -477,12 +477,12 @@ final class QBEMySQLDataset: SQLDataset {
 		}
 	}
 	
-	private init(database: QBEMySQLDatasetbase, fragment: SQLFragment, columns: [Column]) {
+	private init(database: QBEMySQLDatabase, fragment: SQLFragment, columns: [Column]) {
 		self.database = database
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(database: QBEMySQLDatasetbase, table: String, columns: [Column]) {
+	private init(database: QBEMySQLDatabase, table: String, columns: [Column]) {
 		self.database = database
 		super.init(table: table, schema: nil, database: database.databaseName!, dialect: database.dialect, columns: columns)
 	}
@@ -564,7 +564,7 @@ final class QBEMySQLStream: WarpCore.Stream {
 
 class QBEMySQLMutableDataset: SQLMutableDataset {
 	override func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
-		let db = self.database as! QBEMySQLDatasetbase
+		let db = self.database as! QBEMySQLDatabase
 		switch db.connect() {
 			case .success(let connection):
 				let dbn = self.database.dialect.expressionToSQL(Literal(Value(self.database.databaseName ?? "")), alias: "", foreignAlias: nil, inputValue: nil)!
@@ -704,7 +704,7 @@ class QBEMySQLSourceStep: QBEStep {
 
 		return QBESentence(format: NSLocalizedString(template, comment: ""),
 			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
-				let d = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+				let d = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 				switch d.connect() {
 				case .success(let con):
 					con.tables { tablesFallible in
@@ -727,7 +727,7 @@ class QBEMySQLSourceStep: QBEStep {
 			QBESentenceList(value: self.databaseName ?? "", provider: { callback in
 				/* Connect without selecting a default database, because the database currently selected may not exists
 				(and then we get an error, and can't select another database). */
-				let d = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: nil)
+				let d = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: nil)
 				switch d.connect() {
 				case .success(let con):
 					con.databases { dbFallible in
@@ -743,8 +743,8 @@ class QBEMySQLSourceStep: QBEStep {
 				case .failure(let e):
 					callback(.failure(e))
 				}
-			}, callback: { (newDatasetbase) -> () in
-				self.databaseName = newDatasetbase
+			}, callback: { (newDatabase) -> () in
+				self.databaseName = newDatabase
 			})
 		)
 	}
@@ -758,21 +758,21 @@ class QBEMySQLSourceStep: QBEStep {
 
 	override var mutableDataset: MutableDataset? { get {
 		if let tn = self.tableName, !tn.isEmpty {
-			let s = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+			let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 			return QBEMySQLMutableDataset(database: s, schemaName: nil, tableName: tn)
 		}
 		return nil
 	} }
 
 	var warehouse: Warehouse? {
-		let s = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+		let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 		return SQLWarehouse(database: s, schemaName: nil)
 	}
 
 	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		job.async {
 			if let dbn = self.databaseName, !dbn.isEmpty {
-				let s = QBEMySQLDatasetbase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+				let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 
 				if let tn = self.tableName, !tn.isEmpty {
 					let md = QBEMySQLDataset.create(s, tableName: tn)

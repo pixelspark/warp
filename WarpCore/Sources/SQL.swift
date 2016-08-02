@@ -92,7 +92,7 @@ public protocol SQLDialect {
 /** Represents a particular SQL database. In most cases, this will be a catalog or database on a particular database 
 server. Some 'flat' databases do not have the concept of separate databases. In this case, there is one database per
 connection/file (e.g. for SQLite). */
-public protocol SQLDatasetbase {
+public protocol SQLDatabase {
 	var dialect: SQLDialect { get }
 
 	/** The name that can be used to refer to this database in SQL queries performed on the connection. */
@@ -115,13 +115,13 @@ public protocol SQLConnection {
 }
 
 public class SQLWarehouse: Warehouse {
-	public let database: SQLDatasetbase
+	public let database: SQLDatabase
 	public let schemaName: String?
 	public var dialect: SQLDialect { return database.dialect }
 	public let hasFixedColumns: Bool = true
 	public let hasNamedTables: Bool = true
 
-	public init(database: SQLDatasetbase, schemaName: String?) {
+	public init(database: SQLDatabase, schemaName: String?) {
 		self.database = database
 		self.schemaName = schemaName
 	}
@@ -206,9 +206,9 @@ private class SQLInsertPuller: StreamPuller {
 	private let fastMapping: [Int?]
 	private let insertStatement: String
 	private let connection: SQLConnection
-	private let database: SQLDatasetbase
+	private let database: SQLDatabase
 
-	init(stream: Stream, job: Job, columns: [Column], mapping: ColumnMapping, insertStatement: String, connection: SQLConnection, database: SQLDatasetbase, callback: ((Fallible<Void>) -> ())?) {
+	init(stream: Stream, job: Job, columns: [Column], mapping: ColumnMapping, insertStatement: String, connection: SQLConnection, database: SQLDatabase, callback: ((Fallible<Void>) -> ())?) {
 		self.callback = callback
 		self.columns = columns
 		self.insertStatement = insertStatement
@@ -282,13 +282,13 @@ private class SQLInsertPuller: StreamPuller {
 }
 
 public class SQLMutableDataset: MutableDataset {
-	public let database: SQLDatasetbase
+	public let database: SQLDatabase
 	public let tableName: String
 	public let schemaName: String?
 
 	public var warehouse: Warehouse { return SQLWarehouse(database: self.database, schemaName: self.schemaName) }
 
-	public init(database: SQLDatasetbase, schemaName: String?, tableName: String) {
+	public init(database: SQLDatabase, schemaName: String?, tableName: String) {
 		self.database = database
 		self.tableName = tableName
 		self.schemaName = schemaName
