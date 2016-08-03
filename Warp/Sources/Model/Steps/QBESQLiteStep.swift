@@ -1034,7 +1034,7 @@ class QBESQLiteSourceStep: QBEStep {
 			callback(QBESQLiteDataset.create(d, tableName: self.tableName ?? "").use({return $0.coalesced}))
 		}
 		else {
-			callback(.failure(NSLocalizedString("a SQLite database could not be found.", comment: "")))
+			callback(.failure("The SQLite database could not be opened.".localized))
 		}
 	}
 	

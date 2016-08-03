@@ -45,7 +45,7 @@ class QBEHTTPStream: WarpCore.Stream {
 				}
 			}
 			else {
-				consumer(.failure("Invalid URL".localized), .finished)
+				consumer(.failure("The URL to load data from is invalid.".localized), .finished)
 			}
 		}
 		else {

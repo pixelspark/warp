@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11173.2" systemVersion="15G31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11185.3" systemVersion="15G31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11173.2"/>
-        <plugIn identifier="com.apple.MapKitIBPlugin" version="11173.2"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11185.3"/>
+        <plugIn identifier="com.apple.MapKitIBPlugin" version="11185.3"/>
         <capability name="box content view" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
@@ -2572,11 +2572,11 @@ CA
             <objects>
                 <viewController storyboardIdentifier="columnPopup" id="Umf-c0-c7Z" customClass="QBEColumnViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" wantsLayer="YES" id="iV6-rZ-K37">
-                        <rect key="frame" x="0.0" y="0.0" width="353" height="172"/>
+                        <rect key="frame" x="0.0" y="0.0" width="473" height="172"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <textField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="d9z-Ij-JeE">
-                                <rect key="frame" x="7" y="136" width="339" height="29"/>
+                                <rect key="frame" x="7" y="136" width="459" height="29"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" focusRingType="none" title="Column name" drawsBackground="YES" id="H1E-OF-0Se">
                                     <font key="font" metaFont="system" size="20"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -2587,7 +2587,7 @@ CA
                                 </connections>
                             </textField>
                             <button toolTip="Remove column" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="zoH-ib-gpj">
-                                <rect key="frame" x="311" y="9" width="32" height="19"/>
+                                <rect key="frame" x="431" y="9" width="32" height="19"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="32" id="FeQ-NP-Sku"/>
                                 </constraints>
@@ -2600,7 +2600,7 @@ CA
                                 </connections>
                             </button>
                             <button toolTip="Size column to fit contents" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Hm0-ZE-5Kp">
-                                <rect key="frame" x="200" y="9" width="32" height="19"/>
+                                <rect key="frame" x="320" y="9" width="32" height="19"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="32" id="e5Q-1S-Cpv"/>
                                 </constraints>
@@ -2613,7 +2613,7 @@ CA
                                 </connections>
                             </button>
                             <button toolTip="Sort ascending" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gbJ-AW-4PC">
-                                <rect key="frame" x="237" y="9" width="32" height="19"/>
+                                <rect key="frame" x="357" y="9" width="32" height="19"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="32" id="ivu-Dz-JHu"/>
                                 </constraints>
@@ -2626,7 +2626,7 @@ CA
                                 </connections>
                             </button>
                             <button toolTip="Sort descending" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="u30-0N-sKW">
-                                <rect key="frame" x="274" y="9" width="32" height="19"/>
+                                <rect key="frame" x="394" y="9" width="32" height="19"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="32" id="jgD-wV-RDS"/>
                                 </constraints>
@@ -2639,10 +2639,10 @@ CA
                                 </connections>
                             </button>
                             <progressIndicator wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" bezeled="NO" indeterminate="YES" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="M8Q-rZ-vrY">
-                                <rect key="frame" x="161" y="66" width="32" height="32"/>
+                                <rect key="frame" x="221" y="66" width="32" height="32"/>
                             </progressIndicator>
                             <customView horizontalHuggingPriority="1000" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="lce-hq-Ftr" customClass="NSBox">
-                                <rect key="frame" x="7" y="35" width="339" height="94"/>
+                                <rect key="frame" x="7" y="35" width="459" height="94"/>
                                 <subviews>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="eDJ-QB-TO6">
                                         <rect key="frame" x="20" y="0.0" width="43" height="28"/>
@@ -2673,6 +2673,9 @@ z4M9Ew
                                     </textField>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="c6l-w0-pC0">
                                         <rect key="frame" x="171" y="66" width="47" height="28"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" relation="lessThanOrEqual" constant="150" id="WLP-TL-u9x"/>
+                                        </constraints>
                                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Low" id="SEH-z0-MyF">
                                             <font key="font" size="23" name=".AppleSystemUIFont"/>
                                             <color key="textColor" name="knobColor" catalog="System" colorSpace="catalog"/>
@@ -2697,6 +2700,9 @@ z4M9Ew
                                     </textField>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="saO-D2-045">
                                         <rect key="frame" x="251" y="66" width="53" height="28"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" relation="lessThanOrEqual" constant="150" id="iwb-Ha-2uA"/>
+                                        </constraints>
                                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="High" id="dtb-H3-oos">
                                             <font key="font" size="23" name=".AppleSystemUIFont"/>
                                             <color key="textColor" name="knobColor" catalog="System" colorSpace="catalog"/>
