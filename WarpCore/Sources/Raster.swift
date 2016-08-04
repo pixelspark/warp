@@ -219,14 +219,15 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	public subscript(row: Int, col: Int) -> Value {
+	public subscript(row: Int, col: Int) -> Value! {
 		return self.mutex.locked {
-			assert(row < self.raster.count)
-			assert(col < self.columns.count)
+			if row >= self.raster.count || col >= self.columns.count {
+				return nil
+			}
 			
 			let rowDataset = raster[row]
 			if(col >= rowDataset.count) {
-				return Value.empty
+				return .empty
 			}
 			return rowDataset[col]
 		}

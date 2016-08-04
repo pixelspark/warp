@@ -9,7 +9,6 @@
 #import <MBTableGrid/MBTableGridFooterView.h>
 #import <MBTableGrid/MBTableGridCell.h>
 #import <MBTableGrid/MBTableGridHeaderCell.h>
-#import <MBTableGrid/MBFooterPopupButtonCell.h>
 #import <MBTableGrid/MBFooterTextCell.h>
 
 #import "sqlite3.h"

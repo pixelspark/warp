@@ -19,6 +19,58 @@ extension NSFont {
 	}
 }
 
+private class QBEValueCell: MBTableGridCell {
+	var value: Value { didSet { self.objectValue = self.language.localStringFor(value) } }
+	var language: Language
+
+	init(language: Language, value: Value = .invalid) {
+		self.value = value
+		self.language = language
+		super.init(textCell: "")
+
+		let monospace = QBESettings.sharedInstance.monospaceFont
+		self.font = monospace ? NSFont.userFixedPitchFont(ofSize: 9.0) : NSFont.userFont(ofSize: 11.0)
+	}
+
+	required init(coder: NSCoder) {
+		fatalError("Do not call")
+	}
+
+	private override func encode(with aCoder: NSCoder) {
+		fatalError("Do not call")
+	}
+
+	private override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
+		switch value {
+		case .int(_), .double(_):
+			self.textColor = NSColor.black
+			self.alignment = .right
+
+		case .invalid:
+			self.alignment = .center
+			self.textColor = NSColor.red
+			NSColor.red.withAlphaComponent(0.3).set()
+			NSRectFill(cellFrame)
+
+		case .empty:
+			self.textColor = NSColor.black
+			NSColor.black.withAlphaComponent(0.05).set()
+			NSRectFill(cellFrame)
+
+		case .bool(_):
+			self.textColor = NSColor.blue
+			self.alignment = .center
+
+		default:
+			self.textColor = NSColor.black
+			self.alignment = .left
+			break
+		}
+
+		super.draw(withFrame: cellFrame, in: controlView)
+	}
+}
+
 /** A data view shows data in a Raster as a table. It can also show a progress bar to indicate loading progress, and has
 footer cells that allow filtering of the data. */
 class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTableGridDelegate, NSUserInterfaceValidations {
@@ -26,13 +78,12 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	@IBOutlet var columnContextMenu: NSMenu!
 	@IBOutlet var errorLabel: NSTextField!
 	weak var delegate: QBEDatasetViewDelegate?
-	var locale: Language!
-	private var textCell: MBTableGridCell!
-	private var numberCell: MBTableGridCell!
+	var locale: Language! { didSet { self.updateFonts() } }
 	private let DefaultColumnWidth = 100.0
-	private var columnCells: [NSCell]? = nil // Holds templates for the column cells
 	private var footerCells: [UInt: QBEFilterCell] = [:] // Holds cached instances of footer cells
 	private var columnsAutosized = false
+	private var valueFont: NSFont! = nil
+	private var valueCell: QBEValueCell!
 
 	deinit {
 		self.tableView?.dataSource = nil
@@ -80,8 +131,6 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	var raster: Raster? {
 		didSet {
 			assertMainThread()
-
-			columnCells = nil
 			footerCells.forEach { $0.value.cancel() }
 			footerCells.removeAll(keepingCapacity: true)
 			if raster != nil {
@@ -89,6 +138,10 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			}
 			update()
 		}
+	}
+
+	func tableGrid(_ aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
+		return NSColor.clear
 	}
 	
 	func numberOfColumns(in aTableGrid: MBTableGrid!) -> UInt {
@@ -112,7 +165,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	private func setValue(_ value: Value, inRow: Int, inColumn: Int) {
 		if let r = raster {
 			if inRow < r.rowCount && inColumn < r.columns.count {
-				let oldValue = r[Int(inRow), Int(inColumn)]
+				let oldValue = r[Int(inRow), Int(inColumn)]!
 				if oldValue != value {
 					if let d = delegate {
 						d.dataView(self, didChangeValue: oldValue, toValue: value, inRow: Int(inRow), column: Int(inColumn))
@@ -141,44 +194,37 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		let valueObject = anObject==nil ? Value.empty : locale.valueForLocalString(anObject!.description)
 		setValue(valueObject, inRow: Int(rowIndex), inColumn: Int(columnIndex))
 	}
-	
-	func tableGrid(_ aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> AnyObject! {
+
+	func tableGrid(_ aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt, row rowIndex: UInt) -> NSCell! {
+		if let r = raster {
+			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
+				// Template row, return empty string
+				self.valueCell.value = .empty
+				return valueCell
+			}
+			else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
+				let x = r[Int(rowIndex), Int(columnIndex)]!
+				self.valueCell.value = x
+				return self.valueCell
+			}
+		}
+		return nil
+	}
+
+	func tableGrid(_ aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> AnyObject? {
 		if let r = raster {
 			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
 				// Template row, return empty string
 				return ""
 			}
 			else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
-				let x = r[Int(rowIndex), Int(columnIndex)]
-				return locale.localStringFor(x)
+				let x = r[Int(rowIndex), Int(columnIndex)]!
+				return self.locale.localStringFor(x)
 			}
 		}
-		return ""
+		return nil
 	}
 
-	func tableGrid(_ aTableGrid: MBTableGrid!, backgroundColorForColumn columnIndex: UInt, row rowIndex: UInt) -> NSColor! {
-		if let r = raster {
-			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
-				return NSColor.black.withAlphaComponent(0.05)
-			}
-			else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && Int(rowIndex) >= 0 && Int(rowIndex) < r.rowCount {
-				let x = r[Int(rowIndex), Int(columnIndex)]
-
-				// Invalid values are colored red
-				if !x.isValid {
-					return NSColor.red.withAlphaComponent(0.3)
-				}
-				else if x.isEmpty {
-					return NSColor.black.withAlphaComponent(0.05)
-				}
-
-				return NSColor.controlAlternatingRowBackgroundColors[0]
-			}
-		}
-
-		return NSColor.controlAlternatingRowBackgroundColors[0]
-	}
-	
 	func tableGrid(_ aTableGrid: MBTableGrid!, headerStringForColumn columnIndex: UInt) -> String! {
 		if Int(columnIndex) == raster?.columns.count {
 			// Template column
@@ -226,13 +272,6 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	
 	func tableGrid(_ aTableGrid: MBTableGrid!, writeRowsWith rowIndexes: IndexSet!, to pboard: NSPasteboard!) -> Bool {
 		return false
-	}
-	
-	func tableGrid(_ aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt) -> NSCell! {
-		if let ct = self.columnCells, Int(columnIndex) < ct.count {
-			return ct[Int(columnIndex)]
-		}
-		return textCell
 	}
 	
 	func tableGrid(_ aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt)  {
@@ -294,37 +333,6 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 				// Force the 'new' column to a certain fixed size
 				if self.showNewColumn {
 					tv.resizeColumn(with: UInt(r.columns.count), width: Float(self.DefaultColumnWidth / 2.0))
-				}
-
-				// Cache cell types: check the first row to see what kind of value is in this column
-				if columnCells == nil {
-					columnCells = []
-					for columnIndex in 0..<r.columns.count {
-						if r.rowCount > 0 && r.columns.count > Int(columnIndex) {
-							var prototypeValue = r[0, Int(columnIndex)]
-
-							// Find the first non-invalid, non-empty value
-							var row = 0
-							while (!prototypeValue.isValid || prototypeValue.isEmpty) && row < r.rowCount {
-								prototypeValue = r[row, Int(columnIndex)]
-								row += 1
-							}
-
-							let cell: NSCell
-							switch prototypeValue {
-							case .int(_):
-								cell = numberCell
-
-							case .double(_):
-								cell = numberCell
-
-							default:
-								cell = textCell
-							}
-
-							columnCells!.append(cell)
-						}
-					}
 				}
 			}
 
@@ -462,12 +470,15 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			let vr = tv.contentView().visibleRect
 			let firstRow = max(0, tv.row(at: CGPoint(x: vr.origin.x + 3.0, y: vr.origin.y + 3.0)))
 			let lastRow = min(firstRow + maxRowsToConsider, tv.row(at: CGPoint(x: 3.0 + vr.origin.x + vr.size.width, y: 3.0 + vr.origin.y + vr.size.height)))
-			let columnCell = self.tableGrid(tv, cellForColumn: columnIndex)
-			let font = columnCell?.font ?? NSFont.systemFont(ofSize: NSFont.systemFontSize())
+			let font = self.valueFont ?? NSFont.systemFont(ofSize: NSFont.systemFontSize())
 
-			for rowNumber in firstRow...lastRow {
-				if let stringValue = self.tableGrid(tv, objectValueForColumn: columnIndex, row: UInt(rowNumber)) as? String {
-					w = max(w, font.sizeOfString(stringValue).width)
+			if let r = raster {
+				for rowNumber in firstRow...lastRow {
+
+					if let v = r[rowNumber, Int(columnIndex)] {
+						let stringValue = locale.localStringFor(v)
+						w = max(w, font.sizeOfString(stringValue).width)
+					}
 				}
 			}
 
@@ -527,7 +538,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			if let r = raster, let sr = selectedRows {
 				if let rowIndex = sr.first, let colIndex = sr.first {
 					if rowIndex >= 0 && colIndex >= 0 && rowIndex < r.rowCount && colIndex < r.columns.count {
-						let x = r[rowIndex, colIndex]
+						let x = r[rowIndex, colIndex]!
 						delegate?.dataView(self, didSelectValue: x, changeable: true)
 					}
 					else {
@@ -555,21 +566,19 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	
 	private func updateFonts() {
 		let monospace = QBESettings.sharedInstance.monospaceFont
-		let font = monospace ? NSFont.userFixedPitchFont(ofSize: 9.0) : NSFont.userFont(ofSize: 11.0)
-		self.textCell.font = font
-		self.numberCell.font = font
+		self.valueFont = monospace ? NSFont.userFixedPitchFont(ofSize: 9.0) : NSFont.userFont(ofSize: 11.0)
+		self.valueCell = QBEValueCell(language: self.locale ?? Language())
+
 		if let tv = self.tableView {
-			tv.rowHeaderView.headerCell?.labelFont = font
-			tv.columnHeaderView.headerCell?.labelFont = font
-			tv.contentView().rowHeight = monospace ? 16.0 : 20.0
+			tv.rowHeaderView.headerCell?.textColor = NSColor.headerTextColor.withAlphaComponent(0.8)
+			tv.columnHeaderView.headerCell?.textColor = NSColor.headerTextColor.withAlphaComponent(0.8)
+			tv.rowHeaderView.headerCell?.labelFont = self.valueFont
+			tv.columnHeaderView.headerCell?.labelFont = self.valueFont
+			tv.contentView().rowHeight = monospace ? 16.0 : 18.0
 		}
 	}
 	
 	override func awakeFromNib() {
-		self.textCell = MBTableGridCell(textCell: "")
-		self.numberCell = MBTableGridCell(textCell: "")
-		self.numberCell.alignment = NSTextAlignment.right
-		
 		self.view.focusRingType = NSFocusRingType.none
 		self.view.layerContentsRedrawPolicy = NSViewLayerContentsRedrawPolicy.onSetNeedsDisplay
 		self.view.wantsLayer = true
@@ -619,10 +628,6 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-	}
-	
-	func tableGrid(_ aTableGrid: MBTableGrid!, formatterForColumn columnIndex: UInt) -> Formatter! {
-		return nil
 	}
 	
 	func tableGrid(_ aTableGrid: MBTableGrid!, copyCellsAtColumns columnIndexes: IndexSet!, rows rowIndexes: IndexSet!) {

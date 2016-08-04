@@ -60,9 +60,6 @@ internal class QBEFilterCell: NSButtonCell {
 	}
 	
 	override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
-		NSColor.windowBackgroundColor.set()
-		NSRectFill(cellFrame)
-
 		if active {
 			let h = cellFrame.size.height - 7.0
 			let iconRect = NSMakeRect(cellFrame.origin.x + (cellFrame.size.width - h) / 2.0, cellFrame.origin.y + (cellFrame.size.height - h) / 2.0, h, h)

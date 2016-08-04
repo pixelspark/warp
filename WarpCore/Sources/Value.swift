@@ -660,6 +660,17 @@ public extension NSCoder {
 	public func decodeString(forKey key: String) -> String? {
 		return self.decodeObject(of: NSString.self, forKey: key) as? String
 	}
+
+	public func encode(value: Value, forKey key: String) {
+		self.encode(ValueCoder(value), forKey: key)
+	}
+
+	public func decodeValue(forKey key: String) -> Value? {
+		if let v = self.decodeObject(of: ValueCoder.self, forKey: key) {
+			return v.value
+		}
+		return nil
+	}
 }
 
 public extension String {
