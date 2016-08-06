@@ -191,6 +191,13 @@ private class QBESQLiteResultGenerator: IteratorProtocol {
 	}
 }
 
+private struct QBESQLiteForeignKey {
+	let table: String
+	let column: String
+	let referencedTable: String
+	let referencedColumn: String
+}
+
 private class QBESQLiteConnection: NSObject, SQLConnection {
 	var url: String?
 	let db: OpaquePointer?
@@ -398,6 +405,31 @@ private class QBESQLiteConnection: NSObject, SQLConnection {
 			return nameStrings
 		})
 	} }
+
+	func foreignKeys(forTable table: String, job: Job, callback: (Fallible<[QBESQLiteForeignKey]>) -> ()) {
+		let tableName = self.dialect.expressionToSQL(Literal(Value(table)), alias: "", foreignAlias: nil, inputValue: nil)!
+		switch query("PRAGMA foreign_key_list(\(tableName))") {
+		case .success(let names):
+			let constraints = names.sequence().flatMap { row -> QBESQLiteForeignKey? in
+				switch row {
+				case .success(let info):
+					return QBESQLiteForeignKey(
+						table: table,
+						column: info[names.columns.index(of: Column("from"))!].stringValue!,
+						referencedTable: info[names.columns.index(of: Column("table"))!].stringValue!,
+						referencedColumn: info[names.columns.index(of: Column("to"))!].stringValue!
+					)
+
+				case .failure(_):
+					return nil
+				}
+			}
+			callback(.success(constraints))
+
+		case .failure(let e):
+			return callback(.failure(e))
+		}
+	}
 }
 
 private func ==(lhs: QBESQLiteConnection, rhs: QBESQLiteConnection) -> Bool {
@@ -964,7 +996,13 @@ class QBESQLiteSourceStep: QBEStep {
 		super.init()
 		switchDatabase()
 	}
-	
+
+	init(file: QBEFileReference) {
+		self.file = file
+		super.init()
+		switchDatabase()
+	}
+
 	deinit {
 		self.file?.url?.stopAccessingSecurityScopedResource()
 	}
@@ -1035,6 +1073,25 @@ class QBESQLiteSourceStep: QBEStep {
 		}
 		else {
 			callback(.failure("The SQLite database could not be opened.".localized))
+		}
+	}
+
+	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+		if let d = db, let file = self.file, let tn = self.tableName, !tn.isEmpty {
+			d.foreignKeys(forTable: tn, job: job) { result in
+				switch result {
+				case .success(let fkeys):
+					let steps = fkeys.map { fkey -> QBERelatedStep in
+						let s = QBESQLiteSourceStep(file: file)
+						s.tableName = fkey.referencedTable
+						return QBERelatedStep.joinable(step: s, type: .LeftJoin, condition: Comparison(first: Sibling(Column(fkey.column)), second: Foreign(Column(fkey.referencedColumn)), type: .Equal))
+					}
+					return callback(.success(steps))
+
+				case .failure(let e):
+					return callback(.failure(e))
+				}
+			}
 		}
 	}
 	
