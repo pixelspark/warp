@@ -307,6 +307,18 @@ private class QBEMySQLClient {
 	}
 }
 
+struct QBEMySQLConstraint {
+	let name: String
+
+	let database: String
+	let table: String
+	let column: String
+
+	let referencedDatabase: String
+	let referencedTable: String
+	let referencedColumn: String
+}
+
 /**
 Implements a connection to a MySQL database (corresponding to a MYSQL object in the MySQL library). The connection ensures
 that any operations are serialized (for now using a global queue for all MySQL operations). */
@@ -402,6 +414,35 @@ internal class QBEMySQLConnection: SQLConnection {
 			
 			case .failure(let error):
 				callback(.failure(error))
+		}
+	}
+
+	func constraints(fromTable tableName: String, inDatabase databaseName: String, callback: (Fallible<[QBEMySQLConstraint]>) -> ()) {
+		let dbn = self.database.dialect.expressionToSQL(Literal(Value(databaseName ?? "")), alias: "", foreignAlias: nil, inputValue: nil)!
+		let tbn = self.database.dialect.expressionToSQL(Literal(Value(tableName)), alias: "", foreignAlias: nil, inputValue: nil)!
+
+		switch self.query("SELECT constraint_name, table_schema, table_name, column_name, referenced_table_schema, referenced_table_name, referenced_column_name FROM information_schema.key_column_usage WHERE table_schema=\(dbn) AND table_name=\(tbn) AND referenced_column_name IS NOT NULL") {
+		case .success(let result):
+			var constraints: [QBEMySQLConstraint] = []
+			while let d = result.row() {
+				if	let constraintName = d[0].stringValue,
+					let tableSchema = d[1].stringValue,
+					let tableName = d[2].stringValue,
+					let columnName = d[3].stringValue,
+					let referencedTableSchema = d[4].stringValue,
+					let referencedTableName = d[5].stringValue,
+					let referencedColumnName = d[6].stringValue {
+					constraints.append(QBEMySQLConstraint(
+						name: constraintName,
+						database: tableSchema, table: tableName, column: columnName,
+						referencedDatabase: referencedTableSchema, referencedTable: referencedTableName, referencedColumn: referencedColumnName
+					))
+				}
+			}
+			callback(.success(constraints))
+
+		case .failure(let e):
+			callback(.failure(e))
 		}
 	}
 	
@@ -797,5 +838,37 @@ class QBEMySQLSourceStep: QBEStep {
 		self.fullDataset(job, callback: { (fd) -> () in
 			callback(fd.use({$0.random(maxInputRows)}))
 		})
+	}
+
+	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+		job.async {
+			// First check whether the connection details are right
+			let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+			switch  s.connect() {
+			case .success(let con):
+				if let dbn = self.databaseName, !dbn.isEmpty, let tn = self.tableName, !tn.isEmpty {
+					con.constraints(fromTable: tn, inDatabase: dbn) { result in
+						switch result {
+						case .success(let constraints):
+							let steps = constraints.map { constraint -> QBERelatedStep in
+								let sourceStep = QBEMySQLSourceStep(host: self.host, port: self.port, user: self.user, database: constraint.referencedDatabase, tableName: constraint.referencedTable)
+								let joinExpression = Comparison(first: Sibling(Column(constraint.column)), second: Foreign(Column(constraint.referencedColumn)), type: .Equal)
+								return QBERelatedStep.joinable(step: sourceStep, type: .LeftJoin, condition: joinExpression)
+							}
+							return callback(.success(steps))
+
+						case .failure(let e):
+							return callback(.failure(e))
+						}
+					}
+				}
+				else {
+					return callback(.failure("No database or table selected".localized))
+				}
+
+			case .failure(let e):
+				return callback(.failure(e))
+			}
+		}
 	}
 }

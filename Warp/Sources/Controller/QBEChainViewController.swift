@@ -1150,7 +1150,7 @@ internal enum QBEEditingMode {
 		return self.viewFilters[column] != nil
 	}
 	
-	private func stepsChanged() {
+	func stepsChanged() {
 		assertMainThread()
 		self.editingMode = .notEditing
 		self.stepsViewController?.steps = chain?.steps
@@ -1207,12 +1207,12 @@ internal enum QBEEditingMode {
 		currentStep?.next?.previous = step
 		currentStep?.next = step
 		step.previous = currentStep
-		currentStep = step
 
 		if isHead {
 			chain?.head = step
 		}
-		
+
+		currentStep = step
 		updateView()
 		stepsChanged()
 
@@ -1364,7 +1364,7 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	private func suggestSteps(_ steps: [QBEStep]) {
+	func suggestSteps(_ steps: [QBEStep]) {
 		assertMainThread()
 		
 		if steps.isEmpty {

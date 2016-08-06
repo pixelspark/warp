@@ -8,6 +8,12 @@ public enum QBESentenceVariant {
 	case write // "Write to table x from y"
 }
 
+/** Identifies a step that is related to this step, e.g. a data set that can be linked. */
+public enum QBERelatedStep {
+	/** The indicates step provides data that can be joined. */
+	case joinable(step: QBEStep, type: JoinType, condition: Expression)
+}
+
 /** Represents a data manipulation step. Steps usually connect to (at least) one previous step and (sometimes) a next step.
 The step transforms a data manipulation on the data produced by the previous step; the results are in turn used by the 
 next. Steps work on two datasets: the 'example' data set (which is used to let the user design the data manipulation) and
@@ -113,6 +119,14 @@ public class QBEStep: QBEConfigurable, NSCoding {
 	/** Returns whether this step can be merged with the specified previous step. */
 	public func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
 		return QBEStepMerge.impossible
+	}
+
+	/** Return steps for data sets that are related to this step. */
+	public func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+		if let p = self.previous {
+			return p.related(job: job, callback: callback)
+		}
+		return callback(.success([]))
 	}
 }
 

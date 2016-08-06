@@ -703,6 +703,7 @@ private class QBEDropChainAction: NSObject {
 	private var chain: QBEChain
 	private var documentView: QBEDocumentViewController
 	private var location: CGPoint?
+	private var relatedSteps: [QBERelatedStep] = []
 
 	init(chain: QBEChain, documentView: QBEDocumentViewController, location: CGPoint?) {
 		self.chain = chain
@@ -869,6 +870,42 @@ private class QBEDropChainAction: NSObject {
 		}
 	}
 
+	@objc func selectRelatedStep(_ sender: NSObject) {
+		assertMainThread()
+
+		if let mi = sender as? NSMenuItem, mi.tag < self.relatedSteps.count, let myHead = self.chain.head {
+			let related = self.relatedSteps[mi.tag]
+
+			switch related {
+			case .joinable(step: let joinableStep, type: let type, condition: let expression):
+				let joinableChain = QBEChain(head: joinableStep)
+				let tablet = QBEChainTablet(chain: joinableChain)
+				self.documentView.addTablet(tablet, undo: true, animated: true)
+
+				self.documentView.updateView()
+
+				asyncMain {
+					let joinStep = QBEJoinStep(previous: myHead)
+					joinStep.condition = expression
+					joinStep.joinType = type
+					joinStep.right = joinableChain
+
+					if let myTablet = self.chain.tablet, let vc = self.documentView.viewControllerForTablet(myTablet) as? QBEChainTabletViewController {
+						self.chain.head = joinStep
+						vc.chainViewController?.currentStep = joinStep
+						vc.chainViewController?.stepsChanged()
+						asyncMain {
+							let arrows = myTablet.arrows.filter { return $0.from == tablet }
+							if let arrow = arrows.first {
+								self.documentView.findAndSelectArrow(arrow, inTablet: myTablet)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/** Present the menu with actions to perform with the chain. When `atDestination` is true, the menu uses wording that
 	is appropriate when the menu is shown at the location of the drop. When it is false, wording is used that fits when
 	the menu is presented at the source. */
@@ -912,6 +949,67 @@ private class QBEDropChainAction: NSObject {
 		let exportFileItem = NSMenuItem(title: "Export data to file...".localized, action: #selector(QBEDropChainAction.exportFile(_:)), keyEquivalent: "")
 		exportFileItem.target = self
 		menu.addItem(exportFileItem)
+
+		menu.addItem(NSMenuItem.separator())
+
+		// Related data sets
+		let relatedMenu = NSMenu()
+		let loadingItem = NSMenuItem(title: "Loading...".localized, action: nil, keyEquivalent: "")
+		loadingItem.isEnabled = false
+		relatedMenu.addItem(loadingItem)
+
+		// Populate related data sets menu
+		let job = Job(.background)
+		job.async { [weak self] in
+			if let s = self?.chain.head {
+				s.related(job: job) { result in
+					asyncMain {
+						relatedMenu.removeAllItems()
+						switch result {
+						case .success(let relatedSteps):
+							if let strongSelf = self {
+								strongSelf.relatedSteps = relatedSteps
+
+								if relatedSteps.isEmpty {
+									let loadingItem = NSMenuItem(title: "(No related data sets found)".localized, action: nil, keyEquivalent: "")
+									loadingItem.isEnabled = false
+									relatedMenu.addItem(loadingItem)
+									return
+								}
+
+								for (idx, related) in relatedSteps.enumerated() {
+									switch related {
+									case .joinable(step: let joinableStep, type: _, condition: _):
+										let relatedStepItem = NSMenuItem(title: joinableStep.explain(strongSelf.documentView.locale), action: #selector(strongSelf.selectRelatedStep(_:)), keyEquivalent: "")
+										relatedStepItem.tag = idx
+										relatedStepItem.target = strongSelf
+										relatedStepItem.isEnabled = true
+										relatedMenu.addItem(relatedStepItem)
+									}
+								}
+							}
+
+						case .failure(let e):
+							let loadingItem = NSMenuItem(title: String(format: "(No related data sets found: %@)".localized, e), action: nil, keyEquivalent: "")
+							loadingItem.isEnabled = false
+							relatedMenu.addItem(loadingItem)
+						}
+					}
+				}
+			}
+			else {
+				asyncMain {
+					relatedMenu.removeAllItems()
+					let loadingItem = NSMenuItem(title: "(No related data sets found)".localized, action: nil, keyEquivalent: "")
+					loadingItem.isEnabled = false
+					relatedMenu.addItem(loadingItem)
+				}
+			}
+		}
+
+		let relatedItem = NSMenuItem(title: "Related data sets".localized, action: nil, keyEquivalent: "")
+		relatedItem.submenu = relatedMenu
+		menu.addItem(relatedItem)
 
 		NSMenu.popUpContextMenu(menu, with: NSApplication.shared().currentEvent!, for: self.documentView.view)
 	}
