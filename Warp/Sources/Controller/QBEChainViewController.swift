@@ -1203,8 +1203,10 @@ internal enum QBEEditingMode {
 					return
 			}
 		}
-		
-		currentStep?.next?.previous = step
+
+		if let cn = currentStep?.next, cn != step {
+			cn.previous = step
+		}
 		currentStep?.next = step
 		step.previous = currentStep
 
