@@ -97,6 +97,12 @@ class QBEDocument: NSDocument, NSSecureCoding {
 	}
 	
 	override func write(to url: URL, ofType typeName: String) throws {
+		/* Steps may use security-scoped bookmarks to reference files. These bookmarks are document-specific, and in order
+		to create the bookmarks, the system expects the URL to the document. However, the document does not exist yet 
+		before it is written, as Cocoa by default writes to a temporary location, then afterwards moves the document to
+		the final destination. So therefore we write the document twice: once to make sure it exists, and then once again
+		to write a version this time with the security scoped bookmarks. */
+		try super.write(to: url, ofType: typeName)
 		self.tablets.forEach { $0.willSaveToDocument(url) }
 		try super.write(to: url, ofType: typeName)
 		self.updateWindowControllers()

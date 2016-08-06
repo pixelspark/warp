@@ -163,7 +163,6 @@ internal class QBEFileCoordinator {
 
 		return self.mutex.locked { () -> QBEFilePresenter in
 			if let existing = self.presenters[presentedFile]?.value {
-				trace("Present existing: \(presentedFile)")
 				return existing
 			}
 			else {
@@ -206,7 +205,6 @@ public class QBEFilePresenter: NSObject {
 	}
 
 	deinit {
-		trace("Removing file presenter for \(self.delegate.presentedItemURL!)")
 		NSFileCoordinator.removeFilePresenter(self.delegate)
 	}
 }
