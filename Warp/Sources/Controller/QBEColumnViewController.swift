@@ -78,13 +78,13 @@ class QBEColumnViewController: NSViewController {
 						"mt": Aggregator(map: Call(arguments: [Call(arguments:[Sibling(cn)], type: Function.IsEmpty), Literal(Value(1)), Literal(Value(0))], type: Function.If), reduce: .Sum)
 					])
 
-					descriptiveDataset.raster(self.descriptivesJob!) { result in
+					descriptiveDataset.raster(self.descriptivesJob!) { [weak self] result in
 						switch result {
 						case .success(let raster):
 							asyncMain {
 								if raster.rowCount == 1 {
 									let row = raster.rows.makeIterator().next()!
-									self.descriptives = QBEColumnDescriptives(
+									self?.descriptives = QBEColumnDescriptives(
 										average: row["mu"].doubleValue,
 										standardDeviation: row["s"].doubleValue,
 										minimumValue: row["mn"],
@@ -98,13 +98,13 @@ class QBEColumnViewController: NSViewController {
 									print("Did not receive enough descriptives data!")
 								}
 
-								self.descriptivesJob = nil
-								self.update()
+								self?.descriptivesJob = nil
+								self?.update()
 							}
 
 						case .failure(let e):
 							print("Descriptives failure: \(e)")
-							self.update()
+							self?.update()
 						}
 					}
 				}
