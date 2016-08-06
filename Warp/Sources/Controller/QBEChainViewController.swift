@@ -1225,7 +1225,7 @@ internal enum QBEEditingMode {
 		currentStep = currentStep?.previous
 	}
 	
-	@IBAction func transposeDataset(_ sender: NSObject) {
+	@IBAction func transposeData(_ sender: NSObject) {
 		if let cs = currentStep {
 			suggestSteps([QBETransposeStep(previous: cs)])
 		}
@@ -2168,7 +2168,7 @@ internal enum QBEEditingMode {
 	}
 
 	private func validateSelector(_ selector: Selector) -> Bool {
-		if selector == #selector(QBEChainViewController.transposeDataset(_:)) {
+		if selector == #selector(QBEChainViewController.transposeData(_:)) {
 			return currentStep != nil
 		}
 		else if selector == #selector(QBEChainViewController.truncateStore(_:))  {
