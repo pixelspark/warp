@@ -55,7 +55,7 @@ class QBECrawler: NSObject, NSSecureCoding {
 
 class QBECrawlStream: WarpCore.Stream {
 	let source: WarpCore.Stream
-	var sourceColumnNames: Future<Fallible<[Column]>>
+	var sourceColumnNames: Future<Fallible<OrderedSet<Column>>>
 	let crawler: QBECrawler
 	
 	init(source: WarpCore.Stream, crawler: QBECrawler) {
@@ -64,9 +64,9 @@ class QBECrawlStream: WarpCore.Stream {
 		self.crawler = crawler
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		self.sourceColumnNames.get(job) { (sourceColumns) in
-			callback(sourceColumns.use({ (sourceColumns) -> [Column] in
+			callback(sourceColumns.use({ (sourceColumns) -> OrderedSet<Column> in
 				var sourceColumns = sourceColumns
 
 				// Add the column in which we're writing the result

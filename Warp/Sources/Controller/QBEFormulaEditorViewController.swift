@@ -8,7 +8,7 @@ protocol QBEFormulaEditorViewDelegate: NSObjectProtocol {
 class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate, NSTextFieldDelegate, NSTableViewDataSource, NSTableViewDelegate {
 	weak var delegate: QBEFormulaEditorViewDelegate? = nil
 	var exampleResult: Value? = nil { didSet { assertMainThread(); self.updateView(false) } }
-	var columns: [Column] = [] { didSet { assertMainThread(); self.updateView(false) } }
+	var columns: OrderedSet<Column> = [] { didSet { assertMainThread(); self.updateView(false) } }
 
 	private(set) var expression: Expression? = nil
 	private(set) var locale: Language? = nil

@@ -72,7 +72,7 @@ internal class QBEPostgresResult: Sequence, IteratorProtocol {
 	
 	private let connection: QBEPostgresConnection
 	private var result: OpaquePointer?
-	private let columns: [Column]
+	private let columns: OrderedSet<Column>
 	private let columnTypes: [Oid]
 	private(set) var finished = false
 	private(set) var error: String? = nil
@@ -148,7 +148,7 @@ internal class QBEPostgresResult: Sequence, IteratorProtocol {
 					return
 				}
 				
-				var columns: [Column] = []
+				var columns: OrderedSet<Column> = []
 				var columnTypes: [Oid] = []
 				
 				let colCount = PQnfields(result)
@@ -180,7 +180,7 @@ internal class QBEPostgresResult: Sequence, IteratorProtocol {
 		return resultFallible
 	}
 	
-	private init(connection: QBEPostgresConnection, result: OpaquePointer, columns: [Column], columnTypes: [Oid]) {
+	private init(connection: QBEPostgresConnection, result: OpaquePointer, columns: OrderedSet<Column>, columnTypes: [Oid]) {
 		self.connection = connection
 		self.result = result
 		self.columns = columns
@@ -638,19 +638,19 @@ class QBEPostgresDataset: SQLDataset {
 		}
 	}
 	
-	private init(database: QBEPostgresDatabase, fragment: SQLFragment, columns: [Column], locale: Language?) {
+	private init(database: QBEPostgresDatabase, fragment: SQLFragment, columns: OrderedSet<Column>, locale: Language?) {
 		self.database = database
 		self.locale = locale
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(database: QBEPostgresDatabase, schema: String, table: String, columns: [Column], locale: Language?) {
+	private init(database: QBEPostgresDatabase, schema: String, table: String, columns: OrderedSet<Column>, locale: Language?) {
 		self.database = database
 		self.locale = locale
 		super.init(table: table, schema: schema, database: database.database, dialect: database.dialect, columns: columns)
 	}
 	
-	override func apply(_ fragment: SQLFragment, resultingColumns: [Column]) -> Dataset {
+	override func apply(_ fragment: SQLFragment, resultingColumns: OrderedSet<Column>) -> Dataset {
 		return QBEPostgresDataset(database: self.database, fragment: fragment, columns: resultingColumns, locale: locale)
 	}
 	
@@ -718,7 +718,7 @@ class QBEPostgresStream: WarpCore.Stream {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		return stream().columns(job, callback: callback)
 	}
 	

@@ -82,7 +82,7 @@ public class MutableProxyDataset: MutableDataset {
 }
 
 public extension MutableDataset {
-	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		self.data(job) { result in
 			switch result {
 			case .success(let data):
@@ -104,15 +104,14 @@ public typealias ColumnMapping = [Column: Column]
 public class DatasetDefinition: NSObject, NSCoding {
 	public static let pasteboardName = "nl.pixelspark.Warp.DatasetDefinition"
 
-	public var columns: [Column]
+	public var columns: OrderedSet<Column>
 
-	public init(columns: [Column]) {
-		assert(Set(columns).count == columns.count, "Column names must be unique")
+	public init(columns: OrderedSet<Column>) {
 		self.columns = columns
 	}
 
 	public required init?(coder aDecoder: NSCoder) {
-		self.columns = (aDecoder.decodeObject(forKey: "columns") as? [String] ?? []).map { return Column($0) }
+		self.columns = OrderedSet<Column>((aDecoder.decodeObject(forKey: "columns") as? [String] ?? []).map { return Column($0) })
 	}
 
 	public func encode(with aCoder: NSCoder) {

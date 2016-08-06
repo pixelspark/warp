@@ -5,7 +5,7 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 	let parser: CHCSVParser
 	let url: URL
 
-	private var columns: [Column] = []
+	private var columns: OrderedSet<Column> = []
 	private var finished: Bool = false
 	private var templateRow: [String?] = []
 	private var row: [String?] = []
@@ -74,7 +74,7 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 		templateRow = Array<String?>(repeating: nil, count: columns.count)
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(columns))
 	}
 	

@@ -148,8 +148,8 @@ public class QBESentenceOptions: NSObject, QBESentenceToken {
 
 /** A sentence item that shows an editable, ordered list of columns. */
 public class QBESentenceColumns: NSObject, QBESentenceToken {
-	public typealias Callback = ([Column]) -> ()
-	public private(set) var value: [Column]
+	public typealias Callback = (OrderedSet<Column>) -> ()
+	public private(set) var value: OrderedSet<Column>
 	public let callback: Callback
 
 	public var label: String {
@@ -161,14 +161,14 @@ public class QBESentenceColumns: NSObject, QBESentenceToken {
 		return self.value.map { $0.name }.joined(separator: ", ")
 	}
 
-	public init(value: [Column], callback: Callback) {
+	public init(value: OrderedSet<Column>, callback: Callback) {
 		self.value = value
 		self.callback = callback
 	}
 
 	public var isToken: Bool { get { return true } }
 
-	public func select(_ set: [Column]) {
+	public func select(_ set: OrderedSet<Column>) {
 		self.value = set
 		callback(set)
 	}
@@ -254,7 +254,7 @@ public class QBESentenceValueInput: QBESentenceTextInput {
 
 public struct QBESentenceFormulaContext {
 	var row: Row
-	var columns: [Column]
+	var columns: OrderedSet<Column>
 }
 
 /** Sentence item that shows a friendly representation of a formula, and shows a formula editor on editing. */

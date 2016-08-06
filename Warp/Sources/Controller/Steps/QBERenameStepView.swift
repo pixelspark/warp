@@ -2,7 +2,7 @@ import Foundation
 import WarpCore
 
 internal class QBERenameStepView: QBEConfigurableStepViewControllerFor<QBERenameStep>, NSTableViewDataSource, NSTableViewDelegate {
-	var columns: [Column] = []
+	var columns: OrderedSet<Column> = []
 	@IBOutlet var tableView: NSTableView?
 
 	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {

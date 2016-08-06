@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		651568551D55DDC500A01CEB /* Collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651568541D55DDC400A01CEB /* Collections.swift */; };
 		655BD6131C146B2600634C66 /* WarpCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 655BD6121C146B2600634C66 /* WarpCoreTests.swift */; };
 		655BD6571C14703F00634C66 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 655BD6551C14703F00634C66 /* Localizable.strings */; };
 		656889291C1465CE008D1A7D /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6568891E1C1465CE008D1A7D /* WarpCore.framework */; };
@@ -60,6 +61,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		651568541D55DDC400A01CEB /* Collections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Collections.swift; path = Sources/Collections.swift; sourceTree = "<group>"; };
 		6527AA021C147B1400B9159A /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		655BD6121C146B2600634C66 /* WarpCoreTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = WarpCoreTests.swift; path = Tests/WarpCoreTests.swift; sourceTree = "<group>"; };
 		655BD6561C14703F00634C66 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 		656889461C14662E008D1A7D /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				651568541D55DDC400A01CEB /* Collections.swift */,
 				6568894C1C146637008D1A7D /* Concurrency.swift */,
 				656889471C146637008D1A7D /* Data.swift */,
 				656889481C146637008D1A7D /* Date.swift */,
@@ -319,6 +322,7 @@
 				6568895A1C146637008D1A7D /* Concurrency.swift in Sources */,
 				6568895E1C146637008D1A7D /* Sequencer.swift in Sources */,
 				6568895F1C146637008D1A7D /* SQL.swift in Sources */,
+				651568551D55DDC500A01CEB /* Collections.swift in Sources */,
 				656889601C146637008D1A7D /* Stats.swift in Sources */,
 				656889621C146637008D1A7D /* Value.swift in Sources */,
 				6568895B1C146637008D1A7D /* Language.swift in Sources */,

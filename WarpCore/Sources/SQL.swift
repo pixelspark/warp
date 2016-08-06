@@ -201,14 +201,14 @@ public class SQLWarehouse: Warehouse {
 }
 
 private class SQLInsertPuller: StreamPuller {
-	private let columns: [Column]
+	private let columns: OrderedSet<Column>
 	private var callback: ((Fallible<Void>) -> ())?
 	private let fastMapping: [Int?]
 	private let insertStatement: String
 	private let connection: SQLConnection
 	private let database: SQLDatabase
 
-	init(stream: Stream, job: Job, columns: [Column], mapping: ColumnMapping, insertStatement: String, connection: SQLConnection, database: SQLDatabase, callback: ((Fallible<Void>) -> ())?) {
+	init(stream: Stream, job: Job, columns: OrderedSet<Column>, mapping: ColumnMapping, insertStatement: String, connection: SQLConnection, database: SQLDatabase, callback: ((Fallible<Void>) -> ())?) {
 		self.callback = callback
 		self.columns = columns
 		self.insertStatement = insertStatement
@@ -374,7 +374,7 @@ public class SQLMutableDataset: MutableDataset {
 		}
 	}
 
-	private func performAlter(_ connection: SQLConnection, columns desiredColumns: [Column], job: Job, callback: (Fallible<Void>) -> ()) {
+	private func performAlter(_ connection: SQLConnection, columns desiredColumns: OrderedSet<Column>, job: Job, callback: (Fallible<Void>) -> ()) {
 		self.data(job) { result in
 			switch result {
 			case .success(let data):
@@ -1152,19 +1152,19 @@ stream of results, and the apply function, to make sure any operations on the da
 subclassed type). See QBESQLite for an implementation example. */
 public class SQLDataset: NSObject, Dataset {
     public let sql: SQLFragment
-	public let columns: [Column]
+	public let columns: OrderedSet<Column>
 	
-	public init(fragment: SQLFragment, columns: [Column]) {
+	public init(fragment: SQLFragment, columns: OrderedSet<Column>) {
 		self.columns = columns
 		self.sql = fragment
 	}
 	
-	public init(sql: String, dialect: SQLDialect, columns: [Column]) {
+	public init(sql: String, dialect: SQLDialect, columns: OrderedSet<Column>) {
 		self.sql = SQLFragment(query: sql, dialect: dialect)
 		self.columns = columns
     }
 	
-	public init(table: String, schema: String?, database: String, dialect: SQLDialect, columns: [Column]) {
+	public init(table: String, schema: String?, database: String, dialect: SQLDialect, columns: OrderedSet<Column>) {
 		self.sql = SQLFragment(table: table, schema: schema, database: database, dialect: dialect)
 		self.columns = columns
 	}
@@ -1173,7 +1173,7 @@ public class SQLDataset: NSObject, Dataset {
 		return StreamDataset(source: self.stream())
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(columns))
 	}
 	
@@ -1188,7 +1188,7 @@ public class SQLDataset: NSObject, Dataset {
 		return fallback().transpose()
     }
 	
-	public func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset {
+	public func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset {
 		return fallback().pivot(horizontal, vertical: vertical, values: values)
 	}
 	
@@ -1396,7 +1396,7 @@ public class SQLDataset: NSObject, Dataset {
 		}
 	}
 	
-	public func selectColumns(_ columns: [Column]) -> Dataset {
+	public func selectColumns(_ columns: OrderedSet<Column>) -> Dataset {
 		let colNames = columns.map { self.sql.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) }.joined(separator: ", ")
 		return apply(self.sql.sqlSelect(colNames), resultingColumns: columns)
 	}
@@ -1408,7 +1408,7 @@ public class SQLDataset: NSObject, Dataset {
 
 		var groupBy: [String] = []
 		var select: [String] = []
-		var resultingColumns: [Column] = []
+		var resultingColumns: OrderedSet<Column> = []
 
 		let alias = groups.count > 0 ? self.sql.aliasFor(.group) : self.sql.aliasFor(.select)
 
@@ -1452,7 +1452,7 @@ public class SQLDataset: NSObject, Dataset {
 		}
 	}
 	
-	public func apply(_ fragment: SQLFragment, resultingColumns: [Column]) -> Dataset {
+	public func apply(_ fragment: SQLFragment, resultingColumns: OrderedSet<Column>) -> Dataset {
 		return SQLDataset(fragment: fragment, columns: columns)
 	}
 	

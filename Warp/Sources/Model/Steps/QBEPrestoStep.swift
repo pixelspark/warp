@@ -40,11 +40,11 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 	let schema: String
 	
 	private var buffer: [Tuple] = []
-	private var columns: Fallible<[Column]>?
+	private var columns: Fallible<OrderedSet<Column>>?
 	private var stopped: Bool = false
 	private var started: Bool = false
 	private var nextURI: URL?
-	private var columnsFuture: Future<Fallible<[Column]>>! = nil
+	private var columnsFuture: Future<Fallible<OrderedSet<Column>>>! = nil
 	
 	init(url: URL, sql: String, catalog: String, schema: String) {
 		self.url = url
@@ -54,13 +54,13 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 		self.nextURI = self.url.appendingPathComponent("/v1/statement")
 		super.init()
 		
-		let c = { [weak self] (job: Job, callback: (Fallible<[Column]>) -> ()) -> () in
+		let c = { [weak self] (job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) -> () in
 			self?.awaitColumns(job) {
 				callback(self?.columns ?? .failure(NSLocalizedString("Could not load column names from Presto.", comment: "")))
 			}
 		}
 		
-		self.columnsFuture = Future<Fallible<[Column]>>(c)
+		self.columnsFuture = Future<Fallible<OrderedSet<Column>>>(c)
 	}
 	
 	/** Request the next batch of result data from Presto. */
@@ -118,7 +118,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 						// Does the response include column information?
 						if self.columns == nil {
 							if let columns = d["columns"] as? [AnyObject] {
-								var newColumns: [Column] = []
+								var newColumns: OrderedSet<Column> = []
 
 								for columnSpec in columns {
 									if let columnInfo = columnSpec as? [String: AnyObject] {
@@ -206,7 +206,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 		}
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		self.columnsFuture.get(job, callback)
 	}
 	
@@ -275,12 +275,12 @@ private class QBEPrestoDataset: SQLDataset {
 		}
 	}
 	
-	init(db: QBEPrestoDatabase, fragment: SQLFragment, columns: [Column]) {
+	init(db: QBEPrestoDatabase, fragment: SQLFragment, columns: OrderedSet<Column>) {
 		self.db = db
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	override func apply(_ fragment: SQLFragment, resultingColumns: [Column]) -> Dataset {
+	override func apply(_ fragment: SQLFragment, resultingColumns: OrderedSet<Column>) -> Dataset {
 		return QBEPrestoDataset(db: self.db, fragment: fragment, columns: resultingColumns)
 	}
 	

@@ -11,11 +11,11 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 
 	var mapping: ColumnMapping = ColumnMapping() {
 		didSet {
-			self.destinationColumns = Array(mapping.keys)
+			self.destinationColumns = OrderedSet(mapping.keys)
 		}
 	}
 
-	var sourceColumns: [Column] = [] {
+	var sourceColumns: OrderedSet<Column> = [] {
 		didSet {
 			self.sourceColumnsMenu = NSMenu()
 
@@ -33,7 +33,7 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 		}
 	}
 
-	private var destinationColumns: [Column] = []
+	private var destinationColumns: OrderedSet<Column> = []
 	private var sourceColumnsMenu: NSMenu = NSMenu()
 
 	@IBAction func okay(_ sender: NSObject) {

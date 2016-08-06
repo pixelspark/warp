@@ -4,7 +4,7 @@ import WarpCore
 protocol QBEDatasetViewDelegate: NSObjectProtocol {
 	// Returns true if the delegate has handled the change (e.g. converted it to a strutural one)
 	@discardableResult func dataView(_ view: QBEDatasetViewController, didChangeValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool
-	@discardableResult func dataView(_ view: QBEDatasetViewController, didOrderColumns: [Column], toIndex: Int) -> Bool
+	@discardableResult func dataView(_ view: QBEDatasetViewController, didOrderColumns: OrderedSet<Column>, toIndex: Int) -> Bool
 	func dataView(_ view: QBEDatasetViewController, didSelectValue: Value, changeable: Bool)
 	func dataView(_ view: QBEDatasetViewController, viewControllerForColumn: Column, info: Bool, callback: (NSViewController) -> ())
 	func dataView(_ view: QBEDatasetViewController, addValue: Value, inRow: Int?, column: Int?, callback: (Bool) -> ())
@@ -253,7 +253,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 
 	func tableGrid(_ aTableGrid: MBTableGrid!, moveColumns columnIndexes: IndexSet!, to index: UInt) -> Bool {
 		if let r = raster {
-			var columnsOrdered: [Column] = []
+			var columnsOrdered: OrderedSet<Column> = []
 			for columnIndex in 0..<r.columns.count {
 				if columnIndexes.contains(columnIndex) {
 					columnsOrdered.append(r.columns[columnIndex])
@@ -570,8 +570,8 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		self.valueCell = QBEValueCell(language: self.locale ?? Language())
 
 		if let tv = self.tableView {
-			tv.rowHeaderView.headerCell?.textColor = NSColor.headerTextColor.withAlphaComponent(0.8)
-			tv.columnHeaderView.headerCell?.textColor = NSColor.headerTextColor.withAlphaComponent(0.8)
+			tv.rowHeaderView.headerCell?.textColor = NSColor.headerTextColor.withAlphaComponent(0.9)
+			tv.columnHeaderView.headerCell?.textColor = NSColor.headerTextColor.withAlphaComponent(0.9)
 			tv.rowHeaderView.headerCell?.labelFont = self.valueFont
 			tv.columnHeaderView.headerCell?.labelFont = self.valueFont
 			tv.contentView().rowHeight = monospace ? 16.0 : 18.0

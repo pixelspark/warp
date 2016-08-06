@@ -4,25 +4,25 @@ import WarpCore
 class QBEDummiesTransformer: Transformer {
 	let sourceColumn: Column
 	let values: [Value]
-	let sourceColumnFuture: Future<Fallible<[Column]>>
-	let targetColumnFuture: Future<Fallible<[Column]>>
+	let sourceColumnFuture: Future<Fallible<OrderedSet<Column>>>
+	let targetColumnFuture: Future<Fallible<OrderedSet<Column>>>
 
 	init(source: WarpCore.Stream, sourceColumn: Column, values: [Value]) {
 		self.sourceColumn = sourceColumn
 		self.values = values.uniqueElements
 
-		let sourceColumnFuture = Future<Fallible<[Column]>>({ (job, callback) in
+		let sourceColumnFuture = Future<Fallible<OrderedSet<Column>>>({ (job, callback) in
 			source.columns(job, callback: callback)
 		})
 
 		self.sourceColumnFuture = sourceColumnFuture
 
-		self.targetColumnFuture = Future<Fallible<[Column]>>({ (job, callback) in
+		self.targetColumnFuture = Future<Fallible<OrderedSet<Column>>>({ (job, callback) in
 			sourceColumnFuture.get(job) { result in
 				switch result {
 				case .success(let sourceColumns):
-					let newColumns = values.map { QBEDummiesTransformer.nameForColumn(value: $0, sourceColumn: sourceColumn) }
-					let targetColumns = (sourceColumns + newColumns).uniqueElements
+					let newColumns = OrderedSet(values.map { QBEDummiesTransformer.nameForColumn(value: $0, sourceColumn: sourceColumn) })
+					let targetColumns = sourceColumns.union(with: newColumns)
 					callback(.success(targetColumns))
 
 				case .failure(let e):
@@ -73,7 +73,7 @@ class QBEDummiesTransformer: Transformer {
 		}
 	}
 
-	override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		self.targetColumnFuture.get(job, callback)
 	}
 

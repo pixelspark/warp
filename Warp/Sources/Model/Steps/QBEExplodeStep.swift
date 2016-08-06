@@ -4,12 +4,12 @@ import WarpCore
 class QBEExplodeVerticallyTransformer: Transformer {
 	let splitColumn: Column
 	let separator: String? // If nil, separation happens using Pack (lists)
-	let columnFuture: Future<Fallible<[Column]>>
+	let columnFuture: Future<Fallible<OrderedSet<Column>>>
 
 	init(source: WarpCore.Stream, splitColumn: Column, separator: String?) {
 		self.splitColumn = splitColumn
 		self.separator = separator
-		self.columnFuture = Future<Fallible<[Column]>>({ (job, callback) in
+		self.columnFuture = Future<Fallible<OrderedSet<Column>>>({ (job, callback) in
 			source.columns(job, callback: callback)
 		})
 
@@ -58,22 +58,22 @@ class QBEExplodeVerticallyTransformer: Transformer {
 class QBEExplodeHorizontallyTransformer: Transformer {
 	let splitColumn: Column
 	let separator: String
-	let targetColumns: [Column]
-	let sourceColumnFuture: Future<Fallible<[Column]>>
-	let targetColumnFuture: Future<Fallible<[Column]>>
+	let targetColumns: OrderedSet<Column>
+	let sourceColumnFuture: Future<Fallible<OrderedSet<Column>>>
+	let targetColumnFuture: Future<Fallible<OrderedSet<Column>>>
 
-	init(source: WarpCore.Stream, splitColumn: Column, separator: String, targetColumns: [Column]) {
+	init(source: WarpCore.Stream, splitColumn: Column, separator: String, targetColumns: OrderedSet<Column>) {
 		self.splitColumn = splitColumn
 		self.separator = separator
 		self.targetColumns = targetColumns
 
-		let sourceColumnFuture = Future<Fallible<[Column]>>({ (job, callback) in
+		let sourceColumnFuture = Future<Fallible<OrderedSet<Column>>>({ (job, callback) in
 			source.columns(job, callback: callback)
 		})
 
 		self.sourceColumnFuture = sourceColumnFuture
 
-		self.targetColumnFuture = Future<Fallible<[Column]>>({ (job, callback) in
+		self.targetColumnFuture = Future<Fallible<OrderedSet<Column>>>({ (job, callback) in
 			sourceColumnFuture.get(job) { result in
 				switch result {
 				case .success(let sourceColumns):
@@ -136,7 +136,7 @@ class QBEExplodeHorizontallyTransformer: Transformer {
 		}
 	}
 
-	override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		self.targetColumnFuture.get(job, callback)
 	}
 
@@ -238,19 +238,19 @@ class QBEExplodeVerticallyStep: QBEStep {
 class QBEExplodeHorizontallyStep: QBEStep {
 	var separator: String
 	var splitColumn: Column
-	var targetColumns: [Column]
+	var targetColumns: OrderedSet<Column>
 
 	required init() {
 		separator = Pack.separator
 		splitColumn = Column("")
-		self.targetColumns = ["A","B","C"].map { return Column($0) }
+		self.targetColumns = OrderedSet(["A","B","C"].map { return Column($0) })
 		super.init()
 	}
 
 	init(previous: QBEStep?, splitColumn: Column, by separator: String = Pack.separator) {
 		self.splitColumn = splitColumn
 		self.separator = separator
-		self.targetColumns = (0..<3).map { return Column(splitColumn.name + "_\($0)") }
+		self.targetColumns = OrderedSet((0..<3).map { return Column(splitColumn.name + "_\($0)") })
 		super.init(previous: previous)
 	}
 
@@ -296,7 +296,7 @@ class QBEExplodeHorizontallyStep: QBEStep {
 		splitColumn = Column(aDecoder.decodeString(forKey:"splitColumn") ?? "")
 		separator = aDecoder.decodeString(forKey:"separator") ?? Pack.separator
 		let names = (aDecoder.decodeObject(forKey: "targetColumns") as? [String]) ?? []
-		self.targetColumns = names.map { return Column($0) }.uniqueElements
+		self.targetColumns = OrderedSet<Column>(names.map { return Column($0) }.uniqueElements)
 		super.init(coder: aDecoder)
 	}
 

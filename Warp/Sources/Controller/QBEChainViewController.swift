@@ -667,7 +667,7 @@ internal enum QBEEditingMode {
 	func dataView(_ view: QBEDatasetViewController, didSelectValue: Value, changeable: Bool) {
 	}
 	
-	func dataView(_ view: QBEDatasetViewController, didOrderColumns columns: [Column], toIndex: Int) -> Bool {
+	func dataView(_ view: QBEDatasetViewController, didOrderColumns columns: OrderedSet<Column>, toIndex: Int) -> Bool {
 		// Construct a new column ordering
 		if let r = view.raster, toIndex >= 0 && toIndex < r.columns.count {
 			/* If the current step is already a sort columns step, do not create another one; instead create a new sort
@@ -1689,8 +1689,8 @@ internal enum QBEEditingMode {
 			// Get the names of the columns to remove
 			calculator.currentRaster?.get(job) { (raster) -> () in
 				raster.maybe { (r) -> () in
-					var namesToRemove: [Column] = []
-					var namesToSelect: [Column] = []
+					var namesToRemove: OrderedSet<Column> = []
+					var namesToSelect: OrderedSet<Column> = []
 					
 					for i in 0..<r.columns.count {
 						if colsToRemove.contains(i) {
@@ -1786,7 +1786,7 @@ internal enum QBEEditingMode {
 				switch result {
 				case .success(let raster):
 					let step = QBEPivotStep()
-					var selectedColumnNames: [Column] = []
+					var selectedColumnNames: OrderedSet<Column> = []
 					selectedColumns.forEach { idx in
 						if raster.columns.count > idx {
 							selectedColumnNames.append(raster.columns[idx])

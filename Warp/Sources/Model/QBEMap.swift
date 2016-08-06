@@ -65,7 +65,7 @@ class QBEMapTablet: QBETablet {
 		super.init()
 	}
 
-	init(source: QBEChainTablet, columns: [Column]) {
+	init(source: QBEChainTablet, columns: OrderedSet<Column>) {
 		// Find interesting columns to use as coordinates
 		self.sourceTablet = source
 

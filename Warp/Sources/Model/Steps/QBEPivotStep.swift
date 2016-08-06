@@ -13,8 +13,8 @@ private func toDictionary<E, K, V>(_ array: [E], transformer: (element: E) -> (k
 }
 
 class QBEPivotStep: QBEStep {
-	var rows: [Column] = []
-	var columns: [Column] = []
+	var rows: OrderedSet<Column> = []
+	var columns: OrderedSet<Column> = []
 	var aggregates: [Aggregation] = []
 
 	required init() {
@@ -27,11 +27,11 @@ class QBEPivotStep: QBEStep {
 		aggregates = (aDecoder.decodeObject(forKey: "aggregates") as? [Aggregation]) ?? []
 		
 		if let r = aDecoder.decodeObject(forKey: "rows") as? [String] {
-			rows = r.map({Column($0)})
+			rows = OrderedSet(r.map({Column($0)}))
 		}
 		
 		if let c = aDecoder.decodeObject(forKey: "columns") as? [String] {
-			columns = c.map({Column($0)})
+			columns = OrderedSet(c.map({Column($0)}))
 		}
 	}
 	
@@ -101,8 +101,8 @@ class QBEPivotStep: QBEStep {
 		}
 
 		fixupColumnNames()
-		var rowGroups = toDictionary(rows, transformer: { ($0, Sibling($0) as Expression) })
-		let colGroups = toDictionary(columns, transformer: { ($0, Sibling($0) as Expression) })
+		var rowGroups = toDictionary(Array(rows), transformer: { ($0, Sibling($0) as Expression) })
+		let colGroups = toDictionary(Array(columns), transformer: { ($0, Sibling($0) as Expression) })
 		for (k, v) in colGroups {
 			rowGroups[k] = v
 		}
@@ -113,7 +113,7 @@ class QBEPivotStep: QBEStep {
 			callback(.success(resultDataset))
 		}
 		else {
-			let pivotedDataset = resultDataset.pivot(columns, vertical: rows, values: aggregates.map({$0.targetColumn}))
+			let pivotedDataset = resultDataset.pivot(columns, vertical: rows, values: OrderedSet(aggregates.map({$0.targetColumn})))
 			callback(.success(pivotedDataset))
 		}
 	}

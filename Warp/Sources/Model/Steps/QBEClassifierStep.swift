@@ -144,7 +144,7 @@ decide how to allocate additional floats to a column based on its type. An integ
 only have two distinct values may for instance obtain two instead of one Float, where each value is represented as
 a dummy. */
 private class QBENeuronAllocator {
-	let columns: [Column]
+	let columns: OrderedSet<Column>
 	let descriptives: QBEDatasetDescriptives
 	let neuronCount: Int
 	let allocations: [QBENeuronAllocation]
@@ -161,7 +161,7 @@ private class QBENeuronAllocator {
 	
 	If set to 'output', the allocator will allocate neurons with a type that fits the output side of the network.
 	Output neurons take values between 0..1 whereas input neurons can be any value (but are usually normalized). */
-	init(descriptives: QBEDatasetDescriptives, columns: [Column], maximumNumberofNeurons: Int = 256, output: Bool) {
+	init(descriptives: QBEDatasetDescriptives, columns: OrderedSet<Column>, maximumNumberofNeurons: Int = 256, output: Bool) {
 		self.descriptives = descriptives
 		self.columns = columns
 
@@ -238,8 +238,8 @@ private class QBENeuronAllocator {
 To train, the classifier is fed rows that have both the input and output columns. */
 private class QBEClassifierModel {
 	/** Statistics on the columns in the training data set that allow them to be normalized **/
-	let inputs: [Column]
-	let outputs: [Column]
+	let inputs: OrderedSet<Column>
+	let outputs: OrderedSet<Column>
 	let complexity: Double
 	let trainingDescriptives: QBEDatasetDescriptives
 
@@ -262,11 +262,11 @@ private class QBEClassifierModel {
 	used as input and output for the model, respectively. The `descriptives` object should contain
 	descriptives for each column listed as either input or output. The descriptives should be the
 	Avg, Stdev, Min and Max descriptives. */
-	init(inputs: Set<Column>, outputs: Set<Column>, descriptives: QBEDatasetDescriptives, complexity: Double) {
+	init(inputs: OrderedSet<Column>, outputs: OrderedSet<Column>, descriptives: QBEDatasetDescriptives, complexity: Double) {
 		assert(complexity > 0.0, "complexity must be above 0.0")
 
 		// Check if all descriptives are present
-		outputs.union(inputs).forEach { column in
+		outputs.union(with: inputs).forEach { column in
 			assert(descriptives[column] != nil, "classifier model instantiated without descritives for column \(column.name)")
 			assert(descriptives[column]![.Average] != nil, "descriptives for \(column.name) are missing average")
 			assert(descriptives[column]![.StandardDeviationPopulation] != nil, "descriptives for \(column.name) are missing average")
@@ -275,10 +275,10 @@ private class QBEClassifierModel {
 		}
 
 		self.trainingDescriptives = descriptives
-		self.inputAllocator = QBENeuronAllocator(descriptives: descriptives, columns: Array(inputs), output: false)
-		self.outputAllocator = QBENeuronAllocator(descriptives: descriptives, columns: Array(outputs), output: true)
-		self.inputs = Array(inputs)
-		self.outputs = Array(outputs)
+		self.inputAllocator = QBENeuronAllocator(descriptives: descriptives, columns: inputs, output: false)
+		self.outputAllocator = QBENeuronAllocator(descriptives: descriptives, columns: outputs, output: true)
+		self.inputs = inputs
+		self.outputs = outputs
 		self.complexity = complexity
 
 		// TODO: make configurable. This manages the 'complexity' of the network, or the 'far-fetchedness' of its results
@@ -355,7 +355,7 @@ private class QBEClassifierModel {
 		}
 	}
 
-	private func train(_ job: Job, stream: WarpCore.Stream, trainingColumns: [Column], callback: (Fallible<()>) -> ()) {
+	private func train(_ job: Job, stream: WarpCore.Stream, trainingColumns: OrderedSet<Column>, callback: (Fallible<()>) -> ()) {
 		stream.fetch(job) { result, streamStatus in
 			switch result {
 			case .success(let tuples):
@@ -428,7 +428,7 @@ private class QBEClassifierStream: WarpCore.Stream {
 
 	private let model: QBEClassifierModel
 	private var trainingFuture: Future<Fallible<()>>! = nil
-	private var dataColumnsFuture: Future<Fallible<[Column]>>! = nil
+	private var dataColumnsFuture: Future<Fallible<OrderedSet<Column>>>! = nil
 
 	init(data: WarpCore.Stream, trainedModel: QBEClassifierModel) {
 		self.data = data
@@ -439,15 +439,15 @@ private class QBEClassifierStream: WarpCore.Stream {
 			return cb(.success())
 		})
 		
-		self.dataColumnsFuture = Future<Fallible<[Column]>>(self.data.columns)
+		self.dataColumnsFuture = Future<Fallible<OrderedSet<Column>>>(self.data.columns)
 	}
 
-	init(data: WarpCore.Stream, training: WarpCore.Stream, descriptives: QBEDatasetDescriptives, inputs: Set<Column>, outputs: Set<Column>, complexity: Double) {
+	init(data: WarpCore.Stream, training: WarpCore.Stream, descriptives: QBEDatasetDescriptives, inputs: OrderedSet<Column>, outputs: OrderedSet<Column>, complexity: Double) {
 		self.data = data
 		self.isTrained = false
 		self.training = training
 		self.model = QBEClassifierModel(inputs: inputs, outputs: outputs, descriptives: descriptives, complexity: complexity)
-		self.dataColumnsFuture = Future<Fallible<[Column]>>(self.data.columns)
+		self.dataColumnsFuture = Future<Fallible<OrderedSet<Column>>>(self.data.columns)
 
 		self.trainingFuture = Future<Fallible<()>>({ [unowned self] job, cb in
 			// Build a model based on the training data
@@ -485,7 +485,7 @@ private class QBEClassifierStream: WarpCore.Stream {
 	}
 
 	/** Fetch a batch of rows from the source data stream and let the model calculate outputs. */
-	private func classify(_ job: Job, columns: [Column], consumer: (Fallible<[Tuple]>, StreamStatus) -> ()) {
+	private func classify(_ job: Job, columns: OrderedSet<Column>, consumer: (Fallible<[Tuple]>, StreamStatus) -> ()) {
 		self.data.fetch(job) { result, streamStatus in
 			switch result {
 			case .success(let tuples):
@@ -505,8 +505,8 @@ private class QBEClassifierStream: WarpCore.Stream {
 		}
 	}
 
-	private func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
-		return callback(.success(self.model.inputs + self.model.outputs))
+	private func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+		return callback(.success(self.model.inputs.union(with: self.model.outputs)))
 	}
 
 	private func clone() -> WarpCore.Stream {
@@ -514,7 +514,7 @@ private class QBEClassifierStream: WarpCore.Stream {
 			return QBEClassifierStream(data: data, trainedModel: model)
 		}
 		else {
-			return QBEClassifierStream(data: data, training: training, descriptives: self.model.trainingDescriptives, inputs: Set(self.model.inputs), outputs: Set(self.model.outputs), complexity: self.model.complexity)
+			return QBEClassifierStream(data: data, training: training, descriptives: self.model.trainingDescriptives, inputs: self.model.inputs, outputs: self.model.outputs, complexity: self.model.complexity)
 		}
 	}
 }
@@ -588,12 +588,12 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 				data.columns(dataColumnsJob) { result in
 					switch result {
 					case .success(let dataCols):
-						let inputCols = Set(dataCols).intersection(trainingCols)
-						let outputCols = Set(trainingCols).subtracting(dataCols)
-						let allCols = inputCols.union(outputCols)
+						let inputCols = dataCols.intersection(with: Set(trainingCols))
+						let outputCols = trainingCols.subtracting(Set(dataCols))
+						let allCols = inputCols.union(with: outputCols)
 
 						// Fetch descriptives of training set to be used for normalization
-						trainingDataset.descriptives(allCols, types: Set(QBEClassifierModel.requiredDescriptiveTypes), job: descriptivesJob) { result in
+						trainingDataset.descriptives(Set(allCols), types: Set(QBEClassifierModel.requiredDescriptiveTypes), job: descriptivesJob) { result in
 							switch result {
 							case .success(let descriptives):
 								// TODO save model here

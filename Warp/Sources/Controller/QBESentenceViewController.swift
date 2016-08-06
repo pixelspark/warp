@@ -114,7 +114,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		updateView()
 	}
 
-	@discardableResult private func change(token inputToken: QBESentenceColumns, to selection: [Column]) {
+	@discardableResult private func change(token inputToken: QBESentenceColumns, to selection: OrderedSet<Column>) {
 		let oldValue = inputToken.value
 
 		inputToken.select(selection)
@@ -513,7 +513,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		if let inputToken = editingToken?.token as? QBESentenceColumns {
 			let cols = selection.map { Column($0) }.uniqueElements
 			editor.selection = cols.map { $0.name }
-			self.change(token: inputToken, to: cols)
+			self.change(token: inputToken, to: OrderedSet<Column>(cols))
 		}
 	}
 
@@ -584,7 +584,7 @@ private extension QBEFormulaEditorViewController {
 				case .success(let r):
 					asyncMain {
 						self.exampleResult = self.expression?.apply(r.row, foreign: nil, inputValue: nil)
-						self.columns = r.columns.sorted(by: { return $0.name < $1.name })
+						self.columns = OrderedSet<Column>(r.columns.sorted(by: { return $0.name < $1.name }))
 					}
 
 				case .failure(_):

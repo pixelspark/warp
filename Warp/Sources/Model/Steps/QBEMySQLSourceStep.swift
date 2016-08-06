@@ -43,7 +43,7 @@ internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 	
 	private let connection: QBEMySQLConnection
 	private let result: UnsafeMutablePointer<MYSQL_RES>
-	private(set) var columns: [Column] = []
+	private(set) var columns: OrderedSet<Column> = []
 	private(set) var columnTypes: [MYSQL_FIELD] = []
 	private(set) var finished = false
 	
@@ -477,17 +477,17 @@ final class QBEMySQLDataset: SQLDataset {
 		}
 	}
 	
-	private init(database: QBEMySQLDatabase, fragment: SQLFragment, columns: [Column]) {
+	private init(database: QBEMySQLDatabase, fragment: SQLFragment, columns: OrderedSet<Column>) {
 		self.database = database
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(database: QBEMySQLDatabase, table: String, columns: [Column]) {
+	private init(database: QBEMySQLDatabase, table: String, columns: OrderedSet<Column>) {
 		self.database = database
 		super.init(table: table, schema: nil, database: database.databaseName!, dialect: database.dialect, columns: columns)
 	}
 	
-	override func apply(_ fragment: SQLFragment, resultingColumns: [Column]) -> Dataset {
+	override func apply(_ fragment: SQLFragment, resultingColumns: OrderedSet<Column>) -> Dataset {
 		return QBEMySQLDataset(database: self.database, fragment: fragment, columns: resultingColumns)
 	}
 	
@@ -553,7 +553,7 @@ final class QBEMySQLStream: WarpCore.Stream {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		return stream().columns(job, callback: callback)
 	}
 	

@@ -7,20 +7,20 @@ final class QBERethinkStream: NSObject, WarpCore.Stream {
 	let query: ReQuery
 
 	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.QBERethinkStream")
-	private var connection: Future<Fallible<(ReConnection, [Column])>>!
+	private var connection: Future<Fallible<(ReConnection, OrderedSet<Column>)>>!
 	private var continuation: ReResponse.ContinuationCallback? = nil
 	private var firstResponse: ReResponse? = nil
 	private var waitingList: [Sink] = []
 	private var ended = false
-	private var columns: [Column]? = nil // A list of all columns in the result set, or nil if unknown
+	private var columns: OrderedSet<Column>? = nil // A list of all columns in the result set, or nil if unknown
 
-	init(url: URL, query: ReQuery, columns: [Column]? = nil) {
+	init(url: URL, query: ReQuery, columns: OrderedSet<Column>? = nil) {
 		self.url = url
 		self.query = query
 		self.connection = nil
 		self.columns = columns
 		super.init()
-		self.connection = Future<Fallible<(ReConnection, [Column])>>({ [weak self] (job, callback) -> () in
+		self.connection = Future<Fallible<(ReConnection, OrderedSet<Column>)>>({ [weak self] (job, callback) -> () in
 			if let s = self {
 				R.connect(url) { (err, connection) in
 					if let e = err {
@@ -42,10 +42,10 @@ final class QBERethinkStream: NSObject, WarpCore.Stream {
 							case .Value(let v):
 								if let av = v as? [AnyObject] {
 									// Check if the array contains documents
-									var colSet = Set<Column>()
+									var colSet = OrderedSet<Column>()
 									for d in av {
 										if let doc = d as? [String: AnyObject] {
-											doc.keys.forEach { k in colSet.insert(Column(k)) }
+											doc.keys.forEach { k in colSet.append(Column(k)) }
 										}
 										else {
 											callback(.failure("Received array value that contains non-document: \(v)"))
@@ -54,8 +54,7 @@ final class QBERethinkStream: NSObject, WarpCore.Stream {
 									}
 
 									// Treat as any other regular result set
-									let columns = Array(colSet)
-									let result = (connection, columns)
+									let result = (connection, colSet)
 									callback(.success(result))
 								}
 								else {
@@ -64,12 +63,11 @@ final class QBERethinkStream: NSObject, WarpCore.Stream {
 
 							case .rows(let docs, let cnt):
 								// Find columns and set them now
-								var colSet = Set<Column>()
+								var colSet = OrderedSet<Column>()
 								for d in docs {
-									d.keys.forEach { k in colSet.insert(Column(k)) }
+									d.keys.forEach { k in colSet.append(Column(k)) }
 								}
-								let columns = Array(colSet)
-								let result = (connection, columns)
+								let result = (connection, colSet)
 								s.continuation = cnt
 								//s.continueWith(cnt, job: job)
 								callback(.success(result))
@@ -132,7 +130,7 @@ final class QBERethinkStream: NSObject, WarpCore.Stream {
 		}
 	}
 
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		if let fc = self.columns {
 			callback(.success(fc))
 		}
@@ -392,13 +390,13 @@ private class QBERethinkExpression {
 class QBERethinkDataset: StreamDataset {
 	private let url: URL
 	private let query: ReQuerySequence
-	private let columns: [Column]? // List of all columns in the result, or nil if unknown
+	private let columns: OrderedSet<Column>? // List of all columns in the result, or nil if unknown
 	private let indices: Set<Column>? // List of usable indices, or nil if no indices can be used
 
 	/** Create a data object with the result of the given query from the server at the given URL. If the array of column
 	names is set, the query *must* never return any other columns than the given columns (missing columns lead to empty
 	values). In order to guarantee this, add a .withFields(columns) to any query given to this constructor. */
-	init(url: URL, query: ReQuerySequence, columns: [Column]? = nil, indices: Set<Column>? = nil) {
+	init(url: URL, query: ReQuerySequence, columns: OrderedSet<Column>? = nil, indices: Set<Column>? = nil) {
 		self.url = url
 		self.query = query
 		self.columns = columns
@@ -464,7 +462,7 @@ class QBERethinkDataset: StreamDataset {
 		}
 
 		// Check to see what the new list of columns will be
-		let newColumns: [Column]?
+		let newColumns: OrderedSet<Column>?
 		if let columns = self.columns {
 			// Add newly added columns to the end in no particular order
 			let newlyAdded = Set(calculations.keys).subtracting(columns)
@@ -479,7 +477,7 @@ class QBERethinkDataset: StreamDataset {
 		return QBERethinkDataset(url: self.url, query: q, columns: newColumns)
 	}
 
-	override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		// If the column names are known for this data set, simply return them
 		if let c = self.columns {
 			callback(.success(c))
@@ -489,7 +487,7 @@ class QBERethinkDataset: StreamDataset {
 		return super.columns(job, callback: callback)
 	}
 
-	override func selectColumns(_ columns: [Column]) -> Dataset {
+	override func selectColumns(_ columns: OrderedSet<Column>) -> Dataset {
 		return QBERethinkDataset(url: self.url, query: self.query.withFields(columns.map { return R.expr($0.name) }), columns: columns)
 	}
 
@@ -500,10 +498,10 @@ class QBERethinkDataset: StreamDataset {
 	override func union(_ data: Dataset) -> Dataset {
 		if let d = data as? QBERethinkDataset, self.isCompatibleWith(d) {
 			// Are the columns for the other data set known?
-			let resultingColumns: [Column]?
+			let resultingColumns: OrderedSet<Column>?
 			if let dc = d.columns, var oc = self.columns {
 				oc.append(contentsOf: dc)
-				resultingColumns = Array(Set(oc))
+				resultingColumns = oc
 			}
 			else {
 				resultingColumns = nil
@@ -564,12 +562,12 @@ class QBERethinkDatasetWarehouse: Warehouse {
 }
 
 private class QBERethinkInsertPuller: StreamPuller {
-	let columns: [Column]
+	let columns: OrderedSet<Column>
 	let connection: ReConnection
 	let table: ReQueryTable
 	var callback: ((Fallible<Void>) -> ())?
 
-	init(stream: WarpCore.Stream, job: Job, columns: [Column], table: ReQueryTable, connection: ReConnection, callback: (Fallible<Void>) -> ()) {
+	init(stream: WarpCore.Stream, job: Job, columns: OrderedSet<Column>, table: ReQueryTable, connection: ReConnection, callback: (Fallible<Void>) -> ()) {
 		self.callback = callback
 		self.table = table
 		self.connection = connection
@@ -787,7 +785,7 @@ class QBERethinkSourceStep: QBEStep {
 	var username: String = "admin"
 	var useUsernamePasswordAuthentication = true
 	var authenticationKey: String? = nil
-	var columns: [Column] = []
+	var columns: OrderedSet<Column> = []
 
 	var password: QBESecret {
 		return QBESecret(serviceType: "rethinkdb", host: server, port: port, account: username, friendlyName:
@@ -816,7 +814,7 @@ class QBERethinkSourceStep: QBEStep {
 			(authenticationKey == nil || authenticationKey!.isEmpty)
 
 		let cols = (aDecoder.decodeObject(forKey: "columns") as? [String]) ?? []
-		self.columns = cols.map { return Column($0) }
+		self.columns = OrderedSet<Column>(cols.map { return Column($0) })
 		super.init(coder: aDecoder)
 	}
 

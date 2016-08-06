@@ -4,7 +4,7 @@ import WarpCore
 class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
 	typealias Callback = (Set<Column>) -> ()
 
-	var columns: [Column] = []
+	var columns: OrderedSet<Column> = []
 	var keyColumns: Set<Column> = []
 	var callback: Callback?
 

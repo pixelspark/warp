@@ -26,7 +26,7 @@ by the stream (for now).
 Streams are drained using concurrent calls to the 'fetch' method (multiple 'wavefronts'). */
 public protocol Stream {
 	/** The column names associated with the rows produced by this stream. */
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ())
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ())
 	
 	/** 
 	Request the next batch of rows from the stream; when it is available, asynchronously call (on the main queue) the
@@ -182,10 +182,10 @@ public class StreamPuller {
 private class RasterStreamPuller: StreamPuller {
 	var data: [Tuple] = []
 	let callback: (Fallible<Raster>, StreamStatus) -> ()
-	let columns: [Column]
+	let columns: OrderedSet<Column>
 	let delivery: Delivery
 
-	init(stream: Stream, job: Job, columns: [Column], deliver: Delivery = .onceComplete, callback: (Fallible<Raster>, StreamStatus) -> ()) {
+	init(stream: Stream, job: Job, columns: OrderedSet<Column>, deliver: Delivery = .onceComplete, callback: (Fallible<Raster>, StreamStatus) -> ()) {
 		self.callback = callback
 		self.columns = columns
 		self.delivery = deliver
@@ -280,8 +280,7 @@ public class StreamDataset: Dataset {
 		return StreamDataset(source: FlattenTransformer(source: source, valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
 	}
 	
-	public func selectColumns(_ columns: [Column]) -> Dataset {
-		// Implemented by ColumnsTransformer
+	public func selectColumns(_ columns: OrderedSet<Column>) -> Dataset {
 		return StreamDataset(source: ColumnsTransformer(source: source, selectColumns: columns))
 	}
 	
@@ -312,7 +311,7 @@ public class StreamDataset: Dataset {
 		return StreamDataset(source: CalculateTransformer(source: source, calculations: calculations))
 	}
 	
-	public func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset {
+	public func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset {
 		return fallback().pivot(horizontal, vertical: vertical, values: values)
 	}
 	
@@ -324,7 +323,7 @@ public class StreamDataset: Dataset {
 		return StreamDataset(source: FilterTransformer(source: source, condition: condition))
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		source.columns(job, callback: callback)
 	}
 	
@@ -348,7 +347,7 @@ public class ErrorStream: Stream {
 		return ErrorStream(self.error)
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.failure(self.error))
 	}
 }
@@ -367,7 +366,7 @@ public class EmptyStream: Stream {
 		return EmptyStream()
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success([]))
 	}
 }
@@ -377,13 +376,13 @@ A stream that sources from a Swift generator of Tuple. */
 public class SequenceStream: Stream {
 	private let sequence: AnySequence<Fallible<Tuple>>
 	private var generator: AnyIterator<Fallible<Tuple>>
-	private let columns: [Column]
+	private let columns: OrderedSet<Column>
 	private var position: Int = 0
 	private var rowCount: Int? = nil // nil = number of rows is yet unknown
 	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.SequenceStream", attributes: [])
 	private var error: String? = nil
 	
-	public init(_ sequence: AnySequence<Fallible<Tuple>>, columns: [Column], rowCount: Int? = nil) {
+	public init(_ sequence: AnySequence<Fallible<Tuple>>, columns: OrderedSet<Column>, rowCount: Int? = nil) {
 		self.sequence = sequence
 		self.generator = sequence.makeIterator()
 		self.columns = columns
@@ -439,7 +438,7 @@ public class SequenceStream: Stream {
 		}
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(self.columns))
 	}
 	
@@ -464,7 +463,7 @@ public class Transformer: NSObject, Stream {
 		self.source = source
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		source.columns(job, callback: callback)
 	}
 	
@@ -558,10 +557,10 @@ private class FlattenTransformer: Transformer {
 	private let rowIdentifier: Expression?
 	private let rowIdentifierTo: Column?
 	
-	private let columns: [Column]
+	private let columns: OrderedSet<Column>
 	private let writeRowIdentifier: Bool
 	private let writeColumnIdentifier: Bool
-	private var originalColumns: Fallible<[Column]>? = nil
+	private var originalColumns: Fallible<OrderedSet<Column>>? = nil
 	
 	init(source: Stream, valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) {
 		self.valueTo = valueTo
@@ -570,7 +569,7 @@ private class FlattenTransformer: Transformer {
 		self.rowIdentifierTo = to
 		
 		// Determine which columns we are going to produce
-		var cols: [Column] = []
+		var cols: OrderedSet<Column> = []
 		if rowIdentifierTo != nil && rowIdentifier != nil {
 			cols.append(rowIdentifierTo!)
 			writeRowIdentifier = true
@@ -604,7 +603,7 @@ private class FlattenTransformer: Transformer {
 		}
 	}
 	
-	private override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(columns))
 	}
 	
@@ -797,22 +796,27 @@ private class LimitTransformer: Transformer {
 }
 
 private class ColumnsTransformer: Transformer {
-	let columns: [Column]
+	let columns: OrderedSet<Column>
 	var indexes: Fallible<[Int]>? = nil
 	
-	init(source: Stream, selectColumns: [Column]) {
+	init(source: Stream, selectColumns: OrderedSet<Column>) {
 		self.columns = selectColumns
 		super.init(source: source)
 	}
 	
-	override private func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	override private func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		source.columns(job) { (sourceColumns) -> () in
 			switch sourceColumns {
 			case .success(let cns):
 				self.ensureIndexes(job) {
-					callback(self.indexes!.use({(idxs) in
-						return idxs.map({return cns[$0]})
-					}))
+					switch self.indexes! {
+					case .success(let idxs):
+						let names = OrderedSet(idxs.map({ return cns[$0] }))
+						callback(.success(names))
+
+					case .failure(let e):
+						callback(.failure(e))
+					}
 				}
 				
 			case .failure(let error):
@@ -848,7 +852,7 @@ private class ColumnsTransformer: Transformer {
 	private func ensureIndexes(_ job: Job, callback: () -> ()) {
 		if indexes == nil {
 			var idxs: [Int] = []
-			source.columns(job) { (sourceColumnNames: Fallible<[Column]>) -> () in
+			source.columns(job) { (sourceColumnNames: Fallible<OrderedSet<Column>>) -> () in
 				switch sourceColumnNames {
 					case .success(let sourceCols):
 						for column in self.columns {
@@ -879,7 +883,7 @@ private class ColumnsTransformer: Transformer {
 private class CalculateTransformer: Transformer {
 	let calculations: Dictionary<Column, Expression>
 	private var indices: Fallible<Dictionary<Column, Int>>? = nil
-	private var columns: Fallible<[Column]>? = nil
+	private var columns: Fallible<OrderedSet<Column>>? = nil
 	private let queue = DispatchQueue(label: "nl.pixelspark.Warp.CalculateTransformer", attributes: [])
 	private var ensureIndexes: Future<Void>! = nil
 
@@ -929,7 +933,7 @@ private class CalculateTransformer: Transformer {
 		})
 	}
 	
-	private override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		self.ensureIndexes.get(job) {
 			callback(self.columns!)
 		}
@@ -986,8 +990,8 @@ side maps to a high number of rows on the right side (m:n where n>>m). However, 
 joins apart from performing it in-database (which will be tried before JoinTransformer is put to work). */
 private class JoinTransformer: Transformer {
 	let join: Join
-	private var leftColumnNames: Future<Fallible<[Column]>>
-	private var columnNamesCached: Fallible<[Column]>? = nil
+	private var leftColumnNames: Future<Fallible<OrderedSet<Column>>>
+	private var columnNamesCached: Fallible<OrderedSet<Column>>? = nil
 	private var isIneffectiveJoin: Bool = false
 	
 	init(source: Stream, join: Join) {
@@ -996,7 +1000,7 @@ private class JoinTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	private override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		if let c = self.columnNamesCached {
 			callback(c)
 		}
@@ -1008,7 +1012,7 @@ private class JoinTransformer: Transformer {
 		}
 	}
 	
-	private func getColumnNames(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private func getColumnNames(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		self.leftColumnNames.get(job) { (leftColumnsFallible) in
 			switch leftColumnsFallible {
 			case .success(let leftColumns):
@@ -1107,7 +1111,7 @@ private class AggregateTransformer: Transformer {
 
 	private var groupExpressions: [Expression]
 	private var reducers = Catalog<Reducer>()
-	private var sourceColumnNames: Future<Fallible<[Column]>>! = nil
+	private var sourceColumnNames: Future<Fallible<OrderedSet<Column>>>! = nil
 
 	init(source: Stream, groups: OrderedDictionary<Column, Expression>, values: OrderedDictionary<Column, Aggregator>) {
 		#if DEBUG
@@ -1132,7 +1136,7 @@ private class AggregateTransformer: Transformer {
 		self.groupExpressions = groups.map { (_, e) in return e }
 		super.init(source: source)
 
-		self.sourceColumnNames = Future<Fallible<[Column]>>({ [unowned self] (job: Job, callback: (Fallible<[Column]>) -> ()) in
+		self.sourceColumnNames = Future<Fallible<OrderedSet<Column>>>({ [unowned self] (job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) in
 			self.source.columns(job, callback: callback)
 		})
 	}
@@ -1204,8 +1208,8 @@ private class AggregateTransformer: Transformer {
 		}
 	}
 
-	private override func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
-		callback(.success(self.groups.keys + self.values.keys))
+	private override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+		callback(.success(OrderedSet(self.groups.keys).union(with: OrderedSet(self.values.keys))))
 	}
 
 	private override func clone() -> Stream {

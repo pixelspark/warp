@@ -3,7 +3,7 @@ import Alamofire
 import WarpCore
 
 class QBEHTTPStream: WarpCore.Stream {
-	let columnNames = [Column("Data")]
+	let columnNames = OrderedSet<Column>([Column("Data")])
 	let url: String
 	private let mutex = Mutex()
 	private var first = true
@@ -12,7 +12,7 @@ class QBEHTTPStream: WarpCore.Stream {
 		self.url = url
 	}
 
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(self.columnNames))
 	}
 

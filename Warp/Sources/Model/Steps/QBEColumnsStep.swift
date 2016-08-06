@@ -2,14 +2,14 @@ import Foundation
 import WarpCore
 
 class QBEColumnsStep: QBEStep {
-	var columns: [Column] = []
+	var columns: OrderedSet<Column> = []
 	var select: Bool = true
 
 	required init() {
 		super.init()
 	}
 
-	init(previous: QBEStep?, columns: [Column], select: Bool) {
+	init(previous: QBEStep?, columns: OrderedSet<Column>, select: Bool) {
 		self.columns = columns
 		self.select = select
 		super.init(previous: previous)
@@ -48,7 +48,7 @@ class QBEColumnsStep: QBEStep {
 			}
 		},
 		callback: { [weak self] newSet in
-			self?.columns = Array(newSet.map { Column($0) })
+			self?.columns = OrderedSet(newSet.map { Column($0) })
 		})
 
 		if select {
@@ -75,7 +75,7 @@ class QBEColumnsStep: QBEStep {
 	required init(coder aDecoder: NSCoder) {
 		select = aDecoder.decodeBool(forKey: "select")
 		let names = (aDecoder.decodeObject(forKey: "columnNames") as? [String]) ?? []
-		columns = names.map({Column($0)})
+		columns = OrderedSet<Column>(names.map({Column($0)}))
 		super.init(coder: aDecoder)
 	}
 	
@@ -90,14 +90,14 @@ class QBEColumnsStep: QBEStep {
 		data.columns(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
 				case .success(let existingColumns):
-					let columns = existingColumns.filter({column -> Bool in
+					let columns = OrderedSet(existingColumns.filter({column -> Bool in
 						for c in self.columns {
 							if c == column {
 								return self.select
 							}
 						}
 						return !self.select
-					}) ?? []
+					}) ?? [])
 					callback(.success(data.selectColumns(columns)))
 				
 				case .failure(let error):
@@ -125,7 +125,7 @@ class QBEColumnsStep: QBEStep {
 		else if let p = prior as? QBECalculateStep {
 			let contained = columns.contains(p.targetColumn)
 			if (select && !contained) || (!select && contained) {
-				let newColumns = columns.filter({$0 != p.targetColumn})
+				let newColumns = OrderedSet(columns.filter({$0 != p.targetColumn}))
 				if newColumns.isEmpty {
 					return QBEStepMerge.cancels
 				}
@@ -140,14 +140,14 @@ class QBEColumnsStep: QBEStep {
 }
 
 class QBESortColumnsStep: QBEStep {
-	var sortColumns: [Column] = []
+	var sortColumns: OrderedSet<Column> = []
 	var before: Column? // nil means: at end
 
 	required init() {
 		super.init()
 	}
 	
-	init(previous: QBEStep?, sortColumns: [Column], before: Column?) {
+	init(previous: QBEStep?, sortColumns: OrderedSet<Column>, before: Column?) {
 		self.sortColumns = sortColumns
 		self.before = before
 		super.init(previous: previous)
@@ -174,7 +174,7 @@ class QBESortColumnsStep: QBEStep {
 	
 	required init(coder aDecoder: NSCoder) {
 		let names = (aDecoder.decodeObject(forKey: "sortColumns") as? [String]) ?? []
-		sortColumns = names.map({Column($0)})
+		self.sortColumns = OrderedSet(names.map({Column($0)}))
 		let beforeName = aDecoder.decodeObject(forKey: "before") as? String
 		if let b = beforeName {
 			self.before = Column(b)

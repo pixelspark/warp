@@ -741,7 +741,7 @@ class WarpCoreTests: XCTestCase {
 	
 	func testInferer() {
 		let locale = Language(language: Language.defaultLanguage)
-		let cols = ["A","B","C","D"].map({Column($0)})
+		let cols = OrderedSet<Column>(["A","B","C","D"].map({Column($0)}))
 		let row = [1,3,4,6].map({Value($0)})
 		let suggestions = Expression.infer(nil, toValue: Value(24), level: 4, row: Row(row, columns: cols), column: 0, maxComplexity: Int.max, previousValues: [])
 		suggestions.forEach { print("Solution: \($0.explain(locale))") }
@@ -866,7 +866,7 @@ class WarpCoreTests: XCTestCase {
 		}
 
 		// Raster modifications
-		let cols = [Column("X"), Column("Y"), Column("Z")]
+		let cols = OrderedSet<Column>([Column("X"), Column("Y"), Column("Z")])
 		let testRaster = Raster(data: d, columns: cols)
 		XCTAssert(testRaster.rowCount == d.count, "Row count matches")
 		testRaster.addRows([[Value.empty, Value.empty, Value.empty]])

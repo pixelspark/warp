@@ -8,7 +8,7 @@ final class QBEDBFStream: NSObject, WarpCore.Stream {
 	private let handle: DBFHandle?
 	private let recordCount: Int32
 	private let fieldCount: Int32
-	private var columns: [Column]? = nil
+	private var columns: OrderedSet<Column>? = nil
 	private var types: [DBFFieldType]? = nil
 	private var position: Int32 = 0
 
@@ -29,10 +29,10 @@ final class QBEDBFStream: NSObject, WarpCore.Stream {
 		DBFClose(handle)
 	}
 
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		if self.columns == nil {
 			let fieldCount = self.fieldCount
-			var fields: [Column] = []
+			var fields: OrderedSet<Column> = []
 			var types: [DBFFieldType] = []
 			for i in 0..<fieldCount {
 				var fieldName =  [CChar](repeating: 0, count: 12)

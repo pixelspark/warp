@@ -323,7 +323,9 @@ import WarpCore
 				}
 				
 				if headerRow != nil {
-					let raster = Raster(data: data, columns: headerRow!.map({return Column($0.stringValue ?? "")}), readOnly: false)
+					let cns = Set(headerRow!.map({return Column($0.stringValue ?? "")}))
+					let cols = OrderedSet(cns)
+					let raster = Raster(data: data, columns: cols, readOnly: false)
 					let s = QBERasterStep(raster: raster)
 					let tablet = QBEChainTablet(chain: QBEChain(head: s))
 					addTablet(tablet, undo: true, animated: true)
@@ -407,7 +409,7 @@ import WarpCore
 	}
 
 	/** Called when a set of columns was dropped onto the document. */
-	func workspaceView(_ view: QBEWorkspaceView, didReceiveColumnSet colset: [Column], fromDatasetViewController dc: QBEDatasetViewController) {
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveColumnSet colset: OrderedSet<Column>, fromDatasetViewController dc: QBEDatasetViewController) {
 		let action = QBEDropColumnsAction(columns: colset, dataViewController: dc, documentViewController: self)
 		action.present()
 	}
@@ -727,7 +729,7 @@ private class QBEDropChainAction: NSObject {
 						case .success(let columns):
 							asyncMain {
 								jobProgressView.dismiss(sender)
-								if let first = columns.first, let last = columns.last, columns.count > 1 {
+								if let first = Array(columns).first, let last = Array(columns).last, columns.count > 1 {
 									let tablet = QBEChartTablet(source: sourceTablet, type: .Bar, xExpression: Sibling(first), yExpression: Sibling(last))
 									self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 								}
@@ -918,11 +920,11 @@ private class QBEDropChainAction: NSObject {
 /** Action that handles dropping a set of columns on the document. Usually the columns come from another data view / chain
 controller. */
 private class QBEDropColumnsAction: NSObject {
-	let columns: [Column]
+	let columns: OrderedSet<Column>
 	let documentViewController: QBEDocumentViewController
 	let dataViewController: QBEDatasetViewController
 
-	init(columns: [Column], dataViewController: QBEDatasetViewController, documentViewController: QBEDocumentViewController) {
+	init(columns: OrderedSet<Column>, dataViewController: QBEDatasetViewController, documentViewController: QBEDocumentViewController) {
 		self.columns = columns
 		self.dataViewController = dataViewController
 		self.documentViewController = documentViewController

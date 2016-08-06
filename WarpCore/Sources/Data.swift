@@ -4,21 +4,19 @@ public typealias Tuple = [Value]
 
 public struct Row {
 	public internal(set) var values: Tuple
-	public internal(set) var columns: [Column]
+	public internal(set) var columns: OrderedSet<Column>
 	
 	public init() {
 		self.values = []
 		self.columns = []
 	}
 
-	public init(columns: [Column]) {
-		assert(Set(columns).count == columns.count, "duplicate column names are not allowed!")
+	public init(columns: OrderedSet<Column>) {
 		self.columns = columns
 		self.values = Array(repeating: Value.empty, count: columns.count)
 	}
 	
-	public init(_ values: Tuple, columns: [Column]) {
-		assert(Set(columns).count == columns.count, "duplicate column names are not allowed!")
+	public init(_ values: Tuple, columns: OrderedSet<Column>) {
 		assert(values.count == columns.count, "All values should have column names")
 		self.values = values
 		self.columns = columns
@@ -89,7 +87,7 @@ public struct Column: ExpressibleByStringLiteral, Hashable, CustomDebugStringCon
 	} }
 
 	/** Returns a new, unique name for the next column given a set of existing columns. */
-	public static func defaultNameForNewColumn(_ existing: [Column]) -> Column {
+	public static func defaultNameForNewColumn(_ existing: OrderedSet<Column>) -> Column {
 		var index = existing.count
 		while true {
 			let newName = Column.defaultNameForIndex(index)
@@ -380,14 +378,14 @@ public protocol Dataset {
 	
 	/** Select only the columns from the data set that are in the array, in the order specified. If a column named in the
 	array does not exist, it is ignored. */
-	func selectColumns(_ columns: [Column]) -> Dataset
+	func selectColumns(_ columns: OrderedSet<Column>) -> Dataset
 	
 	/** Aggregate data in this set. The 'groups' parameter defines different aggregation 'buckets'. Items are mapped in
 	into each bucket. Subsequently, the aggregations specified in the 'values' parameter are run on each bucket 
 	separately. The resulting data set starts with the group identifier columns, followed by the aggregation results. */
 	func aggregate(_ groups: [Column: Expression], values: [Column: Aggregator]) -> Dataset
 	
-	func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset
+	func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset
 	
 	/** Request streaming of the data contained in this dataset to the specified callback. */
 	func stream() -> Stream
@@ -412,7 +410,7 @@ public protocol Dataset {
 	
 	/** Returns the names of the columns in the data set. The list of column names is ordered. The callee should not
 	make any assumptions about the queue on which the callback is dispatched, or whether it is asynchronous. */
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ())
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ())
 	
 	/** Sort the dataset in the indicates ways. The sorts are applied in-order, e.g. the dataset is sorted by the first
 	order specified, in case of ties by the second, et cetera. If there are ties and there is no further order to sort by,
@@ -455,12 +453,12 @@ public class ProxyDataset: NSObject, Dataset {
 	public func distinct() -> Dataset { return data.distinct() }
 	public func filter(_ condition: Expression) -> Dataset { return data.filter(condition) }
 	public func unique(_ expression: Expression,  job: Job, callback: (Fallible<Set<Value>>) -> ()) { return data.unique(expression, job: job, callback: callback) }
-	public func selectColumns(_ columns: [Column]) -> Dataset { return data.selectColumns(columns) }
+	public func selectColumns(_ columns: OrderedSet<Column>) -> Dataset { return data.selectColumns(columns) }
 	public func aggregate(_ groups: [Column: Expression], values: [Column: Aggregator]) -> Dataset { return data.aggregate(groups, values: values) }
-	public func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset { return data.pivot(horizontal, vertical: vertical, values: values) }
+	public func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset { return data.pivot(horizontal, vertical: vertical, values: values) }
 	public func stream() -> Stream { return data.stream() }
 	public func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) { return data.raster(job, deliver: deliver, callback: callback) }
-	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) { return data.columns(job, callback: callback) }
+	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) { return data.columns(job, callback: callback) }
 	public func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
 	public func offset(_ numberOfRows: Int) -> Dataset { return data.offset(numberOfRows) }
 	public func sort(_ by: [Order]) -> Dataset { return data.sort(by) }
@@ -490,7 +488,7 @@ enum CoalescedDataset: Dataset {
 	case transposing(Dataset)
 	case filtering(Dataset, Expression)
 	case sorting(Dataset, [Order])
-	case selectingColumns(Dataset, [Column])
+	case selectingColumns(Dataset, OrderedSet<Column>)
 	case calculating(Dataset, [Column: Expression])
 	case calculatingThenSelectingColumns(Dataset, OrderedDictionary<Column, Expression>)
 	case distincting(Dataset)
@@ -527,7 +525,7 @@ enum CoalescedDataset: Dataset {
 				return data.calculate(calculations)
 			
 			case .calculatingThenSelectingColumns(let data, let calculations):
-				return data.calculate(calculations.values).selectColumns(calculations.keys)
+				return data.calculate(calculations.values).selectColumns(OrderedSet(calculations.keys))
 			
 			case .none(let data):
 				return data
@@ -723,15 +721,14 @@ enum CoalescedDataset: Dataset {
 		- data.selectColumns(a) is equivalent to an empty data set if a is empty
 		- data.calculate().selectColumns() can be combined: calculations that result into columns that are not selected 
 		  are not included */
-	func selectColumns(_ columns: [Column]) -> Dataset {
+	func selectColumns(_ columns: OrderedSet<Column>) -> Dataset {
 		if columns.isEmpty {
 			return RasterDataset()
 		}
 		
 		switch self {
 			case .selectingColumns(let data, let oldColumns):
-				let oldSet = Set(oldColumns)
-				let newColumns = columns.filter({return oldSet.contains($0)})
+				let newColumns = OrderedSet(columns.filter({return oldColumns.contains($0)}))
 				return CoalescedDataset.selectingColumns(data, newColumns)
 			
 			case .calculating(let data, let calculations):
@@ -748,7 +745,7 @@ enum CoalescedDataset: Dataset {
 			
 			case .calculatingThenSelectingColumns(let data, let calculations):
 				var newCalculations = calculations
-				newCalculations.filterAndOrder(columns)
+				newCalculations.filterAndOrder(columns.array)
 				return CoalescedDataset.calculatingThenSelectingColumns(data, newCalculations)
 			
 			default:
@@ -760,7 +757,7 @@ enum CoalescedDataset: Dataset {
 		return CoalescedDataset.none(data.aggregate(groups, values: values))
 	}
 	
-	func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset {
+	func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset {
 		return CoalescedDataset.none(data.pivot(horizontal, vertical: vertical, values: values))
 	}
 	
@@ -772,7 +769,7 @@ enum CoalescedDataset: Dataset {
 		return data.raster(job, deliver: deliver, callback: callback)
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		return data.columns(job, callback: callback)
 	}
 	

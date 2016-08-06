@@ -195,7 +195,7 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 
 	@IBAction func removeColumns(_ sender: NSObject) {
 		if let sr = self.tableView?.selectedRow, sr >= 0 && sr != NSNotFound && sr < self.step.columns.count {
-			self.step.columns.remove(sr)
+			self.step.columns.remove(at: sr)
 			self.updateView()
 			self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 		}

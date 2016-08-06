@@ -11,7 +11,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 	@IBOutlet var aggregatesTable: NSTableView?
 	private var aggregatorsMenu: NSMenu?
 	
-	private var sourceColumns: [Column]? { didSet {
+	private var sourceColumns: OrderedSet<Column>? { didSet {
 		allTable?.reloadData()
 		rowsTable?.reloadData()
 		columnsTable?.reloadData()
@@ -32,7 +32,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		if let sourceStep = self.step.previous {
 			let job = Job(.userInitiated)
 			sourceStep.exampleDataset(job, maxInputRows: 100, maxOutputRows: 100, callback: { (exDataset: Fallible<Dataset>) -> () in
-				exDataset.maybe({ (ed) in ed.columns(job) { (columns: Fallible<[Column]>) -> () in
+				exDataset.maybe({ (ed) in ed.columns(job) { (columns: Fallible<OrderedSet<Column>>) -> () in
 					columns.maybe { (cs) in
 						asyncMain {
 							self.sourceColumns = cs
@@ -120,7 +120,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		if rowsTable == self.view.window?.firstResponder {
 			if let index = rowsTable?.selectedRow {
 				if index >= 0 {
-					self.step.rows.remove(index)
+					self.step.rows.remove(at: index)
 					rowsTable!.reloadData()
 				}
 			}
@@ -128,7 +128,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		else if columnsTable == self.view.window?.firstResponder {
 			if let index = columnsTable?.selectedRow {
 				if index >= 0 {
-					self.step.columns.remove(index)
+					self.step.columns.remove(at: index)
 					columnsTable!.reloadData()
 				}
 			}
@@ -136,7 +136,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		else if aggregatesTable == self.view.window?.firstResponder {
 			if let index = aggregatesTable?.selectedRow {
 				if index >= 0 {
-					self.step.aggregates.remove(index)
+					self.step.aggregates.remove(at: index)
 					aggregatesTable!.reloadData()
 				}
 			}

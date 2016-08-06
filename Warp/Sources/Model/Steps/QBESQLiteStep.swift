@@ -90,12 +90,12 @@ private class QBESQLiteResult {
 		}
 	} }
 	
-	 var columns: [Column] { get {
+	 var columns: OrderedSet<Column> { get {
 		return self.db.mutex.locked {
 			let count = sqlite3_column_count(self.resultSet)
-			return (0..<count).map({
+			return OrderedSet((0..<count).map({
 				Column(String(cString: sqlite3_column_name(self.resultSet, $0)))
-			})
+			}))
 		}
 	} }
 
@@ -490,12 +490,12 @@ class QBESQLiteDataset: SQLDataset {
 		}
 	}
 	
-	private init(db: QBESQLiteConnection, fragment: SQLFragment, columns: [Column]) {
+	private init(db: QBESQLiteConnection, fragment: SQLFragment, columns: OrderedSet<Column>) {
 		self.db = db
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	override func apply(_ fragment: SQLFragment, resultingColumns: [Column]) -> Dataset {
+	override func apply(_ fragment: SQLFragment, resultingColumns: OrderedSet<Column>) -> Dataset {
 		return QBESQLiteDataset(db: self.db, fragment: fragment, columns: resultingColumns)
 	}
 	
@@ -551,7 +551,7 @@ class QBESQLiteStream: WarpCore.Stream {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		return stream().columns(job, callback: callback)
 	}
 	

@@ -71,7 +71,7 @@ class QBERenameStep: QBEStep {
 		data.columns(job) { (existingColumnsFallible) -> () in
 			callback(existingColumnsFallible.use {(existingColumnNames) -> Dataset in
 				var calculations: [Column: Expression] = [:]
-				var newColumns: [Column] = []
+				var newColumns: OrderedSet<Column> = []
 				
 				// Create a calculation that performs the rename
 				for oldName in existingColumnNames {

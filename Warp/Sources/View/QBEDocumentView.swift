@@ -375,7 +375,7 @@ protocol QBEWorkspaceViewDelegate: NSObjectProtocol {
 	func workspaceView(_ view: QBEWorkspaceView, didReceiveStep: QBEStep, atLocation: CGPoint)
 
 	/** A column set was dropped in the workspace */
-	func workspaceView(_ view: QBEWorkspaceView, didReceiveColumnSet:[Column], fromDatasetViewController: QBEDatasetViewController)
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveColumnSet:OrderedSet<Column>, fromDatasetViewController: QBEDatasetViewController)
 }
 
 class QBEWorkspaceView: QBEScrollView {
@@ -467,7 +467,8 @@ class QBEWorkspaceView: QBEScrollView {
 			if	let grid = draggingInfo.draggingSource() as? MBTableGrid,
 				let dc = grid.dataSource as? QBEDatasetViewController,
 				let indexSet = NSKeyedUnarchiver.unarchiveObject(with: d) as? IndexSet,
-				let names = dc.raster?.columns.objectsAtIndexes(indexSet) {
+				let nsa = dc.raster?.columns {
+					let names = OrderedSet(Array(nsa).objectsAtIndexes(indexSet))
 					delegate?.workspaceView(self, didReceiveColumnSet:names, fromDatasetViewController: dc)
 			}
 		}

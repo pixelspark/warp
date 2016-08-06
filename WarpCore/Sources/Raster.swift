@@ -16,7 +16,7 @@ serially (i.e. Raster holds a mutex) and are atomic. To make multiple changes at
 before performing the first change and release it after performing the last (e.g. use raster.mutex.locked {...}). */
 public class Raster: NSObject, NSCoding {
 	internal var raster: [[Value]] = []
-	public internal(set) var columns: [Column] = []
+	public internal(set) var columns: OrderedSet<Column> = []
 
 	public var rows: AnyRandomAccessCollection<Row> {
 		return AnyRandomAccessCollection(self.raster.lazy.map { return Row($0, columns: self.columns) })
@@ -32,7 +32,7 @@ public class Raster: NSObject, NSCoding {
 		self.readOnly = false
 	}
 	
-	public init(data: [[Value]], columns: [Column], readOnly: Bool = false) {
+	public init(data: [[Value]], columns: OrderedSet<Column>, readOnly: Bool = false) {
 		self.raster = data
 		self.columns = columns
 		self.readOnly = readOnly
@@ -46,7 +46,7 @@ public class Raster: NSObject, NSCoding {
 		raster = codedRaster.map({$0.map({return $0.value})})
 		
 		let saveColumns = aDecoder.decodeObject(forKey: "columns") as? [String] ?? []
-		columns = saveColumns.map({return Column($0)})
+		columns = OrderedSet(saveColumns.map({return Column($0)}))
 		readOnly = aDecoder.decodeBool(forKey: "readOnly")
 	}
 
@@ -59,6 +59,12 @@ public class Raster: NSObject, NSCoding {
 	private func verify() -> Bool {
 		let columnCount = self.columns.count
 
+		// The column names must be unique
+		if Set(self.columns).count != self.columns.count {
+			return false
+		}
+
+		// Each raster row must contain the same number of values
 		for r in raster {
 			if r.count != columnCount {
 				return false
@@ -123,7 +129,7 @@ public class Raster: NSObject, NSCoding {
 	public func removeColumns(_ set: IndexSet) {
 		self.mutex.locked {
 			assert(!readOnly, "Dataset set is read-only")
-			columns.removeObjectsAtIndexes(set, offset: 0)
+			columns.subtract(Set(set.map { return self.columns[$0] }))
 			
 			for i in 0..<raster.count {
 				raster[i].removeObjectsAtIndexes(set, offset: 0)
@@ -131,7 +137,7 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 
-	public func addColumns(_ names: [Column]) {
+	public func addColumns(_ names: OrderedSet<Column>) {
 		self.mutex.locked {
 			assert(!readOnly, "Dataset set is read-only")
 			let oldCount = self.columns.count
@@ -575,7 +581,7 @@ public class RasterDataset: NSObject, Dataset {
 		future = {(job, callback) in callback(.success(raster))}
 	}
 	
-	public init(data: [[Value]], columns: [Column]) {
+	public init(data: [[Value]], columns: OrderedSet<Column>) {
 		let raster = Raster(data: data, columns: columns)
 		future = {(job, callback) in callback(.success(raster))}
 	}
@@ -588,7 +594,7 @@ public class RasterDataset: NSObject, Dataset {
 		return RasterDataset(future: future)
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		raster(job, callback: { (r) -> () in
 			callback(r.use({$0.columns}))
 		})
@@ -649,6 +655,7 @@ public class RasterDataset: NSObject, Dataset {
 						}
 					}
 				}
+				// FIXME: check for duplicate columns
 				
 				var newDataset: [[Value]] = []
 
@@ -661,7 +668,7 @@ public class RasterDataset: NSObject, Dataset {
 					newDataset.append(row)
 				}
 				
-				return Raster(data: newDataset, columns: columns, readOnly: true)
+				return Raster(data: newDataset, columns: OrderedSet(columns), readOnly: true)
 			}
 			else {
 				return Raster()
@@ -669,7 +676,7 @@ public class RasterDataset: NSObject, Dataset {
 		}
 	}
 	
-	public func selectColumns(_ columns: [Column]) -> Dataset {
+	public func selectColumns(_ columns: OrderedSet<Column>) -> Dataset {
 		return apply("selectColumns") {(r: Raster, job, progressKey) -> Raster in
 			var indexesToKeep: [Int] = []
 			var namesToKeep: [Column] = []
@@ -699,7 +706,7 @@ public class RasterDataset: NSObject, Dataset {
 				}
 			}
 			
-			return Raster(data: newDataset, columns: namesToKeep, readOnly: true)
+			return Raster(data: newDataset, columns: OrderedSet(namesToKeep), readOnly: true)
 		}
 	}
 	
@@ -919,7 +926,7 @@ public class RasterDataset: NSObject, Dataset {
 		return fallback().aggregate(groups, values: values)
 	}
 	
-	public func pivot(_ horizontal: [Column], vertical: [Column], values: [Column]) -> Dataset {
+	public func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset {
 		if horizontal.isEmpty {
 			return self
 		}
@@ -948,7 +955,7 @@ public class RasterDataset: NSObject, Dataset {
 			})
 			
 			// Generate column names
-			var newColumnNames: [Column] = vertical
+			var newColumnNames: OrderedSet<Column> = vertical
 			for hGroup in horizontalGroups {
 				let hGroupLabel = hGroup.row.reduce("", { (label, value) -> String in
 					return label + (value.stringValue ?? "") + "_"
@@ -1055,7 +1062,7 @@ private class RasterInsertPuller: StreamPuller {
 	var callback: ((Fallible<Void>) -> ())?
 	let fastMapping: [Int?]
 
-	init(target: Raster, mapping: ColumnMapping, source: Stream, sourceColumns: [Column], job: Job, callback: (Fallible<Void>) -> ()) {
+	init(target: Raster, mapping: ColumnMapping, source: Stream, sourceColumns: OrderedSet<Column>, job: Job, callback: (Fallible<Void>) -> ()) {
 		self.raster = target
 		self.callback = callback
 
@@ -1136,17 +1143,17 @@ public class RasterMutableDataset: MutableDataset {
 			callback(.success())
 
 		case .rename(let mapping):
-			self.raster.columns = self.raster.columns.map { cn -> Column in
+			self.raster.columns = OrderedSet(self.raster.columns.map { cn -> Column in
 				if let newName = mapping[cn] {
 					return newName
 				}
 				return cn
-			}
+			})
 			callback(.success())
 
 		case .alter(let def):
 			let removedColumns = self.raster.columns.filter { return !def.columns.contains($0) }
-			let addedColumns = def.columns.filter { return !self.raster.columns.contains($0) }
+			let addedColumns = OrderedSet(def.columns.filter { return !self.raster.columns.contains($0) })
 
 			let removeIndices = NSMutableIndexSet()
 			removedColumns.forEach { removeIndices.add(self.raster.indexOfColumnWithName($0)!) }
@@ -1239,7 +1246,7 @@ private class RasterDatasetStream: NSObject, Stream {
 		})
 	}
 	
-	private func columns(_ job: Job, callback: (Fallible<[Column]>) -> ()) {
+	private func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
 		self.raster.get(job) { (fallibleRaster) in
 			callback(fallibleRaster.use({ return $0.columns }))
 		}

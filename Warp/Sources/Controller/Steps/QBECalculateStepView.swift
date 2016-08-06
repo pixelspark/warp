@@ -7,7 +7,7 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 	@IBOutlet var formulaField: NSTextField?
 	@IBOutlet var insertAfterField: NSComboBox!
 	@IBOutlet var insertPositionPopup: NSPopUpButton!
-	var existingColumns: [Column]?
+	var existingColumns: OrderedSet<Column>?
 	
 	required init?(configurable: QBEConfigurable, delegate: QBEConfigurableViewDelegate) {
 		super.init(configurable: configurable, delegate: delegate, nibName: "QBECalculateStepView", bundle: nil)
