@@ -123,4 +123,30 @@ class QBERenameStep: QBEStep {
 		}
 		return QBEStepMerge.impossible
 	}
+
+	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+		super.related(job: job) { result in
+			switch result {
+			case .success(let relatedSteps):
+				return callback(.success(relatedSteps.flatMap { related -> QBERelatedStep? in
+					switch related {
+					case .joinable(step: let joinStep, type: let joinType, condition: let expression):
+						// Rewrite the join expression to take into account any of our renames
+						let newExpression = expression.visit { e -> Expression in
+							if let sibling = e as? Sibling, let newName = self.renames[sibling.column] {
+								return Sibling(newName)
+							}
+
+							return e
+						}
+
+						return .joinable(step: joinStep, type: joinType, condition: newExpression)
+					}
+				}))
+
+			case .failure(let e):
+				return callback(.failure(e))
+			}
+		}
+	}
 }

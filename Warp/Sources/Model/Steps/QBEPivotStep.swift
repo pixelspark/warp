@@ -148,4 +148,8 @@ class QBEPivotStep: QBEStep {
 		
 		return suggestions
 	}
+
+	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+		return callback(.success([]))
+	}
 }

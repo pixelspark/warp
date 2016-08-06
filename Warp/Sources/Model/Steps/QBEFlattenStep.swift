@@ -98,4 +98,8 @@ class QBEFlattenStep: QBEStep {
 			callback(.success(data.flatten(valueColumn, columnNameTo: colColumn, rowIdentifier: rowIdentifier, to: rowColumn)))
 		}
 	}
+
+	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+		return callback(.success([]))
+	}
 }
