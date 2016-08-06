@@ -1262,7 +1262,7 @@ private class RasterDatasetStream: NSObject, Stream {
 			switch fallibleRaster {
 				case .success(let raster):
 					let (rows, hasNext) = self.mutex.locked { () -> ([Tuple], Bool) in
-						let progress = Double(self.position) / Double(raster.rowCount)
+						let progress = raster.rowCount > 0 ? Double(self.position) / Double(raster.rowCount) : 1.0
 						job.async {
 							job.reportProgress(progress, forKey: self.hashValue)
 						}

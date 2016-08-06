@@ -426,11 +426,7 @@ public class Job: JobDelegate {
 	where 1 means 'complete'. Callers of this function should generate a sufficiently unique key that identifies the sub-
 	operation in the job of which the progress is reported (e.g. use '.hash' on an object private to the subtask). */
 	public func reportProgress(_ progress: Double, forKey: Int, file: StaticString = #file, line: UInt = #line) {
-		if progress < 0.0 || progress > 1.0 {
-			// Ignore spurious progress reports
-			log("Ignoring spurious progress report \(progress) for key \(forKey)")
-			return
-		}
+		assert(!progress.isNaN && progress >= 0.0 && progress <= 1.0, "invalid progress reported: \(progress)")
 
 		mutex.locked {
  			#if DEBUG
@@ -441,6 +437,7 @@ public class Job: JobDelegate {
 
 			self.progressComponents[forKey] = progress
 			let currentProgress = self.progress
+			assert(!currentProgress.isNaN && currentProgress >= 0.0 && currentProgress <= 1.0, "invalid current progress")
 			for observer in self.observers {
 				observer.value?.job(self, didProgress: currentProgress)
 			}
@@ -455,8 +452,8 @@ public class Job: JobDelegate {
 	or to ever reach 1. */
 	public var progress: Double { get {
 		return mutex.locked {
-			var sumProgress = 0.0;
-			var items = 0;
+			var sumProgress = 0.0
+			var items = 0
 			for (_, p) in self.progressComponents {
 				sumProgress += p
 				items += 1
