@@ -127,16 +127,30 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		}
 		update()
 	} }
+
+	private var visibleContentRect: NSRect? = nil
 	
 	var raster: Raster? {
 		didSet {
 			assertMainThread()
+
+			/* Store the current scroll position. Setting raster to nil will reset scrolling, but we want the original 
+			scroll position again when raster is set to a non-null value. */
+			if oldValue != nil {
+				visibleContentRect = self.tableView?.contentView().visibleRect
+			}
+
 			footerCells.forEach { $0.value.cancel() }
 			footerCells.removeAll(keepingCapacity: true)
 			if raster != nil {
 				errorMessage = nil
 			}
 			update()
+
+			// Restore earlier scroll position
+			if let visibleRect = self.visibleContentRect {
+				self.tableView?.contentView().scrollToVisible(visibleRect)
+			}
 		}
 	}
 
