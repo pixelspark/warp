@@ -329,7 +329,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 					let progressRing = CGMutablePath()
 					let time = fmod(NSDate.timeIntervalSinceReferenceDate, 1.0)
 					let timeForAnimation = 0.5 * time + 0.5 * (time * time)
-					let progressForAnimation = 0.25 + 0.75 * (progress * progress)
+					let progressForAnimation = 0.05 + 0.95 * progress
 
 					let progressAngle = CGFloat(2.0 * 3.141459 * (1.0 - timeForAnimation)) + offset
 					let progressEndAngle = progressAngle + CGFloat(2.0 * 3.141459 * progressForAnimation)
