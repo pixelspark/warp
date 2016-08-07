@@ -502,6 +502,7 @@ internal enum QBEEditingMode {
 					
 					// Start calculation
 					if useFullDataset {
+						self.presentDataset(nil)
 						calculator.calculate(sourceStep, fullDataset: useFullDataset, maximumTime: nil, job: job, callback: throttle(interval: 1.0, queue: DispatchQueue.main) { streamStatus in
 							asyncMain {
 								self.refreshDataset(incremental: true)
