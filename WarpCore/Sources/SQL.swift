@@ -909,10 +909,14 @@ public class StandardSQLDialect: SQLDialect {
 			case .Modulus:		return "MOD(\(second), \(first))"
 			case .Concatenation: return "CONCAT(\(second),\(first))"
 			case .Power:		return "POW(\(second), \(first))"
-			case .Greater:		return "(\(second)>\(first))"
-			case .Lesser:		return "(\(second)<\(first))"
-			case .GreaterEqual:	return "(\(second)>=\(first))"
-			case .LesserEqual:	return "(\(second)<=\(first))"
+
+			// Force arguments of numeric comparison operators to numerics, to prevent 'string ordering' comparisons
+			// Note that this may impact performance as indexes cannot be used anymore after casting?
+			// TODO: only force to numeric when expression is not already numeric (e.g. a double literal).
+			case .Greater:		return "(\(self.forceNumericExpression(second))>\(self.forceNumericExpression(first)))"
+			case .Lesser:		return "(\(self.forceNumericExpression(second))<\(self.forceNumericExpression(first)))"
+			case .GreaterEqual:	return "(\(self.forceNumericExpression(second))>=\(self.forceNumericExpression(first)))"
+			case .LesserEqual:	return "(\(self.forceNumericExpression(second))<=\(self.forceNumericExpression(first)))"
 
 			case .NotEqual:
 				if second == "NULL" {
