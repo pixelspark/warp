@@ -450,6 +450,7 @@ internal enum QBEEditingMode {
 				tr.type = kCATransitionFade
 				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
 				self.outletView.layer?.add(tr, forKey: kCATransition)
+				self.dataViewController?.errorMessage = nil
 			}
 
 			self.updateView()
