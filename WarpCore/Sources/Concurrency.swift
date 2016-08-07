@@ -316,10 +316,6 @@ public class Job: JobDelegate {
 	
 	public init(_ qos: DispatchQoS) {
 		#if DEBUG
-			if qos == .userInitiated && !Thread.isMainThread {
-				fatalError("Should not create user-initiated jobs from a non-main thread")
-			}
-
 			self.jobID = Job.jobCounterMutex.locked {
 				 let jobNumber = Job.jobCounter + 1
 				 Job.jobCounter += 1
@@ -419,6 +415,9 @@ public class Job: JobDelegate {
 	public func addObserver(_ observer: JobDelegate) {
 		mutex.locked {
 			self.observers.append(Weak(observer))
+
+			// Broadcast progress now so the new observer can add this job to its progress components list
+			self.broadcastProgress()
 		}
 	}
 	
@@ -436,12 +435,18 @@ public class Job: JobDelegate {
 			#endif
 
 			self.progressComponents[forKey] = progress
+			self.broadcastProgress()
+		}
+	}
+
+	private func broadcastProgress() {
+		self.mutex.locked {
 			let currentProgress = self.progress
 			assert(!currentProgress.isNaN && currentProgress >= 0.0 && currentProgress <= 1.0, "invalid current progress")
 			for observer in self.observers {
 				observer.value?.job(self, didProgress: currentProgress)
 			}
-			
+
 			// Report our progress back up to our parent
 			self.parentJob?.reportProgress(currentProgress, forKey: unsafeAddress(of: self).hashValue)
 		}

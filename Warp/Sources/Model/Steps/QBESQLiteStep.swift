@@ -608,6 +608,19 @@ private class QBESQLiteWriterSession {
 		self.source = source
 	}
 
+	deinit {
+		if let j = self.job {
+			if j.isCancelled {
+				j.log("SQLite ingest job was cancelled, rolling back transaction")
+				self.database.query("ROLLBACK").require { c in
+					if case .failure(let m) = c.run() {
+						j.log("ROLLBACK of SQLite data failed \(m)! not swapping")
+					}
+				}
+			}
+		}
+	}
+
 	func start(_ job: Job, callback: (Fallible<Void>) -> ()) {
 		let dialect = database.dialect
 		self.completion = callback

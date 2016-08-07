@@ -15,6 +15,10 @@ class QBECacheStep: QBEStep, NSSecureCoding {
 		self.evictCache()
 	}
 
+	deinit {
+		self.cachedDataset?.cancel()
+	}
+
 	func evictCache() {
 		self.mutex.locked {
 			self.cachedDataset?.cancel()
@@ -62,8 +66,13 @@ class QBECacheStep: QBEStep, NSSecureCoding {
 			if let r = self.cachedDataset?.result, case .failure(_) = r {
 				self.evictCache()
 			}
+			else if let cd = self.cachedDataset, cd.cancelled && cd.result == nil {
+				self.evictCache()
+			}
 
-			self.cachedDataset!.get(job) { r in
+			// Make sure that cancelling job does not lead to cancellation of the caching effort by using a separate job
+			let cacheJob = Job(job.queue.qos)
+			let actualJob = self.cachedDataset!.get(cacheJob) { r in
 				switch r {
 				case .success(let fullData):
 					callback(.success(QBESQLiteExampleDataset(data: fullData, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows)))
@@ -72,16 +81,27 @@ class QBECacheStep: QBEStep, NSSecureCoding {
 					return callback(.failure(e))
 				}
 			}
+
+			// Forward any caching progress reports to the 'real' job
+			actualJob.addObserver(job)
 		}
 	}
 
 	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
-		if let r = self.cachedDataset?.result, case .failure(_) = r {
-			self.evictCache()
-		}
-
 		self.mutex.locked {
-			self.cachedDataset!.get(job, callback)
+			if let r = self.cachedDataset?.result, case .failure(_) = r {
+				self.evictCache()
+			}
+			else if let cd = self.cachedDataset, cd.cancelled && cd.result == nil {
+				self.evictCache()
+			}
+
+			// Make sure that cancelling job does not lead to cancellation of the caching effort by using a separate job
+			let cacheJob = Job(job.queue.qos)
+			let actualJob = self.cachedDataset!.get(cacheJob, callback)
+
+			// Forward any caching progress reports to the 'real' job
+			actualJob.addObserver(job)
 		}
 	}
 
