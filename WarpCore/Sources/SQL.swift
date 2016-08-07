@@ -876,7 +876,7 @@ public class StandardSQLDialect: SQLDialect {
 				return literalString(s)
 				
 			case .double(let d):
-				if d.isNormal {
+				if d.isNormal || d.isZero {
 					return "\(d)"
 				}
 				else {
