@@ -1073,7 +1073,7 @@ private class QBEDropColumnsAction: NSObject {
 									self.documentViewController.addTablet(tablet, atLocation: nil, undo: true)
 
 									let joinStep = QBEJoinStep(previous: nil)
-									joinStep.joinType = JoinType.LeftJoin
+									joinStep.joinType = JoinType.leftJoin
 									joinStep.condition = Comparison(first: Sibling(self.columns.first!), second: Foreign(self.columns.first!), type: .Equal)
 									joinStep.right = chain
 									sourceChainController.chain?.insertStep(joinStep, afterStep: sourceChainController.chain?.head)

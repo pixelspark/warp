@@ -3,7 +3,7 @@ import WarpCore
 
 class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	weak var right: QBEChain? = nil
-	var joinType: JoinType = JoinType.LeftJoin
+	var joinType: JoinType = JoinType.leftJoin
 	var condition: Expression? = nil
 
 	required init() {
@@ -11,14 +11,14 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 
 	override init(previous: QBEStep?) {
-		joinType = .LeftJoin
+		joinType = .leftJoin
 		super.init(previous: previous)
 	}
 	
 	required init(coder aDecoder: NSCoder) {
 		right = aDecoder.decodeObject(of: QBEChain.self, forKey: "right")
 		condition = aDecoder.decodeObject(of: Expression.self, forKey: "condition")
-		joinType = JoinType(rawValue: aDecoder.decodeObject(of: NSString.self, forKey: "joinType") as? String ?? "") ?? .LeftJoin
+		joinType = JoinType(rawValue: aDecoder.decodeObject(of: NSString.self, forKey: "joinType") as? String ?? "") ?? .leftJoin
 		
 		super.init(coder: aDecoder)
 	}
@@ -48,8 +48,8 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let joinTypeSentenceItem = QBESentenceOptions(options: [
-			JoinType.LeftJoin.rawValue: NSLocalizedString("including", comment: ""),
-			JoinType.InnerJoin.rawValue: NSLocalizedString("ignoring", comment: "")
+			JoinType.leftJoin.rawValue: NSLocalizedString("including", comment: ""),
+			JoinType.innerJoin.rawValue: NSLocalizedString("ignoring", comment: "")
 			], value: self.joinType.rawValue, callback: { [weak self] (newJoinTypeName) -> () in
 				if let j = JoinType(rawValue: newJoinTypeName) {
 					self?.joinType = j

@@ -595,8 +595,8 @@ public class StandardSQLDialect: SQLDialect {
 	
 	public func joinType(_ type: JoinType) -> String? {
 		switch type {
-		case .InnerJoin: return "INNER JOIN"
-		case .LeftJoin: return "LEFT JOIN"
+		case .innerJoin: return "INNER JOIN"
+		case .leftJoin: return "LEFT JOIN"
 		}
 	}
 
@@ -1216,7 +1216,7 @@ public class SQLDataset: NSObject, Dataset {
 	public func join(_ join: Join) -> Dataset {
 		if let sqlJoinType = sql.dialect.joinType(join.type) {
 			switch join.type {
-			case .LeftJoin, .InnerJoin:
+			case .leftJoin, .innerJoin:
 				// We need to 'unpack' coalesced data to get to the actual data
 				var rightDataset = join.foreignDataset
 				while rightDataset is ProxyDataset || rightDataset is CoalescedDataset {

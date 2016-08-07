@@ -1097,7 +1097,7 @@ class QBESQLiteSourceStep: QBEStep {
 					let steps = fkeys.map { fkey -> QBERelatedStep in
 						let s = QBESQLiteSourceStep(file: file)
 						s.tableName = fkey.referencedTable
-						return QBERelatedStep.joinable(step: s, type: .LeftJoin, condition: Comparison(first: Sibling(Column(fkey.column)), second: Foreign(Column(fkey.referencedColumn)), type: .Equal))
+						return QBERelatedStep.joinable(step: s, type: .leftJoin, condition: Comparison(first: Sibling(Column(fkey.column)), second: Foreign(Column(fkey.referencedColumn)), type: .Equal))
 					}
 					return callback(.success(steps))
 

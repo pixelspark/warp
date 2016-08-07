@@ -245,11 +245,11 @@ public enum JoinType: String {
 	- If a row in the left table matches with more than one row in the right table, the left row is repeated for each
 	  match in the result table; for each repeated row, the columns only present in the right table are filled with the
 	  data from the matching right row. */
-	case LeftJoin = "left"
+	case leftJoin = "left"
 	
 	/** The inner join is similar to the left join, except that when a row in the left table has no matches in the right
 	 table, it will be omitted in the result set. This type of join will not add any NULLs to the result set in any case. */
-	case InnerJoin = "inner"
+	case innerJoin = "inner"
 }
 
 /** Join represents a join of an unknown data set with a known, foreign data set based on a row matching expression. 

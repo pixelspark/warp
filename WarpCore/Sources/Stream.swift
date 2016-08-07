@@ -1017,7 +1017,7 @@ private class JoinTransformer: Transformer {
 			switch leftColumnsFallible {
 			case .success(let leftColumns):
 				switch self.join.type {
-				case .LeftJoin, .InnerJoin:
+				case .leftJoin, .innerJoin:
 					self.join.foreignDataset.columns(job) { (rightColumnsFallible) -> () in
 						switch rightColumnsFallible {
 						case .success(let rightColumns):
@@ -1074,13 +1074,13 @@ private class JoinTransformer: Transformer {
 									let ourRaster = Raster(data: Array(rows), columns: leftColumnNames, readOnly: true)
 									
 									switch self.join.type {
-									case .LeftJoin:
+									case .leftJoin:
 										ourRaster.leftJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
 											let joinedTuples = Array<Tuple>(joinedRaster.raster)
 											callback(.success(joinedTuples), streamStatus)
 										}
 										
-									case .InnerJoin:
+									case .innerJoin:
 										ourRaster.innerJoin(joinExpression, raster: foreignRaster, job: job) { (joinedRaster) in
 											let joinedTuples = Array<Tuple>(joinedRaster.raster)
 											callback(.success(joinedTuples), streamStatus)

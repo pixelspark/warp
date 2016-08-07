@@ -904,12 +904,12 @@ public class RasterDataset: NSObject, Dataset {
 				switch rightRasterFallible {
 					case .success(let rightRaster):
 						switch join.type {
-						case .LeftJoin:
+						case .leftJoin:
 							leftRaster.leftJoin(join.expression, raster: rightRaster, job: job) { (raster) in
 								callback(.success(raster))
 							}
 							
-						case .InnerJoin:
+						case .innerJoin:
 							leftRaster.innerJoin(join.expression, raster: rightRaster, job: job) { (raster) in
 								callback(.success(raster))
 							}
