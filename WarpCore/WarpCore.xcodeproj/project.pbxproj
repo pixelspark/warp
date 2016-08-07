@@ -10,6 +10,22 @@
 		651568551D55DDC500A01CEB /* Collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651568541D55DDC400A01CEB /* Collections.swift */; };
 		655BD6131C146B2600634C66 /* WarpCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 655BD6121C146B2600634C66 /* WarpCoreTests.swift */; };
 		655BD6571C14703F00634C66 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 655BD6551C14703F00634C66 /* Localizable.strings */; };
+		65646B8E1D577EA700E58137 /* WarpCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 656889681C146683008D1A7D /* WarpCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65646B8F1D577EC600E58137 /* Collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651568541D55DDC400A01CEB /* Collections.swift */; };
+		65646B901D577EC600E58137 /* Concurrency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894C1C146637008D1A7D /* Concurrency.swift */; };
+		65646B911D577EC600E58137 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889471C146637008D1A7D /* Data.swift */; };
+		65646B921D577EC600E58137 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889481C146637008D1A7D /* Date.swift */; };
+		65646B931D577EC600E58137 /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889491C146637008D1A7D /* Expression.swift */; };
+		65646B941D577EC600E58137 /* Formula.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894A1C146637008D1A7D /* Formula.swift */; };
+		65646B951D577EC600E58137 /* Function.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894B1C146637008D1A7D /* Function.swift */; };
+		65646B961D577EC600E58137 /* Language.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894D1C146637008D1A7D /* Language.swift */; };
+		65646B971D577EC600E58137 /* MutableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894E1C146637008D1A7D /* MutableData.swift */; };
+		65646B981D577EC600E58137 /* Raster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6568894F1C146637008D1A7D /* Raster.swift */; };
+		65646B991D577EC600E58137 /* Sequencer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889501C146637008D1A7D /* Sequencer.swift */; };
+		65646B9A1D577EC600E58137 /* SQL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889511C146637008D1A7D /* SQL.swift */; };
+		65646B9B1D577EC600E58137 /* Stats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889521C146637008D1A7D /* Stats.swift */; };
+		65646B9C1D577EC600E58137 /* Stream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889531C146637008D1A7D /* Stream.swift */; };
+		65646B9D1D577EC600E58137 /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889541C146637008D1A7D /* Value.swift */; };
 		656889291C1465CE008D1A7D /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6568891E1C1465CE008D1A7D /* WarpCore.framework */; };
 		656889551C146637008D1A7D /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889471C146637008D1A7D /* Data.swift */; };
 		656889561C146637008D1A7D /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889481C146637008D1A7D /* Date.swift */; };
@@ -30,6 +46,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		65646B7D1D577D5100E58137 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 656889701C146738008D1A7D /* SwiftParser.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65646B711D577D3B00E58137;
+			remoteInfo = SwiftParseriOS;
+		};
+		65646BB71D577FDC00E58137 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 656889701C146738008D1A7D /* SwiftParser.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 65646B701D577D3B00E58137;
+			remoteInfo = "SwiftParser-iOS";
+		};
 		6568892A1C1465CE008D1A7D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 656889151C1465CE008D1A7D /* Project object */;
@@ -66,6 +96,7 @@
 		655BD6121C146B2600634C66 /* WarpCoreTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = WarpCoreTests.swift; path = Tests/WarpCoreTests.swift; sourceTree = "<group>"; };
 		655BD6561C14703F00634C66 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		655BD6581C14704900634C66 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
+		65646B861D577E6500E58137 /* WarpCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6568891E1C1465CE008D1A7D /* WarpCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		656889281C1465CE008D1A7D /* WarpCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WarpCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		656889471C146637008D1A7D /* Data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = Data.swift; path = Sources/Data.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -89,6 +120,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		65646B821D577E6500E58137 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6568891A1C1465CE008D1A7D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,6 +162,7 @@
 			children = (
 				6568891E1C1465CE008D1A7D /* WarpCore.framework */,
 				656889281C1465CE008D1A7D /* WarpCoreTests.xctest */,
+				65646B861D577E6500E58137 /* WarpCore.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -167,6 +206,7 @@
 			children = (
 				656889761C146738008D1A7D /* SwiftParser.framework */,
 				656889781C146738008D1A7D /* SwiftParserTests.xctest */,
+				65646B7E1D577D5100E58137 /* SwiftParseriOS.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -174,6 +214,14 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		65646B831D577E6500E58137 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65646B8E1D577EA700E58137 /* WarpCore.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6568891B1C1465CE008D1A7D /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -185,6 +233,25 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		65646B851D577E6500E58137 /* WarpCore iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 65646B8B1D577E6600E58137 /* Build configuration list for PBXNativeTarget "WarpCore iOS" */;
+			buildPhases = (
+				65646B811D577E6500E58137 /* Sources */,
+				65646B821D577E6500E58137 /* Frameworks */,
+				65646B831D577E6500E58137 /* Headers */,
+				65646B841D577E6500E58137 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				65646BB81D577FDC00E58137 /* PBXTargetDependency */,
+			);
+			name = "WarpCore iOS";
+			productName = "WarpCore iOS";
+			productReference = 65646B861D577E6500E58137 /* WarpCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		6568891D1C1465CE008D1A7D /* WarpCore */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 656889321C1465CE008D1A7D /* Build configuration list for PBXNativeTarget "WarpCore" */;
@@ -233,6 +300,11 @@
 				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = Pixelspark;
 				TargetAttributes = {
+					65646B851D577E6500E58137 = {
+						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = 2T2T7HAA8S;
+						ProvisioningStyle = Automatic;
+					};
 					6568891D1C1465CE008D1A7D = {
 						CreatedOnToolsVersion = 7.1.1;
 						DevelopmentTeam = 2T2T7HAA8S;
@@ -269,11 +341,19 @@
 			targets = (
 				6568891D1C1465CE008D1A7D /* WarpCore */,
 				656889271C1465CE008D1A7D /* WarpCoreTests */,
+				65646B851D577E6500E58137 /* WarpCore iOS */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		65646B7E1D577D5100E58137 /* SwiftParseriOS.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SwiftParseriOS.framework;
+			remoteRef = 65646B7D1D577D5100E58137 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		656889761C146738008D1A7D /* SwiftParser.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -291,6 +371,13 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
+		65646B841D577E6500E58137 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6568891C1C1465CE008D1A7D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -309,6 +396,28 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		65646B811D577E6500E58137 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65646B8F1D577EC600E58137 /* Collections.swift in Sources */,
+				65646B901D577EC600E58137 /* Concurrency.swift in Sources */,
+				65646B911D577EC600E58137 /* Data.swift in Sources */,
+				65646B921D577EC600E58137 /* Date.swift in Sources */,
+				65646B931D577EC600E58137 /* Expression.swift in Sources */,
+				65646B941D577EC600E58137 /* Formula.swift in Sources */,
+				65646B951D577EC600E58137 /* Function.swift in Sources */,
+				65646B961D577EC600E58137 /* Language.swift in Sources */,
+				65646B971D577EC600E58137 /* MutableData.swift in Sources */,
+				65646B981D577EC600E58137 /* Raster.swift in Sources */,
+				65646B991D577EC600E58137 /* Sequencer.swift in Sources */,
+				65646B9A1D577EC600E58137 /* SQL.swift in Sources */,
+				65646B9B1D577EC600E58137 /* Stats.swift in Sources */,
+				65646B9C1D577EC600E58137 /* Stream.swift in Sources */,
+				65646B9D1D577EC600E58137 /* Value.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		656889191C1465CE008D1A7D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -342,6 +451,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		65646BB81D577FDC00E58137 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "SwiftParser-iOS";
+			targetProxy = 65646BB71D577FDC00E58137 /* PBXContainerItemProxy */;
+		};
 		6568892B1C1465CE008D1A7D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6568891D1C1465CE008D1A7D /* WarpCore */;
@@ -367,6 +481,63 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		65646B8C1D577E6600E58137 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 2T2T7HAA8S;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.WarpCore.WarpCore-iOS";
+				PRODUCT_NAME = WarpCore;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		65646B8D1D577E6600E58137 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 2T2T7HAA8S;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.WarpCore.WarpCore-iOS";
+				PRODUCT_NAME = WarpCore;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		656889301C1465CE008D1A7D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -531,6 +702,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		65646B8B1D577E6600E58137 /* Build configuration list for PBXNativeTarget "WarpCore iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65646B8C1D577E6600E58137 /* Debug */,
+				65646B8D1D577E6600E58137 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		656889181C1465CE008D1A7D /* Build configuration list for PBXProject "WarpCore" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
