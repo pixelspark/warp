@@ -66,7 +66,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 			if let search = searchField?.stringValue, !search.isEmpty {
 				lastSearch = search
 				filteredDataset = searchDataset ?? filteredDataset
-				filteredDataset = filteredDataset.filter(Comparison(first: Literal(Value(search)), second: Sibling(c), type: Binary.MatchesRegex))
+				filteredDataset = filteredDataset.filter(Comparison(first: Literal(Value(search)), second: Sibling(c), type: Binary.matchesRegex))
 			}
 
 			let job = Job(.userInitiated)

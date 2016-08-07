@@ -423,7 +423,7 @@ public class SQLMutableDataset: MutableDataset {
 		for key in keys {
 			var wheres: [Expression] = []
 			for (column, value) in key {
-				wheres.append(Comparison(first: Sibling(column), second: Literal(value), type: .Equal))
+				wheres.append(Comparison(first: Sibling(column), second: Literal(value), type: .equal))
 			}
 			allWheres.append(Call(arguments: wheres, type: .And))
 		}
@@ -441,11 +441,11 @@ public class SQLMutableDataset: MutableDataset {
 	private func performUpdate(_ connection: SQLConnection, key: [Column: Value], column: Column, old: Value, new:Value, job: Job, callback: (Fallible<Void>) -> ()) {
 		var wheres: [Expression] = []
 		for (column, value) in key {
-			wheres.append(Comparison(first: Sibling(column), second: Literal(value), type: .Equal))
+			wheres.append(Comparison(first: Sibling(column), second: Literal(value), type: .equal))
 		}
 
 		// Only update if the old value matches what we last saw
-		wheres.append(Comparison(first: Sibling(column), second: Literal(old), type: .Equal))
+		wheres.append(Comparison(first: Sibling(column), second: Literal(old), type: .equal))
 
 		let whereExpression = Call(arguments: wheres, type: .And)
 		guard let whereSQL = self.database.dialect.expressionToSQL(whereExpression, alias: self.tableName, foreignAlias: nil, inputValue: nil) else { return callback(.failure("Selection cannot be written in SQL")) }
@@ -902,23 +902,23 @@ public class StandardSQLDialect: SQLDialect {
 	
 	public func binaryToSQL(_ type: Binary, first: String, second: String) -> String? {
 		switch type {
-			case .Addition:		return "(\(second)+\(first))"
-			case .Subtraction:	return "(\(second)-\(first))"
-			case .Multiplication: return "(\(second)*\(first))"
-			case .Division:		return "(\(second)/\(first))"
-			case .Modulus:		return "MOD(\(second), \(first))"
-			case .Concatenation: return "CONCAT(\(second),\(first))"
-			case .Power:		return "POW(\(second), \(first))"
+			case .addition:		return "(\(second)+\(first))"
+			case .subtraction:	return "(\(second)-\(first))"
+			case .multiplication: return "(\(second)*\(first))"
+			case .division:		return "(\(second)/\(first))"
+			case .modulus:		return "MOD(\(second), \(first))"
+			case .concatenation: return "CONCAT(\(second),\(first))"
+			case .power:		return "POW(\(second), \(first))"
 
 			// Force arguments of numeric comparison operators to numerics, to prevent 'string ordering' comparisons
 			// Note that this may impact performance as indexes cannot be used anymore after casting?
 			// TODO: only force to numeric when expression is not already numeric (e.g. a double literal).
-			case .Greater:		return "(\(self.forceNumericExpression(second))>\(self.forceNumericExpression(first)))"
-			case .Lesser:		return "(\(self.forceNumericExpression(second))<\(self.forceNumericExpression(first)))"
-			case .GreaterEqual:	return "(\(self.forceNumericExpression(second))>=\(self.forceNumericExpression(first)))"
-			case .LesserEqual:	return "(\(self.forceNumericExpression(second))<=\(self.forceNumericExpression(first)))"
+			case .greater:		return "(\(self.forceNumericExpression(second))>\(self.forceNumericExpression(first)))"
+			case .lesser:		return "(\(self.forceNumericExpression(second))<\(self.forceNumericExpression(first)))"
+			case .greaterEqual:	return "(\(self.forceNumericExpression(second))>=\(self.forceNumericExpression(first)))"
+			case .lesserEqual:	return "(\(self.forceNumericExpression(second))<=\(self.forceNumericExpression(first)))"
 
-			case .NotEqual:
+			case .notEqual:
 				if second == "NULL" {
 					return "(\(first) IS NOT NULL)"
 				}
@@ -929,7 +929,7 @@ public class StandardSQLDialect: SQLDialect {
 					return "(\(second)<>\(first))"
 				}
 
-			case .Equal:
+			case .equal:
 				if second == "NULL" {
 					return "(\(first) IS NULL)"
 				}
@@ -943,10 +943,10 @@ public class StandardSQLDialect: SQLDialect {
 			/* Most SQL database support the "a LIKE '%b%'" syntax for finding items where column a contains the string b
 			(case-insensitive), so that's what we use for ContainsString and ContainsStringStrict. Because Presto doesn't
 			support CONCAT with multiple parameters, we use two. */
-			case .ContainsString: return "(LOWER(\(second)) LIKE CONCAT('%', CONCAT(LOWER(\(first)),'%')))"
-			case .ContainsStringStrict: return "(\(second) LIKE CONCAT('%',CONCAT(\(first),'%')))"
-			case .MatchesRegex: return "(\(second) REGEXP \(first))"
-			case .MatchesRegexStrict: return "(\(second) REGEXP BINARY \(first))"
+			case .containsString: return "(LOWER(\(second)) LIKE CONCAT('%', CONCAT(LOWER(\(first)),'%')))"
+			case .containsStringStrict: return "(\(second) LIKE CONCAT('%',CONCAT(\(first),'%')))"
+			case .matchesRegex: return "(\(second) REGEXP \(first))"
+			case .matchesRegexStrict: return "(\(second) REGEXP BINARY \(first))"
 		}
 	}
 }

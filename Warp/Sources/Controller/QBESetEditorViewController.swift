@@ -42,7 +42,7 @@ class QBESetEditorViewController: NSViewController, NSTableViewDelegate, NSTable
 	private func updateFilter() {
 		if let query = self.searchField?.stringValue, !query.isEmpty {
 			self.filteredValues = self.possibleValues.filter { v in
-				return Comparison(first: Literal(Value(query)), second: Literal(Value(v)), type: .MatchesRegex).apply(Row(), foreign: nil, inputValue: nil) == Value(true)
+				return Comparison(first: Literal(Value(query)), second: Literal(Value(v)), type: .matchesRegex).apply(Row(), foreign: nil, inputValue: nil) == Value(true)
 			}
 		}
 		else {

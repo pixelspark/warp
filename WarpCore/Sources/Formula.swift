@@ -79,31 +79,31 @@ public class Formula: Parser {
 	}
 	
 	private func pushAddition() {
-		pushBinary(Binary.Addition)
+		pushBinary(Binary.addition)
 	}
 	
 	private func pushSubtraction() {
-		pushBinary(Binary.Subtraction)
+		pushBinary(Binary.subtraction)
 	}
 	
 	private func pushMultiplication() {
-		pushBinary(Binary.Multiplication)
+		pushBinary(Binary.multiplication)
 	}
 
 	private func pushModulus() {
-		pushBinary(Binary.Modulus)
+		pushBinary(Binary.modulus)
 	}
 	
 	private func pushDivision() {
-		pushBinary(Binary.Division)
+		pushBinary(Binary.division)
 	}
 	
 	private func pushPower() {
-		pushBinary(Binary.Power)
+		pushBinary(Binary.power)
 	}
 	
 	private func pushConcat() {
-		pushBinary(Binary.Concatenation)
+		pushBinary(Binary.concatenation)
 	}
 	
 	private func pushNegate() {
@@ -130,7 +130,7 @@ public class Formula: Parser {
 
 	private func pushPostfixMultiplier(_ factor: Value) {
 		let a = stack.pop()
-		annotate(stack.push(Comparison(first: Literal(factor), second: a, type: Binary.Multiplication)))
+		annotate(stack.push(Comparison(first: Literal(factor), second: a, type: Binary.multiplication)))
 	}
 	
 	private func pushBinary(_ type: Binary) {
@@ -146,35 +146,35 @@ public class Formula: Parser {
 	}
 	
 	private func pushGreater() {
-		pushBinary(Binary.Greater)
+		pushBinary(Binary.greater)
 	}
 	
 	private func pushGreaterEqual() {
-		pushBinary(Binary.GreaterEqual)
+		pushBinary(Binary.greaterEqual)
 	}
 	
 	private func pushLesser() {
-		pushBinary(Binary.Lesser)
+		pushBinary(Binary.lesser)
 	}
 	
 	private func pushLesserEqual() {
-		pushBinary(Binary.LesserEqual)
+		pushBinary(Binary.lesserEqual)
 	}
 	
 	private func pushContainsString() {
-		pushBinary(Binary.ContainsString)
+		pushBinary(Binary.containsString)
 	}
 	
 	private func pushContainsStringStrict() {
-		pushBinary(Binary.ContainsStringStrict)
+		pushBinary(Binary.containsStringStrict)
 	}
 	
 	private func pushEqual() {
-		pushBinary(Binary.Equal)
+		pushBinary(Binary.equal)
 	}
 	
 	private func pushNotEqual() {
-		pushBinary(Binary.NotEqual)
+		pushBinary(Binary.notEqual)
 	}
 	
 	private func pushCall() {
@@ -251,8 +251,8 @@ public class Formula: Parser {
 		// Comparisons
 		add_named_rule("containsString", rule: ("~=" ~~ ^"concatenation") => pushContainsString)
 		add_named_rule("containsStringStrict", rule: ("~~=" ~~ ^"concatenation") => pushContainsStringStrict)
-		add_named_rule("matchesRegex", rule: ("±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(Binary.MatchesRegex) })
-		add_named_rule("matchesRegexStrict", rule: ("±±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(Binary.MatchesRegexStrict)})
+		add_named_rule("matchesRegex", rule: ("±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(Binary.matchesRegex) })
+		add_named_rule("matchesRegexStrict", rule: ("±±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(Binary.matchesRegexStrict)})
 		add_named_rule("greater", rule: (">" ~~ ^"concatenation") => pushGreater)
 		add_named_rule("greaterEqual", rule: (">=" ~~ ^"concatenation") => pushGreaterEqual)
 		add_named_rule("lesser", rule: ("<" ~~ ^"concatenation") => pushLesser)

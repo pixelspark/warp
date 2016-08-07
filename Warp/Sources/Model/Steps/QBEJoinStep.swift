@@ -87,7 +87,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 					self?.simpleSibling = Column(newValue)
 				}),
 
-				QBESentenceOptions(options: binaryOptions, value: (self.simpleType ?? .Equal).rawValue, callback: { [weak self] newType in
+				QBESentenceOptions(options: binaryOptions, value: (self.simpleType ?? .equal).rawValue, callback: { [weak self] newType in
 					self?.simpleType = Binary(rawValue: newType)
 				}),
 
@@ -283,7 +283,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 
 	private func setSimpleCondition(sibling: Column?, foreign: Column?) {
-		let currentType = self.simpleType ?? Binary.Equal
+		let currentType = self.simpleType ?? Binary.equal
 		let first: Expression = (foreign != nil) ? Foreign(foreign!) : Literal(Value.invalid)
 		let second: Expression = (sibling != nil) ? Sibling(sibling!) : Literal(Value.invalid)
 		self.condition = Comparison(first: first, second: second, type: currentType)

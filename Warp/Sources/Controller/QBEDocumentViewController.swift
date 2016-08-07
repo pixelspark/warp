@@ -1074,7 +1074,7 @@ private class QBEDropColumnsAction: NSObject {
 
 									let joinStep = QBEJoinStep(previous: nil)
 									joinStep.joinType = JoinType.leftJoin
-									joinStep.condition = Comparison(first: Sibling(self.columns.first!), second: Foreign(self.columns.first!), type: .Equal)
+									joinStep.condition = Comparison(first: Sibling(self.columns.first!), second: Foreign(self.columns.first!), type: .equal)
 									joinStep.right = chain
 									sourceChainController.chain?.insertStep(joinStep, afterStep: sourceChainController.chain?.head)
 									sourceChainController.currentStep = joinStep

@@ -852,7 +852,7 @@ class QBEMySQLSourceStep: QBEStep {
 						case .success(let constraints):
 							let steps = constraints.map { constraint -> QBERelatedStep in
 								let sourceStep = QBEMySQLSourceStep(host: self.host, port: self.port, user: self.user, database: constraint.referencedDatabase, tableName: constraint.referencedTable)
-								let joinExpression = Comparison(first: Sibling(Column(constraint.column)), second: Foreign(Column(constraint.referencedColumn)), type: .Equal)
+								let joinExpression = Comparison(first: Sibling(Column(constraint.column)), second: Foreign(Column(constraint.referencedColumn)), type: .equal)
 								return QBERelatedStep.joinable(step: sourceStep, type: .leftJoin, condition: joinExpression)
 							}
 							return callback(.success(steps))

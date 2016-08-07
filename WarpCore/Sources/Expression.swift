@@ -350,10 +350,10 @@ public final class Comparison: Expression {
 		are not constant, e.g. sibling or foreign references) */
 		if firstOptimized.isEquivalentTo(secondOptimized) {
 			switch self.type {
-				case .Equal, .LesserEqual, .GreaterEqual:
+				case .equal, .lesserEqual, .greaterEqual:
 					return Literal(Value.bool(true))
 
-				case .NotEqual, .Greater, .Lesser:
+				case .notEqual, .greater, .lesser:
 					return Literal(Value.bool(false))
 				
 				default:
@@ -400,8 +400,8 @@ public final class Comparison: Expression {
 	public required init?(coder aDecoder: NSCoder) {
 		self.first = (aDecoder.decodeObject(forKey: "first") as? Expression) ?? Identity()
 		self.second = (aDecoder.decodeObject(forKey: "second") as? Expression) ?? Identity()
-		let typeString = (aDecoder.decodeObject(forKey: "type") as? String) ?? Binary.Addition.rawValue
-		self.type = Binary(rawValue: typeString) ?? Binary.Addition
+		let typeString = (aDecoder.decodeObject(forKey: "type") as? String) ?? Binary.addition.rawValue
+		self.type = Binary(rawValue: typeString) ?? Binary.addition
 		super.init(coder: aDecoder)
 	}
 	
@@ -433,12 +433,12 @@ public final class Comparison: Expression {
 								
 								if difference > 0 {
 									addSuggestions.forEach {
-										suggestions.append(Comparison(first: $0, second: from, type: Binary.Addition))
+										suggestions.append(Comparison(first: $0, second: from, type: Binary.addition))
 									}
 								}
 								else {
 									addSuggestions.forEach {
-										suggestions.append(Comparison(first: $0, second: from, type: Binary.Subtraction))
+										suggestions.append(Comparison(first: $0, second: from, type: Binary.subtraction))
 									}
 								}
 							}
@@ -451,12 +451,12 @@ public final class Comparison: Expression {
 								
 								if dividend >= 1 {
 									mulSuggestions.forEach {
-										suggestions.append(Comparison(first: $0, second: from, type: Binary.Multiplication))
+										suggestions.append(Comparison(first: $0, second: from, type: Binary.multiplication))
 									}
 								}
 								else {
 									mulSuggestions.forEach {
-										suggestions.append(Comparison(first: $0, second: from, type: Binary.Division))
+										suggestions.append(Comparison(first: $0, second: from, type: Binary.division))
 									}
 								}
 							}
@@ -473,7 +473,7 @@ public final class Comparison: Expression {
 								let postfixSuggestions = Expression.infer(nil, toValue: Value.string(postfix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
 								postfixSuggestions.forEach {
-									suggestions.append(Comparison(first: $0, second: from, type: Binary.Concatenation))
+									suggestions.append(Comparison(first: $0, second: from, type: Binary.concatenation))
 								}
 							}
 							else {
@@ -487,7 +487,7 @@ public final class Comparison: Expression {
 									let prefixSuggestions = Expression.infer(nil, toValue: Value.string(prefix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 									
 									prefixSuggestions.forEach {
-										suggestions.append(Comparison(first: from, second: $0, type: Binary.Concatenation))
+										suggestions.append(Comparison(first: from, second: $0, type: Binary.concatenation))
 									}
 								}
 							}
@@ -860,7 +860,7 @@ public class FilterSet: NSObject, NSCoding {
 	public var expression: Expression {
 		if selectedValues.count == 1 {
 			// The value must be equal to the selected value x - generate value == x
-			return Comparison(first: Literal(selectedValues.first!), second: Identity(), type: .Equal)
+			return Comparison(first: Literal(selectedValues.first!), second: Identity(), type: .equal)
 		}
 		else if selectedValues.count > 1 {
 			// The value may match any of the selected values x, y, z - generate IN(value, x, y, z)

@@ -362,22 +362,22 @@ private class QBERethinkExpression {
 		else if let binary = expression as? Comparison {
 			if let s = QBERethinkExpression.expressionToQuery(binary.first, prior: prior), let f = QBERethinkExpression.expressionToQuery(binary.second, prior: prior) {
 				switch binary.type {
-				case .Addition: return f.coerceTo(.Number).add(s.coerceTo(.Number))
-				case .Subtraction: return f.coerceTo(.Number).sub(s.coerceTo(.Number))
-				case .Multiplication: return f.coerceTo(.Number).mul(s.coerceTo(.Number))
-				case .Division: return f.coerceTo(.Number).div(s.coerceTo(.Number))
-				case .Equal: return f.eq(s)
-				case .NotEqual: return f.ne(s)
-				case .Greater: return f.coerceTo(.Number).gt(s.coerceTo(.Number))
-				case .Lesser: return f.coerceTo(.Number).lt(s.coerceTo(.Number))
-				case .GreaterEqual: return f.coerceTo(.Number).ge(s.coerceTo(.Number))
-				case .LesserEqual: return f.coerceTo(.Number).le(s.coerceTo(.Number))
-				case .Modulus: return f.coerceTo(.Number).mod(s.coerceTo(.Number))
-				case .MatchesRegexStrict: return f.coerceTo(.String).match(s.coerceTo(.String)).eq(R.expr()).not()
+				case .addition: return f.coerceTo(.Number).add(s.coerceTo(.Number))
+				case .subtraction: return f.coerceTo(.Number).sub(s.coerceTo(.Number))
+				case .multiplication: return f.coerceTo(.Number).mul(s.coerceTo(.Number))
+				case .division: return f.coerceTo(.Number).div(s.coerceTo(.Number))
+				case .equal: return f.eq(s)
+				case .notEqual: return f.ne(s)
+				case .greater: return f.coerceTo(.Number).gt(s.coerceTo(.Number))
+				case .lesser: return f.coerceTo(.Number).lt(s.coerceTo(.Number))
+				case .greaterEqual: return f.coerceTo(.Number).ge(s.coerceTo(.Number))
+				case .lesserEqual: return f.coerceTo(.Number).le(s.coerceTo(.Number))
+				case .modulus: return f.coerceTo(.Number).mod(s.coerceTo(.Number))
+				case .matchesRegexStrict: return f.coerceTo(.String).match(s.coerceTo(.String)).eq(R.expr()).not()
 
 				/* The 'match' function accepts Re2 syntax. By prefixing the pattern with '(?i)', the matching is
 				case-insensitive. (http://rethinkdb.com/api/javascript/match/) */
-				case .MatchesRegex: return f.coerceTo(.String).match(R.expr("(?i)").add(s.coerceTo(.String))).eq(R.expr()).not()
+				case .matchesRegex: return f.coerceTo(.String).match(R.expr("(?i)").add(s.coerceTo(.String))).eq(R.expr()).not()
 				default: return nil
 				}
 			}
@@ -426,7 +426,7 @@ class QBERethinkDataset: StreamDataset {
 		if QBERethinkExpression.expressionToQuery(optimized, prior: R.expr()) != nil {
 			/* A filter is much faster if it can use an index. If this data set represents a table *and* the filter is
 			of the form column=value, *and* we have an index for that column, then use getAll. */
-			if let tbl = self.query as? ReQueryTable, let binary = optimized as? Comparison, binary.type == .Equal {
+			if let tbl = self.query as? ReQueryTable, let binary = optimized as? Comparison, binary.type == .equal {
 				if let (sibling, literal) = binary.commutativePair(Sibling.self, Literal.self) {
 					if self.indices?.contains(sibling.column) ?? false {
 						// We can use a secondary index

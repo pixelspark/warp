@@ -374,7 +374,7 @@ public class Raster: NSObject, NSCoding {
 			return
 		}
 		
-		if let hc = HashComparison(expression: expression), hc.comparisonOperator == Binary.Equal {
+		if let hc = HashComparison(expression: expression), hc.comparisonOperator == Binary.equal {
 			// This join can be performed as a hash join
 			self.hashJoin(inner, comparison: hc, raster: rightRaster, job: job, callback: callback)
 		}
@@ -391,7 +391,7 @@ public class Raster: NSObject, NSCoding {
 	therefore much better on larger data sets (m+n+log n compared to m*n) */
 	private func hashJoin(_ inner: Bool, comparison: HashComparison, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
 		self.mutex.locked {
-			assert(comparison.comparisonOperator == Binary.Equal, "hashJoin does not (yet) support hash joins based on non-equality")
+			assert(comparison.comparisonOperator == Binary.equal, "hashJoin does not (yet) support hash joins based on non-equality")
 
 			// Prepare a template row for the result
 			let rightColumns = rightRaster.columns

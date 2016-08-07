@@ -51,8 +51,8 @@ private class QBEPostgresDialect: StandardSQLDialect {
 	
 	private override func binaryToSQL(_ type: Binary, first: String, second: String) -> String? {
 		switch type {
-			case .MatchesRegex: return "(\(forceStringExpression(second)) ~* \(forceStringExpression(first)))"
-			case .MatchesRegexStrict: return "(\(forceStringExpression(second)) ~ \(forceStringExpression(first)))"
+			case .matchesRegex: return "(\(forceStringExpression(second)) ~* \(forceStringExpression(first)))"
+			case .matchesRegexStrict: return "(\(forceStringExpression(second)) ~ \(forceStringExpression(first)))"
 			default: return super.binaryToSQL(type, first: first, second: second)
 		}
 	}

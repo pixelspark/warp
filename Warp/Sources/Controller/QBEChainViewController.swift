@@ -241,7 +241,7 @@ internal enum QBEEditingMode {
 												for overlappingColumn in overlappingColumns {
 													let joinStep = QBEJoinStep(previous: nil)
 													joinStep.right = self.otherChain
-													joinStep.condition = Comparison(first: Sibling(overlappingColumn), second: Foreign(overlappingColumn), type: Binary.Equal)
+													joinStep.condition = Comparison(first: Sibling(overlappingColumn), second: Foreign(overlappingColumn), type: Binary.equal)
 													joinSteps.append(joinStep)
 												}
 											}

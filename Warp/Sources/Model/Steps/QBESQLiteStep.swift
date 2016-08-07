@@ -450,11 +450,11 @@ private class QBESQLiteDialect: StandardSQLDialect {
 		switch type {
 			/** For 'contains string', the default implementation uses "a LIKE '%b%'" syntax. Using INSTR is probably a
 			bit faster on SQLite. */
-			case .ContainsString: result = "INSTR(LOWER(\(second)), LOWER(\(first)))>0"
-			case .ContainsStringStrict: result = "INSTR(\(second), \(first))>0"
-			case .MatchesRegex: result = nil // Force usage of UDF here, SQLite does not implement (a REGEXP p)
-			case .MatchesRegexStrict: result = nil
-			case .Concatenation: result = "(\(second) || \(first))"
+			case .containsString: result = "INSTR(LOWER(\(second)), LOWER(\(first)))>0"
+			case .containsStringStrict: result = "INSTR(\(second), \(first))>0"
+			case .matchesRegex: result = nil // Force usage of UDF here, SQLite does not implement (a REGEXP p)
+			case .matchesRegexStrict: result = nil
+			case .concatenation: result = "(\(second) || \(first))"
 			
 			default:
 				result = super.binaryToSQL(type, first: first, second: second)
@@ -1097,7 +1097,7 @@ class QBESQLiteSourceStep: QBEStep {
 					let steps = fkeys.map { fkey -> QBERelatedStep in
 						let s = QBESQLiteSourceStep(file: file)
 						s.tableName = fkey.referencedTable
-						return QBERelatedStep.joinable(step: s, type: .leftJoin, condition: Comparison(first: Sibling(Column(fkey.column)), second: Foreign(Column(fkey.referencedColumn)), type: .Equal))
+						return QBERelatedStep.joinable(step: s, type: .leftJoin, condition: Comparison(first: Sibling(Column(fkey.column)), second: Foreign(Column(fkey.referencedColumn)), type: .equal))
 					}
 					return callback(.success(steps))
 

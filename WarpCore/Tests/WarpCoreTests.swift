@@ -468,11 +468,11 @@ class WarpCoreTests: XCTestCase {
 		}
 
 		// Binaries
-		XCTAssert(Binary.ContainsString.apply(Value("Tommy"), Value("om"))==Value(true), "Contains string operator should be case-insensitive")
-		XCTAssert(Binary.ContainsString.apply(Value("Tommy"), Value("x"))==Value(false), "Contains string operator should work")
-		XCTAssert(Binary.ContainsStringStrict.apply(Value("Tommy"), Value("Tom"))==Value(true), "Strict contains string operator should work")
-		XCTAssert(Binary.ContainsStringStrict.apply(Value("Tommy"), Value("tom"))==Value(false), "Strict contains string operator should be case-sensitive")
-		XCTAssert(Binary.ContainsStringStrict.apply(Value("Tommy"), Value("x"))==Value(false), "Strict contains string operator should work")
+		XCTAssert(Binary.containsString.apply(Value("Tommy"), Value("om"))==Value(true), "Contains string operator should be case-insensitive")
+		XCTAssert(Binary.containsString.apply(Value("Tommy"), Value("x"))==Value(false), "Contains string operator should work")
+		XCTAssert(Binary.containsStringStrict.apply(Value("Tommy"), Value("Tom"))==Value(true), "Strict contains string operator should work")
+		XCTAssert(Binary.containsStringStrict.apply(Value("Tommy"), Value("tom"))==Value(false), "Strict contains string operator should be case-sensitive")
+		XCTAssert(Binary.containsStringStrict.apply(Value("Tommy"), Value("x"))==Value(false), "Strict contains string operator should work")
 
 		// Split / nth
 		XCTAssert(Function.Split.apply([Value("van der Vorst, Tommy"), Value(" ")]).stringValue == "van,der,Vorst$0,Tommy", "Split works")
@@ -613,7 +613,7 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(Literal(Value(13.46)).isConstant, "Literal expression should be constant")
 		XCTAssert(!Call(arguments: [], type: Function.RandomItem).isConstant, "Non-deterministic function expression should not be constant")
 		
-		XCTAssert(!Comparison(first: Literal(Value(13.45)), second: Call(arguments: [], type: Function.RandomItem), type: Binary.Equal).isConstant, "Binary operator applied to at least one non-constant expression should not be constant itself")
+		XCTAssert(!Comparison(first: Literal(Value(13.45)), second: Call(arguments: [], type: Function.RandomItem), type: Binary.equal).isConstant, "Binary operator applied to at least one non-constant expression should not be constant itself")
 		
 		
 		let locale = Language(language: Language.defaultLanguage)
@@ -792,13 +792,13 @@ class WarpCoreTests: XCTestCase {
 		}
 		
 		// Join
-		data.join(Join(type: .leftJoin, foreignDataset: secondDataset, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .Equal))).raster(job) {
+		data.join(Join(type: .leftJoin, foreignDataset: secondDataset, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .equal))).raster(job) {
 			assertRaster($0, message: "Join returns the appropriate number of rows in a one-to-one scenario", condition: { (x) in
 				x.rowCount == 1000
 			})
 			assertRaster($0, message: "Join returns the appropriate number of columns", condition: { $0.columns.count == 5 })
 		}
-		data.join(Join(type: .leftJoin, foreignDataset: data, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .Equal))).raster(job) {
+		data.join(Join(type: .leftJoin, foreignDataset: data, expression: Comparison(first: Sibling("X"), second: Foreign("X"), type: .equal))).raster(job) {
 			assertRaster($0, message: "Join returns the appropriate number of rows in a self-join one-to-one scenario", condition: { $0.rowCount == 1000 })
 			assertRaster($0, message: "Join returns the appropriate number of columns in a self-join", condition: { $0.columns.count == 3 })
 		}

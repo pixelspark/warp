@@ -121,8 +121,8 @@ public enum Function: String {
 			case .Not:
 				if args.count == 1 {
 					// NOT(a=b) should be replaced with simply a!=b
-					if let a = args[0] as? Comparison, a.type == Binary.Equal {
-						return Comparison(first: a.first, second: a.second, type: Binary.NotEqual).prepare()
+					if let a = args[0] as? Comparison, a.type == Binary.equal {
+						return Comparison(first: a.first, second: a.second, type: Binary.notEqual).prepare()
 					}
 					// Not(In(..)) should be written as NotIn(..)
 					else if let a = args[0] as? Call, a.type == Function.In {
@@ -172,7 +172,7 @@ public enum Function: String {
 				var columnExpression: ColumnReferencingExpression? = nil
 				var valueExpressions: [Expression] = []
 				var binaryType: Binary? = nil
-				let allowedBinaryTypes = [Binary.Equal]
+				let allowedBinaryTypes = [Binary.equal]
 				
 				for p in prepared {
 					if let binary = p as? Comparison, allowedBinaryTypes.contains(binary.type) && (binaryType == nil || binaryType == binary.type) {
@@ -226,10 +226,10 @@ public enum Function: String {
 					valueExpressions.insert(ce, at: 0)
 
 					switch bt {
-						case .Equal:
+						case .equal:
 							return Call(arguments: valueExpressions, type: Function.In)
 						
-						case .NotEqual:
+						case .notEqual:
 							return Call(arguments: valueExpressions, type: Function.NotIn)
 						
 						default:
@@ -1315,79 +1315,79 @@ public enum Function: String {
 because they have a special place in formula syntax, and they have certain special properties (e.g. some can be 'mirrorred':
 a>=b can be mirrorred to b<a). Otherwise, SUM(a;b) and a+b are equivalent. */
 public enum Binary: String {
-	case Addition = "add"
-	case Subtraction = "sub"
-	case Multiplication = "mul"
-	case Division = "div"
-	case Modulus = "mod"
-	case Concatenation = "cat"
-	case Power = "pow"
-	case Greater = "gt"
-	case Lesser = "lt"
-	case GreaterEqual = "gte"
-	case LesserEqual = "lte"
-	case Equal = "eq"
-	case NotEqual = "neq"
-	case ContainsString = "contains" // case-insensitive
-	case ContainsStringStrict = "containsStrict" // case-sensitive
-	case MatchesRegex = "matchesRegex" // not case-sensitive
-	case MatchesRegexStrict = "matchesRegexStrict" // case-sensitive
+	case addition = "add"
+	case subtraction = "sub"
+	case multiplication = "mul"
+	case division = "div"
+	case modulus = "mod"
+	case concatenation = "cat"
+	case power = "pow"
+	case greater = "gt"
+	case lesser = "lt"
+	case greaterEqual = "gte"
+	case lesserEqual = "lte"
+	case equal = "eq"
+	case notEqual = "neq"
+	case containsString = "contains" // case-insensitive
+	case containsStringStrict = "containsStrict" // case-sensitive
+	case matchesRegex = "matchesRegex" // not case-sensitive
+	case matchesRegexStrict = "matchesRegexStrict" // case-sensitive
 
-	public static let allBinaries = [Addition, Subtraction, Multiplication, Division, Modulus, Concatenation, Power,
-	                                 Equal, NotEqual, Greater, Lesser, GreaterEqual, LesserEqual, ContainsString,
-	                                 ContainsStringStrict, MatchesRegex, MatchesRegexStrict]
+	public static let allBinaries = [addition, subtraction, multiplication, division, modulus, concatenation, power,
+	                                 equal, notEqual, greater, lesser, greaterEqual, lesserEqual, containsString,
+	                                 containsStringStrict, matchesRegex, matchesRegexStrict]
 
 	/** Returns a human-readable, localized explanation of what this binary operator does. */
 	public func explain(_ locale: Language) -> String {
 		switch self {
-		case .Addition: return "+"
-		case .Subtraction: return "-"
-		case .Multiplication: return "*"
-		case .Division: return "/"
-		case .Modulus: return "%"
-		case .Concatenation: return "&"
-		case .Power: return "^"
-		case .Greater: return translationForString("is greater than")
-		case .Lesser: return translationForString("is less than")
-		case .GreaterEqual: return translationForString("is greater than or equal to")
-		case .LesserEqual: return translationForString("is less than or equal to")
-		case .Equal: return translationForString("is equal to")
-		case .NotEqual: return translationForString("is not equal to")
-		case .ContainsString: return translationForString("contains text")
-		case .ContainsStringStrict: return translationForString("contains text (case-sensitive)")
-		case .MatchesRegex: return translationForString("matches pattern")
-		case .MatchesRegexStrict: return translationForString("matches pattern (case-sensitive)")
+		case .addition: return "+"
+		case .subtraction: return "-"
+		case .multiplication: return "*"
+		case .division: return "/"
+		case .modulus: return "%"
+		case .concatenation: return "&"
+		case .power: return "^"
+		case .greater: return translationForString("is greater than")
+		case .lesser: return translationForString("is less than")
+		case .greaterEqual: return translationForString("is greater than or equal to")
+		case .lesserEqual: return translationForString("is less than or equal to")
+		case .equal: return translationForString("is equal to")
+		case .notEqual: return translationForString("is not equal to")
+		case .containsString: return translationForString("contains text")
+		case .containsStringStrict: return translationForString("contains text (case-sensitive)")
+		case .matchesRegex: return translationForString("matches pattern")
+		case .matchesRegexStrict: return translationForString("matches pattern (case-sensitive)")
 		}
 	}
 	
 	public func toFormula(_ locale: Language) -> String {
 		switch self {
-		case .Addition: return "+"
-		case .Subtraction: return "-"
-		case .Multiplication: return "*"
-		case .Division: return "/"
-		case .Modulus: return "%"
-		case .Concatenation: return "&"
-		case .Power: return "^"
-		case .Greater: return ">"
-		case .Lesser: return "<"
-		case .GreaterEqual: return ">="
-		case .LesserEqual: return "<="
-		case .Equal: return "="
-		case .NotEqual: return "<>"
-		case .ContainsString: return "~="
-		case .ContainsStringStrict: return "~~="
-		case .MatchesRegex: return "±="
-		case .MatchesRegexStrict: return "±±="
+		case .addition: return "+"
+		case .subtraction: return "-"
+		case .multiplication: return "*"
+		case .division: return "/"
+		case .modulus: return "%"
+		case .concatenation: return "&"
+		case .power: return "^"
+		case .greater: return ">"
+		case .lesser: return "<"
+		case .greaterEqual: return ">="
+		case .lesserEqual: return "<="
+		case .equal: return "="
+		case .notEqual: return "<>"
+		case .containsString: return "~="
+		case .containsStringStrict: return "~~="
+		case .matchesRegex: return "±="
+		case .matchesRegexStrict: return "±±="
 		}
 	}
 
 	/** True if this operator accepts two arbitrary values and returns a boolean (at least for non-invalid values). */
 	public var isComparative: Bool {
 		switch self {
-		case .Greater, .Lesser, .GreaterEqual, .LesserEqual, .Equal, .NotEqual, .ContainsStringStrict, .ContainsString, .MatchesRegex, .MatchesRegexStrict:
+		case .greater, .lesser, .greaterEqual, .lesserEqual, .equal, .notEqual, .containsStringStrict, .containsString, .matchesRegex, .matchesRegexStrict:
 			return true
-		case .Addition, .Subtraction, .Multiplication, .Division, .Modulus, .Concatenation, .Power:
+		case .addition, .subtraction, .multiplication, .division, .modulus, .concatenation, .power:
 			return false
 		}
 	}
@@ -1395,7 +1395,7 @@ public enum Binary: String {
 	/** Returns whether this operator is guaranteed to return the same result when its operands are swapped. */
 	public var isCommutative: Bool { get {
 		switch self {
-		case .Equal, .NotEqual, .Addition, .Multiplication: return true
+		case .equal, .notEqual, .addition, .multiplication: return true
 		default: return false
 		}
 	} }
@@ -1409,65 +1409,65 @@ public enum Binary: String {
 		}
 		
 		switch self {
-		case .Greater: return .LesserEqual
-		case .Lesser: return .GreaterEqual
-		case .GreaterEqual: return .Lesser
-		case .LesserEqual: return .Greater
+		case .greater: return .lesserEqual
+		case .lesser: return .greaterEqual
+		case .greaterEqual: return .lesser
+		case .lesserEqual: return .greater
 		default: return nil
 		}
 	} }
 	
 	public func apply(_ left: Value, _ right: Value) -> Value {
 		switch self {
-		case .Addition:
+		case .addition:
 			return left + right
 			
-		case .Subtraction:
+		case .subtraction:
 			return left - right
 			
-		case .Multiplication:
+		case .multiplication:
 			return left * right
 			
-		case .Modulus:
+		case .modulus:
 			return left % right
 			
-		case .Division:
+		case .division:
 			return left / right
 			
-		case .Concatenation:
+		case .concatenation:
 			return left & right
 			
-		case .Power:
+		case .power:
 			return left ^ right
 			
-		case .Greater:
+		case .greater:
 			return left > right
 			
-		case .Lesser:
+		case .lesser:
 			return left < right
 			
-		case .GreaterEqual:
+		case .greaterEqual:
 			return left >= right
 			
-		case .LesserEqual:
+		case .lesserEqual:
 			return left <= right
 			
-		case .Equal:
+		case .equal:
 			return left == right
 			
-		case .NotEqual:
+		case .notEqual:
 			return left != right
 			
-		case .ContainsString:
+		case .containsString:
 			return left ~= right
 			
-		case .ContainsStringStrict:
+		case .containsStringStrict:
 			return left ~~= right
 			
-		case .MatchesRegex:
+		case .matchesRegex:
 			return left ±= right
 			
-		case .MatchesRegexStrict:
+		case .matchesRegexStrict:
 			return left ±±= right
 		}
 	}
