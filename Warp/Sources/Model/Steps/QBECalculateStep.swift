@@ -250,4 +250,33 @@ class QBECalculateStep: QBEStep {
 		}
 		return Array(Set(suggestions)).sorted { a,b in return a.complexity < b.complexity }
 	}
+
+	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+		super.related(job: job) { result in
+			switch result {
+			case .success(let relatedSteps):
+				return callback(.success(relatedSteps.flatMap { related -> QBERelatedStep? in
+					switch related {
+					case .joinable(step: _, type: _, condition: let expression):
+						// Rewrite the join expression to take into account any of our renames
+						var stillPossible = true
+						expression.visit { e -> () in
+							if let sibling = e as? Sibling, sibling.column == self.targetColumn {
+								// Column we join on was recalculated
+								stillPossible = false
+							}
+						}
+
+						if stillPossible {
+							return related
+						}
+						return nil
+					}
+					}))
+
+			case .failure(let e):
+				return callback(.failure(e))
+			}
+		}
+	}
 }
