@@ -204,6 +204,11 @@ import WarpCore
 		self.welcomeLabel.setNeedsDisplay()
 		self.view.setNeedsDisplay(self.view.bounds)
 	}
+
+	override func viewWillLayout() {
+		self.documentView.resizeDocument()
+		super.viewWillLayout()
+	}
 	
 	private func zoomToAll(_ animated: Bool = true) {
 		if let ab = documentView.boundsOfAllTablets {

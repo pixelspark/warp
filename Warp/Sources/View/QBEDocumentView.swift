@@ -125,10 +125,10 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	func reloadData() {
 		tabletsChanged()
 	}
-	
+
 	func resizeDocument() {
-		let parentSize = self.superview?.bounds ?? CGRect(x: 0,y: 0,width: 500,height: 500)
-		let contentMinSize = boundsOfAllTablets ?? parentSize
+		let parentSize = self.superview?.bounds ?? CGRect(x: 0,y: 0,width: 500, height: 500)
+		let contentMinSize = boundsOfAllTablets?.union(parentSize) ?? parentSize
 		
 		// Determine new size of the document
 		let margin: CGFloat = 500
