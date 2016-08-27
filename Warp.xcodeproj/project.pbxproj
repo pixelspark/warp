@@ -21,10 +21,6 @@
 		651C687E1C70E2AB00F0F048 /* QBEChainTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */; };
 		651C68801C70E96600F0F048 /* QBENote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687F1C70E96600F0F048 /* QBENote.swift */; };
 		651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */; };
-		653D19DA1D1C76AC0094C441 /* libssl.35.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 653D19D91D1C76AC0094C441 /* libssl.35.tbd */; };
-		653D19DC1D1C76C20094C441 /* libcrypto.35.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 653D19DB1D1C76C20094C441 /* libcrypto.35.tbd */; };
-		653D19DD1D1C76D40094C441 /* libssl.35.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 653D19D91D1C76AC0094C441 /* libssl.35.tbd */; };
-		653D19DE1D1C76D90094C441 /* libcrypto.35.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 653D19DB1D1C76C20094C441 /* libcrypto.35.tbd */; };
 		65436ED31B30C20600636299 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65436ED11B30C20600636299 /* libsqlite3.dylib */; };
 		65436ED61B30C21F00636299 /* libiconv.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65436ED41B30C21F00636299 /* libiconv.2.dylib */; };
 		65436EDB1B30C37800636299 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65436ED11B30C20600636299 /* libsqlite3.dylib */; };
@@ -160,6 +156,8 @@
 		65A176931B8B9769004D4A21 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176911B8B9769004D4A21 /* dbfopen.c */; };
 		65A1769A1B8B9AC0004D4A21 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65A176991B8B9AC0004D4A21 /* safileio.c */; };
 		65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A526B91B09BFDB00CCF3E3 /* libpq.a */; };
+		65AD6D011D6F950A0020F478 /* libssl.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AD6CFF1D6F95040020F478 /* libssl.35.dylib */; };
+		65AD6D031D6F95200020F478 /* libcrypto.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AD6D021D6F95200020F478 /* libcrypto.35.dylib */; };
 		65B3CC4E1CA2A4A3003FC6DF /* WarpUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC4D1CA2A4A3003FC6DF /* WarpUITests.swift */; };
 		65B3CC611CA3D055003FC6DF /* QBESetEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC601CA3D055003FC6DF /* QBESetEditorViewController.swift */; };
 		65B3CC631CA96408003FC6DF /* QBEMapTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC621CA96408003FC6DF /* QBEMapTabletViewController.swift */; };
@@ -344,6 +342,34 @@
 			proxyType = 1;
 			remoteGlobalIDString = 65F739D01BC9502400B5E62D;
 			remoteInfo = Rethink;
+		};
+		65AD1A281D64DC1B00EE3F91 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65A114F71BCD969A007BC661 /* Rethink.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65646BA31D577F2F00E58137;
+			remoteInfo = "Rethink iOS";
+		};
+		65AD1A2C1D64DC1B00EE3F91 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 655BD6481C146F5000634C66 /* SwiftParser.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65646B711D577D3B00E58137;
+			remoteInfo = "SwiftParser-iOS";
+		};
+		65AD1A2F1D64DC1B00EE3F91 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65F2DCC21CDF4B290099B3DB /* WarpAI.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65646BBE1D57800300E58137;
+			remoteInfo = "WarpAI-iOS";
+		};
+		65AD1A321D64DC1B00EE3F91 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 655BD61E1C146BE800634C66 /* WarpCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65646B861D577E6500E58137;
+			remoteInfo = "WarpCore iOS";
 		};
 		65B3CC501CA2A4A3003FC6DF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -632,6 +658,17 @@
 		65A52BA31B0A665200CCF3E3 /* pg_config_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pg_config_ext.h; sourceTree = "<group>"; };
 		65A52BA41B0A665200CCF3E3 /* postgres_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = postgres_ext.h; sourceTree = "<group>"; };
 		65AA260E1ABB1FAC00085E26 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
+		65AD6CEA1D6F91180020F478 /* libcommonCrypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcommonCrypto.tbd; path = usr/lib/system/libcommonCrypto.tbd; sourceTree = SDKROOT; };
+		65AD6CEC1D6F91360020F478 /* libcorecrypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcorecrypto.tbd; path = usr/lib/system/libcorecrypto.tbd; sourceTree = SDKROOT; };
+		65AD6CEF1D6F92790020F478 /* libcrypto.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.35.dylib; path = ../../../../../usr/lib/libcrypto.35.dylib; sourceTree = "<group>"; };
+		65AD6CF21D6F932C0020F478 /* libssl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.dylib; path = ../../../../../usr/lib/libssl.dylib; sourceTree = "<group>"; };
+		65AD6CF51D6F94470020F478 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		65AD6CF71D6F945D0020F478 /* SecurityFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SecurityFoundation.framework; path = System/Library/Frameworks/SecurityFoundation.framework; sourceTree = SDKROOT; };
+		65AD6CF91D6F94650020F478 /* SecurityInterface.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SecurityInterface.framework; path = System/Library/Frameworks/SecurityInterface.framework; sourceTree = SDKROOT; };
+		65AD6CFB1D6F946C0020F478 /* CryptoTokenKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoTokenKit.framework; path = System/Library/Frameworks/CryptoTokenKit.framework; sourceTree = SDKROOT; };
+		65AD6CFD1D6F94EA0020F478 /* libssl.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.35.dylib; path = ../../../../../usr/lib/libssl.35.dylib; sourceTree = "<group>"; };
+		65AD6CFF1D6F95040020F478 /* libssl.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.35.dylib; path = Libraries/libssl.35.dylib; sourceTree = "<group>"; };
+		65AD6D021D6F95200020F478 /* libcrypto.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.35.dylib; path = Libraries/libcrypto.35.dylib; sourceTree = "<group>"; };
 		65B3CC4B1CA2A4A3003FC6DF /* WarpUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WarpUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65B3CC4D1CA2A4A3003FC6DF /* WarpUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpUITests.swift; sourceTree = "<group>"; };
 		65B3CC4F1CA2A4A3003FC6DF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -671,12 +708,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				653D19DC1D1C76C20094C441 /* libcrypto.35.tbd in Frameworks */,
-				653D19DA1D1C76AC0094C441 /* libssl.35.tbd in Frameworks */,
 				655BD6301C146D1E00634C66 /* WarpCore.framework in Frameworks */,
 				655BD6511C146F5600634C66 /* SwiftParser.framework in Frameworks */,
+				65AD6D031D6F95200020F478 /* libcrypto.35.dylib in Frameworks */,
 				65436ED61B30C21F00636299 /* libiconv.2.dylib in Frameworks */,
 				65436ED31B30C20600636299 /* libsqlite3.dylib in Frameworks */,
+				65AD6D011D6F950A0020F478 /* libssl.35.dylib in Frameworks */,
 				6518BFC41B26DE7C009E311F /* libmariadbclient.a in Frameworks */,
 				65A526BA1B09BFDB00CCF3E3 /* libpq.a in Frameworks */,
 				65A115041BCD96A6007BC661 /* Rethink.framework in Frameworks */,
@@ -690,8 +727,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				653D19DE1D1C76D90094C441 /* libcrypto.35.tbd in Frameworks */,
-				653D19DD1D1C76D40094C441 /* libssl.35.tbd in Frameworks */,
 				655BD63B1C146DF300634C66 /* Rethink.framework in Frameworks */,
 				655BD63A1C146DF000634C66 /* WarpCore.framework in Frameworks */,
 				65436EDD1B30C38000636299 /* Alamofire.framework in Frameworks */,
@@ -716,6 +751,8 @@
 		651988E71A0F9C39003463AA /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				65AD6D021D6F95200020F478 /* libcrypto.35.dylib */,
+				65AD6CFF1D6F95040020F478 /* libssl.35.dylib */,
 				65F2DCC21CDF4B290099B3DB /* WarpAI.xcodeproj */,
 				65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */,
 				65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */,
@@ -743,6 +780,15 @@
 		653D19D81D1C76AC0094C441 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				65AD6CFD1D6F94EA0020F478 /* libssl.35.dylib */,
+				65AD6CFB1D6F946C0020F478 /* CryptoTokenKit.framework */,
+				65AD6CF91D6F94650020F478 /* SecurityInterface.framework */,
+				65AD6CF71D6F945D0020F478 /* SecurityFoundation.framework */,
+				65AD6CF51D6F94470020F478 /* Security.framework */,
+				65AD6CF21D6F932C0020F478 /* libssl.dylib */,
+				65AD6CEF1D6F92790020F478 /* libcrypto.35.dylib */,
+				65AD6CEC1D6F91360020F478 /* libcorecrypto.tbd */,
+				65AD6CEA1D6F91180020F478 /* libcommonCrypto.tbd */,
 				653D19DB1D1C76C20094C441 /* libcrypto.35.tbd */,
 				653D19D91D1C76AC0094C441 /* libssl.35.tbd */,
 			);
@@ -816,6 +862,7 @@
 			children = (
 				655BD6251C146BE800634C66 /* WarpCore.framework */,
 				655BD6271C146BE800634C66 /* WarpCoreTests.xctest */,
+				65AD1A331D64DC1B00EE3F91 /* WarpCore.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -825,6 +872,7 @@
 			children = (
 				655BD64E1C146F5000634C66 /* SwiftParser.framework */,
 				655BD6501C146F5000634C66 /* SwiftParserTests.xctest */,
+				65AD1A2D1D64DC1B00EE3F91 /* SwiftParser.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -981,6 +1029,7 @@
 			children = (
 				65A115011BCD969A007BC661 /* Rethink.framework */,
 				65A115031BCD969A007BC661 /* RethinkTests.xctest */,
+				65AD1A291D64DC1B00EE3F91 /* Rethink.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1134,6 +1183,7 @@
 			isa = PBXGroup;
 			children = (
 				65F2DCC71CDF4B290099B3DB /* WarpAI.framework */,
+				65AD1A301D64DC1B00EE3F91 /* WarpAI.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1385,6 +1435,34 @@
 			fileType = wrapper.cfbundle;
 			path = RethinkTests.xctest;
 			remoteRef = 65A115021BCD969A007BC661 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65AD1A291D64DC1B00EE3F91 /* Rethink.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Rethink.framework;
+			remoteRef = 65AD1A281D64DC1B00EE3F91 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65AD1A2D1D64DC1B00EE3F91 /* SwiftParser.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SwiftParser.framework;
+			remoteRef = 65AD1A2C1D64DC1B00EE3F91 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65AD1A301D64DC1B00EE3F91 /* WarpAI.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = WarpAI.framework;
+			remoteRef = 65AD1A2F1D64DC1B00EE3F91 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65AD1A331D64DC1B00EE3F91 /* WarpCore.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = WarpCore.framework;
+			remoteRef = 65AD1A321D64DC1B00EE3F91 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		65B3F6951C73CF93000983D0 /* Charts.framework */ = {
@@ -2130,10 +2208,12 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Libraries/MySQL",
 					"$(PROJECT_DIR)/Libraries/PostgreSQL",
+					/usr/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "";
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = Warp/Sources/QBEObjectiveCBridge.h;
@@ -2187,10 +2267,12 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Libraries/MySQL",
 					"$(PROJECT_DIR)/Libraries/PostgreSQL",
+					/usr/lib,
 				);
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = Warp/Sources/QBEObjectiveCBridge.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -2210,10 +2292,16 @@
 				CODE_SIGN_ENTITLEMENTS = Warp/Warp.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2T2T7HAA8S;
 				DYLIB_CURRENT_VERSION = "";
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = Warp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/system",
+					"$(PROJECT_DIR)/Libraries",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OTHER_CFLAGS = "-fno-optimize-sibling-calls";
 				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.$(PRODUCT_NAME:rfc1034identifier)";
@@ -2233,10 +2321,16 @@
 				CODE_SIGN_ENTITLEMENTS = Warp/Warp.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2T2T7HAA8S;
 				DYLIB_CURRENT_VERSION = "";
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = Warp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/system",
+					"$(PROJECT_DIR)/Libraries",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";

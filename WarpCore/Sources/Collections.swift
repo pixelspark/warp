@@ -133,7 +133,7 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType>: Sequence {
 		self.values[key] = value
 	}
 
-	public mutating func sortKeysInPlace(_ isOrderedBefore: (a: KeyType, b: KeyType) -> Bool) {
+	public mutating func sortKeysInPlace(_ isOrderedBefore: (_ a: KeyType, _ b: KeyType) -> Bool) {
 		self.keys.sort(by: isOrderedBefore)
 	}
 
@@ -229,7 +229,7 @@ public struct OrderedSet<Element : Hashable> : Hashable, Collection, MutableColl
 		return i + 1
 	}
 
-	private static func collapse<Element : Hashable, S : Sequence where S.Iterator.Element == Element>(_ s: S) -> ([Element], Set<Element>) {
+	internal static func collapse<Element : Hashable, S : Sequence>(_ s: S) -> ([Element], Set<Element>) where S.Iterator.Element == Element {
 		var aSet = Set<Element>()
 		return (s.filter { item in
 			if aSet.contains(item) {
@@ -259,11 +259,11 @@ extension OrderedSet : ExpressibleByArrayLiteral, RangeReplaceableCollection {
 	}
 
 	/** Construct from an arbitrary sequence with elements of type `Element`. */
-	public init<S : Sequence where S.Iterator.Element == Element>(_ s: S) {
+	public init<S : Sequence>(_ s: S) where S.Iterator.Element == Element {
 		(self.array, self.set) = OrderedSet.collapse(s)
 	}
 
-	public mutating func replaceSubrange<C where C : Collection, C.Iterator.Element == Element>(_ subrange: Range<Int>, with newElements: C) {
+	public mutating func replaceSubrange<C>(_ subrange: Range<Int>, with newElements: C) where C : Collection, C.Iterator.Element == Element {
 		let oldArray = array[subrange]
 		let oldSet = Set(oldArray)
 		let (newArray, newSet) = OrderedSet.collapse(newElements)
@@ -289,7 +289,7 @@ extension OrderedSet : ExpressibleByArrayLiteral, RangeReplaceableCollection {
 }
 
 /** Operator form of `appendContentsOf`. */
-public func +=<Element, S : Sequence where S.Iterator.Element == Element>( lhs: inout OrderedSet<Element>, rhs: S) {
+public func +=<Element, S : Sequence>( lhs: inout OrderedSet<Element>, rhs: S) where S.Iterator.Element == Element {
 	lhs.append(contentsOf: rhs)
 }
 

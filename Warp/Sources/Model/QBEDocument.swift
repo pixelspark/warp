@@ -70,19 +70,19 @@ class QBEDocument: NSDocument, NSSecureCoding {
 		return data as Data
 	}
 
-	override func save(_ sender: AnyObject?) {
+	override func save(_ sender: Any?) {
 		savedAtLeastOnce = true
 		super.save(sender)
 		self.updateWindowControllers()
 	}
 
-	override func saveAs(_ sender: AnyObject?) {
+	override func saveAs(_ sender: Any?) {
 		savedAtLeastOnce = true
 		super.save(sender)
 		self.updateWindowControllers()
 	}
 
-	override func save(withDelegate delegate: AnyObject?, didSave didSaveSelector: Selector?, contextInfo: UnsafeMutablePointer<Void>?) {
+	override func save(withDelegate delegate: Any?, didSave didSaveSelector: Selector?, contextInfo: UnsafeMutableRawPointer?) {
 		savedAtLeastOnce = true
 		super.save(withDelegate: delegate, didSave: didSaveSelector, contextInfo: contextInfo)
 		self.updateWindowControllers()

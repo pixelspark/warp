@@ -80,7 +80,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 		self.valueList?.reloadData()
 	}
 	
-	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		if row >= 0 && row < functions.count {
 			let functionName = functions[row]
 			if let function = locale?.functionWithName(functionName) {

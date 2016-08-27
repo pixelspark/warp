@@ -26,7 +26,7 @@ class QBEXMLWriter: NSObject, QBEFileWriter, StreamDelegate {
 		return NSLocalizedString("XML", comment: "")
 	}
 	
-	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
+	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		let stream = data.stream()
 		
 		if let writer = TCMXMLWriter(options: UInt(TCMXMLWriterOptionPrettyPrinted), fileURL: file) {

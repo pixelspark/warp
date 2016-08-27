@@ -137,7 +137,7 @@ class QBEFilterStep: QBEStep {
 		return QBEStepMerge.impossible
 	}
 	
-	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(data.filter(condition)))
 	}
 
@@ -150,7 +150,7 @@ class QBEFilterStep: QBEStep {
 }
 
 private extension FilterSet {
-	func sentenceToken(locale: Language, provider: (callback: (Fallible<Set<Value>>) -> ()) -> ()) -> QBESentenceToken {
+	func sentenceToken(locale: Language, provider: @escaping (_ callback: @escaping (Fallible<Set<Value>>) -> ()) -> ()) -> QBESentenceToken {
 		let selectedStrings = Set(self.selectedValues.map { return locale.localStringFor($0) })
 
 		return QBESentenceSet(value: selectedStrings, provider: { callback in
@@ -243,9 +243,9 @@ class QBEFilterSetStep: QBEStep {
 	override func encode(with coder: NSCoder) {
 		super.encode(with: coder)
 
-		let d = NSMutableDictionary()
+		var d: [String: Any] = [:]
 		for (k, v) in self.filterSet {
-			d.setObject(v, forKey: k.name)
+			d[k.name] = v
 		}
 		coder.encode(d, forKey: "filters")
 	}
@@ -255,7 +255,7 @@ class QBEFilterSetStep: QBEStep {
 		return QBEStepMerge.impossible
 	}
 
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if !self.filterSet.isEmpty {
 			// Filter the data according to the specification
 			data.columns(job, callback: { fallibleColumns in
@@ -324,7 +324,7 @@ class QBELimitStep: QBEStep {
 		coder.encode(numberOfRows, forKey: "numberOfRows")
 	}
 	
-	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(data.limit(numberOfRows)))
 	}
 	
@@ -377,7 +377,7 @@ class QBEOffsetStep: QBEStep {
 		coder.encode(numberOfRows, forKey: "numberOfRows")
 	}
 	
-	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(data.offset(numberOfRows)))
 	}
 
@@ -420,7 +420,7 @@ class QBERandomStep: QBELimitStep {
 		super.encode(with: coder)
 	}
 	
-	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(data.random(numberOfRows)))
 	}
 
@@ -455,7 +455,7 @@ class QBEDistinctStep: QBEStep {
 		])
 	}
 	
-	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(data.distinct()))
 	}
 }

@@ -120,9 +120,9 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 				if let indices = NSKeyedUnarchiver.unarchiveObject(with: data) as? IndexSet {
 					let draggedIndex = indices.first
 					
-					if draggedIndex != NSNotFound && draggedIndex < s.count {
+					if let d = draggedIndex, d < s.count {
 						// Swap away
-						let step = s[draggedIndex!]
+						let step = s[d]
 						self.delegate?.stepsController(self, didMoveStep: step, afterStep: afterStep)
 						return true
 					}
@@ -140,13 +140,13 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 		}
 		return false
 	}
-	
-	override func observeValue(forKeyPath keyPath: String?, of object: AnyObject?, change: [NSKeyValueChangeKey : AnyObject]?, context: UnsafeMutablePointer<Void>?) {
+
+	@objc override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
 		if ignoreSelection {
 			return
 		}
 		
-		if collectionView?.selectionIndexes.count > 0 {
+		if let n = collectionView?.selectionIndexes.count, n > 0 {
 			if let selected = collectionView?.selectionIndexes.first {
 				if let step = collectionView?.content[selected] as? QBEStep {
 					ignoreSelection = true

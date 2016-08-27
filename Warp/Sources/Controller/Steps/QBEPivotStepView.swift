@@ -67,7 +67,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 	}
 	
 	internal func tableView(_ tableView: NSTableView, writeRowsWith rowIndexes: IndexSet, to pboard: NSPasteboard) -> Bool {
-		var cols: [AnyObject] = []
+		var cols: [Any] = []
 		
 		(rowIndexes as NSIndexSet).enumerate({ (index, stop) -> Void in
 			if tableView == self.allTable! {
@@ -208,10 +208,10 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		return false
 	}
 	
-	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		if tableView == aggregatesTable {
 			if tableColumn?.identifier == "aggregator" {
-				if let menuItem = aggregatorsMenu?.item(at: object?.intValue ?? 0) {
+				if let menuItem = aggregatorsMenu?.item(at: (object as? Int) ?? 0) {
 					if let rep = menuItem.representedObject as? Function.RawValue {
 						if let fun = Function(rawValue: rep) {
 							step.aggregates[row].aggregator.reduce = fun
@@ -238,7 +238,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 	
 	func tableView(_ tableView: NSTableView, dataCellFor tableColumn: NSTableColumn?, row: Int) -> NSCell? {
 		if tableColumn?.identifier == "aggregator" {
-			if let cell = tableColumn?.dataCell as? NSPopUpButtonCell {
+			if let cell = tableColumn?.dataCell(forRow: row) as? NSPopUpButtonCell {
 				cell.menu = self.aggregatorsMenu
 				return cell
 			}
@@ -246,9 +246,9 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		return nil
 	}
 	
-	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		if tableColumn?.identifier == "aggregator" {
-			let reducer = step.aggregates[row].aggregator.reduce ?? Function.Identity
+			let reducer = step.aggregates[row].aggregator.reduce 
 			
 			for index in 0..<aggregatorsMenu!.numberOfItems {
 				if let mi = aggregatorsMenu!.item(at: index) {
@@ -284,13 +284,13 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 				return sourceColumns?.count ?? 0
 				
 			case rowsTable!:
-				return step.rows.count ?? 0
+				return step.rows.count 
 				
 			case columnsTable!:
-				return step.columns.count ?? 0
+				return step.columns.count 
 				
 			case aggregatesTable!:
-				return step.aggregates.count ?? 0
+				return step.aggregates.count 
 				
 			default:
 				return 0

@@ -46,7 +46,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		])
 	}
 	
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let r = self.right, let h = r.head {
 			h.fullDataset(job, callback: callback)
 		}
@@ -55,7 +55,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let r = self.right, let h = r.head {
 			h.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: callback)
 		}
@@ -68,7 +68,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return self.right?.head?.mutableDataset
 	}
 	
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		fatalError("QBECloneStep.apply should not be used")
 	}
 }

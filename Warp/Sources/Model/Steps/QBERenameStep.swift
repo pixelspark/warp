@@ -61,7 +61,7 @@ class QBERenameStep: QBEStep {
 		super.encode(with: coder)
 	}
 	
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		// If we have nothing to rename, bypass this step
 		if self.renames.isEmpty {
 			callback(.success(data))
@@ -124,7 +124,7 @@ class QBERenameStep: QBEStep {
 		return QBEStepMerge.impossible
 	}
 
-	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+	override func related(job: Job, callback: @escaping (Fallible<[QBERelatedStep]>) -> ()) {
 		super.related(job: job) { result in
 			switch result {
 			case .success(let relatedSteps):

@@ -34,11 +34,11 @@ class QBERasterStep: QBEStep {
 		super.encode(with: coder)
 	}
 	
-	override func fullDataset(_ job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(RasterDataset(raster: self.raster)))
 	}
 	
-	override func exampleDataset(_ job: Job?, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job?, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(RasterDataset(raster: self.raster).limit(min(maxInputRows, maxOutputRows))))
 	}
 

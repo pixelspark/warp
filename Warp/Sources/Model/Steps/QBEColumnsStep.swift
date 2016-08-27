@@ -86,7 +86,7 @@ class QBEColumnsStep: QBEStep {
 		super.encode(with: coder)
 	}
 	
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		data.columns(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
 				case .success(let existingColumns):
@@ -97,7 +97,7 @@ class QBEColumnsStep: QBEStep {
 							}
 						}
 						return !self.select
-					}) ?? [])
+					}))
 					callback(.success(data.selectColumns(columns)))
 				
 				case .failure(let error):
@@ -138,7 +138,7 @@ class QBEColumnsStep: QBEStep {
 		return QBEStepMerge.impossible
 	}
 
-	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+	override func related(job: Job, callback: @escaping (Fallible<[QBERelatedStep]>) -> ()) {
 		super.related(job: job) { result in
 			switch result {
 			case .success(let relatedSteps):
@@ -221,7 +221,7 @@ class QBESortColumnsStep: QBEStep {
 		super.encode(with: coder)
 	}
 	
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		data.columns(job) { (existingColumnsFallible) -> () in
 			switch existingColumnsFallible {
 				case .success(let existingColumns):

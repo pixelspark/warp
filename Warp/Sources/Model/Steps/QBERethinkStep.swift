@@ -130,7 +130,7 @@ final class QBERethinkStream: NSObject, WarpCore.Stream {
 		}
 	}
 
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		if let fc = self.columns {
 			callback(.success(fc))
 		}
@@ -388,8 +388,8 @@ private class QBERethinkExpression {
 }
 
 class QBERethinkDataset: StreamDataset {
-	private let url: URL
-	private let query: ReQuerySequence
+	fileprivate let url: URL
+	fileprivate let query: ReQuerySequence
 	private let columns: OrderedSet<Column>? // List of all columns in the result, or nil if unknown
 	private let indices: Set<Column>? // List of usable indices, or nil if no indices can be used
 
@@ -477,7 +477,7 @@ class QBERethinkDataset: StreamDataset {
 		return QBERethinkDataset(url: self.url, query: q, columns: newColumns)
 	}
 
-	override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		// If the column names are known for this data set, simply return them
 		if let c = self.columns {
 			callback(.success(c))
@@ -533,7 +533,7 @@ class QBERethinkDatasetWarehouse: Warehouse {
 		}
 	}
 
-	func performMutation(_ mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableDataset?>) -> ()) {
+	func performMutation(_ mutation: WarehouseMutation, job: Job, callback: @escaping (Fallible<MutableDataset?>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
@@ -567,7 +567,7 @@ private class QBERethinkInsertPuller: StreamPuller {
 	let table: ReQueryTable
 	var callback: ((Fallible<Void>) -> ())?
 
-	init(stream: WarpCore.Stream, job: Job, columns: OrderedSet<Column>, table: ReQueryTable, connection: ReConnection, callback: (Fallible<Void>) -> ()) {
+	init(stream: WarpCore.Stream, job: Job, columns: OrderedSet<Column>, table: ReQueryTable, connection: ReConnection, callback: @escaping (Fallible<Void>) -> ()) {
 		self.callback = callback
 		self.table = table
 		self.connection = connection
@@ -575,7 +575,7 @@ private class QBERethinkInsertPuller: StreamPuller {
 		super.init(stream: stream, job: job)
 	}
 
-	override func onReceiveRows(_ rows: [Tuple], callback: (Fallible<Void>) -> ()) {
+	override func onReceiveRows(_ rows: [Tuple], callback: @escaping (Fallible<Void>) -> ()) {
 		self.mutex.locked {
 			let documents = rows.map { row -> ReDocument in
 				assert(row.count == self.columns.count, "Mismatching column counts")
@@ -634,7 +634,7 @@ class QBERethinkMutableDataset: MutableDataset {
 		self.tableName = tableName
 	}
 
-	func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+	func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
 		R.connect(self.url) { err, connection in
 			if let e = err {
 				callback(.failure(e.localizedDescription))
@@ -677,7 +677,7 @@ class QBERethinkMutableDataset: MutableDataset {
 		}
 	}
 
-	func performMutation(_ mutation: DatasetMutation, job: Job, callback: (Fallible<Void>) -> ()) {
+	func performMutation(_ mutation: DatasetMutation, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
@@ -804,7 +804,7 @@ class QBERethinkSourceStep: QBEStep {
 		self.server = aDecoder.decodeString(forKey:"server") ?? "localhost"
 		self.table = aDecoder.decodeString(forKey:"table") ?? "test"
 		self.database = aDecoder.decodeString(forKey:"database") ?? "test"
-		self.port = max(1, min(65535, aDecoder.decodeInteger(forKey: "port") ?? 28015));
+		self.port = max(1, min(65535, aDecoder.decodeInteger(forKey: "port")));
 
 		let authenticationKey = aDecoder.decodeString(forKey:"authenticationKey")
 		self.authenticationKey = authenticationKey
@@ -847,7 +847,7 @@ class QBERethinkSourceStep: QBEStep {
 		}
 	} }
 
-	private func sourceDataset(_ callback: (Fallible<Dataset>) -> ()) {
+	private func sourceDataset(_ callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let u = url {
 			let table = R.db(self.database).table(self.table)
 			let password: String
@@ -887,11 +887,11 @@ class QBERethinkSourceStep: QBEStep {
 		}
 	}
 
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		sourceDataset(callback)
 	}
 
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		sourceDataset { t in
 			switch t {
 			case .failure(let e): callback(.failure(e))

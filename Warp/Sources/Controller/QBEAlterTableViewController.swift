@@ -2,7 +2,7 @@ import Foundation
 import WarpCore
 
 extension RangeReplaceableCollection where Index : Comparable {
-	mutating func removeAtIndices<S : Sequence where S.Iterator.Element == Index>(_ indices: S) {
+	mutating func removeAtIndices<S : Sequence>(_ indices: S) where S.Iterator.Element == Index {
 		indices.sorted().lazy.reversed().forEach{ remove(at: $0) }
 	}
 }
@@ -79,7 +79,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		self.updateView()
 	}
 
-	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		if row < 0 || row > self.definition.columns.count {
 			return nil
 		}
@@ -94,7 +94,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		return nil
 	}
 
-	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		if row < 0 || row > self.definition.columns.count {
 			return
 		}

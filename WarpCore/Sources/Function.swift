@@ -1244,7 +1244,7 @@ public enum Function: String {
 			do {
 				if let s = arguments[0].stringValue, let stringDataset = s.data(using: String.Encoding.utf8) {
 					let jsonDecoded = try JSONSerialization.jsonObject(with: stringDataset, options: [.allowFragments])
-					return Value(jsonObject: jsonDecoded)
+					return Value(jsonObject: jsonDecoded as AnyObject)
 				}
 			}
 			catch {

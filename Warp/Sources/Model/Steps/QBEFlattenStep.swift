@@ -74,7 +74,7 @@ class QBEFlattenStep: QBEStep {
 		super.encode(with: coder)
 	}
 	
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		/* If a column is set to put a row identifier in, but there is no expression, fill in an expression that uses the
 		value in the first column. */
 		if rowIdentifier == nil && rowColumn != nil {
@@ -99,7 +99,7 @@ class QBEFlattenStep: QBEStep {
 		}
 	}
 
-	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+	override func related(job: Job, callback: @escaping (Fallible<[QBERelatedStep]>) -> ()) {
 		return callback(.success([]))
 	}
 }

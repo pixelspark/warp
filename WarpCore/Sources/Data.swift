@@ -138,7 +138,7 @@ public func != (lhs: Column, rhs: Column) -> Bool {
 }
 
 /** This helper function can be used to create a lazily-computed variable. */
-func memoize<T>(_ result: () -> T) -> () -> T {
+func memoize<T>(_ result: @escaping () -> T) -> () -> T {
 	var cached: T? = nil
 	
 	return {() in
@@ -176,7 +176,7 @@ public class Order: NSObject, NSCoding {
 		aCoder.encode(numeric, forKey: "numeric")
 	}
 
-	public override func isEqual(_ object: AnyObject?) -> Bool {
+	public override func isEqual(to object: Any?) -> Bool {
 		if let o = object as? Order, o.ascending == self.ascending && o.numeric == self.numeric && o.expression == self.expression {
 			return true
 		}
@@ -374,7 +374,7 @@ public protocol Dataset {
 	
 	/** Returns a set of all unique result values in this data set for the given expression. The callee should not
 	make any assumptions about the queue on which the callback is dispatched, or whether it is asynchronous. */
-	func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ())
+	func unique(_ expression: Expression, job: Job, callback: @escaping (Fallible<Set<Value>>) -> ())
 	
 	/** Select only the columns from the data set that are in the array, in the order specified. If a column named in the
 	array does not exist, it is ignored. */
@@ -406,11 +406,11 @@ public protocol Dataset {
 	unchanged raster. If an error occurs, it must be set as the result when calling back with status .finished. Errors
 	provided for intermediate callbacks do not necessarily indicate that processing has stopped. The callee should not
 	make any assumptions about the queue on which the callback is dispatched, or whether it is asynchronous. */
-	func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ())
+	func raster(_ job: Job, deliver: Delivery, callback: @escaping (Fallible<Raster>, StreamStatus) -> ())
 	
 	/** Returns the names of the columns in the data set. The list of column names is ordered. The callee should not
 	make any assumptions about the queue on which the callback is dispatched, or whether it is asynchronous. */
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ())
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ())
 	
 	/** Sort the dataset in the indicates ways. The sorts are applied in-order, e.g. the dataset is sorted by the first
 	order specified, in case of ties by the second, et cetera. If there are ties and there is no further order to sort by,
@@ -429,7 +429,7 @@ public protocol Dataset {
 
 public extension Dataset {
 	/** Shorthand for single-delivery rasterization. */
-	func raster(_ job: Job, callback: (Fallible<Raster>) -> ()) {
+	func raster(_ job: Job, callback: @escaping (Fallible<Raster>) -> ()) {
 		self.raster(job, deliver: .onceComplete, callback: once { result, streamStatus in
 			assert(streamStatus == .finished, "Data.raster implementation should never return statuses other than .finished when not in incremental mode")
 			callback(result)
@@ -439,31 +439,31 @@ public extension Dataset {
 
 /** Utility class that allows for easy swapping of Dataset objects. This can for instance be used to swap-in a cached
 version of a particular data object. */
-public class ProxyDataset: NSObject, Dataset {
+open class ProxyDataset: NSObject, Dataset {
 	public var data: Dataset
 	
 	public init(data: Dataset) {
 		self.data = data
 	}
 	
-	public func transpose() -> Dataset { return data.transpose() }
-	public func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset { return data.calculate(calculations) }
-	public func limit(_ numberOfRows: Int) -> Dataset { return data.limit(numberOfRows) }
-	public func random(_ numberOfRows: Int) -> Dataset { return data.random(numberOfRows) }
-	public func distinct() -> Dataset { return data.distinct() }
-	public func filter(_ condition: Expression) -> Dataset { return data.filter(condition) }
-	public func unique(_ expression: Expression,  job: Job, callback: (Fallible<Set<Value>>) -> ()) { return data.unique(expression, job: job, callback: callback) }
-	public func selectColumns(_ columns: OrderedSet<Column>) -> Dataset { return data.selectColumns(columns) }
-	public func aggregate(_ groups: [Column: Expression], values: [Column: Aggregator]) -> Dataset { return data.aggregate(groups, values: values) }
-	public func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset { return data.pivot(horizontal, vertical: vertical, values: values) }
-	public func stream() -> Stream { return data.stream() }
-	public func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) { return data.raster(job, deliver: deliver, callback: callback) }
-	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) { return data.columns(job, callback: callback) }
-	public func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
-	public func offset(_ numberOfRows: Int) -> Dataset { return data.offset(numberOfRows) }
-	public func sort(_ by: [Order]) -> Dataset { return data.sort(by) }
-	public func join(_ join: Join) -> Dataset { return data.join(join) }
-	public func union(_ data: Dataset) -> Dataset { return data.union(data) }
+	open func transpose() -> Dataset { return data.transpose() }
+	open func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset { return data.calculate(calculations) }
+	open func limit(_ numberOfRows: Int) -> Dataset { return data.limit(numberOfRows) }
+	open func random(_ numberOfRows: Int) -> Dataset { return data.random(numberOfRows) }
+	open func distinct() -> Dataset { return data.distinct() }
+	open func filter(_ condition: Expression) -> Dataset { return data.filter(condition) }
+	open func unique(_ expression: Expression,  job: Job, callback: @escaping (Fallible<Set<Value>>) -> ()) { return data.unique(expression, job: job, callback: callback) }
+	open func selectColumns(_ columns: OrderedSet<Column>) -> Dataset { return data.selectColumns(columns) }
+	open func aggregate(_ groups: [Column: Expression], values: [Column: Aggregator]) -> Dataset { return data.aggregate(groups, values: values) }
+	open func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset { return data.pivot(horizontal, vertical: vertical, values: values) }
+	open func stream() -> Stream { return data.stream() }
+	open func raster(_ job: Job, deliver: Delivery, callback: @escaping (Fallible<Raster>, StreamStatus) -> ()) { return data.raster(job, deliver: deliver, callback: callback) }
+	open func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) { return data.columns(job, callback: callback) }
+	open func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset { return data.flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to) }
+	open func offset(_ numberOfRows: Int) -> Dataset { return data.offset(numberOfRows) }
+	open func sort(_ by: [Order]) -> Dataset { return data.sort(by) }
+	open func join(_ join: Join) -> Dataset { return data.join(join) }
+	open func union(_ data: Dataset) -> Dataset { return data.union(data) }
 }
 
 public extension Dataset {
@@ -711,7 +711,7 @@ enum CoalescedDataset: Dataset {
 		}
 	}
 
-	func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
+	func unique(_ expression: Expression, job: Job, callback: @escaping (Fallible<Set<Value>>) -> ()) {
 		return data.unique(expression, job: job, callback: callback)
 	}
 	
@@ -765,11 +765,11 @@ enum CoalescedDataset: Dataset {
 		return data.stream()
 	}
 	
-	func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) {
+	func raster(_ job: Job, deliver: Delivery, callback: @escaping (Fallible<Raster>, StreamStatus) -> ()) {
 		return data.raster(job, deliver: deliver, callback: callback)
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		return data.columns(job, callback: callback)
 	}
 	

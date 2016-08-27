@@ -638,7 +638,7 @@ class WarpCoreTests: XCTestCase {
 		//XCTAssert(e is Literal && e.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(false), "Equivalence is optimized away for '>' operator in 1+2+x > 2+x+1")
 	}
 	
-	func compareDataset(_ job: Job, _ a: WarpCore.Dataset, _ b: WarpCore.Dataset, callback: (Bool) -> ()) {
+	func compareDataset(_ job: Job, _ a: WarpCore.Dataset, _ b: WarpCore.Dataset, callback: @escaping (Bool) -> ()) {
 		a.raster(job, callback: { (aRasterFallible) -> () in
 			switch aRasterFallible {
 				case .success(let aRaster):
@@ -916,7 +916,7 @@ class WarpCoreTests: XCTestCase {
 			reduce: {(s, r: Int?) -> (Int) in
 				var r = r
 				for number in s {
-					r = (r == nil || number > r) ? number : r
+					r = (r == nil || number > r!) ? number : r
 				}
 				return r ?? 0
 			}
@@ -958,7 +958,7 @@ class WarpCoreTests: XCTestCase {
 		}
 	}
 
-	private func asyncTest(_ block: (callback: () -> ()) -> ()) {
+	private func asyncTest(_ block: @escaping (_ callback: @escaping () -> ()) -> ()) {
 		let expectFinish = self.expectation(description: "CSV tests")
 
 		block {

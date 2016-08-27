@@ -167,14 +167,14 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 		return step.columns.count
 	}
 
-	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		step.columns[row] = Column(object as! String)
 		self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 
-	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		if let tc = tableColumn {
-			if (tc.identifier ?? "") == "column" {
+			if tc.identifier == "column" {
 				return step.columns[row].name
 			}
 		}

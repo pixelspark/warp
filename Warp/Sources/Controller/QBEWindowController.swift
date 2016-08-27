@@ -29,8 +29,8 @@ internal class QBEWindowController: NSWindowController {
 
 class QBEToolbarItem: NSToolbarItem {
 	var isValid: Bool {
-		if let f = NSApp.target(forAction: #selector(NSObject.validateToolbarItem(_:))) {
-			var responder: AnyObject? = f
+		if let f = NSApp.target(forAction: #selector(NSObject.validateToolbarItem(_:))) as? NSResponder {
+			var responder: NSResponder? = f
 
 			while responder != nil {
 				if responder!.responds(to: #selector(NSObject.validateToolbarItem(_:))) && responder!.validateToolbarItem(self) {

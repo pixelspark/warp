@@ -28,7 +28,7 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 		super.viewWillDisappear()
 	}
 	
-	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> AnyObject? {
+	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> Any? {
 		if let c = existingColumns, index >= 0 && index < c.count {
 			return c[index].name
 		}

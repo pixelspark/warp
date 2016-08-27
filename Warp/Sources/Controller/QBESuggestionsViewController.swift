@@ -20,7 +20,7 @@ class QBESuggestionsListViewController: NSViewController, NSTableViewDataSource,
 		return suggestions?.count ?? 0
 	}
 	
-	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		if tableColumn?.identifier == "suggestionLabel" {
 			return suggestions?[row].explain(delegate?.locale ?? Language())
 		}

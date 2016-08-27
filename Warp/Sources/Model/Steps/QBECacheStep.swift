@@ -61,7 +61,7 @@ class QBECacheStep: QBEStep, NSSecureCoding {
 		super.encode(with: coder)
 	}
 
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		self.mutex.locked { () -> () in
 			if let r = self.cachedDataset?.result, case .failure(_) = r {
 				self.evictCache()
@@ -87,7 +87,7 @@ class QBECacheStep: QBEStep, NSSecureCoding {
 		}
 	}
 
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		self.mutex.locked {
 			if let r = self.cachedDataset?.result, case .failure(_) = r {
 				self.evictCache()
@@ -105,7 +105,7 @@ class QBECacheStep: QBEStep, NSSecureCoding {
 		}
 	}
 
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(data))
 	}
 }

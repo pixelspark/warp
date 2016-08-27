@@ -17,7 +17,7 @@ class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
 		super.viewWillAppear()
 	}
 
-	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		switch tableColumn?.identifier ?? "" {
 		case "columnName":
 			return self.columns[row].name
@@ -30,10 +30,10 @@ class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
 		}
 	}
 
-	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		if tableColumn?.identifier == "include" {
 			let col = self.columns[row]
-			if object?.boolValue ?? false {
+			if (object as? Bool) ?? false {
 				self.keyColumns.insert(col)
 			}
 			else {

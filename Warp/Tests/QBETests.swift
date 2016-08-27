@@ -7,6 +7,10 @@ class QBETests: XCTestCase {
 		let secret = "omega3"
 		let key = QBESecret(serviceName: "nl.pixelspark.Warp.QBETest", accountName: "tester", friendlyName: "Test key")
 
+		if case .failure(let m) = key.setData("xxx".data(using: .utf8)) {
+			XCTFail(m)
+		}
+
 		if case .failure(let m) = key.delete() {
 			XCTFail(m)
 		}
@@ -26,7 +30,7 @@ class QBETests: XCTestCase {
 		}
 	}
 
-	private func asyncTest(_ block: (callback: () -> ()) -> ()) {
+	private func asyncTest(_ block: (_ callback: @escaping () -> ()) -> ()) {
 		let expectFinish = self.expectation(description: "CSV tests")
 
 		block {

@@ -63,11 +63,11 @@ public class Expression: NSObject, NSCoding {
 	
 	/** Requests that callback be called on self, and visit() forwarded to all children. This can be used to implement
 	dependency searches, etc. */
-	@discardableResult public func visit( _ callback: @noescape (Expression) -> (Expression)) -> Expression {
+	@discardableResult public func visit( _ callback: (Expression) -> (Expression)) -> Expression {
 		return callback(self)
 	}
 	
-	@nonobjc public final func visit( _ callback: @noescape (Expression) -> ()) {
+	@nonobjc public final func visit( _ callback: (Expression) -> ()) {
 		self.visit { (e) -> Expression in
 			callback(e)
 			return e
@@ -256,7 +256,7 @@ public final class Literal: Expression {
 		return self.isEqual(expression)
 	}
 
-	public override func isEqual(_ object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: Any?) -> Bool {
 		if let o = object as? Literal, o.value == self.value {
 			return true
 		}
@@ -299,7 +299,7 @@ public class Identity: Expression {
 		return [Identity()]
 	}
 
-	public override func isEqual(_ object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: Any?) -> Bool {
 		if object is Identity {
 			return true
 		}
@@ -369,7 +369,7 @@ public final class Comparison: Expression {
 		return optimized
 	}
 	
-	public override func visit( _ callback: @noescape (Expression) -> (Expression)) -> Expression {
+	public override func visit( _ callback: (Expression) -> (Expression)) -> Expression {
 		let first = self.first.visit(callback)
 		let second = self.second.visit(callback)
 		let newSelf = Comparison(first: first, second: second, type: self.type)
@@ -514,7 +514,7 @@ public final class Comparison: Expression {
 		return false
 	}
 
-	public override func isEqual(_ object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: Any?) -> Bool {
 		if let o = object as? Comparison, o.first == self.first && o.second == self.second && o.type == self.type {
 			return true
 		}
@@ -546,7 +546,7 @@ public final class Call: Expression {
 		return true
 	} }
 	
-	public override func visit( _ callback: @noescape (Expression) -> (Expression)) -> Expression {
+	public override func visit( _ callback: (Expression) -> (Expression)) -> Expression {
 		let newArguments = arguments.map({$0.visit(callback)})
 		return callback(Call(arguments: newArguments, type: self.type))
 	}
@@ -621,7 +621,7 @@ public final class Call: Expression {
 		return false
 	}
 
-	public override func isEqual(_ object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: Any?) -> Bool {
 		if let o = object as? Call, o.type == self.type && o.arguments == self.arguments {
 			return true
 		}
@@ -775,7 +775,7 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 		return false
 	}
 
-	public override func isEqual(_ object: AnyObject?) -> Bool {
+	public override func isEqual(_ object: Any?) -> Bool {
 		if let o = object as? Sibling, o.column == self.column {
 			return true
 		}
@@ -831,7 +831,7 @@ public final class Foreign: Expression, ColumnReferencingExpression {
 		return false
 	}
 
-	public override func isEqual(_ object: AnyObject?) -> Bool {
+	public override func isEqual(to object: Any?) -> Bool {
 		if let o = object as? Foreign, o.column == self.column {
 			return true
 		}

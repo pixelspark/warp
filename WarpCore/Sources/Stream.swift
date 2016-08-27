@@ -13,7 +13,7 @@ public enum StreamStatus {
 
 /** A Sink is a function used as a callback in response to Stream.fetch. It receives a set of rows from the stream
 as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). */
-public typealias Sink = (Fallible<Array<Tuple>>, StreamStatus) -> ()
+public typealias Sink = @escaping (Fallible<Array<Tuple>>, StreamStatus) -> ()
 
 /** The default number of rows that a Stream will send to a consumer upon request through Stream.fetch. */
 public let StreamDefaultBatchSize = 256
@@ -26,7 +26,7 @@ by the stream (for now).
 Streams are drained using concurrent calls to the 'fetch' method (multiple 'wavefronts'). */
 public protocol Stream {
 	/** The column names associated with the rows produced by this stream. */
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ())
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ())
 	
 	/** 
 	Request the next batch of rows from the stream; when it is available, asynchronously call (on the main queue) the
@@ -54,7 +54,7 @@ public protocol Stream {
 fetch function ('wavefronts') and call the method onReceiveRows each time it receives rows. When all results are in, the
 onDoneReceiving method is called. The subclass should implement onReceiveRows, onDoneReceiving and onError.
 The class also exists to avoid issues with reference counting (the sink closure needs to reference itself). */
-public class StreamPuller {
+open class StreamPuller {
 	public let job: Job
 	public let stream: Stream
 	public let mutex = Mutex()
@@ -114,7 +114,7 @@ public class StreamPuller {
 	/** Receives batches of data from streams and appends them to the buffer of rows. It will spawn new wavefronts
 	through 'start' each time it is called, unless the stream indicates there are no more records. When the last
 	wavefront has reported in, sink will call self.callback. */
-	private func sink(_ rows: Fallible<Array<Tuple>>, hasNext: Bool) {
+	private final func sink(_ rows: Fallible<Array<Tuple>>, hasNext: Bool) {
 		self.mutex.locked {
 			if self.outstandingWavefronts == 0 {
 				// We errored, any following wave fronts are ignored
@@ -166,15 +166,15 @@ public class StreamPuller {
 		}
 	}
 
-	public func onReceiveRows(_ rows: [Tuple], callback: (Fallible<Void>) -> ()) {
+	open func onReceiveRows(_ rows: [Tuple], callback: @escaping (Fallible<Void>) -> ()) {
 		fatalError("Meant to be overridden")
 	}
 
-	public func onDoneReceiving() {
+	open func onDoneReceiving() {
 		fatalError("Meant to be overridden")
 	}
 
-	public func onError(_ error: String) {
+	open func onError(_ error: String) {
 		fatalError("Meant to be overridden")
 	}
 }
@@ -185,14 +185,14 @@ private class RasterStreamPuller: StreamPuller {
 	let columns: OrderedSet<Column>
 	let delivery: Delivery
 
-	init(stream: Stream, job: Job, columns: OrderedSet<Column>, deliver: Delivery = .onceComplete, callback: (Fallible<Raster>, StreamStatus) -> ()) {
+	init(stream: Stream, job: Job, columns: OrderedSet<Column>, deliver: Delivery = .onceComplete, callback: @escaping (Fallible<Raster>, StreamStatus) -> ()) {
 		self.callback = callback
 		self.columns = columns
 		self.delivery = deliver
 		super.init(stream: stream, job: job)
 	}
 
-	override func onReceiveRows(_ rows: [Tuple], callback: (Fallible<Void>) -> ()) {
+	override func onReceiveRows(_ rows: [Tuple], callback: @escaping (Fallible<Void>) -> ()) {
 		self.mutex.locked {
 			// Append the rows to our buffered raster
 			self.data.append(contentsOf: rows)
@@ -226,7 +226,7 @@ private class RasterStreamPuller: StreamPuller {
 /** StreamDataset is an implementation of Dataset that performs data operations on a stream. StreamDataset will consume
 the whole stream and proxy to a raster-based implementation for operations that cannot efficiently be performed on a 
 stream. */
-public class StreamDataset: Dataset {
+open class StreamDataset: Dataset {
 	public let source: Stream
 	
 	public init(source: Stream) {
@@ -242,7 +242,7 @@ public class StreamDataset: Dataset {
 		})
 	}
 
-	public func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) {
+	open func raster(_ job: Job, deliver: Delivery, callback: @escaping (Fallible<Raster>, StreamStatus) -> ()) {
 		let s = source.clone()
 		job.async {
 			s.columns(job, callback: once { (columns) -> () in
@@ -258,81 +258,81 @@ public class StreamDataset: Dataset {
 		}
 	}
 
-	public func transpose() -> Dataset {
+	open func transpose() -> Dataset {
 		// This cannot be streamed
 		return fallback().transpose()
 	}
 	
-	public func aggregate(_ groups: [Column : Expression], values: [Column : Aggregator]) -> Dataset {
+	open func aggregate(_ groups: [Column : Expression], values: [Column : Aggregator]) -> Dataset {
 		return StreamDataset(source: AggregateTransformer(source: source, groups: groups, values: values))
 	}
 	
-	public func distinct() -> Dataset {
+	open func distinct() -> Dataset {
 		return fallback().distinct()
 	}
 	
-	public func union(_ data: Dataset) -> Dataset {
+	open func union(_ data: Dataset) -> Dataset {
 		// TODO: this can be implemented efficiently as a streaming operation
 		return fallback().union(data)
 	}
 	
-	public func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset {
+	open func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset {
 		return StreamDataset(source: FlattenTransformer(source: source, valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to))
 	}
 	
-	public func selectColumns(_ columns: OrderedSet<Column>) -> Dataset {
+	open func selectColumns(_ columns: OrderedSet<Column>) -> Dataset {
 		return StreamDataset(source: ColumnsTransformer(source: source, selectColumns: columns))
 	}
 	
-	public func offset(_ numberOfRows: Int) -> Dataset {
+	open func offset(_ numberOfRows: Int) -> Dataset {
 		return StreamDataset(source: OffsetTransformer(source: source, numberOfRows: numberOfRows))
 	}
 	
-	public func limit(_ numberOfRows: Int) -> Dataset {
+	open func limit(_ numberOfRows: Int) -> Dataset {
 		// Limit has a streaming implementation in LimitTransformer
 		return StreamDataset(source: LimitTransformer(source: source, numberOfRows: numberOfRows))
 	}
 	
-	public func random(_ numberOfRows: Int) -> Dataset {
+	open func random(_ numberOfRows: Int) -> Dataset {
 		return StreamDataset(source: RandomTransformer(source: source, numberOfRows: numberOfRows))
 	}
 	
-	public func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
+	open func unique(_ expression: Expression, job: Job, callback: @escaping (Fallible<Set<Value>>) -> ()) {
 		// TODO: this can be implemented as a stream with some memory
 		return fallback().unique(expression, job: job, callback: callback)
 	}
 	
-	public func sort(_ by: [Order]) -> Dataset {
+	open func sort(_ by: [Order]) -> Dataset {
 		return fallback().sort(by)
 	}
 	
-	public func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset {
+	open func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset {
 		// Implemented as stream by CalculateTransformer
 		return StreamDataset(source: CalculateTransformer(source: source, calculations: calculations))
 	}
 	
-	public func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset {
+	open func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset {
 		return fallback().pivot(horizontal, vertical: vertical, values: values)
 	}
 	
-	public func join(_ join: Join) -> Dataset {
+	open func join(_ join: Join) -> Dataset {
 		return StreamDataset(source: JoinTransformer(source: source, join: join))
 	}
 	
-	public func filter(_ condition: Expression) -> Dataset {
+	open func filter(_ condition: Expression) -> Dataset {
 		return StreamDataset(source: FilterTransformer(source: source, condition: condition))
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	open func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		source.columns(job, callback: callback)
 	}
 	
-	public func stream() -> Stream {
+	open func stream() -> Stream {
 		return source.clone()
 	}
 }
 
-public class ErrorStream: Stream {
+public final class ErrorStream: Stream {
 	private let error: String
 	
 	public init(_ error: String) {
@@ -347,14 +347,14 @@ public class ErrorStream: Stream {
 		return ErrorStream(self.error)
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	public func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.failure(self.error))
 	}
 }
 
 /** 
 A stream that never produces any data (but doesn't return errors either). */
-public class EmptyStream: Stream {
+public final class EmptyStream: Stream {
 	public init() {
 	}
 
@@ -366,14 +366,14 @@ public class EmptyStream: Stream {
 		return EmptyStream()
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	public func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success([]))
 	}
 }
 
 /** 
 A stream that sources from a Swift generator of Tuple. */
-public class SequenceStream: Stream {
+open class SequenceStream: Stream {
 	private let sequence: AnySequence<Fallible<Tuple>>
 	private var generator: AnyIterator<Fallible<Tuple>>
 	private let columns: OrderedSet<Column>
@@ -389,7 +389,7 @@ public class SequenceStream: Stream {
 		self.rowCount = rowCount
 	}
 	
-	public func fetch(_ job: Job, consumer: Sink) {
+	open func fetch(_ job: Job, consumer: Sink) {
 		if let e = error {
 			consumer(.failure(e), .finished)
 			return
@@ -423,7 +423,7 @@ public class SequenceStream: Stream {
 				}
 				self.position += rows.count
 				if let rc = self.rowCount, rc > 0 {
-					job.reportProgress(Double(self.position) / Double(rc), forKey: unsafeAddress(of: self).hashValue)
+					job.reportProgress(Double(self.position) / Double(rc), forKey: Unmanaged.passUnretained(self).toOpaque().hashValue)
 				}
 
 				job.async {
@@ -438,11 +438,11 @@ public class SequenceStream: Stream {
 		}
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	open func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(self.columns))
 	}
 	
-	public func clone() -> Stream {
+	open func clone() -> Stream {
 		return SequenceStream(self.sequence, columns: self.columns, rowCount: self.rowCount)
 	}
 }
@@ -452,7 +452,7 @@ This class needs to be subclassed before it does any real work (in particular, t
 overridden). A subclass may also implement the `finish` method, which will be called after the final set of rows has been
 transformed, but before it is returned to the tranformer's customer. This provides an opportunity to alter the final 
 result (which is useful for transformers that only return rows after having seen all input rows). */
-public class Transformer: NSObject, Stream {
+open class Transformer: NSObject, Stream {
 	public let source: Stream
 	var stopped = false
 	var started = false
@@ -463,7 +463,7 @@ public class Transformer: NSObject, Stream {
 		self.source = source
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	open func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		source.columns(job, callback: callback)
 	}
 	
@@ -471,7 +471,7 @@ public class Transformer: NSObject, Stream {
 		let shouldContinue = self.mutex.locked { () -> Bool in
 			if !started {
 				self.started = true
-				job.reportProgress(0.0, forKey: unsafeAddress(of: self).hashValue)
+				job.reportProgress(0.0, forKey: Unmanaged.passUnretained(self).toOpaque().hashValue)
 			}
 
 			if !self.stopped {
@@ -505,7 +505,7 @@ public class Transformer: NSObject, Stream {
 												assert(self.stopped, "finish() called while not stopped yet")
 											}
 											self.finish(transformedRows, job: job, callback: once { extraRows, finalStreamStatus in
-												job.reportProgress(1.0, forKey: unsafeAddress(of: self).hashValue)
+												job.reportProgress(1.0, forKey: Unmanaged.passUnretained(self).toOpaque().hashValue)
 												consumer(extraRows, finalStreamStatus)
 											})
 										}
@@ -533,7 +533,7 @@ public class Transformer: NSObject, Stream {
 	/** This method will be called after the last transformer has finished its job, but before the last result is returned
 	to the stream's consumer. This is the 'last chance' to do any work (i.e. transformers that only return any data after
 	having seen all data should do so here). The rows returned from the last call to transform are provided as parameter.*/
-	public func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
+	open func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
 		return callback(lastRows, .finished)
 	}
 
@@ -541,12 +541,12 @@ public class Transformer: NSObject, Stream {
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). */
-	public func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	open func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
 		fatalError("Transformer.transform should be implemented in a subclass")
 	}
 
 	/** Returns a clone of the transformer. It should also clone the source stream. */
-	public func clone() -> Stream {
+	open func clone() -> Stream {
 		fatalError("Should be implemented by subclass")
 	}
 }
@@ -591,7 +591,7 @@ private class FlattenTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	private func prepare(_ job: Job, callback: () -> ()) {
+	private func prepare(_ job: Job, callback: @escaping () -> ()) {
 		if self.originalColumns == nil {
 			source.columns(job) { (cols) -> () in
 				self.originalColumns = cols
@@ -603,7 +603,7 @@ private class FlattenTransformer: Transformer {
 		}
 	}
 	
-	private override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	private override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(columns))
 	}
 	
@@ -768,7 +768,7 @@ private class LimitTransformer: Transformer {
 				let progress = Double(self.position) / Double(self.limit)
 
 				job.async {
-					job.reportProgress(progress, forKey: unsafeAddress(of: self).hashValue)
+					job.reportProgress(progress, forKey: Unmanaged.passUnretained(self).toOpaque().hashValue)
 					callback(.success(rows), streamStatus)
 				}
 			}
@@ -777,7 +777,7 @@ private class LimitTransformer: Transformer {
 				let n = self.limit - self.position
 				self.position += rows.count
 				job.async {
-					job.reportProgress(1.0, forKey: unsafeAddress(of: self).hashValue)
+					job.reportProgress(1.0, forKey: Unmanaged.passUnretained(self).toOpaque().hashValue)
 					callback(.success(Array(rows[0..<n])), .finished)
 				}
 			}
@@ -804,7 +804,7 @@ private class ColumnsTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	override private func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	override private func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		source.columns(job) { (sourceColumns) -> () in
 			switch sourceColumns {
 			case .success(let cns):
@@ -849,7 +849,7 @@ private class ColumnsTransformer: Transformer {
 		}
 	}
 	
-	private func ensureIndexes(_ job: Job, callback: () -> ()) {
+	private func ensureIndexes(_ job: Job, callback: @escaping () -> ()) {
 		if indexes == nil {
 			var idxs: [Int] = []
 			source.columns(job) { (sourceColumnNames: Fallible<OrderedSet<Column>>) -> () in
@@ -933,7 +933,7 @@ private class CalculateTransformer: Transformer {
 		})
 	}
 	
-	private override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	private override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		self.ensureIndexes.get(job) {
 			callback(self.columns!)
 		}
@@ -1000,7 +1000,7 @@ private class JoinTransformer: Transformer {
 		super.init(source: source)
 	}
 	
-	private override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	private override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		if let c = self.columnNamesCached {
 			callback(c)
 		}
@@ -1012,7 +1012,7 @@ private class JoinTransformer: Transformer {
 		}
 	}
 	
-	private func getColumnNames(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	private func getColumnNames(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		self.leftColumnNames.get(job) { (leftColumnsFallible) in
 			switch leftColumnsFallible {
 			case .success(let leftColumns):
@@ -1136,7 +1136,7 @@ private class AggregateTransformer: Transformer {
 		self.groupExpressions = groups.map { (_, e) in return e }
 		super.init(source: source)
 
-		self.sourceColumnNames = Future<Fallible<OrderedSet<Column>>>({ [unowned self] (job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) in
+		self.sourceColumnNames = Future<Fallible<OrderedSet<Column>>>({ [unowned self] (job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) in
 			self.source.columns(job, callback: callback)
 		})
 	}
@@ -1208,7 +1208,7 @@ private class AggregateTransformer: Transformer {
 		}
 	}
 
-	private override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	private override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(OrderedSet(self.groups.keys).union(with: OrderedSet(self.values.keys))))
 	}
 

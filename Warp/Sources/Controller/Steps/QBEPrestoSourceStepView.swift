@@ -34,9 +34,9 @@ internal class QBEPrestoSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 	private func updateView() {
 		let job = Job(.userInitiated)
 
-		urlField?.stringValue = step.url ?? ""
-		catalogField?.stringValue = step.catalogName ?? ""
-		schemaField?.stringValue = step.schemaName ?? ""
+		urlField?.stringValue = step.url 
+		catalogField?.stringValue = step.catalogName 
+		schemaField?.stringValue = step.schemaName 
 		
 		step.catalogNames(job) { (catalogsFallible) -> () in
 			catalogsFallible.maybe {(catalogs) in
@@ -89,7 +89,7 @@ internal class QBEPrestoSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 		return tableNames?.count ?? 0
 	}
 	
-	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		return tableNames?[row] ?? ""
 	}
 	
@@ -103,7 +103,7 @@ internal class QBEPrestoSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 		return 0
 	}
 	
-	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> AnyObject? {
+	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> Any? {
 		if aComboBox == catalogField {
 			return catalogNames?[index] ?? ""
 		}

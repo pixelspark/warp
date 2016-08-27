@@ -50,11 +50,10 @@ class QBESetEditorViewController: NSViewController, NSTableViewDelegate, NSTable
 		}
 	}
 
-	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		switch tableColumn?.identifier ?? "" {
 		case "selected":
-			let select = object?.boolValue ?? false
-			if select {
+			if (object as? Bool) ?? false {
 				selection.insert(filteredValues[row])
 			}
 			else {
@@ -67,7 +66,7 @@ class QBESetEditorViewController: NSViewController, NSTableViewDelegate, NSTable
 		}
 	}
 
-	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		switch tableColumn?.identifier ?? "" {
 			case "selected":
 				return NSNumber(value: selection.contains(filteredValues[row]))

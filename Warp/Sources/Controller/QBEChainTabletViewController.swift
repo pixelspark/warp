@@ -16,7 +16,7 @@ internal class QBEChainTabletViewController: QBETabletViewController, QBEChainVi
 		self.chainViewController?.delegate = self
 	}
 
-	override func prepare(for segue: NSStoryboardSegue, sender: AnyObject?) {
+	override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
 		if segue.identifier == "chain" {
 			self.chainViewController = segue.destinationController as? QBEChainViewController
 		}

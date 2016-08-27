@@ -71,7 +71,7 @@ class QBESortStep: QBEStep {
 		super.encode(with: coder)
 	}
 	
-	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(data.sort(orders)))
 	}
 

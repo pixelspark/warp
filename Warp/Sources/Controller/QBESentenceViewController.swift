@@ -44,21 +44,21 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		super.viewDidLoad()
 	}
 
-	func tokenField(_ tokenField: NSTokenField, styleForRepresentedObject representedObject: AnyObject) -> NSTokenStyle {
+	func tokenField(_ tokenField: NSTokenField, styleForRepresentedObject representedObject: Any) -> NSTokenStyle {
 		if let r = representedObject as? QBESentenceToken {
 			return r.isToken ? NSTokenStyle.default : NSTokenStyle.none
 		}
 		return NSTokenStyle.none
 	}
 
-	func tokenField(_ tokenField: NSTokenField, displayStringForRepresentedObject representedObject: AnyObject) -> String? {
+	func tokenField(_ tokenField: NSTokenField, displayStringForRepresentedObject representedObject: Any) -> String? {
 		if let x = representedObject as? QBESentenceToken {
 			return x.label
 		}
 		return nil
 	}
 
-	func tokenField(_ tokenField: NSTokenField, hasMenuForRepresentedObject representedObject: AnyObject) -> Bool {
+	func tokenField(_ tokenField: NSTokenField, hasMenuForRepresentedObject representedObject: Any) -> Bool {
 		return true
 	}
 
@@ -66,7 +66,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	@discardableResult private func change(token inputToken: QBESentenceTextInput, to text: String) -> Bool {
 		let oldValue = inputToken.label
 		if inputToken.change(text) {
-			undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+			undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
 				self?.change(token: inputToken, to: oldValue)
 			}
 			undoManager?.setActionName(String(format: "change '%@' to '%@'".localized, oldValue, text))
@@ -86,7 +86,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		let newFormula = expression.toFormula(self.delegate?.locale ?? Language())
 
 		if inputToken.change(expression) {
-			undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+			undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
 				self?.change(token: inputToken, to: oldValue)
 			}
 			undoManager?.setActionName(String(format: "change '%@' to '%@'".localized, oldFormula, newFormula))
@@ -103,7 +103,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	private func change(token inputToken: QBESentenceSet, to set: Set<String>) {
 		let oldValue = inputToken.value
 		inputToken.select(set)
-		undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+		undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
 			self?.change(token: inputToken, to: oldValue)
 		}
 		undoManager?.setActionName(String(format: "change selection".localized))
@@ -118,7 +118,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		let oldValue = inputToken.value
 
 		inputToken.select(selection)
-		undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+		undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
 			self?.change(token: inputToken, to: oldValue)
 		}
 
@@ -132,7 +132,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	@discardableResult private func change(token inputToken: QBESentenceList, to value: String) -> Bool {
 		let oldValue = inputToken.value
 		inputToken.select(value)
-		undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+		undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
 			self?.change(token: inputToken, to: oldValue)
 		}
 		undoManager?.setActionName(String(format: "change '%@' to '%@'".localized, oldValue, value))
@@ -147,7 +147,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	@discardableResult private func change(token inputToken: QBESentenceOptions, to value: String) -> Bool {
 		let oldValue = inputToken.value
 		inputToken.select(value)
-		undoManager?.registerUndoWithTarget(inputToken) { [weak self] token in
+		undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
 			self?.change(token: inputToken, to: oldValue)
 		}
 
@@ -175,7 +175,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		return true
 	}
 
-	func tokenField(_ tokenField: NSTokenField, menuForRepresentedObject representedObject: AnyObject) -> NSMenu? {
+	func tokenField(_ tokenField: NSTokenField, menuForRepresentedObject representedObject: Any) -> NSMenu? {
 		editingToken = nil
 
 		if let options = representedObject as? QBESentenceOptions {

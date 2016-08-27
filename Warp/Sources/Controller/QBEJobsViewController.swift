@@ -64,7 +64,7 @@ class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
 		return self.jobs.count
 	}
 
-	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		let info = jobs[row]
 
 		switch tableColumn?.identifier ?? "" {

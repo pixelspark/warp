@@ -70,12 +70,12 @@ internal class QBEPostgresResult: Sequence, IteratorProtocol {
 	typealias Element = Fallible<Tuple>
 	typealias Iterator = QBEPostgresResult
 	
-	private let connection: QBEPostgresConnection
-	private var result: OpaquePointer?
-	private let columns: OrderedSet<Column>
-	private let columnTypes: [Oid]
-	private(set) var finished = false
-	private(set) var error: String? = nil
+	fileprivate let connection: QBEPostgresConnection
+	fileprivate var result: OpaquePointer?
+	fileprivate let columns: OrderedSet<Column>
+	fileprivate let columnTypes: [Oid]
+	fileprivate(set) var finished = false
+	fileprivate(set) var error: String? = nil
 	
 	/* The following lists OIDs for PostgreSQL system types. This was generated using the following query on a vanilla
 	Postgres installation (much less hassle than using the pg_type.h header...):
@@ -317,7 +317,7 @@ internal class QBEPostgresResult: Sequence, IteratorProtocol {
 }
 
 class QBEPostgresMutableDataset: SQLMutableDataset {
-	override func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+	override func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
 		let s = self.database as! QBEPostgresDatabase
 		let tableIdentifier = s.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: nil)
 		let query = "SELECT a.attname AS attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE  i.indrelid = '\(tableIdentifier)'::regclass AND i.indisprimary"
@@ -358,11 +358,11 @@ class QBEPostgresMutableDataset: SQLMutableDataset {
 }
 
 class QBEPostgresDatabase: SQLDatabase {
-	private let host: String
-	private let port: Int
-	private let user: String
-	private let password: String
-	private let database: String
+	fileprivate let host: String
+	fileprivate let port: Int
+	fileprivate let user: String
+	fileprivate let password: String
+	fileprivate let database: String
 
 	let dialect: SQLDialect = QBEPostgresDialect()
 	var databaseName: String? { return self.database }
@@ -507,12 +507,12 @@ class QBEPostgresDatabase: SQLDatabase {
 Implements a connection to a PostgreSQL database (corresponding to a MYSQL object in the PostgreSQL library). The connection ensures
 that any operations are serialized (for now using a global queue for all PostgreSQL operations). */
 internal class QBEPostgresConnection: SQLConnection {
-	private(set) var database: QBEPostgresDatabase
-	private var connection: OpaquePointer?
-	private(set) weak var result: QBEPostgresResult?
-	private let queue : DispatchQueue
+	fileprivate(set) var database: QBEPostgresDatabase
+	fileprivate var connection: OpaquePointer?
+	fileprivate(set) weak var result: QBEPostgresResult?
+	fileprivate let queue : DispatchQueue
 	
-	private init(database: QBEPostgresDatabase, connection: OpaquePointer) {
+	fileprivate init(database: QBEPostgresDatabase, connection: OpaquePointer) {
 		self.connection = connection
 		self.database = database
 		self.queue = DispatchQueue(label: "QBEPostgresConnection.Queue")
@@ -571,7 +571,7 @@ internal class QBEPostgresConnection: SQLConnection {
 		}
 	}
 
-	private func perform(_ block: () -> (Bool)) -> Bool {
+	fileprivate func perform(_ block: () -> (Bool)) -> Bool {
 		var success: Bool = false
 		queue.sync {
 			let result = block()
@@ -587,7 +587,7 @@ internal class QBEPostgresConnection: SQLConnection {
 		return success
 	}
 	
-	private var lastError: String { get {
+	fileprivate var lastError: String { get {
 			return String(cString:  PQerrorMessage(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
 	} }
 	
@@ -658,7 +658,7 @@ class QBEPostgresDataset: SQLDataset {
 		return QBEPostgresStream(data: self)
 	}
 	
-	private func result() -> Fallible<QBEPostgresResult> {
+	fileprivate func result() -> Fallible<QBEPostgresResult> {
 		return database.connect().use {
 			$0.query(self.sql.sqlSelect(nil).sql)
 		}
@@ -718,7 +718,7 @@ class QBEPostgresStream: WarpCore.Stream {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		return stream().columns(job, callback: callback)
 	}
 	
@@ -774,8 +774,8 @@ class QBEPostgresSourceStep: QBEStep {
 		coder.encode(host, forKey: "host")
 		coder.encode(user, forKey: "user")
 		coder.encode(databaseName, forKey: "database")
-		coder.encode(port ?? 0, forKey: "port")
-		coder.encodeString(schemaName ?? "", forKey: "schema")
+		coder.encode(port , forKey: "port")
+		coder.encodeString(schemaName , forKey: "schema")
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
@@ -789,9 +789,9 @@ class QBEPostgresSourceStep: QBEStep {
 		}
 
 		return QBESentence(format: NSLocalizedString(template, comment: ""),
-			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
+			QBESentenceList(value: self.tableName , provider: { (callback) -> () in
 				if let d = self.database {
-					d.tables(self.databaseName ?? "", schemaName: self.schemaName ?? self.defaultSchemaName) { tablesFallible in
+					d.tables(self.databaseName , schemaName: self.schemaName ) { tablesFallible in
 						switch tablesFallible {
 						case .success(let tables):
 							callback(.success(tables))
@@ -808,9 +808,9 @@ class QBEPostgresSourceStep: QBEStep {
 				self.tableName = newTable
 			}),
 
-			QBESentenceList(value: self.schemaName ?? self.defaultSchemaName, provider: { (callback) -> () in
+			QBESentenceList(value: self.schemaName, provider: { (callback) -> () in
 				if let d = self.database {
-					d.schemas(self.databaseName ?? "") { schemaFallible in
+					d.schemas(self.databaseName ) { schemaFallible in
 						switch schemaFallible {
 						case .success(let dbs):
 							callback(.success(dbs))
@@ -827,7 +827,7 @@ class QBEPostgresSourceStep: QBEStep {
 					self.schemaName = newSchema
 			}),
 
-			QBESentenceList(value: self.databaseName ?? "", provider: { (callback) -> () in
+			QBESentenceList(value: self.databaseName , provider: { (callback) -> () in
 				if let d = self.database {
 					d.databases { dbFallible in
 						switch dbFallible {
@@ -870,7 +870,7 @@ class QBEPostgresSourceStep: QBEStep {
 		return nil
 	}
 
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		job.async {
 			if let s = self.database {
 				// Check whether the connection details are right
@@ -893,7 +893,7 @@ class QBEPostgresSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		self.fullDataset(job, callback: { (fd) -> () in
 			callback(fd.use({$0.random(maxInputRows)}))
 		})

@@ -136,7 +136,7 @@ class QBESequencerStep: QBEStep {
 		}
 	}
 	
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		switch self.type {
 		case .pattern(let pattern):
 			if let sequencer = Sequencer(pattern) {
@@ -156,7 +156,7 @@ class QBESequencerStep: QBEStep {
 		}
 	}
 
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		self.fullDataset(job) { (fd) -> () in
 			callback(fd.use { (fullDataset) in
 				return fullDataset.limit(maxInputRows)

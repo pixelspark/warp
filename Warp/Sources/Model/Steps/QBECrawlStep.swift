@@ -35,7 +35,7 @@ class QBECrawler: NSObject, NSSecureCoding {
 		
 		self.maxConcurrentRequests = coder.decodeInteger(forKey: "maxConcurrentRequests")
 		self.maxRequestsPerSecond = coder.decodeInteger(forKey: "maxRequestsPerSecond")
-		if self.maxRequestsPerSecond < 1 {
+		if let mrs = self.maxRequestsPerSecond, mrs < 1 {
 			self.maxRequestsPerSecond = nil
 		}
 		
@@ -64,7 +64,7 @@ class QBECrawlStream: WarpCore.Stream {
 		self.crawler = crawler
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		self.sourceColumnNames.get(job) { (sourceColumns) in
 			callback(sourceColumns.use({ (sourceColumns) -> OrderedSet<Column> in
 				var sourceColumns = sourceColumns
@@ -243,7 +243,7 @@ class QBECrawlStep: QBEStep {
 		super.encode(with: coder)
 	}
 	
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(data.crawl(crawler)))
 	}
 }

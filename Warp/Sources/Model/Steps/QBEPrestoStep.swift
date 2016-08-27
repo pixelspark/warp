@@ -54,7 +54,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 		self.nextURI = self.url.appendingPathComponent("/v1/statement")
 		super.init()
 		
-		let c = { [weak self] (job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) -> () in
+		let c = { [weak self] (job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) -> () in
 			self?.awaitColumns(job) {
 				callback(self?.columns ?? .failure(NSLocalizedString("Could not load column names from Presto.", comment: "")))
 			}
@@ -64,7 +64,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 	}
 	
 	/** Request the next batch of result data from Presto. */
-	private func request(_ job: Job, callback: () -> ()) {
+	private func request(_ job: Job, callback: @escaping () -> ()) {
 		if stopped {
 			callback()
 			return
@@ -185,7 +185,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 		}
 	}
 	
-	private func awaitColumns(_ job: Job, callback: () -> ()) {
+	private func awaitColumns(_ job: Job, callback: @escaping () -> ()) {
 		request(job) {
 			if self.columns == nil && !self.stopped {
 				job.async {
@@ -206,7 +206,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 		}
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		self.columnsFuture.get(job, callback)
 	}
 	
@@ -231,7 +231,7 @@ private class QBEPrestoDatabase {
 		return QBEPrestoStream(url: url, sql: sql, catalog: catalog, schema: schema)
 	}
 
-	func run(_ sql: [String], job: Job, callback: (Fallible<Void>) -> ()) {
+	func run(_ sql: [String], job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		var sql = sql
 		let mutex = Mutex() // To protect the list of queryes
 
@@ -267,7 +267,7 @@ private class QBEPrestoDatabase {
 private class QBEPrestoDataset: SQLDataset {
 	private let db: QBEPrestoDatabase
 	
-	class func tableDataset(_ job: Job, db: QBEPrestoDatabase, tableName: String, callback: (Fallible<QBEPrestoDataset>) -> ()) {
+	class func tableDataset(_ job: Job, db: QBEPrestoDatabase, tableName: String, callback: @escaping (Fallible<QBEPrestoDataset>) -> ()) {
 		let sql = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, schema: nil, database: nil))"
 		
 		db.query(sql).columns(job) { (columns) -> () in
@@ -342,7 +342,7 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let d = db, !self.tableName.isEmpty {
 			QBEPrestoDataset.tableDataset(job, db: d, tableName: tableName, callback: { (fd) -> () in
 				callback(fd.use({return $0}))
@@ -353,7 +353,7 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	func catalogNames(_ job: Job, callback: (Fallible<Set<String>>) -> ()) {
+	func catalogNames(_ job: Job, callback: @escaping (Fallible<Set<String>>) -> ()) {
 		if let d = db {
 			StreamDataset(source: d.query("SHOW CATALOGS")).unique(Sibling(Column("Catalog")), job: job) { (catalogNamesFallible) -> () in
 				callback(catalogNamesFallible.use({(tn) -> (Set<String>) in return Set(tn.map({return $0.stringValue ?? ""})) }))
@@ -364,7 +364,7 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	func schemaNames(_ job: Job, callback: (Fallible<Set<String>>) -> ()) {
+	func schemaNames(_ job: Job, callback: @escaping (Fallible<Set<String>>) -> ()) {
 		if let stream = db?.query("SHOW SCHEMAS") {
 			StreamDataset(source: stream).unique(Sibling(Column("Schema")), job: job, callback: { (schemaNamesFallible) -> () in
 				callback(schemaNamesFallible.use({(sn) in Set(sn.map({return $0.stringValue ?? ""})) }))
@@ -372,7 +372,7 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	func tableNames(_ job: Job, callback: (Fallible<Set<String>>) -> ()) {
+	func tableNames(_ job: Job, callback: @escaping (Fallible<Set<String>>) -> ()) {
 		if let stream = db?.query("SHOW TABLES") {
 			StreamDataset(source: stream).unique(Sibling(Column("Table")), job: job, callback: { (tableNamesFallible) -> () in
 				callback(tableNamesFallible.use({(tn) in Set(tn.map({return $0.stringValue ?? ""})) }))
@@ -380,7 +380,7 @@ class QBEPrestoSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		self.fullDataset(job, callback: { (fd) -> () in
 			callback(fd.use({$0.random(maxInputRows)}))
 		})

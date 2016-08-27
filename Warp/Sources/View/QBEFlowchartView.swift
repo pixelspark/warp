@@ -56,8 +56,9 @@ class QBEFlowchartView: NSView {
 		// Select an arrow?
 		for arrow in arrows {
 			let path = pathForArrow(arrow)
-			if let strokedPath = CGPath(copyByStroking: path, transform: nil, lineWidth: 16.0, lineCap: CGLineCap.butt, lineJoin: CGLineJoin.miter, miterLimit: 0.5),
-			strokedPath.containsPoint(nil, point: point, eoFill: true) {
+			let strokedPath = path.copy(strokingWithWidth: 16.0, lineCap: .butt, lineJoin: .miter, miterLimit: 0.5)
+
+			if strokedPath.contains(point, using: .evenOdd) {
 				return arrow
 			}
 		}
@@ -74,7 +75,7 @@ class QBEFlowchartView: NSView {
 		
 		// Draw the arrow
 		let p = CGMutablePath()
-		p.moveTo(nil, x: sourcePoint.x, y: sourcePoint.y)
+		p.move(to: CGPoint(x: sourcePoint.x, y: sourcePoint.y))
 		var bendpoints = QBEAnchor.bendpointsBetween(arrow.sourceFrame, fromAnchor: sourceAnchor, to: arrow.targetFrame, toAnchor: targetAnchor)
 
 		if rounded {
@@ -97,20 +98,20 @@ class QBEFlowchartView: NSView {
 					let secondBetween = CGPoint(x: secondPoint.x * secondWeight + bendpoint.x * (1.0 - secondWeight), y: secondPoint.y * secondWeight + bendpoint.y * (1.0 - secondWeight))
 
 					// Draw a straight line to the curve starting point, the draw the curve to the next 'halfway point'
-					p.addLineTo(nil, x: firstBetween.x, y: firstBetween.y)
-					p.addQuadCurve(nil, cpx: bendpoint.x, cpy: bendpoint.y, endingAtX: secondBetween.x, y: secondBetween.y)
+					p.addLine(to: CGPoint(x: firstBetween.x, y: firstBetween.y))
+					p.addQuadCurve(to: secondBetween, control: bendpoint)
 					lastPoint = secondBetween
 				}
 			}
 
 			// The last line is a straight line again, from the last halfway point
-			p.addLineTo(nil, x: targetPoint.x, y: targetPoint.y)
+			p.addLine(to: targetPoint)
 		}
 		else {
 			for bendpoint in bendpoints {
-				p.addLineTo(nil, x: bendpoint.x, y: bendpoint.y)
+				p.addLine(to: bendpoint)
 			}
-			p.addLineTo(nil, x: targetPoint.x, y: targetPoint.y)
+			p.addLine(to: targetPoint)
 		}
 		return p
 	}
@@ -171,10 +172,10 @@ extension CGContext {
 			let rightWing = CGPoint(x: headBase.x + deltaYWing, y: headBase.y - deltaXWing)
 
 			let head = CGMutablePath()
-			head.moveTo(nil, x: targetPoint.x, y: targetPoint.y)
-			head.addLineTo(nil, x: leftWing.x, y: leftWing.y)
-			head.addLineTo(nil, x: rightWing.x, y: rightWing.y)
-			head.addLineTo(nil, x: targetPoint.x, y: targetPoint.y)
+			head.move(to: CGPoint(x: targetPoint.x, y: targetPoint.y))
+			head.addLine(to: CGPoint(x: leftWing.x, y: leftWing.y))
+			head.addLine(to: CGPoint(x: rightWing.x, y: rightWing.y))
+			head.addLine(to: CGPoint(x: targetPoint.x, y: targetPoint.y))
 			self.addPath(head)
 			self.fillPath()
 		}

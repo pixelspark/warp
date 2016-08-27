@@ -78,7 +78,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 				switch result {
 					case .success(let values):
 						var ordered = OrderedDictionary(dictionaryInAnyOrder: values)
-						ordered.sortKeysInPlace { a,b in return a.stringValue < b.stringValue }
+						ordered.sortKeysInPlace { a,b in return a.stringValue! < b.stringValue! }
 						var count = 0
 						ordered.forEach { _, v in
 							count += v
@@ -105,11 +105,11 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		return values.count
 	}
 	
-	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		if row < values.count {
 			switch tableColumn?.identifier ?? "" {
 				case "selected":
-					if let b = object?.boolValue, b {
+					if (object as? Bool) ?? false {
 						filter.selectedValues.insert(values[row].0)
 					}
 					else {
@@ -123,7 +123,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		}
 	}
 	
-	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		if row < values.count {
 			let value = values[row].0
 
@@ -163,10 +163,10 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 					case "value":
 						self.values.sortKeysInPlace { a, b in
 							if d.ascending {
-								return a.stringValue < b.stringValue
+								return a < b
 							}
 							else {
-								return a.stringValue > b.stringValue
+								return a > b
 							}
 						}
 
@@ -206,14 +206,14 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		self.update()
 		self.delegate?.filterView(self, didChangeFilter: filter.selectedValues.count > 0 ? filter : nil)
 	}
-	
-	@IBAction override func selectAll(_ sender: AnyObject?) {
+
+	override func selectAll(_ sender: Any?) {
 		filter.selectedValues.formUnion(Set(values.keys))
 		self.valueList?.reloadData()
 		filterChanged()
 	}
 	
-	@IBAction func selectNone(_ sender: AnyObject?) {
+	func selectNone(_ sender: Any?) {
 		filter.selectedValues.subtract(Set(values.keys))
 		self.valueList?.reloadData()
 		filterChanged()
@@ -244,7 +244,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 private extension Dataset {
 	/** Returns a histogram of the values for the given expression (each unique value that occurs, and the number of times
 	it occurs). */
-	func histogram(_ expression: Expression, job: Job, callback: (Fallible<[Value: Int]>) -> ()) {
+	func histogram(_ expression: Expression, job: Job, callback: @escaping (Fallible<[Value: Int]>) -> ()) {
 		let keyColumn = Column("k")
 		let countColumn = Column("n")
 		let d = self.aggregate([keyColumn: expression], values: [countColumn: Aggregator(map: expression, reduce: .CountAll)])

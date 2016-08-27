@@ -136,7 +136,7 @@ class QBEExplodeHorizontallyTransformer: Transformer {
 		}
 	}
 
-	override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		self.targetColumnFuture.get(job, callback)
 	}
 
@@ -230,7 +230,7 @@ class QBEExplodeVerticallyStep: QBEStep {
 		super.encode(with: coder)
 	}
 
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(StreamDataset(source: QBEExplodeVerticallyTransformer(source: data.stream(), splitColumn: self.splitColumn, separator: self.separator))))
 	}
 }
@@ -308,7 +308,7 @@ class QBEExplodeHorizontallyStep: QBEStep {
 		super.encode(with: coder)
 	}
 
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(StreamDataset(source: QBEExplodeHorizontallyTransformer(source: data.stream(), splitColumn: self.splitColumn, separator: self.separator, targetColumns: self.targetColumns))))
 	}
 }

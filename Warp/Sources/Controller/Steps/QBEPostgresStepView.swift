@@ -91,10 +91,10 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 
 		self.hostField?.reloadData()
 
-		self.userField?.stringValue = step.user ?? ""
+		self.userField?.stringValue = step.user 
 		self.passwordField?.stringValue = step.password.stringValue ?? ""
-		self.hostField?.stringValue = step.host ?? ""
-		self.portField?.stringValue = "\(step.port ?? 0)"
+		self.hostField?.stringValue = step.host 
+		self.portField?.stringValue = "\(step.port )"
 
 		self.infoProgress?.isHidden = false
 		self.infoLabel?.stringValue = NSLocalizedString("Trying to connect...", comment: "")

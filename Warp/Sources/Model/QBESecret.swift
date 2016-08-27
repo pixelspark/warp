@@ -10,7 +10,7 @@ public class QBESecret {
 	let friendlyName: String
 
 	public static func secretsForService(_ serviceType: String) -> [QBESecret] {
-		let q = [
+		let q: [String : Any] = [
 			kSecClass as String: kSecClassGenericPassword,
 			//kSecAttrService as String: serviceType,
 			kSecReturnAttributes as String: kCFBooleanTrue,
@@ -19,8 +19,8 @@ public class QBESecret {
 		]
 
 		var result: AnyObject?
-		let status = withUnsafeMutablePointer(&result) {
-			SecItemCopyMatching(q, UnsafeMutablePointer($0))
+		let status = withUnsafeMutablePointer(to: &result) {
+			SecItemCopyMatching(q as CFDictionary, UnsafeMutablePointer($0))
 		}
 
 		if status == errSecSuccess {
@@ -64,7 +64,7 @@ public class QBESecret {
 		self.accountName = accountName
 	}
 
-	private var query: [String: AnyObject] {
+	private var query: [String: Any] {
 		return [
 			kSecClass as String: kSecClassGenericPassword,
 			kSecAttrService as String: serviceName,
@@ -88,8 +88,8 @@ public class QBESecret {
 			q[kSecMatchLimit as String] = kSecMatchLimitOne
 
 			var result: AnyObject?
-			let status = withUnsafeMutablePointer(&result) {
-				SecItemCopyMatching(q, UnsafeMutablePointer($0))
+			let status = withUnsafeMutablePointer(to: &result) {
+				SecItemCopyMatching(q as CFDictionary, UnsafeMutablePointer($0))
 			}
 			return status == noErr ? (result as? Data) : nil
 		}
@@ -98,23 +98,23 @@ public class QBESecret {
 		}
 	}
 
-	private func setData(_ data: Data?, update: Bool = false) -> Fallible<Void> {
+	public func setData(_ data: Data?, update: Bool = false) -> Fallible<Void> {
 		var q = self.query
 
 		if let d = data {
 			let status: OSStatus
 			if update {
-				let change = [
+				let change: [String: Any] = [
 					kSecValueData as String: d,
 					kSecAttrLabel as String: friendlyName
 				]
-				status = SecItemUpdate(q, change)
+				status = SecItemUpdate(q as CFDictionary, change as CFDictionary)
 			}
 			else {
 				q[kSecValueData as String] = d
 				q[kSecAttrLabel as String] = friendlyName
 				q[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlocked
-				status = SecItemAdd(q, nil)
+				status = SecItemAdd(q as CFDictionary, nil)
 			}
 
 			if status == noErr {
@@ -129,7 +129,7 @@ public class QBESecret {
 			}
 		}
 		else {
-			let s = SecItemDelete(query)
+			let s = SecItemDelete(query as CFDictionary)
 			if s == noErr {
 				return .success()
 			}
@@ -167,7 +167,7 @@ internal class QBESecretsDataSource: NSObject, NSComboBoxDataSource {
 		self.serviceType = serviceType
 	}
 
-	@objc func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> AnyObject? {
+	@objc func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> Any? {
 		return self.secrets[index].url ?? ""
 	}
 

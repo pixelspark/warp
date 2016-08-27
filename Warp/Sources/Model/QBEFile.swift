@@ -155,7 +155,7 @@ internal class QBEFileCoordinator {
 	func present(_ file: URL, secondaryExtension: String? = nil) -> QBEFilePresenter {
 		let presentedFile: URL
 		if let se = secondaryExtension {
-			presentedFile = (file.deletingPathExtension().appendingPathExtension(se)) ?? file
+			presentedFile = (file.deletingPathExtension().appendingPathExtension(se)) 
 		}
 		else {
 			presentedFile = file
@@ -195,7 +195,7 @@ bug?). */
 public class QBEFilePresenter: NSObject {
 	private let delegate: QBEFilePresenterDelegate
 
-	private init(primary: URL, secondary: URL) {
+	fileprivate init(primary: URL, secondary: URL) {
 		self.delegate = QBEFilePresenterDelegate(primary: primary, secondary: secondary)
 		NSFileCoordinator.addFilePresenter(delegate)
 

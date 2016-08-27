@@ -347,10 +347,10 @@ public class Language {
 				return constants[Value(b)]!
 			
 			case .int(let i):
-				return numberFormatter.string(from: i)!
+				return numberFormatter.string(for: i)!
 			
 			case .double(let d):
-				return numberFormatter.string(from: d)!
+				return numberFormatter.string(for: d)!
 			
 			case .invalid:
 				return translationForString("n/a")

@@ -58,7 +58,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	}
 	
 	func numberOfRows(in tableView: NSTableView) -> Int {
-		return step.orders.count ?? 0
+		return step.orders.count 
 	}
 
 	func validate(_ item: NSValidatedUserInterfaceItem) -> Bool {
@@ -67,7 +67,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	
 	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action == #selector(QBESortStepView.delete(_:)) {
-			return tableView?.selectedRowIndexes.count > 0
+			return (tableView?.selectedRowIndexes.count ?? 0) > 0
 		}
 		else if item.action == #selector(QBESortStepView.addFromPopupButton(_:)) {
 			return true
@@ -83,7 +83,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 		}
 	}
 	
-	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		if let identifier = tableColumn?.identifier {
 			let order = step.orders[row]
 			
@@ -97,14 +97,14 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 			}
 			else if identifier == "ascending" {
 				let oldValue = order.ascending
-				order.ascending = object?.boolValue ?? oldValue
+				order.ascending = (object as AnyObject).boolValue
 				if oldValue != order.ascending {
 					self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 				}
 			}
 			else if identifier == "numeric" {
 				let oldValue = order.numeric
-				order.numeric = object?.boolValue ?? oldValue
+				order.numeric = (object as AnyObject).boolValue
 				if oldValue != order.numeric {
 					self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 				}
@@ -147,7 +147,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 		return true
 	}
 	
-	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		if let identifier = tableColumn?.identifier {
 			let order = step.orders[row]
 			

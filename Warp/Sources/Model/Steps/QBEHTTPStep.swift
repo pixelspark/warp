@@ -12,7 +12,7 @@ class QBEHTTPStream: WarpCore.Stream {
 		self.url = url
 	}
 
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(self.columnNames))
 	}
 
@@ -84,7 +84,7 @@ class QBEHTTPStep: QBEStep {
 		super.encode(with: coder)
 	}
 
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let url = self.url.apply(Row(), foreign: nil, inputValue: nil).stringValue {
 			callback(.success(StreamDataset(source: QBEHTTPStream(url: url))))
 		}
@@ -93,11 +93,11 @@ class QBEHTTPStep: QBEStep {
 		}
 	}
 
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping  (Fallible<Dataset>) -> ()) {
 		return self.fullDataset(job, callback: callback)
 	}
 
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		fatalError("Should never be called")
 	}
 }

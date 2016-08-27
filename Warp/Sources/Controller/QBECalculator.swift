@@ -32,7 +32,7 @@ public class QBEResultNotification: NSObject {
 	let isFull: Bool
 	let step: QBEStep
 
-	private init(raster: Raster, isFull: Bool, step: QBEStep, calculator: QBECalculator) {
+	fileprivate init(raster: Raster, isFull: Bool, step: QBEStep, calculator: QBECalculator) {
 		self.raster = raster
 		self.isFull = isFull
 		self.step = step
@@ -121,7 +121,7 @@ public class QBECalculator: NSObject {
 		return self.mutex.locked {
 			var inputRows = self.currentParameters.desiredExampleRows
 
-			let index = unsafeAddress(of: step).hashValue
+			let index = Unmanaged.passUnretained(step).toOpaque().hashValue
 			
 			if let performance = self.stepPerformance[index] {
 				// If we have no data on amplification, we have to guess... double on each execution
@@ -158,7 +158,7 @@ public class QBECalculator: NSObject {
 	
 	/** Start an example calculation, but repeat the calculation if there is time budget remaining and zero rows have 
 	been returned. The given callback is called as soon as the last calculation round has finished. */
-	public func calculateExample(_ sourceStep: QBEStep, maximumTime: Double? = nil, attempt: Int = 0, job: Job, callback: () -> ()) {
+	public func calculateExample(_ sourceStep: QBEStep, maximumTime: Double? = nil, attempt: Int = 0, job: Job, callback: @escaping () -> ()) {
 		let maxTime = maximumTime ?? self.currentParameters.maximumExampleTime
 		
 		let startTime = Date.timeIntervalSinceReferenceDate
@@ -172,7 +172,7 @@ public class QBECalculator: NSObject {
 					let duration = Double(NSDate.timeIntervalSinceReferenceDate) - startTime
 
 					// Record performance information for example execution
-					let index = unsafeAddress(of: sourceStep).hashValue
+					let index = Unmanaged.passUnretained(sourceStep).toOpaque().hashValue
 					var startAnother = false
 
 					self.mutex.locked {

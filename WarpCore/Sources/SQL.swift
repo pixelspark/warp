@@ -114,11 +114,11 @@ public protocol SQLConnection {
 	func run(_ sql: [String], job: Job, callback: (Fallible<Void>) -> ())
 }
 
-public class SQLWarehouse: Warehouse {
+open class SQLWarehouse: Warehouse {
 	public let database: SQLDatabase
 	public let schemaName: String?
 	public var dialect: SQLDialect { return database.dialect }
-	public let hasFixedColumns: Bool = true
+	open let hasFixedColumns: Bool = true
 	public let hasNamedTables: Bool = true
 
 	public init(database: SQLDatabase, schemaName: String?) {
@@ -126,14 +126,14 @@ public class SQLWarehouse: Warehouse {
 		self.schemaName = schemaName
 	}
 
-	public func canPerformMutation(_ mutation: WarehouseMutation) -> Bool {
+	open func canPerformMutation(_ mutation: WarehouseMutation) -> Bool {
 		switch mutation {
 			case .create(_,_):
 				return true
 		}
 	}
 
-	public func performMutation(_ mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableDataset?>) -> ()) {
+	open func performMutation(_ mutation: WarehouseMutation, job: Job, callback: @escaping (Fallible<MutableDataset?>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
@@ -227,7 +227,7 @@ private class SQLInsertPuller: StreamPuller {
 		super.init(stream: stream, job: job)
 	}
 
-	override func onReceiveRows(_ rows: [Tuple], callback: (Fallible<Void>) -> ()) {
+	override func onReceiveRows(_ rows: [Tuple], callback: @escaping (Fallible<Void>) -> ()) {
 		self.mutex.locked {
 			if !rows.isEmpty {
 				let values = rows.map { row in
@@ -281,12 +281,12 @@ private class SQLInsertPuller: StreamPuller {
 	}
 }
 
-public class SQLMutableDataset: MutableDataset {
+open class SQLMutableDataset: MutableDataset {
 	public let database: SQLDatabase
 	public let tableName: String
 	public let schemaName: String?
 
-	public var warehouse: Warehouse { return SQLWarehouse(database: self.database, schemaName: self.schemaName) }
+	open var warehouse: Warehouse { return SQLWarehouse(database: self.database, schemaName: self.schemaName) }
 
 	public init(database: SQLDatabase, schemaName: String?, tableName: String) {
 		self.database = database
@@ -294,7 +294,7 @@ public class SQLMutableDataset: MutableDataset {
 		self.schemaName = schemaName
 	}
 
-	public func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+	open func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
 		return callback(.failure("Not implemented"))
 	}
 
@@ -306,7 +306,7 @@ public class SQLMutableDataset: MutableDataset {
 		self.database.dataForTable(tableName, schema: schemaName, job: job, callback: callback)
 	}
 
-	private func performInsertByPulling(_ connection: SQLConnection, data: Dataset, mapping: ColumnMapping, job: Job, callback: (Fallible<Void>) -> ()) {
+	private func performInsertByPulling(_ connection: SQLConnection, data: Dataset, mapping: ColumnMapping, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		let fields = mapping.keys.map { fn in return self.database.dialect.columnIdentifier(fn, table: nil, schema: nil, database: nil) }.joined(separator: ", ")
 		let insertStatement = "INSERT INTO \(self.tableIdentifier) (\(fields)) VALUES ";
 		job.log(insertStatement)
@@ -326,7 +326,7 @@ public class SQLMutableDataset: MutableDataset {
 		}
 	}
 
-	private func performInsert(_ connection: SQLConnection, data: Dataset, mapping: ColumnMapping, job: Job, callback: (Fallible<Void>) -> ()) {
+	private func performInsert(_ connection: SQLConnection, data: Dataset, mapping: ColumnMapping, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		if mapping.isEmpty {
 			callback(.failure("Cannot insert zero columns!"))
 			return
@@ -374,7 +374,7 @@ public class SQLMutableDataset: MutableDataset {
 		}
 	}
 
-	private func performAlter(_ connection: SQLConnection, columns desiredColumns: OrderedSet<Column>, job: Job, callback: (Fallible<Void>) -> ()) {
+	private func performAlter(_ connection: SQLConnection, columns desiredColumns: OrderedSet<Column>, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		self.data(job) { result in
 			switch result {
 			case .success(let data):
@@ -461,7 +461,7 @@ public class SQLMutableDataset: MutableDataset {
 		connection.run([query], job: job, callback: callback)
 	}
 
-	private func performInsert(_ connection: SQLConnection, row: Row, job: Job, callback: (Fallible<Void>) -> ()) {
+	private func performInsert(_ connection: SQLConnection, row: Row, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		self.columns(job) { result in
 			switch result {
 			case .success(let columns):
@@ -491,7 +491,7 @@ public class SQLMutableDataset: MutableDataset {
 		}
 	}
 
-	public func performMutation(_ mutation: DatasetMutation, job: Job, callback: (Fallible<Void>) -> ()) {
+	public func performMutation(_ mutation: DatasetMutation, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		if !canPerformMutation(mutation) {
 			callback(.failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
@@ -535,7 +535,7 @@ public class SQLMutableDataset: MutableDataset {
 		}
 	}
 
-	public func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
+	open func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
 		switch mutation {
 		case .truncate, .drop, .import(_, _), .insert(_), .update(_,_,_,_), .delete(keys: _):
 			return true
@@ -552,18 +552,18 @@ public class SQLMutableDataset: MutableDataset {
 	}
 }
 
-public class StandardSQLDialect: SQLDialect {
-	public var stringQualifier: String { get { return "\'" } }
-	public var stringQualifierEscape: String { get { return "\'\'" } }
-	public var identifierQualifier: String { get { return "\"" } }
-	public var identifierQualifierEscape: String { get { return "\\\"" } }
-	public var stringEscape: String { get { return "\\" } }
-	public var supportsChangingColumnDefinitionsWithAlter: Bool { return true }
+open class StandardSQLDialect: SQLDialect {
+	open var stringQualifier: String { get { return "\'" } }
+	open var stringQualifierEscape: String { get { return "\'\'" } }
+	open var identifierQualifier: String { get { return "\"" } }
+	open var identifierQualifierEscape: String { get { return "\\\"" } }
+	open var stringEscape: String { get { return "\\" } }
+	open var supportsChangingColumnDefinitionsWithAlter: Bool { return true }
 
 	public init() {
 	}
 
-	public func columnIdentifier(_ column: Column, table: String? = nil, schema: String? = nil, database: String? = nil) -> String {
+	open func columnIdentifier(_ column: Column, table: String? = nil, schema: String? = nil, database: String? = nil) -> String {
 		if let t = table {
 			let ti = tableIdentifier(t, schema: schema, database: database)
 			return "\(ti).\(identifierQualifier)\(column.name.replacingOccurrences(of: identifierQualifier, with: identifierQualifierEscape))\(identifierQualifier)"
@@ -573,7 +573,7 @@ public class StandardSQLDialect: SQLDialect {
 		}
 	}
 	
-	public func tableIdentifier(_ table: String, schema: String?, database: String?) -> String {
+	open func tableIdentifier(_ table: String, schema: String?, database: String?) -> String {
 		var prefix: String = ""
 		if let d = database?.replacingOccurrences(of: identifierQualifier, with: identifierQualifierEscape) {
 			prefix = "\(identifierQualifier)\(d)\(identifierQualifier)."
@@ -586,14 +586,14 @@ public class StandardSQLDialect: SQLDialect {
 		return "\(prefix)\(identifierQualifier)\(table.replacingOccurrences(of: identifierQualifier, with: identifierQualifierEscape))\(identifierQualifier)"
 	}
 	
-	public func allColumnsIdentifier(_ table: String?, schema: String? = nil, database: String? = nil) -> String {
+	open func allColumnsIdentifier(_ table: String?, schema: String? = nil, database: String? = nil) -> String {
 		if let t = table {
 			return "\(tableIdentifier(t, schema: schema, database: database)).*"
 		}
 		return "*"
 	}
 	
-	public func joinType(_ type: JoinType) -> String? {
+	open func joinType(_ type: JoinType) -> String? {
 		switch type {
 		case .innerJoin: return "INNER JOIN"
 		case .leftJoin: return "LEFT JOIN"
@@ -601,22 +601,22 @@ public class StandardSQLDialect: SQLDialect {
 	}
 
 	/** Convert the given string to the representation in SQL (this includes string qualifiers and escaping). */
-	public func literalString(_ string: String) -> String {
+	open func literalString(_ string: String) -> String {
 		let escaped = string
 			.replacingOccurrences(of: stringEscape, with: stringEscape+stringEscape)
 			.replacingOccurrences(of: stringQualifier, with: stringQualifierEscape)
 		return "\(stringQualifier)\(escaped)\(stringQualifier)"
 	}
 	
-	public func forceNumericExpression(_ expression: String) -> String {
+	open func forceNumericExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS NUMERIC)"
 	}
 	
-	public func forceStringExpression(_ expression: String) -> String {
+	open func forceStringExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS TEXT)"
 	}
 	
-	public func expressionToSQL(_ formula: Expression, alias: String, foreignAlias: String? = nil, inputValue: String? = nil) -> String? {
+	open func expressionToSQL(_ formula: Expression, alias: String, foreignAlias: String? = nil, inputValue: String? = nil) -> String? {
 		if formula.isConstant {
 			let result = formula.apply(Row(), foreign: nil, inputValue: nil)
 			return valueToSQL(result)
@@ -662,7 +662,7 @@ public class StandardSQLDialect: SQLDialect {
 		return nil
 	}
 	
-	public func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
+	open func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
 		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias, foreignAlias: nil, inputValue: nil) {
 			switch aggregation.reduce {
 				case .Average: return "AVG(\(expressionSQL))"
@@ -691,7 +691,7 @@ public class StandardSQLDialect: SQLDialect {
 		}
 	}
 
-	public func unaryToSQL(_ type: Function, args: [String]) -> String? {
+	open func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		let value = args.joined(separator: ", ")
 		switch type {
 			case .Identity: return value
@@ -900,7 +900,7 @@ public class StandardSQLDialect: SQLDialect {
 		}
 	}
 	
-	public func binaryToSQL(_ type: Binary, first: String, second: String) -> String? {
+	open func binaryToSQL(_ type: Binary, first: String, second: String) -> String? {
 		switch type {
 			case .addition:		return "(\(second)+\(first))"
 			case .subtraction:	return "(\(second)-\(first))"
@@ -1078,7 +1078,7 @@ public class SQLFragment {
 		return SQLFragment(query: self.sqlSelect(nil).sql, dialect: dialect)
 	} }
 	
-	private func advance(_ toType: SQLFragmentType, part: String?) -> SQLFragment {
+	fileprivate func advance(_ toType: SQLFragmentType, part: String?) -> SQLFragment {
 		// From which state can one go to the to-state?
 		let precedingType = toType.precedingType
 		let source: SQLFragment
@@ -1154,7 +1154,7 @@ should return the data represented by this data set. This class needs to be subc
 data (a subclass implements the raster function to return the fetched data, preferably the stream function to return a
 stream of results, and the apply function, to make sure any operations on the data set return a data set of the same
 subclassed type). See QBESQLite for an implementation example. */
-public class SQLDataset: NSObject, Dataset {
+open class SQLDataset: NSObject, Dataset {
     public let sql: SQLFragment
 	public let columns: OrderedSet<Column>
 	
@@ -1177,30 +1177,30 @@ public class SQLDataset: NSObject, Dataset {
 		return StreamDataset(source: self.stream())
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	open func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(columns))
 	}
 	
-	public func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) {
+	open func raster(_ job: Job, deliver: Delivery, callback: @escaping (Fallible<Raster>, StreamStatus) -> ()) {
 		job.async {
 			StreamDataset(source: self.stream()).raster(job, deliver: deliver, callback: callback)
 		}
 	}
 	
 	/** Transposition is difficult in SQL, and therefore left to RasterDataset. */
-   public  func transpose() -> Dataset {
+   open func transpose() -> Dataset {
 		return fallback().transpose()
     }
 	
-	public func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset {
+	open func pivot(_ horizontal: OrderedSet<Column>, vertical: OrderedSet<Column>, values: OrderedSet<Column>) -> Dataset {
 		return fallback().pivot(horizontal, vertical: vertical, values: values)
 	}
 	
-	public func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset {
+	open func flatten(_ valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) -> Dataset {
 		return fallback().flatten(valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: to)
 	}
 	
-	public func union(_ data: Dataset) -> Dataset {
+	open func union(_ data: Dataset) -> Dataset {
 		if let rightSQL = data as? SQLDataset, isCompatibleWith(rightSQL) {
 			// Find out what columns we will end up with
 			var cols = self.columns
@@ -1217,7 +1217,7 @@ public class SQLDataset: NSObject, Dataset {
 		}
 	}
 	
-	public func join(_ join: Join) -> Dataset {
+	open func join(_ join: Join) -> Dataset {
 		if let sqlJoinType = sql.dialect.joinType(join.type) {
 			switch join.type {
 			case .leftJoin, .innerJoin:
@@ -1267,11 +1267,11 @@ public class SQLDataset: NSObject, Dataset {
 	/** Determines whether another SQLDataset set is 'compatible' with this one. Compatible means that the two data sets 
 	are actually in the same database, so that a join (or other merging operation) is possible between these datasets. By
 	default, we assume data sets are never compatible. */
-	public func isCompatibleWith(_ other: SQLDataset) -> Bool {
+	open func isCompatibleWith(_ other: SQLDataset) -> Bool {
 		return false
 	}
 	
-	public func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset {
+	open func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset {
 		var values: [String] = []
 		var newColumns = columns
 		
@@ -1311,7 +1311,7 @@ public class SQLDataset: NSObject, Dataset {
 		return apply(sourceSQL.sqlSelect(valueString), resultingColumns: newColumns)
     }
 	
-	public func sort(_ by: [Order]) -> Dataset {
+	open func sort(_ by: [Order]) -> Dataset {
 		var error = false
 		
 		let sqlOrders = by.map({(order) -> (String) in
@@ -1341,11 +1341,11 @@ public class SQLDataset: NSObject, Dataset {
 		return apply(sql.sqlOrder(orderClause), resultingColumns: columns)
 	}
 	
-	public func distinct() -> Dataset {
+	open func distinct() -> Dataset {
 		return apply(self.sql.sqlSelect("DISTINCT *"), resultingColumns: columns)
 	}
     
-    public func limit(_ numberOfRows: Int) -> Dataset {
+    open func limit(_ numberOfRows: Int) -> Dataset {
 		return apply(self.sql.sqlLimit("\(numberOfRows)"), resultingColumns: columns)
     }
 
@@ -1353,11 +1353,11 @@ public class SQLDataset: NSObject, Dataset {
 	limit is desired. In T-SQL, the "SELECT TOP x" syntax is used instead. In SQLite, LIMIT is always required, but can
 	be set to -1 to obtain all rows (e.g. "LIMIT -1 OFFSET x"). This is not implemented here but is the responsibility 
 	of implementing subclasses. */
-	public func offset(_ numberOfRows: Int) -> Dataset {
+	open func offset(_ numberOfRows: Int) -> Dataset {
 		return apply(sql.sqlOffset("\(numberOfRows)"), resultingColumns: columns)
 	}
 	
-	public func filter(_ condition: Expression) -> Dataset {
+	open func filter(_ condition: Expression) -> Dataset {
 		let optimizedCondition = condition.prepare()
 		if optimizedCondition.isConstant {
 			let constantValue = optimizedCondition.apply(Row(), foreign: nil, inputValue: nil)
@@ -1379,12 +1379,12 @@ public class SQLDataset: NSObject, Dataset {
 		}
 	}
 	
-	public func random(_ numberOfRows: Int) -> Dataset {
+	open func random(_ numberOfRows: Int) -> Dataset {
 		let randomFunction = sql.dialect.unaryToSQL(Function.Random, args: []) ?? "RANDOM()"
 		return apply(sql.sqlOrder(randomFunction).sqlLimit("\(numberOfRows)"), resultingColumns: columns)
 	}
 	
-	public func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
+	open func unique(_ expression: Expression, job: Job, callback: @escaping (Fallible<Set<Value>>) -> ()) {
 		let q = self.sql.asSubquery
 		if let expressionString = sql.dialect.expressionToSQL(expression.prepare(), alias: q.aliasFor(.select), foreignAlias: nil, inputValue: nil) {
 			let data = apply(q.sqlSelect("DISTINCT \(expressionString) AS _value"), resultingColumns: ["_value"])
@@ -1400,12 +1400,12 @@ public class SQLDataset: NSObject, Dataset {
 		}
 	}
 	
-	public func selectColumns(_ columns: OrderedSet<Column>) -> Dataset {
+	open func selectColumns(_ columns: OrderedSet<Column>) -> Dataset {
 		let colNames = columns.map { self.sql.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) }.joined(separator: ", ")
 		return apply(self.sql.sqlSelect(colNames), resultingColumns: columns)
 	}
 	
-	public func aggregate(_ groups: [Column : Expression], values: [Column : Aggregator]) -> Dataset {
+	open func aggregate(_ groups: [Column : Expression], values: [Column : Aggregator]) -> Dataset {
 		if groups.isEmpty && values.isEmpty {
 			return StreamDataset(source: EmptyStream())
 		}
@@ -1456,11 +1456,11 @@ public class SQLDataset: NSObject, Dataset {
 		}
 	}
 	
-	public func apply(_ fragment: SQLFragment, resultingColumns: OrderedSet<Column>) -> Dataset {
+	open func apply(_ fragment: SQLFragment, resultingColumns: OrderedSet<Column>) -> Dataset {
 		return SQLDataset(fragment: fragment, columns: columns)
 	}
 	
-	public func stream() -> Stream {
+	open func stream() -> Stream {
 		fatalError("Stream() must be implemented by subclass of SQLDataset")
 	}
 }

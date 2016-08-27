@@ -91,7 +91,7 @@ public func throttle<P>(interval: TimeInterval, queue: DispatchQueue, _ block: (
 }
 
 /** Runs the given block of code asynchronously on the main queue. */
-public func asyncMain(_ block: () -> ()) {
+public func asyncMain(_ block: @escaping () -> ()) {
 	DispatchQueue.main.async(execute: block)
 }
 
@@ -101,7 +101,7 @@ public extension Sequence {
 	/** Iterate over the items in this array, and call the 'each' block for each element. At most `maxConcurrent` calls
 	to `each` may be 'in flight' concurrently. After each has been called and called back for each of the items, the
 	completion block is called. */
-	func eachConcurrently(_ maxConcurrent: Int, maxPerSecond: Int?, each: (Element, () -> ()) -> (), completion: () -> ()) {
+	func eachConcurrently(_ maxConcurrent: Int, maxPerSecond: Int?, each: @escaping (Element, @escaping () -> ()) -> (), completion: @escaping () -> ()) {
 		var iterator = self.makeIterator()
 		let mutex = Mutex()
 		var outstanding = 0
@@ -236,7 +236,7 @@ public enum Fallible<T> {
 	/** If the result is successful, execute `block` on its return value, and return the (fallible) return value of that block
 	(if any). Otherwise return a new, failed result with the error message of this result. This can be used to chain 
 	operations on fallible operations, propagating the error once an operation fails. */
-	public func use<P>( _ block: @noescape (T) -> P) -> Fallible<P> {
+	public func use<P>( _ block: (T) -> P) -> Fallible<P> {
 		switch self {
 			case .success(let value):
 				return .success(block(value))
@@ -246,7 +246,7 @@ public enum Fallible<T> {
 		}
 	}
 
-	public func use<P>( _ block: @noescape (T) -> Fallible<P>) -> Fallible<P> {
+	public func use<P>( _ block: (T) -> Fallible<P>) -> Fallible<P> {
 		switch self {
 		case .success(let box):
 			return block(box)
@@ -257,7 +257,7 @@ public enum Fallible<T> {
 	}
 	
 	/** If this result is a success, execute the block with its value. Otherwise cause a fatal error.  */
-	public func require( _ block: @noescape (T) -> Void) {
+	public func require( _ block: (T) -> Void) {
 		switch self {
 		case .success(let value):
 			block(value)
@@ -268,7 +268,7 @@ public enum Fallible<T> {
 	}
 
 	/** If this result is a success, execute the block with its value. Otherwise silently ignore the failure (but log in debug mode) */
-	public func maybe( _ block: @noescape (T) -> Void) {
+	public func maybe( _ block: (T) -> Void) {
 		switch self {
 		case .success(let value):
 			block(value)
@@ -303,10 +303,10 @@ the job has been cancelled) and report progress information. */
 public class Job: JobDelegate {
 	public let queue: DispatchQueue
 	let parentJob: Job?
-	private var cancelled: Bool = false
+	fileprivate var cancelled: Bool = false
 	private var progressComponents: [Int: Double] = [:]
 	private var observers: [Weak<JobDelegate>] = []
-	private let mutex = Mutex()
+	fileprivate let mutex = Mutex()
 
 	#if DEBUG
 	private static let jobCounterMutex = Mutex()
@@ -342,10 +342,10 @@ public class Job: JobDelegate {
 			}
 		#endif
 
-		parent.reportProgress(0.0, forKey: unsafeAddress(of: self).hashValue)
+		parent.reportProgress(0.0, forKey: Unmanaged.passUnretained(self).toOpaque().hashValue)
 	}
 	
-	private init(queue: DispatchQueue) {
+	fileprivate init(queue: DispatchQueue) {
 		self.queue = queue
 		self.parentJob = nil
 
@@ -373,7 +373,7 @@ public class Job: JobDelegate {
 	/** Shorthand function to run a block asynchronously in the queue associated with this job. Because async() will often
 	be called with an 'expensive' block, it also checks the jobs cancellation status. If the job is cancelled, the block
 	will not be executed, nor will any timing information be reported. */
-	public func async(_ block: () -> ()) {
+	public func async(_ block: @escaping () -> ()) {
 		if isCancelled {
 			return
 		}
@@ -389,7 +389,7 @@ public class Job: JobDelegate {
 	simply called and no timing information is gathered. Because time() will often be called with an 'expensive' block, 
 	it also checks the jobs cancellation status. If the job is cancelled, the block will not be executed, nor will any 
 	timing information be reported. */
-	public func time(_ description: String, items: Int, itemType: String, block: @noescape () -> ()) {
+	public func time(_ description: String, items: Int, itemType: String, block: () -> ()) {
 		if self.isCancelled {
 			return
 		}
@@ -448,7 +448,7 @@ public class Job: JobDelegate {
 			}
 
 			// Report our progress back up to our parent
-			self.parentJob?.reportProgress(currentProgress, forKey: unsafeAddress(of: self).hashValue)
+			self.parentJob?.reportProgress(currentProgress, forKey: Unmanaged.passUnretained(self).toOpaque().hashValue)
 		}
 	}
 	
@@ -478,7 +478,7 @@ public class Job: JobDelegate {
 	}
 	
 	@objc public func job(_ job: AnyObject, didProgress: Double) {
-		self.reportProgress(didProgress, forKey: unsafeAddress(of: job).hashValue)
+		self.reportProgress(didProgress, forKey: Unmanaged.passUnretained(self).toOpaque().hashValue)
 	}
 	
 	/** Print a message to the debug log. The message is sent to the console asynchronously (but ordered) and prepended
@@ -584,16 +584,16 @@ public class Mutex {
 		pthread_mutex_destroy(&self.mutex)
 	}
 
-	@discardableResult public final func locked<T>(_ file: StaticString = #file, line: UInt = #line, block: @noescape () throws -> (T)) throws -> T {
+	@discardableResult public final func locked<T>(_ file: StaticString = #file, line: UInt = #line, block: () throws -> (T)) throws -> T {
 		return try self.tryLocked(file, line: line, block: block)
 	}
 
-	@discardableResult public final func locked<T>(_ file: StaticString = #file, line: UInt = #line, block: @noescape () -> (T)) -> T {
+	@discardableResult public final func locked<T>(_ file: StaticString = #file, line: UInt = #line, block: () -> (T)) -> T {
 		return try! self.tryLocked(file, line: line, block: block)
 	}
 
 	/** Execute the given block while holding a lock to this mutex. */
-	@discardableResult public final func tryLocked<T>(_ file: StaticString = #file, line: UInt = #line, block: @noescape () throws -> (T)) throws -> T {
+	@discardableResult public final func tryLocked<T>(_ file: StaticString = #file, line: UInt = #line, block: () throws -> (T)) throws -> T {
 		#if DEBUG
 			let start = CFAbsoluteTimeGetCurrent()
 		#endif
@@ -627,8 +627,8 @@ public class Future<T> {
 	public typealias Callback = (T) -> ()
 	public typealias Producer = (Job, Callback) -> ()
 
-	private var batch: Batch<T>?
-	private let mutex: Mutex = Mutex()
+	fileprivate var batch: Batch<T>?
+	fileprivate let mutex: Mutex = Mutex()
 	
 	let producer: Producer
 	let timeLimit: Double?
@@ -740,10 +740,10 @@ public class MutableFuture<T>: Future<T> {
 
 class Batch<T>: Job {
 	typealias Callback = Future<T>.Callback
-	private var cached: T? = nil
+	fileprivate var cached: T? = nil
 	private var waitingList: [Callback] = []
 	
-	private var satisfied: Bool {
+	fileprivate var satisfied: Bool {
 		return self.mutex.locked {
 			return cached != nil
 		}

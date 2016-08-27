@@ -41,7 +41,7 @@ import WarpCore
 		setNeedsDisplay(self.bounds)
 	}
 	
-	override func view(_ view: NSView, stringForToolTip tag: NSToolTipTag, point: NSPoint, userData data: UnsafeMutablePointer<Void>?) -> String {
+	override func view(_ view: NSView, stringForToolTip tag: NSToolTipTag, point: NSPoint, userData data: UnsafeMutableRawPointer?) -> String {
 		return step?.explain(Language()) ?? ""
 	}
 	
@@ -208,7 +208,7 @@ class QBEStepsItem: NSCollectionViewItem {
 		return self.representedObject as? QBEStep
 	} }
 	
-	override var representedObject: AnyObject? { didSet {
+	override var representedObject: Any? { didSet {
 		if let v = self.view as? QBEStepsItemView {
 			v.step = representedObject as? QBEStep
 		}

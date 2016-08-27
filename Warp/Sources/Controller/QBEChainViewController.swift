@@ -703,7 +703,7 @@ internal enum QBEEditingMode {
 	}
 
 	/** This delegate method is called by the data view whenever a value is added using the template new row/column. */
-	func dataView(_ view: QBEDatasetViewController, addValue value: Value, inRow: Int?, column: Int?, callback: (Bool) -> ()) {
+	func dataView(_ view: QBEDatasetViewController, addValue value: Value, inRow: Int?, column: Int?, callback: @escaping (Bool) -> ()) {
 		var value = value
 		suggestions?.cancel()
 		let job = Job(.userInitiated)
@@ -1099,7 +1099,7 @@ internal enum QBEEditingMode {
 		return false
 	}
 
-	func dataView(_ view: QBEDatasetViewController, viewControllerForColumn column: Column, info: Bool, callback: (NSViewController) -> ()) {
+	func dataView(_ view: QBEDatasetViewController, viewControllerForColumn column: Column, info: Bool, callback: @escaping (NSViewController) -> ()) {
 		let job = Job(.userInitiated)
 
 		if info {
@@ -2507,7 +2507,7 @@ internal enum QBEEditingMode {
 		}
 	}
 	
-	override func prepare(for segue: NSStoryboardSegue, sender: AnyObject?) {
+	override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
 		if segue.identifier=="grid" {
 			dataViewController = segue.destinationController as? QBEDatasetViewController
 			dataViewController?.delegate = self

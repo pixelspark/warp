@@ -9,10 +9,10 @@ public class QBERectangle: NSObject, NSSecureCoding {
 	
 	@objc required public init?(coder aDecoder: NSCoder) {
 		rect = CGRect(
-			x: aDecoder.decodeDouble(forKey: "x") ?? Double.nan,
-			y: aDecoder.decodeDouble(forKey: "y") ?? Double.nan,
-			width: aDecoder.decodeDouble(forKey: "w") ?? Double.nan,
-			height: aDecoder.decodeDouble(forKey: "h") ?? Double.nan
+			x: aDecoder.decodeDouble(forKey: "x"),
+			y: aDecoder.decodeDouble(forKey: "y"),
+			width: aDecoder.decodeDouble(forKey: "w"),
+			height: aDecoder.decodeDouble(forKey: "h")
 		)
 	}
 	

@@ -180,7 +180,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		}
 	} }
 
-	public var nativeValue: AnyObject? {
+	public var nativeValue: Any? {
 		switch self {
 		case .string(let s): return s
 		case .int(let i): return i
@@ -327,7 +327,7 @@ public struct Pack {
 	public var stringValue: String { get {
 		let res = items.map({
 			$0.replacingOccurrences(of: Pack.escape, with: Pack.escapeEscape)
-			  .replacingOccurrences(of: Pack.separator, with: Pack.separatorEscape) ?? ""
+			  .replacingOccurrences(of: Pack.separator, with: Pack.separatorEscape)
 		})
 
 		return res.joined(separator: Pack.separator)
@@ -507,10 +507,13 @@ public func > (lhs: Value, rhs: Value) -> Bool {
 	
 	switch(lhs, rhs) {
 	case (.int, .int):
-		return lhs.intValue > rhs.intValue
+		return lhs.intValue! > rhs.intValue!
 		
 	default:
-		return lhs.doubleValue > rhs.doubleValue
+		if let a = lhs.doubleValue, let b = rhs.doubleValue {
+			return a > b
+		}
+		return false
 	}
 }
 
@@ -521,10 +524,13 @@ public func < (lhs: Value, rhs: Value) -> Bool {
 	
 	switch(lhs, rhs) {
 	case (.int, .int):
-		return lhs.intValue < rhs.intValue
+		return lhs.intValue! < rhs.intValue!
 		
 	default:
-		return lhs.doubleValue < rhs.doubleValue
+		if let a = lhs.doubleValue, let b = rhs.doubleValue {
+			return a < b
+		}
+		return false
 	}
 }
 
@@ -535,10 +541,13 @@ public func >= (lhs: Value, rhs: Value) -> Bool {
 	
 	switch(lhs, rhs) {
 	case (.int, .int):
-		return lhs.intValue >= rhs.intValue
+		return lhs.intValue! >= rhs.intValue!
 		
 	default:
-		return lhs.doubleValue >= rhs.doubleValue
+		if let a = lhs.doubleValue, let b = rhs.doubleValue {
+			return a >= b
+		}
+		return false
 	}
 }
 
@@ -549,10 +558,13 @@ public func <= (lhs: Value, rhs: Value) -> Bool {
 	
 	switch(lhs, rhs) {
 	case (.int, .int):
-		return lhs.intValue <= rhs.intValue
+		return lhs.intValue! <= rhs.intValue!
 		
 	default:
-		return lhs.doubleValue <= rhs.doubleValue
+		if let a = lhs.doubleValue, let b = rhs.doubleValue {
+			return a <= b
+		}
+		return false
 	}
 }
 
@@ -587,17 +599,14 @@ public func ~= (lhs: Value, rhs: Value) -> Value {
 	return Value.invalid
 }
 
-infix operator ~~= {
-	associativity left precedence 120
+precedencegroup MinPrecedence {
+	associativity: left
+	lowerThan: AssignmentPrecedence
 }
 
-infix operator ±= {
-	associativity left precedence 120
-}
-
-infix operator ±±= {
-	associativity left precedence 120
-}
+infix operator ~~= : MinPrecedence
+infix operator ±= : MinPrecedence
+infix operator ±±= : MinPrecedence
 
 public func ~~= (lhs: Value, rhs: Value) -> Value {
 	if let l = lhs.stringValue, let r = rhs.stringValue {
@@ -795,7 +804,7 @@ public extension Sequence {
 	/** For each element in the sequence, evaluate block, and insert the returned tuple in a dictionary. If a particular
 	key appears more than once in a returned tuple, one of the values will end up in the dictionary, but which is not
 	defined. */
-	func mapDictionary<K, V>( _ block: @noescape (Iterator.Element) -> (K, V)) -> [K:V] {
+	func mapDictionary<K, V>( _ block: (Iterator.Element) -> (K, V)) -> [K:V] {
 		var dict: [K:V] = [:]
 		self.forEach { (element) -> () in
 			let v = block(element)
@@ -815,7 +824,7 @@ public extension Sequence where Iterator.Element: Equatable {
 
 
 internal extension Collection {
-	func mapMany(_ block: @noescape (Iterator.Element) -> [Iterator.Element]) -> [Iterator.Element] {
+	func mapMany(_ block: (Iterator.Element) -> [Iterator.Element]) -> [Iterator.Element] {
 		var result: [Iterator.Element] = []
 		self.forEach { (item) in
 			result.append(contentsOf: block(item))
@@ -928,7 +937,7 @@ internal extension Int {
 
 internal func arc4random <T: ExpressibleByIntegerLiteral> (_ type: T.Type) -> T {
 	var r: T = 0
-	arc4random_buf(&r, sizeof(T.self))
+	arc4random_buf(&r, MemoryLayout<T>.size)
 	return r
 }
 

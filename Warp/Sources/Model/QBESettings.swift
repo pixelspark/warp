@@ -45,7 +45,7 @@ class QBESettings {
 	
 	var monospaceFont: Bool {
 		get {
-			return defaults.bool(forKey: "monospaceFont") ?? false
+			return defaults.bool(forKey: "monospaceFont") 
 		}
 		set {
 			defaults.set(newValue, forKey: "monospaceFont")

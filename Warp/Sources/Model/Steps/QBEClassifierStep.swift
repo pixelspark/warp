@@ -7,7 +7,7 @@ private typealias QBEDatasetDescriptives = [Column: QBEColumnDescriptives]
 
 private extension Dataset {
 	/** Calculate the requested set of descriptives for the given set of columns. */
-	func descriptives(_ columns: Set<Column>, types: Set<Function>, job: Job, callback: (Fallible<QBEDatasetDescriptives>) -> ()) {
+	func descriptives(_ columns: Set<Column>, types: Set<Function>, job: Job, callback: @escaping (Fallible<QBEDatasetDescriptives>) -> ()) {
 		var aggregators: [Column: Aggregator] = [:]
 		columns.forEach { column in
 			types.forEach { type in
@@ -213,7 +213,7 @@ private class QBENeuronAllocator {
 		trace("Allocations: \(self.allocations)")
 	}
 
-	private func floatsForRow(_ row: Row) -> [Float] {
+	fileprivate func floatsForRow(_ row: Row) -> [Float] {
 		return self.columns.enumerated().flatMap { (index, inputColumn) -> [Float] in
 			let v = row[inputColumn] ?? .invalid
 			let allocation = self.allocations[index]
@@ -221,7 +221,7 @@ private class QBENeuronAllocator {
 		}
 	}
 
-	private func valuesForFloats(_ row: [Float]) -> [Value] {
+	fileprivate func valuesForFloats(_ row: [Float]) -> [Value] {
 		assert(self.neuronCount == row.count, "input vector has the wrong length (\(row.count) versus expected \(self.neuronCount))")
 
 		var offset = 0
@@ -310,7 +310,7 @@ private class QBEClassifierModel {
 
 	/** Classify multiple rows at once. If `appendOutputToInput` is set to true, the returned set of
 	rows will all each start with the input columns, followed by the output columns. */
-	func classify(_ inputs: [Row], appendOutputToInput: Bool, callback: (Fallible<[Tuple]>) -> ()) {
+	func classify(_ inputs: [Row], appendOutputToInput: Bool, callback: @escaping (Fallible<[Tuple]>) -> ()) {
 		// Clear the reservoir with validation rows, we don't need those anymore as training should have finished now
 		self.validationReservoir.clear()
 		do {
@@ -335,7 +335,7 @@ private class QBEClassifierModel {
 	}
 
 	/** Train the model using data from the stream indicated. The `trainingColumns` list indicates */
-	func train(_ job: Job, stream: WarpCore.Stream, callback: (Fallible<()>) -> ()) {
+	func train(_ job: Job, stream: WarpCore.Stream, callback: @escaping (Fallible<()>) -> ()) {
 		if self.inputs.isEmpty {
 			return callback(.failure("Please make sure there is data to use for classification".localized))
 		}
@@ -355,7 +355,7 @@ private class QBEClassifierModel {
 		}
 	}
 
-	private func train(_ job: Job, stream: WarpCore.Stream, trainingColumns: OrderedSet<Column>, callback: (Fallible<()>) -> ()) {
+	private func train(_ job: Job, stream: WarpCore.Stream, trainingColumns: OrderedSet<Column>, callback: @escaping (Fallible<()>) -> ()) {
 		stream.fetch(job) { result, streamStatus in
 			switch result {
 			case .success(let tuples):
@@ -463,7 +463,7 @@ private class QBEClassifierStream: WarpCore.Stream {
 		})
 	}
 
-	private func fetch(_ job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: Sink) {
 		// Make sure the model is trained before starting to classify result
 		self.trainingFuture.get(job) { result in
 			switch result {
@@ -485,7 +485,7 @@ private class QBEClassifierStream: WarpCore.Stream {
 	}
 
 	/** Fetch a batch of rows from the source data stream and let the model calculate outputs. */
-	private func classify(_ job: Job, columns: OrderedSet<Column>, consumer: (Fallible<[Tuple]>, StreamStatus) -> ()) {
+	private func classify(_ job: Job, columns: OrderedSet<Column>, consumer: @escaping (Fallible<[Tuple]>, StreamStatus) -> ()) {
 		self.data.fetch(job) { result, streamStatus in
 			switch result {
 			case .success(let tuples):
@@ -505,11 +505,11 @@ private class QBEClassifierStream: WarpCore.Stream {
 		}
 	}
 
-	private func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		return callback(.success(self.model.inputs.union(with: self.model.outputs)))
 	}
 
-	private func clone() -> WarpCore.Stream {
+	func clone() -> WarpCore.Stream {
 		if isTrained {
 			return QBEClassifierStream(data: data, trainedModel: model)
 		}
@@ -577,7 +577,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		)
 	}
 
-	private func classify(_ data: Dataset, withTrainingDataset trainingDataset: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	private func classify(_ data: Dataset, withTrainingDataset trainingDataset: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		let columnsJob = Job(parent: job)
 		let dataColumnsJob = Job(parent: job)
 		let descriptivesJob = Job(parent: job)
@@ -616,7 +616,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		let leftJob = Job(parent: job)
 		let rightJob = Job(parent: job)
 		let classifyJob = Job(parent: job)
@@ -650,7 +650,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let p = previous {
 			p.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) { leftDataset in
 				switch leftDataset {
@@ -679,7 +679,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 
-	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		fatalError("QBEClassifierStep.apply should not be used")
 	}
 }

@@ -29,7 +29,7 @@ final class QBEDBFStream: NSObject, WarpCore.Stream {
 		DBFClose(handle)
 	}
 
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		if self.columns == nil {
 			let fieldCount = self.fieldCount
 			var fields: OrderedSet<Column> = []
@@ -126,7 +126,7 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 	required init?(coder aDecoder: NSCoder) {
 	}
 
-	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
+	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		let stream = data.stream()
 
 		let handle = DBFCreate((file as NSURL).fileSystemRepresentation)
@@ -239,11 +239,11 @@ class QBEDBFSourceStep: QBEStep {
 		}
 	}
 
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(sourceDataset())
 	}
 
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(sourceDataset().use({ d in return d.limit(maxInputRows) }))
 	}
 

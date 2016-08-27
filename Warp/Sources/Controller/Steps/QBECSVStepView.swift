@@ -36,7 +36,7 @@ internal class QBECSVStepView: QBEConfigurableStepViewControllerFor<QBECSVSource
 		return 0
 	}
 	
-	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> AnyObject? {
+	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> Any? {
 		if aComboBox == self.separatorField {
 			if let locale = self.delegate?.locale {
 				return locale.commonFieldSeparators[index]
@@ -55,7 +55,7 @@ internal class QBECSVStepView: QBEConfigurableStepViewControllerFor<QBECSVSource
 	}
 
 	private func updateView() {
-		separatorField?.stringValue = String(Character(UnicodeScalar(step.fieldSeparator)))
+		separatorField?.stringValue = String(Character(UnicodeScalar(step.fieldSeparator)!))
 		hasHeadersButton?.state = step.hasHeaders ? NSOnState : NSOffState
 		languageField.selectItem(at: (self.languages.index(of: step.interpretLanguage ?? "") ?? -1) + 1)
 		

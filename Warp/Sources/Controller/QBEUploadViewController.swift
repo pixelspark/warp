@@ -26,7 +26,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 		}
 	}
 
-	override func prepare(for segue: NSStoryboardSegue, sender: AnyObject?) {
+	override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
 		if segue.identifier == "targetSentenceView" {
 			self.targetSentenceViewController = segue.destinationController as? QBESentenceViewController
 		}
@@ -147,7 +147,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 		}
 	}
 
-	private func performTruncate(_ perform: Bool, destination: MutableDataset, callback: (Fallible<Void>) -> ()) {
+	private func performTruncate(_ perform: Bool, destination: MutableDataset, callback: @escaping (Fallible<Void>) -> ()) {
 		if perform {
 			destination.performMutation(.truncate, job: self.uploadJob!) { res in
 				switch res {
@@ -166,7 +166,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 		}
 	}
 
-	private func performAlter(_ perform: Bool, sourceDataset: Dataset, destination: MutableDataset, callback: (Fallible<Bool>) -> ()) {
+	private func performAlter(_ perform: Bool, sourceDataset: Dataset, destination: MutableDataset, callback: @escaping (Fallible<Bool>) -> ()) {
 		if perform {
 			sourceDataset.columns(self.uploadJob!) { result in
 				switch result {
@@ -190,7 +190,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 	}
 
 	// Callback returns 'false' if the mapping is incomplete.
-	private func performCheck(_ destination: MutableDataset, source: Dataset, callback: (Fallible<Bool>) -> ()) {
+	private func performCheck(_ destination: MutableDataset, source: Dataset, callback: @escaping (Fallible<Bool>) -> ()) {
 		if !destination.warehouse.hasFixedColumns {
 			// The target is a NoSQL database, we can insert whatever record we want
 			callback(.success(true))

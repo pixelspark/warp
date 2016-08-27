@@ -73,7 +73,7 @@ class QBEDummiesTransformer: Transformer {
 		}
 	}
 
-	override func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		self.targetColumnFuture.get(job, callback)
 	}
 
@@ -136,11 +136,11 @@ class QBEDummiesStep: QBEStep {
 		super.encode(with: coder)
 	}
 
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		data.unique(Sibling(self.sourceColumn), job: job) { result in
 			switch result {
 			case .success(let uniqueValues):
-				callback(.success(StreamDataset(source: QBEDummiesTransformer(source: data.stream(), sourceColumn: self.sourceColumn, values: uniqueValues.sorted(by: { $0.stringValue < $1.stringValue })))))
+				callback(.success(StreamDataset(source: QBEDummiesTransformer(source: data.stream(), sourceColumn: self.sourceColumn, values: uniqueValues.sorted(by: { $0 < $1 })))))
 
 			case .failure(let e):
 				return callback(.failure(e))

@@ -114,15 +114,15 @@ public class Sequencer: Parser {
 			if (startChar == "a".utf16.first! && endChar == "Z".utf16.first!) ||
 				(startChar == "A".utf16.first! && endChar == "z".utf16.first!) {
 				for character in ("a".utf16.first!)...("z".utf16.first!) {
-					r.values.append(Value(String(Character(UnicodeScalar(character)))))
+					r.values.append(Value(String(Character(UnicodeScalar(character)!))))
 				}
 				for character in ("A".utf16.first!)...("Z".utf16.first!) {
-					r.values.append(Value(String(Character(UnicodeScalar(character)))))
+					r.values.append(Value(String(Character(UnicodeScalar(character)!))))
 				}
 			}
 			else if endChar > startChar {
 				for character in startChar...endChar {
-					r.values.append(Value(String(Character(UnicodeScalar(character)))))
+					r.values.append(Value(String(Character(UnicodeScalar(character)!))))
 				}
 			}
 		}
@@ -170,7 +170,7 @@ private class ValueGenerator: IteratorProtocol {
 	}
 }
 
-private class ProxyValueGenerator<G: IteratorProtocol where G.Element == Value>: ValueGenerator {
+private class ProxyValueGenerator<G: IteratorProtocol>: ValueGenerator where G.Element == Value {
 	private var generator: G
 	
 	init(_ generator: G) {

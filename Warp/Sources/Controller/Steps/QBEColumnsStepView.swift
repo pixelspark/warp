@@ -47,9 +47,9 @@ internal class QBEColumnsStepView: QBEConfigurableStepViewControllerFor<QBEColum
 		return columns.count
 	}
 	
-	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		if let identifier = tableColumn?.identifier, identifier == "selected" {
-			let select = object?.boolValue ?? false
+			let select = (object as? Bool) ?? false
 			let name = columns[row]
 			step.columns.remove(name)
 			if select {
@@ -59,9 +59,9 @@ internal class QBEColumnsStepView: QBEConfigurableStepViewControllerFor<QBEColum
 		self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 	
-	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		if let tc = tableColumn {
-			if (tc.identifier ?? "") == "column" {
+			if tc.identifier == "column" {
 				return columns[row].name
 			}
 			else {

@@ -75,7 +75,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		return 0
 	}
 
-	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		if tableView == self.columnsTableView && tableColumn?.identifier == "column" && row < self.columns.count {
 			return self.columns[row].name
 		}
@@ -191,7 +191,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		}
 	}
 
-	override func prepare(for segue: NSStoryboardSegue, sender: AnyObject?) {
+	override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
 		if segue.identifier == "showReference" {
 			if let dest = segue.destinationController as? QBEReferenceViewController {
 				dest.delegate = self

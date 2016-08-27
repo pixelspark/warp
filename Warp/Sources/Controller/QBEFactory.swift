@@ -47,8 +47,8 @@ class QBEConfigurableStepViewControllerFor<StepType: QBEStep>: QBEConfigurableVi
 }
 
 class QBEFactory {
-	typealias QBEStepViewCreator = (step: QBEStep?, delegate: QBESuggestionsViewDelegate) -> NSViewController?
-	typealias QBEFileReaderCreator = (url: URL) -> QBEStep?
+	typealias QBEStepViewCreator = (_ step: QBEStep?, _ delegate: QBESuggestionsViewDelegate) -> NSViewController?
+	typealias QBEFileReaderCreator = (_ url: URL) -> QBEStep?
 
 	static var sharedInstance = QBEFactory()
 	
@@ -161,7 +161,7 @@ class QBEFactory {
 			let type = try NSWorkspace.shared().type(ofFile: atURL.path)
 			for (readerType, creator) in fileReaders {
 				if NSWorkspace.shared().type(type, conformsToType: readerType) {
-					return creator(url: atURL)
+					return creator(atURL)
 				}
 			}
 
@@ -169,7 +169,7 @@ class QBEFactory {
 			let p = atURL.path
 			let ext = NSString(string: p).pathExtension
 			if let creator = fileReaders[ext] {
-				return creator(url: atURL)
+				return creator(atURL)
 			}
 
 			return nil

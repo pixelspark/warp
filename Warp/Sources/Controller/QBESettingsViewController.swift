@@ -60,7 +60,7 @@ class QBESettingsViewController: NSViewController, NSComboBoxDataSource {
 		updateView()
 	}
 	
-	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> AnyObject? {
+	func comboBox(_ aComboBox: NSComboBox, objectValueForItemAt index: Int) -> Any? {
 		if aComboBox == separatorBox {
 			return locale.commonFieldSeparators[index]
 		}

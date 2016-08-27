@@ -28,7 +28,7 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 		self.dismiss(sender)
 	}
 
-	override func prepare(for segue: NSStoryboardSegue, sender: AnyObject?) {
+	override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
 		if segue.identifier == "sentenceEditor" {
 			self.sentenceEditor = segue.destinationController as? QBESentenceViewController
 		}

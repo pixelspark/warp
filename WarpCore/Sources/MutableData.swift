@@ -18,7 +18,7 @@ public protocol Warehouse {
 
 	/** Perform the specified mutation on this data warehouse. Where applicable, the result will include a mutable data
 	 object of any newly created or modified item. */
-	func performMutation(_ mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableDataset?>) -> ())
+	func performMutation(_ mutation: WarehouseMutation, job: Job, callback: @escaping (Fallible<MutableDataset?>) -> ())
 }
 
 /** MutableDataset represents a mutable data set (i.e., not the result of a query, but actually stored data). It usually
@@ -31,7 +31,7 @@ public protocol MutableDataset {
 	used to perform updates on specific rows. If the mutable data does not support or have a primary key, it may return
 	nil. In this case, the user of MutableDataset must choose its own keys (e.g. by asking the user) or use row numbers
 	(e.g. with the .edit data mutation if that is supported). */
-	func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ())
+	func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ())
 
 	/** Returns whether the specified mutation can be performed on this mutable data set. The function indicates support
 	of the mutation *at all* rather than whether it would succeed in the current state and on the current data set. The
@@ -45,7 +45,7 @@ public protocol MutableDataset {
 
 	/** Perform the specified mutation on this mutable data set. Note that performMutation will fail if a call to the
 	canPerformMutation function with the same mutation would return false. */
-	func performMutation(_ mutation: DatasetMutation, job: Job, callback: (Fallible<Void>) -> ())
+	func performMutation(_ mutation: DatasetMutation, job: Job, callback: @escaping (Fallible<Void>) -> ())
 
 	/** Returns a readable data object for the data contained in this mutable data set. */
 	func data(_ job: Job, callback: (Fallible<Dataset>) -> ())
@@ -53,36 +53,36 @@ public protocol MutableDataset {
 
 /** Proxy for MutableDataset that can be used to create mutable data objects that perform particular operations differently
 than the underlying mutable data set, or block certain mutations. */
-public class MutableProxyDataset: MutableDataset {
+open class MutableProxyDataset: MutableDataset {
 	public let original: MutableDataset
 
 	public init(original: MutableDataset) {
 		self.original = original
 	}
 
-	public var warehouse: Warehouse {
+	open var warehouse: Warehouse {
 		return self.original.warehouse
 	}
 
-	public func data(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	open func data(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
 		self.original.data(job, callback: callback)
 	}
 
-	public func performMutation(_ mutation: DatasetMutation, job: Job, callback: (Fallible<Void>) -> ()) {
+	open func performMutation(_ mutation: DatasetMutation, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		self.original.performMutation(mutation, job: job, callback: callback)
 	}
 
-	public func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
+	open func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
 		return self.original.canPerformMutation(mutation)
 	}
 
-	public func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+	open func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
 		return self.original.identifier(job, callback: callback)
 	}
 }
 
 public extension MutableDataset {
-	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	public func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		self.data(job) { result in
 			switch result {
 			case .success(let data):

@@ -68,7 +68,7 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 		super.encode(with: coder)
 	}
 	
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		switch type {
 		case .none:
 			callback(.success(data))

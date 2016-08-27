@@ -6,8 +6,8 @@ protocol QBEDatasetViewDelegate: NSObjectProtocol {
 	@discardableResult func dataView(_ view: QBEDatasetViewController, didChangeValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool
 	@discardableResult func dataView(_ view: QBEDatasetViewController, didOrderColumns: OrderedSet<Column>, toIndex: Int) -> Bool
 	func dataView(_ view: QBEDatasetViewController, didSelectValue: Value, changeable: Bool)
-	func dataView(_ view: QBEDatasetViewController, viewControllerForColumn: Column, info: Bool, callback: (NSViewController) -> ())
-	func dataView(_ view: QBEDatasetViewController, addValue: Value, inRow: Int?, column: Int?, callback: (Bool) -> ())
+	func dataView(_ view: QBEDatasetViewController, viewControllerForColumn: Column, info: Bool, callback: @escaping (NSViewController) -> ())
+	func dataView(_ view: QBEDatasetViewController, addValue: Value, inRow: Int?, column: Int?, callback: @escaping (Bool) -> ())
 	func dataView(_ view: QBEDatasetViewController, hasFilterForColumn: Column) -> Bool
 	func dataView(_ view: QBEDatasetViewController, didRenameColumn: Column, to: Column)
 }
@@ -204,8 +204,8 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		}
 	}
 	
-	func tableGrid(_ aTableGrid: MBTableGrid!, setObjectValue anObject: AnyObject?, forColumn columnIndex: UInt, row rowIndex: UInt) {
-		let valueObject = anObject==nil ? Value.empty : locale.valueForLocalString(anObject!.description)
+	func tableGrid(_ aTableGrid: MBTableGrid!, setObjectValue anObject: Any?, forColumn columnIndex: UInt, row rowIndex: UInt) {
+		let valueObject = anObject==nil ? Value.empty : locale.valueForLocalString((anObject! as AnyObject).description)
 		setValue(valueObject, inRow: Int(rowIndex), inColumn: Int(columnIndex))
 	}
 
@@ -225,7 +225,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		return nil
 	}
 
-	func tableGrid(_ aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> AnyObject? {
+	func tableGrid(_ aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> Any? {
 		if let r = raster {
 			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
 				// Template row, return empty string
@@ -244,12 +244,15 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			// Template column
 			return "+"
 		}
-		else if Int(columnIndex) >= raster?.columns.count {
+		else if let r = raster, Int(columnIndex) >= r.columns.count {
 			// Out of range
 			return ""
 		}
+		else if let r = raster {
+			return r.columns[Int(columnIndex)].name
+		}
 		else {
-			return raster?.columns[Int(columnIndex)].name
+			return ""
 		}
 	}
 	
@@ -542,14 +545,13 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	}
 	
 	private func updateFormulaField() {
-		let selectedRows = tableView!.selectedRowIndexes
-		let selectedCols = tableView!.selectedColumnIndexes
-
-		if selectedRows?.count > 1 || selectedCols?.count > 1 {
+		if let selectedRows = tableView!.selectedRowIndexes,
+			let selectedCols = tableView!.selectedColumnIndexes,
+			selectedRows.count > 1 || selectedCols.count > 1 {
 			delegate?.dataView(self, didSelectValue: Value.invalid, changeable: false)
 		}
 		else {
-			if let r = raster, let sr = selectedRows {
+			if let r = raster, let sr = tableView!.selectedRowIndexes {
 				if let rowIndex = sr.first, let colIndex = sr.first {
 					if rowIndex >= 0 && colIndex >= 0 && rowIndex < r.rowCount && colIndex < r.columns.count {
 						let x = r[rowIndex, colIndex]!

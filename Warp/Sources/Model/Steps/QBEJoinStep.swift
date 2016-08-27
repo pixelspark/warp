@@ -138,7 +138,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return nil
 	}
 	
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		// Create two separate jobs for left and right data, so progress is equally counted
 		let leftJob = Job(parent: job)
 		let rightJob = Job(parent: job)
@@ -171,7 +171,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let p = previous {
 			// Create two separate jobs for left and right data, so progress is equally counted
 			let leftJob = Job(parent: job)
@@ -209,7 +209,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		fatalError("QBEJoinStep.apply should not be used")
 	}
 
@@ -332,7 +332,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		return QBESentence([QBESentenceText(NSLocalizedString("Merge data", comment: ""))])
 	}
 	
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let p = previous {
 			p.fullDataset(job) {(leftDataset) -> () in
 				if let r = self.right, let h = r.head {
@@ -356,7 +356,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let p = previous {
 			p.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows) {(leftDataset) -> () in
 				switch leftDataset {
@@ -385,7 +385,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 	}
 	
-	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		fatalError("QBEMergeStep.apply should not be used")
 	}
 }

@@ -189,13 +189,13 @@ import WarpCore
 		}
 	}
 
-	private func viewControllerForTablet(_ tablet: QBETablet) -> QBETabletViewController {
+	fileprivate func viewControllerForTablet(_ tablet: QBETablet) -> QBETabletViewController {
 		let tabletController = QBEFactory.sharedInstance.viewControllerForTablet(tablet, storyboard: self.storyboard!)
 		tabletController.delegate = self
 		return tabletController
 	}
 	
-	private func updateView() {
+	fileprivate func updateView() {
 		self.workspaceView.hasHorizontalScroller = (self.document?.tablets.count ?? 0) > 0
 		self.workspaceView.hasVerticalScroller = (self.document?.tablets.count ?? 0) > 0
 		self.welcomeLabel.isHidden = (self.document?.tablets.count ?? 0) != 0
@@ -630,7 +630,7 @@ import WarpCore
 		}
 	}
 	
-	override func prepare(for segue: NSStoryboardSegue, sender: AnyObject?) {
+	override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
 		if segue.identifier == "sentence" {
 			self.sentenceEditor = segue.destinationController as? QBESentenceViewController
 			self.sentenceEditor?.view.translatesAutoresizingMaskIntoConstraints = false
@@ -659,8 +659,8 @@ import WarpCore
 	}
 
 	private func validateSelector(_ selector: Selector) -> Bool {
-		if selector == #selector(QBEDocumentViewController.selectNextTablet(_:)) { return (self.document?.tablets.count > 0) ?? false }
-		if selector == #selector(QBEDocumentViewController.selectPreviousTablet(_:)) { return (self.document?.tablets.count > 0) ?? false }
+		if selector == #selector(QBEDocumentViewController.selectNextTablet(_:)) { return (self.document?.tablets.count ?? 0) > 0 }
+		if selector == #selector(QBEDocumentViewController.selectPreviousTablet(_:)) { return (self.document?.tablets.count ?? 0) > 0 }
 		if selector == #selector(QBEDocumentViewController.addButtonClicked(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addSequencerTablet(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addRasterTablet(_:)) { return true }

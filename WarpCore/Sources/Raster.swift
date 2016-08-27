@@ -357,15 +357,15 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	internal func innerJoin(_ expression: Expression, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
+	internal func innerJoin(_ expression: Expression, raster rightRaster: Raster, job: Job, callback: @escaping (Raster) -> ()) {
 		self.hashOrCarthesianJoin(true, expression: expression, raster: rightRaster, job: job, callback: callback)
 	}
 	
-	internal func leftJoin(_ expression: Expression, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
+	internal func leftJoin(_ expression: Expression, raster rightRaster: Raster, job: Job, callback: @escaping (Raster) -> ()) {
 		self.hashOrCarthesianJoin(false, expression: expression, raster: rightRaster, job: job, callback: callback)
 	}
 	
-	private func hashOrCarthesianJoin(_ inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
+	private func hashOrCarthesianJoin(_ inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job, callback: @escaping (Raster) -> ()) {
 		// If no columns from the right table will ever show up, we don't have to do the join
 		let rightColumns = rightRaster.columns
 		let rightColumnsInResult = rightColumns.filter({return !self.columns.contains($0)})
@@ -389,7 +389,7 @@ public class Raster: NSObject, NSCoding {
 	corresponding rows on the right. While the carthesianProduct implementation needs to perform m*n comparisons, this 
 	function needs to calculate m+n hashes and perform m look-ups (hash-table assumed to be log n). Performance is 
 	therefore much better on larger data sets (m+n+log n compared to m*n) */
-	private func hashJoin(_ inner: Bool, comparison: HashComparison, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
+	private func hashJoin(_ inner: Bool, comparison: HashComparison, raster rightRaster: Raster, job: Job, callback: @escaping (Raster) -> ()) {
 		self.mutex.locked {
 			assert(comparison.comparisonOperator == Binary.equal, "hashJoin does not (yet) support hash joins based on non-equality")
 
@@ -462,7 +462,7 @@ public class Raster: NSObject, NSCoding {
 		}
 	}
 	
-	private func carthesianProduct(_ inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job, callback: (Raster) -> ()) {
+	private func carthesianProduct(_ inner: Bool, expression: Expression, raster rightRaster: Raster, job: Job, callback: @escaping (Raster) -> ()) {
 		self.mutex.locked {
 			// Which columns are going to show up in the result set?
 			let rightColumns = rightRaster.columns
@@ -570,7 +570,7 @@ public class RasterDataset: NSObject, Dataset {
 		}
 	}
 	
-	public func raster(_ job: Job, deliver: Delivery, callback: (Fallible<Raster>, StreamStatus) -> ()) {
+	public func raster(_ job: Job, deliver: Delivery, callback: @escaping (Fallible<Raster>, StreamStatus) -> ()) {
 		switch deliver {
 		case .onceComplete, .incremental:
 			future(job, { r in callback(r, .finished) })
@@ -594,7 +594,7 @@ public class RasterDataset: NSObject, Dataset {
 		return RasterDataset(future: future)
 	}
 	
-	public func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	public func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		raster(job, callback: { (r) -> () in
 			callback(r.use({$0.columns}))
 		})
@@ -604,7 +604,7 @@ public class RasterDataset: NSObject, Dataset {
 		let ownFuture = self.future
 		
 		let newFuture = {(job: Job, cb: Future<Fallible<Raster>>.Callback) -> () in
-			let progressKey = unsafeAddress(of: self).hashValue
+			let progressKey = Unmanaged.passUnretained(self).toOpaque().hashValue
 			job.reportProgress(0.0, forKey: progressKey)
 
 			ownFuture(job, {(fallibleRaster) in
@@ -622,7 +622,7 @@ public class RasterDataset: NSObject, Dataset {
 		return RasterDataset(future: newFuture)
 	}
 	
-	internal func applyAsynchronous(_ description: String? = nil, filter: (Job, Raster, (Fallible<Raster>) -> ()) -> ()) -> Dataset {
+	internal func applyAsynchronous(_ description: String? = nil, filter: @escaping (Job, Raster, @escaping (Fallible<Raster>) -> ()) -> ()) -> Dataset {
 		let newFuture = {(job: Job, cb: Future<Fallible<Raster>>.Callback) -> () in
 			self.future(job) {(fallibleRaster) in
 				switch fallibleRaster {
@@ -721,7 +721,7 @@ public class RasterDataset: NSObject, Dataset {
 		return fallback().calculate(calculations)
 	}
 	
-	public func unique(_ expression: Expression, job: Job, callback: (Fallible<Set<Value>>) -> ()) {
+	public func unique(_ expression: Expression, job: Job, callback: @escaping (Fallible<Set<Value>>) -> ()) {
 		self.raster(job, callback: { (raster) -> () in
 			callback(raster.use({(r) in Set<Value>(r.raster.map({expression.apply(Row($0, columns: r.columns), foreign: nil, inputValue: nil)}))}))
 		})
@@ -854,7 +854,7 @@ public class RasterDataset: NSObject, Dataset {
 	}
 	
 	public func union(_ data: Dataset) -> Dataset {
-		return applyAsynchronous("union") {(job: Job, leftRaster: Raster, callback: (Fallible<Raster>) -> ()) in
+		return applyAsynchronous("union") { (job: Job, leftRaster: Raster, callback: @escaping (Fallible<Raster>) -> ()) in
 			data.raster(job) { rightRasterFallible in
 				switch rightRasterFallible {
 					case .success(let rightRaster):
@@ -899,7 +899,7 @@ public class RasterDataset: NSObject, Dataset {
 	}
 	
 	public func join(_ join: Join) -> Dataset {
-		return applyAsynchronous("join") {(job: Job, leftRaster: Raster, callback: (Fallible<Raster>) -> ()) in
+		return applyAsynchronous("join") {(job: Job, leftRaster: Raster, callback: @escaping (Fallible<Raster>) -> ()) in
 			join.foreignDataset.raster(job) { rightRasterFallible in
 				switch rightRasterFallible {
 					case .success(let rightRaster):
@@ -1034,7 +1034,7 @@ public class RasterWarehouse: Warehouse {
 		}
 	}
 
-	public func performMutation(_ mutation: WarehouseMutation, job: Job, callback: (Fallible<MutableDataset?>) -> ()) {
+	public func performMutation(_ mutation: WarehouseMutation, job: Job, callback: @escaping (Fallible<MutableDataset?>) -> ()) {
 		switch mutation {
 		case .create(_, let data):
 			data.columns(job) { result in
@@ -1062,7 +1062,7 @@ private class RasterInsertPuller: StreamPuller {
 	var callback: ((Fallible<Void>) -> ())?
 	let fastMapping: [Int?]
 
-	init(target: Raster, mapping: ColumnMapping, source: Stream, sourceColumns: OrderedSet<Column>, job: Job, callback: (Fallible<Void>) -> ()) {
+	init(target: Raster, mapping: ColumnMapping, source: Stream, sourceColumns: OrderedSet<Column>, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		self.raster = target
 		self.callback = callback
 
@@ -1076,7 +1076,7 @@ private class RasterInsertPuller: StreamPuller {
 		super.init(stream: source, job: job)
 	}
 
-	private override func onReceiveRows(_ rows: [Tuple], callback: (Fallible<Void>) -> ()) {
+	private override func onReceiveRows(_ rows: [Tuple], callback: @escaping (Fallible<Void>) -> ()) {
 		let newRows = rows.map { row in
 			return self.fastMapping.map { v in return v == nil ? Value.empty : row[v!] }
 		}
@@ -1118,7 +1118,7 @@ public class RasterMutableDataset: MutableDataset {
 		return RasterWarehouse()
 	}
 
-	public func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+	public func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
 		callback(.success(nil))
 	}
 
@@ -1136,7 +1136,7 @@ public class RasterMutableDataset: MutableDataset {
 		}
 	}
 
-	public func performMutation(_ mutation: DatasetMutation, job: Job, callback: (Fallible<Void>) -> ()) {
+	public func performMutation(_ mutation: DatasetMutation, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		switch mutation {
 		case .truncate:
 			self.raster.raster.removeAll()
@@ -1246,13 +1246,13 @@ private class RasterDatasetStream: NSObject, Stream {
 		})
 	}
 	
-	private func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	fileprivate func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		self.raster.get(job) { (fallibleRaster) in
 			callback(fallibleRaster.use({ return $0.columns }))
 		}
 	}
 	
-	private func clone() -> Stream {
+	fileprivate func clone() -> Stream {
 		return RasterDatasetStream(data)
 	}
 	
@@ -1344,7 +1344,7 @@ internal class Catalog<ValueType>: NSObject {
 		return currentCatalog
 	}
 
-	final func visit(_ path: [Value] = [], block: @noescape ([Value], [Column: ValueType]) -> ()) {
+	final func visit(_ path: [Value] = [], block: ([Value], [Column: ValueType]) -> ()) {
 		self.mutex.locked {
 			if let v = values {
 				block(path, v)

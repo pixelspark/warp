@@ -26,7 +26,7 @@ class QBEResizableView: NSView {
 		self.layer!.isOpaque = false
 		self.layer!.drawsAsynchronously = true
 		self.layer!.masksToBounds = true
-		self.layer!.cornerRadius = self.dynamicType.cornerRadius
+		self.layer!.cornerRadius = type(of: self).cornerRadius
 		self.layer!.shadowRadius = 3.0
 		self.layer!.shadowColor = NSColor.shadowColor.cgColor
 		self.layer!.shadowOpacity = 0.3
@@ -47,7 +47,7 @@ class QBEResizableView: NSView {
 		if let c = contentView {
 			c.removeFromSuperview()
 			c.wantsLayer = true
-			c.layer!.cornerRadius = self.dynamicType.cornerRadius
+			c.layer!.cornerRadius = type(of: self).cornerRadius
 			c.layer!.masksToBounds = true
 
 			resizerView.contentView = c

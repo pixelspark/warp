@@ -90,10 +90,10 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 		assertMainThread()
 		checkConnectionJob = Job(.userInitiated)
 
-		self.userField?.stringValue = step.user ?? ""
+		self.userField?.stringValue = step.user 
 		self.passwordField?.stringValue = step.password.stringValue ?? ""
-		self.hostField?.stringValue = step.host ?? ""
-		self.portField?.stringValue = "\(step.port ?? 3306)"
+		self.hostField?.stringValue = step.host 
+		self.portField?.stringValue = "\(step.port)"
 
 		self.infoProgress?.isHidden = false
 		self.infoLabel?.stringValue = NSLocalizedString("Trying to connect...", comment: "")

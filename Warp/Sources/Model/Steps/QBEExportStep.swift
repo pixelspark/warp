@@ -35,7 +35,7 @@ class QBEExportStep: QBEStep {
 		self.file = self.file?.resolve(atURL)
 	}
 
-	func write(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	func write(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		super.fullDataset(job) { (fallibleDataset) -> () in
 			switch fallibleDataset {
 			case .success(let data):
@@ -62,11 +62,11 @@ class QBEExportStep: QBEStep {
 		}
 	}
 
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		self.write(job, callback: callback)
 	}
 
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		return callback(.success(data))
 	}
 
@@ -79,7 +79,7 @@ class QBEExportStep: QBEStep {
 			if let ext = writer.fileTypes.first {
 				let allExtensions = writer.fileTypes.joined(separator: ", ")
 				options[ext] = "\(writer.explain(ext, locale: locale)) (\(allExtensions.uppercased()))"
-				if writer == self.writer?.dynamicType {
+				if writer == type(of: self.writer) {
 					currentKey = ext
 				}
 			}
@@ -96,7 +96,7 @@ class QBEExportStep: QBEStep {
 				self?.file = newFile
 				if let url = newFile.url {
 					let fileExtension = url.pathExtension
-					if let w = self?.writer, !w.dynamicType.fileTypes.contains(fileExtension) {
+					if let w = self?.writer, !type(of: w).fileTypes.contains(fileExtension) {
 						if let newWriter = factory.fileWriterForType(fileExtension) {
 							self?.writer = newWriter.init(locale: locale, title: "")
 						}

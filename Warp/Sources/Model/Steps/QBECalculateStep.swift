@@ -1,12 +1,12 @@
 import Foundation
 import WarpCore
 
-private extension Expression {
+fileprivate extension Expression {
 	static let permutationLimit = 1000
 
 	/** Generate all possible permutations of this expression by replacing sibling and identity references in this 
 	expression by sibling references in the given set of columns (or an identiy reference). */
-	private func permutationsUsing(_ columns: Set<Column>, limit: Int = Expression.permutationLimit) -> Set<Expression> {
+	func permutationsUsing(_ columns: Set<Column>, limit: Int = Expression.permutationLimit) -> Set<Expression> {
 		let replacements = columns.map { Sibling($0) } + [Identity()]
 		let substitutes = self.siblingDependencies.map { Sibling($0) } + [Identity()]
 
@@ -15,7 +15,7 @@ private extension Expression {
 		return v
 	}
 
-	private func generateVariants(_ expression: Expression, replacing: ArraySlice<Expression>, with: [Expression], limit: Int) -> Set<Expression> {
+	func generateVariants(_ expression: Expression, replacing: ArraySlice<Expression>, with: [Expression], limit: Int) -> Set<Expression> {
 		assert(limit >= 0, "Limit cannot be negative")
 		if limit == 0 {
 			return []
@@ -140,7 +140,7 @@ class QBECalculateStep: QBEStep {
 		super.init(previous: previous)
 	}
 	
-	override func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		let result = data.calculate([targetColumn: function])
 		if let relativeTo = insertRelativeTo {
 			// Reorder columns in the result set so that targetColumn is inserted after insertAfter
@@ -251,7 +251,7 @@ class QBECalculateStep: QBEStep {
 		return Array(Set(suggestions)).sorted { a,b in return a.complexity < b.complexity }
 	}
 
-	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+	override func related(job: Job, callback: @escaping (Fallible<[QBERelatedStep]>) -> ()) {
 		super.related(job: job) { result in
 			switch result {
 			case .success(let relatedSteps):

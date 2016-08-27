@@ -45,7 +45,7 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 		return self.destinationColumns.count
 	}
 
-	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> AnyObject? {
+	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		switch tableColumn?.identifier ?? "" {
 		case "source":
 			let dest = self.destinationColumns[row]
@@ -61,12 +61,13 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 
 		case "destination":
 			return self.destinationColumns[row].name
+			
 		default:
 			return nil
 		}
 	}
 
-	func tableView(_ tableView: NSTableView, setObjectValue object: AnyObject?, for tableColumn: NSTableColumn?, row: Int) {
+	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		if let n = object as? NSNumber, let tc = tableColumn, tc.identifier == "source" {
 			let dest = self.destinationColumns[row]
 
@@ -85,7 +86,7 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 
 	func tableView(_ tableView: NSTableView, dataCellFor tableColumn: NSTableColumn?, row: Int) -> NSCell? {
 		if tableColumn?.identifier == "source" {
-			if let cell = tableColumn?.dataCell as? NSPopUpButtonCell {
+			if let cell = tableColumn?.dataCell(forRow: row) as? NSPopUpButtonCell {
 				cell.menu = self.sourceColumnsMenu
 				return cell
 			}

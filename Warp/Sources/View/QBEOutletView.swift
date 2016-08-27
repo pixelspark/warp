@@ -7,7 +7,7 @@ import Cocoa
 private extension NSPasteboard {
 	var pasteURL: URL? { get {
 		var pasteboardRef: Pasteboard? = nil
-		PasteboardCreate(self.name, &pasteboardRef)
+		PasteboardCreate(self.name as CFString, &pasteboardRef)
 		if let realRef = pasteboardRef {
 			PasteboardSynchronize(realRef)
 			var pasteURL: CFURL? = nil
@@ -129,8 +129,8 @@ private class QBELaceView: NSView {
 				let targetPointView = self.convert(targetPointWindow, from: nil)
 				
 				// Draw a line
-				context.moveTo(x: sourcePointView.x, y: sourcePointView.y)
-				context.addLineTo(x: targetPointView.x, y: targetPointView.y)
+				context.move(to: CGPoint(x: sourcePointView.x, y: sourcePointView.y))
+				context.addLine(to: CGPoint(x: targetPointView.x, y: targetPointView.y))
 				NSColor.blue.setStroke()
 				context.setLineWidth(3.0)
 				context.strokePath()
@@ -323,7 +323,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 
 				context.setLineWidth(3.0)
 				let offset: CGFloat = 3.14159 / 2.0
-				var t = CGAffineTransform(translationX: square.center.x, y: square.center.y)
+				let t = CGAffineTransform(translationX: square.center.x, y: square.center.y)
 
 				if self.timer != nil {
 					let progressRing = CGMutablePath()
@@ -333,7 +333,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 
 					let progressAngle = CGFloat(2.0 * 3.141459 * (1.0 - timeForAnimation)) + offset
 					let progressEndAngle = progressAngle + CGFloat(2.0 * 3.141459 * progressForAnimation)
-					progressRing.addArc(&t, x: 0, y: 0, radius: square.size.width / 2, startAngle: progressAngle, endAngle: progressEndAngle, clockwise: false)
+					progressRing.addArc(center: CGPoint(x: 0, y:0), radius: square.size.width / 2, startAngle: progressAngle, endAngle: progressEndAngle, clockwise: false, transform: t)
 					context.addPath(progressRing)
 					NSColor(calibratedRed: 0.0, green: 0.0, blue: 0.5, alpha: 0.5 * CGFloat(opacity)).setStroke()
 					context.strokePath()
@@ -343,7 +343,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 					baseColor.setStroke()
 					let ring = CGMutablePath()
 					let progress = 1.0
-					ring.addArc(&t, x: 0, y: 0, radius: square.size.width / 2, startAngle: offset + CGFloat(2.0 * 3.141459 * (1.0 - progress)), endAngle: offset + CGFloat(2.0 * 3.14159), clockwise: false)
+					ring.addArc(center: CGPoint(x: 0, y: 0), radius: square.size.width / 2, startAngle: offset + CGFloat(2.0 * 3.141459 * (1.0 - progress)), endAngle: offset + CGFloat(2.0 * 3.14159), clockwise: false, transform: t)
 					context.addPath(ring)
 					context.strokePath()
 				}

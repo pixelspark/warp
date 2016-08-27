@@ -177,7 +177,7 @@ public class QBESentenceColumns: NSObject, QBESentenceToken {
 /** A sentence item that shows a list of string options, which have associated string keys. Either option can be selected
 or deselected.*/
 public class QBESentenceSet: NSObject, QBESentenceToken {
-	public typealias Provider = (callback: (Fallible<Set<String>>) -> ()) -> ()
+	public typealias Provider = @escaping (_ callback: @escaping (Fallible<Set<String>>) -> ()) -> ()
 	public typealias Callback = (Set<String>) -> ()
 	public private(set) var provider: Provider
 	public private(set) var value: Set<String>

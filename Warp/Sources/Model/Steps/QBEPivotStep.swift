@@ -1,11 +1,11 @@
 import Foundation
 import WarpCore
 
-private func toDictionary<E, K, V>(_ array: [E], transformer: (element: E) -> (key: K, value: V)?) -> Dictionary<K, V> {
+private func toDictionary<E, K, V>(_ array: [E], transformer: (_ element: E) -> (key: K, value: V)?) -> Dictionary<K, V> {
 	return array.reduce([:]) { dict, e in
 		var dict = dict
 
-		if let (key, value) = transformer(element: e) {
+		if let (key, value) = transformer(e) {
 			dict[key] = value
 		}
 		return dict
@@ -94,7 +94,7 @@ class QBEPivotStep: QBEStep {
 		}
 	}
 	
-	override func apply(_ data: Dataset, job: Job?, callback: (Fallible<Dataset>) -> ()) {
+	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if self.rows.isEmpty && self.columns.isEmpty && self.aggregates.isEmpty {
 			callback(.failure(NSLocalizedString("Click the settings button to configure the pivot table.", comment: "")))
 			return
@@ -149,7 +149,7 @@ class QBEPivotStep: QBEStep {
 		return suggestions
 	}
 
-	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+	override func related(job: Job, callback: @escaping (Fallible<[QBERelatedStep]>) -> ()) {
 		return callback(.success([]))
 	}
 }

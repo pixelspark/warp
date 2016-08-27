@@ -288,7 +288,7 @@ internal extension Parser {
 		return {(parser: Parser, reader: Reader) -> Bool in
 			let pos = reader.position
 			for rule in rules {
-				if(rule(parser: parser, reader: reader)) {
+				if(rule(parser, reader)) {
 					return true
 				}
 				reader.seek(pos)

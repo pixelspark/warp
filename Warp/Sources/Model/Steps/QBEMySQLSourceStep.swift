@@ -251,7 +251,7 @@ class QBEMySQLDatabase: SQLDatabase {
 				self.password.cString(using: String.Encoding.utf8)!,
 				nil,
 				UInt32(self.port),
-				UnsafePointer<Int8>(nil),
+				nil,
 				UInt(0)
 			)
 			return Int32(mysql_errno(connection.connection))
@@ -323,13 +323,12 @@ struct QBEMySQLConstraint {
 Implements a connection to a MySQL database (corresponding to a MYSQL object in the MySQL library). The connection ensures
 that any operations are serialized (for now using a global queue for all MySQL operations). */
 internal class QBEMySQLConnection: SQLConnection {
-	private static var sharedClient = QBEMySQLClient()
-
-	private(set) var database: QBEMySQLDatabase
-	private var connection: UnsafeMutablePointer<MYSQL>?
-	private(set) weak var result: QBEMySQLResult?
+	fileprivate static var sharedClient = QBEMySQLClient()
+	fileprivate(set) var database: QBEMySQLDatabase
+	fileprivate var connection: UnsafeMutablePointer<MYSQL>?
+	fileprivate(set) weak var result: QBEMySQLResult?
 	
-	private init(database: QBEMySQLDatabase, connection: UnsafeMutablePointer<MYSQL>) {
+	fileprivate init(database: QBEMySQLDatabase, connection: UnsafeMutablePointer<MYSQL>) {
 		self.database = database
 		self.connection = connection
 	}
@@ -418,7 +417,7 @@ internal class QBEMySQLConnection: SQLConnection {
 	}
 
 	func constraints(fromTable tableName: String, inDatabase databaseName: String, callback: (Fallible<[QBEMySQLConstraint]>) -> ()) {
-		let dbn = self.database.dialect.expressionToSQL(Literal(Value(databaseName ?? "")), alias: "", foreignAlias: nil, inputValue: nil)!
+		let dbn = self.database.dialect.expressionToSQL(Literal(Value(databaseName)), alias: "", foreignAlias: nil, inputValue: nil)!
 		let tbn = self.database.dialect.expressionToSQL(Literal(Value(tableName)), alias: "", foreignAlias: nil, inputValue: nil)!
 
 		switch self.query("SELECT constraint_name, table_schema, table_name, column_name, referenced_table_schema, referenced_table_name, referenced_column_name FROM information_schema.key_column_usage WHERE table_schema=\(dbn) AND table_name=\(tbn) AND referenced_column_name IS NOT NULL") {
@@ -446,7 +445,7 @@ internal class QBEMySQLConnection: SQLConnection {
 		}
 	}
 	
-	private func perform(_ block: () -> (Int32)) -> Bool {
+	fileprivate func perform(_ block: () -> (Int32)) -> Bool {
 		var success: Bool = false
 		QBEMySQLConnection.sharedClient.queue.sync {
 			let result = block()
@@ -462,7 +461,7 @@ internal class QBEMySQLConnection: SQLConnection {
 		return success
 	}
 	
-	private var lastError: String { get {
+	fileprivate var lastError: String { get {
 		return String(cString: mysql_error(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
 	} }
 	
@@ -518,12 +517,12 @@ final class QBEMySQLDataset: SQLDataset {
 		}
 	}
 	
-	private init(database: QBEMySQLDatabase, fragment: SQLFragment, columns: OrderedSet<Column>) {
+	fileprivate init(database: QBEMySQLDatabase, fragment: SQLFragment, columns: OrderedSet<Column>) {
 		self.database = database
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(database: QBEMySQLDatabase, table: String, columns: OrderedSet<Column>) {
+	fileprivate init(database: QBEMySQLDatabase, table: String, columns: OrderedSet<Column>) {
 		self.database = database
 		super.init(table: table, schema: nil, database: database.databaseName!, dialect: database.dialect, columns: columns)
 	}
@@ -536,7 +535,7 @@ final class QBEMySQLDataset: SQLDataset {
 		return QBEMySQLStream(data: self)
 	}
 	
-	private func result() -> Fallible<QBEMySQLResult> {
+	fileprivate func result() -> Fallible<QBEMySQLResult> {
 		return self.database.connect().use { $0.query(self.sql.sqlSelect(nil).sql) }
 	}
 	
@@ -594,7 +593,7 @@ final class QBEMySQLStream: WarpCore.Stream {
 		return stream().fetch(job, consumer: consumer)
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		return stream().columns(job, callback: callback)
 	}
 	
@@ -604,7 +603,7 @@ final class QBEMySQLStream: WarpCore.Stream {
 }
 
 class QBEMySQLMutableDataset: SQLMutableDataset {
-	override func identifier(_ job: Job, callback: (Fallible<Set<Column>?>) -> ()) {
+	override func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
 		let db = self.database as! QBEMySQLDatabase
 		switch db.connect() {
 			case .success(let connection):
@@ -733,7 +732,7 @@ class QBEMySQLSourceStep: QBEStep {
 		coder.encode(host, forKey: "host")
 		coder.encode(user, forKey: "user")
 		coder.encode(databaseName, forKey: "database")
-		coder.encode(port ?? 0, forKey: "port")
+		coder.encode(port, forKey: "port")
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
@@ -810,7 +809,7 @@ class QBEMySQLSourceStep: QBEStep {
 		return SQLWarehouse(database: s, schemaName: nil)
 	}
 
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		job.async {
 			// First check whether the connection details are right
 			let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
@@ -834,13 +833,13 @@ class QBEMySQLSourceStep: QBEStep {
 		}
 	}
 	
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		self.fullDataset(job, callback: { (fd) -> () in
 			callback(fd.use({$0.random(maxInputRows)}))
 		})
 	}
 
-	override func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+	override func related(job: Job, callback: @escaping (Fallible<[QBERelatedStep]>) -> ()) {
 		job.async {
 			// First check whether the connection details are right
 			let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)

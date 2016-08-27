@@ -54,7 +54,7 @@ public class QBEStep: QBEConfigurable, NSCoding {
 	/** Creates a data object representing the result of an 'example' calculation of the result of this QBEStep. The
 	maxInputRows parameter defines the maximum number of input rows a source step should generate. The maxOutputRows
 	parameter defines the maximum number of rows a step should strive to produce. */
-	public func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	public func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let p = self.previous {
 			p.exampleDataset(job, maxInputRows: maxInputRows, maxOutputRows: maxOutputRows, callback: {(data) in
 				switch data {
@@ -71,7 +71,7 @@ public class QBEStep: QBEConfigurable, NSCoding {
 		}
 	}
 	
-	public func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	public func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let p = self.previous {
 			p.fullDataset(job, callback: {(data) in
 				switch data {
@@ -102,7 +102,7 @@ public class QBEStep: QBEConfigurable, NSCoding {
 		return QBESentence([])
 	}
 	
-	public func apply(_ data: Dataset, job: Job, callback: (Fallible<Dataset>) -> ()) {
+	public func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		fatalError("Child class of QBEStep should implement apply()")
 	}
 	
@@ -122,7 +122,7 @@ public class QBEStep: QBEConfigurable, NSCoding {
 	}
 
 	/** Return steps for data sets that are related to this step. */
-	public func related(job: Job, callback: (Fallible<[QBERelatedStep]>) -> ()) {
+	public func related(job: Job, callback: @escaping (Fallible<[QBERelatedStep]>) -> ()) {
 		if let p = self.previous {
 			return p.related(job: job, callback: callback)
 		}
@@ -149,7 +149,7 @@ public protocol QBEFileWriter: NSObjectProtocol, NSCoding {
 	init(locale: Language, title: String?)
 
 	/** Write data to the given URL. The file writer calls back once after success or failure. */
-	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ())
+	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: @escaping (Fallible<Void>) -> ())
 
 	/** Returns a sentence for configuring this writer */
 	func sentence(_ locale: Language) -> QBESentence?
@@ -158,7 +158,7 @@ public protocol QBEFileWriter: NSObjectProtocol, NSCoding {
 /** The transpose step implements a row-column switch. It has no configuration and relies on the Dataset transpose()
 implementation to do the actual work. */
 public class QBETransposeStep: QBEStep {
-	public override func apply(_ data: Dataset, job: Job? = nil, callback: (Fallible<Dataset>) -> ()) {
+	public override func apply(_ data: Dataset, job: Job? = nil, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(data.transpose()))
 	}
 

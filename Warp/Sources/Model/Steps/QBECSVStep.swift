@@ -74,7 +74,7 @@ final class QBECSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 		templateRow = Array<String?>(repeating: nil, count: columns.count)
 	}
 	
-	func columns(_ job: Job, callback: (Fallible<OrderedSet<Column>>) -> ()) {
+	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(columns))
 	}
 	
@@ -186,12 +186,12 @@ class QBECSVWriter: NSObject, QBEFileWriter, StreamDelegate {
 
 	func encode(with aCoder: NSCoder) {
 		aCoder.encodeString(self.newLineCharacter, forKey: "newLine")
-		aCoder.encodeString(String(Character(UnicodeScalar(separatorCharacter))), forKey: "separator")
+		aCoder.encodeString(String(Character(UnicodeScalar(separatorCharacter)!)), forKey: "separator")
 	}
 
 	func sentence(_ locale: Language) -> QBESentence? {
 		return QBESentence(format: NSLocalizedString("fields separated by [#]", comment: ""),
-			QBESentenceList(value: String(Character(UnicodeScalar(separatorCharacter))), provider: { (pc) -> () in
+			QBESentenceList(value: String(Character(UnicodeScalar(separatorCharacter)!)), provider: { (pc) -> () in
 				pc(.success(locale.commonFieldSeparators))
 			},
 			callback: { (newValue) -> () in
@@ -213,7 +213,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, StreamDelegate {
 		}
 	}
 
-	internal func writeDataset(_ data: Dataset, toStream: NSOutputStream, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
+	internal func writeDataset(_ data: Dataset, toStream: OutputStream, locale: Language, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
 		let stream = data.stream()
 		if let csvOut = CHCSVWriter(outputStream: toStream, encoding: String.Encoding.utf8.rawValue, delimiter: separatorCharacter) {
 			csvOut.newlineCharacter = self.newLineCharacter
@@ -269,8 +269,8 @@ class QBECSVWriter: NSObject, QBEFileWriter, StreamDelegate {
 		}
 	}
 
-	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
-		if let outStream = NSOutputStream(toFileAtPath: file.path, append: false) {
+	func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
+		if let outStream = OutputStream(toFileAtPath: file.path, append: false) {
 			outStream.open()
 			self.writeDataset(data, toStream: outStream, locale: locale, job: job, callback: { (result) in
 				outStream.close()
@@ -302,8 +302,8 @@ class QBEHTMLWriter: QBECSVWriter {
 		return NSLocalizedString("Interactive pivot table", comment: "")
 	}
 
-	override func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: (Fallible<Void>) -> ()) {
-		if let outStream = NSOutputStream(toFileAtPath: file.path, append: false) {
+	override func writeDataset(_ data: Dataset, toFile file: URL, locale: Language, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
+		if let outStream = OutputStream(toFileAtPath: file.path, append: false) {
 			// Get pivot template from resources
 			if let path = Bundle.main.path(forResource: "pivot", ofType: "html") {
 				outStream.open()
@@ -313,28 +313,30 @@ class QBEHTMLWriter: QBECSVWriter {
 					let header = parts[0]
 					let footer = parts[1]
 
-					if let headerDataset = header.data(using: String.Encoding.utf8) {
-						outStream.write(UnsafePointer<UInt8>((headerDataset as NSData).bytes), maxLength: headerDataset.count)
-						super.writeDataset(data, toStream: outStream, locale: locale, job: job, callback: { (result) -> () in
-							switch result {
-							case .success:
-								if let footerData = footer.data(using: String.Encoding.utf8) {
-									footerData.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Void in
-										outStream.write(bytes, maxLength: footerData.count)
-										outStream.close()
+					if let headerData = header.data(using: String.Encoding.utf8) {
+						headerData.withUnsafeBytes { (b: UnsafePointer<UInt8>) in
+							outStream.write(b, maxLength: headerData.count)
+							super.writeDataset(data, toStream: outStream, locale: locale, job: job, callback: { (result) -> () in
+								switch result {
+								case .success:
+									if let footerData = footer.data(using: String.Encoding.utf8) {
+										footerData.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Void in
+											outStream.write(bytes, maxLength: footerData.count)
+											outStream.close()
+										}
+										callback(.success())
+										return
 									}
-									callback(.success())
-									return
-								}
-								else {
-									callback(.failure("Could not convert footer to UTF-8 data"))
-								}
+									else {
+										callback(.failure("Could not convert footer to UTF-8 data"))
+									}
 
-							case .failure(let e):
-								outStream.close()
-								callback(.failure(e))
-							}
-						})
+								case .failure(let e):
+									outStream.close()
+									callback(.failure(e))
+								}
+							})
+						}
 					}
 					else {
 						outStream.close()
@@ -404,18 +406,18 @@ class QBECSVSourceStep: QBEStep {
 		}
 	}
 	
-	override func fullDataset(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(sourceDataset())
 	}
 	
-	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: (Fallible<Dataset>) -> ()) {
+	override func exampleDataset(_ job: Job, maxInputRows: Int, maxOutputRows: Int, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(sourceDataset().use{ $0.limit(maxInputRows) })
 	}
 	
 	override func encode(with coder: NSCoder) {
 		super.encode(with: coder)
 		
-		let separator = String(Character(UnicodeScalar(fieldSeparator)))
+		let separator = String(Character(UnicodeScalar(fieldSeparator)!))
 		coder.encode(separator, forKey: "fieldSeparator")
 		coder.encode(hasHeaders, forKey: "hasHeaders")
 		coder.encode(self.file?.url, forKey: "fileURL")
