@@ -529,7 +529,12 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				self.view.layer?.add(tr, forKey: kCATransition)
 			}
 
+			let monospace = QBESettings.sharedInstance.monospaceFont
+			let fontSize = NSFont.systemFontSize(for: editable ? .small : .regular)
 			self.tokenField.isEditable = editable
+			self.tokenField.allowsEditingTextAttributes = false
+			self.tokenField.font = (monospace && editable) ? NSFont.userFixedPitchFont(ofSize: fontSize) : NSFont.systemFont(ofSize: fontSize)
+
 			self.tokenField.tokenizingCharacterSet = CharacterSet()
 			self.borderedView.backgroundColor = editable ? NSColor.controlBackgroundColor : NSColor.clear
 			//self.tokenField.isBordered = editable
