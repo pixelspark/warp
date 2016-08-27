@@ -1,10 +1,13 @@
 import Foundation
 import WarpCore
 
-public class QBEConfigurable: NSObject {
-	public func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		fatalError("Not implemented")
-	}
+public protocol QBEConfigurable: NSObjectProtocol {
+	func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence
+	var className: String { get }
+}
+
+public protocol QBEFullyConfigurable: QBEConfigurable {
+	func setSentence(_ sentence: QBESentence)
 }
 
 protocol QBEConfigurableViewDelegate: NSObjectProtocol {
@@ -187,12 +190,12 @@ class QBEFactory {
 		return nil
 	}
 
-	func hasViewForConfigurable(_ configurable: NSObject) -> Bool {
+	func hasViewForConfigurable(_ configurable: QBEConfigurable) -> Bool {
 		return configurableViews[configurable.className] != nil
 	}
 
-	func viewForConfigurable<StepType: QBEConfigurable>(_ step: StepType, delegate: QBEConfigurableViewDelegate) -> QBEConfigurableViewController? {
-		if let viewType = configurableViews[step.self.className] {
+	func viewForConfigurable(_ step: QBEConfigurable, delegate: QBEConfigurableViewDelegate) -> QBEConfigurableViewController? {
+		if let viewType = configurableViews[step.className] {
 			return viewType.init(configurable: step, delegate: delegate)
 		}
 		return nil

@@ -3,8 +3,6 @@ import Cocoa
 /** The view of a QBETabletViewController should subclass this view. It is used to identify pieces of the tablet that are
 draggable (see QBEResizableView's hitTest). */
 internal class QBETabletView: NSView {
-	
-
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 	}

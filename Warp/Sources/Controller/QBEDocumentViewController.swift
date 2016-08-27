@@ -48,7 +48,7 @@ import WarpCore
 		documentView.reloadData()
 	}
 	
-	func tabletView(_ view: QBETabletViewController, didSelectConfigurable configurable: QBEConfigurable?, configureNow: Bool, delegate: QBESentenceViewDelegate) {
+	func tabletView(_ view: QBETabletViewController, didSelectConfigurable configurable: QBEConfigurable?, configureNow: Bool, delegate: QBESentenceViewDelegate?) {
 		documentView.selectTablet(view.tablet, notifyDelegate: false)
 		view.view.superview?.orderFront()
 
@@ -62,7 +62,9 @@ import WarpCore
 		}
 
 		// When editing the sentence, all other commands should still go to the original tablet
-		self.sentenceEditor?.nextResponder = self.view.window!.firstResponder
+		if self.view.window!.firstResponder != self.sentenceEditor {
+			self.sentenceEditor?.nextResponder = self.view.window!.firstResponder
+		}
 	}
 	
 	@objc func removeTablet(_ tablet: QBETablet) {

@@ -1,7 +1,13 @@
 import Cocoa
 import WarpCore
 
+@objc internal protocol QBEChainViewDelegate: NSObjectProtocol {
+	func chainView(_ view: QBEChainView, shouldInterceptEvent: NSEvent, forView: NSView) -> Bool
+}
+
 class QBEChainView: NSView {
+	@IBOutlet weak var delegate: QBEChainViewDelegate?
+
 	override var acceptsFirstResponder: Bool { get { return true } }
 
 	override func becomeFirstResponder() -> Bool {
@@ -9,12 +15,25 @@ class QBEChainView: NSView {
 	}
 
 	override var allowsVibrancy: Bool { return false }
+
+	override func hitTest(_ point: NSPoint) -> NSView? {
+		if let d = self.delegate,
+			let p = super.hitTest(point),
+			let ev = self.window!.currentEvent,
+			d.chainView(self, shouldInterceptEvent: ev, forView: p) {
+			return nil
+		}
+		return super.hitTest(point)
+	}
 }
 
-protocol QBEChainViewDelegate: NSObjectProtocol {
+protocol QBEChainViewControllerDelegate: NSObjectProtocol {
 	/** Called when the chain view wants the delegate to present a configurator for a step. If 'necessary' is set to true,
 	the step needs configuration right now in order to work. */
 	func chainView(_ view: QBEChainViewController, configureStep: QBEStep?, necessary: Bool, delegate: QBESentenceViewDelegate)
+
+	/** Called when the chain view wants the delegate to present a value for editing. */
+	func chainView(_ view: QBEChainViewController, editValue: Value, changeable: Bool, callback: @escaping (Value) -> ())
 	
 	/** Called when the user closes a chain view. If it returns false, the removal is blocked. */
 	func chainViewDidClose(_ view: QBEChainViewController) -> Bool
@@ -47,7 +66,7 @@ internal enum QBEEditingMode {
 @objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate,
 	QBEDatasetViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget,
 	QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate,
-	QBEColumnViewDelegate {
+	QBEColumnViewDelegate, QBEChainViewDelegate {
 
 	private var suggestions: Future<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator(incremental: true)
@@ -57,8 +76,8 @@ internal enum QBEEditingMode {
 	private var hasFullDataset = false
 	private var filterControllerJob: Job? = nil
 
-	var outletView: QBEOutletView!
-	weak var delegate: QBEChainViewDelegate?
+	@IBOutlet var outletView: QBEOutletView!
+	weak var delegate: QBEChainViewControllerDelegate?
 	
 	@IBOutlet var addStepMenu: NSMenu?
 	
@@ -162,6 +181,7 @@ internal enum QBEEditingMode {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
+		(self.view as! QBEChainView).delegate = self
 		outletView!.delegate = self
 		outletDropView = QBEOutletDropView(frame: self.view.bounds)
 		outletDropView.translatesAutoresizingMaskIntoConstraints = false
@@ -665,8 +685,32 @@ internal enum QBEEditingMode {
 			QBEChangeNotification.broadcastChange(c)
 		}
 	}
+
+	func chainView(_ cv: QBEChainView, shouldInterceptEvent event: NSEvent, forView view: NSView) -> Bool {
+		if event.type == .leftMouseDown {
+			if let s = self.stepsViewController?.view, view == s || view.isDescendant(of: s) {
+				asyncMain {
+					self.delegate?.chainView(self, configureStep: self.currentStep, necessary: false, delegate: self)
+				}
+			}
+		}
+		return false
+	}
+
+	func dataViewDidDeselectValue(_ view: QBEDatasetViewController) {
+		if let s = currentStep {
+			delegate?.chainView(self, configureStep: s, necessary: false, delegate: self)
+		}
+	}
 	
-	func dataView(_ view: QBEDatasetViewController, didSelectValue: Value, changeable: Bool) {
+	func dataView(_ view: QBEDatasetViewController, didSelectValue value: Value, changeable: Bool) {
+		var lastValueReceived = value
+		self.delegate?.chainView(self, editValue: value, changeable: changeable, callback: { (newValue) in
+			if newValue != lastValueReceived {
+				lastValueReceived = newValue
+				self.dataViewController?.changeSelectedValue(newValue)
+			}
+		})
 	}
 	
 	func dataView(_ view: QBEDatasetViewController, didOrderColumns columns: OrderedSet<Column>, toIndex: Int) -> Bool {

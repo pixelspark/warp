@@ -1,7 +1,7 @@
 import Foundation
 import WarpCore
 
-class QBEMap: QBEConfigurable, NSSecureCoding {
+class QBEMap: NSObject, QBEConfigurable, NSSecureCoding {
 	var latitudeExpression: Expression
 	var longitudeExpression: Expression
 	var titleExpression: Expression
@@ -28,7 +28,7 @@ class QBEMap: QBEConfigurable, NSSecureCoding {
 
 	static var supportsSecureCoding: Bool = true
 
-	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
+	func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: "Show locations at latitude [#] and longitude [#] with label [#]".localized,
 			QBESentenceFormula(expression: self.latitudeExpression, locale: locale, callback: { (newLatitudeExpression) -> () in
 				self.latitudeExpression = newLatitudeExpression

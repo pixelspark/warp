@@ -6,6 +6,7 @@ protocol QBEDatasetViewDelegate: NSObjectProtocol {
 	@discardableResult func dataView(_ view: QBEDatasetViewController, didChangeValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool
 	@discardableResult func dataView(_ view: QBEDatasetViewController, didOrderColumns: OrderedSet<Column>, toIndex: Int) -> Bool
 	func dataView(_ view: QBEDatasetViewController, didSelectValue: Value, changeable: Bool)
+	func dataViewDidDeselectValue(_ view: QBEDatasetViewController)
 	func dataView(_ view: QBEDatasetViewController, viewControllerForColumn: Column, info: Bool, callback: @escaping (NSViewController) -> ())
 	func dataView(_ view: QBEDatasetViewController, addValue: Value, inRow: Int?, column: Int?, callback: @escaping (Bool) -> ())
 	func dataView(_ view: QBEDatasetViewController, hasFilterForColumn: Column) -> Bool
@@ -548,22 +549,28 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		if let selectedRows = tableView!.selectedRowIndexes,
 			let selectedCols = tableView!.selectedColumnIndexes,
 			selectedRows.count > 1 || selectedCols.count > 1 {
-			delegate?.dataView(self, didSelectValue: Value.invalid, changeable: false)
+			delegate?.dataViewDidDeselectValue(self)
 		}
 		else {
-			if let r = raster, let sr = tableView!.selectedRowIndexes {
-				if let rowIndex = sr.first, let colIndex = sr.first {
+			if let r = raster, let sr = tableView!.selectedRowIndexes, let sc = tableView!.selectedColumnIndexes {
+				if let rowIndex = sr.first, let colIndex = sc.first {
 					if rowIndex >= 0 && colIndex >= 0 && rowIndex < r.rowCount && colIndex < r.columns.count {
 						let x = r[rowIndex, colIndex]!
 						delegate?.dataView(self, didSelectValue: x, changeable: true)
 					}
-					else {
-						delegate?.dataView(self, didSelectValue: Value.invalid, changeable: false)
+					else if rowIndex == r.rowCount || colIndex == r.columns.count {
+						delegate?.dataView(self, didSelectValue: Value.empty, changeable: true)
 					}
+					else {
+						delegate?.dataViewDidDeselectValue(self)
+					}
+				}
+				else {
+					delegate?.dataViewDidDeselectValue(self)
 				}
 			}
 			else {
-				delegate?.dataView(self, didSelectValue: Value.invalid, changeable: false)
+				delegate?.dataViewDidDeselectValue(self)
 			}
 		}
 	}

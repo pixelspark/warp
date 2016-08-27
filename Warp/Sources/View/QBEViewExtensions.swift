@@ -58,19 +58,18 @@ internal extension NSAlert {
 	@IBInspectable var bottomBorder: Bool = false
 	@IBInspectable var backgroundColor: NSColor = NSColor.windowFrameColor { didSet { self.setNeedsDisplay(self.bounds) } }
 	@IBInspectable var borderColor: NSColor = NSColor.windowFrameColor { didSet { self.setNeedsDisplay(self.bounds) } }
+
+	@IBInspectable var gradientStartColor: NSColor = NSColor.controlBackgroundColor.withAlphaComponent(0.7) { didSet { self.setNeedsDisplay(self.bounds) } }
+	@IBInspectable var gradientEndColor: NSColor = NSColor.controlBackgroundColor.withAlphaComponent(0.6) { didSet { self.setNeedsDisplay(self.bounds) } }
 	
 	override func draw(_ dirtyRect: NSRect) {
 		backgroundColor.set()
-		NSRectFill(self.bounds)
+		NSRectFill(dirtyRect)
 
-		let start = NSColor.controlBackgroundColor.withAlphaComponent(0.7)
-		let end = NSColor.controlBackgroundColor.withAlphaComponent(0.6)
-		let g = NSGradient(starting: start, ending: end)
+		let g = NSGradient(starting: gradientStartColor, ending: gradientEndColor)
 		g?.draw(in: self.bounds, angle: 270.0)
 
 		borderColor.set()
-		var bounds = self.bounds
-		bounds = bounds.intersection(dirtyRect)
 		
 		if leftBorder {
 			NSRectFill(CGRect(x: bounds.origin.x, y: bounds.origin.y, width: 1, height: bounds.size.height))
@@ -85,7 +84,10 @@ internal extension NSAlert {
 		}
 		
 		if bottomBorder {
-			NSRectFill(CGRect(x: bounds.origin.x, y: bounds.origin.y, width: bounds.size.width, height: 1))
+			let p = NSBezierPath()
+			p.move(to: CGPoint(x: bounds.origin.x, y: bounds.origin.y))
+			p.line(to: CGPoint(x: bounds.size.width, y: bounds.origin.y))
+			p.stroke()
 		}
 	}
 }

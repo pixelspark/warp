@@ -17,7 +17,7 @@ enum QBEChartType: String {
 	}
 }
 
-class QBEChart: QBEConfigurable, NSSecureCoding {
+class QBEChart: NSObject, QBEConfigurable, NSSecureCoding {
 	var sourceTablet: QBEChainTablet? = nil
 	var type: QBEChartType
 	var xExpression: Expression
@@ -54,7 +54,7 @@ class QBEChart: QBEConfigurable, NSSecureCoding {
 
 	static var supportsSecureCoding: Bool = true
 
-	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
+	func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let opts = [QBEChartType.Bar, QBEChartType.Line, QBEChartType.Radar, QBEChartType.Pie].mapDictionary { return ($0.rawValue, $0.localizedName) }
 
 		let mainSentence = QBESentence(format: "Draw a [#]".localized,

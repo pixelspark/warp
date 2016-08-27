@@ -10,6 +10,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	QBEFormulaEditorViewDelegate, QBEConfigurableViewDelegate, QBESetEditorDelegate, QBEListEditorDelegate {
 	@IBOutlet var tokenField: NSTokenField!
 	@IBOutlet var configureButton: NSButton!
+	@IBOutlet var borderedView: QBEBorderedView!
 
 	var variant: QBESentenceVariant = .neutral
 	private var editingToken: QBEEditingToken? = nil
@@ -452,7 +453,8 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		self.tokenField.isHidden =  self.editingConfigurable == nil
 		self.configureButton.isHidden = self.editingConfigurable == nil
 
-		if let s = editingConfigurable, let locale = delegate?.locale {
+		if let s = editingConfigurable {
+			let locale = delegate?.locale ?? QBEAppDelegate.sharedInstance.locale!
 			let sentence = s.sentence(locale, variant: self.variant)
 			tokenField.objectValue = sentence.tokens.map({ return $0 as! NSObject })
 			configureButton.isEnabled = QBEFactory.sharedInstance.hasViewForConfigurable(s)
@@ -463,21 +465,81 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
+	@IBAction func tokenFieldTextDidChange(_ sender: NSObject) {
+		self.tokenFieldTextChanged()
+	}
+
+	private func tokenFieldTextChanged() {
+		if let s = self.editingConfigurable as? QBEFullyConfigurable {
+			let sentence = QBESentence()
+
+			let tokens: [Any]
+			if let tl = self.tokenField.objectValue as? [Any] {
+				tokens = tl
+			}
+			else {
+				tokens = [self.tokenField.objectValue]
+			}
+
+			for k in tokens {
+				if let t = k as? QBESentenceToken {
+					sentence.append(t)
+				}
+				if let s = k as? String {
+					let v = locale.valueForLocalString(s)
+					sentence.append(QBESentenceValueInput(value: v, locale: locale, callback: { (_) -> (Bool) in
+						return false
+					}))
+				}
+				else {
+					trace("Unknown token type: \(k)")
+				}
+			}
+
+			s.setSentence(sentence)
+		}
+	}
+
+	func control(_ control: NSControl, textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
+		if commandSelector == #selector(insertNewline(_:)) {
+			// Enter pressed in the token field editor
+			self.tokenFieldTextChanged()
+			return true
+		}
+		// Other interesting actions to capture: cancelOperation: (escape), insertTab: (tab), deleteBackward: (backspace)
+
+		return false
+	}
+
 	func startConfiguring(_ configurable: QBEConfigurable?, variant: QBESentenceVariant, delegate: QBESentenceViewDelegate?) {
-		if self.editingConfigurable != configurable || configurable == nil {
+		let wasEditable = self.editingConfigurable != nil && (self.editingConfigurable! is QBEFullyConfigurable)
+
+		if configurable == nil || self.editingConfigurable == nil || !self.editingConfigurable!.isEqual(configurable!) {
+			let editable = (configurable is QBEFullyConfigurable)
+
 			let tr = CATransition()
 			tr.duration = 0.3
 			tr.type = kCATransitionPush
 			tr.subtype = self.editingConfigurable == nil ? kCATransitionFromTop : kCATransitionFromBottom
 			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-			self.view.layer?.add(tr, forKey: kCATransition)
+			if editable && wasEditable {
+				self.tokenField.layer?.add(tr, forKey: kCATransition)
+			}
+			else {
+				self.view.layer?.add(tr, forKey: kCATransition)
+			}
+
+			self.tokenField.isEditable = editable
+			self.tokenField.tokenizingCharacterSet = CharacterSet()
+			self.borderedView.backgroundColor = editable ? NSColor.controlBackgroundColor : NSColor.clear
+			//self.tokenField.isBordered = editable
 
 			self.editingConfigurable = configurable
 			self.variant = variant
+			updateView()
 		}
 
 		self.delegate = delegate
-		updateView()
 		self.view.window?.update()
 
 		/* Check whether the window is visible before showing the tip, because this may get called early while setting
@@ -491,7 +553,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 	/** Opens the popover containing more detailed configuration options for the current configurable. */
 	@IBAction func configure(_ sender: AnyObject) {
-		if let s = self.editingConfigurable, let stepView = QBEFactory.sharedInstance.viewForConfigurable(s.self, delegate: self) {
+		if let s = self.editingConfigurable, let stepView = QBEFactory.sharedInstance.viewForConfigurable(s, delegate: self) {
 			self.presentViewController(stepView, asPopoverRelativeTo: configureButton.frame, of: self.view, preferredEdge: NSRectEdge.minY, behavior: NSPopoverBehavior.semitransient)
 		}
 	}
@@ -567,7 +629,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 	}
 
-	var locale: Language { return self.delegate!.locale }
+	var locale: Language { return self.delegate?.locale ?? QBEAppDelegate.sharedInstance.locale! }
 
 	func configurableView(_ view: QBEConfigurableViewController, didChangeConfigurationFor c: QBEConfigurable) {
 		asyncMain { self.updateView() }

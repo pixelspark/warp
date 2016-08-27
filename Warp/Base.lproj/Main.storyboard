@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11185.3" systemVersion="15G31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11198.2" systemVersion="15G31" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11185.3"/>
-        <plugIn identifier="com.apple.MapKitIBPlugin" version="11185.3"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11198.2"/>
+        <plugIn identifier="com.apple.MapKitIBPlugin" version="11198.2"/>
         <capability name="box content view" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
@@ -1800,7 +1800,7 @@ CA
                                                 <rect key="frame" x="4" y="4" width="688" height="23"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>
-                                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="22" id="xfu-7p-qw7"/>
+                                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="21" id="xfu-7p-qw7"/>
                                                 </constraints>
                                                 <connections>
                                                     <segue destination="dZx-NB-Ues" kind="embed" identifier="sentence" id="87o-14-S5w"/>
@@ -3930,26 +3930,47 @@ DQ
         <scene sceneID="Pcn-Xl-fFm">
             <objects>
                 <viewController storyboardIdentifier="sentenceController" id="dZx-NB-Ues" customClass="QBESentenceViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" wantsLayer="YES" verticalCompressionResistancePriority="1000" id="OmE-kA-pRl">
-                        <rect key="frame" x="0.0" y="0.0" width="450" height="22"/>
+                    <view key="view" wantsLayer="YES" canDrawConcurrently="YES" verticalCompressionResistancePriority="1000" id="OmE-kA-pRl">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="26"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <tokenField wantsLayer="YES" focusRingType="none" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" preferredMaxLayoutWidth="399" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi" customClass="QBESentenceTokenField" customModule="Warp" customModuleProvider="target">
-                                <rect key="frame" x="2" y="2" width="403" height="20"/>
+                            <customView wantsLayer="YES" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="pPD-4A-hSS" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="2" width="402" height="22"/>
+                                <subviews>
+                                    <tokenField wantsLayer="YES" focusRingType="none" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" preferredMaxLayoutWidth="399" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi" customClass="QBESentenceTokenField" customModule="Warp" customModuleProvider="target">
+                                        <rect key="frame" x="1" y="5" width="403" height="17"/>
+                                        <tokenFieldCell key="cell" selectable="YES" refusesFirstResponder="YES" sendsActionOnEndEditing="YES" focusRingType="none" alignment="left" allowsEditingTextAttributes="YES" id="D1b-0t-j6u">
+                                            <font key="font" metaFont="system"/>
+                                            <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </tokenFieldCell>
+                                        <connections>
+                                            <action selector="tokenFieldTextDidChange:" target="dZx-NB-Ues" id="TsD-Mh-6Li"/>
+                                            <outlet property="delegate" destination="dZx-NB-Ues" id="uUB-tA-fbP"/>
+                                        </connections>
+                                    </tokenField>
+                                </subviews>
                                 <constraints>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="17" id="sHi-T4-777"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="21" id="7O1-Rh-kjl"/>
+                                    <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="fpC-FX-udi" secondAttribute="bottom" id="DCT-3H-PFi"/>
+                                    <constraint firstAttribute="trailing" secondItem="fpC-FX-udi" secondAttribute="trailing" id="K0U-Pr-tmE"/>
+                                    <constraint firstItem="fpC-FX-udi" firstAttribute="leading" secondItem="pPD-4A-hSS" secondAttribute="leading" constant="3" id="VvO-1w-Oyr"/>
+                                    <constraint firstItem="fpC-FX-udi" firstAttribute="top" secondItem="pPD-4A-hSS" secondAttribute="top" id="yF6-w0-sWm"/>
                                 </constraints>
-                                <tokenFieldCell key="cell" selectable="YES" refusesFirstResponder="YES" focusRingType="none" alignment="left" allowsEditingTextAttributes="YES" id="D1b-0t-j6u">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </tokenFieldCell>
-                                <connections>
-                                    <outlet property="delegate" destination="dZx-NB-Ues" id="uUB-tA-fbP"/>
-                                </connections>
-                            </tokenField>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="gradientStartColor">
+                                        <color key="value" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="gradientEndColor">
+                                        <color key="value" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="backgroundColor">
+                                        <color key="value" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </customView>
                             <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CCw-Hx-VEJ">
-                                <rect key="frame" x="401" y="-6" width="55" height="32"/>
+                                <rect key="frame" x="401" y="-4" width="55" height="32"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="43" id="pY0-sW-1qB"/>
                                 </constraints>
@@ -3964,15 +3985,16 @@ DQ
                         </subviews>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="CCw-Hx-VEJ" secondAttribute="trailing" id="07T-Jd-DZz"/>
-                            <constraint firstItem="CCw-Hx-VEJ" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="104-tr-vGe"/>
-                            <constraint firstItem="fpC-FX-udi" firstAttribute="leading" secondItem="OmE-kA-pRl" secondAttribute="leading" constant="4" id="EiS-qj-N3o"/>
-                            <constraint firstItem="fpC-FX-udi" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" id="TWE-fa-8LF"/>
-                            <constraint firstAttribute="bottom" secondItem="fpC-FX-udi" secondAttribute="bottom" constant="2" id="gPC-1h-m9y"/>
-                            <constraint firstItem="CCw-Hx-VEJ" firstAttribute="leading" secondItem="fpC-FX-udi" secondAttribute="trailing" constant="4" id="nv3-C8-oEt"/>
+                            <constraint firstItem="CCw-Hx-VEJ" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" constant="2" id="104-tr-vGe"/>
+                            <constraint firstItem="CCw-Hx-VEJ" firstAttribute="leading" secondItem="pPD-4A-hSS" secondAttribute="trailing" constant="5" id="KFE-Xn-xGu"/>
+                            <constraint firstItem="pPD-4A-hSS" firstAttribute="top" secondItem="OmE-kA-pRl" secondAttribute="top" constant="2" id="bxw-EF-m6G"/>
+                            <constraint firstItem="pPD-4A-hSS" firstAttribute="leading" secondItem="OmE-kA-pRl" secondAttribute="leading" id="dAh-HX-Baz"/>
+                            <constraint firstAttribute="bottom" secondItem="pPD-4A-hSS" secondAttribute="bottom" constant="2" id="t5N-CB-Plu"/>
                             <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="CCw-Hx-VEJ" secondAttribute="bottom" id="uBh-I7-BQb"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="borderedView" destination="pPD-4A-hSS" id="25a-Qp-HNN"/>
                         <outlet property="configureButton" destination="CCw-Hx-VEJ" id="jfB-DM-OFQ"/>
                         <outlet property="tokenField" destination="fpC-FX-udi" id="U0E-WD-N6v"/>
                     </connections>
@@ -4121,6 +4143,6 @@ DQ
         <image name="sort-asc" width="8" height="9"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="XPo-cR-lfW"/>
+        <segue reference="87o-14-S5w"/>
     </inferredMetricsTieBreakers>
 </document>

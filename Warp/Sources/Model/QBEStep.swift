@@ -21,7 +21,7 @@ the 'full' data (which is the full dataset on which the final data operations ar
 
 Subclasses of QBEStep implement the data manipulation in the apply function, and should implement the description method
 as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. */
-public class QBEStep: QBEConfigurable, NSCoding {
+public class QBEStep: NSObject, QBEConfigurable, NSCoding {
 	public static let dragType = "nl.pixelspark.Warp.Step"
 
 	public var previous: QBEStep? { didSet {
@@ -32,7 +32,7 @@ public class QBEStep: QBEConfigurable, NSCoding {
 	public var alternatives: [QBEStep]?
 	public weak var next: QBEStep?
 
-	required override public init() {
+	override public required init() {
 	}
 
 	public init(previous: QBEStep?) {
@@ -98,7 +98,7 @@ public class QBEStep: QBEConfigurable, NSCoding {
 		return sentence(locale, variant: .neutral).stringValue
 	}
 
-	public override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
+	public func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([])
 	}
 	
