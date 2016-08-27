@@ -271,13 +271,13 @@ class QBEMySQLDatabase: SQLDatabase {
 		(see https://dev.mysql.com/doc/refman/5.0/en/charset-connection.html) */
 		connection.query("SET NAMES 'utf8' ").maybe { (res) -> () in
 			// We're not using the response from this query
-			res.finish()
+			res?.finish()
 		}
 		
 		// Use UTC for any dates that are sent and received in this connection
 		connection.query("SET time_zone = '+00:00' ").maybe { (res) -> () in
 			// We're not using the response from this query
-			res.finish()
+			res?.finish()
 		}
 		return .success(connection)
 	}
@@ -365,7 +365,7 @@ internal class QBEMySQLConnection: SQLConnection {
 	func serverInformation(_ callback: (Fallible<String>) -> ()) {
 		switch self.query("SELECT version()") {
 		case .success(let result):
-			if let row = result.row() {
+			if let row = result?.row() {
 				if let version = row.first?.stringValue {
 					callback(.success(version))
 				}
@@ -386,7 +386,7 @@ internal class QBEMySQLConnection: SQLConnection {
 		switch resultFallible {
 			case .success(let result):
 				var dbs: [String] = []
-				while let d = result.row() {
+				while let d = result?.row() {
 					if let name = d[0].stringValue {
 						dbs.append(name)
 					}
@@ -404,7 +404,7 @@ internal class QBEMySQLConnection: SQLConnection {
 		switch fallibleResult {
 			case .success(let result):
 				var dbs: [String] = []
-				while let d = result.row() {
+				while let d = result?.row() {
 					if let name = d[0].stringValue {
 						dbs.append(name)
 					}
@@ -423,7 +423,7 @@ internal class QBEMySQLConnection: SQLConnection {
 		switch self.query("SELECT constraint_name, table_schema, table_name, column_name, referenced_table_schema, referenced_table_name, referenced_column_name FROM information_schema.key_column_usage WHERE table_schema=\(dbn) AND table_name=\(tbn) AND referenced_column_name IS NOT NULL") {
 		case .success(let result):
 			var constraints: [QBEMySQLConstraint] = []
-			while let d = result.row() {
+			while let d = result?.row() {
 				if	let constraintName = d[0].stringValue,
 					let tableSchema = d[1].stringValue,
 					let tableName = d[2].stringValue,
@@ -461,11 +461,16 @@ internal class QBEMySQLConnection: SQLConnection {
 		return success
 	}
 	
-	fileprivate var lastError: String { get {
+	fileprivate var lastError: String {
 		return String(cString: mysql_error(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
-	} }
-	
-	func query(_ sql: String) -> Fallible<QBEMySQLResult> {
+	}
+
+	fileprivate var isError: Bool {
+		return mysql_errno(self.connection) != 0
+	}
+
+	/** Returns the result as QBEMySQLResult. This is nil for queries that do not return a result (e.g. UPDATE, SET, etc.). */
+	func query(_ sql: String) -> Fallible<QBEMySQLResult?> {
 		if self.result != nil && !self.result!.finished {
 			fatalError("Cannot start a query when the previous result is not finished yet")
 		}
@@ -481,7 +486,10 @@ internal class QBEMySQLConnection: SQLConnection {
 				return result.use({self.result = $0; return .success($0)})
 			}
 			else {
-				return .failure(self.lastError)
+				if self.isError {
+					return .failure(self.lastError)
+				}
+				return .success(nil)
 			}
 		}
 		else {
@@ -505,8 +513,11 @@ final class QBEMySQLDataset: SQLDataset {
 				
 				switch fallibleResult {
 					case .success(let result):
-						result.finish() // We're not interested in that one row we just requested, just the column names
-						return .success(QBEMySQLDataset(database: database, table: tableName, columns: result.columns))
+						if let result = result {
+							result.finish() // We're not interested in that one row we just requested, just the column names
+							return .success(QBEMySQLDataset(database: database, table: tableName, columns: result.columns))
+						}
+						return .failure("no result returned, but also no error")
 					
 					case .failure(let error):
 						return .failure(error)
@@ -535,7 +546,7 @@ final class QBEMySQLDataset: SQLDataset {
 		return QBEMySQLStream(data: self)
 	}
 	
-	fileprivate func result() -> Fallible<QBEMySQLResult> {
+	fileprivate func result() -> Fallible<QBEMySQLResult?> {
 		return self.database.connect().use { $0.query(self.sql.sqlSelect(nil).sql) }
 	}
 	
@@ -577,11 +588,16 @@ final class QBEMySQLStream: WarpCore.Stream {
 		return self.mutex.locked {
 			if resultStream == nil {
 				switch data.result() {
-					case .success(let result):
+				case .success(let result):
+					if let result = result {
 						resultStream = QBEMySQLResultStream(result: result)
-					
-					case .failure(let error):
-						resultStream = ErrorStream(error)
+					}
+					else {
+						resultStream = ErrorStream("no result received, but also not an error")
+					}
+
+				case .failure(let error):
+					resultStream = ErrorStream(error)
 				}
 			}
 			
@@ -611,67 +627,74 @@ class QBEMySQLMutableDataset: SQLMutableDataset {
 				let tbn = self.database.dialect.expressionToSQL(Literal(Value(self.tableName)), alias: "", foreignAlias: nil, inputValue: nil)!
 				switch connection.query("SELECT `COLUMN_NAME` FROM `information_schema`.`COLUMNS` WHERE (`TABLE_SCHEMA` = \(dbn)) AND (`TABLE_NAME` = \(tbn)) AND (`COLUMN_KEY` = 'PRI')") {
 				case .success(let result):
-					var primaryColumns = Set<Column>()
-					for row in result {
-						switch row {
-						case .success(let r):
-							if let c = r[0].stringValue {
-								primaryColumns.insert(Column(c))
-							}
-							else {
-								return callback(.failure("Invalid column name received"))
-							}
-
-						case .failure(let e):
-							return callback(.failure(e))
-						}
-					}
-
-					if primaryColumns.count == 0 {
-						// No primary key, find a unique key instead
-						switch connection.query("SELECT `COLUMN_NAME`,`INDEX_NAME` FROM `information_schema`.`STATISTICS` WHERE (`TABLE_SCHEMA` = \(dbn)) AND (`TABLE_NAME` = \(tbn)) AND NOT(`NULLABLE`) AND NOT(`NON_UNIQUE`) ORDER BY index_name ASC") {
-						case .success(let r):
-							var uniqueColumns = Set<Column>()
-							var uniqueIndexName: String? = nil
-
-							for row in r {
-								switch row {
-								case .success(let row):
-									// Use all columns from the first index we see
-									if let indexName = row[1].stringValue {
-										if uniqueIndexName == nil {
-											uniqueIndexName = indexName
-										}
-										else if uniqueIndexName! != indexName {
-											break
-										}
-									}
-
-									if let c = row[0].stringValue {
-										uniqueColumns.insert(Column(c))
-									}
-									else {
-										return callback(.failure("Invalid column name received"))
-									}
-								case .failure(let e):
-									return callback(.failure(e))
+					if let result = result {
+						var primaryColumns = Set<Column>()
+						for row in result {
+							switch row {
+							case .success(let r):
+								if let c = r[0].stringValue {
+									primaryColumns.insert(Column(c))
 								}
-							}
+								else {
+									return callback(.failure("Invalid column name received"))
+								}
 
-							if uniqueColumns.isEmpty {
-								return callback(.failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
+							case .failure(let e):
+								return callback(.failure(e))
 							}
-							else {
-								return callback(.success(uniqueColumns))
+						}
+
+						if primaryColumns.count == 0 {
+							// No primary key, find a unique key instead
+							switch connection.query("SELECT `COLUMN_NAME`,`INDEX_NAME` FROM `information_schema`.`STATISTICS` WHERE (`TABLE_SCHEMA` = \(dbn)) AND (`TABLE_NAME` = \(tbn)) AND NOT(`NULLABLE`) AND NOT(`NON_UNIQUE`) ORDER BY index_name ASC") {
+							case .success(let r):
+								var uniqueColumns = Set<Column>()
+								var uniqueIndexName: String? = nil
+
+								if let r = r {
+									for row in r {
+										switch row {
+										case .success(let row):
+											// Use all columns from the first index we see
+											if let indexName = row[1].stringValue {
+												if uniqueIndexName == nil {
+													uniqueIndexName = indexName
+												}
+												else if uniqueIndexName! != indexName {
+													break
+												}
+											}
+
+											if let c = row[0].stringValue {
+												uniqueColumns.insert(Column(c))
+											}
+											else {
+												return callback(.failure("Invalid column name received"))
+											}
+										case .failure(let e):
+											return callback(.failure(e))
+										}
+									}
+								}
+
+								if uniqueColumns.isEmpty {
+									return callback(.failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
+								}
+								else {
+									return callback(.success(uniqueColumns))
+								}
+
+							case .failure(let e):
+								return callback(.failure(e))
+
 							}
-
-						case .failure(let e):
-							return callback(.failure(e))
-
+						}
+						else {
+							callback(.success(primaryColumns))
 						}
 					}
 					else {
-						callback(.success(primaryColumns))
+						return callback(.failure("empty result received"))
 					}
 
 				case .failure(let e):
