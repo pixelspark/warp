@@ -511,6 +511,10 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		return false
 	}
 
+	override func controlTextDidChange(_ obj: Notification) {
+		self.tokenField.invalidateIntrinsicContentSize()
+	}
+
 	func startConfiguring(_ configurable: QBEConfigurable?, variant: QBESentenceVariant, delegate: QBESentenceViewDelegate?) {
 		let wasEditable = self.editingConfigurable != nil && (self.editingConfigurable! is QBEFullyConfigurable)
 
