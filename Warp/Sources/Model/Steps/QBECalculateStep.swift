@@ -186,6 +186,7 @@ class QBECalculateStep: QBEStep {
 		// FIXME: what to do with insertAfter?
 		if let p = prior as? QBECalculateStep, p.targetColumn == self.targetColumn {
 			var dependsOnPrevious = false
+			var otherDependenciesThanIdentity = false
 			
 			// If this function is not constant, it may depend on another column
 			if !function.isConstant {
@@ -195,6 +196,7 @@ class QBECalculateStep: QBEStep {
 						if col.column == p.targetColumn {
 							// This expression depends on the column produced by the previous one, hence it cannot overwrite it
 							dependsOnPrevious = true
+							otherDependenciesThanIdentity = true
 						}
 					}
 					else if expr is Identity {
@@ -204,9 +206,20 @@ class QBECalculateStep: QBEStep {
 			}
 			
 			if !dependsOnPrevious {
+				// The new step recalculates the column and makes the earlier calculation step irrelevant
 				let relativeTo = self.insertRelativeTo ?? p.insertRelativeTo
 				let before = relativeTo == self.insertRelativeTo ? self.insertBefore : p.insertBefore
 				return QBEStepMerge.advised(QBECalculateStep(previous: previous, targetColumn: targetColumn, function: function, insertRelativeTo: relativeTo, insertBefore: before))
+			}
+			else if !otherDependenciesThanIdentity {
+				// We can safely 'wrap' the earlier calculation
+				return QBEStepMerge.advised(QBECalculateStep(
+					previous: p.previous,
+					targetColumn: targetColumn,
+					function: self.function.expressionReplacingIdentityReferencesWith(p.function),
+					insertRelativeTo: p.insertRelativeTo,
+					insertBefore: p.insertBefore
+				))
 			}
 		}
 		
