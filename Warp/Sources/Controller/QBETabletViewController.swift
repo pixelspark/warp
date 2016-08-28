@@ -22,6 +22,8 @@ class QBETabletViewController: NSViewController {
 	var tablet: QBETablet!
 	weak var delegate: QBETabletViewDelegate? = nil
 
+	var responder: NSResponder? { return self }
+
 	func tabletWasSelected() {
 	}
 

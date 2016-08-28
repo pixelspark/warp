@@ -62,9 +62,7 @@ import WarpCore
 		}
 
 		// When editing the sentence, all other commands should still go to the original tablet
-		if self.view.window!.firstResponder != self.sentenceEditor {
-			self.sentenceEditor?.nextResponder = self.view.window!.firstResponder
-		}
+		self.sentenceEditor?.nextResponder = view.responder
 	}
 	
 	@objc func removeTablet(_ tablet: QBETablet) {

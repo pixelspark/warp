@@ -51,6 +51,8 @@ class QBEChangeableValueConfigurable: NSObject, QBEFullyConfigurable {
 internal class QBEChainTabletViewController: QBETabletViewController, QBEChainViewControllerDelegate {
 	var chainViewController: QBEChainViewController? = nil { didSet { bind() } }
 
+	override var responder: NSResponder? { return chainViewController }
+
 	override func tabletWasDeselected() {
 		self.chainViewController?.selected = false
 	}
