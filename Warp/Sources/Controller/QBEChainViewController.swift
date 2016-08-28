@@ -1482,6 +1482,9 @@ internal enum QBEEditingMode {
 	
 	@IBAction func renameColumn(_ sender: NSObject) {
 		suggestSteps([QBERenameStep(previous: nil)])
+
+		// Force the configuration pop-up to show by calling configureStep with necessary=true
+		delegate?.chainView(self, configureStep: self.currentStep, necessary: true, delegate: self)
 	}
 	
 	private func addColumnBeforeAfterCurrent(_ before: Bool) {
