@@ -236,11 +236,17 @@ public enum Function: String {
 							fatalError("Cannot produce an IN()-like expression for this binary type")
 					}
 				}
-		
-			default:
-				break
+		default:
+			break
 		}
-	
+
+		// Single-argument functions for which double execution makes no sense (e.g. lowercase(lowercase(x)) === lowercase(x))
+		if self.isIdempotent && prepared.count == 1 {
+			if let v = prepared[0] as? Call, v.type == self {
+				return prepared[0]
+			}
+		}
+
 		return Call(arguments: prepared, type: self)
 	}
 	
@@ -361,6 +367,17 @@ public enum Function: String {
 	
 	func toFormula(_ locale: Language) -> String {
 		return locale.nameForFunction(self) ?? ""
+	}
+
+	/** Whether applying this function again on the result of applying it to a value is equivalent to applying it a single
+	time, i.e. f(f(x)) === f(x). */
+	public var isIdempotent: Bool {
+		switch self {
+			case .Uppercase, .Lowercase, .Trim, .Absolute, .Capitalize, .Floor, .Ceiling:
+				return true
+			default:
+				return false
+		}
 	}
 	
 	/** Returns information about the parameters a function can receive.  */
