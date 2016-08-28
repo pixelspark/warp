@@ -418,7 +418,9 @@
 
 "xfZ-Rd-nV5.title" = "Waarden";
 "CbM-Vx-p1b.title" = "Snelle fixes";
-"Gcy-Be-SAc.title" = "Converteer naar kleine letters";
-"tP9-gl-6Kv.title" = "Converteer naar hoofdletters";
-"SxS-3H-KbM.title" = "Wis spaties rondom";
+"Gcy-Be-SAc.title" = "Converteer tekst naar kleine letters";
+"tP9-gl-6Kv.title" = "Converteer tekst naar hoofdletters";
+"SxS-3H-KbM.title" = "Wis spaties rondom tekst";
+"BEt-Hl-xZD.title" = "Kapitaliseer tekst";
+"Oj5-qf-lZq.title" = "Interpreteer als JSON";
 

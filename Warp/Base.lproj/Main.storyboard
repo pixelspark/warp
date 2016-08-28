@@ -854,22 +854,35 @@ GQ
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <menu key="submenu" title="Quick fixes" id="mSx-zV-Ak2">
                                                 <items>
-                                                    <menuItem title="Convert to lowercase" id="Gcy-Be-SAc">
+                                                    <menuItem title="Convert text to lowercase" id="Gcy-Be-SAc">
                                                         <modifierMask key="keyEquivalentModifierMask"/>
                                                         <connections>
                                                             <action selector="quickFixLowercase:" target="Ady-hI-5gd" id="vZi-rS-uav"/>
                                                         </connections>
                                                     </menuItem>
-                                                    <menuItem title="Convert to uppercase" id="tP9-gl-6Kv">
+                                                    <menuItem title="Convert text to uppercase" id="tP9-gl-6Kv">
                                                         <modifierMask key="keyEquivalentModifierMask"/>
                                                         <connections>
                                                             <action selector="quickFixUppercase:" target="Ady-hI-5gd" id="vbx-1X-6WO"/>
                                                         </connections>
                                                     </menuItem>
-                                                    <menuItem title="Trim spaces" id="SxS-3H-KbM">
+                                                    <menuItem title="Capitalize text" id="BEt-Hl-xZD">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixCapitalize:" target="Ady-hI-5gd" id="3yK-GT-uOn"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Trim spaces around text" id="SxS-3H-KbM">
                                                         <modifierMask key="keyEquivalentModifierMask"/>
                                                         <connections>
                                                             <action selector="quickFixTrimSpaces:" target="Ady-hI-5gd" id="uy2-bK-SJ9"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem isSeparatorItem="YES" id="jqO-RJ-BxN"/>
+                                                    <menuItem title="Decode as JSON" id="Oj5-qf-lZq">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixJSON:" target="Ady-hI-5gd" id="jg2-fu-KfZ"/>
                                                         </connections>
                                                     </menuItem>
                                                 </items>

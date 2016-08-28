@@ -2184,18 +2184,26 @@ internal enum QBEEditingMode {
 	}
 
 	@IBAction func quickFixTrimSpaces(_ sender: NSObject) {
-		self.quickFixColumn(type: .Trim)
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .Trim))
 	}
 
 	@IBAction func quickFixUppercase(_ sender: NSObject) {
-		self.quickFixColumn(type: .Uppercase)
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .Uppercase))
 	}
 
 	@IBAction func quickFixLowercase(_ sender: NSObject) {
-		self.quickFixColumn(type: .Lowercase)
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .Lowercase))
 	}
 
-	private func quickFixColumn(type: Function) {
+	@IBAction func quickFixCapitalize(_ sender: NSObject) {
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .Capitalize))
+	}
+
+	@IBAction func quickFixJSON(_ sender: NSObject) {
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .JSONDecode))
+	}
+
+	private func quickFixColumn(expression: Expression) {
 		if let ci = dataViewController?.tableView?.selectedColumnIndexes {
 			let job = Job(.userInitiated)
 			calculator.currentRaster?.get(job) { result in
@@ -2203,7 +2211,7 @@ internal enum QBEEditingMode {
 				case .success(let raster):
 					for columnIndex in ci {
 						let columnName = raster.columns[columnIndex]
-						let step = QBECalculateStep(previous: nil, targetColumn: columnName, function: Call(arguments: [Identity()], type: type))
+						let step = QBECalculateStep(previous: nil, targetColumn: columnName, function: expression)
 
 						asyncMain {
 							self.suggestSteps([step])
@@ -2316,6 +2324,8 @@ internal enum QBEEditingMode {
 		// Quick fix actions
 		else if selector==#selector(QBEChainViewController.quickFixLowercase(_:)) ||
 			selector==#selector(QBEChainViewController.quickFixUppercase(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixCapitalize(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixJSON(_:)) ||
 			selector==#selector(QBEChainViewController.quickFixTrimSpaces(_:)) {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
