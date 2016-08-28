@@ -669,10 +669,10 @@ class QBERethinkMutableDataset: MutableDataset {
 
 	func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
 		switch mutation {
-		case .truncate, .drop, .import(_,_), .alter(_), .update(_,_,_,_), .insert(row: _), .delete(keys: _):
+		case .truncate, .drop, .import(_,_), .alter(_), .update(_,_,_,_), .insert(row: _), .delete(keys: _), .rename(_):
 			return true
 
-		case .edit(_,_,_,_), .rename(_), .remove(rows: _):
+		case .edit(_,_,_,_), .remove(rows: _):
 			return false
 		}
 	}
@@ -690,6 +690,7 @@ class QBERethinkMutableDataset: MutableDataset {
 					return
 				}
 
+				var q2: ReQuery? = nil
 				let q: ReQuery
 				switch mutation {
 				case .alter:
@@ -759,7 +760,28 @@ class QBERethinkMutableDataset: MutableDataset {
 							return predicate
 						}).delete()
 
-				case .edit(_,_,_,_), .rename(_), .remove(rows: _):
+				case .rename(let renames):
+					let newCols = renames.map { return $1 }
+					var remove: [String] = []
+					for (v, _) in renames {
+						if !newCols.contains(v) {
+							remove.append(v.name)
+						}
+					}
+
+					q = R.db(self.databaseName).table(self.tableName).update({ (row: ReQueryValue) -> [String: ReQuery] in
+						var changes: [String: ReQuery] = [:]
+						for (old, new) in renames {
+							changes[new.name] = row[old.name]
+						}
+						return changes
+					})
+
+					q2 = R.db(self.databaseName).table(self.tableName).replace({ (row: ReQueryValue) -> ReQuery in
+						return row.without(fields: remove.map { return R.expr($0) })
+					})
+
+				case .edit(_,_,_,_), .remove(rows: _):
 						fatalError("Not supported")
 				}
 
@@ -769,7 +791,22 @@ class QBERethinkMutableDataset: MutableDataset {
 						return
 					}
 					else {
-						callback(.success())
+						// If there is a second query to run, run it now
+						// Note, this is not atomic as RethinkDB does not support transactions
+						if let q2 = q2 {
+							q2.run(connection, callback: { (response) -> () in
+								if case ReResponse.error(let e) = response {
+									callback(.failure(e))
+									return
+								}
+								else {
+									callback(.success())
+								}
+							})
+						}
+						else {
+							callback(.success())
+						}
 					}
 				})
 			})
