@@ -684,7 +684,7 @@ class QBERethinkMutableDataset: MutableDataset {
 		}
 
 		job.async {
-			R.connect(self.url) { (err, connection) -> () in
+			R.connect(self.url, callback: once { (err, connection) -> () in
 				if let e = err {
 					callback(.failure(e.localizedDescription))
 					return
@@ -772,7 +772,7 @@ class QBERethinkMutableDataset: MutableDataset {
 						callback(.success())
 					}
 				})
-			}
+			})
 		}
 	}
 }

@@ -785,88 +785,81 @@ internal enum QBEEditingMode {
 
 			// If we are in editing mode, the new value will actually be added to the source data set.
 			if let md = self.currentStep?.mutableDataset {
-				md.columns(job) { result in
-					switch result {
-					case .success(let columns):
-						if let cn = column {
-							// The edit made was inside the range of current columns. No need to add a new column, just a new row
-							if cn >= 0 && cn <= columns.count {
-								let columnName = columns[cn]
-								let row = Row([value], columns: [columnName])
-								let mutation = DatasetMutation.insert(row: row)
-								md.performMutation(mutation, job: job) { result in
-									switch result {
-									case .success:
-										/* The mutation has been performed on the source data, now perform it on our own
-										temporary raster as well. We could also call self.calculate() here, but that takes
-										a while, and we would lose our current scrolling position, etc. */
-										RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
-											QBEChangeNotification.broadcastChange(self.chain!)
-											asyncMain {
-												self.presentRaster(editingRaster)
-												self.dataViewController?.sizeColumnToFit(columnName)
-												callback(true)
-											}
-										}
-										break
-
-									case .failure(let e):
-										asyncMain {
-											callback(false)
-											NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new row.", comment: ""), infoText: e, style: .critical, window: self.view.window)
-										}
-									}
+				/* Check to see if we are adding a new column. Note that we're using the editing raster here. Previously,
+				the mutable data set would be queried for its columns here. This however provides isues with databases 
+				that do not have fixed column sets (e.g. NoSQL databases): after adding a column, the set of columns would
+				still be empty, and cause another 'add column' mutation to be performed, resulting in an infinite loop. */
+				if let cn = column, cn >= 0 && cn < editingRaster.columns.count {
+					// Column exists, just insert a row
+					let columnName = editingRaster.columns[cn]
+					let row = Row([value], columns: [columnName])
+					let mutation = DatasetMutation.insert(row: row)
+					md.performMutation(mutation, job: job) { result in
+						switch result {
+						case .success:
+							/* The mutation has been performed on the source data, now perform it on our own
+							temporary raster as well. We could also call self.calculate() here, but that takes
+							a while, and we would lose our current scrolling position, etc. */
+							RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
+								QBEChangeNotification.broadcastChange(self.chain!)
+								asyncMain {
+									self.presentRaster(editingRaster)
+									self.dataViewController?.sizeColumnToFit(columnName)
+									callback(true)
 								}
 							}
-						}
-						else {
-							// need to add a new column first
-							var columns = columns
-							let newColumnName = Column.defaultNameForNewColumn(columns)
-							columns.append(newColumnName)
-							let mutation = DatasetMutation.alter(DatasetDefinition(columns: columns))
-							md.performMutation(mutation, job: job) { result in
-								switch result {
-								case .success:
-									/* The mutation has been performed on the source data, now perform it on our own
-									temporary raster as well. We could also call self.calculate() here, but that takes
-									a while, and we would lose our current scrolling position, etc. */
-									RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
-										QBEChangeNotification.broadcastChange(self.chain!)
+							break
 
-										asyncMain {
-											self.presentRaster(editingRaster)
-
-											if let rn = inRow {
-												self.dataView(view, didChangeValue: Value.empty, toValue: value, inRow: rn, column: columns.count-1)
-												self.dataViewController?.sizeColumnToFit(newColumnName)
-												callback(true)
-											}
-											else {
-												// We're also adding a new row
-												self.dataView(view, addValue: value, inRow: nil, column: columns.count-1) { b in
-													asyncMain {
-														self.dataViewController?.sizeColumnToFit(newColumnName)
-														callback(b)
-													}
-												}
-											}
-										}
-									}
-
-								case .failure(let e):
-									asyncMain {
-										callback(false)
-										NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new column.", comment: ""), infoText: e, style: .critical, window: self.view.window)
-									}
-								}
+						case .failure(let e):
+							asyncMain {
+								callback(false)
+								NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new row.", comment: ""), infoText: e, style: .critical, window: self.view.window)
 							}
-						}
-					case .failure(let e):
-						asyncMain {
-							NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new row.", comment: ""), infoText: e, style: .critical, window: self.view.window)
 						}
 					}
+				}
+				else {
+					// need to add a new column first
+					var columns = editingRaster.columns
+					let newColumnName = Column.defaultNameForNewColumn(columns)
+					columns.append(newColumnName)
+					let mutation = DatasetMutation.alter(DatasetDefinition(columns: columns))
+					md.performMutation(mutation, job: job, callback: once { result in
+						switch result {
+						case .success:
+							/* The mutation has been performed on the source data, now perform it on our own
+							temporary raster as well. We could also call self.calculate() here, but that takes
+							a while, and we would lose our current scrolling position, etc. */
+							RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
+								QBEChangeNotification.broadcastChange(self.chain!)
+
+								asyncMain {
+									self.presentRaster(editingRaster)
+
+									if let rn = inRow {
+										self.dataView(view, didChangeValue: Value.empty, toValue: value, inRow: rn, column: columns.count-1)
+										self.dataViewController?.sizeColumnToFit(newColumnName)
+										callback(true)
+									}
+									else {
+										// We're also adding a new row
+										self.dataView(view, addValue: value, inRow: nil, column: columns.count-1) { b in
+											asyncMain {
+												self.dataViewController?.sizeColumnToFit(newColumnName)
+												callback(b)
+											}
+										}
+									}
+								}
+							}
+
+						case .failure(let e):
+							asyncMain {
+								callback(false)
+								NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new column.", comment: ""), infoText: e, style: .critical, window: self.view.window)
+							}
+						}
+					})
 				}
 			}
 
