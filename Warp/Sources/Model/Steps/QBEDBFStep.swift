@@ -130,6 +130,11 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 		let stream = data.stream()
 
 		let handle = DBFCreate((file as NSURL).fileSystemRepresentation)
+
+		if handle == nil {
+			return callback(.failure("could not create DBF file"))
+		}
+
 		var rowIndex = 0
 
 		// Write column headers
