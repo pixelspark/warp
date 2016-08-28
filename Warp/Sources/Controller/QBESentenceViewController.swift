@@ -148,11 +148,15 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	@discardableResult private func change(token inputToken: QBESentenceOptions, to value: String) -> Bool {
 		let oldValue = inputToken.value
 		inputToken.select(value)
-		undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
-			self?.change(token: inputToken, to: oldValue)
-		}
 
-		undoManager?.setActionName(String(format: "change '%@' to '%@'".localized, inputToken.options[oldValue]!, inputToken.options[value]!))
+		// In some cases the old value is invalid (e.g. empty) - do not create an undo in that case
+		if let old = inputToken.options[oldValue] {
+			undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
+				self?.change(token: inputToken, to: oldValue)
+			}
+
+			undoManager?.setActionName(String(format: "change '%@' to '%@'".localized, old, inputToken.options[value]!))
+		}
 
 		if let s = self.editingConfigurable {
 			self.delegate?.sentenceView(self, didChangeConfigurable: s)
