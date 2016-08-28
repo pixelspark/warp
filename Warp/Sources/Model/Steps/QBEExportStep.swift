@@ -73,13 +73,14 @@ class QBEExportStep: QBEStep {
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		let factory = QBEFactory.sharedInstance
 
+		// Populate the list of possible file types to export in
 		var options: [String: String] = [:]
 		var currentKey: String = ""
 		for writer in factory.fileWriters {
 			if let ext = writer.fileTypes.first {
 				let allExtensions = writer.fileTypes.joined(separator: ", ")
 				options[ext] = "\(writer.explain(ext, locale: locale)) (\(allExtensions.uppercased()))"
-				if writer == type(of: self.writer) {
+				if let w = self.writer, writer == type(of: w) {
 					currentKey = ext
 				}
 			}
