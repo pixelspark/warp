@@ -2199,6 +2199,14 @@ internal enum QBEEditingMode {
 		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .Capitalize))
 	}
 
+	@IBAction func quickFixReadNumberDecimalPoint(_ sender: NSObject) {
+		self.quickFixColumn(expression: Call(arguments: [Identity(), Literal(.string(".")), Literal(.string(","))], type: .ParseNumber))
+	}
+
+	@IBAction func quickFixReadNumberDecimalComma(_ sender: NSObject) {
+		self.quickFixColumn(expression: Call(arguments: [Identity(), Literal(.string(",")), Literal(.string("."))], type: .ParseNumber))
+	}
+
 	@IBAction func quickFixJSON(_ sender: NSObject) {
 		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .JSONDecode))
 	}
@@ -2326,6 +2334,8 @@ internal enum QBEEditingMode {
 			selector==#selector(QBEChainViewController.quickFixUppercase(_:)) ||
 			selector==#selector(QBEChainViewController.quickFixCapitalize(_:)) ||
 			selector==#selector(QBEChainViewController.quickFixJSON(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixReadNumberDecimalComma(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixReadNumberDecimalPoint(_:)) ||
 			selector==#selector(QBEChainViewController.quickFixTrimSpaces(_:)) {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil

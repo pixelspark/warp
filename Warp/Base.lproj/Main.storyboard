@@ -850,9 +850,34 @@ GQ
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Values" id="xfZ-Rd-nV5">
                                     <items>
-                                        <menuItem title="Quick fixes" id="CbM-Vx-p1b">
+                                        <menuItem title="Interpret" id="fSz-7d-xtf">
                                             <modifierMask key="keyEquivalentModifierMask"/>
-                                            <menu key="submenu" title="Quick fixes" id="mSx-zV-Ak2">
+                                            <menu key="submenu" title="Interpret" id="f7S-g8-nlz">
+                                                <items>
+                                                    <menuItem title="As number (point separates decimals)" id="wg4-71-cYu">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixReadNumberDecimalPoint:" target="Ady-hI-5gd" id="4pq-lY-RT0"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="As number (comma separates decimals)" id="Ptc-RP-Cdc">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixReadNumberDecimalComma:" target="Ady-hI-5gd" id="MiY-jv-LYM"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="As JSON" id="Oj5-qf-lZq">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixJSON:" target="Ady-hI-5gd" id="jg2-fu-KfZ"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
+                                        </menuItem>
+                                        <menuItem title="Fix" id="CbM-Vx-p1b">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Fix" id="mSx-zV-Ak2">
                                                 <items>
                                                     <menuItem title="Convert text to lowercase" id="Gcy-Be-SAc">
                                                         <modifierMask key="keyEquivalentModifierMask"/>
@@ -876,13 +901,6 @@ GQ
                                                         <modifierMask key="keyEquivalentModifierMask"/>
                                                         <connections>
                                                             <action selector="quickFixTrimSpaces:" target="Ady-hI-5gd" id="uy2-bK-SJ9"/>
-                                                        </connections>
-                                                    </menuItem>
-                                                    <menuItem isSeparatorItem="YES" id="jqO-RJ-BxN"/>
-                                                    <menuItem title="Decode as JSON" id="Oj5-qf-lZq">
-                                                        <modifierMask key="keyEquivalentModifierMask"/>
-                                                        <connections>
-                                                            <action selector="quickFixJSON:" target="Ady-hI-5gd" id="jg2-fu-KfZ"/>
                                                         </connections>
                                                     </menuItem>
                                                 </items>

@@ -417,10 +417,12 @@
 "b3i-bJ-LGz.title" = "Laad gegevens van het internet...";
 
 "xfZ-Rd-nV5.title" = "Waarden";
-"CbM-Vx-p1b.title" = "Snelle fixes";
+"CbM-Vx-p1b.title" = "Fix";
 "Gcy-Be-SAc.title" = "Converteer tekst naar kleine letters";
 "tP9-gl-6Kv.title" = "Converteer tekst naar hoofdletters";
 "SxS-3H-KbM.title" = "Wis spaties rondom tekst";
 "BEt-Hl-xZD.title" = "Kapitaliseer tekst";
-"Oj5-qf-lZq.title" = "Interpreteer als JSON";
-
+"Oj5-qf-lZq.title" = "Als JSON";
+"wg4-71-cYu.title" = "Als getal (punt is decimaalscheider)";
+"Ptc-RP-Cdc.title" = "Als getal (komma is decimaalscheider)";
+"fSz-7d-xtf.title" = "Interpreteer";

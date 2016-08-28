@@ -867,6 +867,21 @@ open class StandardSQLDialect: SQLDialect {
 
 			case .JSONDecode:
 				return nil
+
+			case .ParseNumber:
+				var value = args[0]
+
+				// Replace thousands separator
+				if args.count >= 2 {
+					value = "REPLACE(\(value), \(args[2]), '')"
+				}
+
+				// Put in the right decimal separator
+				if args.count >= 1 {
+					value = "REPLACE(\(value), \(args[1]), '.')"
+				}
+
+				return self.forceNumericExpression(value)
 		}
 	}
 	

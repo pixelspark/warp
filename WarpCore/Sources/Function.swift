@@ -105,6 +105,7 @@ public enum Function: String {
 	case IsEmpty = "isEmpty"
 	case IsInvalid = "isInvalid"
 	case JSONDecode = "jsonArrayToPack"
+	case ParseNumber = "parseNumber"
 	
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -344,6 +345,7 @@ public enum Function: String {
 			case .IsInvalid: return translationForString("is invalid")
 			case .IsEmpty: return translationForString("is empty")
 			case .JSONDecode: return translationForString("read JSON value")
+			case .ParseNumber: return translationForString("read number")
 		}
 	}
 	
@@ -613,6 +615,13 @@ public enum Function: String {
 
 		case .JSONDecode:
 			return [Parameter(name: translationForString("JSON"), exampleValue: Value.string("[1,2,3]"))]
+
+		case .ParseNumber:
+			return [
+				Parameter(name: translationForString("text"), exampleValue: Value.string("1.337,12")),
+				Parameter(name: translationForString("decimal separator"), exampleValue: Value.string(",")),
+				Parameter(name: translationForString("thousands separator"), exampleValue: Value.string("."))
+			]
 		}
 	} }
 	
@@ -709,6 +718,7 @@ public enum Function: String {
 		case .IsInvalid: return Arity.fixed(1)
 		case .IsEmpty: return Arity.fixed(1)
 		case .JSONDecode: return Arity.fixed(1)
+		case .ParseNumber: return Arity.between(1, 3)
 		}
 	} }
 	
@@ -1269,6 +1279,19 @@ public enum Function: String {
 			}
 			return Value.invalid
 
+		case .ParseNumber:
+			if let text = arguments[0].stringValue {
+				let decimalSeparator = arguments.count >= 2 ? (arguments[1].stringValue ?? ".") : "."
+				let thousandsSeparator = arguments.count == 3 ? (arguments[2].stringValue ?? ",") : ","
+
+				let withoutThousands = text.replacingOccurrences(of: thousandsSeparator, with: "")
+				let withPoint = withoutThousands.replacingOccurrences(of: decimalSeparator, with: ".")
+				if let d = Value.string(withPoint).doubleValue {
+					return Value.double(d)
+				}
+			}
+			return Value.invalid
+
 		// The following functions are already implemented as a Reducer, just use that
 		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct, .Median, .MedianHigh,
 			.MedianLow, .MedianPack, .VarianceSample, .VariancePopulation, .StandardDeviationPopulation, .StandardDeviationSample:
@@ -1324,7 +1347,7 @@ public enum Function: String {
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
 		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID,
 		CountDistinct, MedianLow, MedianHigh, MedianPack, Median, VarianceSample, VariancePopulation, StandardDeviationSample,
-		StandardDeviationPopulation, IsEmpty, IsInvalid, JSONDecode
+		StandardDeviationPopulation, IsEmpty, IsInvalid, JSONDecode, ParseNumber
 	]
 }
 

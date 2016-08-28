@@ -145,3 +145,6 @@
 "matches pattern (case-sensitive)" = "matcht patroon (hoofdlettergevoelig)";
 "read JSON value" = "Lees JSON-waarde";
 "JSON" = "JSON";
+"read number" = "lees getal";
+"decimal separator" = "decimaalscheider";
+"thousands separator" = "duizendscheider";

@@ -464,6 +464,13 @@ class WarpCoreTests: XCTestCase {
 
 			case .JSONDecode:
 				XCTAssert(Function.JSONDecode.apply([Value.string("[1,2,3]")]) == Pack(["1","2","3"]).value, "JSON decode array")
+
+			case .ParseNumber:
+				XCTAssert(Function.ParseNumber.apply([Value.string("1.337,40"), Value.string(","), Value.string(".")]) == Value.double(1337.40), "Parse number")
+				XCTAssert(Function.ParseNumber.apply([Value.string("1337,40"), Value.string(","), Value.string(".")]) == Value.double(1337.40), "Parse number")
+				XCTAssert(Function.ParseNumber.apply([Value.string("1,337.40"), Value.string("."), Value.string(",")]) == Value.double(1337.40), "Parse number")
+				XCTAssert(Function.ParseNumber.apply([Value.string("1337.40"), Value.string("."), Value.string(",")]) == Value.double(1337.40), "Parse number")
+				XCTAssert(!Function.ParseNumber.apply([Value.string("1.337.40"), Value.string("."), Value.string(",")]).isValid, "Parse number")
 			}
 		}
 
