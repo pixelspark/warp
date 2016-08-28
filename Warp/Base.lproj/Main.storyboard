@@ -846,6 +846,50 @@ GQ
                                     </items>
                                 </menu>
                             </menuItem>
+                            <menuItem title="Values" id="W9a-qh-Prq">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Values" id="xfZ-Rd-nV5">
+                                    <items>
+                                        <menuItem title="Quick fixes" id="CbM-Vx-p1b">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Quick fixes" id="mSx-zV-Ak2">
+                                                <items>
+                                                    <menuItem title="Convert to lowercase" id="Gcy-Be-SAc">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixLowercase:" target="Ady-hI-5gd" id="vZi-rS-uav"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Convert to uppercase" id="tP9-gl-6Kv">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixUppercase:" target="Ady-hI-5gd" id="vbx-1X-6WO"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Trim spaces" id="SxS-3H-KbM">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixTrimSpaces:" target="Ady-hI-5gd" id="uy2-bK-SJ9"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
+                                        </menuItem>
+                                        <menuItem title="Create dummy columns from column" id="b7w-hF-1ts">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="createDummyColumns:" target="Ady-hI-5gd" id="ZSJ-E8-eAJ"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Split column to multiple columns" keyEquivalent="e" id="tdu-D3-PwF">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="explodeColumnHorizontally:" target="Ady-hI-5gd" id="JNa-Om-wJp"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
                             <menuItem title="Rows" id="cvu-Kj-tzs">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Rows" id="USh-4J-mhp">
@@ -946,19 +990,6 @@ CA
                                             <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES" command="YES"/>
                                             <connections>
                                                 <action selector="addColumnAtEnd:" target="Ady-hI-5gd" id="AJz-fz-PF9"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="uR9-s2-uyO"/>
-                                        <menuItem title="Split column to multiple columns" keyEquivalent="e" id="tdu-D3-PwF">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
-                                            <connections>
-                                                <action selector="explodeColumnHorizontally:" target="Ady-hI-5gd" id="JNa-Om-wJp"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Create dummy columns from column" id="b7w-hF-1ts">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="createDummyColumns:" target="Ady-hI-5gd" id="ZSJ-E8-eAJ"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="vbC-zd-c4x"/>

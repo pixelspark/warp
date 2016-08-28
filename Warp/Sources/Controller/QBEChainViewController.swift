@@ -2183,6 +2183,41 @@ internal enum QBEEditingMode {
 		return self.validate(item)
 	}
 
+	@IBAction func quickFixTrimSpaces(_ sender: NSObject) {
+		self.quickFixColumn(type: .Trim)
+	}
+
+	@IBAction func quickFixUppercase(_ sender: NSObject) {
+		self.quickFixColumn(type: .Uppercase)
+	}
+
+	@IBAction func quickFixLowercase(_ sender: NSObject) {
+		self.quickFixColumn(type: .Lowercase)
+	}
+
+	private func quickFixColumn(type: Function) {
+		if let ci = dataViewController?.tableView?.selectedColumnIndexes {
+			let job = Job(.userInitiated)
+			calculator.currentRaster?.get(job) { result in
+				switch result {
+				case .success(let raster):
+					for columnIndex in ci {
+						let columnName = raster.columns[columnIndex]
+						let step = QBECalculateStep(previous: nil, targetColumn: columnName, function: Call(arguments: [Identity()], type: type))
+
+						asyncMain {
+							self.suggestSteps([step])
+						}
+					}
+
+				case .failure(let e):
+					trace("Error quick fixing: \(e)")
+				}
+			}
+
+		}
+	}
+
 	func validate(_ item: NSToolbarItem) -> Bool {
 		if item.action == #selector(QBEChainViewController.toggleFullDataset(_:)) {
 			if let c = item.view as? NSButton {
@@ -2273,6 +2308,15 @@ internal enum QBEEditingMode {
 			return false
 		}
 		else if selector==#selector(QBEChainViewController.renameColumn(_:)) {
+			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
+				return colsToRemove.count > 0 && currentStep != nil
+			}
+			return false
+		}
+		// Quick fix actions
+		else if selector==#selector(QBEChainViewController.quickFixLowercase(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixUppercase(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixTrimSpaces(_:)) {
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
 			}
