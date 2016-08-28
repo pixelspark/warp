@@ -21,7 +21,7 @@ class QBESortStep: QBEStep {
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		if orders.isEmpty {
 			return QBESentence(format: NSLocalizedString("Sort rows on [#]", comment: ""),
-				QBESentenceFormula(expression: Literal(Value.bool(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
+				QBESentenceFormulaToken(expression: Literal(Value.bool(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
 					self?.orders.append(Order(expression: newExpression, ascending: true, numeric: true))
 				})
 			)
@@ -29,16 +29,16 @@ class QBESortStep: QBEStep {
 		if orders.count == 1 {
 			let order = orders[0]
 			return QBESentence(format: NSLocalizedString("Sort rows on [#][#][#]", comment: ""),
-				QBESentenceFormula(expression: order.expression ?? Literal(.bool(false)), locale: locale, callback: { (newExpression) -> () in
+				QBESentenceFormulaToken(expression: order.expression ?? Literal(.bool(false)), locale: locale, callback: { (newExpression) -> () in
 					order.expression = newExpression
 				}, contextCallback: self.contextCallbackForFormulaSentence),
-				QBESentenceOptions(options: [
+				QBESentenceOptionsToken(options: [
 					"numeric": NSLocalizedString("numerically", comment: ""),
 					"alphabetic": NSLocalizedString("alphabetically", comment: "")
 					], value: order.numeric ? "numeric" : "alphabetic", callback: { (newOrder) -> () in
 						order.numeric = (newOrder == "numeric")
 				}),
-				QBESentenceOptions(options: [
+				QBESentenceOptionsToken(options: [
 					"ascending": NSLocalizedString("ascending", comment: ""),
 					"descending": NSLocalizedString("descending", comment: "")
 				], value: order.ascending ? "ascending" : "descending", callback: { (newOrder) -> () in
@@ -48,7 +48,7 @@ class QBESortStep: QBEStep {
 		}
 		else {
 			return QBESentence([
-				QBESentenceText(String(format: NSLocalizedString("Sort rows using %d criteria", comment: ""), orders.count))
+				QBESentenceLabelToken(String(format: NSLocalizedString("Sort rows using %d criteria", comment: ""), orders.count))
 			])
 		}
 	}

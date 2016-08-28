@@ -111,14 +111,14 @@ class QBECalculateStep: QBEStep {
 	
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("Calculate column [#] as [#]", comment: ""),
-			QBESentenceTextInput(value: self.targetColumn.name, callback: { [weak self] (newName) -> (Bool) in
+			QBESentenceTextToken(value: self.targetColumn.name, callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {
 					self?.targetColumn = Column(newName)
 					return true
 				}
 				return false
 			}),
-			QBESentenceFormula(expression: self.function, locale: locale, callback: { [weak self] (newExpression) -> () in
+			QBESentenceFormulaToken(expression: self.function, locale: locale, callback: { [weak self] (newExpression) -> () in
 				self?.function = newExpression
 			}, contextCallback: self.contextCallbackForFormulaSentence)
 		)

@@ -71,7 +71,7 @@ class QBESequencerStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		let columnItem = QBESentenceTextInput(value: self.column.name, callback: { [weak self] (name) -> (Bool) in
+		let columnItem = QBESentenceTextToken(value: self.column.name, callback: { [weak self] (name) -> (Bool) in
 			if !name.isEmpty {
 				self?.column = Column(name)
 				return true
@@ -79,7 +79,7 @@ class QBESequencerStep: QBEStep {
 			return false
 		})
 
-		let typeItem = QBESentenceOptions(options: ["pattern": "using pattern".localized, "range": "of numbers".localized], value: self.type.typeName) { (newType) in
+		let typeItem = QBESentenceOptionsToken(options: ["pattern": "using pattern".localized, "range": "of numbers".localized], value: self.type.typeName) { (newType) in
 			if newType != self.type.typeName {
 				if newType == "pattern" {
 					self.type = .pattern(pattern: QBESequencerStep.examplePattern)
@@ -97,7 +97,7 @@ class QBESequencerStep: QBEStep {
 
 			return QBESentence(format: text,
 			   typeItem,
-			   QBESentenceTextInput(value: pattern, callback: { [weak self] (pattern) -> (Bool) in
+			   QBESentenceTextToken(value: pattern, callback: { [weak self] (pattern) -> (Bool) in
 					self?.type = .pattern(pattern: pattern)
 					return true
 				}),
@@ -109,7 +109,7 @@ class QBESequencerStep: QBEStep {
 
 			return QBESentence(format: text,
 				typeItem,
-				QBESentenceTextInput(value: "\(from)", callback: { [weak self] (fromString) -> (Bool) in
+				QBESentenceTextToken(value: "\(from)", callback: { [weak self] (fromString) -> (Bool) in
 					if let fromInt = Int(fromString) {
 						var newTo = to
 						if fromInt >= to {
@@ -120,7 +120,7 @@ class QBESequencerStep: QBEStep {
 					}
 					return false
 				}),
-				QBESentenceTextInput(value: "\(to)", callback: { [weak self] (toString) -> (Bool) in
+				QBESentenceTextToken(value: "\(to)", callback: { [weak self] (toString) -> (Bool) in
 					if let toInt = Int(toString) {
 						var newFrom = from
 						if toInt <= from {

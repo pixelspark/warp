@@ -44,7 +44,7 @@ class QBEDebugStep: QBEStep, NSSecureCoding {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
-			QBESentenceOptions(options: [
+			QBESentenceOptionsToken(options: [
 				QBEDebugType.none.rawValue: QBEDebugType.none.description,
 				QBEDebugType.rasterize.rawValue: QBEDebugType.rasterize.description,
 				QBEDebugType.delay.rawValue: QBEDebugType.delay.description,

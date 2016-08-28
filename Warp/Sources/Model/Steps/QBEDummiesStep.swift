@@ -96,7 +96,7 @@ class QBEDummiesStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		let sourceColumnSelector = QBESentenceList(value: self.sourceColumn.name, provider: { [weak self] (callback) in
+		let sourceColumnSelector = QBESentenceDynamicOptionsToken(value: self.sourceColumn.name, provider: { [weak self] (callback) in
 			let job = Job(.userInitiated)
 			self?.previous?.exampleDataset(job, maxInputRows: 0, maxOutputRows: 0, callback: { result in
 				switch result {

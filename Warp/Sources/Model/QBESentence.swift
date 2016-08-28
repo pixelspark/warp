@@ -2,7 +2,6 @@ import Foundation
 import WarpCore
 
 public protocol QBESubSentence {
-
 }
 
 /** A sentence is a string of tokens that describe the action performed by a step in natural language, and allow for the
@@ -28,7 +27,7 @@ public class QBESentence: QBESubSentence {
 		for token in tokens {
 			if let nextToken = format.range(of: QBESentence.formatStringTokenPlaceholder, options: [], range: startIndex..<format.endIndex) {
 				let constantString = format.substring(with: startIndex..<nextToken.lowerBound)
-				self.tokens.append(QBESentenceText(constantString))
+				self.tokens.append(QBESentenceLabelToken(constantString))
 
 				if let s = token as? QBESentence {
 					self.tokens.append(contentsOf: s.tokens)
@@ -48,7 +47,7 @@ public class QBESentence: QBESubSentence {
 		}
 
 		if format.distance(from: startIndex, to: format.endIndex) > 0 {
-			self.tokens.append(QBESentenceText(format.substring(with: startIndex..<format.endIndex)))
+			self.tokens.append(QBESentenceLabelToken(format.substring(with: startIndex..<format.endIndex)))
 		}
 
 		self.tokens = self.sanitizedTokens
@@ -59,9 +58,9 @@ public class QBESentence: QBESubSentence {
 		var newTokens: [QBESentenceToken] = []
 
 		for token in self.tokens {
-			if let last = newTokens.last, token is QBESentenceText && last is QBESentenceText {
+			if let last = newTokens.last, token is QBESentenceLabelToken && last is QBESentenceLabelToken {
 				newTokens.removeLast()
-				let newToken = QBESentenceText(last.label + token.label)
+				let newToken = QBESentenceLabelToken(last.label + token.label)
 				newTokens.append(newToken)
 			}
 			else {
@@ -90,7 +89,7 @@ public protocol QBESentenceToken: NSObjectProtocol, QBESubSentence {
 }
 
 /** A sentence item that presents a list of (string) options. */
-public class QBESentenceList: NSObject, QBESentenceToken {
+public class QBESentenceDynamicOptionsToken: NSObject, QBESentenceToken {
 	public typealias Callback = (String) -> ()
 	public typealias ProviderCallback = (Fallible<[String]>) -> ()
 	public typealias Provider = (ProviderCallback) -> ()
@@ -119,7 +118,7 @@ public class QBESentenceList: NSObject, QBESentenceToken {
 }
 
 /** A sentence item that shows a list of string options, which have associated string keys. */
-public class QBESentenceOptions: NSObject, QBESentenceToken {
+public class QBESentenceOptionsToken: NSObject, QBESentenceToken {
 	public typealias Callback = (String) -> ()
 	public private(set) var options: [String: String]
 	public private(set) var value: String
@@ -147,7 +146,7 @@ public class QBESentenceOptions: NSObject, QBESentenceToken {
 }
 
 /** A sentence item that shows an editable, ordered list of columns. */
-public class QBESentenceColumns: NSObject, QBESentenceToken {
+public class QBESentenceColumnsToken: NSObject, QBESentenceToken {
 	public typealias Callback = (OrderedSet<Column>) -> ()
 	public private(set) var value: OrderedSet<Column>
 	public let callback: Callback
@@ -176,7 +175,7 @@ public class QBESentenceColumns: NSObject, QBESentenceToken {
 
 /** A sentence item that shows a list of string options, which have associated string keys. Either option can be selected
 or deselected.*/
-public class QBESentenceSet: NSObject, QBESentenceToken {
+public class QBESentenceSetToken: NSObject, QBESentenceToken {
 	public typealias Provider = @escaping (_ callback: @escaping (Fallible<Set<String>>) -> ()) -> ()
 	public typealias Callback = (Set<String>) -> ()
 	public private(set) var provider: Provider
@@ -207,7 +206,7 @@ public class QBESentenceSet: NSObject, QBESentenceToken {
 }
 
 /** Sentence item that shows static, read-only text. */
-public class QBESentenceText: NSObject, QBESentenceToken {
+public class QBESentenceLabelToken: NSObject, QBESentenceToken {
 	public let label: String
 
 	public init(_ label: String) {
@@ -218,7 +217,7 @@ public class QBESentenceText: NSObject, QBESentenceToken {
 }
 
 /** Sentence item that shows editable text. */
-public class QBESentenceTextInput: NSObject, QBESentenceToken {
+public class QBESentenceTextToken: NSObject, QBESentenceToken {
 	public typealias Callback = (String) -> (Bool)
 	public var label: String
 	public let callback: Callback
@@ -242,7 +241,7 @@ public class QBESentenceTextInput: NSObject, QBESentenceToken {
 	public var isToken: Bool { get { return true } }
 }
 
-public class QBESentenceValueInput: QBESentenceTextInput {
+public class QBESentenceValueToken: QBESentenceTextToken {
 	public typealias ValueCallback = (Value) -> (Bool)
 
 	public init(value: Value, locale: Language, callback: ValueCallback) {
@@ -252,14 +251,14 @@ public class QBESentenceValueInput: QBESentenceTextInput {
 	}
 }
 
-public struct QBESentenceFormulaContext {
+public struct QBESentenceFormulaTokenContext {
 	var row: Row
 	var columns: OrderedSet<Column>
 }
 
 /** Sentence item that shows a friendly representation of a formula, and shows a formula editor on editing. */
-public class QBESentenceFormula: NSObject, QBESentenceToken {
-	public typealias ContextCallback = (Fallible<QBESentenceFormulaContext>) -> ()
+public class QBESentenceFormulaToken: NSObject, QBESentenceToken {
+	public typealias ContextCallback = (Fallible<QBESentenceFormulaTokenContext>) -> ()
 	public typealias Callback = (Expression) -> ()
 	public var expression: Expression
 	public let locale: Language
@@ -291,19 +290,19 @@ public class QBESentenceFormula: NSObject, QBESentenceToken {
 	public var isToken: Bool { get { return true } }
 }
 
-public enum QBESentenceFileMode {
+public enum QBESentenceFileTokenMode {
 	case writing()
 	case reading(canCreate: Bool)
 }
 
 /** Sentence item that refers to an (existing or yet to be created) file or directory. */
-public class QBESentenceFile: NSObject, QBESentenceToken {
+public class QBESentenceFileToken: NSObject, QBESentenceToken {
 	public typealias Callback = (QBEFileReference) -> ()
 	public let file: QBEFileReference?
 	public let allowedFileTypes: [String]
 	public let callback: Callback
 	public let isDirectory: Bool
-	public let mode: QBESentenceFileMode
+	public let mode: QBESentenceFileTokenMode
 
 	public init(directory: QBEFileReference?, callback: Callback) {
 		self.allowedFileTypes = []
@@ -343,7 +342,7 @@ public class QBESentenceFile: NSObject, QBESentenceToken {
 }
 
 extension QBEStep {
-	func contextCallbackForFormulaSentence(_ job: Job, callback: QBESentenceFormula.ContextCallback) {
+	func contextCallbackForFormulaSentence(_ job: Job, callback: QBESentenceFormulaToken.ContextCallback) {
 		if let sourceStep = self.previous {
 			sourceStep.exampleDataset(job, maxInputRows: 100, maxOutputRows: 1) { result in
 				switch result {
@@ -352,7 +351,7 @@ extension QBEStep {
 						switch result {
 						case .success(let raster):
 							if raster.rowCount == 1 {
-								let ctx = QBESentenceFormulaContext(row: raster[0], columns: raster.columns)
+								let ctx = QBESentenceFormulaTokenContext(row: raster[0], columns: raster.columns)
 								return callback(.success(ctx))
 							}
 

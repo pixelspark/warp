@@ -69,7 +69,7 @@ class QBEPivotStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence([QBESentenceText(self.explanation(locale))])
+		return QBESentence([QBESentenceLabelToken(self.explanation(locale))])
 	}
 	
 	private func fixupColumnNames() {

@@ -101,7 +101,7 @@ class QBEFilterStep: QBEStep {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: "Select rows where [#]".localized,
-			QBESentenceFormula(expression: condition, locale: locale, callback: {[weak self] (expr) in
+			QBESentenceFormulaToken(expression: condition, locale: locale, callback: {[weak self] (expr) in
 				self?.condition = expr
 			})
 		)
@@ -153,7 +153,7 @@ private extension FilterSet {
 	func sentenceToken(locale: Language, provider: @escaping (_ callback: @escaping (Fallible<Set<Value>>) -> ()) -> ()) -> QBESentenceToken {
 		let selectedStrings = Set(self.selectedValues.map { return locale.localStringFor($0) })
 
-		return QBESentenceSet(value: selectedStrings, provider: { callback in
+		return QBESentenceSetToken(value: selectedStrings, provider: { callback in
 			provider { result in
 				switch result {
 				case .success(let availableValues):
@@ -304,7 +304,7 @@ class QBELimitStep: QBEStep {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString(self.numberOfRows > 1 ? "Select the first [#] rows" : "Select row [#]", comment: ""),
-			QBESentenceTextInput(value: locale.localStringFor(Value(self.numberOfRows)), callback: { (newValue) -> (Bool) in
+			QBESentenceTextToken(value: locale.localStringFor(Value(self.numberOfRows)), callback: { (newValue) -> (Bool) in
 				if let x = locale.valueForLocalString(newValue).intValue {
 					self.numberOfRows = x
 					return true
@@ -357,7 +357,7 @@ class QBEOffsetStep: QBEStep {
 	
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString( numberOfRows > 1 ? "Skip the first [#] rows" : "Skip row [#]", comment: ""),
-			QBESentenceTextInput(value: locale.localStringFor(Value(self.numberOfRows)), callback: { (newValue) -> (Bool) in
+			QBESentenceTextToken(value: locale.localStringFor(Value(self.numberOfRows)), callback: { (newValue) -> (Bool) in
 				if let x = locale.valueForLocalString(newValue).intValue {
 					self.numberOfRows = x
 					return true
@@ -400,15 +400,15 @@ class QBERandomStep: QBELimitStep {
 	
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
-			QBESentenceText(NSLocalizedString("Randomly select", comment: "")),
-			QBESentenceTextInput(value: locale.localStringFor(Value(self.numberOfRows)), callback: { (newValue) -> (Bool) in
+			QBESentenceLabelToken(NSLocalizedString("Randomly select", comment: "")),
+			QBESentenceTextToken(value: locale.localStringFor(Value(self.numberOfRows)), callback: { (newValue) -> (Bool) in
 				if let x = locale.valueForLocalString(newValue).intValue {
 					self.numberOfRows = x
 					return true
 				}
 				return false
 			}),
-			QBESentenceText(NSLocalizedString(self.numberOfRows > 1 ? "rows" : "row", comment: ""))
+			QBESentenceLabelToken(NSLocalizedString(self.numberOfRows > 1 ? "rows" : "row", comment: ""))
 			])
 	}
 	
@@ -451,7 +451,7 @@ class QBEDistinctStep: QBEStep {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
-			QBESentenceText(NSLocalizedString("Remove duplicate rows", comment: ""))
+			QBESentenceLabelToken(NSLocalizedString("Remove duplicate rows", comment: ""))
 		])
 	}
 	

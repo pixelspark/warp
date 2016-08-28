@@ -21,14 +21,14 @@ class QBEFlattenStep: QBEStep {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("For each cell, put its value in column [#], the column name in [#], and in [#] the result of [#]", comment: ""),
-			QBESentenceTextInput(value: self.valueColumn.name, callback: { [weak self] (newName) -> (Bool) in
+			QBESentenceTextToken(value: self.valueColumn.name, callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {
 					self?.valueColumn = Column(newName)
 					return true
 				}
 				return false
 			}),
-			QBESentenceTextInput(value: self.colColumn?.name ?? "", callback: { [weak self] (newName) -> (Bool) in
+			QBESentenceTextToken(value: self.colColumn?.name ?? "", callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {
 					self?.colColumn = Column(newName)
 				}
@@ -37,7 +37,7 @@ class QBEFlattenStep: QBEStep {
 				}
 				return true
 			}),
-			QBESentenceTextInput(value: self.rowColumn?.name ?? "", callback: { [weak self] (newName) -> (Bool) in
+			QBESentenceTextToken(value: self.rowColumn?.name ?? "", callback: { [weak self] (newName) -> (Bool) in
 				if !newName.isEmpty {
 					self?.rowColumn = Column(newName)
 				}
@@ -46,7 +46,7 @@ class QBEFlattenStep: QBEStep {
 				}
 				return true
 			}),
-			QBESentenceFormula(expression: self.rowIdentifier ?? Literal(Value("")), locale: locale, callback: { [weak self] (expression) -> () in
+			QBESentenceFormulaToken(expression: self.rowIdentifier ?? Literal(Value("")), locale: locale, callback: { [weak self] (expression) -> () in
 				self?.rowIdentifier = expression
 			}, contextCallback: self.contextCallbackForFormulaSentence)
 		)

@@ -58,12 +58,12 @@ class QBEChart: NSObject, QBEConfigurable, NSSecureCoding {
 		let opts = [QBEChartType.Bar, QBEChartType.Line, QBEChartType.Radar, QBEChartType.Pie].mapDictionary { return ($0.rawValue, $0.localizedName) }
 
 		let mainSentence = QBESentence(format: "Draw a [#]".localized,
-			QBESentenceOptions(options: opts, value: self.type.rawValue, callback: { (newValue) -> () in
+			QBESentenceOptionsToken(options: opts, value: self.type.rawValue, callback: { (newValue) -> () in
 				self.type = QBEChartType(rawValue: newValue)!
 			})
 		)
 
-		let contextCallback = { [weak self] (job: Job, callback: QBESentenceFormula.ContextCallback) -> () in
+		let contextCallback = { [weak self] (job: Job, callback: QBESentenceFormulaToken.ContextCallback) -> () in
 			if let sourceStep = self?.sourceTablet?.chain.head {
 				sourceStep.exampleDataset(job, maxInputRows: 100, maxOutputRows: 1) { result in
 					switch result {
@@ -72,7 +72,7 @@ class QBEChart: NSObject, QBEConfigurable, NSSecureCoding {
 							switch result {
 							case .success(let raster):
 								if raster.rowCount == 1 {
-									let ctx = QBESentenceFormulaContext(row: raster[0], columns: raster[0].columns)
+									let ctx = QBESentenceFormulaTokenContext(row: raster[0], columns: raster[0].columns)
 									return callback(.success(ctx))
 								}
 
@@ -94,20 +94,20 @@ class QBEChart: NSObject, QBEConfigurable, NSSecureCoding {
 		switch self.type {
 		case .Line, .Radar:
 			mainSentence.append(QBESentence(format: "showing [#] horizontally and [#] vertically".localized,
-				QBESentenceFormula(expression: self.xExpression, locale: locale, callback: { (newXExpression) -> () in
+				QBESentenceFormulaToken(expression: self.xExpression, locale: locale, callback: { (newXExpression) -> () in
 					self.xExpression = newXExpression
 				}, contextCallback: contextCallback),
-				QBESentenceFormula(expression: self.yExpression, locale: locale, callback: { (newYExpression) -> () in
+				QBESentenceFormulaToken(expression: self.yExpression, locale: locale, callback: { (newYExpression) -> () in
 					self.yExpression = newYExpression
 				}, contextCallback: contextCallback)
 			))
 
 		case .Bar, .Pie:
 			mainSentence.append(QBESentence(format: "of [#] labeled by [#]".localized,
-				QBESentenceFormula(expression: self.yExpression, locale: locale, callback: { (newYExpression) -> () in
+				QBESentenceFormulaToken(expression: self.yExpression, locale: locale, callback: { (newYExpression) -> () in
 					self.yExpression = newYExpression
 				}, contextCallback: contextCallback),
-				QBESentenceFormula(expression: self.xExpression, locale: locale, callback: { (newXExpression) -> () in
+				QBESentenceFormulaToken(expression: self.xExpression, locale: locale, callback: { (newXExpression) -> () in
 					self.xExpression = newXExpression
 				}, contextCallback: contextCallback)
 			))

@@ -908,7 +908,7 @@ class QBERethinkSourceStep: QBEStep {
 		}
 
 		return QBESentence(format: NSLocalizedString(template, comment: ""),
-			QBESentenceList(value: self.table, provider: { pc in
+			QBESentenceDynamicOptionsToken(value: self.table, provider: { pc in
 				R.connect(self.url!, callback: { (err, connection) in
 					if err != nil {
 						pc(.failure(err!.localizedDescription))
@@ -937,7 +937,7 @@ class QBERethinkSourceStep: QBEStep {
 				}),
 
 
-			QBESentenceList(value: self.database, provider: { pc in
+			QBESentenceDynamicOptionsToken(value: self.database, provider: { pc in
 				R.connect(self.url!, callback: { (err, connection) in
 					if err != nil {
 						pc(.failure(err!.localizedDescription))

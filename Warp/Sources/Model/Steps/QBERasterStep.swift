@@ -22,10 +22,10 @@ class QBERasterStep: QBEStep {
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		switch variant {
 		case .neutral, .read:
-			return QBESentence([QBESentenceText(NSLocalizedString("Data table", comment: ""))])
+			return QBESentence([QBESentenceLabelToken(NSLocalizedString("Data table", comment: ""))])
 
 		case .write:
-			return QBESentence([QBESentenceText(NSLocalizedString("Write to data table", comment: ""))])
+			return QBESentence([QBESentenceLabelToken(NSLocalizedString("Write to data table", comment: ""))])
 		}
 	}
 	

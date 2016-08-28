@@ -16,14 +16,14 @@ class QBEColumnsStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		let typeItem = QBESentenceOptions(options: [
+		let typeItem = QBESentenceOptionsToken(options: [
 			"select": (columns.count <= 1 ? "Select column".localized : "Select columns".localized),
 			"remove": (columns.count <= 1 ? "Remove column".localized : "Remove columns".localized)
 		], value: self.select ? "select" : "remove") { [weak self] newType in
 			self?.select = (newType == "select")
 		}
 
-		let columnsItem = QBESentenceSet(value: Set(self.columns.map { $0.name }), provider: { cb in
+		let columnsItem = QBESentenceSetToken(value: Set(self.columns.map { $0.name }), provider: { cb in
 			let job = Job(.userInitiated)
 			if let previous = self.previous {
 				previous.exampleDataset(job, maxInputRows: 100, maxOutputRows: 100) {result in
@@ -198,7 +198,7 @@ class QBESortColumnsStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence([QBESentenceText(self.explanation(locale))])
+		return QBESentence([QBESentenceLabelToken(self.explanation(locale))])
 	}
 	
 	required init(coder aDecoder: NSCoder) {

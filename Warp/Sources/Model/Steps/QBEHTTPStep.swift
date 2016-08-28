@@ -73,7 +73,7 @@ class QBEHTTPStep: QBEStep {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: NSLocalizedString("Download data at [#]", comment: ""),
-		   QBESentenceFormula(expression: self.url, locale: locale, callback: { [weak self] (newExpression) -> () in
+		   QBESentenceFormulaToken(expression: self.url, locale: locale, callback: { [weak self] (newExpression) -> () in
 				self?.url = newExpression
 			})
 		)

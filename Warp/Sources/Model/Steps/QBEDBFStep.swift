@@ -259,7 +259,7 @@ class QBEDBFSourceStep: QBEStep {
 		]
 
 		return QBESentence(format: NSLocalizedString("Read DBF file [#]", comment: ""),
-			QBESentenceFile(file: self.file, allowedFileTypes: fileTypes, callback: { [weak self] (newFile) -> () in
+			QBESentenceFileToken(file: self.file, allowedFileTypes: fileTypes, callback: { [weak self] (newFile) -> () in
 				self?.file = newFile
 			})
 		)

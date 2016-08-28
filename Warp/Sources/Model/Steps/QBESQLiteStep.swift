@@ -780,7 +780,7 @@ class QBESQLiteWriter: NSObject, QBEFileWriter, NSCoding {
 
 	func sentence(_ locale: Language) -> QBESentence? {
 		return QBESentence(format: NSLocalizedString("(Over)write data to table [#]", comment: ""),
-			QBESentenceTextInput(value: self.tableName, callback: { [weak self] (newTableName) -> (Bool) in
+			QBESentenceTextToken(value: self.tableName, callback: { [weak self] (newTableName) -> (Bool) in
 				self?.tableName = newTableName
 				return true
 			})
@@ -1042,7 +1042,7 @@ class QBESQLiteSourceStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		let fileSentenceItem = QBESentenceFile(file: self.file, allowedFileTypes: ["org.sqlite.v3"], canCreate: true, callback: { [weak self] (newFile) -> () in
+		let fileSentenceItem = QBESentenceFileToken(file: self.file, allowedFileTypes: ["org.sqlite.v3"], canCreate: true, callback: { [weak self] (newFile) -> () in
 			// If a file was selected that does not exist yet, create a new database
 			var error: NSError? = nil
 			if let url = newFile.url, !(url as NSURL).checkResourceIsReachableAndReturnError(&error) {
@@ -1075,7 +1075,7 @@ class QBESQLiteSourceStep: QBEStep {
 			}
 
 			return QBESentence(format: NSLocalizedString(template, comment: ""),
-				QBESentenceList(value: self.tableName ?? "", provider: { [weak self] (cb) -> () in
+				QBESentenceDynamicOptionsToken(value: self.tableName ?? "", provider: { [weak self] (cb) -> () in
 					if let d = self?.db {
 						cb(d.tableNames)
 					}

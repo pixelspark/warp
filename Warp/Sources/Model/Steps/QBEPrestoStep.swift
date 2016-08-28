@@ -329,7 +329,7 @@ class QBEPrestoSourceStep: QBEStep {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		// TODO make an interactive sentence
-		return QBESentence([QBESentenceText(self.explanation(locale))])
+		return QBESentence([QBESentenceLabelToken(self.explanation(locale))])
 	}
 	
 	private func switchDatabase() {

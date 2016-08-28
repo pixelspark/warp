@@ -789,7 +789,7 @@ class QBEPostgresSourceStep: QBEStep {
 		}
 
 		return QBESentence(format: NSLocalizedString(template, comment: ""),
-			QBESentenceList(value: self.tableName , provider: { (callback) -> () in
+			QBESentenceDynamicOptionsToken(value: self.tableName , provider: { (callback) -> () in
 				if let d = self.database {
 					d.tables(self.databaseName , schemaName: self.schemaName ) { tablesFallible in
 						switch tablesFallible {
@@ -808,7 +808,7 @@ class QBEPostgresSourceStep: QBEStep {
 				self.tableName = newTable
 			}),
 
-			QBESentenceList(value: self.schemaName, provider: { (callback) -> () in
+			QBESentenceDynamicOptionsToken(value: self.schemaName, provider: { (callback) -> () in
 				if let d = self.database {
 					d.schemas(self.databaseName ) { schemaFallible in
 						switch schemaFallible {
@@ -827,7 +827,7 @@ class QBEPostgresSourceStep: QBEStep {
 					self.schemaName = newSchema
 			}),
 
-			QBESentenceList(value: self.databaseName , provider: { (callback) -> () in
+			QBESentenceDynamicOptionsToken(value: self.databaseName , provider: { (callback) -> () in
 				if let d = self.database {
 					d.databases { dbFallible in
 						switch dbFallible {

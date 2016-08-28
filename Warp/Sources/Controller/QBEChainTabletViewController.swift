@@ -14,7 +14,7 @@ class QBEValueConfigurable: NSObject, QBEConfigurable {
 
 	func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
-			QBESentenceText(locale.localStringFor(self.value))
+			QBESentenceLabelToken(locale.localStringFor(self.value))
 		])
 	}
 }
@@ -43,7 +43,7 @@ class QBEChangeableValueConfigurable: NSObject, QBEFullyConfigurable {
 
 	func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
-				QBESentenceText(locale.localStringFor(self.value))
+				QBESentenceLabelToken(locale.localStringFor(self.value))
 		])
 	}
 }

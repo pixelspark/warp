@@ -47,7 +47,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		let joinTypeSentenceItem = QBESentenceOptions(options: [
+		let joinTypeSentenceItem = QBESentenceOptionsToken(options: [
 			JoinType.leftJoin.rawValue: NSLocalizedString("including", comment: ""),
 			JoinType.innerJoin.rawValue: NSLocalizedString("ignoring", comment: "")
 			], value: self.joinType.rawValue, callback: { [weak self] (newJoinTypeName) -> () in
@@ -60,7 +60,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 
 		if self.isSimple {
 			return QBESentence(format: "Join data on [#] [#] [#], [#] rows without matches".localized,
-				QBESentenceList(value: self.simpleSibling?.name ?? "", provider: { cb in
+				QBESentenceDynamicOptionsToken(value: self.simpleSibling?.name ?? "", provider: { cb in
 					let job = Job(.userInitiated)
 					if let previous = self.previous {
 						previous.exampleDataset(job, maxInputRows: 100, maxOutputRows: 1, callback: { result in
@@ -87,11 +87,11 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 					self?.simpleSibling = Column(newValue)
 				}),
 
-				QBESentenceOptions(options: binaryOptions, value: (self.simpleType ?? .equal).rawValue, callback: { [weak self] newType in
+				QBESentenceOptionsToken(options: binaryOptions, value: (self.simpleType ?? .equal).rawValue, callback: { [weak self] newType in
 					self?.simpleType = Binary(rawValue: newType)
 				}),
 
-				QBESentenceList(value: self.simpleForeign?.name ?? "", provider: { cb in
+				QBESentenceDynamicOptionsToken(value: self.simpleForeign?.name ?? "", provider: { cb in
 					let job = Job(.userInitiated)
 					if let right = self.right?.head {
 						right.exampleDataset(job, maxInputRows: 100, maxOutputRows: 1, callback: { result in
@@ -123,7 +123,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 		}
 		else {
 			return QBESentence(format: NSLocalizedString("Join data on [#], [#] rows without matches", comment: ""),
-				QBESentenceFormula(expression: self.condition ?? Literal(Value.bool(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
+				QBESentenceFormulaToken(expression: self.condition ?? Literal(Value.bool(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
 					self?.condition = newExpression
 				}, contextCallback: self.contextCallbackForFormulaSentence),
 				joinTypeSentenceItem
@@ -329,7 +329,7 @@ class QBEMergeStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence([QBESentenceText(NSLocalizedString("Merge data", comment: ""))])
+		return QBESentence([QBESentenceLabelToken(NSLocalizedString("Merge data", comment: ""))])
 	}
 	
 	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {

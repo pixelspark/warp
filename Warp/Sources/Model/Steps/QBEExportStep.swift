@@ -86,13 +86,13 @@ class QBEExportStep: QBEStep {
 		}
 
 		let s = QBESentence(format: NSLocalizedString("Export data as [#] to [#]", comment: ""),
-			QBESentenceOptions(options: options, value: currentKey, callback: { [weak self] (newKey) -> () in
+			QBESentenceOptionsToken(options: options, value: currentKey, callback: { [weak self] (newKey) -> () in
 				if let newType = factory.fileWriterForType(newKey) {
 					self?.writer = newType.init(locale: locale, title: "")
 				}
 			}),
 
-			QBESentenceFile(saveFile: self.file, allowedFileTypes: Array(factory.fileExtensionsForWriting), callback: { [weak self] (newFile) -> () in
+			QBESentenceFileToken(saveFile: self.file, allowedFileTypes: Array(factory.fileExtensionsForWriting), callback: { [weak self] (newFile) -> () in
 				self?.file = newFile
 				if let url = newFile.url {
 					let fileExtension = url.pathExtension

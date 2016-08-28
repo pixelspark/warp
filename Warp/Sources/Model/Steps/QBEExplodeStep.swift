@@ -160,7 +160,7 @@ class QBEExplodeVerticallyStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		let modeSelector = QBESentenceOptions(options: ["pack": "lists".localized, "separator": "values by separator".localized], value: self.separator == nil ? "pack" : "separator") { (newMode) in
+		let modeSelector = QBESentenceOptionsToken(options: ["pack": "lists".localized, "separator": "values by separator".localized], value: self.separator == nil ? "pack" : "separator") { (newMode) in
 			if newMode == "pack" {
 				self.separator = nil
 			}
@@ -169,7 +169,7 @@ class QBEExplodeVerticallyStep: QBEStep {
 			}
 		}
 
-		let sourceColumnSelector = QBESentenceList(value: self.splitColumn.name, provider: { [weak self] (callback) in
+		let sourceColumnSelector = QBESentenceDynamicOptionsToken(value: self.splitColumn.name, provider: { [weak self] (callback) in
 			let job = Job(.userInitiated)
 			self?.previous?.exampleDataset(job, maxInputRows: 0, maxOutputRows: 0, callback: { result in
 				switch result {
@@ -193,7 +193,7 @@ class QBEExplodeVerticallyStep: QBEStep {
 				self.splitColumn = Column(newColumnName)
 		})
 
-		let separatorSelector = QBESentenceTextInput(value: self.separator ?? Pack.separator) { (newSeparator) -> (Bool) in
+		let separatorSelector = QBESentenceTextToken(value: self.separator ?? Pack.separator) { (newSeparator) -> (Bool) in
 			if !newSeparator.isEmpty {
 				self.separator = newSeparator
 				return true
@@ -256,7 +256,7 @@ class QBEExplodeHorizontallyStep: QBEStep {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: "Split the values in column [#] by [#] to columns [#]".localized,
-			   QBESentenceList(value: self.splitColumn.name, provider: { [weak self] (callback) in
+			   QBESentenceDynamicOptionsToken(value: self.splitColumn.name, provider: { [weak self] (callback) in
 				let job = Job(.userInitiated)
 				self?.previous?.exampleDataset(job, maxInputRows: 0, maxOutputRows: 0, callback: { result in
 					switch result {
@@ -279,14 +279,14 @@ class QBEExplodeHorizontallyStep: QBEStep {
 				}, callback: { (newColumnName) in
 					self.splitColumn = Column(newColumnName)
 			}),
-			 QBESentenceTextInput(value: self.separator, callback: { (newSeparator) -> (Bool) in
+			 QBESentenceTextToken(value: self.separator, callback: { (newSeparator) -> (Bool) in
 				if !newSeparator.isEmpty {
 					self.separator = newSeparator
 					return true
 				}
 				return false
 			}),
-			 QBESentenceColumns(value: self.targetColumns, callback: { (newColumns) in
+			 QBESentenceColumnsToken(value: self.targetColumns, callback: { (newColumns) in
 				self.targetColumns = newColumns
 			})
 		)

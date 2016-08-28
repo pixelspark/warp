@@ -567,7 +567,7 @@ class QBEClassifierStep: QBEStep, NSSecureCoding, QBEChainDependent {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: "Evaluate data using AI with complexity [#]".localized,
-			QBESentenceTextInput(value: "\(self.complexity)", callback: { (nc) -> (Bool) in
+			QBESentenceTextToken(value: "\(self.complexity)", callback: { (nc) -> (Bool) in
 				if let d = Double(nc) {
 					self.complexity = d
 					return true

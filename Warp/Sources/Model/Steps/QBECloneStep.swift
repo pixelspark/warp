@@ -42,7 +42,7 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence([
-			QBESentenceText(NSLocalizedString("Cloned data", comment: ""))
+			QBESentenceLabelToken(NSLocalizedString("Cloned data", comment: ""))
 		])
 	}
 	

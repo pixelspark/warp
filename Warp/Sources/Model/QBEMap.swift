@@ -30,13 +30,13 @@ class QBEMap: NSObject, QBEConfigurable, NSSecureCoding {
 
 	func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: "Show locations at latitude [#] and longitude [#] with label [#]".localized,
-			QBESentenceFormula(expression: self.latitudeExpression, locale: locale, callback: { (newLatitudeExpression) -> () in
+			QBESentenceFormulaToken(expression: self.latitudeExpression, locale: locale, callback: { (newLatitudeExpression) -> () in
 				self.latitudeExpression = newLatitudeExpression
 			}),
-			QBESentenceFormula(expression: self.longitudeExpression, locale: locale, callback: { (newLongitudeExpression) -> () in
+			QBESentenceFormulaToken(expression: self.longitudeExpression, locale: locale, callback: { (newLongitudeExpression) -> () in
 				self.longitudeExpression = newLongitudeExpression
 			}),
-			QBESentenceFormula(expression: self.titleExpression, locale: locale, callback: { (newTitleExpression) -> () in
+			QBESentenceFormulaToken(expression: self.titleExpression, locale: locale, callback: { (newTitleExpression) -> () in
 				self.titleExpression = newTitleExpression
 			})
 		)

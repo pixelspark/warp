@@ -766,7 +766,7 @@ class QBEMySQLSourceStep: QBEStep {
 		}
 
 		return QBESentence(format: NSLocalizedString(template, comment: ""),
-			QBESentenceList(value: self.tableName ?? "", provider: { (callback) -> () in
+			QBESentenceDynamicOptionsToken(value: self.tableName ?? "", provider: { (callback) -> () in
 				let d = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 				switch d.connect() {
 				case .success(let con):
@@ -787,7 +787,7 @@ class QBEMySQLSourceStep: QBEStep {
 					self.tableName = newTable
 			}),
 
-			QBESentenceList(value: self.databaseName ?? "", provider: { callback in
+			QBESentenceDynamicOptionsToken(value: self.databaseName ?? "", provider: { callback in
 				/* Connect without selecting a default database, because the database currently selected may not exists
 				(and then we get an error, and can't select another database). */
 				let d = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: nil)

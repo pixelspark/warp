@@ -64,7 +64,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	/** The 'change' functions execute changes to tokens while also managing undo/redo actions. */
-	@discardableResult private func change(token inputToken: QBESentenceTextInput, to text: String) -> Bool {
+	@discardableResult private func change(token inputToken: QBESentenceTextToken, to text: String) -> Bool {
 		let oldValue = inputToken.label
 		if inputToken.change(text) {
 			undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
@@ -81,7 +81,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		return false
 	}
 
-	@discardableResult private func change(token inputToken: QBESentenceFormula, to expression: Expression) -> Bool {
+	@discardableResult private func change(token inputToken: QBESentenceFormulaToken, to expression: Expression) -> Bool {
 		let oldValue = inputToken.expression
 		let oldFormula = oldValue.toFormula(self.delegate?.locale ?? Language())
 		let newFormula = expression.toFormula(self.delegate?.locale ?? Language())
@@ -101,7 +101,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		return false
 	}
 
-	private func change(token inputToken: QBESentenceSet, to set: Set<String>) {
+	private func change(token inputToken: QBESentenceSetToken, to set: Set<String>) {
 		let oldValue = inputToken.value
 		inputToken.select(set)
 		undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
@@ -115,7 +115,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		updateView()
 	}
 
-	@discardableResult private func change(token inputToken: QBESentenceColumns, to selection: OrderedSet<Column>) {
+	@discardableResult private func change(token inputToken: QBESentenceColumnsToken, to selection: OrderedSet<Column>) {
 		let oldValue = inputToken.value
 
 		inputToken.select(selection)
@@ -130,7 +130,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		updateView()
 	}
 
-	@discardableResult private func change(token inputToken: QBESentenceList, to value: String) -> Bool {
+	@discardableResult private func change(token inputToken: QBESentenceDynamicOptionsToken, to value: String) -> Bool {
 		let oldValue = inputToken.value
 		inputToken.select(value)
 		undoManager?.registerUndo(withTarget: inputToken) { [weak self] token in
@@ -145,7 +145,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		return true
 	}
 
-	@discardableResult private func change(token inputToken: QBESentenceOptions, to value: String) -> Bool {
+	@discardableResult private func change(token inputToken: QBESentenceOptionsToken, to value: String) -> Bool {
 		let oldValue = inputToken.value
 		inputToken.select(value)
 
@@ -167,7 +167,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 	func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
 		var text = control.stringValue
-		if let inputToken = editingToken?.token as? QBESentenceTextInput {
+		if let inputToken = editingToken?.token as? QBESentenceTextToken {
 			// Was a formula typed in?
 			if text.hasPrefix("=") {
 				if let formula = Formula(formula: text, locale: self.locale), formula.root.isConstant {
@@ -183,7 +183,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	func tokenField(_ tokenField: NSTokenField, menuForRepresentedObject representedObject: Any) -> NSMenu? {
 		editingToken = nil
 
-		if let options = representedObject as? QBESentenceOptions {
+		if let options = representedObject as? QBESentenceOptionsToken {
 			editingToken = QBEEditingToken(options)
 			let menu = NSMenu()
 			let keys = Array(options.options.keys)
@@ -198,7 +198,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			}
 			return menu
 		}
-		else if let options = representedObject as? QBESentenceList {
+		else if let options = representedObject as? QBESentenceDynamicOptionsToken {
 			editingToken = QBEEditingToken(options)
 			let menu = NSMenu()
 			menu.autoenablesItems = false
@@ -243,7 +243,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 			return menu
 		}
-		else if let inputToken = representedObject as? QBESentenceTextInput {
+		else if let inputToken = representedObject as? QBESentenceTextToken {
 			editingToken = QBEEditingToken(inputToken)
 			let borderView = NSView()
 			borderView.frame = NSMakeRect(0, 0, 250, 22+2+8)
@@ -262,7 +262,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 			return menu
 		}
-		else if let inputToken = representedObject as? QBESentenceFormula {
+		else if let inputToken = representedObject as? QBESentenceFormulaToken {
 			editingToken = QBEEditingToken(inputToken)
 
 			/* We want to show a popover, but NSTokenField only lets us show a menu. So return an empty menu and 
@@ -275,7 +275,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 			return NSMenu()
 		}
-		else if let inputToken = representedObject as? QBESentenceSet {
+		else if let inputToken = representedObject as? QBESentenceSetToken {
 			editingToken = QBEEditingToken(inputToken)
 
 			/* We want to show a popover, but NSTokenField only lets us show a menu. So return an empty menu and
@@ -288,7 +288,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 			return NSMenu()
 		}
-		else if let inputToken = representedObject as? QBESentenceColumns {
+		else if let inputToken = representedObject as? QBESentenceColumnsToken {
 			editingToken = QBEEditingToken(inputToken)
 
 			/* We want to show a popover, but NSTokenField only lets us show a menu. So return an empty menu and
@@ -301,7 +301,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 			return NSMenu()
 		}
-		else if let inputToken = representedObject as? QBESentenceFile {
+		else if let inputToken = representedObject as? QBESentenceFileToken {
 			self.editingToken = QBEEditingToken(inputToken)
 
 			let menu = NSMenu()
@@ -351,7 +351,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 	@IBAction func selectURL(_ sender: NSObject) {
 		if let nm = sender as? NSMenuItem, let url = nm.representedObject as? URL {
-			if let token = editingToken?.token as? QBESentenceFile, let s = editingConfigurable {
+			if let token = editingToken?.token as? QBESentenceFileToken, let s = editingConfigurable {
 				let fileRef = QBEFileReference.absolute(url)
 				token.change(fileRef)
 				self.delegate?.sentenceView(self, didChangeConfigurable: s)
@@ -365,7 +365,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func showFileInFinder(_ sender: NSObject) {
-		if let token = editingToken?.token as? QBESentenceFile, let file = token.file?.url {
+		if let token = editingToken?.token as? QBESentenceFileToken, let file = token.file?.url {
 			NSWorkspace.shared().activateFileViewerSelecting([file as URL])
 		}
 	}
@@ -375,7 +375,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	private func selectFileWithPanel(_ createNew: Bool) {
-		if let token = editingToken?.token as? QBESentenceFile, let s = editingConfigurable {
+		if let token = editingToken?.token as? QBESentenceFileToken, let s = editingConfigurable {
 			let savePanel: NSSavePanel
 
 			switch token.mode {
@@ -416,7 +416,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	private var fileRecentsForSelectedToken: QBEFileRecents? {
-		if let token = editingToken?.token as? QBESentenceFile {
+		if let token = editingToken?.token as? QBESentenceFileToken {
 			return QBEFileRecents(key: token.allowedFileTypes.joined(separator: ";"))
 		}
 		return nil
@@ -435,7 +435,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func selectOption(_ sender: NSObject) {
-		if let options = editingToken?.token as? QBESentenceOptions, let menuItem = sender as? NSMenuItem {
+		if let options = editingToken?.token as? QBESentenceOptionsToken, let menuItem = sender as? NSMenuItem {
 			let keys = Array(options.options.keys)
 			if keys.count > menuItem.tag {
 				let value = keys[menuItem.tag]
@@ -446,7 +446,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	@IBAction func selectListOption(_ sender: NSObject) {
-		if let listToken = editingToken?.token as? QBESentenceList, let options = editingToken?.options, let menuItem = sender as? NSMenuItem {
+		if let listToken = editingToken?.token as? QBESentenceDynamicOptionsToken, let options = editingToken?.options, let menuItem = sender as? NSMenuItem {
 			let value = options[menuItem.tag]
 			self.change(token: listToken, to: value)
 		}
@@ -491,7 +491,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				}
 				if let s = k as? String {
 					let v = locale.valueForLocalString(s)
-					sentence.append(QBESentenceValueInput(value: v, locale: locale, callback: { (_) -> (Bool) in
+					sentence.append(QBESentenceValueToken(value: v, locale: locale, callback: { (_) -> (Bool) in
 						return false
 					}))
 				}
@@ -572,20 +572,20 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	func formulaEditor(_ view: QBEFormulaEditorViewController, didChangeExpression newExpression: Expression?) {
-		if let inputToken = editingToken?.token as? QBESentenceFormula {
+		if let inputToken = editingToken?.token as? QBESentenceFormulaToken {
 			self.change(token: inputToken, to: newExpression ?? Identity())
 			view.updateContextInformation(inputToken)
 		}
 	}
 
 	func setEditor(_ editor: QBESetEditorViewController, didChangeSelection selection: Set<String>) {
-		if let inputToken = editingToken?.token as? QBESentenceSet {
+		if let inputToken = editingToken?.token as? QBESentenceSetToken {
 			self.change(token: inputToken, to: selection)
 		}
 	}
 
 	func listEditor(_ editor: QBEListEditorViewController, didChangeSelection selection: [String]) {
-		if let inputToken = editingToken?.token as? QBESentenceColumns {
+		if let inputToken = editingToken?.token as? QBESentenceColumnsToken {
 			let cols = selection.map { Column($0) }.uniqueElements
 			editor.selection = cols.map { $0.name }
 			self.change(token: inputToken, to: OrderedSet<Column>(cols))
@@ -593,7 +593,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	func editList(_ sender: NSEvent) {
-		if let inputToken = editingToken?.token as? QBESentenceColumns {
+		if let inputToken = editingToken?.token as? QBESentenceColumnsToken {
 			asyncMain {
 				if let editor = self.storyboard?.instantiateController(withIdentifier: "listEditor") as? QBEListEditorViewController {
 					editor.delegate = self
@@ -608,7 +608,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	func editSet(_ sender: NSEvent) {
-		if let inputToken = editingToken?.token as? QBESentenceSet {
+		if let inputToken = editingToken?.token as? QBESentenceSetToken {
 			inputToken.provider { result in
 				result.maybe { options in
 					asyncMain {
@@ -629,7 +629,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	func editFormula(_ sender: NSEvent) {
-		if let inputToken = editingToken?.token as? QBESentenceFormula, let locale = self.delegate?.locale {
+		if let inputToken = editingToken?.token as? QBESentenceFormulaToken, let locale = self.delegate?.locale {
 			if let editor = self.storyboard?.instantiateController(withIdentifier: "formulaEditor") as? QBEFormulaEditorViewController {
 				editor.delegate = self
 				editor.startEditingExpression(inputToken.expression, locale: locale)
@@ -651,7 +651,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 }
 
 private extension QBEFormulaEditorViewController {
-	func updateContextInformation(_ sentence: QBESentenceFormula) {
+	func updateContextInformation(_ sentence: QBESentenceFormulaToken) {
 		if let getContext = sentence.contextCallback {
 			let job = Job(.userInitiated)
 			getContext(job) { result in

@@ -163,7 +163,7 @@ public class QBETransposeStep: QBEStep {
 	}
 
 	public override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence([QBESentenceText(NSLocalizedString("Switch rows/columns", comment: ""))])
+		return QBESentence([QBESentenceLabelToken(NSLocalizedString("Switch rows/columns", comment: ""))])
 	}
 
 	public override func mergeWith(_ prior: QBEStep) -> QBEStepMerge {

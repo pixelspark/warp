@@ -191,7 +191,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, StreamDelegate {
 
 	func sentence(_ locale: Language) -> QBESentence? {
 		return QBESentence(format: NSLocalizedString("fields separated by [#]", comment: ""),
-			QBESentenceList(value: String(Character(UnicodeScalar(separatorCharacter)!)), provider: { (pc) -> () in
+			QBESentenceDynamicOptionsToken(value: String(Character(UnicodeScalar(separatorCharacter)!)), provider: { (pc) -> () in
 				pc(.success(locale.commonFieldSeparators))
 			},
 			callback: { (newValue) -> () in
@@ -435,7 +435,7 @@ class QBECSVSourceStep: QBEStep {
 		]
 
 		return QBESentence(format: NSLocalizedString("Read CSV file [#]", comment: ""),
-			QBESentenceFile(file: self.file, allowedFileTypes: fileTypes, callback: { [weak self] (newFile) -> () in
+			QBESentenceFileToken(file: self.file, allowedFileTypes: fileTypes, callback: { [weak self] (newFile) -> () in
 				self?.file = newFile
 			})
 		)
