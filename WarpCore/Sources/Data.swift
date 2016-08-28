@@ -591,7 +591,10 @@ enum CoalescedDataset: Dataset {
 			else {
 				// Iterate over all column dependencies of the new expression
 				expression.visit({ (subexpression) -> () in
-					if let se = subexpression as? Sibling {
+					if subexpression is Identity {
+						dependsOnCurrent = true
+					}
+					else if let se = subexpression as? Sibling {
 						if newCalculations[se.column] != nil {
 							dependsOnCurrent = true
 						}
