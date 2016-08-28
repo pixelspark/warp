@@ -17,25 +17,32 @@ class QBERenameStep: QBEStep {
 		if renames.isEmpty {
 			return QBESentence([QBESentenceLabelToken(NSLocalizedString("Rename columns", comment: ""))])
 		}
-		else if renames.count == 1 {
-			let rename = renames.first!
-			return QBESentence(format: NSLocalizedString("Rename column [#] to [#]", comment: ""),
-				QBESentenceTextToken(value: rename.0.name, callback: { [weak self] (newName) -> (Bool) in
-					if !newName.isEmpty {
-						let oldTo = self?.renames.removeValue(forKey: rename.0)
-						self?.renames[Column(newName)] = oldTo
-						return true
-					}
-					return false
-				}),
-				QBESentenceTextToken(value: rename.1.name, callback: { [weak self] (newName) -> (Bool) in
-					if !newName.isEmpty {
-						self?.renames[rename.0] = Column(newName)
-						return true
-					}
-					return false
-				})
-			)
+		else if renames.count < 4{
+			let sentence = QBESentence(format: "Rename column".localized)
+
+			var n = 0
+			for (old, new) in renames {
+				let last = (n == (renames.count - 1))
+				let secondLast = (n == (renames.count - 2))
+				sentence.append(QBESentence(format: (secondLast ? "[#] to [#], and " : (last ? "[#] to [#]" : "[#] to [#], ")).localized,
+					QBESentenceTextToken(value: old.name, callback: { [weak self] (newOld) -> (Bool) in
+						if !newOld.isEmpty {
+							self?.renames[Column(newOld)] = self?.renames.removeValue(forKey: old)
+							return true
+						}
+						return false
+					}),
+					QBESentenceTextToken(value: new.name, callback: { [weak self] (newNew) -> (Bool) in
+						if !newNew.isEmpty {
+							self?.renames[old] = Column(newNew)
+							return true
+						}
+						return false
+					})
+				))
+				n += 1
+			}
+			return sentence
 		}
 		else {
 			return QBESentence([QBESentenceLabelToken(String(format: NSLocalizedString("Rename %d columns", comment: ""), renames.count))])
