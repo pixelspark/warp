@@ -1,3 +1,17 @@
+/** Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 import Foundation
 
 /** Value is used to represent all values in data sets. Although Value can represent values of different types,
@@ -137,38 +151,38 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	
 	/** Returns the date represented by this value. String or numeric values are never interpreted as a date, because
 	in general we don't know in which time zone they are. */
-	public var dateValue: Date? { get {
+	public var dateValue: Date? {
 		switch self {
-			case
-				.date(let d): return Date(timeIntervalSinceReferenceDate: d)
-			
-			default:
-				return nil
+		case
+		.date(let d): return Date(timeIntervalSinceReferenceDate: d)
+
+		default:
+			return nil
 		}
-	} }
-	
+	}
+
 	/** The integer representation of the value. Empty and invalid values require special handling and therefore have no
 	integer representation. Booleans are represented as 1 or 0. Strings only have a double representation if they are
 	properly formatted integer literals. */
-	public var intValue: Int? { get {
+	public var intValue: Int? {
 		switch self {
-			case .string(let s): return Int(s)
-			case .int(let i): return i
-			case .bool(let b): return b.toInt()
-			/* A double can be much larger or smaller than what can be stored in an integer. Swift will cause a fatal 
+		case .string(let s): return Int(s)
+		case .int(let i): return i
+		case .bool(let b): return b.toInt()
+			/* A double can be much larger or smaller than what can be stored in an integer. Swift will cause a fatal
 			error if Int() is used to convert such a double to Int. Therefore return nil if the double is too large */
-			case .double(let d): return (d < Double(Int.max) && d > Double(Int.min)) ? Int(d) : nil
-			case .date(_): return nil
-			case .empty: return nil
-			case .invalid: return nil
+		case .double(let d): return (d < Double(Int.max) && d > Double(Int.min)) ? Int(d) : nil
+		case .date(_): return nil
+		case .empty: return nil
+		case .invalid: return nil
 		}
-	} }
-	
+	}
+
 	/** The boolean representation of the value. Empty and invalid values require special handling and therefore have no
 	boolean representation. A string is represented as 'true' if (after parsing it as an integer) it equals 1, and false
 	in all other cases. An integer 1 is equal to true, and false in all other cases. A double value cannot be represented
 	as a boolean. */
-	public var boolValue: Bool? { get {
+	public var boolValue: Bool? {
 		switch self {
 		case .string(let s): return Int(s) == 1
 		case .int(let i): return i == 1
@@ -178,7 +192,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .empty: return nil
 		case .invalid: return nil
 		}
-	} }
+	}
 
 	public var nativeValue: Any? {
 		switch self {
@@ -192,7 +206,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		}
 	}
 	
-	public var debugDescription: String { get {
+	public var debugDescription: String {
 		switch self {
 		case .string(let s): return "Value.String('\(s)')"
 		case .int(let i): return "Value.Int(\(i))"
@@ -202,23 +216,23 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .empty: return "Value.Empty"
 		case .invalid: return "Value.Invalid"
 		}
-	} }
+	}
 	
-	public var absolute: Value { get {
+	public var absolute: Value {
 		return (self < Value(0)) ? -self : self
-	} }
+	}
 	
 	/** Returns true if this value is an invalid value. None of the other value types are considered to be 'invalid'. */
-	public var isValid: Bool { get {
+	public var isValid: Bool {
 		switch self {
-			case .invalid: return false
-			default: return true
+		case .invalid: return false
+		default: return true
 		}
-	} }
+	}
 	
 	/** Returns true if this value is an empty value, and false otherwise. Note that an empty string is not considered
 	'empty', nor is any integer, boolean or double value. The invalid value is not empty either. */
-	public var isEmpty: Bool { get {
+	public var isEmpty: Bool {
 		switch self {
 			case .empty:
 				return true
@@ -226,7 +240,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 			default:
 				return false
 		}
-	} }
+	}
 }
 
 /** The pack format is a framing format to store an array of values in a string, where the items of the array themselves
@@ -297,9 +311,9 @@ public struct Pack {
 		}
 	}
 
-	public var count: Int { get {
+	public var count: Int {
 		return items.count
-	} }
+	}
 	
 	public subscript(n: Int) -> String {
 		assert(n >= 0, "Index on a pack cannot be negative")
@@ -324,14 +338,14 @@ public struct Pack {
 		return Value.string(self.stringValue)
 	}
 	
-	public var stringValue: String { get {
+	public var stringValue: String {
 		let res = items.map({
 			$0.replacingOccurrences(of: Pack.escape, with: Pack.escapeEscape)
 			  .replacingOccurrences(of: Pack.separator, with: Pack.separatorEscape)
 		})
 
 		return res.joined(separator: Pack.separator)
-	} }
+	}
 }
 
 /** ValueCoder implements encoding for Value (which cannot implement it as it is an enum). */

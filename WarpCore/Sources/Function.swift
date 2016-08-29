@@ -1,3 +1,17 @@
+/** Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 import Foundation
 
 /** A Reducer is a function that takes multiple arguments, but can receive them in batches in order to calculate the
@@ -119,129 +133,130 @@ public enum Function: String {
 		var prepared = args.map({$0.prepare()})
 		
 		switch self {
-			case .Not:
-				if args.count == 1 {
-					// NOT(a=b) should be replaced with simply a!=b
-					if let a = args[0] as? Comparison, a.type == Binary.equal {
-						return Comparison(first: a.first, second: a.second, type: Binary.notEqual).prepare()
-					}
+		case .Not:
+			if args.count == 1 {
+				// NOT(a=b) should be replaced with simply a!=b
+				if let a = args[0] as? Comparison, a.type == Binary.equal {
+					return Comparison(first: a.first, second: a.second, type: Binary.notEqual).prepare()
+				}
 					// Not(In(..)) should be written as NotIn(..)
-					else if let a = args[0] as? Call, a.type == Function.In {
-						return Call(arguments: a.arguments, type: Function.NotIn).prepare()
-					}
+				else if let a = args[0] as? Call, a.type == Function.In {
+					return Call(arguments: a.arguments, type: Function.NotIn).prepare()
+				}
 					// Not(Not(..)) cancels out
-					else if let a = args[0] as? Call, a.type == Function.Not && a.arguments.count == 1 {
-						return a.arguments[0].prepare()
-					}
+				else if let a = args[0] as? Call, a.type == Function.Not && a.arguments.count == 1 {
+					return a.arguments[0].prepare()
 				}
-			
-			case .And:
-				// Insert arguments that are Ands themselves in this and
-				prepared = prepared.mapMany {(item) -> [Expression] in
-					if let a = item as? Call, a.type == Function.And {
-						return a.arguments
+			}
+
+		case .And:
+			// Insert arguments that are Ands themselves in this and
+			prepared = prepared.mapMany {(item) -> [Expression] in
+				if let a = item as? Call, a.type == Function.And {
+					return a.arguments
+				}
+				else {
+					return [item]
+				}
+			}
+
+			// If at least one of the arguments to an AND is a constant false, then this And always evaluates to false
+			for p in prepared {
+				if p.isConstant && p.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(false) {
+					return Literal(Value.bool(false))
+				}
+			}
+
+		case .Or:
+			// Insert arguments that are Ors themselves in this or
+			prepared = prepared.mapMany({
+				if let a = $0 as? Call, a.type == Function.Or {
+					return a.arguments
+				}
+				return [$0]
+			})
+
+			// If at least one of the arguments to an OR is a constant true, this OR always evaluates to true
+			for p in prepared {
+				if p.isConstant && p.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(true) {
+					return Literal(Value.bool(true))
+				}
+			}
+
+			// If this OR consists of (x = y) pairs where x is the same column (or foreign, this can be translated to an IN(x, y1, y2, ..)
+			var columnExpression: ColumnReferencingExpression? = nil
+			var valueExpressions: [Expression] = []
+			var binaryType: Binary? = nil
+			let allowedBinaryTypes = [Binary.equal]
+
+			for p in prepared {
+				if let binary = p as? Comparison, allowedBinaryTypes.contains(binary.type) && (binaryType == nil || binaryType == binary.type) {
+					binaryType = binary.type
+
+					// See if one of the sides of this binary expression is a column reference
+					let column: ColumnReferencingExpression?
+					let value: Expression?
+					if binary.first is ColumnReferencingExpression {
+						column = binary.first as? ColumnReferencingExpression
+						value = binary.second
+					}
+					else if binary.second is ColumnReferencingExpression {
+						column = binary.second as? ColumnReferencingExpression
+						value = binary.first
 					}
 					else {
-						return [item]
+						column = nil
+						value = nil
 					}
-				}
-				
-				// If at least one of the arguments to an AND is a constant false, then this And always evaluates to false
-				for p in prepared {
-					if p.isConstant && p.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(false) {
-						return Literal(Value.bool(false))
-					}
-				}
-			
-			case .Or:
-				// Insert arguments that are Ors themselves in this or
-				prepared = prepared.mapMany({
-					if let a = $0 as? Call, a.type == Function.Or {
-						return a.arguments
-					}
-					return [$0]
-				})
-				
-				// If at least one of the arguments to an OR is a constant true, this OR always evaluates to true
-				for p in prepared {
-					if p.isConstant && p.apply(Row(), foreign: nil, inputValue: nil) == Value.bool(true) {
-						return Literal(Value.bool(true))
-					}
-				}
-				
-				// If this OR consists of (x = y) pairs where x is the same column (or foreign, this can be translated to an IN(x, y1, y2, ..)
-				var columnExpression: ColumnReferencingExpression? = nil
-				var valueExpressions: [Expression] = []
-				var binaryType: Binary? = nil
-				let allowedBinaryTypes = [Binary.equal]
-				
-				for p in prepared {
-					if let binary = p as? Comparison, allowedBinaryTypes.contains(binary.type) && (binaryType == nil || binaryType == binary.type) {
-						binaryType = binary.type
-						
-						// See if one of the sides of this binary expression is a column reference
-						let column: ColumnReferencingExpression?
-						let value: Expression?
-						if binary.first is ColumnReferencingExpression {
-							column = binary.first as? ColumnReferencingExpression
-							value = binary.second
-						}
-						else if binary.second is ColumnReferencingExpression {
-							column = binary.second as? ColumnReferencingExpression
-							value = binary.first
-						}
-						else {
-							column = nil
-							value = nil
-						}
-						
-						if let c = column, let v = value {
-							// is this column referencing expression the same
-							valueExpressions.append(v)
-							if let ce = columnExpression {
-								let sameType = (c is Sibling && columnExpression is Sibling) ||
-									(c is Foreign && columnExpression is Foreign)
-								if sameType && c.column != ce.column {
-									columnExpression = nil
-									break;
-								}
-							}
-							else {
-								columnExpression = c
+
+					if let c = column, let v = value {
+						// is this column referencing expression the same
+						valueExpressions.append(v)
+						if let ce = columnExpression {
+							let sameType = (c is Sibling && columnExpression is Sibling) ||
+								(c is Foreign && columnExpression is Foreign)
+							if sameType && c.column != ce.column {
+								columnExpression = nil
+								break;
 							}
 						}
 						else {
-							// Some other constant, break for now
-							// TODO: create an OR(IN(); other stuff) expression
-							columnExpression = nil
-							break
+							columnExpression = c
 						}
 					}
 					else {
+						// Some other constant, break for now
+						// TODO: create an OR(IN(); other stuff) expression
 						columnExpression = nil
 						break
 					}
 				}
-				
-				if let ce = columnExpression as? Expression, let bt = binaryType, valueExpressions.count > 1 {
-					valueExpressions.insert(ce, at: 0)
-
-					switch bt {
-						case .equal:
-							return Call(arguments: valueExpressions, type: Function.In)
-						
-						case .notEqual:
-							return Call(arguments: valueExpressions, type: Function.NotIn)
-						
-						default:
-							fatalError("Cannot produce an IN()-like expression for this binary type")
-					}
+				else {
+					columnExpression = nil
+					break
 				}
+			}
+
+			if let ce = columnExpression as? Expression, let bt = binaryType, valueExpressions.count > 1 {
+				valueExpressions.insert(ce, at: 0)
+
+				switch bt {
+				case .equal:
+					return Call(arguments: valueExpressions, type: Function.In)
+
+				case .notEqual:
+					return Call(arguments: valueExpressions, type: Function.NotIn)
+
+				default:
+					fatalError("Cannot produce an IN()-like expression for this binary type")
+				}
+			}
 		default:
 			break
 		}
 
 		// Single-argument functions for which double execution makes no sense (e.g. lowercase(lowercase(x)) === lowercase(x))
+		// TODO: other functions that cancel out, e.g. lowercase(uppercase(x))
 		if self.isIdempotent && prepared.count == 1 {
 			if let v = prepared[0] as? Call, v.type == self {
 				return prepared[0]
@@ -250,123 +265,124 @@ public enum Function: String {
 
 		return Call(arguments: prepared, type: self)
 	}
-	
+
+	/** Return a localized explanation of what this function does. */
 	public func explain(_ locale: Language) -> String {
 		switch self {
-			// TODO: make tihs more detailed. E.g., "5 leftmost characters of" instead of just "leftmost characters"
-			case .Uppercase: return translationForString("uppercase")
-			case .Lowercase: return translationForString("lowercase")
-			case .Negate: return translationForString("-")
-			case .Absolute: return translationForString("absolute")
-			case .Identity: return translationForString("the")
-			case .And: return translationForString("and")
-			case .Or: return translationForString("or")
-			case .If: return translationForString("if")
-			case .Concat: return translationForString("concatenate")
-			case .Cos: return translationForString("cose")
-			case .Sin: return translationForString("sine")
-			case .Tan: return translationForString("tangens")
-			case .Cosh: return translationForString("cosine hyperbolic")
-			case .Sinh: return translationForString("sine hyperbolic")
-			case .Tanh: return translationForString("tangens hyperbolic")
-			case .Acos: return translationForString("arc cosine")
-			case .Asin: return translationForString("arc sine")
-			case .Atan: return translationForString("arc tangens")
-			case .Sqrt: return translationForString("square root")
-			case .Left: return translationForString("leftmost characters")
-			case .Right: return translationForString("rightmost characters")
-			case .Length: return translationForString("length of text")
-			case .Mid: return translationForString("substring")
-			case .Log: return translationForString("logarithm")
-			case .Not: return translationForString("not")
-			case .Substitute: return translationForString("substitute")
-			case .Xor: return translationForString("xor")
-			case .Trim: return translationForString("trim spaces")
-			case .Coalesce: return translationForString("first non-empty value")
-			case .IfError: return translationForString("if error")
-			case .Count: return translationForString("number of numeric values")
-			case .Sum: return translationForString("sum")
-			case .Average: return translationForString("average")
-			case .Min: return translationForString("lowest")
-			case .Max: return translationForString("highest")
-			case .RandomItem: return translationForString("random item")
-			case .CountAll: return translationForString("number of items")
-			case .Pack: return translationForString("pack")
-			case .Exp: return translationForString("e^")
-			case .Ln: return translationForString("natural logarithm")
-			case .Round: return translationForString("round")
-			case .Choose: return translationForString("choose")
-			case .RandomBetween: return translationForString("random number between")
-			case .Random: return translationForString("random number between 0 and 1")
-			case .RegexSubstitute: return translationForString("replace using pattern")
-			case .NormalInverse: return translationForString("inverse normal")
-			case .Sign: return translationForString("sign")
-			case .Split: return translationForString("split")
-			case .Nth: return translationForString("nth item")
-			case .Items: return translationForString("number of items")
-			case .Levenshtein: return translationForString("text similarity")
-			case .URLEncode: return translationForString("url encode")
-			case .In: return translationForString("contains")
-			case .NotIn: return translationForString("does not contain")
-			case .Capitalize: return translationForString("capitalize")
-			case .Now: return translationForString("current time")
-			case .FromUnixTime: return translationForString("interpret UNIX timestamp")
-			case .ToUnixTime: return translationForString("to UNIX timestamp")
-			case .FromISO8601: return translationForString("interpret ISO-8601 formatted date")
-			case .ToLocalISO8601: return translationForString("to ISO-8601 formatted date in local timezone")
-			case .ToUTCISO8601: return translationForString("to ISO-8601 formatted date in UTC")
-			case .ToExcelDate: return translationForString("to Excel timestamp")
-			case .FromExcelDate: return translationForString("from Excel timestamp")
-			case .UTCDate: return translationForString("make a date (in UTC)")
-			case .UTCDay: return translationForString("day in month (in UTC) of date")
-			case .UTCMonth: return translationForString("month (in UTC) of")
-			case .UTCYear: return translationForString("year (in UTC) of date")
-			case .UTCMinute: return translationForString("minute (in UTC) of time")
-			case .UTCHour: return translationForString("hour (in UTC) of time")
-			case .UTCSecond: return translationForString("seconds (in UTC) of time")
-			case .Duration: return translationForString("number of seconds that passed between dates")
-			case .After: return translationForString("date after a number of seconds has passed after date")
-			case .Floor: return translationForString("round down to integer")
-			case .Ceiling: return translationForString("round up to integer")
-			case .RandomString: return translationForString("random string with pattern")
-			case .ToUnicodeDateString: return translationForString("write date in format")
-			case .FromUnicodeDateString: return translationForString("read date in format")
-			case .Power: return translationForString("to the power")
-			case .UUID: return translationForString("generate UUID")
-			case .CountDistinct: return translationForString("number of unique items")
-			case .MedianLow: return translationForString("median value (lowest in case of a draw)")
-			case .MedianHigh: return translationForString("median value (highest in case of a draw)")
-			case .Median: return translationForString("median value (average in case of a draw)")
-			case .MedianPack: return translationForString("median value (pack in case of a draw)")
-			case .VariancePopulation: return translationForString("variance (of population)")
-			case .VarianceSample: return translationForString("variance (of sample)")
-			case .StandardDeviationPopulation: return translationForString("standard deviation (of population)")
-			case .StandardDeviationSample: return translationForString("standard deviation (of sample)")
-			case .IsInvalid: return translationForString("is invalid")
-			case .IsEmpty: return translationForString("is empty")
-			case .JSONDecode: return translationForString("read JSON value")
-			case .ParseNumber: return translationForString("read number")
+		// TODO: make tihs more detailed. E.g., "5 leftmost characters of" instead of just "leftmost characters"
+		case .Uppercase: return translationForString("uppercase")
+		case .Lowercase: return translationForString("lowercase")
+		case .Negate: return translationForString("-")
+		case .Absolute: return translationForString("absolute")
+		case .Identity: return translationForString("the")
+		case .And: return translationForString("and")
+		case .Or: return translationForString("or")
+		case .If: return translationForString("if")
+		case .Concat: return translationForString("concatenate")
+		case .Cos: return translationForString("cose")
+		case .Sin: return translationForString("sine")
+		case .Tan: return translationForString("tangens")
+		case .Cosh: return translationForString("cosine hyperbolic")
+		case .Sinh: return translationForString("sine hyperbolic")
+		case .Tanh: return translationForString("tangens hyperbolic")
+		case .Acos: return translationForString("arc cosine")
+		case .Asin: return translationForString("arc sine")
+		case .Atan: return translationForString("arc tangens")
+		case .Sqrt: return translationForString("square root")
+		case .Left: return translationForString("leftmost characters")
+		case .Right: return translationForString("rightmost characters")
+		case .Length: return translationForString("length of text")
+		case .Mid: return translationForString("substring")
+		case .Log: return translationForString("logarithm")
+		case .Not: return translationForString("not")
+		case .Substitute: return translationForString("substitute")
+		case .Xor: return translationForString("xor")
+		case .Trim: return translationForString("trim spaces")
+		case .Coalesce: return translationForString("first non-empty value")
+		case .IfError: return translationForString("if error")
+		case .Count: return translationForString("number of numeric values")
+		case .Sum: return translationForString("sum")
+		case .Average: return translationForString("average")
+		case .Min: return translationForString("lowest")
+		case .Max: return translationForString("highest")
+		case .RandomItem: return translationForString("random item")
+		case .CountAll: return translationForString("number of items")
+		case .Pack: return translationForString("pack")
+		case .Exp: return translationForString("e^")
+		case .Ln: return translationForString("natural logarithm")
+		case .Round: return translationForString("round")
+		case .Choose: return translationForString("choose")
+		case .RandomBetween: return translationForString("random number between")
+		case .Random: return translationForString("random number between 0 and 1")
+		case .RegexSubstitute: return translationForString("replace using pattern")
+		case .NormalInverse: return translationForString("inverse normal")
+		case .Sign: return translationForString("sign")
+		case .Split: return translationForString("split")
+		case .Nth: return translationForString("nth item")
+		case .Items: return translationForString("number of items")
+		case .Levenshtein: return translationForString("text similarity")
+		case .URLEncode: return translationForString("url encode")
+		case .In: return translationForString("contains")
+		case .NotIn: return translationForString("does not contain")
+		case .Capitalize: return translationForString("capitalize")
+		case .Now: return translationForString("current time")
+		case .FromUnixTime: return translationForString("interpret UNIX timestamp")
+		case .ToUnixTime: return translationForString("to UNIX timestamp")
+		case .FromISO8601: return translationForString("interpret ISO-8601 formatted date")
+		case .ToLocalISO8601: return translationForString("to ISO-8601 formatted date in local timezone")
+		case .ToUTCISO8601: return translationForString("to ISO-8601 formatted date in UTC")
+		case .ToExcelDate: return translationForString("to Excel timestamp")
+		case .FromExcelDate: return translationForString("from Excel timestamp")
+		case .UTCDate: return translationForString("make a date (in UTC)")
+		case .UTCDay: return translationForString("day in month (in UTC) of date")
+		case .UTCMonth: return translationForString("month (in UTC) of")
+		case .UTCYear: return translationForString("year (in UTC) of date")
+		case .UTCMinute: return translationForString("minute (in UTC) of time")
+		case .UTCHour: return translationForString("hour (in UTC) of time")
+		case .UTCSecond: return translationForString("seconds (in UTC) of time")
+		case .Duration: return translationForString("number of seconds that passed between dates")
+		case .After: return translationForString("date after a number of seconds has passed after date")
+		case .Floor: return translationForString("round down to integer")
+		case .Ceiling: return translationForString("round up to integer")
+		case .RandomString: return translationForString("random string with pattern")
+		case .ToUnicodeDateString: return translationForString("write date in format")
+		case .FromUnicodeDateString: return translationForString("read date in format")
+		case .Power: return translationForString("to the power")
+		case .UUID: return translationForString("generate UUID")
+		case .CountDistinct: return translationForString("number of unique items")
+		case .MedianLow: return translationForString("median value (lowest in case of a draw)")
+		case .MedianHigh: return translationForString("median value (highest in case of a draw)")
+		case .Median: return translationForString("median value (average in case of a draw)")
+		case .MedianPack: return translationForString("median value (pack in case of a draw)")
+		case .VariancePopulation: return translationForString("variance (of population)")
+		case .VarianceSample: return translationForString("variance (of sample)")
+		case .StandardDeviationPopulation: return translationForString("standard deviation (of population)")
+		case .StandardDeviationSample: return translationForString("standard deviation (of sample)")
+		case .IsInvalid: return translationForString("is invalid")
+		case .IsEmpty: return translationForString("is empty")
+		case .JSONDecode: return translationForString("read JSON value")
+		case .ParseNumber: return translationForString("read number")
 		}
 	}
-	
+
 	/** Returns true if this function is guaranteed to return the same result when called multiple times in succession
 	with the exact same set of arguments, between different evaluations of the bigger expression it is part of, as well 
 	as within a single expression (e.g. NOW() is not deterministic because it will return different values between
 	excutions of the expression as a whole, whereas RANDOM() is non-deterministic because its value may even differ within
 	a single executions). As a rule, functions that depend on/return randomness or the current date/time are not
 	deterministic. */
-	public var isDeterministic: Bool { get {
+	public var isDeterministic: Bool {
 		switch self {
-			case .RandomItem: return false
-			case .RandomBetween: return false
-			case .Random: return false
-			case .RandomString: return false
-			case .Now: return false
-			case .UUID: return false
-			default: return true
+		case .RandomItem: return false
+		case .RandomBetween: return false
+		case .Random: return false
+		case .RandomString: return false
+		case .Now: return false
+		case .UUID: return false
+		default: return true
 		}
-	} }
-	
+	}
+
 	func toFormula(_ locale: Language) -> String {
 		return locale.nameForFunction(self) ?? ""
 	}
@@ -375,10 +391,10 @@ public enum Function: String {
 	time, i.e. f(f(x)) === f(x). */
 	public var isIdempotent: Bool {
 		switch self {
-			case .Uppercase, .Lowercase, .Trim, .Absolute, .Capitalize, .Floor, .Ceiling:
-				return true
-			default:
-				return false
+		case .Uppercase, .Lowercase, .Trim, .Absolute, .Capitalize, .Floor, .Ceiling:
+			return true
+		default:
+			return false
 		}
 	}
 	
@@ -625,7 +641,7 @@ public enum Function: String {
 		}
 	} }
 	
-	public var arity: Arity { get {
+	public var arity: Arity {
 		switch self {
 		case .Uppercase: return Arity.fixed(1)
 		case .Lowercase: return Arity.fixed(1)
@@ -720,7 +736,7 @@ public enum Function: String {
 		case .JSONDecode: return Arity.fixed(1)
 		case .ParseNumber: return Arity.between(1, 3)
 		}
-	} }
+	}
 	
 	public func apply(_ arguments: [Value]) -> Value {
 		// Check arity
@@ -1301,7 +1317,7 @@ public enum Function: String {
 		}
 	}
 
-	public var reducer: Reducer? { get {
+	public var reducer: Reducer? {
 		switch self {
 		case .Sum: return SumReducer()
 		case .Min: return MinReducer()
@@ -1324,7 +1340,7 @@ public enum Function: String {
 		default:
 			return nil
 		}
-	} }
+	}
 
 	/** True if the function - when called with just a single argument - would always return that single argument. */
 	public var isIdentityWithSingleArgument: Bool {
@@ -1442,7 +1458,7 @@ public enum Binary: String {
 	
 	/** The binary operator that is equivalent to this one given that the parameters are swapped (e.g. for a<b the mirror
 	operator is '>=', since b>=a is equivalent to a<b). */
-	var mirror: Binary? { get {
+	var mirror: Binary? {
 		// These operators don't care about what comes first or second at all
 		if isCommutative {
 			return self
@@ -1455,7 +1471,7 @@ public enum Binary: String {
 		case .lesserEqual: return .greater
 		default: return nil
 		}
-	} }
+	}
 	
 	public func apply(_ left: Value, _ right: Value) -> Value {
 		switch self {
@@ -1545,7 +1561,7 @@ public enum Arity: Equatable {
 		}
 	}
 	
-	public var explanation: String { get {
+	public var explanation: String {
 		switch self {
 		case .fixed(let i):
 			return String(format: translationForString("exactly %d"), i)
@@ -1559,7 +1575,7 @@ public enum Arity: Equatable {
 		case .any:
 			return String(format: translationForString("zero or more"))
 		}
-	} }
+	}
 }
 
 public func ==(lhs: Arity, rhs: Arity) -> Bool {
@@ -1649,7 +1665,9 @@ private struct CountReducer: Reducer {
 		}
 	}
 
-	var result: Value { get { return Value(self.count) } }
+	var result: Value {
+		return Value(self.count)
+	}
 }
 
 private struct ConcatenationReducer: Reducer {
@@ -1671,7 +1689,9 @@ private struct PackReducer: Reducer {
 		}
 	}
 
-	var result: Value { return Value(pack.stringValue) }
+	var result: Value {
+		return Value(pack.stringValue)
+	}
 }
 
 private struct CountDistinctReducer: Reducer {
@@ -1685,7 +1705,9 @@ private struct CountDistinctReducer: Reducer {
 		}
 	}
 
-	var result: Value { return Value(valueSet.count) }
+	var result: Value {
+		return Value(valueSet.count)
+	}
 }
 
 private enum MedianType {

@@ -1,3 +1,17 @@
+/** Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 import Foundation
 
 /** A Warehouse corresponds to a location where data can be stored. Each MutableDataset is located in a QBEWarehouse. */
@@ -119,6 +133,7 @@ public class DatasetDefinition: NSObject, NSCoding {
 	}
 }
 
+/** DatasetMutation represents a mutation that can be performed on a mutable dataset (MutableDataset). */
 public enum DatasetMutation {
 	/** Truncate: remove all data in the store, but keep the columns (if the store has fixed columns). */
 	case truncate
@@ -159,6 +174,7 @@ public enum DatasetMutation {
 	case delete(keys: [[Column: Value]])
 }
 
+/** WarehouseMutation represents a mutation that can be performed on a mutable data warehouse (Warehouse). */
 public enum WarehouseMutation {
 	/** Create a data set with the given identifier, and fill it with the given data. */
 	case create(String, Dataset)

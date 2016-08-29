@@ -1,3 +1,17 @@
+/** Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 import Foundation
 
 /** The SQL family of classes enables data operations to be pushed down to SQL for efficient execution. In order for
@@ -553,11 +567,11 @@ open class SQLMutableDataset: MutableDataset {
 }
 
 open class StandardSQLDialect: SQLDialect {
-	open var stringQualifier: String { get { return "\'" } }
-	open var stringQualifierEscape: String { get { return "\'\'" } }
-	open var identifierQualifier: String { get { return "\"" } }
-	open var identifierQualifierEscape: String { get { return "\\\"" } }
-	open var stringEscape: String { get { return "\\" } }
+	open var stringQualifier: String { return "\'" }
+	open var stringQualifierEscape: String { return "\'\'" }
+	open var identifierQualifier: String { return "\"" }
+	open var identifierQualifierEscape: String { return "\\\"" }
+	open var stringEscape: String { return "\\" }
 	open var supportsChangingColumnDefinitionsWithAlter: Bool { return true }
 
 	public init() {
@@ -694,202 +708,202 @@ open class StandardSQLDialect: SQLDialect {
 	open func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		let value = args.joined(separator: ", ")
 		switch type {
-			case .Identity: return value
-			case .Negate: return "-\(value)"
-			case .Uppercase: return "UPPER(\(value))"
-			case .Lowercase: return "LOWER(\(value))"
-			case .Absolute: return "ABS(\(value))"
-			case .Cos: return "COS(\(value))"
-			case .Sin: return "SIN(\(value))"
-			case .Tan: return "TAN(\(value))"
-			case .Cosh: return "COSH(\(value))"
-			case .Sinh: return "SINH(\(value))"
-			case .Tanh: return "TANH(\(value))"
-			case .Acos: return "ACOS(\(value))"
-			case .Asin: return "ASIN(\(value))"
-			case .Atan: return "ATAN(\(value))"
-			case .Sqrt: return "SQRT(\(value))"
-			case .Concat: return "CONCAT(\(value))"
-			case .If: return "(CASE WHEN \(args[0]) THEN \(args[1]) ELSE \(args[2]) END)"
-			case .Left: return "SUBSTR(\(args[0]), 1, \(args[1]))"
-			case .Right: return "RIGHT(\(args[0]), LENGTH(\(args[0]))-\(args[1]))"
-			case .Mid: return "SUBSTR(\(args[0]), \(args[1]), \(args[2]))"
-			case .Length: return "LEN(\(args[0]))"
-			case .Trim: return "TRIM(\(args[0]))"
-			case .Not: return "NOT(\(value))"
-			case .Substitute: return "REPLACE(\(args[0]), \(args[1]), \(args[2]))"
-			case .Xor: return "((\(args[0])<>\(args[1])) AND (\(args[0]) OR \(args[1])))"
-			case .Coalesce: return "COALESCE(\(value))"
-			case .IfError: return "IFNULL(\(args[0]), \(args[1]))" // In SQLite, the result of (1/0) equals NULL
-			case .Sum: return args.joined(separator: " + ")
-			case .Average: return "(" + (args.joined(separator: " + ")) + ")/\(args.count)"
-			case .Min: return "MIN(\(value))" // Should be LEAST in SQL Server
-			case .Max: return "MAX(\(value))" // Might be GREATEST in SQL Server
-			
-			case .And:
-				if args.count > 0 {
-					let ands = args.joined(separator: " AND ")
-					return "(\(ands))"
-				}
-				return "(1=0)"
-			
-			case .Or:
-				if args.count > 0 {
-					let ors = args.joined(separator: " OR ")
-					return "(\(ors))"
-				}
-				return "(1=1)"
-			
-			case .RandomBetween:
-				/* FIXME check this! Using RANDOM() with modulus introduces a bias, but because we're using ABS, the bias
-				should be cancelled out. See http://stackoverflow.com/questions/8304204/generating-only-positive-random-numbers-in-sqlite */
-				let rf = self.unaryToSQL(Function.Random, args: []) ?? "RANDOM()"
-				return "(\(args[0]) + ABS(\(rf) % (\(args[1])-\(args[0]))))"
-			
-			case .Random:
-				/* FIXME: According to the SQLite documentation, RANDOM() generates a number between -9223372036854775808 
-				and +9223372036854775807. This should work to generate a random double between 0 and 1 (although there is 
-				a slight bias introduced because the lower bound is one lower than the upper bound). */
-				return "ABS(RANDOM() / 9223372036854775807.0)"
-			
+		case .Identity: return value
+		case .Negate: return "-\(value)"
+		case .Uppercase: return "UPPER(\(value))"
+		case .Lowercase: return "LOWER(\(value))"
+		case .Absolute: return "ABS(\(value))"
+		case .Cos: return "COS(\(value))"
+		case .Sin: return "SIN(\(value))"
+		case .Tan: return "TAN(\(value))"
+		case .Cosh: return "COSH(\(value))"
+		case .Sinh: return "SINH(\(value))"
+		case .Tanh: return "TANH(\(value))"
+		case .Acos: return "ACOS(\(value))"
+		case .Asin: return "ASIN(\(value))"
+		case .Atan: return "ATAN(\(value))"
+		case .Sqrt: return "SQRT(\(value))"
+		case .Concat: return "CONCAT(\(value))"
+		case .If: return "(CASE WHEN \(args[0]) THEN \(args[1]) ELSE \(args[2]) END)"
+		case .Left: return "SUBSTR(\(args[0]), 1, \(args[1]))"
+		case .Right: return "RIGHT(\(args[0]), LENGTH(\(args[0]))-\(args[1]))"
+		case .Mid: return "SUBSTR(\(args[0]), \(args[1]), \(args[2]))"
+		case .Length: return "LEN(\(args[0]))"
+		case .Trim: return "TRIM(\(args[0]))"
+		case .Not: return "NOT(\(value))"
+		case .Substitute: return "REPLACE(\(args[0]), \(args[1]), \(args[2]))"
+		case .Xor: return "((\(args[0])<>\(args[1])) AND (\(args[0]) OR \(args[1])))"
+		case .Coalesce: return "COALESCE(\(value))"
+		case .IfError: return "IFNULL(\(args[0]), \(args[1]))" // In SQLite, the result of (1/0) equals NULL
+		case .Sum: return args.joined(separator: " + ")
+		case .Average: return "(" + (args.joined(separator: " + ")) + ")/\(args.count)"
+		case .Min: return "MIN(\(value))" // Should be LEAST in SQL Server
+		case .Max: return "MAX(\(value))" // Might be GREATEST in SQL Server
+
+		case .And:
+			if args.count > 0 {
+				let ands = args.joined(separator: " AND ")
+				return "(\(ands))"
+			}
+			return "(1=0)"
+
+		case .Or:
+			if args.count > 0 {
+				let ors = args.joined(separator: " OR ")
+				return "(\(ors))"
+			}
+			return "(1=1)"
+
+		case .RandomBetween:
+			/* FIXME check this! Using RANDOM() with modulus introduces a bias, but because we're using ABS, the bias
+			should be cancelled out. See http://stackoverflow.com/questions/8304204/generating-only-positive-random-numbers-in-sqlite */
+			let rf = self.unaryToSQL(Function.Random, args: []) ?? "RANDOM()"
+			return "(\(args[0]) + ABS(\(rf) % (\(args[1])-\(args[0]))))"
+
+		case .Random:
+			/* FIXME: According to the SQLite documentation, RANDOM() generates a number between -9223372036854775808
+			and +9223372036854775807. This should work to generate a random double between 0 and 1 (although there is
+			a slight bias introduced because the lower bound is one lower than the upper bound). */
+			return "ABS(RANDOM() / 9223372036854775807.0)"
+
 			/* FIXME: this is random once (before query execution), in the raster implementation it is random for each
 			row. Something like INDEX(RANDOM(), arg0, arg1, ...) might work (or even using CASE WHEN). */
-			case .RandomItem: return (args.count > 0) ? args[Int.random(0..<args.count)] : "NULL"
-			case .Log:
-				// LOG() can either receive two parameters (number, log base) or one (just number, log base is 10).
-				if args.count == 2 {
-					return "(LOG(\(args[0])) / LOG(\(args[1])))"
-				}
-				else {
-					return "(LOG(\(args[0])) / LOG(10))"
-				}
-			case .Ln:
-				return "(LOG(\(args[0])) / LOG(\(exp(1.0))))"
-			
-			case .Exp:
-				return "EXP(\(args[0]))"
-			
-			case .Round:
-				if args.count == 1 {
-					return "ROUND(\(args[0]), 0)"
-				}
-				else {
-					return "ROUND(\(args[0]), \(args[1]))"
-				}
-			
-			case .Sign:
-				return "(CASE WHEN \(args[0])=0 THEN 0 WHEN \(args[0])>0 THEN 1 ELSE -1 END)"
-			
-			
+		case .RandomItem: return (args.count > 0) ? args[Int.random(0..<args.count)] : "NULL"
+		case .Log:
+			// LOG() can either receive two parameters (number, log base) or one (just number, log base is 10).
+			if args.count == 2 {
+				return "(LOG(\(args[0])) / LOG(\(args[1])))"
+			}
+			else {
+				return "(LOG(\(args[0])) / LOG(10))"
+			}
+		case .Ln:
+			return "(LOG(\(args[0])) / LOG(\(exp(1.0))))"
+
+		case .Exp:
+			return "EXP(\(args[0]))"
+
+		case .Round:
+			if args.count == 1 {
+				return "ROUND(\(args[0]), 0)"
+			}
+			else {
+				return "ROUND(\(args[0]), \(args[1]))"
+			}
+
+		case .Sign:
+			return "(CASE WHEN \(args[0])=0 THEN 0 WHEN \(args[0])>0 THEN 1 ELSE -1 END)"
+
+
 			/* FIXME: These could simply call Function.Count.apply() if the parameters are constant, but then we need
 			the original Expression arguments. */
-			case .Count: return nil
-			case .CountDistinct: return nil
-			case .CountAll: return nil
-			case .Pack: return nil
-			case .Median: return nil
-			case .MedianLow: return nil
-			case .MedianHigh: return nil
-			case .MedianPack: return nil
-			case .StandardDeviationSample: return nil
-			case .StandardDeviationPopulation: return nil
-			case .VarianceSample: return nil
-			case .VariancePopulation: return nil
-			
-			// FIXME: should be implemented as CASE WHEN i=1 THEN a WHEN i=2 THEN b ... END
-			case .Choose: return nil
-			case .RegexSubstitute: return nil
-			case .NormalInverse: return nil
-			case .Split: return nil
-			case .Nth: return nil
-			case .Items: return nil
-			case .Levenshtein: return nil
-			case .URLEncode: return nil
-			case .Capitalize: return nil
-			case .UUID: return nil
+		case .Count: return nil
+		case .CountDistinct: return nil
+		case .CountAll: return nil
+		case .Pack: return nil
+		case .Median: return nil
+		case .MedianLow: return nil
+		case .MedianHigh: return nil
+		case .MedianPack: return nil
+		case .StandardDeviationSample: return nil
+		case .StandardDeviationPopulation: return nil
+		case .VarianceSample: return nil
+		case .VariancePopulation: return nil
 
-			// TODO: date function can probably be implemented in SQL
-			case .Now: return nil
-			case .ToUTCISO8601: return nil
-			case .FromUnixTime: return nil
-			case .ToUnixTime: return nil
-			case .ToLocalISO8601: return nil
-			case .FromISO8601: return nil
-			case .FromExcelDate: return nil
-			case .ToExcelDate: return nil
-			case .UTCDay: return nil
-			case .UTCHour: return nil
-			case .UTCMinute: return nil
-			case .UTCSecond: return nil
-			case .UTCYear: return nil
-			case .UTCMonth: return nil
-			case .UTCDate: return nil
-			case .Duration: return nil
-			case .After: return nil
-			/* TODO: Some databases probaby support date parsing and formatting with non-Unicode format strings; 
+		// FIXME: should be implemented as CASE WHEN i=1 THEN a WHEN i=2 THEN b ... END
+		case .Choose: return nil
+		case .RegexSubstitute: return nil
+		case .NormalInverse: return nil
+		case .Split: return nil
+		case .Nth: return nil
+		case .Items: return nil
+		case .Levenshtein: return nil
+		case .URLEncode: return nil
+		case .Capitalize: return nil
+		case .UUID: return nil
+
+		// TODO: date function can probably be implemented in SQL
+		case .Now: return nil
+		case .ToUTCISO8601: return nil
+		case .FromUnixTime: return nil
+		case .ToUnixTime: return nil
+		case .ToLocalISO8601: return nil
+		case .FromISO8601: return nil
+		case .FromExcelDate: return nil
+		case .ToExcelDate: return nil
+		case .UTCDay: return nil
+		case .UTCHour: return nil
+		case .UTCMinute: return nil
+		case .UTCSecond: return nil
+		case .UTCYear: return nil
+		case .UTCMonth: return nil
+		case .UTCDate: return nil
+		case .Duration: return nil
+		case .After: return nil
+			/* TODO: Some databases probaby support date parsing and formatting with non-Unicode format strings;
 			implement that by translating the format strings */
-			case .ToUnicodeDateString: return nil
-			case .FromUnicodeDateString: return nil
-			
-			case .RandomString: return nil
-			
-			case .Floor: return "FLOOR(\(args[0]))"
-			case .Ceiling: return "CEIL(\(args[0]))"
-			
-			case .In:
-				// Not all databases might support IN with arbitrary values. If so, generate OR(a=x; a=y; ..)
-				let first = args[0]
-				var conditions: [String] = []
-				for item in 1..<args.count {
-					let otherItem = args[item]
-					conditions.append(otherItem)
-				}
-				return "(\(first) IN (" + conditions.joined(separator: ", ") + "))"
-			
-			case .NotIn:
-				// Not all databases might support NOT IN with arbitrary values. If so, generate AND(a<>x; a<>y; ..)
-				let first = args[0]
-				var conditions: [String] = []
-				for item in 1..<args.count {
-					let otherItem = args[item]
-					conditions.append(otherItem)
-				}
-				return "(\(first) NOT IN (" + conditions.joined(separator: ", ") + "))"
-			
-			case .Power:
-				return "POW(\(args[0]), \(args[1]))"
+		case .ToUnicodeDateString: return nil
+		case .FromUnicodeDateString: return nil
 
-			case .IsEmpty:
-				return "(\(args[0]) IS NULL)"
+		case .RandomString: return nil
 
-			case .IsInvalid:
-				return nil
+		case .Floor: return "FLOOR(\(args[0]))"
+		case .Ceiling: return "CEIL(\(args[0]))"
 
-			case .JSONDecode:
-				return nil
+		case .In:
+			// Not all databases might support IN with arbitrary values. If so, generate OR(a=x; a=y; ..)
+			let first = args[0]
+			var conditions: [String] = []
+			for item in 1..<args.count {
+				let otherItem = args[item]
+				conditions.append(otherItem)
+			}
+			return "(\(first) IN (" + conditions.joined(separator: ", ") + "))"
 
-			case .ParseNumber:
-				var value = args[0]
+		case .NotIn:
+			// Not all databases might support NOT IN with arbitrary values. If so, generate AND(a<>x; a<>y; ..)
+			let first = args[0]
+			var conditions: [String] = []
+			for item in 1..<args.count {
+				let otherItem = args[item]
+				conditions.append(otherItem)
+			}
+			return "(\(first) NOT IN (" + conditions.joined(separator: ", ") + "))"
 
-				// Replace thousands separator
-				if args.count >= 2 {
-					value = "REPLACE(\(value), \(args[2]), '')"
-				}
+		case .Power:
+			return "POW(\(args[0]), \(args[1]))"
 
-				// Put in the right decimal separator
-				if args.count >= 1 {
-					value = "REPLACE(\(value), \(args[1]), '.')"
-				}
+		case .IsEmpty:
+			return "(\(args[0]) IS NULL)"
 
-				return self.forceNumericExpression(value)
+		case .IsInvalid:
+			return nil
+
+		case .JSONDecode:
+			return nil
+
+		case .ParseNumber:
+			var value = args[0]
+
+			// Replace thousands separator
+			if args.count >= 2 {
+				value = "REPLACE(\(value), \(args[2]), '')"
+			}
+
+			// Put in the right decimal separator
+			if args.count >= 1 {
+				value = "REPLACE(\(value), \(args[1]), '.')"
+			}
+
+			return self.forceNumericExpression(value)
 		}
 	}
-	
+
 	internal func valueToSQL(_ value: Value) -> String {
 		switch value {
 			case .string(let s):
 				return literalString(s)
-				
+
 			case .double(let d):
 				if d.isNormal || d.isZero {
 					return "\(d)"
@@ -1119,44 +1133,44 @@ public class SQLFragment {
 		let fullPart: String
 		if let p = part {
 			switch toType {
-				case .group:
-					fullPart = "\(source.sql) GROUP BY \(p)"
-				
-				case .where:
-					fullPart = "\(source.sql) WHERE \(p)"
-				
-				case .join:
-					fullPart = "\(source.sql) \(p)"
-				
-				case .having:
-					fullPart = "\(source.sql) HAVING \(p)"
-				
-				case .order:
-					fullPart = "\(source.sql) ORDER BY \(p)"
-				
-				case .limit:
-					fullPart = "\(source.sql) LIMIT \(p)"
+			case .group:
+				fullPart = "\(source.sql) GROUP BY \(p)"
 
-				case .offset:
-					fullPart = "\(source.sql) OFFSET \(p)"
+			case .where:
+				fullPart = "\(source.sql) WHERE \(p)"
 
-				case .select:
-					fullPart = "SELECT \(p) \(source.sql)"
-				
-				case .union:
-					fullPart = "(\(source.sql)) UNION (\(p))";
-				
-				case .from:
-					fatalError("Cannot advance to FROM with a part")
+			case .join:
+				fullPart = "\(source.sql) \(p)"
+
+			case .having:
+				fullPart = "\(source.sql) HAVING \(p)"
+
+			case .order:
+				fullPart = "\(source.sql) ORDER BY \(p)"
+
+			case .limit:
+				fullPart = "\(source.sql) LIMIT \(p)"
+
+			case .offset:
+				fullPart = "\(source.sql) OFFSET \(p)"
+
+			case .select:
+				fullPart = "SELECT \(p) \(source.sql)"
+
+			case .union:
+				fullPart = "(\(source.sql)) UNION (\(p))";
+
+			case .from:
+				fatalError("Cannot advance to FROM with a part")
 			}
 		}
 		else {
 			switch toType {
-				case .select:
-					fullPart = "SELECT * \(source.sql)"
-				
-				default:
-					fullPart = source.sql
+			case .select:
+				fullPart = "SELECT * \(source.sql)"
+
+			default:
+				fullPart = source.sql
 			}
 		}
 		

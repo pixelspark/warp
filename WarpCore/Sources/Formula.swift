@@ -1,3 +1,17 @@
+/** Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 import Foundation
 import SwiftParser
 
@@ -14,23 +28,18 @@ public class Formula: Parser {
 		public let end: Int
 		public let expression: Expression
 		
-		public var length: Int { get {
+		public var length: Int {
 			return end - start
-		} }
+		}
 	}
-	
-	private var stack = Stack<Expression>()
-	private var callStack = Stack<CallSite>()
+
 	let locale: Language
 	public let originalText: String
 	public private(set) var fragments: [Fragment] = []
+
+	private var stack = Stack<Expression>()
+	private var callStack = Stack<CallSite>()
 	private var error: Bool = false
-	
-	public var root: Expression {
-		get {
-			return stack.head
-		}
-	}
 	
 	public init?(formula: String, locale: Language) {
 		self.originalText = formula
@@ -41,6 +50,10 @@ public class Formula: Parser {
 			return nil
 		}
 		super.captures.removeAll(keepingCapacity: false)
+	}
+
+	public var root: Expression {
+		return stack.head
 	}
 	
 	private func annotate(_ expression: Expression) {
@@ -239,27 +252,30 @@ public class Formula: Parser {
 		add_named_rule("timestamp",			rule: ("@" ~ ^"digits" ~ (locale.decimalSeparator ~ ^"digits")/~) => pushTimestamp)
 		add_named_rule("doubleNumber",		rule: (^"digits" ~ (locale.decimalSeparator ~ ^"digits")/~) => pushDouble)
 		add_named_rule("negativeNumber",	rule: ("-" ~ ^"doubleNumber") => pushNegate)
-		add_named_rule("postfixedNumber",  rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"numberPostfix")
+		add_named_rule("postfixedNumber",	rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"numberPostfix")
 		
-		add_named_rule("value", rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"foreign" | ^"subexpression")
-		add_named_rule("indexedValue", rule: ^"value" ~~ (("[" ~~ ^"value" ~~ "]") => pushIndex)*)
-		add_named_rule("exponent", rule: ^"indexedValue" ~~ (("^" ~~ ^"indexedValue") => pushPower)*)
+		add_named_rule("value",				rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"foreign" | ^"subexpression")
+		add_named_rule("indexedValue",		rule: ^"value" ~~ (("[" ~~ ^"value" ~~ "]") => pushIndex)*)
+		add_named_rule("exponent",			rule: ^"indexedValue" ~~ (("^" ~~ ^"indexedValue") => pushPower)*)
+
 		let factor = ^"exponent" ~~ ((("*" ~~ ^"exponent") => pushMultiplication) | (("/" ~~ ^"exponent") => pushDivision) | (("~" ~~ ^"exponent") => pushModulus))*
 		let addition = factor ~~ (("+" ~~ factor => pushAddition) | ("-" ~~ factor => pushSubtraction))*
-		add_named_rule("concatenation", rule: addition ~~ (("&" ~~ addition) => pushConcat)*)
+
+		add_named_rule("concatenation",		rule: addition ~~ (("&" ~~ addition) => pushConcat)*)
 		
 		// Comparisons
-		add_named_rule("containsString", rule: ("~=" ~~ ^"concatenation") => pushContainsString)
+		add_named_rule("containsString",	rule: ("~=" ~~ ^"concatenation") => pushContainsString)
 		add_named_rule("containsStringStrict", rule: ("~~=" ~~ ^"concatenation") => pushContainsStringStrict)
-		add_named_rule("matchesRegex", rule: ("±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(Binary.matchesRegex) })
+		add_named_rule("matchesRegex",		rule: ("±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(Binary.matchesRegex) })
 		add_named_rule("matchesRegexStrict", rule: ("±±=" ~~ ^"concatenation") => { [unowned self] in self.pushBinary(Binary.matchesRegexStrict)})
-		add_named_rule("greater", rule: (">" ~~ ^"concatenation") => pushGreater)
-		add_named_rule("greaterEqual", rule: (">=" ~~ ^"concatenation") => pushGreaterEqual)
-		add_named_rule("lesser", rule: ("<" ~~ ^"concatenation") => pushLesser)
-		add_named_rule("lesserEqual", rule: ("<=" ~~ ^"concatenation") => pushLesserEqual)
-		add_named_rule("equal", rule: ("=" ~~ ^"concatenation") => pushEqual)
-		add_named_rule("notEqual", rule: ("<>" ~~ ^"concatenation") => pushNotEqual)
-		add_named_rule("logic", rule: ^"concatenation" ~~ (^"greaterEqual" | ^"greater" | ^"lesserEqual" | ^"lesser" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict" | ^"matchesRegex" | ^"matchesRegexStrict" )*)
+		add_named_rule("greater",			rule: (">" ~~ ^"concatenation") => pushGreater)
+		add_named_rule("greaterEqual",		rule: (">=" ~~ ^"concatenation") => pushGreaterEqual)
+		add_named_rule("lesser",			rule: ("<" ~~ ^"concatenation") => pushLesser)
+		add_named_rule("lesserEqual",		rule: ("<=" ~~ ^"concatenation") => pushLesserEqual)
+		add_named_rule("equal",				rule: ("=" ~~ ^"concatenation") => pushEqual)
+		add_named_rule("notEqual",			rule: ("<>" ~~ ^"concatenation") => pushNotEqual)
+		add_named_rule("logic",				rule: ^"concatenation" ~~ (^"greaterEqual" | ^"greater" | ^"lesserEqual" | ^"lesser" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict" | ^"matchesRegex" | ^"matchesRegexStrict" )*)
+
 		let formula = (Formula.prefix)/~ ~~ self.whitespace ~~ (^"logic")*!*
 		start_rule = formula
 	}

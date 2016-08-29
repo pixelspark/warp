@@ -43,6 +43,8 @@
 		656889621C146637008D1A7D /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656889541C146637008D1A7D /* Value.swift */; };
 		6568896B1C1466CB008D1A7D /* WarpCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 656889681C146683008D1A7D /* WarpCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		656889791C14673F008D1A7D /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 656889761C146738008D1A7D /* SwiftParser.framework */; };
+		65A1436F1D74C26C0020192D /* Transformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1436E1D74C26C0020192D /* Transformer.swift */; };
+		65A143701D74C26C0020192D /* Transformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1436E1D74C26C0020192D /* Transformer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -117,6 +119,8 @@
 		656889681C146683008D1A7D /* WarpCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WarpCore.h; sourceTree = "<group>"; };
 		6568896A1C14668B008D1A7D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Tests/Info.plist; sourceTree = "<group>"; };
 		656889701C146738008D1A7D /* SwiftParser.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftParser.xcodeproj; path = Libraries/SwiftParserGenerator/SwiftParser.xcodeproj; sourceTree = "<group>"; };
+		65A1436E1D74C26C0020192D /* Transformer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Transformer.swift; path = Sources/Transformer.swift; sourceTree = "<group>"; };
+		65A143721D74C3D70020192D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,11 +153,12 @@
 		656889141C1465CE008D1A7D = {
 			isa = PBXGroup;
 			children = (
+				65A143721D74C3D70020192D /* README.md */,
 				6527AA021C147B1400B9159A /* Package.swift */,
-				656889701C146738008D1A7D /* SwiftParser.xcodeproj */,
-				656889461C14662E008D1A7D /* Sources */,
-				656889631C14663F008D1A7D /* Tests */,
 				6568891F1C1465CE008D1A7D /* Products */,
+				656889461C14662E008D1A7D /* Sources */,
+				656889701C146738008D1A7D /* SwiftParser.xcodeproj */,
+				656889631C14663F008D1A7D /* Tests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -186,6 +191,7 @@
 				656889511C146637008D1A7D /* SQL.swift */,
 				656889521C146637008D1A7D /* Stats.swift */,
 				656889531C146637008D1A7D /* Stream.swift */,
+				65A1436E1D74C26C0020192D /* Transformer.swift */,
 				656889541C146637008D1A7D /* Value.swift */,
 				656889681C146683008D1A7D /* WarpCore.h */,
 			);
@@ -206,7 +212,7 @@
 			children = (
 				656889761C146738008D1A7D /* SwiftParser.framework */,
 				656889781C146738008D1A7D /* SwiftParserTests.xctest */,
-				65646B7E1D577D5100E58137 /* SwiftParseriOS.framework */,
+				65646B7E1D577D5100E58137 /* SwiftParser.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -347,10 +353,10 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		65646B7E1D577D5100E58137 /* SwiftParseriOS.framework */ = {
+		65646B7E1D577D5100E58137 /* SwiftParser.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
-			path = SwiftParseriOS.framework;
+			path = SwiftParser.framework;
 			remoteRef = 65646B7D1D577D5100E58137 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -415,6 +421,7 @@
 				65646B9B1D577EC600E58137 /* Stats.swift in Sources */,
 				65646B9C1D577EC600E58137 /* Stream.swift in Sources */,
 				65646B9D1D577EC600E58137 /* Value.swift in Sources */,
+				65A143701D74C26C0020192D /* Transformer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -437,6 +444,7 @@
 				6568895B1C146637008D1A7D /* Language.swift in Sources */,
 				656889591C146637008D1A7D /* Function.swift in Sources */,
 				656889551C146637008D1A7D /* Data.swift in Sources */,
+				65A1436F1D74C26C0020192D /* Transformer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -709,6 +717,7 @@
 				65646B8D1D577E6600E58137 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		656889181C1465CE008D1A7D /* Build configuration list for PBXProject "WarpCore" */ = {
 			isa = XCConfigurationList;

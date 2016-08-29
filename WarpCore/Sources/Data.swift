@@ -1,7 +1,23 @@
+/** Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 import Foundation
 
 public typealias Tuple = [Value]
 
+/** Represents a row in a data set. A row consists of a set of values, each belonging to a column. The columns and values
+are ordered, and column names are unique within a row (and generally within a data set). */
 public struct Row {
 	public internal(set) var values: Tuple
 	public internal(set) var columns: OrderedSet<Column>
@@ -98,9 +114,9 @@ public struct Column: ExpressibleByStringLiteral, Hashable, CustomDebugStringCon
 		}
 	}
 
-	/** Return Excel-style column name for column at a given index (starting at 0). Note: do not use to generate the name
-	of a column that is to be added to an existing set (column names must be unique). Use defaultNameForNewColumn to 
-	generate a new, unique name. */
+	/** Return a generated column name for a column at a given index (starting at 0). Note: do not use to generate the 
+	name of a column that is to be added to an existing set (column names must be unique). Use defaultNameForNewColumn 
+	to generate a new, unique name. */
 	public static func defaultNameForIndex(_ index: Int) -> Column {
 		var myIndex = index
 		let x = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
@@ -137,22 +153,7 @@ public func != (lhs: Column, rhs: Column) -> Bool {
 	return !(lhs == rhs)
 }
 
-/** This helper function can be used to create a lazily-computed variable. */
-func memoize<T>(_ result: @escaping () -> T) -> () -> T {
-	var cached: T? = nil
-	
-	return {() in
-		if let v = cached {
-			return v
-		}
-		else {
-			cached = result()
-			return cached!
-		}
-	}
-}
-
-/** Specification of a sort */
+/** Order specifies a way to sort a set of rows. */
 public class Order: NSObject, NSCoding {
 	public var expression: Expression?
 	public var ascending: Bool = true

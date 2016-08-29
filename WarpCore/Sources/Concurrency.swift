@@ -1,5 +1,21 @@
+/** Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 import Foundation
 
+/** Log a message through the main dispatch queue (to prevent messages from being mingled, as Swift.print does not
+appear to be thread-safe). Trace messages are not emitted in release builds. */
 public func trace(_ message: String, file: StaticString = #file, line: UInt = #line) {
 	#if DEBUG
 		DispatchQueue.main.async {
@@ -8,6 +24,8 @@ public func trace(_ message: String, file: StaticString = #file, line: UInt = #l
 	#endif
 }
 
+/** Asserts that the thread calling this function is the main thread. This can be used to ensure that code that must run
+on the main thread never runs on another. */
 public func assertMainThread(_ file: StaticString = #file, line: UInt = #line) {
 	assert(Thread.isMainThread, "Code at \(file):\(line) must run on main thread!")
 }
@@ -32,6 +50,24 @@ public func once<P, R>(_ block: ((P) -> (R))) -> ((P) -> (R)) {
 	#else
 		return block
 	#endif
+}
+
+/** This helper function can be used to create a lazily-computed variable, in a thread-safe way. */
+func memoize<T>(_ result: @escaping () -> T) -> () -> T {
+	var cached: T? = nil
+	let mutex = Mutex()
+
+	return {() in
+		return mutex.locked {
+			if let v = cached {
+				return v
+			}
+			else {
+				cached = result()
+				return cached!
+			}
+		}
+	}
 }
 
 /** Throttle wraps a block with throttling logic, guarantueeing that the block will never be called (by enquueing 
@@ -95,6 +131,7 @@ public func asyncMain(_ block: @escaping () -> ()) {
 	DispatchQueue.main.async(execute: block)
 }
 
+/** Extensions to process sequences in parallel. */
 public extension Sequence {
 	typealias Element = Iterator.Element
 	

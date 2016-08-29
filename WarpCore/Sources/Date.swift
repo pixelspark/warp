@@ -1,3 +1,17 @@
+/** Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 import Foundation
 import SwiftParser
 
@@ -10,7 +24,7 @@ public extension Date {
 	
 	/** The 'Excel epoch', or the beginning of time according to Microsoft Excel. This is what the date '0' translates
 	to in Excel (actually on my PC it says '0 january 1900', which of course doesn't exist). */
-	static var excelEpoch: Date { get {
+	static var excelEpoch: Date {
 		var calendar = Calendar(identifier: Calendar.Identifier.gregorian)
 		var comps = DateComponents()
 		comps.year = 1899
@@ -21,7 +35,7 @@ public extension Date {
 		comps.second = 0
 		calendar.timeZone = TimeZone(abbreviation: "UTC")!
 		return calendar.date(from: comps)!
-	} }
+	}
 	
 	/** Returns the time at which the indicated Gregorian date starts in the UTC timezone. */
 	static func startOfGregorianDateInUTC(_ year: Int, month: Int, day: Int) -> Date {
@@ -52,10 +66,10 @@ public extension Date {
 		return locale.calendar.dateComponents(in: locale.timeZone, from: self)
 	}
 	
-	var gregorianComponentsInUTC: DateComponents { get {
+	var gregorianComponentsInUTC: DateComponents {
 		let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
 		return calendar.dateComponents(in: TimeZone(abbreviation: "UTC")!, from: self)
-	} }
+	}
 
 	func fullDaysTo(_ otherDate: Date) -> Int {
 		let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
@@ -82,9 +96,9 @@ public extension Date {
 	Note that Excel seems to be using the user's timezone instead of UTC in calculating the above (I haven't tested, but
 	it may even use a calculation in UTC to determine the integer part of the Excel date, but show the time in the local
 	time zone. ',999' translates to 23:59 and I'm in UTC+2 currently). */
-	var excelDate: Double? { get {
+	var excelDate: Double? {
 		return self.timeIntervalSince(Date.excelEpoch) / 86400.0
-	} }
+	}
 	
 	static func fromExcelDate(_ date: Double) -> Date? {
 		let daysSinceEpoch = Int(floor(date))
@@ -95,22 +109,22 @@ public extension Date {
 	
 	/**	Returns an ISO-8601 formatted string of this date, in the locally preferred timezone. Should only be used for
 	presentational purposes. */
-	var iso8601FormattedLocalDate: String { get {
+	var iso8601FormattedLocalDate: String {
 		let dateFormatter = DateFormatter()
 		dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
 		return dateFormatter.string(from: self)
-		} }
+	}
 	
 	/** Returns an ISO-8601 formatted string representation of this date, in the UTC timezone ('Zulu time', that's why it
 	ends in 'Z'). */
-	var iso8601FormattedUTCDate: String { get {
+	var iso8601FormattedUTCDate: String {
 		let formatter = DateFormatter()
 		formatter.timeZone = TimeZone(abbreviation: "UTC")
 		formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 		return formatter.string(from: self)
-	} }
+	}
 	
-	var unixTime: Double { get {
+	var unixTime: Double {
 		return self.timeIntervalSince1970
-	} }
+	}
 }

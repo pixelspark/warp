@@ -1,3 +1,17 @@
+/** Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 import Foundation
 
 internal let expressions: [Expression.Type] = [
@@ -15,15 +29,15 @@ public class Expression: NSObject, NSCoding {
 	}
 	
 	/** The complexity of an expression is an indication of how 'far fetched' it is */
-	public var complexity: Int { get {
+	public var complexity: Int {
 		return 1
-	}}
+	}
 	
 	/** Returns whether the result of this expression is independent of the row fed to it. An expression that reports it
 	is constant is guaranteed to return a value for apply() called without a row, set of columns and input value. */
-	public var isConstant: Bool { get {
+	public var isConstant: Bool {
 		return false
-	} }
+	}
 	
 	/** Returns a version of this expression that has constant parts replaced with their actual values. */
 	public func prepare() -> Expression {
@@ -196,13 +210,13 @@ public final class Literal: Expression {
 		return value.hashValue
 	}
 
-	override public var complexity: Int { get {
+	override public var complexity: Int {
 		return 10
-	}}
+	}
 	
-	public override var isConstant: Bool { get {
+	public override var isConstant: Bool {
 		return true
-	} }
+	}
 	
 	public required init?(coder aDecoder: NSCoder) {
 		self.value = ((aDecoder.decodeObject(forKey: "value") as? ValueCoder) ?? ValueCoder()).value
@@ -318,9 +332,9 @@ public final class Comparison: Expression {
 	public let second: Expression
 	public var type: Binary
 	
-	public override var isConstant: Bool { get {
+	public override var isConstant: Bool {
 		return first.isConstant && second.isConstant
-	} }
+	}
 
 	public override var hashValue: Int {
 		return first.hashValue ^ (second.hashValue >> 3)
@@ -386,9 +400,9 @@ public final class Comparison: Expression {
 		return "\(start)\(second.toFormula(locale))\(type.toFormula(locale))\(first.toFormula(locale))\(end)"
 	}
 	
-	override public var complexity: Int { get {
+	override public var complexity: Int {
 		return first.complexity + second.complexity + 5
-	}}
+	}
 	
 	public init(first: Expression, second: Expression, type: Binary) {
 		self.first = first
@@ -532,7 +546,7 @@ public final class Call: Expression {
 		return arguments.reduce(type.hashValue) { t, e in return t ^ e.hashValue }
 	}
 	
-	public override var isConstant: Bool { get {
+	public override var isConstant: Bool {
 		if !type.isDeterministic {
 			return false
 		}
@@ -544,7 +558,7 @@ public final class Call: Expression {
 		}
 		
 		return true
-	} }
+	}
 	
 	public override func visit( _ callback: (Expression) -> (Expression)) -> Expression {
 		let newArguments = arguments.map({$0.visit(callback)})
