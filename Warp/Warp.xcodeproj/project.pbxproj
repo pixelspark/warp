@@ -355,6 +355,7 @@
 		651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChainTabletViewController.swift; sourceTree = "<group>"; };
 		651C687F1C70E96600F0F048 /* QBENote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENote.swift; sourceTree = "<group>"; };
 		651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENoteTabletViewController.swift; sourceTree = "<group>"; };
+		65292F461D7CACFA0053ADE3 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEKeySelectionViewController.swift; sourceTree = "<group>"; };
 		656822551D78D60E00410BA5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Libraries/Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
@@ -815,6 +816,7 @@
 		65E3C2AB1A05222F007BB3C8 = {
 			isa = PBXGroup;
 			children = (
+				65292F461D7CACFA0053ADE3 /* LICENSE.md */,
 				651988E71A0F9C39003463AA /* Libraries */,
 				65E3C2ED1A062E5E007BB3C8 /* Sources */,
 				65D7A9861BF793D5005AD925 /* Resources */,
