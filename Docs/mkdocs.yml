@@ -1,0 +1,24 @@
+site_name: Warp
+copyright: Pixelspark, 2014-2016
+theme: readthedocs
+
+pages:
+- Home: index.md
+
+- Using Warp:
+    - Getting started: getting-started.md
+    - Loading data: sources.md
+    - Transforming data: steps.md
+    - Writing formulas: formulas.md
+
+- Tutorials:
+    - Crawling websites: tutorial-crawling.md
+
+- In depth:
+    - Language support: language.md
+    - Performance: performance.md
+    - Packs: 'pack.md'
+    - Semantics: semantics.md
+- What's new: whatsnew.md
+- Known issues: knownissues.md
+- FAQ: faq.md
