@@ -18,7 +18,6 @@
 		651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */; };
 		65436EDD1B30C38000636299 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; };
 		65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
-		655BD63B1C146DF300634C66 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A115011BCD969A007BC661 /* Rethink.framework */; };
 		656258D91C94AE100063253C /* QBEKeySelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */; };
 		656822561D78D60E00410BA5 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 656822551D78D60E00410BA5 /* libiconv.tbd */; };
 		65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -98,8 +97,6 @@
 		6583EF291C14758B00AE6C00 /* QBEStepItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEDE1C14758B00AE6C00 /* QBEStepItemView.swift */; };
 		6583EF2A1C14758B00AE6C00 /* QBEViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEDF1C14758B00AE6C00 /* QBEViewExtensions.swift */; };
 		6583EF2D1C1475B900AE6C00 /* QBETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EF2C1C1475AA00AE6C00 /* QBETests.swift */; };
-		65A115041BCD96A6007BC661 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A115011BCD969A007BC661 /* Rethink.framework */; };
-		65A115051BCD96A6007BC661 /* Rethink.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65A115011BCD969A007BC661 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65B3CC611CA3D055003FC6DF /* QBESetEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC601CA3D055003FC6DF /* QBESetEditorViewController.swift */; };
 		65B3CC631CA96408003FC6DF /* QBEMapTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC621CA96408003FC6DF /* QBEMapTabletViewController.swift */; };
 		65B3CC661CA9642F003FC6DF /* QBEMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC651CA9642F003FC6DF /* QBEMap.swift */; };
@@ -113,6 +110,8 @@
 		65B774751C9FE8AF006480B2 /* missing-columns.csv in Resources */ = {isa = PBXBuildFile; fileRef = 65B774741C9FE8AF006480B2 /* missing-columns.csv */; };
 		65B774771CA05596006480B2 /* escapes.csv in Resources */ = {isa = PBXBuildFile; fileRef = 65B774761CA05596006480B2 /* escapes.csv */; };
 		65D1C8A31D4E86D300967C26 /* QBEHTTPStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D1C8A21D4E86D300967C26 /* QBEHTTPStep.swift */; };
+		65DAF6CA1D7C6FFD00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6C91D7C6FFD00163750 /* Rethink.framework */; };
+		65DAF6CF1D7C719D00163750 /* Rethink.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65DAF6CE1D7C719D00163750 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65E224521D7C5E3F007433E6 /* AccessibilityImageDescriptions.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFFA1C1475DF00AE6C00 /* AccessibilityImageDescriptions.strings */; };
 		65E224531D7C5E3F007433E6 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFFC1C1475DF00AE6C00 /* Credits.rtf */; };
 		65E224541D7C5E3F007433E6 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFB81C1475D900AE6C00 /* Images.xcassets */; };
@@ -252,27 +251,6 @@
 			remoteGlobalIDString = F829C6B11A7A94F100A2CD59;
 			remoteInfo = "Alamofire OSX Tests";
 		};
-		65A115001BCD969A007BC661 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65A114F71BCD969A007BC661 /* Rethink.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 65F739D11BC9502400B5E62D;
-			remoteInfo = Rethink;
-		};
-		65A115021BCD969A007BC661 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65A114F71BCD969A007BC661 /* Rethink.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 65F739DB1BC9502400B5E62D;
-			remoteInfo = RethinkTests;
-		};
-		65A115061BCD96A6007BC661 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65A114F71BCD969A007BC661 /* Rethink.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 65F739D01BC9502400B5E62D;
-			remoteInfo = Rethink;
-		};
 		65A78CEA1D74CB1300036045 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65A78CE51D74CB1300036045 /* WarpAI.xcodeproj */;
@@ -293,13 +271,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 65F2DCA51CDF4B0B0099B3DB;
 			remoteInfo = WarpAI;
-		};
-		65AD1A281D64DC1B00EE3F91 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65A114F71BCD969A007BC661 /* Rethink.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 65646BA31D577F2F00E58137;
-			remoteInfo = "Rethink iOS";
 		};
 		65B3F6941C73CF93000983D0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -361,12 +332,12 @@
 			files = (
 				65F50EB91D78D2AF00F6FAE5 /* WarpConduit.framework in CopyFiles */,
 				65F50EBB1D78D2B700F6FAE5 /* WarpCore.framework in CopyFiles */,
+				65DAF6CF1D7C719D00163750 /* Rethink.framework in CopyFiles */,
 				65F50EBC1D78D2F300F6FAE5 /* WarpAI.framework in CopyFiles */,
 				65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */,
 				65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */,
 				65B3F6A41C73CFC0000983D0 /* Charts.framework in CopyFiles */,
 				65F50EBE1D78D34E00F6FAE5 /* SwiftParser.framework in CopyFiles */,
-				65A115051BCD96A6007BC661 /* Rethink.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -507,7 +478,6 @@
 		6583F0271C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Tour.strings; sourceTree = SOURCE_ROOT; };
 		6588728D1D7C5BB700D56137 /* Warp.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = Warp.entitlements; sourceTree = SOURCE_ROOT; };
 		6588729B1D7C5BCF00D56137 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
-		65A114F71BCD969A007BC661 /* Rethink.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rethink.xcodeproj; path = Libraries/Rethink/Rethink.xcodeproj; sourceTree = "<group>"; };
 		65A78CE51D74CB1300036045 /* WarpAI.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = WarpAI.xcodeproj; path = Libraries/WarpAI/WarpAI.xcodeproj; sourceTree = "<group>"; };
 		65AD6CEA1D6F91180020F478 /* libcommonCrypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcommonCrypto.tbd; path = usr/lib/system/libcommonCrypto.tbd; sourceTree = SDKROOT; };
 		65AD6CEC1D6F91360020F478 /* libcorecrypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcorecrypto.tbd; path = usr/lib/system/libcorecrypto.tbd; sourceTree = SDKROOT; };
@@ -527,6 +497,8 @@
 		65B774741C9FE8AF006480B2 /* missing-columns.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "missing-columns.csv"; path = "Tests/Data/missing-columns.csv"; sourceTree = SOURCE_ROOT; };
 		65B774761CA05596006480B2 /* escapes.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = escapes.csv; path = Tests/Data/escapes.csv; sourceTree = SOURCE_ROOT; };
 		65D1C8A21D4E86D300967C26 /* QBEHTTPStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEHTTPStep.swift; sourceTree = "<group>"; };
+		65DAF6C91D7C6FFD00163750 /* Rethink.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Rethink.framework; path = "/Users/tommy/Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/Rethink.framework"; sourceTree = "<absolute>"; };
+		65DAF6CE1D7C719D00163750 /* Rethink.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Rethink.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E224901D7C5EED007433E6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = SOURCE_ROOT; };
 		65E224971D7C5F41007433E6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEJobViewController.xib; sourceTree = SOURCE_ROOT; };
 		65E2249C1D7C5F8C007433E6 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEJobViewController.strings; sourceTree = SOURCE_ROOT; };
@@ -550,6 +522,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65DAF6CA1D7C6FFD00163750 /* Rethink.framework in Frameworks */,
 				656822561D78D60E00410BA5 /* libiconv.tbd in Frameworks */,
 				65E224AB1D7C605B007433E6 /* libssl.35.dylib in Frameworks */,
 				65E224AD1D7C605E007433E6 /* libcrypto.35.dylib in Frameworks */,
@@ -557,7 +530,6 @@
 				65E224A71D7C604C007433E6 /* libpq.a in Frameworks */,
 				65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */,
 				65E224A41D7C600F007433E6 /* WarpCore.framework in Frameworks */,
-				65A115041BCD96A6007BC661 /* Rethink.framework in Frameworks */,
 				65B3F6A31C73CFC0000983D0 /* Charts.framework in Frameworks */,
 				6510A7391A4D9832005633EF /* MBTableGrid.framework in Frameworks */,
 			);
@@ -569,7 +541,6 @@
 			files = (
 				65E224AF1D7C60C8007433E6 /* WarpCore.framework in Frameworks */,
 				65E224AE1D7C60C5007433E6 /* WarpConduit.framework in Frameworks */,
-				655BD63B1C146DF300634C66 /* Rethink.framework in Frameworks */,
 				65436EDD1B30C38000636299 /* Alamofire.framework in Frameworks */,
 				65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */,
 			);
@@ -593,7 +564,6 @@
 				65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */,
 				65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */,
 				6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */,
-				65A114F71BCD969A007BC661 /* Rethink.xcodeproj */,
 				65A78CE51D74CB1300036045 /* WarpAI.xcodeproj */,
 			);
 			name = Libraries;
@@ -602,6 +572,7 @@
 		653D19D81D1C76AC0094C441 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				65DAF6CE1D7C719D00163750 /* Rethink.framework */,
 				65E224AC1D7C605E007433E6 /* libcrypto.35.dylib */,
 				65E224AA1D7C605B007433E6 /* libssl.35.dylib */,
 				65E224A81D7C6055007433E6 /* libmariadbclient.a */,
@@ -767,16 +738,6 @@
 			path = Sources/View;
 			sourceTree = SOURCE_ROOT;
 		};
-		65A114F81BCD969A007BC661 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				65A115011BCD969A007BC661 /* Rethink.framework */,
-				65A115031BCD969A007BC661 /* RethinkTests.xctest */,
-				65AD1A291D64DC1B00EE3F91 /* Rethink.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		65A78CE61D74CB1300036045 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -916,7 +877,6 @@
 				65A78CF01D74CBAA00036045 /* PBXTargetDependency */,
 				65734BCE1AB0380F00D2C2F6 /* PBXTargetDependency */,
 				6510A7381A4D982E005633EF /* PBXTargetDependency */,
-				65A115071BCD96A6007BC661 /* PBXTargetDependency */,
 				65B3F6A61C73CFC0000983D0 /* PBXTargetDependency */,
 			);
 			name = Warp;
@@ -1002,10 +962,6 @@
 					ProjectRef = 6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */;
 				},
 				{
-					ProductGroup = 65A114F81BCD969A007BC661 /* Products */;
-					ProjectRef = 65A114F71BCD969A007BC661 /* Rethink.xcodeproj */;
-				},
-				{
 					ProductGroup = 65A78CE61D74CB1300036045 /* Products */;
 					ProjectRef = 65A78CE51D74CB1300036045 /* WarpAI.xcodeproj */;
 				},
@@ -1068,20 +1024,6 @@
 			remoteRef = 65734BCA1AB0380200D2C2F6 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		65A115011BCD969A007BC661 /* Rethink.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Rethink.framework;
-			remoteRef = 65A115001BCD969A007BC661 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		65A115031BCD969A007BC661 /* RethinkTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = RethinkTests.xctest;
-			remoteRef = 65A115021BCD969A007BC661 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		65A78CEB1D74CB1300036045 /* WarpAI.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -1094,13 +1036,6 @@
 			fileType = wrapper.framework;
 			path = WarpAI.framework;
 			remoteRef = 65A78CEC1D74CB1300036045 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		65AD1A291D64DC1B00EE3F91 /* Rethink.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Rethink.framework;
-			remoteRef = 65AD1A281D64DC1B00EE3F91 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		65B3F6951C73CF93000983D0 /* Charts.framework */ = {
@@ -1343,11 +1278,6 @@
 			isa = PBXTargetDependency;
 			name = "Alamofire OSX Tests";
 			targetProxy = 65734BCF1AB0381500D2C2F6 /* PBXContainerItemProxy */;
-		};
-		65A115071BCD96A6007BC661 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Rethink;
-			targetProxy = 65A115061BCD96A6007BC661 /* PBXContainerItemProxy */;
 		};
 		65A78CF01D74CBAA00036045 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

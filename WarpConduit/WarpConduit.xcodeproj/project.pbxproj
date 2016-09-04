@@ -14,6 +14,8 @@
 		656822951D78D69300410BA5 /* TCMXMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6568227C1D78D69300410BA5 /* TCMXMLWriter.m */; };
 		656822A31D78D89C00410BA5 /* DBFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A21D78D89C00410BA5 /* DBFStream.swift */; };
 		656822A51D78D93500410BA5 /* CSVStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A41D78D93500410BA5 /* CSVStream.swift */; };
+		65DAF6C61D7C6F3C00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6BF1D7C6F2A00163750 /* Rethink.framework */; };
+		65DAF6C81D7C6F8500163750 /* RethinkStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DAF6C71D7C6F8500163750 /* RethinkStream.swift */; };
 		65F50E961D78CE6300F6FAE5 /* WarpConduit.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50E941D78CE6300F6FAE5 /* WarpConduit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		65F50E971D78CE6300F6FAE5 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 65F50E951D78CE6300F6FAE5 /* Info.plist */; };
 		65F50E9C1D78CED100F6FAE5 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50E9B1D78CED100F6FAE5 /* WarpCore.framework */; };
@@ -85,6 +87,34 @@
 			remoteGlobalIDString = F2D9016313D0795F00E23494;
 			remoteInfo = UnitTests;
 		};
+		65DAF6BE1D7C6F2A00163750 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65F739D11BC9502400B5E62D;
+			remoteInfo = Rethink;
+		};
+		65DAF6C01D7C6F2A00163750 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65F739DB1BC9502400B5E62D;
+			remoteInfo = RethinkTests;
+		};
+		65DAF6C21D7C6F2A00163750 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65646BA31D577F2F00E58137;
+			remoteInfo = "Rethink iOS";
+		};
+		65DAF6C41D7C6F3500163750 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 65F739D01BC9502400B5E62D;
+			remoteInfo = Rethink;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -116,6 +146,8 @@
 		656822851D78D69300410BA5 /* UnitTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UnitTests.m; sourceTree = "<group>"; };
 		656822A21D78D89C00410BA5 /* DBFStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DBFStream.swift; path = Sources/DBFStream.swift; sourceTree = SOURCE_ROOT; };
 		656822A41D78D93500410BA5 /* CSVStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CSVStream.swift; path = Sources/CSVStream.swift; sourceTree = SOURCE_ROOT; };
+		65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rethink.xcodeproj; path = Libraries/Rethink/Rethink.xcodeproj; sourceTree = "<group>"; };
+		65DAF6C71D7C6F8500163750 /* RethinkStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RethinkStream.swift; path = Sources/RethinkStream.swift; sourceTree = SOURCE_ROOT; };
 		65F50E891D78CE1000F6FAE5 /* WarpConduit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpConduit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65F50E941D78CE6300F6FAE5 /* WarpConduit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WarpConduit.h; path = Sources/WarpConduit.h; sourceTree = SOURCE_ROOT; };
 		65F50E951D78CE6300F6FAE5 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Sources/Info.plist; sourceTree = SOURCE_ROOT; };
@@ -181,6 +213,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65DAF6C61D7C6F3C00163750 /* Rethink.framework in Frameworks */,
 				656822541D78D60600410BA5 /* libiconv.tbd in Frameworks */,
 				65F50F1C1D78D3F500F6FAE5 /* libpq.a in Frameworks */,
 				65F50E9C1D78CED100F6FAE5 /* WarpCore.framework in Frameworks */,
@@ -265,9 +298,28 @@
 			path = TestData;
 			sourceTree = "<group>";
 		};
+		65DAF6AA1D7C6EE400163750 /* RethinkDB */ = {
+			isa = PBXGroup;
+			children = (
+				65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */,
+			);
+			name = RethinkDB;
+			sourceTree = "<group>";
+		};
+		65DAF6B91D7C6F2A00163750 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				65DAF6BF1D7C6F2A00163750 /* Rethink.framework */,
+				65DAF6C11D7C6F2A00163750 /* RethinkTests.xctest */,
+				65DAF6C31D7C6F2A00163750 /* Rethink.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		65F50E7F1D78CE0F00F6FAE5 = {
 			isa = PBXGroup;
 			children = (
+				65DAF6AA1D7C6EE400163750 /* RethinkDB */,
 				656822641D78D69300410BA5 /* XML */,
 				65F50EC01D78D3F500F6FAE5 /* MySQL */,
 				65F50EEA1D78D3F500F6FAE5 /* PostgreSQL */,
@@ -291,10 +343,11 @@
 		65F50E8B1D78CE1000F6FAE5 /* WarpConduit */ = {
 			isa = PBXGroup;
 			children = (
+				65F50E941D78CE6300F6FAE5 /* WarpConduit.h */,
 				656822A41D78D93500410BA5 /* CSVStream.swift */,
 				656822A21D78D89C00410BA5 /* DBFStream.swift */,
+				65DAF6C71D7C6F8500163750 /* RethinkStream.swift */,
 				65F50E951D78CE6300F6FAE5 /* Info.plist */,
-				65F50E941D78CE6300F6FAE5 /* WarpConduit.h */,
 			);
 			path = WarpConduit;
 			sourceTree = "<group>";
@@ -497,6 +550,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				65DAF6C51D7C6F3500163750 /* PBXTargetDependency */,
 			);
 			name = WarpConduit;
 			productName = WarpConduit;
@@ -532,6 +586,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = 65DAF6B91D7C6F2A00163750 /* Products */;
+					ProjectRef = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
+				},
+				{
 					ProductGroup = 656822761D78D69300410BA5 /* Products */;
 					ProjectRef = 656822751D78D69300410BA5 /* TCMinem.xcodeproj */;
 				},
@@ -558,6 +616,27 @@
 			remoteRef = 656822A01D78D69300410BA5 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		65DAF6BF1D7C6F2A00163750 /* Rethink.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Rethink.framework;
+			remoteRef = 65DAF6BE1D7C6F2A00163750 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65DAF6C11D7C6F2A00163750 /* RethinkTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = RethinkTests.xctest;
+			remoteRef = 65DAF6C01D7C6F2A00163750 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65DAF6C31D7C6F2A00163750 /* Rethink.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Rethink.framework;
+			remoteRef = 65DAF6C21D7C6F2A00163750 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -577,6 +656,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				656822A51D78D93500410BA5 /* CSVStream.swift in Sources */,
+				65DAF6C81D7C6F8500163750 /* RethinkStream.swift in Sources */,
 				65F50EA11D78CF0C00F6FAE5 /* dbfopen.c in Sources */,
 				65F50EB51D78D10F00F6FAE5 /* SQLiteHelpers.m in Sources */,
 				656822A31D78D89C00410BA5 /* DBFStream.swift in Sources */,
@@ -589,6 +669,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		65DAF6C51D7C6F3500163750 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Rethink;
+			targetProxy = 65DAF6C41D7C6F3500163750 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		656822681D78D69300410BA5 /* InfoPlist.strings */ = {

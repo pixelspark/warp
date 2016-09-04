@@ -8,9 +8,6 @@
 [submodule "WarpConduit/Libraries/TCMXMLWriter"]
 	path = WarpConduit/Libraries/TCMXMLWriter
 	url = https://github.com/monkeydom/TCMXMLWriter
-[submodule "Warp/Libraries/Rethink"]
-	path = Warp/Libraries/Rethink
-	url = https://github.com/pixelspark/rethink-swift
 [submodule "Warp/Libraries/SwiftAI"]
 	path = Warp/Libraries/SwiftAI
 	url = https://github.com/pixelspark/Swift-AI.git
@@ -21,3 +18,6 @@
 	path = Warp/Libraries/Charts
 	url = https://github.com/pixelspark/ios-charts
 	branch = Swift-3.0-OSX
+[submodule "WarpConduit/Libraries/Rethink"]
+	path = WarpConduit/Libraries/Rethink
+	url = https://github.com/pixelspark/rethink-swift

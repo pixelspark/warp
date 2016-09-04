@@ -1,6 +1,7 @@
 import Foundation
 import WarpCore
 import Rethink
+import WarpConduit
 
 internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethinkSourceStep>, NSTableViewDataSource, NSTableViewDelegate, QBEAlterTableViewDelegate {
 	@IBOutlet var tableView: NSTableView?
@@ -101,7 +102,7 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 	}
 
 	func alterTableView(_ view: QBEAlterTableViewController, didAlterTable table: MutableDataset?) {
-		if let s = table as? QBERethinkMutableDataset {
+		if let s = table as? RethinkMutableDataset {
 			self.step.table = s.tableName
 			self.step.database = s.databaseName
 			self.step.server = s.url.host ?? self.step.server
