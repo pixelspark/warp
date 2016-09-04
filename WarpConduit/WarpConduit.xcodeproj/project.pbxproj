@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		65292F411D7CA7030053ADE3 /* SQLiteStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65292F401D7CA7030053ADE3 /* SQLiteStream.swift */; };
 		65514C691D78D55A001C5690 /* libcrypto.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65514C671D78D55A001C5690 /* libcrypto.35.dylib */; };
 		65514C6A1D78D55A001C5690 /* libssl.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65514C681D78D55A001C5690 /* libssl.35.dylib */; };
 		656822541D78D60600410BA5 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 656822531D78D60600410BA5 /* libiconv.tbd */; };
@@ -118,6 +119,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		65292F401D7CA7030053ADE3 /* SQLiteStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SQLiteStream.swift; path = Sources/SQLiteStream.swift; sourceTree = SOURCE_ROOT; };
 		65514C671D78D55A001C5690 /* libcrypto.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.35.dylib; path = Libraries/libcrypto.35.dylib; sourceTree = SOURCE_ROOT; };
 		65514C681D78D55A001C5690 /* libssl.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.35.dylib; path = Libraries/libssl.35.dylib; sourceTree = SOURCE_ROOT; };
 		656822531D78D60600410BA5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
@@ -344,10 +346,11 @@
 			isa = PBXGroup;
 			children = (
 				65F50E941D78CE6300F6FAE5 /* WarpConduit.h */,
+				65F50E951D78CE6300F6FAE5 /* Info.plist */,
 				656822A41D78D93500410BA5 /* CSVStream.swift */,
 				656822A21D78D89C00410BA5 /* DBFStream.swift */,
 				65DAF6C71D7C6F8500163750 /* RethinkStream.swift */,
-				65F50E951D78CE6300F6FAE5 /* Info.plist */,
+				65292F401D7CA7030053ADE3 /* SQLiteStream.swift */,
 			);
 			path = WarpConduit;
 			sourceTree = "<group>";
@@ -665,6 +668,7 @@
 				65F50EA81D78CFAC00F6FAE5 /* CHCSVParser.m in Sources */,
 				65F50EB01D78D0B400F6FAE5 /* sqlite3.c in Sources */,
 				656822951D78D69300410BA5 /* TCMXMLWriter.m in Sources */,
+				65292F411D7CA7030053ADE3 /* SQLiteStream.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

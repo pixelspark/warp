@@ -1,6 +1,7 @@
 import Foundation
 import Cocoa
 import WarpCore
+import WarpConduit
 
 internal class QBESQLiteSourceStepView: QBEConfigurableStepViewControllerFor<QBESQLiteSourceStep>, QBEAlterTableViewDelegate {
 	@IBOutlet var createTableButton: NSButton?
