@@ -1,0 +1,72 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "A5F18CC216C059F29632AA08FA9E5DF3898315E3",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E" : 9223372036854775807,
+    "E26FDC45B7B8C84A0DD11DB7FB79D6DAFA155193" : 9223372036854775807,
+    "67620B5EFA902936DF04070AF595B76AB0333747" : 9223372036854775807,
+    "9025163822AAEA7A2D8AC9210D0874A56F62B462" : 9223372036854775807,
+    "A5F18CC216C059F29632AA08FA9E5DF3898315E3" : 9223372036854775807,
+    "B4ECFDB54DAEDE750287282DDD72484BDC32C452" : 9223372036854775807,
+    "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA" : 9223372036854775807,
+    "EE61EABCF181C4E4998F7E1EA6B7D0AAED720562" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "D32BA5F0-AF35-4349-A4F0-9A39BD24F9EE",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E" : "Warp\/Warp\/Libraries\/MBTableGrid\/",
+    "E26FDC45B7B8C84A0DD11DB7FB79D6DAFA155193" : "Warp\/Warp\/Libraries\/SwiftAI\/",
+    "67620B5EFA902936DF04070AF595B76AB0333747" : "Warp\/Warp\/Libraries\/Alamofire\/",
+    "9025163822AAEA7A2D8AC9210D0874A56F62B462" : "Warp\/Warp\/Libraries\/Charts\/",
+    "A5F18CC216C059F29632AA08FA9E5DF3898315E3" : "Warp\/",
+    "B4ECFDB54DAEDE750287282DDD72484BDC32C452" : "Warp\/Warp\/Libraries\/Rethink\/",
+    "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA" : "Warp\/WarpCore\/Libraries\/SwiftParserGenerator\/",
+    "EE61EABCF181C4E4998F7E1EA6B7D0AAED720562" : "Warp\/WarpConduit\/Libraries\/TCMXMLWriter\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "Warp",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "Warp.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/pixelspark\/swift-parser-generator.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "4BD143F3028DB19A4BC92FFD0429EF2FB566A6FA"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/Alamofire\/Alamofire",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "67620B5EFA902936DF04070AF595B76AB0333747"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/pixelspark\/mbtablegrid",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "8CF1C8369DF6861B83FC2A2969438FEAA0A1CD3E"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/pixelspark\/ios-charts.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "9025163822AAEA7A2D8AC9210D0874A56F62B462"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "\/Volumes\/code\/warp.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A5F18CC216C059F29632AA08FA9E5DF3898315E3"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/pixelspark\/rethink-swift",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "B4ECFDB54DAEDE750287282DDD72484BDC32C452"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/pixelspark\/Swift-AI.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "E26FDC45B7B8C84A0DD11DB7FB79D6DAFA155193"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/monkeydom\/TCMXMLWriter",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "EE61EABCF181C4E4998F7E1EA6B7D0AAED720562"
+    }
+  ]
+}

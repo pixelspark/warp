@@ -1,6 +1,6 @@
 import Foundation
 import WarpCore
-import  Rethink
+import Rethink
 
 final class QBERethinkStream: NSObject, WarpCore.Stream {
 	let url: URL

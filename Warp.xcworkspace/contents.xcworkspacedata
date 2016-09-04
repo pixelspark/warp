@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:WarpCore/WarpCore.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:WarpConduit/WarpConduit.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:Warp/Warp.xcodeproj">
+   </FileRef>
+</Workspace>

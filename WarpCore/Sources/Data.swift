@@ -177,7 +177,7 @@ public class Order: NSObject, NSCoding {
 		aCoder.encode(numeric, forKey: "numeric")
 	}
 
-	public override func isEqual(to object: Any?) -> Bool {
+	public override func isEqual(_ object: Any?) -> Bool {
 		if let o = object as? Order, o.ascending == self.ascending && o.numeric == self.numeric && o.expression == self.expression {
 			return true
 		}

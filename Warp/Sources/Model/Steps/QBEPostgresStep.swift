@@ -1,5 +1,6 @@
 import Foundation
 import WarpCore
+import WarpConduit
 
 /**
 Implementation of the PostgreSQL 'SQL dialect'. Only deviatons from the standard dialect are implemented here. */

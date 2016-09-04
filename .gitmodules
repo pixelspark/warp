@@ -1,23 +1,23 @@
-[submodule "Libraries/MBTableGrid"]
-	path = Libraries/MBTableGrid
+[submodule "Warp/Libraries/MBTableGrid"]
+	path = Warp/Libraries/MBTableGrid
 	url = https://github.com/pixelspark/mbtablegrid
-[submodule "Libraries/Alamofire"]
-	path = Libraries/Alamofire
+[submodule "Warp/Libraries/Alamofire"]
+	path = Warp/Libraries/Alamofire
 	url = https://github.com/Alamofire/Alamofire
-[submodule "Libraries/TCMXMLWriter"]
-	path = Libraries/TCMXMLWriter
-	url = git@github.com:monkeydom/TCMXMLWriter.git
-[submodule "Libraries/Rethink"]
-	path = Libraries/Rethink
+	branch = swift3
+[submodule "WarpConduit/Libraries/TCMXMLWriter"]
+	path = WarpConduit/Libraries/TCMXMLWriter
+	url = https://github.com/monkeydom/TCMXMLWriter
+[submodule "Warp/Libraries/Rethink"]
+	path = Warp/Libraries/Rethink
 	url = https://github.com/pixelspark/rethink-swift
-
+[submodule "Warp/Libraries/SwiftAI"]
+	path = Warp/Libraries/SwiftAI
+	url = https://github.com/pixelspark/Swift-AI.git
 [submodule "WarpCore/Libraries/SwiftParserGenerator"]
 	path = WarpCore/Libraries/SwiftParserGenerator
-	url = git@github.com:pixelspark/swift-parser-generator
-
-[submodule "Libraries/Charts"]
-	path = Libraries/Charts
-url=https://github.com/danielgindi/ios-charts.git
-[submodule "Libraries/SwiftAI"]
-	path = Libraries/SwiftAI
-	url = https://github.com/collinhundley/Swift-AI.git
+	url = https://github.com/pixelspark/swift-parser-generator.git
+[submodule "Warp/Libraries/Charts"]
+	path = Warp/Libraries/Charts
+	url = https://github.com/pixelspark/ios-charts
+	branch = Swift-3.0-OSX

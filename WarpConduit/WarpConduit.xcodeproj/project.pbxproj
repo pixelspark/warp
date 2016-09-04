@@ -1,0 +1,806 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		65514C691D78D55A001C5690 /* libcrypto.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65514C671D78D55A001C5690 /* libcrypto.35.dylib */; };
+		65514C6A1D78D55A001C5690 /* libssl.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65514C681D78D55A001C5690 /* libssl.35.dylib */; };
+		656822541D78D60600410BA5 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 656822531D78D60600410BA5 /* libiconv.tbd */; };
+		656822941D78D69300410BA5 /* TCMXMLWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 6568227B1D78D69300410BA5 /* TCMXMLWriter.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		656822951D78D69300410BA5 /* TCMXMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6568227C1D78D69300410BA5 /* TCMXMLWriter.m */; };
+		656822A31D78D89C00410BA5 /* DBFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A21D78D89C00410BA5 /* DBFStream.swift */; };
+		656822A51D78D93500410BA5 /* CSVStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A41D78D93500410BA5 /* CSVStream.swift */; };
+		65F50E961D78CE6300F6FAE5 /* WarpConduit.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50E941D78CE6300F6FAE5 /* WarpConduit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50E971D78CE6300F6FAE5 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 65F50E951D78CE6300F6FAE5 /* Info.plist */; };
+		65F50E9C1D78CED100F6FAE5 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50E9B1D78CED100F6FAE5 /* WarpCore.framework */; };
+		65F50EA11D78CF0C00F6FAE5 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50E9E1D78CF0C00F6FAE5 /* dbfopen.c */; };
+		65F50EA21D78CF0C00F6FAE5 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50E9F1D78CF0C00F6FAE5 /* safileio.c */; };
+		65F50EA31D78CF0C00F6FAE5 /* shapefil.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EA01D78CF0C00F6FAE5 /* shapefil.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50EA71D78CFAC00F6FAE5 /* CHCSVParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EA51D78CFAC00F6FAE5 /* CHCSVParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50EA81D78CFAC00F6FAE5 /* CHCSVParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 65F50EA61D78CFAC00F6FAE5 /* CHCSVParser.m */; };
+		65F50EB01D78D0B400F6FAE5 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50EAE1D78D0B400F6FAE5 /* sqlite3.c */; };
+		65F50EB11D78D0B400F6FAE5 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EAF1D78D0B400F6FAE5 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50EB31D78D0BA00F6FAE5 /* extension-functions.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50EB21D78D0BA00F6FAE5 /* extension-functions.c */; };
+		65F50EB51D78D10F00F6FAE5 /* SQLiteHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = 65F50EB41D78D10F00F6FAE5 /* SQLiteHelpers.m */; };
+		65F50EF11D78D3F500F6FAE5 /* config-win.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EC21D78D3F500F6FAE5 /* config-win.h */; };
+		65F50EF21D78D3F500F6FAE5 /* dbug.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EC31D78D3F500F6FAE5 /* dbug.h */; };
+		65F50EF31D78D3F500F6FAE5 /* errmsg.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EC41D78D3F500F6FAE5 /* errmsg.h */; };
+		65F50EF41D78D3F500F6FAE5 /* getopt.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EC51D78D3F500F6FAE5 /* getopt.h */; };
+		65F50EF51D78D3F500F6FAE5 /* global.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EC61D78D3F500F6FAE5 /* global.h */; };
+		65F50EF61D78D3F500F6FAE5 /* hash.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EC71D78D3F500F6FAE5 /* hash.h */; };
+		65F50EF71D78D3F500F6FAE5 /* m_ctype.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EC81D78D3F500F6FAE5 /* m_ctype.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50EF81D78D3F500F6FAE5 /* m_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EC91D78D3F500F6FAE5 /* m_string.h */; };
+		65F50EF91D78D3F500F6FAE5 /* ma_common.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ECA1D78D3F500F6FAE5 /* ma_common.h */; };
+		65F50EFA1D78D3F500F6FAE5 /* ma_dyncol.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ECB1D78D3F500F6FAE5 /* ma_dyncol.h */; };
+		65F50EFB1D78D3F500F6FAE5 /* ma_secure.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ECC1D78D3F500F6FAE5 /* ma_secure.h */; };
+		65F50EFC1D78D3F500F6FAE5 /* my_alarm.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ECD1D78D3F500F6FAE5 /* my_alarm.h */; };
+		65F50EFD1D78D3F500F6FAE5 /* my_base.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ECE1D78D3F500F6FAE5 /* my_base.h */; };
+		65F50EFE1D78D3F500F6FAE5 /* my_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ECF1D78D3F500F6FAE5 /* my_config.h */; };
+		65F50EFF1D78D3F500F6FAE5 /* my_dir.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ED01D78D3F500F6FAE5 /* my_dir.h */; };
+		65F50F001D78D3F500F6FAE5 /* my_global.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ED11D78D3F500F6FAE5 /* my_global.h */; };
+		65F50F011D78D3F500F6FAE5 /* my_list.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ED21D78D3F500F6FAE5 /* my_list.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50F021D78D3F500F6FAE5 /* my_net.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ED31D78D3F500F6FAE5 /* my_net.h */; };
+		65F50F031D78D3F500F6FAE5 /* my_no_pthread.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ED41D78D3F500F6FAE5 /* my_no_pthread.h */; };
+		65F50F041D78D3F500F6FAE5 /* my_pthread.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ED51D78D3F500F6FAE5 /* my_pthread.h */; };
+		65F50F051D78D3F500F6FAE5 /* my_stmt.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ED61D78D3F500F6FAE5 /* my_stmt.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50F061D78D3F500F6FAE5 /* my_sys.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ED71D78D3F500F6FAE5 /* my_sys.h */; };
+		65F50F071D78D3F500F6FAE5 /* client_plugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50ED91D78D3F500F6FAE5 /* client_plugin.h */; };
+		65F50F081D78D3F500F6FAE5 /* plugin_auth.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EDA1D78D3F500F6FAE5 /* plugin_auth.h */; };
+		65F50F091D78D3F500F6FAE5 /* plugin_auth_common.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EDB1D78D3F500F6FAE5 /* plugin_auth_common.h */; };
+		65F50F0A1D78D3F500F6FAE5 /* mysql.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EDC1D78D3F500F6FAE5 /* mysql.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50F0B1D78D3F500F6FAE5 /* mysql_com.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EDD1D78D3F500F6FAE5 /* mysql_com.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50F0C1D78D3F500F6FAE5 /* mysql_io.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EDE1D78D3F500F6FAE5 /* mysql_io.h */; };
+		65F50F0D1D78D3F500F6FAE5 /* mysql_mm.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EDF1D78D3F500F6FAE5 /* mysql_mm.h */; };
+		65F50F0E1D78D3F500F6FAE5 /* mysql_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EE01D78D3F500F6FAE5 /* mysql_priv.h */; };
+		65F50F0F1D78D3F500F6FAE5 /* mysql_version.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EE11D78D3F500F6FAE5 /* mysql_version.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50F111D78D3F500F6FAE5 /* mysql_wireprotocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EE31D78D3F500F6FAE5 /* mysql_wireprotocol.h */; };
+		65F50F121D78D3F500F6FAE5 /* mysqld_error.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EE41D78D3F500F6FAE5 /* mysqld_error.h */; };
+		65F50F131D78D3F500F6FAE5 /* mysys_err.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EE51D78D3F500F6FAE5 /* mysys_err.h */; };
+		65F50F141D78D3F500F6FAE5 /* sha1.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EE61D78D3F500F6FAE5 /* sha1.h */; };
+		65F50F151D78D3F500F6FAE5 /* thr_alarm.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EE71D78D3F500F6FAE5 /* thr_alarm.h */; };
+		65F50F161D78D3F500F6FAE5 /* violite.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EE81D78D3F500F6FAE5 /* violite.h */; };
+		65F50F171D78D3F500F6FAE5 /* libmariadbclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EE91D78D3F500F6FAE5 /* libmariadbclient.a */; };
+		65F50F191D78D3F500F6FAE5 /* pg_config_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EED1D78D3F500F6FAE5 /* pg_config_ext.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50F1A1D78D3F500F6FAE5 /* postgres_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EEE1D78D3F500F6FAE5 /* postgres_ext.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50F1B1D78D3F500F6FAE5 /* libpq-fe.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EEF1D78D3F500F6FAE5 /* libpq-fe.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		65F50F1C1D78D3F500F6FAE5 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EF01D78D3F500F6FAE5 /* libpq.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		6568229E1D78D69300410BA5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 656822751D78D69300410BA5 /* TCMinem.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F2390BE413CF358900812997;
+			remoteInfo = TCMinem;
+		};
+		656822A01D78D69300410BA5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 656822751D78D69300410BA5 /* TCMinem.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F2D9016313D0795F00E23494;
+			remoteInfo = UnitTests;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		65514C671D78D55A001C5690 /* libcrypto.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.35.dylib; path = Libraries/libcrypto.35.dylib; sourceTree = SOURCE_ROOT; };
+		65514C681D78D55A001C5690 /* libssl.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.35.dylib; path = Libraries/libssl.35.dylib; sourceTree = SOURCE_ROOT; };
+		656822531D78D60600410BA5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
+		656822651D78D69300410BA5 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		656822661D78D69300410BA5 /* README.markdown */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.markdown; sourceTree = "<group>"; };
+		656822691D78D69300410BA5 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6568226B1D78D69300410BA5 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainWindow.xib; sourceTree = "<group>"; };
+		6568226D1D78D69300410BA5 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/RootViewController.xib; sourceTree = "<group>"; };
+		6568226E1D78D69300410BA5 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6568226F1D78D69300410BA5 /* RootViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RootViewController.h; sourceTree = "<group>"; };
+		656822701D78D69300410BA5 /* RootViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RootViewController.m; sourceTree = "<group>"; };
+		656822711D78D69300410BA5 /* TCMinem-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "TCMinem-Info.plist"; sourceTree = "<group>"; };
+		656822721D78D69300410BA5 /* TCMinem-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "TCMinem-Prefix.pch"; sourceTree = "<group>"; };
+		656822731D78D69300410BA5 /* TCMinemAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCMinemAppDelegate.h; sourceTree = "<group>"; };
+		656822741D78D69300410BA5 /* TCMinemAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TCMinemAppDelegate.m; sourceTree = "<group>"; };
+		656822751D78D69300410BA5 /* TCMinem.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = TCMinem.xcodeproj; sourceTree = "<group>"; };
+		656822791D78D69300410BA5 /* TCMXMLTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCMXMLTests.h; sourceTree = "<group>"; };
+		6568227A1D78D69300410BA5 /* TCMXMLTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TCMXMLTests.m; sourceTree = "<group>"; };
+		6568227B1D78D69300410BA5 /* TCMXMLWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCMXMLWriter.h; sourceTree = "<group>"; };
+		6568227C1D78D69300410BA5 /* TCMXMLWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TCMXMLWriter.m; sourceTree = "<group>"; };
+		6568227F1D78D69300410BA5 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		656822811D78D69300410BA5 /* fanboyspodcast.m4a.rss */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = fanboyspodcast.m4a.rss; sourceTree = "<group>"; };
+		656822821D78D69300410BA5 /* UnitTests-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "UnitTests-Info.plist"; sourceTree = "<group>"; };
+		656822831D78D69300410BA5 /* UnitTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UnitTests-Prefix.pch"; sourceTree = "<group>"; };
+		656822841D78D69300410BA5 /* UnitTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnitTests.h; sourceTree = "<group>"; };
+		656822851D78D69300410BA5 /* UnitTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UnitTests.m; sourceTree = "<group>"; };
+		656822A21D78D89C00410BA5 /* DBFStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DBFStream.swift; path = Sources/DBFStream.swift; sourceTree = SOURCE_ROOT; };
+		656822A41D78D93500410BA5 /* CSVStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CSVStream.swift; path = Sources/CSVStream.swift; sourceTree = SOURCE_ROOT; };
+		65F50E891D78CE1000F6FAE5 /* WarpConduit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpConduit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		65F50E941D78CE6300F6FAE5 /* WarpConduit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WarpConduit.h; path = Sources/WarpConduit.h; sourceTree = SOURCE_ROOT; };
+		65F50E951D78CE6300F6FAE5 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Sources/Info.plist; sourceTree = SOURCE_ROOT; };
+		65F50E9B1D78CED100F6FAE5 /* WarpCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WarpCore.framework; path = "../../../../../Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/WarpCore.framework"; sourceTree = "<group>"; };
+		65F50E9E1D78CF0C00F6FAE5 /* dbfopen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dbfopen.c; sourceTree = "<group>"; };
+		65F50E9F1D78CF0C00F6FAE5 /* safileio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = safileio.c; sourceTree = "<group>"; };
+		65F50EA01D78CF0C00F6FAE5 /* shapefil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shapefil.h; sourceTree = "<group>"; };
+		65F50EA51D78CFAC00F6FAE5 /* CHCSVParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CHCSVParser.h; sourceTree = "<group>"; };
+		65F50EA61D78CFAC00F6FAE5 /* CHCSVParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CHCSVParser.m; sourceTree = "<group>"; };
+		65F50EAC1D78D05900F6FAE5 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		65F50EAE1D78D0B400F6FAE5 /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sqlite3.c; path = Libraries/SQLite/sqlite3.c; sourceTree = "<group>"; };
+		65F50EAF1D78D0B400F6FAE5 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = Libraries/SQLite/sqlite3.h; sourceTree = "<group>"; };
+		65F50EB21D78D0BA00F6FAE5 /* extension-functions.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "extension-functions.c"; path = "Libraries/SQLite/extension-functions.c"; sourceTree = "<group>"; };
+		65F50EB41D78D10F00F6FAE5 /* SQLiteHelpers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SQLiteHelpers.m; path = Sources/SQLiteHelpers.m; sourceTree = "<group>"; };
+		65F50EC21D78D3F500F6FAE5 /* config-win.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "config-win.h"; sourceTree = "<group>"; };
+		65F50EC31D78D3F500F6FAE5 /* dbug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dbug.h; sourceTree = "<group>"; };
+		65F50EC41D78D3F500F6FAE5 /* errmsg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = errmsg.h; sourceTree = "<group>"; };
+		65F50EC51D78D3F500F6FAE5 /* getopt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = getopt.h; sourceTree = "<group>"; };
+		65F50EC61D78D3F500F6FAE5 /* global.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global.h; sourceTree = "<group>"; };
+		65F50EC71D78D3F500F6FAE5 /* hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hash.h; sourceTree = "<group>"; };
+		65F50EC81D78D3F500F6FAE5 /* m_ctype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = m_ctype.h; sourceTree = "<group>"; };
+		65F50EC91D78D3F500F6FAE5 /* m_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = m_string.h; sourceTree = "<group>"; };
+		65F50ECA1D78D3F500F6FAE5 /* ma_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ma_common.h; sourceTree = "<group>"; };
+		65F50ECB1D78D3F500F6FAE5 /* ma_dyncol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ma_dyncol.h; sourceTree = "<group>"; };
+		65F50ECC1D78D3F500F6FAE5 /* ma_secure.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ma_secure.h; sourceTree = "<group>"; };
+		65F50ECD1D78D3F500F6FAE5 /* my_alarm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_alarm.h; sourceTree = "<group>"; };
+		65F50ECE1D78D3F500F6FAE5 /* my_base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_base.h; sourceTree = "<group>"; };
+		65F50ECF1D78D3F500F6FAE5 /* my_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_config.h; sourceTree = "<group>"; };
+		65F50ED01D78D3F500F6FAE5 /* my_dir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_dir.h; sourceTree = "<group>"; };
+		65F50ED11D78D3F500F6FAE5 /* my_global.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_global.h; sourceTree = "<group>"; };
+		65F50ED21D78D3F500F6FAE5 /* my_list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_list.h; sourceTree = "<group>"; };
+		65F50ED31D78D3F500F6FAE5 /* my_net.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_net.h; sourceTree = "<group>"; };
+		65F50ED41D78D3F500F6FAE5 /* my_no_pthread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_no_pthread.h; sourceTree = "<group>"; };
+		65F50ED51D78D3F500F6FAE5 /* my_pthread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_pthread.h; sourceTree = "<group>"; };
+		65F50ED61D78D3F500F6FAE5 /* my_stmt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_stmt.h; sourceTree = "<group>"; };
+		65F50ED71D78D3F500F6FAE5 /* my_sys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = my_sys.h; sourceTree = "<group>"; };
+		65F50ED91D78D3F500F6FAE5 /* client_plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = client_plugin.h; sourceTree = "<group>"; };
+		65F50EDA1D78D3F500F6FAE5 /* plugin_auth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugin_auth.h; sourceTree = "<group>"; };
+		65F50EDB1D78D3F500F6FAE5 /* plugin_auth_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugin_auth_common.h; sourceTree = "<group>"; };
+		65F50EDC1D78D3F500F6FAE5 /* mysql.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql.h; sourceTree = "<group>"; };
+		65F50EDD1D78D3F500F6FAE5 /* mysql_com.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_com.h; sourceTree = "<group>"; };
+		65F50EDE1D78D3F500F6FAE5 /* mysql_io.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_io.h; sourceTree = "<group>"; };
+		65F50EDF1D78D3F500F6FAE5 /* mysql_mm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_mm.h; sourceTree = "<group>"; };
+		65F50EE01D78D3F500F6FAE5 /* mysql_priv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_priv.h; sourceTree = "<group>"; };
+		65F50EE11D78D3F500F6FAE5 /* mysql_version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_version.h; sourceTree = "<group>"; };
+		65F50EE21D78D3F500F6FAE5 /* mysql_version.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mysql_version.h.in; sourceTree = "<group>"; };
+		65F50EE31D78D3F500F6FAE5 /* mysql_wireprotocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysql_wireprotocol.h; sourceTree = "<group>"; };
+		65F50EE41D78D3F500F6FAE5 /* mysqld_error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysqld_error.h; sourceTree = "<group>"; };
+		65F50EE51D78D3F500F6FAE5 /* mysys_err.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mysys_err.h; sourceTree = "<group>"; };
+		65F50EE61D78D3F500F6FAE5 /* sha1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sha1.h; sourceTree = "<group>"; };
+		65F50EE71D78D3F500F6FAE5 /* thr_alarm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = thr_alarm.h; sourceTree = "<group>"; };
+		65F50EE81D78D3F500F6FAE5 /* violite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = violite.h; sourceTree = "<group>"; };
+		65F50EE91D78D3F500F6FAE5 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libmariadbclient.a; sourceTree = "<group>"; };
+		65F50EEC1D78D3F500F6FAE5 /* pg_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pg_config.h; sourceTree = "<group>"; };
+		65F50EED1D78D3F500F6FAE5 /* pg_config_ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pg_config_ext.h; sourceTree = "<group>"; };
+		65F50EEE1D78D3F500F6FAE5 /* postgres_ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = postgres_ext.h; sourceTree = "<group>"; };
+		65F50EEF1D78D3F500F6FAE5 /* libpq-fe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "libpq-fe.h"; sourceTree = "<group>"; };
+		65F50EF01D78D3F500F6FAE5 /* libpq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libpq.a; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		65F50E851D78CE1000F6FAE5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				656822541D78D60600410BA5 /* libiconv.tbd in Frameworks */,
+				65F50F1C1D78D3F500F6FAE5 /* libpq.a in Frameworks */,
+				65F50E9C1D78CED100F6FAE5 /* WarpCore.framework in Frameworks */,
+				65514C691D78D55A001C5690 /* libcrypto.35.dylib in Frameworks */,
+				65F50F171D78D3F500F6FAE5 /* libmariadbclient.a in Frameworks */,
+				65514C6A1D78D55A001C5690 /* libssl.35.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		656822641D78D69300410BA5 /* XML */ = {
+			isa = PBXGroup;
+			children = (
+				656822651D78D69300410BA5 /* .gitignore */,
+				656822661D78D69300410BA5 /* README.markdown */,
+				656822671D78D69300410BA5 /* TCMinem */,
+				656822751D78D69300410BA5 /* TCMinem.xcodeproj */,
+				656822781D78D69300410BA5 /* TCMXML */,
+				6568227D1D78D69300410BA5 /* UnitTests */,
+			);
+			name = XML;
+			path = Libraries/TCMXMLWriter;
+			sourceTree = "<group>";
+		};
+		656822671D78D69300410BA5 /* TCMinem */ = {
+			isa = PBXGroup;
+			children = (
+				656822681D78D69300410BA5 /* InfoPlist.strings */,
+				6568226A1D78D69300410BA5 /* MainWindow.xib */,
+				6568226C1D78D69300410BA5 /* RootViewController.xib */,
+				6568226E1D78D69300410BA5 /* main.m */,
+				6568226F1D78D69300410BA5 /* RootViewController.h */,
+				656822701D78D69300410BA5 /* RootViewController.m */,
+				656822711D78D69300410BA5 /* TCMinem-Info.plist */,
+				656822721D78D69300410BA5 /* TCMinem-Prefix.pch */,
+				656822731D78D69300410BA5 /* TCMinemAppDelegate.h */,
+				656822741D78D69300410BA5 /* TCMinemAppDelegate.m */,
+			);
+			path = TCMinem;
+			sourceTree = "<group>";
+		};
+		656822761D78D69300410BA5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6568229F1D78D69300410BA5 /* TCMinem.app */,
+				656822A11D78D69300410BA5 /* UnitTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		656822781D78D69300410BA5 /* TCMXML */ = {
+			isa = PBXGroup;
+			children = (
+				656822791D78D69300410BA5 /* TCMXMLTests.h */,
+				6568227A1D78D69300410BA5 /* TCMXMLTests.m */,
+				6568227B1D78D69300410BA5 /* TCMXMLWriter.h */,
+				6568227C1D78D69300410BA5 /* TCMXMLWriter.m */,
+			);
+			path = TCMXML;
+			sourceTree = "<group>";
+		};
+		6568227D1D78D69300410BA5 /* UnitTests */ = {
+			isa = PBXGroup;
+			children = (
+				6568227E1D78D69300410BA5 /* InfoPlist.strings */,
+				656822801D78D69300410BA5 /* TestData */,
+				656822821D78D69300410BA5 /* UnitTests-Info.plist */,
+				656822831D78D69300410BA5 /* UnitTests-Prefix.pch */,
+				656822841D78D69300410BA5 /* UnitTests.h */,
+				656822851D78D69300410BA5 /* UnitTests.m */,
+			);
+			path = UnitTests;
+			sourceTree = "<group>";
+		};
+		656822801D78D69300410BA5 /* TestData */ = {
+			isa = PBXGroup;
+			children = (
+				656822811D78D69300410BA5 /* fanboyspodcast.m4a.rss */,
+			);
+			path = TestData;
+			sourceTree = "<group>";
+		};
+		65F50E7F1D78CE0F00F6FAE5 = {
+			isa = PBXGroup;
+			children = (
+				656822641D78D69300410BA5 /* XML */,
+				65F50EC01D78D3F500F6FAE5 /* MySQL */,
+				65F50EEA1D78D3F500F6FAE5 /* PostgreSQL */,
+				65F50EAB1D78D04200F6FAE5 /* SQLite */,
+				65F50EA41D78CFAC00F6FAE5 /* CSV */,
+				65F50E9D1D78CF0C00F6FAE5 /* DBF */,
+				65F50E8B1D78CE1000F6FAE5 /* WarpConduit */,
+				65F50E8A1D78CE1000F6FAE5 /* Products */,
+				65F50E9A1D78CED100F6FAE5 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		65F50E8A1D78CE1000F6FAE5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				65F50E891D78CE1000F6FAE5 /* WarpConduit.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		65F50E8B1D78CE1000F6FAE5 /* WarpConduit */ = {
+			isa = PBXGroup;
+			children = (
+				656822A41D78D93500410BA5 /* CSVStream.swift */,
+				656822A21D78D89C00410BA5 /* DBFStream.swift */,
+				65F50E951D78CE6300F6FAE5 /* Info.plist */,
+				65F50E941D78CE6300F6FAE5 /* WarpConduit.h */,
+			);
+			path = WarpConduit;
+			sourceTree = "<group>";
+		};
+		65F50E9A1D78CED100F6FAE5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				656822531D78D60600410BA5 /* libiconv.tbd */,
+				65F50EAC1D78D05900F6FAE5 /* libsqlite3.tbd */,
+				65F50E9B1D78CED100F6FAE5 /* WarpCore.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		65F50E9D1D78CF0C00F6FAE5 /* DBF */ = {
+			isa = PBXGroup;
+			children = (
+				65F50E9E1D78CF0C00F6FAE5 /* dbfopen.c */,
+				65F50E9F1D78CF0C00F6FAE5 /* safileio.c */,
+				65F50EA01D78CF0C00F6FAE5 /* shapefil.h */,
+			);
+			name = DBF;
+			path = Libraries/Shapelib;
+			sourceTree = "<group>";
+		};
+		65F50EA41D78CFAC00F6FAE5 /* CSV */ = {
+			isa = PBXGroup;
+			children = (
+				65F50EA51D78CFAC00F6FAE5 /* CHCSVParser.h */,
+				65F50EA61D78CFAC00F6FAE5 /* CHCSVParser.m */,
+			);
+			name = CSV;
+			path = Libraries/CHCSVParser;
+			sourceTree = "<group>";
+		};
+		65F50EAB1D78D04200F6FAE5 /* SQLite */ = {
+			isa = PBXGroup;
+			children = (
+				65F50EAF1D78D0B400F6FAE5 /* sqlite3.h */,
+				65F50EAE1D78D0B400F6FAE5 /* sqlite3.c */,
+				65F50EB21D78D0BA00F6FAE5 /* extension-functions.c */,
+				65F50EB41D78D10F00F6FAE5 /* SQLiteHelpers.m */,
+			);
+			name = SQLite;
+			sourceTree = "<group>";
+		};
+		65F50EC01D78D3F500F6FAE5 /* MySQL */ = {
+			isa = PBXGroup;
+			children = (
+				65514C671D78D55A001C5690 /* libcrypto.35.dylib */,
+				65514C681D78D55A001C5690 /* libssl.35.dylib */,
+				65F50EC11D78D3F500F6FAE5 /* include */,
+				65F50EE91D78D3F500F6FAE5 /* libmariadbclient.a */,
+			);
+			name = MySQL;
+			path = Libraries/MySQL;
+			sourceTree = "<group>";
+		};
+		65F50EC11D78D3F500F6FAE5 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				65F50EC21D78D3F500F6FAE5 /* config-win.h */,
+				65F50EC31D78D3F500F6FAE5 /* dbug.h */,
+				65F50EC41D78D3F500F6FAE5 /* errmsg.h */,
+				65F50EC51D78D3F500F6FAE5 /* getopt.h */,
+				65F50EC61D78D3F500F6FAE5 /* global.h */,
+				65F50EC71D78D3F500F6FAE5 /* hash.h */,
+				65F50EC81D78D3F500F6FAE5 /* m_ctype.h */,
+				65F50EC91D78D3F500F6FAE5 /* m_string.h */,
+				65F50ECA1D78D3F500F6FAE5 /* ma_common.h */,
+				65F50ECB1D78D3F500F6FAE5 /* ma_dyncol.h */,
+				65F50ECC1D78D3F500F6FAE5 /* ma_secure.h */,
+				65F50ECD1D78D3F500F6FAE5 /* my_alarm.h */,
+				65F50ECE1D78D3F500F6FAE5 /* my_base.h */,
+				65F50ECF1D78D3F500F6FAE5 /* my_config.h */,
+				65F50ED01D78D3F500F6FAE5 /* my_dir.h */,
+				65F50ED11D78D3F500F6FAE5 /* my_global.h */,
+				65F50ED21D78D3F500F6FAE5 /* my_list.h */,
+				65F50ED31D78D3F500F6FAE5 /* my_net.h */,
+				65F50ED41D78D3F500F6FAE5 /* my_no_pthread.h */,
+				65F50ED51D78D3F500F6FAE5 /* my_pthread.h */,
+				65F50ED61D78D3F500F6FAE5 /* my_stmt.h */,
+				65F50ED71D78D3F500F6FAE5 /* my_sys.h */,
+				65F50ED81D78D3F500F6FAE5 /* mysql */,
+				65F50EDC1D78D3F500F6FAE5 /* mysql.h */,
+				65F50EDD1D78D3F500F6FAE5 /* mysql_com.h */,
+				65F50EDE1D78D3F500F6FAE5 /* mysql_io.h */,
+				65F50EDF1D78D3F500F6FAE5 /* mysql_mm.h */,
+				65F50EE01D78D3F500F6FAE5 /* mysql_priv.h */,
+				65F50EE11D78D3F500F6FAE5 /* mysql_version.h */,
+				65F50EE21D78D3F500F6FAE5 /* mysql_version.h.in */,
+				65F50EE31D78D3F500F6FAE5 /* mysql_wireprotocol.h */,
+				65F50EE41D78D3F500F6FAE5 /* mysqld_error.h */,
+				65F50EE51D78D3F500F6FAE5 /* mysys_err.h */,
+				65F50EE61D78D3F500F6FAE5 /* sha1.h */,
+				65F50EE71D78D3F500F6FAE5 /* thr_alarm.h */,
+				65F50EE81D78D3F500F6FAE5 /* violite.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		65F50ED81D78D3F500F6FAE5 /* mysql */ = {
+			isa = PBXGroup;
+			children = (
+				65F50ED91D78D3F500F6FAE5 /* client_plugin.h */,
+				65F50EDA1D78D3F500F6FAE5 /* plugin_auth.h */,
+				65F50EDB1D78D3F500F6FAE5 /* plugin_auth_common.h */,
+			);
+			path = mysql;
+			sourceTree = "<group>";
+		};
+		65F50EEA1D78D3F500F6FAE5 /* PostgreSQL */ = {
+			isa = PBXGroup;
+			children = (
+				65F50EEB1D78D3F500F6FAE5 /* include */,
+				65F50EEF1D78D3F500F6FAE5 /* libpq-fe.h */,
+				65F50EF01D78D3F500F6FAE5 /* libpq.a */,
+			);
+			name = PostgreSQL;
+			path = Libraries/PostgreSQL;
+			sourceTree = "<group>";
+		};
+		65F50EEB1D78D3F500F6FAE5 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				65F50EEC1D78D3F500F6FAE5 /* pg_config.h */,
+				65F50EED1D78D3F500F6FAE5 /* pg_config_ext.h */,
+				65F50EEE1D78D3F500F6FAE5 /* postgres_ext.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		65F50E861D78CE1000F6FAE5 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65F50EF61D78D3F500F6FAE5 /* hash.h in Headers */,
+				65F50F1B1D78D3F500F6FAE5 /* libpq-fe.h in Headers */,
+				65F50EF71D78D3F500F6FAE5 /* m_ctype.h in Headers */,
+				65F50F0A1D78D3F500F6FAE5 /* mysql.h in Headers */,
+				65F50F011D78D3F500F6FAE5 /* my_list.h in Headers */,
+				65F50F051D78D3F500F6FAE5 /* my_stmt.h in Headers */,
+				65F50EFA1D78D3F500F6FAE5 /* ma_dyncol.h in Headers */,
+				65F50F0B1D78D3F500F6FAE5 /* mysql_com.h in Headers */,
+				65F50EFC1D78D3F500F6FAE5 /* my_alarm.h in Headers */,
+				656822941D78D69300410BA5 /* TCMXMLWriter.h in Headers */,
+				65F50F0F1D78D3F500F6FAE5 /* mysql_version.h in Headers */,
+				65F50F1A1D78D3F500F6FAE5 /* postgres_ext.h in Headers */,
+				65F50F191D78D3F500F6FAE5 /* pg_config_ext.h in Headers */,
+				65F50EF21D78D3F500F6FAE5 /* dbug.h in Headers */,
+				65F50EFF1D78D3F500F6FAE5 /* my_dir.h in Headers */,
+				65F50F081D78D3F500F6FAE5 /* plugin_auth.h in Headers */,
+				65F50F091D78D3F500F6FAE5 /* plugin_auth_common.h in Headers */,
+				65F50EFE1D78D3F500F6FAE5 /* my_config.h in Headers */,
+				65F50F031D78D3F500F6FAE5 /* my_no_pthread.h in Headers */,
+				65F50F151D78D3F500F6FAE5 /* thr_alarm.h in Headers */,
+				65F50EF51D78D3F500F6FAE5 /* global.h in Headers */,
+				65F50F111D78D3F500F6FAE5 /* mysql_wireprotocol.h in Headers */,
+				65F50F141D78D3F500F6FAE5 /* sha1.h in Headers */,
+				65F50EF41D78D3F500F6FAE5 /* getopt.h in Headers */,
+				65F50F0C1D78D3F500F6FAE5 /* mysql_io.h in Headers */,
+				65F50EB11D78D0B400F6FAE5 /* sqlite3.h in Headers */,
+				65F50EFD1D78D3F500F6FAE5 /* my_base.h in Headers */,
+				65F50F0E1D78D3F500F6FAE5 /* mysql_priv.h in Headers */,
+				65F50F131D78D3F500F6FAE5 /* mysys_err.h in Headers */,
+				65F50F0D1D78D3F500F6FAE5 /* mysql_mm.h in Headers */,
+				65F50F071D78D3F500F6FAE5 /* client_plugin.h in Headers */,
+				65F50EF11D78D3F500F6FAE5 /* config-win.h in Headers */,
+				65F50F121D78D3F500F6FAE5 /* mysqld_error.h in Headers */,
+				65F50EFB1D78D3F500F6FAE5 /* ma_secure.h in Headers */,
+				65F50F161D78D3F500F6FAE5 /* violite.h in Headers */,
+				65F50F041D78D3F500F6FAE5 /* my_pthread.h in Headers */,
+				65F50F021D78D3F500F6FAE5 /* my_net.h in Headers */,
+				65F50EF81D78D3F500F6FAE5 /* m_string.h in Headers */,
+				65F50EA31D78CF0C00F6FAE5 /* shapefil.h in Headers */,
+				65F50F061D78D3F500F6FAE5 /* my_sys.h in Headers */,
+				65F50E961D78CE6300F6FAE5 /* WarpConduit.h in Headers */,
+				65F50EA71D78CFAC00F6FAE5 /* CHCSVParser.h in Headers */,
+				65F50EF91D78D3F500F6FAE5 /* ma_common.h in Headers */,
+				65F50EF31D78D3F500F6FAE5 /* errmsg.h in Headers */,
+				65F50F001D78D3F500F6FAE5 /* my_global.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		65F50E881D78CE1000F6FAE5 /* WarpConduit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 65F50E911D78CE1000F6FAE5 /* Build configuration list for PBXNativeTarget "WarpConduit" */;
+			buildPhases = (
+				65F50E841D78CE1000F6FAE5 /* Sources */,
+				65F50E851D78CE1000F6FAE5 /* Frameworks */,
+				65F50E861D78CE1000F6FAE5 /* Headers */,
+				65F50E871D78CE1000F6FAE5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WarpConduit;
+			productName = WarpConduit;
+			productReference = 65F50E891D78CE1000F6FAE5 /* WarpConduit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		65F50E801D78CE0F00F6FAE5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0800;
+				ORGANIZATIONNAME = Pixelspark;
+				TargetAttributes = {
+					65F50E881D78CE1000F6FAE5 = {
+						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = 2T2T7HAA8S;
+						LastSwiftMigration = 0800;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 65F50E831D78CE0F00F6FAE5 /* Build configuration list for PBXProject "WarpConduit" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 65F50E7F1D78CE0F00F6FAE5;
+			productRefGroup = 65F50E8A1D78CE1000F6FAE5 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 656822761D78D69300410BA5 /* Products */;
+					ProjectRef = 656822751D78D69300410BA5 /* TCMinem.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				65F50E881D78CE1000F6FAE5 /* WarpConduit */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		6568229F1D78D69300410BA5 /* TCMinem.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = TCMinem.app;
+			remoteRef = 6568229E1D78D69300410BA5 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		656822A11D78D69300410BA5 /* UnitTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = UnitTests.octest;
+			remoteRef = 656822A01D78D69300410BA5 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		65F50E871D78CE1000F6FAE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65F50E971D78CE6300F6FAE5 /* Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		65F50E841D78CE1000F6FAE5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				656822A51D78D93500410BA5 /* CSVStream.swift in Sources */,
+				65F50EA11D78CF0C00F6FAE5 /* dbfopen.c in Sources */,
+				65F50EB51D78D10F00F6FAE5 /* SQLiteHelpers.m in Sources */,
+				656822A31D78D89C00410BA5 /* DBFStream.swift in Sources */,
+				65F50EB31D78D0BA00F6FAE5 /* extension-functions.c in Sources */,
+				65F50EA21D78CF0C00F6FAE5 /* safileio.c in Sources */,
+				65F50EA81D78CFAC00F6FAE5 /* CHCSVParser.m in Sources */,
+				65F50EB01D78D0B400F6FAE5 /* sqlite3.c in Sources */,
+				656822951D78D69300410BA5 /* TCMXMLWriter.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		656822681D78D69300410BA5 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				656822691D78D69300410BA5 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		6568226A1D78D69300410BA5 /* MainWindow.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6568226B1D78D69300410BA5 /* en */,
+			);
+			name = MainWindow.xib;
+			sourceTree = "<group>";
+		};
+		6568226C1D78D69300410BA5 /* RootViewController.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6568226D1D78D69300410BA5 /* en */,
+			);
+			name = RootViewController.xib;
+			sourceTree = "<group>";
+		};
+		6568227E1D78D69300410BA5 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6568227F1D78D69300410BA5 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		65F50E8F1D78CE1000F6FAE5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		65F50E901D78CE1000F6FAE5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		65F50E921D78CE1000F6FAE5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 2T2T7HAA8S;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = "$(SRCROOT)/Sources/Info.plist";
+				INSTALL_PATH = "@executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Libraries/MySQL",
+					"$(PROJECT_DIR)/Libraries/PostgreSQL",
+					"$(PROJECT_DIR)/Libraries",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpConduit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
+			};
+			name = Debug;
+		};
+		65F50E931D78CE1000F6FAE5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 2T2T7HAA8S;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = "$(SRCROOT)/Sources/Info.plist";
+				INSTALL_PATH = "@executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Libraries/MySQL",
+					"$(PROJECT_DIR)/Libraries/PostgreSQL",
+					"$(PROJECT_DIR)/Libraries",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpConduit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		65F50E831D78CE0F00F6FAE5 /* Build configuration list for PBXProject "WarpConduit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65F50E8F1D78CE1000F6FAE5 /* Debug */,
+				65F50E901D78CE1000F6FAE5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		65F50E911D78CE1000F6FAE5 /* Build configuration list for PBXNativeTarget "WarpConduit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65F50E921D78CE1000F6FAE5 /* Debug */,
+				65F50E931D78CE1000F6FAE5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 65F50E801D78CE0F00F6FAE5 /* Project object */;
+}

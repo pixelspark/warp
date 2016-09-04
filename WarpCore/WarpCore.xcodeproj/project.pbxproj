@@ -153,9 +153,9 @@
 		656889141C1465CE008D1A7D = {
 			isa = PBXGroup;
 			children = (
-				65A143721D74C3D70020192D /* README.md */,
 				6527AA021C147B1400B9159A /* Package.swift */,
 				6568891F1C1465CE008D1A7D /* Products */,
+				65A143721D74C3D70020192D /* README.md */,
 				656889461C14662E008D1A7D /* Sources */,
 				656889701C146738008D1A7D /* SwiftParser.xcodeproj */,
 				656889631C14663F008D1A7D /* Tests */,
@@ -646,7 +646,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				INSTALL_PATH = "@executable_path/../Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.WarpCore;
@@ -668,7 +668,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				INSTALL_PATH = "@executable_path/../Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.WarpCore;

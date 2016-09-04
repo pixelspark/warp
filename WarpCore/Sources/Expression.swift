@@ -845,7 +845,7 @@ public final class Foreign: Expression, ColumnReferencingExpression {
 		return false
 	}
 
-	public override func isEqual(to object: Any?) -> Bool {
+	public override func isEqual(_ object: Any?) -> Bool {
 		if let o = object as? Foreign, o.column == self.column {
 			return true
 		}

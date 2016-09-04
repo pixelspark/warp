@@ -1,5 +1,6 @@
 import Foundation
 import WarpCore
+import WarpConduit
 
 class QBEXMLWriter: NSObject, QBEFileWriter, StreamDelegate {
 	class var fileTypes: Set<String> { get { return Set<String>(["xml"]) } }

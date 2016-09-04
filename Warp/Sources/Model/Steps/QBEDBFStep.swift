@@ -1,112 +1,6 @@
 import Foundation
 import WarpCore
-
-final class QBEDBFStream: NSObject, WarpCore.Stream {
-	let url: URL
-
-	private var queue = DispatchQueue(label: "nl.pixelspark.Warp.QBEDBFStream")
-	private let handle: DBFHandle?
-	private let recordCount: Int32
-	private let fieldCount: Int32
-	private var columns: OrderedSet<Column>? = nil
-	private var types: [DBFFieldType]? = nil
-	private var position: Int32 = 0
-
-	init(url: URL) {
-		self.url = url
-		self.handle = DBFOpen((url as NSURL).fileSystemRepresentation, "rb")
-		if self.handle == nil {
-			self.fieldCount = 0
-			self.recordCount = 0
-		}
-		else {
-			self.recordCount = DBFGetRecordCount(self.handle)
-			self.fieldCount = DBFGetFieldCount(self.handle)
-		}
-	}
-
-	deinit {
-		DBFClose(handle)
-	}
-
-	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
-		if self.columns == nil {
-			let fieldCount = self.fieldCount
-			var fields: OrderedSet<Column> = []
-			var types: [DBFFieldType] = []
-			for i in 0..<fieldCount {
-				var fieldName =  [CChar](repeating: 0, count: 12)
-				let type = DBFGetFieldInfo(handle, i, &fieldName, nil, nil)
-				if let fieldNameString = String(cString: fieldName, encoding: String.Encoding.utf8) {
-					fields.append(Column(fieldNameString))
-					types.append(type)
-				}
-			}
-			self.types = types
-			columns = fields
-		}
-
-		callback(.success(columns!))
-	}
-
-	func fetch(_ job: Job, consumer: Sink) {
-		(self.queue).async {
-			self.columns(job) { (columns) -> () in
-				let end = min(self.recordCount, self.position + StreamDefaultBatchSize)
-
-				var rows: [Tuple] = []
-				for recordIndex in self.position..<end {
-					if DBFIsRecordDeleted(self.handle, recordIndex) == 0 {
-						var row: Tuple = []
-						for fieldIndex in 0..<self.fieldCount {
-							if DBFIsAttributeNULL(self.handle, recordIndex, fieldIndex) != 0 {
-								row.append(Value.empty)
-							}
-							else {
-								switch self.types![Int(fieldIndex)].rawValue {
-									case FTString.rawValue:
-										if let s = String(cString: DBFReadStringAttribute(self.handle, recordIndex, fieldIndex), encoding: String.Encoding.utf8) {
-											row.append(Value.string(s))
-										}
-										else {
-											row.append(Value.invalid)
-										}
-
-									case FTInteger.rawValue:
-										row.append(Value.int(Int(DBFReadIntegerAttribute(self.handle, recordIndex, fieldIndex))))
-
-									case FTDouble.rawValue:
-										row.append(Value.double(DBFReadDoubleAttribute(self.handle, recordIndex, fieldIndex)))
-
-									case FTInvalid.rawValue:
-										row.append(Value.invalid)
-
-									case FTLogical.rawValue:
-										// TODO: this needs to be translated to a BoolValue. However, no idea how logical values are stored in DBF..
-										row.append(Value.invalid)
-
-									default:
-										row.append(Value.invalid)
-								}
-							}
-						}
-
-						rows.append(row)
-					}
-				}
-
-				self.position = end
-				job.async {
-					consumer(.success(Array(rows)), (self.position < (self.recordCount-1)) ? .hasMore : .finished)
-				}
-			}
-		}
-	}
-
-	func clone() -> WarpCore.Stream {
-		return QBEDBFStream(url: self.url)
-	}
-}
+import WarpConduit
 
 class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 	class func explain(_ fileExtension: String, locale: Language) -> String {
@@ -236,7 +130,7 @@ class QBEDBFSourceStep: QBEStep {
 
 	private func sourceDataset() -> Fallible<Dataset> {
 		if let url = file?.url {
-			let s = QBEDBFStream(url: url as URL)
+			let s = DBFStream(url: url as URL)
 			return .success(StreamDataset(source: s))
 		}
 		else {

@@ -1,5 +1,6 @@
 import XCTest
 import WarpCore
+import WarpConduit
 @testable import Warp
 
 class QBETests: XCTestCase {
@@ -60,7 +61,7 @@ class QBETests: XCTestCase {
 
 		// Test general functioning of CSV stream
 		let url = Bundle(for: QBETests.self).url(forResource: "regular", withExtension: "csv")
-		let csv = QBECSVStream(url: url!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
+		let csv = CSVStream(url: url!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
 
 		asyncTest { callback in
 			csv.columns(job) { result in
@@ -88,7 +89,7 @@ class QBETests: XCTestCase {
 
 		// Test functioning of CSV stream with file that contains rows that have more columns than specified
 		let url2 = Bundle(for: QBETests.self).url(forResource: "extraneous-columns", withExtension: "csv")
-		let csv2 = QBECSVStream(url: url2!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
+		let csv2 = CSVStream(url: url2!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
 
 		asyncTest { callback in
 			StreamDataset(source: csv2).raster(job) { result in
@@ -107,7 +108,7 @@ class QBETests: XCTestCase {
 
 		// Test functioning of CSV stream with file that contains rows that have less columns then specified
 		let url3 = Bundle(for: QBETests.self).url(forResource: "missing-columns", withExtension: "csv")
-		let csv3 = QBECSVStream(url: url3!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
+		let csv3 = CSVStream(url: url3!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
 
 		asyncTest { callback in
 			StreamDataset(source: csv3).raster(job) { result in
@@ -126,7 +127,7 @@ class QBETests: XCTestCase {
 
 		// Test escapes in CSV
 		let url4 = Bundle(for: QBETests.self).url(forResource: "escapes", withExtension: "csv")
-		let csv4 = QBECSVStream(url: url4!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
+		let csv4 = CSVStream(url: url4!, fieldSeparator: ";".utf16.first!, hasHeaders: true, locale: locale)
 
 		asyncTest { callback in
 			StreamDataset(source: csv4).raster(job) { result in

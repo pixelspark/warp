@@ -1,5 +1,6 @@
 import Foundation
 import WarpCore
+import WarpConduit
 
 private class QBESQLiteResult {
 	let resultSet: OpaquePointer
