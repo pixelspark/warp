@@ -60,7 +60,9 @@ import WarpCore
 	}
 	
 	func tabletView(_ view: QBETabletViewController, didSelectConfigurable configurable: QBEConfigurable?, configureNow: Bool, delegate: QBESentenceViewDelegate?) {
-		documentView.selectTablet(view.tablet, notifyDelegate: false)
+		if self.documentView.selectedTablet != view.tablet {
+			documentView.selectTablet(view.tablet, notifyDelegate: false)
+		}
 		view.view.superview?.orderFront()
 
 		// Only show this tablet in the sentence editor if it really has become the selected tablet
