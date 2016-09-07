@@ -94,7 +94,7 @@ In order to use WarpCore and/or WarpConduit in your own projects, simply drag th
 
 # License
 
-Warp is 'convenience-ware'. It can be downloaded from the Mac App Store at a reasonable price, providing you with updates and support from (Pixelspark)[https://pixelspark.nl]. Alternatively, you can download the source code and build Warp yourself. 
+Warp is 'convenience-ware'. It can be downloaded from the Mac App Store at a reasonable price, providing you with updates and support from [Pixelspark](https://pixelspark.nl). Alternatively, you can download the source code and build Warp yourself. 
 
 Warp is open sourced in order to (1) provide the community with a high-performance framework for handling big data sets in Swift, and (2) to encourage others to improve Warp in order to create the best big data transformation and analysis app there is. The licensing model reflects these objectives. The frameworks powering Warp's data engine (WarpCore and WarpConduit) are licensed under the liberal MIT license, which allows you to not only use these frameworks in your own (possibly commercial/proprietary) applications, and modify them for your own purposes (we still encourage you however to submit any improvements back to us!). The application itself is licensed under the GPLv2. This license basically requires you to open-source any modifications you make as well. 
 
