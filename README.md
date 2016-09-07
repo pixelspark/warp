@@ -17,6 +17,10 @@ Warp allows you to convert and analyze (very) large databases with ease at the s
 
 * Easy-to-use, drag and drop interface, but the pro features are never more than a click away.
 
+Download Warp from the [Mac App Store](https://itunes.apple.com/us/app/warp/id973942134?l=nl&ls=1&mt=12&ct=github).
+
+![Warp screenshot](Docs/docs/img/mainscreenshot.png)
+
 ### Why Warp was created
 
 While there are many nice Mac applications for connecting to databases (e.g. Sequel Pro), none of them provide an integrated environment for working with data from different sources (databases and files) with the ease-of-use of a spreadsheet. I started work on Warp in 2014 primarily to fill this void.
@@ -58,7 +62,11 @@ The Warp desktop application consists of a document (`QBEDocument`) which holds 
 
 A chain (`QBEChain`) is an ordered list of `QBEStep`s, each of wich perform an operation on the output of the previous step. A `QBEStep` provides either a full dataset as output (`fullDataset` method) or an 'example' dataset (`exampleDataset`). The latter is used to give the user an idea of what he or she is doing to the data, without actually performing the full calculation. Under the hood, both methods call the various methods on `Dataset` to do their work. 
 
+![Steps screenshot](Docs/docs/img/steps.png)
+
 A `QBEStep` can be configured throgh wat is called a 'sentence' (`QBESentence`). A sentence is a textual description of what the step will do, containing tokens that the user can modify to change the behaviour. An example of a sentence is "Select the top X rows", where X is a token connected to the variable `numberOfRows` on `QBELimitStep`. A `QBEStep` can optionally provide a view for configuration of more advanced options. The `QBEFactory` class maintains mappings between `QBEStep`, configurator views, and step icons.
+
+![Sentence bar screenshot](Docs/docs/img/sentencebar.png)
 
 # Dependencies
 Dependencies are fetched automatically as Git submodules. Currently the following are used:
@@ -79,6 +87,7 @@ Dependencies are fetched automatically as Git submodules. Currently the followin
 WarpConduit contains precompiled (unmodified) binaries of libpq and libmariadbclient. It also contains [SQLite](http://www.sqlite.org), CHCSVParser (by Dave Delong) and portions of Shapelib (by Frank Warmerdam, for reading DBF). 
 
 # Building
+
 Warp is written in Swift 3.0. Building Warp requires XCode 8 (currently at beta 6) on OS X El Capitan or higher. After cloning the repository, run a `git submodule init && git submodule update` to fetch dependencies.
 
 In order to use WarpCore and/or WarpConduit in your own projects, simply drag the corresponding .xcodeproj files to your project/workspace and add as target depdendency. For WarpCore, you need to add the SwiftParser framework (contained in the WarpCore project) to the 'copy files' build phase of your app (as well as WarpCore.framework itself, but XCode should do this automatically when adding it as a dependency). For WarpConduit, you need to add libmariadbclient.a and libpq.a to the list of binaries linked with, as well as add Rethink.framework to the 'copy files' phase. You should probably also link to libssl, libcrypto and libiconv. Check out Warp's project settings when in doubt.
