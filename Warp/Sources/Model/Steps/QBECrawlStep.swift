@@ -110,7 +110,7 @@ class QBECrawlStream: WarpCore.Stream {
 		}
 	}
 	
-	func fetch(_ job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: @escaping Sink) {
 		// First obtain the column names from the source stream
 		self.sourceColumnNames.get(job) { (sourceColumnsFallible) in
 			switch sourceColumnsFallible {

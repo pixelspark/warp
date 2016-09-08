@@ -314,7 +314,7 @@ internal extension Parser {
 		}
 	}
 	
-	static func matchList(_ item: ParserRule, separator: ParserRule) -> ParserRule {
+	static func matchList(_ item: @escaping ParserRule, separator: @escaping ParserRule) -> ParserRule {
 		return item/~ ~~ (separator ~~ item)*
 	}
 	

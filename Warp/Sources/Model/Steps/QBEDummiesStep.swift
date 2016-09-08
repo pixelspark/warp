@@ -50,7 +50,7 @@ class QBEDummiesTransformer: Transformer {
 		return Column("\(sourceColumn.name)_\(s)")
 	}
 
-	override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.sourceColumnFuture.get(job) { result in
 			switch result {
 			case .success(let sourceColumns):

@@ -20,7 +20,7 @@ private class QBEDelayTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		job.log("Delaying \(rows.count) rows for \(self.delay)s")
 		job.queue.asyncAfter(deadline: DispatchTime.now() + self.delay) {
 			callback(.success(rows), streamStatus)

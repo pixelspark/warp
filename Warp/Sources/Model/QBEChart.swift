@@ -74,7 +74,7 @@ class QBEChart: NSObject, QBEConfigurable, NSSecureCoding {
 			})
 		)
 
-		let contextCallback = { [weak self] (job: Job, callback: QBESentenceFormulaToken.ContextCallback) -> () in
+		let contextCallback = { [weak self] (job: Job, callback: @escaping QBESentenceFormulaToken.ContextCallback) -> () in
 			if let sourceStep = self?.sourceTablet?.chain.head {
 				sourceStep.exampleDataset(job, maxInputRows: 100, maxOutputRows: 1) { result in
 					switch result {

@@ -63,7 +63,7 @@ final public class DBFStream: NSObject, WarpCore.Stream {
 		callback(.success(columns!))
 	}
 
-	public func fetch(_ job: Job, consumer: Sink) {
+	public func fetch(_ job: Job, consumer: @escaping Sink) {
 		(self.queue).async {
 			self.columns(job) { (columns) -> () in
 				let end = min(self.recordCount, self.position + StreamDefaultBatchSize)

@@ -474,7 +474,7 @@ private class QBEClassifierStream: WarpCore.Stream {
 		})
 	}
 
-	func fetch(_ job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: @escaping Sink) {
 		// Make sure the model is trained before starting to classify result
 		self.trainingFuture.get(job) { result in
 			switch result {

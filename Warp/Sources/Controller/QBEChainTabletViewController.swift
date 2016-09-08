@@ -32,7 +32,7 @@ class QBEValueConfigurable: NSObject, QBEConfigurable {
 
 class QBEChangeableValueConfigurable: NSObject, QBEFullyConfigurable {
 	var value: Value
-	let callback: @escaping (Value) -> ()
+	let callback: (Value) -> ()
 	var locale: Language {
 		return QBEAppDelegate.sharedInstance.locale
 	}

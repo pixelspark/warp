@@ -32,7 +32,7 @@ public func assertMainThread(_ file: StaticString = #file, line: UInt = #line) {
 
 /** Wrap a block so that it can be called only once. Calling the returned block twice results in a fatal error. After
 the first call but before returning the result from the wrapped block, the wrapped block is dereferenced. */
-public func once<P, R>(_ block: ((P) -> (R))) -> ((P) -> (R)) {
+public func once<P, R>(_ block: @escaping ((P) -> (R))) -> ((P) -> (R)) {
 	#if DEBUG
 		var blockReference: ((P) -> (R))? = block
 		let mutex = Mutex()
@@ -75,7 +75,7 @@ asynchronously on `queue`) more than once each `interval` seconds. If the wrappe
 in an interval, it will use the most recent call's parameters when eventually calling the wrapped block (after `interval`
 has elapsed since the last call to the wrapped function) - i.e. calls are not queued and may get 'lost' by being superseded
 by a newer call. */
-public func throttle<P>(interval: TimeInterval, queue: DispatchQueue, _ block: ((P) -> ())) -> ((P) -> ()) {
+public func throttle<P>(interval: TimeInterval, queue: DispatchQueue, _ block: @escaping ((P) -> ())) -> ((P) -> ()) {
 	var lastExecutionTime: TimeInterval? = nil
 	var scheduledExecutionParameters: P? = nil
 	let mutex = Mutex()
@@ -198,7 +198,7 @@ public extension Sequence {
 }
 
 internal extension Array {
-	func parallel<T, ResultType>(_ map: ((Array<Element>) -> (T)), reduce: ((T, ResultType?) -> (ResultType))) -> Future<ResultType?> {
+	func parallel<T, ResultType>(_ map: (@escaping (Array<Element>) -> (T)), reduce: (@escaping (T, ResultType?) -> (ResultType))) -> Future<ResultType?> {
 		let chunkSize = StreamDefaultBatchSize/8
 		
 		return Future<ResultType?>({ (job, completion) -> () in
@@ -662,7 +662,7 @@ if the result of the calculation was available in cache, or as soon as the resul
 invalidated (pre-registered callbacks may still receive the stale result when it has been calculated). */
 public class Future<T> {
 	public typealias Callback = (T) -> ()
-	public typealias Producer = (Job, Callback) -> ()
+	public typealias Producer = (Job, @escaping Callback) -> ()
 
 	fileprivate var batch: Batch<T>?
 	fileprivate let mutex: Mutex = Mutex()
@@ -670,7 +670,7 @@ public class Future<T> {
 	let producer: Producer
 	let timeLimit: Double?
 	
-	public init(_ producer: Producer, timeLimit: Double? = nil)  {
+	public init(_ producer: @escaping Producer, timeLimit: Double? = nil)  {
 		self.producer = once(producer)
 		self.timeLimit = timeLimit
 	}
@@ -736,7 +736,7 @@ public class Future<T> {
 	The get() function performs work in its own Job.	If a job is set as parameter, this job will be a child of the 
 	given job, and will use its preferred queue. Otherwise it will perform the work in the user initiated QoS concurrent
 	queue. This function always returns its own child Job. */
-	@discardableResult public func get(_ job: Job, _ callback: Callback) -> Job {
+	@discardableResult public func get(_ job: Job, _ callback: @escaping Callback) -> Job {
 		return self.mutex.locked {
 			var first = false
 
@@ -832,7 +832,7 @@ class Batch<T>: Job {
 		}
 	}
 	
-	func enqueue(_ callback: Callback) {
+	func enqueue(_ callback: @escaping Callback) {
 		self.mutex.locked {
 			if satisfied {
 				let c = self.cached!

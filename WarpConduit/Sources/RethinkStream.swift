@@ -173,7 +173,7 @@ final public class RethinkStream: NSObject, WarpCore.Stream {
 		}
 	}
 
-	private func ingest(_ response: ReResponse, consumer: Sink, job: Job) {
+	private func ingest(_ response: ReResponse, consumer: @escaping Sink, job: Job) {
 		switch response {
 		case .error(let e):
 			consumer(.failure(e), .finished)
@@ -239,7 +239,7 @@ final public class RethinkStream: NSObject, WarpCore.Stream {
 		}
 	}
 
-	public func fetch(_ job: Job, consumer: Sink) {
+	public func fetch(_ job: Job, consumer: @escaping Sink) {
 		self.connection.get(job) { resFallible in
 			(self.queue).async {
 				if self.ended {

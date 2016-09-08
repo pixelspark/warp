@@ -226,7 +226,7 @@ public class QBECalculator: NSObject {
 		})
 	}
 	
-	public func calculate(_ sourceStep: QBEStep, fullDataset: Bool, maximumTime: Double? = nil, job calculationJob: Job, callback: ((StreamStatus) -> ())) {
+	public func calculate(_ sourceStep: QBEStep, fullDataset: Bool, maximumTime: Double? = nil, job calculationJob: Job, callback: @escaping ((StreamStatus) -> ())) {
 		return self.mutex.locked {
 			currentDataset?.cancel()
 			self.calculationInProgress?.job.cancel()
@@ -307,7 +307,7 @@ public class QBECalculator: NSObject {
 			}
 			else {
 				// Set up calculation for the raster
-				self._currentRaster = Future<Fallible<Raster>>({ [unowned self] (job: Job, producerCallback: Future<Fallible<Raster>>.Callback) in
+				self._currentRaster = Future<Fallible<Raster>>({ [unowned self] (job: Job, producerCallback: @escaping Future<Fallible<Raster>>.Callback) in
 					if let cd = self.currentDataset {
 						let dataJob = cd.get(job) { (data: Fallible<Dataset>) -> () in
 							switch data {

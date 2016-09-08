@@ -27,7 +27,7 @@ public enum StreamStatus {
 
 /** A Sink is a function used as a callback in response to Stream.fetch. It receives a set of rows from the stream
 as well as a boolean indicating whether the next call of fetch() will return any rows (true) or not (false). */
-public typealias Sink = @escaping (Fallible<Array<Tuple>>, StreamStatus) -> ()
+public typealias Sink = (Fallible<Array<Tuple>>, StreamStatus) -> ()
 
 /** The default number of rows that a Stream will send to a consumer upon request through Stream.fetch. */
 public let StreamDefaultBatchSize = 256
@@ -57,7 +57,7 @@ public protocol Stream {
 	
 	The consumer callee should not make any assumptions about the queue on which the callback is dispatched, or whether 
 	it is asynchronous. */
-	func fetch(_ job: Job, consumer: Sink)
+	func fetch(_ job: Job, consumer: @escaping Sink)
 	
 	/** Create a copy of this stream. The copied stream is reset to the initial position (e.g. will return the first row
 	of the data set during the first call to fetch on the copy). */
@@ -247,7 +247,7 @@ public final class ErrorStream: Stream {
 		self.error = error
 	}
 	
-	public func fetch(_ job: Job, consumer: Sink) {
+	public func fetch(_ job: Job, consumer: @escaping Sink) {
 		consumer(.failure(self.error), .finished)
 	}
 	
@@ -266,7 +266,7 @@ public final class EmptyStream: Stream {
 	public init() {
 	}
 
-	public func fetch(_ job: Job, consumer: Sink) {
+	public func fetch(_ job: Job, consumer: @escaping Sink) {
 		consumer(.success([]), .finished)
 	}
 	
@@ -297,7 +297,7 @@ open class SequenceStream: Stream {
 		self.rowCount = rowCount
 	}
 	
-	open func fetch(_ job: Job, consumer: Sink) {
+	open func fetch(_ job: Job, consumer: @escaping Sink) {
 		if let e = error {
 			consumer(.failure(e), .finished)
 			return

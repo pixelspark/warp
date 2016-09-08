@@ -103,7 +103,7 @@ public protocol QBESentenceToken: NSObjectProtocol, QBESubSentence {
 public class QBESentenceDynamicOptionsToken: NSObject, QBESentenceToken {
 	public typealias Callback = (String) -> ()
 	public typealias ProviderCallback = (Fallible<[String]>) -> ()
-	public typealias Provider = (ProviderCallback) -> ()
+	public typealias Provider = (@escaping ProviderCallback) -> ()
 	public private(set) var optionsProvider: Provider
 	private(set) var value: String
 	public let callback: Callback
@@ -112,7 +112,7 @@ public class QBESentenceDynamicOptionsToken: NSObject, QBESentenceToken {
 		return value
 		} }
 
-	public init(value: String, provider: Provider, callback: Callback) {
+	public init(value: String, provider: @escaping Provider, callback: @escaping Callback) {
 		self.optionsProvider = provider
 		self.value = value
 		self.callback = callback
@@ -139,7 +139,7 @@ public class QBESentenceOptionsToken: NSObject, QBESentenceToken {
 		return options[value] ?? ""
 	} }
 
-	public init(options: [String: String], value: String, callback: Callback) {
+	public init(options: [String: String], value: String, callback: @escaping Callback) {
 		self.options = options
 		self.value = value
 		self.callback = callback
@@ -171,7 +171,7 @@ public class QBESentenceColumnsToken: NSObject, QBESentenceToken {
 		return self.value.map { $0.name }.joined(separator: ", ")
 	}
 
-	public init(value: OrderedSet<Column>, callback: Callback) {
+	public init(value: OrderedSet<Column>, callback: @escaping Callback) {
 		self.value = value
 		self.callback = callback
 	}
@@ -187,7 +187,7 @@ public class QBESentenceColumnsToken: NSObject, QBESentenceToken {
 /** A sentence item that shows a list of string options, which have associated string keys. Either option can be selected
 or deselected.*/
 public class QBESentenceSetToken: NSObject, QBESentenceToken {
-	public typealias Provider = @escaping (_ callback: @escaping (Fallible<Set<String>>) -> ()) -> ()
+	public typealias Provider = (_ callback: @escaping (Fallible<Set<String>>) -> ()) -> ()
 	public typealias Callback = (Set<String>) -> ()
 	public private(set) var provider: Provider
 	public private(set) var value: Set<String>
@@ -202,7 +202,7 @@ public class QBESentenceSetToken: NSObject, QBESentenceToken {
 		return self.value.joined(separator: ", ")
 	}
 
-	public init(value: Set<String>, provider: Provider, callback: Callback) {
+	public init(value: Set<String>, provider: @escaping Provider, callback: @escaping Callback) {
 		self.provider = provider
 		self.value = value
 		self.callback = callback
@@ -233,7 +233,7 @@ public class QBESentenceTextToken: NSObject, QBESentenceToken {
 	public var label: String
 	public let callback: Callback
 
-	public init(value: String, callback: Callback) {
+	public init(value: String, callback: @escaping Callback) {
 		self.label = value
 		self.callback = callback
 	}
@@ -255,7 +255,7 @@ public class QBESentenceTextToken: NSObject, QBESentenceToken {
 public class QBESentenceValueToken: QBESentenceTextToken {
 	public typealias ValueCallback = (Value) -> (Bool)
 
-	public init(value: Value, locale: Language, callback: ValueCallback) {
+	public init(value: Value, locale: Language, callback: @escaping ValueCallback) {
 		super.init(value: locale.localStringFor(value)) { s -> Bool in
 			return callback(locale.valueForLocalString(s))
 		}
@@ -270,13 +270,14 @@ public struct QBESentenceFormulaTokenContext {
 /** Sentence item that shows a friendly representation of a formula, and shows a formula editor on editing. */
 public class QBESentenceFormulaToken: NSObject, QBESentenceToken {
 	public typealias ContextCallback = (Fallible<QBESentenceFormulaTokenContext>) -> ()
+	public typealias ContextProviderCallback = (Job, @escaping ContextCallback) -> ()
 	public typealias Callback = (Expression) -> ()
 	public var expression: Expression
 	public let locale: Language
 	public let callback: Callback // Called when a new formula is set
-	public let contextCallback: ((Job, ContextCallback) -> ())? // Called to obtain context information (columns, example row, etc.)
+	public let contextCallback: ContextProviderCallback? // Called to obtain context information (columns, example row, etc.)
 
-	public init(expression: Expression, locale: Language, callback: Callback, contextCallback: ((Job, ContextCallback) -> ())? = nil) {
+	public init(expression: Expression, locale: Language, callback: @escaping Callback, contextCallback: ContextProviderCallback? = nil) {
 		self.expression = expression
 		self.locale = locale
 		self.callback = callback
@@ -315,7 +316,7 @@ public class QBESentenceFileToken: NSObject, QBESentenceToken {
 	public let isDirectory: Bool
 	public let mode: QBESentenceFileTokenMode
 
-	public init(directory: QBEFileReference?, callback: Callback) {
+	public init(directory: QBEFileReference?, callback: @escaping Callback) {
 		self.allowedFileTypes = []
 		self.file = directory
 		self.callback = callback
@@ -323,7 +324,7 @@ public class QBESentenceFileToken: NSObject, QBESentenceToken {
 		self.mode = .reading(canCreate: true)
 	}
 
-	public init(saveFile file: QBEFileReference?, allowedFileTypes: [String], callback: Callback) {
+	public init(saveFile file: QBEFileReference?, allowedFileTypes: [String], callback: @escaping Callback) {
 		self.file = file
 		self.callback = callback
 		self.allowedFileTypes = allowedFileTypes
@@ -331,7 +332,7 @@ public class QBESentenceFileToken: NSObject, QBESentenceToken {
 		self.mode = .writing()
 	}
 
-	public init(file: QBEFileReference?, allowedFileTypes: [String], canCreate: Bool = false, callback: Callback) {
+	public init(file: QBEFileReference?, allowedFileTypes: [String], canCreate: Bool = false, callback: @escaping Callback) {
 		self.file = file
 		self.callback = callback
 		self.allowedFileTypes = allowedFileTypes
@@ -353,7 +354,7 @@ public class QBESentenceFileToken: NSObject, QBESentenceToken {
 }
 
 extension QBEStep {
-	func contextCallbackForFormulaSentence(_ job: Job, callback: QBESentenceFormulaToken.ContextCallback) {
+	func contextCallbackForFormulaSentence(_ job: Job, callback: @escaping QBESentenceFormulaToken.ContextCallback) {
 		if let sourceStep = self.previous {
 			sourceStep.exampleDataset(job, maxInputRows: 100, maxOutputRows: 1) { result in
 				switch result {

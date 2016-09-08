@@ -617,7 +617,7 @@ final class QBEMySQLStream: WarpCore.Stream {
 		}
 	}
 	
-	func fetch(_ job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: @escaping Sink) {
 		return stream().fetch(job, consumer: consumer)
 	}
 	

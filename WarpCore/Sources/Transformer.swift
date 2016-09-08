@@ -34,7 +34,7 @@ open class Transformer: NSObject, Stream {
 		source.columns(job, callback: callback)
 	}
 
-	public final func fetch(_ job: Job, consumer: Sink) {
+	public final func fetch(_ job: Job, consumer: @escaping Sink) {
 		let shouldContinue = self.mutex.locked { () -> Bool in
 			if !started {
 				self.started = true
@@ -101,7 +101,7 @@ open class Transformer: NSObject, Stream {
 	returned to the stream's consumer. This is the 'last chance' to do any work (i.e. transformers that only return any
 	data after having seen all data should do so here). The rows returned from the last call to transform are provided
 	as parameter. */
-	open func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
+	open func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: @escaping Sink) {
 		return callback(lastRows, .finished)
 	}
 
@@ -109,7 +109,7 @@ open class Transformer: NSObject, Stream {
 	with the resulting set of rows (which does not have to be of equal size as the input set) and a boolean indicating
 	whether stream processing should be halted (e.g. because a certain limit is reached or all information needed by the
 	transform has been found already). */
-	open func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	open func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		fatalError("Transformer.transform should be implemented in a subclass")
 	}
 
@@ -288,7 +288,7 @@ private class FlattenTransformer: Transformer {
 		return FlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		prepare(job) {
 			switch self.originalColumns! {
 			case .success(let originalColumns):
@@ -331,7 +331,7 @@ private class FilterTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		source.columns(job) { (columns) -> () in
 			switch columns {
 			case .success(let cns):
@@ -364,7 +364,7 @@ private class RandomTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.mutex.locked {
 			job.time("Reservoir fill", items: rows.count, itemType: "rows") {
 				self.reservoir.add(rows)
@@ -374,7 +374,7 @@ private class RandomTransformer: Transformer {
 		}
 	}
 
-	private override func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
+	private override func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: @escaping Sink) {
 		self.mutex.locked {
 			callback(.success(Array(self.reservoir.sample)), .finished)
 		}
@@ -395,7 +395,7 @@ private class OffsetTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.mutex.locked {
 			if self.position > self.offset {
 				self.position += rows.count
@@ -437,7 +437,7 @@ private class LimitTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.mutex.locked {
 			// We haven't reached the limit yet, not even after streaming this chunk
 			if (self.position + rows.count) < self.limit {
@@ -502,7 +502,7 @@ private class ColumnsTransformer: Transformer {
 		}
 	}
 
-	override private func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	override private func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		ensureIndexes(job) {
 			assert(self.indexes != nil)
 
@@ -616,7 +616,7 @@ private class CalculateTransformer: Transformer {
 		}
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.ensureIndexes.get(job) {
 			job.time("Stream calculate", items: rows.count, itemType: "row") {
 				switch self.columns! {
@@ -719,7 +719,7 @@ private class JoinTransformer: Transformer {
 		return JoinTransformer(source: self.source.clone(), join: self.join)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.leftColumnNames.get(job) { (leftColumnNamesFallible) in
 			switch leftColumnNamesFallible {
 			case .success(let leftColumnNames):
@@ -822,7 +822,7 @@ private class AggregateTransformer: Transformer {
 		self.init(source: source, groups: OrderedDictionary(dictionaryInAnyOrder: groups), values: OrderedDictionary(dictionaryInAnyOrder: values))
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		let reducerTemplate = self.values.mapDictionary { (c,a) in return (c, a.reduce.reducer!) }
 		self.sourceColumnNames.get(job) { sourceColumnsFallible in
 			switch sourceColumnsFallible {
@@ -868,7 +868,7 @@ private class AggregateTransformer: Transformer {
 		}
 	}
 
-	private override func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: Sink) {
+	private override func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: @escaping Sink) {
 		// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
 		job.async {
 			var rows: [Tuple] = []

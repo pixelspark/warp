@@ -92,7 +92,7 @@ public final class CSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 		callback(.success(columns))
 	}
 
-	public func fetch(_ job: Job, consumer: Sink) {
+	public func fetch(_ job: Job, consumer: @escaping Sink) {
 		queue.sync {
 			job.time("Parse CSV", items: StreamDefaultBatchSize, itemType: "row") {
 				#if DEBUG

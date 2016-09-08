@@ -27,7 +27,7 @@ class QBEHTTPStream: WarpCore.Stream {
 		callback(.success(self.columnNames))
 	}
 
-	func fetch(_ job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: @escaping Sink) {
 		let first = self.mutex.locked { () -> Bool in
 			if self.first {
 				self.first = false

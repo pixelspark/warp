@@ -27,7 +27,7 @@ class QBEExplodeVerticallyTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.columnFuture.get(job) { result in
 			switch result {
 			case .success(let columns):
@@ -103,7 +103,7 @@ class QBEExplodeHorizontallyTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: Sink) {
+	override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.targetColumnFuture.get(job) { result in
 			switch result {
 			case .success(let targetColumns):

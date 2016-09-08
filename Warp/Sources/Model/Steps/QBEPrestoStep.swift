@@ -209,7 +209,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 		}
 	}
 	
-	func fetch(_ job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: @escaping Sink) {
 		request(job) {
 			let rows = self.buffer
 			self.buffer.removeAll(keepingCapacity: true)

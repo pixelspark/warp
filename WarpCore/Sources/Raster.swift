@@ -600,7 +600,7 @@ public class RasterDataset: NSObject, Dataset {
 		future = {(job, callback) in callback(.success(raster))}
 	}
 	
-	public init(future: Future<Fallible<Raster>>.Producer) {
+	public init(future: @escaping Future<Fallible<Raster>>.Producer) {
 		self.future = future
 	}
 	
@@ -614,10 +614,10 @@ public class RasterDataset: NSObject, Dataset {
 		})
 	}
 	
-	internal func apply(_ description: String? = nil, filter: Filter) -> Dataset {
+	internal func apply(_ description: String? = nil, filter: @escaping Filter) -> Dataset {
 		let ownFuture = self.future
 		
-		let newFuture = {(job: Job, cb: Future<Fallible<Raster>>.Callback) -> () in
+		let newFuture = {(job: Job, cb: @escaping Future<Fallible<Raster>>.Callback) -> () in
 			let progressKey = Unmanaged.passUnretained(self).toOpaque().hashValue
 			job.reportProgress(0.0, forKey: progressKey)
 
@@ -637,7 +637,7 @@ public class RasterDataset: NSObject, Dataset {
 	}
 	
 	internal func applyAsynchronous(_ description: String? = nil, filter: @escaping (Job, Raster, @escaping (Fallible<Raster>) -> ()) -> ()) -> Dataset {
-		let newFuture = {(job: Job, cb: Future<Fallible<Raster>>.Callback) -> () in
+		let newFuture = {(job: Job, cb: @escaping Future<Fallible<Raster>>.Callback) -> () in
 			self.future(job) {(fallibleRaster) in
 				switch fallibleRaster {
 					case .success(let raster):
@@ -1270,7 +1270,7 @@ private class RasterDatasetStream: NSObject, Stream {
 		return RasterDatasetStream(data)
 	}
 	
-	func fetch(_ job: Job, consumer: Sink) {
+	func fetch(_ job: Job, consumer: @escaping Sink) {
 		job.reportProgress(0.0, forKey: self.hashValue)
 		self.raster.get(job) { (fallibleRaster) in
 			switch fallibleRaster {
