@@ -150,12 +150,12 @@ internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 						rowDataset!.append(Value.empty)
 					}
 					else {
-						// Is this a numeric field?
+						// Is this a date field?
 						let type = self.columnTypes[cn]
-						if type.type.rawValue == MYSQL_TYPE_TIME.rawValue ||
-						 type.type.rawValue == MYSQL_TYPE_DATE.rawValue ||
-						 type.type.rawValue == MYSQL_TYPE_DATETIME.rawValue ||
-						 type.type.rawValue == MYSQL_TYPE_TIMESTAMP.rawValue {
+						if type.type.rawValue == MYSQL_TYPE_TIME.rawValue
+							|| type.type.rawValue == MYSQL_TYPE_DATE.rawValue
+							|| type.type.rawValue == MYSQL_TYPE_DATETIME.rawValue
+							|| type.type.rawValue == MYSQL_TYPE_TIMESTAMP.rawValue {
 							
 							/* Only MySQL TIMESTAMP values are actual dates in UTC. The rest can be anything, in any time
 							zone, so we cannot convert these to Value.date. */
@@ -180,32 +180,33 @@ internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 								rowDataset!.append(Value.invalid)
 							}
 						}
-						else if (Int32(type.flags) & NUM_FLAG) != 0 {
-							if type.type.rawValue == MYSQL_TYPE_TINY.rawValue
-								|| type.type.rawValue == MYSQL_TYPE_SHORT.rawValue
-								|| type.type.rawValue == MYSQL_TYPE_LONG.rawValue
-								|| type.type.rawValue == MYSQL_TYPE_INT24.rawValue
-								|| type.type.rawValue == MYSQL_TYPE_LONGLONG.rawValue {
-									if let ptr = val, let str = String(cString: ptr, encoding: String.Encoding.utf8), let nt = Int(str) {
-										rowDataset!.append(Value.int(nt))
-									}
-									else {
-										rowDataset!.append(Value.invalid)
-									}
-									
-							}
-							else {
-								if let ptr = val, let str = String(cString: ptr, encoding: String.Encoding.utf8) {
-									if let dbl = str.toDouble() {
-										rowDataset!.append(Value.double(dbl))
-									}
-									else {
-										rowDataset!.append(Value.string(str))
-									}
+						else if type.type.rawValue == MYSQL_TYPE_TINY.rawValue
+							|| type.type.rawValue == MYSQL_TYPE_SHORT.rawValue
+							|| type.type.rawValue == MYSQL_TYPE_LONG.rawValue
+							|| type.type.rawValue == MYSQL_TYPE_INT24.rawValue
+							|| type.type.rawValue == MYSQL_TYPE_LONGLONG.rawValue {
+								if let ptr = val, let str = String(cString: ptr, encoding: String.Encoding.utf8), let nt = Int(str) {
+									rowDataset!.append(Value.int(nt))
 								}
 								else {
 									rowDataset!.append(Value.invalid)
 								}
+								
+						}
+						else if type.type.rawValue == MYSQL_TYPE_DECIMAL.rawValue
+								|| type.type.rawValue == MYSQL_TYPE_NEWDECIMAL.rawValue
+								|| type.type.rawValue == MYSQL_TYPE_DOUBLE.rawValue
+								|| type.type.rawValue == MYSQL_TYPE_FLOAT.rawValue {
+							if let ptr = val, let str = String(cString: ptr, encoding: String.Encoding.utf8) {
+								if let dbl = str.toDouble() {
+									rowDataset!.append(Value.double(dbl))
+								}
+								else {
+									rowDataset!.append(Value.invalid)
+								}
+							}
+							else {
+								rowDataset!.append(Value.invalid)
 							}
 						}
 						else {
