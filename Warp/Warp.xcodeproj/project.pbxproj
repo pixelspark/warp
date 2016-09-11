@@ -16,6 +16,7 @@
 		651C687E1C70E2AB00F0F048 /* QBEChainTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */; };
 		651C68801C70E96600F0F048 /* QBENote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687F1C70E96600F0F048 /* QBENote.swift */; };
 		651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */; };
+		6537E1DD1D85ED1900CD80EC /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6537E1DC1D85ED1900CD80EC /* MapKit.framework */; };
 		65436EDD1B30C38000636299 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; };
 		65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
 		656258D91C94AE100063253C /* QBEKeySelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */; };
@@ -359,6 +360,7 @@
 		651C687F1C70E96600F0F048 /* QBENote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENote.swift; sourceTree = "<group>"; };
 		651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENoteTabletViewController.swift; sourceTree = "<group>"; };
 		65292F461D7CACFA0053ADE3 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
+		6537E1DC1D85ED1900CD80EC /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEKeySelectionViewController.swift; sourceTree = "<group>"; };
 		656822551D78D60E00410BA5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Libraries/Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
@@ -533,6 +535,7 @@
 				656822561D78D60E00410BA5 /* libiconv.tbd in Frameworks */,
 				65E224AB1D7C605B007433E6 /* libssl.35.dylib in Frameworks */,
 				65E224AD1D7C605E007433E6 /* libcrypto.35.dylib in Frameworks */,
+				6537E1DD1D85ED1900CD80EC /* MapKit.framework in Frameworks */,
 				65E224A91D7C6055007433E6 /* libmariadbclient.a in Frameworks */,
 				65E224A71D7C604C007433E6 /* libpq.a in Frameworks */,
 				65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */,
@@ -579,6 +582,7 @@
 		653D19D81D1C76AC0094C441 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6537E1DC1D85ED1900CD80EC /* MapKit.framework */,
 				65DAF6CE1D7C719D00163750 /* Rethink.framework */,
 				65E224AC1D7C605E007433E6 /* libcrypto.35.dylib */,
 				65E224AA1D7C605B007433E6 /* libssl.35.dylib */,
