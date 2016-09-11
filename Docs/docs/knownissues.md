@@ -8,8 +8,10 @@ Warp by default tries to connect to a database called 'test' when connecting to 
 
 # [#2] Warp won't be able to write to certain SQLite databases due to sandboxing restrictions
 
-**Affects:** all versions
+**Affects:** all versions, **Resolved in:** version 3.5
 
 Due to sandboxing restrictions, Warp is not always able to write to SQLite databases that use journaling. Sandboxing requires Warp to obtain special permissions to write to SQLite journal files, but in some cases is unable to obtain these permissions. 
 
-** Workaround**: Disable journaling for the databases, or try to re-open the database using the 'Load data from file' command from the 'File' menu in Warp. You may also contact us to obtain a copy of Warp that runs outside the sandbox.
+In version 3.4, SQLite databases that use journaling may in some cases not open at all. 
+
+** Workaround**: Disable journaling for the databases (open the file using the SQLite3 command line tool or another application, and perform the following query: `PRAGMA journal_mode=DELETE;`).  You may also contact us to obtain a copy of Warp that runs outside the sandbox.

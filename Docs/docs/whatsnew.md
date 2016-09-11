@@ -1,12 +1,13 @@
 # Version 3.4
 
-Released: tbd.
+Released: September 12, 2016
 
+* You can now more easily extract values from JSON-formatted data. Simply select a JSON value and go to 'Value' -> 'Extract data from JSON'. This will present a visual representation of the JSON data and allows you to select the data to be extracted.
 * The formula editor now shows available columns and an example of the formula result
 * You can now easily add data sets that are related to a data set (e.g. tables that have a foreign key relationship). To do so drag an arrow out from the table and select the menu item 'related data sets'.
-* You can now use the a[b] syntax to access pack items (shorthand syntax for NTH(a;b))
-* When you ask Warp to calculate the full result of a calculation, Warp will now stream in the results
-* You can now download data from URLs using the 'download data from the web' step
+* You can now use the a[b] syntax to access pack items (where b is a numeric value; this is shorthand syntax for NTH(a;b)). You can use the a->"b" syntax to access a value from a map.
+* When you ask Warp to calculate the full result of a calculation, Warp will now stream in the results.
+* You can now download data from URLs using the 'download data from the web' step.
 * You can now split lists to multiple rows and to multiple columns using the corresponding steps available in the 'Rows' and 'Columns' menu respectively.
 * You can now ask Warp to cache data from 'slow' data sources in-memory, so you can work with them more quickly. To do so, go to the 'Table' menu and select 'Cache data'. Remember to click 'Clear cache' to re-load the cache with the latest version of the data, if the source data changes.
 

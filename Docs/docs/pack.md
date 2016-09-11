@@ -19,13 +19,7 @@ In Warp, you can use the 'PACK' function to create a pack:
 
 ## Extracting values from a pack
 
-In Warp, you can use the 'NTH' function to extract data from a pack. The NTH funtion takes a pack string as its first argument, and an index as its second argument. It will return the value at the specified index in the pack, or return an invalid value if that index does not exist.
-
-````
-=NTH("foo,bar,baz"; 1) will return "foo"
-````
-
-The shorthand notation for calling NTH(a;b) is simply a[b]:
+In Warp, you can use square brackets to extract data from a pack. This will return the value at the specified index in the pack, or return an invalid value if that index does not exist.
 
 ````
 ="foo,bar,baz"[2] will return "bar"
@@ -39,11 +33,10 @@ Packs can also be used to store key-value pairs: simply alternate the keys and v
 first_name,Tommy,last_name,van der Vorst
 ````
 
-You can use 'NTH' to extract values:
+You can use the 'arrow' syntax to extract values:
 
 ````
-=NTH("first_name,Tommy,last_name,van der Vorst"; "first_name") will return "Tommy"
-="first_name,Tommy,last_name,van der Vorst"["first_name"] will return "Tommy"
+="first_name,Tommy,last_name,van der Vorst"->"first_name" will return "Tommy"
 ````
 
 ## JSON
@@ -63,5 +56,5 @@ baz,deepSpace$09,foo,bar
 Reading fields from this pack is simple:
 
 ````
-=FROM.JSON("{""foo"":""bar"", ""baz"":{""deepSpace"": 9}}")["baz"]["deepSpace"] will return 9
+=FROM.JSON("{""foo"":""bar"", ""baz"":{""deepSpace"": 9}}")->"baz"->"deepSpace" will return 9
 ````
