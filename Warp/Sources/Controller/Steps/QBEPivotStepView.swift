@@ -64,13 +64,11 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		rowsTable?.register(forDraggedTypes: [dragType])
 		columnsTable?.register(forDraggedTypes: [dragType])
 		aggregatesTable?.register(forDraggedTypes: [dragType])
-
-		let locale = delegate?.locale ?? Language()
 		
 		aggregatorsMenu = NSMenu()
 		for fun in Function.allFunctions {
 			if fun.reducer != nil {
-				let item = NSMenuItem(title: fun.explain(locale), action: nil, keyEquivalent: "")
+				let item = NSMenuItem(title: fun.localizedName, action: nil, keyEquivalent: "")
 				item.representedObject = fun.rawValue
 				aggregatorsMenu!.addItem(item)
 			}

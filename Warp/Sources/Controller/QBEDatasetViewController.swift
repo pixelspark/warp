@@ -585,7 +585,24 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			}
 		}
 	}
-	
+
+	var firstSelectedColumn: Column? {
+		if let selectedColumns = tableView?.selectedColumnIndexes, let firstColumn = selectedColumns.first,
+			let r = raster {
+			return r.columns[firstColumn]
+		}
+		return nil
+	}
+
+	var firstSelectedValue: Value? {
+		if let selectedRows = tableView?.selectedRowIndexes, let first = selectedRows.first,
+		let selectedColumns = tableView?.selectedColumnIndexes, let firstColumn = selectedColumns.first,
+		let r = raster {
+			return r[first, firstColumn]
+		}
+		return nil
+	}
+
 	func changeSelectedValue(_ toValue: Value) {
 		if let selectedRows = tableView?.selectedRowIndexes, let first = selectedRows.first {
 			if let selectedColumns = tableView?.selectedColumnIndexes, let firstColumn = selectedColumns.first {

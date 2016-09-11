@@ -77,7 +77,7 @@ internal enum QBEEditingMode {
 @objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate,
 	QBEDatasetViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget,
 	QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate,
-	QBEColumnViewDelegate, QBEChainViewDelegate {
+	QBEColumnViewDelegate, QBEChainViewDelegate, QBEJSONViewControlllerDelegate {
 
 	private var suggestions: Future<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator(incremental: true)
@@ -2268,7 +2268,39 @@ internal enum QBEEditingMode {
 
 		return validateSelector(item.action!)
 	}
-	
+
+	func jsonViewController(_ vc: QBEJSONViewController, requestExtraction of: Expression, to toColumn: Column) {
+		if let column = self.dataViewController?.firstSelectedColumn {
+			let source = Call(arguments: [Sibling(column)], type: .JSONDecode)
+			let expression = of.expressionReplacingIdentityReferencesWith(source)
+			let step = QBECalculateStep(previous: nil, targetColumn: toColumn, function: expression)
+			self.suggestSteps([step])
+		}
+	}
+
+	@IBAction func extractJSON(_ sender: NSObject) {
+		if let value = self.dataViewController?.firstSelectedValue {
+			if let json = value.stringValue {
+				do {
+					let jsonObject = try JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: [])
+					let ctr = QBEJSONViewController(nibName: "QBEJSONViewController", bundle: nil)!
+					ctr.data = jsonObject as? NSObject
+					ctr.delegate = self
+					self.presentViewControllerAsSheet(ctr)
+				}
+				catch(_) {
+						// @@ ERROR invalid JSON
+				}
+			}
+			else {
+				// @@@ ERROR selected is not not JSON
+			}
+		}
+		else {
+			// @@@ Error nothing selected
+		}
+	}
+
 	@objc func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		return validateSelector(item.action!)
 	}
@@ -2445,6 +2477,9 @@ internal enum QBEEditingMode {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.createDummyColumns(_:)) {
+			return currentStep != nil
+		}
+		else if selector==#selector(QBEChainViewController.extractJSON(_:)) {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.reverseSortRows(_:)) {

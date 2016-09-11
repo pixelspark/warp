@@ -83,7 +83,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 		var foundFunctionNames: [String] = []
 		for name in functionNames {
 			let function = locale!.functionWithName(name)
-			if search.isEmpty || name.range(of: search, options: String.CompareOptions.caseInsensitive) != nil || function?.explain(locale!).range(of: search, options: String.CompareOptions.caseInsensitive) != nil {
+			if search.isEmpty || name.range(of: search, options: String.CompareOptions.caseInsensitive) != nil || function?.localizedName.range(of: search, options: String.CompareOptions.caseInsensitive) != nil {
 				foundFunctionNames.append(name)
 			}
 		}
@@ -101,7 +101,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 							return functionName
 						
 						case "description":
-							return function.explain(self.locale!)
+							return function.localizedName
 						
 						case "parameters":
 							if let parameters = function.parameters {

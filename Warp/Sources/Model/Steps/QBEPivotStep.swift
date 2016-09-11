@@ -64,13 +64,13 @@ class QBEPivotStep: QBEStep {
 			let aggregation = aggregates[0]
 			if rows.count != 1 || !columns.isEmpty {
 				return String(format: NSLocalizedString("Pivot: %@ of %@", comment: "Pivot with 1 aggregate"),
-					aggregation.aggregator.reduce.explain(locale),
+					aggregation.aggregator.reduce.localizedName,
 					aggregation.aggregator.map.explain(locale))
 			}
 			else {
 				let row = rows[0]
 				return String(format: NSLocalizedString("Pivot: %@ of %@ grouped by %@", comment: "Pivot with 1 aggregate"),
-					aggregation.aggregator.reduce.explain(locale),
+					aggregation.aggregator.reduce.localizedName,
 					aggregation.aggregator.map.explain(locale),
 					row.name)
 			}
