@@ -154,7 +154,8 @@ class QBEFactory {
 		QBEExplodeHorizontallyStep.className(): "ExplodeHorizontalIcon",
 		QBECacheStep.className(): "CacheIcon",
 		QBEDummiesStep.className(): "DummiesIcon",
-		QBEHTTPStep.className(): "DownloadIcon"
+		QBEHTTPStep.className(): "DownloadIcon",
+		QBEFileStep.className(): "TextIcon"
 	]
 	
 	var fileExtensionsForWriting: Set<String> { get {
@@ -180,13 +181,16 @@ class QBEFactory {
 			}
 
 			// Try by file extension
-			let p = atURL.path
-			let ext = NSString(string: p).pathExtension
-			if let creator = fileReaders[ext] {
+			let ext = atURL.pathExtension
+			if ext == "warp" {
+				return nil
+			}
+			else if let creator = fileReaders[ext] {
 				return creator(atURL)
 			}
 
-			return nil
+			// Generic file reader
+			return QBEFileStep(file: QBEFileReference.absolute(atURL))
 		}
 		catch { }
 		return nil

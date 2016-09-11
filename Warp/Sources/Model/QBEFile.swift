@@ -186,6 +186,25 @@ internal class QBEFileCoordinator {
 	}
 }
 
+internal class QBEPersistedFileReference: NSObject, NSCoding {
+	let file: QBEFileReference?
+
+	init(_ file: QBEFileReference?) {
+		self.file = file
+	}
+
+	required init?(coder aDecoder: NSCoder) {
+		let d = aDecoder.decodeObject(forKey: "fileBookmark") as? Data
+		let u = aDecoder.decodeObject(forKey: "fileURL") as? URL
+		self.file = QBEFileReference.create(u, d)
+	}
+
+	func encode(with coder: NSCoder) {
+		coder.encode(self.file?.url, forKey: "fileURL")
+		coder.encode(self.file?.bookmark, forKey: "fileBookmark")
+	}
+}
+
 private class QBEFilePresenterDelegate: NSObject, NSFilePresenter {
 	@objc let primaryPresentedItemURL: URL?
 	@objc let presentedItemURL: URL?

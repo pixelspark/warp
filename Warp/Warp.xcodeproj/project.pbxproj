@@ -16,6 +16,7 @@
 		651C687E1C70E2AB00F0F048 /* QBEChainTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */; };
 		651C68801C70E96600F0F048 /* QBENote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687F1C70E96600F0F048 /* QBENote.swift */; };
 		651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */; };
+		6537E1D01D85E97100CD80EC /* QBEFileStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6537E1CF1D85E97100CD80EC /* QBEFileStep.swift */; };
 		6537E1DD1D85ED1900CD80EC /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6537E1DC1D85ED1900CD80EC /* MapKit.framework */; };
 		65436EDD1B30C38000636299 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; };
 		65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
@@ -360,6 +361,7 @@
 		651C687F1C70E96600F0F048 /* QBENote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENote.swift; sourceTree = "<group>"; };
 		651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENoteTabletViewController.swift; sourceTree = "<group>"; };
 		65292F461D7CACFA0053ADE3 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
+		6537E1CF1D85E97100CD80EC /* QBEFileStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFileStep.swift; sourceTree = "<group>"; };
 		6537E1DC1D85ED1900CD80EC /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEKeySelectionViewController.swift; sourceTree = "<group>"; };
 		656822551D78D60E00410BA5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
@@ -467,7 +469,7 @@
 		6583EFFD1C1475DF00AE6C00 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = SOURCE_ROOT; };
 		6583EFFF1C1475DF00AE6C00 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Tour.strings; sourceTree = SOURCE_ROOT; };
 		6583F0031C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/AccessibilityImageDescriptions.strings; sourceTree = SOURCE_ROOT; };
-		6583F0041C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; lineEnding = 0; name = nl; path = nl.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
+		6583F0041C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; lineEnding = 0; name = nl; path = nl.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		6583F0081C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEAlterTableViewController.strings; sourceTree = SOURCE_ROOT; };
 		6583F00A1C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBECalculateStepView.strings; sourceTree = SOURCE_ROOT; };
 		6583F00E1C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBECrawlStepView.strings; sourceTree = SOURCE_ROOT; };
@@ -709,9 +711,12 @@
 				6583EEC11C14758B00AE6C00 /* QBECSVStep.swift */,
 				6583EEC21C14758B00AE6C00 /* QBEDBFStep.swift */,
 				6583EEC31C14758B00AE6C00 /* QBEDebugStep.swift */,
+				650238D51D47F63F000BE0F2 /* QBEDummiesStep.swift */,
 				6582E4C31CF4C8D700DAFC78 /* QBEExplodeStep.swift */,
 				6583EEC41C14758B00AE6C00 /* QBEExportStep.swift */,
+				6537E1CF1D85E97100CD80EC /* QBEFileStep.swift */,
 				6583EEC51C14758B00AE6C00 /* QBEFlattenStep.swift */,
+				65D1C8A21D4E86D300967C26 /* QBEHTTPStep.swift */,
 				6583EEC61C14758B00AE6C00 /* QBEJoinStep.swift */,
 				6583EEC71C14758B00AE6C00 /* QBEMySQLSourceStep.swift */,
 				6583EEC81C14758B00AE6C00 /* QBEPivotStep.swift */,
@@ -725,8 +730,6 @@
 				6583EED01C14758B00AE6C00 /* QBESortStep.swift */,
 				6583EED11C14758B00AE6C00 /* QBESQLiteStep.swift */,
 				6583EED21C14758B00AE6C00 /* QBEXMLStep.swift */,
-				650238D51D47F63F000BE0F2 /* QBEDummiesStep.swift */,
-				65D1C8A21D4E86D300967C26 /* QBEHTTPStep.swift */,
 			);
 			path = Steps;
 			sourceTree = "<group>";
@@ -1255,6 +1258,7 @@
 				6583EF011C14758B00AE6C00 /* QBEChain.swift in Sources */,
 				6583EF1D1C14758B00AE6C00 /* QBESortStep.swift in Sources */,
 				651C68801C70E96600F0F048 /* QBENote.swift in Sources */,
+				6537E1D01D85E97100CD80EC /* QBEFileStep.swift in Sources */,
 				6583EF161C14758B00AE6C00 /* QBEPostgresStep.swift in Sources */,
 				65B3CC661CA9642F003FC6DF /* QBEMap.swift in Sources */,
 				65EC97971C9DFB8D0098A330 /* QBEColumnViewController.swift in Sources */,
