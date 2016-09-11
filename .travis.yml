@@ -1,0 +1,13 @@
+language: objective-c
+
+branches:
+ only:
+ - master
+
+xcode_workspace: Warp.xcodeworkspace
+xcode_scheme: Warp
+osx_image: xcode8
+
+script:
+- xcodebuild clean build test -workspace Warp.xcworkspace -scheme Warp
+
