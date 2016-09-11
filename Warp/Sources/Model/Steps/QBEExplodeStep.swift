@@ -156,9 +156,63 @@ class QBEExplodeHorizontallyTransformer: Transformer {
 	}
 }
 
+enum QBEExplodeVerticalMode {
+	case pack
+	case separator(String)
+	case windowsNewLine
+	case unixNewLine
+	case macNewLine
+
+	var identifier: String {
+		switch self {
+		case .pack: return "pack"
+		case .separator: return "separator"
+		case .windowsNewLine: return "rn"
+		case .unixNewLine: return "n"
+		case .macNewLine: return "r"
+		}
+	}
+
+	var separator: String? {
+		switch self {
+		case .pack: return Pack.separator
+		case .separator(let sep): return sep
+		case .macNewLine: return "\r"
+		case .unixNewLine: return "\n"
+		case .windowsNewLine: return "\r\n"
+		}
+	}
+
+	var localizedDescription: String {
+		switch self {
+		case .pack: return "lists".localized
+		case .separator(_): return "values by separator".localized
+		case .windowsNewLine: return "lines (Windows-formatted)".localized
+		case .unixNewLine: return "lines (Unix-formatted)".localized
+		case .macNewLine: return "lines (legacy Mac-formatted)".localized
+		}
+	}
+
+	static var allModes: [String: String] {
+		let all: [QBEExplodeVerticalMode] = [.pack, .separator(Pack.separator), .windowsNewLine, .unixNewLine, .macNewLine]
+		return all.mapDictionary { mode in return (mode.identifier, mode.localizedDescription) }
+	}
+
+	static func create(identifier: String, defaultSeparator: String = Pack.separator) -> QBEExplodeVerticalMode {
+		switch identifier {
+		case "pack": return .pack
+		case "separator": return .separator(defaultSeparator)
+		case "rn": return .windowsNewLine
+		case "n": return .unixNewLine
+		case "r": return .macNewLine
+		default: return .pack
+		}
+	}
+}
+
 class QBEExplodeVerticallyStep: QBEStep {
 	var splitColumn: Column
-	var separator: String? = nil // If nil, separation happens using Pack (lists)
+	var mode: QBEExplodeVerticalMode = .pack
 
 	required init() {
 		splitColumn = Column("")
@@ -171,13 +225,8 @@ class QBEExplodeVerticallyStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		let modeSelector = QBESentenceOptionsToken(options: ["pack": "lists".localized, "separator": "values by separator".localized], value: self.separator == nil ? "pack" : "separator") { (newMode) in
-			if newMode == "pack" {
-				self.separator = nil
-			}
-			else {
-				self.separator = Pack.separator
-			}
+		let modeSelector = QBESentenceOptionsToken(options: QBEExplodeVerticalMode.allModes, value: self.mode.identifier) { (newMode) in
+			self.mode = QBEExplodeVerticalMode.create(identifier: newMode)
 		}
 
 		let sourceColumnSelector = QBESentenceDynamicOptionsToken(value: self.splitColumn.name, provider: { [weak self] (callback) in
@@ -204,24 +253,24 @@ class QBEExplodeVerticallyStep: QBEStep {
 				self.splitColumn = Column(newColumnName)
 		})
 
-		let separatorSelector = QBESentenceTextToken(value: self.separator ?? Pack.separator) { (newSeparator) -> (Bool) in
-			if !newSeparator.isEmpty {
-				self.separator = newSeparator
-				return true
+		if case .separator(let sep) = self.mode {
+			let separatorSelector = QBESentenceTextToken(value: sep) { (newSeparator) -> (Bool) in
+				if !newSeparator.isEmpty {
+					self.mode = .separator(newSeparator)
+					return true
+				}
+				return false
 			}
-			return false
-		}
 
-		if self.separator == nil {
-			return QBESentence(format: "Split [#] in column [#] and create a row for each item".localized,
-				modeSelector,
-				sourceColumnSelector
-			)
-		}
-		else {
 			return QBESentence(format: "Split [#] [#] in column [#] and create a row for each item".localized,
 			   modeSelector,
 			   separatorSelector,
+			   sourceColumnSelector
+			)
+		}
+		else {
+			return QBESentence(format: "Split [#] in column [#] and create a row for each item".localized,
+			   modeSelector,
 			   sourceColumnSelector
 			)
 		}
@@ -229,20 +278,32 @@ class QBEExplodeVerticallyStep: QBEStep {
 
 	required init(coder aDecoder: NSCoder) {
 		splitColumn = Column(aDecoder.decodeString(forKey:"splitColumn") ?? "")
-		separator = aDecoder.decodeString(forKey: "separator")
+
+		if let mode = aDecoder.decodeString(forKey: "mode"), !mode.isEmpty {
+			self.mode = QBEExplodeVerticalMode.create(identifier: mode, defaultSeparator: aDecoder.decodeString(forKey: "separator") ?? Pack.separator)
+		}
+		else {
+			if let sep = aDecoder.decodeString(forKey: "separator") {
+				self.mode = .separator(sep)
+			}
+			else {
+				self.mode = .pack
+			}
+		}
 		super.init(coder: aDecoder)
 	}
 
 	override func encode(with coder: NSCoder) {
 		coder.encodeString(self.splitColumn.name, forKey: "splitColumn")
-		if let s = self.separator {
-			coder.encodeString(s, forKey: "separator")
+		coder.encodeString(self.mode.identifier, forKey: "mode")
+		if case .separator(let sep) = self.mode {
+			coder.encodeString(sep, forKey: "separator")
 		}
 		super.encode(with: coder)
 	}
 
 	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
-		callback(.success(StreamDataset(source: QBEExplodeVerticallyTransformer(source: data.stream(), splitColumn: self.splitColumn, separator: self.separator))))
+		callback(.success(StreamDataset(source: QBEExplodeVerticallyTransformer(source: data.stream(), splitColumn: self.splitColumn, separator: self.mode.separator))))
 	}
 }
 

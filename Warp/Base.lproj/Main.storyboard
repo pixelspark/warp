@@ -972,6 +972,12 @@ CA
                                                 <action selector="explodeColumnVertically:" target="Ady-hI-5gd" id="Ngf-ao-5dN"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Lines to rows" keyEquivalent="n" id="R8r-ah-a12">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <connections>
+                                                <action selector="explodeColumnVerticallyByLines:" target="Ady-hI-5gd" id="1AV-0C-G8A"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="i3v-3U-dMz"/>
                                         <menuItem title="Aggregate rows (combine selected cells)" keyEquivalent="a" id="T5M-6C-O6U">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES"/>

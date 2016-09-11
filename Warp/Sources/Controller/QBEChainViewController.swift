@@ -1711,6 +1711,26 @@ internal enum QBEEditingMode {
 		}
 	}
 
+	@IBAction func explodeColumnVerticallyByLines(_ sender: NSObject) {
+		assertMainThread()
+		let job = Job(.userInitiated)
+
+		if let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes, let firstSelectedColumn = selectedColumns.first {
+			calculator.currentRaster?.get(job) {(r) -> () in
+				r.maybe { (raster) -> () in
+					if firstSelectedColumn < raster.columns.count {
+						let columnName = raster.columns[firstSelectedColumn]
+						asyncMain {
+							let s = QBEExplodeVerticallyStep(previous: self.currentStep, splitColumn: columnName)
+							s.mode = .unixNewLine
+							self.suggestSteps([s])
+						}
+					}
+				}
+			}
+		}
+	}
+
 	@IBAction func explodeColumnHorizontally(_ sender: NSObject) {
 		assertMainThread()
 		let job = Job(.userInitiated)
@@ -1728,6 +1748,7 @@ internal enum QBEEditingMode {
 			}
 		}
 	}
+	
 	
 	@IBAction func selectColumns(_ sender: NSObject) {
 		selectColumns(false)
@@ -2473,7 +2494,7 @@ internal enum QBEEditingMode {
 		else if selector==#selector(QBEChainViewController.explodeColumnHorizontally(_:)) {
 			return currentStep != nil
 		}
-		else if selector==#selector(QBEChainViewController.explodeColumnVertically(_:)) {
+		else if selector==#selector(QBEChainViewController.explodeColumnVertically(_:)) || selector == #selector(QBEChainViewController.explodeColumnVerticallyByLines(_:)) {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.createDummyColumns(_:)) {
