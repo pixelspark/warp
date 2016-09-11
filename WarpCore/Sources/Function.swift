@@ -120,7 +120,8 @@ public enum Function: String {
 	case IsInvalid = "isInvalid"
 	case JSONDecode = "jsonArrayToPack"
 	case ParseNumber = "parseNumber"
-	
+	case ValueForKey = "valueForKey"
+
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
 	is deterministic and all arguments are constants, it is automatically replaced with a literal expression containing
@@ -266,8 +267,7 @@ public enum Function: String {
 		return Call(arguments: prepared, type: self)
 	}
 
-	/** Return a localized explanation of what this function does. */
-	public func explain(_ locale: Language) -> String {
+	public var localizedName: String {
 		switch self {
 		// TODO: make tihs more detailed. E.g., "5 leftmost characters of" instead of just "leftmost characters"
 		case .Uppercase: return translationForString("uppercase")
@@ -319,6 +319,7 @@ public enum Function: String {
 		case .Sign: return translationForString("sign")
 		case .Split: return translationForString("split")
 		case .Nth: return translationForString("nth item")
+		case .ValueForKey: return translationForString("value for")
 		case .Items: return translationForString("number of items")
 		case .Levenshtein: return translationForString("text similarity")
 		case .URLEncode: return translationForString("url encode")
@@ -365,6 +366,25 @@ public enum Function: String {
 		}
 	}
 
+	/** Return a localized explanation of what this function does. */
+	public func explain(_ locale: Language, arguments: [Expression]) -> String {
+		let explainedArguments = arguments.map({$0.explain(locale, topLevel: false)})
+
+		switch self {
+		case .Nth where explainedArguments.count == 2:
+			return String(format: translationForString("%@th item in %@"), explainedArguments[1], explainedArguments[0])
+
+		case .ValueForKey where explainedArguments.count == 2:
+			return String(format: translationForString("%@ of %@"), explainedArguments[1], explainedArguments[0])
+
+		default:
+			break
+		}
+
+		let argumentsList = explainedArguments.joined(separator: ", ")
+		return "\(self.localizedName)(\(argumentsList))"
+	}
+
 	/** Returns true if this function is guaranteed to return the same result when called multiple times in succession
 	with the exact same set of arguments, between different evaluations of the bigger expression it is part of, as well 
 	as within a single expression (e.g. NOW() is not deterministic because it will return different values between
@@ -383,8 +403,22 @@ public enum Function: String {
 		}
 	}
 
-	func toFormula(_ locale: Language) -> String {
-		return locale.nameForFunction(self) ?? ""
+	func toFormula(_ locale: Language, arguments: [Expression]) -> String {
+		let name = locale.nameForFunction(self) ?? ""
+
+		switch self {
+		case .Nth where arguments.count == 2:
+			let args = arguments.map({$0.toFormula(locale)})
+			return "\(args[0])[\(args[1])]"
+
+		case .ValueForKey where arguments.count == 2:
+			let args = arguments.map({$0.toFormula(locale)})
+			return "\(args[0])->\(args[1])"
+
+		default:
+			let args = arguments.map({$0.toFormula(locale)}).joined(separator: locale.argumentSeparator)
+			return "\(name)(\(args))"
+		}
 	}
 
 	/** Whether applying this function again on the result of applying it to a value is equivalent to applying it a single
@@ -581,6 +615,12 @@ public enum Function: String {
 				Parameter(name: translationForString("pack"), exampleValue: Value(WarpCore.Pack(["correct","horse", "battery", "staple"]).stringValue)),
 				Parameter(name: translationForString("index"), exampleValue: Value.int(2))
 			]
+
+		case .ValueForKey:
+			return [
+				Parameter(name: translationForString("pack"), exampleValue: Value(WarpCore.Pack(["firstName","John", "lastName", "Doe"]).stringValue)),
+				Parameter(name: translationForString("index"), exampleValue: Value.string("lastName"))
+			]
 			
 		case .Items:
 			return [
@@ -692,6 +732,7 @@ public enum Function: String {
 		case .Sign: return Arity.fixed(1)
 		case .Split: return Arity.fixed(2)
 		case .Nth: return Arity.fixed(2)
+		case .ValueForKey: return Arity.fixed(2)
 		case .Items: return Arity.fixed(1)
 		case .Levenshtein: return Arity.fixed(2)
 		case .URLEncode: return Arity.fixed(1)
@@ -1076,7 +1117,12 @@ public enum Function: String {
 						return Value.string(pack[adjustedIndex])
 					}
 				}
-				else if let index = arguments[1].stringValue, let value = pack[index] {
+			}
+			return Value.invalid
+
+		case .ValueForKey:
+			if let pack = WarpCore.Pack(arguments[0]) {
+				if let index = arguments[1].stringValue, let value = pack[index] {
 					return Value.string(value)
 				}
 			}
@@ -1363,7 +1409,7 @@ public enum Function: String {
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
 		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID,
 		CountDistinct, MedianLow, MedianHigh, MedianPack, Median, VarianceSample, VariancePopulation, StandardDeviationSample,
-		StandardDeviationPopulation, IsEmpty, IsInvalid, JSONDecode, ParseNumber
+		StandardDeviationPopulation, IsEmpty, IsInvalid, JSONDecode, ParseNumber, ValueForKey
 	]
 }
 

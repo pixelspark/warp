@@ -816,6 +816,7 @@ open class StandardSQLDialect: SQLDialect {
 		case .NormalInverse: return nil
 		case .Split: return nil
 		case .Nth: return nil
+		case .ValueForKey: return nil
 		case .Items: return nil
 		case .Levenshtein: return nil
 		case .URLEncode: return nil

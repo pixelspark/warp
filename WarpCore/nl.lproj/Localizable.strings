@@ -84,7 +84,7 @@
 "zero or more" = "ieder aantal";
 "to Excel timestamp" = "datum naar Excel-tijdstempel";
 "from Excel timestamp" = "datum van Excel-tijdstempel";
-"nth item" = "n'de item uit pakket";
+"nth item" = "n'de item";
 "inverse normal" = "inverse normaalwaarde";
 "index" = "volgnummer";
 "value" = "waarde";
@@ -161,3 +161,6 @@
 "read number" = "lees getal";
 "decimal separator" = "decimaalscheider";
 "thousands separator" = "duizendscheider";
+"value for" = "waarde voor";
+"%@th item in %@" = "%@de item in %@";
+"%@ of %@" = "%@ van %@";

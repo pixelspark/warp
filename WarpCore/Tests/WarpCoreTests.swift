@@ -348,8 +348,12 @@ class WarpCoreTests: XCTestCase {
 			case .Nth:
 				XCTAssert(Function.Nth.apply([Value("Foo,bar,baz"), Value(3)]) == Value("baz"), "Nth")
 				XCTAssert(!Function.Nth.apply([Value("Foo,bar,baz"), Value(4)]).isValid, "Nth")
-				XCTAssert(Function.Nth.apply([Value("foo,bar,baz,boo"), Value("foo")]) == Value("bar"), "Nth with dictionary")
+				XCTAssert(!Function.Nth.apply([Value("foo,bar,baz,boo"), Value("foo")]).isValid, "Nth with dictionary")
 				XCTAssert(!Function.Nth.apply([Value("foo,bar,baz,boo"), Value("xxx")]).isValid, "Nth with dictionary")
+
+			case .ValueForKey:
+				XCTAssert(Function.ValueForKey.apply([Value("foo,bar,baz,boo"), Value("foo")]) == Value("bar"), "Nth with dictionary")
+				XCTAssert(!Function.ValueForKey.apply([Value("foo,bar,baz,boo"), Value("xxx")]).isValid, "Nth with dictionary")
 
 			case .Sign:
 				XCTAssert(Function.Sign.apply([Value(-1337)]) == Value(-1), "Sign")
@@ -610,7 +614,7 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(Formula(formula: "6/(1-3/4)", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(24), "Formula in default dialect")
 		XCTAssert(Formula(formula: "7~2", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(1), "Modulus operator")
 		XCTAssert(Formula(formula: "\"1,2,3\"[1]", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value("1"), "Index access")
-		XCTAssert(Formula(formula: "\"foo,bar,baz,faa\"[\"baz\"]", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value("faa"), "Index access using string")
+		XCTAssert(Formula(formula: "\"foo,bar,baz,faa\"->\"baz\"", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value("faa"), "Index access using string")
 		
 		// Test whether parsing goes wrong when it should
 		XCTAssert(Formula(formula: "", locale: locale) == nil, "Empty formula")

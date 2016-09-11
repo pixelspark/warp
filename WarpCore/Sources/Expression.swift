@@ -570,23 +570,11 @@ public final class Call: Expression {
 	}
 	
 	public override func explain(_ locale: Language, topLevel: Bool) -> String {
-		if arguments.count > 0 {
-			let argumentsList = arguments.map({$0.explain(locale, topLevel: false)}).joined(separator: ", ")
-			return "\(type.explain(locale))(\(argumentsList))"
-		}
-		return type.explain(locale)
+		return type.explain(locale, arguments: self.arguments)
 	}
 	
 	public override func toFormula(_ locale: Language, topLevel: Bool) -> String {
-		switch self.type {
-		case .Nth where arguments.count == 2:
-			let args = arguments.map({$0.toFormula(locale)})
-			return "\(args[0])[\(args[1])]"
-
-		default:
-			let args = arguments.map({$0.toFormula(locale)}).joined(separator: locale.argumentSeparator)
-			return "\(type.toFormula(locale))(\(args))"
-		}
+		return type.toFormula(locale, arguments: self.arguments)
 	}
 	
 	override public var complexity: Int {
