@@ -363,7 +363,7 @@ class QBESQLiteSourceStep: QBEStep {
 		self.db = nil
 		
 		if let url = file?.url {
-			self.db = SQLiteConnection(path: url.path, readOnly: true)
+			self.db = QBESQLiteConnection(path: url.path, readOnly: true)
 			
 			if self.tableName == nil {
 				self.db?.tableNames.maybe {(tns) in
