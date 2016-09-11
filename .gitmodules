@@ -4,7 +4,7 @@
 [submodule "Warp/Libraries/Alamofire"]
 	path = Warp/Libraries/Alamofire
 	url = https://github.com/Alamofire/Alamofire
-	branch = swift3
+	branch = master
 [submodule "WarpConduit/Libraries/TCMXMLWriter"]
 	path = WarpConduit/Libraries/TCMXMLWriter
 	url = https://github.com/monkeydom/TCMXMLWriter

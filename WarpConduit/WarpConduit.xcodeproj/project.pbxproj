@@ -18,7 +18,6 @@
 		65DAF6C61D7C6F3C00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6BF1D7C6F2A00163750 /* Rethink.framework */; };
 		65DAF6C81D7C6F8500163750 /* RethinkStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DAF6C71D7C6F8500163750 /* RethinkStream.swift */; };
 		65F50E961D78CE6300F6FAE5 /* WarpConduit.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50E941D78CE6300F6FAE5 /* WarpConduit.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		65F50E971D78CE6300F6FAE5 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 65F50E951D78CE6300F6FAE5 /* Info.plist */; };
 		65F50E9C1D78CED100F6FAE5 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50E9B1D78CED100F6FAE5 /* WarpCore.framework */; };
 		65F50EA11D78CF0C00F6FAE5 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50E9E1D78CF0C00F6FAE5 /* dbfopen.c */; };
 		65F50EA21D78CF0C00F6FAE5 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50E9F1D78CF0C00F6FAE5 /* safileio.c */; };
@@ -647,7 +646,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				65F50E971D78CE6300F6FAE5 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
