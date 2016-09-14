@@ -8,7 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		651568551D55DDC500A01CEB /* Collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651568541D55DDC400A01CEB /* Collections.swift */; };
-		655BD6131C146B2600634C66 /* WarpCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 655BD6121C146B2600634C66 /* WarpCoreTests.swift */; };
+		6537E2151D89EE4200CD80EC /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 656889761C146738008D1A7D /* SwiftParser.framework */; };
+		6537E21A1D89F05800CD80EC /* WarpCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6537E2181D89F05800CD80EC /* WarpCoreTests.swift */; };
 		655BD6571C14703F00634C66 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 655BD6551C14703F00634C66 /* Localizable.strings */; };
 		65646B8E1D577EA700E58137 /* WarpCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 656889681C146683008D1A7D /* WarpCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		65646B8F1D577EC600E58137 /* Collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651568541D55DDC400A01CEB /* Collections.swift */; };
@@ -48,19 +49,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		65646B7D1D577D5100E58137 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 656889701C146738008D1A7D /* SwiftParser.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 65646B711D577D3B00E58137;
-			remoteInfo = SwiftParseriOS;
-		};
-		65646BB71D577FDC00E58137 /* PBXContainerItemProxy */ = {
+		6537E2121D89EE3B00CD80EC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 656889701C146738008D1A7D /* SwiftParser.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 65646B701D577D3B00E58137;
-			remoteInfo = "SwiftParser-iOS";
+			remoteGlobalIDString = "______Target_SwiftParser";
+			remoteInfo = SwiftParser;
 		};
 		6568892A1C1465CE008D1A7D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -87,7 +81,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 656889701C146738008D1A7D /* SwiftParser.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 65F1D3C5195039290077E785;
+			remoteGlobalIDString = "______Target_SwiftParser";
 			remoteInfo = SwiftParser;
 		};
 /* End PBXContainerItemProxy section */
@@ -95,7 +89,8 @@
 /* Begin PBXFileReference section */
 		651568541D55DDC400A01CEB /* Collections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Collections.swift; path = Sources/Collections.swift; sourceTree = "<group>"; };
 		6527AA021C147B1400B9159A /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
-		655BD6121C146B2600634C66 /* WarpCoreTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = WarpCoreTests.swift; path = Tests/WarpCoreTests.swift; sourceTree = "<group>"; };
+		6537E2171D89F05800CD80EC /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Tests/WarpCoreTests/Info.plist; sourceTree = "<group>"; };
+		6537E2181D89F05800CD80EC /* WarpCoreTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = WarpCoreTests.swift; path = Tests/WarpCoreTests/WarpCoreTests.swift; sourceTree = "<group>"; };
 		655BD6561C14703F00634C66 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		655BD6581C14704900634C66 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		65646B861D577E6500E58137 /* WarpCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -117,7 +112,6 @@
 		656889541C146637008D1A7D /* Value.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Value.swift; path = Sources/Value.swift; sourceTree = "<group>"; };
 		656889671C146670008D1A7D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		656889681C146683008D1A7D /* WarpCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WarpCore.h; sourceTree = "<group>"; };
-		6568896A1C14668B008D1A7D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Tests/Info.plist; sourceTree = "<group>"; };
 		656889701C146738008D1A7D /* SwiftParser.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftParser.xcodeproj; path = Libraries/SwiftParserGenerator/SwiftParser.xcodeproj; sourceTree = "<group>"; };
 		65A1436E1D74C26C0020192D /* Transformer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Transformer.swift; path = Sources/Transformer.swift; sourceTree = "<group>"; };
 		65A143721D74C3D70020192D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -143,6 +137,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6537E2151D89EE4200CD80EC /* SwiftParser.framework in Frameworks */,
 				656889291C1465CE008D1A7D /* WarpCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -153,11 +148,11 @@
 		656889141C1465CE008D1A7D = {
 			isa = PBXGroup;
 			children = (
-				6527AA021C147B1400B9159A /* Package.swift */,
-				6568891F1C1465CE008D1A7D /* Products */,
 				65A143721D74C3D70020192D /* README.md */,
-				656889461C14662E008D1A7D /* Sources */,
+				6527AA021C147B1400B9159A /* Package.swift */,
 				656889701C146738008D1A7D /* SwiftParser.xcodeproj */,
+				6568891F1C1465CE008D1A7D /* Products */,
+				656889461C14662E008D1A7D /* Sources */,
 				656889631C14663F008D1A7D /* Tests */,
 			);
 			sourceTree = "<group>";
@@ -201,8 +196,8 @@
 		656889631C14663F008D1A7D /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				655BD6121C146B2600634C66 /* WarpCoreTests.swift */,
-				6568896A1C14668B008D1A7D /* Info.plist */,
+				6537E2171D89F05800CD80EC /* Info.plist */,
+				6537E2181D89F05800CD80EC /* WarpCoreTests.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -212,7 +207,6 @@
 			children = (
 				656889761C146738008D1A7D /* SwiftParser.framework */,
 				656889781C146738008D1A7D /* SwiftParserTests.xctest */,
-				65646B7E1D577D5100E58137 /* SwiftParser.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -251,7 +245,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				65646BB81D577FDC00E58137 /* PBXTargetDependency */,
 			);
 			name = "WarpCore iOS";
 			productName = "WarpCore iOS";
@@ -288,6 +281,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				6537E2131D89EE3B00CD80EC /* PBXTargetDependency */,
 				6568892B1C1465CE008D1A7D /* PBXTargetDependency */,
 			);
 			name = WarpCoreTests;
@@ -353,13 +347,6 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		65646B7E1D577D5100E58137 /* SwiftParser.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = SwiftParser.framework;
-			remoteRef = 65646B7D1D577D5100E58137 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		656889761C146738008D1A7D /* SwiftParser.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -369,7 +356,7 @@
 		};
 		656889781C146738008D1A7D /* SwiftParserTests.xctest */ = {
 			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
+			fileType = file;
 			path = SwiftParserTests.xctest;
 			remoteRef = 656889771C146738008D1A7D /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
@@ -452,17 +439,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				655BD6131C146B2600634C66 /* WarpCoreTests.swift in Sources */,
+				6537E21A1D89F05800CD80EC /* WarpCoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		65646BB81D577FDC00E58137 /* PBXTargetDependency */ = {
+		6537E2131D89EE3B00CD80EC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "SwiftParser-iOS";
-			targetProxy = 65646BB71D577FDC00E58137 /* PBXContainerItemProxy */;
+			name = SwiftParser;
+			targetProxy = 6537E2121D89EE3B00CD80EC /* PBXContainerItemProxy */;
 		};
 		6568892B1C1465CE008D1A7D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -684,7 +671,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = Tests/Info.plist;
+				INFOPLIST_FILE = Tests/WarpCoreTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.WarpCoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -698,7 +685,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = Tests/Info.plist;
+				INFOPLIST_FILE = Tests/WarpCoreTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.WarpCoreTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
