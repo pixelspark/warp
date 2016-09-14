@@ -18,6 +18,10 @@
 		651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */; };
 		6537E1D01D85E97100CD80EC /* QBEFileStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6537E1CF1D85E97100CD80EC /* QBEFileStep.swift */; };
 		6537E1DD1D85ED1900CD80EC /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6537E1DC1D85ED1900CD80EC /* MapKit.framework */; };
+		6537E1F81D89E6DD00CD80EC /* GCDAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6537E1F61D89E6DD00CD80EC /* GCDAsyncSocket.framework */; };
+		6537E1F91D89E6DD00CD80EC /* SCRAM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6537E1F71D89E6DD00CD80EC /* SCRAM.framework */; };
+		6537E1FD1D89E87F00CD80EC /* GCDAsyncSocket.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6537E1FC1D89E87F00CD80EC /* GCDAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		6537E1FF1D89E88300CD80EC /* SCRAM.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6537E1FE1D89E88300CD80EC /* SCRAM.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65436EDD1B30C38000636299 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; };
 		65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
 		656258D91C94AE100063253C /* QBEKeySelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */; };
@@ -335,6 +339,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				6537E1FD1D89E87F00CD80EC /* GCDAsyncSocket.framework in CopyFiles */,
+				6537E1FF1D89E88300CD80EC /* SCRAM.framework in CopyFiles */,
 				65F50EB91D78D2AF00F6FAE5 /* WarpConduit.framework in CopyFiles */,
 				65F50EBB1D78D2B700F6FAE5 /* WarpCore.framework in CopyFiles */,
 				65DAF6CF1D7C719D00163750 /* Rethink.framework in CopyFiles */,
@@ -363,6 +369,11 @@
 		65292F461D7CACFA0053ADE3 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		6537E1CF1D85E97100CD80EC /* QBEFileStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFileStep.swift; sourceTree = "<group>"; };
 		6537E1DC1D85ED1900CD80EC /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
+		6537E1E91D872CC300CD80EC /* GCDAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDAsyncSocket.framework; path = ../WarpConduit/Libraries/Rethink/build/Debug/GCDAsyncSocket.framework; sourceTree = "<group>"; };
+		6537E1F61D89E6DD00CD80EC /* GCDAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDAsyncSocket.framework; path = "../../../../Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/GCDAsyncSocket.framework"; sourceTree = "<group>"; };
+		6537E1F71D89E6DD00CD80EC /* SCRAM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCRAM.framework; path = "../../../../Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/SCRAM.framework"; sourceTree = "<group>"; };
+		6537E1FC1D89E87F00CD80EC /* GCDAsyncSocket.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GCDAsyncSocket.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6537E1FE1D89E88300CD80EC /* SCRAM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SCRAM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEKeySelectionViewController.swift; sourceTree = "<group>"; };
 		656822551D78D60E00410BA5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Libraries/Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
@@ -533,6 +544,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6537E1F81D89E6DD00CD80EC /* GCDAsyncSocket.framework in Frameworks */,
+				6537E1F91D89E6DD00CD80EC /* SCRAM.framework in Frameworks */,
 				65DAF6CA1D7C6FFD00163750 /* Rethink.framework in Frameworks */,
 				656822561D78D60E00410BA5 /* libiconv.tbd in Frameworks */,
 				65E224AB1D7C605B007433E6 /* libssl.35.dylib in Frameworks */,
@@ -584,6 +597,9 @@
 		653D19D81D1C76AC0094C441 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6537E1F61D89E6DD00CD80EC /* GCDAsyncSocket.framework */,
+				6537E1F71D89E6DD00CD80EC /* SCRAM.framework */,
+				6537E1E91D872CC300CD80EC /* GCDAsyncSocket.framework */,
 				6537E1DC1D85ED1900CD80EC /* MapKit.framework */,
 				65DAF6CE1D7C719D00163750 /* Rethink.framework */,
 				65E224AC1D7C605E007433E6 /* libcrypto.35.dylib */,
@@ -832,6 +848,8 @@
 		65E3C2AB1A05222F007BB3C8 = {
 			isa = PBXGroup;
 			children = (
+				6537E1FE1D89E88300CD80EC /* SCRAM.framework */,
+				6537E1FC1D89E87F00CD80EC /* GCDAsyncSocket.framework */,
 				65292F461D7CACFA0053ADE3 /* LICENSE.md */,
 				651988E71A0F9C39003463AA /* Libraries */,
 				65E3C2ED1A062E5E007BB3C8 /* Sources */,
@@ -1818,7 +1836,10 @@
 				DEVELOPMENT_TEAM = 2T2T7HAA8S;
 				DYLIB_CURRENT_VERSION = "";
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)Conduit/Libraries/Rethink/build/Debug",
+				);
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
@@ -1853,7 +1874,10 @@
 				DEVELOPMENT_TEAM = 2T2T7HAA8S;
 				DYLIB_CURRENT_VERSION = "";
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)Conduit/Libraries/Rethink/build/Debug",
+				);
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
