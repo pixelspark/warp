@@ -59,8 +59,23 @@ class QBEChangeableValueConfigurable: NSObject, QBEFullyConfigurable {
 	}
 }
 
-internal class QBEChainTabletViewController: QBETabletViewController, QBEChainViewControllerDelegate {
+internal class QBEChainTabletViewController: QBETabletViewController, QBEChainViewControllerDelegate, QBESearchable {
 	var chainViewController: QBEChainViewController? = nil { didSet { bind() } }
+
+	var supportsSearch: Bool {
+		return true
+	}
+
+	var searchQuery: String {
+		set {
+			self.chainViewController?.fulltextSearchQuery = newValue
+		}
+		get {
+			return self.chainViewController?.fulltextSearchQuery ?? ""
+		}
+	}
+
+	weak var searchDelegate: QBESearchableDelegate? = nil
 
 	override var responder: NSResponder? { return chainViewController }
 
@@ -114,6 +129,7 @@ internal class QBEChainTabletViewController: QBETabletViewController, QBEChainVi
 
 	func chainViewDidChangeChain(_ view: QBEChainViewController) {
 		self.delegate?.tabletViewDidChangeContents(self)
+		self.searchDelegate?.searchableDidChange(self)
 	}
 
 	func chainView(_ view: QBEChainViewController, exportChain chain: QBEChain) {

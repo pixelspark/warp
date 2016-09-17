@@ -12,7 +12,10 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import Foundation
 import Cocoa
 
-internal class QBEWindowController: NSWindowController {
+internal class QBEWindowController: NSWindowController, QBEDocumentViewControllerDelegate, QBESearchableDelegate {
+	private var searchable: QBESearchable? = nil
+	@IBOutlet var searchField: NSSearchField! = nil
+
 	override var document: AnyObject? {
 		didSet {
 			if let qbeDocumentViewController = window!.contentViewController as? QBEDocumentViewController {
@@ -20,6 +23,16 @@ internal class QBEWindowController: NSWindowController {
 				self.update()
 			}
 		}
+	}
+
+	func searchableDidChange(_ searchable: QBESearchable) {
+		self.update()
+	}
+
+	func documentView(_ view: QBEDocumentViewController, didSelectSearchable searchable: QBESearchable?) {
+		self.searchable = searchable
+		searchable?.searchDelegate = self
+		self.update()
 	}
 
 	internal func update() {
@@ -31,10 +44,20 @@ internal class QBEWindowController: NSWindowController {
 			saved = false
 		}
 		self.window?.titleVisibility =  saved ? .visible : .hidden
+		self.searchField?.isEnabled = self.searchable?.supportsSearch ?? false
+		self.searchField?.stringValue = self.searchable?.searchQuery ?? ""
+		self.searchField?.nextResponder = self.searchable?.responder
 	}
 
 	override func windowDidLoad() {
+		if let qbeDocumentViewController = window!.contentViewController as? QBEDocumentViewController {
+			qbeDocumentViewController.delegate = self
+		}
 		self.update()
+	}
+
+	@IBAction func fullTextSearch(_ sender: NSSearchField) {
+		self.searchable?.searchQuery = sender.stringValue
 	}
 }
 

@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="15G1004" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="16A322" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11201"/>
@@ -1389,7 +1389,7 @@ CA
                                                     </textFieldCell>
                                                 </textField>
                                                 <slider verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="O8b-W3-f6a">
-                                                    <rect key="frame" x="220" y="17" width="165" height="25"/>
+                                                    <rect key="frame" x="220" y="18" width="165" height="24"/>
                                                     <sliderCell key="cell" state="on" alignment="left" maxValue="10000" doubleValue="500" tickMarkPosition="below" numberOfTickMarks="5" sliderType="linear" id="diE-Hv-uZf"/>
                                                     <connections>
                                                         <action selector="valuesChanged:" target="nyj-Qm-GSe" id="zcc-Hb-61g"/>
@@ -1397,7 +1397,7 @@ CA
                                                     </connections>
                                                 </slider>
                                                 <slider verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yyU-94-16h">
-                                                    <rect key="frame" x="220" y="54" width="165" height="25"/>
+                                                    <rect key="frame" x="220" y="55" width="165" height="24"/>
                                                     <sliderCell key="cell" state="on" alignment="left" maxValue="10" doubleValue="1.5" tickMarkPosition="below" numberOfTickMarks="10" sliderType="linear" id="t12-cT-Ps2"/>
                                                     <connections>
                                                         <action selector="valuesChanged:" target="nyj-Qm-GSe" id="vgp-bi-r7F"/>
@@ -1603,7 +1603,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="67BCC4D2-D6F5-4F96-BCEE-BAA3D3CB1650" label="Calculate" paletteLabel="Calculate" image="SmallIcon" id="IjL-nI-Ixx" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="27"/>
                                     <button key="view" verticalHuggingPriority="750" id="YiK-Md-zzJ">
                                         <rect key="frame" x="7" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1642,7 +1642,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="93E10375-E66A-4C93-A8A9-2C2F3E0E03EB" label="Stop calculating" paletteLabel="Stop calculating" image="StopIcon" id="dSb-OG-sLN" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="42" height="25"/>
-                                    <size key="maxSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="27"/>
                                     <button key="view" verticalHuggingPriority="750" id="uDN-ok-mKr">
                                         <rect key="frame" x="25" y="14" width="42" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1658,7 +1658,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="F27BA621-2DF3-47A2-BE73-EEB849F1FDC1" label="Add" paletteLabel="Add" image="NSAddTemplate" id="k8n-C8-T8N" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="27"/>
                                     <button key="view" verticalHuggingPriority="750" id="M2w-aY-CH1">
                                         <rect key="frame" x="0.0" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1674,7 +1674,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="60B4CE99-9421-44DB-86A4-D176C1D32F90" label="Export data" paletteLabel="Export data" image="ExportIcon" id="WfI-yD-3jF" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="27"/>
                                     <button key="view" verticalHuggingPriority="750" id="fj9-9C-sqL">
                                         <rect key="frame" x="13" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1690,7 +1690,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="653347E5-957F-4E26-A65D-949A84242605" label="Refresh data" paletteLabel="Refresh data" image="ReloadIcon" id="4nh-y5-Jb0" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="27"/>
                                     <button key="view" verticalHuggingPriority="750" id="VoA-fi-OJZ">
                                         <rect key="frame" x="16" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1706,7 +1706,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="2845B5F4-9D99-4268-9384-2E570B668763" label="Show alternatives" paletteLabel="Show alternatives" image="ChangeIcon" id="qo5-X1-gJ6" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="27"/>
                                     <button key="view" verticalHuggingPriority="750" id="NCL-CP-9a6">
                                         <rect key="frame" x="29" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1724,7 +1724,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="C8134A35-D81B-4D2E-B6D7-28058BB59890" label="Edit" paletteLabel="Edit data" image="EditIcon" id="jdM-jE-qua" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="27"/>
                                     <button key="view" verticalHuggingPriority="750" id="B2l-24-Cv0">
                                         <rect key="frame" x="6" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1740,7 +1740,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="70745AA2-F3E0-4606-B0BB-0C8C327F9197" label="Remove source data" paletteLabel="Remove source data" image="TrashIcon" id="BvK-Pa-sl9" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="27"/>
                                     <button key="view" verticalHuggingPriority="750" id="a5C-pu-UBJ">
                                         <rect key="frame" x="36" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1756,7 +1756,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="F3AA4A95-08CA-494D-99F5-91D76EEC14EC" label="Empty source data" paletteLabel="Empty source data" image="ShredIcon" id="baz-Un-oZ9" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="27"/>
                                     <button key="view" verticalHuggingPriority="750" id="biH-bc-T6f">
                                         <rect key="frame" x="32" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1772,7 +1772,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="59AAAF35-77FE-4082-8CB1-62386FD310E5" label="Modify structure" paletteLabel="Modify structure" image="AlterIcon" id="PkZ-zF-Svr" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="27"/>
                                     <button key="view" verticalHuggingPriority="750" id="B6d-tH-2pV">
                                         <rect key="frame" x="26" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1785,6 +1785,23 @@ CA
                                         <action selector="alterStore:" target="6f7-a7-6o1" id="7Hq-x0-4dn"/>
                                     </connections>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="424F0D57-D6C9-479F-845F-36EB669BA932" label="Search" paletteLabel="Search" autovalidates="NO" id="bch-bl-Zuj">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="96" height="22"/>
+                                    <size key="maxSize" width="96" height="22"/>
+                                    <searchField key="view" wantsLayer="YES" verticalHuggingPriority="750" id="2mM-gL-3Ju">
+                                        <rect key="frame" x="0.0" y="14" width="96" height="22"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" usesSingleLineMode="YES" bezelStyle="round" sendsSearchStringImmediately="YES" id="Rb2-OU-Oe7">
+                                            <font key="font" metaFont="system"/>
+                                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                        </searchFieldCell>
+                                        <connections>
+                                            <action selector="fullTextSearch:" target="jGA-0Y-lOj" id="AeE-Up-fDr"/>
+                                        </connections>
+                                    </searchField>
+                                </toolbarItem>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="JIm-dh-FPE"/>
@@ -1793,12 +1810,14 @@ CA
                                 <toolbarItem reference="dSb-OG-sLN"/>
                                 <toolbarItem reference="jdM-jE-qua"/>
                                 <toolbarItem reference="g2T-uw-sdG"/>
+                                <toolbarItem reference="bch-bl-Zuj"/>
                                 <toolbarItem reference="WfI-yD-3jF"/>
                                 <toolbarItem reference="k8n-C8-T8N"/>
                             </defaultToolbarItems>
                         </toolbar>
                     </window>
                     <connections>
+                        <outlet property="searchField" destination="2mM-gL-3Ju" id="Roe-6T-MNl"/>
                         <segue destination="y5B-O8-QaO" kind="relationship" relationship="window.shadowedContentViewController" id="GkK-cT-tVe"/>
                     </connections>
                 </windowController>
@@ -2111,7 +2130,7 @@ CA
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <containerView wantsLayer="YES" canDrawConcurrently="YES" focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
-                                <rect key="frame" x="1" y="1" width="1087" height="400"/>
+                                <rect key="frame" x="1" y="1" width="1087" height="399"/>
                                 <constraints>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="100" id="KeW-J3-VQO"/>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="100" id="uiJ-1d-vdA"/>
@@ -2122,9 +2141,9 @@ CA
                                 </connections>
                             </containerView>
                             <containerView translatesAutoresizingMaskIntoConstraints="NO" id="788-NV-QHP">
-                                <rect key="frame" x="0.0" y="401" width="1032" height="35"/>
+                                <rect key="frame" x="0.0" y="400" width="1032" height="36"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="35" id="ZXJ-2N-vw4"/>
+                                    <constraint firstAttribute="height" constant="36" id="ZXJ-2N-vw4"/>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="78" id="nMT-0Q-ueW"/>
                                 </constraints>
                                 <connections>
@@ -2740,7 +2759,7 @@ z4M9Ew
                                     <textField horizontalHuggingPriority="252" verticalHuggingPriority="750" horizontalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="NsH-pZ-0Fj">
                                         <rect key="frame" x="-2" y="2" width="21" height="20"/>
                                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="µ=" id="J5b-rm-TkZ">
-                                            <font key="font" size="13" name=".SFNSText-Regular"/>
+                                            <font key="font" size="13" name=".SFNSText"/>
                                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                         </textFieldCell>
@@ -2759,7 +2778,7 @@ z4M9Ew
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="g7P-28-Tsy">
                                         <rect key="frame" x="66" y="68" width="104" height="20"/>
                                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="values between" id="CRK-gS-NsJ">
-                                            <font key="font" size="13" name=".SFNSText-Regular"/>
+                                            <font key="font" size="13" name=".SFNSText"/>
                                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                         </textFieldCell>
@@ -2767,7 +2786,7 @@ z4M9Ew
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="KUX-DZ-aNb">
                                         <rect key="frame" x="219" y="68" width="31" height="20"/>
                                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="center" title="and" id="rjU-D4-aWf">
-                                            <font key="font" size="13" name=".SFNSText-Regular"/>
+                                            <font key="font" size="13" name=".SFNSText"/>
                                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                         </textFieldCell>
@@ -2794,7 +2813,7 @@ z4M9Ew
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="XfB-pX-EgH">
                                         <rect key="frame" x="66" y="35" width="104" height="20"/>
                                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="unique values" id="jAS-p4-orZ">
-                                            <font key="font" size="13" name=".SFNSText-Regular"/>
+                                            <font key="font" size="13" name=".SFNSText"/>
                                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                         </textFieldCell>
@@ -2818,7 +2837,7 @@ z4M9Ew
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ohN-y8-vsj">
                                         <rect key="frame" x="245" y="35" width="86" height="20"/>
                                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="empty values" id="L8H-EK-bF9">
-                                            <font key="font" size="13" name=".SFNSText-Regular"/>
+                                            <font key="font" size="13" name=".SFNSText"/>
                                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                         </textFieldCell>
@@ -3436,7 +3455,7 @@ Gw
                                                     <rect key="frame" x="7" y="7" width="589" height="137"/>
                                                     <clipView key="contentView" drawsBackground="NO" id="a5H-9j-83W">
                                                         <rect key="frame" x="1" y="1" width="587" height="135"/>
-                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                        <autoresizingMask key="autoresizingMask"/>
                                                         <subviews>
                                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="xj3-6c-xSH">
                                                                 <rect key="frame" x="0.0" y="0.0" width="587" height="135"/>

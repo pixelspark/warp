@@ -155,7 +155,8 @@ class QBEFactory {
 		QBECacheStep.className(): "CacheIcon",
 		QBEDummiesStep.className(): "DummiesIcon",
 		QBEHTTPStep.className(): "DownloadIcon",
-		QBEFileStep.className(): "TextIcon"
+		QBEFileStep.className(): "TextIcon",
+		QBESearchStep.className(): "SearchIcon"
 	]
 	
 	var fileExtensionsForWriting: Set<String> { get {

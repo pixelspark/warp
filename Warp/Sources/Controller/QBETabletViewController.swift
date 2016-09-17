@@ -29,6 +29,17 @@ protocol QBETabletViewDelegate: NSObjectProtocol {
 	func tabletView(_ view: QBETabletViewController, exportObject: NSObject)
 }
 
+@objc protocol QBESearchableDelegate {
+	func searchableDidChange(_ searchable: QBESearchable)
+}
+
+@objc protocol QBESearchable {
+	var searchQuery: String { get set }
+	var supportsSearch: Bool { get }
+	var responder: NSResponder? { get }
+	weak var searchDelegate: QBESearchableDelegate? { get set }
+}
+
 class QBETabletViewController: NSViewController {
 	var tablet: QBETablet!
 	weak var delegate: QBETabletViewDelegate? = nil

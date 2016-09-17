@@ -141,6 +141,37 @@ internal enum QBEEditingMode {
 		}
 	}
 
+	public var fulltextSearchQuery: String {
+		get {
+			if let c = currentStep as? QBESearchStep {
+				return c.query
+			}
+			return ""
+		}
+
+		set {
+			if let c = currentStep as? QBESearchStep {
+				if newValue.isEmpty {
+					self.removeStep(self)
+				}
+				else {
+					if c.query != newValue {
+						c.query = newValue
+						calculate()
+					}
+				}
+			}
+			else {
+				if !newValue.isEmpty {
+					let fs = QBESearchStep()
+					fs.query = newValue
+					self.pushStep(fs)
+					calculate()
+				}
+			}
+		}
+	}
+
 	private var viewFilters: [Column:FilterSet]  {
 		get {
 			if let c = currentStep as? QBEFilterSetStep {

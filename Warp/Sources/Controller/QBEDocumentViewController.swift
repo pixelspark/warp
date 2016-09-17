@@ -13,15 +13,22 @@ import Foundation
 import Cocoa
 import WarpCore
 
+@objc protocol QBEDocumentViewControllerDelegate: NSObjectProtocol {
+	func documentView(_ view: QBEDocumentViewController, didSelectSearchable: QBESearchable?)
+}
+
 @objc class QBEDocumentViewController: NSViewController, QBETabletViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
-	private var documentView: QBEDocumentView!
-	private var sentenceEditor: QBESentenceViewController? = nil
 	@IBOutlet var addTabletMenu: NSMenu!
 	@IBOutlet var readdMenuItem: NSMenuItem!
 	@IBOutlet var readdTabletMenu: NSMenu!
 	@IBOutlet var workspaceView: QBEWorkspaceView!
 	@IBOutlet var welcomeLabel: NSTextField!
 	@IBOutlet var documentAreaView: NSView!
+
+	@IBOutlet weak var delegate: QBEDocumentViewControllerDelegate? = nil
+
+	private var documentView: QBEDocumentView!
+	private var sentenceEditor: QBESentenceViewController? = nil
 	private var zoomedView: (NSView, CGRect)? = nil
 	
 	var document: QBEDocument? { didSet {
@@ -517,8 +524,18 @@ import WarpCore
 				else {
 					cvc.tabletWasSelected()
 					cvc.view.orderFront()
+					if let searchable = cvc as? QBESearchable {
+						self.delegate?.documentView(self, didSelectSearchable: searchable)
+					}
+					else {
+						self.delegate?.documentView(self, didSelectSearchable: nil)
+					}
 				}
 			}
+		}
+
+		if tablet == nil {
+			self.delegate?.documentView(self, didSelectSearchable: nil)
 		}
 
 		self.view.window?.update()
