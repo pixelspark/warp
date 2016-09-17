@@ -207,14 +207,14 @@ private class QBELaceWindow: NSWindow {
 	func outletViewWillStartDragging(_ view: QBEOutletView)
 	func outletViewDidEndDragging(_ view: QBEOutletView)
 	@objc optional func outletViewWasClicked(_ view: QBEOutletView)
-	func outletView(_ view: QBEOutletView, didDropAtURL: URL)
+	func outletView(_ view: QBEOutletView, didDropAtURL: URL, callback: @escaping (Error?) -> ())
 }
 
 /** 
 QBEOutletView shows an 'outlet' from which an item can be dragged. Views that want to accept outlet drops need to accept
 the QBEOutletView.dragType dragging type. Upon receiving a dragged outlet, they should find the dragging source (which 
 will be the sending QBEOutletView) and then obtain the draggedObject from that view. */
-@IBDesignable class QBEOutletView: NSView, NSDraggingSource, NSPasteboardItemDataProvider {
+@IBDesignable class QBEOutletView: NSView, NSDraggingSource, NSPasteboardItemDataProvider, NSFilePromiseProviderDelegate {
 	static let dragType = "nl.pixelspark.Warp.Outlet"
 
 	@IBInspectable var animating: Bool {
@@ -269,25 +269,79 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 			delegate?.outletViewWillStartDragging(self)
 			
 			if draggedObject != nil {
-				let pboardItem = NSPasteboardItem()
-				pboardItem.setData("[dragged outlet]".data(using: String.Encoding.utf8, allowLossyConversion: false), forType: QBEOutletView.dragType)
+				if #available(OSX 10.12, *) {
+					/* On OSX >10.12, we use the official API for file promises. Because we also want to drag our own item
+					at the same time (for outlet connection inside the app) we subclass NSFilePromiseProvider here. Note
+					that for some reason, proxying NSFilePromiseProvider doesn't work. */
+					class QBEOutletFilePromiseProvider: NSFilePromiseProvider {
+						convenience init(fileType: String, delegate: NSFilePromiseProviderDelegate) {
+							self.init()
+							self.fileType = fileType
+							self.delegate = delegate
+						}
 
-				/* When this item is dragged to a finder window, promise to write a CSV file there. Our provideDatasetForType 
-				function is called as soon as the system actually wants us to write that file. */
-				pboardItem.setDataProvider(self, forTypes: [kPasteboardTypeFileURLPromise])
-				pboardItem.setString(kUTTypeCommaSeparatedText as String, forType: kPasteboardTypeFilePromiseContent)
+						private override func writableTypes(for pasteboard: NSPasteboard) -> [String] {
+							var types = super.writableTypes(for: pasteboard)
+							types.append(QBEOutletView.dragType)
+							return types
+						}
 
-				let dragItem = NSDraggingItem(pasteboardWriter: pboardItem)
-				self.beginDraggingSession(with: [dragItem] as [NSDraggingItem], event: theEvent, source: self)
+						private override func writingOptions(forType type: String, pasteboard: NSPasteboard) -> NSPasteboardWritingOptions {
+							if type == QBEOutletView.dragType {
+								return []
+							}
+							return super.writingOptions(forType: type, pasteboard: pasteboard)
+						}
+
+						private override func pasteboardPropertyList(forType type: String) -> Any? {
+							if type == QBEOutletView.dragType {
+								return nil
+							}
+							return super.pasteboardPropertyList(forType: type)
+						}
+					}
+
+					let promisedFile = QBEOutletFilePromiseProvider(fileType: kUTTypeCommaSeparatedText as String, delegate: self)
+					let fileDragItem = NSDraggingItem(pasteboardWriter: promisedFile)
+
+					self.beginDraggingSession(with: [fileDragItem] as [NSDraggingItem], event: theEvent, source: self)
+				}
+				else {
+					/* Use the 'unofficial' API for file promises on OS X < 10.12 */
+					let pboardItem = NSPasteboardItem()
+					pboardItem.setData("[dragged outlet]".data(using: String.Encoding.utf8, allowLossyConversion: false), forType: QBEOutletView.dragType)
+
+					/* When this item is dragged to a finder window, promise to write a CSV file there. Our provideDatasetForType
+					function is called as soon as the system actually wants us to write that file. */
+					pboardItem.setDataProvider(self, forTypes: [kPasteboardTypeFileURLPromise])
+					pboardItem.setString(kUTTypeCommaSeparatedText as String, forType: kPasteboardTypeFilePromiseContent)
+
+					let dragItem = NSDraggingItem(pasteboardWriter: pboardItem)
+					self.beginDraggingSession(with: [dragItem] as [NSDraggingItem], event: theEvent, source: self)
+				}
 			}
 		}
+	}
+
+	@available(OSX 10.12, *)
+	func filePromiseProvider(_ filePromiseProvider: NSFilePromiseProvider, fileNameForType fileType: String) -> String {
+		return "Data.csv".localized
+	}
+
+	@available(OSX 10.12, *)
+	func filePromiseProvider(_ filePromiseProvider: NSFilePromiseProvider, writePromiseTo url: URL, completionHandler: @escaping (Error?) -> Void) {
+		self.delegate?.outletView(self, didDropAtURL: url, callback: completionHandler)
 	}
 
 	func pasteboard(_ pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: String) {
 		if type == kPasteboardTypeFileURLPromise {
 			// pasteURL is the directory to write something to. Now is a good time to pop up an export dialog
 			if let pu = pasteboard?.pasteURL {
-				self.delegate?.outletView(self, didDropAtURL: pu)
+				self.delegate?.outletView(self, didDropAtURL: pu) { err in
+					if let e = err {
+						Swift.print("Export failed: \(e)")
+					}
+				}
 				item.setString(pu.absoluteString, forType: kPasteboardTypeFileURLPromise)
 			}
 		}

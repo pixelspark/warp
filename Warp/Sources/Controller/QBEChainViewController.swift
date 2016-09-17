@@ -385,7 +385,7 @@ internal enum QBEEditingMode {
 		view.draggedObject = nil
 	}
 
-	private func exportToFile(_ url: URL) {
+	private func exportToFile(_ url: URL, callback: @escaping (Error?) -> ()) {
 		let writerType: QBEFileWriter.Type
 		let ext = url.pathExtension
 		writerType = QBEFactory.sharedInstance.fileWriterForType(ext) ?? QBECSVWriter.self
@@ -396,6 +396,7 @@ internal enum QBEEditingMode {
 		if let editorController = self.storyboard?.instantiateController(withIdentifier: "exportEditor") as? QBEExportViewController {
 			editorController.step = s
 			editorController.delegate = self
+			editorController.completionCallback = callback
 			editorController.locale = self.locale
 			self.presentViewControllerAsSheet(editorController)
 		}
@@ -407,7 +408,7 @@ internal enum QBEEditingMode {
 		stepsChanged()
 	}
 
-	func outletView(_ view: QBEOutletView, didDropAtURL url: URL) {
+	func outletView(_ view: QBEOutletView, didDropAtURL url: URL, callback: @escaping (Error?) -> ()) {
 		if url.isDirectory {
 			// Ask for a file rather than a directory
 			var exts: [String: String] = [:]
@@ -419,12 +420,12 @@ internal enum QBEEditingMode {
 			let no = QBEFilePanel(allowedFileTypes: exts)
 			no.askForSaveFile(self.view.window!) { (fileFallible) in
 				fileFallible.maybe { (url) in
-					self.exportToFile(url)
+					self.exportToFile(url, callback: callback)
 				}
 			}
 		}
 		else {
-			self.exportToFile(url)
+			self.exportToFile(url, callback: callback)
 		}
 	}
 
@@ -2659,7 +2660,11 @@ internal enum QBEEditingMode {
 		let ns = QBEFilePanel(allowedFileTypes: exts)
 		ns.askForSaveFile(self.view.window!) { (urlFallible) -> () in
 			urlFallible.maybe { (url) in
-				self.exportToFile(url)
+				self.exportToFile(url) { err in
+					if let e = err {
+						Swift.print("Export failed: \(e)")
+					}
+				}
 			}
 		}
 	}

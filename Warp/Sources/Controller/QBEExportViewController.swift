@@ -12,14 +12,21 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import Foundation
 import WarpCore
 
+enum ExportError: Error {
+	case error(String)
+}
+
 @objc protocol QBEExportViewDelegate: NSObjectProtocol {
 	@objc optional func exportView(_ view: QBEExportViewController, didAddStep: QBEExportStep)
 	@objc optional func exportView(_ view: QBEExportViewController, finishedExportingTo: URL)
 }
 
 class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDelegate {
+	typealias CompletionCallback = (Error?) -> ()
+
 	var step: QBEExportStep?
 	var locale: Language = Language()
+	var completionCallback: CompletionCallback? = nil
 	weak var delegate: QBEExportViewDelegate? = nil
 
 	@IBOutlet var progressView: NSProgressIndicator?
@@ -98,6 +105,8 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 						switch fallibleDataset {
 						case .success(_):
 							self.dismiss(sender)
+							self.completionCallback?(nil)
+
 							if self.notifyUser {
 								let un = NSUserNotification()
 								un.soundName = NSUserNotificationDefaultSoundName
@@ -114,6 +123,7 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 							}
 
 						case .failure(let errorMessage):
+							self.completionCallback?(ExportError.error(errorMessage))
 							self.isExporting = false
 							self.update()
 							alert.messageText = errorMessage
