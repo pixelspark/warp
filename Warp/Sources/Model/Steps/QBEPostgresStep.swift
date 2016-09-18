@@ -31,6 +31,8 @@ private class QBEPostgresDialect: StandardSQLDialect {
 			case .Left: return "SUBSTR(\(args[0]), 1, (\(args[1]))::integer)"
 			case .Right: return "RIGHT(\(args[0]), LENGTH(\(args[0]))-(\(args[1]))::integer)"
 			case .Mid: return "SUBSTR(\(args[0]), (\(args[1]))::integer, (\(args[2]))::integer)"
+			case .Nth: return "\(args[0])->(\(args[1])::integer)"
+			case .ValueForKey: return "\(args[0])->(\(args[1])::text)"
 
 			default:
 				return super.unaryToSQL(type, args: args)
