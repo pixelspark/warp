@@ -80,6 +80,8 @@ private class QBEPostgresDialect: StandardSQLDialect {
 	}
 }
 
+/** List of Postgres types by Oid. This was generated as follows:
+	SELECT ' case ' || typname || ' = ' || oid FROM pg_type; */
 internal enum QBEPostgresType: Oid {
 	case bool = 16
 	case bytea = 17
