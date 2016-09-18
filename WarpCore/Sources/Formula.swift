@@ -63,7 +63,13 @@ public class Formula: Parser {
 	}
 	
 	private func pushInt() {
-		annotate(stack.push(Literal(Value(Int(self.text)!))))
+		if let n = self.locale.numberFormatter.number(from: self.text.replacingOccurrences(of: self.locale.groupingSeparator, with: "")) {
+			annotate(stack.push(Literal(Value.int(n.intValue))))
+		}
+		else {
+			annotate(stack.push(Literal(Value.invalid)))
+			error = true
+		}
 	}
 	
 	private func pushDouble() {
@@ -253,10 +259,9 @@ public class Formula: Parser {
 		
 		// Number literals
 		add_named_rule("digits",			rule: (("0"-"9") | locale.groupingSeparator)+)
-		add_named_rule("integerNumber",		rule: (^"digits") => pushInt)
-		add_named_rule("numberPostfix", rule: Parser.matchAnyFrom(postfixRules)/~)
+		add_named_rule("numberPostfix",		rule: Parser.matchAnyFrom(postfixRules)/~)
 		add_named_rule("timestamp",			rule: ("@" ~ ^"digits" ~ (locale.decimalSeparator ~ ^"digits")/~) => pushTimestamp)
-		add_named_rule("doubleNumber",		rule: (^"digits" ~ (locale.decimalSeparator ~ ^"digits")/~) => pushDouble)
+		add_named_rule("doubleNumber",		rule: ((^"digits" ~ locale.decimalSeparator ~ ^"digits") => pushDouble) | ((^"digits") => pushInt))
 		add_named_rule("negativeNumber",	rule: ("-" ~ ^"doubleNumber") => pushNegate)
 		add_named_rule("postfixedNumber",	rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"numberPostfix")
 		
