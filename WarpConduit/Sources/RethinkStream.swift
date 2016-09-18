@@ -186,22 +186,7 @@ final public class RethinkStream: NSObject, WarpCore.Stream {
 						var newDocument: [Value] = []
 						for column in columns {
 							if let value = document[column.name] {
-								if let x = value as? NSNumber {
-									newDocument.append(Value.double(x.doubleValue))
-								}
-								else if let y = value as? String {
-									newDocument.append(Value.string(y))
-								}
-								else if let _ = value as? NSNull {
-									newDocument.append(Value.empty)
-								}
-								else if let x = value as? Date {
-									newDocument.append(Value(x))
-								}
-								else {
-									// Probably arrays (NSArray), dictionaries (NSDictionary) and binary data (NSData)
-									newDocument.append(Value.invalid)
-								}
+								newDocument.append(Value(jsonObject: value))
 							}
 							else {
 								newDocument.append(Value.empty)

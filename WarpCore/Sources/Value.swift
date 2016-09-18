@@ -57,12 +57,12 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		self = .string(value)
 	}
 
-	public init(jsonObject: AnyObject)	{
-		if let d = jsonObject as? [String: AnyObject] {
+	public init(jsonObject: Any)	{
+		if let d = jsonObject as? [String: Any] {
 			let values = d.flatMap { (k, v) -> [Value] in return [.string(k), Value(jsonObject: v)] }
 			self = Pack(values).value
 		}
-		else if let a = jsonObject as? [AnyObject] {
+		else if let a = jsonObject as? [Any] {
 			let values = a.map { return Value(jsonObject: $0) }
 			self = Pack(values).value
 		}
