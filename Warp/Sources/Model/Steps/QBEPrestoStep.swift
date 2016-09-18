@@ -56,6 +56,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 	private var started: Bool = false
 	private var nextURI: URL?
 	private var columnsFuture: Future<Fallible<OrderedSet<Column>>>! = nil
+	private var mutex = Mutex()
 	
 	init(url: URL, sql: String, catalog: String, schema: String) {
 		self.url = url
@@ -66,8 +67,14 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 		super.init()
 		
 		let c = { [weak self] (job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) -> () in
-			self?.awaitColumns(job) {
-				callback(self?.columns ?? .failure(NSLocalizedString("Could not load column names from Presto.", comment: "")))
+			self?.awaitColumns(job) { result in
+				switch result {
+				case .success():
+					callback(self?.columns ?? .failure(NSLocalizedString("Could not load column names from Presto.", comment: "")))
+
+				case .failure(let e):
+					callback(.failure(e))
+				}
 			}
 		}
 		
@@ -75,150 +82,178 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 	}
 	
 	/** Request the next batch of result data from Presto. */
-	private func request(_ job: Job, callback: @escaping () -> ()) {
-		if stopped {
-			callback()
-			return
-		}
-		
-		if let endpoint = self.nextURI {
-			let request = NSMutableURLRequest(url: endpoint)
-			request.setValue("Warp", forHTTPHeaderField: "User-Agent")
-		
-			if !started {
-				// Initial request
-				started = true
-				request.httpMethod = "POST"
-				request.setValue("Warp", forHTTPHeaderField: "X-Presto-User")
-				request.setValue("Warp", forHTTPHeaderField: "X-Presto-Source")
-				request.setValue(self.catalog, forHTTPHeaderField: "X-Presto-Catalog")
-				request.setValue(self.schema, forHTTPHeaderField: "X-Presto-Schema")
-				
-				if let sqlDataset = sql.data(using: String.Encoding.utf8, allowLossyConversion: false) {
-					request.httpBody = sqlDataset
-				}
-			}
-			else {
-				// Follow-up request
-				request.httpMethod = "GET"
+	private func request(_ job: Job, callback: @escaping (Fallible<()>) -> ()) {
+		self.mutex.locked { () -> () in
+			if stopped {
+				return callback(.success())
 			}
 			
-			job.log("Presto requesting \(endpoint)")
-			Alamofire.request(request as URLRequest).responseJSON(options: [], completionHandler: { response in
-				if response.result.isSuccess {
-					// Let's see if the response got something useful
-					if let d = response.result.value as? [String: AnyObject] {
-						// Get progress data from response
-						if let stats = d["stats"] as? [String: AnyObject] {
-							if let completedSplits = stats["completedSplits"] as? Int,
-								let queuedSplits = stats["queuedSplits"] as? Int {
-									let progress = Double(completedSplits) / Double(completedSplits + queuedSplits)
-									job.reportProgress(progress, forKey: self.hash)
-							}
-						}
+			if let endpoint = self.nextURI {
+				let request = NSMutableURLRequest(url: endpoint)
+				request.setValue("Warp", forHTTPHeaderField: "User-Agent")
+			
+				if !started {
+					// Initial request
+					started = true
+					request.httpMethod = "POST"
+					request.setValue("Warp", forHTTPHeaderField: "X-Presto-User")
+					request.setValue("Warp", forHTTPHeaderField: "X-Presto-Source")
+					request.setValue(self.catalog, forHTTPHeaderField: "X-Presto-Catalog")
+					request.setValue(self.schema, forHTTPHeaderField: "X-Presto-Schema")
+					
+					if let sqlDataset = sql.data(using: String.Encoding.utf8, allowLossyConversion: false) {
+						request.httpBody = sqlDataset
+					}
+				}
+				else {
+					// Follow-up request
+					request.httpMethod = "GET"
+				}
 
-						// Does the response tell us where to look next?
-						if let nu = (d["nextUri"] as? String) {
-							self.nextURI = URL(string: nu)
+				Alamofire.request(request as URLRequest).responseJSON(options: [], completionHandler: { response in
+					if response.result.isSuccess {
+						// Let's see if the response got something useful
+						if let d = response.result.value as? [String: AnyObject] {
+							// Get progress data from response
+							if let stats = d["stats"] as? [String: AnyObject] {
+								if let completedSplits = stats["completedSplits"] as? Int,
+									let queuedSplits = stats["queuedSplits"] as? Int {
+									if (completedSplits + queuedSplits) > 0 {
+										let progress = Double(completedSplits) / Double(completedSplits + queuedSplits)
+										job.reportProgress(progress, forKey: self.hash)
+									}
+								}
+							}
+
+							self.mutex.locked {
+								// Does the response tell us where to look next?
+								if let nu = (d["nextUri"] as? String) {
+									self.nextURI = URL(string: nu)
+								}
+								else {
+									self.nextURI = nil
+									self.stopped = true
+								}
+							}
+
+							// Does the response include column information?
+							if self.columns == nil {
+								if let columns = d["columns"] as? [AnyObject] {
+									var newColumns: OrderedSet<Column> = []
+
+									for columnSpec in columns {
+										if let columnInfo = columnSpec as? [String: AnyObject] {
+											if let name = columnInfo["name"] as? String {
+												newColumns.append(Column(name))
+											}
+										}
+									}
+									self.columns = .success(newColumns)
+								}
+							}
+
+							// Does the response contain any data?
+							if let data = d["data"] as? [AnyObject] {
+								job.time("Presto fetch", items: data.count, itemType: "row") {
+									var templateRow: [Value] = []
+									for row in data {
+										if let rowArray = row as? [AnyObject] {
+											for cell in rowArray {
+												if let value = cell as? NSNumber {
+													templateRow.append(Value(value.doubleValue))
+												}
+												else if let value = cell as? String {
+													templateRow.append(Value(value))
+												}
+												else if cell is NSNull {
+													templateRow.append(Value.empty)
+												}
+												else {
+													templateRow.append(Value.invalid)
+												}
+											}
+										}
+										self.buffer.append(templateRow)
+										templateRow.removeAll(keepingCapacity: true)
+									}
+								}
+							}
+
+							return callback(.success())
 						}
 						else {
 							self.nextURI = nil
 							self.stopped = true
-						}
-
-						// Does the response include column information?
-						if self.columns == nil {
-							if let columns = d["columns"] as? [AnyObject] {
-								var newColumns: OrderedSet<Column> = []
-
-								for columnSpec in columns {
-									if let columnInfo = columnSpec as? [String: AnyObject] {
-										if let name = columnInfo["name"] as? String {
-											newColumns.append(Column(name))
-										}
-									}
-								}
-								self.columns = .success(newColumns)
-							}
-						}
-
-						// Does the response contain any data?
-						if let data = d["data"] as? [AnyObject] {
-							job.time("Fetch Presto", items: data.count, itemType: "row") {
-								var templateRow: [Value] = []
-								for row in data {
-									if let rowArray = row as? [AnyObject] {
-										for cell in rowArray {
-											if let value = cell as? NSNumber {
-												templateRow.append(Value(value.doubleValue))
-											}
-											else if let value = cell as? String {
-												templateRow.append(Value(value))
-											}
-											else if cell is NSNull {
-												templateRow.append(Value.empty)
-											}
-											else {
-												templateRow.append(Value.invalid)
-											}
-										}
-									}
-									self.buffer.append(templateRow)
-									templateRow.removeAll(keepingCapacity: true)
-								}
-							}
+							return callback(.failure("returned response has an invalid format"))
 						}
 					}
 					else {
-						self.nextURI = nil
-						self.stopped = true
-					}
-				}
-				else {
-					if response.response?.statusCode == 503 {
-						// Status code 503 means that we should wait a bit
-						let queue = DispatchQueue.global(qos: .userInitiated)
-						queue.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-							callback()
+						if response.response?.statusCode == 503 {
+							// Status code 503 means that we should wait a bit
+							job.log("Presto returned status code 503, waiting for a while")
+							let queue = DispatchQueue.global(qos: .userInitiated)
+							queue.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+								callback(.success())
+							}
+							return
 						}
-						return
+						else {
+							self.mutex.locked {
+								// Any status code other than 200 means trouble
+								self.stopped = true
+								self.nextURI = nil
+							}
+							return callback(.failure("Presto error \(response.response?.statusCode): \(response.result.error)"))
+						}
 					}
-					else {
-						// Any status code other than 200 means trouble
-						job.log("Presto errored: \(response.response?.statusCode) \(response.result.error)")
-						self.stopped = true
-						self.nextURI = nil
-						callback()
-						return
-					}
-				}
-			})
+				})
+			}
 		}
 	}
 	
-	private func awaitColumns(_ job: Job, callback: @escaping () -> ()) {
-		request(job) {
-			if self.columns == nil && !self.stopped {
-				job.async {
-					self.awaitColumns(job, callback: callback)
+	private func awaitColumns(_ job: Job, callback: @escaping (Fallible<()>) -> ()) {
+		request(job) { result in
+			switch result {
+			case .success():
+				if self.columns == nil && !self.stopped {
+					job.async {
+						self.awaitColumns(job, callback: callback)
+					}
 				}
-			}
-			else {
-				callback()
+				else {
+					callback(.success())
+				}
+			case .failure(let e):
+				return callback(.failure(e))
 			}
 		}
 	}
 	
 	func fetch(_ job: Job, consumer: @escaping Sink) {
-		request(job) {
-			let rows = self.buffer
-			self.buffer.removeAll(keepingCapacity: true)
-			consumer(.success(Array(rows)), self.stopped ? .finished : .hasMore)
+		request(job) { result in
+			switch result {
+			case .success():
+				let (rows, stopped) = self.mutex.locked { () -> ([Tuple], Bool) in
+					let rows = self.buffer
+					self.buffer.removeAll(keepingCapacity: true)
+					return (rows, self.stopped)
+				}
+				consumer(.success(Array(rows)), stopped ? .finished : .hasMore)
+
+			case .failure(let e):
+				consumer(.failure(e), .finished)
+			}
 		}
 	}
 	
 	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
-		self.columnsFuture.get(job, callback)
+		let s = self
+		self.columnsFuture.get(job) { result in
+			// The mutex locking is just here to keep 'self' alive while columns are being fetched.
+			s.mutex.locked {
+				callback(result)
+			}
+		}
 	}
 	
 	func clone() -> WarpCore.Stream {
