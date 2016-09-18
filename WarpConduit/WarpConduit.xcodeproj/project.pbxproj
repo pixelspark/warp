@@ -15,6 +15,7 @@
 		656822951D78D69300410BA5 /* TCMXMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6568227C1D78D69300410BA5 /* TCMXMLWriter.m */; };
 		656822A31D78D89C00410BA5 /* DBFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A21D78D89C00410BA5 /* DBFStream.swift */; };
 		656822A51D78D93500410BA5 /* CSVStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A41D78D93500410BA5 /* CSVStream.swift */; };
+		65A732371D8F1CE300C5C397 /* PostgresStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A732361D8F1CE300C5C397 /* PostgresStream.swift */; };
 		65DAF6C61D7C6F3C00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6BF1D7C6F2A00163750 /* Rethink.framework */; };
 		65DAF6C81D7C6F8500163750 /* RethinkStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DAF6C71D7C6F8500163750 /* RethinkStream.swift */; };
 		65F50E961D78CE6300F6FAE5 /* WarpConduit.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50E941D78CE6300F6FAE5 /* WarpConduit.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -87,6 +88,34 @@
 			remoteGlobalIDString = F2D9016313D0795F00E23494;
 			remoteInfo = UnitTests;
 		};
+		65A7323E1D8F1CE400C5C397 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 29CA96DE1D8876EB0027D914;
+			remoteInfo = GCDAsyncSocket;
+		};
+		65A732401D8F1CE400C5C397 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 29CA96EB1D8876F70027D914;
+			remoteInfo = "GCDAsyncSocket iOS";
+		};
+		65A732421D8F1CE400C5C397 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 29CA96F81D8877040027D914;
+			remoteInfo = SCRAM;
+		};
+		65A732441D8F1CE400C5C397 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 29CA97051D8877100027D914;
+			remoteInfo = "SCRAM iOS";
+		};
 		65DAF6BE1D7C6F2A00163750 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
@@ -147,6 +176,7 @@
 		656822851D78D69300410BA5 /* UnitTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UnitTests.m; sourceTree = "<group>"; };
 		656822A21D78D89C00410BA5 /* DBFStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DBFStream.swift; path = Sources/DBFStream.swift; sourceTree = SOURCE_ROOT; };
 		656822A41D78D93500410BA5 /* CSVStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CSVStream.swift; path = Sources/CSVStream.swift; sourceTree = SOURCE_ROOT; };
+		65A732361D8F1CE300C5C397 /* PostgresStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PostgresStream.swift; path = Sources/PostgresStream.swift; sourceTree = SOURCE_ROOT; };
 		65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rethink.xcodeproj; path = Libraries/Rethink/Rethink.xcodeproj; sourceTree = "<group>"; };
 		65DAF6C71D7C6F8500163750 /* RethinkStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RethinkStream.swift; path = Sources/RethinkStream.swift; sourceTree = SOURCE_ROOT; };
 		65F50E891D78CE1000F6FAE5 /* WarpConduit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpConduit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -311,8 +341,12 @@
 			isa = PBXGroup;
 			children = (
 				65DAF6BF1D7C6F2A00163750 /* Rethink.framework */,
-				65DAF6C11D7C6F2A00163750 /* RethinkTests.xctest */,
 				65DAF6C31D7C6F2A00163750 /* Rethink.framework */,
+				65DAF6C11D7C6F2A00163750 /* RethinkTests.xctest */,
+				65A7323F1D8F1CE400C5C397 /* GCDAsyncSocket.framework */,
+				65A732411D8F1CE400C5C397 /* GCDAsyncSocket.framework */,
+				65A732431D8F1CE400C5C397 /* SCRAM.framework */,
+				65A732451D8F1CE400C5C397 /* SCRAM.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -350,6 +384,7 @@
 				656822A21D78D89C00410BA5 /* DBFStream.swift */,
 				65DAF6C71D7C6F8500163750 /* RethinkStream.swift */,
 				65292F401D7CA7030053ADE3 /* SQLiteStream.swift */,
+				65A732361D8F1CE300C5C397 /* PostgresStream.swift */,
 			);
 			path = WarpConduit;
 			sourceTree = "<group>";
@@ -618,6 +653,34 @@
 			remoteRef = 656822A01D78D69300410BA5 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		65A7323F1D8F1CE400C5C397 /* GCDAsyncSocket.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GCDAsyncSocket.framework;
+			remoteRef = 65A7323E1D8F1CE400C5C397 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65A732411D8F1CE400C5C397 /* GCDAsyncSocket.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GCDAsyncSocket.framework;
+			remoteRef = 65A732401D8F1CE400C5C397 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65A732431D8F1CE400C5C397 /* SCRAM.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SCRAM.framework;
+			remoteRef = 65A732421D8F1CE400C5C397 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65A732451D8F1CE400C5C397 /* SCRAM.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SCRAM.framework;
+			remoteRef = 65A732441D8F1CE400C5C397 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		65DAF6BF1D7C6F2A00163750 /* Rethink.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -666,6 +729,7 @@
 				65F50EA81D78CFAC00F6FAE5 /* CHCSVParser.m in Sources */,
 				65F50EB01D78D0B400F6FAE5 /* sqlite3.c in Sources */,
 				656822951D78D69300410BA5 /* TCMXMLWriter.m in Sources */,
+				65A732371D8F1CE300C5C397 /* PostgresStream.swift in Sources */,
 				65292F411D7CA7030053ADE3 /* SQLiteStream.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
