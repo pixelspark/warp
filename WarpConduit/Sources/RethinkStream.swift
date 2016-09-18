@@ -384,6 +384,18 @@ private class RethinkExpression {
 					return R.random(lower.floor(), upper.floor().add(1), float: false)
 				}
 
+			case .Nth:
+				if let array = f, let index = expressionToQuery(unary.arguments[1], prior: prior) {
+					return array[index.coerceTo(.Number)]
+				}
+				return nil
+
+			case .ValueForKey:
+				if let array = f, let index = expressionToQuery(unary.arguments[1], prior: prior) {
+					return array[index.coerceTo(.String)]
+				}
+				return nil
+
 			default: return nil
 			}
 		}
