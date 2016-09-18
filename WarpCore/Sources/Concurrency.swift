@@ -621,16 +621,8 @@ public class Mutex {
 		pthread_mutex_destroy(&self.mutex)
 	}
 
-	@discardableResult public final func locked<T>(_ file: StaticString = #file, line: UInt = #line, block: () throws -> (T)) throws -> T {
-		return try self.tryLocked(file, line: line, block: block)
-	}
-
-	@discardableResult public final func locked<T>(_ file: StaticString = #file, line: UInt = #line, block: () -> (T)) -> T {
-		return try! self.tryLocked(file, line: line, block: block)
-	}
-
 	/** Execute the given block while holding a lock to this mutex. */
-	@discardableResult public final func tryLocked<T>(_ file: StaticString = #file, line: UInt = #line, block: () throws -> (T)) throws -> T {
+	@discardableResult public final func locked<T>(_ file: StaticString = #file, line: UInt = #line, block: () throws -> (T)) rethrows -> T {
 		#if DEBUG
 			let start = CFAbsoluteTimeGetCurrent()
 		#endif

@@ -312,7 +312,7 @@ private class QBEClassifierModel {
 	func classify(_ input: Row) throws -> [Value] {
 		let inputValues = self.inputAllocator.floatsForRow(input)
 
-		let outputValues = try self.mutex.tryLocked {
+		let outputValues = try self.mutex.locked {
 			return try self.model.update(inputs: inputValues)
 		}
 
@@ -381,7 +381,7 @@ private class QBEClassifierModel {
 				self.validationReservoir.add(values)
 
 				do {
-					try self.mutex.tryLocked {
+					try self.mutex.locked {
 						for _ in 0..<self.maxIterations {
 							for (index, input) in allInputs.enumerated() {
 								try self.model.update(inputs: input)
