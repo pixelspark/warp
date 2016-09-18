@@ -303,8 +303,8 @@ private class RethinkExpression {
 			switch unary.type {
 			case .UUID: return R.uuid()
 			case .Negate: return f?.mul(R.expr(-1))
-			case .Uppercase: return f?.coerceTo(.String).upcase()
-			case .Lowercase: return f?.coerceTo(.String).downcase()
+			case .Uppercase: return f?.coerceTo(.string).upcase()
+			case .Lowercase: return f?.coerceTo(.string).downcase()
 			case .Identity: return f
 			case .Floor: return f?.floor()
 			case .Ceiling: return f?.ceil()
@@ -361,10 +361,10 @@ private class RethinkExpression {
 				return nil
 
 			case .Concat:
-				if var first = f?.coerceTo(.String) {
+				if var first = f?.coerceTo(.string) {
 					for argIndex in 1..<unary.arguments.count {
 						if let second = expressionToQuery(unary.arguments[argIndex], prior: prior) {
-							first = first.add(second.coerceTo(.String))
+							first = first.add(second.coerceTo(.string))
 						}
 						else {
 							return nil
@@ -386,13 +386,13 @@ private class RethinkExpression {
 
 			case .Nth:
 				if let array = f, let index = expressionToQuery(unary.arguments[1], prior: prior) {
-					return array[index.coerceTo(.Number)]
+					return array[index.coerceTo(.number)]
 				}
 				return nil
 
 			case .ValueForKey:
 				if let array = f, let index = expressionToQuery(unary.arguments[1], prior: prior) {
-					return array[index.coerceTo(.String)]
+					return array[index.coerceTo(.string)]
 				}
 				return nil
 
@@ -402,22 +402,22 @@ private class RethinkExpression {
 		else if let binary = expression as? Comparison {
 			if let s = RethinkExpression.expressionToQuery(binary.first, prior: prior), let f = RethinkExpression.expressionToQuery(binary.second, prior: prior) {
 				switch binary.type {
-				case .addition: return f.coerceTo(.Number).add(s.coerceTo(.Number))
-				case .subtraction: return f.coerceTo(.Number).sub(s.coerceTo(.Number))
-				case .multiplication: return f.coerceTo(.Number).mul(s.coerceTo(.Number))
-				case .division: return f.coerceTo(.Number).div(s.coerceTo(.Number))
+				case .addition: return f.coerceTo(.number).add(s.coerceTo(.number))
+				case .subtraction: return f.coerceTo(.number).sub(s.coerceTo(.number))
+				case .multiplication: return f.coerceTo(.number).mul(s.coerceTo(.number))
+				case .division: return f.coerceTo(.number).div(s.coerceTo(.number))
 				case .equal: return f.eq(s)
 				case .notEqual: return f.ne(s)
-				case .greater: return f.coerceTo(.Number).gt(s.coerceTo(.Number))
-				case .lesser: return f.coerceTo(.Number).lt(s.coerceTo(.Number))
-				case .greaterEqual: return f.coerceTo(.Number).ge(s.coerceTo(.Number))
-				case .lesserEqual: return f.coerceTo(.Number).le(s.coerceTo(.Number))
-				case .modulus: return f.coerceTo(.Number).mod(s.coerceTo(.Number))
-				case .matchesRegexStrict: return f.coerceTo(.String).match(s.coerceTo(.String)).eq(R.expr()).not()
+				case .greater: return f.coerceTo(.number).gt(s.coerceTo(.number))
+				case .lesser: return f.coerceTo(.number).lt(s.coerceTo(.number))
+				case .greaterEqual: return f.coerceTo(.number).ge(s.coerceTo(.number))
+				case .lesserEqual: return f.coerceTo(.number).le(s.coerceTo(.number))
+				case .modulus: return f.coerceTo(.number).mod(s.coerceTo(.number))
+				case .matchesRegexStrict: return f.coerceTo(.string).match(s.coerceTo(.string)).eq(R.expr()).not()
 
 					/* The 'match' function accepts Re2 syntax. By prefixing the pattern with '(?i)', the matching is
 					case-insensitive. (http://rethinkdb.com/api/javascript/match/) */
-				case .matchesRegex: return f.coerceTo(.String).match(R.expr("(?i)").add(s.coerceTo(.String))).eq(R.expr()).not()
+				case .matchesRegex: return f.coerceTo(.string).match(R.expr("(?i)").add(s.coerceTo(.string))).eq(R.expr()).not()
 				default: return nil
 				}
 			}
