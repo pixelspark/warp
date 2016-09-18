@@ -3,6 +3,7 @@ import WarpCore
 
 class QBESearchStep: QBEStep {
 	var query: String
+	let mutex = Mutex()
 
 	init(previous: QBEStep?, query: String) {
 		self.query = query
@@ -36,14 +37,16 @@ class QBESearchStep: QBEStep {
 	}
 
 	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
-		if self.query.isEmpty {
+		let query = self.mutex.locked { return self.query }
+
+		if query.isEmpty {
 			callback(.success(data))
 		}
 		else {
 			data.columns(job) { result in
 				switch result {
 				case .success(let cols):
-					let exprs = cols.map { return Comparison(first: Literal(.string(self.query)), second: Sibling($0), type: .containsString) }
+					let exprs = cols.map { return Comparison(first: Literal(.string(query)), second: Sibling($0), type: .containsString) }
 					let searchExpression = Call(arguments: exprs, type: .Or)
 					callback(.success(data.filter(searchExpression)))
 

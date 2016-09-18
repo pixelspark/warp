@@ -155,8 +155,15 @@ internal enum QBEEditingMode {
 					self.removeStep(self)
 				}
 				else {
-					if c.query != newValue {
-						c.query = newValue
+					let changed = c.mutex.locked { () -> Bool in 
+						if c.query != newValue {
+							c.query = newValue
+							return true
+						}
+						return false
+					}
+
+					if changed {
 						calculate()
 					}
 				}
