@@ -57,7 +57,6 @@
 		6583EEF91C14758B00AE6C00 /* QBEMySQLSourceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEAA1C14758B00AE6C00 /* QBEMySQLSourceStepView.swift */; };
 		6583EEFA1C14758B00AE6C00 /* QBEPivotStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEAB1C14758B00AE6C00 /* QBEPivotStepView.swift */; };
 		6583EEFB1C14758B00AE6C00 /* QBEPostgresStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEAC1C14758B00AE6C00 /* QBEPostgresStepView.swift */; };
-		6583EEFC1C14758B00AE6C00 /* QBEPrestoSourceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEAD1C14758B00AE6C00 /* QBEPrestoSourceStepView.swift */; };
 		6583EEFD1C14758B00AE6C00 /* QBERenameStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEAE1C14758B00AE6C00 /* QBERenameStepView.swift */; };
 		6583EEFE1C14758B00AE6C00 /* QBERethinkStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEAF1C14758B00AE6C00 /* QBERethinkStepView.swift */; };
 		6583EEFF1C14758B00AE6C00 /* QBESortStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEB01C14758B00AE6C00 /* QBESortStepView.swift */; };
@@ -147,8 +146,6 @@
 		65E224691D7C5E3F007433E6 /* QBEPivotStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFD21C1475D900AE6C00 /* QBEPivotStepView.xib */; };
 		65E2246A1D7C5E3F007433E6 /* QBEPostgresStepView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583F0191C1475E700AE6C00 /* QBEPostgresStepView.strings */; };
 		65E2246B1D7C5E3F007433E6 /* QBEPostgresStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFD41C1475D900AE6C00 /* QBEPostgresStepView.xib */; };
-		65E2246C1D7C5E3F007433E6 /* QBEPrestoSourceStepView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583F01B1C1475E700AE6C00 /* QBEPrestoSourceStepView.strings */; };
-		65E2246D1D7C5E3F007433E6 /* QBEPrestoSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFD61C1475D900AE6C00 /* QBEPrestoSourceStepView.xib */; };
 		65E2246E1D7C5E3F007433E6 /* QBERenameStepView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583F01D1C1475E700AE6C00 /* QBERenameStepView.strings */; };
 		65E2246F1D7C5E3F007433E6 /* QBERenameStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFD81C1475D900AE6C00 /* QBERenameStepView.xib */; };
 		65E224701D7C5E3F007433E6 /* QBERethinkStepView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583F01F1C1475E700AE6C00 /* QBERethinkStepView.strings */; };
@@ -408,7 +405,6 @@
 		6583EEAA1C14758B00AE6C00 /* QBEMySQLSourceStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEMySQLSourceStepView.swift; sourceTree = "<group>"; };
 		6583EEAB1C14758B00AE6C00 /* QBEPivotStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = QBEPivotStepView.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		6583EEAC1C14758B00AE6C00 /* QBEPostgresStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEPostgresStepView.swift; sourceTree = "<group>"; };
-		6583EEAD1C14758B00AE6C00 /* QBEPrestoSourceStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEPrestoSourceStepView.swift; sourceTree = "<group>"; };
 		6583EEAE1C14758B00AE6C00 /* QBERenameStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERenameStepView.swift; sourceTree = "<group>"; };
 		6583EEAF1C14758B00AE6C00 /* QBERethinkStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERethinkStepView.swift; sourceTree = "<group>"; };
 		6583EEB01C14758B00AE6C00 /* QBESortStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESortStepView.swift; sourceTree = "<group>"; };
@@ -470,7 +466,6 @@
 		6583EFD11C1475D900AE6C00 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEMySQLSourceStepView.xib; sourceTree = SOURCE_ROOT; };
 		6583EFD31C1475D900AE6C00 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEPivotStepView.xib; sourceTree = SOURCE_ROOT; };
 		6583EFD51C1475D900AE6C00 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEPostgresStepView.xib; sourceTree = SOURCE_ROOT; };
-		6583EFD71C1475D900AE6C00 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEPrestoSourceStepView.xib; sourceTree = SOURCE_ROOT; };
 		6583EFD91C1475D900AE6C00 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBERenameStepView.xib; sourceTree = SOURCE_ROOT; };
 		6583EFDB1C1475D900AE6C00 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBERethinkStepView.xib; sourceTree = SOURCE_ROOT; };
 		6583EFDD1C1475D900AE6C00 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBESortStepView.xib; sourceTree = SOURCE_ROOT; };
@@ -490,7 +485,6 @@
 		6583F0161C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEMySQLSourceStepView.strings; sourceTree = SOURCE_ROOT; };
 		6583F0181C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEPivotStepView.strings; sourceTree = SOURCE_ROOT; };
 		6583F01A1C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEPostgresStepView.strings; sourceTree = SOURCE_ROOT; };
-		6583F01C1C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEPrestoSourceStepView.strings; sourceTree = SOURCE_ROOT; };
 		6583F01E1C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBERenameStepView.strings; sourceTree = SOURCE_ROOT; };
 		6583F0201C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBERethinkStepView.strings; sourceTree = SOURCE_ROOT; };
 		6583F0221C1475E700AE6C00 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBESortStepView.strings; sourceTree = SOURCE_ROOT; };
@@ -685,7 +679,6 @@
 				6583EEAA1C14758B00AE6C00 /* QBEMySQLSourceStepView.swift */,
 				6583EEAB1C14758B00AE6C00 /* QBEPivotStepView.swift */,
 				6583EEAC1C14758B00AE6C00 /* QBEPostgresStepView.swift */,
-				6583EEAD1C14758B00AE6C00 /* QBEPrestoSourceStepView.swift */,
 				6583EEAE1C14758B00AE6C00 /* QBERenameStepView.swift */,
 				6583EEAF1C14758B00AE6C00 /* QBERethinkStepView.swift */,
 				6583EEB01C14758B00AE6C00 /* QBESortStepView.swift */,
@@ -828,8 +821,6 @@
 				6583EFD21C1475D900AE6C00 /* QBEPivotStepView.xib */,
 				6583F0191C1475E700AE6C00 /* QBEPostgresStepView.strings */,
 				6583EFD41C1475D900AE6C00 /* QBEPostgresStepView.xib */,
-				6583F01B1C1475E700AE6C00 /* QBEPrestoSourceStepView.strings */,
-				6583EFD61C1475D900AE6C00 /* QBEPrestoSourceStepView.xib */,
 				6583F01D1C1475E700AE6C00 /* QBERenameStepView.strings */,
 				6583EFD81C1475D900AE6C00 /* QBERenameStepView.xib */,
 				6583F01F1C1475E700AE6C00 /* QBERethinkStepView.strings */,
@@ -1155,8 +1146,6 @@
 				65E224691D7C5E3F007433E6 /* QBEPivotStepView.xib in Resources */,
 				65E2246A1D7C5E3F007433E6 /* QBEPostgresStepView.strings in Resources */,
 				65E2246B1D7C5E3F007433E6 /* QBEPostgresStepView.xib in Resources */,
-				65E2246C1D7C5E3F007433E6 /* QBEPrestoSourceStepView.strings in Resources */,
-				65E2246D1D7C5E3F007433E6 /* QBEPrestoSourceStepView.xib in Resources */,
 				65E224981D7C5F41007433E6 /* QBEJobViewController.xib in Resources */,
 				65E2246E1D7C5E3F007433E6 /* QBERenameStepView.strings in Resources */,
 				65E2246F1D7C5E3F007433E6 /* QBERenameStepView.xib in Resources */,
@@ -1203,7 +1192,6 @@
 				6583EF1C1C14758B00AE6C00 /* QBESequencerStep.swift in Sources */,
 				65D1C8A31D4E86D300967C26 /* QBEHTTPStep.swift in Sources */,
 				6583EF0E1C14758B00AE6C00 /* QBECSVStep.swift in Sources */,
-				6583EEFC1C14758B00AE6C00 /* QBEPrestoSourceStepView.swift in Sources */,
 				6583EF041C14758B00AE6C00 /* QBEJobsManager.swift in Sources */,
 				6583EEE91C14758B00AE6C00 /* QBEFilterViewController.swift in Sources */,
 				6583EEF41C14758B00AE6C00 /* QBECalculateStepView.swift in Sources */,
@@ -1457,14 +1445,6 @@
 			name = QBEPostgresStepView.xib;
 			sourceTree = "<group>";
 		};
-		6583EFD61C1475D900AE6C00 /* QBEPrestoSourceStepView.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				6583EFD71C1475D900AE6C00 /* Base */,
-			);
-			name = QBEPrestoSourceStepView.xib;
-			sourceTree = "<group>";
-		};
 		6583EFD81C1475D900AE6C00 /* QBERenameStepView.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1601,14 +1581,6 @@
 				6583F01A1C1475E700AE6C00 /* nl */,
 			);
 			name = QBEPostgresStepView.strings;
-			sourceTree = "<group>";
-		};
-		6583F01B1C1475E700AE6C00 /* QBEPrestoSourceStepView.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				6583F01C1C1475E700AE6C00 /* nl */,
-			);
-			name = QBEPrestoSourceStepView.strings;
 			sourceTree = "<group>";
 		};
 		6583F01D1C1475E700AE6C00 /* QBERenameStepView.strings */ = {

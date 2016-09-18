@@ -359,3 +359,4 @@
 "lines (legacy Mac-formatted)" = "regels (legacy Mac-geformatteerd)";
 "Search for [#]" = "Zoek naar [#]";
 "Data.csv" = "Gegevens.csv";
+"Table [#] from schema [#] in catalog [#] on Presto server [#]" = "Tabel [#] in schema [#] in catalogus [#] op Presto-server [#]";

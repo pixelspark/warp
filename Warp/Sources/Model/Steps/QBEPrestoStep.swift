@@ -359,6 +359,7 @@ class QBEPrestoSourceStep: QBEStep {
 		self.tableName = (aDecoder.decodeObject(forKey: "tableName") as? String) ?? self.tableName
 		self.schemaName = (aDecoder.decodeObject(forKey: "schemaName") as? String) ?? self.schemaName
 		self.url = (aDecoder.decodeObject(forKey: "url") as? String) ?? self.url
+		switchDatabase()
 	}
 	
 	override func encode(with coder: NSCoder) {
@@ -374,8 +375,63 @@ class QBEPrestoSourceStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		// TODO make an interactive sentence
-		return QBESentence([QBESentenceLabelToken(self.explanation(locale))])
+		return QBESentence(format: "Table [#] from schema [#] in catalog [#] on Presto server [#]".localized,
+		   QBESentenceDynamicOptionsToken(value: self.tableName, provider: { (callback) -> () in
+				let job = Job(.userInitiated)
+				self.tableNames(job, callback: { (result) in
+					switch result {
+					case .success(let tables):
+						callback(.success(Array(tables)))
+
+					case .failure(let e):
+						callback(.failure(e))
+					}
+				})
+
+			}, callback: { (newTable) -> () in
+				self.tableName = newTable
+			}),
+
+		   QBESentenceDynamicOptionsToken(value: self.schemaName, provider: { (callback) -> () in
+				let job = Job(.userInitiated)
+				self.schemaNames(job, callback: { (result) in
+					switch result {
+					case .success(let tables):
+						callback(.success(Array(tables)))
+
+					case .failure(let e):
+						callback(.failure(e))
+					}
+				})
+
+				}, callback: { (newSchema) -> () in
+					self.schemaName = newSchema
+			}),
+
+		   QBESentenceDynamicOptionsToken(value: self.catalogName, provider: { (callback) -> () in
+				let job = Job(.userInitiated)
+				self.catalogNames(job, callback: { (result) in
+					switch result {
+					case .success(let catalogs):
+						callback(.success(Array(catalogs)))
+
+					case .failure(let e):
+						callback(.failure(e))
+					}
+				})
+
+				}, callback: { (newCatalog) -> () in
+					self.catalogName = newCatalog
+			}),
+
+			QBESentenceTextToken(value: self.url, callback: { (newURL) -> (Bool) in
+				if !newURL.isEmpty {
+					self.url = newURL
+					return true
+				}
+				return false
+			})
+		)
 	}
 	
 	private func switchDatabase() {
