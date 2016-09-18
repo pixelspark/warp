@@ -78,10 +78,168 @@ private class QBEPostgresDialect: StandardSQLDialect {
 	}
 }
 
+internal enum QBEPostgresType: Oid {
+	case bool = 16
+	case bytea = 17
+	case char = 18
+	case name = 19
+	case int8 = 20
+	case int2 = 21
+	case int2vector = 22
+	case int4 = 23
+	case regproc = 24
+	case text = 25
+	case oid = 26
+	case tid = 27
+	case xid = 28
+	case cid = 29
+	case oidvector = 30
+	case pg_type = 71
+	case pg_attribute = 75
+	case pg_proc = 81
+	case pg_class = 83
+	case json = 114
+	case xml = 142
+	case _xml = 143
+	case _json = 199
+	case pg_node_tree = 194
+	case smgr = 210
+	case point = 600
+	case lseg = 601
+	case path = 602
+	case box = 603
+	case polygon = 604
+	case line = 628
+	case _line = 629
+	case float4 = 700
+	case float8 = 701
+	case abstime = 702
+	case reltime = 703
+	case tinterval = 704
+	case unknown = 705
+	case circle = 718
+	case _circle = 719
+	case money = 790
+	case _money = 791
+	case macaddr = 829
+	case inet = 869
+	case cidr = 650
+	case _bool = 1000
+	case _bytea = 1001
+	case _char = 1002
+	case _name = 1003
+	case _int2 = 1005
+	case _int2vector = 1006
+	case _int4 = 1007
+	case _regproc = 1008
+	case _text = 1009
+	case _oid = 1028
+	case _tid = 1010
+	case _xid = 1011
+	case _cid = 1012
+	case _oidvector = 1013
+	case _bpchar = 1014
+	case _varchar = 1015
+	case _int8 = 1016
+	case _point = 1017
+	case _lseg = 1018
+	case _path = 1019
+	case _box = 1020
+	case _float4 = 1021
+	case _float8 = 1022
+	case _abstime = 1023
+	case _reltime = 1024
+	case _tinterval = 1025
+	case _polygon = 1027
+	case aclitem = 1033
+	case _aclitem = 1034
+	case _macaddr = 1040
+	case _inet = 1041
+	case _cidr = 651
+	case _cstring = 1263
+	case bpchar = 1042
+	case varchar = 1043
+	case date = 1082
+	case time = 1083
+	case timestamp = 1114
+	case _timestamp = 1115
+	case _date = 1182
+	case _time = 1183
+	case timestamptz = 1184
+	case _timestamptz = 1185
+	case interval = 1186
+	case _interval = 1187
+	case _numeric = 1231
+	case timetz = 1266
+	case _timetz = 1270
+	case bit = 1560
+	case _bit = 1561
+	case varbit = 1562
+	case _varbit = 1563
+	case numeric = 1700
+	case refcursor = 1790
+	case _refcursor = 2201
+	case regprocedure = 2202
+	case regoper = 2203
+	case regoperator = 2204
+	case regclass = 2205
+	case regtype = 2206
+	case _regprocedure = 2207
+	case _regoper = 2208
+	case _regoperator = 2209
+	case _regclass = 2210
+	case _regtype = 2211
+	case uuid = 2950
+	case _uuid = 2951
+	case pg_lsn = 3220
+	case _pg_lsn = 3221
+	case tsvector = 3614
+	case gtsvector = 3642
+	case tsquery = 3615
+	case regconfig = 3734
+	case regdictionary = 3769
+	case _tsvector = 3643
+	case _gtsvector = 3644
+	case _tsquery = 3645
+	case _regconfig = 3735
+	case _regdictionary = 3770
+	case jsonb = 3802
+	case _jsonb = 3807
+	case txid_snapshot = 2970
+	case _txid_snapshot = 2949
+	case int4range = 3904
+	case _int4range = 3905
+	case numrange = 3906
+	case _numrange = 3907
+	case tsrange = 3908
+	case _tsrange = 3909
+	case tstzrange = 3910
+	case _tstzrange = 3911
+	case daterange = 3912
+	case _daterange = 3913
+	case int8range = 3926
+	case _int8range = 3927
+	case record = 2249
+	case _record = 2287
+	case cstring = 2275
+	case any = 2276
+	case anyarray = 2277
+	case void = 2278
+	case trigger = 2279
+	case event_trigger = 3838
+	case language_handler = 2280
+	case `internal` = 2281
+	case opaque = 2282
+	case anyelement = 2283
+	case anynonarray = 2776
+	case anyenum = 3500
+	case fdw_handler = 3115
+}
+
 internal class QBEPostgresResult: Sequence, IteratorProtocol {
 	typealias Element = Fallible<Tuple>
 	typealias Iterator = QBEPostgresResult
-	
+
 	fileprivate let connection: QBEPostgresConnection
 	fileprivate var result: OpaquePointer?
 	fileprivate let columns: OrderedSet<Column>
@@ -92,45 +250,6 @@ internal class QBEPostgresResult: Sequence, IteratorProtocol {
 	/* The following lists OIDs for PostgreSQL system types. This was generated using the following query on a vanilla
 	Postgres installation (much less hassle than using the pg_type.h header...):
 	SELECT 'private static let kType' || initcap(typname) || ' : Oid = ' || oid FROM pg_type WHERE typbyval */
-	private static let kTypeBool : Oid = 16
-	private static let kTypeChar : Oid = 18
-	private static let kTypeInt8 : Oid = 20
-	private static let kTypeInt2 : Oid = 21
-	private static let kTypeInt4 : Oid = 23
-	private static let kTypeRegproc : Oid = 24
-	private static let kTypeOid : Oid = 26
-	private static let kTypeXid : Oid = 28
-	private static let kTypeCid : Oid = 29
-	private static let kTypeSmgr : Oid = 210
-	private static let kTypeFloat4 : Oid = 700
-	private static let kTypeFloat8 : Oid = 701
-	private static let kTypeAbstime : Oid = 702
-	private static let kTypeReltime : Oid = 703
-	private static let kTypeMoney : Oid = 790
-	private static let kTypeDate : Oid = 1082
-	private static let kTypeTime : Oid = 1083
-	private static let kTypeTimestamp : Oid = 1114
-	private static let kTypeTimestamptz : Oid = 1184
-	private static let kTypeRegprocedure : Oid = 2202
-	private static let kTypeRegoper : Oid = 2203
-	private static let kTypeRegoperator : Oid = 2204
-	private static let kTypeRegclass : Oid = 2205
-	private static let kTypeRegtype : Oid = 2206
-	private static let kTypeRegconfig : Oid = 3734
-	private static let kTypeRegdictionary : Oid = 3769
-	private static let kTypeAny : Oid = 2276
-	private static let kTypeVoid : Oid = 2278
-	private static let kTypeTrigger : Oid = 2279
-	private static let kTypeEvent_Trigger : Oid = 3838
-	private static let kTypeLanguage_Handler : Oid = 2280
-	private static let kTypeInternal : Oid = 2281
-	private static let kTypeOpaque : Oid = 2282
-	private static let kTypeAnyelement : Oid = 2283
-	private static let kTypeAnynonarray : Oid = 2776
-	private static let kTypeAnyenum : Oid = 3500
-	private static let kTypeFdw_Handler : Oid = 3115
-	private static let kTypeCardinal_Number : Oid = 11761
-	private static let kTypeTime_Stamp : Oid = 11768
 	
 	static func create(_ connection: QBEPostgresConnection) -> Fallible<QBEPostgresResult> {
 		// Get column names from result set
@@ -263,25 +382,44 @@ internal class QBEPostgresResult: Sequence, IteratorProtocol {
 							}
 							else {
 								if let stringValue = String(cString: val, encoding: String.Encoding.utf8) {
-									let type = PQftype(self.result, Int32(colIndex))
-									if type == QBEPostgresResult.kTypeInt8 || type == QBEPostgresResult.kTypeInt4 || type == QBEPostgresResult.kTypeInt2 {
-										if let iv = stringValue.toInt() {
-											rowDataset!.append(Value.int(iv))
+									if let type = QBEPostgresType(rawValue: PQftype(self.result, Int32(colIndex))) {
+										switch type {
+										case .int8, .int4, .int2:
+											if let iv = stringValue.toInt() {
+												rowDataset!.append(Value.int(iv))
+											}
+											else {
+												rowDataset!.append(Value.invalid)
+											}
+
+										case .float4, .float8:
+											if let dv = stringValue.toDouble() {
+												rowDataset!.append(Value.double(dv))
+											}
+											else {
+												rowDataset!.append(Value.invalid)
+											}
+
+										case .json, .jsonb:
+											if let data = stringValue.data(using: .utf8) {
+												do {
+													let obj = try JSONSerialization.jsonObject(with: data, options: [.allowFragments])
+													rowDataset!.append(Value(jsonObject: obj))
+												}
+												catch(_) {
+													rowDataset!.append(.invalid)
+												}
+											}
+											else {
+												rowDataset!.append(.invalid)
+											}
+
+										case .bool:
+											rowDataset!.append(Value.bool(stringValue == "t"))
+
+										default:
+											rowDataset!.append(Value.string(stringValue as String))
 										}
-										else {
-											rowDataset!.append(Value.invalid)
-										}
-									}
-									else if type == QBEPostgresResult.kTypeFloat4 || type == QBEPostgresResult.kTypeFloat8 {
-										if let dv = stringValue.toDouble() {
-											rowDataset!.append(Value.double(dv))
-										}
-										else {
-											rowDataset!.append(Value.invalid)
-										}
-									}
-									else if type == QBEPostgresResult.kTypeBool {
-										rowDataset!.append(Value.bool(stringValue == "t"))
 									}
 									else {
 										rowDataset!.append(Value.string(stringValue as String))
@@ -392,7 +530,7 @@ class QBEPostgresDatabase: SQLDatabase {
 	}
 
 	func dataForTable(_ table: String, schema: String?, job: Job, callback: (Fallible<Dataset>) -> ()) {
-		switch QBEPostgresDataset.create(database: self, tableName: table, schemaName: schema ?? "", locale: nil) {
+		switch QBEPostgresDataset.create(database: self, tableName: table, schemaName: schema ?? "") {
 		case .success(let d): callback(.success(d))
 		case .failure(let e): callback(.failure(e))
 		}
@@ -638,32 +776,29 @@ internal class QBEPostgresConnection: SQLConnection {
 Represents the result of a PostgreSQL query as a Dataset object. */
 class QBEPostgresDataset: SQLDataset {
 	private let database: QBEPostgresDatabase
-	private let locale: Language?
 
-	static func create(database: QBEPostgresDatabase, tableName: String, schemaName: String, locale: Language?) -> Fallible<QBEPostgresDataset> {
+	static func create(database: QBEPostgresDatabase, tableName: String, schemaName: String) -> Fallible<QBEPostgresDataset> {
 		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, schema: schemaName, database: database.database)) LIMIT 1"
 		return database.connect().use {
 			$0.query(query).use {(result) -> QBEPostgresDataset in
 				result.finish() // We're not interested in that one row we just requested, just the column names
-				return QBEPostgresDataset(database: database, schema: schemaName, table: tableName, columns: result.columns, locale: locale)
+				return QBEPostgresDataset(database: database, schema: schemaName, table: tableName, columns: result.columns)
 			}
 		}
 	}
 	
-	private init(database: QBEPostgresDatabase, fragment: SQLFragment, columns: OrderedSet<Column>, locale: Language?) {
+	private init(database: QBEPostgresDatabase, fragment: SQLFragment, columns: OrderedSet<Column>) {
 		self.database = database
-		self.locale = locale
 		super.init(fragment: fragment, columns: columns)
 	}
 	
-	private init(database: QBEPostgresDatabase, schema: String, table: String, columns: OrderedSet<Column>, locale: Language?) {
+	private init(database: QBEPostgresDatabase, schema: String, table: String, columns: OrderedSet<Column>) {
 		self.database = database
-		self.locale = locale
 		super.init(table: table, schema: schema, database: database.database, dialect: database.dialect, columns: columns)
 	}
 	
 	override func apply(_ fragment: SQLFragment, resultingColumns: OrderedSet<Column>) -> Dataset {
-		return QBEPostgresDataset(database: self.database, fragment: fragment, columns: resultingColumns, locale: locale)
+		return QBEPostgresDataset(database: self.database, fragment: fragment, columns: resultingColumns)
 	}
 	
 	override func stream() -> WarpCore.Stream {
@@ -889,7 +1024,7 @@ class QBEPostgresSourceStep: QBEStep {
 				switch s.connect() {
 				case .success(_):
 					if !self.tableName.isEmpty {
-						callback(QBEPostgresDataset.create(database: s, tableName: self.tableName, schemaName: self.schemaName, locale: QBEAppDelegate.sharedInstance.locale).use({return $0.coalesced}))
+						callback(QBEPostgresDataset.create(database: s, tableName: self.tableName, schemaName: self.schemaName).use({ return $0.coalesced }))
 					}
 					else {
 						callback(.failure(NSLocalizedString("No database or table selected", comment: "")))
