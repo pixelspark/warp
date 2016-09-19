@@ -165,16 +165,16 @@ internal enum QBEAnchor {
 	shifted a little to ensure that arrows going to and from an object do not overlap (this only affects non-corner
 	anchors, e.g. only north, south, east and west). */
 	func frameInBounds(_ bounds: CGRect, withInset inset: CGFloat, isDestination: Bool = false) -> CGRect {
-		let destOffset: CGFloat = isDestination ? 10.0 : -10.0
+		let destOffset: CGFloat = isDestination ? 10.0 : 0.0
 		switch self {
-		case .southWest: return CGRect(x: bounds.origin.x + inset/2, y: bounds.origin.y + inset/2, width: inset, height: inset)
-		case .southEast: return CGRect(x: bounds.origin.x + bounds.size.width - 1.5*inset, y: bounds.origin.y + inset/2, width: inset, height: inset)
-		case .northEast: return CGRect(x: bounds.origin.x + bounds.size.width - 1.5*inset, y: bounds.origin.y + bounds.size.height - 1.5*inset, width: inset, height: inset)
-		case .northWest: return CGRect(x: bounds.origin.x + inset/2, y: bounds.origin.y + bounds.size.height - 1.5*inset, width: inset, height: inset)
-		case .north: return CGRect(x: bounds.origin.x + inset/2 + destOffset, y: bounds.origin.y + inset/2, width: bounds.size.width - inset/2.0, height: inset)
-		case .south: return CGRect(x: bounds.origin.x + inset/2 + destOffset, y: bounds.origin.y + bounds.size.height - 1.5*inset, width: bounds.size.width - inset/2.0, height: inset)
-		case .west: return CGRect(x: bounds.origin.x + inset/2, y: bounds.origin.y + inset/2.0 + destOffset, width: inset, height: bounds.size.height - inset/2.0)
-		case .east: return CGRect(x: bounds.origin.x + bounds.size.width - 1.5*inset, y: bounds.origin.y + inset/2.0 + destOffset, width: inset, height: bounds.size.height - inset/2.0)
+		case .southWest: return CGRect(x: bounds.origin.x, y: bounds.origin.y, width: inset * 1.5, height: inset * 1.5)
+		case .southEast: return CGRect(x: bounds.origin.x + bounds.size.width - 1.5*inset, y: bounds.origin.y, width: inset * 1.5, height: inset * 1.5)
+		case .northEast: return CGRect(x: bounds.origin.x + bounds.size.width - 1.5*inset, y: bounds.origin.y + bounds.size.height - 1.5*inset, width: inset * 1.5, height: inset * 1.5)
+		case .northWest: return CGRect(x: bounds.origin.x, y: bounds.origin.y + bounds.size.height - 1.5*inset, width: inset * 1.5, height: inset * 1.5)
+		case .north: return CGRect(x: bounds.origin.x + inset * 1.5 + destOffset, y: bounds.origin.y, width: bounds.size.width - inset * 3.0, height: inset * 1.5)
+		case .south: return CGRect(x: bounds.origin.x + inset * 1.5 + destOffset, y: bounds.origin.y + bounds.size.height - 1.5*inset, width: bounds.size.width - inset * 3.0, height: inset * 1.5)
+		case .west: return CGRect(x: bounds.origin.x, y: bounds.origin.y + inset * 1.5 + destOffset, width: inset * 1.5, height: bounds.size.height - inset * 3.0)
+		case .east: return CGRect(x: bounds.origin.x + bounds.size.width - 1.5*inset, y: bounds.origin.y + inset * 1.5 + destOffset, width: inset * 1.5, height: bounds.size.height - inset * 3.0)
 		case .none: return CGRect.zero
 		}
 	}
