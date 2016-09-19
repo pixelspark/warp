@@ -973,10 +973,10 @@ open class StandardSQLDialect: SQLDialect {
 			/* Most SQL database support the "a LIKE '%b%'" syntax for finding items where column a contains the string b
 			(case-insensitive), so that's what we use for ContainsString and ContainsStringStrict. Because Presto doesn't
 			support CONCAT with multiple parameters, we use two. */
-			case .containsString: return "(LOWER(\(second)) LIKE CONCAT('%', CONCAT(LOWER(\(first)),'%')))"
-			case .containsStringStrict: return "(\(second) LIKE CONCAT('%',CONCAT(\(first),'%')))"
-			case .matchesRegex: return "(\(second) REGEXP \(first))"
-			case .matchesRegexStrict: return "(\(second) REGEXP BINARY \(first))"
+			case .containsString: return "(LOWER(\(self.forceStringExpression(second))) LIKE CONCAT('%', CONCAT(LOWER(\(self.forceStringExpression(first))),'%')))"
+			case .containsStringStrict: return "(\(self.forceStringExpression(second)) LIKE CONCAT('%',CONCAT(\(self.forceStringExpression(first)),'%')))"
+			case .matchesRegex: return "(\(self.forceStringExpression(second)) REGEXP \(self.forceStringExpression(first)))"
+			case .matchesRegexStrict: return "(\(self.forceStringExpression(second)) REGEXP BINARY \(self.forceStringExpression(first)))"
 		}
 	}
 }
