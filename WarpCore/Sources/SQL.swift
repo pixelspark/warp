@@ -905,7 +905,7 @@ open class StandardSQLDialect: SQLDialect {
 		}
 	}
 
-	internal func valueToSQL(_ value: Value) -> String {
+	open func valueToSQL(_ value: Value) -> String {
 		switch value {
 			case .string(let s):
 				return literalString(s)

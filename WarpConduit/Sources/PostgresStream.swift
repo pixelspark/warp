@@ -83,6 +83,13 @@ private class PostgresDialect: StandardSQLDialect {
 		}
 	}
 
+	private override func valueToSQL(_ value: Value) -> String {
+		switch value {
+		case .invalid: return "('nan'::decimal)"
+		default: return super.valueToSQL(value)
+		}
+	}
+
 	private override func forceStringExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS VARCHAR)"
 	}
@@ -404,8 +411,11 @@ internal class PostgresResult: Sequence, IteratorProtocol {
 												rowDataset!.append(Value.invalid)
 											}
 
-										case .float4, .float8:
-											if let dv = stringValue.toDouble() {
+										case .float4, .float8, .numeric:
+											if stringValue == "NaN" {
+												rowDataset?.append(Value.invalid)
+											}
+											else if let dv = stringValue.toDouble() {
 												rowDataset!.append(Value.double(dv))
 											}
 											else {
