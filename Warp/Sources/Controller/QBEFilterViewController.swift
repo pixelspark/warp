@@ -89,7 +89,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 				switch result {
 					case .success(let values):
 						var ordered = OrderedDictionary(dictionaryInAnyOrder: values)
-						ordered.sortKeysInPlace { a,b in return a.stringValue! < b.stringValue! }
+						ordered.sortKeysInPlace { a,b in return a < b }
 						var count = 0
 						ordered.forEach { _, v in
 							count += v
