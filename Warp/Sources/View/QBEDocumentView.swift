@@ -372,6 +372,10 @@ class QBEScrollView: NSScrollView {
 		else {
 			self.magnifyView(nil)
 		}
+
+		if theEvent.phase == .ended {
+			self.window?.invalidateCursorRects(for: self)
+		}
 	}
 }
 

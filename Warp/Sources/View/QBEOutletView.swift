@@ -429,11 +429,14 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 			context.restoreGState()
 		}
 	}
+
+	override func resetCursorRects() {
+		addCursorRect(self.bounds, cursor: NSCursor.openHand())
+	}
 	
 	override func updateTrackingAreas() {
-		resetCursorRects()
-		addCursorRect(self.bounds, cursor: NSCursor.openHand())
 		self.window?.invalidateCursorRects(for: self)
+		super.updateTrackingAreas()
 	}
 	
 	func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
@@ -459,7 +462,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 			dragLineWindow?.close()
 			dragLineWindow = nil
 			setNeedsDisplay(self.bounds)
-			NSCursor.closedHand().pop()
+			NSCursor.pop()
 		}
 
 		let screenRect = CGRect(x: screenPoint.x, y: screenPoint.y, width: 0, height: 0)

@@ -96,7 +96,8 @@ class QBEResizableView: NSView {
 	
 	override func updateTrackingAreas() {
 		self.trackingAreas.forEach { self.removeTrackingArea($0) }
-		addTrackingArea(NSTrackingArea(rect: self.bounds, options: [NSTrackingAreaOptions.mouseEnteredAndExited, NSTrackingAreaOptions.activeInKeyWindow], owner: self, userInfo: nil))
+		addTrackingArea(NSTrackingArea(rect: self.bounds, options: [.mouseEnteredAndExited, .activeInKeyWindow], owner: self, userInfo: nil))
+		super.updateTrackingAreas()
 	}
 	
 	override func resetCursorRects() {
@@ -104,12 +105,10 @@ class QBEResizableView: NSView {
 		findGrabbableViews(self)
 	}
 	
-	private func findGrabbableViews(_ parent: NSView) {
-		let down = (NSEvent.pressedMouseButtons() & (1 << 0)) != 0
-		
+	private func findGrabbableViews(_ parent: NSView) {		
 		parent.subviews.forEach { (subview) -> () in
 			if subview is NSCollectionView {
-				self.addCursorRect(subview.convert(subview.bounds, to: self), cursor: down ? NSCursor.closedHand() : NSCursor.openHand())
+				self.addCursorRect(subview.convert(subview.bounds, to: self), cursor: NSCursor.openHand())
 			}
 			findGrabbableViews(subview)
 		}
@@ -125,10 +124,12 @@ class QBEResizableView: NSView {
 	
 	override func mouseDown(with theEvent: NSEvent) {
 		self.window?.invalidateCursorRects(for: self)
+		self.updateTrackingAreas()
 	}
 	
 	override func mouseUp(with theEvent: NSEvent) {
 		self.window?.invalidateCursorRects(for: self)
+		self.updateTrackingAreas()
 	}
 	
 	override var acceptsFirstResponder: Bool { get { return true } }
@@ -216,12 +217,10 @@ internal class QBEResizerView: NSView {
 			let locationInSuperView = superview!.superview!.convert(theEvent.locationInWindow, from: nil)
 			resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: rs.downAnchor, moved: rs.moved)
 		}
-
-		self.window?.invalidateCursorRects(for: self)
 	}
 	
 	override func resetCursorRects() {
-		self.addCursorRect(self.bounds, cursor: self.isResizing ? NSCursor.closedHand() : NSCursor.openHand())
+		self.addCursorRect(self.bounds.insetBy(dx: inset, dy: inset), cursor: NSCursor.openHand())
 		if canResize {
 			for anchor in visibleAnchors {
 				let frame = anchor.frameInBounds(self.bounds, withInset: inset)
@@ -303,7 +302,8 @@ internal class QBEResizerView: NSView {
 			
 			resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: realAnchor, moved: false)
 			setNeedsDisplay(self.bounds)
-			self.window?.invalidateCursorRects(for: self)
+			self.window?.disableCursorRects()
+			NSCursor.closedHand().set()
 		}
 	}
 	
@@ -361,7 +361,9 @@ internal class QBEResizerView: NSView {
 		}
 		
 		resizingSession = nil
-		self.window?.invalidateCursorRects(for: self)
+		self.window?.enableCursorRects()
+		self.window?.resetCursorRects()
+		//self.window?.invalidateCursorRects(for: self)
 		setNeedsDisplay(self.bounds)
 	}
 }
