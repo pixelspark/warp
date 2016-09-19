@@ -89,7 +89,8 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 				switch result {
 					case .success(let values):
 						var ordered = OrderedDictionary(dictionaryInAnyOrder: values)
-						ordered.sortKeysInPlace { a,b in return a < b }
+						let locale = QBEAppDelegate.sharedInstance.locale ?? Language()
+						ordered.sortKeysInPlace { a,b in return locale.localStringFor(a)  < locale.localStringFor(b) }
 						var count = 0
 						ordered.forEach { _, v in
 							count += v
@@ -153,7 +154,8 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 
 				case "occurrence":
 					if self.valueCount > 0 {
-						return max(1.0, (Double(values[row].1) / Double(self.valueCount)) * 50.0)
+						let averageValueCount = Double(self.valueCount) / Double(self.values.count)
+						return max(1.0, (Double(values[row].1) / averageValueCount) * 25.0)
 					}
 					return 0.0
 				
