@@ -937,51 +937,50 @@ open class StandardSQLDialect: SQLDialect {
 	
 	open func binaryToSQL(_ type: Binary, first: String, second: String) -> String? {
 		switch type {
-			case .addition:		return "(\(second)+\(first))"
-			case .subtraction:	return "(\(second)-\(first))"
-			case .multiplication: return "(\(second)*\(first))"
-			case .division:		return "(\(second)/\(first))"
-			case .modulus:		return "MOD(\(second), \(first))"
-			case .concatenation: return "CONCAT(\(second),\(first))"
-			case .power:		return "POW(\(second), \(first))"
+		// Force arguments of numeric comparison operators to numerics, to prevent 'string ordering' comparisons
+		// Note that this may impact performance as indexes cannot be used anymore after casting?
+		// TODO: only force to numeric when expression is not already numeric (e.g. a double literal).
+		case .addition: return "(\(forceNumericExpression(second)) + \(forceNumericExpression(first)))"
+		case .subtraction: return "(\(forceNumericExpression(second)) - \(forceNumericExpression(first)))"
+		case .multiplication: return "(\(forceNumericExpression(second)) * \(forceNumericExpression(first)))"
+		case .division: return "(\(forceNumericExpression(second)) / \(forceNumericExpression(first)))"
+		case .modulus:		return "MOD(\(forceNumericExpression(second)), \(forceNumericExpression(first)))"
+		case .concatenation: return "CONCAT(\(forceStringExpression(second)), \(forceStringExpression(first)))"
+		case .power:		return "POW(\(forceNumericExpression(second)), \(forceNumericExpression(first)))"
+		case .greater:		return "(\(self.forceNumericExpression(second)) > \(self.forceNumericExpression(first)))"
+		case .lesser:		return "(\(self.forceNumericExpression(second)) < \(self.forceNumericExpression(first)))"
+		case .greaterEqual:	return "(\(self.forceNumericExpression(second)) >= \(self.forceNumericExpression(first)))"
+		case .lesserEqual:	return "(\(self.forceNumericExpression(second)) <= \(self.forceNumericExpression(first)))"
 
-			// Force arguments of numeric comparison operators to numerics, to prevent 'string ordering' comparisons
-			// Note that this may impact performance as indexes cannot be used anymore after casting?
-			// TODO: only force to numeric when expression is not already numeric (e.g. a double literal).
-			case .greater:		return "(\(self.forceNumericExpression(second))>\(self.forceNumericExpression(first)))"
-			case .lesser:		return "(\(self.forceNumericExpression(second))<\(self.forceNumericExpression(first)))"
-			case .greaterEqual:	return "(\(self.forceNumericExpression(second))>=\(self.forceNumericExpression(first)))"
-			case .lesserEqual:	return "(\(self.forceNumericExpression(second))<=\(self.forceNumericExpression(first)))"
+		case .notEqual:
+			if second == "NULL" {
+				return "(\(first) IS NOT NULL)"
+			}
+			else if first == "NULL" {
+				return "(\(second) IS NOT NULL)"
+			}
+			else {
+				return "(\(second) <> \(first))"
+			}
 
-			case .notEqual:
-				if second == "NULL" {
-					return "(\(first) IS NOT NULL)"
-				}
-				else if first == "NULL" {
-					return "(\(second) IS NOT NULL)"
-				}
-				else {
-					return "(\(second)<>\(first))"
-				}
+		case .equal:
+			if second == "NULL" {
+				return "(\(first) IS NULL)"
+			}
+			else if first == "NULL" {
+				return "(\(second) IS NULL)"
+			}
+			else {
+				return "(\(second) = \(first))"
+			}
 
-			case .equal:
-				if second == "NULL" {
-					return "(\(first) IS NULL)"
-				}
-				else if first == "NULL" {
-					return "(\(second) IS NULL)"
-				}
-				else {
-					return "(\(second)=\(first))"
-				}
-			
 			/* Most SQL database support the "a LIKE '%b%'" syntax for finding items where column a contains the string b
 			(case-insensitive), so that's what we use for ContainsString and ContainsStringStrict. Because Presto doesn't
 			support CONCAT with multiple parameters, we use two. */
-			case .containsString: return "(LOWER(\(self.forceStringExpression(second))) LIKE CONCAT('%', CONCAT(LOWER(\(self.forceStringExpression(first))),'%')))"
-			case .containsStringStrict: return "(\(self.forceStringExpression(second)) LIKE CONCAT('%',CONCAT(\(self.forceStringExpression(first)),'%')))"
-			case .matchesRegex: return "(\(self.forceStringExpression(second)) REGEXP \(self.forceStringExpression(first)))"
-			case .matchesRegexStrict: return "(\(self.forceStringExpression(second)) REGEXP BINARY \(self.forceStringExpression(first)))"
+		case .containsString: return "(LOWER(\(self.forceStringExpression(second))) LIKE CONCAT('%', CONCAT(LOWER(\(self.forceStringExpression(first))),'%')))"
+		case .containsStringStrict: return "(\(self.forceStringExpression(second)) LIKE CONCAT('%',CONCAT(\(self.forceStringExpression(first)),'%')))"
+		case .matchesRegex: return "(\(self.forceStringExpression(second)) REGEXP \(self.forceStringExpression(first)))"
+		case .matchesRegexStrict: return "(\(self.forceStringExpression(second)) REGEXP BINARY \(self.forceStringExpression(first)))"
 		}
 	}
 }
