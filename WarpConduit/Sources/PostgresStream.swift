@@ -30,11 +30,21 @@ private class PostgresDialect: StandardSQLDialect {
 	private override func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		switch type {
 		case .Random: return "RANDOM()"
-		case .Left: return "SUBSTR(\(args[0]), 1, (\(args[1]))::integer)"
-		case .Right: return "RIGHT(\(args[0]), LENGTH(\(args[0]))-(\(args[1]))::integer)"
-		case .Mid: return "SUBSTR(\(args[0]), (\(args[1]))::integer, (\(args[2]))::integer)"
+
+		/* Postgres does not perform implicit casting of function arguments, but we generally accept this. Therefore the
+		cases below add explicit casts to certain calls. */
+		case .Left: return "SUBSTR((\(args[0]))::string, 1, (\(args[1]))::integer)"
+		case .Right: return "RIGHT((\(args[0]))::string, LENGTH((\(args[0]))::string)-(\(args[1]))::integer)"
+		case .Mid: return "SUBSTR((\(args[0]))::string, (\(args[1]))::integer, (\(args[2]))::integer)"
 		case .Nth: return "\(args[0])->(\(args[1])::integer)"
 		case .ValueForKey: return "\(args[0])->(\(args[1])::text)"
+
+		case .Lowercase, .Uppercase, .Length, .Trim:
+			// These functions expect their argument to be a string
+			return super.unaryToSQL(type, args: ["(\(args[0]))::text"])
+
+		case .Substitute:
+			return super.unaryToSQL(type, args: ["(\(args[0]))::text", "(\(args[1]))::text", "(\(args[2]))::text"])
 
 		default:
 			return super.unaryToSQL(type, args: args)

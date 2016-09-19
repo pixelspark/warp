@@ -662,6 +662,11 @@ open class StandardSQLDialect: SQLDialect {
 			return nil
 		}
 		else if let f = formula as? Call {
+			// Do we have the required arguments?
+			if !f.type.arity.valid(f.arguments.count) {
+				return nil
+			}
+
 			var anyNils = false
 			let argValues = f.arguments.map({(e: Expression) -> (String) in
 				let r = self.expressionToSQL(e, alias: alias, foreignAlias: foreignAlias, inputValue: inputValue)
