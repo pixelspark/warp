@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="16A322" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="16A323" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11201"/>
@@ -1805,7 +1805,7 @@ CA
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="JIm-dh-FPE"/>
-                                <toolbarItem reference="g2T-uw-sdG"/>
+                                <toolbarItem reference="UB3-EK-cBx"/>
                                 <toolbarItem reference="IjL-nI-Ixx"/>
                                 <toolbarItem reference="dSb-OG-sLN"/>
                                 <toolbarItem reference="jdM-jE-qua"/>
@@ -1907,7 +1907,8 @@ CA
                                             <constraint firstItem="JGk-n3-nvK" firstAttribute="leading" secondItem="20V-eU-jYi" secondAttribute="leading" constant="4" id="qYv-ch-zwG"/>
                                         </constraints>
                                         <userDefinedRuntimeAttributes>
-                                            <userDefinedRuntimeAttribute type="boolean" keyPath="bottomBorder" value="YES"/>
+                                            <userDefinedRuntimeAttribute type="boolean" keyPath="bottomBorder" value="NO"/>
+                                            <userDefinedRuntimeAttribute type="boolean" keyPath="drawBackground" value="NO"/>
                                         </userDefinedRuntimeAttributes>
                                     </customView>
                                 </subviews>
@@ -4023,15 +4024,15 @@ DQ
         <scene sceneID="Pcn-Xl-fFm">
             <objects>
                 <viewController storyboardIdentifier="sentenceController" id="dZx-NB-Ues" customClass="QBESentenceViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" wantsLayer="YES" canDrawConcurrently="YES" verticalCompressionResistancePriority="1000" id="OmE-kA-pRl">
+                    <view key="view" wantsLayer="YES" canDrawConcurrently="YES" verticalCompressionResistancePriority="1000" misplaced="YES" id="OmE-kA-pRl">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="26"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <customView wantsLayer="YES" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="pPD-4A-hSS" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="2" width="402" height="22"/>
+                                <rect key="frame" x="0.0" y="2" width="413" height="26"/>
                                 <subviews>
                                     <tokenField wantsLayer="YES" focusRingType="none" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" preferredMaxLayoutWidth="399" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi" customClass="QBESentenceTokenField" customModule="Warp" customModuleProvider="target">
-                                        <rect key="frame" x="1" y="5" width="403" height="17"/>
+                                        <rect key="frame" x="1" y="9" width="414" height="17"/>
                                         <constraints>
                                             <constraint firstAttribute="height" relation="lessThanOrEqual" constant="100" id="dZk-vQ-8SK"/>
                                         </constraints>
@@ -4066,13 +4067,13 @@ DQ
                                 </userDefinedRuntimeAttributes>
                             </customView>
                             <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CCw-Hx-VEJ">
-                                <rect key="frame" x="401" y="-4" width="55" height="32"/>
+                                <rect key="frame" x="418" y="0.0" width="32" height="28"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="43" id="pY0-sW-1qB"/>
+                                    <constraint firstAttribute="width" constant="32" id="pY0-sW-1qB"/>
                                 </constraints>
-                                <buttonCell key="cell" type="push" bezelStyle="rounded" image="NSActionTemplate" imagePosition="only" alignment="center" enabled="NO" refusesFirstResponder="YES" borderStyle="border" inset="2" id="fv9-yb-Lps">
+                                <buttonCell key="cell" type="bevel" bezelStyle="rounded" image="NSActionTemplate" imagePosition="only" alignment="center" controlSize="small" enabled="NO" refusesFirstResponder="YES" inset="2" id="fv9-yb-Lps">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
+                                    <font key="font" metaFont="smallSystem"/>
                                 </buttonCell>
                                 <connections>
                                     <action selector="configure:" target="dZx-NB-Ues" id="u3d-g9-7ru"/>

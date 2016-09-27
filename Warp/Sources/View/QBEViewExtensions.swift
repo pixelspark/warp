@@ -63,6 +63,7 @@ internal extension NSAlert {
 }
 
 @IBDesignable class QBEBorderedView: NSView {
+	@IBInspectable var drawBackground: Bool = true
 	@IBInspectable var leftBorder: Bool = false
 	@IBInspectable var topBorder: Bool = false
 	@IBInspectable var rightBorder: Bool = false
@@ -74,11 +75,13 @@ internal extension NSAlert {
 	@IBInspectable var gradientEndColor: NSColor = NSColor.controlBackgroundColor.withAlphaComponent(0.6) { didSet { self.setNeedsDisplay(self.bounds) } }
 	
 	override func draw(_ dirtyRect: NSRect) {
-		backgroundColor.set()
-		NSRectFill(dirtyRect)
+		if drawBackground {
+			backgroundColor.set()
+			NSRectFill(dirtyRect)
 
-		let g = NSGradient(starting: gradientStartColor, ending: gradientEndColor)
-		g?.draw(in: self.bounds, angle: 270.0)
+			let g = NSGradient(starting: gradientStartColor, ending: gradientEndColor)
+			g?.draw(in: self.bounds, angle: 270.0)
+		}
 
 		borderColor.set()
 		
