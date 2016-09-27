@@ -1256,16 +1256,8 @@ open class SQLDataset: NSObject, Dataset {
 			switch join.type {
 			case .leftJoin, .innerJoin:
 				// We need to 'unpack' coalesced data to get to the actual data
-				var rightDataset = join.foreignDataset
-				while rightDataset is ProxyDataset || rightDataset is CoalescedDataset {
-					if let rd = rightDataset as? CoalescedDataset {
-						rightDataset = rd.data
-					}
-					else if let rd = rightDataset as? ProxyDataset {
-						rightDataset = rd.data
-					}
-				}
-				
+				let rightDataset = join.foreignDataset.underlyingDataset
+								
 				// Check if the other data set is a compatible SQL data set
 				if let rightSQL = rightDataset as? SQLDataset, isCompatibleWith(rightSQL) {
 					// Get SQL from right dataset

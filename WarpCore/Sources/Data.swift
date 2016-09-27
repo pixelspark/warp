@@ -426,6 +426,13 @@ public protocol Dataset {
 	columns from both data sets (no duplicates). Rows have empty values inserted for values of columns not present in
 	the source data set. */
 	func union(_ data: Dataset) -> Dataset
+
+	/** For certain optimizations it is required to determine whether another dataset is of the same type as another. As
+	datasets can be wrapped by objects that perform optimizations (e.g. operation coalescing, caching) this is made
+	difficult. The `underlyingData` variable returns the purest form of the underlying dataset. The behavior of the
+	underlying dataset is required to be equivalent to self. If the data set is not wrapped, this variable is equal to
+	`self`. */
+	var underlyingDataset: Dataset { get }
 }
 
 public extension Dataset {
@@ -435,6 +442,10 @@ public extension Dataset {
 			assert(streamStatus == .finished, "Data.raster implementation should never return statuses other than .finished when not in incremental mode")
 			callback(result)
 		})
+	}
+
+	var underlyingDataset: Dataset {
+		return self
 	}
 }
 
@@ -465,6 +476,10 @@ open class ProxyDataset: NSObject, Dataset {
 	open func sort(_ by: [Order]) -> Dataset { return data.sort(by) }
 	open func join(_ join: Join) -> Dataset { return data.join(join) }
 	open func union(_ data: Dataset) -> Dataset { return data.union(data) }
+
+	public var underlyingDataset: Dataset {
+		return self.data.underlyingDataset
+	}
 }
 
 public extension Dataset {
@@ -496,6 +511,10 @@ enum CoalescedDataset: Dataset {
 	
 	init(_ data: Dataset) {
 		self = CoalescedDataset.none(data)
+	}
+
+	var underlyingDataset: Dataset {
+		return self.data.underlyingDataset
 	}
 	
 	/** Applies the deferred operation represented by this coalesced data object and returns the result. */
