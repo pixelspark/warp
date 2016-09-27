@@ -100,9 +100,9 @@ class QBEColumnViewController: NSViewController {
 										standardDeviation: row["s"].doubleValue,
 										minimumValue: row["mn"],
 										maximumValue: row["mx"],
-										count: row["c"].intValue!,
-										countUnique: row["cd"].intValue!,
-										countEmpty: row["mt"].intValue!
+										count: row["c"].intValue ?? 0,
+										countUnique: row["cd"].intValue ?? 0,
+										countEmpty: row["mt"].intValue ?? 0
 									)
 								}
 								else {
