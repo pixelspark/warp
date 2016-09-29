@@ -99,6 +99,7 @@ class QBERowsStep: NSObject {
 
 class QBEFilterStep: QBEStep {
 	var condition: Expression
+	let mutex = Mutex()
 
 	required init() {
 		condition = Literal(Value.bool(true))
@@ -113,7 +114,9 @@ class QBEFilterStep: QBEStep {
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
 		return QBESentence(format: "Select rows where [#]".localized,
 			QBESentenceFormulaToken(expression: condition, locale: locale, callback: {[weak self] (expr) in
-				self?.condition = expr
+				self?.mutex.locked {
+					self?.condition = expr
+				}
 			})
 		)
 	}
@@ -149,6 +152,7 @@ class QBEFilterStep: QBEStep {
 	}
 	
 	override func apply(_ data: Dataset, job: Job?, callback: @escaping (Fallible<Dataset>) -> ()) {
+		let condition = self.mutex.locked { return self.condition }
 		callback(.success(data.filter(condition)))
 	}
 
