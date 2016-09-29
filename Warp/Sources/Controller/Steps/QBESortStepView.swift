@@ -108,14 +108,14 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 			}
 			else if identifier == "ascending" {
 				let oldValue = order.ascending
-				order.ascending = (object as AnyObject).boolValue
+				order.ascending = (object as? Bool) ?? false
 				if oldValue != order.ascending {
 					self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 				}
 			}
 			else if identifier == "numeric" {
 				let oldValue = order.numeric
-				order.numeric = (object as AnyObject).boolValue
+				order.numeric = (object as? Bool) ?? false
 				if oldValue != order.numeric {
 					self.delegate?.configurableView(self, didChangeConfigurationFor: step)
 				}
