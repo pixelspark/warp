@@ -175,7 +175,7 @@ enum QBEExplodeVerticalMode {
 
 	var separator: String? {
 		switch self {
-		case .pack: return Pack.separator
+		case .pack: return nil
 		case .separator(let sep): return sep
 		case .macNewLine: return "\r"
 		case .unixNewLine: return "\n"
