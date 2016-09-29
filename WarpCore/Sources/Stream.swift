@@ -42,11 +42,10 @@ public protocol Stream {
 	/** The column names associated with the rows produced by this stream. */
 	func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ())
 	
-	/** 
-	Request the next batch of rows from the stream; when it is available, asynchronously call (on the main queue) the
-	specified callback. If the callback is to perform computations, it should queue this work to another queue. If the 
-	stream is empty (e.g. hasNext was false when fetch was last called), fetch calls your callback with hasNext set to
-	false once again. 
+	/** Request the next batch of rows from the stream; when it is available, asynchronously call (on the main queue) 
+	the specified callback. If the callback is to perform computations, it should queue this work to another queue. If 
+	the stream is empty (e.g. hasNext was false when fetch was last called), fetch calls your callback with hasNext set 
+	to false once again. Preferably, fetch does not block when called.
 	
 	Should the stream encounter an error, the callback is called with a failed data set and hasNext set to false. 
 	Consumers should stop fetch()ing when either the data set is failed or hasNext is false.
@@ -86,43 +85,49 @@ open class StreamPuller {
 		self.concurrentWavefronts = ProcessInfo.processInfo.processorCount
 	}
 
+	private func startWavefront() {
+		/* The fetch() must happen inside the mutex lock, because we do not want another fetch to come in between
+		(wavefront ID must match the order in which fetch is called) */
+		self.mutex.locked {
+			self.lastStartedWavefront += 1
+			self.outstandingWavefronts += 1
+			let waveFrontId = self.lastStartedWavefront
+
+			self.stream.fetch(self.job, consumer: { (rows, streamStatus) in
+				self.mutex.locked {
+					/** Some fetches may return earlier than others, but we need to reassemble them in the
+					correct order. Therefore we keep track of a 'wavefront ID'. If the last wavefront that was
+					'sinked' was this wavefront's id minus one, we can sink this one directly. Otherwise we need
+					to put it in a queue for later sinking. */
+					if self.lastSinkedWavefront == waveFrontId-1 {
+						/* This result arrives just in time (all predecessors have been received already). Sink
+						it directly. */
+						self.lastSinkedWavefront = waveFrontId
+						self.sink(rows, hasNext: streamStatus == .hasMore)
+
+						// Maybe now we can sink other results we already received, but were too early.
+						while let earlierRows = self.earlyResults[self.lastSinkedWavefront+1] {
+							self.earlyResults.removeValue(forKey: self.lastSinkedWavefront+1)
+							self.lastSinkedWavefront += 1
+							self.sink(earlierRows, hasNext: streamStatus == .hasMore)
+						}
+					}
+					else {
+						/* This result has arrived too early; store it so we can sink it as soon as all
+						predecessors have arrived */
+						self.earlyResults[waveFrontId] = rows
+					}
+				}
+			})
+		}
+	}
+
 	/** Start up to self.concurrentFetches number of fetch 'wavefronts' that will deliver their data to the
 	'sink' funtion. */
 	public func start() {
 		mutex.locked {
 			while self.outstandingWavefronts < self.concurrentWavefronts {
-				self.lastStartedWavefront += 1
-				self.outstandingWavefronts += 1
-				let waveFrontId = self.lastStartedWavefront
-
-				self.job.async {
-					self.stream.fetch(self.job, consumer: { (rows, streamStatus) in
-						self.mutex.locked {
-							/** Some fetches may return earlier than others, but we need to reassemble them in the 
-							correct order. Therefore we keep track of a 'wavefront ID'. If the last wavefront that was 
-							'sinked' was this wavefront's id minus one, we can sink this one directly. Otherwise we need 
-							to put it in a queue for later sinking. */
-							if self.lastSinkedWavefront == waveFrontId-1 {
-								/* This result arrives just in time (all predecessors have been received already). Sink 
-								it directly. */
-								self.lastSinkedWavefront = waveFrontId
-								self.sink(rows, hasNext: streamStatus == .hasMore)
-
-								// Maybe now we can sink other results we already received, but were too early.
-								while let earlierRows = self.earlyResults[self.lastSinkedWavefront+1] {
-									self.earlyResults.removeValue(forKey: self.lastSinkedWavefront+1)
-									self.lastSinkedWavefront += 1
-									self.sink(earlierRows, hasNext: streamStatus == .hasMore)
-								}
-							}
-							else {
-								/* This result has arrived too early; store it so we can sink it as soon as all 
-								predecessors have arrived */
-								self.earlyResults[waveFrontId] = rows
-							}
-						}
-					})
-				}
+				self.startWavefront()
 			}
 		}
 	}
