@@ -68,7 +68,7 @@ import WarpCore
 	
 	func tabletView(_ view: QBETabletViewController, didSelectConfigurable configurable: QBEConfigurable?, configureNow: Bool, delegate: QBESentenceViewDelegate?) {
 		if self.documentView.selectedTablet != view.tablet {
-			documentView.selectTablet(view.tablet, notifyDelegate: false)
+			documentView.selectTablet(view.tablet, notifyDelegate: true)
 		}
 		view.view.superview?.orderFront()
 

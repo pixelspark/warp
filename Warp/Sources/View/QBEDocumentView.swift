@@ -74,22 +74,21 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	}
 	
 	private func selectView(_ view: QBEResizableTabletView?, notifyDelegate: Bool = true) {
-		// Deselect other views
+		// Update 'selected' state on tablet views
 		for sv in subviews {
 			if let tv = sv as? QBEResizableTabletView {
 				tv.selected = (tv == view)
-				if tv == view {
-					self.window?.makeFirstResponder(tv.tabletController.view)
-
-					if notifyDelegate {
-						delegate?.documentView(self, didSelectTablet: tv.tabletController.tablet)
-					}
-					self.window?.update()
-				}
 			}
 		}
-		
-		if view == nil {
+
+		if let tv = view {
+			if notifyDelegate {
+				delegate?.documentView(self, didSelectTablet: tv.tabletController.tablet)
+			}
+			self.window?.makeFirstResponder(tv.tabletController.view)
+			self.window?.update()
+		}
+		else {
 			if notifyDelegate {
 				delegate?.documentView(self, didSelectTablet: nil)
 			}
