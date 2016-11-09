@@ -84,35 +84,43 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 			reloadJob = job
 			reloadJob?.addObserver(self)
 			self.updateProgress()
+			let locale = QBEAppDelegate.sharedInstance.locale ?? Language()
 
-			filteredDataset.histogram(Sibling(c), job: job) { result in
+			filteredDataset.histogram(Sibling(c), job: job) { [weak self] result in
 				switch result {
 					case .success(let values):
 						var ordered = OrderedDictionary(dictionaryInAnyOrder: values)
-						let locale = QBEAppDelegate.sharedInstance.locale ?? Language()
+
 						ordered.sortKeysInPlace { a,b in return locale.localStringFor(a)  < locale.localStringFor(b) }
 						var count = 0
 						ordered.forEach { _, v in
 							count += v
 						}
 
-						asyncMain { [weak self] in
+						asyncMain {
+							let s: QBEFilterViewController? = self
 							if !job.isCancelled {
-								self?.values = ordered
-								self?.reloadJob = nil
-								self?.valueCount = count
-								self?.updateProgress()
-								self?.valueList?.reloadData()
+								s?.values = ordered
+								s?.valueCount = count
 							}
 						}
-					
+
 					case .failure(let e):
 						trace("Error fetching unique values: \(e)")
+				}
+
+				asyncMain {
+					let s: QBEFilterViewController? = self
+					if !job.isCancelled {
+						s?.reloadJob = nil
+						s?.updateProgress()
+						s?.valueList?.reloadData()
+					}
 				}
 			}
 		}
 	}
-	
+
 	func numberOfRows(in tableView: NSTableView) -> Int {
 		return values.count
 	}
