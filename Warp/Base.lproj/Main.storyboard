@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="16A323" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="16B2555" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11201"/>
@@ -1618,10 +1618,10 @@ CA
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="C0BBED5C-8A5D-46E9-89F2-27F44E59EA83" label="Zoom" paletteLabel="Zoom" id="JIm-dh-FPE" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
-                                    <size key="minSize" width="72" height="25"/>
-                                    <size key="maxSize" width="72" height="25"/>
+                                    <size key="minSize" width="67" height="20"/>
+                                    <size key="maxSize" width="75" height="28"/>
                                     <segmentedControl key="view" verticalHuggingPriority="750" id="vzD-dy-P39">
-                                        <rect key="frame" x="0.0" y="14" width="72" height="25"/>
+                                        <rect key="frame" x="0.0" y="14" width="67" height="28"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                         <segmentedCell key="cell" borderStyle="border" alignment="left" style="texturedSquare" trackingMode="momentary" id="3cA-X5-HMI">
                                             <font key="font" metaFont="system"/>
@@ -4235,8 +4235,8 @@ DQ
         <image name="TipIcon" width="64" height="64"/>
         <image name="TrashIcon" width="102" height="102"/>
         <image name="TrashToolIcon" width="64" height="36"/>
-        <image name="ZoomInIcon" width="102" height="102"/>
-        <image name="ZoomOutIcon" width="102" height="102"/>
+        <image name="ZoomInIcon" width="256" height="256"/>
+        <image name="ZoomOutIcon" width="256" height="256"/>
         <image name="sort-asc" width="8" height="9"/>
     </resources>
     <inferredMetricsTieBreakers>
