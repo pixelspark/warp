@@ -28,7 +28,7 @@ private final class QBEMySQLDialect: StandardSQLDialect {
 		return super.unaryToSQL(type, args: args)
 	}
 	
-	private override func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
+	fileprivate override func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
 		// For Function.Count, we should count numeric values only. In MySQL this can be done using REGEXP
 		if aggregation.reduce == Function.Count {
 			if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
@@ -40,11 +40,11 @@ private final class QBEMySQLDialect: StandardSQLDialect {
 		return super.aggregationToSQL(aggregation, alias: alias)
 	}
 	
-	private override func forceStringExpression(_ expression: String) -> String {
+	fileprivate override func forceStringExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS BINARY)"
 	}
 	
-	private override func forceNumericExpression(_ expression: String) -> String {
+	fileprivate override func forceNumericExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS DECIMAL)"
 	}
 }

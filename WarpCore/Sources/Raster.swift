@@ -1090,7 +1090,7 @@ private class RasterInsertPuller: StreamPuller {
 		super.init(stream: source, job: job)
 	}
 
-	private override func onReceiveRows(_ rows: [Tuple], callback: @escaping (Fallible<Void>) -> ()) {
+	fileprivate override func onReceiveRows(_ rows: [Tuple], callback: @escaping (Fallible<Void>) -> ()) {
 		let newRows = rows.map { row in
 			return self.fastMapping.map { v in return v == nil ? Value.empty : row[v!] }
 		}

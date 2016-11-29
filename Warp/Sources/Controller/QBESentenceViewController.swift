@@ -493,7 +493,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				tokens = tl
 			}
 			else {
-				tokens = [self.tokenField.objectValue]
+				tokens = [self.tokenField.objectValue as Any]
 			}
 
 			for k in tokens {

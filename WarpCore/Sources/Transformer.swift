@@ -280,15 +280,15 @@ private class FlattenTransformer: Transformer {
 		}
 	}
 
-	private override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
+	fileprivate override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(columns))
 	}
 
-	private override func clone() -> Stream {
+	fileprivate override func clone() -> Stream {
 		return FlattenTransformer(source: source.clone(), valueTo: valueTo, columnNameTo: columnNameTo, rowIdentifier: rowIdentifier, to: rowIdentifierTo)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
+	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		prepare(job) {
 			switch self.originalColumns! {
 			case .success(let originalColumns):
@@ -331,7 +331,7 @@ private class FilterTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
+	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		source.columns(job) { (columns) -> () in
 			switch columns {
 			case .success(let cns):
@@ -349,7 +349,7 @@ private class FilterTransformer: Transformer {
 		}
 	}
 
-	private override func clone() -> Stream {
+	fileprivate override func clone() -> Stream {
 		return FilterTransformer(source: source.clone(), condition: condition)
 	}
 }
@@ -364,7 +364,7 @@ private class RandomTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
+	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.mutex.locked {
 			job.time("Reservoir fill", items: rows.count, itemType: "rows") {
 				self.reservoir.add(rows)
@@ -374,13 +374,13 @@ private class RandomTransformer: Transformer {
 		}
 	}
 
-	private override func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: @escaping Sink) {
+	fileprivate override func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: @escaping Sink) {
 		self.mutex.locked {
 			callback(.success(Array(self.reservoir.sample)), .finished)
 		}
 	}
 
-	private override func clone() -> Stream {
+	fileprivate override func clone() -> Stream {
 		return RandomTransformer(source: source.clone(), numberOfRows: reservoir.sampleSize)
 	}
 }
@@ -395,7 +395,7 @@ private class OffsetTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
+	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.mutex.locked {
 			if self.position > self.offset {
 				self.position += rows.count
@@ -421,7 +421,7 @@ private class OffsetTransformer: Transformer {
 		}
 	}
 
-	private override func clone() -> Stream {
+	fileprivate override func clone() -> Stream {
 		return OffsetTransformer(source: source.clone(), numberOfRows: offset)
 	}
 }
@@ -437,7 +437,7 @@ private class LimitTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
+	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.mutex.locked {
 			// We haven't reached the limit yet, not even after streaming this chunk
 			if (self.position + rows.count) < self.limit {
@@ -467,7 +467,7 @@ private class LimitTransformer: Transformer {
 		}
 	}
 
-	private override func clone() -> Stream {
+	fileprivate override func clone() -> Stream {
 		return LimitTransformer(source: source.clone(), numberOfRows: limit)
 	}
 }
@@ -481,7 +481,7 @@ private class ColumnsTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	override private func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
+	override fileprivate func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		source.columns(job) { (sourceColumns) -> () in
 			switch sourceColumns {
 			case .success(let cns):
@@ -502,7 +502,7 @@ private class ColumnsTransformer: Transformer {
 		}
 	}
 
-	override private func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
+	override fileprivate func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		ensureIndexes(job) {
 			assert(self.indexes != nil)
 
@@ -552,7 +552,7 @@ private class ColumnsTransformer: Transformer {
 		}
 	}
 
-	private override func clone() -> Stream {
+	fileprivate override func clone() -> Stream {
 		return ColumnsTransformer(source: source.clone(), selectColumns: columns)
 	}
 }
@@ -610,13 +610,13 @@ private class CalculateTransformer: Transformer {
 		})
 	}
 
-	private override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
+	fileprivate override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		self.ensureIndexes.get(job) {
 			callback(self.columns!)
 		}
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
+	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.ensureIndexes.get(job) {
 			job.time("Stream calculate", items: rows.count, itemType: "row") {
 				switch self.columns! {
@@ -651,7 +651,7 @@ private class CalculateTransformer: Transformer {
 		}
 	}
 
-	private override func clone() -> Stream {
+	fileprivate override func clone() -> Stream {
 		return CalculateTransformer(source: source.clone(), calculations: calculations)
 	}
 }
@@ -677,7 +677,7 @@ private class JoinTransformer: Transformer {
 		super.init(source: source)
 	}
 
-	private override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
+	fileprivate override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		if let c = self.columnNamesCached {
 			callback(c)
 		}
@@ -715,11 +715,11 @@ private class JoinTransformer: Transformer {
 		}
 	}
 
-	private override func clone() -> Stream {
+	fileprivate override func clone() -> Stream {
 		return JoinTransformer(source: self.source.clone(), join: self.join)
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
+	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		self.leftColumnNames.get(job) { (leftColumnNamesFallible) in
 			switch leftColumnNamesFallible {
 			case .success(let leftColumnNames):
@@ -822,7 +822,7 @@ private class AggregateTransformer: Transformer {
 		self.init(source: source, groups: OrderedDictionary(dictionaryInAnyOrder: groups), values: OrderedDictionary(dictionaryInAnyOrder: values))
 	}
 
-	private override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
+	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
 		let reducerTemplate = self.values.mapDictionary { (c,a) in return (c, a.reduce.reducer!) }
 		self.sourceColumnNames.get(job) { sourceColumnsFallible in
 			switch sourceColumnsFallible {
@@ -868,7 +868,7 @@ private class AggregateTransformer: Transformer {
 		}
 	}
 
-	private override func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: @escaping Sink) {
+	fileprivate override func finish(_ lastRows: Fallible<[Tuple]>, job: Job, callback: @escaping Sink) {
 		// This was the last batch of inputs, call back with our sample and tell the consumer there is no more
 		job.async {
 			var rows: [Tuple] = []
@@ -885,11 +885,11 @@ private class AggregateTransformer: Transformer {
 		}
 	}
 
-	private override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
+	fileprivate override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
 		callback(.success(OrderedSet(self.groups.keys).union(with: OrderedSet(self.values.keys))))
 	}
 
-	private override func clone() -> Stream {
+	fileprivate override func clone() -> Stream {
 		return AggregateTransformer(source: source.clone(), groups: groups, values: values)
 	}
 }

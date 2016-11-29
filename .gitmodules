@@ -17,7 +17,7 @@
 [submodule "Warp/Libraries/Charts"]
 	path = Warp/Libraries/Charts
 	url = https://github.com/pixelspark/ios-charts
-	branch = Swift-3.0-OSX
+	branch = master
 [submodule "WarpConduit/Libraries/Rethink"]
 	path = WarpConduit/Libraries/Rethink
 	url = https://github.com/pixelspark/rethink-swift

@@ -24,6 +24,8 @@
 		6537E1FF1D89E88300CD80EC /* SCRAM.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6537E1FE1D89E88300CD80EC /* SCRAM.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65436EDD1B30C38000636299 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; };
 		65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
+		654AA5A51DEE367A0030C7C9 /* Charts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 654AA59E1DEE365D0030C7C9 /* Charts.framework */; };
+		654AA5A61DEE36850030C7C9 /* Charts.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 654AA59E1DEE365D0030C7C9 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		656258D91C94AE100063253C /* QBEKeySelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */; };
 		656822561D78D60E00410BA5 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 656822551D78D60E00410BA5 /* libiconv.tbd */; };
 		65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -109,8 +111,6 @@
 		65B3CC611CA3D055003FC6DF /* QBESetEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC601CA3D055003FC6DF /* QBESetEditorViewController.swift */; };
 		65B3CC631CA96408003FC6DF /* QBEMapTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC621CA96408003FC6DF /* QBEMapTabletViewController.swift */; };
 		65B3CC661CA9642F003FC6DF /* QBEMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC651CA9642F003FC6DF /* QBEMap.swift */; };
-		65B3F6A31C73CFC0000983D0 /* Charts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65B3F69B1C73CF93000983D0 /* Charts.framework */; };
-		65B3F6A41C73CFC0000983D0 /* Charts.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65B3F69B1C73CF93000983D0 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65B3F6A81C73D0EE000983D0 /* QBEChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6A71C73D0EE000983D0 /* QBEChart.swift */; };
 		65B3F6AA1C73D302000983D0 /* QBEChartTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6A91C73D302000983D0 /* QBEChartTabletViewController.swift */; };
 		65B3F6AD1C749F93000983D0 /* QBETabletView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3F6AC1C749F93000983D0 /* QBETabletView.swift */; };
@@ -209,6 +209,34 @@
 			remoteGlobalIDString = E4202FE01B667AA100C997FB;
 			remoteInfo = "Alamofire watchOS";
 		};
+		654AA59D1DEE365D0030C7C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 06165F241D8110E600722320;
+			remoteInfo = Charts;
+		};
+		654AA59F1DEE365D0030C7C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 06B120D51D811E6200D14B02;
+			remoteInfo = ChartsRealm;
+		};
+		654AA5A11DEE365D0030C7C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 06165F2E1D8110E600722320;
+			remoteInfo = ChartsTests;
+		};
+		654AA5A31DEE36750030C7C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 06165F231D8110E600722320;
+			remoteInfo = Charts;
+		};
 		655BD6411C146EDB00634C66 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65E3C2AC1A05222F007BB3C8 /* Project object */;
@@ -279,41 +307,6 @@
 			remoteGlobalIDString = 65F2DCA51CDF4B0B0099B3DB;
 			remoteInfo = WarpAI;
 		};
-		65B3F6941C73CF93000983D0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 5BA8EC401A9D14DC00CE82E1;
-			remoteInfo = "Charts-iOS";
-		};
-		65B3F6961C73CF93000983D0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = A52C5C371BAC5CA400594CDD;
-			remoteInfo = "Charts-TV";
-		};
-		65B3F6981C73CF93000983D0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 06AEE7A21BDC3F8B009875AE;
-			remoteInfo = ChartsTests;
-		};
-		65B3F69A1C73CF93000983D0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 65B3F5BF1C7370BE000983D0;
-			remoteInfo = "Charts-OSX";
-		};
-		65B3F6A51C73CFC0000983D0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 65B3F5BE1C7370BE000983D0;
-			remoteInfo = "Charts-OSX";
-		};
 		65B92BDD1C86196900397014 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
@@ -337,6 +330,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				654AA5A61DEE36850030C7C9 /* Charts.framework in CopyFiles */,
 				6537E1FD1D89E87F00CD80EC /* GCDAsyncSocket.framework in CopyFiles */,
 				6537E1FF1D89E88300CD80EC /* SCRAM.framework in CopyFiles */,
 				65F50EB91D78D2AF00F6FAE5 /* WarpConduit.framework in CopyFiles */,
@@ -345,7 +339,6 @@
 				65F50EBC1D78D2F300F6FAE5 /* WarpAI.framework in CopyFiles */,
 				65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */,
 				65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */,
-				65B3F6A41C73CFC0000983D0 /* Charts.framework in CopyFiles */,
 				65F50EBE1D78D34E00F6FAE5 /* SwiftParser.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -506,7 +499,7 @@
 		65B3CC601CA3D055003FC6DF /* QBESetEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESetEditorViewController.swift; sourceTree = "<group>"; };
 		65B3CC621CA96408003FC6DF /* QBEMapTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEMapTabletViewController.swift; sourceTree = "<group>"; };
 		65B3CC651CA9642F003FC6DF /* QBEMap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEMap.swift; sourceTree = "<group>"; };
-		65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Charts.xcodeproj; path = Libraries/Charts/Charts/Charts.xcodeproj; sourceTree = "<group>"; };
+		65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Charts.xcodeproj; path = Libraries/Charts/Charts.xcodeproj; sourceTree = "<group>"; };
 		65B3F6A71C73D0EE000983D0 /* QBEChart.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChart.swift; sourceTree = "<group>"; };
 		65B3F6A91C73D302000983D0 /* QBEChartTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChartTabletViewController.swift; sourceTree = "<group>"; };
 		65B3F6AC1C749F93000983D0 /* QBETabletView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBETabletView.swift; sourceTree = "<group>"; };
@@ -540,6 +533,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				654AA5A51DEE367A0030C7C9 /* Charts.framework in Frameworks */,
 				6537E1F81D89E6DD00CD80EC /* GCDAsyncSocket.framework in Frameworks */,
 				6537E1F91D89E6DD00CD80EC /* SCRAM.framework in Frameworks */,
 				65DAF6CA1D7C6FFD00163750 /* Rethink.framework in Frameworks */,
@@ -551,7 +545,6 @@
 				65E224A71D7C604C007433E6 /* libpq.a in Frameworks */,
 				65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */,
 				65E224A41D7C600F007433E6 /* WarpCore.framework in Frameworks */,
-				65B3F6A31C73CFC0000983D0 /* Charts.framework in Frameworks */,
 				6510A7391A4D9832005633EF /* MBTableGrid.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -614,6 +607,16 @@
 				65AD6CEA1D6F91180020F478 /* libcommonCrypto.tbd */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		654AA5981DEE365D0030C7C9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				654AA59E1DEE365D0030C7C9 /* Charts.framework */,
+				654AA5A01DEE365D0030C7C9 /* ChartsRealm.framework */,
+				654AA5A21DEE365D0030C7C9 /* ChartsTests.xctest */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		65734BBE1AB0380200D2C2F6 /* Products */ = {
@@ -774,17 +777,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		65B3F68B1C73CF93000983D0 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				65B3F6951C73CF93000983D0 /* Charts.framework */,
-				65B3F6971C73CF93000983D0 /* Charts.framework */,
-				65B3F69B1C73CF93000983D0 /* Charts.framework */,
-				65B3F6991C73CF93000983D0 /* ChartsTests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		65D7A9861BF793D5005AD925 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -904,10 +896,10 @@
 			buildRules = (
 			);
 			dependencies = (
+				654AA5A41DEE36750030C7C9 /* PBXTargetDependency */,
 				65A78CF01D74CBAA00036045 /* PBXTargetDependency */,
 				65734BCE1AB0380F00D2C2F6 /* PBXTargetDependency */,
 				6510A7381A4D982E005633EF /* PBXTargetDependency */,
-				65B3F6A61C73CFC0000983D0 /* PBXTargetDependency */,
 			);
 			name = Warp;
 			productName = QBE;
@@ -940,7 +932,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0730;
-				LastUpgradeCheck = 0720;
+				LastUpgradeCheck = 0810;
 				ORGANIZATIONNAME = Pixelspark;
 				TargetAttributes = {
 					65E3C2EB1A062E5E007BB3C8 = {
@@ -984,7 +976,7 @@
 					ProjectRef = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
 				},
 				{
-					ProductGroup = 65B3F68B1C73CF93000983D0 /* Products */;
+					ProductGroup = 654AA5981DEE365D0030C7C9 /* Products */;
 					ProjectRef = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
 				},
 				{
@@ -1024,6 +1016,27 @@
 			fileType = wrapper.framework;
 			path = Alamofire.framework;
 			remoteRef = 652B26CB1B8E3F3500A2D38E /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		654AA59E1DEE365D0030C7C9 /* Charts.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Charts.framework;
+			remoteRef = 654AA59D1DEE365D0030C7C9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		654AA5A01DEE365D0030C7C9 /* ChartsRealm.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = ChartsRealm.framework;
+			remoteRef = 654AA59F1DEE365D0030C7C9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		654AA5A21DEE365D0030C7C9 /* ChartsTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = ChartsTests.xctest;
+			remoteRef = 654AA5A11DEE365D0030C7C9 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		65734BC51AB0380200D2C2F6 /* Alamofire.framework */ = {
@@ -1066,34 +1079,6 @@
 			fileType = wrapper.framework;
 			path = WarpAI.framework;
 			remoteRef = 65A78CEC1D74CB1300036045 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		65B3F6951C73CF93000983D0 /* Charts.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Charts.framework;
-			remoteRef = 65B3F6941C73CF93000983D0 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		65B3F6971C73CF93000983D0 /* Charts.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Charts.framework;
-			remoteRef = 65B3F6961C73CF93000983D0 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		65B3F6991C73CF93000983D0 /* ChartsTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = ChartsTests.xctest;
-			remoteRef = 65B3F6981C73CF93000983D0 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		65B3F69B1C73CF93000983D0 /* Charts.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Charts.framework;
-			remoteRef = 65B3F69A1C73CF93000983D0 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		65B92BDE1C86196900397014 /* Alamofire.framework */ = {
@@ -1296,6 +1281,11 @@
 			name = MBTableGrid;
 			targetProxy = 6510A7371A4D982E005633EF /* PBXContainerItemProxy */;
 		};
+		654AA5A41DEE36750030C7C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Charts;
+			targetProxy = 654AA5A31DEE36750030C7C9 /* PBXContainerItemProxy */;
+		};
 		655BD6421C146EDB00634C66 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 65E3C2EB1A062E5E007BB3C8 /* Warp */;
@@ -1315,11 +1305,6 @@
 			isa = PBXTargetDependency;
 			name = WarpAI;
 			targetProxy = 65A78CEF1D74CBAA00036045 /* PBXContainerItemProxy */;
-		};
-		65B3F6A61C73CFC0000983D0 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "Charts-OSX";
-			targetProxy = 65B3F6A51C73CFC0000983D0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1686,6 +1671,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
@@ -1695,8 +1681,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -1706,6 +1694,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -1747,6 +1736,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
@@ -1756,8 +1746,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -1767,6 +1759,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = fast;
 				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1802,6 +1795,7 @@
 		65E3C3081A062E5E007BB3C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_RAND = YES;
@@ -1811,7 +1805,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 2T2T7HAA8S;
 				DYLIB_CURRENT_VERSION = "";
-				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)Conduit/Libraries/Rethink/build/Debug",
@@ -1840,6 +1833,7 @@
 		65E3C3091A062E5E007BB3C8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_RAND = YES;
@@ -1849,7 +1843,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 2T2T7HAA8S;
 				DYLIB_CURRENT_VERSION = "";
-				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)Conduit/Libraries/Rethink/build/Debug",

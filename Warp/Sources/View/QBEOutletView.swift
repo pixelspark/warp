@@ -124,11 +124,11 @@ private class QBELaceView: NSView {
 		return nil
 	} }
 	
-	private override func hitTest(_ aPoint: NSPoint) -> NSView? {
+	fileprivate override func hitTest(_ aPoint: NSPoint) -> NSView? {
 		return nil
 	}
 	
-	private override func draw(_ dirtyRect: NSRect) {
+	fileprivate override func draw(_ dirtyRect: NSRect) {
 		if let context = NSGraphicsContext.current()?.cgContext {
 			context.saveGState()
 			
@@ -280,20 +280,20 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 							self.delegate = delegate
 						}
 
-						private override func writableTypes(for pasteboard: NSPasteboard) -> [String] {
+						fileprivate override func writableTypes(for pasteboard: NSPasteboard) -> [String] {
 							var types = super.writableTypes(for: pasteboard)
 							types.append(QBEOutletView.dragType)
 							return types
 						}
 
-						private override func writingOptions(forType type: String, pasteboard: NSPasteboard) -> NSPasteboardWritingOptions {
+						fileprivate override func writingOptions(forType type: String, pasteboard: NSPasteboard) -> NSPasteboardWritingOptions {
 							if type == QBEOutletView.dragType {
 								return []
 							}
 							return super.writingOptions(forType: type, pasteboard: pasteboard)
 						}
 
-						private override func pasteboardPropertyList(forType type: String) -> Any? {
+						fileprivate override func pasteboardPropertyList(forType type: String) -> Any? {
 							if type == QBEOutletView.dragType {
 								return nil
 							}

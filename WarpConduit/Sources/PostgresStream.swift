@@ -27,7 +27,7 @@ private class PostgresDialect: StandardSQLDialect {
 		return "E\(super.literalString(string))"
 	}
 
-	private override func unaryToSQL(_ type: Function, args: [String]) -> String? {
+	fileprivate override func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		switch type {
 		case .Random: return "RANDOM()"
 
@@ -51,7 +51,7 @@ private class PostgresDialect: StandardSQLDialect {
 		}
 	}
 
-	private override func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
+	fileprivate override func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
 		// For Function.Count, we should count numeric values only. In PostgreSQL this can be done using REGEXP
 		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
 			switch aggregation.reduce {
@@ -75,7 +75,7 @@ private class PostgresDialect: StandardSQLDialect {
 		return super.aggregationToSQL(aggregation, alias: alias)
 	}
 
-	private override func binaryToSQL(_ type: Binary, first: String, second: String) -> String? {
+	fileprivate override func binaryToSQL(_ type: Binary, first: String, second: String) -> String? {
 		switch type {
 		case .matchesRegex: return "(\(forceStringExpression(second)) ~* \(forceStringExpression(first)))"
 		case .matchesRegexStrict: return "(\(forceStringExpression(second)) ~ \(forceStringExpression(first)))"
@@ -83,18 +83,18 @@ private class PostgresDialect: StandardSQLDialect {
 		}
 	}
 
-	private override func valueToSQL(_ value: Value) -> String {
+	fileprivate override func valueToSQL(_ value: Value) -> String {
 		switch value {
 		case .invalid: return "('nan'::decimal)"
 		default: return super.valueToSQL(value)
 		}
 	}
 
-	private override func forceStringExpression(_ expression: String) -> String {
+	fileprivate override func forceStringExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS VARCHAR)"
 	}
 
-	private override func forceNumericExpression(_ expression: String) -> String {
+	fileprivate override func forceNumericExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS DECIMAL)"
 	}
 }

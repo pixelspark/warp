@@ -35,11 +35,11 @@ private class QBEPrestoSQLDialect: StandardSQLDialect {
 		}
 	}
 	
-	private override func forceNumericExpression(_ expression: String) -> String {
+	fileprivate override func forceNumericExpression(_ expression: String) -> String {
 		return "TRY_CAST(\(expression) AS DOUBLE)"
 	}
 	
-	private override func forceStringExpression(_ expression: String) -> String {
+	fileprivate override func forceStringExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS VARCHAR)"
 	}
 }

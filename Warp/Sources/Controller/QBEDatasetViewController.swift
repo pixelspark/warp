@@ -48,11 +48,11 @@ private class QBEValueCell: MBTableGridCell {
 		fatalError("Do not call")
 	}
 
-	private override func encode(with aCoder: NSCoder) {
+	fileprivate override func encode(with aCoder: NSCoder) {
 		fatalError("Do not call")
 	}
 
-	private override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
+	fileprivate override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
 		switch value {
 		case .int(_), .double(_):
 			self.textColor = NSColor.black

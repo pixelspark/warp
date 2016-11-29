@@ -218,7 +218,7 @@ private class ValueSetSequence: ValueSequence {
 		self.values = values
 	}
 	
-	private override func random() -> Value? {
+	fileprivate override func random() -> Value? {
 		return Array(values).randomElement
 	}
 	
@@ -239,7 +239,7 @@ private class MaybeGenerator: ValueGenerator {
 		self.sequence = sequence
 	}
 	
-	private override func next() -> Value? {
+	fileprivate override func next() -> Value? {
 		if let g = generator {
 			return g.next()
 		}
@@ -266,7 +266,7 @@ private class RepeatGenerator: ValueGenerator {
 		self.generators[self.generators.count-1] = sequence.makeIterator()
 	}
 	
-	private override func next() -> Value? {
+	fileprivate override func next() -> Value? {
 		if done {
 			return nil
 		}
@@ -305,7 +305,7 @@ private class RepeatSequence: ValueSequence {
 		self.repeatCount = count
 	}
 	
-	private override func random() -> Value? {
+	fileprivate override func random() -> Value? {
 		var str = Value("")
 		for _ in 0..<repeatCount {
 			str = str & (self.sequence.random() ?? Value.invalid)
@@ -313,7 +313,7 @@ private class RepeatSequence: ValueSequence {
 		return str
 	}
 	
-	private override func makeIterator() -> ValueGenerator {
+	fileprivate override func makeIterator() -> ValueGenerator {
 		return RepeatGenerator(sequence, count: repeatCount)
 	}
 	
@@ -338,14 +338,14 @@ private class MaybeSequence: ValueSequence {
 		self.sequence = sequence
 	}
 	
-	private override func random() -> Value? {
+	fileprivate override func random() -> Value? {
 		if Bool.random {
 			return Value("")
 		}
 		return self.sequence.random()
 	}
 	
-	private override func makeIterator() -> ValueGenerator {
+	fileprivate override func makeIterator() -> ValueGenerator {
 		return MaybeGenerator(sequence)
 	}
 	
@@ -424,7 +424,7 @@ private class CombinatorSequence: ValueSequence {
 		self.right = right
 	}
 	
-	private override func random() -> Value? {
+	fileprivate override func random() -> Value? {
 		if let a = left.random(), let b = right.random() {
 			return a & b
 		}
@@ -452,7 +452,7 @@ private class AfterSequence: ValueSequence {
 		self.then = then
 	}
 	
-	private override func random() -> Value? {
+	fileprivate override func random() -> Value? {
 		if Bool.random {
 			return first.random()
 		}

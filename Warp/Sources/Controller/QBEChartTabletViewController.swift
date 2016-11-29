@@ -160,14 +160,16 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				self.chartBaseView = lineChartView
 
 				if r.columns.count >= 2 {
-					let data = LineChartData(xVals: xs.map { (v) -> NSObject in return NSNumber(floatLiteral: v.doubleValue ?? Double.nan) })
+
+					let xVals = xs.map { $0.doubleValue ?? Double.nan }
+					let data = LineChartData()
 
 					// FIXME: add support for multiple series in QBEChart
 					for ySeriesIndex in 1..<2 {
 						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
-						let yse = ys.enumerated().map { idx, i in return ChartDataEntry(value: i, xIndex: idx) }
+						let yse = ys.enumerated().map { idx, i in return ChartDataEntry(x: xVals[idx], y: i) }
 
-						let ds = LineChartDataSet(yVals: yse, label: r.columns[ySeriesIndex].name)
+						let ds = LineChartDataSet(values: yse, label: r.columns[ySeriesIndex].name)
 						ds.drawValuesEnabled = false
 						ds.drawCirclesEnabled = false
 						ds.colors = [colors[(ySeriesIndex - 1) % colors.count]]
@@ -185,13 +187,14 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				self.chartBaseView = radarChartView
 
 				if r.columns.count >= 2 {
-					let data = RadarChartData(xVals: xs.map { return NSNumber(floatLiteral: $0.doubleValue ?? Double.nan) })
+					let xVals = xs.map { return $0.doubleValue ?? Double.nan }
+					let data = RadarChartData()
 
 					for ySeriesIndex in 1..<2 {
 						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
-						let yse = ys.enumerated().map { idx, i in return ChartDataEntry(value: i, xIndex: idx) }
+						let yse = ys.enumerated().map { idx, i in return ChartDataEntry(x: xVals[idx], y: i) }
 
-						let ds = RadarChartDataSet(yVals: yse, label: r.columns[ySeriesIndex].name)
+						let ds = RadarChartDataSet(values: yse, label: r.columns[ySeriesIndex].name)
 						ds.drawValuesEnabled = false
 						ds.colors = [colors[(ySeriesIndex - 1) % colors.count]]
 						data.addDataSet(ds)
@@ -206,13 +209,13 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 
 				// Do any additional setup after loading the view.
 				if r.columns.count >= 2 {
-					let data = BarChartData(xVals: [NSNumber(floatLiteral: 1.0)])
+					let data = BarChartData()
 
 					let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
 
 					for (idx, y) in ys.enumerated() {
-						let yse = [BarChartDataEntry(value: y, xIndex: 0)]
-						let ds = BarChartDataSet(yVals: yse, label: xs[idx].stringValue ?? "")
+						let yse = [BarChartDataEntry(x: 0, y: y)]
+						let ds = BarChartDataSet(values: yse, label: xs[idx].stringValue ?? "")
 						ds.drawValuesEnabled = false
 						ds.colors = [colors[idx % colors.count]]
 						data.addDataSet(ds)
@@ -229,11 +232,12 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				self.chartBaseView = pieChartView
 
 				// Do any additional setup after loading the view.
-				let data = PieChartData(xVals: xs.map { return $0.stringValue })
+				let xVals = xs.map { return $0.stringValue }
+				let data = PieChartData()
 				let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
 
-				let yse = ys.map { ChartDataEntry(value: $0, xIndex: 0) }
-				let ds = PieChartDataSet(yVals: yse, label: "Data")
+				let yse = ys.enumerated().map { (idx, val) in PieChartDataEntry(value: val, label: xVals[idx]) }
+				let ds = PieChartDataSet(values: yse, label: "Data")
 				ds.drawValuesEnabled = true
 				ds.colors = colors
 				data.addDataSet(ds)
@@ -241,7 +245,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				let nf = NumberFormatter()
 				nf.numberStyle = NumberFormatter.Style.decimal
 				nf.maximumFractionDigits = 1
-				data.setValueFormatter(nf)
+				data.setValueFormatter(DefaultValueFormatter(formatter: nf))
 
 				pieChartView.data = data
 			}
@@ -265,8 +269,8 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 			if animated {
 				cb.animate(xAxisDuration: 1.0, yAxisDuration: 1.0)
 			}
-			cb.descriptionFont = NSUIFont.systemFont(ofSize: 12.0)
-			cb.descriptionText = ""
+			cb.chartDescription?.font = NSUIFont.systemFont(ofSize: 12.0)
+			cb.chartDescription?.text = ""
 		}
 	}
 
@@ -281,14 +285,8 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 			panel.beginSheetModal(for: w) { (result) -> Void in
 				if result == NSFileHandlingPanelOKButton {
 					if let path = panel.url?.path {
-						do {
-							if !(try chartView.saveToPath(path, format: .png, compressionQuality: 1.0)) {
-								trace("saveToPath returned false")
-							}
-						}
-						catch _ {
-							trace("saveToPath failed")
-						}
+						// FIXME: if save returns false, show an error to the user indicating the file could not be saved
+						_ = chartView.save(to: path, format: .png, compressionQuality: 1.0)
 					}
 				}
 			}
