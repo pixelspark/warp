@@ -253,8 +253,12 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 	}
 
 	@IBAction func editColumnMapping(_ sender: NSObject) {
+		self.editColumnMapping(andUploadAfterMapping: false)
+	}
+
+	private func editColumnMapping(andUploadAfterMapping: Bool = false) {
 		let job = Job(.userInitiated)
-		self.retryUploadAfterMapping = false
+		self.retryUploadAfterMapping = andUploadAfterMapping
 
 		// Get source and destination columns
 		if let destination = self.targetStep?.mutableDataset, let source = self.sourceStep {
@@ -291,6 +295,13 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 												}
 											}
 
+											// Make sure no destination columns that do not exist appear
+											for (key, _) in self.mapping! {
+												if !destinationColumns.contains(key) {
+													self.mapping!.removeValue(forKey: key)
+												}
+											}
+
 											job.log("MAP=\(self.mapping!)")
 
 											asyncMain {
@@ -298,7 +309,6 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 													vc.mapping = self.mapping!
 													vc.sourceColumns = sourceColumns
 													vc.delegate = self
-													self.retryUploadAfterMapping = true
 													self.presentViewControllerAsSheet(vc)
 												}
 											}
@@ -363,7 +373,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 								asyncMain {
 									self.uploadJob = nil
 									self.updateView()
-									self.editColumnMapping(self)
+									self.editColumnMapping(andUploadAfterMapping: true)
 								}
 							}
 							else {
