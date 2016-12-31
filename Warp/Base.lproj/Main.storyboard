@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="16B2555" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16C67" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11201"/>
-        <plugIn identifier="com.apple.MapKitIBPlugin" version="11201"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaDFRPlugin" version="7104"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11762"/>
+        <plugIn identifier="com.apple.MapKitIBPlugin" version="11762"/>
         <capability name="box content view" minToolsVersion="7.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+        <capability name="the Touch Bar" message="Use a version of macOS with Touch Bar support." minToolsVersion="8.1" minSystemVersion="10.12.1" requiredIntegratedClassName="NSTouchBar"/>
     </dependencies>
     <scenes>
         <!--Window Controller-->
@@ -1597,13 +1600,13 @@ CA
                         <windowCollectionBehavior key="collectionBehavior" fullScreenPrimary="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="183" y="108" width="1345" height="806"/>
-                        <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1178"/>
                         <toolbar key="toolbar" implicitIdentifier="2EBAC5BC-9FAB-4475-8666-2326836DC6DE" displayMode="iconOnly" sizeMode="regular" id="Mya-2b-t6F">
                             <allowedToolbarItems>
                                 <toolbarItem implicitItemIdentifier="67BCC4D2-D6F5-4F96-BCEE-BAA3D3CB1650" label="Calculate" paletteLabel="Calculate" image="SmallIcon" id="IjL-nI-Ixx" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="45" height="27"/>
+                                    <size key="maxSize" width="45" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="YiK-Md-zzJ">
                                         <rect key="frame" x="7" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1642,7 +1645,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="93E10375-E66A-4C93-A8A9-2C2F3E0E03EB" label="Stop calculating" paletteLabel="Stop calculating" image="StopIcon" id="dSb-OG-sLN" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="42" height="25"/>
-                                    <size key="maxSize" width="45" height="27"/>
+                                    <size key="maxSize" width="45" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="uDN-ok-mKr">
                                         <rect key="frame" x="25" y="14" width="42" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1658,7 +1661,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="F27BA621-2DF3-47A2-BE73-EEB849F1FDC1" label="Add" paletteLabel="Add" image="NSAddTemplate" id="k8n-C8-T8N" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="45" height="27"/>
+                                    <size key="maxSize" width="45" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="M2w-aY-CH1">
                                         <rect key="frame" x="0.0" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1674,7 +1677,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="60B4CE99-9421-44DB-86A4-D176C1D32F90" label="Export data" paletteLabel="Export data" image="ExportIcon" id="WfI-yD-3jF" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="45" height="27"/>
+                                    <size key="maxSize" width="45" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="fj9-9C-sqL">
                                         <rect key="frame" x="13" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1690,7 +1693,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="653347E5-957F-4E26-A65D-949A84242605" label="Refresh data" paletteLabel="Refresh data" image="ReloadIcon" id="4nh-y5-Jb0" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="45" height="27"/>
+                                    <size key="maxSize" width="45" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="VoA-fi-OJZ">
                                         <rect key="frame" x="16" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1706,7 +1709,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="2845B5F4-9D99-4268-9384-2E570B668763" label="Show alternatives" paletteLabel="Show alternatives" image="ChangeIcon" id="qo5-X1-gJ6" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="45" height="27"/>
+                                    <size key="maxSize" width="45" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="NCL-CP-9a6">
                                         <rect key="frame" x="29" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1719,12 +1722,10 @@ CA
                                         <action selector="showSuggestions:" target="6f7-a7-6o1" id="3xX-qZ-C7D"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="UB3-EK-cBx"/>
-                                <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="g2T-uw-sdG"/>
                                 <toolbarItem implicitItemIdentifier="C8134A35-D81B-4D2E-B6D7-28058BB59890" label="Edit" paletteLabel="Edit data" image="EditIcon" id="jdM-jE-qua" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="45" height="27"/>
+                                    <size key="maxSize" width="45" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="B2l-24-Cv0">
                                         <rect key="frame" x="6" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1740,7 +1741,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="70745AA2-F3E0-4606-B0BB-0C8C327F9197" label="Remove source data" paletteLabel="Remove source data" image="TrashIcon" id="BvK-Pa-sl9" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="45" height="27"/>
+                                    <size key="maxSize" width="45" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="a5C-pu-UBJ">
                                         <rect key="frame" x="36" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1756,7 +1757,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="F3AA4A95-08CA-494D-99F5-91D76EEC14EC" label="Empty source data" paletteLabel="Empty source data" image="ShredIcon" id="baz-Un-oZ9" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="45" height="27"/>
+                                    <size key="maxSize" width="45" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="biH-bc-T6f">
                                         <rect key="frame" x="32" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1772,7 +1773,7 @@ CA
                                 <toolbarItem implicitItemIdentifier="59AAAF35-77FE-4082-8CB1-62386FD310E5" label="Modify structure" paletteLabel="Modify structure" image="AlterIcon" id="PkZ-zF-Svr" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
                                     <size key="minSize" width="43" height="25"/>
-                                    <size key="maxSize" width="45" height="27"/>
+                                    <size key="maxSize" width="45" height="25"/>
                                     <button key="view" verticalHuggingPriority="750" id="B6d-tH-2pV">
                                         <rect key="frame" x="26" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -1802,20 +1803,100 @@ CA
                                         </connections>
                                     </searchField>
                                 </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="oul-Vx-PF3"/>
+                                <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="WJY-bU-M3o"/>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
                                 <toolbarItem reference="JIm-dh-FPE"/>
-                                <toolbarItem reference="UB3-EK-cBx"/>
+                                <toolbarItem reference="oul-Vx-PF3"/>
                                 <toolbarItem reference="IjL-nI-Ixx"/>
                                 <toolbarItem reference="dSb-OG-sLN"/>
                                 <toolbarItem reference="jdM-jE-qua"/>
-                                <toolbarItem reference="g2T-uw-sdG"/>
+                                <toolbarItem reference="oul-Vx-PF3"/>
                                 <toolbarItem reference="bch-bl-Zuj"/>
                                 <toolbarItem reference="WfI-yD-3jF"/>
                                 <toolbarItem reference="k8n-C8-T8N"/>
                             </defaultToolbarItems>
                         </toolbar>
                     </window>
+                    <touchBar key="touchBar" id="b8H-yR-i4o">
+                        <touchBarItems>
+                            <touchBarGroupItem id="M6C-xQ-9ja">
+                                <touchBar key="groupTouchBar" id="yBi-FZ-80G">
+                                    <touchBarItems>
+                                        <touchBarItem id="dkD-7y-wgi">
+                                            <viewController key="viewController" id="IWL-Wv-MdZ">
+                                                <button key="view" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="o9p-Ba-aYW">
+                                                    <rect key="frame" x="0.0" y="0.0" width="90" height="30"/>
+                                                    <buttonCell key="cell" type="push" bezelStyle="rounded" image="ZoomOutIconWhite" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="0El-vr-tab">
+                                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                        <font key="font" metaFont="system"/>
+                                                    </buttonCell>
+                                                    <connections>
+                                                        <action selector="zoomToAll:" target="6f7-a7-6o1" id="ces-uS-6ac"/>
+                                                    </connections>
+                                                </button>
+                                            </viewController>
+                                            <size key="designTimeSize" width="90" height="30"/>
+                                        </touchBarItem>
+                                        <touchBarItem id="7Ta-fj-E7m">
+                                            <viewController key="viewController" id="Myf-if-gMg">
+                                                <button key="view" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="skh-RU-Km5">
+                                                    <rect key="frame" x="0.0" y="0.0" width="90" height="30"/>
+                                                    <buttonCell key="cell" type="push" bezelStyle="rounded" image="ZoomInIconWhite" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ByQ-Vk-CPy">
+                                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                        <font key="font" metaFont="system"/>
+                                                    </buttonCell>
+                                                    <connections>
+                                                        <action selector="zoomSelection:" target="6f7-a7-6o1" id="6sj-EL-OjH"/>
+                                                    </connections>
+                                                </button>
+                                            </viewController>
+                                            <size key="designTimeSize" width="90" height="30"/>
+                                        </touchBarItem>
+                                    </touchBarItems>
+                                </touchBar>
+                            </touchBarGroupItem>
+                            <touchBarGroupItem id="4Rk-Io-Io4">
+                                <touchBar key="groupTouchBar" id="aVn-jg-tDM">
+                                    <touchBarItems>
+                                        <touchBarSpacerItem identifier="NSTouchBarItemIdentifierFlexibleSpace" id="rRa-Kg-FKm"/>
+                                        <touchBarItem id="0H3-4I-54t">
+                                            <viewController key="viewController" id="s6V-HJ-P0l">
+                                                <button key="view" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pbO-Fw-ms5">
+                                                    <rect key="frame" x="0.0" y="0.0" width="90" height="30"/>
+                                                    <buttonCell key="cell" type="push" bezelStyle="rounded" image="PreviousIconWhite" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="frI-0F-9B2">
+                                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                        <font key="font" metaFont="system"/>
+                                                    </buttonCell>
+                                                    <connections>
+                                                        <action selector="goBack:" target="6f7-a7-6o1" id="8fq-TR-ia7"/>
+                                                    </connections>
+                                                </button>
+                                            </viewController>
+                                            <size key="designTimeSize" width="90" height="30"/>
+                                        </touchBarItem>
+                                        <touchBarItem id="zdz-wA-t4a">
+                                            <viewController key="viewController" id="Asb-HA-rwH">
+                                                <button key="view" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="s7b-07-ILn">
+                                                    <rect key="frame" x="0.0" y="0.0" width="90" height="30"/>
+                                                    <buttonCell key="cell" type="push" bezelStyle="rounded" image="NextIconWhite" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="r91-bb-GXn">
+                                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                        <font key="font" metaFont="system"/>
+                                                    </buttonCell>
+                                                    <connections>
+                                                        <action selector="goForward:" target="6f7-a7-6o1" id="as4-VO-2ey"/>
+                                                    </connections>
+                                                </button>
+                                            </viewController>
+                                            <size key="designTimeSize" width="90" height="30"/>
+                                        </touchBarItem>
+                                        <touchBarSpacerItem identifier="NSTouchBarItemIdentifierFlexibleSpace" id="lIu-OR-m2e"/>
+                                    </touchBarItems>
+                                </touchBar>
+                            </touchBarGroupItem>
+                        </touchBarItems>
+                    </touchBar>
                     <connections>
                         <outlet property="searchField" destination="2mM-gL-3Ju" id="Roe-6T-MNl"/>
                         <segue destination="y5B-O8-QaO" kind="relationship" relationship="window.shadowedContentViewController" id="GkK-cT-tVe"/>
@@ -4226,6 +4307,8 @@ DQ
         <image name="NSAddTemplate" width="11" height="11"/>
         <image name="NSGoRightTemplate" width="9" height="12"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
+        <image name="NextIconWhite" width="128" height="128"/>
+        <image name="PreviousIconWhite" width="128" height="128"/>
         <image name="ReloadIcon" width="102" height="102"/>
         <image name="ShredIcon" width="102" height="102"/>
         <image name="SmallIcon" width="51" height="51"/>
@@ -4236,7 +4319,9 @@ DQ
         <image name="TrashIcon" width="102" height="102"/>
         <image name="TrashToolIcon" width="64" height="36"/>
         <image name="ZoomInIcon" width="256" height="256"/>
+        <image name="ZoomInIconWhite" width="128" height="128"/>
         <image name="ZoomOutIcon" width="256" height="256"/>
+        <image name="ZoomOutIconWhite" width="128" height="128"/>
         <image name="sort-asc" width="8" height="9"/>
     </resources>
     <inferredMetricsTieBreakers>
