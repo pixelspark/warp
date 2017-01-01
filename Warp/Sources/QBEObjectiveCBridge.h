@@ -12,6 +12,9 @@
 #ifndef QBE_QBEObjectiveCBridge_h
 #define QBE_QBEObjectiveCBridge_h
 
+#include "TargetConditionals.h"
+
+#if !TARGET_OS_IPHONE
 #import "MBTableGrid.h"
 #import <MBTableGrid/MBTableGridContentView.h>
 #import <MBTableGrid/MBTableGridHeaderView.h>
@@ -19,5 +22,10 @@
 #import <MBTableGrid/MBTableGridCell.h>
 #import <MBTableGrid/MBTableGridHeaderCell.h>
 #import <MBTableGrid/MBFooterTextCell.h>
+#endif
+
+#if TARGET_OS_IPHONE
+#import "MDSpreadView.h"
+#endif
 
 #endif

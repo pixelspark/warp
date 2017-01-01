@@ -49,11 +49,25 @@ public enum QBEFileReference: Equatable {
 		case .absolute(let u):
 			do {
 				if let url = u {
+					#if os(macOS)
 					let bookmark = try url.bookmarkData(options: URL.BookmarkCreationOptions.withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: relativeToDocument)
+					#endif
+
+					#if os(iOS)
+					let bookmark = try url.bookmarkData(options: URL.BookmarkCreationOptions.suitableForBookmarkFile, includingResourceValuesForKeys: nil, relativeTo: relativeToDocument)
+					#endif
+
 					do {
 						var stale: Bool = false
-						if let resolved = try URL(resolvingBookmarkData: bookmark, options: URL.BookmarkResolutionOptions.withSecurityScope, relativeTo: relativeToDocument, bookmarkDataIsStale: &stale) {
+						#if os(macOS)
+						let resolved = try URL(resolvingBookmarkData: bookmark, options: URL.BookmarkResolutionOptions.withSecurityScope, relativeTo: relativeToDocument, bookmarkDataIsStale: &stale)
+						#endif
 
+						#if os(iOS)
+						let resolved = try URL(resolvingBookmarkData: bookmark, options: [], relativeTo: relativeToDocument, bookmarkDataIsStale: &stale)
+						#endif
+
+						if let resolved = resolved {
 							if stale {
 								trace("Just-created URL bookmark is already stale! \(resolved)")
 							}
@@ -87,7 +101,14 @@ public enum QBEFileReference: Equatable {
 		case .resolvedBookmark(let b, let oldURL):
 			do {
 				var stale = false
-				let u = try URL(resolvingBookmarkData: b, options: URL.BookmarkResolutionOptions.withSecurityScope, relativeTo: relativeToDocument, bookmarkDataIsStale: &stale)
+				#if os(macOS)
+					let u = try URL(resolvingBookmarkData: b, options: URL.BookmarkResolutionOptions.withSecurityScope, relativeTo: relativeToDocument, bookmarkDataIsStale: &stale)
+				#endif
+
+				#if os(iOS)
+					let u = try URL(resolvingBookmarkData: b, options: [], relativeTo: relativeToDocument, bookmarkDataIsStale: &stale)
+				#endif
+
 				if stale {
 					trace("Resolved bookmark is stale: \(u)")
 					return QBEFileReference.absolute(u)
@@ -109,7 +130,15 @@ public enum QBEFileReference: Equatable {
 		case .bookmark(let b):
 			do {
 				var stale = false
-				let u = try URL(resolvingBookmarkData: b, options: URL.BookmarkResolutionOptions.withSecurityScope, relativeTo: relativeToDocument, bookmarkDataIsStale: &stale)
+
+				#if os(macOS)
+					let u = try URL(resolvingBookmarkData: b, options: URL.BookmarkResolutionOptions.withSecurityScope, relativeTo: relativeToDocument, bookmarkDataIsStale: &stale)
+				#endif
+
+				#if os(iOS)
+					let u = try URL(resolvingBookmarkData: b, options: [], relativeTo: relativeToDocument, bookmarkDataIsStale: &stale)
+				#endif
+
 				if stale {
 					trace("Just-resolved bookmark is stale: \(u)")
 					return QBEFileReference.absolute(u)
@@ -206,11 +235,15 @@ internal class QBEPersistedFileReference: NSObject, NSCoding {
 }
 
 private class QBEFilePresenterDelegate: NSObject, NSFilePresenter {
-	@objc let primaryPresentedItemURL: URL?
+	#if os(macOS)
+		@objc let primaryPresentedItemURL: URL?
+	#endif
 	@objc let presentedItemURL: URL?
 
 	init(primary: URL, secondary: URL) {
+		#if os(macOS)
 		self.primaryPresentedItemURL = primary
+		#endif
 		self.presentedItemURL = secondary
 	}
 

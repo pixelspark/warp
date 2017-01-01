@@ -170,6 +170,8 @@ public class QBESecret {
 	}
 }
 
+#if os(macOS)
+
 internal class QBESecretsDataSource: NSObject, NSComboBoxDataSource {
 	let serviceType: String
 	var secrets: [QBESecret] = []
@@ -187,3 +189,5 @@ internal class QBESecretsDataSource: NSObject, NSComboBoxDataSource {
 		return self.secrets.count
 	}
 }
+
+#endif

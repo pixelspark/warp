@@ -7,16 +7,67 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		650238C61D44DF30000BE0F2 /* QBECacheStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650238C51D44DF30000BE0F2 /* QBECacheStep.swift */; };
 		650238CB1D44E0DF000BE0F2 /* QBECacheStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650238CA1D44E0DF000BE0F2 /* QBECacheStepView.swift */; };
 		650238D41D47C770000BE0F2 /* QBEListEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650238D31D47C770000BE0F2 /* QBEListEditorViewController.swift */; };
-		650238D61D47F63F000BE0F2 /* QBEDummiesStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650238D51D47F63F000BE0F2 /* QBEDummiesStep.swift */; };
 		6510A7391A4D9832005633EF /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
+		651BEBEF1E196D3B0094F8AD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 651BEBEE1E196D3B0094F8AD /* Assets.xcassets */; };
+		651BEC331E196F090094F8AD /* QBEMySQLSourceStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBF91E196EF10094F8AD /* QBEMySQLSourceStep.swift */; };
+		651BEC341E196F090094F8AD /* QBEClassifierStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFA1E196EF10094F8AD /* QBEClassifierStep.swift */; };
+		651BEC351E196F090094F8AD /* QBESQLiteStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFB1E196EF10094F8AD /* QBESQLiteStep.swift */; };
+		651BEC361E196F090094F8AD /* QBEPrestoStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFC1E196EF10094F8AD /* QBEPrestoStep.swift */; };
+		651BEC371E196F090094F8AD /* QBERowsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFD1E196EF10094F8AD /* QBERowsStep.swift */; };
+		651BEC381E196F090094F8AD /* QBEExplodeStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFE1E196EF10094F8AD /* QBEExplodeStep.swift */; };
+		651BEC391E196F090094F8AD /* QBEJoinStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFF1E196EF10094F8AD /* QBEJoinStep.swift */; };
+		651BEC3A1E196F090094F8AD /* QBECalculateStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC001E196EF10094F8AD /* QBECalculateStep.swift */; };
+		651BEC3B1E196F090094F8AD /* QBECSVStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC011E196EF10094F8AD /* QBECSVStep.swift */; };
+		651BEC3C1E196F090094F8AD /* QBECrawlStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC021E196EF10094F8AD /* QBECrawlStep.swift */; };
+		651BEC3D1E196F090094F8AD /* QBEColumnsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC031E196EF10094F8AD /* QBEColumnsStep.swift */; };
+		651BEC3E1E196F090094F8AD /* QBERethinkStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC041E196EF10094F8AD /* QBERethinkStep.swift */; };
+		651BEC3F1E196F090094F8AD /* QBEPostgresStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC051E196EF10094F8AD /* QBEPostgresStep.swift */; };
+		651BEC401E196F090094F8AD /* QBEPivotStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC061E196EF10094F8AD /* QBEPivotStep.swift */; };
+		651BEC411E196F090094F8AD /* QBERenameStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC071E196EF10094F8AD /* QBERenameStep.swift */; };
+		651BEC421E196F090094F8AD /* QBESequencerStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC081E196EF10094F8AD /* QBESequencerStep.swift */; };
+		651BEC431E196F090094F8AD /* QBEDBFStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC091E196EF10094F8AD /* QBEDBFStep.swift */; };
+		651BEC441E196F090094F8AD /* QBEDummiesStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0A1E196EF10094F8AD /* QBEDummiesStep.swift */; };
+		651BEC451E196F090094F8AD /* QBEFlattenStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0B1E196EF10094F8AD /* QBEFlattenStep.swift */; };
+		651BEC461E196F090094F8AD /* QBEExportStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0C1E196EF10094F8AD /* QBEExportStep.swift */; };
+		651BEC471E196F090094F8AD /* QBEXMLStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0D1E196EF10094F8AD /* QBEXMLStep.swift */; };
+		651BEC481E196F090094F8AD /* QBECacheStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0E1E196EF10094F8AD /* QBECacheStep.swift */; };
+		651BEC491E196F090094F8AD /* QBESortStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0F1E196EF10094F8AD /* QBESortStep.swift */; };
+		651BEC4A1E196F090094F8AD /* QBEHTTPStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC101E196EF10094F8AD /* QBEHTTPStep.swift */; };
+		651BEC4B1E196F090094F8AD /* QBEDebugStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC111E196EF10094F8AD /* QBEDebugStep.swift */; };
+		651BEC4C1E196F090094F8AD /* QBECloneStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC121E196EF10094F8AD /* QBECloneStep.swift */; };
+		651BEC4D1E196F090094F8AD /* QBEFileStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC131E196EF10094F8AD /* QBEFileStep.swift */; };
+		651BEC4E1E196F090094F8AD /* QBERasterStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC141E196EF10094F8AD /* QBERasterStep.swift */; };
+		651BEC4F1E196F090094F8AD /* QBESearchStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC151E196EF10094F8AD /* QBESearchStep.swift */; };
+		651BEC501E196F130094F8AD /* QBEPrestoStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFC1E196EF10094F8AD /* QBEPrestoStep.swift */; };
+		651BEC511E196F160094F8AD /* QBERowsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFD1E196EF10094F8AD /* QBERowsStep.swift */; };
+		651BEC521E196F1B0094F8AD /* QBEExplodeStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFE1E196EF10094F8AD /* QBEExplodeStep.swift */; };
+		651BEC531E196F1F0094F8AD /* QBEJoinStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFF1E196EF10094F8AD /* QBEJoinStep.swift */; };
+		651BEC541E196F230094F8AD /* QBECalculateStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC001E196EF10094F8AD /* QBECalculateStep.swift */; };
+		651BEC551E196F2A0094F8AD /* QBECrawlStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC021E196EF10094F8AD /* QBECrawlStep.swift */; };
+		651BEC561E196F2D0094F8AD /* QBEColumnsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC031E196EF10094F8AD /* QBEColumnsStep.swift */; };
+		651BEC571E196F300094F8AD /* QBERethinkStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC041E196EF10094F8AD /* QBERethinkStep.swift */; };
+		651BEC581E196F3E0094F8AD /* QBERenameStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC071E196EF10094F8AD /* QBERenameStep.swift */; };
+		651BEC591E196F3E0094F8AD /* QBESequencerStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC081E196EF10094F8AD /* QBESequencerStep.swift */; };
+		651BEC5A1E196F3E0094F8AD /* QBEDummiesStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0A1E196EF10094F8AD /* QBEDummiesStep.swift */; };
+		651BEC5B1E196F3E0094F8AD /* QBEFlattenStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0B1E196EF10094F8AD /* QBEFlattenStep.swift */; };
+		651BEC5C1E196F3E0094F8AD /* QBESortStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0F1E196EF10094F8AD /* QBESortStep.swift */; };
+		651BEC5D1E196F3E0094F8AD /* QBEDebugStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC111E196EF10094F8AD /* QBEDebugStep.swift */; };
+		651BEC5E1E196F3E0094F8AD /* QBECloneStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC121E196EF10094F8AD /* QBECloneStep.swift */; };
+		651BEC5F1E196F3E0094F8AD /* QBERasterStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC141E196EF10094F8AD /* QBERasterStep.swift */; };
+		651BEC601E196F3E0094F8AD /* QBESearchStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC151E196EF10094F8AD /* QBESearchStep.swift */; };
+		651BEC881E1971170094F8AD /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 651BEC871E1971170094F8AD /* WarpConduit.framework */; };
+		651BEC8D1E1972170094F8AD /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 651BEC871E1971170094F8AD /* WarpConduit.framework */; };
+		651BEC8E1E1972170094F8AD /* WarpConduit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 651BEC871E1971170094F8AD /* WarpConduit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		651BED091E197B370094F8AD /* QBEPostgresStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC051E196EF10094F8AD /* QBEPostgresStep.swift */; };
+		651BED911E198D950094F8AD /* QBEConfigureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BED901E198D940094F8AD /* QBEConfigureViewController.swift */; };
+		651BEDAB1E198F610094F8AD /* Eureka.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 651BED9B1E198EFA0094F8AD /* Eureka.framework */; };
+		651BEDAC1E198F680094F8AD /* Eureka.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 651BED9B1E198EFA0094F8AD /* Eureka.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		651C68761C70D7B300F0F048 /* QBETabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68751C70D7B300F0F048 /* QBETabletViewController.swift */; };
 		651C687E1C70E2AB00F0F048 /* QBEChainTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */; };
 		651C68801C70E96600F0F048 /* QBENote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687F1C70E96600F0F048 /* QBENote.swift */; };
 		651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */; };
-		6537E1D01D85E97100CD80EC /* QBEFileStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6537E1CF1D85E97100CD80EC /* QBEFileStep.swift */; };
 		6537E1DD1D85ED1900CD80EC /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6537E1DC1D85ED1900CD80EC /* MapKit.framework */; };
 		6537E1F81D89E6DD00CD80EC /* GCDAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6537E1F61D89E6DD00CD80EC /* GCDAsyncSocket.framework */; };
 		6537E1F91D89E6DD00CD80EC /* SCRAM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6537E1F71D89E6DD00CD80EC /* SCRAM.framework */; };
@@ -26,11 +77,38 @@
 		65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
 		654AA5A51DEE367A0030C7C9 /* Charts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 654AA59E1DEE365D0030C7C9 /* Charts.framework */; };
 		654AA5A61DEE36850030C7C9 /* Charts.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 654AA59E1DEE365D0030C7C9 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		655B05591E15A57100A28FCE /* QBEAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 655B05581E15A57100A28FCE /* QBEAppDelegate.swift */; };
+		655B055E1E15A57100A28FCE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 655B055C1E15A57100A28FCE /* Main.storyboard */; };
+		655B05631E15A57100A28FCE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 655B05611E15A57100A28FCE /* LaunchScreen.storyboard */; };
+		655B05721E15A5A800A28FCE /* QBEChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEB31C14758B00AE6C00 /* QBEChain.swift */; };
+		655B05731E15A5BD00A28FCE /* QBESecret.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEB71C14758B00AE6C00 /* QBESecret.swift */; };
+		655B05741E15A5C400A28FCE /* QBEStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEBA1C14758B00AE6C00 /* QBEStep.swift */; };
+		655B05751E15A5CA00A28FCE /* QBETablet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEBB1C14758B00AE6C00 /* QBETablet.swift */; };
+		655B057A1E15A60800A28FCE /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC51AB0380200D2C2F6 /* Alamofire.framework */; };
+		655B059A1E15A8C700A28FCE /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655B05991E15A8C700A28FCE /* WarpCore.framework */; };
+		655B059C1E15AA7800A28FCE /* QBEFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EE981C14758B00AE6C00 /* QBEFactory.swift */; };
+		655B059D1E15AA8D00A28FCE /* QBESentence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEB81C14758B00AE6C00 /* QBESentence.swift */; };
+		655B059E1E15AACB00A28FCE /* QBEDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEB41C14758B00AE6C00 /* QBEDocument.swift */; };
+		655B059F1E15ABD900A28FCE /* QBEFlowchartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEDA1C14758B00AE6C00 /* QBEFlowchartView.swift */; };
+		655B05A01E15AC3E00A28FCE /* QBEFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEB51C14758B00AE6C00 /* QBEFile.swift */; };
+		655B05A21E15AE7B00A28FCE /* QBEViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEDF1C14758B00AE6C00 /* QBEViewExtensions.swift */; };
+		655B05A31E15B18C00A28FCE /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFB81C1475D900AE6C00 /* Images.xcassets */; };
+		655F91C91E196665005A47A1 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91C81E196665005A47A1 /* WarpCore.framework */; };
+		655F91CA1E196665005A47A1 /* WarpCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91C81E196665005A47A1 /* WarpCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		655F91D61E196684005A47A1 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91D51E196684005A47A1 /* Rethink.framework */; };
+		655F91D71E196684005A47A1 /* Rethink.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91D51E196684005A47A1 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		655F91D91E19668C005A47A1 /* GCDAsyncSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91D81E19668C005A47A1 /* GCDAsyncSocket.framework */; };
+		655F91DA1E19668C005A47A1 /* GCDAsyncSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91D81E19668C005A47A1 /* GCDAsyncSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		655F91DC1E196691005A47A1 /* SCRAM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91DB1E196691005A47A1 /* SCRAM.framework */; };
+		655F91DD1E196691005A47A1 /* SCRAM.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91DB1E196691005A47A1 /* SCRAM.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		655F91DE1E19669C005A47A1 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC51AB0380200D2C2F6 /* Alamofire.framework */; };
+		655F91DF1E19669C005A47A1 /* Alamofire.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC51AB0380200D2C2F6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		655F91E31E1966BB005A47A1 /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91E21E1966BB005A47A1 /* SwiftParser.framework */; };
+		655F91E41E1966BB005A47A1 /* SwiftParser.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91E21E1966BB005A47A1 /* SwiftParser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		656258D91C94AE100063253C /* QBEKeySelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */; };
 		656822561D78D60E00410BA5 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 656822551D78D60E00410BA5 /* libiconv.tbd */; };
 		65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		657DB2E51D71E695001C4276 /* QBEJSONViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657DB2E41D71E695001C4276 /* QBEJSONViewController.swift */; };
-		6582E4C41CF4C8D700DAFC78 /* QBEExplodeStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6582E4C31CF4C8D700DAFC78 /* QBEExplodeStep.swift */; };
 		6583EEE01C14758B00AE6C00 /* QBEAlterTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EE901C14758B00AE6C00 /* QBEAlterTableViewController.swift */; };
 		6583EEE11C14758B00AE6C00 /* QBEAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EE911C14758B00AE6C00 /* QBEAppDelegate.swift */; };
 		6583EEE21C14758B00AE6C00 /* QBECalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EE921C14758B00AE6C00 /* QBECalculator.swift */; };
@@ -72,28 +150,6 @@
 		6583EF071C14758B00AE6C00 /* QBESettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEB91C14758B00AE6C00 /* QBESettings.swift */; };
 		6583EF081C14758B00AE6C00 /* QBEStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEBA1C14758B00AE6C00 /* QBEStep.swift */; };
 		6583EF091C14758B00AE6C00 /* QBETablet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEBB1C14758B00AE6C00 /* QBETablet.swift */; };
-		6583EF0A1C14758B00AE6C00 /* QBECalculateStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEBD1C14758B00AE6C00 /* QBECalculateStep.swift */; };
-		6583EF0B1C14758B00AE6C00 /* QBECloneStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEBE1C14758B00AE6C00 /* QBECloneStep.swift */; };
-		6583EF0C1C14758B00AE6C00 /* QBEColumnsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEBF1C14758B00AE6C00 /* QBEColumnsStep.swift */; };
-		6583EF0D1C14758B00AE6C00 /* QBECrawlStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEC01C14758B00AE6C00 /* QBECrawlStep.swift */; };
-		6583EF0E1C14758B00AE6C00 /* QBECSVStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEC11C14758B00AE6C00 /* QBECSVStep.swift */; };
-		6583EF0F1C14758B00AE6C00 /* QBEDBFStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEC21C14758B00AE6C00 /* QBEDBFStep.swift */; };
-		6583EF101C14758B00AE6C00 /* QBEDebugStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEC31C14758B00AE6C00 /* QBEDebugStep.swift */; };
-		6583EF111C14758B00AE6C00 /* QBEExportStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEC41C14758B00AE6C00 /* QBEExportStep.swift */; };
-		6583EF121C14758B00AE6C00 /* QBEFlattenStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEC51C14758B00AE6C00 /* QBEFlattenStep.swift */; };
-		6583EF131C14758B00AE6C00 /* QBEJoinStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEC61C14758B00AE6C00 /* QBEJoinStep.swift */; };
-		6583EF141C14758B00AE6C00 /* QBEMySQLSourceStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEC71C14758B00AE6C00 /* QBEMySQLSourceStep.swift */; };
-		6583EF151C14758B00AE6C00 /* QBEPivotStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEC81C14758B00AE6C00 /* QBEPivotStep.swift */; };
-		6583EF161C14758B00AE6C00 /* QBEPostgresStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEC91C14758B00AE6C00 /* QBEPostgresStep.swift */; };
-		6583EF171C14758B00AE6C00 /* QBEPrestoStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EECA1C14758B00AE6C00 /* QBEPrestoStep.swift */; };
-		6583EF181C14758B00AE6C00 /* QBERasterStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EECB1C14758B00AE6C00 /* QBERasterStep.swift */; };
-		6583EF191C14758B00AE6C00 /* QBERenameStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EECC1C14758B00AE6C00 /* QBERenameStep.swift */; };
-		6583EF1A1C14758B00AE6C00 /* QBERethinkStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EECD1C14758B00AE6C00 /* QBERethinkStep.swift */; };
-		6583EF1B1C14758B00AE6C00 /* QBERowsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EECE1C14758B00AE6C00 /* QBERowsStep.swift */; };
-		6583EF1C1C14758B00AE6C00 /* QBESequencerStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EECF1C14758B00AE6C00 /* QBESequencerStep.swift */; };
-		6583EF1D1C14758B00AE6C00 /* QBESortStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EED01C14758B00AE6C00 /* QBESortStep.swift */; };
-		6583EF1E1C14758B00AE6C00 /* QBESQLiteStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EED11C14758B00AE6C00 /* QBESQLiteStep.swift */; };
-		6583EF1F1C14758B00AE6C00 /* QBEXMLStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EED21C14758B00AE6C00 /* QBEXMLStep.swift */; };
 		6583EF211C14758B00AE6C00 /* QBEAnchor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EED61C14758B00AE6C00 /* QBEAnchor.swift */; };
 		6583EF221C14758B00AE6C00 /* QBEDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EED71C14758B00AE6C00 /* QBEDocumentView.swift */; };
 		6583EF231C14758B00AE6C00 /* QBEFilePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EED81C14758B00AE6C00 /* QBEFilePanel.swift */; };
@@ -107,7 +163,62 @@
 		6583EF2D1C1475B900AE6C00 /* QBETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EF2C1C1475AA00AE6C00 /* QBETests.swift */; };
 		65865AC81D8204F8004EF86A /* QBEJSONViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65865AC61D8204F8004EF86A /* QBEJSONViewController.xib */; };
 		65865ACD1D828DA6004EF86A /* QBEJSONViewController.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65865ACB1D828DA6004EF86A /* QBEJSONViewController.strings */; };
-		65A7322A1D8D4C7100C5C397 /* QBESearchStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A732291D8D4C7100C5C397 /* QBESearchStep.swift */; };
+		658A4C021E16476A00944430 /* QBEJobsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEB61C14758B00AE6C00 /* QBEJobsManager.swift */; };
+		658A4C031E16476F00944430 /* QBENote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687F1C70E96600F0F048 /* QBENote.swift */; };
+		658A4C041E16477A00944430 /* QBEMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC651CA9642F003FC6DF /* QBEMap.swift */; };
+		658A4C051E16477F00944430 /* QBESettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEB91C14758B00AE6C00 /* QBESettings.swift */; };
+		658A4C071E16489C00944430 /* QBEDocumentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658A4C061E16489C00944430 /* QBEDocumentsViewController.swift */; };
+		658A4C0A1E16F76A00944430 /* QBEDocumentThumbnailCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658A4C091E16F76A00944430 /* QBEDocumentThumbnailCache.swift */; };
+		658A4C0C1E17058000944430 /* QBEDocumentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658A4C0B1E17058000944430 /* QBEDocumentViewController.swift */; };
+		6596CFB11E1913D600B06F4F /* QBEChainTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6596CFB01E1913D600B06F4F /* QBEChainTabletViewController.swift */; };
+		6596CFBD1E19165400B06F4F /* QBEStepsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6596CFBC1E19165400B06F4F /* QBEStepsViewController.swift */; };
+		6596CFC01E19209000B06F4F /* QBESentenceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6596CFBF1E19209000B06F4F /* QBESentenceViewController.swift */; };
+		6596CFC11E19557A00B06F4F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFBA1C1475D900AE6C00 /* Localizable.strings */; };
+		6596CFD31E1957B500B06F4F /* MDSpreadView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6596CFC51E1957B500B06F4F /* MDSpreadView.m */; };
+		6596CFD41E1957B500B06F4F /* MDSpreadViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6596CFC71E1957B500B06F4F /* MDSpreadViewCell.m */; };
+		6596CFD51E1957B500B06F4F /* MDSpreadViewCellBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = 6596CFC91E1957B500B06F4F /* MDSpreadViewCellBackground.m */; };
+		6596CFD61E1957B500B06F4F /* MDSpreadViewCellColumnHeaderBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = 6596CFCB1E1957B500B06F4F /* MDSpreadViewCellColumnHeaderBackground.m */; };
+		6596CFD71E1957B500B06F4F /* MDSpreadViewCellCornerHeaderBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = 6596CFCD1E1957B500B06F4F /* MDSpreadViewCellCornerHeaderBackground.m */; };
+		6596CFD81E1957B500B06F4F /* MDSpreadViewCellRowHeaderBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = 6596CFCF1E1957B500B06F4F /* MDSpreadViewCellRowHeaderBackground.m */; };
+		6596CFD91E1957B500B06F4F /* MDSpreadViewHeaderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6596CFD21E1957B500B06F4F /* MDSpreadViewHeaderCell.m */; };
+		6596CFFF1E1957BB00B06F4F /* MDSpreadViewCell.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFDB1E1957BB00B06F4F /* MDSpreadViewCell.png */; };
+		6596D0001E1957BB00B06F4F /* MDSpreadViewCell@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFDC1E1957BB00B06F4F /* MDSpreadViewCell@2x.png */; };
+		6596D0011E1957BB00B06F4F /* MDSpreadViewCellSelected.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFDD1E1957BB00B06F4F /* MDSpreadViewCellSelected.png */; };
+		6596D0021E1957BB00B06F4F /* MDSpreadViewCellSelected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFDE1E1957BB00B06F4F /* MDSpreadViewCellSelected@2x.png */; };
+		6596D0031E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeft.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFDF1E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeft.png */; };
+		6596D0041E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeft@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFE01E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeft@2x.png */; };
+		6596D0051E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeftSelected.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFE11E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeftSelected.png */; };
+		6596D0061E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeftSelected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFE21E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeftSelected@2x.png */; };
+		6596D0071E1957BB00B06F4F /* MDSpreadViewColumnHeaderRight.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFE31E1957BB00B06F4F /* MDSpreadViewColumnHeaderRight.png */; };
+		6596D0081E1957BB00B06F4F /* MDSpreadViewColumnHeaderRight@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFE41E1957BB00B06F4F /* MDSpreadViewColumnHeaderRight@2x.png */; };
+		6596D0091E1957BB00B06F4F /* MDSpreadViewColumnHeaderRightSelected.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFE51E1957BB00B06F4F /* MDSpreadViewColumnHeaderRightSelected.png */; };
+		6596D00A1E1957BB00B06F4F /* MDSpreadViewColumnHeaderRightSelected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFE61E1957BB00B06F4F /* MDSpreadViewColumnHeaderRightSelected@2x.png */; };
+		6596D00B1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeft.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFE71E1957BB00B06F4F /* MDSpreadViewCornerBottomLeft.png */; };
+		6596D00C1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeft@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFE81E1957BB00B06F4F /* MDSpreadViewCornerBottomLeft@2x.png */; };
+		6596D00D1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeftSelected.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFE91E1957BB00B06F4F /* MDSpreadViewCornerBottomLeftSelected.png */; };
+		6596D00E1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeftSelected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFEA1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeftSelected@2x.png */; };
+		6596D00F1E1957BB00B06F4F /* MDSpreadViewCornerBottomRight.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFEB1E1957BB00B06F4F /* MDSpreadViewCornerBottomRight.png */; };
+		6596D0101E1957BB00B06F4F /* MDSpreadViewCornerBottomRight@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFEC1E1957BB00B06F4F /* MDSpreadViewCornerBottomRight@2x.png */; };
+		6596D0111E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFED1E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected.png */; };
+		6596D0121E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFEE1E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected@2x.png */; };
+		6596D0131E1957BB00B06F4F /* MDSpreadViewCornerTopLeft.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFEF1E1957BB00B06F4F /* MDSpreadViewCornerTopLeft.png */; };
+		6596D0141E1957BB00B06F4F /* MDSpreadViewCornerTopLeft@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFF01E1957BB00B06F4F /* MDSpreadViewCornerTopLeft@2x.png */; };
+		6596D0151E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFF11E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected.png */; };
+		6596D0161E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFF21E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected@2x.png */; };
+		6596D0171E1957BB00B06F4F /* MDSpreadViewCornerTopRight.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFF31E1957BB00B06F4F /* MDSpreadViewCornerTopRight.png */; };
+		6596D0181E1957BB00B06F4F /* MDSpreadViewCornerTopRight@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFF41E1957BB00B06F4F /* MDSpreadViewCornerTopRight@2x.png */; };
+		6596D0191E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFF51E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected.png */; };
+		6596D01A1E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFF61E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected@2x.png */; };
+		6596D01B1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottom.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFF71E1957BB00B06F4F /* MDSpreadViewRowHeaderBottom.png */; };
+		6596D01C1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottom@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFF81E1957BB00B06F4F /* MDSpreadViewRowHeaderBottom@2x.png */; };
+		6596D01D1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFF91E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected.png */; };
+		6596D01E1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFFA1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected@2x.png */; };
+		6596D01F1E1957BB00B06F4F /* MDSpreadViewRowHeaderTop.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFFB1E1957BB00B06F4F /* MDSpreadViewRowHeaderTop.png */; };
+		6596D0201E1957BB00B06F4F /* MDSpreadViewRowHeaderTop@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFFC1E1957BB00B06F4F /* MDSpreadViewRowHeaderTop@2x.png */; };
+		6596D0211E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFFD1E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected.png */; };
+		6596D0221E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596CFFE1E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected@2x.png */; };
+		6596D0241E1957E600B06F4F /* QBERasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6596D0231E1957E600B06F4F /* QBERasterViewController.swift */; };
+		6596D0261E1959B700B06F4F /* QBEDataViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6596D0251E1959B700B06F4F /* QBEDataViewController.swift */; };
 		65B3CC611CA3D055003FC6DF /* QBESetEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC601CA3D055003FC6DF /* QBESetEditorViewController.swift */; };
 		65B3CC631CA96408003FC6DF /* QBEMapTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC621CA96408003FC6DF /* QBEMapTabletViewController.swift */; };
 		65B3CC661CA9642F003FC6DF /* QBEMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC651CA9642F003FC6DF /* QBEMap.swift */; };
@@ -118,7 +229,6 @@
 		65B774731C9FE88C006480B2 /* extraneous-columns.csv in Resources */ = {isa = PBXBuildFile; fileRef = 65B774711C9FE80D006480B2 /* extraneous-columns.csv */; };
 		65B774751C9FE8AF006480B2 /* missing-columns.csv in Resources */ = {isa = PBXBuildFile; fileRef = 65B774741C9FE8AF006480B2 /* missing-columns.csv */; };
 		65B774771CA05596006480B2 /* escapes.csv in Resources */ = {isa = PBXBuildFile; fileRef = 65B774761CA05596006480B2 /* escapes.csv */; };
-		65D1C8A31D4E86D300967C26 /* QBEHTTPStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D1C8A21D4E86D300967C26 /* QBEHTTPStep.swift */; };
 		65DAF6CA1D7C6FFD00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6C91D7C6FFD00163750 /* Rethink.framework */; };
 		65DAF6CF1D7C719D00163750 /* Rethink.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65DAF6CE1D7C719D00163750 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65E224521D7C5E3F007433E6 /* AccessibilityImageDescriptions.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFFA1C1475DF00AE6C00 /* AccessibilityImageDescriptions.strings */; };
@@ -172,7 +282,6 @@
 		65E224AE1D7C60C5007433E6 /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EB81D78D2AF00F6FAE5 /* WarpConduit.framework */; };
 		65E224AF1D7C60C8007433E6 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EBA1D78D2B700F6FAE5 /* WarpCore.framework */; };
 		65EC97971C9DFB8D0098A330 /* QBEColumnViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */; };
-		65F2DCDB1CDF4BF60099B3DB /* QBEClassifierStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F2DCDA1CDF4BF60099B3DB /* QBEClassifierStep.swift */; };
 		65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65F50EB91D78D2AF00F6FAE5 /* WarpConduit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65F50EB81D78D2AF00F6FAE5 /* WarpConduit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65F50EBB1D78D2B700F6FAE5 /* WarpCore.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65F50EBA1D78D2B700F6FAE5 /* WarpCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -201,6 +310,48 @@
 			proxyType = 1;
 			remoteGlobalIDString = E2E62BA91781C33400F36275;
 			remoteInfo = MBTableGrid;
+		};
+		651BED9A1E198EFA0094F8AD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 651BED951E198EFA0094F8AD /* Eureka.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 51729DEB1B9A4F5E004A00EB;
+			remoteInfo = Eureka;
+		};
+		651BED9C1E198EFA0094F8AD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 651BED951E198EFA0094F8AD /* Eureka.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 51729DF51B9A4F5E004A00EB;
+			remoteInfo = EurekaTests;
+		};
+		651BED9E1E198F090094F8AD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 651BED951E198EFA0094F8AD /* Eureka.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 51729DEA1B9A4F5E004A00EB;
+			remoteInfo = Eureka;
+		};
+		651BEDA51E198F510094F8AD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 651BEDA01E198F510094F8AD /* WarpConduit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65F50E891D78CE1000F6FAE5;
+			remoteInfo = WarpConduit;
+		};
+		651BEDA71E198F510094F8AD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 651BEDA01E198F510094F8AD /* WarpConduit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 651BEC661E196F6D0094F8AD;
+			remoteInfo = "WarpConduit iOS";
+		};
+		651BEDA91E198F580094F8AD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 651BEDA01E198F510094F8AD /* WarpConduit.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 651BEC651E196F6D0094F8AD;
+			remoteInfo = "WarpConduit iOS";
 		};
 		652B26CB1B8E3F3500A2D38E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -237,12 +388,26 @@
 			remoteGlobalIDString = 06165F231D8110E600722320;
 			remoteInfo = Charts;
 		};
+		655B05761E15A5EE00A28FCE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F8111E3219A95C8B0040E7D1;
+			remoteInfo = "Alamofire iOS";
+		};
 		655BD6411C146EDB00634C66 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65E3C2AC1A05222F007BB3C8 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 65E3C2EB1A062E5E007BB3C8;
 			remoteInfo = Warp;
+		};
+		655F91E01E19669C005A47A1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F8111E3219A95C8B0040E7D1;
+			remoteInfo = "Alamofire iOS";
 		};
 		65734BC41AB0380200D2C2F6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -324,6 +489,24 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		655F91D41E196666005A47A1 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				651BEDAC1E198F680094F8AD /* Eureka.framework in Embed Frameworks */,
+				655F91D71E196684005A47A1 /* Rethink.framework in Embed Frameworks */,
+				655F91E41E1966BB005A47A1 /* SwiftParser.framework in Embed Frameworks */,
+				655F91DD1E196691005A47A1 /* SCRAM.framework in Embed Frameworks */,
+				655F91CA1E196665005A47A1 /* WarpCore.framework in Embed Frameworks */,
+				651BEC8E1E1972170094F8AD /* WarpConduit.framework in Embed Frameworks */,
+				655F91DF1E19669C005A47A1 /* Alamofire.framework in Embed Frameworks */,
+				655F91DA1E19668C005A47A1 /* GCDAsyncSocket.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65F3867C1A6B1DEE00C83810 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -346,30 +529,72 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		650238C51D44DF30000BE0F2 /* QBECacheStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECacheStep.swift; sourceTree = "<group>"; };
 		650238C81D44E0A6000BE0F2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBECacheStepView.xib; sourceTree = SOURCE_ROOT; };
 		650238CA1D44E0DF000BE0F2 /* QBECacheStepView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECacheStepView.swift; sourceTree = "<group>"; };
 		650238CF1D44E1CC000BE0F2 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBECacheStepView.strings; sourceTree = SOURCE_ROOT; };
 		650238D31D47C770000BE0F2 /* QBEListEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEListEditorViewController.swift; sourceTree = "<group>"; };
-		650238D51D47F63F000BE0F2 /* QBEDummiesStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDummiesStep.swift; sourceTree = "<group>"; };
 		6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MBTableGrid.xcodeproj; path = Libraries/MBTableGrid/MBTableGrid.xcodeproj; sourceTree = "<group>"; };
+		651BEBEE1E196D3B0094F8AD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		651BEBF91E196EF10094F8AD /* QBEMySQLSourceStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEMySQLSourceStep.swift; sourceTree = "<group>"; };
+		651BEBFA1E196EF10094F8AD /* QBEClassifierStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEClassifierStep.swift; sourceTree = "<group>"; };
+		651BEBFB1E196EF10094F8AD /* QBESQLiteStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESQLiteStep.swift; sourceTree = "<group>"; };
+		651BEBFC1E196EF10094F8AD /* QBEPrestoStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEPrestoStep.swift; sourceTree = "<group>"; };
+		651BEBFD1E196EF10094F8AD /* QBERowsStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERowsStep.swift; sourceTree = "<group>"; };
+		651BEBFE1E196EF10094F8AD /* QBEExplodeStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEExplodeStep.swift; sourceTree = "<group>"; };
+		651BEBFF1E196EF10094F8AD /* QBEJoinStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEJoinStep.swift; sourceTree = "<group>"; };
+		651BEC001E196EF10094F8AD /* QBECalculateStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECalculateStep.swift; sourceTree = "<group>"; };
+		651BEC011E196EF10094F8AD /* QBECSVStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECSVStep.swift; sourceTree = "<group>"; };
+		651BEC021E196EF10094F8AD /* QBECrawlStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECrawlStep.swift; sourceTree = "<group>"; };
+		651BEC031E196EF10094F8AD /* QBEColumnsStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEColumnsStep.swift; sourceTree = "<group>"; };
+		651BEC041E196EF10094F8AD /* QBERethinkStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERethinkStep.swift; sourceTree = "<group>"; };
+		651BEC051E196EF10094F8AD /* QBEPostgresStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEPostgresStep.swift; sourceTree = "<group>"; };
+		651BEC061E196EF10094F8AD /* QBEPivotStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEPivotStep.swift; sourceTree = "<group>"; };
+		651BEC071E196EF10094F8AD /* QBERenameStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERenameStep.swift; sourceTree = "<group>"; };
+		651BEC081E196EF10094F8AD /* QBESequencerStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESequencerStep.swift; sourceTree = "<group>"; };
+		651BEC091E196EF10094F8AD /* QBEDBFStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDBFStep.swift; sourceTree = "<group>"; };
+		651BEC0A1E196EF10094F8AD /* QBEDummiesStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDummiesStep.swift; sourceTree = "<group>"; };
+		651BEC0B1E196EF10094F8AD /* QBEFlattenStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFlattenStep.swift; sourceTree = "<group>"; };
+		651BEC0C1E196EF10094F8AD /* QBEExportStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEExportStep.swift; sourceTree = "<group>"; };
+		651BEC0D1E196EF10094F8AD /* QBEXMLStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEXMLStep.swift; sourceTree = "<group>"; };
+		651BEC0E1E196EF10094F8AD /* QBECacheStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECacheStep.swift; sourceTree = "<group>"; };
+		651BEC0F1E196EF10094F8AD /* QBESortStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESortStep.swift; sourceTree = "<group>"; };
+		651BEC101E196EF10094F8AD /* QBEHTTPStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEHTTPStep.swift; sourceTree = "<group>"; };
+		651BEC111E196EF10094F8AD /* QBEDebugStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDebugStep.swift; sourceTree = "<group>"; };
+		651BEC121E196EF10094F8AD /* QBECloneStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECloneStep.swift; sourceTree = "<group>"; };
+		651BEC131E196EF10094F8AD /* QBEFileStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFileStep.swift; sourceTree = "<group>"; };
+		651BEC141E196EF10094F8AD /* QBERasterStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERasterStep.swift; sourceTree = "<group>"; };
+		651BEC151E196EF10094F8AD /* QBESearchStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESearchStep.swift; sourceTree = "<group>"; };
+		651BEC871E1971170094F8AD /* WarpConduit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WarpConduit.framework; path = "../../../../Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug-iphoneos/WarpConduit.framework"; sourceTree = "<group>"; };
+		651BED901E198D940094F8AD /* QBEConfigureViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEConfigureViewController.swift; sourceTree = "<group>"; };
+		651BED951E198EFA0094F8AD /* Eureka.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Eureka.xcodeproj; path = Libraries/Eureka/Eureka.xcodeproj; sourceTree = "<group>"; };
+		651BEDA01E198F510094F8AD /* WarpConduit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = WarpConduit.xcodeproj; path = ../WarpConduit/WarpConduit.xcodeproj; sourceTree = "<group>"; };
+		651BEDAF1E19B06B0094F8AD /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Main.strings; sourceTree = "<group>"; };
 		651C68751C70D7B300F0F048 /* QBETabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBETabletViewController.swift; sourceTree = "<group>"; };
 		651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChainTabletViewController.swift; sourceTree = "<group>"; };
 		651C687F1C70E96600F0F048 /* QBENote.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENote.swift; sourceTree = "<group>"; };
 		651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBENoteTabletViewController.swift; sourceTree = "<group>"; };
 		65292F461D7CACFA0053ADE3 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
-		6537E1CF1D85E97100CD80EC /* QBEFileStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFileStep.swift; sourceTree = "<group>"; };
 		6537E1DC1D85ED1900CD80EC /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
-		6537E1E91D872CC300CD80EC /* GCDAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDAsyncSocket.framework; path = ../WarpConduit/Libraries/Rethink/build/Debug/GCDAsyncSocket.framework; sourceTree = "<group>"; };
 		6537E1F61D89E6DD00CD80EC /* GCDAsyncSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDAsyncSocket.framework; path = "../../../../Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/GCDAsyncSocket.framework"; sourceTree = "<group>"; };
 		6537E1F71D89E6DD00CD80EC /* SCRAM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCRAM.framework; path = "../../../../Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/SCRAM.framework"; sourceTree = "<group>"; };
 		6537E1FC1D89E87F00CD80EC /* GCDAsyncSocket.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GCDAsyncSocket.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6537E1FE1D89E88300CD80EC /* SCRAM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SCRAM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		655B05561E15A57100A28FCE /* Warp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		655B05581E15A57100A28FCE /* QBEAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QBEAppDelegate.swift; sourceTree = "<group>"; };
+		655B055D1E15A57100A28FCE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		655B05621E15A57100A28FCE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		655B05641E15A57100A28FCE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		655B05911E15A7E400A28FCE /* SwiftParserMobile.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftParserMobile.framework; path = "../../../../Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug-iphonesimulator/SwiftParserMobile.framework"; sourceTree = "<group>"; };
+		655B05991E15A8C700A28FCE /* WarpCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WarpCore.framework; path = "../../../../Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug-iphonesimulator/WarpCore.framework"; sourceTree = "<group>"; };
+		655F91C81E196665005A47A1 /* WarpCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = WarpCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		655F91D51E196684005A47A1 /* Rethink.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Rethink.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		655F91D81E19668C005A47A1 /* GCDAsyncSocket.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GCDAsyncSocket.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		655F91DB1E196691005A47A1 /* SCRAM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SCRAM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		655F91E21E1966BB005A47A1 /* SwiftParser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftParser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEKeySelectionViewController.swift; sourceTree = "<group>"; };
 		656822551D78D60E00410BA5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Alamofire.xcodeproj; path = Libraries/Alamofire/Alamofire.xcodeproj; sourceTree = "<group>"; };
 		657DB2E41D71E695001C4276 /* QBEJSONViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEJSONViewController.swift; sourceTree = "<group>"; };
-		6582E4C31CF4C8D700DAFC78 /* QBEExplodeStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEExplodeStep.swift; sourceTree = "<group>"; };
 		6583EE901C14758B00AE6C00 /* QBEAlterTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = QBEAlterTableViewController.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		6583EE911C14758B00AE6C00 /* QBEAppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEAppDelegate.swift; sourceTree = "<group>"; };
 		6583EE921C14758B00AE6C00 /* QBECalculator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = QBECalculator.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -411,28 +636,6 @@
 		6583EEB91C14758B00AE6C00 /* QBESettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESettings.swift; sourceTree = "<group>"; };
 		6583EEBA1C14758B00AE6C00 /* QBEStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEStep.swift; sourceTree = "<group>"; };
 		6583EEBB1C14758B00AE6C00 /* QBETablet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBETablet.swift; sourceTree = "<group>"; };
-		6583EEBD1C14758B00AE6C00 /* QBECalculateStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = QBECalculateStep.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
-		6583EEBE1C14758B00AE6C00 /* QBECloneStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECloneStep.swift; sourceTree = "<group>"; };
-		6583EEBF1C14758B00AE6C00 /* QBEColumnsStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEColumnsStep.swift; sourceTree = "<group>"; };
-		6583EEC01C14758B00AE6C00 /* QBECrawlStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECrawlStep.swift; sourceTree = "<group>"; };
-		6583EEC11C14758B00AE6C00 /* QBECSVStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBECSVStep.swift; sourceTree = "<group>"; };
-		6583EEC21C14758B00AE6C00 /* QBEDBFStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDBFStep.swift; sourceTree = "<group>"; };
-		6583EEC31C14758B00AE6C00 /* QBEDebugStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDebugStep.swift; sourceTree = "<group>"; };
-		6583EEC41C14758B00AE6C00 /* QBEExportStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEExportStep.swift; sourceTree = "<group>"; };
-		6583EEC51C14758B00AE6C00 /* QBEFlattenStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFlattenStep.swift; sourceTree = "<group>"; };
-		6583EEC61C14758B00AE6C00 /* QBEJoinStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEJoinStep.swift; sourceTree = "<group>"; };
-		6583EEC71C14758B00AE6C00 /* QBEMySQLSourceStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEMySQLSourceStep.swift; sourceTree = "<group>"; };
-		6583EEC81C14758B00AE6C00 /* QBEPivotStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = QBEPivotStep.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
-		6583EEC91C14758B00AE6C00 /* QBEPostgresStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEPostgresStep.swift; sourceTree = "<group>"; };
-		6583EECA1C14758B00AE6C00 /* QBEPrestoStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEPrestoStep.swift; sourceTree = "<group>"; };
-		6583EECB1C14758B00AE6C00 /* QBERasterStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERasterStep.swift; sourceTree = "<group>"; };
-		6583EECC1C14758B00AE6C00 /* QBERenameStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERenameStep.swift; sourceTree = "<group>"; };
-		6583EECD1C14758B00AE6C00 /* QBERethinkStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERethinkStep.swift; sourceTree = "<group>"; };
-		6583EECE1C14758B00AE6C00 /* QBERowsStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERowsStep.swift; sourceTree = "<group>"; };
-		6583EECF1C14758B00AE6C00 /* QBESequencerStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESequencerStep.swift; sourceTree = "<group>"; };
-		6583EED01C14758B00AE6C00 /* QBESortStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESortStep.swift; sourceTree = "<group>"; };
-		6583EED11C14758B00AE6C00 /* QBESQLiteStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESQLiteStep.swift; sourceTree = "<group>"; };
-		6583EED21C14758B00AE6C00 /* QBEXMLStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEXMLStep.swift; sourceTree = "<group>"; };
 		6583EED31C14758B00AE6C00 /* QBEObjectiveCBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QBEObjectiveCBridge.h; path = Sources/QBEObjectiveCBridge.h; sourceTree = SOURCE_ROOT; };
 		6583EED61C14758B00AE6C00 /* QBEAnchor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEAnchor.swift; sourceTree = "<group>"; };
 		6583EED71C14758B00AE6C00 /* QBEDocumentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDocumentView.swift; sourceTree = "<group>"; };
@@ -488,7 +691,66 @@
 		65865ACC1D828DA6004EF86A /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEJSONViewController.strings; sourceTree = SOURCE_ROOT; };
 		6588728D1D7C5BB700D56137 /* Warp.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = Warp.entitlements; sourceTree = SOURCE_ROOT; };
 		6588729B1D7C5BCF00D56137 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
-		65A732291D8D4C7100C5C397 /* QBESearchStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESearchStep.swift; sourceTree = "<group>"; };
+		658A4C061E16489C00944430 /* QBEDocumentsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDocumentsViewController.swift; sourceTree = "<group>"; };
+		658A4C081E16F6B900944430 /* WarpMobile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WarpMobile.entitlements; sourceTree = "<group>"; };
+		658A4C091E16F76A00944430 /* QBEDocumentThumbnailCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDocumentThumbnailCache.swift; sourceTree = "<group>"; };
+		658A4C0B1E17058000944430 /* QBEDocumentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDocumentViewController.swift; sourceTree = "<group>"; };
+		6596CFB01E1913D600B06F4F /* QBEChainTabletViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEChainTabletViewController.swift; sourceTree = "<group>"; };
+		6596CFBC1E19165400B06F4F /* QBEStepsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEStepsViewController.swift; sourceTree = "<group>"; };
+		6596CFBF1E19209000B06F4F /* QBESentenceViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESentenceViewController.swift; sourceTree = "<group>"; };
+		6596CFC41E1957B500B06F4F /* MDSpreadView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MDSpreadView.h; sourceTree = "<group>"; };
+		6596CFC51E1957B500B06F4F /* MDSpreadView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MDSpreadView.m; sourceTree = "<group>"; };
+		6596CFC61E1957B500B06F4F /* MDSpreadViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MDSpreadViewCell.h; sourceTree = "<group>"; };
+		6596CFC71E1957B500B06F4F /* MDSpreadViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MDSpreadViewCell.m; sourceTree = "<group>"; };
+		6596CFC81E1957B500B06F4F /* MDSpreadViewCellBackground.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MDSpreadViewCellBackground.h; sourceTree = "<group>"; };
+		6596CFC91E1957B500B06F4F /* MDSpreadViewCellBackground.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MDSpreadViewCellBackground.m; sourceTree = "<group>"; };
+		6596CFCA1E1957B500B06F4F /* MDSpreadViewCellColumnHeaderBackground.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MDSpreadViewCellColumnHeaderBackground.h; sourceTree = "<group>"; };
+		6596CFCB1E1957B500B06F4F /* MDSpreadViewCellColumnHeaderBackground.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MDSpreadViewCellColumnHeaderBackground.m; sourceTree = "<group>"; };
+		6596CFCC1E1957B500B06F4F /* MDSpreadViewCellCornerHeaderBackground.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MDSpreadViewCellCornerHeaderBackground.h; sourceTree = "<group>"; };
+		6596CFCD1E1957B500B06F4F /* MDSpreadViewCellCornerHeaderBackground.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MDSpreadViewCellCornerHeaderBackground.m; sourceTree = "<group>"; };
+		6596CFCE1E1957B500B06F4F /* MDSpreadViewCellRowHeaderBackground.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MDSpreadViewCellRowHeaderBackground.h; sourceTree = "<group>"; };
+		6596CFCF1E1957B500B06F4F /* MDSpreadViewCellRowHeaderBackground.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MDSpreadViewCellRowHeaderBackground.m; sourceTree = "<group>"; };
+		6596CFD01E1957B500B06F4F /* MDSpreadViewClasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MDSpreadViewClasses.h; sourceTree = "<group>"; };
+		6596CFD11E1957B500B06F4F /* MDSpreadViewHeaderCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MDSpreadViewHeaderCell.h; sourceTree = "<group>"; };
+		6596CFD21E1957B500B06F4F /* MDSpreadViewHeaderCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MDSpreadViewHeaderCell.m; sourceTree = "<group>"; };
+		6596CFDB1E1957BB00B06F4F /* MDSpreadViewCell.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewCell.png; sourceTree = "<group>"; };
+		6596CFDC1E1957BB00B06F4F /* MDSpreadViewCell@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewCell@2x.png"; sourceTree = "<group>"; };
+		6596CFDD1E1957BB00B06F4F /* MDSpreadViewCellSelected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewCellSelected.png; sourceTree = "<group>"; };
+		6596CFDE1E1957BB00B06F4F /* MDSpreadViewCellSelected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewCellSelected@2x.png"; sourceTree = "<group>"; };
+		6596CFDF1E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeft.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewColumnHeaderLeft.png; sourceTree = "<group>"; };
+		6596CFE01E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeft@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewColumnHeaderLeft@2x.png"; sourceTree = "<group>"; };
+		6596CFE11E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeftSelected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewColumnHeaderLeftSelected.png; sourceTree = "<group>"; };
+		6596CFE21E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeftSelected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewColumnHeaderLeftSelected@2x.png"; sourceTree = "<group>"; };
+		6596CFE31E1957BB00B06F4F /* MDSpreadViewColumnHeaderRight.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewColumnHeaderRight.png; sourceTree = "<group>"; };
+		6596CFE41E1957BB00B06F4F /* MDSpreadViewColumnHeaderRight@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewColumnHeaderRight@2x.png"; sourceTree = "<group>"; };
+		6596CFE51E1957BB00B06F4F /* MDSpreadViewColumnHeaderRightSelected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewColumnHeaderRightSelected.png; sourceTree = "<group>"; };
+		6596CFE61E1957BB00B06F4F /* MDSpreadViewColumnHeaderRightSelected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewColumnHeaderRightSelected@2x.png"; sourceTree = "<group>"; };
+		6596CFE71E1957BB00B06F4F /* MDSpreadViewCornerBottomLeft.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewCornerBottomLeft.png; sourceTree = "<group>"; };
+		6596CFE81E1957BB00B06F4F /* MDSpreadViewCornerBottomLeft@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewCornerBottomLeft@2x.png"; sourceTree = "<group>"; };
+		6596CFE91E1957BB00B06F4F /* MDSpreadViewCornerBottomLeftSelected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewCornerBottomLeftSelected.png; sourceTree = "<group>"; };
+		6596CFEA1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeftSelected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewCornerBottomLeftSelected@2x.png"; sourceTree = "<group>"; };
+		6596CFEB1E1957BB00B06F4F /* MDSpreadViewCornerBottomRight.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewCornerBottomRight.png; sourceTree = "<group>"; };
+		6596CFEC1E1957BB00B06F4F /* MDSpreadViewCornerBottomRight@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewCornerBottomRight@2x.png"; sourceTree = "<group>"; };
+		6596CFED1E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewCornerBottomRightSelected.png; sourceTree = "<group>"; };
+		6596CFEE1E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewCornerBottomRightSelected@2x.png"; sourceTree = "<group>"; };
+		6596CFEF1E1957BB00B06F4F /* MDSpreadViewCornerTopLeft.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewCornerTopLeft.png; sourceTree = "<group>"; };
+		6596CFF01E1957BB00B06F4F /* MDSpreadViewCornerTopLeft@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewCornerTopLeft@2x.png"; sourceTree = "<group>"; };
+		6596CFF11E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewCornerTopLeftSelected.png; sourceTree = "<group>"; };
+		6596CFF21E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewCornerTopLeftSelected@2x.png"; sourceTree = "<group>"; };
+		6596CFF31E1957BB00B06F4F /* MDSpreadViewCornerTopRight.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewCornerTopRight.png; sourceTree = "<group>"; };
+		6596CFF41E1957BB00B06F4F /* MDSpreadViewCornerTopRight@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewCornerTopRight@2x.png"; sourceTree = "<group>"; };
+		6596CFF51E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewCornerTopRightSelected.png; sourceTree = "<group>"; };
+		6596CFF61E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewCornerTopRightSelected@2x.png"; sourceTree = "<group>"; };
+		6596CFF71E1957BB00B06F4F /* MDSpreadViewRowHeaderBottom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewRowHeaderBottom.png; sourceTree = "<group>"; };
+		6596CFF81E1957BB00B06F4F /* MDSpreadViewRowHeaderBottom@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewRowHeaderBottom@2x.png"; sourceTree = "<group>"; };
+		6596CFF91E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewRowHeaderBottomSelected.png; sourceTree = "<group>"; };
+		6596CFFA1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewRowHeaderBottomSelected@2x.png"; sourceTree = "<group>"; };
+		6596CFFB1E1957BB00B06F4F /* MDSpreadViewRowHeaderTop.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewRowHeaderTop.png; sourceTree = "<group>"; };
+		6596CFFC1E1957BB00B06F4F /* MDSpreadViewRowHeaderTop@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewRowHeaderTop@2x.png"; sourceTree = "<group>"; };
+		6596CFFD1E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MDSpreadViewRowHeaderTopSelected.png; sourceTree = "<group>"; };
+		6596CFFE1E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MDSpreadViewRowHeaderTopSelected@2x.png"; sourceTree = "<group>"; };
+		6596D0231E1957E600B06F4F /* QBERasterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBERasterViewController.swift; sourceTree = "<group>"; };
+		6596D0251E1959B700B06F4F /* QBEDataViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEDataViewController.swift; sourceTree = "<group>"; };
 		65A78CE51D74CB1300036045 /* WarpAI.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = WarpAI.xcodeproj; path = Libraries/WarpAI/WarpAI.xcodeproj; sourceTree = "<group>"; };
 		65AD6CEA1D6F91180020F478 /* libcommonCrypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcommonCrypto.tbd; path = usr/lib/system/libcommonCrypto.tbd; sourceTree = SDKROOT; };
 		65AD6CEC1D6F91360020F478 /* libcorecrypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcorecrypto.tbd; path = usr/lib/system/libcorecrypto.tbd; sourceTree = SDKROOT; };
@@ -507,7 +769,6 @@
 		65B774711C9FE80D006480B2 /* extraneous-columns.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "extraneous-columns.csv"; path = "Tests/Data/extraneous-columns.csv"; sourceTree = SOURCE_ROOT; };
 		65B774741C9FE8AF006480B2 /* missing-columns.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "missing-columns.csv"; path = "Tests/Data/missing-columns.csv"; sourceTree = SOURCE_ROOT; };
 		65B774761CA05596006480B2 /* escapes.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = escapes.csv; path = Tests/Data/escapes.csv; sourceTree = SOURCE_ROOT; };
-		65D1C8A21D4E86D300967C26 /* QBEHTTPStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEHTTPStep.swift; sourceTree = "<group>"; };
 		65DAF6C91D7C6FFD00163750 /* Rethink.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Rethink.framework; path = "/Users/tommy/Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/Rethink.framework"; sourceTree = "<absolute>"; };
 		65DAF6CE1D7C719D00163750 /* Rethink.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Rethink.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E224901D7C5EED007433E6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = SOURCE_ROOT; };
@@ -522,13 +783,30 @@
 		65E3C2EC1A062E5E007BB3C8 /* Warp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E3C2FF1A062E5E007BB3C8 /* WarpTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WarpTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEColumnViewController.swift; sourceTree = "<group>"; };
-		65F2DCDA1CDF4BF60099B3DB /* QBEClassifierStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEClassifierStep.swift; sourceTree = "<group>"; };
 		65F50EB81D78D2AF00F6FAE5 /* WarpConduit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = WarpConduit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65F50EBA1D78D2B700F6FAE5 /* WarpCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = WarpCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65F50EBD1D78D34E00F6FAE5 /* SwiftParser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftParser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		655B05531E15A57100A28FCE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				651BEDAB1E198F610094F8AD /* Eureka.framework in Frameworks */,
+				651BEC881E1971170094F8AD /* WarpConduit.framework in Frameworks */,
+				655B059A1E15A8C700A28FCE /* WarpCore.framework in Frameworks */,
+				655F91DE1E19669C005A47A1 /* Alamofire.framework in Frameworks */,
+				655F91DC1E196691005A47A1 /* SCRAM.framework in Frameworks */,
+				655F91D61E196684005A47A1 /* Rethink.framework in Frameworks */,
+				655F91D91E19668C005A47A1 /* GCDAsyncSocket.framework in Frameworks */,
+				655F91C91E196665005A47A1 /* WarpCore.framework in Frameworks */,
+				655B057A1E15A60800A28FCE /* Alamofire.framework in Frameworks */,
+				655F91E31E1966BB005A47A1 /* SwiftParser.framework in Frameworks */,
+				651BEC8D1E1972170094F8AD /* WarpConduit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65E3C2E91A062E5E007BB3C8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -575,6 +853,9 @@
 		651988E71A0F9C39003463AA /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				651BEDA01E198F510094F8AD /* WarpConduit.xcodeproj */,
+				651BED951E198EFA0094F8AD /* Eureka.xcodeproj */,
+				6596CFC21E1957A900B06F4F /* MDSpreadView */,
 				65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */,
 				65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */,
 				6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */,
@@ -583,12 +864,39 @@
 			name = Libraries;
 			sourceTree = "<group>";
 		};
+		651BED961E198EFA0094F8AD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				651BED9B1E198EFA0094F8AD /* Eureka.framework */,
+				651BED9D1E198EFA0094F8AD /* EurekaTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		651BEDA11E198F510094F8AD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				651BEDA61E198F510094F8AD /* WarpConduit.framework */,
+				651BEDA81E198F510094F8AD /* WarpConduit.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		653D19D81D1C76AC0094C441 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				651BEC871E1971170094F8AD /* WarpConduit.framework */,
+				655F91E21E1966BB005A47A1 /* SwiftParser.framework */,
+				655F91DB1E196691005A47A1 /* SCRAM.framework */,
+				655F91D81E19668C005A47A1 /* GCDAsyncSocket.framework */,
+				655F91D51E196684005A47A1 /* Rethink.framework */,
+				655F91C81E196665005A47A1 /* WarpCore.framework */,
+				6537E1FE1D89E88300CD80EC /* SCRAM.framework */,
+				6537E1FC1D89E87F00CD80EC /* GCDAsyncSocket.framework */,
+				655B05991E15A8C700A28FCE /* WarpCore.framework */,
+				655B05911E15A7E400A28FCE /* SwiftParserMobile.framework */,
 				6537E1F61D89E6DD00CD80EC /* GCDAsyncSocket.framework */,
 				6537E1F71D89E6DD00CD80EC /* SCRAM.framework */,
-				6537E1E91D872CC300CD80EC /* GCDAsyncSocket.framework */,
 				6537E1DC1D85ED1900CD80EC /* MapKit.framework */,
 				65DAF6CE1D7C719D00163750 /* Rethink.framework */,
 				65E224AC1D7C605E007433E6 /* libcrypto.35.dylib */,
@@ -619,13 +927,35 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		655B05571E15A57100A28FCE /* WarpMobile */ = {
+			isa = PBXGroup;
+			children = (
+				651BEBEE1E196D3B0094F8AD /* Assets.xcassets */,
+				655B05641E15A57100A28FCE /* Info.plist */,
+				655B05611E15A57100A28FCE /* LaunchScreen.storyboard */,
+				655B055C1E15A57100A28FCE /* Main.storyboard */,
+				655B05581E15A57100A28FCE /* QBEAppDelegate.swift */,
+				6596CFB01E1913D600B06F4F /* QBEChainTabletViewController.swift */,
+				651BED901E198D940094F8AD /* QBEConfigureViewController.swift */,
+				6596D0251E1959B700B06F4F /* QBEDataViewController.swift */,
+				658A4C061E16489C00944430 /* QBEDocumentsViewController.swift */,
+				658A4C091E16F76A00944430 /* QBEDocumentThumbnailCache.swift */,
+				658A4C0B1E17058000944430 /* QBEDocumentViewController.swift */,
+				6596D0231E1957E600B06F4F /* QBERasterViewController.swift */,
+				6596CFBF1E19209000B06F4F /* QBESentenceViewController.swift */,
+				6596CFBC1E19165400B06F4F /* QBEStepsViewController.swift */,
+				658A4C081E16F6B900944430 /* WarpMobile.entitlements */,
+			);
+			path = WarpMobile;
+			sourceTree = "<group>";
+		};
 		65734BBE1AB0380200D2C2F6 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				65734BC51AB0380200D2C2F6 /* Alamofire.framework */,
 				65734BC91AB0380200D2C2F6 /* Alamofire iOS Tests.xctest */,
 				65734BC71AB0380200D2C2F6 /* Alamofire.framework */,
-				65734BCB1AB0380200D2C2F6 /* Alamofire OSX Tests.xctest */,
+				65734BCB1AB0380200D2C2F6 /* Alamofire macOS Tests.xctest */,
 				65B92BDE1C86196900397014 /* Alamofire.framework */,
 				65B92BE01C86196900397014 /* Alamofire tvOS Tests.xctest */,
 				652B26CC1B8E3F3500A2D38E /* Alamofire.framework */,
@@ -694,6 +1024,7 @@
 		6583EEB21C14758B00AE6C00 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				6583EEBC1C14758B00AE6C00 /* Steps */,
 				6583EEB31C14758B00AE6C00 /* QBEChain.swift */,
 				65B3F6A71C73D0EE000983D0 /* QBEChart.swift */,
 				6583EEB41C14758B00AE6C00 /* QBEDocument.swift */,
@@ -707,7 +1038,6 @@
 				6583EEB91C14758B00AE6C00 /* QBESettings.swift */,
 				6583EEBA1C14758B00AE6C00 /* QBEStep.swift */,
 				6583EEBB1C14758B00AE6C00 /* QBETablet.swift */,
-				6583EEBC1C14758B00AE6C00 /* Steps */,
 			);
 			name = Model;
 			path = Sources/Model;
@@ -716,35 +1046,35 @@
 		6583EEBC1C14758B00AE6C00 /* Steps */ = {
 			isa = PBXGroup;
 			children = (
-				650238C51D44DF30000BE0F2 /* QBECacheStep.swift */,
-				6583EEBD1C14758B00AE6C00 /* QBECalculateStep.swift */,
-				65F2DCDA1CDF4BF60099B3DB /* QBEClassifierStep.swift */,
-				6583EEBE1C14758B00AE6C00 /* QBECloneStep.swift */,
-				6583EEBF1C14758B00AE6C00 /* QBEColumnsStep.swift */,
-				6583EEC01C14758B00AE6C00 /* QBECrawlStep.swift */,
-				6583EEC11C14758B00AE6C00 /* QBECSVStep.swift */,
-				6583EEC21C14758B00AE6C00 /* QBEDBFStep.swift */,
-				6583EEC31C14758B00AE6C00 /* QBEDebugStep.swift */,
-				650238D51D47F63F000BE0F2 /* QBEDummiesStep.swift */,
-				6582E4C31CF4C8D700DAFC78 /* QBEExplodeStep.swift */,
-				6583EEC41C14758B00AE6C00 /* QBEExportStep.swift */,
-				6537E1CF1D85E97100CD80EC /* QBEFileStep.swift */,
-				6583EEC51C14758B00AE6C00 /* QBEFlattenStep.swift */,
-				65D1C8A21D4E86D300967C26 /* QBEHTTPStep.swift */,
-				6583EEC61C14758B00AE6C00 /* QBEJoinStep.swift */,
-				6583EEC71C14758B00AE6C00 /* QBEMySQLSourceStep.swift */,
-				6583EEC81C14758B00AE6C00 /* QBEPivotStep.swift */,
-				6583EEC91C14758B00AE6C00 /* QBEPostgresStep.swift */,
-				6583EECA1C14758B00AE6C00 /* QBEPrestoStep.swift */,
-				6583EECB1C14758B00AE6C00 /* QBERasterStep.swift */,
-				6583EECC1C14758B00AE6C00 /* QBERenameStep.swift */,
-				6583EECD1C14758B00AE6C00 /* QBERethinkStep.swift */,
-				6583EECE1C14758B00AE6C00 /* QBERowsStep.swift */,
-				6583EECF1C14758B00AE6C00 /* QBESequencerStep.swift */,
-				6583EED01C14758B00AE6C00 /* QBESortStep.swift */,
-				6583EED11C14758B00AE6C00 /* QBESQLiteStep.swift */,
-				6583EED21C14758B00AE6C00 /* QBEXMLStep.swift */,
-				65A732291D8D4C7100C5C397 /* QBESearchStep.swift */,
+				651BEBF91E196EF10094F8AD /* QBEMySQLSourceStep.swift */,
+				651BEBFA1E196EF10094F8AD /* QBEClassifierStep.swift */,
+				651BEBFB1E196EF10094F8AD /* QBESQLiteStep.swift */,
+				651BEBFC1E196EF10094F8AD /* QBEPrestoStep.swift */,
+				651BEBFD1E196EF10094F8AD /* QBERowsStep.swift */,
+				651BEBFE1E196EF10094F8AD /* QBEExplodeStep.swift */,
+				651BEBFF1E196EF10094F8AD /* QBEJoinStep.swift */,
+				651BEC001E196EF10094F8AD /* QBECalculateStep.swift */,
+				651BEC011E196EF10094F8AD /* QBECSVStep.swift */,
+				651BEC021E196EF10094F8AD /* QBECrawlStep.swift */,
+				651BEC031E196EF10094F8AD /* QBEColumnsStep.swift */,
+				651BEC041E196EF10094F8AD /* QBERethinkStep.swift */,
+				651BEC051E196EF10094F8AD /* QBEPostgresStep.swift */,
+				651BEC061E196EF10094F8AD /* QBEPivotStep.swift */,
+				651BEC071E196EF10094F8AD /* QBERenameStep.swift */,
+				651BEC081E196EF10094F8AD /* QBESequencerStep.swift */,
+				651BEC091E196EF10094F8AD /* QBEDBFStep.swift */,
+				651BEC0A1E196EF10094F8AD /* QBEDummiesStep.swift */,
+				651BEC0B1E196EF10094F8AD /* QBEFlattenStep.swift */,
+				651BEC0C1E196EF10094F8AD /* QBEExportStep.swift */,
+				651BEC0D1E196EF10094F8AD /* QBEXMLStep.swift */,
+				651BEC0E1E196EF10094F8AD /* QBECacheStep.swift */,
+				651BEC0F1E196EF10094F8AD /* QBESortStep.swift */,
+				651BEC101E196EF10094F8AD /* QBEHTTPStep.swift */,
+				651BEC111E196EF10094F8AD /* QBEDebugStep.swift */,
+				651BEC121E196EF10094F8AD /* QBECloneStep.swift */,
+				651BEC131E196EF10094F8AD /* QBEFileStep.swift */,
+				651BEC141E196EF10094F8AD /* QBERasterStep.swift */,
+				651BEC151E196EF10094F8AD /* QBESearchStep.swift */,
 			);
 			path = Steps;
 			sourceTree = "<group>";
@@ -767,6 +1097,82 @@
 			name = View;
 			path = Sources/View;
 			sourceTree = SOURCE_ROOT;
+		};
+		6596CFC21E1957A900B06F4F /* MDSpreadView */ = {
+			isa = PBXGroup;
+			children = (
+				6596CFDA1E1957BB00B06F4F /* Images */,
+				6596CFC31E1957B500B06F4F /* Classes */,
+			);
+			name = MDSpreadView;
+			sourceTree = "<group>";
+		};
+		6596CFC31E1957B500B06F4F /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				6596CFC41E1957B500B06F4F /* MDSpreadView.h */,
+				6596CFC51E1957B500B06F4F /* MDSpreadView.m */,
+				6596CFC61E1957B500B06F4F /* MDSpreadViewCell.h */,
+				6596CFC71E1957B500B06F4F /* MDSpreadViewCell.m */,
+				6596CFC81E1957B500B06F4F /* MDSpreadViewCellBackground.h */,
+				6596CFC91E1957B500B06F4F /* MDSpreadViewCellBackground.m */,
+				6596CFCA1E1957B500B06F4F /* MDSpreadViewCellColumnHeaderBackground.h */,
+				6596CFCB1E1957B500B06F4F /* MDSpreadViewCellColumnHeaderBackground.m */,
+				6596CFCC1E1957B500B06F4F /* MDSpreadViewCellCornerHeaderBackground.h */,
+				6596CFCD1E1957B500B06F4F /* MDSpreadViewCellCornerHeaderBackground.m */,
+				6596CFCE1E1957B500B06F4F /* MDSpreadViewCellRowHeaderBackground.h */,
+				6596CFCF1E1957B500B06F4F /* MDSpreadViewCellRowHeaderBackground.m */,
+				6596CFD01E1957B500B06F4F /* MDSpreadViewClasses.h */,
+				6596CFD11E1957B500B06F4F /* MDSpreadViewHeaderCell.h */,
+				6596CFD21E1957B500B06F4F /* MDSpreadViewHeaderCell.m */,
+			);
+			name = Classes;
+			path = Libraries/MDSpreadView/Classes;
+			sourceTree = "<group>";
+		};
+		6596CFDA1E1957BB00B06F4F /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				6596CFDB1E1957BB00B06F4F /* MDSpreadViewCell.png */,
+				6596CFDC1E1957BB00B06F4F /* MDSpreadViewCell@2x.png */,
+				6596CFDD1E1957BB00B06F4F /* MDSpreadViewCellSelected.png */,
+				6596CFDE1E1957BB00B06F4F /* MDSpreadViewCellSelected@2x.png */,
+				6596CFDF1E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeft.png */,
+				6596CFE01E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeft@2x.png */,
+				6596CFE11E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeftSelected.png */,
+				6596CFE21E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeftSelected@2x.png */,
+				6596CFE31E1957BB00B06F4F /* MDSpreadViewColumnHeaderRight.png */,
+				6596CFE41E1957BB00B06F4F /* MDSpreadViewColumnHeaderRight@2x.png */,
+				6596CFE51E1957BB00B06F4F /* MDSpreadViewColumnHeaderRightSelected.png */,
+				6596CFE61E1957BB00B06F4F /* MDSpreadViewColumnHeaderRightSelected@2x.png */,
+				6596CFE71E1957BB00B06F4F /* MDSpreadViewCornerBottomLeft.png */,
+				6596CFE81E1957BB00B06F4F /* MDSpreadViewCornerBottomLeft@2x.png */,
+				6596CFE91E1957BB00B06F4F /* MDSpreadViewCornerBottomLeftSelected.png */,
+				6596CFEA1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeftSelected@2x.png */,
+				6596CFEB1E1957BB00B06F4F /* MDSpreadViewCornerBottomRight.png */,
+				6596CFEC1E1957BB00B06F4F /* MDSpreadViewCornerBottomRight@2x.png */,
+				6596CFED1E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected.png */,
+				6596CFEE1E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected@2x.png */,
+				6596CFEF1E1957BB00B06F4F /* MDSpreadViewCornerTopLeft.png */,
+				6596CFF01E1957BB00B06F4F /* MDSpreadViewCornerTopLeft@2x.png */,
+				6596CFF11E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected.png */,
+				6596CFF21E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected@2x.png */,
+				6596CFF31E1957BB00B06F4F /* MDSpreadViewCornerTopRight.png */,
+				6596CFF41E1957BB00B06F4F /* MDSpreadViewCornerTopRight@2x.png */,
+				6596CFF51E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected.png */,
+				6596CFF61E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected@2x.png */,
+				6596CFF71E1957BB00B06F4F /* MDSpreadViewRowHeaderBottom.png */,
+				6596CFF81E1957BB00B06F4F /* MDSpreadViewRowHeaderBottom@2x.png */,
+				6596CFF91E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected.png */,
+				6596CFFA1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected@2x.png */,
+				6596CFFB1E1957BB00B06F4F /* MDSpreadViewRowHeaderTop.png */,
+				6596CFFC1E1957BB00B06F4F /* MDSpreadViewRowHeaderTop@2x.png */,
+				6596CFFD1E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected.png */,
+				6596CFFE1E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected@2x.png */,
+			);
+			name = Images;
+			path = Libraries/MDSpreadView/Images;
+			sourceTree = "<group>";
 		};
 		65A78CE61D74CB1300036045 /* Products */ = {
 			isa = PBXGroup;
@@ -834,13 +1240,12 @@
 		65E3C2AB1A05222F007BB3C8 = {
 			isa = PBXGroup;
 			children = (
-				6537E1FE1D89E88300CD80EC /* SCRAM.framework */,
-				6537E1FC1D89E87F00CD80EC /* GCDAsyncSocket.framework */,
 				65292F461D7CACFA0053ADE3 /* LICENSE.md */,
 				651988E71A0F9C39003463AA /* Libraries */,
 				65E3C2ED1A062E5E007BB3C8 /* Sources */,
 				65D7A9861BF793D5005AD925 /* Resources */,
 				65E3C3021A062E5E007BB3C8 /* Tests */,
+				655B05571E15A57100A28FCE /* WarpMobile */,
 				65E3C2B61A05222F007BB3C8 /* Products */,
 				653D19D81D1C76AC0094C441 /* Frameworks */,
 			);
@@ -851,6 +1256,7 @@
 			children = (
 				65E3C2EC1A062E5E007BB3C8 /* Warp.app */,
 				65E3C2FF1A062E5E007BB3C8 /* WarpTests.xctest */,
+				655B05561E15A57100A28FCE /* Warp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -884,6 +1290,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		655B05551E15A57100A28FCE /* Warp iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 655B05711E15A57100A28FCE /* Build configuration list for PBXNativeTarget "Warp iOS" */;
+			buildPhases = (
+				655B05521E15A57100A28FCE /* Sources */,
+				655B05531E15A57100A28FCE /* Frameworks */,
+				655B05541E15A57100A28FCE /* Resources */,
+				655F91D41E196666005A47A1 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				651BEDAA1E198F580094F8AD /* PBXTargetDependency */,
+				651BED9F1E198F090094F8AD /* PBXTargetDependency */,
+				655B05771E15A5EE00A28FCE /* PBXTargetDependency */,
+				655F91E11E19669C005A47A1 /* PBXTargetDependency */,
+			);
+			name = "Warp iOS";
+			productName = WarpMobile;
+			productReference = 655B05561E15A57100A28FCE /* Warp.app */;
+			productType = "com.apple.product-type.application";
+		};
 		65E3C2EB1A062E5E007BB3C8 /* Warp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 65E3C3071A062E5E007BB3C8 /* Build configuration list for PBXNativeTarget "Warp" */;
@@ -931,10 +1359,20 @@
 		65E3C2AC1A05222F007BB3C8 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0730;
+				LastSwiftUpdateCheck = 0820;
 				LastUpgradeCheck = 0810;
 				ORGANIZATIONNAME = Pixelspark;
 				TargetAttributes = {
+					655B05551E15A57100A28FCE = {
+						CreatedOnToolsVersion = 8.2.1;
+						DevelopmentTeam = 2T2T7HAA8S;
+						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
+					};
 					65E3C2EB1A062E5E007BB3C8 = {
 						CreatedOnToolsVersion = 6.1;
 						DevelopmentTeam = 2T2T7HAA8S;
@@ -980,6 +1418,10 @@
 					ProjectRef = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
 				},
 				{
+					ProductGroup = 651BED961E198EFA0094F8AD /* Products */;
+					ProjectRef = 651BED951E198EFA0094F8AD /* Eureka.xcodeproj */;
+				},
+				{
 					ProductGroup = 6510A72F1A4D9811005633EF /* Products */;
 					ProjectRef = 6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */;
 				},
@@ -987,11 +1429,16 @@
 					ProductGroup = 65A78CE61D74CB1300036045 /* Products */;
 					ProjectRef = 65A78CE51D74CB1300036045 /* WarpAI.xcodeproj */;
 				},
+				{
+					ProductGroup = 651BEDA11E198F510094F8AD /* Products */;
+					ProjectRef = 651BEDA01E198F510094F8AD /* WarpConduit.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
 				65E3C2EB1A062E5E007BB3C8 /* Warp */,
 				65E3C2FE1A062E5E007BB3C8 /* WarpTests */,
+				655B05551E15A57100A28FCE /* Warp iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -1009,6 +1456,34 @@
 			fileType = wrapper.framework;
 			path = MBTableGrid.framework;
 			remoteRef = 6510A7351A4D9812005633EF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		651BED9B1E198EFA0094F8AD /* Eureka.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Eureka.framework;
+			remoteRef = 651BED9A1E198EFA0094F8AD /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		651BED9D1E198EFA0094F8AD /* EurekaTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = EurekaTests.xctest;
+			remoteRef = 651BED9C1E198EFA0094F8AD /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		651BEDA61E198F510094F8AD /* WarpConduit.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = WarpConduit.framework;
+			remoteRef = 651BEDA51E198F510094F8AD /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		651BEDA81E198F510094F8AD /* WarpConduit.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = WarpConduit.framework;
+			remoteRef = 651BEDA71E198F510094F8AD /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		652B26CC1B8E3F3500A2D38E /* Alamofire.framework */ = {
@@ -1060,10 +1535,10 @@
 			remoteRef = 65734BC81AB0380200D2C2F6 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		65734BCB1AB0380200D2C2F6 /* Alamofire OSX Tests.xctest */ = {
+		65734BCB1AB0380200D2C2F6 /* Alamofire macOS Tests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = "Alamofire OSX Tests.xctest";
+			path = "Alamofire macOS Tests.xctest";
 			remoteRef = 65734BCA1AB0380200D2C2F6 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -1098,6 +1573,54 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
+		655B05541E15A57100A28FCE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6596D00C1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeft@2x.png in Resources */,
+				6596D0021E1957BB00B06F4F /* MDSpreadViewCellSelected@2x.png in Resources */,
+				6596D0191E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected.png in Resources */,
+				6596CFFF1E1957BB00B06F4F /* MDSpreadViewCell.png in Resources */,
+				6596D00A1E1957BB00B06F4F /* MDSpreadViewColumnHeaderRightSelected@2x.png in Resources */,
+				6596D0061E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeftSelected@2x.png in Resources */,
+				6596D0171E1957BB00B06F4F /* MDSpreadViewCornerTopRight.png in Resources */,
+				6596D0151E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected.png in Resources */,
+				6596D0181E1957BB00B06F4F /* MDSpreadViewCornerTopRight@2x.png in Resources */,
+				6596D0001E1957BB00B06F4F /* MDSpreadViewCell@2x.png in Resources */,
+				655B05631E15A57100A28FCE /* LaunchScreen.storyboard in Resources */,
+				6596CFC11E19557A00B06F4F /* Localizable.strings in Resources */,
+				6596D0051E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeftSelected.png in Resources */,
+				6596D0121E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected@2x.png in Resources */,
+				6596D01F1E1957BB00B06F4F /* MDSpreadViewRowHeaderTop.png in Resources */,
+				6596D00E1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeftSelected@2x.png in Resources */,
+				6596D01B1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottom.png in Resources */,
+				6596D01D1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected.png in Resources */,
+				6596D0071E1957BB00B06F4F /* MDSpreadViewColumnHeaderRight.png in Resources */,
+				6596D0031E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeft.png in Resources */,
+				6596D01C1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottom@2x.png in Resources */,
+				6596D0081E1957BB00B06F4F /* MDSpreadViewColumnHeaderRight@2x.png in Resources */,
+				6596D00B1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeft.png in Resources */,
+				6596D0161E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected@2x.png in Resources */,
+				6596D01A1E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected@2x.png in Resources */,
+				651BEBEF1E196D3B0094F8AD /* Assets.xcassets in Resources */,
+				655B05A31E15B18C00A28FCE /* Images.xcassets in Resources */,
+				6596D0211E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected.png in Resources */,
+				6596D01E1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected@2x.png in Resources */,
+				6596D0221E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected@2x.png in Resources */,
+				6596D0141E1957BB00B06F4F /* MDSpreadViewCornerTopLeft@2x.png in Resources */,
+				655B055E1E15A57100A28FCE /* Main.storyboard in Resources */,
+				6596D0091E1957BB00B06F4F /* MDSpreadViewColumnHeaderRightSelected.png in Resources */,
+				6596D00F1E1957BB00B06F4F /* MDSpreadViewCornerBottomRight.png in Resources */,
+				6596D0101E1957BB00B06F4F /* MDSpreadViewCornerBottomRight@2x.png in Resources */,
+				6596D0111E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected.png in Resources */,
+				6596D0131E1957BB00B06F4F /* MDSpreadViewCornerTopLeft.png in Resources */,
+				6596D0011E1957BB00B06F4F /* MDSpreadViewCellSelected.png in Resources */,
+				6596D0201E1957BB00B06F4F /* MDSpreadViewRowHeaderTop@2x.png in Resources */,
+				6596D00D1E1957BB00B06F4F /* MDSpreadViewCornerBottomLeftSelected.png in Resources */,
+				6596D0041E1957BB00B06F4F /* MDSpreadViewColumnHeaderLeft@2x.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65E3C2EA1A062E5E007BB3C8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1163,104 +1686,160 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		655B05521E15A57100A28FCE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				651BEC591E196F3E0094F8AD /* QBESequencerStep.swift in Sources */,
+				658A4C051E16477F00944430 /* QBESettings.swift in Sources */,
+				655B059E1E15AACB00A28FCE /* QBEDocument.swift in Sources */,
+				651BEC541E196F230094F8AD /* QBECalculateStep.swift in Sources */,
+				655B05731E15A5BD00A28FCE /* QBESecret.swift in Sources */,
+				651BEC561E196F2D0094F8AD /* QBEColumnsStep.swift in Sources */,
+				6596CFD81E1957B500B06F4F /* MDSpreadViewCellRowHeaderBackground.m in Sources */,
+				6596CFD41E1957B500B06F4F /* MDSpreadViewCell.m in Sources */,
+				658A4C021E16476A00944430 /* QBEJobsManager.swift in Sources */,
+				6596D0241E1957E600B06F4F /* QBERasterViewController.swift in Sources */,
+				651BEC5C1E196F3E0094F8AD /* QBESortStep.swift in Sources */,
+				655B05A21E15AE7B00A28FCE /* QBEViewExtensions.swift in Sources */,
+				651BEC5D1E196F3E0094F8AD /* QBEDebugStep.swift in Sources */,
+				6596CFC01E19209000B06F4F /* QBESentenceViewController.swift in Sources */,
+				651BEC551E196F2A0094F8AD /* QBECrawlStep.swift in Sources */,
+				6596CFD71E1957B500B06F4F /* MDSpreadViewCellCornerHeaderBackground.m in Sources */,
+				655B059D1E15AA8D00A28FCE /* QBESentence.swift in Sources */,
+				651BEC5E1E196F3E0094F8AD /* QBECloneStep.swift in Sources */,
+				651BEC511E196F160094F8AD /* QBERowsStep.swift in Sources */,
+				651BEC5F1E196F3E0094F8AD /* QBERasterStep.swift in Sources */,
+				655B059F1E15ABD900A28FCE /* QBEFlowchartView.swift in Sources */,
+				651BED911E198D950094F8AD /* QBEConfigureViewController.swift in Sources */,
+				651BEC601E196F3E0094F8AD /* QBESearchStep.swift in Sources */,
+				655B05741E15A5C400A28FCE /* QBEStep.swift in Sources */,
+				658A4C031E16476F00944430 /* QBENote.swift in Sources */,
+				651BEC571E196F300094F8AD /* QBERethinkStep.swift in Sources */,
+				655B05591E15A57100A28FCE /* QBEAppDelegate.swift in Sources */,
+				655B05751E15A5CA00A28FCE /* QBETablet.swift in Sources */,
+				655B05A01E15AC3E00A28FCE /* QBEFile.swift in Sources */,
+				658A4C041E16477A00944430 /* QBEMap.swift in Sources */,
+				651BEC5A1E196F3E0094F8AD /* QBEDummiesStep.swift in Sources */,
+				6596CFBD1E19165400B06F4F /* QBEStepsViewController.swift in Sources */,
+				651BEC521E196F1B0094F8AD /* QBEExplodeStep.swift in Sources */,
+				658A4C0C1E17058000944430 /* QBEDocumentViewController.swift in Sources */,
+				651BEC531E196F1F0094F8AD /* QBEJoinStep.swift in Sources */,
+				6596D0261E1959B700B06F4F /* QBEDataViewController.swift in Sources */,
+				6596CFB11E1913D600B06F4F /* QBEChainTabletViewController.swift in Sources */,
+				6596CFD61E1957B500B06F4F /* MDSpreadViewCellColumnHeaderBackground.m in Sources */,
+				651BEC501E196F130094F8AD /* QBEPrestoStep.swift in Sources */,
+				658A4C071E16489C00944430 /* QBEDocumentsViewController.swift in Sources */,
+				6596CFD31E1957B500B06F4F /* MDSpreadView.m in Sources */,
+				655B05721E15A5A800A28FCE /* QBEChain.swift in Sources */,
+				655B059C1E15AA7800A28FCE /* QBEFactory.swift in Sources */,
+				6596CFD91E1957B500B06F4F /* MDSpreadViewHeaderCell.m in Sources */,
+				651BED091E197B370094F8AD /* QBEPostgresStep.swift in Sources */,
+				658A4C0A1E16F76A00944430 /* QBEDocumentThumbnailCache.swift in Sources */,
+				651BEC5B1E196F3E0094F8AD /* QBEFlattenStep.swift in Sources */,
+				651BEC581E196F3E0094F8AD /* QBERenameStep.swift in Sources */,
+				6596CFD51E1957B500B06F4F /* MDSpreadViewCellBackground.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65E3C2E81A062E5E007BB3C8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6583EF111C14758B00AE6C00 /* QBEExportStep.swift in Sources */,
-				650238C61D44DF30000BE0F2 /* QBECacheStep.swift in Sources */,
+				651BEC421E196F090094F8AD /* QBESequencerStep.swift in Sources */,
+				651BEC3F1E196F090094F8AD /* QBEPostgresStep.swift in Sources */,
 				651C687E1C70E2AB00F0F048 /* QBEChainTabletViewController.swift in Sources */,
 				6583EF081C14758B00AE6C00 /* QBEStep.swift in Sources */,
 				6583EEE41C14758B00AE6C00 /* QBEColumnMappingViewController.swift in Sources */,
 				6583EF071C14758B00AE6C00 /* QBESettings.swift in Sources */,
 				6583EF251C14758B00AE6C00 /* QBEFlowchartView.swift in Sources */,
-				6583EF1C1C14758B00AE6C00 /* QBESequencerStep.swift in Sources */,
-				65D1C8A31D4E86D300967C26 /* QBEHTTPStep.swift in Sources */,
-				6583EF0E1C14758B00AE6C00 /* QBECSVStep.swift in Sources */,
+				651BEC471E196F090094F8AD /* QBEXMLStep.swift in Sources */,
+				651BEC4A1E196F090094F8AD /* QBEHTTPStep.swift in Sources */,
 				6583EF041C14758B00AE6C00 /* QBEJobsManager.swift in Sources */,
 				6583EEE91C14758B00AE6C00 /* QBEFilterViewController.swift in Sources */,
 				6583EEF41C14758B00AE6C00 /* QBECalculateStepView.swift in Sources */,
-				6583EF1B1C14758B00AE6C00 /* QBERowsStep.swift in Sources */,
 				6583EEE51C14758B00AE6C00 /* QBEDatasetViewController.swift in Sources */,
 				6583EEEA1C14758B00AE6C00 /* QBEFormulaEditorViewController.swift in Sources */,
+				651BEC3B1E196F090094F8AD /* QBECSVStep.swift in Sources */,
 				6583EEF21C14758B00AE6C00 /* QBEUploadViewController.swift in Sources */,
+				651BEC341E196F090094F8AD /* QBEClassifierStep.swift in Sources */,
 				6583EF261C14758B00AE6C00 /* QBEFormula+SyntaxColoring.swift in Sources */,
+				651BEC431E196F090094F8AD /* QBEDBFStep.swift in Sources */,
+				651BEC4E1E196F090094F8AD /* QBERasterStep.swift in Sources */,
 				65B3F6A81C73D0EE000983D0 /* QBEChart.swift in Sources */,
 				6583EF291C14758B00AE6C00 /* QBEStepItemView.swift in Sources */,
 				650238CB1D44E0DF000BE0F2 /* QBECacheStepView.swift in Sources */,
 				6583EEE21C14758B00AE6C00 /* QBECalculator.swift in Sources */,
+				651BEC401E196F090094F8AD /* QBEPivotStep.swift in Sources */,
+				651BEC3E1E196F090094F8AD /* QBERethinkStep.swift in Sources */,
 				6583EEFD1C14758B00AE6C00 /* QBERenameStepView.swift in Sources */,
-				65A7322A1D8D4C7100C5C397 /* QBESearchStep.swift in Sources */,
 				656258D91C94AE100063253C /* QBEKeySelectionViewController.swift in Sources */,
-				6583EF1E1C14758B00AE6C00 /* QBESQLiteStep.swift in Sources */,
 				6583EEF81C14758B00AE6C00 /* QBEJoinStepView.swift in Sources */,
-				65F2DCDB1CDF4BF60099B3DB /* QBEClassifierStep.swift in Sources */,
 				6583EF091C14758B00AE6C00 /* QBETablet.swift in Sources */,
 				6583EEFE1C14758B00AE6C00 /* QBERethinkStepView.swift in Sources */,
 				6583EEEC1C14758B00AE6C00 /* QBEReferenceViewController.swift in Sources */,
 				6583EEF01C14758B00AE6C00 /* QBESuggestionsViewController.swift in Sources */,
 				6583EEEF1C14758B00AE6C00 /* QBEStepsViewController.swift in Sources */,
-				6583EF141C14758B00AE6C00 /* QBEMySQLSourceStep.swift in Sources */,
-				6583EF181C14758B00AE6C00 /* QBERasterStep.swift in Sources */,
+				651BEC4D1E196F090094F8AD /* QBEFileStep.swift in Sources */,
+				651BEC3D1E196F090094F8AD /* QBEColumnsStep.swift in Sources */,
 				6583EEF91C14758B00AE6C00 /* QBEMySQLSourceStepView.swift in Sources */,
 				6583EF231C14758B00AE6C00 /* QBEFilePanel.swift in Sources */,
 				6583EEE71C14758B00AE6C00 /* QBEExportViewController.swift in Sources */,
 				6583EF241C14758B00AE6C00 /* QBEFilterCell.swift in Sources */,
 				6583EF211C14758B00AE6C00 /* QBEAnchor.swift in Sources */,
-				6583EF121C14758B00AE6C00 /* QBEFlattenStep.swift in Sources */,
 				6583EEFF1C14758B00AE6C00 /* QBESortStepView.swift in Sources */,
+				651BEC3A1E196F090094F8AD /* QBECalculateStep.swift in Sources */,
+				651BEC441E196F090094F8AD /* QBEDummiesStep.swift in Sources */,
+				651BEC411E196F090094F8AD /* QBERenameStep.swift in Sources */,
 				6583EF001C14758B00AE6C00 /* QBESQLiteSourceStepView.swift in Sources */,
 				6583EEFB1C14758B00AE6C00 /* QBEPostgresStepView.swift in Sources */,
 				65B3F6AA1C73D302000983D0 /* QBEChartTabletViewController.swift in Sources */,
+				651BEC481E196F090094F8AD /* QBECacheStep.swift in Sources */,
 				6583EF051C14758B00AE6C00 /* QBESecret.swift in Sources */,
+				651BEC361E196F090094F8AD /* QBEPrestoStep.swift in Sources */,
+				651BEC4B1E196F090094F8AD /* QBEDebugStep.swift in Sources */,
 				650238D41D47C770000BE0F2 /* QBEListEditorViewController.swift in Sources */,
 				6583EEFA1C14758B00AE6C00 /* QBEPivotStepView.swift in Sources */,
-				650238D61D47F63F000BE0F2 /* QBEDummiesStep.swift in Sources */,
+				651BEC371E196F090094F8AD /* QBERowsStep.swift in Sources */,
 				6583EEF71C14758B00AE6C00 /* QBECSVStepView.swift in Sources */,
+				651BEC3C1E196F090094F8AD /* QBECrawlStep.swift in Sources */,
 				6583EF031C14758B00AE6C00 /* QBEFile.swift in Sources */,
+				651BEC4F1E196F090094F8AD /* QBESearchStep.swift in Sources */,
 				6583EF061C14758B00AE6C00 /* QBESentence.swift in Sources */,
 				6583EEEB1C14758B00AE6C00 /* QBEJobsViewController.swift in Sources */,
-				6582E4C41CF4C8D700DAFC78 /* QBEExplodeStep.swift in Sources */,
-				6583EF0C1C14758B00AE6C00 /* QBEColumnsStep.swift in Sources */,
 				65B3CC611CA3D055003FC6DF /* QBESetEditorViewController.swift in Sources */,
-				6583EF131C14758B00AE6C00 /* QBEJoinStep.swift in Sources */,
-				6583EF0B1C14758B00AE6C00 /* QBECloneStep.swift in Sources */,
+				651BEC381E196F090094F8AD /* QBEExplodeStep.swift in Sources */,
 				65B3F6AD1C749F93000983D0 /* QBETabletView.swift in Sources */,
 				6583EF021C14758B00AE6C00 /* QBEDocument.swift in Sources */,
-				6583EF1F1C14758B00AE6C00 /* QBEXMLStep.swift in Sources */,
-				6583EF0D1C14758B00AE6C00 /* QBECrawlStep.swift in Sources */,
-				6583EF0A1C14758B00AE6C00 /* QBECalculateStep.swift in Sources */,
 				6583EEE61C14758B00AE6C00 /* QBEDocumentViewController.swift in Sources */,
-				6583EF171C14758B00AE6C00 /* QBEPrestoStep.swift in Sources */,
 				6583EEEE1C14758B00AE6C00 /* QBESettingsViewController.swift in Sources */,
 				6583EEE01C14758B00AE6C00 /* QBEAlterTableViewController.swift in Sources */,
 				651C68761C70D7B300F0F048 /* QBETabletViewController.swift in Sources */,
+				651BEC4C1E196F090094F8AD /* QBECloneStep.swift in Sources */,
 				6583EEF31C14758B00AE6C00 /* QBEWindowController.swift in Sources */,
 				6583EEF61C14758B00AE6C00 /* QBECrawlStepView.swift in Sources */,
 				6583EEE11C14758B00AE6C00 /* QBEAppDelegate.swift in Sources */,
 				6583EF221C14758B00AE6C00 /* QBEDocumentView.swift in Sources */,
-				6583EF101C14758B00AE6C00 /* QBEDebugStep.swift in Sources */,
 				6583EEED1C14758B00AE6C00 /* QBESentenceViewController.swift in Sources */,
 				6583EEF51C14758B00AE6C00 /* QBEColumnsStepView.swift in Sources */,
-				6583EF191C14758B00AE6C00 /* QBERenameStep.swift in Sources */,
-				6583EF1A1C14758B00AE6C00 /* QBERethinkStep.swift in Sources */,
 				657DB2E51D71E695001C4276 /* QBEJSONViewController.swift in Sources */,
 				6583EF2A1C14758B00AE6C00 /* QBEViewExtensions.swift in Sources */,
-				6583EF0F1C14758B00AE6C00 /* QBEDBFStep.swift in Sources */,
 				6583EF281C14758B00AE6C00 /* QBEResizableView.swift in Sources */,
 				6583EF271C14758B00AE6C00 /* QBEOutletView.swift in Sources */,
+				651BEC331E196F090094F8AD /* QBEMySQLSourceStep.swift in Sources */,
 				651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */,
 				6583EF011C14758B00AE6C00 /* QBEChain.swift in Sources */,
-				6583EF1D1C14758B00AE6C00 /* QBESortStep.swift in Sources */,
 				651C68801C70E96600F0F048 /* QBENote.swift in Sources */,
-				6537E1D01D85E97100CD80EC /* QBEFileStep.swift in Sources */,
-				6583EF161C14758B00AE6C00 /* QBEPostgresStep.swift in Sources */,
+				651BEC391E196F090094F8AD /* QBEJoinStep.swift in Sources */,
 				65B3CC661CA9642F003FC6DF /* QBEMap.swift in Sources */,
+				651BEC351E196F090094F8AD /* QBESQLiteStep.swift in Sources */,
 				65EC97971C9DFB8D0098A330 /* QBEColumnViewController.swift in Sources */,
 				6583EEE31C14758B00AE6C00 /* QBEChainViewController.swift in Sources */,
 				65B3CC631CA96408003FC6DF /* QBEMapTabletViewController.swift in Sources */,
+				651BEC451E196F090094F8AD /* QBEFlattenStep.swift in Sources */,
+				651BEC491E196F090094F8AD /* QBESortStep.swift in Sources */,
 				6583EEE81C14758B00AE6C00 /* QBEFactory.swift in Sources */,
-				6583EF151C14758B00AE6C00 /* QBEPivotStep.swift in Sources */,
+				651BEC461E196F090094F8AD /* QBEExportStep.swift in Sources */,
 				6583EEF11C14758B00AE6C00 /* QBETourViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1281,15 +1860,35 @@
 			name = MBTableGrid;
 			targetProxy = 6510A7371A4D982E005633EF /* PBXContainerItemProxy */;
 		};
+		651BED9F1E198F090094F8AD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Eureka;
+			targetProxy = 651BED9E1E198F090094F8AD /* PBXContainerItemProxy */;
+		};
+		651BEDAA1E198F580094F8AD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "WarpConduit iOS";
+			targetProxy = 651BEDA91E198F580094F8AD /* PBXContainerItemProxy */;
+		};
 		654AA5A41DEE36750030C7C9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = Charts;
 			targetProxy = 654AA5A31DEE36750030C7C9 /* PBXContainerItemProxy */;
 		};
+		655B05771E15A5EE00A28FCE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Alamofire iOS";
+			targetProxy = 655B05761E15A5EE00A28FCE /* PBXContainerItemProxy */;
+		};
 		655BD6421C146EDB00634C66 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 65E3C2EB1A062E5E007BB3C8 /* Warp */;
 			targetProxy = 655BD6411C146EDB00634C66 /* PBXContainerItemProxy */;
+		};
+		655F91E11E19669C005A47A1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Alamofire iOS";
+			targetProxy = 655F91E01E19669C005A47A1 /* PBXContainerItemProxy */;
 		};
 		65734BCE1AB0380F00D2C2F6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1323,6 +1922,23 @@
 				650238CF1D44E1CC000BE0F2 /* nl */,
 			);
 			name = QBECacheStepView.strings;
+			sourceTree = "<group>";
+		};
+		655B055C1E15A57100A28FCE /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				655B055D1E15A57100A28FCE /* Base */,
+				651BEDAF1E19B06B0094F8AD /* nl */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		655B05611E15A57100A28FCE /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				655B05621E15A57100A28FCE /* Base */,
+			);
+			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
 		6583EFB81C1475D900AE6C00 /* Images.xcassets */ = {
@@ -1667,6 +2283,67 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		655B05651E15A57100A28FCE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CODE_SIGN_ENTITLEMENTS = WarpMobile/WarpMobile.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 2T2T7HAA8S;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)Core/build/Debug-iphoneos",
+					"$(PROJECT_DIR)Conduit/Libraries/Rethink/build/Debug-iphoneos",
+					"$(PROJECT_DIR)Core/Libraries/SwiftParserGenerator/build/Debug",
+				);
+				INFOPLIST_FILE = WarpMobile/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpMobile;
+				PRODUCT_NAME = Warp;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		655B05661E15A57100A28FCE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CODE_SIGN_ENTITLEMENTS = WarpMobile/WarpMobile.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = 2T2T7HAA8S;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)Core/build/Debug-iphoneos",
+					"$(PROJECT_DIR)Conduit/Libraries/Rethink/build/Debug-iphoneos",
+					"$(PROJECT_DIR)Core/Libraries/SwiftParserGenerator/build/Debug",
+				);
+				INFOPLIST_FILE = WarpMobile/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpMobile;
+				PRODUCT_NAME = Warp;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		65E3C2C91A05222F007BB3C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1912,6 +2589,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		655B05711E15A57100A28FCE /* Build configuration list for PBXNativeTarget "Warp iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				655B05651E15A57100A28FCE /* Debug */,
+				655B05661E15A57100A28FCE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		65E3C2AF1A05222F007BB3C8 /* Build configuration list for PBXProject "Warp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -12,12 +12,6 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import Cocoa
 import WarpCore
 
-extension String {
-	var localized: String {
-		return NSLocalizedString(self, comment: "")
-	}
-}
-
 @NSApplicationMain
 class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
 	internal var locale: Language!

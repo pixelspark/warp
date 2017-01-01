@@ -1,0 +1,21 @@
+
+/* Class = "UINavigationItem"; title = "Documents"; ObjectID = "COu-sB-Sgh"; */
+"COu-sB-Sgh.title" = "Documenten";
+
+/* Class = "UILabel"; text = "in application"; ObjectID = "Cuh-lr-yAH"; */
+"Cuh-lr-yAH.text" = "in app";
+
+/* Class = "UICollectionViewController"; title = "Welcome to Warp"; ObjectID = "aJH-QV-63U"; */
+"aJH-QV-63U.title" = "Welkom bij Warp";
+
+/* Class = "UINavigationItem"; title = "Document"; ObjectID = "bYg-eQ-CkZ"; */
+"bYg-eQ-CkZ.title" = "Document";
+
+/* Class = "UILabel"; text = "Documents"; ObjectID = "kfk-ZR-E1f"; */
+"kfk-ZR-E1f.text" = "Documenten";
+
+/* Class = "UILabel"; text = "An error has occurred"; ObjectID = "uL3-uO-pVe"; */
+"uL3-uO-pVe.text" = "Er is iets fout gegaan";
+
+/* Class = "UILabel"; text = "Document name"; ObjectID = "uuT-CU-HGR"; */
+"uuT-CU-HGR.text" = "Documentnaam";

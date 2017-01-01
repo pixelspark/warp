@@ -31,7 +31,11 @@
 
 NSString *const CHCSVErrorDomain = @"com.davedelong.csv";
 
+#if TARGET_OS_IPHONE
+#define CHUNK_SIZE 16384
+#else
 #define CHUNK_SIZE PAGE_SIZE
+#endif
 #define DOUBLE_QUOTE '"'
 #define COMMA ','
 #define OCTOTHORPE '#'

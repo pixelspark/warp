@@ -9,7 +9,7 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Ge
 
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-import Cocoa
+import CoreGraphics
 import WarpCore
 
 internal extension CGRect {
@@ -44,6 +44,9 @@ internal extension CGPoint {
 		return hypot(point.x - self.x, point.y - self.y)
 	}
 }
+
+#if os(macOS)
+import Cocoa
 
 internal extension NSAlert {
 	static func showSimpleAlert(_ message: String, infoText: String, style: NSAlertStyle, window: NSWindow?) {
@@ -200,3 +203,5 @@ internal extension NSView {
 		CATransaction.commit()
 	}
 }
+
+#endif

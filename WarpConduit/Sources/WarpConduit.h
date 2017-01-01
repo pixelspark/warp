@@ -12,15 +12,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#include "TargetConditionals.h"
+
+#import <Foundation/Foundation.h>
+
+#if !TARGET_OS_IPHONE
 #import <Cocoa/Cocoa.h>
+#import "mysql.h"
+#endif
 
 FOUNDATION_EXPORT double WarpConduitVersionNumber;
 FOUNDATION_EXPORT const unsigned char WarpConduitVersionString[];
 
+#import "libpq-fe.h"
 #include "shapefil.h"
 #import "sqlite3.h"
-#import "mysql.h"
-#import "libpq-fe.h"
+
 #import "CHCSVParser.h"
 #import "TCMXMLWriter.h"
 

@@ -90,6 +90,21 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 		
 		return Array(s.reversed())
 	}
+
+	func remove(step: QBEStep) {
+		if head == step {
+			head = step.previous
+		}
+		else {
+			var current = head
+			while current != nil {
+				if current!.previous == step {
+					current!.previous = step.previous
+				}
+				current = current!.previous
+			}
+		}
+	}
 	
 	func insertStep(_ step: QBEStep, afterStep: QBEStep?) {
 		if afterStep == nil {

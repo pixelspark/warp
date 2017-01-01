@@ -4296,7 +4296,7 @@ DQ
     <resources>
         <image name="AlterIcon" width="102" height="102"/>
         <image name="AutosizeToolIcon" width="64" height="36"/>
-        <image name="BigIcon" width="102" height="102"/>
+        <image name="BigIcon" width="51" height="51"/>
         <image name="ChangeIcon" width="102" height="102"/>
         <image name="CloseIcon" width="51" height="51"/>
         <image name="ColumnsIcon" width="64" height="64"/>

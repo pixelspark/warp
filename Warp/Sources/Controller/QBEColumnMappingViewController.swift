@@ -11,6 +11,7 @@ You should have received a copy of the GNU General Public License along with thi
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 import Foundation
 import  WarpCore
+import Cocoa
 
 protocol QBEColumnMappingDelegate: NSObjectProtocol {
 	func columnMappingView(_ view: QBEColumnMappingViewController, didChangeMapping: ColumnMapping)

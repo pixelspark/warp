@@ -10,6 +10,7 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Ge
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 import Foundation
+import CoreGraphics
 
 public class QBERectangle: NSObject, NSSecureCoding {
 	let rect: CGRect
@@ -71,7 +72,7 @@ of data. A tablet has a rectangular shape and a certain position in the document
 	}
 
 	var displayName: String? { get {
-		return self.document?.displayName
+		return nil
 	} }
 
 	override init() {

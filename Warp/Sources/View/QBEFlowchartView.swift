@@ -9,12 +9,17 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Ge
 
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-import Cocoa
+import Foundation
+import CoreGraphics
 
 @objc protocol QBEArrow: NSObjectProtocol {
 	var sourceFrame: CGRect { get }
 	var targetFrame: CGRect { get }
 }
+
+#if os(macOS)
+
+import Cocoa
 
 protocol QBEFlowchartViewDelegate: NSObjectProtocol {
 	func flowchartView(_ view: QBEFlowchartView, didSelectArrow: QBEArrow?)
@@ -169,6 +174,8 @@ class QBEFlowchartView: NSView {
 		}
 	}
 }
+
+#endif
 
 extension CGContext {
 	func drawArrowheadAt(_ targetPoint: CGPoint, fromPoint: CGPoint, length: CGFloat, width: CGFloat) {

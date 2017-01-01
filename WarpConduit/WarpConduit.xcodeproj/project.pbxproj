@@ -7,6 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		651BEC761E196FA70094F8AD /* WarpConduit.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50E941D78CE6300F6FAE5 /* WarpConduit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		651BEC771E196FAE0094F8AD /* CSVStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A41D78D93500410BA5 /* CSVStream.swift */; };
+		651BEC781E196FB30094F8AD /* DBFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A21D78D89C00410BA5 /* DBFStream.swift */; };
+		651BEC791E196FB80094F8AD /* RethinkStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DAF6C71D7C6F8500163750 /* RethinkStream.swift */; };
+		651BEC7A1E196FBB0094F8AD /* SQLiteStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65292F401D7CA7030053ADE3 /* SQLiteStream.swift */; };
+		651BEC7C1E1970340094F8AD /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EAF1D78D0B400F6FAE5 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		651BEC7D1E1970370094F8AD /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50EAE1D78D0B400F6FAE5 /* sqlite3.c */; };
+		651BEC7E1E1970390094F8AD /* extension-functions.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50EB21D78D0BA00F6FAE5 /* extension-functions.c */; };
+		651BEC7F1E19703C0094F8AD /* SQLiteHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = 65F50EB41D78D10F00F6FAE5 /* SQLiteHelpers.m */; };
+		651BEC801E1970480094F8AD /* CHCSVParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EA51D78CFAC00F6FAE5 /* CHCSVParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		651BEC811E19704B0094F8AD /* CHCSVParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 65F50EA61D78CFAC00F6FAE5 /* CHCSVParser.m */; };
+		651BEC821E1970500094F8AD /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50E9E1D78CF0C00F6FAE5 /* dbfopen.c */; };
+		651BEC831E1970520094F8AD /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50E9F1D78CF0C00F6FAE5 /* safileio.c */; };
+		651BEC841E1970540094F8AD /* shapefil.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EA01D78CF0C00F6FAE5 /* shapefil.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		651BEC851E1970790094F8AD /* TCMXMLWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 6568227B1D78D69300410BA5 /* TCMXMLWriter.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		651BEC861E19707B0094F8AD /* TCMXMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6568227C1D78D69300410BA5 /* TCMXMLWriter.m */; };
+		651BED051E197AF50094F8AD /* libpq-fe.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EEF1D78D3F500F6FAE5 /* libpq-fe.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		651BED061E197AFD0094F8AD /* pg_config_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EED1D78D3F500F6FAE5 /* pg_config_ext.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		651BED071E197B020094F8AD /* postgres_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EEE1D78D3F500F6FAE5 /* postgres_ext.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		651BED081E197B080094F8AD /* PostgresStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A732361D8F1CE300C5C397 /* PostgresStream.swift */; };
+		651BED8F1E1980680094F8AD /* libpq-ios in Frameworks */ = {isa = PBXBuildFile; fileRef = 651BED8E1E1980680094F8AD /* libpq-ios */; };
 		65292F411D7CA7030053ADE3 /* SQLiteStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65292F401D7CA7030053ADE3 /* SQLiteStream.swift */; };
 		65514C691D78D55A001C5690 /* libcrypto.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65514C671D78D55A001C5690 /* libcrypto.35.dylib */; };
 		65514C6A1D78D55A001C5690 /* libssl.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65514C681D78D55A001C5690 /* libssl.35.dylib */; };
@@ -19,7 +40,6 @@
 		65DAF6C61D7C6F3C00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6BF1D7C6F2A00163750 /* Rethink.framework */; };
 		65DAF6C81D7C6F8500163750 /* RethinkStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DAF6C71D7C6F8500163750 /* RethinkStream.swift */; };
 		65F50E961D78CE6300F6FAE5 /* WarpConduit.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50E941D78CE6300F6FAE5 /* WarpConduit.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		65F50E9C1D78CED100F6FAE5 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50E9B1D78CED100F6FAE5 /* WarpCore.framework */; };
 		65F50EA11D78CF0C00F6FAE5 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50E9E1D78CF0C00F6FAE5 /* dbfopen.c */; };
 		65F50EA21D78CF0C00F6FAE5 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50E9F1D78CF0C00F6FAE5 /* safileio.c */; };
 		65F50EA31D78CF0C00F6FAE5 /* shapefil.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EA01D78CF0C00F6FAE5 /* shapefil.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -147,6 +167,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		651BEC661E196F6D0094F8AD /* WarpConduit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpConduit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		651BEC691E196F6D0094F8AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		651BED8E1E1980680094F8AD /* libpq-ios */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libpq-ios"; sourceTree = "<group>"; };
 		65292F401D7CA7030053ADE3 /* SQLiteStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SQLiteStream.swift; path = Sources/SQLiteStream.swift; sourceTree = SOURCE_ROOT; };
 		65514C671D78D55A001C5690 /* libcrypto.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.35.dylib; path = Libraries/libcrypto.35.dylib; sourceTree = SOURCE_ROOT; };
 		65514C681D78D55A001C5690 /* libssl.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.35.dylib; path = Libraries/libssl.35.dylib; sourceTree = SOURCE_ROOT; };
@@ -182,7 +205,6 @@
 		65F50E891D78CE1000F6FAE5 /* WarpConduit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpConduit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65F50E941D78CE6300F6FAE5 /* WarpConduit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WarpConduit.h; path = Sources/WarpConduit.h; sourceTree = SOURCE_ROOT; };
 		65F50E951D78CE6300F6FAE5 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Sources/Info.plist; sourceTree = SOURCE_ROOT; };
-		65F50E9B1D78CED100F6FAE5 /* WarpCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WarpCore.framework; path = "../../../../../Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/WarpCore.framework"; sourceTree = "<group>"; };
 		65F50E9E1D78CF0C00F6FAE5 /* dbfopen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dbfopen.c; sourceTree = "<group>"; };
 		65F50E9F1D78CF0C00F6FAE5 /* safileio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = safileio.c; sourceTree = "<group>"; };
 		65F50EA01D78CF0C00F6FAE5 /* shapefil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shapefil.h; sourceTree = "<group>"; };
@@ -240,6 +262,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		651BEC621E196F6D0094F8AD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				651BED8F1E1980680094F8AD /* libpq-ios in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65F50E851D78CE1000F6FAE5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -247,7 +277,6 @@
 				65DAF6C61D7C6F3C00163750 /* Rethink.framework in Frameworks */,
 				656822541D78D60600410BA5 /* libiconv.tbd in Frameworks */,
 				65F50F1C1D78D3F500F6FAE5 /* libpq.a in Frameworks */,
-				65F50E9C1D78CED100F6FAE5 /* WarpCore.framework in Frameworks */,
 				65514C691D78D55A001C5690 /* libcrypto.35.dylib in Frameworks */,
 				65F50F171D78D3F500F6FAE5 /* libmariadbclient.a in Frameworks */,
 				65514C6A1D78D55A001C5690 /* libssl.35.dylib in Frameworks */,
@@ -257,6 +286,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		651BEC671E196F6D0094F8AD /* WarpConduit iOS */ = {
+			isa = PBXGroup;
+			children = (
+				651BEC691E196F6D0094F8AD /* Info.plist */,
+			);
+			name = "WarpConduit iOS";
+			path = WarpConduitiOS;
+			sourceTree = "<group>";
+		};
 		656822641D78D69300410BA5 /* XML */ = {
 			isa = PBXGroup;
 			children = (
@@ -362,6 +400,7 @@
 				65F50EA41D78CFAC00F6FAE5 /* CSV */,
 				65F50E9D1D78CF0C00F6FAE5 /* DBF */,
 				65F50E8B1D78CE1000F6FAE5 /* WarpConduit */,
+				651BEC671E196F6D0094F8AD /* WarpConduit iOS */,
 				65F50E8A1D78CE1000F6FAE5 /* Products */,
 				65F50E9A1D78CED100F6FAE5 /* Frameworks */,
 			);
@@ -371,6 +410,7 @@
 			isa = PBXGroup;
 			children = (
 				65F50E891D78CE1000F6FAE5 /* WarpConduit.framework */,
+				651BEC661E196F6D0094F8AD /* WarpConduit.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -394,7 +434,6 @@
 			children = (
 				656822531D78D60600410BA5 /* libiconv.tbd */,
 				65F50EAC1D78D05900F6FAE5 /* libsqlite3.tbd */,
-				65F50E9B1D78CED100F6FAE5 /* WarpCore.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -501,6 +540,7 @@
 			children = (
 				65F50EEB1D78D3F500F6FAE5 /* include */,
 				65F50EEF1D78D3F500F6FAE5 /* libpq-fe.h */,
+				651BED8E1E1980680094F8AD /* libpq-ios */,
 				65F50EF01D78D3F500F6FAE5 /* libpq.a */,
 			);
 			name = PostgreSQL;
@@ -520,6 +560,21 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		651BEC631E196F6D0094F8AD /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				651BEC841E1970540094F8AD /* shapefil.h in Headers */,
+				651BEC851E1970790094F8AD /* TCMXMLWriter.h in Headers */,
+				651BED061E197AFD0094F8AD /* pg_config_ext.h in Headers */,
+				651BED071E197B020094F8AD /* postgres_ext.h in Headers */,
+				651BED051E197AF50094F8AD /* libpq-fe.h in Headers */,
+				651BEC7C1E1970340094F8AD /* sqlite3.h in Headers */,
+				651BEC761E196FA70094F8AD /* WarpConduit.h in Headers */,
+				651BEC801E1970480094F8AD /* CHCSVParser.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65F50E861D78CE1000F6FAE5 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -575,6 +630,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		651BEC651E196F6D0094F8AD /* WarpConduit iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 651BEC751E196F6D0094F8AD /* Build configuration list for PBXNativeTarget "WarpConduit iOS" */;
+			buildPhases = (
+				651BEC611E196F6D0094F8AD /* Sources */,
+				651BEC621E196F6D0094F8AD /* Frameworks */,
+				651BEC631E196F6D0094F8AD /* Headers */,
+				651BEC641E196F6D0094F8AD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "WarpConduit iOS";
+			productName = WarpConduitiOS;
+			productReference = 651BEC661E196F6D0094F8AD /* WarpConduit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		65F50E881D78CE1000F6FAE5 /* WarpConduit */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 65F50E911D78CE1000F6FAE5 /* Build configuration list for PBXNativeTarget "WarpConduit" */;
@@ -600,9 +673,14 @@
 		65F50E801D78CE0F00F6FAE5 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0800;
+				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = Pixelspark;
 				TargetAttributes = {
+					651BEC651E196F6D0094F8AD = {
+						CreatedOnToolsVersion = 8.2.1;
+						DevelopmentTeam = 2T2T7HAA8S;
+						ProvisioningStyle = Automatic;
+					};
 					65F50E881D78CE1000F6FAE5 = {
 						CreatedOnToolsVersion = 8.0;
 						DevelopmentTeam = 2T2T7HAA8S;
@@ -634,6 +712,7 @@
 			projectRoot = "";
 			targets = (
 				65F50E881D78CE1000F6FAE5 /* WarpConduit */,
+				651BEC651E196F6D0094F8AD /* WarpConduit iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -705,6 +784,13 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
+		651BEC641E196F6D0094F8AD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65F50E871D78CE1000F6FAE5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -715,6 +801,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		651BEC611E196F6D0094F8AD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				651BEC7E1E1970390094F8AD /* extension-functions.c in Sources */,
+				651BEC791E196FB80094F8AD /* RethinkStream.swift in Sources */,
+				651BEC7D1E1970370094F8AD /* sqlite3.c in Sources */,
+				651BEC781E196FB30094F8AD /* DBFStream.swift in Sources */,
+				651BEC771E196FAE0094F8AD /* CSVStream.swift in Sources */,
+				651BEC7A1E196FBB0094F8AD /* SQLiteStream.swift in Sources */,
+				651BEC7F1E19703C0094F8AD /* SQLiteHelpers.m in Sources */,
+				651BEC831E1970520094F8AD /* safileio.c in Sources */,
+				651BEC821E1970500094F8AD /* dbfopen.c in Sources */,
+				651BEC811E19704B0094F8AD /* CHCSVParser.m in Sources */,
+				651BED081E197B080094F8AD /* PostgresStream.swift in Sources */,
+				651BEC861E19707B0094F8AD /* TCMXMLWriter.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		65F50E841D78CE1000F6FAE5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -780,6 +885,65 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		651BEC6B1E196F6D0094F8AD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 2T2T7HAA8S;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = WarpConduitiOS/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Libraries/PostgreSQL",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpConduitiOS;
+				PRODUCT_NAME = WarpConduit;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		651BEC6C1E196F6D0094F8AD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 2T2T7HAA8S;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = WarpConduitiOS/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Libraries/PostgreSQL",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpConduitiOS;
+				PRODUCT_NAME = WarpConduit;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		65F50E8F1D78CE1000F6FAE5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -798,6 +962,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -850,6 +1015,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -936,6 +1102,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		651BEC751E196F6D0094F8AD /* Build configuration list for PBXNativeTarget "WarpConduit iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				651BEC6B1E196F6D0094F8AD /* Debug */,
+				651BEC6C1E196F6D0094F8AD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		65F50E831D78CE0F00F6FAE5 /* Build configuration list for PBXProject "WarpConduit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

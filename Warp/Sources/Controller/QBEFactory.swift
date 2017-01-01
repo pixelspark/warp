@@ -14,12 +14,15 @@ import WarpCore
 
 public protocol QBEConfigurable: NSObjectProtocol {
 	func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence
-	var className: String { get }
 }
 
 public protocol QBEFullyConfigurable: QBEConfigurable {
 	func setSentence(_ sentence: QBESentence)
 }
+
+#if os(macOS)
+
+import Cocoa
 
 protocol QBEConfigurableViewDelegate: NSObjectProtocol {
 	var locale: Language { get }
@@ -59,13 +62,18 @@ class QBEConfigurableStepViewControllerFor<StepType: QBEStep>: QBEConfigurableVi
 	    fatalError("init(coder:) has not been implemented")
 	}
 }
+#endif
 
 class QBEFactory {
+	#if os(macOS)
 	typealias QBEStepViewCreator = (_ step: QBEStep?, _ delegate: QBESuggestionsViewDelegate) -> NSViewController?
+	#endif
+	
 	typealias QBEFileReaderCreator = (_ url: URL) -> QBEStep?
 
 	static var sharedInstance = QBEFactory()
-	
+
+	#if os(macOS)
 	let fileWriters: [QBEFileWriter.Type] = [
 		QBECSVWriter.self,
 		QBEXMLWriter.self,
@@ -73,21 +81,32 @@ class QBEFactory {
 		QBEDBFWriter.self,
 		QBESQLiteWriter.self
 	]
+	#endif
 
+	#if os(iOS)
+	let fileWriters: [QBEFileWriter.Type] = [
+	]
+	#endif
+
+	#if os(macOS)
 	let dataWarehouseSteps: [QBEStep.Type] = [
 		QBEMySQLSourceStep.self,
 		QBEPostgresSourceStep.self,
 		QBERethinkSourceStep.self,
 		QBESQLiteSourceStep.self
 	]
+	#endif
 
+	#if os(macOS)
 	let dataWarehouseStepNames: [String: String] = [
 		QBEMySQLSourceStep.className(): NSLocalizedString("MySQL table", comment: ""),
 		QBEPostgresSourceStep.className(): NSLocalizedString("PostgreSQL table", comment: ""),
 		QBERethinkSourceStep.className(): NSLocalizedString("RethinkDB table", comment: ""),
 		QBESQLiteSourceStep.className(): NSLocalizedString("SQLite table", comment: "")
 	]
-	
+	#endif
+
+	#if os(macOS)
 	private let fileReaders: [String: QBEFileReaderCreator] = [
 		"public.comma-separated-values-text": {(url) in return QBECSVSourceStep(url: url)},
 		"csv": {(url) in return QBECSVSourceStep(url: url)},
@@ -102,7 +121,13 @@ class QBEFactory {
 		"sqlite": {(url) in return QBESQLiteSourceStep(url: url)},
 		"dbf": {(url) in return QBEDBFSourceStep(url: url)}
 	]
-	
+	#endif
+
+	#if os(iOS)
+	private let fileReaders: [String: QBEFileReaderCreator] = [:]
+	#endif
+
+	#if os(macOS)
 	private let configurableViews: Dictionary<String, QBEConfigurableViewController.Type> = [
 		QBECalculateStep.className(): QBECalculateStepView.self,
 		QBEPivotStep.className(): QBEPivotStepView.self,
@@ -117,7 +142,9 @@ class QBEFactory {
 		QBESQLiteSourceStep.className(): QBESQLiteSourceStepView.self,
 		QBECacheStep.className(): QBECacheStepView.self
 	]
-	
+	#endif
+
+	#if os(macOS)
 	private let stepIcons = [
 		QBETransposeStep.className(): "TransposeIcon",
 		QBEPivotStep.className(): "PivotIcon",
@@ -157,6 +184,22 @@ class QBEFactory {
 		QBEFileStep.className(): "TextIcon",
 		QBESearchStep.className(): "SearchIcon"
 	]
+	#endif
+
+	#if os(iOS)
+	private let stepIcons: [String:String] = [
+		NSStringFromClass(QBECloneStep.self): "CloneIcon",
+		NSStringFromClass(QBESequencerStep.self): "SequenceIcon",
+		NSStringFromClass(QBELimitStep.self): "LimitIcon",
+		NSStringFromClass(QBEOffsetStep.self): "LimitIcon",
+		NSStringFromClass(QBERandomStep.self): "RandomIcon",
+		NSStringFromClass(QBERethinkSourceStep.self): "RethinkDBIcon",
+		NSStringFromClass(QBEPostgresSourceStep.self): "PostgresIcon",
+		NSStringFromClass(QBESearchStep.self): "SearchIcon",
+		NSStringFromClass(QBETransposeStep.self): "TransposeIcon",
+		NSStringFromClass(QBEDistinctStep.self): "DistinctIcon",
+	]
+	#endif
 	
 	var fileExtensionsForWriting: Set<String> { get {
 		var exts = Set<String>()
@@ -172,6 +215,7 @@ class QBEFactory {
 	
 	func stepForReadingFile(_ atURL: URL) -> QBEStep? {
 		do {
+			#if os(macOS)
 			// Try to find reader by UTI type
 			let type = try NSWorkspace.shared().type(ofFile: atURL.path)
 			for (readerType, creator) in fileReaders {
@@ -179,6 +223,7 @@ class QBEFactory {
 					return creator(atURL)
 				}
 			}
+			#endif
 
 			// Try by file extension
 			let ext = atURL.pathExtension
@@ -190,7 +235,9 @@ class QBEFactory {
 			}
 
 			// Generic file reader
+			#if os(macOS)
 			return QBEFileStep(file: QBEFileReference.absolute(atURL))
+			#endif
 		}
 		catch { }
 		return nil
@@ -205,23 +252,16 @@ class QBEFactory {
 		return nil
 	}
 
+	#if os(macOS)
 	func hasViewForConfigurable(_ configurable: QBEConfigurable) -> Bool {
-		return configurableViews[configurable.className] != nil
+		return configurableViews[NSStringFromClass(type(of: configurable))] != nil
 	}
 
 	func viewForConfigurable(_ step: QBEConfigurable, delegate: QBEConfigurableViewDelegate) -> QBEConfigurableViewController? {
-		if let viewType = configurableViews[step.className] {
+		if let viewType = configurableViews[NSStringFromClass(type(of: step))] {
 			return viewType.init(configurable: step, delegate: delegate)
 		}
 		return nil
-	}
-	
-	func iconForStep(_ step: QBEStep) -> String? {
-		return stepIcons[step.className]
-	}
-	
-	func iconForStepType(_ type: QBEStep.Type) -> String? {
-		return stepIcons[type.className()]
 	}
 
 	func viewControllerForTablet(_ tablet: QBETablet, storyboard: NSStoryboard) -> QBETabletViewController {
@@ -246,5 +286,13 @@ class QBEFactory {
 		tabletController.view.frame = tablet.frame!
 		return tabletController
 	}
+	#endif
 
+	func iconForStep(_ step: QBEStep) -> String? {
+		return stepIcons[NSStringFromClass(type(of: step))]
+	}
+	
+	func iconForStepType(_ type: QBEStep.Type) -> String? {
+		return stepIcons[NSStringFromClass(type)]
+	}
 }

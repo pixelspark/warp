@@ -15,6 +15,12 @@ import WarpCore
 public protocol QBESubSentence {
 }
 
+extension String {
+	var localized: String {
+		return NSLocalizedString(self, comment: "")
+	}
+}
+
 /** A sentence is a string of tokens that describe the action performed by a step in natural language, and allow for the
 configuration of that step. For example, a step that limits the number of rows in a result set may have a sentence like
 "limit to [x] rows". In this case, the sentence consists of three tokens: a constant text ('limit to'), a configurable
@@ -285,7 +291,7 @@ public class QBESentenceFormulaToken: NSObject, QBESentenceToken {
 	}
 
 	@discardableResult public func change(_ newValue: Expression) -> Bool {
-		if !self.expression.isEqual(to: newValue) {
+		if !self.expression.isEqual(newValue) {
 			self.expression = newValue
 			callback(newValue)
 			return true
