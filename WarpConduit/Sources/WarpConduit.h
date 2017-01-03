@@ -24,10 +24,11 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 FOUNDATION_EXPORT double WarpConduitVersionNumber;
 FOUNDATION_EXPORT const unsigned char WarpConduitVersionString[];
 
+#import "sqlite3.h"
 #import "mysql.h"
 #import "libpq-fe.h"
 #include "shapefil.h"
-#import "sqlite3.h"
+
 
 #import "CHCSVParser.h"
 #import "TCMXMLWriter.h"

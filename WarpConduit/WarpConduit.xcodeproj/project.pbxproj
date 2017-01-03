@@ -155,6 +155,41 @@
 			remoteGlobalIDString = 65646BA21D577F2F00E58137;
 			remoteInfo = "Rethink iOS";
 		};
+		65BC51A51E1C56F6005FEC76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65BC519F1E1C56F6005FEC76 /* WarpCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6568891E1C1465CE008D1A7D;
+			remoteInfo = WarpCore;
+		};
+		65BC51A71E1C56F6005FEC76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65BC519F1E1C56F6005FEC76 /* WarpCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 656889281C1465CE008D1A7D;
+			remoteInfo = WarpCoreTests;
+		};
+		65BC51A91E1C56F6005FEC76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65BC519F1E1C56F6005FEC76 /* WarpCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 65BC519C1E1C56BC005FEC76;
+			remoteInfo = "WarpCore iOS";
+		};
+		65BC51AB1E1C56FE005FEC76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65BC519F1E1C56F6005FEC76 /* WarpCore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 6568891D1C1465CE008D1A7D;
+			remoteInfo = WarpCore;
+		};
+		65BC51AD1E1C5702005FEC76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65BC519F1E1C56F6005FEC76 /* WarpCore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 65BC517F1E1C56BC005FEC76;
+			remoteInfo = "WarpCore iOS";
+		};
 		65DAF6BE1D7C6F2A00163750 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
@@ -224,6 +259,7 @@
 		65BC51741E1C4D4D005FEC76 /* WarpConduit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WarpConduit.cpp; path = Sources/WarpConduit.cpp; sourceTree = SOURCE_ROOT; };
 		65BC51771E1C4E12005FEC76 /* libmysqlclient-mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libmysqlclient-mac.a"; sourceTree = "<group>"; };
 		65BC51781E1C4E12005FEC76 /* libmysqlclient-simulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libmysqlclient-simulator.a"; sourceTree = "<group>"; };
+		65BC519F1E1C56F6005FEC76 /* WarpCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = WarpCore.xcodeproj; path = ../WarpCore/WarpCore.xcodeproj; sourceTree = "<group>"; };
 		65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rethink.xcodeproj; path = Libraries/Rethink/Rethink.xcodeproj; sourceTree = "<group>"; };
 		65DAF6C71D7C6F8500163750 /* RethinkStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RethinkStream.swift; path = Sources/RethinkStream.swift; sourceTree = SOURCE_ROOT; };
 		65F50E891D78CE1000F6FAE5 /* WarpConduit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpConduit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -392,6 +428,16 @@
 			path = TestData;
 			sourceTree = "<group>";
 		};
+		65BC51A01E1C56F6005FEC76 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				65BC51A61E1C56F6005FEC76 /* WarpCore.framework */,
+				65BC51A81E1C56F6005FEC76 /* WarpCoreTests.xctest */,
+				65BC51AA1E1C56F6005FEC76 /* WarpCore iOS.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		65DAF6AA1D7C6EE400163750 /* RethinkDB */ = {
 			isa = PBXGroup;
 			children = (
@@ -417,6 +463,7 @@
 		65F50E7F1D78CE0F00F6FAE5 = {
 			isa = PBXGroup;
 			children = (
+				65BC519F1E1C56F6005FEC76 /* WarpCore.xcodeproj */,
 				65DAF6AA1D7C6EE400163750 /* RethinkDB */,
 				656822641D78D69300410BA5 /* XML */,
 				65F50EC01D78D3F500F6FAE5 /* MySQL */,
@@ -677,6 +724,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				65BC51AE1E1C5702005FEC76 /* PBXTargetDependency */,
 				65BC51571E1B1129005FEC76 /* PBXTargetDependency */,
 			);
 			name = "WarpConduit iOS";
@@ -696,6 +744,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				65BC51AC1E1C56FE005FEC76 /* PBXTargetDependency */,
 				65DAF6C51D7C6F3500163750 /* PBXTargetDependency */,
 			);
 			name = WarpConduit;
@@ -743,6 +792,10 @@
 				{
 					ProductGroup = 656822761D78D69300410BA5 /* Products */;
 					ProjectRef = 656822751D78D69300410BA5 /* TCMinem.xcodeproj */;
+				},
+				{
+					ProductGroup = 65BC51A01E1C56F6005FEC76 /* Products */;
+					ProjectRef = 65BC519F1E1C56F6005FEC76 /* WarpCore.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -794,6 +847,27 @@
 			fileType = wrapper.framework;
 			path = SCRAM.framework;
 			remoteRef = 65A732441D8F1CE400C5C397 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65BC51A61E1C56F6005FEC76 /* WarpCore.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = WarpCore.framework;
+			remoteRef = 65BC51A51E1C56F6005FEC76 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65BC51A81E1C56F6005FEC76 /* WarpCoreTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = WarpCoreTests.xctest;
+			remoteRef = 65BC51A71E1C56F6005FEC76 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		65BC51AA1E1C56F6005FEC76 /* WarpCore iOS.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = "WarpCore iOS.framework";
+			remoteRef = 65BC51A91E1C56F6005FEC76 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		65DAF6BF1D7C6F2A00163750 /* Rethink.framework */ = {
@@ -886,6 +960,16 @@
 			isa = PBXTargetDependency;
 			name = "Rethink iOS";
 			targetProxy = 65BC51561E1B1129005FEC76 /* PBXContainerItemProxy */;
+		};
+		65BC51AC1E1C56FE005FEC76 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WarpCore;
+			targetProxy = 65BC51AB1E1C56FE005FEC76 /* PBXContainerItemProxy */;
+		};
+		65BC51AE1E1C5702005FEC76 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "WarpCore iOS";
+			targetProxy = 65BC51AD1E1C5702005FEC76 /* PBXContainerItemProxy */;
 		};
 		65DAF6C51D7C6F3500163750 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
