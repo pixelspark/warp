@@ -120,4 +120,8 @@ class QBEDocumentViewController: UIViewController {
 			self.updateView()
 		}
 	}
+
+	@IBAction func share(_ sender: UIBarButtonItem) {
+		self.tabletController?.share(sender)
+	}
 }

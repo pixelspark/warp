@@ -117,9 +117,7 @@ class QBESentenceViewController: UIViewController {
 				if token.options.count == 0 {
 					uac.message = "There are currently no options available.".localized
 
-					if UIDevice.current.userInterfaceIdiom == .phone {
-						uac.addAction(UIAlertAction(title: "OK".localized, style: .cancel, handler: nil))
-					}
+					uac.addAction(UIAlertAction(title: "OK".localized, style: .cancel, handler: nil))
 				}
 				else {
 					token.options.forEach { (k, v) in
@@ -129,9 +127,7 @@ class QBESentenceViewController: UIViewController {
 						}))
 					}
 
-					if UIDevice.current.userInterfaceIdiom == .phone {
-						uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: nil))
-					}
+					uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: nil))
 				}
 
 				uac.popoverPresentationController?.sourceView = sender
@@ -146,10 +142,7 @@ class QBESentenceViewController: UIViewController {
 						case .success(let options):
 							if options.count == 0 {
 								uac.message = "There are currently no options available.".localized
-
-								if UIDevice.current.userInterfaceIdiom == .phone {
-									uac.addAction(UIAlertAction(title: "OK".localized, style: .cancel, handler: nil))
-								}
+								uac.addAction(UIAlertAction(title: "OK".localized, style: .cancel, handler: nil))
 							}
 							else {
 								options.forEach { v in
@@ -158,10 +151,7 @@ class QBESentenceViewController: UIViewController {
 										self.delegate?.sentenceViewController(self, didChangeSentence: s)
 									}))
 								}
-
-								if UIDevice.current.userInterfaceIdiom == .phone {
-									uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: nil))
-								}
+								uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: nil))
 							}
 
 							uac.popoverPresentationController?.sourceView = sender

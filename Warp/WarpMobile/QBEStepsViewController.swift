@@ -136,7 +136,9 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 
 				if let c = chain {
 					asyncMain {
-						collectionView.selectItem(at: IndexPath(indexes: [indexPath.section, c.steps.count - 1]), animated: false, scrollPosition: .centeredHorizontally)
+						if c.head != nil {
+							collectionView.selectItem(at: IndexPath(indexes: [indexPath.section, c.steps.count - 1]), animated: false, scrollPosition: .centeredHorizontally)
+						}
 					}
 					
 					// Add popover
@@ -183,10 +185,8 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 							}))
 						}
 
-						if UIDevice.current.userInterfaceIdiom == .phone {
-							uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: { act in
-							}))
-						}
+						uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: { act in
+						}))
 
 						uac.popoverPresentationController?.sourceView = self.collectionView
 						uac.popoverPresentationController?.sourceRect = cell.frame

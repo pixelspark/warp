@@ -152,7 +152,13 @@
                             <constraint firstItem="fSM-yT-VcG" firstAttribute="leading" secondItem="18o-fb-ceT" secondAttribute="leading" id="Ui9-XU-dbA"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Document" id="bYg-eQ-CkZ"/>
+                    <navigationItem key="navigationItem" title="Document" id="bYg-eQ-CkZ">
+                        <barButtonItem key="rightBarButtonItem" systemItem="action" id="8zd-Nx-hPP">
+                            <connections>
+                                <action selector="share:" destination="8OA-JR-E3e" id="AoT-yv-iTp"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="LKL-HZ-TON" userLabel="First Responder" sceneMemberID="firstResponder"/>

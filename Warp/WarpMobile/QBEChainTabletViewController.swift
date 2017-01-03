@@ -1,13 +1,14 @@
 import UIKit
 import WarpCore
 
-class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDelegate, QBESentenceViewControllerDelegate, QBEConfigurableFormViewControllerDelegate {
+class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDelegate, QBESentenceViewControllerDelegate, QBEConfigurableFormViewControllerDelegate, QBEExportViewControllerDelegate {
 	private var stepsViewController: QBEStepsViewController? = nil
 	private var sentenceViewController: QBESentenceViewController? = nil
 	private var dataViewController: QBEDataViewController? = nil
 
 	@IBOutlet var fullDataToggle: UIBarButtonItem! = nil
 	@IBOutlet var configureToggle: UIBarButtonItem! = nil
+	private var shareButton: UIBarButtonItem? = nil
 
 	var tablet: QBEChainTablet? = nil { didSet {
 		if tablet != oldValue {
@@ -68,6 +69,30 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 
 	func configurableFormViewController(_: QBEConfigurableFormViewController, hasChangedConfigurable: QBEFormConfigurable) {
 		self.updateView()
+	}
+
+	func exportViewController(_: QBEExportViewController, shareFileAt url: URL, callback: @escaping () -> ()) {
+		let sc = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+		sc.modalPresentationStyle = .popover
+		sc.popoverPresentationController?.barButtonItem = self.shareButton
+		sc.completionWithItemsHandler = { _,_,_,_ in
+			callback()
+		}
+		self.present(sc, animated: false)
+	}
+
+	@IBAction func share(_ sender: UIBarButtonItem) {
+		self.shareButton = sender // UGLY
+		let exportForm = QBEExportViewController()
+		exportForm.source = self.tablet!.chain
+		exportForm.delegate = self
+		let nav = UINavigationController(rootViewController: exportForm)
+
+		if UIDevice.current.userInterfaceIdiom == .pad {
+			nav.modalPresentationStyle = .popover
+			nav.popoverPresentationController?.barButtonItem = sender
+		}
+		self.present(nav, animated: true, completion: nil)
 	}
 
 	@IBAction func configureStep(_ sender: AnyObject) {

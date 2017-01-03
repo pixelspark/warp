@@ -391,3 +391,10 @@
 "Apply" = "Toepassen";
 "Load data from PostgreSQL" = "Laad gegevens uit PostgreSQL";
 "Load data from RethinkDB" = "Laad gegevens uit RethinkDB";
+"Exporting to file..." = "Exporteren naar bestand...";
+"Export to file" = "Exporteer naar bestand";
+"File name" = "Bestandsnaam";
+"Share" = "Deel";
+"Save" = "Bewaar";
+"Exported data" = "Opgeslagen data";
+"Export to" = "Exporteer naar";
