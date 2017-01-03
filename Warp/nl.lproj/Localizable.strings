@@ -386,3 +386,8 @@
 "Has headers" = "Heeft kolomkoppen";
 "Documents" = "Documenten";
 "Data files" = "Databestanden";
+"iCloud is disabled" = "iCloud is uitgeschakeld";
+"Please enable iCloud Drive in Settings to use this app" = "Schakel iCloud Drive in (via Instellingen) om deze app te gebruiken.";
+"Apply" = "Toepassen";
+"Load data from PostgreSQL" = "Laad gegevens uit PostgreSQL";
+"Load data from RethinkDB" = "Laad gegevens uit RethinkDB";

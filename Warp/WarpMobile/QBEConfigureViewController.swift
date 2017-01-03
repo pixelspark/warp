@@ -101,10 +101,17 @@ class QBEConfigurableFormViewController: FormViewController {
 
 		self.navigationItem.title = "Settings".localized
 		self.navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(self.done(_:))), animated: false)
-		
+
+		if UIDevice.current.userInterfaceIdiom == .pad {
+			self.navigationItem.setLeftBarButton(UIBarButtonItem(title: "Apply".localized, style: .plain, target: self, action: #selector(self.apply(_:))), animated: false)
+		}
 
 		form = configurable.form
 		form.delegate = self
+	}
+
+	@IBAction func apply(_ sender: AnyObject?) {
+		self.delegate?.configurableFormViewController(self, hasChangedConfigurable: configurable)
 	}
 
 	@IBAction func done(_ sender: AnyObject?) {

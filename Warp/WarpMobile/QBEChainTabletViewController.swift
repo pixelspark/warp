@@ -77,7 +77,11 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 			configureForm.delegate = self
 
 			let nav = UINavigationController(rootViewController: configureForm)
-			nav.modalPresentationStyle = .pageSheet
+
+			if UIDevice.current.userInterfaceIdiom == .pad {
+				nav.modalPresentationStyle = .popover
+				nav.popoverPresentationController?.barButtonItem = self.configureToggle
+			}
 			self.present(nav, animated: true, completion: nil)
 		}
 	}

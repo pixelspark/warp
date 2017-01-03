@@ -109,6 +109,11 @@
                         </connections>
                     </collectionView>
                     <navigationItem key="navigationItem" title="Warp" id="COu-sB-Sgh">
+                        <barButtonItem key="leftBarButtonItem" title="Locations" id="bew-ea-4PI">
+                            <connections>
+                                <action selector="importUsingPicker:" destination="aJH-QV-63U" id="QBi-90-kL4"/>
+                            </connections>
+                        </barButtonItem>
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="pUw-AM-ADW">
                             <connections>
                                 <action selector="newDocumentWithSender:" destination="aJH-QV-63U" id="eKH-6p-tLW"/>

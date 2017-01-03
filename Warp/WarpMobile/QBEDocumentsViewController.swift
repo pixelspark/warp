@@ -387,12 +387,19 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 	override var canBecomeFirstResponder: Bool { return true }
 }
 
-class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentManagerDelegate, QBEDocumentThumbnailCacheDelegate {
+class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentManagerDelegate, QBEDocumentThumbnailCacheDelegate, UIDocumentPickerDelegate {
 	fileprivate let manager = QBEDocumentManager(fileExtension: QBEDocument.fileExtension)
 	fileprivate let dataFileManager = QBEDocumentManager(fileExtension: QBEDocument.fileExtension, inverse: true)
 	fileprivate var documents = [QBEDocumentBrowserModel]()
 	fileprivate var dataFileDocuments = [QBEDocumentBrowserModel]()
 	fileprivate let thumbnailCache = QBEDocumentThumbnailCache(thumbnailSize: CGSize(width: 220, height: 270))
+
+	fileprivate let supportedDocumentTypes = [
+		"public.comma-separated-values-text",
+		QBEDocument.typeIdentifier,
+		"nl.pixelspark.warp.csv",
+		"nl.pixelspark.warp.sqlite",
+	]
 
 	static let documentsSection = 0
 	static let dataFilesSection = 1
@@ -883,5 +890,16 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 				self.present(alertController, animated: true, completion: nil)
 			}
 		}
+	}
+
+	@IBAction func importUsingPicker(_ sender: AnyObject) {
+		let picker = UIDocumentPickerViewController(documentTypes: self.supportedDocumentTypes, in: .open)
+		picker.delegate = self
+
+		self.present(picker, animated:true, completion: nil)
+	}
+
+	func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
+		// Do nothing, document will be added to the list
 	}
 }
