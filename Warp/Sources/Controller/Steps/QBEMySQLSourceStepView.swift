@@ -12,6 +12,7 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import Foundation
 import Cocoa
 import WarpCore
+import WarpConduit
 
 internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEMySQLSourceStep>, QBEAlterTableViewDelegate {
 	@IBOutlet var userField: NSTextField?

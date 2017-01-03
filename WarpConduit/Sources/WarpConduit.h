@@ -19,12 +19,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 #if !TARGET_OS_IPHONE
 #import <Cocoa/Cocoa.h>
-#import "mysql.h"
 #endif
 
 FOUNDATION_EXPORT double WarpConduitVersionNumber;
 FOUNDATION_EXPORT const unsigned char WarpConduitVersionString[];
 
+#import "mysql.h"
 #import "libpq-fe.h"
 #include "shapefil.h"
 #import "sqlite3.h"

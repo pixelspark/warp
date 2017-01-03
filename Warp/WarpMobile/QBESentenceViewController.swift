@@ -120,7 +120,12 @@ class QBESentenceViewController: UIViewController {
 					uac.addAction(UIAlertAction(title: "OK".localized, style: .cancel, handler: nil))
 				}
 				else {
-					token.options.forEach { (k, v) in
+					var sortedTokens = OrderedDictionary(dictionaryInAnyOrder: token.options)
+					sortedTokens.sortPairsInPlace({ (a, b) -> Bool in
+						return a.value < b.value
+					})
+
+					sortedTokens.forEach { (k, v) in
 						uac.addAction(UIAlertAction(title: v, style: .default, handler: { (act) in
 							token.select(k)
 							self.delegate?.sentenceViewController(self, didChangeSentence: s)
@@ -145,7 +150,7 @@ class QBESentenceViewController: UIViewController {
 								uac.addAction(UIAlertAction(title: "OK".localized, style: .cancel, handler: nil))
 							}
 							else {
-								options.forEach { v in
+								options.sorted().forEach { v in
 									uac.addAction(UIAlertAction(title: v, style: .default, handler: { (act) in
 										token.select(v)
 										self.delegate?.sentenceViewController(self, didChangeSentence: s)

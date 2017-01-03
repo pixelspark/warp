@@ -390,6 +390,7 @@
 "Please enable iCloud Drive in Settings to use this app" = "Schakel iCloud Drive in (via Instellingen) om deze app te gebruiken.";
 "Apply" = "Toepassen";
 "Load data from PostgreSQL" = "Laad gegevens uit PostgreSQL";
+"Load data from MySQL" = "Laad gegevens uit MySQL";
 "Load data from RethinkDB" = "Laad gegevens uit RethinkDB";
 "Exporting to file..." = "Exporteren naar bestand...";
 "Export to file" = "Exporteer naar bestand";

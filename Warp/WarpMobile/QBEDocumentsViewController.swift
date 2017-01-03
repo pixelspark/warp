@@ -398,6 +398,7 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 		"public.comma-separated-values-text",
 		QBEDocument.typeIdentifier,
 		"nl.pixelspark.warp.csv",
+		"nl.pixelspark.warp.dbf",
 		"nl.pixelspark.warp.sqlite",
 	]
 
@@ -790,8 +791,11 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 						document.open { success in
 							if success {
 								let s: QBEStep?
-								if url.pathExtension.lowercased() == "sqlite" {
+								if ["sqlite3","db","sqlite"].contains(url.pathExtension.lowercased()) {
 									s = QBESQLiteSourceStep(url: url)
+								}
+								else if ["dbf","dbase","dbase3"].contains(url.pathExtension.lowercased()) {
+									s = QBEDBFSourceStep(url: url)
 								}
 								else {
 									s = QBECSVSourceStep(url: url)

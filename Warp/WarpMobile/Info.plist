@@ -8,6 +8,16 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>DBF file</string>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>nl.pixelspark.warp.dbf</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>CSV File</string>
 			<key>LSHandlerRank</key>
 			<string>Default</string>
@@ -106,6 +116,27 @@
 	</array>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
+		<dict>
+			<key>UTTypeDescription</key>
+			<string>DBF file</string>
+			<key>UTTypeIdentifier</key>
+			<string>nl.pixelspark.warp.dbf</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>dbf</string>
+					<string>dbase</string>
+					<string>dbase3</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/dbf</string>
+					<string>application/x-dbase</string>
+					<string>application/dbase</string>
+				</array>
+			</dict>
+		</dict>
 		<dict>
 			<key>UTTypeDescription</key>
 			<string>SQLite file</string>

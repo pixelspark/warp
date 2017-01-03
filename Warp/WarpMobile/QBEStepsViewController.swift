@@ -158,10 +158,18 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 							uac.addAction(UIAlertAction(title: "Load data from PostgreSQL".localized, style: .default, handler: { act in
 								self.add(step: QBEPostgresSourceStep())
 							}))
+
+							uac.addAction(UIAlertAction(title: "Load data from MySQL".localized, style: .default, handler: { act in
+								self.add(step: QBEMySQLSourceStep())
+							}))
 						}
 						else {
 							uac.addAction(UIAlertAction(title: "Limit the number of rows".localized, style: .default, handler: { act in
 								self.add(step: QBELimitStep())
+							}))
+
+							uac.addAction(UIAlertAction(title: "Make columnar".localized, style: .default, handler: { act in
+								self.add(step: QBEFlattenStep())
 							}))
 
 							uac.addAction(UIAlertAction(title: "Remove duplicate rows".localized, style: .default, handler: { act in

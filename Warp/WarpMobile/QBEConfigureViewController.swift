@@ -11,6 +11,52 @@ protocol QBEFormConfigurableStep: QBEFormConfigurable {
 	var shouldConfigure: Bool { get }
 }
 
+extension QBEMySQLSourceStep: QBEFormConfigurableStep {
+	var shouldConfigure: Bool { return true }
+
+	var form: Form {
+		let form = Form()
+
+		let passwordRow = PasswordRow() { row in
+			row.title = "Password".localized
+			row.value = self.password.stringValue
+			}.onChange { self.password.stringValue = $0.value ?? "" };
+
+		form +++ Section("Server".localized)
+			<<< TextRow(){ row in
+				row.title = "Host name".localized
+				row.value = self.host
+				row.placeholder = "localhost".localized
+				row.onChange { self.host = $0.value ?? "localhost" }
+				row.cellSetup({ (cell, row) in
+					cell.textField.autocapitalizationType = .none
+				})
+			}
+			<<< IntRow(){ row in
+				row.title = "Port".localized
+				row.value = self.port
+				row.placeholder = "3306".localized
+				row.onChange { self.port = $0.value ?? 3306 }
+			}
+			<<< TextRow() { row in
+				row.title = "User name".localized
+				row.value = self.user
+				row.placeholder = "root".localized
+				row.onChange {
+					self.user = $0.value ?? "root"
+					passwordRow.value = self.password.stringValue
+				}
+				row.cellSetup({ (cell, row) in
+					cell.textField.autocapitalizationType = .none
+				})
+			}
+			<<< passwordRow
+
+		return form
+	}
+}
+
+
 extension QBEPostgresSourceStep: QBEFormConfigurableStep {
 	var shouldConfigure: Bool { return true }
 

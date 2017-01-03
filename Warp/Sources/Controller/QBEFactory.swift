@@ -146,35 +146,38 @@ class QBEFactory {
 
 	#if os(macOS)
 	private let stepIcons = [
-		QBETransposeStep.className(): "TransposeIcon",
-		QBEPivotStep.className(): "PivotIcon",
-		QBERandomStep.className(): "RandomIcon",
-		QBEFilterStep.className(): "FilterIcon",
-		QBEFilterSetStep.className(): "FilterIcon",
+		QBECloneStep.className(): "CloneIcon",
+		QBESequencerStep.className(): "SequenceIcon",
 		QBELimitStep.className(): "LimitIcon",
 		QBEOffsetStep.className(): "LimitIcon",
+		QBERandomStep.className(): "RandomIcon",
+		QBETransposeStep.className(): "TransposeIcon",
+		QBEDistinctStep.className(): "DistinctIcon",
+		QBESearchStep.className(): "SearchIcon",
+		QBERethinkSourceStep.className(): "RethinkDBIcon",
+		QBEDBFSourceStep.className(): "DBFIcon",
+		QBEMySQLSourceStep.className(): "MySQLIcon",
+		QBEPostgresSourceStep.className(): "PostgresIcon",
 		QBECSVSourceStep.className(): "CSVIcon",
 		QBESQLiteSourceStep.className(): "SQLIcon",
+		QBEFlattenStep.className(): "FlattenIcon",
+
+		// Not yet on iOS
+		QBEPivotStep.className(): "PivotIcon",
+		QBEFilterStep.className(): "FilterIcon",
+		QBEFilterSetStep.className(): "FilterIcon",
 		QBECalculateStep.className(): "CalculateIcon",
 		QBEColumnsStep.className(): "ColumnsIcon",
 		QBESortColumnsStep.className(): "ColumnsIcon",
-		QBEFlattenStep.className(): "FlattenIcon",
-		QBEDistinctStep.className(): "DistinctIcon",
 		QBEPrestoSourceStep.className(): "PrestoIcon",
 		QBERasterStep.className(): "RasterIcon",
 		QBESortStep.className(): "SortIcon",
-		QBEMySQLSourceStep.className(): "MySQLIcon",
-		QBEPostgresSourceStep.className(): "PostgresIcon",
 		QBEJoinStep.className(): "JoinIcon",
-		QBECloneStep.className(): "CloneIcon",
 		QBEDebugStep.className(): "DebugIcon",
 		QBERenameStep.className(): "RenameIcon",
 		QBEMergeStep.className(): "MergeIcon",
 		QBECrawlStep.className(): "CrawlIcon",
-		QBESequencerStep.className(): "SequenceIcon",
-		QBEDBFSourceStep.className(): "DBFIcon",
 		QBEExportStep.className(): "ExportStepIcon",
-		QBERethinkSourceStep.className(): "RethinkDBIcon",
 		QBEClassifierStep.className(): "AIIcon",
 		QBEExplodeVerticallyStep.className(): "ExplodeVerticalIcon",
 		QBEExplodeHorizontallyStep.className(): "ExplodeHorizontalIcon",
@@ -182,7 +185,6 @@ class QBEFactory {
 		QBEDummiesStep.className(): "DummiesIcon",
 		QBEHTTPStep.className(): "DownloadIcon",
 		QBEFileStep.className(): "TextIcon",
-		QBESearchStep.className(): "SearchIcon"
 	]
 	#endif
 
@@ -200,6 +202,9 @@ class QBEFactory {
 		NSStringFromClass(QBEDistinctStep.self): "DistinctIcon",
 		NSStringFromClass(QBECSVSourceStep.self): "CSVIcon",
 		NSStringFromClass(QBESQLiteSourceStep.self): "SQLIcon",
+		NSStringFromClass(QBEMySQLSourceStep.self): "MySQLIcon",
+		NSStringFromClass(QBEDBFSourceStep.self): "DBFIcon",
+		NSStringFromClass(QBEFlattenStep.self): "FlattenIcon",
 	]
 	#endif
 	
