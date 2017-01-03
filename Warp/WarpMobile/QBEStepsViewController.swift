@@ -233,9 +233,11 @@ class QBEStepsViewCell: UICollectionViewCell {
 		}
 	}
 
-	@IBAction func longPress(_ sender: Any?) {
-		if self.becomeFirstResponder() {
-			self.showMenu()
+	@IBAction func longPress(_ sender: UILongPressGestureRecognizer) {
+		if sender.state == .began {
+			if self.becomeFirstResponder() {
+				self.showMenu()
+			}
 		}
 	}
 

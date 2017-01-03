@@ -198,6 +198,8 @@ class QBEFactory {
 		NSStringFromClass(QBESearchStep.self): "SearchIcon",
 		NSStringFromClass(QBETransposeStep.self): "TransposeIcon",
 		NSStringFromClass(QBEDistinctStep.self): "DistinctIcon",
+		NSStringFromClass(QBECSVSourceStep.self): "CSVIcon",
+		NSStringFromClass(QBESQLiteSourceStep.self): "SQLIcon",
 	]
 	#endif
 	

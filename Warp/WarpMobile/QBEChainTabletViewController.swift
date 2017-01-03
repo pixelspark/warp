@@ -38,7 +38,7 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 					s.fullDataset(job, callback: callback)
 				}
 				else {
-					s.exampleDataset(job, maxInputRows: 100, maxOutputRows: 100, callback: callback)
+					s.exampleDataset(job, maxInputRows: 10000, maxOutputRows: 100, callback: callback)
 				}
 			}
 			else {

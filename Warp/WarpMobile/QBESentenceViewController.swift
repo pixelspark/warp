@@ -108,15 +108,29 @@ class QBESentenceViewController: UIViewController {
 
 			if let token = token as? QBESentenceOptionsToken {
 				let uac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-				token.options.forEach { (k, v) in
-					uac.addAction(UIAlertAction(title: v, style: .default, handler: { (act) in
-						token.select(k)
-						self.delegate?.sentenceViewController(self, didChangeSentence: s)
-					}))
+
+				if token.options.count == 0 {
+					uac.message = "There are currently no options available.".localized
+
+					if UIDevice.current.userInterfaceIdiom == .phone {
+						uac.addAction(UIAlertAction(title: "OK".localized, style: .cancel, handler: nil))
+					}
 				}
+				else {
+					token.options.forEach { (k, v) in
+						uac.addAction(UIAlertAction(title: v, style: .default, handler: { (act) in
+							token.select(k)
+							self.delegate?.sentenceViewController(self, didChangeSentence: s)
+						}))
+					}
+
+					if UIDevice.current.userInterfaceIdiom == .phone {
+						uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: nil))
+					}
+				}
+
 				uac.popoverPresentationController?.sourceView = sender
 				uac.popoverPresentationController?.sourceRect = sender.bounds
-
 				self.present(uac, animated: true, completion: nil)
 			}
 			else if let token = token as? QBESentenceDynamicOptionsToken {
@@ -125,20 +139,28 @@ class QBESentenceViewController: UIViewController {
 					asyncMain {
 						switch result {
 						case .success(let options):
-							options.forEach { v in
-								uac.addAction(UIAlertAction(title: v, style: .default, handler: { (act) in
-									token.select(v)
-									self.delegate?.sentenceViewController(self, didChangeSentence: s)
-								}))
-							}
+							if options.count == 0 {
+								uac.message = "There are currently no options available.".localized
 
-							if UIDevice.current.userInterfaceIdiom == .phone {
-								uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: nil))
+								if UIDevice.current.userInterfaceIdiom == .phone {
+									uac.addAction(UIAlertAction(title: "OK".localized, style: .cancel, handler: nil))
+								}
+							}
+							else {
+								options.forEach { v in
+									uac.addAction(UIAlertAction(title: v, style: .default, handler: { (act) in
+										token.select(v)
+										self.delegate?.sentenceViewController(self, didChangeSentence: s)
+									}))
+								}
+
+								if UIDevice.current.userInterfaceIdiom == .phone {
+									uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: nil))
+								}
 							}
 
 							uac.popoverPresentationController?.sourceView = sender
 							uac.popoverPresentationController?.sourceRect = sender.bounds
-
 							self.present(uac, animated: true, completion: nil)
 
 						case .failure(let e):

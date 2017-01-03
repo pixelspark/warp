@@ -379,3 +379,10 @@
 "Rename" = "Hernoem";
 "Rename document" = "Hernoem document";
 "Remove duplicate rows" = "Verwijder duplicate rijen";
+"Could not create new document" = "Kon geen nieuw document maken";
+"Untitled" = "Naamloos";
+"Format" = "Structuur";
+"Field separator" = "Veldscheidingsteken";
+"Has headers" = "Heeft kolomkoppen";
+"Documents" = "Documenten";
+"Data files" = "Databestanden";

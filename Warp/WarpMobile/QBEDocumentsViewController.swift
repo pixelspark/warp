@@ -10,6 +10,14 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Ge
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 import UIKit
+import MobileCoreServices
+import WarpCore
+
+fileprivate enum QBEDocumentTemplate {
+	case empty(name: String?)
+	case file(URL)
+	case document(QBEDocument)
+}
 
 fileprivate class QBEDocumentBrowserModel: NSObject {
 	let item: NSMetadataItem
@@ -20,6 +28,15 @@ fileprivate class QBEDocumentBrowserModel: NSObject {
 
 	var displayName: String {
 		return self.item.value(forAttribute: NSMetadataItemDisplayNameKey) as! String
+	}
+
+	var downloaded: Bool {
+		let status = (self.item.value(forAttribute: NSMetadataUbiquitousItemDownloadingStatusKey) as! String)
+		return status == NSMetadataUbiquitousItemDownloadingStatusDownloaded || status == NSMetadataUbiquitousItemDownloadingStatusCurrent
+	}
+
+	var downloading: Bool {
+		return (self.item.value(forAttribute: NSMetadataUbiquitousItemIsDownloadingKey) as! Bool)
 	}
 
 	var subtitle: String? {
@@ -88,7 +105,7 @@ fileprivate protocol QBEDocumentManagerDelegate: NSObjectProtocol {
 	func manager(_ manager: QBEDocumentManager, updateAvailableDocuments: [QBEDocumentBrowserModel], animations: [QBEDocumentBrowserAnimation])
 }
 
-fileprivate class QBEDocumentManager {
+fileprivate class QBEDocumentManager: NSObject {
 	weak var delegate: QBEDocumentManagerDelegate?
 	let query: NSMetadataQuery = NSMetadataQuery()
 	fileprivate var previousQueryObjects: NSOrderedSet?
@@ -100,10 +117,10 @@ fileprivate class QBEDocumentManager {
 		return workerQueue
 	}()
 
-	init(fileExtension: String) {
+	init(fileExtension: String, inverse: Bool = false) {
 		// Filter only our document type.
 		let filePattern = String(format: "*.%@", fileExtension)
-		query.predicate = NSPredicate(format: "%K LIKE %@", NSMetadataItemFSNameKey, filePattern)
+		query.predicate = NSPredicate(format: inverse ? "NOT(%K LIKE %@)" : "(%K LIKE %@)", NSMetadataItemFSNameKey, filePattern)
 
 		query.searchScopes = [
 			NSMetadataQueryUbiquitousDocumentsScope,
@@ -233,17 +250,23 @@ fileprivate class QBEDocumentManager {
 	}
 }
 
+class QBEDocumentBrowserHeaderView: UICollectionReusableView {
+	@IBOutlet var label: UILabel! = nil
+}
+
 /** The `DocumentCell` class reflects the content of one document in our collection view. It manages an image view to 
 display the thumbnail as well as two labels for the display name and container name (for external documents) of the 
 document respectively. */
 class QBEDocumentBrowserCell: UICollectionViewCell {
 	@IBOutlet var imageView: UIImageView!
 	@IBOutlet var label: UILabel!
+	@IBOutlet var loadingIndicator: UIActivityIndicatorView!
 	@IBOutlet var subtitleLabel: UILabel!
 
 	override func awakeFromNib() {
 		super.awakeFromNib()
-		self.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(self.longPress(_:))))
+		let gr = UILongPressGestureRecognizer(target: self, action: #selector(self.longPress(_:)))
+		self.addGestureRecognizer(gr)
 	}
 
 	var documentURL: URL? = nil
@@ -261,6 +284,18 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 		}
 	}
 
+	var downloaded: Bool = true {
+		didSet {
+			imageView.alpha = (downloaded ? 1.0 : 0.2)
+		}
+	}
+
+	var downloading: Bool = true {
+		didSet {
+			loadingIndicator.isHidden = !downloading
+		}
+	}
+
 	var subtitle = "" {
 		didSet {
 			subtitleLabel.text = subtitle
@@ -271,11 +306,14 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 		title = ""
 		subtitle = ""
 		thumbnail = nil
+		loadingIndicator.isHidden = true
 	}
 
-	@IBAction func longPress(_ sender: Any?) {
-		if self.becomeFirstResponder() {
-			self.showMenu()
+	@IBAction func longPress(_ sender: UILongPressGestureRecognizer) {
+		if sender.state == .began {
+			if self.becomeFirstResponder() {
+				self.showMenu()
+			}
 		}
 	}
 
@@ -329,8 +367,9 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 				DispatchQueue.global(qos: .userInitiated).async {
 					NSFileCoordinator().coordinate(writingItemAt: du, options: .contentIndependentMetadataOnly, error: nil) { (writingUrl) in
 						do {
+							let ext = du.pathExtension
 							var uv = URLResourceValues()
-							uv.name = "\(nn).\(QBEDocument.fileExtension)"
+							uv.name = "\(nn).\(ext)"
 							try du.setResourceValues(uv)
 						}
 						catch {
@@ -350,13 +389,17 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 
 class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentManagerDelegate, QBEDocumentThumbnailCacheDelegate {
 	fileprivate let manager = QBEDocumentManager(fileExtension: QBEDocument.fileExtension)
+	fileprivate let dataFileManager = QBEDocumentManager(fileExtension: QBEDocument.fileExtension, inverse: true)
 	fileprivate var documents = [QBEDocumentBrowserModel]()
+	fileprivate var dataFileDocuments = [QBEDocumentBrowserModel]()
 	fileprivate let thumbnailCache = QBEDocumentThumbnailCache(thumbnailSize: CGSize(width: 220, height: 270))
 
 	static let documentsSection = 0
+	static let dataFilesSection = 1
 
 	override func viewDidLoad() {
 		self.manager.delegate = self
+		self.dataFileManager.delegate = self
 		self.thumbnailCache.delegate = self
 	}
 
@@ -368,6 +411,7 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 	override func viewWillAppear(_ animated: Bool) {
 		super.viewWillAppear(animated)
 		manager.start()
+		dataFileManager.start()
 	}
 
 	override func viewDidAppear(_ animated: Bool) {
@@ -393,7 +437,16 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 			Reload means we're reloading all items, so mark all thumbnails
 			dirty and reload the collection view.
 			*/
-			documents = results
+			switch manager {
+			case self.manager:
+				self.documents = results
+
+			case self.dataFileManager:
+				self.dataFileDocuments = results
+
+			default:
+				fatalError("Unreachable")
+			}
 			collectionView?.reloadData()
 		}
 		else {
@@ -405,8 +458,30 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 				Perform all animations, and invalidate the thumbnail cache
 				where necessary.
 				*/
-				indexPathsNeedingReload = self.processAnimations(animations, oldResults: self.documents, newResults: results, section: QBEDocumentBrowserViewController.documentsSection)
-				self.documents = results
+				let section: Int
+				switch manager {
+				case self.manager:
+					section = QBEDocumentBrowserViewController.documentsSection
+
+				case self.dataFileManager:
+					section = QBEDocumentBrowserViewController.dataFilesSection
+
+				default:
+					fatalError("Unreachable")
+				}
+
+				indexPathsNeedingReload = self.processAnimations(animations, oldResults: self.documents, newResults: results, section: section)
+
+				switch manager {
+				case self.manager:
+					self.documents = results
+
+				case self.dataFileManager:
+					self.dataFileDocuments = results
+
+				default:
+					fatalError("Unreachable")
+				}
 			},
 			completion: { success in
 				if success {
@@ -416,14 +491,28 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 		}
 	}
 
+	private func document(at indexPath: IndexPath) -> QBEDocumentBrowserModel? {
+		switch indexPath.section {
+		case QBEDocumentBrowserViewController.documentsSection:
+			guard indexPath.row < self.documents.count else { return nil }
+			return self.documents[indexPath.row]
+
+		case QBEDocumentBrowserViewController.dataFilesSection:
+			guard indexPath.row < self.dataFileDocuments.count else { return nil }
+			return self.dataFileDocuments[indexPath.row]
+
+		default:
+			return nil
+		}
+	}
+
 	override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-		if indexPath.section == QBEDocumentBrowserViewController.documentsSection && indexPath.row < self.documents.count {
-			let document = self.documents[indexPath.row]
-
-			let visibleURLs: [URL] = collectionView.indexPathsForVisibleItems.map { indexPath in
-				let document = self.documents[indexPath.row]
-
-				return document.URL as URL
+		if let document = self.document(at: indexPath) {
+			let visibleURLs: [URL?] = collectionView.indexPathsForVisibleItems.map { indexPath in
+				if let document = self.document(at: indexPath) {
+					return document.URL as URL
+				}
+				return nil
 			}
 
 			if !visibleURLs.contains(document.URL as URL) {
@@ -469,32 +558,54 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 				fatalError("Unreachable")
 			}
 		}
-
-		self.documents = newResults
 		return indexPathsNeedingReload
 	}
 
 	override func numberOfSections(in collectionView: UICollectionView) -> Int {
-		return 1;
+		return 2
 	}
 
 	override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-		return self.documents.count;
+		switch section {
+		case QBEDocumentBrowserViewController.documentsSection:
+			return self.documents.count
+
+		case  QBEDocumentBrowserViewController.dataFilesSection:
+			return self.dataFileDocuments.count
+
+		default:
+			return 0
+		}
 	}
 
 	override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
 		let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! QBEDocumentBrowserCell
 
-		let document = self.documents[indexPath.row]
-		cell.title = document.displayName
-		cell.documentURL = document.URL
-		cell.subtitle = document.subtitle ?? ""
-		cell.thumbnail = thumbnailCache.loadThumbnailForURL(document.URL)
+		if let document = self.document(at: indexPath) {
+			cell.title = document.displayName
+			cell.downloaded = document.downloaded
+			cell.downloading = document.downloading
+			cell.documentURL = document.URL
+			cell.subtitle = document.subtitle ?? ""
+			cell.thumbnail = thumbnailCache.loadThumbnailForURL(document.URL)
+		}
 		return cell
 	}
 
 	override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-		return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath)
+		let hdr = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath) as! QBEDocumentBrowserHeaderView
+		switch indexPath.section {
+		case QBEDocumentBrowserViewController.documentsSection:
+			hdr.label.text = "Documents".localized
+
+		case QBEDocumentBrowserViewController.dataFilesSection:
+			hdr.label.text = "Data files".localized
+
+		default:
+			hdr.label.text = ""
+			break
+		}
+		return hdr
 	}
 
 	func thumbnailCache(_ thumbnailCache: QBEDocumentThumbnailCache, didLoadThumbnailsForURLs URLs: Set<URL>) {
@@ -503,29 +614,72 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 			return IndexPath(item: matchingDocumentIndex, section: QBEDocumentBrowserViewController.documentsSection)
 		}
 
-		self.collectionView!.reloadItems(at: documentPaths)
+		let fileDocumentPaths: [IndexPath] = URLs.flatMap { URL in
+			guard let matchingDocumentIndex = dataFileDocuments.index(where: { $0.URL as URL == URL }) else { return nil }
+			return IndexPath(item: matchingDocumentIndex, section: QBEDocumentBrowserViewController.dataFilesSection)
+		}
+
+		self.collectionView!.reloadItems(at: documentPaths + fileDocumentPaths)
 	}
 
 	@IBAction func newDocument(sender: NSObject) {
-		self.createNewDocumentWithTemplate(nil)
+		self.createNewDocumentWithTemplate { result in
+			assertMainThread()
+			switch result {
+			case .failure(let e):
+				let alertController = UIAlertController(title: "Could not create new document".localized, message: e, preferredStyle: .alert)
+				let alertAction = UIAlertAction(title: "Dismiss".localized, style: .default, handler: nil)
+				alertController.addAction(alertAction)
+				self.present(alertController, animated: true, completion: nil)
+
+			case .success(let document):
+				self.openDocumentAtURL(document.fileURL)
+			}
+		}
 	}
 
-	fileprivate func createNewDocumentWithTemplate(_ templateURL: URL? = nil) {
+	fileprivate func createNewDocumentWithTemplate(_ template: QBEDocumentTemplate = .empty(name: nil), completion: @escaping ((Fallible<QBEDocument>) -> ())) {
+		let fileName: String
+		switch template {
+		case .empty(let name):
+			fileName = name ?? "Untitled".localized
+
+		case .document(let doc):
+			do {
+				fileName = try doc.fileURL.resourceValues(forKeys: [.nameKey]).name ?? ("Untitled".localized)
+			}
+			catch {
+				fileName = "Untitled".localized
+			}
+
+		case .file(let f):
+			fileName = f.deletingPathExtension().lastPathComponent
+		}
+
 		/*
 		We don't create a new document on the main queue because the call to
 		fileManager.URLForUbiquityContainerIdentifier could potentially block
 		*/
 		self.manager.workerQueue.addOperation {
 			let fileManager = FileManager()
-			guard let baseURL = fileManager.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents").appendingPathComponent("Untitled") else {
-
+			guard let baseURL = fileManager.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents").appendingPathComponent(fileName) else {
 				OperationQueue.main.addOperation {
-					self.presentCloudDisabledAlert()
+					completion(.failure("Please enable iCloud Drive in Settings to use this app".localized))
 				}
 				return
 			}
 
-			var target = baseURL.appendingPathExtension(QBEDocument.fileExtension)
+			// Determine file extension
+			let ext: String
+			switch template {
+			case .file(let url):
+				ext = url.pathExtension 
+
+			default:
+				ext = QBEDocument.fileExtension
+			}
+
+			var target = baseURL.appendingPathExtension(ext)
 
 			/*
 			We will append this value to our name until we find a path that
@@ -539,7 +693,7 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 			the document might not have downloaded yet.
 			*/
 			while (target as NSURL).checkPromisedItemIsReachableAndReturnError(nil) {
-				target = URL(fileURLWithPath: baseURL.path + "-\(nameSuffix).\(QBEDocument.fileExtension)")
+				target = URL(fileURLWithPath: baseURL.path + "-\(nameSuffix).\(ext)")
 				nameSuffix += 1
 			}
 
@@ -548,13 +702,16 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 			var intents = [writeIntent]
 
 			// Coordinate reading on the source path and writing on the destination path to copy.
-			if let templateURL = templateURL {
+			if case .file(let templateURL) = template {
 				readIntent = NSFileAccessIntent.readingIntent(with: templateURL, options: [])
 				intents.append(readIntent!)
 			}
 
 			NSFileCoordinator().coordinate(with: intents, queue: self.manager.workerQueue) { error in
 				if error != nil {
+					OperationQueue.main.addOperation {
+						completion(.failure(error?.localizedDescription ?? "An unknown error occurred.".localized))
+					}
 					return
 				}
 
@@ -564,22 +721,27 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 						try (writeIntent.url as NSURL).setResourceValue(true, forKey: URLResourceKey.hasHiddenExtensionKey)
 
 						OperationQueue.main.addOperation {
-							self.openDocumentAtURL(writeIntent.url)
+							let document = QBEDocument(fileURL: writeIntent.url)
+							completion(.success(document))
 						}
 					}
 					else {
 						let document = QBEDocument(fileURL: writeIntent.url)
+
 						document.save(to: writeIntent.url, for: .forCreating, completionHandler: { (success) in
 							if success {
 								do {
 									try (writeIntent.url as NSURL).setResourceValue(true, forKey: URLResourceKey.hasHiddenExtensionKey)
 								}
 								catch {
-									fatalError("Unexpected error during trivial file operations: \(error)")
+									OperationQueue.main.addOperation {
+										completion(.failure(error.localizedDescription))
+									}
+									return
 								}
 
 								OperationQueue.main.addOperation {
-									self.openDocumentAtURL(writeIntent.url)
+									completion(.success(document))
 								}
 							}
 						})
@@ -593,15 +755,100 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 	}
 
 	func openDocumentAtURL(_ url: URL) {
-		let controller = storyboard!.instantiateViewController(withIdentifier: "Document") as! QBEDocumentViewController
-		controller.documentURL = url
-		show(controller, sender: self)
+		do {
+			// Is this a data file or a Warp document?
+			let info = try url.resourceValues(forKeys: [.typeIdentifierKey, .nameKey])
+
+			switch info.typeIdentifier ?? "" {
+			case QBEDocument.typeIdentifier:
+				Swift.print("Opening unknown document type: \(info.typeIdentifier)")
+				let controller = storyboard!.instantiateViewController(withIdentifier: "Document") as! QBEDocumentViewController
+				controller.documentURL = url
+				show(controller, sender: self)
+
+			case "public.comma-separated-values-text":
+				fallthrough
+
+			default:
+				let fn = info.name ?? "Untitled".localized
+				self.createNewDocumentWithTemplate(.empty(name: fn), completion: { result in
+					assertMainThread()
+					switch result {
+					case .failure(let e):
+						let alertController = UIAlertController(title: "Could not open document".localized, message: e, preferredStyle: .alert)
+						let alertAction = UIAlertAction(title: "Dismiss".localized, style: .default, handler: nil)
+						alertController.addAction(alertAction)
+						self.present(alertController, animated: true, completion: nil)
+
+					case .success(let document):
+						document.open { success in
+							if success {
+								let s: QBEStep?
+								if url.pathExtension.lowercased() == "sqlite" {
+									s = QBESQLiteSourceStep(url: url)
+								}
+								else {
+									s = QBECSVSourceStep(url: url)
+								}
+
+								if let s = s {
+									let tablet = QBEChainTablet(chain: QBEChain(head: s))
+									document.addTablet(tablet)
+									document.updateChangeCount(.done)
+									document.save(to: document.fileURL, for: UIDocumentSaveOperation.forOverwriting, completionHandler: { (success) in
+										if success {
+											let controller = self.storyboard!.instantiateViewController(withIdentifier: "Document") as! QBEDocumentViewController
+											controller.documentURL = document.fileURL
+											self.show(controller, sender: self)
+										}
+										else {
+											let alertController = UIAlertController(title: "Could not open document".localized, message: nil, preferredStyle: .alert)
+											let alertAction = UIAlertAction(title: "Dismiss".localized, style: .default, handler: nil)
+											alertController.addAction(alertAction)
+											self.present(alertController, animated: true, completion: nil)
+										}
+									})
+								}
+							}
+							else {
+								let alertController = UIAlertController(title: "Could not open document".localized, message: nil, preferredStyle: .alert)
+								let alertAction = UIAlertAction(title: "Dismiss".localized, style: .default, handler: nil)
+								alertController.addAction(alertAction)
+								self.present(alertController, animated: true, completion: nil)
+							}
+						}
+					}
+				})
+				break;
+			}
+		}
+		catch {
+			let alertController = UIAlertController(title: "Could not open document".localized, message: error.localizedDescription, preferredStyle: .alert)
+			let alertAction = UIAlertAction(title: "Dismiss".localized, style: .default, handler: nil)
+			alertController.addAction(alertAction)
+			self.present(alertController, animated: true, completion: nil)
+		}
 	}
 
 	func openDocumentAtURL(_ url: URL, copyBeforeOpening: Bool) {
 		if copyBeforeOpening  {
 			// Duplicate the document and open it.
-			createNewDocumentWithTemplate(url)
+			createNewDocumentWithTemplate(.file(url)) { result in
+				switch result {
+				case .failure(let e):
+					asyncMain {
+						let alertController = UIAlertController(title: "Could not open document".localized, message: e, preferredStyle: .alert)
+						let alertAction = UIAlertAction(title: "Dismiss".localized, style: .default, handler: nil)
+						alertController.addAction(alertAction)
+						self.present(alertController, animated: true, completion: nil)
+					}
+
+				case .success(let doc):
+					asyncMain {
+						self.openDocumentAtURL(doc.fileURL)
+					}
+				}
+			}
 		}
 		else {
 			openDocumentAtURL(url)
@@ -609,9 +856,32 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 	}
 
 	override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-		if indexPath.section == QBEDocumentBrowserViewController.documentsSection {
-			let document = self.documents[indexPath.row]
-			self.openDocumentAtURL(document.URL, copyBeforeOpening: false)
+		if let document = self.document(at: indexPath) {
+			// is the document downloaded?
+			do {
+				let info = try document.URL.resourceValues(forKeys: [.ubiquitousItemDownloadingStatusKey])
+				if let s = info.ubiquitousItemDownloadingStatus, s == .notDownloaded {
+					let j = Job(.userInitiated)
+					j.async {
+						do {
+							try FileManager.default.startDownloadingUbiquitousItem(at: document.URL)
+						}
+						catch {
+							Swift.print("Error downloading: \(error.localizedDescription)")
+						}
+					}
+				}
+				else {
+					// Downloaded or yolo
+					self.openDocumentAtURL(document.URL, copyBeforeOpening: false)
+				}
+			}
+			catch {
+				let alertController = UIAlertController(title: "Could not open document".localized, message: error.localizedDescription, preferredStyle: .alert)
+				let alertAction = UIAlertAction(title: "Dismiss".localized, style: .default, handler: nil)
+				alertController.addAction(alertAction)
+				self.present(alertController, animated: true, completion: nil)
+			}
 		}
 	}
 }

@@ -136,6 +136,13 @@
 			remoteGlobalIDString = 29CA97051D8877100027D914;
 			remoteInfo = "SCRAM iOS";
 		};
+		65BC51561E1B1129005FEC76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 65646BA21D577F2F00E58137;
+			remoteInfo = "Rethink iOS";
+		};
 		65DAF6BE1D7C6F2A00163750 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */;
@@ -642,6 +649,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				65BC51571E1B1129005FEC76 /* PBXTargetDependency */,
 			);
 			name = "WarpConduit iOS";
 			productName = WarpConduitiOS;
@@ -842,6 +850,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		65BC51571E1B1129005FEC76 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Rethink iOS";
+			targetProxy = 65BC51561E1B1129005FEC76 /* PBXContainerItemProxy */;
+		};
 		65DAF6C51D7C6F3500163750 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = Rethink;
@@ -1109,6 +1122,7 @@
 				651BEC6C1E196F6D0094F8AD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		65F50E831D78CE0F00F6FAE5 /* Build configuration list for PBXProject "WarpConduit" */ = {
 			isa = XCConfigurationList;

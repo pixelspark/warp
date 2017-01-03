@@ -26,6 +26,7 @@ class QBEDocument: UXDocument {
 	private(set) var savedAtLeastOnce = false
 
 	static var fileExtension = "warp"
+	static let typeIdentifier = "nl.pixelspark.warp.qbedocument"
 	
 	func removeTablet(_ tablet: QBETablet) {
 		assert(tablet.document == self, "tablet must belong to this document")

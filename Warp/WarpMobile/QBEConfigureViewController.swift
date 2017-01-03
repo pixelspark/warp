@@ -56,6 +56,37 @@ extension QBEPostgresSourceStep: QBEFormConfigurableStep {
 	}
 }
 
+extension QBECSVSourceStep: QBEFormConfigurableStep {
+	var shouldConfigure: Bool { return false }
+
+	var form: Form {
+		let form = Form()
+
+		form +++ Section("Format".localized)
+			<<< TextRow(){ row in
+				row.title = "Field separator".localized
+				row.value = String(Character(UnicodeScalar(self.fieldSeparator)!))
+				row.onChange {
+					if let v = $0.value, !v.isEmpty {
+						self.fieldSeparator = v.utf16[v.utf16.startIndex]
+						row.value = String(Character(UnicodeScalar(self.fieldSeparator)!))
+					}
+				}
+				row.cellSetup({ (cell, row) in
+					cell.textField.autocapitalizationType = .none
+				})
+			}
+			<<< SwitchRow() { row in
+				row.title = "Has headers".localized
+				row.value = self.hasHeaders
+				row.onChange { self.hasHeaders = Bool($0.value ?? self.hasHeaders) }
+			}
+
+		return form
+	}
+}
+
+
 protocol QBEConfigurableFormViewControllerDelegate: class {
 	func configurableFormViewController(_ : QBEConfigurableFormViewController, hasChangedConfigurable: QBEFormConfigurable)
 }

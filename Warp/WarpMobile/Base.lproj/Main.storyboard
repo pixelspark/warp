@@ -37,7 +37,7 @@
                                             <constraints>
                                                 <constraint firstAttribute="height" constant="21" id="JNT-hU-8PT"/>
                                             </constraints>
-                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
@@ -49,22 +49,27 @@
                                             <constraints>
                                                 <constraint firstAttribute="height" constant="21" id="Gbr-aX-yrn"/>
                                             </constraints>
-                                            <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="17"/>
+                                            <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
+                                        <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="Upr-5g-SzE">
+                                            <rect key="frame" x="100" y="125" width="20" height="20"/>
+                                        </activityIndicatorView>
                                     </subviews>
                                 </view>
                                 <color key="backgroundColor" red="0.0" green="1" blue="0.50196081400000003" alpha="0.0" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstItem="uuT-CU-HGR" firstAttribute="leading" secondItem="mIz-2B-nrt" secondAttribute="leadingMargin" id="5Dx-sx-nyS"/>
                                     <constraint firstItem="tij-hA-5Bh" firstAttribute="trailing" secondItem="mIz-2B-nrt" secondAttribute="trailingMargin" id="ARP-ty-DUw"/>
+                                    <constraint firstItem="Upr-5g-SzE" firstAttribute="centerX" secondItem="mIz-2B-nrt" secondAttribute="centerX" id="BUg-yo-JpE"/>
                                     <constraint firstItem="Cuh-lr-yAH" firstAttribute="leading" secondItem="mIz-2B-nrt" secondAttribute="leadingMargin" id="CKy-1c-0oe"/>
                                     <constraint firstItem="Cuh-lr-yAH" firstAttribute="top" secondItem="uuT-CU-HGR" secondAttribute="bottom" id="Gf6-Nx-TCg"/>
                                     <constraint firstItem="tij-hA-5Bh" firstAttribute="top" secondItem="mIz-2B-nrt" secondAttribute="topMargin" id="Ngg-9D-KAC"/>
                                     <constraint firstItem="uuT-CU-HGR" firstAttribute="trailing" secondItem="mIz-2B-nrt" secondAttribute="trailingMargin" id="O6a-n1-o0Z"/>
                                     <constraint firstItem="tij-hA-5Bh" firstAttribute="leading" secondItem="mIz-2B-nrt" secondAttribute="leadingMargin" id="Zxr-8H-hPh"/>
                                     <constraint firstItem="Cuh-lr-yAH" firstAttribute="bottom" secondItem="mIz-2B-nrt" secondAttribute="bottomMargin" id="chB-ug-Sbu"/>
+                                    <constraint firstItem="Upr-5g-SzE" firstAttribute="centerY" secondItem="mIz-2B-nrt" secondAttribute="centerY" id="mZs-RL-FY1"/>
                                     <constraint firstItem="uuT-CU-HGR" firstAttribute="top" secondItem="tij-hA-5Bh" secondAttribute="bottom" id="ra8-ue-ea6"/>
                                     <constraint firstItem="Cuh-lr-yAH" firstAttribute="trailing" secondItem="mIz-2B-nrt" secondAttribute="trailingMargin" id="zuS-3z-5fM"/>
                                 </constraints>
@@ -72,17 +77,18 @@
                                 <connections>
                                     <outlet property="imageView" destination="tij-hA-5Bh" id="BNx-Rr-FNK"/>
                                     <outlet property="label" destination="uuT-CU-HGR" id="vbc-gy-e95"/>
+                                    <outlet property="loadingIndicator" destination="Upr-5g-SzE" id="M5f-dn-Yy9"/>
                                     <outlet property="subtitleLabel" destination="Cuh-lr-yAH" id="Gai-8E-ndp"/>
                                 </connections>
                             </collectionViewCell>
                         </cells>
-                        <collectionReusableView key="sectionHeaderView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="header" id="Rgy-iE-O5v">
+                        <collectionReusableView key="sectionHeaderView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="header" id="Rgy-iE-O5v" customClass="QBEDocumentBrowserHeaderView" customModule="Warp" customModuleProvider="target">
                             <rect key="frame" x="0.0" y="0.0" width="736" height="50"/>
                             <autoresizingMask key="autoresizingMask"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Documents" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kfk-ZR-E1f">
                                     <rect key="frame" x="13" y="13" width="710" height="24"/>
-                                    <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
+                                    <fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
@@ -93,13 +99,16 @@
                                 <constraint firstItem="kfk-ZR-E1f" firstAttribute="top" secondItem="Rgy-iE-O5v" secondAttribute="topMargin" constant="5" id="Nhg-lQ-Qvz"/>
                                 <constraint firstItem="kfk-ZR-E1f" firstAttribute="leading" secondItem="Rgy-iE-O5v" secondAttribute="leadingMargin" constant="5" id="c9U-5P-0SI"/>
                             </constraints>
+                            <connections>
+                                <outlet property="label" destination="kfk-ZR-E1f" id="RKO-8I-MIi"/>
+                            </connections>
                         </collectionReusableView>
                         <connections>
                             <outlet property="dataSource" destination="aJH-QV-63U" id="81Y-f2-cBU"/>
                             <outlet property="delegate" destination="aJH-QV-63U" id="2hM-Xa-PYj"/>
                         </connections>
                     </collectionView>
-                    <navigationItem key="navigationItem" title="Documents" id="COu-sB-Sgh">
+                    <navigationItem key="navigationItem" title="Warp" id="COu-sB-Sgh">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="pUw-AM-ADW">
                             <connections>
                                 <action selector="newDocumentWithSender:" destination="aJH-QV-63U" id="eKH-6p-tLW"/>
@@ -246,7 +255,7 @@
         <scene sceneID="cFQ-gp-Nmh">
             <objects>
                 <collectionViewController extendedLayoutIncludesOpaqueBars="YES" id="XkU-Cb-fII" customClass="QBEStepsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" misplaced="YES" dataMode="prototypes" id="837-K7-Fku">
+                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="837-K7-Fku">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="120"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
