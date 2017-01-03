@@ -764,11 +764,10 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 	func openDocumentAtURL(_ url: URL) {
 		do {
 			// Is this a data file or a Warp document?
-			let info = try url.resourceValues(forKeys: [.typeIdentifierKey, .nameKey])
+			let info = try url.resourceValues(forKeys: [.typeIdentifierKey, .nameKey, .localizedNameKey])
 
 			switch info.typeIdentifier ?? "" {
 			case QBEDocument.typeIdentifier:
-				Swift.print("Opening unknown document type: \(info.typeIdentifier)")
 				let controller = storyboard!.instantiateViewController(withIdentifier: "Document") as! QBEDocumentViewController
 				controller.documentURL = url
 				show(controller, sender: self)
@@ -777,7 +776,7 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 				fallthrough
 
 			default:
-				let fn = info.name ?? "Untitled".localized
+				let fn = info.localizedName ?? "Untitled".localized
 				self.createNewDocumentWithTemplate(.empty(name: fn), completion: { result in
 					assertMainThread()
 					switch result {

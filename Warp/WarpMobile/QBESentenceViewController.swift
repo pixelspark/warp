@@ -35,6 +35,8 @@ class QBESentenceViewController: UIViewController {
 			views.forEach { self.stackView!.removeArrangedSubview($0); }
 			views.forEach { $0.removeFromSuperview() }
 			assert(self.stackView.arrangedSubviews.isEmpty)
+			self.stackView.invalidateIntrinsicContentSize()
+			self.stackView.setNeedsLayout()
 
 			if let s = self.sentence {
 				let views: [UIView] = s.tokens.enumerated().map { (idx, token) in
@@ -49,7 +51,7 @@ class QBESentenceViewController: UIViewController {
 					else if let x = token as? QBESentenceTextToken {
 						let field = UITextField()
 						field.text = x.label
-						field.placeholder = "(tap here to type)".localized
+						field.placeholder = x.label.isEmpty ? "(tap here to type)".localized : "...".localized
 						field.textColor = UIColor.blue
 						field.autocapitalizationType = .none
 
@@ -76,6 +78,9 @@ class QBESentenceViewController: UIViewController {
 					$0.sizeToFit()
 					self.stackView.addArrangedSubview($0)
 				}
+				self.stackView.invalidateIntrinsicContentSize()
+				self.stackView.setNeedsLayout()
+				self.stackView.layoutIfNeeded()
 			}
 		}
 	}

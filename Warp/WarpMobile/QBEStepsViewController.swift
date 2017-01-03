@@ -133,7 +133,12 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 				self.delegate?.stepsViewController(self, didSelectStep: step)
 			}
 			else {
+
 				if let c = chain {
+					asyncMain {
+						collectionView.selectItem(at: IndexPath(indexes: [indexPath.section, c.steps.count - 1]), animated: false, scrollPosition: .centeredHorizontally)
+					}
+					
 					// Add popover
 					if let cell = collectionView.cellForItem(at: indexPath) {
 						let uac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
