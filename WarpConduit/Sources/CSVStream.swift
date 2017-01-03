@@ -106,8 +106,10 @@ public final class CSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 
 				// Calculate progress
 				self.rowsRead += fetched
-				let progress = Double(self.parser.totalBytesRead) / Double(self.totalBytes)
-				job.reportProgress(progress, forKey: self.hashValue);
+				if self.totalBytes > 0 {
+					let progress = Double(self.parser.totalBytesRead) / Double(self.totalBytes)
+					job.reportProgress(progress, forKey: self.hashValue);
+				}
 				#if DEBUG
 					self.totalTime += (NSDate.timeIntervalSinceReferenceDate - startTime)
 				#endif
