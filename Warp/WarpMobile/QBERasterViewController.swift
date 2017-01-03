@@ -26,6 +26,8 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 	}
 
 	private func updateView() {
+		self.spreadView.columnWidth = 140;
+
 		switch self.state {
 		case .error(let error):
 			self.activityIndicator.isHidden = true
