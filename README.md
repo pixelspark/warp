@@ -27,11 +27,12 @@ While there are many nice Mac applications for connecting to databases (e.g. Seq
 
 ## Implementation details
 
-Warp consists of three components:
+Warp consists of four components:
 
 * __WarpCore__ (framework) provides a common substrate for dataset operators. It defines value types, data operations and provides an in-memory implementation for each, as well as the building blocks for creating SQL.
 * __WarpConduit__ (framework) provides implementations of WarpCore's primitives for different databases and file formats. It links client libraries for RethinkDB, MySQL and PostgreSQL at this point. 
 * __Warp__ (app) is the Mac (Cocoa) desktop app.
+* __WarpMobile__ (app) is the iOS (UIKit) app.
 
 The __Docs__ folder contains documentation (written in MarkDown, using [mkdocs](http://mkdocs.org)).
 
@@ -77,6 +78,9 @@ Dependencies are fetched automatically as Git submodules. Currently the followin
 ### WarpConduit
 * [Rethink-Swift](https://github.com/pixelspark/rethink-swift) for RethinkDB connectivity
 * [TCXMLWriter](https://github.com/monkeydom/TCMXMLWriter) for writing to XML files.
+* [Rethink.swift](https://github.com/pixelspark/rethink-swift) for connecting to RethinkDB databases
+* Libmysqlclient for accessing MySQL (included for OS X and iOS as binary)
+* Libpq for accessing PostgreSQL (included for OS X and iOS as binary)
 
 ### Warp
 * [Charts](https://github.com/danielgindi/Charts) for chart drawing
@@ -84,11 +88,17 @@ Dependencies are fetched automatically as Git submodules. Currently the followin
 * [MBTableGrid](https://github.com/pixelspark/mbtablegrid) for displaying data
 * [SwiftAI](https://github.com/collinhundley/Swift-AI) for (experimental) machine learning features
 
+
+### Warp on iOS
+* [MDSpreadView](https://github.com/mochidev/MDSpreadView) for drawing tables
+* [Eureka](https://github.com/xmartlabs/Eureka) for forms
+
+
 WarpConduit contains precompiled (unmodified) binaries of libpq and libmariadbclient. It also contains [SQLite](http://www.sqlite.org), CHCSVParser (by Dave Delong) and portions of Shapelib (by Frank Warmerdam, for reading DBF). 
 
 # Building
 
-Warp is written in Swift 3.0. Building Warp requires XCode 8 (currently at beta 6) on OS X El Capitan or higher. After cloning the repository, run a `git submodule init && git submodule update` to fetch dependencies.
+Warp is written in Swift 3.0. Building Warp requires the latest XCode 8, on OS X Sierra or higher. After cloning the repository, run a `git submodule init && git submodule update` to fetch dependencies.
 
 In order to use WarpCore and/or WarpConduit in your own projects, simply drag the corresponding .xcodeproj files to your project/workspace and add as target depdendency. For WarpCore, you need to add the SwiftParser framework (contained in the WarpCore project) to the 'copy files' build phase of your app (as well as WarpCore.framework itself, but XCode should do this automatically when adding it as a dependency). For WarpConduit, you need to add libmariadbclient.a and libpq.a to the list of binaries linked with, as well as add Rethink.framework to the 'copy files' phase. You should probably also link to libssl, libcrypto and libiconv. Check out Warp's project settings when in doubt.
 
