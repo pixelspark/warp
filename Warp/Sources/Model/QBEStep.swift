@@ -48,12 +48,16 @@ public class QBEStep: NSObject, QBEConfigurable, NSCoding {
 
 	public init(previous: QBEStep?) {
 		self.previous = previous
+		super.init()
+		self.previous?.next = self
 	}
 
 	public required init(coder aDecoder: NSCoder) {
 		previous = aDecoder.decodeObject(forKey: "previousStep") as? QBEStep
 		next = aDecoder.decodeObject(forKey: "nextStep") as? QBEStep
 		alternatives = aDecoder.decodeObject(forKey: "alternatives") as? [QBEStep]
+		super.init()
+		self.previous?.next = self
 	}
 
 	public func encode(with coder: NSCoder) {

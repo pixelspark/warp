@@ -122,6 +122,7 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 			}
 		}
 		else {
+			afterStep?.next?.previous = step
 			step.previous = afterStep
 			if head == afterStep {
 				head = step
