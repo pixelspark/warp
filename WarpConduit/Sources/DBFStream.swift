@@ -25,6 +25,7 @@ final public class DBFStream: NSObject, WarpCore.Stream {
 	private var columns: OrderedSet<Column>? = nil
 	private var types: [DBFFieldType]? = nil
 	private var position: Int32 = 0
+	private var mutex = Mutex()
 
 	public init(url: URL) {
 		self.url = url
@@ -66,7 +67,11 @@ final public class DBFStream: NSObject, WarpCore.Stream {
 	public func fetch(_ job: Job, consumer: @escaping Sink) {
 		(self.queue).async {
 			self.columns(job) { (columns) -> () in
-				let end = min(self.recordCount, self.position + StreamDefaultBatchSize)
+				let end = self.mutex.locked { () -> Int32 in
+					let end = min(self.recordCount, self.position + StreamDefaultBatchSize)
+					self.position = end
+					return end
+				}
 
 				var rows: [Tuple] = []
 				for recordIndex in self.position..<end {
@@ -109,9 +114,12 @@ final public class DBFStream: NSObject, WarpCore.Stream {
 					}
 				}
 
-				self.position = end
+
 				job.async {
-					consumer(.success(Array(rows)), (self.position < (self.recordCount-1)) ? .hasMore : .finished)
+					let status = self.mutex.locked { () -> StreamStatus in
+						return (self.position < (self.recordCount-1)) ? .hasMore : .finished
+					}
+					consumer(.success(Array(rows)), status)
 				}
 			}
 		}
