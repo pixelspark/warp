@@ -181,10 +181,10 @@
             </objects>
             <point key="canvasLocation" x="-638" y="136"/>
         </scene>
-        <!--Chain Tablet View Controller-->
+        <!--Chain tablet-->
         <scene sceneID="iDU-YS-rLp">
             <objects>
-                <viewController id="hCS-Fj-zXe" customClass="QBEChainTabletViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="hCS-Fj-zXe" userLabel="Chain tablet" customClass="QBEChainTabletViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="mYy-QZ-ULK"/>
                         <viewControllerLayoutGuide type="bottom" id="rYD-92-M5i"/>
@@ -262,11 +262,11 @@
             </objects>
             <point key="canvasLocation" x="1501.6304347826087" y="457.97101449275368"/>
         </scene>
-        <!--Steps View Controller-->
+        <!--Steps-->
         <scene sceneID="cFQ-gp-Nmh">
             <objects>
-                <collectionViewController extendedLayoutIncludesOpaqueBars="YES" id="XkU-Cb-fII" customClass="QBEStepsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="837-K7-Fku">
+                <collectionViewController extendedLayoutIncludesOpaqueBars="YES" id="XkU-Cb-fII" userLabel="Steps" customClass="QBEStepsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" misplaced="YES" dataMode="prototypes" id="837-K7-Fku">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="120"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -360,10 +360,10 @@
             </objects>
             <point key="canvasLocation" x="2040" y="201"/>
         </scene>
-        <!--Sentence View Controller-->
+        <!--Sentence-->
         <scene sceneID="3Zd-Pi-D7f">
             <objects>
-                <viewController id="OKH-h9-O7y" customClass="QBESentenceViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="OKH-h9-O7y" userLabel="Sentence" customClass="QBESentenceViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="ioG-5x-mcS"/>
                         <viewControllerLayoutGuide type="bottom" id="FHD-UB-A5t"/>
@@ -410,10 +410,10 @@
             </objects>
             <point key="canvasLocation" x="2728" y="570"/>
         </scene>
-        <!--Data Source-->
+        <!--Raster-->
         <scene sceneID="A8p-YE-DcT">
             <objects>
-                <viewController id="BVZ-OS-MY1" customClass="QBERasterViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="raster" title="Raster" id="BVZ-OS-MY1" userLabel="Raster" customClass="QBERasterViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="cTf-YN-dcu"/>
                         <viewControllerLayoutGuide type="bottom" id="0hP-K8-i0t"/>
@@ -424,9 +424,11 @@
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0XH-Pw-qqu" customClass="MDSpreadView">
                                 <rect key="frame" x="0.0" y="0.0" width="736" height="203"/>
+                                <gestureRecognizers/>
                                 <connections>
                                     <outlet property="dataSource" destination="BVZ-OS-MY1" id="VFw-uu-Kj8"/>
                                     <outlet property="delegate" destination="BVZ-OS-MY1" id="XJJ-Nh-HPk"/>
+                                    <outletCollection property="gestureRecognizers" destination="Eu5-sa-F1B" appends="YES" id="lkM-2G-qrK"/>
                                 </connections>
                             </view>
                             <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="An error has occurred" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uL3-uO-pVe">
@@ -444,6 +446,7 @@
                             </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <gestureRecognizers/>
                         <constraints>
                             <constraint firstItem="0hP-K8-i0t" firstAttribute="top" secondItem="0XH-Pw-qqu" secondAttribute="bottom" id="5QV-GR-zWb"/>
                             <constraint firstItem="ddX-xI-SRz" firstAttribute="top" secondItem="cTf-YN-dcu" secondAttribute="bottom" constant="20" id="7Fq-Zh-rPn"/>
@@ -455,6 +458,9 @@
                             <constraint firstItem="0XH-Pw-qqu" firstAttribute="top" secondItem="cTf-YN-dcu" secondAttribute="bottom" id="nCD-Yz-UH1"/>
                             <constraint firstAttribute="trailing" secondItem="0XH-Pw-qqu" secondAttribute="trailing" id="v3H-FG-68a"/>
                         </constraints>
+                        <connections>
+                            <outletCollection property="gestureRecognizers" destination="Eu5-sa-F1B" appends="YES" id="hMo-CV-sxZ"/>
+                        </connections>
                     </view>
                     <connections>
                         <outlet property="activityIndicator" destination="ddX-xI-SRz" id="VPA-Pa-Qxz"/>
@@ -463,13 +469,18 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Qs9-pr-O3H" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <pongPressGestureRecognizer cancelsTouchesInView="NO" allowableMovement="10" minimumPressDuration="0.29999999999999999" id="Eu5-sa-F1B">
+                    <connections>
+                        <action selector="cellMenu:" destination="BVZ-OS-MY1" id="UEb-YC-mlM"/>
+                    </connections>
+                </pongPressGestureRecognizer>
             </objects>
-            <point key="canvasLocation" x="2629.6875" y="999.92679355783298"/>
+            <point key="canvasLocation" x="2901" y="905"/>
         </scene>
-        <!--Data View Controller-->
+        <!--Data-->
         <scene sceneID="aAP-Ph-wI7">
             <objects>
-                <viewController id="0Ff-1G-bwY" customClass="QBEDataViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="data" id="0Ff-1G-bwY" userLabel="Data" customClass="QBEDataViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="OXo-0X-6Uy"/>
                         <viewControllerLayoutGuide type="bottom" id="cez-a5-Led"/>

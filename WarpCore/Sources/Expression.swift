@@ -847,6 +847,10 @@ public class FilterSet: NSObject, NSCoding {
 	
 	public override init() {
 	}
+
+	public init(values: Set<Value>) {
+		self.selectedValues = values
+	}
 	
 	public required init?(coder aDecoder: NSCoder) {
 		if let v = aDecoder.decodeObject(forKey: "selectedValues") as? [ValueCoder] {

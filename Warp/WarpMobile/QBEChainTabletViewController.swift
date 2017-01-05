@@ -1,7 +1,7 @@
 import UIKit
 import WarpCore
 
-class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDelegate, QBESentenceViewControllerDelegate, QBEConfigurableFormViewControllerDelegate, QBEExportViewControllerDelegate {
+class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDelegate, QBESentenceViewControllerDelegate, QBEConfigurableFormViewControllerDelegate, QBEExportViewControllerDelegate, QBEDataViewControllerDelegate {
 	private var stepsViewController: QBEStepsViewController? = nil
 	private var sentenceViewController: QBESentenceViewController? = nil
 	private var dataViewController: QBEDataViewController? = nil
@@ -151,6 +151,63 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		self.tablet?.document?.updateChangeCount(.done)
 	}
 
+	func dataView(_ controller: QBEDataViewController, filter column: Column, for value: Value) {
+		if let fs = self.currentStep as? QBEFilterSetStep {
+			if let currentValues = fs.filterSet[column] {
+				var nv = currentValues.selectedValues
+				nv.insert(value)
+				fs.filterSet[column] = FilterSet(values: nv)
+			}
+			else {
+				fs.filterSet[column] = FilterSet(values: [value])
+			}
+			self.updateView()
+			self.refreshData()
+			self.tablet?.document?.updateChangeCount(.done)
+		}
+		else {
+			let fs = QBEFilterSetStep()
+			fs.filterSet[column] = FilterSet(values: [value])
+			self.add(step: fs)
+		}
+	}
+
+	private func add(step: QBEStep) {
+		if let c = tablet?.chain {
+			let after = currentStep ?? c.head
+
+			// Can we merge?
+			if let a = after {
+				let previous = a.previous
+				switch step.mergeWith(a) {
+				case .advised(let merged), .possible(let merged):
+					c.remove(step: a)
+					c.insertStep(merged, afterStep: previous)
+					self.currentStep = merged
+
+				case .cancels:
+					c.remove(step: a)
+					self.currentStep = previous
+
+				case .impossible:
+					c.insertStep(step, afterStep: a)
+					self.currentStep = step
+					break
+				}
+			}
+			else {
+				c.insertStep(step, afterStep: nil)
+				self.currentStep = step
+			}
+
+
+			self.tablet?.document?.updateChangeCount(.done)
+			self.stepsViewController?.refresh()
+			self.updateView()
+			self.refreshData()
+		}
+	}
+
 	override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
 		if segue.identifier == "steps", let dest = segue.destination as? QBEStepsViewController {
 			self.stepsViewController = dest
@@ -162,6 +219,7 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		}
 		else if segue.identifier == "data", let dest = segue.destination as? QBEDataViewController {
 			self.dataViewController = dest
+			dest.delegate = self
 		}
 		else {
 			fatalError("Unreachable")

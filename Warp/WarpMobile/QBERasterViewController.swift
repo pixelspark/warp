@@ -7,10 +7,19 @@ enum QBERasterViewState {
 	case raster(Raster)
 }
 
+protocol QBERasterViewControllerDelegate: class {
+	func rasterView(_ controller: QBERasterViewController, filter column: Column, for value: Value)
+}
+
 class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadViewDataSource {
 	@IBOutlet var spreadView: MDSpreadView! = nil
 	@IBOutlet var errorLabel: UILabel! = nil
 	@IBOutlet var activityIndicator: UIActivityIndicatorView! = nil
+
+	private var selectedRow: MDIndexPath? = nil
+	private var selectedColumn: MDIndexPath? = nil
+
+	weak var delegate: QBERasterViewControllerDelegate? = nil
 
 	var state: QBERasterViewState = .loading { didSet {
 		if spreadView != nil {
@@ -52,6 +61,31 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 	override func viewWillAppear(_ animated: Bool) {
 		self.updateView()
 		super.viewWillAppear(animated)
+	}
+
+	@IBAction func cellMenu(_ sender: UILongPressGestureRecognizer) {
+		if sender.state == .began {
+			if let sc = self.selectedColumn, let sr = self.selectedRow, self.becomeFirstResponder(), self.delegate != nil {
+				let mc = UIMenuController.shared
+
+				mc.menuItems = [
+					UIMenuItem(title: "Filter".localized, action: #selector(QBERasterViewController.filterSelectedValue(_:))),
+				]
+
+				mc.setTargetRect(self.spreadView.cellRectForRow(at: sr, forColumnAt: sc), in: self.spreadView)
+				mc.setMenuVisible(true, animated: true)
+			}
+		}
+	}
+
+	override var canBecomeFirstResponder: Bool { return true }
+
+	@IBAction func filterSelectedValue(_ sender: AnyObject) {
+		if let sc = self.selectedColumn, let sr = self.selectedRow, let r = raster {
+			let value = r[sr.row, sc.column]
+			let column = r.columns[sc.column]
+			self.delegate?.rasterView(self, filter: column, for: value!)
+		}
 	}
 
 	func numberOfRowSections(in aSpreadView: MDSpreadView!) -> Int {
@@ -103,5 +137,10 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 
 	func spreadView(_ aSpreadView: MDSpreadView!, widthForColumnHeaderInSection columnSection: Int) -> CGFloat {
 		return 70.0;
+	}
+
+	func spreadView(_ aSpreadView: MDSpreadView!, didSelectCellForRowAt rowPath: MDIndexPath!, forColumnAt columnPath: MDIndexPath!) {
+		self.selectedRow = rowPath
+		self.selectedColumn = columnPath
 	}
 }

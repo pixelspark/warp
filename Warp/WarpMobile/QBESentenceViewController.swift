@@ -1,8 +1,96 @@
 import UIKit
 import WarpCore
+import Eureka
 
 protocol QBESentenceViewControllerDelegate: class {
 	func sentenceViewController(_ : QBESentenceViewController, didChangeSentence: QBESentence)
+}
+
+fileprivate protocol QBEOptionsViewControllerDelegate: class {
+	func optionsView(_ controller: QBEOptionsViewController, changedSelection to: Set<Value>)
+}
+
+fileprivate class QBEOptionsViewController: FormViewController {
+	var selected: Set<Value> = [] {
+		didSet {
+			refresh()
+		}
+	}
+
+	var options: [Value] = [] { didSet {
+		loading = false
+		refresh()
+	} }
+
+	var loading: Bool = true
+
+	var delegate: QBEOptionsViewControllerDelegate? = nil
+
+	override func viewDidLoad() {
+		super.viewDidLoad()
+		self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(QBEOptionsViewController.cancel(_:)))
+
+		self.navigationItem.leftBarButtonItems = [
+			UIBarButtonItem(title: "All".localized, style: .plain, target: self, action: #selector(self.selectAll(_:))),
+			UIBarButtonItem(title: "None".localized, style: .plain, target: self, action: #selector(self.selectNone(_:)))
+		]
+
+		self.refresh()
+	}
+
+	@IBAction override func selectAll(_ sender: Any?) {
+		self.selected = Set(self.options)
+		self.delegate?.optionsView(self, changedSelection: self.selected)
+		refresh()
+	}
+
+	@IBAction func selectNone(_ sender: Any?) {
+		self.selected = []
+		self.delegate?.optionsView(self, changedSelection: self.selected)
+		refresh()
+	}
+
+	private func refresh() {
+		if loading {
+			let f = Form()
+			let s = Section()
+			s.append(LabelRow() {
+				$0.title = "Loading...".localized
+			})
+			f.append(s)
+			form = f
+		}
+		else {
+			let section = Section()
+			let locale = QBEAppDelegate.sharedInstance.locale!
+
+			options.sorted(by: { locale.localStringFor($0) < locale.localStringFor($1) }).forEach { value in
+				let cr = CheckRow()
+				cr.title = locale.localStringFor(value)
+				cr.value = self.selected.contains(value)
+				cr.onChange { cr in
+					if self.selected.contains(value) {
+						self.selected.remove(value)
+						cr.value = false
+					}
+					else {
+						self.selected.insert(value)
+						cr.value = true
+					}
+					self.delegate?.optionsView(self, changedSelection: self.selected)
+				}
+				section.append(cr)
+			}
+
+			let f = Form()
+			f.append(section)
+			form = f
+		}
+	}
+
+	@IBAction func cancel(_ sender: AnyObject) {
+		self.dismiss(animated: true, completion: nil)
+	}
 }
 
 class QBESentenceViewController: UIViewController {
@@ -172,6 +260,49 @@ class QBESentenceViewController: UIViewController {
 						}
 					}
 				}
+			}
+			else if let token = token as? QBESentenceSetToken {
+				let oc = QBEOptionsViewController(nibName: nil, bundle: nil)
+				oc.selected = Set(token.value.map { return Value($0) })
+
+				token.provider { result in
+					asyncMain {
+						switch result {
+						case .failure(let e):
+							let alert = UIAlertController(title: "Could not load".localized, message: e, preferredStyle: .alert)
+							let alertAction = UIAlertAction(title: "Dismiss".localized, style: .default)
+							alert.addAction(alertAction)
+							self.present(alert, animated: true, completion: nil)
+
+						case .success(let options):
+							oc.options = options.map { return Value($0) }
+						}
+					}
+				}
+
+				class TokenOptionsDelegate: QBEOptionsViewControllerDelegate {
+					let token: QBESentenceSetToken
+					var view: QBESentenceViewController!
+
+					init(_ token: QBESentenceSetToken, view: QBESentenceViewController) {
+						self.token = token
+						self.view = view
+					}
+
+					func optionsView(_ controller: QBEOptionsViewController, changedSelection to: Set<Value>) {
+						self.token.select(Set(to.map { return $0.stringValue! }))
+						view.delegate?.sentenceViewController(view, didChangeSentence: view.sentence!)
+					}
+				}
+
+				let dlg = TokenOptionsDelegate(token, view: self)
+				oc.delegate = dlg
+				let nav = UINavigationController(rootViewController: oc)
+				nav.preferredContentSize = CGSize(width: 320, height: 320)
+				nav.modalPresentationStyle = .popover
+				nav.popoverPresentationController?.sourceView = sender
+				nav.popoverPresentationController?.sourceRect = sender.bounds
+				self.present(nav, animated: true)
 			}
 			else {
 				let uac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)

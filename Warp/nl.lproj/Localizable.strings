@@ -400,3 +400,7 @@
 "Exported data" = "Opgeslagen data";
 "Export to" = "Exporteer naar";
 "This setting cannot be changed on iOS. Use the Mac version of Warp to change it." = "Deze instelling kan niet worden gewijzigd op iOS. Gebruik de Mac-versie van Warp om te wijzigen.";
+"Filter" = "Filter";
+"All" = "Alles";
+"None" = "Niets";
+"Select column(s)" = "Selecteer kolom(men)";

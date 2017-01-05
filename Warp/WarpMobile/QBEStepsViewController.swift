@@ -40,6 +40,10 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 		self.updateView()
 	}
 
+	func refresh() {
+		self.collectionView?.reloadData()
+	}
+
 	private func updateView() {
 		UIView.animate(withDuration: 0.2) {
 			self.collectionView?.reloadData()
@@ -164,33 +168,43 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 							}))
 						}
 						else {
-							uac.addAction(UIAlertAction(title: "Limit the number of rows".localized, style: .default, handler: { act in
-								self.add(step: QBELimitStep())
-							}))
+							let actions: [UIAlertAction] = [
+								UIAlertAction(title: "Limit the number of rows".localized, style: .default, handler: { act in
+									self.add(step: QBELimitStep())
+								}),
 
-							uac.addAction(UIAlertAction(title: "Make columnar".localized, style: .default, handler: { act in
-								self.add(step: QBEFlattenStep())
-							}))
+								UIAlertAction(title: "Make columnar".localized, style: .default, handler: { act in
+									self.add(step: QBEFlattenStep())
+								}),
 
-							uac.addAction(UIAlertAction(title: "Remove duplicate rows".localized, style: .default, handler: { act in
-								self.add(step: QBEDistinctStep())
-							}))
+								UIAlertAction(title: "Remove duplicate rows".localized, style: .default, handler: { act in
+									self.add(step: QBEDistinctStep())
+								}),
 
-							uac.addAction(UIAlertAction(title: "Randomly select rows".localized, style: .default, handler: { act in
-								self.add(step: QBERandomStep())
-							}))
+								 UIAlertAction(title: "Randomly select rows".localized, style: .default, handler: { act in
+									self.add(step: QBERandomStep())
+								}),
 
-							uac.addAction(UIAlertAction(title: "Search for text".localized, style: .default, handler: { act in
-								self.add(step: QBESearchStep())
-							}))
+								 UIAlertAction(title: "Search for text".localized, style: .default, handler: { act in
+									self.add(step: QBESearchStep())
+								}),
 
-							uac.addAction(UIAlertAction(title: "Skip the first rows".localized, style: .default, handler: { act in
-								self.add(step: QBEOffsetStep())
-							}))
+								UIAlertAction(title: "Skip the first rows".localized, style: .default, handler: { act in
+									self.add(step: QBEOffsetStep())
+								}),
 
-							uac.addAction(UIAlertAction(title: "Switch rows/columns".localized, style: .default, handler: { act in
-								self.add(step: QBETransposeStep())
-							}))
+								UIAlertAction(title: "Select column(s)".localized, style: .default, handler: { act in
+									self.add(step: QBEColumnsStep())
+								}),
+
+								UIAlertAction(title: "Switch rows/columns".localized, style: .default, handler: { act in
+									self.add(step: QBETransposeStep())
+								})
+							]
+
+							actions.sorted(by: { $0.title! < $1.title! }).forEach { item in
+								uac.addAction(item)
+							}
 						}
 
 						uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: { act in
@@ -259,8 +273,11 @@ class QBEStepsViewCell: UICollectionViewCell {
 
 		mc.menuItems = [
 			UIMenuItem(title: "Remove".localized, action: #selector(QBEStepsViewCell.removeStep(_:))),
-			UIMenuItem(title: "Settings".localized, action: #selector(QBEStepsViewCell.configureStep(_:))),
 		]
+
+		if step is QBEFormConfigurable {
+			mc.menuItems!.append(UIMenuItem(title: "Settings".localized, action: #selector(QBEStepsViewCell.configureStep(_:))))
+		}
 
 		mc.setTargetRect(self.bounds, in: self)
 		mc.setMenuVisible(true, animated: true)
