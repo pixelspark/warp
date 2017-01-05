@@ -240,6 +240,7 @@
 		65BC51B61E1E2FC1005FEC76 /* WarpAI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 65A78CED1D74CB1300036045 /* WarpAI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65BC51B71E1E2FD1005FEC76 /* QBEHTTPStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC101E196EF10094F8AD /* QBEHTTPStep.swift */; };
 		65BC51B81E1E2FD8005FEC76 /* QBEFileStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC131E196EF10094F8AD /* QBEFileStep.swift */; };
+		65BC51C01E1EB6FD005FEC76 /* QBEXMLStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0D1E196EF10094F8AD /* QBEXMLStep.swift */; };
 		65DAF6CA1D7C6FFD00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6C91D7C6FFD00163750 /* Rethink.framework */; };
 		65DAF6CF1D7C719D00163750 /* Rethink.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65DAF6CE1D7C719D00163750 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65E224521D7C5E3F007433E6 /* AccessibilityImageDescriptions.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFFA1C1475DF00AE6C00 /* AccessibilityImageDescriptions.strings */; };
@@ -1734,6 +1735,7 @@
 				651BEC511E196F160094F8AD /* QBERowsStep.swift in Sources */,
 				651BEC5F1E196F3E0094F8AD /* QBERasterStep.swift in Sources */,
 				655B059F1E15ABD900A28FCE /* QBEFlowchartView.swift in Sources */,
+				65BC51C01E1EB6FD005FEC76 /* QBEXMLStep.swift in Sources */,
 				651BED911E198D950094F8AD /* QBEConfigureViewController.swift in Sources */,
 				651BEC601E196F3E0094F8AD /* QBESearchStep.swift in Sources */,
 				655B05741E15A5C400A28FCE /* QBEStep.swift in Sources */,

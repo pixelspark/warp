@@ -89,10 +89,10 @@ class QBEFactory {
 	]
 
 	let dataWarehouseStepNames: [String: String] = [
-		QBEMySQLSourceStep.className(): NSLocalizedString("MySQL table", comment: ""),
-		QBEPostgresSourceStep.className(): NSLocalizedString("PostgreSQL table", comment: ""),
-		QBERethinkSourceStep.className(): NSLocalizedString("RethinkDB table", comment: ""),
-		QBESQLiteSourceStep.className(): NSLocalizedString("SQLite table", comment: "")
+		NSStringFromClass(QBEMySQLSourceStep.self): NSLocalizedString("MySQL table", comment: ""),
+		NSStringFromClass(QBEPostgresSourceStep.self): NSLocalizedString("PostgreSQL table", comment: ""),
+		NSStringFromClass(QBERethinkSourceStep.self): NSLocalizedString("RethinkDB table", comment: ""),
+		NSStringFromClass(QBESQLiteSourceStep.self): NSLocalizedString("SQLite table", comment: "")
 	]
 
 	private let fileReaders: [String: QBEFileReaderCreator] = [
@@ -109,10 +109,6 @@ class QBEFactory {
 		"sqlite": {(url) in return QBESQLiteSourceStep(url: url)},
 		"dbf": {(url) in return QBEDBFSourceStep(url: url)}
 	]
-
-	#if os(iOS)
-	private let fileReaders: [String: QBEFileReaderCreator] = [:]
-	#endif
 
 	#if os(macOS)
 	private let configurableViews: Dictionary<String, QBEConfigurableViewController.Type> = [
