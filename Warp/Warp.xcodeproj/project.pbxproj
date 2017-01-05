@@ -234,6 +234,12 @@
 		65BC51671E1C45C1005FEC76 /* QBEPivotStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC061E196EF10094F8AD /* QBEPivotStep.swift */; };
 		65BC517D1E1C4F95005FEC76 /* QBEDBFStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC091E196EF10094F8AD /* QBEDBFStep.swift */; };
 		65BC517E1E1C4FA4005FEC76 /* QBECacheStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0E1E196EF10094F8AD /* QBECacheStep.swift */; };
+		65BC51AF1E1E2F89005FEC76 /* QBEExportStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0C1E196EF10094F8AD /* QBEExportStep.swift */; };
+		65BC51B01E1E2F90005FEC76 /* QBEClassifierStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFA1E196EF10094F8AD /* QBEClassifierStep.swift */; };
+		65BC51B51E1E2FB9005FEC76 /* WarpAI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65A78CED1D74CB1300036045 /* WarpAI.framework */; };
+		65BC51B61E1E2FC1005FEC76 /* WarpAI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 65A78CED1D74CB1300036045 /* WarpAI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		65BC51B71E1E2FD1005FEC76 /* QBEHTTPStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC101E196EF10094F8AD /* QBEHTTPStep.swift */; };
+		65BC51B81E1E2FD8005FEC76 /* QBEFileStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC131E196EF10094F8AD /* QBEFileStep.swift */; };
 		65DAF6CA1D7C6FFD00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6C91D7C6FFD00163750 /* Rethink.framework */; };
 		65DAF6CF1D7C719D00163750 /* Rethink.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65DAF6CE1D7C719D00163750 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65E224521D7C5E3F007433E6 /* AccessibilityImageDescriptions.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFFA1C1475DF00AE6C00 /* AccessibilityImageDescriptions.strings */; };
@@ -490,6 +496,13 @@
 			remoteGlobalIDString = 4CF626F81BA7CB3E0011A099;
 			remoteInfo = "Alamofire tvOS Tests";
 		};
+		65BC51B31E1E2FB4005FEC76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 65A78CE51D74CB1300036045 /* WarpAI.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 65646BBD1D57800300E58137;
+			remoteInfo = "WarpAI-iOS";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -499,6 +512,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				65BC51B61E1E2FC1005FEC76 /* WarpAI.framework in Embed Frameworks */,
 				651BEDAC1E198F680094F8AD /* Eureka.framework in Embed Frameworks */,
 				655F91D71E196684005A47A1 /* Rethink.framework in Embed Frameworks */,
 				655F91E41E1966BB005A47A1 /* SwiftParser.framework in Embed Frameworks */,
@@ -798,6 +812,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65BC51B51E1E2FB9005FEC76 /* WarpAI.framework in Frameworks */,
 				651BEDAB1E198F610094F8AD /* Eureka.framework in Frameworks */,
 				651BEC881E1971170094F8AD /* WarpConduit.framework in Frameworks */,
 				655B059A1E15A8C700A28FCE /* WarpCore.framework in Frameworks */,
@@ -1305,6 +1320,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				65BC51B41E1E2FB4005FEC76 /* PBXTargetDependency */,
 				651BEDAA1E198F580094F8AD /* PBXTargetDependency */,
 				651BED9F1E198F090094F8AD /* PBXTargetDependency */,
 				655B05771E15A5EE00A28FCE /* PBXTargetDependency */,
@@ -1704,6 +1720,7 @@
 				6596CFD81E1957B500B06F4F /* MDSpreadViewCellRowHeaderBackground.m in Sources */,
 				6596CFD41E1957B500B06F4F /* MDSpreadViewCell.m in Sources */,
 				658A4C021E16476A00944430 /* QBEJobsManager.swift in Sources */,
+				65BC51AF1E1E2F89005FEC76 /* QBEExportStep.swift in Sources */,
 				6596D0241E1957E600B06F4F /* QBERasterViewController.swift in Sources */,
 				651BEC5C1E196F3E0094F8AD /* QBESortStep.swift in Sources */,
 				655B05A21E15AE7B00A28FCE /* QBEViewExtensions.swift in Sources */,
@@ -1728,17 +1745,20 @@
 				658A4C041E16477A00944430 /* QBEMap.swift in Sources */,
 				651BEC5A1E196F3E0094F8AD /* QBEDummiesStep.swift in Sources */,
 				6596CFBD1E19165400B06F4F /* QBEStepsViewController.swift in Sources */,
+				65BC51B81E1E2FD8005FEC76 /* QBEFileStep.swift in Sources */,
 				651BEC521E196F1B0094F8AD /* QBEExplodeStep.swift in Sources */,
 				65BC51601E1BC825005FEC76 /* QBESQLiteStep.swift in Sources */,
 				658A4C0C1E17058000944430 /* QBEDocumentViewController.swift in Sources */,
 				651BEC531E196F1F0094F8AD /* QBEJoinStep.swift in Sources */,
 				65BC51551E1AAA65005FEC76 /* QBECSVStep.swift in Sources */,
+				65BC51B71E1E2FD1005FEC76 /* QBEHTTPStep.swift in Sources */,
 				6596D0261E1959B700B06F4F /* QBEDataViewController.swift in Sources */,
 				6596CFB11E1913D600B06F4F /* QBEChainTabletViewController.swift in Sources */,
 				6596CFD61E1957B500B06F4F /* MDSpreadViewCellColumnHeaderBackground.m in Sources */,
 				651BEC501E196F130094F8AD /* QBEPrestoStep.swift in Sources */,
 				658A4C071E16489C00944430 /* QBEDocumentsViewController.swift in Sources */,
 				6596CFD31E1957B500B06F4F /* MDSpreadView.m in Sources */,
+				65BC51B01E1E2F90005FEC76 /* QBEClassifierStep.swift in Sources */,
 				655B05721E15A5A800A28FCE /* QBEChain.swift in Sources */,
 				655B059C1E15AA7800A28FCE /* QBEFactory.swift in Sources */,
 				65BC51631E1C18F8005FEC76 /* QBEExportViewController.swift in Sources */,
@@ -1914,6 +1934,11 @@
 			isa = PBXTargetDependency;
 			name = WarpAI;
 			targetProxy = 65A78CEF1D74CBAA00036045 /* PBXContainerItemProxy */;
+		};
+		65BC51B41E1E2FB4005FEC76 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "WarpAI-iOS";
+			targetProxy = 65BC51B31E1E2FB4005FEC76 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

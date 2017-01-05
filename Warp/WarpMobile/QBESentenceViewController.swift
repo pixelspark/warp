@@ -173,6 +173,14 @@ class QBESentenceViewController: UIViewController {
 					}
 				}
 			}
+			else {
+				let uac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+				uac.message = "This setting cannot be changed on iOS. Use the Mac version of Warp to change it.".localized
+				uac.addAction(UIAlertAction(title: "OK".localized, style: .cancel, handler: nil))
+				uac.popoverPresentationController?.sourceView = sender
+				uac.popoverPresentationController?.sourceRect = sender.bounds
+				self.present(uac, animated: true, completion: nil)
+			}
 		}
 	}
 }

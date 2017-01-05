@@ -15,6 +15,13 @@
 		65A78CFC1D74CBDF00036045 /* Random.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A78CF51D74CBDF00036045 /* Random.swift */; };
 		65A78CFD1D74CBDF00036045 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A78CF61D74CBDF00036045 /* Storage.swift */; };
 		65A78CFE1D74CBDF00036045 /* Vector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A78CF71D74CBDF00036045 /* Vector.swift */; };
+		65BC51B91E1E301A005FEC76 /* FFNN.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A78CF11D74CBDF00036045 /* FFNN.swift */; };
+		65BC51BA1E1E301A005FEC76 /* FFNN+Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A78CF21D74CBDF00036045 /* FFNN+Storage.swift */; };
+		65BC51BB1E1E301A005FEC76 /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A78CF31D74CBDF00036045 /* Matrix.swift */; };
+		65BC51BC1E1E301A005FEC76 /* Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A78CF41D74CBDF00036045 /* Operations.swift */; };
+		65BC51BD1E1E301A005FEC76 /* Random.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A78CF51D74CBDF00036045 /* Random.swift */; };
+		65BC51BE1E1E301A005FEC76 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A78CF61D74CBDF00036045 /* Storage.swift */; };
+		65BC51BF1E1E301A005FEC76 /* Vector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A78CF71D74CBDF00036045 /* Vector.swift */; };
 		65F2DCAA1CDF4B0B0099B3DB /* WarpAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F2DCA91CDF4B0B0099B3DB /* WarpAI.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
@@ -202,6 +209,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65BC51B91E1E301A005FEC76 /* FFNN.swift in Sources */,
+				65BC51BA1E1E301A005FEC76 /* FFNN+Storage.swift in Sources */,
+				65BC51BB1E1E301A005FEC76 /* Matrix.swift in Sources */,
+				65BC51BC1E1E301A005FEC76 /* Operations.swift in Sources */,
+				65BC51BD1E1E301A005FEC76 /* Random.swift in Sources */,
+				65BC51BE1E1E301A005FEC76 /* Storage.swift in Sources */,
+				65BC51BF1E1E301A005FEC76 /* Vector.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -73,7 +73,6 @@ class QBEFactory {
 
 	static var sharedInstance = QBEFactory()
 
-	#if os(macOS)
 	let fileWriters: [QBEFileWriter.Type] = [
 		QBECSVWriter.self,
 		QBEXMLWriter.self,
@@ -81,32 +80,21 @@ class QBEFactory {
 		QBEDBFWriter.self,
 		QBESQLiteWriter.self
 	]
-	#endif
 
-	#if os(iOS)
-	let fileWriters: [QBEFileWriter.Type] = [
-	]
-	#endif
-
-	#if os(macOS)
 	let dataWarehouseSteps: [QBEStep.Type] = [
 		QBEMySQLSourceStep.self,
 		QBEPostgresSourceStep.self,
 		QBERethinkSourceStep.self,
 		QBESQLiteSourceStep.self
 	]
-	#endif
 
-	#if os(macOS)
 	let dataWarehouseStepNames: [String: String] = [
 		QBEMySQLSourceStep.className(): NSLocalizedString("MySQL table", comment: ""),
 		QBEPostgresSourceStep.className(): NSLocalizedString("PostgreSQL table", comment: ""),
 		QBERethinkSourceStep.className(): NSLocalizedString("RethinkDB table", comment: ""),
 		QBESQLiteSourceStep.className(): NSLocalizedString("SQLite table", comment: "")
 	]
-	#endif
 
-	#if os(macOS)
 	private let fileReaders: [String: QBEFileReaderCreator] = [
 		"public.comma-separated-values-text": {(url) in return QBECSVSourceStep(url: url)},
 		"csv": {(url) in return QBECSVSourceStep(url: url)},
@@ -121,7 +109,6 @@ class QBEFactory {
 		"sqlite": {(url) in return QBESQLiteSourceStep(url: url)},
 		"dbf": {(url) in return QBEDBFSourceStep(url: url)}
 	]
-	#endif
 
 	#if os(iOS)
 	private let fileReaders: [String: QBEFileReaderCreator] = [:]
@@ -144,51 +131,6 @@ class QBEFactory {
 	]
 	#endif
 
-	#if os(macOS)
-	private let stepIcons = [
-		QBECloneStep.className(): "CloneIcon",
-		QBESequencerStep.className(): "SequenceIcon",
-		QBELimitStep.className(): "LimitIcon",
-		QBEOffsetStep.className(): "LimitIcon",
-		QBERandomStep.className(): "RandomIcon",
-		QBETransposeStep.className(): "TransposeIcon",
-		QBEDistinctStep.className(): "DistinctIcon",
-		QBESearchStep.className(): "SearchIcon",
-		QBERethinkSourceStep.className(): "RethinkDBIcon",
-		QBEDBFSourceStep.className(): "DBFIcon",
-		QBEMySQLSourceStep.className(): "MySQLIcon",
-		QBEPostgresSourceStep.className(): "PostgresIcon",
-		QBECSVSourceStep.className(): "CSVIcon",
-		QBESQLiteSourceStep.className(): "SQLIcon",
-		QBEFlattenStep.className(): "FlattenIcon",
-
-		// Not yet on iOS
-		QBEPivotStep.className(): "PivotIcon",
-		QBEFilterStep.className(): "FilterIcon",
-		QBEFilterSetStep.className(): "FilterIcon",
-		QBECalculateStep.className(): "CalculateIcon",
-		QBEColumnsStep.className(): "ColumnsIcon",
-		QBESortColumnsStep.className(): "ColumnsIcon",
-		QBEPrestoSourceStep.className(): "PrestoIcon",
-		QBERasterStep.className(): "RasterIcon",
-		QBESortStep.className(): "SortIcon",
-		QBEJoinStep.className(): "JoinIcon",
-		QBEDebugStep.className(): "DebugIcon",
-		QBERenameStep.className(): "RenameIcon",
-		QBEMergeStep.className(): "MergeIcon",
-		QBECrawlStep.className(): "CrawlIcon",
-		QBEExportStep.className(): "ExportStepIcon",
-		QBEClassifierStep.className(): "AIIcon",
-		QBEExplodeVerticallyStep.className(): "ExplodeVerticalIcon",
-		QBEExplodeHorizontallyStep.className(): "ExplodeHorizontalIcon",
-		QBECacheStep.className(): "CacheIcon",
-		QBEDummiesStep.className(): "DummiesIcon",
-		QBEHTTPStep.className(): "DownloadIcon",
-		QBEFileStep.className(): "TextIcon",
-	]
-	#endif
-
-	#if os(iOS)
 	private let stepIcons: [String:String] = [
 		NSStringFromClass(QBECloneStep.self): "CloneIcon",
 		NSStringFromClass(QBESequencerStep.self): "SequenceIcon",
@@ -205,8 +147,29 @@ class QBEFactory {
 		NSStringFromClass(QBEMySQLSourceStep.self): "MySQLIcon",
 		NSStringFromClass(QBEDBFSourceStep.self): "DBFIcon",
 		NSStringFromClass(QBEFlattenStep.self): "FlattenIcon",
+		NSStringFromClass(QBEPivotStep.self): "PivotIcon",
+		NSStringFromClass(QBEFilterStep.self): "FilterIcon",
+		NSStringFromClass(QBEFilterSetStep.self): "FilterIcon",
+		NSStringFromClass(QBECalculateStep.self): "CalculateIcon",
+		NSStringFromClass(QBEColumnsStep.self): "ColumnsIcon",
+		NSStringFromClass(QBESortColumnsStep.self): "ColumnsIcon",
+		NSStringFromClass(QBEPrestoSourceStep.self): "PrestoIcon",
+		NSStringFromClass(QBERasterStep.self): "RasterIcon",
+		NSStringFromClass(QBESortStep.self): "SortIcon",
+		NSStringFromClass(QBEJoinStep.self): "JoinIcon",
+		NSStringFromClass(QBEDebugStep.self): "DebugIcon",
+		NSStringFromClass(QBERenameStep.self): "RenameIcon",
+		NSStringFromClass(QBEMergeStep.self): "MergeIcon",
+		NSStringFromClass(QBECrawlStep.self): "CrawlIcon",
+		NSStringFromClass(QBEExportStep.self): "ExportStepIcon",
+		NSStringFromClass(QBEClassifierStep.self): "AIIcon",
+		NSStringFromClass(QBEExplodeVerticallyStep.self): "ExplodeVerticalIcon",
+		NSStringFromClass(QBEExplodeHorizontallyStep.self): "ExplodeHorizontalIcon",
+		NSStringFromClass(QBECacheStep.self): "CacheIcon",
+		NSStringFromClass(QBEDummiesStep.self): "DummiesIcon",
+		NSStringFromClass(QBEHTTPStep.self): "DownloadIcon",
+		NSStringFromClass(QBEFileStep.self): "TextIcon",
 	]
-	#endif
 	
 	var fileExtensionsForWriting: Set<String> { get {
 		var exts = Set<String>()
