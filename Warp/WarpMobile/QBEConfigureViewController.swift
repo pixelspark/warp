@@ -17,28 +17,29 @@ extension QBEMySQLSourceStep: QBEFormConfigurableStep {
 	var form: Form {
 		let form = Form()
 
-		let passwordRow = PasswordRow() { row in
+		let passwordRow = PasswordRow("password") { row in
 			row.title = "Password".localized
 			row.value = self.password.stringValue
 			}.onChange { self.password.stringValue = $0.value ?? "" };
 
 		form +++ Section("Server".localized)
-			<<< TextRow(){ row in
+			<<< TextRow("host") { row in
 				row.title = "Host name".localized
 				row.value = self.host
 				row.placeholder = "localhost".localized
 				row.onChange { self.host = $0.value ?? "localhost" }
 				row.cellSetup({ (cell, row) in
 					cell.textField.autocapitalizationType = .none
+					cell.textField.autocorrectionType = .no
 				})
 			}
-			<<< IntRow(){ row in
+			<<< IntRow("port") { row in
 				row.title = "Port".localized
 				row.value = self.port
 				row.placeholder = "3306".localized
 				row.onChange { self.port = $0.value ?? 3306 }
 			}
-			<<< TextRow() { row in
+			<<< TextRow("user") { row in
 				row.title = "User name".localized
 				row.value = self.user
 				row.placeholder = "root".localized
@@ -48,9 +49,33 @@ extension QBEMySQLSourceStep: QBEFormConfigurableStep {
 				}
 				row.cellSetup({ (cell, row) in
 					cell.textField.autocapitalizationType = .none
+					cell.textField.autocorrectionType = .no
 				})
 			}
 			<<< passwordRow
+
+		form +++ Section("")
+			<<< PushRow<QBESecret>() { pr in
+				pr.options = QBESecret.secretsForService("mysql")
+				pr.noValueDisplayText = "Recent servers".localized
+
+				pr.onChange { pr in
+					if let secret = pr.value {
+						self.user = secret.accountName
+						self.host = secret.url?.host ?? self.host
+						self.port = secret.url?.port ?? self.port
+
+						pr.value = nil
+						form.setValues([
+							"host": secret.url?.host ?? self.host,
+							"port": secret.url?.port ?? self.port,
+							"user": secret.accountName,
+							"password": self.password.stringValue
+						])
+						form.allRows.forEach { $0.updateCell() }
+					}
+				}
+			}
 
 		return form
 	}
@@ -63,13 +88,13 @@ extension QBEPostgresSourceStep: QBEFormConfigurableStep {
 	var form: Form {
 		let form = Form()
 
-		let passwordRow = PasswordRow() { row in
+		let passwordRow = PasswordRow("password") { row in
 			row.title = "Password".localized
 			row.value = self.password.stringValue
 		}.onChange { self.password.stringValue = $0.value ?? "" };
 
 		form +++ Section("Server".localized)
-			<<< TextRow(){ row in
+			<<< TextRow("host") { row in
 				row.title = "Host name".localized
 				row.value = self.host
 				row.placeholder = "localhost".localized
@@ -78,13 +103,13 @@ extension QBEPostgresSourceStep: QBEFormConfigurableStep {
 					cell.textField.autocapitalizationType = .none
 				})
 			}
-			<<< IntRow(){ row in
+			<<< IntRow("port") { row in
 				row.title = "Port".localized
 				row.value = self.port
 				row.placeholder = "5432".localized
 				row.onChange { self.port = $0.value ?? 5432 }
 			}
-			<<< TextRow() { row in
+			<<< TextRow("user") { row in
 				row.title = "User name".localized
 				row.value = self.user
 				row.placeholder = "postgres".localized
@@ -97,6 +122,29 @@ extension QBEPostgresSourceStep: QBEFormConfigurableStep {
 				})
 			}
 			<<< passwordRow
+
+		form +++ Section("")
+			<<< PushRow<QBESecret>() { pr in
+				pr.options = QBESecret.secretsForService("postgres")
+				pr.noValueDisplayText = "Recent servers".localized
+
+				pr.onChange { pr in
+					if let secret = pr.value {
+						self.user = secret.accountName
+						self.host = secret.url?.host ?? self.host
+						self.port = secret.url?.port ?? self.port
+
+						pr.value = nil
+						form.setValues([
+							"host": secret.url?.host ?? self.host,
+							"port": secret.url?.port ?? self.port,
+							"user": secret.accountName,
+							"password": self.password.stringValue
+							])
+						form.allRows.forEach { $0.updateCell() }
+					}
+				}
+		}
 
 		return form
 	}

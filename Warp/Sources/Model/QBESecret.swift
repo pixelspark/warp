@@ -15,7 +15,7 @@ import WarpCore
 /** QBESecret represents a secret (usually a password) stored in the OS X Keychain. After initialization use the `stringValue`
 property to set or get the password/secret. Note that this may block: the Keychain will sometimes ask the user whether
 the app is allowed to access the Keychain item. If you need to store binary secret data, use the `data` property. */
-public class QBESecret {
+public class QBESecret: Equatable, CustomStringConvertible {
 	let serviceName: String
 	let accountName: String
 	let friendlyName: String
@@ -167,6 +167,14 @@ public class QBESecret {
 			let data = newValue?.data(using: String.Encoding.utf8)
 			_ = setData(data)
 		}
+	}
+
+	public var description: String {
+		return "\(self.accountName) @ \(self.serviceName)"
+	}
+
+	public static func ==(lhs: QBESecret, rhs: QBESecret) -> Bool {
+		return lhs.accountName == rhs.accountName && lhs.serviceName == rhs.serviceName
 	}
 }
 
