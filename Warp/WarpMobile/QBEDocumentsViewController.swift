@@ -377,7 +377,7 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 	override var canBecomeFirstResponder: Bool { return true }
 }
 
-class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentManagerDelegate, QBEDocumentThumbnailCacheDelegate, UIDocumentPickerDelegate {
+class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentManagerDelegate, QBEDocumentThumbnailCacheDelegate, UIDocumentPickerDelegate, QBEMobileTourViewControllerDelegate {
 	fileprivate let manager = QBEDocumentManager(fileExtension: QBEDocument.fileExtension)
 	fileprivate let dataFileManager = QBEDocumentManager(fileExtension: QBEDocument.fileExtension, inverse: true)
 	fileprivate var documents = [QBEDocumentBrowserModel]()
@@ -420,6 +420,18 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 		if FileManager().ubiquityIdentityToken == nil {
 			self.presentCloudDisabledAlert()
 		}
+		else {
+			QBESettings.sharedInstance.once("mobile.tour") {
+				let tour = self.storyboard!.instantiateViewController(withIdentifier: "tour") as! QBEMobileTourViewController
+				tour.modalPresentationStyle = .formSheet
+				tour.delegate = self
+				self.present(tour, animated: true, completion: nil)
+			}
+		}
+	}
+
+	func tourFinished(_ viewController: QBEMobileTourViewController) {
+		self.newDocument(sender: self)
 	}
 
 	private func presentCloudDisabledAlert() {

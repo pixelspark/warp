@@ -82,7 +82,7 @@ class QBEExportViewController: FormViewController {
 
 		super.viewDidLoad()
 		self.fileName = "Exported data".localized
-		self.modalPresentationStyle = .pageSheet
+		self.modalPresentationStyle = .formSheet
 
 		self.navigationItem.title = "Export to file".localized
 		self.navigationItem.setRightBarButtonItems([

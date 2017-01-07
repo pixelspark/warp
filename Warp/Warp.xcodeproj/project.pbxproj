@@ -241,8 +241,10 @@
 		65BC51B71E1E2FD1005FEC76 /* QBEHTTPStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC101E196EF10094F8AD /* QBEHTTPStep.swift */; };
 		65BC51B81E1E2FD8005FEC76 /* QBEFileStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC131E196EF10094F8AD /* QBEFileStep.swift */; };
 		65BC51C01E1EB6FD005FEC76 /* QBEXMLStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0D1E196EF10094F8AD /* QBEXMLStep.swift */; };
+		65BC51C21E2184EC005FEC76 /* QBETourViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65BC51C11E2184EC005FEC76 /* QBETourViewController.swift */; };
 		65DAF6CA1D7C6FFD00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6C91D7C6FFD00163750 /* Rethink.framework */; };
 		65DAF6CF1D7C719D00163750 /* Rethink.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65DAF6CE1D7C719D00163750 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		65E1C7C31E219616003221A6 /* MobileTour.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E1C7C51E219616003221A6 /* MobileTour.strings */; };
 		65E224521D7C5E3F007433E6 /* AccessibilityImageDescriptions.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFFA1C1475DF00AE6C00 /* AccessibilityImageDescriptions.strings */; };
 		65E224531D7C5E3F007433E6 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFFC1C1475DF00AE6C00 /* Credits.rtf */; };
 		65E224541D7C5E3F007433E6 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6583EFB81C1475D900AE6C00 /* Images.xcassets */; };
@@ -789,8 +791,11 @@
 		65B774741C9FE8AF006480B2 /* missing-columns.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "missing-columns.csv"; path = "Tests/Data/missing-columns.csv"; sourceTree = SOURCE_ROOT; };
 		65B774761CA05596006480B2 /* escapes.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = escapes.csv; path = Tests/Data/escapes.csv; sourceTree = SOURCE_ROOT; };
 		65BC51621E1C18F8005FEC76 /* QBEExportViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEExportViewController.swift; sourceTree = "<group>"; };
+		65BC51C11E2184EC005FEC76 /* QBETourViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBETourViewController.swift; sourceTree = "<group>"; };
 		65DAF6C91D7C6FFD00163750 /* Rethink.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Rethink.framework; path = "/Users/tommy/Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/Rethink.framework"; sourceTree = "<absolute>"; };
 		65DAF6CE1D7C719D00163750 /* Rethink.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Rethink.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		65E1C7C41E219616003221A6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/MobileTour.strings; sourceTree = "<group>"; };
+		65E1C7C61E219619003221A6 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/MobileTour.strings; sourceTree = "<group>"; };
 		65E224901D7C5EED007433E6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = SOURCE_ROOT; };
 		65E224971D7C5F41007433E6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEJobViewController.xib; sourceTree = SOURCE_ROOT; };
 		65E2249C1D7C5F8C007433E6 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEJobViewController.strings; sourceTree = SOURCE_ROOT; };
@@ -952,6 +957,7 @@
 				655B05641E15A57100A28FCE /* Info.plist */,
 				655B05611E15A57100A28FCE /* LaunchScreen.storyboard */,
 				655B055C1E15A57100A28FCE /* Main.storyboard */,
+				65E1C7C51E219616003221A6 /* MobileTour.strings */,
 				655B05581E15A57100A28FCE /* QBEAppDelegate.swift */,
 				6596CFB01E1913D600B06F4F /* QBEChainTabletViewController.swift */,
 				651BED901E198D940094F8AD /* QBEConfigureViewController.swift */,
@@ -963,6 +969,7 @@
 				6596D0231E1957E600B06F4F /* QBERasterViewController.swift */,
 				6596CFBF1E19209000B06F4F /* QBESentenceViewController.swift */,
 				6596CFBC1E19165400B06F4F /* QBEStepsViewController.swift */,
+				65BC51C11E2184EC005FEC76 /* QBETourViewController.swift */,
 				658A4C081E16F6B900944430 /* WarpMobile.entitlements */,
 			);
 			path = WarpMobile;
@@ -1633,6 +1640,7 @@
 				6596D00F1E1957BB00B06F4F /* MDSpreadViewCornerBottomRight.png in Resources */,
 				6596D0101E1957BB00B06F4F /* MDSpreadViewCornerBottomRight@2x.png in Resources */,
 				6596D0111E1957BB00B06F4F /* MDSpreadViewCornerBottomRightSelected.png in Resources */,
+				65E1C7C31E219616003221A6 /* MobileTour.strings in Resources */,
 				6596D0131E1957BB00B06F4F /* MDSpreadViewCornerTopLeft.png in Resources */,
 				6596D0011E1957BB00B06F4F /* MDSpreadViewCellSelected.png in Resources */,
 				6596D0201E1957BB00B06F4F /* MDSpreadViewRowHeaderTop@2x.png in Resources */,
@@ -1723,6 +1731,7 @@
 				658A4C021E16476A00944430 /* QBEJobsManager.swift in Sources */,
 				65BC51AF1E1E2F89005FEC76 /* QBEExportStep.swift in Sources */,
 				6596D0241E1957E600B06F4F /* QBERasterViewController.swift in Sources */,
+				65BC51C21E2184EC005FEC76 /* QBETourViewController.swift in Sources */,
 				651BEC5C1E196F3E0094F8AD /* QBESortStep.swift in Sources */,
 				655B05A21E15AE7B00A28FCE /* QBEViewExtensions.swift in Sources */,
 				651BEC5D1E196F3E0094F8AD /* QBEDebugStep.swift in Sources */,
@@ -2275,6 +2284,15 @@
 				65865ACC1D828DA6004EF86A /* nl */,
 			);
 			name = QBEJSONViewController.strings;
+			sourceTree = "<group>";
+		};
+		65E1C7C51E219616003221A6 /* MobileTour.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				65E1C7C41E219616003221A6 /* Base */,
+				65E1C7C61E219619003221A6 /* nl */,
+			);
+			name = MobileTour.strings;
 			sourceTree = "<group>";
 		};
 		65E2248F1D7C5EED007433E6 /* Main.storyboard */ = {

@@ -191,7 +191,7 @@ class QBEConfigurableFormViewController: FormViewController {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		self.modalPresentationStyle = .pageSheet
+		self.modalPresentationStyle = .formSheet
 
 		self.navigationItem.title = "Settings".localized
 		self.navigationItem.setRightBarButton(UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(self.done(_:))), animated: false)

@@ -1,0 +1,20 @@
+
+"mtour.0.title" = "Welcome to Warp!";
+"mtour.0.subtitle" = "To get you up to speed as fast as possible, we'd like to walk you through the app.";
+"mtour.0.image" = "Tour0";
+
+"mtour.1.title" = "First, you need some data";
+"mtour.1.subtitle" = "You can open CSV or other files from iCloud drive. You can also send files to Warp from other apps. ";
+"mtour.1.image" = "Tour1";
+
+"mtour.2.title" = "One small step for man";
+"mtour.2.subtitle" = "Each data processing step is represented as a step. Click the '+' button to add another step.";
+"mtour.2.image" = "Tour2";
+
+"mtour.3.title" = "Full speed ahead";
+"mtour.3.subtitle" = "Warp only calculates a preview of a result, which makes it faster to use. Use the button shown above to calculate the full result.";
+"mtour.3.image" = "Tour3";
+
+"mtour.4.title" = "You're good to go!";
+"mtour.4.subtitle" = "We hope you enjoy using Warp!";
+"mtour.4.image" = "Tour4";

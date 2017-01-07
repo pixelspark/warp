@@ -109,7 +109,7 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 		configureForm.delegate = self
 
 		let nav = UINavigationController(rootViewController: configureForm)
-		nav.modalPresentationStyle = .pageSheet
+		nav.modalPresentationStyle = .formSheet
 		self.present(nav, animated: true, completion: completion)
 	}
 

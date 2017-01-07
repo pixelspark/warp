@@ -1,0 +1,20 @@
+
+"mtour.0.title" = "Welkom bij Warp!";
+"mtour.0.subtitle" = "Om te zorgen dat je zo snel mogelijk aan de slag kunt, lopen we even met je door de app.";
+"mtour.0.image" = "Tour0";
+
+"mtour.1.title" = "Eerst heb je data nodig nodig";
+"mtour.1.subtitle" = "Je kunt CSV- en andere bestanden openen vanuit iCloud Drive, of ze naar Warp sturen vanuit andere apps.";
+"mtour.1.image" = "Tour1";
+
+"mtour.2.title" = "Stap voor stap";
+"mtour.2.subtitle" = "Iedere dataverwerkingsslag wordt in Warp weergegeven als een stap. Voeg een stap toe met de '+'-knop";
+"mtour.2.image" = "Tour2";
+
+"mtour.3.title" = "Volle kracht vooruit";
+"mtour.3.subtitle" = "Warp rekent steeds alleen een voorbeeld uit, en is daardoor sneller klaar. Gebruik de getoonde knop om het volledige resultaat te berekenen.";
+"mtour.3.image" = "Tour3";
+
+"mtour.4.title" = "Je bent er klaar voor!";
+"mtour.4.subtitle" = "We hopen dat je veel plezier hebt bij het gebruiken van Warp.";
+"mtour.4.image" = "Tour4";
