@@ -263,13 +263,20 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 	@IBOutlet var loadingIndicator: UIActivityIndicatorView!
 	@IBOutlet var subtitleLabel: UILabel!
 
+	weak var controller: QBEDocumentBrowserViewController? = nil
+
 	override func awakeFromNib() {
 		super.awakeFromNib()
 		let gr = UILongPressGestureRecognizer(target: self, action: #selector(self.longPress(_:)))
 		self.addGestureRecognizer(gr)
 	}
 
-	var documentURL: URL? = nil
+	fileprivate var document: QBEDocumentBrowserModel? = nil { didSet {
+		self.label.text = document?.displayName ?? ""
+		self.subtitleLabel.text = document?.subtitle ?? ""
+		self.imageView.alpha = ((document?.downloaded ?? false) ? 1.0 : 0.2)
+		self.loadingIndicator.isHidden = !((document?.downloading) ?? false)
+	} }
 
 	var thumbnail: UIImage? {
 		didSet {
@@ -278,35 +285,9 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 		}
 	}
 
-	var title = "" {
-		didSet {
-			label.text = title
-		}
-	}
-
-	var downloaded: Bool = true {
-		didSet {
-			imageView.alpha = (downloaded ? 1.0 : 0.2)
-		}
-	}
-
-	var downloading: Bool = true {
-		didSet {
-			loadingIndicator.isHidden = !downloading
-		}
-	}
-
-	var subtitle = "" {
-		didSet {
-			subtitleLabel.text = subtitle
-		}
-	}
-
 	override func prepareForReuse() {
-		title = ""
-		subtitle = ""
+		self.document = nil
 		thumbnail = nil
-		loadingIndicator.isHidden = true
 	}
 
 	@IBAction func longPress(_ sender: UILongPressGestureRecognizer) {
@@ -318,8 +299,8 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 	}
 
 	override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-		if action == #selector(self.delete(_:))  || action == #selector(self.rename(_:)) {
-			return true
+		if action == #selector(self.delete(_:))  || action == #selector(self.rename(_:)) || action == #selector(self.duplicate(_:)) {
+			return self.document != nil
 		}
 		return false
 	}
@@ -328,7 +309,8 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 		let mc = UIMenuController.shared
 
 		mc.menuItems = [
-			UIMenuItem(title: "Rename".localized, action: #selector(self.rename(_:)))
+			UIMenuItem(title: "Rename".localized, action: #selector(self.rename(_:))),
+			UIMenuItem(title: "Duplicate".localized, action: #selector(self.duplicate(_:)))
 		]
 
 		mc.setTargetRect(self.bounds, in: self)
@@ -336,7 +318,7 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 	}
 
 	override func delete(_ sender: Any?) {
-		if let du = self.documentURL {
+		if let du = self.document?.URL {
 			DispatchQueue.global(qos: .userInitiated).async {
 				NSFileCoordinator().coordinate(writingItemAt: du, options: .forDeleting, error: nil) { (writingUrl) in
 					do {
@@ -350,12 +332,20 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 		}
 	}
 
+	@IBAction func duplicate(_ sender: Any?) {
+		if let du = self.document?.URL {
+			self.controller?.createNewDocumentWithTemplate(.file(du), completion: { _ in
+				return
+			})
+		}
+	}
+
 	@IBAction func rename(_ sender: Any?) {
 		var newNameField: UITextField? = nil
 		let uac = UIAlertController(title: "Rename document".localized, message: nil, preferredStyle: .alert)
 		uac.addTextField { (tf) in
 			tf.autocapitalizationType = .none
-			tf.text = self.title
+			tf.text = self.document?.displayName ?? ""
 			newNameField = tf
 		}
 
@@ -363,7 +353,7 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 		}))
 
 		uac.addAction(UIAlertAction(title: "Rename".localized, style: .default, handler: { (act) in
-			if var du = self.documentURL, let nn = newNameField!.text {
+			if var du = self.document?.URL, let nn = newNameField!.text {
 				DispatchQueue.global(qos: .userInitiated).async {
 					NSFileCoordinator().coordinate(writingItemAt: du, options: .contentIndependentMetadataOnly, error: nil) { (writingUrl) in
 						do {
@@ -590,11 +580,8 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 		let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! QBEDocumentBrowserCell
 
 		if let document = self.document(at: indexPath) {
-			cell.title = document.displayName
-			cell.downloaded = document.downloaded
-			cell.downloading = document.downloading
-			cell.documentURL = document.URL
-			cell.subtitle = document.subtitle ?? ""
+			cell.document = document
+			cell.controller = self
 			cell.thumbnail = thumbnailCache.loadThumbnailForURL(document.URL)
 		}
 		return cell
