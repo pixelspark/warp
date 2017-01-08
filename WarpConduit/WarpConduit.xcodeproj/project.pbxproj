@@ -433,7 +433,7 @@
 			children = (
 				65BC51A61E1C56F6005FEC76 /* WarpCore.framework */,
 				65BC51A81E1C56F6005FEC76 /* WarpCoreTests.xctest */,
-				65BC51AA1E1C56F6005FEC76 /* WarpCore iOS.framework */,
+				65BC51AA1E1C56F6005FEC76 /* WarpCore.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -863,10 +863,10 @@
 			remoteRef = 65BC51A71E1C56F6005FEC76 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		65BC51AA1E1C56F6005FEC76 /* WarpCore iOS.framework */ = {
+		65BC51AA1E1C56F6005FEC76 /* WarpCore.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
-			path = "WarpCore iOS.framework";
+			path = WarpCore.framework;
 			remoteRef = 65BC51A91E1C56F6005FEC76 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
