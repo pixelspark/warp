@@ -9,15 +9,30 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Ge
 
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-import  Cocoa
+import Foundation
 import WarpCore
+
+#if os(macOS)
+fileprivate typealias UXColor = NSColor
+#endif
+
+#if os(iOS)
+fileprivate typealias UXColor = UIColor
+#endif
 
 extension Formula {
 	var syntaxColoredFormula: NSAttributedString { get {
-		let regularFont = NSFont.userFixedPitchFont(ofSize: NSFont.systemFontSize(for: NSControlSize.regular))!
+		#if os(macOS)
+		let regularFont = NSFont.userFixedPitchFont(ofSize: NSFont.systemFontSize(for: .regular))!
+		#endif
+
+		#if os(iOS)
+			let regularFont = UIFont.monospacedDigitSystemFont(ofSize: UIFont.labelFontSize, weight: UIFontWeightRegular)
+		#endif
+
 		
 		let ma = NSMutableAttributedString(string: self.originalText, attributes: [
-			NSForegroundColorAttributeName: NSColor.black,
+			NSForegroundColorAttributeName: UXColor.black,
 			NSFontAttributeName: regularFont
 		])
 		
@@ -25,25 +40,25 @@ extension Formula {
 			if fragment.expression is Literal {
 				ma.addAttributes([
 					NSFontAttributeName: regularFont,
-					NSForegroundColorAttributeName: NSColor.blue
+					NSForegroundColorAttributeName: UXColor.blue
 				], range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Sibling {
 				ma.addAttributes([
 					NSFontAttributeName: regularFont,
-					NSForegroundColorAttributeName: NSColor(red: 0.0, green: 0.5, blue: 0.0, alpha: 1.0)
+					NSForegroundColorAttributeName: UXColor(red: 0.0, green: 0.5, blue: 0.0, alpha: 1.0)
 				], range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Foreign {
 				ma.addAttributes([
 					NSFontAttributeName: regularFont,
-					NSForegroundColorAttributeName: NSColor(red: 0.5, green: 0.5, blue: 0.0, alpha: 1.0)
+					NSForegroundColorAttributeName: UXColor(red: 0.5, green: 0.5, blue: 0.0, alpha: 1.0)
 					], range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Identity {
 				ma.addAttributes([
 					NSFontAttributeName: regularFont,
-					NSForegroundColorAttributeName: NSColor(red: 0.8, green: 0.5, blue: 0.0, alpha: 1.0)
+					NSForegroundColorAttributeName: UXColor(red: 0.8, green: 0.5, blue: 0.0, alpha: 1.0)
 				], range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Call {

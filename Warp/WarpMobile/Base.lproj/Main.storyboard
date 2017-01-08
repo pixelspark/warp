@@ -26,7 +26,7 @@
                         </collectionViewFlowLayout>
                         <cells>
                             <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="cell" id="mIz-2B-nrt" customClass="QBEDocumentBrowserCell" customModule="Warp" customModuleProvider="target">
-                                <rect key="frame" x="78" y="50" width="220" height="270"/>
+                                <rect key="frame" x="77.5" y="50" width="220" height="270"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
                                     <rect key="frame" x="0.0" y="0.0" width="220" height="270"/>
@@ -345,7 +345,7 @@
         <scene sceneID="cFQ-gp-Nmh">
             <objects>
                 <collectionViewController extendedLayoutIncludesOpaqueBars="YES" id="XkU-Cb-fII" userLabel="Steps" customClass="QBEStepsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" misplaced="YES" dataMode="prototypes" id="837-K7-Fku">
+                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="837-K7-Fku">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="120"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -488,6 +488,66 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="vkv-LM-ayc" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2728" y="570"/>
+        </scene>
+        <!--Formula-->
+        <scene sceneID="TGN-7O-oCv">
+            <objects>
+                <viewController storyboardIdentifier="formula" title="Formula" id="cYJ-lb-pgb" customClass="QBEFormulaViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="nLd-yY-7qn"/>
+                        <viewControllerLayoutGuide type="bottom" id="6S2-uL-lpJ"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="zqy-Qw-Tgy">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" usesAttributedText="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZF0-Zj-3KF">
+                                <rect key="frame" x="16" y="0.0" width="343" height="667"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <attributedString key="attributedText">
+                                    <fragment content="Formula">
+                                        <attributes>
+                                            <font key="NSFont" metaFont="system" size="14"/>
+                                            <paragraphStyle key="NSParagraphStyle" alignment="natural" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                        </attributes>
+                                    </fragment>
+                                </attributedString>
+                                <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="alphabet"/>
+                                <connections>
+                                    <outlet property="delegate" destination="cYJ-lb-pgb" id="rCJ-1p-jKR"/>
+                                </connections>
+                            </textView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="ZF0-Zj-3KF" firstAttribute="top" secondItem="zqy-Qw-Tgy" secondAttribute="topMargin" id="gW5-lU-Qgf"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="ZF0-Zj-3KF" secondAttribute="trailing" id="kIQ-Bj-C5j"/>
+                            <constraint firstItem="6S2-uL-lpJ" firstAttribute="top" secondItem="ZF0-Zj-3KF" secondAttribute="bottom" id="n2y-ZA-GuY"/>
+                            <constraint firstItem="ZF0-Zj-3KF" firstAttribute="leading" secondItem="zqy-Qw-Tgy" secondAttribute="leadingMargin" id="x7g-Cz-KiT"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="Formula" id="9XG-NU-loi">
+                        <barButtonItem key="leftBarButtonItem" title="Apply" id="izo-9Y-SuT">
+                            <connections>
+                                <action selector="apply:" destination="cYJ-lb-pgb" id="JfD-DN-6m3"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" systemItem="done" id="AaE-pS-vUE">
+                            <connections>
+                                <action selector="done:" destination="cYJ-lb-pgb" id="RhK-VM-fru"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
+                    <nil key="simulatedBottomBarMetrics"/>
+                    <modalPageSheetSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+                    <connections>
+                        <outlet property="textField" destination="ZF0-Zj-3KF" id="mMV-oM-IMG"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="beD-ph-4Qv" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3965.5999999999999" y="532.98350824587715"/>
         </scene>
         <!--Raster-->
         <scene sceneID="A8p-YE-DcT">

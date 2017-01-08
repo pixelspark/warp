@@ -409,3 +409,5 @@
 "Load data from a file" = "Laad gegevens uit een bestand";
 "Could not open file"  = "Het bestand kon niet worden geopend";
 "This file type is not supported." = "Dit bestandstype wordt niet ondersteund.";
+"Calculate a new column" = "Bereken een nieuwe kolom";
+"New column" = "Nieuwe kolom";

@@ -76,6 +76,8 @@
 		65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
 		654AA5A51DEE367A0030C7C9 /* Charts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 654AA59E1DEE365D0030C7C9 /* Charts.framework */; };
 		654AA5A61DEE36850030C7C9 /* Charts.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 654AA59E1DEE365D0030C7C9 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		6550B6F81E22B20E00DC1448 /* QBEFormulaViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6550B6F71E22B20E00DC1448 /* QBEFormulaViewController.swift */; };
+		6550B6F91E22B36D00DC1448 /* QBEFormula+SyntaxColoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEDB1C14758B00AE6C00 /* QBEFormula+SyntaxColoring.swift */; };
 		655B05591E15A57100A28FCE /* QBEAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 655B05581E15A57100A28FCE /* QBEAppDelegate.swift */; };
 		655B055E1E15A57100A28FCE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 655B055C1E15A57100A28FCE /* Main.storyboard */; };
 		655B05631E15A57100A28FCE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 655B05611E15A57100A28FCE /* LaunchScreen.storyboard */; };
@@ -600,6 +602,7 @@
 		6537E1F71D89E6DD00CD80EC /* SCRAM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCRAM.framework; path = "../../../../Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/SCRAM.framework"; sourceTree = "<group>"; };
 		6537E1FC1D89E87F00CD80EC /* GCDAsyncSocket.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GCDAsyncSocket.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6537E1FE1D89E88300CD80EC /* SCRAM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SCRAM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6550B6F71E22B20E00DC1448 /* QBEFormulaViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFormulaViewController.swift; sourceTree = "<group>"; };
 		655B05561E15A57100A28FCE /* Warp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		655B05581E15A57100A28FCE /* QBEAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QBEAppDelegate.swift; sourceTree = "<group>"; };
 		655B055D1E15A57100A28FCE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -1032,6 +1035,7 @@
 				6596CFBC1E19165400B06F4F /* QBEStepsViewController.swift */,
 				65BC51C11E2184EC005FEC76 /* QBETourViewController.swift */,
 				658A4C081E16F6B900944430 /* WarpMobile.entitlements */,
+				6550B6F71E22B20E00DC1448 /* QBEFormulaViewController.swift */,
 			);
 			name = iOS;
 			path = WarpMobile;
@@ -1755,7 +1759,9 @@
 				651BEC551E196F2A0094F8AD /* QBECrawlStep.swift in Sources */,
 				6596CFD71E1957B500B06F4F /* MDSpreadViewCellCornerHeaderBackground.m in Sources */,
 				655B059D1E15AA8D00A28FCE /* QBESentence.swift in Sources */,
+				6550B6F81E22B20E00DC1448 /* QBEFormulaViewController.swift in Sources */,
 				65BC517D1E1C4F95005FEC76 /* QBEDBFStep.swift in Sources */,
+				6550B6F91E22B36D00DC1448 /* QBEFormula+SyntaxColoring.swift in Sources */,
 				651BEC5E1E196F3E0094F8AD /* QBECloneStep.swift in Sources */,
 				651BEC511E196F160094F8AD /* QBERowsStep.swift in Sources */,
 				651BEC5F1E196F3E0094F8AD /* QBERasterStep.swift in Sources */,

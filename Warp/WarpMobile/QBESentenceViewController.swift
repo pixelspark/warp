@@ -104,7 +104,7 @@ fileprivate class QBEOptionsViewController: FormViewController {
 	}
 }
 
-class QBESentenceViewController: UIViewController, UIDocumentPickerDelegate {
+class QBESentenceViewController: UIViewController, UIDocumentPickerDelegate, QBEFormulaViewControllerDelegate {
 	@IBOutlet var stackView: UIStackView!
 	weak var delegate: QBESentenceViewControllerDelegate? = nil
 	private var editingToken: QBESentenceToken? = nil
@@ -322,6 +322,17 @@ class QBESentenceViewController: UIViewController, UIDocumentPickerDelegate {
 				picker.delegate = self
 				self.present(picker, animated: true, completion: nil)
 			}
+			else if let token = token as? QBESentenceFormulaToken {
+				let fc = self.storyboard?.instantiateViewController(withIdentifier: "formula") as! QBEFormulaViewController
+				fc.expression = token.expression
+				fc.delegate = self
+				let nav = UINavigationController(rootViewController: fc)
+				nav.preferredContentSize = CGSize(width: 640, height: 240)
+				nav.modalPresentationStyle = .popover
+				nav.popoverPresentationController?.sourceView = sender
+				nav.popoverPresentationController?.sourceRect = sender.bounds
+				self.present(nav, animated: true)
+			}
 			else {
 				let uac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 				uac.message = "This setting cannot be changed on iOS. Use the Mac version of Warp to change it.".localized
@@ -330,6 +341,13 @@ class QBESentenceViewController: UIViewController, UIDocumentPickerDelegate {
 				uac.popoverPresentationController?.sourceRect = sender.bounds
 				self.present(uac, animated: true, completion: nil)
 			}
+		}
+	}
+
+	func formula(_ controller: QBEFormulaViewController, didChangeExpression to: Expression) {
+		if let token = self.editingToken as? QBESentenceFormulaToken {
+			token.change(to)
+			self.delegate?.sentenceViewController(self, didChangeSentence: self.sentence!)
 		}
 	}
 

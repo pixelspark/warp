@@ -214,6 +214,10 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 
 				UIAlertAction(title: "Switch rows/columns".localized, style: .default, handler: { act in
 					self.add(step: QBETransposeStep())
+				}),
+
+				UIAlertAction(title: "Calculate a new column".localized, style: .default, handler: { act in
+					self.add(step: QBECalculateStep(previous: nil, targetColumn: Column("New column".localized), function: Comparison(first: Literal(Value(1)), second: Literal(Value(1)), type: .addition)))
 				})
 			]
 
