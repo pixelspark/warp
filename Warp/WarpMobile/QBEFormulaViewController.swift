@@ -28,8 +28,8 @@ class QBEFormulaViewController: UIViewController, UITextViewDelegate {
 
 	private func update() {
 		if let e = self.expression {
-			let locale = QBEAppDelegate.sharedInstance.locale!
-			let formulaString = e.toFormula(locale)
+			let locale = QBEAppDelegate.sharedInstance.locale
+			let formulaString = e.toFormula(locale, topLevel: true)
 
 			if let formula = Formula(formula: formulaString, locale: locale) {
 				self.textField.attributedText = formula.syntaxColoredFormula

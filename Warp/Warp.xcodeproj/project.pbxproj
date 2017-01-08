@@ -78,6 +78,7 @@
 		654AA5A61DEE36850030C7C9 /* Charts.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 654AA59E1DEE365D0030C7C9 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6550B6F81E22B20E00DC1448 /* QBEFormulaViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6550B6F71E22B20E00DC1448 /* QBEFormulaViewController.swift */; };
 		6550B6F91E22B36D00DC1448 /* QBEFormula+SyntaxColoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEDB1C14758B00AE6C00 /* QBEFormula+SyntaxColoring.swift */; };
+		6550B6FB1E22D36700DC1448 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 6550B6FA1E22D36700DC1448 /* Settings.bundle */; };
 		655B05591E15A57100A28FCE /* QBEAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 655B05581E15A57100A28FCE /* QBEAppDelegate.swift */; };
 		655B055E1E15A57100A28FCE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 655B055C1E15A57100A28FCE /* Main.storyboard */; };
 		655B05631E15A57100A28FCE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 655B05611E15A57100A28FCE /* LaunchScreen.storyboard */; };
@@ -603,6 +604,7 @@
 		6537E1FC1D89E87F00CD80EC /* GCDAsyncSocket.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GCDAsyncSocket.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6537E1FE1D89E88300CD80EC /* SCRAM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SCRAM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6550B6F71E22B20E00DC1448 /* QBEFormulaViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEFormulaViewController.swift; sourceTree = "<group>"; };
+		6550B6FA1E22D36700DC1448 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		655B05561E15A57100A28FCE /* Warp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		655B05581E15A57100A28FCE /* QBEAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QBEAppDelegate.swift; sourceTree = "<group>"; };
 		655B055D1E15A57100A28FCE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -1017,6 +1019,7 @@
 		655B05571E15A57100A28FCE /* iOS */ = {
 			isa = PBXGroup;
 			children = (
+				6550B6FA1E22D36700DC1448 /* Settings.bundle */,
 				651BEBEE1E196D3B0094F8AD /* Assets.xcassets */,
 				655B05641E15A57100A28FCE /* Info.plist */,
 				655B05611E15A57100A28FCE /* LaunchScreen.storyboard */,
@@ -1650,6 +1653,7 @@
 				6596D0161E1957BB00B06F4F /* MDSpreadViewCornerTopLeftSelected@2x.png in Resources */,
 				6596D01A1E1957BB00B06F4F /* MDSpreadViewCornerTopRightSelected@2x.png in Resources */,
 				651BEBEF1E196D3B0094F8AD /* Assets.xcassets in Resources */,
+				6550B6FB1E22D36700DC1448 /* Settings.bundle in Resources */,
 				655B05A31E15B18C00A28FCE /* Images.xcassets in Resources */,
 				6596D0211E1957BB00B06F4F /* MDSpreadViewRowHeaderTopSelected.png in Resources */,
 				6596D01E1E1957BB00B06F4F /* MDSpreadViewRowHeaderBottomSelected@2x.png in Resources */,

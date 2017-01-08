@@ -191,7 +191,7 @@ class QBEExportViewController: FormViewController {
 				switch result {
 				case .success(let dataset):
 					let tempURL = self.pathForTemporaryFile()
-					self.exporter.writeDataset(dataset, toFile: tempURL, locale: locale!, job: job, callback: { result in
+					self.exporter.writeDataset(dataset, toFile: tempURL, locale: locale, job: job, callback: { result in
 						switch result {
 						case .success():
 							asyncMain {

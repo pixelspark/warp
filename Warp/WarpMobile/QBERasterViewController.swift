@@ -118,7 +118,7 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 	func spreadView(_ aSpreadView: MDSpreadView!, objectValueForRowAt rowPath: MDIndexPath!, forColumnAt columnPath: MDIndexPath!) -> Any! {
 		let lang = QBEAppDelegate.sharedInstance.locale
 		if let r = raster {
-			return lang!.localStringFor(r[rowPath.row, columnPath.column])
+			return lang.localStringFor(r[rowPath.row, columnPath.column])
 		}
 		return ""
 	}

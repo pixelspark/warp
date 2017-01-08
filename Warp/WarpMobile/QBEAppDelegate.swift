@@ -15,16 +15,17 @@ import WarpCore
 @UIApplicationMain
 class QBEAppDelegate: UIResponder, UIApplicationDelegate {
 	var window: UIWindow?
-	var locale: Language! = nil
+
+	var locale: Language {
+		let language = UserDefaults.standard.string(forKey: "locale") ?? Language.defaultLanguage
+		return Language(language: language)
+	}
 
 	class var sharedInstance: QBEAppDelegate { get {
 		return UIApplication.shared.delegate as! QBEAppDelegate
 	} }
 
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-		let language = UserDefaults.standard.string(forKey: "locale") ?? Language.defaultLanguage
-		self.locale = Language(language: language)
-
 		return true
 	}
 

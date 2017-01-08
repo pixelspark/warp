@@ -73,7 +73,7 @@ fileprivate class QBEOptionsViewController: FormViewController {
 		}
 		else {
 			let section = Section()
-			let locale = QBEAppDelegate.sharedInstance.locale!
+			let locale = QBEAppDelegate.sharedInstance.locale
 
 			options.sorted(by: { locale.localStringFor($0) < locale.localStringFor($1) }).forEach { value in
 				let cr = CheckRow()
