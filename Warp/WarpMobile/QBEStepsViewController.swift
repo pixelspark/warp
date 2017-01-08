@@ -6,7 +6,7 @@ protocol QBEStepsViewControllerDelegate: class {
 	func stepsViewController(_ : QBEStepsViewController, didChangeChain: QBEChain)
 }
 
-class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelegate, QBEConfigurableFormViewControllerDelegate {
+class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelegate, QBEConfigurableFormViewControllerDelegate, UIDocumentPickerDelegate {
 	weak var delegate: QBEStepsViewControllerDelegate? = nil
 
 	static let stepsSection = 0
@@ -129,6 +129,96 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 		}
 	}
 
+	private func addFileStep() {
+		let picker = UIDocumentPickerViewController(documentTypes: QBEFactory.sharedInstance.supportedFileTypes, in: .open)
+		picker.delegate = self
+		self.present(picker, animated: true, completion: nil)
+	}
+
+	func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
+		if let reader = QBEFactory.sharedInstance.stepForReadingFile(url) {
+			self.add(step: reader)
+		}
+		else {
+			let uac = UIAlertController(title: "Could not open file".localized, message: "This file type is not supported.".localized, preferredStyle: .alert)
+			uac.addAction(UIAlertAction(title: "Dismiss".localized, style: .cancel, handler: nil))
+			self.present(uac, animated: true, completion: nil)
+		}
+	}
+
+	private func showAddStepMenu(at frame: CGRect, in view: UIView) {
+		let uac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+
+		if self.chain!.head == nil {
+			// Show steps that can be first
+			uac.addAction(UIAlertAction(title: "Generate a sequence".localized, style: .default, handler: { act in
+				self.add(step: QBESequencerStep(pattern: "[a-z]{2}", column: Column("Value".localized)))
+			}))
+
+			uac.addAction(UIAlertAction(title: "Load data from RethinkDB".localized, style: .default, handler: { act in
+				self.add(step: QBERethinkSourceStep())
+			}))
+
+			uac.addAction(UIAlertAction(title: "Load data from PostgreSQL".localized, style: .default, handler: { act in
+				self.add(step: QBEPostgresSourceStep())
+			}))
+
+			uac.addAction(UIAlertAction(title: "Load data from MySQL".localized, style: .default, handler: { act in
+				self.add(step: QBEMySQLSourceStep())
+			}))
+
+			uac.addAction(UIAlertAction(title: "Load data from a file".localized, style: .default, handler: { act in
+				self.addFileStep()
+			}))
+		}
+		else {
+			let actions: [UIAlertAction] = [
+				UIAlertAction(title: "Limit the number of rows".localized, style: .default, handler: { act in
+					self.add(step: QBELimitStep())
+				}),
+
+				UIAlertAction(title: "Make columnar".localized, style: .default, handler: { act in
+					self.add(step: QBEFlattenStep())
+				}),
+
+				UIAlertAction(title: "Remove duplicate rows".localized, style: .default, handler: { act in
+					self.add(step: QBEDistinctStep())
+				}),
+
+				UIAlertAction(title: "Randomly select rows".localized, style: .default, handler: { act in
+					self.add(step: QBERandomStep())
+				}),
+
+				UIAlertAction(title: "Search for text".localized, style: .default, handler: { act in
+					self.add(step: QBESearchStep())
+				}),
+
+				UIAlertAction(title: "Skip the first rows".localized, style: .default, handler: { act in
+					self.add(step: QBEOffsetStep())
+				}),
+
+				UIAlertAction(title: "Select column(s)".localized, style: .default, handler: { act in
+					self.add(step: QBEColumnsStep())
+				}),
+
+				UIAlertAction(title: "Switch rows/columns".localized, style: .default, handler: { act in
+					self.add(step: QBETransposeStep())
+				})
+			]
+
+			actions.sorted(by: { $0.title! < $1.title! }).forEach { item in
+				uac.addAction(item)
+			}
+		}
+
+		uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: { act in
+		}))
+
+		uac.popoverPresentationController?.sourceView = view
+		uac.popoverPresentationController?.sourceRect = frame
+		self.present(uac, animated: true, completion: nil)
+	}
+
 	override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
 		if indexPath.section == QBEStepsViewController.stepsSection {
 			if let c = chain, indexPath.row < c.steps.count {
@@ -137,7 +227,6 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 				self.delegate?.stepsViewController(self, didSelectStep: step)
 			}
 			else {
-
 				if let c = chain {
 					asyncMain {
 						if c.head != nil {
@@ -147,72 +236,7 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 					
 					// Add popover
 					if let cell = collectionView.cellForItem(at: indexPath) {
-						let uac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-
-						if c.head == nil {
-							// Show steps that can be first
-							uac.addAction(UIAlertAction(title: "Generate a sequence".localized, style: .default, handler: { act in
-								self.add(step: QBESequencerStep(pattern: "[a-z]{2}", column: Column("Value".localized)))
-							}))
-
-							uac.addAction(UIAlertAction(title: "Load data from RethinkDB".localized, style: .default, handler: { act in
-								self.add(step: QBERethinkSourceStep())
-							}))
-
-							uac.addAction(UIAlertAction(title: "Load data from PostgreSQL".localized, style: .default, handler: { act in
-								self.add(step: QBEPostgresSourceStep())
-							}))
-
-							uac.addAction(UIAlertAction(title: "Load data from MySQL".localized, style: .default, handler: { act in
-								self.add(step: QBEMySQLSourceStep())
-							}))
-						}
-						else {
-							let actions: [UIAlertAction] = [
-								UIAlertAction(title: "Limit the number of rows".localized, style: .default, handler: { act in
-									self.add(step: QBELimitStep())
-								}),
-
-								UIAlertAction(title: "Make columnar".localized, style: .default, handler: { act in
-									self.add(step: QBEFlattenStep())
-								}),
-
-								UIAlertAction(title: "Remove duplicate rows".localized, style: .default, handler: { act in
-									self.add(step: QBEDistinctStep())
-								}),
-
-								 UIAlertAction(title: "Randomly select rows".localized, style: .default, handler: { act in
-									self.add(step: QBERandomStep())
-								}),
-
-								 UIAlertAction(title: "Search for text".localized, style: .default, handler: { act in
-									self.add(step: QBESearchStep())
-								}),
-
-								UIAlertAction(title: "Skip the first rows".localized, style: .default, handler: { act in
-									self.add(step: QBEOffsetStep())
-								}),
-
-								UIAlertAction(title: "Select column(s)".localized, style: .default, handler: { act in
-									self.add(step: QBEColumnsStep())
-								}),
-
-								UIAlertAction(title: "Switch rows/columns".localized, style: .default, handler: { act in
-									self.add(step: QBETransposeStep())
-								})
-							]
-
-							actions.sorted(by: { $0.title! < $1.title! }).forEach { item in
-								uac.addAction(item)
-							}
-						}
-
-						uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: { act in
-						}))
-
-						uac.popoverPresentationController?.sourceView = self.collectionView
-						uac.popoverPresentationController?.sourceRect = cell.frame
-						self.present(uac, animated: true, completion: nil)
+						self.showAddStepMenu(at: cell.frame, in: collectionView)
 					}
 				}
 			}

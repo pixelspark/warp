@@ -406,3 +406,6 @@
 "Select column(s)" = "Selecteer kolom(men)";
 "Duplicate" = "Dupliceer";
 "Recent servers" = "Recente servers";
+"Load data from a file" = "Laad gegevens uit een bestand";
+"Could not open file"  = "Het bestand kon niet worden geopend";
+"This file type is not supported." = "Dit bestandstype wordt niet ondersteund.";

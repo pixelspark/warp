@@ -110,6 +110,10 @@ class QBEFactory {
 		"dbf": {(url) in return QBEDBFSourceStep(url: url)}
 	]
 
+	public var supportedFileTypes: [String] {
+		return Array(self.fileReaders.keys)
+	}
+
 	#if os(macOS)
 	private let configurableViews: Dictionary<String, QBEConfigurableViewController.Type> = [
 		QBECalculateStep.className(): QBECalculateStepView.self,

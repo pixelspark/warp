@@ -93,9 +93,10 @@ fileprivate class QBEOptionsViewController: FormViewController {
 	}
 }
 
-class QBESentenceViewController: UIViewController {
+class QBESentenceViewController: UIViewController, UIDocumentPickerDelegate {
 	@IBOutlet var stackView: UIStackView!
 	weak var delegate: QBESentenceViewControllerDelegate? = nil
+	private var editingToken: QBESentenceToken? = nil
 
 	var sentence: QBESentence? { didSet {
 		if let _ = self.stackView {
@@ -198,6 +199,7 @@ class QBESentenceViewController: UIViewController {
 	@IBAction func tokenTapped(_ sender: UIView) {
 		if let s = self.sentence, sender.tag < s.tokens.count {
 			let token = s.tokens[sender.tag]
+			self.editingToken = token
 
 			if let token = token as? QBESentenceOptionsToken {
 				let uac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
@@ -304,6 +306,11 @@ class QBESentenceViewController: UIViewController {
 				nav.popoverPresentationController?.sourceRect = sender.bounds
 				self.present(nav, animated: true)
 			}
+			else if let token = token as? QBESentenceFileToken {
+				let picker = UIDocumentPickerViewController(documentTypes: token.allowedFileTypes, in: .open)
+				picker.delegate = self
+				self.present(picker, animated: true, completion: nil)
+			}
 			else {
 				let uac = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 				uac.message = "This setting cannot be changed on iOS. Use the Mac version of Warp to change it.".localized
@@ -312,6 +319,14 @@ class QBESentenceViewController: UIViewController {
 				uac.popoverPresentationController?.sourceRect = sender.bounds
 				self.present(uac, animated: true, completion: nil)
 			}
+		}
+	}
+
+	func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
+		if let token = self.editingToken as? QBESentenceFileToken {
+			token.change(QBEFileReference.absolute(url))
+			self.editingToken = nil
+			self.delegate?.sentenceViewController(self, didChangeSentence: self.sentence!)
 		}
 	}
 }

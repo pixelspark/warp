@@ -331,7 +331,6 @@
                             <constraint firstItem="nsO-03-ohW" firstAttribute="top" secondItem="JTC-1A-WOL" secondAttribute="topMargin" id="yky-aO-ido"/>
                         </constraints>
                     </view>
-                    <nil key="simulatedStatusBarMetrics"/>
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                     <connections>
                         <outlet property="configureToggle" destination="YgT-VI-PST" id="TTC-U8-pp7"/>
@@ -346,7 +345,7 @@
         <scene sceneID="cFQ-gp-Nmh">
             <objects>
                 <collectionViewController extendedLayoutIncludesOpaqueBars="YES" id="XkU-Cb-fII" userLabel="Steps" customClass="QBEStepsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="837-K7-Fku">
+                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" misplaced="YES" dataMode="prototypes" id="837-K7-Fku">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="120"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -438,7 +437,7 @@
                 </collectionViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ncm-5x-F2h" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2040" y="201"/>
+            <point key="canvasLocation" x="2366" y="211"/>
         </scene>
         <!--Sentence-->
         <scene sceneID="3Zd-Pi-D7f">
@@ -538,9 +537,6 @@
                             <constraint firstItem="0XH-Pw-qqu" firstAttribute="top" secondItem="cTf-YN-dcu" secondAttribute="bottom" id="nCD-Yz-UH1"/>
                             <constraint firstAttribute="trailing" secondItem="0XH-Pw-qqu" secondAttribute="trailing" id="v3H-FG-68a"/>
                         </constraints>
-                        <connections>
-                            <outletCollection property="gestureRecognizers" destination="Eu5-sa-F1B" appends="YES" id="hMo-CV-sxZ"/>
-                        </connections>
                     </view>
                     <connections>
                         <outlet property="activityIndicator" destination="ddX-xI-SRz" id="VPA-Pa-Qxz"/>

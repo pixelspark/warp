@@ -384,14 +384,6 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 	fileprivate var dataFileDocuments = [QBEDocumentBrowserModel]()
 	fileprivate let thumbnailCache = QBEDocumentThumbnailCache(thumbnailSize: CGSize(width: 220, height: 270))
 
-	fileprivate let supportedDocumentTypes = [
-		"public.comma-separated-values-text",
-		QBEDocument.typeIdentifier,
-		"nl.pixelspark.warp.csv",
-		"nl.pixelspark.warp.dbf",
-		"nl.pixelspark.warp.sqlite",
-	]
-
 	static let documentsSection = 0
 	static let dataFilesSection = 1
 
@@ -895,7 +887,8 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 	}
 
 	@IBAction func importUsingPicker(_ sender: AnyObject) {
-		let picker = UIDocumentPickerViewController(documentTypes: self.supportedDocumentTypes, in: .open)
+		let fileTypes = QBEFactory.sharedInstance.supportedFileTypes + [QBEDocument.typeIdentifier]
+		let picker = UIDocumentPickerViewController(documentTypes: fileTypes, in: .open)
 		picker.delegate = self
 
 		self.present(picker, animated:true, completion: nil)
