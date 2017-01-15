@@ -12,7 +12,7 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import UIKit
 
 protocol QBEMobileTourViewControllerDelegate: class {
-	func tourFinished(_ viewController: QBEMobileTourViewController)
+	func tourFinished(_ viewController: QBEMobileTourViewController, skipped: Bool)
 }
 
 class QBEMobileTourViewController: UIViewController {
@@ -32,7 +32,7 @@ class QBEMobileTourViewController: UIViewController {
 	private var items: [QBETourItem] = []
 
 	@IBAction func skipTour(_ sender: AnyObject) {
-		self.delegate?.tourFinished(self)
+		self.delegate?.tourFinished(self, skipped:  true)
 		self.dismiss(animated: true, completion: nil)
 	}
 
@@ -47,6 +47,17 @@ class QBEMobileTourViewController: UIViewController {
 
 		self.currentIndex = 0
 		self.update()
+	}
+
+	@IBAction func doNothing(_ sender: AnyObject) {
+	}
+
+	override var keyCommands: [UIKeyCommand]? {
+		return [
+			UIKeyCommand(input: "", modifierFlags: .command, action: #selector(self.doNothing(_:))),
+			UIKeyCommand(input: "\r", modifierFlags: [], action: #selector(self.next(_:)), discoverabilityTitle: "Next".localized),
+			UIKeyCommand(input: "w", modifierFlags: .command, action: #selector(self.skipTour(_:)), discoverabilityTitle: "Skip tour".localized)
+		]
 	}
 
 	private func update() {
@@ -78,7 +89,7 @@ class QBEMobileTourViewController: UIViewController {
 			self.update()
 		}
 		else {
-			self.delegate?.tourFinished(self)
+			self.delegate?.tourFinished(self, skipped: false)
 			self.dismiss(animated: true, completion: nil)
 		}
 	}

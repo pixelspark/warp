@@ -414,3 +414,11 @@
 "Could not find related data sets" = "Kon geen gerelateerde datasets vinden";
 "Load related data" = "Laad gerelateerde gegevens";
 "Sort" = "Sorteer";
+"Next step" = "Volgende stap";
+"Previous step" = "Vorige stap";
+"Remove step" = "Verwijder stap";
+"Toggle full data" = "Volledige data";
+"Configure step" = "Instellingen";
+"Next" = "Volgende";
+"Skip tour" = "Tour overslaan";
+"Refresh data" = "Vernieuw gegevens";

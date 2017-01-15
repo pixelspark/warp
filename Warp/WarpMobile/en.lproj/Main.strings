@@ -1,0 +1,48 @@
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "7ie-gb-bSI"; */
+"7ie-gb-bSI.text" = "Label";
+
+/* Class = "UINavigationItem"; title = "Formula"; ObjectID = "9XG-NU-loi"; */
+"9XG-NU-loi.title" = "Formula";
+
+/* Class = "UIViewController"; title = "Raster"; ObjectID = "BVZ-OS-MY1"; */
+"BVZ-OS-MY1.title" = "Raster";
+
+/* Class = "UINavigationItem"; title = "Warp"; ObjectID = "COu-sB-Sgh"; */
+"COu-sB-Sgh.title" = "Warp";
+
+/* Class = "UILabel"; text = "in application"; ObjectID = "Cuh-lr-yAH"; */
+"Cuh-lr-yAH.text" = "in application";
+
+/* Class = "UITextView"; text = "Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda."; ObjectID = "XBz-T9-YjS"; */
+"XBz-T9-YjS.text" = "Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.";
+
+/* Class = "UICollectionViewController"; title = "Welcome to Warp"; ObjectID = "aJH-QV-63U"; */
+"aJH-QV-63U.title" = "Welcome to Warp";
+
+/* Class = "UINavigationItem"; title = "Document"; ObjectID = "bYg-eQ-CkZ"; */
+"bYg-eQ-CkZ.title" = "Document";
+
+/* Class = "UIBarButtonItem"; title = "Locations"; ObjectID = "bew-ea-4PI"; */
+"bew-ea-4PI.title" = "Locations";
+
+/* Class = "UIViewController"; title = "Formula"; ObjectID = "cYJ-lb-pgb"; */
+"cYJ-lb-pgb.title" = "Formula";
+
+/* Class = "UIButton"; normalTitle = "Next"; ObjectID = "g1A-IB-P7s"; */
+"g1A-IB-P7s.normalTitle" = "Next";
+
+/* Class = "UIBarButtonItem"; title = "Apply"; ObjectID = "izo-9Y-SuT"; */
+"izo-9Y-SuT.title" = "Apply";
+
+/* Class = "UILabel"; text = "Documents"; ObjectID = "kfk-ZR-E1f"; */
+"kfk-ZR-E1f.text" = "Documents";
+
+/* Class = "UIViewController"; title = "Tour"; ObjectID = "pl5-Ng-xYZ"; */
+"pl5-Ng-xYZ.title" = "Tour";
+
+/* Class = "UILabel"; text = "An error has occurred"; ObjectID = "uL3-uO-pVe"; */
+"uL3-uO-pVe.text" = "An error has occurred";
+
+/* Class = "UILabel"; text = "Document name"; ObjectID = "uuT-CU-HGR"; */
+"uuT-CU-HGR.text" = "Document name";

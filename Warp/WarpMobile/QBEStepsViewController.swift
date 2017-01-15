@@ -28,9 +28,7 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 	} }
 
 	var selectedStep: QBEStep? { didSet {
-		if let cs = self.selectedStep, let idx = self.chain?.steps.index(of: cs) {
-			self.collectionView?.selectItem(at: IndexPath(indexes: [QBEStepsViewController.stepsSection, idx]), animated: false, scrollPosition: .centeredHorizontally)
-		}
+		self.updateSelection()
 	} }
 
 	override func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -53,6 +51,13 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 
 	func refresh() {
 		self.collectionView?.reloadData()
+		self.updateSelection()
+	}
+
+	private func updateSelection() {
+		if let cs = self.selectedStep, let idx = self.chain?.steps.index(of: cs) {
+			self.collectionView?.selectItem(at: IndexPath(indexes: [QBEStepsViewController.stepsSection, idx]), animated: false, scrollPosition: .centeredHorizontally)
+		}
 	}
 
 	private func updateView() {

@@ -422,8 +422,10 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 		}
 	}
 
-	func tourFinished(_ viewController: QBEMobileTourViewController) {
-		self.newDocument(sender: self)
+	func tourFinished(_ viewController: QBEMobileTourViewController, skipped: Bool) {
+		if !skipped {
+			self.newDocument(sender: self)
+		}
 	}
 
 	private func presentCloudDisabledAlert() {

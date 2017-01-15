@@ -39,6 +39,25 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		return true
 	}
 
+	@IBAction func doNothing(_ sender: AnyObject) {
+	}
+
+	override var keyCommands: [UIKeyCommand]? {
+		return [
+			UIKeyCommand(input: "", modifierFlags: .command, action: #selector(self.doNothing(_:))),
+			UIKeyCommand(input: UIKeyInputLeftArrow, modifierFlags: .command, action: #selector(self.previousStep(_:)), discoverabilityTitle: "Previous step".localized),
+			UIKeyCommand(input: UIKeyInputRightArrow, modifierFlags: .command, action: #selector(self.nextStep(_:)), discoverabilityTitle: "Next step".localized),
+			UIKeyCommand(input: "\u{8}", modifierFlags: .command, action: #selector(self.removeStep(_:)), discoverabilityTitle: "Remove step".localized),
+			UIKeyCommand(input: ",", modifierFlags: .command, action: #selector(self.configureStep(_:)), discoverabilityTitle: "Configure step".localized),
+			UIKeyCommand(input: "\r", modifierFlags: .command, action: #selector(self.toggleFullDataset(_:)), discoverabilityTitle: "Toggle full data".localized),
+			UIKeyCommand(input: "r", modifierFlags: .command, action: #selector(self.refreshData(_:)), discoverabilityTitle: "Refresh data".localized)
+		]
+	}
+
+	@IBAction func refreshData(_ sender: AnyObject) {
+		self.refreshData()
+	}
+
 	private func refreshData(fullData: Bool = false) {
 		self.currentData?.cancel()
 		self.useFullData = fullData
@@ -133,6 +152,31 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		self.sentenceViewController?.sentence = currentStep?.sentence(QBEAppDelegate.sharedInstance.locale, variant: .read)
 		self.refreshData()
 		self.updateToolbarItems()
+	}
+
+	@IBAction func previousStep(_ sender: AnyObject) {
+		if let p = self.currentStep?.previous {
+			self.currentStep = p
+			self.updateView()
+		}
+	}
+
+	@IBAction func nextStep(_ sender: AnyObject) {
+		if let p = self.currentStep?.next {
+			self.currentStep = p
+			self.updateView()
+		}
+	}
+
+	@IBAction func removeStep(_ sender: AnyObject) {
+		if let cs = currentStep, let chain = self.tablet?.chain {
+			let previous = cs.previous
+			chain.remove(step: cs)
+			self.currentStep = previous ?? chain.head
+			self.updateView()
+			self.stepsViewController?.refresh()
+			self.tablet?.document?.updateChangeCount(.done)
+		}
 	}
 
 	@IBAction func toggleFullDataset(_ sender: AnyObject) {
