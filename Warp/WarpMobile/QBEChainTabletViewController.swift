@@ -162,6 +162,11 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		self.tablet?.document?.updateChangeCount(.done)
 	}
 
+	func dataView(_ controller: QBEDataViewController, sort column: Column) {
+		let ss = QBESortStep(previous: nil, orders: [Order(expression: Sibling(column), ascending: true, numeric: true)])
+		self.add(step: ss)
+	}
+
 	func dataView(_ controller: QBEDataViewController, filter column: Column, for value: Value) {
 		if let fs = self.currentStep as? QBEFilterSetStep {
 			if let currentValues = fs.filterSet[column] {

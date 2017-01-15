@@ -20,6 +20,7 @@ enum QBERasterViewState {
 
 protocol QBERasterViewControllerDelegate: class {
 	func rasterView(_ controller: QBERasterViewController, filter column: Column, for value: Value)
+	func rasterView(_ controller: QBERasterViewController, sort column: Column)
 }
 
 class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadViewDataSource {
@@ -81,6 +82,7 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 
 				mc.menuItems = [
 					UIMenuItem(title: "Filter".localized, action: #selector(QBERasterViewController.filterSelectedValue(_:))),
+					UIMenuItem(title: "Sort".localized, action: #selector(QBERasterViewController.sortSelectedColumn(_:)))
 				]
 
 				mc.setTargetRect(self.spreadView.cellRectForRow(at: sr, forColumnAt: sc), in: self.spreadView)
@@ -90,6 +92,13 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 	}
 
 	override var canBecomeFirstResponder: Bool { return true }
+
+	@IBAction func sortSelectedColumn(_ sender: AnyObject) {
+		if let sc = self.selectedColumn, let r = raster {
+			let column = r.columns[sc.column]
+			self.delegate?.rasterView(self, sort: column)
+		}
+	}
 
 	@IBAction func filterSelectedValue(_ sender: AnyObject) {
 		if let sc = self.selectedColumn, let sr = self.selectedRow, let r = raster {
