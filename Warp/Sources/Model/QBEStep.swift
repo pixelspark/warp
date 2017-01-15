@@ -20,9 +20,26 @@ public enum QBESentenceVariant {
 }
 
 /** Identifies a step that is related to this step, e.g. a data set that can be linked. */
-public enum QBERelatedStep {
+public enum QBERelatedStep: Hashable, Equatable {
 	/** The indicates step provides data that can be joined. */
 	case joinable(step: QBEStep, type: JoinType, condition: Expression)
+
+	public var hashValue: Int {
+		switch self {
+		case .joinable(step: let s, type: let t, condition: let c):
+			return s.hashValue ^ t.hashValue ^ c.hashValue
+		}
+	}
+
+	public static func ==(lhs: QBERelatedStep, rhs: QBERelatedStep) -> Bool {
+		switch lhs {
+		case .joinable(step: let s, type: let t, condition: let c):
+			switch rhs {
+			case .joinable(step: let rs, type: let rt, condition: let rc):
+				return s == rs && t == rt && c == rc
+			}
+		}
+	}
 }
 
 /** Represents a data manipulation step. Steps usually connect to (at least) one previous step and (sometimes) a next step.

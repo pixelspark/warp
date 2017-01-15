@@ -218,6 +218,10 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 
 				UIAlertAction(title: "Calculate a new column".localized, style: .default, handler: { act in
 					self.add(step: QBECalculateStep(previous: nil, targetColumn: Column("New column".localized), function: Comparison(first: Literal(Value(1)), second: Literal(Value(1)), type: .addition)))
+				}),
+
+				UIAlertAction(title: "Load related data".localized, style: .default, handler: { act in
+					self.showJoinDataMenu(at: frame, in: view)
 				})
 			]
 
@@ -232,6 +236,59 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 		uac.popoverPresentationController?.sourceView = view
 		uac.popoverPresentationController?.sourceRect = frame
 		self.present(uac, animated: true, completion: nil)
+	}
+
+	private func showJoinDataMenu(at frame: CGRect, in view: UIView){
+		if let c = chain, let head = c.head {
+			let job = Job(.userInitiated)
+			head.related(job: job) { result in
+				switch result {
+				case .success(let related):
+					asyncMain {
+						if related.count > 0 {
+							let uac = UIAlertController(title: "Load related data".localized, message: nil, preferredStyle: .actionSheet)
+
+							for relatedData in related {
+								switch relatedData {
+								case .joinable(step: let step, type: let type, condition: let condition):
+									let title = step.sentence(QBEAppDelegate.sharedInstance.locale, variant: .read).stringValue
+									uac.addAction(UIAlertAction(title: title, style: .default, handler: { action in
+										let js = QBEJoinStep()
+										js.condition = condition
+										js.joinType = type
+										js.right = QBEChain(head: step)
+										self.add(step: js)
+									}))
+								}
+							}
+
+							uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: nil))
+
+							uac.popoverPresentationController?.sourceView = view
+							uac.popoverPresentationController?.sourceRect = frame
+							self.present(uac, animated: true, completion: nil)
+						}
+						else {
+							let uac = UIAlertController(title: nil, message: "Could not find related data sets".localized, preferredStyle: .alert)
+							uac.addAction(UIAlertAction(title: "Dismiss".localized, style: .cancel, handler: nil))
+							uac.popoverPresentationController?.sourceView = view
+							uac.popoverPresentationController?.sourceRect = frame
+							self.present(uac, animated: true, completion: nil)
+						}
+					}
+
+
+				case .failure(let e):
+					asyncMain {
+						let uac = UIAlertController(title: "Could not find related data sets".localized, message: e, preferredStyle: .alert)
+						uac.addAction(UIAlertAction(title: "Dismiss".localized, style: .cancel, handler: nil))
+						uac.popoverPresentationController?.sourceView = view
+						uac.popoverPresentationController?.sourceRect = frame
+						self.present(uac, animated: true, completion: nil)
+					}
+				}
+			}
+		}
 	}
 
 	override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

@@ -411,3 +411,5 @@
 "This file type is not supported." = "Dit bestandstype wordt niet ondersteund.";
 "Calculate a new column" = "Bereken een nieuwe kolom";
 "New column" = "Nieuwe kolom";
+"Could not find related data sets" = "Kon geen gerelateerde datasets vinden";
+"Load related data" = "Laad gerelateerde gegevens";

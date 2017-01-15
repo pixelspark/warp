@@ -13,7 +13,7 @@ import Foundation
 import WarpCore
 
 class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
-	weak var right: QBEChain? = nil
+	var right: QBEChain? = nil
 	var joinType: JoinType = JoinType.leftJoin
 	var condition: Expression? = nil
 
@@ -139,6 +139,37 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 				}, contextCallback: self.contextCallbackForFormulaSentence),
 				joinTypeSentenceItem
 			)
+		}
+	}
+
+	override func related(job: Job, callback: @escaping (Fallible<[QBERelatedStep]>) -> ()) {
+		if let p = previous {
+			p.related(job: job) { result in
+				switch result {
+				case .success(let relatedLeft):
+					if let r = self.right?.head {
+						r.related(job: job) { result in
+							switch result {
+							case .success(let relatedRight):
+								let unique = Array(Set(relatedLeft).union(Set(relatedRight)))
+								callback(.success(unique))
+
+							case .failure(let e):
+								callback(.failure(e))
+							}
+						}
+					}
+					else {
+						callback(.success(relatedLeft))
+					}
+
+				case .failure(let e):
+					callback(.failure(e))
+				}
+			}
+		}
+		else {
+			callback(.failure("No previous step"))
 		}
 	}
 	
