@@ -16,10 +16,12 @@
 "Remove columns" = "Verwijder kolommen";
 "Remove column" = "Verwijder kolom";
 "Select column" = "Behoud alleen kolom";
-"Select rows" = "Filter rijen";
+"Select rows" = "Selecteer rijen";
+"Remove rows" = "Verwijder rijen";
 "Skip rows" = "Sla rijen over";
 "Skip the first %d rows" = "Sla de eerste %d rijen over";
 "Select rows where %@" = "Selecteer rijen waar %@";
+"[#] where %@" = "[#] waar %@";
 "Skip the first [#] rows" = "Sla de eerste [#] rijen over";
 "Skip row [#]" = "Sla rij [#] over";
 "Select the first [#] rows" = "Selecteer de eerste [#] rijen";
@@ -144,6 +146,7 @@
 "rows" = "rijen";
 "row" = "rij";
 "Select rows where [#]" = "Selecteer rijen waarvoor geldt dat [#]";
+"[#] where [#]" = "[#] waarvoor geldt dat [#]";
 
 "For each cell, put its value in column [#], the column name in [#], and in [#] the result of [#]" = "Plaats voor iedere cel de waarde in [#], de kolomnaam in [#] en in [#] het resultaat van [#]";
 "Read CSV file [#]" = "Lees CSV-bestand [#]";
@@ -298,11 +301,15 @@
 "User %@ at RethinkDB server %@ (port %d)" = "Gebruiker %@ op RethinkDB-server %@ (poort %d)";
 
 "Select rows where %@ = [#]" = "Selecteer rijen waarbij %@ = [#]";
+"[#] where %@ = [#]" = "[#] waarbij %@ = [#]";
 "column %@ = [#]" = "kolom %@ = [#]";
 
 "Select rows using filters on columns %@ and %d more" = "Selecteer rijen met filters op kolommen %@ en nog %d";
 "Select rows using filters on columns %@" = "Selecteer rijen met filters op kolommen %@";
 "Select rows using a filter" = "Selecteer rijen met een filter";
+"[#] using filters on columns %@ and %d more" = "[#] met filters op kolommen %@ en nog %d";
+"[#] using filters on columns %@" = "[#] met filters op kolommen %@";
+"[#] using a filter" = "[#] met een filter";
 
 "Add data using AI" = "Voeg informatie toe via AI";
 "Evaluate data using AI with complexity [#]" = "Evalueer gegevens met AI met complexiteit [#]";

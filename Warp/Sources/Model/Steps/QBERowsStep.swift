@@ -191,6 +191,7 @@ private extension FilterSet {
 
 class QBEFilterSetStep: QBEStep {
 	var filterSet: [Column: FilterSet] = [:]
+	var inverse: Bool = false
 
 	required init() {
 		filterSet = [:]
@@ -219,15 +220,19 @@ class QBEFilterSetStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
+		let invertToken = QBESentenceOptionsToken(options: ["select": "Select rows".localized, "remove": "Remove rows".localized], value: self.inverse ? "remove" : "select") { (nv) in
+			self.inverse = (nv == "remove")
+		}
+
 		let c = filterSet.count
 		if c == 1 {
 			let firstColumn = filterSet.keys.first!.name
-			return QBESentence(format: String(format: "Select rows where %@ = [#]".localized, firstColumn), self.sentenceTokenForValue(filteringColumn: filterSet.keys.first!, locale: locale))
+			return QBESentence(format: String(format: "[#] where %@ = [#]".localized, firstColumn), invertToken, self.sentenceTokenForValue(filteringColumn: filterSet.keys.first!, locale: locale))
 		}
 		else if c > 1 {
 			if c > 4 {
 				let firstColumns = Array(filterSet.keys.sorted { $0.name < $1.name }.prefix(4)).map { return $0.name }.joined(separator: ", ")
-				return QBESentence(format: String(format: "Select rows using filters on columns %@ and %d more".localized, firstColumns, c - 4))
+				return QBESentence(format: String(format: "[#] using filters on columns %@ and %d more".localized, firstColumns, c - 4), invertToken)
 			}
 			else {
 				let sentence = QBESentence()
@@ -236,11 +241,11 @@ class QBEFilterSetStep: QBEStep {
 					sentence.append(QBESentence(format: String(format: "column %@ = [#]".localized, column.name), self.sentenceTokenForValue(filteringColumn: column, locale: locale)))
 				}
 
-				return QBESentence(format: "Select rows where [#]".localized, sentence)
+				return QBESentence(format: "[#] where [#]".localized, invertToken, sentence)
 			}
 		}
 		else {
-			return QBESentence(format: "Select rows using a filter".localized)
+			return QBESentence(format: "[#] using a filter".localized, invertToken)
 		}
 	}
 
@@ -252,6 +257,8 @@ class QBEFilterSetStep: QBEStep {
 				}
 			}
 		}
+
+		self.inverse = aDecoder.decodeBool(forKey: "inverse")
 		super.init(coder: aDecoder)
 	}
 
@@ -263,6 +270,7 @@ class QBEFilterSetStep: QBEStep {
 			d[k.name] = v
 		}
 		coder.encode(d, forKey: "filters")
+		coder.encode(self.inverse, forKey: "inverse")
 	}
 
 	override func mergeWith(_ prior: QBEStep) -> QBEStepMerge {
@@ -279,7 +287,10 @@ class QBEFilterSetStep: QBEStep {
 					var filteredDataset = data
 					for column in columns {
 						if let columnFilter = self.filterSet[column] {
-							let filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(column))
+							var filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(column))
+							if self.inverse {
+								filterExpression = Call(arguments: [filterExpression], type: .Not)
+							}
 							filteredDataset = filteredDataset.filter(filterExpression)
 						}
 					}
