@@ -257,7 +257,9 @@ public class QBEMySQLDatabase: SQLDatabase {
 	}
 
 	public func connect() -> Fallible<QBEMySQLConnection> {
-		let connection = QBEMySQLConnection(database: self, connection: mysql_init(nil))
+		guard let mysql = mysql_init(nil) else { return .failure("Could not initialize MySQL") }
+
+		let connection = QBEMySQLConnection(database: self, connection: mysql)
 
 		if !connection.perform({ () -> Int32 in
 			mysql_real_connect(connection.connection,
