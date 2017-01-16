@@ -207,7 +207,12 @@ public class Language {
 			"VAR.P": Function.VariancePopulation,
 			"VAR.S": Function.VarianceSample,
 			"FROM.JSON": Function.JSONDecode,
-			"READ.NUMBER": Function.ParseNumber
+			"READ.NUMBER": Function.ParseNumber,
+			"HILBERT.D": Function.HilbertXYToD,
+			"HILBERT.X": Function.HilbertDToX,
+			"HILBERT.Y": Function.HilbertDToY,
+			"POWER.UP": Function.PowerUp,
+			"POWER.DOWN": Function.PowerDown,
 		],
 		
 		"nl": [
@@ -299,7 +304,12 @@ public class Language {
 			"VAR.P": Function.VariancePopulation,
 			"VAR.S": Function.VarianceSample,
 			"VAN.JSON": Function.JSONDecode,
-			"LEES.GETAL": Function.ParseNumber
+			"LEES.GETAL": Function.ParseNumber,
+			"HILBERT.D": Function.HilbertXYToD,
+			"HILBERT.X": Function.HilbertDToX,
+			"HILBERT.Y": Function.HilbertDToY,
+			"MACHT.OMHOOG": Function.PowerUp,
+			"MACHT.OMLAAG": Function.PowerDown,
 		]
 	]
 	

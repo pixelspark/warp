@@ -888,6 +888,12 @@ open class StandardSQLDialect: SQLDialect {
 		case .JSONDecode:
 			return nil
 
+		case .HilbertXYToD, .HilbertDToX, .HilbertDToY:
+			return nil
+
+		case .PowerUp, .PowerDown:
+			return nil
+
 		case .ParseNumber:
 			var value = args[0]
 

@@ -121,6 +121,11 @@ public enum Function: String {
 	case JSONDecode = "jsonArrayToPack"
 	case ParseNumber = "parseNumber"
 	case ValueForKey = "valueForKey"
+	case HilbertXYToD = "hilbertXYtoD"
+	case HilbertDToX = "hilbertDtoX"
+	case HilbertDToY = "hilbertDtoY"
+	case PowerDown = "powerDown"
+	case PowerUp = "powerUp"
 
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -363,6 +368,11 @@ public enum Function: String {
 		case .IsEmpty: return translationForString("is empty")
 		case .JSONDecode: return translationForString("read JSON value")
 		case .ParseNumber: return translationForString("read number")
+		case .HilbertXYToD: return translationForString("to Hilbert index")
+		case .HilbertDToX: return translationForString("Hilbert index to X")
+		case .HilbertDToY: return translationForString("Hilbert index to Y")
+		case .PowerUp: return translationForString("to upper power of")
+		case .PowerDown: return translationForString("to lower power of")
 		}
 	}
 
@@ -678,6 +688,37 @@ public enum Function: String {
 				Parameter(name: translationForString("decimal separator"), exampleValue: Value.string(",")),
 				Parameter(name: translationForString("thousands separator"), exampleValue: Value.string("."))
 			]
+
+		case .HilbertXYToD:
+			return [
+				Parameter(name: translationForString("n"), exampleValue: Value.int(1024)),
+				Parameter(name: translationForString("x"), exampleValue: Value.int(100)),
+				Parameter(name: translationForString("y"), exampleValue: Value.int(50))
+			]
+
+		case .HilbertDToX:
+			return [
+				Parameter(name: translationForString("n"), exampleValue: Value.int(1024)),
+				Parameter(name: translationForString("d"), exampleValue: Value.int(100))
+			]
+
+		case .HilbertDToY:
+			return [
+				Parameter(name: translationForString("n"), exampleValue: Value.int(1024)),
+				Parameter(name: translationForString("d"), exampleValue: Value.int(100))
+			]
+
+		case .PowerUp:
+			return [
+				Parameter(name: translationForString("n"), exampleValue: Value.int(510)),
+				Parameter(name: translationForString("base"), exampleValue: Value.int(2))
+			]
+
+		case .PowerDown:
+			return [
+				Parameter(name: translationForString("n"), exampleValue: Value.int(510)),
+				Parameter(name: translationForString("base"), exampleValue: Value.int(2))
+			]
 		}
 	} }
 	
@@ -776,6 +817,11 @@ public enum Function: String {
 		case .IsEmpty: return Arity.fixed(1)
 		case .JSONDecode: return Arity.fixed(1)
 		case .ParseNumber: return Arity.between(1, 3)
+		case .HilbertXYToD: return Arity.fixed(3)
+		case .HilbertDToX: return Arity.fixed(2)
+		case .HilbertDToY: return Arity.fixed(2)
+		case .PowerDown: return Arity.fixed(2)
+		case .PowerUp: return Arity.fixed(2)
 		}
 	}
 	
@@ -1354,6 +1400,66 @@ public enum Function: String {
 			}
 			return Value.invalid
 
+		case .HilbertXYToD:
+			if let n = arguments[0].intValue, let x = arguments[1].intValue, let y = arguments[2].intValue {
+				// N must be a power of two
+				if n < 1 || n.powerUp(base: 2) != n || n.powerDown(base: 2) != n {
+					return Value.invalid
+				}
+
+				if x >= n || y >= n {
+					return Value.invalid
+				}
+				let h = Hilbert(size: n)
+				return Value.int(h[x, y])
+			}
+			return Value.invalid
+
+		case .HilbertDToX:
+			if let n = arguments[0].intValue, let d = arguments[1].intValue {
+				// N must be a power of two
+				if n < 1 || n.powerUp(base: 2) != n || n.powerDown(base: 2) != n || d < 0 {
+					return Value.invalid
+				}
+
+				let h = Hilbert(size: n)
+				return Value.int(h[d].x)
+			}
+			return Value.invalid
+
+		case .HilbertDToY:
+			if let n = arguments[0].intValue, let d = arguments[1].intValue {
+				// N must be a power of two
+				if n < 1 || n.powerUp(base: 2) != n || n.powerDown(base: 2) != n || d < 0 {
+					return Value.invalid
+				}
+
+				let h = Hilbert(size: n)
+				return Value.int(h[d].y)
+			}
+			return Value.invalid
+
+		case .PowerUp:
+			if let n = arguments[0].intValue, let base = arguments[1].intValue {
+				if base <= 1 {
+					return Value.invalid
+				}
+
+				return Value.int(n.powerUp(base: base))
+			}
+			return Value.invalid
+
+		case .PowerDown:
+			if let n = arguments[0].intValue, let base = arguments[1].intValue {
+				if base <= 1 || n < 1 {
+					return Value.invalid
+				}
+
+				return Value.int(n.powerDown(base: base))
+			}
+			return Value.invalid
+
+
 		// The following functions are already implemented as a Reducer, just use that
 		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct, .Median, .MedianHigh,
 			.MedianLow, .MedianPack, .VarianceSample, .VariancePopulation, .StandardDeviationPopulation, .StandardDeviationSample:
@@ -1409,7 +1515,8 @@ public enum Function: String {
 		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
 		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID,
 		CountDistinct, MedianLow, MedianHigh, MedianPack, Median, VarianceSample, VariancePopulation, StandardDeviationSample,
-		StandardDeviationPopulation, IsEmpty, IsInvalid, JSONDecode, ParseNumber, ValueForKey
+		StandardDeviationPopulation, IsEmpty, IsInvalid, JSONDecode, ParseNumber, ValueForKey, HilbertXYToD, HilbertDToX,
+		HilbertDToY, PowerDown, PowerUp
 	]
 }
 
@@ -1887,5 +1994,103 @@ private struct StandardDeviationReducer: Reducer {
 			return Value.double(sqrt(d))
 		}
 		return Value.invalid
+	}
+}
+
+extension Int {
+	func powerUp(base n: Int) -> Int {
+		assert(n > 1)
+
+		if self <= 1 {
+			return 0
+		}
+		var y = n
+
+		while y < self {
+			y *= n
+		}
+
+		return y
+	}
+
+	func powerDown(base n: Int) -> Int {
+		assert(n > 1)
+
+		if self <= 1 {
+			return 0
+		}
+		var y = n
+
+		while y < self {
+			y *= n
+		}
+
+		if y == self {
+			return y
+		}
+
+		// One lower
+		return y/n
+	}
+}
+
+/** Hilbert square - 2D to 1D mapping. */
+struct Hilbert {
+	let size: Int
+
+	init(size: Int) {
+		assert(size > 0)
+		self.size = size
+	}
+
+	public subscript(x: Int, y: Int) -> Int {
+		assert(x < size && y < size)
+		var s = self.size / 2
+		var d = 0
+		var x = x
+		var y = y
+
+		while s > 0 {
+			let rx = ((x & s) != 0) ? 1 : 0
+			let ry = ((y & s) != 0) ? 1 : 0
+			d += s * s * ((3 * rx) ^ ry)
+			rot(s, x: &x, y: &y, rx: rx, ry: ry)
+			s /= 2
+		}
+
+		return d
+	}
+
+	private func rot(_ n: Int, x: inout Int, y: inout Int, rx: Int, ry: Int) {
+		if ry == 0 {
+			if rx == 1 {
+				x = n - 1 - x
+				y = n - 1 - y
+			}
+
+			//Swap x and y
+			let t = x
+			x = y
+			y = t
+		}
+	}
+
+	public subscript(d: Int) -> (x: Int, y: Int) {
+		var s = 1;
+		var t = d;
+		var x = 0;
+		var y = 0;
+
+		while s < self.size {
+			let rx = 1 & (t / 2)
+			let ry = 1 & (t ^ rx)
+			rot(s, x: &x, y:&y, rx: rx, ry: ry)
+			x += s * rx
+			y += s * ry
+			t /= 4
+			s *= 2
+		}
+
+		return (x: x, y: y)
 	}
 }

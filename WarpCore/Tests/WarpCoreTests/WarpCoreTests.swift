@@ -489,6 +489,37 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.ParseNumber.apply([Value.string("1,337.40"), Value.string("."), Value.string(",")]) == Value.double(1337.40), "Parse number")
 				XCTAssert(Function.ParseNumber.apply([Value.string("1337.40"), Value.string("."), Value.string(",")]) == Value.double(1337.40), "Parse number")
 				XCTAssert(!Function.ParseNumber.apply([Value.string("1.337.40"), Value.string("."), Value.string(",")]).isValid, "Parse number")
+
+			case .HilbertXYToD:
+				XCTAssert(Function.HilbertXYToD.apply([.int(2), .int(0), .int(0)]) == Value.int(0), "H(2,0,0) = 0")
+				XCTAssert(Function.HilbertXYToD.apply([.int(2), .int(1), .int(1)]) == Value.int(2), "H(2,1,1) = 2")
+				XCTAssert(!Function.HilbertXYToD.apply([.int(3), .int(0), .int(0)]).isValid, "H(3, ..) is invalid")
+
+			case .HilbertDToY:
+				XCTAssert(Function.HilbertDToY.apply([.int(2), .int(0)]) == Value.int(0), "Hy(2,0) = 0")
+				XCTAssert(Function.HilbertDToY.apply([.int(2), .int(2)]) == Value.int(1), "Hy(2,2) = 1")
+				XCTAssert(!Function.HilbertDToY.apply([.int(3), .int(2)]).isValid, "Hy(3,..) is invalid")
+
+			case .HilbertDToX:
+				XCTAssert(Function.HilbertDToX.apply([.int(2), .int(0)]) == Value.int(0), "Hx(2,0) = 0")
+				XCTAssert(Function.HilbertDToX.apply([.int(2), .int(2)]) == Value.int(1), "Hx(2,2) = 1")
+				XCTAssert(!Function.HilbertDToX.apply([.int(3), .int(2)]).isValid, "Hx(3,..) is invalid")
+
+			case .PowerDown:
+				XCTAssert(Function.PowerDown.apply([.int(1025), .int(2)]) == Value.int(1024), "PD(2,1025) = 1024")
+				XCTAssert(Function.PowerDown.apply([.int(1023), .int(2)]) == Value.int(512), "PD(2,1023) = 512")
+				XCTAssert(Function.PowerDown.apply([.int(1024), .int(2)]) == Value.int(1024), "PD(2, 1024) = 1024")
+				XCTAssert(!Function.PowerDown.apply([.int(0), .int(2)]).isValid, "PD(2, 0) is invalid")0
+				XCTAssert(!Function.PowerDown.apply([.int(1024), .int(0)]).isValid, "PD(0, 1024) is invalid")
+				XCTAssert(!Function.PowerDown.apply([.int(1024), .int(1)]).isValid, "PD(1, 1024) is invalid")
+
+			case .PowerUp:
+				XCTAssert(Function.PowerUp.apply([.int(1025), .int(2)]) == Value.int(2048), "PU(2,1025) = 2048")
+				XCTAssert(Function.PowerUp.apply([.int(1023), .int(2)]) == Value.int(1024), "PU(2,1023) = 1024")
+				XCTAssert(Function.PowerUp.apply([.int(1024), .int(2)]) == Value.int(1024), "PU(2, 1024) = 1024")
+				XCTAssert(Function.PowerUp.apply([.int(0), .int(2)]) == Value.int(0), "PU(2,0) = 0")
+				XCTAssert(!Function.PowerUp.apply([.int(1024), .int(0)]).isValid, "PU(0, 1024) is invalid")
+				XCTAssert(!Function.PowerUp.apply([.int(1024), .int(1)]).isValid, "PU(1, 1024) is invalid")
 			}
 		}
 
