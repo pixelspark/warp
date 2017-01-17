@@ -509,7 +509,7 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.PowerDown.apply([.int(1025), .int(2)]) == Value.int(1024), "PD(2,1025) = 1024")
 				XCTAssert(Function.PowerDown.apply([.int(1023), .int(2)]) == Value.int(512), "PD(2,1023) = 512")
 				XCTAssert(Function.PowerDown.apply([.int(1024), .int(2)]) == Value.int(1024), "PD(2, 1024) = 1024")
-				XCTAssert(!Function.PowerDown.apply([.int(0), .int(2)]).isValid, "PD(2, 0) is invalid")0
+				XCTAssert(!Function.PowerDown.apply([.int(0), .int(2)]).isValid, "PD(2, 0) is invalid")
 				XCTAssert(!Function.PowerDown.apply([.int(1024), .int(0)]).isValid, "PD(0, 1024) is invalid")
 				XCTAssert(!Function.PowerDown.apply([.int(1024), .int(1)]).isValid, "PD(1, 1024) is invalid")
 

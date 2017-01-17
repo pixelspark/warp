@@ -1411,7 +1411,9 @@ public enum Function: String {
 					return Value.invalid
 				}
 				let h = Hilbert(size: n)
-				return Value.int(h[x, y])
+				if let d = h[x, y] {
+					return Value.int(d)
+				}
 			}
 			return Value.invalid
 
@@ -1423,7 +1425,9 @@ public enum Function: String {
 				}
 
 				let h = Hilbert(size: n)
-				return Value.int(h[d].x)
+				if let coord = h[d] {
+					return Value.int(coord.x)
+				}
 			}
 			return Value.invalid
 
@@ -1435,7 +1439,9 @@ public enum Function: String {
 				}
 
 				let h = Hilbert(size: n)
-				return Value.int(h[d].y)
+				if let coord = h[d] {
+					return Value.int(coord.y)
+				}
 			}
 			return Value.invalid
 
@@ -1445,7 +1451,9 @@ public enum Function: String {
 					return Value.invalid
 				}
 
-				return Value.int(n.powerUp(base: base))
+				if let d = n.powerUp(base: base) {
+					return Value.int(d)
+				}
 			}
 			return Value.invalid
 
@@ -1455,7 +1463,9 @@ public enum Function: String {
 					return Value.invalid
 				}
 
-				return Value.int(n.powerDown(base: base))
+				if let d = n.powerDown(base: base) {
+					return Value.int(d)
+				}
 			}
 			return Value.invalid
 
@@ -1994,103 +2004,5 @@ private struct StandardDeviationReducer: Reducer {
 			return Value.double(sqrt(d))
 		}
 		return Value.invalid
-	}
-}
-
-extension Int {
-	func powerUp(base n: Int) -> Int {
-		assert(n > 1)
-
-		if self <= 1 {
-			return 0
-		}
-		var y = n
-
-		while y < self {
-			y *= n
-		}
-
-		return y
-	}
-
-	func powerDown(base n: Int) -> Int {
-		assert(n > 1)
-
-		if self <= 1 {
-			return 0
-		}
-		var y = n
-
-		while y < self {
-			y *= n
-		}
-
-		if y == self {
-			return y
-		}
-
-		// One lower
-		return y/n
-	}
-}
-
-/** Hilbert square - 2D to 1D mapping. */
-struct Hilbert {
-	let size: Int
-
-	init(size: Int) {
-		assert(size > 0)
-		self.size = size
-	}
-
-	public subscript(x: Int, y: Int) -> Int {
-		assert(x < size && y < size)
-		var s = self.size / 2
-		var d = 0
-		var x = x
-		var y = y
-
-		while s > 0 {
-			let rx = ((x & s) != 0) ? 1 : 0
-			let ry = ((y & s) != 0) ? 1 : 0
-			d += s * s * ((3 * rx) ^ ry)
-			rot(s, x: &x, y: &y, rx: rx, ry: ry)
-			s /= 2
-		}
-
-		return d
-	}
-
-	private func rot(_ n: Int, x: inout Int, y: inout Int, rx: Int, ry: Int) {
-		if ry == 0 {
-			if rx == 1 {
-				x = n - 1 - x
-				y = n - 1 - y
-			}
-
-			//Swap x and y
-			let t = x
-			x = y
-			y = t
-		}
-	}
-
-	public subscript(d: Int) -> (x: Int, y: Int) {
-		var s = 1;
-		var t = d;
-		var x = 0;
-		var y = 0;
-
-		while s < self.size {
-			let rx = 1 & (t / 2)
-			let ry = 1 & (t ^ rx)
-			rot(s, x: &x, y:&y, rx: rx, ry: ry)
-			x += s * rx
-			y += s * ry
-			t /= 4
-			s *= 2
-		}
-
-		return (x: x, y: y)
 	}
 }

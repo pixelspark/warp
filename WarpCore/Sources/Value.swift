@@ -644,16 +644,10 @@ public func ±±= (lhs: Value, rhs: Value) -> Value {
 }
 
 public prefix func - (lhs: Value) -> Value {
-	switch lhs {
-	case .int(let i):
-		return Value.int(-i)
-		
-	case .double(let d):
+	if let d = lhs.doubleValue {
 		return Value.double(-d)
-		
-	default:
-		return Value.invalid
 	}
+	return Value.invalid
 }
 
 internal struct Stack<T> {
@@ -1021,5 +1015,139 @@ internal extension Double {
 	
 	func approximates(_ otherDouble: Double, epsilon: Double) -> Bool {
 		return self > (otherDouble - epsilon) && self < (otherDouble + epsilon)
+	}
+}
+
+extension Int {
+	/** Returns self when self is a power of two, or the next higher power of two otherwise. Returns nil when the result
+	 would overflow **/
+	func powerUp(base n: Int) -> Int! {
+		assert(n > 1)
+
+		if self == 0 {
+			return nil
+		}
+
+		if self < 1 {
+			return 0
+		}
+
+		var y = n
+		while y < self {
+			let (result, didOverflow) = Int.multiplyWithOverflow(y, n)
+			if didOverflow {
+				return nil
+			}
+			y = result
+		}
+
+		return y
+	}
+
+	/** Returns self when self is a power of two, or the next lower power of two otherwise. Returns nil when the result
+	would overflow **/
+	func powerDown(base n: Int) -> Int! {
+		if let result = self.powerUp(base: n) {
+			if result == self {
+				return result
+			}
+			return result / n
+		}
+		return nil
+	}
+}
+
+/** Hilbert square - 2D to 1D mapping. */
+struct Hilbert {
+	let size: Int
+
+	init(size: Int) {
+		assert(size > 0)
+		self.size = size
+	}
+
+	/** Obtain the Hilbert distance for coordinates (x, y) in the Hilbert square. Returns nil when the result would 
+	cause an overflow. (0,0) are the zero coordinates and have d=0. */
+	public subscript(x: Int, y: Int) -> Int! {
+		assert(x < size && y < size)
+		var s = self.size / 2
+		var d = 0
+		var x = x
+		var y = y
+
+		let (sSquare, didOverflow) = Int.multiplyWithOverflow(s, s)
+		if didOverflow {
+			return nil
+		}
+
+		while s > 0 {
+			let rx = ((x & s) != 0) ? 1 : 0
+			let ry = ((y & s) != 0) ? 1 : 0
+			let (multiplicant, didOverflow) = Int.multiplyWithOverflow(sSquare, ((3 * rx) ^ ry))
+			if didOverflow {
+				return nil
+			}
+
+			let (result, nextDidOverflow) = Int.addWithOverflow(d, multiplicant)
+			if nextDidOverflow {
+				return nil
+			}
+			d = result
+			rot(s, x: &x, y: &y, rx: rx, ry: ry)
+			s /= 2
+		}
+
+		return d
+	}
+
+	private func rot(_ n: Int, x: inout Int, y: inout Int, rx: Int, ry: Int) {
+		if ry == 0 {
+			if rx == 1 {
+				x = n - 1 - x
+				y = n - 1 - y
+			}
+
+			//Swap x and y
+			let t = x
+			x = y
+			y = t
+		}
+	}
+
+	/** Returns the coordinates associated with the indicated distance in the Hilbert square. Returns nil when the index
+	cannot be calculated as it would result in an overflow. */
+	public subscript(d: Int) -> (x: Int, y: Int)! {
+		var s = 1;
+		var t = d;
+		var x = 0;
+		var y = 0;
+
+		while s < self.size {
+			let rx = 1 & (t / 2)
+			let ry = 1 & (t ^ rx)
+			rot(s, x: &x, y:&y, rx: rx, ry: ry)
+
+			let (result, didOverflow) = Int.addWithOverflow(x, s * rx)
+			if didOverflow {
+				return nil
+			}
+			x = result
+
+			let (result2, didOverflow2) = Int.addWithOverflow(y, s * ry)
+			if didOverflow2 {
+				return nil
+			}
+			y = result2
+
+			t /= 4
+
+			let (result3, didOverflow3) = Int.multiplyWithOverflow(s, 2)
+			if didOverflow3 {
+				return nil
+			}
+			s = result3
+		}
+		
+		return (x: x, y: y)
 	}
 }
