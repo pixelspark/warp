@@ -237,7 +237,7 @@ private class FlattenTransformer: Transformer {
 	private let columns: OrderedSet<Column>
 	private let writeRowIdentifier: Bool
 	private let writeColumnIdentifier: Bool
-	private var originalColumns: Fallible<OrderedSet<Column>>? = nil
+	private var originalColumns: Future<Fallible<OrderedSet<Column>>>! = nil
 
 	init(source: Stream, valueTo: Column, columnNameTo: Column?, rowIdentifier: Expression?, to: Column?) {
 		self.valueTo = valueTo
@@ -266,18 +266,10 @@ private class FlattenTransformer: Transformer {
 		self.columns = cols
 
 		super.init(source: source)
-	}
 
-	private func prepare(_ job: Job, callback: @escaping () -> ()) {
-		if self.originalColumns == nil {
-			source.columns(job) { (cols) -> () in
-				self.originalColumns = cols
-				callback()
-			}
-		}
-		else {
-			callback()
-		}
+		self.originalColumns = Future({ [weak self] (job, callback) in
+			self?.source.columns(job, callback: callback)
+		})
 	}
 
 	fileprivate override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
@@ -289,8 +281,8 @@ private class FlattenTransformer: Transformer {
 	}
 
 	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
-		prepare(job) {
-			switch self.originalColumns! {
+		self.originalColumns.get(job) { result in
+			switch result {
 			case .success(let originalColumns):
 				var newRows: [Tuple] = []
 				newRows.reserveCapacity(self.columns.count * rows.count)
