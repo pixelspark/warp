@@ -250,9 +250,9 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 				switch result {
 				case .success(let related):
 					asyncMain {
-						if related.count > 0 {
-							let uac = UIAlertController(title: "Load related data".localized, message: nil, preferredStyle: .actionSheet)
+						let uac = UIAlertController(title: "Load related data".localized, message: (related.count > 0) ? nil : "Could not find related data sets".localized, preferredStyle: .actionSheet)
 
+						if related.count > 0 {
 							for relatedData in related {
 								switch relatedData {
 								case .joinable(step: let step, type: let type, condition: let condition):
@@ -266,20 +266,20 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 									}))
 								}
 							}
-
-							uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: nil))
-
-							uac.popoverPresentationController?.sourceView = view
-							uac.popoverPresentationController?.sourceRect = frame
-							self.present(uac, animated: true, completion: nil)
 						}
-						else {
-							let uac = UIAlertController(title: nil, message: "Could not find related data sets".localized, preferredStyle: .alert)
-							uac.addAction(UIAlertAction(title: "Dismiss".localized, style: .cancel, handler: nil))
-							uac.popoverPresentationController?.sourceView = view
-							uac.popoverPresentationController?.sourceRect = frame
-							self.present(uac, animated: true, completion: nil)
-						}
+
+						uac.addAction(UIAlertAction(title: "Custom...".localized, style: .default, handler: { action in
+							let js = QBEJoinStep()
+							js.condition = Literal(Value(false))
+							js.joinType = .leftJoin
+							js.right = QBEChain(head: nil)
+							self.add(step: js)
+						}))
+
+						uac.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: nil))
+						uac.popoverPresentationController?.sourceView = view
+						uac.popoverPresentationController?.sourceRect = frame
+						self.present(uac, animated: true, completion: nil)
 					}
 
 

@@ -126,7 +126,15 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 	}
 
 	@IBAction func configureStep(_ sender: AnyObject) {
-		if let cs = currentStep as? QBEFormConfigurable {
+		if let cs = currentStep as? QBEJoinStep {
+			if let otherChain = cs.right {
+				let tablet = QBEChainTablet(chain: otherChain)
+				let otherChainController = self.storyboard?.instantiateViewController(withIdentifier: "chainTablet") as! QBEChainTabletViewController
+				otherChainController.tablet = tablet
+				self.navigationController?.pushViewController(otherChainController, animated: true)
+			}
+		}
+		else if let cs = currentStep as? QBEFormConfigurable {
 			let configureForm = QBEConfigurableFormViewController()
 			configureForm.configurable = cs
 			configureForm.delegate = self
@@ -142,8 +150,8 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 	}
 
 	private func updateToolbarItems() {
-		self.fullDataToggle.image = UIImage(named: self.useFullData ? "BigIcon" : "SmallIcon")
-		self.configureToggle.isEnabled = self.currentStep is QBEFormConfigurable
+		self.fullDataToggle?.image = UIImage(named: self.useFullData ? "BigIcon" : "SmallIcon")
+		self.configureToggle?.isEnabled = self.currentStep is QBEFormConfigurable || self.currentStep is QBEJoinStep
 	}
 
 	private func updateView() {
