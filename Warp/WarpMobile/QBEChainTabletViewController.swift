@@ -19,6 +19,8 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 
 	@IBOutlet var fullDataToggle: UIBarButtonItem! = nil
 	@IBOutlet var configureToggle: UIBarButtonItem! = nil
+	@IBOutlet var editButton: UIBarButtonItem! = nil
+	@IBOutlet var addButton: UIBarButtonItem! = nil
 	private var shareButton: UIBarButtonItem? = nil
 
 	var tablet: QBEChainTablet? = nil { didSet {
@@ -42,20 +44,41 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 	@IBAction func doNothing(_ sender: AnyObject) {
 	}
 
+	@IBAction func editRow(_ sender: AnyObject) {
+		self.dataViewController?.editRow(sender)
+	}
+
+	@IBAction func addRow(_ sender: AnyObject) {
+		self.dataViewController?.addRow(sender)
+	}
+
 	override var keyCommands: [UIKeyCommand]? {
-		return [
+		var cmds = [
 			UIKeyCommand(input: "", modifierFlags: .command, action: #selector(self.doNothing(_:))),
 			UIKeyCommand(input: UIKeyInputLeftArrow, modifierFlags: .command, action: #selector(self.previousStep(_:)), discoverabilityTitle: "Previous step".localized),
 			UIKeyCommand(input: UIKeyInputRightArrow, modifierFlags: .command, action: #selector(self.nextStep(_:)), discoverabilityTitle: "Next step".localized),
 			UIKeyCommand(input: "\u{8}", modifierFlags: .command, action: #selector(self.removeStep(_:)), discoverabilityTitle: "Remove step".localized),
 			UIKeyCommand(input: ",", modifierFlags: .command, action: #selector(self.configureStep(_:)), discoverabilityTitle: "Configure step".localized),
 			UIKeyCommand(input: "\r", modifierFlags: .command, action: #selector(self.toggleFullDataset(_:)), discoverabilityTitle: "Toggle full data".localized),
-			UIKeyCommand(input: "r", modifierFlags: .command, action: #selector(self.refreshData(_:)), discoverabilityTitle: "Refresh data".localized)
+			UIKeyCommand(input: "r", modifierFlags: .command, action: #selector(self.refreshData(_:)), discoverabilityTitle: "Refresh data".localized),
 		]
+
+		if isMutableDataset {
+			cmds.append(contentsOf: [
+				UIKeyCommand(input: "e", modifierFlags: .command, action: #selector(self.editRow(_:)), discoverabilityTitle: "Edit row".localized),
+				UIKeyCommand(input: "+", modifierFlags: .command, action: #selector(self.addRow(_:)), discoverabilityTitle: "Add row".localized)
+			])
+		}
+
+		return cmds
 	}
 
 	@IBAction func refreshData(_ sender: AnyObject) {
 		self.refreshData()
+	}
+
+	var isMutableDataset: Bool {
+		return self.currentStep?.mutableDataset != nil
 	}
 
 	private func refreshData(fullData: Bool = false) {
@@ -78,11 +101,13 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		})
 
 		self.dataViewController?.data = nil
+		self.dataViewController?.mutableData = nil
 		currentData?.get(Job(.userInitiated), { (result) in
 			asyncMain {
 				switch result {
 				case .success(let data):
 					self.dataViewController?.data = data
+					self.dataViewController?.mutableData = self.currentStep?.mutableDataset
 
 				case .failure(let e):
 					self.dataViewController?.data = StreamDataset(source: ErrorStream(e))
@@ -152,6 +177,8 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 	private func updateToolbarItems() {
 		self.fullDataToggle?.image = UIImage(named: self.useFullData ? "BigIcon" : "SmallIcon")
 		self.configureToggle?.isEnabled = self.currentStep is QBEFormConfigurable || self.currentStep is QBEJoinStep
+		self.addButton?.isEnabled = self.isMutableDataset
+		self.editButton?.isEnabled = self.isMutableDataset
 	}
 
 	private func updateView() {

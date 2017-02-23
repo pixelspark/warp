@@ -28,8 +28,12 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 	@IBOutlet var errorLabel: UILabel! = nil
 	@IBOutlet var activityIndicator: UIActivityIndicatorView! = nil
 
-	private var selectedRow: MDIndexPath? = nil
-	private var selectedColumn: MDIndexPath? = nil
+	private var selectedRowPath: MDIndexPath? = nil
+	private var selectedColumnPath: MDIndexPath? = nil
+
+	var selectedRow: Int? {
+		return selectedRowPath?.row
+	}
 
 	weak var delegate: QBERasterViewControllerDelegate? = nil
 
@@ -77,7 +81,7 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 
 	@IBAction func cellMenu(_ sender: UILongPressGestureRecognizer) {
 		if sender.state == .began {
-			if let sc = self.selectedColumn, let sr = self.selectedRow, self.becomeFirstResponder(), self.delegate != nil {
+			if let sc = self.selectedColumnPath, let sr = self.selectedRowPath, self.becomeFirstResponder(), self.delegate != nil {
 				let mc = UIMenuController.shared
 
 				mc.menuItems = [
@@ -94,14 +98,14 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 	override var canBecomeFirstResponder: Bool { return true }
 
 	@IBAction func sortSelectedColumn(_ sender: AnyObject) {
-		if let sc = self.selectedColumn, let r = raster {
+		if let sc = self.selectedColumnPath, let r = raster {
 			let column = r.columns[sc.column]
 			self.delegate?.rasterView(self, sort: column)
 		}
 	}
 
 	@IBAction func filterSelectedValue(_ sender: AnyObject) {
-		if let sc = self.selectedColumn, let sr = self.selectedRow, let r = raster {
+		if let sc = self.selectedColumnPath, let sr = self.selectedRowPath, let r = raster {
 			let value = r[sr.row, sc.column]
 			let column = r.columns[sc.column]
 			self.delegate?.rasterView(self, filter: column, for: value!)
@@ -160,7 +164,7 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 	}
 
 	func spreadView(_ aSpreadView: MDSpreadView!, didSelectCellForRowAt rowPath: MDIndexPath!, forColumnAt columnPath: MDIndexPath!) {
-		self.selectedRow = rowPath
-		self.selectedColumn = columnPath
+		self.selectedRowPath = rowPath
+		self.selectedColumnPath = columnPath
 	}
 }

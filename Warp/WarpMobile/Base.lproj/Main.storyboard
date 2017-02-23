@@ -300,6 +300,17 @@
                             <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EUz-nQ-Alb">
                                 <rect key="frame" x="0.0" y="623" width="375" height="44"/>
                                 <items>
+                                    <barButtonItem systemItem="add" id="Gbe-80-k4Z">
+                                        <connections>
+                                            <action selector="addRow:" destination="hCS-Fj-zXe" id="QSB-97-BwV"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="1sN-hX-tiU"/>
+                                    <barButtonItem systemItem="compose" id="ijX-Eu-mW1">
+                                        <connections>
+                                            <action selector="editRow:" destination="hCS-Fj-zXe" id="gpY-dU-kaR"/>
+                                        </connections>
+                                    </barButtonItem>
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="JwT-Rx-MtF"/>
                                     <barButtonItem image="BigIcon" id="lAC-Ul-lJ8">
                                         <connections>
@@ -333,7 +344,9 @@
                     </view>
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                     <connections>
+                        <outlet property="addButton" destination="Gbe-80-k4Z" id="arm-la-ERS"/>
                         <outlet property="configureToggle" destination="YgT-VI-PST" id="TTC-U8-pp7"/>
+                        <outlet property="editButton" destination="ijX-Eu-mW1" id="5lj-6F-0Ut"/>
                         <outlet property="fullDataToggle" destination="lAC-Ul-lJ8" id="TGe-Kr-pQ5"/>
                     </connections>
                 </viewController>

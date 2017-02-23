@@ -430,3 +430,10 @@
 "Skip tour" = "Tour overslaan";
 "Refresh data" = "Vernieuw gegevens";
 "Custom..." = "Aangepast...";
+"Cannot perform mutation of value in column '%@'." = "Kan de waarde in kolom '%@' niet wijzigen.";
+"Cannot edit this row" = "Kan deze rij niet bewerken.";
+"Edit row" = "Rij bewerken";
+"Revert" = "Terugdraaien";
+"Add row" = "Rij toevoegen";
+"This data set cannot be edited" = "Deze dataset kan niet worden bewerkt";
+"The source data set may not support editing or is read-only" = "De brondata ondersteunt geen bewerkingen, of is alleen-lezen.";
