@@ -39,7 +39,7 @@ internal class QBESQLiteSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 	}
 
 	private func updateView() {
-		self.createTableButton?.isEnabled = self.step.warehouse?.canPerformMutation(.create("table", RasterDataset())) ?? false
+		self.createTableButton?.isEnabled = self.step.warehouse?.canPerformMutation(.create) ?? false
 	}
 
 	@IBAction func createTable(_ sender: NSObject) {

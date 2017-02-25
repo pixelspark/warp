@@ -28,7 +28,7 @@ public protocol Warehouse {
 	change between invocations of canPerformMutation and performMutation). This function should therefore only perform
 	reasonable checks, such as (1) does the warehouse support a particular mutation at all, (2) are column names
 	suitable for this warehouse, et cetera. */
-	func canPerformMutation(_ mutation: WarehouseMutation) -> Bool
+	func canPerformMutation(_ mutation: WarehouseMutationKind) -> Bool
 
 	/** Perform the specified mutation on this data warehouse. Where applicable, the result will include a mutable data
 	 object of any newly created or modified item. */
@@ -55,7 +55,7 @@ public protocol MutableDataset {
 	(user rights, data, et cetera may change between invocations of canPerformMutation and performMutation). This function
 	should therefore only perform reasonable and fast checks, such as (1) does the mutable data set support a particular
 	mutation at all, (2) are column names suitable for this database, et cetera. */
-	func canPerformMutation(_ mutation: DatasetMutation) -> Bool
+	func canPerformMutation(_ kind: DatasetMutationKind) -> Bool
 
 	/** Perform the specified mutation on this mutable data set. Note that performMutation will fail if a call to the
 	canPerformMutation function with the same mutation would return false. */
@@ -86,8 +86,8 @@ open class MutableProxyDataset: MutableDataset {
 		self.original.performMutation(mutation, job: job, callback: callback)
 	}
 
-	open func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
-		return self.original.canPerformMutation(mutation)
+	open func canPerformMutation(_ kind: DatasetMutationKind) -> Bool {
+		return self.original.canPerformMutation(kind)
 	}
 
 	open func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
@@ -172,10 +172,48 @@ public enum DatasetMutation {
 
 	/** Removes the rows identified by the given keys. */
 	case delete(keys: [[Column: Value]])
+
+	public var kind: DatasetMutationKind {
+		switch self {
+		case .truncate: return .truncate
+		case .drop: return .drop
+		case .insert(row: _): return .insert
+		case .import(data: _, withMapping: _): return .`import`
+		case .alter(_): return .alter
+		case .edit(row: _, column: _, old: _, new: _): return .edit
+		case .update(key: _, column: _, old: _, new: _): return .update
+		case .rename(_): return .rename
+		case .remove(rows: _): return .remove
+		case .delete(keys: _): return .delete
+		}
+	}
+}
+
+public enum DatasetMutationKind {
+	case truncate
+	case drop
+	case insert
+	case `import`
+	case alter
+	case rename
+	case update
+	case edit
+	case remove
+	case delete
 }
 
 /** WarehouseMutation represents a mutation that can be performed on a mutable data warehouse (Warehouse). */
 public enum WarehouseMutation {
 	/** Create a data set with the given identifier, and fill it with the given data. */
 	case create(String, Dataset)
+
+	public var kind: WarehouseMutationKind {
+		switch self {
+		case .create(_, _): return .create
+		}
+	}
+}
+
+public enum WarehouseMutationKind {
+	case create
 }

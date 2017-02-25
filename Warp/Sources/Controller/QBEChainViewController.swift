@@ -261,7 +261,7 @@ internal enum QBEEditingMode {
 
 
 			@objc func uploadDataset(_ sender: AnyObject) {
-				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep, let destMutable = destStep.mutableDataset, destMutable.canPerformMutation(.import(data: RasterDataset(), withMapping: [:])) {
+				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep, let destMutable = destStep.mutableDataset, destMutable.canPerformMutation(.import) {
 					let uploadView = self.view.storyboard?.instantiateController(withIdentifier: "uploadDataset") as! QBEUploadViewController
 					uploadView.sourceStep = sourceStep
 					uploadView.targetStep = destStep
@@ -353,7 +353,7 @@ internal enum QBEEditingMode {
 				unionItem.target = self
 				dropMenu.addItem(unionItem)
 
-				if let destStep = self.view.currentStep, let destMutable = destStep.mutableDataset, destMutable.canPerformMutation(.import(data: RasterDataset(), withMapping: [:])) {
+				if let destStep = self.view.currentStep, let destMutable = destStep.mutableDataset, destMutable.canPerformMutation(.import) {
 					dropMenu.addItem(NSMenuItem.separator())
 					let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .write).stringValue + "...", action: #selector(QBEDropChainAction.uploadDataset(_:)), keyEquivalent: "")
 					createItem.target = self
@@ -927,7 +927,7 @@ internal enum QBEEditingMode {
 			md.data(job) { result in
 				// Does the data set support deleting by row number, or do we edit by key?
 				let removeMutation = DatasetMutation.remove(rows: rows)
-				if md.canPerformMutation(removeMutation) {
+				if md.canPerformMutation(removeMutation.kind) {
 					job.async {
 						md.performMutation(removeMutation, job: job) { result in
 							switch result {
@@ -1021,7 +1021,7 @@ internal enum QBEEditingMode {
 						case .success(let columns):
 							// Does the data set support editing by row number, or do we edit by key?
 							let editMutation = DatasetMutation.edit(row: inRow, column: columns[column], old: oldValue, new: toValue)
-							if md.canPerformMutation(editMutation) {
+							if md.canPerformMutation(editMutation.kind) {
 								job.async {
 									md.performMutation(editMutation, job: job) { result in
 										switch result {
@@ -1125,7 +1125,7 @@ internal enum QBEEditingMode {
 			if let md = self.currentStep?.mutableDataset {
 				let mutation = DatasetMutation.rename([column: to])
 				let job = Job(.userInitiated)
-				if md.canPerformMutation(mutation) {
+				if md.canPerformMutation(mutation.kind) {
 					md.performMutation(mutation, job: job, callback: { result in
 						switch result {
 						case .success(_):
@@ -2000,7 +2000,7 @@ internal enum QBEEditingMode {
 			return
 
 		case .editing(identifiers: _, editingRaster: _):
-			guard let cs = currentStep, let store = cs.mutableDataset, store.canPerformMutation(mutation) else {
+			guard let cs = currentStep, let store = cs.mutableDataset, store.canPerformMutation(mutation.kind) else {
 				let a = NSAlert()
 				a.messageText = "The selected action cannot be performed on this data set.".localized
 				a.alertStyle = NSAlertStyle.warning
@@ -2071,7 +2071,7 @@ internal enum QBEEditingMode {
 	}
 
 	@IBAction func alterStore(_ sender: NSObject) {
-		if let md = self.currentStep?.mutableDataset, md.canPerformMutation(.alter(DatasetDefinition(columns: []))) {
+		if let md = self.currentStep?.mutableDataset, md.canPerformMutation(.alter) {
 			let alterViewController = QBEAlterTableViewController()
 			alterViewController.mutableDataset = md
 			alterViewController.warehouse = md.warehouse
@@ -2131,7 +2131,7 @@ internal enum QBEEditingMode {
 						if case .success(let ids) = result, ids != nil && !forceCustomKeySelection {
 							self.startEditingWithIdentifier(ids!, callback: callback)
 						}
-						else if !forceCustomKeySelection && md.canPerformMutation(DatasetMutation.edit(row: 0, column: Column("a"), old: Value.invalid, new: Value.invalid)) {
+						else if !forceCustomKeySelection && md.canPerformMutation(.edit) {
 							// This data set does not have key columns, but this isn't an issue, as it can be edited by row number
 							self.startEditingWithIdentifier([], callback: callback)
 						}
@@ -2382,7 +2382,7 @@ internal enum QBEEditingMode {
 			return false
 		}
 		else if selector == #selector(QBEChainViewController.alterStore(_:))  {
-			if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.alter(DatasetDefinition(columns: []))) {
+			if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.alter) {
 				return true
 			}
 			return false

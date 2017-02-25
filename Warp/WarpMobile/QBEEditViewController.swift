@@ -127,7 +127,7 @@ class QBEEditViewController: FormViewController {
 		revertButton.isEnabled = !self.changes.isEmpty
 
 		let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(self.newRow(_:)))
-		addButton.isEnabled = self.row != nil && (self.mutableData?.canPerformMutation(DatasetMutation.insert(row: Row())) ?? false)
+		addButton.isEnabled = self.row != nil && (self.mutableData?.canPerformMutation(.insert) ?? false)
 
 		self.navigationItem.leftBarButtonItems = [
 			addButton,
@@ -167,7 +167,7 @@ class QBEEditViewController: FormViewController {
 						}
 
 						let mut = DatasetMutation.update(key: key, column: column, old: self.row![column], new: newValue)
-						if md.canPerformMutation(mut) {
+						if md.canPerformMutation(mut.kind) {
 							md.performMutation(mut, job: job) { result in
 								switch result {
 								case .failure(let e):

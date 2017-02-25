@@ -97,7 +97,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 					case .success(let fd):
 						// FIXME add mapping (second [:])
 						let mutation = DatasetMutation.import(data: fd, withMapping: [:])
-						self.canPerformUpload = mutableDataset.canPerformMutation(mutation)
+						self.canPerformUpload = mutableDataset.canPerformMutation(mutation.kind)
 						self.canPerformTruncateBeforeUpload = mutableDataset.canPerformMutation(.truncate)
 
 						// Get the source column names
@@ -132,7 +132,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 	private func performUpload(_ data: Dataset, destination: MutableDataset) {
 		// FIXME add mapping (second [:])
 		let mutation = DatasetMutation.import(data: data, withMapping: self.mapping ?? [:])
-		if destination.canPerformMutation(mutation) {
+		if destination.canPerformMutation(mutation.kind) {
 			asyncMain {
 				self.updateView()
 			}
@@ -337,7 +337,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 
 	var canAlter: Bool {
 		if let md = self.targetStep?.mutableDataset {
-			return md.canPerformMutation(.alter(DatasetDefinition(columns: [Column("dummy")]))) && md.warehouse.hasFixedColumns
+			return md.canPerformMutation(.alter) && md.warehouse.hasFixedColumns
 		}
 		return false
 	}

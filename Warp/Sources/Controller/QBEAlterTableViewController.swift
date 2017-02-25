@@ -149,7 +149,8 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 
 		if let md = self.mutableDataset {
 			let mutation = DatasetMutation.alter(self.definition)
-			if md.canPerformMutation(mutation) {
+
+			if md.canPerformMutation(mutation.kind) {
 				self.createJob = Job(.userInitiated)
 				self.updateView()
 				self.progressView.startAnimation(sender)
@@ -183,7 +184,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 			}
 			let mutation = WarehouseMutation.create(self.tableNameField.stringValue, RasterDataset(data: [], columns: self.definition.columns))
 
-			if dwh.canPerformMutation(mutation) {
+			if dwh.canPerformMutation(mutation.kind) {
 				self.createJob = Job(.userInitiated)
 				self.updateView()
 				self.progressView.startAnimation(sender)

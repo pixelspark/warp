@@ -645,9 +645,9 @@ public class SQLiteDatasetWarehouse: SQLWarehouse {
 		super.init(database: database, schemaName: schemaName)
 	}
 
-	override public func canPerformMutation(_ mutation: WarehouseMutation) -> Bool {
+	override public func canPerformMutation(_ mutation: WarehouseMutationKind) -> Bool {
 		switch mutation {
-		case .create(_, _):
+		case .create:
 			// A read-only database cannot be mutated
 			let db = self.database as! SQLiteDatabase
 			return !db.readOnly

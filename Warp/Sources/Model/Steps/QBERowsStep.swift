@@ -14,10 +14,11 @@ import WarpCore
 
 /** A mutable data proxy that prevents edits to the data set that assume a certain order or position of rows. */
 class QBEMutableDatasetWithRowsShuffled: MutableProxyDataset {
-	override func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
+	override func canPerformMutation(_ mutation: DatasetMutationKind) -> Bool {
 		switch mutation {
-		case .remove(rows: _), .edit(row: _, column: _, old: _, new: _):
+		case .remove, .edit:
 			return false
+
 		default:
 			return true
 		}

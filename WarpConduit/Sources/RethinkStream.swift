@@ -551,15 +551,15 @@ class RethinkDatasetWarehouse: Warehouse {
 		self.databaseName = databaseName
 	}
 
-	func canPerformMutation(_ mutation: WarehouseMutation) -> Bool {
+	func canPerformMutation(_ mutation: WarehouseMutationKind) -> Bool {
 		switch mutation {
-		case .create(_,_):
+		case .create:
 			return true
 		}
 	}
 
 	func performMutation(_ mutation: WarehouseMutation, job: Job, callback: @escaping (Fallible<MutableDataset?>) -> ()) {
-		if !canPerformMutation(mutation) {
+		if !canPerformMutation(mutation.kind) {
 			callback(.failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
 		}
@@ -692,18 +692,18 @@ public class RethinkMutableDataset: MutableDataset {
 		callback(.success(RethinkDataset(url: self.url, query: R.db(databaseName).table(tableName))))
 	}
 
-	public func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
+	public func canPerformMutation(_ mutation: DatasetMutationKind) -> Bool {
 		switch mutation {
-		case .truncate, .drop, .import(_,_), .alter(_), .update(_,_,_,_), .insert(row: _), .delete(keys: _), .rename(_):
+		case .truncate, .drop, .import, .alter, .update, .insert, .delete, .rename:
 			return true
 
-		case .edit(_,_,_,_), .remove(rows: _):
+		case .edit, .remove:
 			return false
 		}
 	}
 
 	public func performMutation(_ mutation: DatasetMutation, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
-		if !canPerformMutation(mutation) {
+		if !canPerformMutation(mutation.kind) {
 			callback(.failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
 		}

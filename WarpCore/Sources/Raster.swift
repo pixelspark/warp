@@ -1041,9 +1041,9 @@ public class RasterWarehouse: Warehouse {
 	public init() {
 	}
 
-	public func canPerformMutation(_ mutation: WarehouseMutation) -> Bool {
+	public func canPerformMutation(_ mutation: WarehouseMutationKind) -> Bool {
 		switch mutation {
-		case .create(_,_):
+		case .create:
 			return true
 		}
 	}
@@ -1136,13 +1136,13 @@ public class RasterMutableDataset: MutableDataset {
 		callback(.success(nil))
 	}
 
-	public func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
+	public func canPerformMutation(_ mutation: DatasetMutationKind) -> Bool {
 		if self.raster.readOnly {
 			return false
 		}
 
 		switch mutation {
-		case .truncate, .alter(_), .import(_, _), .update(_,_,_,_), .edit(row: _, column: _, old: _, new: _), .insert(_), .rename(_), .remove(rows: _), .delete(keys: _):
+		case .truncate, .alter, .import, .update, .edit, .insert, .rename, .remove, .delete:
 			return true
 
 		case .drop:

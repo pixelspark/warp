@@ -140,15 +140,15 @@ open class SQLWarehouse: Warehouse {
 		self.schemaName = schemaName
 	}
 
-	open func canPerformMutation(_ mutation: WarehouseMutation) -> Bool {
+	open func canPerformMutation(_ mutation: WarehouseMutationKind) -> Bool {
 		switch mutation {
-			case .create(_,_):
-				return true
+		case .create:
+			return true
 		}
 	}
 
 	open func performMutation(_ mutation: WarehouseMutation, job: Job, callback: @escaping (Fallible<MutableDataset?>) -> ()) {
-		if !canPerformMutation(mutation) {
+		if !canPerformMutation(mutation.kind) {
 			callback(.failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
 		}
@@ -506,7 +506,7 @@ open class SQLMutableDataset: MutableDataset {
 	}
 
 	public func performMutation(_ mutation: DatasetMutation, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
-		if !canPerformMutation(mutation) {
+		if !canPerformMutation(mutation.kind) {
 			callback(.failure(NSLocalizedString("The selected action cannot be performed on this data set.", comment: "")))
 			return
 		}
@@ -549,15 +549,15 @@ open class SQLMutableDataset: MutableDataset {
 		}
 	}
 
-	open func canPerformMutation(_ mutation: DatasetMutation) -> Bool {
+	open func canPerformMutation(_ mutation: DatasetMutationKind) -> Bool {
 		switch mutation {
-		case .truncate, .drop, .import(_, _), .insert(_), .update(_,_,_,_), .delete(keys: _):
+		case .truncate, .drop, .`import`, .insert, .update, .delete:
 			return true
 
-		case .edit(_,_,_,_), .rename(_), .remove(rows: _):
+		case .edit, .rename, .remove:
 			return false
 
-		case .alter(_):
+		case .alter:
 			/* In some cases, an alter results in columns being changes/dropped, which is not supported by some databases
 			(SQLite most notably). TODO: check here whether the proposed Alter requires such changes, or implement an 
 			alternative for SQLite that uses DROP+CREATE to make the desired changes. */
