@@ -659,37 +659,69 @@ public class RethinkMutableDataset: MutableDataset {
 		self.tableName = tableName
 	}
 
-	public func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
+	private func info(_ job: Job, callback: @escaping (Fallible<[String: AnyObject]>) -> ()) {
 		R.connect(self.url) { err, connection in
 			if let e = err {
-				callback(.failure(e.localizedDescription))
-				return
+				return callback(.failure(e.localizedDescription))
 			}
 
 			R.db(self.databaseName).table(self.tableName).info().run(connection) { response in
 				if case ReResponse.error(let e) = response {
-					callback(.failure(e))
-					return
+					return callback(.failure(e))
 				}
 				else {
 					if let info = response.value as? [String: AnyObject] {
-						if let pk = info["primary_key"] as? String {
-							callback(.success(Set<Column>([Column(pk)])))
-						}
-						else {
-							callback(.failure("RethinkDB failed to tell us what the primary key is"))
-						}
+						return callback(.success(info))
 					}
 					else {
-						callback(.failure("RethinkDB returned unreadable information on the table"))
+						return callback(.failure("RethinkDB returned unreadable information on the table"))
 					}
 				}
 			}
 		}
 	}
 
-	public func data(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	public func data(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(RethinkDataset(url: self.url, query: R.db(databaseName).table(tableName))))
+	}
+
+	public func schema(_ job: Job, callback: @escaping (Fallible<Schema>) -> ()) {
+		self.info(job) { result in
+			switch result {
+			case .success(let info):
+				// Fetch table identifier (primary key)
+				if let pk = info["primary_key"] as? String {
+					let identifier = Set<Column>([Column(pk)])
+
+					// Get table columns
+					// TODO: this is probably also in the info object
+					self.data(job) { result in
+						switch result {
+						case .success(let data):
+							data.columns(job) { result in
+								switch result {
+								case .success(let cols):
+									let schema = Schema(columns: cols, identifier: identifier)
+									return callback(.success(schema))
+
+								case .failure(let e):
+									return callback(.failure(e))
+								}
+							}
+
+						case .failure(let e):
+							return callback(.failure(e))
+						}
+					}
+				}
+				else {
+					return callback(.failure("RethinkDB failed to tell us what the primary key is"))
+				}
+
+			case .failure(let e):
+				return callback(.failure(e))
+			}
+		}
 	}
 
 	public func canPerformMutation(_ mutation: DatasetMutationKind) -> Bool {

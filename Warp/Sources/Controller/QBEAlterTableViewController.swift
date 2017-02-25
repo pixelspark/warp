@@ -35,7 +35,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	@IBOutlet var tableView: NSTableView!
 
 	weak var delegate: QBEAlterTableViewDelegate? = nil
-	var definition: DatasetDefinition = DatasetDefinition(columns: [])
+	var definition: Schema = Schema(columns: [], identifier: nil)
 	var warehouse: Warehouse? = nil
 	var mutableDataset: MutableDataset? = nil
 	var warehouseName: String? = nil
@@ -56,7 +56,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		while true {
 			let newName = Column(String(format: NSLocalizedString("Column_%d", comment: ""), self.definition.columns.count + i))
 			if !self.definition.columns.contains(newName) {
-				self.definition.columns.append(newName)
+				self.definition.change(columns: OrderedSet(self.definition.columns + [newName]))
 				self.tableView.reloadData()
 				self.updateView()
 				return
@@ -84,7 +84,9 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 
 	@IBAction func removeColumn(_ sender: AnyObject?) {
 		let si = tableView.selectedRowIndexes
-		self.definition.columns.removeAtIndices(si)
+		var cols = self.definition.columns
+		cols.removeAtIndices(si)
+		self.definition.change(columns: cols)
 		self.tableView.deselectAll(sender)
 		self.tableView.reloadData()
 		self.updateView()
@@ -115,7 +117,9 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 			case "columnName":
 				let col = Column(object as! String)
 				if !self.definition.columns.contains(col) {
-					return self.definition.columns[row] = col
+					var cols = self.definition.columns
+					cols[row] = col
+					self.definition.change(columns: cols)
 				}
 				else {
 					if let w = self.view.window {
@@ -126,7 +130,8 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 						alert.beginSheetModal(for: w, completionHandler: nil)
 					}
 				}
-			default: return
+			default:
+				return
 			}
 		}
 	}
@@ -265,7 +270,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	}
 
 	@IBAction func removeAllColumns(_ sender: NSObject) {
-		self.definition.columns.removeAll()
+		self.definition.change(columns: [])
 		self.tableView.reloadData()
 		self.updateView()
 	}
@@ -273,8 +278,8 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	override func viewWillAppear() {
 		// Are we going to create a table? Then check if the pasteboard has a table definition for us we can propose
 		if self.definition.columns.isEmpty && (self.warehouse?.hasFixedColumns ?? false) {
-			let pb = NSPasteboard(name: DatasetDefinition.pasteboardName)
-			if let data = pb.data(forType: DatasetDefinition.pasteboardName), let def = NSKeyedUnarchiver.unarchiveObject(with: data) as? DatasetDefinition {
+			let pb = NSPasteboard(name: self.definition.pasteboardName)
+			if let data = pb.data(forType: self.definition.pasteboardName), let def = NSKeyedUnarchiver.unarchiveObject(with: data) as? Schema {
 				self.definition = def
 			}
 		}

@@ -869,39 +869,54 @@ internal enum QBEEditingMode {
 					}
 				}
 				else {
-					// need to add a new column first
-					var columns = editingRaster.columns
-					let newColumnName = Column.defaultNameForNewColumn(columns)
-					columns.append(newColumnName)
-					let mutation = DatasetMutation.alter(DatasetDefinition(columns: columns))
-					md.performMutation(mutation, job: job, callback: once { result in
+					md.schema(job) { result in
 						switch result {
-						case .success:
-							/* The mutation has been performed on the source data, now perform it on our own
-							temporary raster as well. We could also call self.calculate() here, but that takes
-							a while, and we would lose our current scrolling position, etc. */
-							RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
-								QBEChangeNotification.broadcastChange(self.chain!)
+						case .success(let schema):
+							var newSchema = schema
 
-								asyncMain {
-									self.presentRaster(editingRaster)
+							// need to add a new column first
+							let newColumnName = Column.defaultNameForNewColumn(newSchema.columns)
+							var cols = newSchema.columns
+							cols.append(newColumnName)
+							newSchema.change(columns: cols)
 
-									if let rn = inRow {
-										self.dataView(view, didChangeValue: Value.empty, toValue: value, inRow: rn, column: columns.count-1)
-										self.dataViewController?.sizeColumnToFit(newColumnName)
-										callback(true)
-									}
-									else {
-										// We're also adding a new row
-										self.dataView(view, addValue: value, inRow: nil, column: columns.count-1) { b in
-											asyncMain {
+							let mutation = DatasetMutation.alter(newSchema)
+							md.performMutation(mutation, job: job, callback: once { result in
+								switch result {
+								case .success:
+									/* The mutation has been performed on the source data, now perform it on our own
+									temporary raster as well. We could also call self.calculate() here, but that takes
+									a while, and we would lose our current scrolling position, etc. */
+									RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
+										QBEChangeNotification.broadcastChange(self.chain!)
+
+										asyncMain {
+											self.presentRaster(editingRaster)
+
+											if let rn = inRow {
+												self.dataView(view, didChangeValue: Value.empty, toValue: value, inRow: rn, column: newSchema.columns.count-1)
 												self.dataViewController?.sizeColumnToFit(newColumnName)
-												callback(b)
+												callback(true)
+											}
+											else {
+												// We're also adding a new row
+												self.dataView(view, addValue: value, inRow: nil, column: newSchema.columns.count-1) { b in
+													asyncMain {
+														self.dataViewController?.sizeColumnToFit(newColumnName)
+														callback(b)
+													}
+												}
 											}
 										}
 									}
+
+								case .failure(let e):
+									asyncMain {
+										callback(false)
+										NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new column.", comment: ""), infoText: e, style: .critical, window: self.view.window)
+									}
 								}
-							}
+							})
 
 						case .failure(let e):
 							asyncMain {
@@ -909,7 +924,7 @@ internal enum QBEEditingMode {
 								NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new column.", comment: ""), infoText: e, style: .critical, window: self.view.window)
 							}
 						}
-					})
+					}
 				}
 			}
 
@@ -2079,22 +2094,12 @@ internal enum QBEEditingMode {
 
 			// Get current column names
 			let job = Job(.userInitiated)
-			md.data(job) { result in
+			md.schema(job) { result in
 				switch result {
-				case .success(let data):
-					data.columns(job) { result in
-						switch result {
-							case .success(let columns):
-								asyncMain {
-									alterViewController.definition = DatasetDefinition(columns: columns)
-									self.presentViewControllerAsSheet(alterViewController)
-								}
-
-							case .failure(let e):
-								asyncMain {
-									NSAlert.showSimpleAlert(NSLocalizedString("Could not modify table", comment: ""), infoText: e, style: .critical, window: self.view.window)
-								}
-						}
+				case .success(let schema):
+					asyncMain {
+						alterViewController.definition = schema
+						self.presentViewControllerAsSheet(alterViewController)
 					}
 
 				case .failure(let e):
@@ -2124,57 +2129,51 @@ internal enum QBEEditingMode {
 		if let md = self.currentStep?.mutableDataset, self.supportsEditing {
 			self.editingMode = .enablingEditing
 			let job = Job(.userInitiated)
-			md.identifier(job) { result in
+			md.schema(job) { result in
 				asyncMain {
-					switch self.editingMode {
-					case .enablingEditing:
-						if case .success(let ids) = result, ids != nil && !forceCustomKeySelection {
-							self.startEditingWithIdentifier(ids!, callback: callback)
-						}
-						else if !forceCustomKeySelection && md.canPerformMutation(.edit) {
-							// This data set does not have key columns, but this isn't an issue, as it can be edited by row number
-							self.startEditingWithIdentifier([], callback: callback)
-						}
-						else {
-							// Cannot start editing right now
-							self.editingMode = .notEditing
-
-							md.columns(job) { columnsResult in
-								switch columnsResult {
-								case .success(let columns):
-									asyncMain {
-										let ctr = self.storyboard?.instantiateController(withIdentifier: "keyViewController") as! QBEKeySelectionViewController
-										ctr.columns = columns
-
-										if case .success(let ids) = result, ids != nil {
-											ctr.keyColumns = ids!
-										}
-
-										ctr.callback = { keys in
-											asyncMain {
-												self.startEditingWithIdentifier(keys, callback: callback)
-											}
-										}
-
-										self.presentViewControllerAsSheet(ctr)
-									}
-
-								case .failure(let e):
-									NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .warning, window: self.view.window)
-								}
+					switch result {
+					case .success(let schema):
+						switch self.editingMode {
+						case .enablingEditing:
+							if let ids = schema.identifier, !forceCustomKeySelection {
+								self.startEditingWithIdentifier(ids, callback: callback)
 							}
+							else if !forceCustomKeySelection && md.canPerformMutation(.edit) {
+								// This data set does not have key columns, but this isn't an issue, as it can be edited by row number
+								self.startEditingWithIdentifier([], callback: callback)
+							}
+							else {
+								// Cannot start editing right now
+								self.editingMode = .notEditing
+
+								let ctr = self.storyboard?.instantiateController(withIdentifier: "keyViewController") as! QBEKeySelectionViewController
+								ctr.columns = schema.columns
+								ctr.keyColumns = schema.identifier ?? []
+
+								ctr.callback = { keys in
+									asyncMain {
+										self.startEditingWithIdentifier(keys, callback: callback)
+									}
+								}
+
+								self.presentViewControllerAsSheet(ctr)
+							}
+
+						default:
+							// Editing request was apparently cancelled, do not switch to editing mode
+							break
 						}
+						
+						self.view.window?.update()
 
-					default:
-						// Editing request was apparently cancelled, do not switch to editing mode
-						break
+
+					case .failure(let e):
+						NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .warning, window: self.view.window)
 					}
-
 					self.view.window?.update()
 				}
 			}
 		}
-		self.view.window?.update()
 	}
 
 	/** Start editing using the given set of identifier keys. If the set is empty, the data set must support line-based

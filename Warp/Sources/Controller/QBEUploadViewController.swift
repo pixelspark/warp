@@ -107,9 +107,10 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 								/* Put the source table definition on the 'table definition pasteboard'. The 'alter table'
 								view controller will try to read from the pasteboard, and use the column names given there
 								as default table definition when creating a new table. */
-								let def = DatasetDefinition(columns: columns)
-								let pb = NSPasteboard(name: DatasetDefinition.pasteboardName)
-								pb.setData(NSKeyedArchiver.archivedData(withRootObject: def), forType: DatasetDefinition.pasteboardName)
+								// TODO: can we get identifier information from the source data set?
+								let def = Schema(columns: columns, identifier: nil)
+								let pb = NSPasteboard(name: def.pasteboardName)
+								pb.setData(NSKeyedArchiver.archivedData(withRootObject: Coded(def)), forType: def.pasteboardName)
 
 							case .failure(_):
 								break
@@ -179,19 +180,35 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 
 	private func performAlter(_ perform: Bool, sourceDataset: Dataset, destination: MutableDataset, callback: @escaping (Fallible<Bool>) -> ()) {
 		if perform {
-			sourceDataset.columns(self.uploadJob!) { result in
+			// See which columns are already at the destination
+			destination.schema(self.uploadJob!) { result in
 				switch result {
-				case .success(let sourceColumns):
-					destination.performMutation(.alter(DatasetDefinition(columns: sourceColumns)), job: self.uploadJob!) { res in
-						switch res {
-						case .success(_):
-							self.mapping = sourceColumns.mapDictionary { return ($0,$0) }
-							callback(.success(true))
+				case .success(let destinationSchema):
+					var newSchema = destinationSchema
+
+					// Find out what columns are in the source data set
+					sourceDataset.columns(self.uploadJob!) { result in
+						switch result {
+						case .success(let sourceColumns):
+							newSchema.change(columns: sourceColumns)
+
+							// Update the destination schema
+							destination.performMutation(.alter(newSchema), job: self.uploadJob!) { res in
+								switch res {
+								case .success(_):
+									self.mapping = sourceColumns.mapDictionary { return ($0,$0) }
+									callback(.success(true))
+								case .failure(let e):
+									callback(.failure(e))
+								}
+							}
+
 						case .failure(let e): callback(.failure(e))
 						}
 					}
 
-				case .failure(let e): callback(.failure(e))
+				case .failure(let e):
+					return callback(.failure(e))
 				}
 			}
 		}

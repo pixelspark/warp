@@ -1132,10 +1132,6 @@ public class RasterMutableDataset: MutableDataset {
 		return RasterWarehouse()
 	}
 
-	public func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
-		callback(.success(nil))
-	}
-
 	public func canPerformMutation(_ mutation: DatasetMutationKind) -> Bool {
 		if self.raster.readOnly {
 			return false
@@ -1240,8 +1236,13 @@ public class RasterMutableDataset: MutableDataset {
 		}
 	}
 
-	public func data(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	public func data(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		callback(.success(RasterDataset(raster: self.raster)))
+	}
+
+	public func schema(_ job: Job, callback: @escaping (Fallible<Schema>) -> ()) {
+		let schema = Schema(columns: self.raster.columns, identifier: nil)
+		callback(.success(schema))
 	}
 }
 

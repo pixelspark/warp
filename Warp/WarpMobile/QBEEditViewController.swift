@@ -26,26 +26,17 @@ class QBEEditViewController: FormViewController {
 
 		let job = Job(.userInitiated)
 
-		dataset.identifier(job) { result in
+		dataset.schema(job) { result in
 			switch result {
-			case .success(let identifiers):
-				dataset.columns(job) { result in
-					switch result {
-					case .success(let columns):
-						asyncMain {
-							self.identifiers = identifiers
-							self.mutableData = dataset
-							self.row = row
-							self.columns = columns
-							self.update()
-						}
-
-					case .failure(let e):
-						asyncMain {
-							self.showError(message: e)
-						}
-					}
+			case .success(let schema):
+				asyncMain {
+					self.identifiers = schema.identifier
+					self.mutableData = dataset
+					self.row = row
+					self.columns = schema.columns
+					self.update()
 				}
+
 			case .failure(let e):
 				asyncMain {
 					self.showError(message: e)

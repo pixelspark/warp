@@ -41,12 +41,6 @@ public protocol MutableDataset {
 	/** The warehouse in which this mutable data set is stored. */
 	var warehouse: Warehouse { get }
 
-	/** This function fetches the set of columns using which rows can uniquely be identified. This set of columns can be
-	used to perform updates on specific rows. If the mutable data does not support or have a primary key, it may return
-	nil. In this case, the user of MutableDataset must choose its own keys (e.g. by asking the user) or use row numbers
-	(e.g. with the .edit data mutation if that is supported). */
-	func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ())
-
 	/** Returns whether the specified mutation can be performed on this mutable data set. The function indicates support
 	of the mutation *at all* rather than whether it would succeed in the current state and on the current data set. The
 	function is synchronous and should not make calls to servers to check whether a mutation would succeed.
@@ -62,7 +56,70 @@ public protocol MutableDataset {
 	func performMutation(_ mutation: DatasetMutation, job: Job, callback: @escaping (Fallible<Void>) -> ())
 
 	/** Returns a readable data object for the data contained in this mutable data set. */
-	func data(_ job: Job, callback: (Fallible<Dataset>) -> ())
+	func data(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ())
+
+	/** Returns the schema for this mutable data set. */
+	func schema(_ job: Job, callback: @escaping (Fallible<Schema>) -> ())
+}
+
+/** Description of a dataset's format (column names primarily). */
+public struct Schema: Codeable {
+	public let pasteboardName = "nl.pixelspark.Warp.Schema"
+
+	/** The columns present in this data set. To change, call `change`. */
+	public private(set) var columns: OrderedSet<Column>
+
+	/** The set of columns using which rows can uniquely be identified in this data set. This set of columns can be
+	used to perform updates on specific rows. If the data set does not support or have a primary key, this may be nil.
+	In this case, users must choose their own keys (e.g. by asking the user) or use row numbers (e.g. with the .edit 
+	data mutation if that is supported) when mutating data. */
+	public private(set) var identifier: Set<Column>?
+
+	public init(columns: OrderedSet<Column>, identifier: Set<Column>?) {
+		self.columns = columns
+		self.identifier = identifier
+	}
+
+	public init?(coder aDecoder: NSCoder) {
+		self.columns = OrderedSet<Column>((aDecoder.decodeObject(forKey: "columns") as? [String] ?? []).map { return Column($0) })
+		if aDecoder.containsValue(forKey: "identifier") {
+			self.identifier = Set<Column>((aDecoder.decodeObject(forKey: "identifier") as? [String] ?? []).map { return Column($0) })
+		}
+		else {
+			self.identifier = nil
+		}
+	}
+
+	public func encode(with aCoder: NSCoder) {
+		aCoder.encode(self.columns.map { return $0.name }, forKey: "columns")
+		aCoder.encode(self.identifier?.map { return $0.name }, forKey: "identifier")
+	}
+
+	/** Changes the set of columns in this schema to match the given set of columns. If colunns are used as keys or in 
+	indexes, those keys or indexes are removed automatically. New keys or indexes are not created automatically. */
+	public mutating func change(columns newColumns: OrderedSet<Column>) {
+		let removed = self.columns.subtracting(Set(newColumns))
+		self.columns = newColumns
+		if let id = self.identifier {
+			self.identifier = id.subtracting(removed)
+		}
+	}
+
+	/** Change the set of columns used as identifier in this schema. All columns listed in the identifier must exist
+	(e.g. they must be in the `columns` set). If this is not the case, the method will cause a fatal error. */
+	public mutating func change(identifier newIdentifier: Set<Column>?) {
+		if let ni = newIdentifier {
+			precondition(ni.subtracting(self.columns).isEmpty, "Cannot set identifier, it contains columns that do not exist")
+			self.identifier = ni
+		}
+		else {
+			self.identifier = nil
+		}
+	}
+
+	public mutating func remove(columns: Set<Column>) {
+		self.change(columns: self.columns.subtracting(columns))
+	}
 }
 
 /** Proxy for MutableDataset that can be used to create mutable data objects that perform particular operations differently
@@ -78,7 +135,7 @@ open class MutableProxyDataset: MutableDataset {
 		return self.original.warehouse
 	}
 
-	open func data(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	open func data(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		self.original.data(job, callback: callback)
 	}
 
@@ -90,22 +147,8 @@ open class MutableProxyDataset: MutableDataset {
 		return self.original.canPerformMutation(kind)
 	}
 
-	open func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
-		return self.original.identifier(job, callback: callback)
-	}
-}
-
-public extension MutableDataset {
-	public func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
-		self.data(job) { result in
-			switch result {
-			case .success(let data):
-				data.columns(job, callback: callback)
-
-			case .failure(let e):
-				callback(.failure(e))
-			}
-		}
+	open func schema(_ job: Job, callback: @escaping (Fallible<Schema>) -> ()) {
+		return self.original.schema(job, callback: callback)
 	}
 }
 
@@ -113,25 +156,6 @@ public extension MutableDataset {
 already has columns defined. The destination columns are the keys, the source column where that column is filled from is 
 the value (or the empty column name, if we must attempt to insert nil) */
 public typealias ColumnMapping = [Column: Column]
-
-/** Description of a dataset's format (column names primarily). */
-public class DatasetDefinition: NSObject, NSCoding {
-	public static let pasteboardName = "nl.pixelspark.Warp.DatasetDefinition"
-
-	public var columns: OrderedSet<Column>
-
-	public init(columns: OrderedSet<Column>) {
-		self.columns = columns
-	}
-
-	public required init?(coder aDecoder: NSCoder) {
-		self.columns = OrderedSet<Column>((aDecoder.decodeObject(forKey: "columns") as? [String] ?? []).map { return Column($0) })
-	}
-
-	public func encode(with aCoder: NSCoder) {
-		aCoder.encode(self.columns.map { return $0.name }, forKey: "columns")
-	}
-}
 
 /** DatasetMutation represents a mutation that can be performed on a mutable dataset (MutableDataset). */
 public enum DatasetMutation {
@@ -154,7 +178,7 @@ public enum DatasetMutation {
 
 	/** Alter the table so that it has columns as listed. Existing columns must be re-used and stay intact. If the table
 	does not exist, create the table. */
-	case alter(DatasetDefinition)
+	case alter(Schema)
 
 	/** Rename the columns according to the given mapping. Column names must be unique after performing this operation. */
 	case rename([Column: Column])

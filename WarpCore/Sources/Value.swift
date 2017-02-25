@@ -348,6 +348,32 @@ public struct Pack {
 	}
 }
 
+public protocol Codeable {
+	init?(coder: NSCoder)
+	func encode(with: NSCoder)
+}
+
+public final class Coded<T: Codeable>: NSObject, NSCoding {
+	let subject: T
+
+	public init(_ subject: T) {
+		self.subject = subject
+	}
+
+	required public init?(coder aDecoder: NSCoder) {
+		if let s = T(coder: aDecoder) {
+			self.subject = s
+		}
+		else {
+			return nil
+		}
+	}
+
+	public func encode(with aCoder: NSCoder) {
+		self.subject.encode(with: aCoder)
+	}
+}
+
 /** ValueCoder implements encoding for Value (which cannot implement it as it is an enum). */
 public class ValueCoder: NSObject, NSSecureCoding {
 	let value: Value

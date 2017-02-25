@@ -308,6 +308,8 @@ open class SQLMutableDataset: MutableDataset {
 		self.schemaName = schemaName
 	}
 
+	/** Subclasses must implement this function to fetch the table's row identifier (primary key). See Schema.identifier
+	for what is expected. */
 	open func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
 		return callback(.failure("Not implemented"))
 	}
@@ -316,8 +318,38 @@ open class SQLMutableDataset: MutableDataset {
 		return self.database.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: self.database.databaseName)
 	}
 
-	public func data(_ job: Job, callback: (Fallible<Dataset>) -> ()) {
+	public func data(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		self.database.dataForTable(tableName, schema: schemaName, job: job, callback: callback)
+	}
+
+	public func schema(_ job: Job, callback: @escaping (Fallible<Schema>) -> ()) {
+		// TODO: query information_schema here
+		self.data(job) { result in
+			switch result {
+			case .success(let data):
+				data.columns(job) { result in
+					switch result {
+					case .success(let cols):
+						self.identifier(job) { result in
+							switch result {
+							case .success(let identifier):
+								let schema = Schema(columns: cols, identifier: identifier)
+								return callback(.success(schema))
+
+							case .failure(let e):
+								return callback(.failure(e))
+							}
+						}
+
+					case .failure(let e):
+						return callback(.failure(e))
+					}
+				}
+
+			case .failure(let e):
+				return callback(.failure(e))
+			}
+		}
 	}
 
 	private func performInsertByPulling(_ connection: SQLConnection, data: Dataset, mapping: ColumnMapping, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
@@ -388,42 +420,51 @@ open class SQLMutableDataset: MutableDataset {
 		}
 	}
 
-	private func performAlter(_ connection: SQLConnection, columns desiredColumns: OrderedSet<Column>, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
-		self.data(job) { result in
+	private func performAlter(_ connection: SQLConnection, desiredSchema: Schema, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
+		self.schema(job) { result in
 			switch result {
-			case .success(let data):
-				data.columns(job) { result in
-					switch result {
-					case .success(let existingColumns):
-						var changes: [String] = []
+			case .success(let existingSchema):
+				var changes: [String] = []
 
-						for dropColumn in Set(existingColumns).subtracting(desiredColumns) {
-							changes.append("DROP COLUMN \(self.database.dialect.columnIdentifier(dropColumn, table: nil, schema: nil, database: nil))")
+				for dropColumn in Set(existingSchema.columns).subtracting(desiredSchema.columns) {
+					changes.append("DROP COLUMN \(self.database.dialect.columnIdentifier(dropColumn, table: nil, schema: nil, database: nil))")
+				}
+
+				/* We should probably ensure that target columns have a storage type that can accomodate our data, 
+				but for now we leave the destination columns intact, to prevent unintentional (and unforeseen)
+				damage to the destination table. */
+				/*for changeColumn in Set(desiredColumns).intersect(existingColumns) {
+					let cn = self.database.dialect.columnIdentifier(changeColumn, table: nil, schema: nil, database: nil)
+					changes.append("ALTER COLUMN \(cn) \(cn) TEXT NULL DEFAULT NULL")
+				}*/
+
+				for addColumn in Set(desiredSchema.columns).subtracting(existingSchema.columns) {
+					changes.append("ADD COLUMN \(self.database.dialect.columnIdentifier(addColumn, table: nil, schema: nil, database: nil)) TEXT NULL DEFAULT NULL")
+				}
+
+				if changes.count > 0 {
+					let sql = "ALTER TABLE \(self.tableIdentifier) \(changes.joined(separator: ", "))"
+					connection.run([sql], job: job) { result in
+						switch result {
+						case .success():
+							// Do we also need to change primary keys?
+							if existingSchema.identifier != desiredSchema.identifier {
+								// FIXME implement changing the primary key (if data set supports it).
+								// If desiredSchema.identifier == nil, drop the primary key altogether
+								return callback(.failure("Changing the primary key of this table is not supported, because it is not yet implemented."))
+							}
+							else {
+								return callback(.success())
+							}
+
+						case .failure(let e):
+							return callback(.failure(e))
 						}
-
-						/* We should probably ensure that target columns have a storage type that can accomodate our data, 
-						but for now we leave the destination columns intact, to prevent unintentional (and unforeseen)
-						damage to the destination table. */
-						/*for changeColumn in Set(desiredColumns).intersect(existingColumns) {
-							let cn = self.database.dialect.columnIdentifier(changeColumn, table: nil, schema: nil, database: nil)
-							changes.append("ALTER COLUMN \(cn) \(cn) TEXT NULL DEFAULT NULL")
-						}*/
-
-						for addColumn in Set(desiredColumns).subtracting(existingColumns) {
-							changes.append("ADD COLUMN \(self.database.dialect.columnIdentifier(addColumn, table: nil, schema: nil, database: nil)) TEXT NULL DEFAULT NULL")
-						}
-
-						if changes.count > 0 {
-							let sql = "ALTER TABLE \(self.tableIdentifier) \(changes.joined(separator: ", "))"
-							connection.run([sql], job: job, callback: callback)
-						}
-						else {
-							// No change required
-							callback(.success())
-						}
-
-					case .failure(let e): callback(.failure(e))
 					}
+				}
+				else {
+					// No change required
+					callback(.success())
 				}
 
 			case .failure(let e): callback(.failure(e))
@@ -476,10 +517,10 @@ open class SQLMutableDataset: MutableDataset {
 	}
 
 	private func performInsert(_ connection: SQLConnection, row: Row, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
-		self.columns(job) { result in
+		self.schema(job) { result in
 			switch result {
-			case .success(let columns):
-				let insertingColumns = Array(Set(row.columns).intersection(Set(columns)))
+			case .success(let schema):
+				let insertingColumns = Array(Set(row.columns).intersection(Set(schema.columns)))
 				let insertingColumnsSQL = insertingColumns
 					.map { return self.database.dialect.columnIdentifier($0, table: nil, schema: nil, database: nil) }
 					.joined(separator: ", ")
@@ -523,8 +564,8 @@ open class SQLMutableDataset: MutableDataset {
 							// TODO: MySQL supports TRUNCATE TABLE which supposedly is faster
 							con.run(["DELETE FROM \(self.tableIdentifier)"], job: job, callback: callback)
 
-						case .alter(let columns):
-							self.performAlter(con, columns: columns.columns, job: job, callback: callback)
+						case .alter(let schema):
+							self.performAlter(con, desiredSchema: schema, job: job, callback: callback)
 
 						case .import(data: let data, withMapping: let mapping):
 							self.performInsert(con, data: data, mapping: mapping, job: job, callback: callback)

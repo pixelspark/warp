@@ -933,7 +933,7 @@ class WarpCoreTests: XCTestCase {
 
 		// Raster modifications through RasterMutableDataset
 		let mutableRaster = RasterMutableDataset(raster: testRaster)
-		mutableRaster.performMutation(.alter(DatasetDefinition(columns: cols)), job: job) { result in
+		mutableRaster.performMutation(.alter(Schema(columns: cols)), job: job) { result in
 			switch result {
 			case .success:
 				XCTAssert(testRaster.columns.count == 3, "Column count matches again after mutation")

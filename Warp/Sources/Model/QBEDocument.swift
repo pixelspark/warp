@@ -65,7 +65,7 @@ class QBEDocument: UXDocument {
 		unarchiver.setClass(Aggregation.classForKeyedUnarchiver(), forClassName: "WarpCore.QBEAggregation")
 		unarchiver.setClass(Expression.classForKeyedUnarchiver(), forClassName: "WarpCore.QBEExpression")
 		unarchiver.setClass(FilterSet.classForKeyedUnarchiver(), forClassName: "WarpCore.QBEFilterSet")
-		unarchiver.setClass(DatasetDefinition.classForKeyedUnarchiver(), forClassName: "WarpCore.QBEDatasetDefinition")
+		unarchiver.setClass(Coded<Schema>.classForKeyedUnarchiver(), forClassName: "WarpCore.QBESchema")
 		unarchiver.setClass(Raster.classForKeyedUnarchiver(), forClassName: "WarpCore.QBERaster")
 		unarchiver.setClass(Sibling.classForKeyedUnarchiver(), forClassName: "WarpCore.QBESiblingExpression")
 		unarchiver.setClass(Literal.classForKeyedUnarchiver(), forClassName: "WarpCore.QBELiteralExpresion")

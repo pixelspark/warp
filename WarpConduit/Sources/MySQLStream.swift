@@ -693,12 +693,7 @@ public class QBEMySQLMutableDataset: SQLMutableDataset {
 								}
 							}
 
-							if uniqueColumns.isEmpty {
-								return callback(.failure(NSLocalizedString("This table does not have a primary key, which is required in order to be able to identify individual rows.", comment: "")))
-							}
-							else {
-								return callback(.success(uniqueColumns))
-							}
+							return callback(.success(uniqueColumns))
 
 						case .failure(let e):
 							return callback(.failure(e))
@@ -706,7 +701,7 @@ public class QBEMySQLMutableDataset: SQLMutableDataset {
 						}
 					}
 					else {
-						callback(.success(primaryColumns))
+						return callback(.success(primaryColumns))
 					}
 				}
 				else {
