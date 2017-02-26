@@ -227,6 +227,12 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 
 				UIAlertAction(title: "Load related data".localized, style: .default, handler: { act in
 					self.showJoinDataMenu(at: frame, in: view)
+				}),
+
+				UIAlertAction(title: "Pivot data".localized, style: .default, handler: { act in
+					let ps = QBEPivotStep()
+					ps.aggregates.append(Aggregation(aggregator: Aggregator(map: Sibling(Column("")), reduce: Function.Sum), targetColumn: Column(Function.Sum.localizedName)))
+					self.add(step: ps)
 				})
 			]
 

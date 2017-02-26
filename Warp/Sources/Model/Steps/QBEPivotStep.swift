@@ -58,29 +58,74 @@ class QBEPivotStep: QBEStep {
 		coder.encode(c, forKey: "columns")
 		coder.encode(aggregates, forKey: "aggregates")
 	}
-	
-	private func explanation(_ locale: Language) -> String {
-		if aggregates.count == 1 {
-			let aggregation = aggregates[0]
-			if rows.count != 1 || !columns.isEmpty {
-				return String(format: NSLocalizedString("Pivot: %@ of %@", comment: "Pivot with 1 aggregate"),
-					aggregation.aggregator.reduce.localizedName,
-					aggregation.aggregator.map.explain(locale))
-			}
-			else {
-				let row = rows[0]
-				return String(format: NSLocalizedString("Pivot: %@ of %@ grouped by %@", comment: "Pivot with 1 aggregate"),
-					aggregation.aggregator.reduce.localizedName,
-					aggregation.aggregator.map.explain(locale),
-					row.name)
-			}
-		}
-		
-		return NSLocalizedString("Pivot data", comment: "")
-	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence([QBESentenceLabelToken(self.explanation(locale))])
+		let columnsProvider = { (cb: @escaping (Fallible<Set<String>>) -> ()) -> () in
+			let job = Job(.userInitiated)
+			if let previous = self.previous {
+				previous.exampleDataset(job, maxInputRows: 100, maxOutputRows: 100) {result in
+					switch result {
+					case .success(let data):
+						data.columns(job) { result in
+							switch result {
+							case .success(let cns):
+								cb(.success(Set(cns.map { $0.name })))
+
+							case .failure(let e):
+								cb(.failure(e))
+							}
+						}
+					case .failure(let e):
+						cb(.failure(e))
+					}
+				}
+			}
+			else {
+				cb(.success([]))
+			}
+		}
+
+		let rowsItem = QBESentenceSetToken(value: Set(self.rows.map { $0.name }), provider: columnsProvider, callback: { [weak self] newSet in
+			self?.rows = OrderedSet(newSet.map { Column($0) })
+		})
+
+		let columnsItem = QBESentenceSetToken(value: Set(self.columns.map { $0.name }), provider: columnsProvider, callback: { [weak self] newSet in
+			self?.columns = OrderedSet(newSet.map { Column($0) })
+		})
+
+		// The simple case is: N rows, N columns, one aggregation where them mapper is just a column
+		if aggregates.count == 1 {
+			if let aggregation = aggregates.first, let source = aggregation.aggregator.map as? Sibling {
+				let aggregatorFunctions: [Function] = [.Sum, .Count, .Average, .StandardDeviationSample, .StandardDeviationPopulation, .Concat, .Count, .CountAll]
+				let reducerTypes = aggregatorFunctions.mapDictionary { fn in
+					return (fn.rawValue, fn.localizedName)
+				}
+
+				let reducerTypeItem = QBESentenceOptionsToken(options: reducerTypes, value: aggregation.aggregator.reduce.rawValue, callback: { (reducerType) in
+					self.aggregates[0].aggregator.reduce = Function(rawValue: reducerType)!
+				})
+
+				let columnItem = QBESentenceDynamicOptionsToken(value: source.column.name, provider: { cb in
+					columnsProvider { result in
+						switch result {
+						case .success(let columnSet): cb(.success(Array(columnSet)))
+						case .failure(let e): cb(.failure(e))
+						}
+					}
+				}, callback: { (newColumnName) in
+					self.aggregates[0].aggregator.map = Sibling(Column(newColumnName))
+				})
+
+				return QBESentence(format: "Pivot [#] to rows, [#] to columns, [#] of [#] in cells".localized,
+								   rowsItem,
+								   columnsItem,
+								   reducerTypeItem,
+								   columnItem
+				)
+			}
+		}
+
+		return QBESentence(format: "Pivot [#] to rows, [#] to columns".localized, rowsItem, columnsItem)
 	}
 	
 	private func fixupColumnNames() {
@@ -109,6 +154,14 @@ class QBEPivotStep: QBEStep {
 		if self.rows.isEmpty && self.columns.isEmpty && self.aggregates.isEmpty {
 			callback(.failure(NSLocalizedString("Click the settings button to configure the pivot table.", comment: "")))
 			return
+		}
+
+		// On iOS, the UI creates a step without setting a source column to aggregate. Show an error for these.
+		for aggregate in self.aggregates {
+			if aggregate.aggregator.map == Sibling(Column("")) {
+				callback(.failure("Choose a column to aggregate values for.".localized))
+				return
+			}
 		}
 
 		fixupColumnNames()
