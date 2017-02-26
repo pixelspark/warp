@@ -21,6 +21,7 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 	@IBOutlet var configureToggle: UIBarButtonItem! = nil
 	@IBOutlet var editButton: UIBarButtonItem! = nil
 	@IBOutlet var addButton: UIBarButtonItem! = nil
+	@IBOutlet var deleteButton: UIBarButtonItem! = nil
 	private var shareButton: UIBarButtonItem? = nil
 
 	var tablet: QBEChainTablet? = nil { didSet {
@@ -48,6 +49,10 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		self.dataViewController?.editRow(sender)
 	}
 
+	@IBAction func deleteRow(_ sender: AnyObject) {
+		self.dataViewController?.deleteRow(sender)
+	}
+
 	@IBAction func addRow(_ sender: AnyObject) {
 		self.dataViewController?.addRow(sender)
 	}
@@ -63,11 +68,18 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 			UIKeyCommand(input: "r", modifierFlags: .command, action: #selector(self.refreshData(_:)), discoverabilityTitle: "Refresh data".localized),
 		]
 
-		if isMutableDataset {
-			cmds.append(contentsOf: [
-				UIKeyCommand(input: "e", modifierFlags: .command, action: #selector(self.editRow(_:)), discoverabilityTitle: "Edit row".localized),
-				UIKeyCommand(input: "+", modifierFlags: .command, action: #selector(self.addRow(_:)), discoverabilityTitle: "Add row".localized)
-			])
+		if let md = self.currentStep?.mutableDataset {
+			if md.canPerformMutation(.delete) {
+				cmds.append(UIKeyCommand(input: "d", modifierFlags: .command, action: #selector(self.deleteRow(_:)), discoverabilityTitle: "Delete row".localized))
+			}
+
+			if md.canPerformMutation(.insert) {
+				cmds.append(UIKeyCommand(input: "n", modifierFlags: .command, action: #selector(self.addRow(_:)), discoverabilityTitle: "Add row".localized))
+			}
+
+			if md.canPerformMutation(.update) {
+				cmds.append(UIKeyCommand(input: "e", modifierFlags: .command, action: #selector(self.editRow(_:)), discoverabilityTitle: "Edit row".localized))
+			}
 		}
 
 		return cmds
@@ -177,8 +189,17 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 	private func updateToolbarItems() {
 		self.fullDataToggle?.image = UIImage(named: self.useFullData ? "BigIcon" : "SmallIcon")
 		self.configureToggle?.isEnabled = self.currentStep is QBEFormConfigurable || self.currentStep is QBEJoinStep
-		self.addButton?.isEnabled = self.isMutableDataset
-		self.editButton?.isEnabled = self.isMutableDataset
+
+		if let md = self.currentStep?.mutableDataset {
+			self.addButton?.isEnabled = md.canPerformMutation(.insert)
+			self.editButton?.isEnabled = md.canPerformMutation(.update)
+			self.deleteButton?.isEnabled = md.canPerformMutation(.delete)
+		}
+		else {
+			self.addButton?.isEnabled = false
+			self.editButton?.isEnabled = false
+			self.deleteButton?.isEnabled = false
+		}
 	}
 
 	private func updateView() {

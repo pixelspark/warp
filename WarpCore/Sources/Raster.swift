@@ -1138,7 +1138,7 @@ public class RasterMutableDataset: MutableDataset {
 		}
 
 		switch mutation {
-		case .truncate, .alter, .import, .update, .edit, .insert, .rename, .remove, .delete:
+		case .truncate, .alter, .import, .update, .insert, .rename, .delete:
 			return true
 
 		case .drop:
@@ -1192,15 +1192,6 @@ public class RasterMutableDataset: MutableDataset {
 			raster.addRows([values])
 			callback(.success())
 
-		case .edit(row: let row, column: let column, old: let old, new: let new):
-			if raster.indexOfColumnWithName(column) == nil {
-				callback(.failure("Column '\(column.name)' does not exist in raster and therefore cannot be updated"))
-				return
-			}
-
-			_ = raster.setValue(new, forColumn: column, inRow: row, ifMatches: old)
-			callback(.success())
-
 		case .update(key: let key, column: let column, old: let old, new: let new):
 			// Do all the specified columns exist?
 			if raster.indexOfColumnWithName(column) == nil {
@@ -1216,15 +1207,6 @@ public class RasterMutableDataset: MutableDataset {
 			}
 
 			raster.update(key, column: column, old: old, new: new)
-			callback(.success())
-
-		case .remove(rows: let rowNumbers):
-			let indexSet = NSMutableIndexSet()
-			for row in rowNumbers {
-				indexSet.add(row)
-			}
-
-			raster.removeRows(indexSet as IndexSet)
 			callback(.success())
 
 		case .delete(keys: let keys):

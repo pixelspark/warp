@@ -579,7 +579,7 @@ open class SQLMutableDataset: MutableDataset {
 						case .insert(row: let row):
 							self.performInsert(con, row: row, job: job, callback: callback)
 
-						case .edit(_,_,_,_), .rename(_), .remove(rows: _):
+						case .rename(_):
 							fatalError("Not supported")
 						}
 
@@ -595,7 +595,7 @@ open class SQLMutableDataset: MutableDataset {
 		case .truncate, .drop, .`import`, .insert, .update, .delete:
 			return true
 
-		case .edit, .rename, .remove:
+		case .rename:
 			return false
 
 		case .alter:

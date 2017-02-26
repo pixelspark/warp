@@ -939,78 +939,49 @@ internal enum QBEEditingMode {
 		// In editing mode, we perform the edit on the mutable data set
 		if let md = self.currentStep?.mutableDataset, case .editing(identifiers: let identifiers, editingRaster: let editingRaster) = self.editingMode {
 			let job = Job(.userInitiated)
-			md.data(job) { result in
-				// Does the data set support deleting by row number, or do we edit by key?
-				let removeMutation = DatasetMutation.remove(rows: rows)
-				if md.canPerformMutation(removeMutation.kind) {
-					job.async {
-						md.performMutation(removeMutation, job: job) { result in
-							switch result {
-							case .success:
-								/* The mutation has been performed on the source data, now perform it on our own
-								temporary raster as well. We could also call self.calculate() here, but that takes
-								a while, and we would lose our current scrolling position, etc. */
-								RasterMutableDataset(raster: editingRaster).performMutation(removeMutation, job: job) { result in
-									QBEChangeNotification.broadcastChange(self.chain!)
-									asyncMain {
-										self.presentRaster(editingRaster)
-									}
-								}
-								break
 
-							case .failure(let e):
+			if let ids = identifiers {
+				var keys: [[Column: Value]] = []
+				for rowNumber in rows {
+					// Create key
+					let row = editingRaster[rowNumber]
+					var key: [Column: Value] = [:]
+					for identifyingColumn in ids {
+						key[identifyingColumn] = row[identifyingColumn]
+					}
+					keys.append(key)
+				}
+
+				let deleteMutation = DatasetMutation.delete(keys: keys)
+
+				job.async {
+					md.performMutation(deleteMutation, job: job) { result in
+						switch result {
+						case .success():
+							/* The mutation has been performed on the source data, now perform it on our own
+							temporary raster as well. We could also call self.calculate() here, but that takes
+							a while, and we would lose our current scrolling position, etc. */
+							RasterMutableDataset(raster: editingRaster).performMutation(deleteMutation, job: job) { result in
+								QBEChangeNotification.broadcastChange(self.chain!)
 								asyncMain {
-									NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
+									self.presentRaster(editingRaster)
 								}
+							}
+							break
+
+						case .failure(let e):
+							asyncMain {
+								NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
 							}
 						}
 					}
 				}
-				else {
-					if let ids = identifiers {
-						var keys: [[Column: Value]] = []
-						for rowNumber in rows {
-							// Create key
-							let row = editingRaster[rowNumber]
-							var key: [Column: Value] = [:]
-							for identifyingColumn in ids {
-								key[identifyingColumn] = row[identifyingColumn]
-							}
-							keys.append(key)
-						}
-
-						let deleteMutation = DatasetMutation.delete(keys: keys)
-
-						job.async {
-							md.performMutation(deleteMutation, job: job) { result in
-								switch result {
-								case .success():
-									/* The mutation has been performed on the source data, now perform it on our own
-									temporary raster as well. We could also call self.calculate() here, but that takes
-									a while, and we would lose our current scrolling position, etc. */
-									RasterMutableDataset(raster: editingRaster).performMutation(deleteMutation, job: job) { result in
-										QBEChangeNotification.broadcastChange(self.chain!)
-										asyncMain {
-											self.presentRaster(editingRaster)
-										}
-									}
-									break
-
-								case .failure(let e):
-									asyncMain {
-										NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
-									}
-								}
-							}
-						}
-					}
-					else {
-						// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
-						// TODO: ask the user what key to use ("what property makes each row unique?")
-						asyncMain {
-							NSAlert.showSimpleAlert(errorMessage, infoText: "There is not enough information to be able to distinguish rows.".localized, style: .critical, window: self.view.window)
-						}
-					}
+			}
+			else {
+				// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
+				// TODO: ask the user what key to use ("what property makes each row unique?")
+				asyncMain {
+					NSAlert.showSimpleAlert(errorMessage, infoText: "There is not enough information to be able to distinguish rows.".localized, style: .critical, window: self.view.window)
 				}
 			}
 		}
@@ -1028,81 +999,31 @@ internal enum QBEEditingMode {
 			}
 
 			let job = Job(.userInitiated)
-			md.data(job) { result in
-				switch result {
-				case .success(let data):
-					data.columns(job) { result in
+
+			if let ids = identifiers {
+				// Create key
+				let row = editingRaster[inRow]
+				var key: [Column: Value] = [:]
+				for identifyingColumn in ids {
+					key[identifyingColumn] = row[identifyingColumn]
+				}
+
+				let mutation = DatasetMutation.update(key: key, column: editingRaster.columns[column], old: oldValue, new: toValue)
+				job.async {
+					md.performMutation(mutation, job: job) { result in
 						switch result {
-						case .success(let columns):
-							// Does the data set support editing by row number, or do we edit by key?
-							let editMutation = DatasetMutation.edit(row: inRow, column: columns[column], old: oldValue, new: toValue)
-							if md.canPerformMutation(editMutation.kind) {
-								job.async {
-									md.performMutation(editMutation, job: job) { result in
-										switch result {
-										case .success:
-											/* The mutation has been performed on the source data, now perform it on our own
-											temporary raster as well. We could also call self.calculate() here, but that takes
-											a while, and we would lose our current scrolling position, etc. */
-												RasterMutableDataset(raster: editingRaster).performMutation(editMutation, job: job) { result in
-													QBEChangeNotification.broadcastChange(self.chain!)
+						case .success():
+							/* The mutation has been performed on the source data, now perform it on our own
+							temporary raster as well. We could also call self.calculate() here, but that takes
+							a while, and we would lose our current scrolling position, etc. */
+							RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
+								QBEChangeNotification.broadcastChange(self.chain!)
 
-													asyncMain {
-														self.presentRaster(editingRaster)
-													}
-												}
-											break
-
-										case .failure(let e):
-											asyncMain {
-												NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
-											}
-										}
-									}
+								asyncMain {
+									self.presentRaster(editingRaster)
 								}
 							}
-							else {
-								if let ids = identifiers {
-									// Create key
-									let row = editingRaster[inRow]
-									var key: [Column: Value] = [:]
-									for identifyingColumn in ids {
-										key[identifyingColumn] = row[identifyingColumn]
-									}
-
-									let mutation = DatasetMutation.update(key: key, column: editingRaster.columns[column], old: oldValue, new: toValue)
-									job.async {
-										md.performMutation(mutation, job: job) { result in
-											switch result {
-											case .success():
-												/* The mutation has been performed on the source data, now perform it on our own
-												temporary raster as well. We could also call self.calculate() here, but that takes
-												a while, and we would lose our current scrolling position, etc. */
-												RasterMutableDataset(raster: editingRaster).performMutation(editMutation, job: job) { result in
-													QBEChangeNotification.broadcastChange(self.chain!)
-
-													asyncMain {
-														self.presentRaster(editingRaster)
-													}
-												}
-												break
-
-											case .failure(let e):
-												asyncMain {
-													NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
-												}
-											}
-										}
-									}
-								}
-								else {
-									// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
-									// TODO: ask the user what key to use ("what property makes each row unique?")
-									asyncMain {
-										NSAlert.showSimpleAlert(errorMessage, infoText: NSLocalizedString("There is not enough information to be able to distinguish rows.", comment: ""), style: .critical, window: self.view.window)
-									}
-								}
-							}
+							break
 
 						case .failure(let e):
 							asyncMain {
@@ -1110,13 +1031,14 @@ internal enum QBEEditingMode {
 							}
 						}
 					}
-
-				case .failure(let e):
-					asyncMain {
-						NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
-					}
 				}
-
+			}
+			else {
+				// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
+				// TODO: ask the user what key to use ("what property makes each row unique?")
+				asyncMain {
+					NSAlert.showSimpleAlert(errorMessage, infoText: NSLocalizedString("There is not enough information to be able to distinguish rows.", comment: ""), style: .critical, window: self.view.window)
+				}
 			}
 		}
 	}
@@ -2137,10 +2059,6 @@ internal enum QBEEditingMode {
 						case .enablingEditing:
 							if let ids = schema.identifier, !forceCustomKeySelection {
 								self.startEditingWithIdentifier(ids, callback: callback)
-							}
-							else if !forceCustomKeySelection && md.canPerformMutation(.edit) {
-								// This data set does not have key columns, but this isn't an issue, as it can be edited by row number
-								self.startEditingWithIdentifier([], callback: callback)
 							}
 							else {
 								// Cannot start editing right now

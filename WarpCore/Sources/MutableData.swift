@@ -127,13 +127,6 @@ public enum DatasetMutation {
 	indicated column to the `new` value if it matches the `old` value. */
 	case update(key: [Column: Value], column: Column, old: Value, new: Value)
 
-	/** Set the value in the indicated `column` and the `row` (by index) to the `new` value if the current value matches
-	the `old` value. */
-	case edit(row: Int, column: Column, old: Value, new: Value)
-
-	/** Removes the row at the given indices. */
-	case remove(rows: [Int])
-
 	/** Removes the rows identified by the given keys. */
 	case delete(keys: [[Column: Value]])
 
@@ -144,10 +137,8 @@ public enum DatasetMutation {
 		case .insert(row: _): return .insert
 		case .import(data: _, withMapping: _): return .`import`
 		case .alter(_): return .alter
-		case .edit(row: _, column: _, old: _, new: _): return .edit
 		case .update(key: _, column: _, old: _, new: _): return .update
 		case .rename(_): return .rename
-		case .remove(rows: _): return .remove
 		case .delete(keys: _): return .delete
 		}
 	}
@@ -161,8 +152,6 @@ public enum DatasetMutationKind {
 	case alter
 	case rename
 	case update
-	case edit
-	case remove
 	case delete
 }
 

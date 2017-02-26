@@ -87,9 +87,7 @@ class QBESortStep: QBEStep {
 	}
 
 	override var mutableDataset: MutableDataset? {
-		if let md = self.previous?.mutableDataset {
-			return QBEMutableDatasetWithRowsShuffled(original: md)
-		}
-		return nil
+		// This step just shuffles rows from the previous data set, hence all mutations are supported
+		return self.previous?.mutableDataset
 	}
 }

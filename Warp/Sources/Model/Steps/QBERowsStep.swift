@@ -12,19 +12,6 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import Foundation
 import WarpCore
 
-/** A mutable data proxy that prevents edits to the data set that assume a certain order or position of rows. */
-class QBEMutableDatasetWithRowsShuffled: MutableProxyDataset {
-	override func canPerformMutation(_ mutation: DatasetMutationKind) -> Bool {
-		switch mutation {
-		case .remove, .edit:
-			return false
-
-		default:
-			return true
-		}
-	}
-}
-
 class QBERowsStep: NSObject {
 	class func suggest(_ selectRows: IndexSet, columns: Set<Column>, inRaster: Raster, fromStep: QBEStep?, select: Bool) -> [QBEStep] {
 		var suggestions: [QBEStep] = []
@@ -158,10 +145,8 @@ class QBEFilterStep: QBEStep {
 	}
 
 	override var mutableDataset: MutableDataset? {
-		if let md = self.previous?.mutableDataset {
-			return QBEMutableDatasetWithRowsShuffled(original: md)
-		}
-		return nil
+		// This step just shuffles rows from the previous data set, hence all mutations are supported
+		return self.previous?.mutableDataset
 	}
 }
 
@@ -309,10 +294,8 @@ class QBEFilterSetStep: QBEStep {
 	}
 
 	override var mutableDataset: MutableDataset? {
-		if let md = self.previous?.mutableDataset {
-			return QBEMutableDatasetWithRowsShuffled(original: md)
-		}
-		return nil
+		// This step just shuffles rows from the previous data set, hence all mutations are supported
+		return self.previous?.mutableDataset
 	}
 }
 
@@ -363,10 +346,8 @@ class QBELimitStep: QBEStep {
 	}
 
 	override var mutableDataset: MutableDataset? {
-		if let md = self.previous?.mutableDataset {
-			return QBEMutableDatasetWithRowsShuffled(original: md)
-		}
-		return nil
+		// This step just shuffles rows from the previous data set, hence all mutations are supported
+		return self.previous?.mutableDataset
 	}
 }
 
@@ -409,10 +390,8 @@ class QBEOffsetStep: QBEStep {
 	}
 
 	override var mutableDataset: MutableDataset? {
-		if let md = self.previous?.mutableDataset {
-			return QBEMutableDatasetWithRowsShuffled(original: md)
-		}
-		return nil
+		// This step just shuffles rows from the previous data set, hence all mutations are supported
+		return self.previous?.mutableDataset
 	}
 }
 
@@ -456,10 +435,8 @@ class QBERandomStep: QBELimitStep {
 	}
 
 	override var mutableDataset: MutableDataset? {
-		if let md = self.previous?.mutableDataset {
-			return QBEMutableDatasetWithRowsShuffled(original: md)
-		}
-		return nil
+		// This step just shuffles rows from the previous data set, hence all mutations are supported
+		return self.previous?.mutableDataset
 	}
 }
 

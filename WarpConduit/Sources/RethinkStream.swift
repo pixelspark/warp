@@ -728,9 +728,6 @@ public class RethinkMutableDataset: MutableDataset {
 		switch mutation {
 		case .truncate, .drop, .import, .alter, .update, .insert, .delete, .rename:
 			return true
-
-		case .edit, .remove:
-			return false
 		}
 	}
 
@@ -837,9 +834,6 @@ public class RethinkMutableDataset: MutableDataset {
 					q2 = R.db(self.databaseName).table(self.tableName).replace({ (row: ReQueryValue) -> ReQuery in
 						return row.without(fields: remove.map { return R.expr($0) })
 					})
-
-				case .edit(_,_,_,_), .remove(rows: _):
-					fatalError("Not supported")
 				}
 
 				q.run(connection, callback: { (response) -> () in

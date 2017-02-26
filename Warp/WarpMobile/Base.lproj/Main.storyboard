@@ -305,6 +305,12 @@
                                             <action selector="addRow:" destination="hCS-Fj-zXe" id="QSB-97-BwV"/>
                                         </connections>
                                     </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="qLT-li-tlk"/>
+                                    <barButtonItem systemItem="trash" id="mRl-gL-iI7">
+                                        <connections>
+                                            <action selector="deleteRow:" destination="hCS-Fj-zXe" id="Pa8-Hr-6Wh"/>
+                                        </connections>
+                                    </barButtonItem>
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="1sN-hX-tiU"/>
                                     <barButtonItem systemItem="compose" id="ijX-Eu-mW1">
                                         <connections>
@@ -346,6 +352,7 @@
                     <connections>
                         <outlet property="addButton" destination="Gbe-80-k4Z" id="arm-la-ERS"/>
                         <outlet property="configureToggle" destination="YgT-VI-PST" id="TTC-U8-pp7"/>
+                        <outlet property="deleteButton" destination="mRl-gL-iI7" id="HyF-Qk-QzE"/>
                         <outlet property="editButton" destination="ijX-Eu-mW1" id="5lj-6F-0Ut"/>
                         <outlet property="fullDataToggle" destination="lAC-Ul-lJ8" id="TGe-Kr-pQ5"/>
                     </connections>

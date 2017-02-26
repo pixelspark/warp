@@ -56,4 +56,9 @@ class QBESearchStep: QBEStep {
 			}
 		}
 	}
+
+	override var mutableDataset: MutableDataset? {
+		// This step just shuffles rows from the previous data set, hence all mutations are supported
+		return self.previous?.mutableDataset
+	}
 }
