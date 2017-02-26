@@ -185,10 +185,10 @@ protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
 		let keyString = self.key as String
 		if !keyString.isEmpty {
 			if value is NSArray, let idx = Value.string(keyString).intValue {
-				return Call(arguments: [input, Literal(.int(idx))], type: .Nth)
+				return Call(arguments: [input, Literal(.int(idx))], type: .nth)
 			}
 			else {
-				return Call(arguments: [input, Literal(.string(keyString))], type: .ValueForKey)
+				return Call(arguments: [input, Literal(.string(keyString))], type: .valueForKey)
 			}
 		}
 		return input

@@ -127,7 +127,7 @@ public class Formula: Parser {
 	
 	private func pushNegate() {
 		let a = stack.pop()
-		stack.push(Call(arguments: [a], type: Function.Negate));
+		stack.push(Call(arguments: [a], type: Function.negate));
 	}
 	
 	private func pushSibling() {
@@ -161,13 +161,13 @@ public class Formula: Parser {
 	private func pushIndex() {
 		let a = stack.pop()
 		let b = stack.pop()
-		stack.push(Call(arguments: [b, a], type: .Nth))
+		stack.push(Call(arguments: [b, a], type: .nth))
 	}
 
 	private func pushValueForKey() {
 		let a = stack.pop()
 		let b = stack.pop()
-		stack.push(Call(arguments: [b, a], type: .ValueForKey))
+		stack.push(Call(arguments: [b, a], type: .valueForKey))
 	}
 	
 	private func pushGreater() {

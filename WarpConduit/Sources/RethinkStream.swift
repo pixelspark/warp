@@ -286,14 +286,14 @@ private class RethinkExpression {
 			let f = unary.arguments.first != nil ? expressionToQuery(unary.arguments.first!, prior: prior) : nil
 
 			switch unary.type {
-			case .UUID: return R.uuid()
-			case .Negate: return f?.mul(R.expr(-1))
-			case .Uppercase: return f?.coerceTo(.string).upcase()
-			case .Lowercase: return f?.coerceTo(.string).downcase()
-			case .Identity: return f
-			case .Floor: return f?.floor()
-			case .Ceiling: return f?.ceil()
-			case .Round:
+			case .uuid: return R.uuid()
+			case .negate: return f?.mul(R.expr(-1))
+			case .uppercase: return f?.coerceTo(.string).upcase()
+			case .lowercase: return f?.coerceTo(.string).downcase()
+			case .identity: return f
+			case .floor: return f?.floor()
+			case .ceiling: return f?.ceil()
+			case .round:
 				if unary.arguments.count == 1 {
 					return f?.round()
 				}
@@ -302,7 +302,7 @@ private class RethinkExpression {
 				issues with floating point precision), but unfortunately ReQL does not even provide the pow function. */
 				return nil
 
-			case .If:
+			case .`if`:
 				// Need to use f.eq(true) because branch(...) will consider anything else than false or null to be ' true'
 				if let condition = f?.eq(R.expr(true)),
 					let trueAction = expressionToQuery(unary.arguments[1], prior: prior),
@@ -311,7 +311,7 @@ private class RethinkExpression {
 				}
 				return nil
 
-			case .And:
+			case .and:
 				if var first = f {
 					for argIndex in 1..<unary.arguments.count {
 						if let second = expressionToQuery(unary.arguments[argIndex], prior: prior) {
@@ -325,7 +325,7 @@ private class RethinkExpression {
 				}
 				return R.expr(true) // AND() without arguments should return true (see Function)
 
-			case .Or:
+			case .or:
 				if var first = f {
 					for argIndex in 1..<unary.arguments.count {
 						if let second = expressionToQuery(unary.arguments[argIndex], prior: prior) {
@@ -339,13 +339,13 @@ private class RethinkExpression {
 				}
 				return R.expr(false) // OR() without arguments should return false (see Function)
 
-			case .Xor:
+			case .xor:
 				if let first = f, let second = expressionToQuery(unary.arguments[1], prior: prior) {
 					return first.xor(second)
 				}
 				return nil
 
-			case .Concat:
+			case .concat:
 				if var first = f?.coerceTo(.string) {
 					for argIndex in 1..<unary.arguments.count {
 						if let second = expressionToQuery(unary.arguments[argIndex], prior: prior) {
@@ -359,23 +359,23 @@ private class RethinkExpression {
 				}
 				return nil
 
-			case .Random:
+			case .random:
 				return R.random()
 
-			case .RandomBetween:
+			case .randomBetween:
 				if let lower = f, let upper = expressionToQuery(unary.arguments[1], prior: prior) {
 					/* RandomBetween should generate integers between lower and upper, inclusive. The ReQL random function
 					generates between [lower, upper). Also the arguments are forced to an integer (rounding down). */
 					return R.random(lower.floor(), upper.floor().add(1), float: false)
 				}
 
-			case .Nth:
+			case .nth:
 				if let array = f, let index = expressionToQuery(unary.arguments[1], prior: prior) {
 					return array[index.coerceTo(.number)]
 				}
 				return nil
 
-			case .ValueForKey:
+			case .valueForKey:
 				if let array = f, let index = expressionToQuery(unary.arguments[1], prior: prior) {
 					return array[index.coerceTo(.string)]
 				}

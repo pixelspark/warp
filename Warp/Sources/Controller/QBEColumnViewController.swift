@@ -80,13 +80,13 @@ class QBEColumnViewController: NSViewController {
 
 					// Todo fetch descriptives
 					let descriptiveDataset = d.aggregate([:], values: [
-						"mu": Aggregator(map: Sibling(cn), reduce: .Average),
-						"s": Aggregator(map: Sibling(cn), reduce: .StandardDeviationSample),
-						"mn": Aggregator(map: Sibling(cn), reduce: .Min),
-						"mx": Aggregator(map: Sibling(cn), reduce: .Max),
-						"c": Aggregator(map: Sibling(cn), reduce: .CountAll),
-						"cd": Aggregator(map: Sibling(cn), reduce: .CountDistinct),
-						"mt": Aggregator(map: Call(arguments: [Call(arguments:[Sibling(cn)], type: Function.IsEmpty), Literal(Value(1)), Literal(Value(0))], type: Function.If), reduce: .Sum)
+						"mu": Aggregator(map: Sibling(cn), reduce: .average),
+						"s": Aggregator(map: Sibling(cn), reduce: .standardDeviationSample),
+						"mn": Aggregator(map: Sibling(cn), reduce: .min),
+						"mx": Aggregator(map: Sibling(cn), reduce: .max),
+						"c": Aggregator(map: Sibling(cn), reduce: .countAll),
+						"cd": Aggregator(map: Sibling(cn), reduce: .countDistinct),
+						"mt": Aggregator(map: Call(arguments: [Call(arguments:[Sibling(cn)], type: Function.isEmpty), Literal(Value(1)), Literal(Value(0))], type: Function.`if`), reduce: .sum)
 					])
 
 					descriptiveDataset.raster(self.descriptivesJob!) { [weak self] result in

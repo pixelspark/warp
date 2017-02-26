@@ -733,7 +733,7 @@ private class JoinTransformer: Transformer {
 							for row in rows {
 								foreignFilters.append(joinExpression.expressionForForeignFiltering(Row(row, columns: leftColumnNames)))
 							}
-							let foreignFilter = Call(arguments: foreignFilters, type: Function.Or)
+							let foreignFilter = Call(arguments: foreignFilters, type: Function.or)
 
 							// Find relevant rows from the foreign data set
 							foreignDataset.filter(foreignFilter).raster(job, callback: { (foreignRasterFallible) -> () in

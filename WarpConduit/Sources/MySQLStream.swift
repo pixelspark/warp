@@ -24,7 +24,7 @@ private final class QBEMySQLDialect: StandardSQLDialect {
 	override func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		let value = args.joined(separator: ", ")
 
-		if type == Function.Random {
+		if type == Function.random {
 			return "RAND(\(value))"
 		}
 		return super.unaryToSQL(type, args: args)
@@ -32,7 +32,7 @@ private final class QBEMySQLDialect: StandardSQLDialect {
 
 	fileprivate override func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
 		// For Function.Count, we should count numeric values only. In MySQL this can be done using REGEXP
-		if aggregation.reduce == Function.Count {
+		if aggregation.reduce == Function.count {
 			if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
 				return "SUM(CASE WHEN (\(expressionSQL) REGEXP '^[[:digit:]]+$') THEN 1 ELSE 0 END)"
 			}

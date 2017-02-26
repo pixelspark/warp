@@ -454,7 +454,7 @@ internal enum QBEEditingMode {
 		
 		self.viewFilters.removeAll()
 		if args.count > 0 {
-			suggestSteps([QBEFilterStep(previous: currentStep, condition: args.count > 1 ? Call(arguments: args, type: Function.And) : args[0])])
+			suggestSteps([QBEFilterStep(previous: currentStep, condition: args.count > 1 ? Call(arguments: args, type: Function.and) : args[0])])
 		}
 	}
 	
@@ -1845,7 +1845,7 @@ internal enum QBEEditingMode {
 						}
 					}
 					step.rows = selectedColumnNames
-					step.aggregates.append(Aggregation(map: Literal(Value(1)), reduce: Function.CountAll, targetColumn: Column("Count".localized)))
+					step.aggregates.append(Aggregation(map: Literal(Value(1)), reduce: Function.countAll, targetColumn: Column("Count".localized)))
 					asyncMain {
 						self.suggestSteps([step])
 					}
@@ -2172,31 +2172,31 @@ internal enum QBEEditingMode {
 	}
 
 	@IBAction func quickFixTrimSpaces(_ sender: NSObject) {
-		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .Trim))
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .trim))
 	}
 
 	@IBAction func quickFixUppercase(_ sender: NSObject) {
-		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .Uppercase))
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .uppercase))
 	}
 
 	@IBAction func quickFixLowercase(_ sender: NSObject) {
-		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .Lowercase))
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .lowercase))
 	}
 
 	@IBAction func quickFixCapitalize(_ sender: NSObject) {
-		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .Capitalize))
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .capitalize))
 	}
 
 	@IBAction func quickFixReadNumberDecimalPoint(_ sender: NSObject) {
-		self.quickFixColumn(expression: Call(arguments: [Identity(), Literal(.string(".")), Literal(.string(","))], type: .ParseNumber))
+		self.quickFixColumn(expression: Call(arguments: [Identity(), Literal(.string(".")), Literal(.string(","))], type: .parseNumber))
 	}
 
 	@IBAction func quickFixReadNumberDecimalComma(_ sender: NSObject) {
-		self.quickFixColumn(expression: Call(arguments: [Identity(), Literal(.string(",")), Literal(.string("."))], type: .ParseNumber))
+		self.quickFixColumn(expression: Call(arguments: [Identity(), Literal(.string(",")), Literal(.string("."))], type: .parseNumber))
 	}
 
 	@IBAction func quickFixJSON(_ sender: NSObject) {
-		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .JSONDecode))
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .jsonDecode))
 	}
 
 	private func quickFixColumn(expression: Expression) {
@@ -2248,7 +2248,7 @@ internal enum QBEEditingMode {
 
 	func jsonViewController(_ vc: QBEJSONViewController, requestExtraction of: Expression, to toColumn: Column) {
 		if let column = self.dataViewController?.firstSelectedColumn {
-			let source = Call(arguments: [Sibling(column)], type: .JSONDecode)
+			let source = Call(arguments: [Sibling(column)], type: .jsonDecode)
 			let expression = of.expressionReplacingIdentityReferencesWith(source)
 			let step = QBECalculateStep(previous: nil, targetColumn: toColumn, function: expression)
 			self.suggestSteps([step])

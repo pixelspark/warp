@@ -268,7 +268,7 @@ private extension Dataset {
 	func histogram(_ expression: Expression, job: Job, callback: @escaping (Fallible<[Value: Int]>) -> ()) {
 		let keyColumn = Column("k")
 		let countColumn = Column("n")
-		let d = self.aggregate([keyColumn: expression], values: [countColumn: Aggregator(map: expression, reduce: .CountAll)])
+		let d = self.aggregate([keyColumn: expression], values: [countColumn: Aggregator(map: expression, reduce: .countAll)])
 		d.raster(job) { result in
 			switch result {
 			case .success(let r):

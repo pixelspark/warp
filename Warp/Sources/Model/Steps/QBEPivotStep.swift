@@ -96,7 +96,7 @@ class QBEPivotStep: QBEStep {
 		// The simple case is: N rows, N columns, one aggregation where them mapper is just a column
 		if aggregates.count == 1 {
 			if let aggregation = aggregates.first, let source = aggregation.aggregator.map as? Sibling {
-				let aggregatorFunctions: [Function] = [.Sum, .Count, .Average, .StandardDeviationSample, .StandardDeviationPopulation, .Concat, .Count, .CountAll]
+				let aggregatorFunctions: [Function] = [.sum, .count, .average, .standardDeviationSample, .standardDeviationPopulation, .concat, .count, .countAll]
 				let reducerTypes = aggregatorFunctions.mapDictionary { fn in
 					return (fn.rawValue, fn.localizedName)
 				}
@@ -192,7 +192,7 @@ class QBEPivotStep: QBEStep {
 		let sameValues = aggregateRows.count > 1 ? raster.commonalitiesOf(aggregateRows, inColumns: groupColumnCandidates) : [:]
 		
 		// What are our aggregate functions? Select the most likely ones (user can always change)
-		let aggregateFunctions = [Function.Sum, Function.Count, Function.Average]
+		let aggregateFunctions = [Function.sum, Function.count, Function.average]
 		
 		// Generate a suggestion for each type of aggregation we have
 		var suggestions: [QBEStep] = []

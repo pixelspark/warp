@@ -1073,7 +1073,7 @@ private class QBEDropColumnsAction: NSObject {
 				let histogramStep = QBEPivotStep()
 				histogramStep.previous = cloneStep
 				histogramStep.rows = columns
-				histogramStep.aggregates = [Aggregation(map: Sibling(columns.first!), reduce: .CountAll, targetColumn: countColumn)]
+				histogramStep.aggregates = [Aggregation(map: Sibling(columns.first!), reduce: .countAll, targetColumn: countColumn)]
 				let sortStep = QBESortStep(previous: histogramStep, orders: [Order(expression: Sibling(countColumn), ascending: false, numeric: true)])
 
 				let histogramChain = QBEChain(head: sortStep)

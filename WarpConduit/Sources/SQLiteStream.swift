@@ -481,7 +481,7 @@ private class SQLiteDialect: StandardSQLDialect {
 	override func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		let result: String?
 		switch type {
-		case .Concat:
+		case .concat:
 			result = args.joined(separator: " || ")
 
 		default:
@@ -500,12 +500,12 @@ private class SQLiteDialect: StandardSQLDialect {
 
 	override func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
 		switch aggregation.reduce {
-		case .StandardDeviationPopulation, .StandardDeviationSample, .VarianceSample, .VariancePopulation:
+		case .standardDeviationPopulation, .standardDeviationSample, .varianceSample, .variancePopulation:
 			// These aren't supported in SQLite
 			// TODO: implement as UDF
 			return nil
 
-		case .Count:
+		case .count:
 			// COUNT in SQLite counts everything, we want just the numeric values (Function.CountAll counts everything)
 			if let expressionSQL = self.expressionToSQL(aggregation.map, alias: alias) {
 				return "SUM(CASE WHEN TYPEOF(\(expressionSQL)) IN('integer', 'real') THEN 1 ELSE 0 END)"

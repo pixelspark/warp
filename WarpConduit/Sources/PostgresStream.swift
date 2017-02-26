@@ -29,21 +29,21 @@ private class PostgresDialect: StandardSQLDialect {
 
 	fileprivate override func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		switch type {
-		case .Random: return "RANDOM()"
+		case .random: return "RANDOM()"
 
 		/* Postgres does not perform implicit casting of function arguments, but we generally accept this. Therefore the
 		cases below add explicit casts to certain calls. */
-		case .Left: return "SUBSTR((\(args[0]))::string, 1, (\(args[1]))::integer)"
-		case .Right: return "RIGHT((\(args[0]))::string, LENGTH((\(args[0]))::string)-(\(args[1]))::integer)"
-		case .Mid: return "SUBSTR((\(args[0]))::string, (\(args[1]))::integer, (\(args[2]))::integer)"
-		case .Nth: return "\(args[0])->(\(args[1])::integer)"
-		case .ValueForKey: return "\(args[0])->(\(args[1])::text)"
+		case .left: return "SUBSTR((\(args[0]))::string, 1, (\(args[1]))::integer)"
+		case .right: return "RIGHT((\(args[0]))::string, LENGTH((\(args[0]))::string)-(\(args[1]))::integer)"
+		case .mid: return "SUBSTR((\(args[0]))::string, (\(args[1]))::integer, (\(args[2]))::integer)"
+		case .nth: return "\(args[0])->(\(args[1])::integer)"
+		case .valueForKey: return "\(args[0])->(\(args[1])::text)"
 
-		case .Lowercase, .Uppercase, .Length, .Trim:
+		case .lowercase, .uppercase, .length, .trim:
 			// These functions expect their argument to be a string
 			return super.unaryToSQL(type, args: ["(\(args[0]))::text"])
 
-		case .Substitute:
+		case .substitute:
 			return super.unaryToSQL(type, args: ["(\(args[0]))::text", "(\(args[1]))::text", "(\(args[2]))::text"])
 
 		default:
@@ -55,16 +55,16 @@ private class PostgresDialect: StandardSQLDialect {
 		// For Function.Count, we should count numeric values only. In PostgreSQL this can be done using REGEXP
 		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
 			switch aggregation.reduce {
-			case .Count: return "SUM(CASE WHEN \(expressionSQL) ~* '^[[:digit:]]+$' THEN 1 ELSE 0 END)"
-			case .Sum: return "SUM((\(expressionSQL))::float)"
+			case .count: return "SUM(CASE WHEN \(expressionSQL) ~* '^[[:digit:]]+$' THEN 1 ELSE 0 END)"
+			case .sum: return "SUM((\(expressionSQL))::float)"
 
-			case .Average: return "AVG((\(expressionSQL))::float)"
-			case .StandardDeviationPopulation: return "STDDEV_POP((\(expressionSQL))::float)"
-			case .StandardDeviationSample: return "STDDEV_SAMP((\(expressionSQL))::float)"
-			case .VariancePopulation: return "VAR_POP((\(expressionSQL))::float)"
-			case .VarianceSample: return "VAR_SAMP((\(expressionSQL))::float)"
-			case .Concat: return "STRING_AGG(\(expressionSQL),'')"
-			case .Pack:
+			case .average: return "AVG((\(expressionSQL))::float)"
+			case .standardDeviationPopulation: return "STDDEV_POP((\(expressionSQL))::float)"
+			case .standardDeviationSample: return "STDDEV_SAMP((\(expressionSQL))::float)"
+			case .variancePopulation: return "VAR_POP((\(expressionSQL))::float)"
+			case .varianceSample: return "VAR_SAMP((\(expressionSQL))::float)"
+			case .concat: return "STRING_AGG(\(expressionSQL),'')"
+			case .pack:
 				return "STRING_AGG(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.escape)),\(literalString(Pack.escapeEscape))),\(literalString(Pack.separator)),\(literalString(Pack.separatorEscape))), \(literalString(Pack.separator)))"
 
 			default:

@@ -185,16 +185,16 @@ private class QBENeuronAllocator {
 
 			let v: QBENeuronAllocation
 			if output {
-				if let min = descriptive[.Min]!.intValue, let max = descriptive[.Max]!.intValue, max > min {
-					if (max - min) >= descriptive[.CountDistinct]!.intValue! &&
-						descriptive[.CountDistinct]!.intValue! <= remainingCount &&
-						descriptive[.CountAll]!.intValue! > 2 * descriptive[.CountDistinct]!.intValue! {
+				if let min = descriptive[.min]!.intValue, let max = descriptive[.max]!.intValue, max > min {
+					if (max - min) >= descriptive[.countDistinct]!.intValue! &&
+						descriptive[.countDistinct]!.intValue! <= remainingCount &&
+						descriptive[.countAll]!.intValue! > 2 * descriptive[.countDistinct]!.intValue! {
 						v = QBEDummyNeuronAllocation(values: Array(min..<max).map { Value($0) })
 					}
 					else {
 						v = QBELinearNeuronAllocation(
-							min: descriptive[.Min]!.doubleValue!,
-							max: descriptive[.Max]!.doubleValue!
+							min: descriptive[.min]!.doubleValue!,
+							max: descriptive[.max]!.doubleValue!
 						)
 					}
 				}
@@ -202,8 +202,8 @@ private class QBENeuronAllocator {
 					// Outputs are between 0..1, so we need to use a linear mapping
 					// TODO: perhaps base min and max on mu ± 2*sigma to reject outliers
 					v = QBELinearNeuronAllocation(
-						min: descriptive[.Min]!.doubleValue!,
-						max: descriptive[.Max]!.doubleValue!
+						min: descriptive[.min]!.doubleValue!,
+						max: descriptive[.max]!.doubleValue!
 					)
 				}
 
@@ -212,8 +212,8 @@ private class QBENeuronAllocator {
 			}
 			else {
 				let v = QBENormalizedNeuronAllocation(
-					mean: descriptive[.Average]!.doubleValue!,
-					standardDeviation: descriptive[.StandardDeviationPopulation]!.doubleValue!
+					mean: descriptive[.average]!.doubleValue!,
+					standardDeviation: descriptive[.standardDeviationPopulation]!.doubleValue!
 				)
 				allocatedCount += v.count
 				return v
@@ -254,7 +254,7 @@ private class QBEClassifierModel {
 	let complexity: Double
 	let trainingDescriptives: QBEDatasetDescriptives
 
-	static let requiredDescriptiveTypes: [Function] = [.Average, .StandardDeviationPopulation, .Min, .Max, .CountAll, .CountDistinct]
+	static let requiredDescriptiveTypes: [Function] = [.average, .standardDeviationPopulation, .min, .max, .countAll, .countDistinct]
 
 	private let model: FFNN
 	private let mutex = Mutex()
@@ -279,10 +279,10 @@ private class QBEClassifierModel {
 		// Check if all descriptives are present
 		outputs.union(with: inputs).forEach { column in
 			assert(descriptives[column] != nil, "classifier model instantiated without descritives for column \(column.name)")
-			assert(descriptives[column]![.Average] != nil, "descriptives for \(column.name) are missing average")
-			assert(descriptives[column]![.StandardDeviationPopulation] != nil, "descriptives for \(column.name) are missing average")
-			assert(descriptives[column]![.Min] != nil, "descriptives for \(column.name) are missing average")
-			assert(descriptives[column]![.Max] != nil, "descriptives for \(column.name) are missing average")
+			assert(descriptives[column]![.average] != nil, "descriptives for \(column.name) are missing average")
+			assert(descriptives[column]![.standardDeviationPopulation] != nil, "descriptives for \(column.name) are missing average")
+			assert(descriptives[column]![.min] != nil, "descriptives for \(column.name) are missing average")
+			assert(descriptives[column]![.max] != nil, "descriptives for \(column.name) are missing average")
 		}
 
 		self.trainingDescriptives = descriptives

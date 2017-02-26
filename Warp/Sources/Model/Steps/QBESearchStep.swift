@@ -47,7 +47,7 @@ class QBESearchStep: QBEStep {
 				switch result {
 				case .success(let cols):
 					let exprs = cols.map { return Comparison(first: Literal(.string(query)), second: Sibling($0), type: .containsString) }
-					let searchExpression = Call(arguments: exprs, type: .Or)
+					let searchExpression = Call(arguments: exprs, type: .or)
 					callback(.success(data.filter(searchExpression)))
 
 				case .failure(let e):

@@ -51,12 +51,12 @@ class QBERowsStep: NSObject {
 				conditions.append(Comparison(first: Literal(value), second: Sibling(column), type: Binary.equal))
 			}
 			
-			if let fullCondition = conditions.count > 1 ? Call(arguments: conditions, type: Function.And) : conditions.first {
+			if let fullCondition = conditions.count > 1 ? Call(arguments: conditions, type: Function.and) : conditions.first {
 				if select {
 					suggestions.append(QBEFilterStep(previous: fromStep, condition: fullCondition))
 				}
 				else {
-					suggestions.append(QBEFilterStep(previous: fromStep, condition: Call(arguments: [fullCondition], type: Function.Not)))
+					suggestions.append(QBEFilterStep(previous: fromStep, condition: Call(arguments: [fullCondition], type: Function.not)))
 				}
 			}
 		}
@@ -124,13 +124,13 @@ class QBEFilterStep: QBEStep {
 			// This filter step can be AND'ed with the previous
 			let combinedCondition: Expression
 
-			if let rootAnd = p.condition as? Call, rootAnd.type == Function.And {
+			if let rootAnd = p.condition as? Call, rootAnd.type == Function.and {
 				let args: [Expression] = rootAnd.arguments + [self.condition]
-				combinedCondition = Call(arguments: args, type: Function.And)
+				combinedCondition = Call(arguments: args, type: Function.and)
 			}
 			else {
 				let args: [Expression] = [p.condition, self.condition]
-				combinedCondition = Call(arguments: args, type: Function.And)
+				combinedCondition = Call(arguments: args, type: Function.and)
 			}
 			
 			return QBEStepMerge.possible(QBEFilterStep(previous: nil, condition: combinedCondition))
@@ -275,7 +275,7 @@ class QBEFilterSetStep: QBEStep {
 						if let columnFilter = self.filterSet[column] {
 							var filterExpression = columnFilter.expression.expressionReplacingIdentityReferencesWith(Sibling(column))
 							if self.inverse {
-								filterExpression = Call(arguments: [filterExpression], type: .Not)
+								filterExpression = Call(arguments: [filterExpression], type: .not)
 							}
 							filteredDataset = filteredDataset.filter(filterExpression)
 						}

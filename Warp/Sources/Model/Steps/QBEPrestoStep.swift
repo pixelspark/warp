@@ -16,7 +16,7 @@ import WarpCore
 private class QBEPrestoSQLDialect: StandardSQLDialect {
 	override func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		switch type {
-		case .Concat:
+		case .concat:
 			/** Presto doesn't support CONCAT'ing more than two arguments. Therefore, we need to nest them. */
 			if args.count == 1 {
 				return args.first!

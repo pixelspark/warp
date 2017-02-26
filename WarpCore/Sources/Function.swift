@@ -28,104 +28,104 @@ each have a unique identifier (used for serializing), display names (which are l
 which number of arguments is allowed) and an implementation. Functions may also be implemented in other ways in other
 ways (e.g. by compilation to SQL). Functions that have 'any' arity can be considered to be aggregation functions. */
 public enum Function: String {
-	case Uppercase = "upper"
-	case Lowercase = "lower"
-	case Negate = "negate"
-	case Identity = "identity"
-	case Absolute = "abs"
-	case And = "and"
-	case Or = "or"
-	case Xor = "xor"
-	case If = "if"
-	case Concat = "concat"
-	case Cos = "cos"
-	case Sin = "sin"
-	case Tan = "tan"
-	case Cosh = "cosh"
-	case Sinh = "sinh"
-	case Tanh = "tanh"
-	case Acos = "acos"
-	case Asin = "asin"
-	case Atan = "atan"
-	case Sqrt = "sqrt"
-	case Left = "left"
-	case Right = "right"
-	case Mid = "mid"
-	case Length = "length"
-	case Log = "log"
-	case Not = "not"
-	case Substitute = "substitute"
-	case Trim = "trim"
-	case Coalesce = "coalesce"
-	case IfError = "iferror"
-	case Count = "count"
-	case Sum = "sum"
-	case Average = "average"
-	case Min = "min"
-	case Max = "max"
-	case RandomItem = "randomItem"
-	case CountAll = "countAll"
-	case Pack = "pack"
-	case Exp = "exp"
-	case Ln = "ln"
-	case Round = "round"
-	case Choose = "choose"
-	case RandomBetween = "randomBetween"
-	case Random = "random"
-	case RegexSubstitute = "regexSubstitute"
-	case NormalInverse = "normalInverse"
-	case Sign = "sign"
-	case Split = "split"
-	case Nth = "nth"
-	case Items = "items"
-	case Levenshtein = "levenshtein"
-	case URLEncode = "urlencode"
-	case In = "in"
-	case NotIn = "notIn"
-	case Capitalize = "capitalize"
-	case Now = "now"
-	case FromUnixTime = "fromUnix"
-	case ToUnixTime = "toUnix"
-	case FromISO8601 = "fromISO8601"
-	case ToLocalISO8601 = "toLocalISO8601"
-	case ToUTCISO8601 = "toUTCISO8601"
-	case FromExcelDate = "fromExcelDate"
-	case ToExcelDate = "toExcelDate"
-	case UTCDate = "date"
-	case UTCDay = "day"
-	case UTCMonth = "month"
-	case UTCYear = "year"
-	case UTCMinute = "minute"
-	case UTCHour = "hour"
-	case UTCSecond = "second"
-	case Duration = "duration"
-	case After = "after"
-	case Ceiling = "ceiling"
-	case Floor = "floor"
-	case RandomString = "randomString"
-	case FromUnicodeDateString = "fromUnicodeDateString"
-	case ToUnicodeDateString = "toUnicodeDateString"
-	case Power = "power"
-	case UUID = "uuid"
-	case CountDistinct = "countDistinct"
-	case MedianLow = "medianLow"
-	case MedianHigh = "medianHigh"
-	case Median = "median"
-	case MedianPack = "medianPack"
-	case VariancePopulation = "variancePopulation"
-	case VarianceSample = "varianceSample"
-	case StandardDeviationPopulation = "stdevPopulation"
-	case StandardDeviationSample = "stdevSample"
-	case IsEmpty = "isEmpty"
-	case IsInvalid = "isInvalid"
-	case JSONDecode = "jsonArrayToPack"
-	case ParseNumber = "parseNumber"
-	case ValueForKey = "valueForKey"
-	case HilbertXYToD = "hilbertXYtoD"
-	case HilbertDToX = "hilbertDtoX"
-	case HilbertDToY = "hilbertDtoY"
-	case PowerDown = "powerDown"
-	case PowerUp = "powerUp"
+	case uppercase = "upper"
+	case lowercase = "lower"
+	case negate = "negate"
+	case identity = "identity"
+	case absolute = "abs"
+	case and = "and"
+	case or = "or"
+	case xor = "xor"
+	case `if` = "if"
+	case concat = "concat"
+	case cos = "cos"
+	case sin = "sin"
+	case tan = "tan"
+	case cosh = "cosh"
+	case sinh = "sinh"
+	case tanh = "tanh"
+	case acos = "acos"
+	case asin = "asin"
+	case atan = "atan"
+	case sqrt = "sqrt"
+	case left = "left"
+	case right = "right"
+	case mid = "mid"
+	case length = "length"
+	case log = "log"
+	case not = "not"
+	case substitute = "substitute"
+	case trim = "trim"
+	case coalesce = "coalesce"
+	case ifError = "iferror"
+	case count = "count"
+	case sum = "sum"
+	case average = "average"
+	case min = "min"
+	case max = "max"
+	case randomItem = "randomItem"
+	case countAll = "countAll"
+	case pack = "pack"
+	case exp = "exp"
+	case ln = "ln"
+	case round = "round"
+	case choose = "choose"
+	case randomBetween = "randomBetween"
+	case random = "random"
+	case regexSubstitute = "regexSubstitute"
+	case normalInverse = "normalInverse"
+	case sign = "sign"
+	case split = "split"
+	case nth = "nth"
+	case items = "items"
+	case levenshtein = "levenshtein"
+	case urlEncode = "urlencode"
+	case `in` = "in"
+	case notIn = "notIn"
+	case capitalize = "capitalize"
+	case now = "now"
+	case fromUnixTime = "fromUnix"
+	case toUnixTime = "toUnix"
+	case fromISO8601 = "fromISO8601"
+	case toLocalISO8601 = "toLocalISO8601"
+	case toUTCISO8601 = "toUTCISO8601"
+	case fromExcelDate = "fromExcelDate"
+	case toExcelDate = "toExcelDate"
+	case utcDate = "date"
+	case utcDay = "day"
+	case utcMonth = "month"
+	case utcYear = "year"
+	case utcMinute = "minute"
+	case utcHour = "hour"
+	case utcSecond = "second"
+	case duration = "duration"
+	case after = "after"
+	case ceiling = "ceiling"
+	case floor = "floor"
+	case randomString = "randomString"
+	case fromUnicodeDateString = "fromUnicodeDateString"
+	case toUnicodeDateString = "toUnicodeDateString"
+	case power = "power"
+	case uuid = "uuid"
+	case countDistinct = "countDistinct"
+	case medianLow = "medianLow"
+	case medianHigh = "medianHigh"
+	case median = "median"
+	case medianPack = "medianPack"
+	case variancePopulation = "variancePopulation"
+	case varianceSample = "varianceSample"
+	case standardDeviationPopulation = "stdevPopulation"
+	case standardDeviationSample = "stdevSample"
+	case isEmpty = "isEmpty"
+	case isInvalid = "isInvalid"
+	case jsonDecode = "jsonArrayToPack"
+	case parseNumber = "parseNumber"
+	case valueForKey = "valueForKey"
+	case hilbertXYToD = "hilbertXYtoD"
+	case hilbertDToX = "hilbertDtoX"
+	case hilbertDToY = "hilbertDtoY"
+	case powerDown = "powerDown"
+	case powerUp = "powerUp"
 
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -139,26 +139,26 @@ public enum Function: String {
 		var prepared = args.map({$0.prepare()})
 		
 		switch self {
-		case .Not:
+		case .not:
 			if args.count == 1 {
 				// NOT(a=b) should be replaced with simply a!=b
 				if let a = args[0] as? Comparison, a.type == Binary.equal {
 					return Comparison(first: a.first, second: a.second, type: Binary.notEqual).prepare()
 				}
 					// Not(In(..)) should be written as NotIn(..)
-				else if let a = args[0] as? Call, a.type == Function.In {
-					return Call(arguments: a.arguments, type: Function.NotIn).prepare()
+				else if let a = args[0] as? Call, a.type == Function.`in` {
+					return Call(arguments: a.arguments, type: Function.notIn).prepare()
 				}
 					// Not(Not(..)) cancels out
-				else if let a = args[0] as? Call, a.type == Function.Not && a.arguments.count == 1 {
+				else if let a = args[0] as? Call, a.type == Function.not && a.arguments.count == 1 {
 					return a.arguments[0].prepare()
 				}
 			}
 
-		case .And:
+		case .and:
 			// Insert arguments that are Ands themselves in this and
 			prepared = prepared.mapMany {(item) -> [Expression] in
-				if let a = item as? Call, a.type == Function.And {
+				if let a = item as? Call, a.type == Function.and {
 					return a.arguments
 				}
 				else {
@@ -173,10 +173,10 @@ public enum Function: String {
 				}
 			}
 
-		case .Or:
+		case .or:
 			// Insert arguments that are Ors themselves in this or
 			prepared = prepared.mapMany({
-				if let a = $0 as? Call, a.type == Function.Or {
+				if let a = $0 as? Call, a.type == Function.or {
 					return a.arguments
 				}
 				return [$0]
@@ -248,10 +248,10 @@ public enum Function: String {
 
 				switch bt {
 				case .equal:
-					return Call(arguments: valueExpressions, type: Function.In)
+					return Call(arguments: valueExpressions, type: Function.`in`)
 
 				case .notEqual:
-					return Call(arguments: valueExpressions, type: Function.NotIn)
+					return Call(arguments: valueExpressions, type: Function.notIn)
 
 				default:
 					fatalError("Cannot produce an IN()-like expression for this binary type")
@@ -275,104 +275,104 @@ public enum Function: String {
 	public var localizedName: String {
 		switch self {
 		// TODO: make tihs more detailed. E.g., "5 leftmost characters of" instead of just "leftmost characters"
-		case .Uppercase: return translationForString("uppercase")
-		case .Lowercase: return translationForString("lowercase")
-		case .Negate: return translationForString("-")
-		case .Absolute: return translationForString("absolute")
-		case .Identity: return translationForString("the")
-		case .And: return translationForString("and")
-		case .Or: return translationForString("or")
-		case .If: return translationForString("if")
-		case .Concat: return translationForString("concatenate")
-		case .Cos: return translationForString("cose")
-		case .Sin: return translationForString("sine")
-		case .Tan: return translationForString("tangens")
-		case .Cosh: return translationForString("cosine hyperbolic")
-		case .Sinh: return translationForString("sine hyperbolic")
-		case .Tanh: return translationForString("tangens hyperbolic")
-		case .Acos: return translationForString("arc cosine")
-		case .Asin: return translationForString("arc sine")
-		case .Atan: return translationForString("arc tangens")
-		case .Sqrt: return translationForString("square root")
-		case .Left: return translationForString("leftmost characters")
-		case .Right: return translationForString("rightmost characters")
-		case .Length: return translationForString("length of text")
-		case .Mid: return translationForString("substring")
-		case .Log: return translationForString("logarithm")
-		case .Not: return translationForString("not")
-		case .Substitute: return translationForString("substitute")
-		case .Xor: return translationForString("xor")
-		case .Trim: return translationForString("trim spaces")
-		case .Coalesce: return translationForString("first non-empty value")
-		case .IfError: return translationForString("if error")
-		case .Count: return translationForString("number of numeric values")
-		case .Sum: return translationForString("sum")
-		case .Average: return translationForString("average")
-		case .Min: return translationForString("lowest")
-		case .Max: return translationForString("highest")
-		case .RandomItem: return translationForString("random item")
-		case .CountAll: return translationForString("number of items")
-		case .Pack: return translationForString("pack")
-		case .Exp: return translationForString("e^")
-		case .Ln: return translationForString("natural logarithm")
-		case .Round: return translationForString("round")
-		case .Choose: return translationForString("choose")
-		case .RandomBetween: return translationForString("random number between")
-		case .Random: return translationForString("random number between 0 and 1")
-		case .RegexSubstitute: return translationForString("replace using pattern")
-		case .NormalInverse: return translationForString("inverse normal")
-		case .Sign: return translationForString("sign")
-		case .Split: return translationForString("split")
-		case .Nth: return translationForString("nth item")
-		case .ValueForKey: return translationForString("value for")
-		case .Items: return translationForString("number of items")
-		case .Levenshtein: return translationForString("text similarity")
-		case .URLEncode: return translationForString("url encode")
-		case .In: return translationForString("contains")
-		case .NotIn: return translationForString("does not contain")
-		case .Capitalize: return translationForString("capitalize")
-		case .Now: return translationForString("current time")
-		case .FromUnixTime: return translationForString("interpret UNIX timestamp")
-		case .ToUnixTime: return translationForString("to UNIX timestamp")
-		case .FromISO8601: return translationForString("interpret ISO-8601 formatted date")
-		case .ToLocalISO8601: return translationForString("to ISO-8601 formatted date in local timezone")
-		case .ToUTCISO8601: return translationForString("to ISO-8601 formatted date in UTC")
-		case .ToExcelDate: return translationForString("to Excel timestamp")
-		case .FromExcelDate: return translationForString("from Excel timestamp")
-		case .UTCDate: return translationForString("make a date (in UTC)")
-		case .UTCDay: return translationForString("day in month (in UTC) of date")
-		case .UTCMonth: return translationForString("month (in UTC) of")
-		case .UTCYear: return translationForString("year (in UTC) of date")
-		case .UTCMinute: return translationForString("minute (in UTC) of time")
-		case .UTCHour: return translationForString("hour (in UTC) of time")
-		case .UTCSecond: return translationForString("seconds (in UTC) of time")
-		case .Duration: return translationForString("number of seconds that passed between dates")
-		case .After: return translationForString("date after a number of seconds has passed after date")
-		case .Floor: return translationForString("round down to integer")
-		case .Ceiling: return translationForString("round up to integer")
-		case .RandomString: return translationForString("random string with pattern")
-		case .ToUnicodeDateString: return translationForString("write date in format")
-		case .FromUnicodeDateString: return translationForString("read date in format")
-		case .Power: return translationForString("to the power")
-		case .UUID: return translationForString("generate UUID")
-		case .CountDistinct: return translationForString("number of unique items")
-		case .MedianLow: return translationForString("median value (lowest in case of a draw)")
-		case .MedianHigh: return translationForString("median value (highest in case of a draw)")
-		case .Median: return translationForString("median value (average in case of a draw)")
-		case .MedianPack: return translationForString("median value (pack in case of a draw)")
-		case .VariancePopulation: return translationForString("variance (of population)")
-		case .VarianceSample: return translationForString("variance (of sample)")
-		case .StandardDeviationPopulation: return translationForString("standard deviation (of population)")
-		case .StandardDeviationSample: return translationForString("standard deviation (of sample)")
-		case .IsInvalid: return translationForString("is invalid")
-		case .IsEmpty: return translationForString("is empty")
-		case .JSONDecode: return translationForString("read JSON value")
-		case .ParseNumber: return translationForString("read number")
-		case .HilbertXYToD: return translationForString("to Hilbert index")
-		case .HilbertDToX: return translationForString("Hilbert index to X")
-		case .HilbertDToY: return translationForString("Hilbert index to Y")
-		case .PowerUp: return translationForString("to upper power of")
-		case .PowerDown: return translationForString("to lower power of")
+		case .uppercase: return translationForString("uppercase")
+		case .lowercase: return translationForString("lowercase")
+		case .negate: return translationForString("-")
+		case .absolute: return translationForString("absolute")
+		case .identity: return translationForString("the")
+		case .and: return translationForString("and")
+		case .or: return translationForString("or")
+		case .`if`: return translationForString("if")
+		case .concat: return translationForString("concatenate")
+		case .cos: return translationForString("cose")
+		case .sin: return translationForString("sine")
+		case .tan: return translationForString("tangens")
+		case .cosh: return translationForString("cosine hyperbolic")
+		case .sinh: return translationForString("sine hyperbolic")
+		case .tanh: return translationForString("tangens hyperbolic")
+		case .acos: return translationForString("arc cosine")
+		case .asin: return translationForString("arc sine")
+		case .atan: return translationForString("arc tangens")
+		case .sqrt: return translationForString("square root")
+		case .left: return translationForString("leftmost characters")
+		case .right: return translationForString("rightmost characters")
+		case .length: return translationForString("length of text")
+		case .mid: return translationForString("substring")
+		case .log: return translationForString("logarithm")
+		case .not: return translationForString("not")
+		case .substitute: return translationForString("substitute")
+		case .xor: return translationForString("xor")
+		case .trim: return translationForString("trim spaces")
+		case .coalesce: return translationForString("first non-empty value")
+		case .ifError: return translationForString("if error")
+		case .count: return translationForString("number of numeric values")
+		case .sum: return translationForString("sum")
+		case .average: return translationForString("average")
+		case .min: return translationForString("lowest")
+		case .max: return translationForString("highest")
+		case .randomItem: return translationForString("random item")
+		case .countAll: return translationForString("number of items")
+		case .pack: return translationForString("pack")
+		case .exp: return translationForString("e^")
+		case .ln: return translationForString("natural logarithm")
+		case .round: return translationForString("round")
+		case .choose: return translationForString("choose")
+		case .randomBetween: return translationForString("random number between")
+		case .random: return translationForString("random number between 0 and 1")
+		case .regexSubstitute: return translationForString("replace using pattern")
+		case .normalInverse: return translationForString("inverse normal")
+		case .sign: return translationForString("sign")
+		case .split: return translationForString("split")
+		case .nth: return translationForString("nth item")
+		case .valueForKey: return translationForString("value for")
+		case .items: return translationForString("number of items")
+		case .levenshtein: return translationForString("text similarity")
+		case .urlEncode: return translationForString("url encode")
+		case .`in`: return translationForString("contains")
+		case .notIn: return translationForString("does not contain")
+		case .capitalize: return translationForString("capitalize")
+		case .now: return translationForString("current time")
+		case .fromUnixTime: return translationForString("interpret UNIX timestamp")
+		case .toUnixTime: return translationForString("to UNIX timestamp")
+		case .fromISO8601: return translationForString("interpret ISO-8601 formatted date")
+		case .toLocalISO8601: return translationForString("to ISO-8601 formatted date in local timezone")
+		case .toUTCISO8601: return translationForString("to ISO-8601 formatted date in UTC")
+		case .toExcelDate: return translationForString("to Excel timestamp")
+		case .fromExcelDate: return translationForString("from Excel timestamp")
+		case .utcDate: return translationForString("make a date (in UTC)")
+		case .utcDay: return translationForString("day in month (in UTC) of date")
+		case .utcMonth: return translationForString("month (in UTC) of")
+		case .utcYear: return translationForString("year (in UTC) of date")
+		case .utcMinute: return translationForString("minute (in UTC) of time")
+		case .utcHour: return translationForString("hour (in UTC) of time")
+		case .utcSecond: return translationForString("seconds (in UTC) of time")
+		case .duration: return translationForString("number of seconds that passed between dates")
+		case .after: return translationForString("date after a number of seconds has passed after date")
+		case .floor: return translationForString("round down to integer")
+		case .ceiling: return translationForString("round up to integer")
+		case .randomString: return translationForString("random string with pattern")
+		case .toUnicodeDateString: return translationForString("write date in format")
+		case .fromUnicodeDateString: return translationForString("read date in format")
+		case .power: return translationForString("to the power")
+		case .uuid: return translationForString("generate UUID")
+		case .countDistinct: return translationForString("number of unique items")
+		case .medianLow: return translationForString("median value (lowest in case of a draw)")
+		case .medianHigh: return translationForString("median value (highest in case of a draw)")
+		case .median: return translationForString("median value (average in case of a draw)")
+		case .medianPack: return translationForString("median value (pack in case of a draw)")
+		case .variancePopulation: return translationForString("variance (of population)")
+		case .varianceSample: return translationForString("variance (of sample)")
+		case .standardDeviationPopulation: return translationForString("standard deviation (of population)")
+		case .standardDeviationSample: return translationForString("standard deviation (of sample)")
+		case .isInvalid: return translationForString("is invalid")
+		case .isEmpty: return translationForString("is empty")
+		case .jsonDecode: return translationForString("read JSON value")
+		case .parseNumber: return translationForString("read number")
+		case .hilbertXYToD: return translationForString("to Hilbert index")
+		case .hilbertDToX: return translationForString("Hilbert index to X")
+		case .hilbertDToY: return translationForString("Hilbert index to Y")
+		case .powerUp: return translationForString("to upper power of")
+		case .powerDown: return translationForString("to lower power of")
 		}
 	}
 
@@ -381,10 +381,10 @@ public enum Function: String {
 		let explainedArguments = arguments.map({$0.explain(locale, topLevel: false)})
 
 		switch self {
-		case .Nth where explainedArguments.count == 2:
+		case .nth where explainedArguments.count == 2:
 			return String(format: translationForString("%@th item in %@"), explainedArguments[1], explainedArguments[0])
 
-		case .ValueForKey where explainedArguments.count == 2:
+		case .valueForKey where explainedArguments.count == 2:
 			return String(format: translationForString("%@ of %@"), explainedArguments[1], explainedArguments[0])
 
 		default:
@@ -403,12 +403,12 @@ public enum Function: String {
 	deterministic. */
 	public var isDeterministic: Bool {
 		switch self {
-		case .RandomItem: return false
-		case .RandomBetween: return false
-		case .Random: return false
-		case .RandomString: return false
-		case .Now: return false
-		case .UUID: return false
+		case .randomItem: return false
+		case .randomBetween: return false
+		case .random: return false
+		case .randomString: return false
+		case .now: return false
+		case .uuid: return false
 		default: return true
 		}
 	}
@@ -417,11 +417,11 @@ public enum Function: String {
 		let name = locale.nameForFunction(self) ?? ""
 
 		switch self {
-		case .Nth where arguments.count == 2:
+		case .nth where arguments.count == 2:
 			let args = arguments.map({$0.toFormula(locale)})
 			return "\(args[0])[\(args[1])]"
 
-		case .ValueForKey where arguments.count == 2:
+		case .valueForKey where arguments.count == 2:
 			let args = arguments.map({$0.toFormula(locale)})
 			return "\(args[0])->\(args[1])"
 
@@ -435,7 +435,7 @@ public enum Function: String {
 	time, i.e. f(f(x)) === f(x). */
 	public var isIdempotent: Bool {
 		switch self {
-		case .Uppercase, .Lowercase, .Trim, .Absolute, .Capitalize, .Floor, .Ceiling:
+		case .uppercase, .lowercase, .trim, .absolute, .capitalize, .floor, .ceiling:
 			return true
 		default:
 			return false
@@ -445,148 +445,148 @@ public enum Function: String {
 	/** Returns information about the parameters a function can receive.  */
 	public var parameters: [Parameter]? { get {
 		switch self {
-		case .Uppercase: return [Parameter(name: translationForString("text"), exampleValue: Value("foo"))]
-		case .Lowercase: return [Parameter(name: translationForString("text"), exampleValue: Value("FOO"))]
+		case .uppercase: return [Parameter(name: translationForString("text"), exampleValue: Value("foo"))]
+		case .lowercase: return [Parameter(name: translationForString("text"), exampleValue: Value("FOO"))]
 		
-		case .Left, .Right:
+		case .left, .right:
 			return [
 				Parameter(name: translationForString("text"), exampleValue: Value("john doe")),
 				Parameter(name: translationForString("index"), exampleValue: Value.int(3))
 			]
 			
-		case .Mid:
+		case .mid:
 			return [
 				Parameter(name: translationForString("text"), exampleValue: Value("john doe")),
 				Parameter(name: translationForString("index"), exampleValue: Value.int(5)),
 				Parameter(name: translationForString("length"), exampleValue: Value.int(3))
 			]
 			
-		case .Not:
+		case .not:
 			return [Parameter(name: translationForString("boolean"), exampleValue: Value.bool(false))]
 			
-		case .And, .Or, .Xor:
+		case .and, .or, .xor:
 			return [
 				Parameter(name: translationForString("boolean"), exampleValue: Value.bool(false)),
 				Parameter(name: translationForString("boolean"), exampleValue: Value.bool(true))
 			]
 			
-		case .If:
+		case .`if`:
 			return [
 				Parameter(name: translationForString("boolean"), exampleValue: Value.bool(false)),
 				Parameter(name: translationForString("value if true"), exampleValue: Value(translationForString("yes"))),
 				Parameter(name: translationForString("value if false"), exampleValue: Value(translationForString("no")))
 			]
 			
-		case .IfError:
+		case .ifError:
 			return [
 				Parameter(name: translationForString("value"), exampleValue: Value(1346)),
 				Parameter(name: translationForString("value if error"), exampleValue: Value(translationForString("(error)")))
 			]
 		
-		case .Duration:
+		case .duration:
 			return [
 				Parameter(name: translationForString("start date"), exampleValue: Value(Date(timeIntervalSinceReferenceDate: 0.0))),
 				Parameter(name: translationForString("end date"), exampleValue: Value(Date()))
 			]
 			
-		case .After:
+		case .after:
 			return [
 				Parameter(name: translationForString("start date"), exampleValue: Value(Date())),
 				Parameter(name: translationForString("seconds"), exampleValue: Value(3600.0))
 			]
 			
-		case .Capitalize, .Length:
+		case .capitalize, .length:
 			return [Parameter(name: translationForString("text"), exampleValue: Value("john doe"))]
 			
-		case .URLEncode:
+		case .urlEncode:
 			return [Parameter(name: translationForString("text"), exampleValue: Value("warp [core]"))]
 			
-		case .Trim:
+		case .trim:
 			return [Parameter(name: translationForString("text"), exampleValue: Value(" warp core "))]
 			
-		case .Split:
+		case .split:
 			return [
 				Parameter(name: translationForString("text"), exampleValue: Value("1337AB#12#C")),
 				Parameter(name: translationForString("separator"), exampleValue: Value("#"))
 			]
 			
-		case .Substitute:
+		case .substitute:
 			return [
 				Parameter(name: translationForString("text"), exampleValue: Value("warpcore")),
 				Parameter(name: translationForString("find"), exampleValue: Value("warp")),
 				Parameter(name: translationForString("replacement"), exampleValue: Value("transwarp"))
 			]
 			
-		case .RegexSubstitute:
+		case .regexSubstitute:
 			return [
 				Parameter(name: translationForString("text"), exampleValue: Value("1337AB")),
 				Parameter(name: translationForString("find"), exampleValue: Value("[0-9]+")),
 				Parameter(name: translationForString("replacement"), exampleValue: Value("#"))
 			]
 			
-		case .UTCDay, .UTCYear, .UTCMonth, .UTCHour, .UTCMinute, .UTCSecond:
+		case .utcDay, .utcYear, .utcMonth, .utcHour, .utcMinute, .utcSecond:
 			return [Parameter(name: translationForString("date"), exampleValue: Value(Date()))]
 			
-		case .FromUnixTime:
+		case .fromUnixTime:
 			return [Parameter(name: translationForString("UNIX timestamp"), exampleValue: Value.double(Date().timeIntervalSince1970))]
 			
-		case .FromISO8601:
+		case .fromISO8601:
 			return [Parameter(name: translationForString("UNIX timestamp"), exampleValue: Value.string(Date().iso8601FormattedLocalDate))]
 		
-		case .FromExcelDate:
+		case .fromExcelDate:
 			return [Parameter(name: translationForString("Excel timestamp"), exampleValue: Value.double(Date().excelDate ?? 0))]
 			
-		case .ToUnixTime, .ToUTCISO8601, .ToLocalISO8601, .ToExcelDate:
+		case .toUnixTime, .toUTCISO8601, .toLocalISO8601, .toExcelDate:
 			return [Parameter(name: translationForString("date"), exampleValue: Value(Date()))]
 			
-		case .Levenshtein:
+		case .levenshtein:
 			return [
 				Parameter(name: translationForString("text"), exampleValue: Value("warp")),
 				Parameter(name: translationForString("text"), exampleValue: Value("warpcore"))
 			]
 			
-		case .NormalInverse:
+		case .normalInverse:
 			return [
 				Parameter(name: translationForString("p"), exampleValue: Value(0.5)),
 				Parameter(name: translationForString("mu"), exampleValue: Value(10)),
 				Parameter(name: translationForString("sigma"), exampleValue: Value(1))
 			]
 		
-		case .UTCDate:
+		case .utcDate:
 			return [
 				Parameter(name: translationForString("year"), exampleValue: Value.int(1988)),
 				Parameter(name: translationForString("month"), exampleValue: Value.int(8)),
 				Parameter(name: translationForString("day"), exampleValue: Value.int(11))
 			]
 			
-		case .RandomBetween:
+		case .randomBetween:
 			return [
 				Parameter(name: translationForString("lower bound"), exampleValue: Value.int(0)),
 				Parameter(name: translationForString("upper bound"), exampleValue: Value.int(100))
 			]
 		
-		case .Round:
+		case .round:
 			return [
 				Parameter(name: translationForString("number"), exampleValue: Value(3.1337)),
 				Parameter(name: translationForString("decimals"), exampleValue: Value(2))
 			]
 			
-		case .Ceiling, .Floor:
+		case .ceiling, .floor:
 			return [
 				Parameter(name: translationForString("number"), exampleValue: Value(3.1337))
 			]
 		
-		case .Sin, .Cos, .Tan, .Sinh, .Cosh, .Tanh, .Exp, .Ln, .Log, .Acos, .Asin, .Atan:
+		case .sin, .cos, .tan, .sinh, .cosh, .tanh, .exp, .ln, .log, .acos, .asin, .atan:
 			return [Parameter(name: translationForString("number"), exampleValue: Value(M_PI_4))]
 			
-		case .Sqrt:
+		case .sqrt:
 			return [Parameter(name: translationForString("number"), exampleValue: Value(144))]
 			
-		case .Sign, .Absolute, .Negate:
+		case .sign, .absolute, .negate:
 			return [Parameter(name: translationForString("number"), exampleValue: Value(-1337))]
 			
-		case .Sum, .Count, .CountAll, .Average, .Min, .Max, .RandomItem, .CountDistinct, .Median, .MedianHigh,
-			.MedianLow, .MedianPack, .StandardDeviationSample, .StandardDeviationPopulation, .VariancePopulation, .VarianceSample:
+		case .sum, .count, .countAll, .average, .min, .max, .randomItem, .countDistinct, .median, .medianHigh,
+			.medianLow, .medianPack, .standardDeviationSample, .standardDeviationPopulation, .variancePopulation, .varianceSample:
 			return [
 				Parameter(name: translationForString("value"), exampleValue: Value(1)),
 				Parameter(name: translationForString("value"), exampleValue: Value(2)),
@@ -594,7 +594,7 @@ public enum Function: String {
 				Parameter(name: translationForString("value"), exampleValue: Value(3))
 			]
 			
-		case .Pack:
+		case .pack:
 			return [
 				Parameter(name: translationForString("value"), exampleValue: Value("horse")),
 				Parameter(name: translationForString("value"), exampleValue: Value("correct")),
@@ -602,7 +602,7 @@ public enum Function: String {
 				Parameter(name: translationForString("value"), exampleValue: Value("staple"))
 			]
 			
-		case .Choose:
+		case .choose:
 			return [
 				Parameter(name: translationForString("index"), exampleValue: Value.int(2)),
 				Parameter(name: translationForString("value"), exampleValue: Value("horse")),
@@ -611,7 +611,7 @@ public enum Function: String {
 				Parameter(name: translationForString("value"), exampleValue: Value("staple"))
 			]
 			
-		case .In, .NotIn:
+		case .`in`, .notIn:
 			return [
 				Parameter(name: translationForString("value"), exampleValue: Value("horse")),
 				Parameter(name: translationForString("value"), exampleValue: Value("correct")),
@@ -620,101 +620,101 @@ public enum Function: String {
 				Parameter(name: translationForString("value"), exampleValue: Value("staple"))
 			]
 			
-		case .Nth:
+		case .nth:
 			return [
 				Parameter(name: translationForString("pack"), exampleValue: Value(WarpCore.Pack(["correct","horse", "battery", "staple"]).stringValue)),
 				Parameter(name: translationForString("index"), exampleValue: Value.int(2))
 			]
 
-		case .ValueForKey:
+		case .valueForKey:
 			return [
 				Parameter(name: translationForString("pack"), exampleValue: Value(WarpCore.Pack(["firstName","John", "lastName", "Doe"]).stringValue)),
 				Parameter(name: translationForString("index"), exampleValue: Value.string("lastName"))
 			]
 			
-		case .Items:
+		case .items:
 			return [
 				Parameter(name: translationForString("pack"), exampleValue: Value(WarpCore.Pack(["correct","horse", "battery", "staple"]).stringValue))
 			]
 			
-		case .Concat:
+		case .concat:
 			return [
 				Parameter(name: translationForString("text"), exampleValue: Value("foo")),
 				Parameter(name: translationForString("text"), exampleValue: Value("bar"))
 			]
 			
-		case .Now, .Random:
+		case .now, .random:
 			return []
 			
-		case .Identity:
+		case .identity:
 			return [Parameter(name: translationForString("value"), exampleValue: Value("horse"))]
 			
-		case .Coalesce:
+		case .coalesce:
 			return [
 				Parameter(name: translationForString("value"), exampleValue: Value.invalid),
 				Parameter(name: translationForString("value"), exampleValue: Value("horse"))
 			]
 			
-		case .RandomString:
+		case .randomString:
 			return [Parameter(name: translationForString("pattern"), exampleValue: Value("[0-9]{4}[A-Z]{2}"))]
 			
-		case .FromUnicodeDateString:
+		case .fromUnicodeDateString:
 			return [Parameter(name: translationForString("text"), exampleValue: Value("1988-08-11")), Parameter(name: translationForString("format"), exampleValue: Value("yyyy-MM-dd"))]
 			
-		case .ToUnicodeDateString:
+		case .toUnicodeDateString:
 			return [Parameter(name: translationForString("date"), exampleValue: Value(Date())), Parameter(name: translationForString("format"), exampleValue: Value("yyyy-MM-dd"))]
 			
-		case .Power:
+		case .power:
 			return [
 				Parameter(name: translationForString("base"), exampleValue: Value.int(2)),
 				Parameter(name: translationForString("exponent"), exampleValue: Value.int(32))
 			]
 
-		case .UUID:
+		case .uuid:
 			return []
 
-		case .IsInvalid:
+		case .isInvalid:
 			return [Parameter(name: translationForString("value"), exampleValue: Value.int(3))]
 
-		case .IsEmpty:
+		case .isEmpty:
 			return [Parameter(name: translationForString("value"), exampleValue: Value.int(3))]
 
-		case .JSONDecode:
+		case .jsonDecode:
 			return [Parameter(name: translationForString("JSON"), exampleValue: Value.string("[1,2,3]"))]
 
-		case .ParseNumber:
+		case .parseNumber:
 			return [
 				Parameter(name: translationForString("text"), exampleValue: Value.string("1.337,12")),
 				Parameter(name: translationForString("decimal separator"), exampleValue: Value.string(",")),
 				Parameter(name: translationForString("thousands separator"), exampleValue: Value.string("."))
 			]
 
-		case .HilbertXYToD:
+		case .hilbertXYToD:
 			return [
 				Parameter(name: translationForString("n"), exampleValue: Value.int(1024)),
 				Parameter(name: translationForString("x"), exampleValue: Value.int(100)),
 				Parameter(name: translationForString("y"), exampleValue: Value.int(50))
 			]
 
-		case .HilbertDToX:
+		case .hilbertDToX:
 			return [
 				Parameter(name: translationForString("n"), exampleValue: Value.int(1024)),
 				Parameter(name: translationForString("d"), exampleValue: Value.int(100))
 			]
 
-		case .HilbertDToY:
+		case .hilbertDToY:
 			return [
 				Parameter(name: translationForString("n"), exampleValue: Value.int(1024)),
 				Parameter(name: translationForString("d"), exampleValue: Value.int(100))
 			]
 
-		case .PowerUp:
+		case .powerUp:
 			return [
 				Parameter(name: translationForString("n"), exampleValue: Value.int(510)),
 				Parameter(name: translationForString("base"), exampleValue: Value.int(2))
 			]
 
-		case .PowerDown:
+		case .powerDown:
 			return [
 				Parameter(name: translationForString("n"), exampleValue: Value.int(510)),
 				Parameter(name: translationForString("base"), exampleValue: Value.int(2))
@@ -724,104 +724,104 @@ public enum Function: String {
 	
 	public var arity: Arity {
 		switch self {
-		case .Uppercase: return Arity.fixed(1)
-		case .Lowercase: return Arity.fixed(1)
-		case .Negate: return Arity.fixed(1)
-		case .Absolute: return Arity.fixed(1)
-		case .Identity: return Arity.fixed(1)
-		case .And: return Arity.any
-		case .Or: return Arity.any
-		case .Cos: return Arity.fixed(1)
-		case .Sin: return Arity.fixed(1)
-		case .Tan: return Arity.fixed(1)
-		case .Cosh: return Arity.fixed(1)
-		case .Sinh: return Arity.fixed(1)
-		case .Tanh: return Arity.fixed(1)
-		case .Acos: return Arity.fixed(1)
-		case .Asin: return Arity.fixed(1)
-		case .Atan: return Arity.fixed(1)
-		case .Sqrt: return Arity.fixed(1)
-		case .If: return Arity.fixed(3)
-		case .Concat: return Arity.any
-		case .Left: return Arity.fixed(2)
-		case .Right: return Arity.fixed(2)
-		case .Length: return Arity.fixed(1)
-		case .Mid: return Arity.fixed(3)
-		case .Log: return Arity.between(1,2)
-		case .Not: return Arity.fixed(1)
-		case .Substitute: return Arity.fixed(3)
-		case .Xor: return Arity.fixed(2)
-		case .Trim: return Arity.fixed(1)
-		case .Coalesce: return Arity.any
-		case .IfError: return Arity.fixed(2)
-		case .Count: return Arity.any
-		case .Sum: return Arity.any
-		case .Average: return Arity.any
-		case .Max: return Arity.any
-		case .Min: return Arity.any
-		case .RandomItem: return Arity.any
-		case .CountAll: return Arity.any
-		case .Pack: return Arity.any
-		case .Exp: return Arity.fixed(1)
-		case .Ln: return Arity.fixed(1)
-		case .Round: return Arity.between(1,2)
-		case .Choose: return Arity.any
-		case .RandomBetween: return Arity.fixed(2)
-		case .Random: return Arity.fixed(0)
-		case .RegexSubstitute: return Arity.fixed(3)
-		case .NormalInverse: return Arity.fixed(3)
-		case .Sign: return Arity.fixed(1)
-		case .Split: return Arity.fixed(2)
-		case .Nth: return Arity.fixed(2)
-		case .ValueForKey: return Arity.fixed(2)
-		case .Items: return Arity.fixed(1)
-		case .Levenshtein: return Arity.fixed(2)
-		case .URLEncode: return Arity.fixed(1)
-		case .In: return Arity.atLeast(2)
-		case .NotIn: return Arity.atLeast(2)
-		case .Capitalize: return Arity.fixed(1)
-		case .Now: return Arity.fixed(0)
-		case .FromUnixTime: return Arity.fixed(1)
-		case .ToUnixTime: return Arity.fixed(1)
-		case .FromISO8601: return Arity.fixed(1)
-		case .ToLocalISO8601: return Arity.fixed(1)
-		case .ToUTCISO8601: return Arity.fixed(1)
-		case .ToExcelDate: return Arity.fixed(1)
-		case .FromExcelDate: return Arity.fixed(1)
-		case .UTCDate: return Arity.fixed(3)
-		case .UTCDay: return Arity.fixed(1)
-		case .UTCMonth: return Arity.fixed(1)
-		case .UTCYear: return Arity.fixed(1)
-		case .UTCMinute: return Arity.fixed(1)
-		case .UTCHour: return Arity.fixed(1)
-		case .UTCSecond: return Arity.fixed(1)
-		case .Duration: return Arity.fixed(2)
-		case .After: return Arity.fixed(2)
-		case .Ceiling: return Arity.fixed(1)
-		case .Floor: return Arity.fixed(1)
-		case .RandomString: return Arity.fixed(1)
-		case .ToUnicodeDateString: return Arity.fixed(2)
-		case .FromUnicodeDateString: return Arity.fixed(2)
-		case .Power: return Arity.fixed(2)
-		case .UUID: return Arity.fixed(0)
-		case .CountDistinct: return Arity.any
-		case .MedianPack: return Arity.any
-		case .MedianHigh: return Arity.any
-		case .MedianLow: return Arity.any
-		case .Median: return Arity.any
-		case .StandardDeviationPopulation: return Arity.any
-		case .StandardDeviationSample: return Arity.any
-		case .VariancePopulation: return Arity.any
-		case .VarianceSample: return Arity.any
-		case .IsInvalid: return Arity.fixed(1)
-		case .IsEmpty: return Arity.fixed(1)
-		case .JSONDecode: return Arity.fixed(1)
-		case .ParseNumber: return Arity.between(1, 3)
-		case .HilbertXYToD: return Arity.fixed(3)
-		case .HilbertDToX: return Arity.fixed(2)
-		case .HilbertDToY: return Arity.fixed(2)
-		case .PowerDown: return Arity.fixed(2)
-		case .PowerUp: return Arity.fixed(2)
+		case .uppercase: return Arity.fixed(1)
+		case .lowercase: return Arity.fixed(1)
+		case .negate: return Arity.fixed(1)
+		case .absolute: return Arity.fixed(1)
+		case .identity: return Arity.fixed(1)
+		case .and: return Arity.any
+		case .or: return Arity.any
+		case .cos: return Arity.fixed(1)
+		case .sin: return Arity.fixed(1)
+		case .tan: return Arity.fixed(1)
+		case .cosh: return Arity.fixed(1)
+		case .sinh: return Arity.fixed(1)
+		case .tanh: return Arity.fixed(1)
+		case .acos: return Arity.fixed(1)
+		case .asin: return Arity.fixed(1)
+		case .atan: return Arity.fixed(1)
+		case .sqrt: return Arity.fixed(1)
+		case .`if`: return Arity.fixed(3)
+		case .concat: return Arity.any
+		case .left: return Arity.fixed(2)
+		case .right: return Arity.fixed(2)
+		case .length: return Arity.fixed(1)
+		case .mid: return Arity.fixed(3)
+		case .log: return Arity.between(1,2)
+		case .not: return Arity.fixed(1)
+		case .substitute: return Arity.fixed(3)
+		case .xor: return Arity.fixed(2)
+		case .trim: return Arity.fixed(1)
+		case .coalesce: return Arity.any
+		case .ifError: return Arity.fixed(2)
+		case .count: return Arity.any
+		case .sum: return Arity.any
+		case .average: return Arity.any
+		case .max: return Arity.any
+		case .min: return Arity.any
+		case .randomItem: return Arity.any
+		case .countAll: return Arity.any
+		case .pack: return Arity.any
+		case .exp: return Arity.fixed(1)
+		case .ln: return Arity.fixed(1)
+		case .round: return Arity.between(1,2)
+		case .choose: return Arity.any
+		case .randomBetween: return Arity.fixed(2)
+		case .random: return Arity.fixed(0)
+		case .regexSubstitute: return Arity.fixed(3)
+		case .normalInverse: return Arity.fixed(3)
+		case .sign: return Arity.fixed(1)
+		case .split: return Arity.fixed(2)
+		case .nth: return Arity.fixed(2)
+		case .valueForKey: return Arity.fixed(2)
+		case .items: return Arity.fixed(1)
+		case .levenshtein: return Arity.fixed(2)
+		case .urlEncode: return Arity.fixed(1)
+		case .`in`: return Arity.atLeast(2)
+		case .notIn: return Arity.atLeast(2)
+		case .capitalize: return Arity.fixed(1)
+		case .now: return Arity.fixed(0)
+		case .fromUnixTime: return Arity.fixed(1)
+		case .toUnixTime: return Arity.fixed(1)
+		case .fromISO8601: return Arity.fixed(1)
+		case .toLocalISO8601: return Arity.fixed(1)
+		case .toUTCISO8601: return Arity.fixed(1)
+		case .toExcelDate: return Arity.fixed(1)
+		case .fromExcelDate: return Arity.fixed(1)
+		case .utcDate: return Arity.fixed(3)
+		case .utcDay: return Arity.fixed(1)
+		case .utcMonth: return Arity.fixed(1)
+		case .utcYear: return Arity.fixed(1)
+		case .utcMinute: return Arity.fixed(1)
+		case .utcHour: return Arity.fixed(1)
+		case .utcSecond: return Arity.fixed(1)
+		case .duration: return Arity.fixed(2)
+		case .after: return Arity.fixed(2)
+		case .ceiling: return Arity.fixed(1)
+		case .floor: return Arity.fixed(1)
+		case .randomString: return Arity.fixed(1)
+		case .toUnicodeDateString: return Arity.fixed(2)
+		case .fromUnicodeDateString: return Arity.fixed(2)
+		case .power: return Arity.fixed(2)
+		case .uuid: return Arity.fixed(0)
+		case .countDistinct: return Arity.any
+		case .medianPack: return Arity.any
+		case .medianHigh: return Arity.any
+		case .medianLow: return Arity.any
+		case .median: return Arity.any
+		case .standardDeviationPopulation: return Arity.any
+		case .standardDeviationSample: return Arity.any
+		case .variancePopulation: return Arity.any
+		case .varianceSample: return Arity.any
+		case .isInvalid: return Arity.fixed(1)
+		case .isEmpty: return Arity.fixed(1)
+		case .jsonDecode: return Arity.fixed(1)
+		case .parseNumber: return Arity.between(1, 3)
+		case .hilbertXYToD: return Arity.fixed(3)
+		case .hilbertDToX: return Arity.fixed(2)
+		case .hilbertDToY: return Arity.fixed(2)
+		case .powerDown: return Arity.fixed(2)
+		case .powerUp: return Arity.fixed(2)
 		}
 	}
 	
@@ -832,28 +832,28 @@ public enum Function: String {
 		}
 		
 		switch self {
-		case .Negate:
+		case .negate:
 			return -arguments[0]
 			
-		case .Uppercase:
+		case .uppercase:
 			if let s = arguments[0].stringValue {
 				return Value(s.uppercased())
 			}
 			return Value.invalid
 			
-		case .Lowercase:
+		case .lowercase:
 			if let s = arguments[0].stringValue {
 				return Value(s.lowercased())
 			}
 			return Value.invalid
 			
-		case .Absolute:
+		case .absolute:
 			return arguments[0].absolute
 			
-		case .Identity:
+		case .identity:
 			return arguments[0]
 			
-		case .And:
+		case .and:
 			for a in arguments {
 				if !a.isValid {
 					return Value.invalid
@@ -865,7 +865,7 @@ public enum Function: String {
 			}
 			return Value(true)
 			
-		case .Coalesce:
+		case .coalesce:
 			for a in arguments {
 				if a.isValid && !a.isEmpty {
 					return a
@@ -873,13 +873,13 @@ public enum Function: String {
 			}
 			return Value.empty
 			
-		case .Not:
+		case .not:
 			if let b = arguments[0].boolValue {
 				return Value(!b)
 			}
 			return Value.invalid
 		
-		case .Or:
+		case .or:
 			for a in arguments {
 				if !a.isValid {
 					return Value.invalid
@@ -893,7 +893,7 @@ public enum Function: String {
 			}
 			return Value(false)
 			
-		case .Xor:
+		case .xor:
 			if let a = arguments[0].boolValue {
 				if let b = arguments[1].boolValue {
 					return Value((a != b) && (a || b))
@@ -901,38 +901,38 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .If:
+		case .`if`:
 			if let d = arguments[0].boolValue {
 				return d ? arguments[1] : arguments[2]
 			}
 			return Value.invalid
 			
-		case .IfError:
+		case .ifError:
 			return (!arguments[0].isValid) ? arguments[1] : arguments[0]
 			
-		case .Cos:
+		case .cos:
 			if let d = arguments[0].doubleValue {
-				return Value(cos(d))
+				return Value(Darwin.cos(d))
 			}
 			return Value.invalid
 		
-		case .Ln:
+		case .ln:
 			if let d = arguments[0].doubleValue {
-				return Value(log10(d) / log10(exp(1.0)))
+				return Value(log10(d) / log10(Darwin.exp(1.0)))
 			}
 			return Value.invalid
 			
-		case .Exp:
+		case .exp:
 			if let d = arguments[0].doubleValue {
-				return Value(exp(d))
+				return Value(Darwin.exp(d))
 			}
 			return Value.invalid
 			
-		case .Log:
+		case .log:
 			if let d = arguments[0].doubleValue {
 				if arguments.count == 2 {
 					if let base = arguments[1].doubleValue {
-						return Value(log(d) / log(base))
+						return Value(Darwin.log(d) / Darwin.log(base))
 					}
 					return Value.invalid
 				}
@@ -940,61 +940,61 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .Sin:
+		case .sin:
 			if let d = arguments[0].doubleValue {
-				return Value(sin(d))
+				return Value(Darwin.sin(d))
 			}
 			return Value.invalid
 			
-		case .Tan:
+		case .tan:
 			if let d = arguments[0].doubleValue {
-				return Value(tan(d))
+				return Value(Darwin.tan(d))
 			}
 			return Value.invalid
 			
-		case .Cosh:
+		case .cosh:
 			if let d = arguments[0].doubleValue {
-				return Value(cosh(d))
+				return Value(Darwin.cosh(d))
 			}
 			return Value.invalid
 			
-		case .Sinh:
+		case .sinh:
 			if let d = arguments[0].doubleValue {
-				return Value(sinh(d))
+				return Value(Darwin.sinh(d))
 			}
 			return Value.invalid
 			
-		case .Tanh:
+		case .tanh:
 			if let d = arguments[0].doubleValue {
-				return Value(tanh(d))
+				return Value(Darwin.tanh(d))
 			}
 			return Value.invalid
 			
-		case .Acos:
+		case .acos:
 			if let d = arguments[0].doubleValue {
-				return Value(acos(d))
+				return Value(Darwin.acos(d))
 			}
 			return Value.invalid
 			
-		case .Asin:
+		case .asin:
 			if let d = arguments[0].doubleValue {
-				return Value(asin(d))
+				return Value(Darwin.asin(d))
 			}
 			return Value.invalid
 			
-		case .Atan:
+		case .atan:
 			if let d = arguments[0].doubleValue {
-				return Value(atan(d))
+				return Value(Darwin.atan(d))
 			}
 			return Value.invalid
 			
-		case .Sqrt:
+		case .sqrt:
 			if let d = arguments[0].doubleValue {
-				return Value(sqrt(d))
+				return Value(Darwin.sqrt(d))
 			}
 			return Value.invalid
 			
-		case .Left:
+		case .left:
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
 					if s.characters.count >= idx {
@@ -1005,7 +1005,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .Right:
+		case .right:
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
 					if s.characters.count >= idx {
@@ -1016,7 +1016,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .Mid:
+		case .mid:
 			if let s = arguments[0].stringValue {
 				if let start = arguments[1].intValue {
 					if let length = arguments[2].intValue {
@@ -1032,13 +1032,13 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .Length:
+		case .length:
 			if let s = arguments[0].stringValue {
 				return Value(s.characters.count)
 			}
 			return Value.invalid
 		
-		case .Substitute:
+		case .substitute:
 			if let source = arguments[0].stringValue {
 				if let replace = arguments[1].stringValue {
 					if let replaceWith = arguments[2].stringValue {
@@ -1049,13 +1049,13 @@ public enum Function: String {
 			}
 			return Value.invalid
 		
-		case .Trim:
+		case .trim:
 			if let s = arguments[0].stringValue {
 				return Value(s.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines))
 			}
 			return Value.invalid
 			
-		case .RandomItem:
+		case .randomItem:
 			if arguments.isEmpty {
 				return Value.empty
 			}
@@ -1065,7 +1065,7 @@ public enum Function: String {
 			}
 			
 			
-		case .Round:
+		case .round:
 			var decimals = 0
 			if arguments.count == 2 {
 				decimals = arguments[1].intValue ?? 0
@@ -1077,17 +1077,17 @@ public enum Function: String {
 			
 			if let d = arguments[0].doubleValue {
 				if decimals == 0 {
-					return Value.int(Int(round(d)))
+					return Value.int(Int(Darwin.round(d)))
 				}
 				else {
 					let filler = pow(10.0, Double(decimals))
-					return Value(round(filler * d) / filler)
+					return Value(Darwin.round(filler * d) / filler)
 				}
 			}
 			
 			return Value.invalid
 			
-		case .Choose:
+		case .choose:
 			if arguments.count < 2 {
 				return Value.invalid
 			}
@@ -1099,7 +1099,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .RandomBetween:
+		case .randomBetween:
 			if let bottom = arguments[0].intValue {
 				if let top = arguments[1].intValue {
 					if top <= bottom {
@@ -1111,10 +1111,10 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .Random:
+		case .random:
 			return Value(Double.random())
 			
-		case .RegexSubstitute:
+		case .regexSubstitute:
 			// Note: by default, this is case-sensitive (like .Substitute)
 			if	let source = arguments[0].stringValue,
 				let pattern = arguments[1].stringValue,
@@ -1124,7 +1124,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .NormalInverse:
+		case .normalInverse:
 			if	let p = arguments[0].doubleValue,
 				let mu = arguments[1].doubleValue,
 				let sigma = arguments[2].doubleValue {
@@ -1137,7 +1137,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .Sign:
+		case .sign:
 			if let d = arguments[0].doubleValue {
 				let sign = (d==0) ? 0 : (d>0 ? 1 : -1)
 				return Value.int(sign)
@@ -1145,7 +1145,7 @@ public enum Function: String {
 			return Value.invalid
 			
 			
-		case .Split:
+		case .split:
 			if let s = arguments[0].stringValue {
 				let separator = (arguments.count > 1 ? arguments[1].stringValue : nil) ?? " "
 				let splitted = s.components(separatedBy: separator)
@@ -1155,7 +1155,7 @@ public enum Function: String {
 			return Value.invalid
 			
 			
-		case .Nth:
+		case .nth:
 			if let pack = WarpCore.Pack(arguments[0]) {
 				if let index = arguments[1].intValue {
 					let adjustedIndex = index-1
@@ -1166,7 +1166,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 
-		case .ValueForKey:
+		case .valueForKey:
 			if let pack = WarpCore.Pack(arguments[0]) {
 				if let index = arguments[1].stringValue, let value = pack[index] {
 					return Value.string(value)
@@ -1174,25 +1174,25 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .Items:
+		case .items:
 			if let pack = WarpCore.Pack(arguments[0]) {
 				return Value.int(pack.count)
 			}
 			return Value.invalid
 			
-		case .Levenshtein:
+		case .levenshtein:
 			if let a = arguments[0].stringValue, let b = arguments[1].stringValue {
 				return Value.int(a.levenshteinDistance(b))
 			}
 			return Value.invalid
 			
-		case .URLEncode:
+		case .urlEncode:
 			if let s = arguments[0].stringValue, let enc = s.urlEncoded {
 				return Value(enc)
 			}
 			return Value.invalid
 			
-		case .In:
+		case .`in`:
 			if arguments.count < 2 {
 				return Value.invalid
 			}
@@ -1206,7 +1206,7 @@ public enum Function: String {
 				return Value(false)
 			}
 			
-		case .NotIn:
+		case .notIn:
 			if arguments.count < 2 {
 				return Value.invalid
 			}
@@ -1220,130 +1220,130 @@ public enum Function: String {
 				return Value(true)
 			}
 			
-		case .Capitalize:
+		case .capitalize:
 			if let s = arguments[0].stringValue {
 				return Value.string(s.capitalized)
 			}
 			return Value.invalid
 			
-		case .Now:
+		case .now:
 			return Value(Date())
 			
-		case .FromUnixTime:
+		case .fromUnixTime:
 			if let s = arguments[0].doubleValue {
 				return Value(Date(timeIntervalSince1970: s))
 			}
 			return Value.invalid
 			
-		case .ToUnixTime:
+		case .toUnixTime:
 			if let d = arguments[0].dateValue {
 				return Value(d.timeIntervalSince1970)
 			}
 			return Value.invalid
 			
-		case .FromISO8601:
+		case .fromISO8601:
 			if let s = arguments[0].stringValue, let d = Date.fromISO8601FormattedDate(s) {
 				return Value(d)
 			}
 			return Value.invalid
 			
-		case .ToLocalISO8601:
+		case .toLocalISO8601:
 			if let d = arguments[0].dateValue {
 				return Value(d.iso8601FormattedLocalDate)
 			}
 			return Value.invalid
 			
-		case .ToUTCISO8601:
+		case .toUTCISO8601:
 			if let d = arguments[0].dateValue {
 				return Value(d.iso8601FormattedUTCDate)
 			}
 			return Value.invalid
 			
-		case .ToExcelDate:
+		case .toExcelDate:
 			if let d = arguments[0].dateValue, let e = d.excelDate {
 				return Value(e)
 			}
 			return Value.invalid
 			
-		case .FromExcelDate:
+		case .fromExcelDate:
 			if let d = arguments[0].doubleValue, let x = Date.fromExcelDate(d) {
 				return Value(x)
 			}
 			return Value.invalid
 			
-		case .UTCDate:
+		case .utcDate:
 			if let year = arguments[0].intValue, let month = arguments[1].intValue, let day = arguments[2].intValue {
 				return Value(Date.startOfGregorianDateInUTC(year, month: month, day: day))
 			}
 			return Value.invalid
 			
-		case .UTCDay:
+		case .utcDay:
 			if let date = arguments[0].dateValue, let d = date.gregorianComponentsInUTC.day {
 				return Value(d)
 			}
 			return Value.invalid
 
-		case .UTCMonth:
+		case .utcMonth:
 			if let date = arguments[0].dateValue, let m = date.gregorianComponentsInUTC.month {
 				return Value(m)
 			}
 			return Value.invalid
 
-		case .UTCYear:
+		case .utcYear:
 			if let date = arguments[0].dateValue, let y = date.gregorianComponentsInUTC.year {
 				return Value(y)
 			}
 			return Value.invalid
 
-		case .UTCHour:
+		case .utcHour:
 			if let date = arguments[0].dateValue, let h = date.gregorianComponentsInUTC.hour {
 				return Value(h)
 			}
 			return Value.invalid
 
-		case .UTCMinute:
+		case .utcMinute:
 			if let date = arguments[0].dateValue, let m = date.gregorianComponentsInUTC.minute {
 				return Value(m)
 			}
 			return Value.invalid
 
-		case .UTCSecond:
+		case .utcSecond:
 			if let date = arguments[0].dateValue, let s = date.gregorianComponentsInUTC.second {
 				return Value(s)
 			}
 			return Value.invalid
 			
-		case .Duration:
+		case .duration:
 			if let start = arguments[0].dateValue, let end = arguments[1].dateValue {
 				return Value(end.timeIntervalSinceReferenceDate - start.timeIntervalSinceReferenceDate)
 			}
 			return Value.invalid
 			
-		case .After:
+		case .after:
 			if let start = arguments[0].dateValue, let duration = arguments[1].doubleValue {
 				return Value(Date(timeInterval: duration, since: start as Date))
 			}
 			return Value.invalid
 			
-		case .Floor:
+		case .floor:
 			if let d = arguments[0].doubleValue {
-				return Value(floor(d))
+				return Value(Darwin.floor(d))
 			}
 			return Value.invalid
 			
-		case .Ceiling:
+		case .ceiling:
 			if let d = arguments[0].doubleValue {
 				return Value(ceil(d))
 			}
 			return Value.invalid
 			
-		case .RandomString:
+		case .randomString:
 			if let p = arguments[0].stringValue, let sequencer = Sequencer(p) {
 				return sequencer.randomValue ?? Value.empty
 			}
 			return Value.invalid
 			
-		case .ToUnicodeDateString:
+		case .toUnicodeDateString:
 			if let d = arguments[0].dateValue, let format = arguments[1].stringValue {
 				let formatter = DateFormatter()
 				formatter.dateFormat = format
@@ -1352,7 +1352,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .FromUnicodeDateString:
+		case .fromUnicodeDateString:
 			if let d = arguments[0].stringValue, let format = arguments[1].stringValue {
 				let formatter = DateFormatter()
 				formatter.dateFormat = format
@@ -1363,19 +1363,19 @@ public enum Function: String {
 			}
 			return Value.invalid
 			
-		case .Power:
+		case .power:
 			return arguments[0] ^ arguments[1]
 
-		case .UUID:
+		case .uuid:
 			return .string(Foundation.UUID().uuidString)
 
-		case .IsInvalid:
+		case .isInvalid:
 			return Value.bool(!arguments[0].isValid)
 
-		case .IsEmpty:
+		case .isEmpty:
 			return Value.bool(arguments[0].isEmpty)
 
-		case .JSONDecode:
+		case .jsonDecode:
 			do {
 				if let s = arguments[0].stringValue, let stringDataset = s.data(using: String.Encoding.utf8) {
 					let jsonDecoded = try JSONSerialization.jsonObject(with: stringDataset, options: [.allowFragments])
@@ -1387,7 +1387,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 
-		case .ParseNumber:
+		case .parseNumber:
 			if let text = arguments[0].stringValue {
 				let decimalSeparator = arguments.count >= 2 ? (arguments[1].stringValue ?? ".") : "."
 				let thousandsSeparator = arguments.count == 3 ? (arguments[2].stringValue ?? ",") : ","
@@ -1400,7 +1400,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 
-		case .HilbertXYToD:
+		case .hilbertXYToD:
 			if let n = arguments[0].intValue, let x = arguments[1].intValue, let y = arguments[2].intValue {
 				// N must be a power of two
 				if n < 1 || n.powerUp(base: 2) != n || n.powerDown(base: 2) != n {
@@ -1417,7 +1417,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 
-		case .HilbertDToX:
+		case .hilbertDToX:
 			if let n = arguments[0].intValue, let d = arguments[1].intValue {
 				// N must be a power of two
 				if n < 1 || n.powerUp(base: 2) != n || n.powerDown(base: 2) != n || d < 0 {
@@ -1431,7 +1431,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 
-		case .HilbertDToY:
+		case .hilbertDToY:
 			if let n = arguments[0].intValue, let d = arguments[1].intValue {
 				// N must be a power of two
 				if n < 1 || n.powerUp(base: 2) != n || n.powerDown(base: 2) != n || d < 0 {
@@ -1445,7 +1445,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 
-		case .PowerUp:
+		case .powerUp:
 			if let n = arguments[0].intValue, let base = arguments[1].intValue {
 				if base <= 1 {
 					return Value.invalid
@@ -1457,7 +1457,7 @@ public enum Function: String {
 			}
 			return Value.invalid
 
-		case .PowerDown:
+		case .powerDown:
 			if let n = arguments[0].intValue, let base = arguments[1].intValue {
 				if base <= 1 || n < 1 {
 					return Value.invalid
@@ -1471,8 +1471,8 @@ public enum Function: String {
 
 
 		// The following functions are already implemented as a Reducer, just use that
-		case .Sum, .Min, .Max, .Count, .CountAll, .Average, .Concat, .Pack, .CountDistinct, .Median, .MedianHigh,
-			.MedianLow, .MedianPack, .VarianceSample, .VariancePopulation, .StandardDeviationPopulation, .StandardDeviationSample:
+		case .sum, .min, .max, .count, .countAll, .average, .concat, .pack, .countDistinct, .median, .medianHigh,
+			.medianLow, .medianPack, .varianceSample, .variancePopulation, .standardDeviationPopulation, .standardDeviationSample:
 			var r = self.reducer!
 			r.add(arguments)
 			return r.result
@@ -1481,23 +1481,23 @@ public enum Function: String {
 
 	public var reducer: Reducer? {
 		switch self {
-		case .Sum: return SumReducer()
-		case .Min: return MinReducer()
-		case .Max: return MaxReducer()
-		case .CountDistinct: return CountDistinctReducer()
-		case .Count: return CountReducer(all: false)
-		case .CountAll: return CountReducer(all: true)
-		case .Average: return AverageReducer()
-		case .Concat: return ConcatenationReducer()
-		case .Pack: return PackReducer()
-		case .MedianPack: return MedianReducer(medianType: .pack)
-		case .MedianHigh: return MedianReducer(medianType: .high)
-		case .MedianLow: return MedianReducer(medianType: .low)
-		case .Median: return MedianReducer(medianType: .average)
-		case .VariancePopulation: return VarianceReducer(varianceType: .population)
-		case .VarianceSample: return VarianceReducer(varianceType: .sample)
-		case .StandardDeviationPopulation: return StandardDeviationReducer(varianceType: .population)
-		case .StandardDeviationSample: return StandardDeviationReducer(varianceType: .sample)
+		case .sum: return SumReducer()
+		case .min: return MinReducer()
+		case .max: return MaxReducer()
+		case .countDistinct: return CountDistinctReducer()
+		case .count: return CountReducer(all: false)
+		case .countAll: return CountReducer(all: true)
+		case .average: return AverageReducer()
+		case .concat: return ConcatenationReducer()
+		case .pack: return PackReducer()
+		case .medianPack: return MedianReducer(medianType: .pack)
+		case .medianHigh: return MedianReducer(medianType: .high)
+		case .medianLow: return MedianReducer(medianType: .low)
+		case .median: return MedianReducer(medianType: .average)
+		case .variancePopulation: return VarianceReducer(varianceType: .population)
+		case .varianceSample: return VarianceReducer(varianceType: .sample)
+		case .standardDeviationPopulation: return StandardDeviationReducer(varianceType: .population)
+		case .standardDeviationSample: return StandardDeviationReducer(varianceType: .sample)
 
 		default:
 			return nil
@@ -1512,21 +1512,21 @@ public enum Function: String {
 		}
 
 		switch self {
-		case .Sum, .Min, .Max, .Average, .Concat, .Pack, .Median, .MedianLow, .MedianHigh, .And, .Or, .RandomItem: return true
+		case .sum, .min, .max, .average, .concat, .pack, .median, .medianLow, .medianHigh, .and, .or, .randomItem: return true
 		default: return false
 		}
 	}
 
 	public static let allFunctions = [
-		Uppercase, Lowercase, Negate, Absolute, And, Or, Acos, Asin, Atan, Cosh, Sinh, Tanh, Cos, Sin, Tan, Sqrt, Concat,
-		If, Left, Right, Mid, Length, Substitute, Count, Sum, Trim, Average, Min, Max, RandomItem, CountAll, Pack, IfError,
-		Exp, Log, Ln, Round, Choose, Random, RandomBetween, RegexSubstitute, NormalInverse, Sign, Split, Nth, Items,
-		Levenshtein, URLEncode, In, NotIn, Not, Capitalize, Now, ToUnixTime, FromUnixTime, FromISO8601, ToLocalISO8601,
-		ToUTCISO8601, ToExcelDate, FromExcelDate, UTCDate, UTCDay, UTCMonth, UTCYear, UTCHour, UTCMinute, UTCSecond,
-		Duration, After, Xor, Floor, Ceiling, RandomString, ToUnicodeDateString, FromUnicodeDateString, Power, UUID,
-		CountDistinct, MedianLow, MedianHigh, MedianPack, Median, VarianceSample, VariancePopulation, StandardDeviationSample,
-		StandardDeviationPopulation, IsEmpty, IsInvalid, JSONDecode, ParseNumber, ValueForKey, HilbertXYToD, HilbertDToX,
-		HilbertDToY, PowerDown, PowerUp
+		uppercase, lowercase, negate, absolute, and, or, acos, asin, atan, cosh, sinh, tanh, cos, sin, tan, sqrt, concat,
+		`if`, left, right, mid, length, substitute, count, sum, trim, average, min, max, randomItem, countAll, pack, ifError,
+		exp, log, ln, round, choose, random, randomBetween, regexSubstitute, normalInverse, sign, split, nth, items,
+		levenshtein, urlEncode, `in`, notIn, not, capitalize, now, toUnixTime, fromUnixTime, fromISO8601, toLocalISO8601,
+		toUTCISO8601, toExcelDate, fromExcelDate, utcDate, utcDay, utcMonth, utcYear, utcHour, utcMinute, utcSecond,
+		duration, after, xor, floor, ceiling, randomString, toUnicodeDateString, fromUnicodeDateString, power, uuid,
+		countDistinct, medianLow, medianHigh, medianPack, median, varianceSample, variancePopulation, standardDeviationSample,
+		standardDeviationPopulation, isEmpty, isInvalid, jsonDecode, parseNumber, valueForKey, hilbertXYToD, hilbertDToX,
+		hilbertDToY, powerDown, powerUp
 	]
 }
 

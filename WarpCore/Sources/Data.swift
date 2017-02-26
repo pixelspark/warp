@@ -144,10 +144,10 @@ public class Aggregation: NSObject, NSCoding {
 		let map = (coder.decodeObject(forKey: "map") as? Expression) ?? Identity()
 		let reduce: Function
 		if let rawReduce = coder.decodeObject(forKey: "reduce") as? String {
-			reduce = Function(rawValue: rawReduce) ?? Function.Identity
+			reduce = Function(rawValue: rawReduce) ?? Function.identity
 		}
 		else {
-			reduce = Function.Identity
+			reduce = Function.identity
 		}
 		self.aggregator = Aggregator(map: map, reduce: reduce)
 	}
@@ -652,7 +652,7 @@ enum CoalescedDataset: Dataset {
 			}
 
 		case .filtering(let data, let oldFilter):
-			return CoalescedDataset.filtering(data, Call(arguments: [oldFilter, condition], type: Function.And))
+			return CoalescedDataset.filtering(data, Call(arguments: [oldFilter, condition], type: Function.and))
 
 		default:
 			return CoalescedDataset.filtering(self.data, condition)

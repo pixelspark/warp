@@ -594,8 +594,8 @@ public final class Call: Expression {
 	
 	public required init?(coder aDecoder: NSCoder) {
 		self.arguments = (aDecoder.decodeObject(forKey: "args") as? [Expression]) ?? []
-		let typeString = (aDecoder.decodeObject(forKey: "type") as? String) ?? Function.Identity.rawValue
-		self.type = Function(rawValue: typeString) ?? Function.Identity
+		let typeString = (aDecoder.decodeObject(forKey: "type") as? String) ?? Function.identity.rawValue
+		self.type = Function(rawValue: typeString) ?? Function.identity
 		super.init(coder: aDecoder)
 	}
 	
@@ -664,8 +664,8 @@ public final class Call: Expression {
 								let pack = Pack(splitted)
 								for i in 0..<pack.count {
 									let item = pack[i]
-									let splitExpression = Call(arguments: [from, Literal(Value.string(separator))], type: Function.Split)
-									let nthExpression = Call(arguments: [splitExpression, Literal(Value.int(i+1))], type: Function.Nth)
+									let splitExpression = Call(arguments: [from, Literal(Value.string(separator))], type: Function.split)
+									let nthExpression = Call(arguments: [splitExpression, Literal(Value.int(i+1))], type: Function.nth)
 									if targetString == item {
 										suggestions.append(nthExpression)
 										foundAsElement = true
@@ -684,21 +684,21 @@ public final class Call: Expression {
 							}
 							else {
 								if let range = sourceString.range(of: targetString) {
-									suggestions.append(Call(arguments: [from, Literal(length)], type: Function.Right))
+									suggestions.append(Call(arguments: [from, Literal(length)], type: Function.right))
 
 									let startIndex = sourceString.characters.distance(from: sourceString.startIndex, to: range.lowerBound)
 									let start = Literal(Value(startIndex))
 									let length = Literal(Value(sourceString.distance(from: range.lowerBound, to: range.upperBound)))
 									if startIndex == 0 {
-										suggestions.append(Call(arguments: [from, length], type: Function.Left))
+										suggestions.append(Call(arguments: [from, length], type: Function.left))
 									}
 									else {
-										suggestions.append(Call(arguments: [from, start, length], type: Function.Mid))
+										suggestions.append(Call(arguments: [from, start, length], type: Function.mid))
 									}
 								}
 								else {
 									// Suggest a text replace
-									suggestions.append(Call(arguments: [Identity(), Literal(f), Literal(toValue)], type: Function.Substitute))
+									suggestions.append(Call(arguments: [Identity(), Literal(f), Literal(toValue)], type: Function.substitute))
 								}
 							}
 						}
@@ -875,7 +875,7 @@ public class FilterSet: NSObject, NSCoding {
 				args.append(Literal(value))
 			}
 			
-			return Call(arguments: args, type: Function.In)
+			return Call(arguments: args, type: Function.in)
 		}
 		else {
 			// No value is selected, therefore no value should match

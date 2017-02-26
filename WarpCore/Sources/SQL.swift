@@ -480,10 +480,10 @@ open class SQLMutableDataset: MutableDataset {
 			for (column, value) in key {
 				wheres.append(Comparison(first: Sibling(column), second: Literal(value), type: .equal))
 			}
-			allWheres.append(Call(arguments: wheres, type: .And))
+			allWheres.append(Call(arguments: wheres, type: .and))
 		}
 
-		let whereExpression = Call(arguments: allWheres, type: .Or)
+		let whereExpression = Call(arguments: allWheres, type: .or)
 
 		guard let whereSQL = self.database.dialect.expressionToSQL(whereExpression, alias: self.tableName, foreignAlias: nil, inputValue: nil) else {
 			return callback(.failure("Selection cannot be written in SQL"))
@@ -502,7 +502,7 @@ open class SQLMutableDataset: MutableDataset {
 		// Only update if the old value matches what we last saw
 		wheres.append(Comparison(first: Sibling(column), second: Literal(old), type: .equal))
 
-		let whereExpression = Call(arguments: wheres, type: .And)
+		let whereExpression = Call(arguments: wheres, type: .and)
 		guard let whereSQL = self.database.dialect.expressionToSQL(whereExpression, alias: self.tableName, foreignAlias: nil, inputValue: nil) else { return callback(.failure("Selection cannot be written in SQL")) }
 
 		// Write assignment
@@ -725,19 +725,19 @@ open class StandardSQLDialect: SQLDialect {
 	open func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
 		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias, foreignAlias: nil, inputValue: nil) {
 			switch aggregation.reduce {
-				case .Average: return "AVG(\(expressionSQL))"
-				case .CountAll: return "COUNT(*)"
-				case .CountDistinct: return "COUNT(DISTINCT \(expressionSQL))"
-				case .Sum: return "SUM(\(expressionSQL))"
-				case .Min: return "MIN(\(expressionSQL))"
-				case .Max: return "MAX(\(expressionSQL))"
-				case .StandardDeviationPopulation: return "STDDEV_POP(\(expressionSQL))"
-				case .StandardDeviationSample: return "STDDEV_SAMP(\(expressionSQL))"
-				case .VariancePopulation: return "VAR_POP(\(expressionSQL))"
-				case .VarianceSample: return "VAR_SAMP(\(expressionSQL))"
-				case .Concat: return "GROUP_CONCAT(\(expressionSQL),'')"
+				case .average: return "AVG(\(expressionSQL))"
+				case .countAll: return "COUNT(*)"
+				case .countDistinct: return "COUNT(DISTINCT \(expressionSQL))"
+				case .sum: return "SUM(\(expressionSQL))"
+				case .min: return "MIN(\(expressionSQL))"
+				case .max: return "MAX(\(expressionSQL))"
+				case .standardDeviationPopulation: return "STDDEV_POP(\(expressionSQL))"
+				case .standardDeviationSample: return "STDDEV_SAMP(\(expressionSQL))"
+				case .variancePopulation: return "VAR_POP(\(expressionSQL))"
+				case .varianceSample: return "VAR_SAMP(\(expressionSQL))"
+				case .concat: return "GROUP_CONCAT(\(expressionSQL),'')"
 				
-				case .Pack:
+				case .pack:
 					return "GROUP_CONCAT(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.escape)),\(literalString(Pack.escapeEscape))),\(literalString(Pack.separator)),\(literalString(Pack.separatorEscape))), \(literalString(Pack.separator)))"
 				
 				default:
@@ -754,59 +754,59 @@ open class StandardSQLDialect: SQLDialect {
 	open func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		let value = args.joined(separator: ", ")
 		switch type {
-		case .Identity: return value
-		case .Negate: return "-\(value)"
-		case .Uppercase: return "UPPER(\(value))"
-		case .Lowercase: return "LOWER(\(value))"
-		case .Absolute: return "ABS(\(value))"
-		case .Cos: return "COS(\(value))"
-		case .Sin: return "SIN(\(value))"
-		case .Tan: return "TAN(\(value))"
-		case .Cosh: return "COSH(\(value))"
-		case .Sinh: return "SINH(\(value))"
-		case .Tanh: return "TANH(\(value))"
-		case .Acos: return "ACOS(\(value))"
-		case .Asin: return "ASIN(\(value))"
-		case .Atan: return "ATAN(\(value))"
-		case .Sqrt: return "SQRT(\(value))"
-		case .Concat: return "CONCAT(\(value))"
-		case .If: return "(CASE WHEN \(args[0]) THEN \(args[1]) ELSE \(args[2]) END)"
-		case .Left: return "SUBSTR(\(args[0]), 1, \(args[1]))"
-		case .Right: return "RIGHT(\(args[0]), LENGTH(\(args[0]))-\(args[1]))"
-		case .Mid: return "SUBSTR(\(args[0]), \(args[1]), \(args[2]))"
-		case .Length: return "LEN(\(args[0]))"
-		case .Trim: return "TRIM(\(args[0]))"
-		case .Not: return "NOT(\(value))"
-		case .Substitute: return "REPLACE(\(args[0]), \(args[1]), \(args[2]))"
-		case .Xor: return "((\(args[0])<>\(args[1])) AND (\(args[0]) OR \(args[1])))"
-		case .Coalesce: return "COALESCE(\(value))"
-		case .IfError: return "IFNULL(\(args[0]), \(args[1]))" // In SQLite, the result of (1/0) equals NULL
-		case .Sum: return args.joined(separator: " + ")
-		case .Average: return "(" + (args.joined(separator: " + ")) + ")/\(args.count)"
-		case .Min: return "MIN(\(value))" // Should be LEAST in SQL Server
-		case .Max: return "MAX(\(value))" // Might be GREATEST in SQL Server
+		case .identity: return value
+		case .negate: return "-\(value)"
+		case .uppercase: return "UPPER(\(value))"
+		case .lowercase: return "LOWER(\(value))"
+		case .absolute: return "ABS(\(value))"
+		case .cos: return "COS(\(value))"
+		case .sin: return "SIN(\(value))"
+		case .tan: return "TAN(\(value))"
+		case .cosh: return "COSH(\(value))"
+		case .sinh: return "SINH(\(value))"
+		case .tanh: return "TANH(\(value))"
+		case .acos: return "ACOS(\(value))"
+		case .asin: return "ASIN(\(value))"
+		case .atan: return "ATAN(\(value))"
+		case .sqrt: return "SQRT(\(value))"
+		case .concat: return "CONCAT(\(value))"
+		case .`if`: return "(CASE WHEN \(args[0]) THEN \(args[1]) ELSE \(args[2]) END)"
+		case .left: return "SUBSTR(\(args[0]), 1, \(args[1]))"
+		case .right: return "RIGHT(\(args[0]), LENGTH(\(args[0]))-\(args[1]))"
+		case .mid: return "SUBSTR(\(args[0]), \(args[1]), \(args[2]))"
+		case .length: return "LEN(\(args[0]))"
+		case .trim: return "TRIM(\(args[0]))"
+		case .not: return "NOT(\(value))"
+		case .substitute: return "REPLACE(\(args[0]), \(args[1]), \(args[2]))"
+		case .xor: return "((\(args[0])<>\(args[1])) AND (\(args[0]) OR \(args[1])))"
+		case .coalesce: return "COALESCE(\(value))"
+		case .ifError: return "IFNULL(\(args[0]), \(args[1]))" // In SQLite, the result of (1/0) equals NULL
+		case .sum: return args.joined(separator: " + ")
+		case .average: return "(" + (args.joined(separator: " + ")) + ")/\(args.count)"
+		case .min: return "MIN(\(value))" // Should be LEAST in SQL Server
+		case .max: return "MAX(\(value))" // Might be GREATEST in SQL Server
 
-		case .And:
+		case .and:
 			if args.count > 0 {
 				let ands = args.joined(separator: " AND ")
 				return "(\(ands))"
 			}
 			return "(1=0)"
 
-		case .Or:
+		case .or:
 			if args.count > 0 {
 				let ors = args.joined(separator: " OR ")
 				return "(\(ors))"
 			}
 			return "(1=1)"
 
-		case .RandomBetween:
+		case .randomBetween:
 			/* FIXME check this! Using RANDOM() with modulus introduces a bias, but because we're using ABS, the bias
 			should be cancelled out. See http://stackoverflow.com/questions/8304204/generating-only-positive-random-numbers-in-sqlite */
-			let rf = self.unaryToSQL(Function.Random, args: []) ?? "RANDOM()"
+			let rf = self.unaryToSQL(Function.random, args: []) ?? "RANDOM()"
 			return "(\(args[0]) + ABS(\(rf) % (\(args[1])-\(args[0]))))"
 
-		case .Random:
+		case .random:
 			/* FIXME: According to the SQLite documentation, RANDOM() generates a number between -9223372036854775808
 			and +9223372036854775807. This should work to generate a random double between 0 and 1 (although there is
 			a slight bias introduced because the lower bound is one lower than the upper bound). */
@@ -814,8 +814,8 @@ open class StandardSQLDialect: SQLDialect {
 
 			/* FIXME: this is random once (before query execution), in the raster implementation it is random for each
 			row. Something like INDEX(RANDOM(), arg0, arg1, ...) might work (or even using CASE WHEN). */
-		case .RandomItem: return (args.count > 0) ? args[Int.random(0..<args.count)] : "NULL"
-		case .Log:
+		case .randomItem: return (args.count > 0) ? args[Int.random(0..<args.count)] : "NULL"
+		case .log:
 			// LOG() can either receive two parameters (number, log base) or one (just number, log base is 10).
 			if args.count == 2 {
 				return "(LOG(\(args[0])) / LOG(\(args[1])))"
@@ -823,13 +823,13 @@ open class StandardSQLDialect: SQLDialect {
 			else {
 				return "(LOG(\(args[0])) / LOG(10))"
 			}
-		case .Ln:
+		case .ln:
 			return "(LOG(\(args[0])) / LOG(\(exp(1.0))))"
 
-		case .Exp:
+		case .exp:
 			return "EXP(\(args[0]))"
 
-		case .Round:
+		case .round:
 			if args.count == 1 {
 				return "ROUND(\(args[0]), 0)"
 			}
@@ -837,67 +837,67 @@ open class StandardSQLDialect: SQLDialect {
 				return "ROUND(\(args[0]), \(args[1]))"
 			}
 
-		case .Sign:
+		case .sign:
 			return "(CASE WHEN \(args[0])=0 THEN 0 WHEN \(args[0])>0 THEN 1 ELSE -1 END)"
 
 
 			/* FIXME: These could simply call Function.Count.apply() if the parameters are constant, but then we need
 			the original Expression arguments. */
-		case .Count: return nil
-		case .CountDistinct: return nil
-		case .CountAll: return nil
-		case .Pack: return nil
-		case .Median: return nil
-		case .MedianLow: return nil
-		case .MedianHigh: return nil
-		case .MedianPack: return nil
-		case .StandardDeviationSample: return nil
-		case .StandardDeviationPopulation: return nil
-		case .VarianceSample: return nil
-		case .VariancePopulation: return nil
+		case .count: return nil
+		case .countDistinct: return nil
+		case .countAll: return nil
+		case .pack: return nil
+		case .median: return nil
+		case .medianLow: return nil
+		case .medianHigh: return nil
+		case .medianPack: return nil
+		case .standardDeviationSample: return nil
+		case .standardDeviationPopulation: return nil
+		case .varianceSample: return nil
+		case .variancePopulation: return nil
 
 		// FIXME: should be implemented as CASE WHEN i=1 THEN a WHEN i=2 THEN b ... END
-		case .Choose: return nil
-		case .RegexSubstitute: return nil
-		case .NormalInverse: return nil
-		case .Split: return nil
-		case .Nth: return nil
-		case .ValueForKey: return nil
-		case .Items: return nil
-		case .Levenshtein: return nil
-		case .URLEncode: return nil
-		case .Capitalize: return nil
-		case .UUID: return nil
+		case .choose: return nil
+		case .regexSubstitute: return nil
+		case .normalInverse: return nil
+		case .split: return nil
+		case .nth: return nil
+		case .valueForKey: return nil
+		case .items: return nil
+		case .levenshtein: return nil
+		case .urlEncode: return nil
+		case .capitalize: return nil
+		case .uuid: return nil
 
 		// TODO: date function can probably be implemented in SQL
-		case .Now: return nil
-		case .ToUTCISO8601: return nil
-		case .FromUnixTime: return nil
-		case .ToUnixTime: return nil
-		case .ToLocalISO8601: return nil
-		case .FromISO8601: return nil
-		case .FromExcelDate: return nil
-		case .ToExcelDate: return nil
-		case .UTCDay: return nil
-		case .UTCHour: return nil
-		case .UTCMinute: return nil
-		case .UTCSecond: return nil
-		case .UTCYear: return nil
-		case .UTCMonth: return nil
-		case .UTCDate: return nil
-		case .Duration: return nil
-		case .After: return nil
+		case .now: return nil
+		case .toUTCISO8601: return nil
+		case .fromUnixTime: return nil
+		case .toUnixTime: return nil
+		case .toLocalISO8601: return nil
+		case .fromISO8601: return nil
+		case .fromExcelDate: return nil
+		case .toExcelDate: return nil
+		case .utcDay: return nil
+		case .utcHour: return nil
+		case .utcMinute: return nil
+		case .utcSecond: return nil
+		case .utcYear: return nil
+		case .utcMonth: return nil
+		case .utcDate: return nil
+		case .duration: return nil
+		case .after: return nil
 			/* TODO: Some databases probaby support date parsing and formatting with non-Unicode format strings;
 			implement that by translating the format strings */
-		case .ToUnicodeDateString: return nil
-		case .FromUnicodeDateString: return nil
+		case .toUnicodeDateString: return nil
+		case .fromUnicodeDateString: return nil
 
-		case .RandomString: return nil
+		case .randomString: return nil
 
-		case .Floor: return "FLOOR(\(args[0]))"
-		case .Ceiling: return "CEIL(\(args[0]))"
+		case .floor: return "FLOOR(\(args[0]))"
+		case .ceiling: return "CEIL(\(args[0]))"
 
-		case .In:
+		case .`in`:
 			// Not all databases might support IN with arbitrary values. If so, generate OR(a=x; a=y; ..)
 			let first = args[0]
 			var conditions: [String] = []
@@ -907,7 +907,7 @@ open class StandardSQLDialect: SQLDialect {
 			}
 			return "(\(first) IN (" + conditions.joined(separator: ", ") + "))"
 
-		case .NotIn:
+		case .notIn:
 			// Not all databases might support NOT IN with arbitrary values. If so, generate AND(a<>x; a<>y; ..)
 			let first = args[0]
 			var conditions: [String] = []
@@ -917,25 +917,25 @@ open class StandardSQLDialect: SQLDialect {
 			}
 			return "(\(first) NOT IN (" + conditions.joined(separator: ", ") + "))"
 
-		case .Power:
+		case .power:
 			return "POW(\(args[0]), \(args[1]))"
 
-		case .IsEmpty:
+		case .isEmpty:
 			return "(\(args[0]) IS NULL)"
 
-		case .IsInvalid:
+		case .isInvalid:
 			return nil
 
-		case .JSONDecode:
+		case .jsonDecode:
 			return nil
 
-		case .HilbertXYToD, .HilbertDToX, .HilbertDToY:
+		case .hilbertXYToD, .hilbertDToX, .hilbertDToY:
 			return nil
 
-		case .PowerUp, .PowerDown:
+		case .powerUp, .powerDown:
 			return nil
 
-		case .ParseNumber:
+		case .parseNumber:
 			var value = args[0]
 
 			// Replace thousands separator
@@ -987,10 +987,10 @@ open class StandardSQLDialect: SQLDialect {
 		// Force arguments of numeric comparison operators to numerics, to prevent 'string ordering' comparisons
 		// Note that this may impact performance as indexes cannot be used anymore after casting?
 		// TODO: only force to numeric when expression is not already numeric (e.g. a double literal).
-		case .addition: return "(\(forceNumericExpression(second)) + \(forceNumericExpression(first)))"
-		case .subtraction: return "(\(forceNumericExpression(second)) - \(forceNumericExpression(first)))"
+		case .addition:		return "(\(forceNumericExpression(second)) + \(forceNumericExpression(first)))"
+		case .subtraction:	return "(\(forceNumericExpression(second)) - \(forceNumericExpression(first)))"
 		case .multiplication: return "(\(forceNumericExpression(second)) * \(forceNumericExpression(first)))"
-		case .division: return "(\(forceNumericExpression(second)) / \(forceNumericExpression(first)))"
+		case .division:		return "(\(forceNumericExpression(second)) / \(forceNumericExpression(first)))"
 		case .modulus:		return "MOD(\(forceNumericExpression(second)), \(forceNumericExpression(first)))"
 		case .concatenation: return "CONCAT(\(forceStringExpression(second)), \(forceStringExpression(first)))"
 		case .power:		return "POW(\(forceNumericExpression(second)), \(forceNumericExpression(first)))"
@@ -1453,7 +1453,7 @@ open class SQLDataset: NSObject, Dataset {
 	}
 	
 	open func random(_ numberOfRows: Int) -> Dataset {
-		let randomFunction = sql.dialect.unaryToSQL(Function.Random, args: []) ?? "RANDOM()"
+		let randomFunction = sql.dialect.unaryToSQL(Function.random, args: []) ?? "RANDOM()"
 		return apply(sql.sqlOrder(randomFunction).sqlLimit("\(numberOfRows)"), resultingColumns: columns)
 	}
 	
