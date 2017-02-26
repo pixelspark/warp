@@ -57,11 +57,17 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		self.dataViewController?.addRow(sender)
 	}
 
+
+	@IBAction func addStep(_ sender: AnyObject) {
+		self.stepsViewController?.showAddStepPopover()
+	}
+
 	override var keyCommands: [UIKeyCommand]? {
 		var cmds = [
 			UIKeyCommand(input: "", modifierFlags: .command, action: #selector(self.doNothing(_:))),
 			UIKeyCommand(input: UIKeyInputLeftArrow, modifierFlags: .command, action: #selector(self.previousStep(_:)), discoverabilityTitle: "Previous step".localized),
 			UIKeyCommand(input: UIKeyInputRightArrow, modifierFlags: .command, action: #selector(self.nextStep(_:)), discoverabilityTitle: "Next step".localized),
+			UIKeyCommand(input: "+", modifierFlags: .command, action: #selector(self.addStep(_:)), discoverabilityTitle: "Add step".localized),
 			UIKeyCommand(input: "\u{8}", modifierFlags: .command, action: #selector(self.removeStep(_:)), discoverabilityTitle: "Remove step".localized),
 			UIKeyCommand(input: ",", modifierFlags: .command, action: #selector(self.configureStep(_:)), discoverabilityTitle: "Configure step".localized),
 			UIKeyCommand(input: "\r", modifierFlags: .command, action: #selector(self.toggleFullDataset(_:)), discoverabilityTitle: "Toggle full data".localized),

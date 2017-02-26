@@ -319,6 +319,13 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 			}
 		}
 	}
+
+	public func showAddStepPopover() {
+		let indexPath = IndexPath(item: self.chain?.steps.count ?? 0, section: QBEStepsViewController.stepsSection)
+		if let cv = self.collectionView, let cell = cv.cellForItem(at: indexPath) {
+			self.showAddStepMenu(at: cell.frame, in: cv)
+		}
+	}
 }
 
 protocol QBEStepsViewCellDelegate: class {
