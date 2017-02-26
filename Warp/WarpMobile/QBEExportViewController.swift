@@ -88,6 +88,12 @@ class QBEExportViewController: FormViewController {
 		return workerQueue
 	}()
 
+	private func performWithoutAnimation(closureToPerform: () -> Void) {
+		UIView.setAnimationsEnabled(false)
+		closureToPerform()
+		UIView.setAnimationsEnabled(true)
+	}
+
 	override func viewDidLoad() {
 		self.exporter = QBECSVWriter(locale: QBEAppDelegate.sharedInstance.locale, title: nil)
 
@@ -103,20 +109,21 @@ class QBEExportViewController: FormViewController {
 
 		self.navigationItem.setLeftBarButton(UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(self.cancel(_:))), animated: false)
 
-		form = Form()
+		self.performWithoutAnimation {
+			form = Form()
+			form += Form() +++ Section("Export to".localized)
+				<<< TextRow() { row in
+					row.title = "File name".localized
+					row.value = "Exported data".localized
+					row.onChange({ (tr) in
+						self.fileName = tr.value
+					})
+					return
+				}
 
-		form += Form() +++ Section("Export to".localized)
-			<<< TextRow() { row in
-				row.title = "File name".localized
-				row.value = "Exported data".localized
-				row.onChange({ (tr) in
-					self.fileName = tr.value
-				})
-				return
-			}
-
-		form += exporter.form
-		form.delegate = self
+			form += exporter.form
+			form.delegate = self
+		}
 	}
 
 	@IBAction func cancel(_ sender: AnyObject?) {
