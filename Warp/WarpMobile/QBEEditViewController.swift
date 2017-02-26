@@ -11,8 +11,7 @@ class QBEEditViewController: FormViewController {
 
 	private var mutableData: MutableDataset? = nil
 	private var row: WarpCore.Row? = nil
-	private var columns: OrderedSet<Column> = []
-	private var identifiers: Set<Column>? = nil
+	private var schema: Schema? = nil
 	private var changes: [Column: Value] = [:]
 
 	/** Start editing a row. When row is nil, the form will allow adding a row. */
@@ -21,7 +20,7 @@ class QBEEditViewController: FormViewController {
 
 		self.mutableData = nil
 		self.row = nil
-		self.columns = []
+		self.schema = nil
 		self.changes = [:]
 
 		let job = Job(.userInitiated)
@@ -30,60 +29,79 @@ class QBEEditViewController: FormViewController {
 			switch result {
 			case .success(let schema):
 				asyncMain {
-					self.identifiers = schema.identifier
+					self.schema = schema
 					self.mutableData = dataset
 					self.row = row
-					self.columns = schema.columns
 					self.update()
 				}
 
 			case .failure(let e):
 				asyncMain {
-					self.showError(message: e)
+					self.showError(message: e) {
+						asyncMain {
+							self.dismiss(animated: true, completion: nil)
+						}
+					}
 				}
 			}
 		}
 	}
 
-	private func showError(message: String) {
+	private func showError(message: String, completion: (() -> ())? = nil) {
 		assertMainThread()
 
 		let ua = UIAlertController(title: "Cannot edit this row".localized, message: message, preferredStyle: .alert)
-		ua.addAction(UIAlertAction(title: "Dismiss".localized, style: .default, handler: nil))
+		ua.addAction(UIAlertAction(title: "Dismiss".localized, style: .default, handler: { _ in completion?() }))
 		self.present(ua, animated: true)
 	}
 
 	/** Rebuild the edit form. */
 	private func update() {
-		let section = Section()
-		let language = QBEAppDelegate.sharedInstance.locale
+		if let schema = self.schema {
+			let section = Section()
+			let language = QBEAppDelegate.sharedInstance.locale
 
-		for column in self.columns {
-			section.append(TextRow() { tr in
-				tr.title = column.name
-				if let r = self.row {
-					if let v = r[column] {
-						tr.value = language.localStringFor(v)
-					}
-				}
+			for column in schema.columns {
+				section.append(TextRow() { tr in
+					tr.title = column.name
 
-				tr.onChange { _ in
-					if let v = tr.value {
-						self.changes[column] = Value.string(v)
-						self.updateNavigationBar()
+					if let r = self.row {
+						if let v = r[column] {
+							tr.value = language.localStringFor(v)
+						}
 					}
-				}
+
+					tr.onChange { _ in
+						if let v = tr.value {
+							self.changes[column] = Value.string(v)
+							self.updateNavigationBar()
+						}
+					}
+				})
+			}
+
+			performWithoutAnimation {
+				self.form = Form()
+				self.form.append(section)
+			}
+
+			asyncMain {
+				self.form.first?.first?.select(animated: true, scrollPosition: .top)
+			}
+		}
+		else {
+			let section = Section()
+			section.append(LabelRow() {
+				$0.title = "Loading...".localized
 			})
+
+			performWithoutAnimation {
+				self.form = Form()
+				self.form.delegate = self
+				self.form.append(section)
+			}
 		}
 
-		performWithoutAnimation {
-			self.form = Form()
-			self.form.append(section)
-		}
-
-		asyncMain {
-			self.form.first?.first?.select(animated: true, scrollPosition: .top)
-		}
 		self.updateNavigationBar()
 	}
 
@@ -96,18 +114,7 @@ class QBEEditViewController: FormViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		self.modalPresentationStyle = .formSheet
-		self.updateNavigationBar()
-
-		let section = Section()
-		section.append(LabelRow() {
-			$0.title = "Loading...".localized
-		})
-
-		performWithoutAnimation {
-			self.form = Form()
-			self.form.delegate = self
-			self.form.append(section)
-		}
+		self.update()
 	}
 
 	private func updateNavigationBar() {
@@ -118,7 +125,7 @@ class QBEEditViewController: FormViewController {
 		revertButton.isEnabled = !self.changes.isEmpty
 
 		let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(self.newRow(_:)))
-		addButton.isEnabled = self.row != nil && (self.mutableData?.canPerformMutation(.insert) ?? false)
+		addButton.isEnabled = (self.mutableData?.canPerformMutation(.insert) ?? false)
 
 		self.navigationItem.leftBarButtonItems = [
 			addButton,
@@ -133,9 +140,11 @@ class QBEEditViewController: FormViewController {
 	}
 
 	private func persistChanges(completion: (() -> ())? = nil) {
+		assertMainThread()
+
 		let job = Job(.userInitiated)
 
-		if let ids = self.identifiers, let md = self.mutableData {
+		if let schema = self.schema, let ids = schema.identifier, let md = self.mutableData {
 			if self.row != nil {
 				// Updating an existing row
 				var changes = self.changes
@@ -183,9 +192,13 @@ class QBEEditViewController: FormViewController {
 						else {
 							asyncMain {
 								self.showError(message: String(format: "Cannot perform mutation of value in column '%@'.".localized, column.name))
+								completion?()
 							}
 							return
 						}
+					}
+					else {
+						callback?()
 					}
 				}
 				popAndPerformMutation(callback: completion)
@@ -197,7 +210,7 @@ class QBEEditViewController: FormViewController {
 					return
 				}
 
-				var r = WarpCore.Row(columns: self.columns)
+				var r = WarpCore.Row(columns: schema.columns)
 				for (column, value) in changes {
 					r[column] = value
 				}
@@ -222,6 +235,9 @@ class QBEEditViewController: FormViewController {
 				}
 			}
 		}
+		else {
+			completion?()
+		}
 	}
 
 	override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
@@ -237,9 +253,19 @@ class QBEEditViewController: FormViewController {
 	}
 
 	@IBAction func newRow(_ sender: AnyObject?) {
-		self.changes = [:]
-		self.row = nil
-		self.update()
+		if !self.changes.isEmpty {
+			self.persistChanges() {
+				if self.changes.isEmpty {
+					asyncMain {
+						self.newRow(sender)
+					}
+				}
+			}
+		}
+		else {
+			self.row = nil
+			self.update()
+		}
 	}
 
 	@IBAction func apply(_ sender: AnyObject?) {
