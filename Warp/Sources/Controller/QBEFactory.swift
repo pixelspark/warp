@@ -96,6 +96,8 @@ class QBEFactory {
 	]
 
 	private let fileReaders: [String: QBEFileReaderCreator] = [
+		"json": {(url) in return QBEJSONSourceStep(url: url)},
+		"public.json": {(url) in return QBEJSONSourceStep(url: url)},
 		"public.comma-separated-values-text": {(url) in return QBECSVSourceStep(url: url)},
 		"csv": {(url) in return QBECSVSourceStep(url: url)},
 		"tsv": {(url) in return QBECSVSourceStep(url: url)},
@@ -107,7 +109,7 @@ class QBEFactory {
 		"public.plain-text": {(url) in return QBECSVSourceStep(url: url)},
 		"org.sqlite.v3": {(url) in return QBESQLiteSourceStep(url: url)},
 		"sqlite": {(url) in return QBESQLiteSourceStep(url: url)},
-		"dbf": {(url) in return QBEDBFSourceStep(url: url)}
+		"dbf": {(url) in return QBEDBFSourceStep(url: url)},
 	]
 
 	public var supportedFileTypes: [String] {
@@ -169,6 +171,7 @@ class QBEFactory {
 		NSStringFromClass(QBEDummiesStep.self): "DummiesIcon",
 		NSStringFromClass(QBEHTTPStep.self): "DownloadIcon",
 		NSStringFromClass(QBEFileStep.self): "TextIcon",
+		NSStringFromClass(QBEJSONSourceStep.self): "JSONIcon",
 	]
 	
 	var fileExtensionsForWriting: Set<String> { get {
@@ -186,13 +189,20 @@ class QBEFactory {
 	func stepForReadingFile(_ atURL: URL) -> QBEStep? {
 		do {
 			#if os(macOS)
-			// Try to find reader by UTI type
-			let type = try NSWorkspace.shared().type(ofFile: atURL.path)
-			for (readerType, creator) in fileReaders {
-				if NSWorkspace.shared().type(type, conformsToType: readerType) {
+				// Try to find reader by UTI type
+				let type = try NSWorkspace.shared().type(ofFile: atURL.path)
+
+				// Exact match
+				if let creator = fileReaders[type] {
 					return creator(atURL)
 				}
-			}
+
+				// Conformance match
+				for (readerType, creator) in fileReaders {
+					if NSWorkspace.shared().type(type, conformsToType: readerType) {
+						return creator(atURL)
+					}
+				}
 			#endif
 
 			// Try by file extension

@@ -50,6 +50,8 @@
 		65BC51761E1C4D4D005FEC76 /* WarpConduit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 65BC51741E1C4D4D005FEC76 /* WarpConduit.cpp */; };
 		65BC51791E1C4E12005FEC76 /* libmysqlclient-mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65BC51771E1C4E12005FEC76 /* libmysqlclient-mac.a */; };
 		65BC517C1E1C4E12005FEC76 /* libmysqlclient-simulator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65BC51781E1C4E12005FEC76 /* libmysqlclient-simulator.a */; };
+		65CCEE161E87CC73004A7483 /* JSONStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CCEE151E87CC73004A7483 /* JSONStream.swift */; };
+		65CCEE171E87CC73004A7483 /* JSONStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CCEE151E87CC73004A7483 /* JSONStream.swift */; };
 		65DAF6C61D7C6F3C00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6BF1D7C6F2A00163750 /* Rethink.framework */; };
 		65DAF6C81D7C6F8500163750 /* RethinkStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DAF6C71D7C6F8500163750 /* RethinkStream.swift */; };
 		65F50E961D78CE6300F6FAE5 /* WarpConduit.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50E941D78CE6300F6FAE5 /* WarpConduit.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -260,6 +262,7 @@
 		65BC51771E1C4E12005FEC76 /* libmysqlclient-mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libmysqlclient-mac.a"; sourceTree = "<group>"; };
 		65BC51781E1C4E12005FEC76 /* libmysqlclient-simulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libmysqlclient-simulator.a"; sourceTree = "<group>"; };
 		65BC519F1E1C56F6005FEC76 /* WarpCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = WarpCore.xcodeproj; path = ../WarpCore/WarpCore.xcodeproj; sourceTree = "<group>"; };
+		65CCEE151E87CC73004A7483 /* JSONStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = JSONStream.swift; path = Sources/JSONStream.swift; sourceTree = SOURCE_ROOT; };
 		65DAF6B81D7C6F2A00163750 /* Rethink.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rethink.xcodeproj; path = Libraries/Rethink/Rethink.xcodeproj; sourceTree = "<group>"; };
 		65DAF6C71D7C6F8500163750 /* RethinkStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RethinkStream.swift; path = Sources/RethinkStream.swift; sourceTree = SOURCE_ROOT; };
 		65F50E891D78CE1000F6FAE5 /* WarpConduit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpConduit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -499,6 +502,7 @@
 				65A732361D8F1CE300C5C397 /* PostgresStream.swift */,
 				65BC51711E1C46EA005FEC76 /* MySQLStream.swift */,
 				65BC51741E1C4D4D005FEC76 /* WarpConduit.cpp */,
+				65CCEE151E87CC73004A7483 /* JSONStream.swift */,
 			);
 			path = WarpConduit;
 			sourceTree = "<group>";
@@ -917,6 +921,7 @@
 			files = (
 				651BEC7E1E1970390094F8AD /* extension-functions.c in Sources */,
 				651BEC791E196FB80094F8AD /* RethinkStream.swift in Sources */,
+				65CCEE171E87CC73004A7483 /* JSONStream.swift in Sources */,
 				65BC51761E1C4D4D005FEC76 /* WarpConduit.cpp in Sources */,
 				651BEC7D1E1970370094F8AD /* sqlite3.c in Sources */,
 				651BEC781E196FB30094F8AD /* DBFStream.swift in Sources */,
@@ -938,6 +943,7 @@
 			files = (
 				656822A51D78D93500410BA5 /* CSVStream.swift in Sources */,
 				65DAF6C81D7C6F8500163750 /* RethinkStream.swift in Sources */,
+				65CCEE161E87CC73004A7483 /* JSONStream.swift in Sources */,
 				65BC51751E1C4D4D005FEC76 /* WarpConduit.cpp in Sources */,
 				65F50EA11D78CF0C00F6FAE5 /* dbfopen.c in Sources */,
 				65F50EB51D78D10F00F6FAE5 /* SQLiteHelpers.m in Sources */,

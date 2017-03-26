@@ -246,6 +246,8 @@
 		65BC51B81E1E2FD8005FEC76 /* QBEFileStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC131E196EF10094F8AD /* QBEFileStep.swift */; };
 		65BC51C01E1EB6FD005FEC76 /* QBEXMLStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC0D1E196EF10094F8AD /* QBEXMLStep.swift */; };
 		65BC51C21E2184EC005FEC76 /* QBETourViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65BC51C11E2184EC005FEC76 /* QBETourViewController.swift */; };
+		65CCEE211E87CCE2004A7483 /* QBEJSONStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CCEE201E87CCE2004A7483 /* QBEJSONStep.swift */; };
+		65CCEE221E87CCE2004A7483 /* QBEJSONStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CCEE201E87CCE2004A7483 /* QBEJSONStep.swift */; };
 		65DAF6CA1D7C6FFD00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6C91D7C6FFD00163750 /* Rethink.framework */; };
 		65DAF6CF1D7C719D00163750 /* Rethink.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65DAF6CE1D7C719D00163750 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65E1C7C31E219616003221A6 /* MobileTour.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E1C7C51E219616003221A6 /* MobileTour.strings */; };
@@ -799,6 +801,7 @@
 		65B774761CA05596006480B2 /* escapes.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = escapes.csv; path = Tests/Data/escapes.csv; sourceTree = SOURCE_ROOT; };
 		65BC51621E1C18F8005FEC76 /* QBEExportViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEExportViewController.swift; sourceTree = "<group>"; };
 		65BC51C11E2184EC005FEC76 /* QBETourViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBETourViewController.swift; sourceTree = "<group>"; };
+		65CCEE201E87CCE2004A7483 /* QBEJSONStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEJSONStep.swift; sourceTree = "<group>"; };
 		65DAF6C91D7C6FFD00163750 /* Rethink.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Rethink.framework; path = "/Users/tommy/Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/Rethink.framework"; sourceTree = "<absolute>"; };
 		65DAF6CE1D7C719D00163750 /* Rethink.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Rethink.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E1C7C41E219616003221A6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/MobileTour.strings; sourceTree = "<group>"; };
@@ -1173,6 +1176,7 @@
 				651BEC0F1E196EF10094F8AD /* QBESortStep.swift */,
 				651BEBFB1E196EF10094F8AD /* QBESQLiteStep.swift */,
 				651BEC0D1E196EF10094F8AD /* QBEXMLStep.swift */,
+				65CCEE201E87CCE2004A7483 /* QBEJSONStep.swift */,
 			);
 			path = Steps;
 			sourceTree = "<group>";
@@ -1767,6 +1771,7 @@
 				6596CFD71E1957B500B06F4F /* MDSpreadViewCellCornerHeaderBackground.m in Sources */,
 				655B059D1E15AA8D00A28FCE /* QBESentence.swift in Sources */,
 				6550B6F81E22B20E00DC1448 /* QBEFormulaViewController.swift in Sources */,
+				65CCEE221E87CCE2004A7483 /* QBEJSONStep.swift in Sources */,
 				65BC517D1E1C4F95005FEC76 /* QBEDBFStep.swift in Sources */,
 				6550B6F91E22B36D00DC1448 /* QBEFormula+SyntaxColoring.swift in Sources */,
 				651BEC5E1E196F3E0094F8AD /* QBECloneStep.swift in Sources */,
@@ -1875,6 +1880,7 @@
 				6583EEF71C14758B00AE6C00 /* QBECSVStepView.swift in Sources */,
 				651BEC3C1E196F090094F8AD /* QBECrawlStep.swift in Sources */,
 				6583EF031C14758B00AE6C00 /* QBEFile.swift in Sources */,
+				65CCEE211E87CCE2004A7483 /* QBEJSONStep.swift in Sources */,
 				651BEC4F1E196F090094F8AD /* QBESearchStep.swift in Sources */,
 				6583EF061C14758B00AE6C00 /* QBESentence.swift in Sources */,
 				6583EEEB1C14758B00AE6C00 /* QBEJobsViewController.swift in Sources */,

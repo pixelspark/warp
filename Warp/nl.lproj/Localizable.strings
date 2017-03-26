@@ -441,3 +441,4 @@
 "Pivot [#] to rows, [#] to columns, [#] of [#] in cells" = "Draai [#] verticaal, [#] horizontaal, [#] van [#] in cellen";
 "Pivot [#] to rows, [#] to columns" = "Draai [#] verticaal, [#] horizontaal";
 "Choose a column to aggregate values for." = "Kies een kolom waarvan de waarden moeten worden geaggregeerd.";
+"Read JSON file [#]" = "Lees JSON-bestand [#]";
