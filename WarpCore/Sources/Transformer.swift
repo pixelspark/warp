@@ -466,10 +466,30 @@ private class LimitTransformer: Transformer {
 
 private class ColumnsTransformer: Transformer {
 	let columns: OrderedSet<Column>
-	var indexes: Fallible<[Int]>? = nil
+	var indexes: Future<Fallible<[Int]>>
 
 	init(source: Stream, selectColumns: OrderedSet<Column>) {
 		self.columns = selectColumns
+
+		self.indexes = Future({ (job, callback) in
+			var idxs: [Int] = []
+			source.columns(job) { (sourceColumnNames: Fallible<OrderedSet<Column>>) -> () in
+				switch sourceColumnNames {
+				case .success(let sourceCols):
+					for column in selectColumns {
+						if let idx = sourceCols.index(of: column) {
+							idxs.append(idx)
+						}
+					}
+
+					callback(.success(idxs))
+
+				case .failure(let error):
+					callback(.failure(error))
+				}
+			}
+		})
+
 		super.init(source: source)
 	}
 
@@ -477,8 +497,8 @@ private class ColumnsTransformer: Transformer {
 		source.columns(job) { (sourceColumns) -> () in
 			switch sourceColumns {
 			case .success(let cns):
-				self.ensureIndexes(job) {
-					switch self.indexes! {
+				self.indexes.get(job) { result in
+					switch result {
 					case .success(let idxs):
 						let names = OrderedSet(idxs.map({ return cns[$0] }))
 						callback(.success(names))
@@ -495,10 +515,8 @@ private class ColumnsTransformer: Transformer {
 	}
 
 	override fileprivate func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
-		ensureIndexes(job) {
-			assert(self.indexes != nil)
-
-			switch self.indexes! {
+		self.indexes.get(job) { result in
+			switch result {
 			case .success(let idxs):
 				var result: [Tuple] = []
 
@@ -515,32 +533,6 @@ private class ColumnsTransformer: Transformer {
 			case .failure(let error):
 				callback(.failure(error), .finished)
 			}
-		}
-	}
-
-	private func ensureIndexes(_ job: Job, callback: @escaping () -> ()) {
-		if indexes == nil {
-			var idxs: [Int] = []
-			source.columns(job) { (sourceColumnNames: Fallible<OrderedSet<Column>>) -> () in
-				switch sourceColumnNames {
-				case .success(let sourceCols):
-					for column in self.columns {
-						if let idx = sourceCols.index(of: column) {
-							idxs.append(idx)
-						}
-					}
-
-					self.indexes = .success(idxs)
-					callback()
-
-				case .failure(let error):
-					self.indexes = .failure(error)
-				}
-
-			}
-		}
-		else {
-			callback()
 		}
 	}
 
