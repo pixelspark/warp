@@ -15,6 +15,7 @@ import WarpCore
 class QBEDocumentViewController: UIViewController {
 	var document: QBEDocument!
 	var opened = false
+	var isUntitledDocument = false
 
 	var editingTablet: QBETablet? = nil { didSet {
 		// Tablet must be in this document
@@ -93,6 +94,8 @@ class QBEDocumentViewController: UIViewController {
 	override func viewWillDisappear(_ animated: Bool) {
 		super.viewWillDisappear(animated)
 		if self.isMovingFromParentViewController {
+			let pc = self.parent
+
 			document?.close(completionHandler: { success in
 				if !success {
 					let title = self.documentURL?.lastPathComponent ?? ""
@@ -104,7 +107,54 @@ class QBEDocumentViewController: UIViewController {
 					}
 
 					alert.addAction(alertAction)
-					self.present(alert, animated: true, completion: nil)
+					pc?.present(alert, animated: true, completion: nil)
+				}
+				else {
+					if let d = self.document, self.isUntitledDocument {
+						// Ask to rename or delete
+						var newNameField: UITextField? = nil
+						let uac = UIAlertController(title: "Do you want to save this document?".localized, message: nil, preferredStyle: .alert)
+						uac.addTextField { (tf) in
+							tf.autocapitalizationType = .none
+							tf.text = d.fileURL.lastPathComponent
+							newNameField = tf
+						}
+
+						uac.addAction(UIAlertAction(title: "Delete".localized, style: .destructive, handler: { (act) in
+							DispatchQueue.global(qos: .userInitiated).async {
+								NSFileCoordinator().coordinate(writingItemAt: d.fileURL, options: .forDeleting, error: nil) { (writingUrl) in
+									do {
+										try FileManager.default.removeItem(at: writingUrl)
+									}
+									catch {
+										Swift.print("Failure deleting: \(error)")
+									}
+								}
+							}
+						}))
+
+						uac.addAction(UIAlertAction(title: "Save".localized, style: .default, handler: { (act) in
+							var du = d.fileURL
+							if let nn = newNameField!.text {
+								DispatchQueue.global(qos: .userInitiated).async {
+									NSFileCoordinator().coordinate(writingItemAt: du, options: .contentIndependentMetadataOnly, error: nil) { (writingUrl) in
+										do {
+											let ext = du.pathExtension
+											var uv = URLResourceValues()
+											uv.name = "\(nn).\(ext)"
+											try du.setResourceValues(uv)
+										}
+										catch {
+											Swift.print("Failure deleting: \(error)")
+										}
+									}
+								}
+							}
+						}))
+						
+						pc?.present(uac, animated: true, completion: {
+						})
+					}
 				}
 			})
 		}

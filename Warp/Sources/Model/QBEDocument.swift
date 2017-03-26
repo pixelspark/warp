@@ -23,7 +23,10 @@ import WarpCore
 
 class QBEDocument: UXDocument {
 	private(set) var tablets: [QBETablet] = []
-	private(set) var savedAtLeastOnce = false
+
+	#if os(macOS)
+		private(set) var savedAtLeastOnce = false
+	#endif
 
 	static var fileExtension = "warp"
 	static let typeIdentifier = "nl.pixelspark.warp.qbedocument"
@@ -123,19 +126,26 @@ class QBEDocument: UXDocument {
 		}
 
 		override func save(_ sender: Any?) {
-			savedAtLeastOnce = true
+			#if os(macOS)
+				savedAtLeastOnce = true
+			#endif
 			super.save(sender)
 			self.updateWindowControllers()
 		}
 
 		override func saveAs(_ sender: Any?) {
-			savedAtLeastOnce = true
+			#if os(macOS)
+				savedAtLeastOnce = true
+			#endif
 			super.save(sender)
 			self.updateWindowControllers()
 		}
 
 		override func save(withDelegate delegate: Any?, didSave didSaveSelector: Selector?, contextInfo: UnsafeMutableRawPointer?) {
-			savedAtLeastOnce = true
+			#if os(macOS)
+				savedAtLeastOnce = true
+			#endif
+	
 			super.save(withDelegate: delegate, didSave: didSaveSelector, contextInfo: contextInfo)
 			self.updateWindowControllers()
 		}

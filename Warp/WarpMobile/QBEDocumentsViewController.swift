@@ -634,7 +634,7 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 				self.present(alertController, animated: true, completion: nil)
 
 			case .success(let document):
-				self.openDocumentAtURL(document.fileURL)
+				self.openDocumentAtURL(document.fileURL, isUntitled: true)
 			}
 		}
 	}
@@ -755,7 +755,7 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 		}
 	}
 
-	func openDocumentAtURL(_ url: URL) {
+	func openDocumentAtURL(_ url: URL, isUntitled: Bool) {
 		do {
 			// Is this a data file or a Warp document?
 			let info = try url.resourceValues(forKeys: [.typeIdentifierKey, .nameKey, .localizedNameKey])
@@ -764,6 +764,7 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 			case QBEDocument.typeIdentifier:
 				let controller = storyboard!.instantiateViewController(withIdentifier: "Document") as! QBEDocumentViewController
 				controller.documentURL = url
+				controller.isUntitledDocument = isUntitled
 				show(controller, sender: self)
 
 			case "public.comma-separated-values-text":
@@ -802,6 +803,7 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 										if success {
 											let controller = self.storyboard!.instantiateViewController(withIdentifier: "Document") as! QBEDocumentViewController
 											controller.documentURL = document.fileURL
+											controller.isUntitledDocument = isUntitled
 											self.show(controller, sender: self)
 										}
 										else {
@@ -848,13 +850,13 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 
 				case .success(let doc):
 					asyncMain {
-						self.openDocumentAtURL(doc.fileURL)
+						self.openDocumentAtURL(doc.fileURL, isUntitled: true)
 					}
 				}
 			}
 		}
 		else {
-			openDocumentAtURL(url)
+			openDocumentAtURL(url, isUntitled: false)
 		}
 	}
 
