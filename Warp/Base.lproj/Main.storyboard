@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16C67" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16D32" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaDFRPlugin" version="7104"/>
@@ -909,10 +909,10 @@ GQ
                                                 </items>
                                             </menu>
                                         </menuItem>
-                                        <menuItem title="Extract from JSON..." id="qbe-hJ-gJy">
+                                        <menuItem title="Extract from object..." id="qbe-hJ-gJy">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="extractJSON:" target="Ady-hI-5gd" id="u1U-df-6AG"/>
+                                                <action selector="dissectObject:" target="Ady-hI-5gd" id="veM-Re-hcK"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Create dummy columns from column" id="b7w-hF-1ts">

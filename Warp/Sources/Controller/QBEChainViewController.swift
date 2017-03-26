@@ -77,7 +77,7 @@ internal enum QBEEditingMode {
 @objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate,
 	QBEDatasetViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget,
 	QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate,
-	QBEColumnViewDelegate, QBEChainViewDelegate, QBEJSONViewControlllerDelegate {
+	QBEColumnViewDelegate, QBEChainViewDelegate, QBEDissectViewControlllerDelegate {
 
 	private var suggestions: Future<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator(incremental: true)
@@ -2246,31 +2246,44 @@ internal enum QBEEditingMode {
 		return validateSelector(item.action!)
 	}
 
-	func jsonViewController(_ vc: QBEJSONViewController, requestExtraction of: Expression, to toColumn: Column) {
+	func dissectViewController(_ vc: QBEDissectViewController, requestExtraction of: Expression, to toColumn: Column) {
 		if let column = self.dataViewController?.firstSelectedColumn {
-			let source = Call(arguments: [Sibling(column)], type: .jsonDecode)
+			let source: Expression
+			if let uw = vc.unwrapFunction {
+				source = Call(arguments: [Sibling(column)], type: uw)
+			}
+			else {
+				source = Sibling(column)
+			}
+
 			let expression = of.expressionReplacingIdentityReferencesWith(source)
 			let step = QBECalculateStep(previous: nil, targetColumn: toColumn, function: expression)
 			self.suggestSteps([step])
 		}
 	}
 
-	@IBAction func extractJSON(_ sender: NSObject) {
+	@IBAction func dissectObject(_ sender: NSObject) {
 		if let value = self.dataViewController?.firstSelectedValue {
 			if let json = value.stringValue {
 				do {
 					let jsonObject = try JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: [])
-					let ctr = QBEJSONViewController(nibName: "QBEJSONViewController", bundle: nil)!
+					let ctr = QBEDissectViewController(nibName: "QBEDissectViewController", bundle: nil)!
+					ctr.unwrapFunction = .jsonDecode
 					ctr.data = jsonObject as? NSObject
 					ctr.delegate = self
 					self.presentViewControllerAsSheet(ctr)
 				}
 				catch(_) {
-						// @@ ERROR invalid JSON
+					// Treat as key/value pair pack and pretend it is JSON
+					let jsonObject = Pack(json).pairs
+					let ctr = QBEDissectViewController(nibName: "QBEDissectViewController", bundle: nil)!
+					ctr.data = jsonObject as NSObject?
+					ctr.delegate = self
+					self.presentViewControllerAsSheet(ctr)
 				}
 			}
 			else {
-				// @@@ ERROR selected is not not JSON
+				// @@@ ERROR selected is not even a string
 			}
 		}
 		else {
@@ -2456,8 +2469,11 @@ internal enum QBEEditingMode {
 		else if selector==#selector(QBEChainViewController.createDummyColumns(_:)) {
 			return currentStep != nil
 		}
-		else if selector==#selector(QBEChainViewController.extractJSON(_:)) {
-			return currentStep != nil
+		else if selector==#selector(QBEChainViewController.dissectObject(_:)) {
+			if currentStep != nil, let v = self.dataViewController?.firstSelectedValue, v.stringValue != nil {
+				return true
+			}
+			return false
 		}
 		else if selector==#selector(QBEChainViewController.reverseSortRows(_:)) {
 			return currentStep != nil

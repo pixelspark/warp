@@ -1,25 +1,25 @@
 import Cocoa
 import WarpCore
 
-protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
+protocol QBEDissectViewControlllerDelegate: NSObjectProtocol {
 	/** Indicates that a value was selected for extraction to a column. The provided expression uses Identity() to refer
-	to the source JSON object. */
-	func jsonViewController(_ vc: QBEJSONViewController, requestExtraction of: Expression, to column: Column)
+	to the source object. */
+	func dissectViewController(_ vc: QBEDissectViewController, requestExtraction of: Expression, to column: Column)
 }
 
-@objc class QBEJSONViewController: NSViewController, NSOutlineViewDelegate, NSOutlineViewDataSource {
-	weak var delegate: QBEJSONViewControlllerDelegate? = nil
+@objc class QBEDissectViewController: NSViewController, NSOutlineViewDelegate, NSOutlineViewDataSource {
+	weak var delegate: QBEDissectViewControlllerDelegate? = nil
 
 	@IBOutlet var outlineView: NSOutlineView!
 	@IBOutlet var extractButton: NSButton!
 	@IBOutlet var extractColumnNameField: NSTextField!
 
-	private var tree: QBEJSONItem? = nil
+	private var tree: QBEDissectItem? = nil
 
 	var data: NSObject? {
 		didSet {
 			if let v = data {
-				self.tree = QBEJSONItem(key: "", value: v, parent: nil)
+				self.tree = QBEDissectItem(key: "", value: v, parent: nil)
 			}
 			else {
 				self.tree = nil
@@ -27,10 +27,12 @@ protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
 		}
 	}
 
+	var unwrapFunction: Function? = nil
+
 	@IBAction func extract(_ sender: NSObject) {
 		let selectedRow = self.outlineView.selectedRow
 		if selectedRow != -1 { // No selection. NSNotFound apparently was too simple...
-			if let item = self.outlineView.item(atRow: selectedRow) as? QBEJSONItem {
+			if let item = self.outlineView.item(atRow: selectedRow) as? QBEDissectItem {
 				let extractor = item.expressionForExtraction(from: Identity())
 				let toColumn: Column
 				if self.extractColumnNameField.stringValue.isEmpty {
@@ -40,7 +42,7 @@ protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
 					toColumn = Column(self.extractColumnNameField.stringValue)
 				}
 
-				self.delegate?.jsonViewController(self, requestExtraction: extractor, to: toColumn)
+				self.delegate?.dissectViewController(self, requestExtraction: extractor, to: toColumn)
 			}
 		}
 	}
@@ -51,7 +53,7 @@ protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
 
 		let selectedRow = self.outlineView.selectedRow
 		if selectedRow != -1 { // No selection. NSNotFound apparently was too simple...
-			if let item = self.outlineView.item(atRow: selectedRow) as? QBEJSONItem {
+			if let item = self.outlineView.item(atRow: selectedRow) as? QBEDissectItem {
 				self.extractColumnNameField.placeholderString = item.key as String
 			}
 		}
@@ -67,14 +69,14 @@ protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
 	}
 
 	func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool {
-		let item = (item as? QBEJSONItem) ?? self.tree!
+		let item = (item as? QBEDissectItem) ?? self.tree!
 		return item.value is [Any] || item.value is [String: Any]
 	}
 
 	/* The value returned by this delegate method is not retained by the outline view. So this means we cannot generate
 	anything in here, and can only return objects that are kept alive in the class. */
 	func outlineView(_ outlineView: NSOutlineView, child index: Int, ofItem item: Any?) -> Any {
-		let item: QBEJSONItem = (item as? QBEJSONItem) ?? self.tree!
+		let item: QBEDissectItem = (item as? QBEDissectItem) ?? self.tree!
 
 		let key: NSString
 		let child: NSObject
@@ -95,7 +97,7 @@ protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
 
 	/* Anything returned from this delegate method needs to be NSObject-subclass */
 	@objc func outlineView(_ outlineView: NSOutlineView, objectValueFor tableColumn: NSTableColumn?, byItem item: Any?) -> Any? {
-		let item: QBEJSONItem = (item as? QBEJSONItem) ?? self.tree!
+		let item: QBEDissectItem = (item as? QBEDissectItem) ?? self.tree!
 
 		if tableColumn?.identifier == "key" {
 			return item.key
@@ -115,7 +117,7 @@ protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
 	}
 
 	func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
-		let item = (item as? QBEJSONItem) ?? self.tree!
+		let item = (item as? QBEDissectItem) ?? self.tree!
 
 		if let list = item.value as? [Any] {
 			return list.count
@@ -127,12 +129,12 @@ protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
 	}
 }
 
-@objc private class QBEJSONItem: NSObject {
+@objc private class QBEDissectItem: NSObject {
 	var key: NSString
 	var value: NSObject
-	weak var parent: QBEJSONItem?
+	weak var parent: QBEDissectItem?
 
-	init(key: String, value: NSObject, parent: QBEJSONItem?) {
+	init(key: String, value: NSObject, parent: QBEDissectItem?) {
 		self.key = key as NSString
 		self.parent = parent
 
@@ -142,7 +144,7 @@ protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
 			self.value = v
 			super.init()
 			for (index, item) in a.enumerated() {
-				v.add(QBEJSONItem(key: "\(index)", value: item as! NSObject, parent: self))
+				v.add(QBEDissectItem(key: "\(index)", value: item as! NSObject, parent: self))
 			}
 
 		}
@@ -151,7 +153,7 @@ protocol QBEJSONViewControlllerDelegate: NSObjectProtocol {
 			self.value = v
 			super.init()
 			for (key, ov) in d {
-				v.setValue(QBEJSONItem(key: key as! String, value: ov as! NSObject, parent: self), forKey: key as! String)
+				v.setValue(QBEDissectItem(key: key as! String, value: ov as! NSObject, parent: self), forKey: key as! String)
 			}
 		}
 		else {

@@ -314,6 +314,17 @@ public struct Pack {
 	public var count: Int {
 		return items.count
 	}
+
+	public var pairs: [String: String] {
+		var pairs: [String: String] = [:]
+
+		for index in stride(from: 0, to: items.count, by: 2) {
+			if items.count > (index+1) {
+				pairs[items[index]] = items[index+1]
+			}
+		}
+		return pairs
+	}
 	
 	public subscript(n: Int) -> String {
 		assert(n >= 0, "Index on a pack cannot be negative")
