@@ -409,6 +409,15 @@ internal class PostgresResult: Sequence, IteratorProtocol {
 								if let stringValue = String(cString: val, encoding: String.Encoding.utf8) {
 									if let type = PostgresType(rawValue: PQftype(self.result, Int32(colIndex))) {
 										switch type {
+										case .bytea:
+											// This is delivered to us as '\\xdeadbeef'
+											// TODO this could probaby be made more efficient by not reading as UTF-8 first
+											let chars = Array(stringValue.characters)
+											let numbers = stride(from: 2, to: chars.count, by: 2).map() {
+												UInt8(strtoul(String(chars[$0 ..< Swift.min($0 + 2, chars.count)]), nil, 16))
+											}
+											rowDataset!.append(.blob(Data(bytes: numbers)))
+
 										case .int8, .int4, .int2:
 											if let iv = stringValue.toInt() {
 												rowDataset!.append(Value.int(iv))

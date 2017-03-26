@@ -143,6 +143,7 @@ internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 
 		QBEMySQLConnection.sharedClient.queue.sync {
 			if let row = mysql_fetch_row(self.result) {
+				let lengths = mysql_fetch_lengths(self.result)
 				rowDataset = []
 				rowDataset!.reserveCapacity(self.columns.count)
 
@@ -209,6 +210,14 @@ internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 							}
 							else {
 								rowDataset!.append(Value.invalid)
+							}
+						}
+						else if type.type.rawValue == MYSQL_TYPE_TINY_BLOB.rawValue
+							|| type.type.rawValue == MYSQL_TYPE_MEDIUM_BLOB.rawValue
+							|| type.type.rawValue == MYSQL_TYPE_LONG_BLOB.rawValue
+							|| type.type.rawValue == MYSQL_TYPE_BLOB.rawValue {
+							if let ptr = val, let length = lengths?[cn] {
+								rowDataset!.append(Value.blob(Data(bytes: ptr, count: Int(length))))
 							}
 						}
 						else {
