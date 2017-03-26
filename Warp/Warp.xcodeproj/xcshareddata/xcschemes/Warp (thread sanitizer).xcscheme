@@ -38,6 +38,16 @@
                ReferencedContainer = "container:Warp.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "656889271C1465CE008D1A7D"
+               BuildableName = "WarpCoreTests.xctest"
+               BlueprintName = "WarpCoreTests"
+               ReferencedContainer = "container:../WarpCore/WarpCore.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

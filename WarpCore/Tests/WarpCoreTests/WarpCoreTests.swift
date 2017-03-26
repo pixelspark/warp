@@ -1,4 +1,4 @@
-/** Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+/** Copyright (c) 2014-2017 Pixelspark, Tommy van der Vorst
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -140,386 +140,414 @@ class WarpCoreTests: XCTestCase {
 	func testFunctions() {
 		for fun in Function.allFunctions {
 			switch fun {
+			case .xor:
+				XCTAssert(Function.xor.apply([Value(true), Value(true)]) == Value(false), "XOR(true, true)")
+				XCTAssert(Function.xor.apply([Value(true), Value(false)]) == Value(true), "XOR(true, false)")
+				XCTAssert(Function.xor.apply([Value(false), Value(false)]) == Value(false), "XOR(false, false)")
 
-			case .Xor:
-				XCTAssert(Function.Xor.apply([Value(true), Value(true)]) == Value(false), "XOR(true, true)")
-				XCTAssert(Function.Xor.apply([Value(true), Value(false)]) == Value(true), "XOR(true, false)")
-				XCTAssert(Function.Xor.apply([Value(false), Value(false)]) == Value(false), "XOR(false, false)")
+			case .identity:
+				XCTAssert(Function.identity.apply([Value(1.337)]) == Value(1.337),"Identity")
 
-			case .Identity:
-				XCTAssert(Function.Identity.apply([Value(1.337)]) == Value(1.337),"Identity")
+			case .not:
+				XCTAssert(Function.not.apply([Value(false)]) == Value(true), "Not")
 
-			case .Not:
-				XCTAssert(Function.Not.apply([Value(false)]) == Value(true), "Not")
+			case .and:
+				XCTAssert(Function.and.apply([Value(true), Value(true)]) == Value(true), "AND(true, true)")
+				XCTAssert(!Function.and.apply([Value(true), Value.invalid]).isValid, "AND(true, invalid)")
+				XCTAssert(Function.and.apply([Value(true), Value(false)]) == Value(false), "AND(true, false)")
+				XCTAssert(Function.and.apply([Value(false), Value(false)]) == Value(false), "AND(false, false)")
 
-			case .And:
-				XCTAssert(Function.And.apply([Value(true), Value(true)]) == Value(true), "AND(true, true)")
-				XCTAssert(!Function.And.apply([Value(true), Value.invalid]).isValid, "AND(true, invalid)")
-				XCTAssert(Function.And.apply([Value(true), Value(false)]) == Value(false), "AND(true, false)")
-				XCTAssert(Function.And.apply([Value(false), Value(false)]) == Value(false), "AND(false, false)")
+			case .lowercase:
+				XCTAssert(Function.lowercase.apply([Value("Tommy")]) == Value("tommy"), "Lowercase")
 
-			case .Lowercase:
-				XCTAssert(Function.Lowercase.apply([Value("Tommy")]) == Value("tommy"), "Lowercase")
+			case .uppercase:
+				XCTAssert(Function.uppercase.apply([Value("Tommy")]) == Value("TOMMY"), "Uppercase")
 
-			case .Uppercase:
-				XCTAssert(Function.Uppercase.apply([Value("Tommy")]) == Value("TOMMY"), "Uppercase")
+			case .absolute:
+				XCTAssert(Function.absolute.apply([Value(-1)]) == Value(1), "Absolute")
 
-			case .Absolute:
-				XCTAssert(Function.Absolute.apply([Value(-1)]) == Value(1), "Absolute")
+			case .standardDeviationSample:
+				XCTAssert(Function.standardDeviationSample.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(1.0), "Standard deviation of sample works")
+				XCTAssert(!Function.standardDeviationSample.apply([1.0].map { return Value($0) }).isValid, "Standard deviation of sample works")
+				XCTAssert(!Function.standardDeviationSample.apply([]).isValid, "Standard deviation of sample works")
 
-			case .StandardDeviationSample:
-				XCTAssert(Function.StandardDeviationSample.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(1.0), "Standard deviation of sample works")
-				XCTAssert(!Function.StandardDeviationSample.apply([1.0].map { return Value($0) }).isValid, "Standard deviation of sample works")
-				XCTAssert(!Function.StandardDeviationSample.apply([]).isValid, "Standard deviation of sample works")
+			case .standardDeviationPopulation:
+				XCTAssert(Function.standardDeviationPopulation.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(sqrt(2.0 / 3.0)), "Standard deviation of sample works")
+				XCTAssert(Function.standardDeviationPopulation.apply([1.0].map { return Value($0) }) == Value(0.0), "Standard deviation of sample works")
+				XCTAssert(!Function.standardDeviationPopulation.apply([]).isValid, "Standard deviation of sample works")
 
-			case .StandardDeviationPopulation:
-				XCTAssert(Function.StandardDeviationPopulation.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(sqrt(2.0 / 3.0)), "Standard deviation of sample works")
-				XCTAssert(Function.StandardDeviationPopulation.apply([1.0].map { return Value($0) }) == Value(0.0), "Standard deviation of sample works")
-				XCTAssert(!Function.StandardDeviationPopulation.apply([]).isValid, "Standard deviation of sample works")
+			case .varianceSample:
+				XCTAssert(Function.varianceSample.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(1.0), "Variance of sample works")
+				XCTAssert(!Function.varianceSample.apply([1.0].map { return Value($0) }).isValid, "Variance of sample works")
+				XCTAssert(!Function.varianceSample.apply([]).isValid, "Variance of sample works")
 
-			case .VarianceSample:
-				XCTAssert(Function.VarianceSample.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(1.0), "Variance of sample works")
-				XCTAssert(!Function.VarianceSample.apply([1.0].map { return Value($0) }).isValid, "Variance of sample works")
-				XCTAssert(!Function.VarianceSample.apply([]).isValid, "Variance of sample works")
+			case .variancePopulation:
+				XCTAssert(Function.variancePopulation.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(2.0 / 3.0), "Variance of sample works")
+				XCTAssert(Function.variancePopulation.apply([1.0].map { return Value($0) }) == Value(0.0), "Variance of sample works")
+				XCTAssert(!Function.variancePopulation.apply([]).isValid, "Variance of sample works")
 
-			case .VariancePopulation:
-				XCTAssert(Function.VariancePopulation.apply([1.0, 2.0, 3.0].map { return Value($0) }) == Value(2.0 / 3.0), "Variance of sample works")
-				XCTAssert(Function.VariancePopulation.apply([1.0].map { return Value($0) }) == Value(0.0), "Variance of sample works")
-				XCTAssert(!Function.VariancePopulation.apply([]).isValid, "Variance of sample works")
+			case .count:
+				XCTAssert(Function.count.apply([]) == Value(0), "Empty count returns zero")
+				XCTAssert(Function.count.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(2), "Count does not include invalid values and empty values")
 
-			case .Count:
-				XCTAssert(Function.Count.apply([]) == Value(0), "Empty count returns zero")
-				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(2), "Count does not include invalid values and empty values")
+			case .median:
+				XCTAssert(Function.median.apply([Value(1), Value(1), Value(2), Value.invalid, Value.empty]) == Value(1), "Median ignores invalid values and takes averages")
 
-			case .Median:
-				XCTAssert(Function.Median.apply([Value(1), Value(1), Value(2), Value.invalid, Value.empty]) == Value(1), "Median ignores invalid values and takes averages")
+			case .medianLow:
+				XCTAssert(Function.medianLow.apply([Value(1), Value(1), Value(2), Value(2), Value.invalid, Value.empty]) == Value(1), "Median low ignores invalid values and takes lower value")
 
-			case .MedianLow:
-				XCTAssert(Function.MedianLow.apply([Value(1), Value(1), Value(2), Value(2), Value.invalid, Value.empty]) == Value(1), "Median low ignores invalid values and takes lower value")
+			case .medianHigh:
+				XCTAssert(Function.medianHigh.apply([Value(1), Value(1), Value(2), Value(2), Value.invalid, Value.empty]) == Value(2), "Median high ignores invalid values and takes higher value")
 
-			case .MedianHigh:
-				XCTAssert(Function.MedianHigh.apply([Value(1), Value(1), Value(2), Value(2), Value.invalid, Value.empty]) == Value(2), "Median high ignores invalid values and takes higher value")
+			case .medianPack:
+				XCTAssert(Function.medianPack.apply([Value(1), Value(1), Value(2), Value(2), Value.invalid, Value.empty]) == Value(Pack([Value(1), Value(2)]).stringValue), "Median pack ignores invalid values and returns pack value")
 
-			case .MedianPack:
-				XCTAssert(Function.MedianPack.apply([Value(1), Value(1), Value(2), Value(2), Value.invalid, Value.empty]) == Value(Pack([Value(1), Value(2)]).stringValue), "Median pack ignores invalid values and returns pack value")
+			case .countDistinct:
+				XCTAssert(Function.countDistinct.apply([]) == Value(0), "Empty count distinct returns zero")
+				XCTAssert(Function.countDistinct.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(1), "Count distinct should not include invalid and empty values")
 
-			case .CountDistinct:
-				XCTAssert(Function.Count.apply([]) == Value(0), "Empty count distinct returns zero")
-				XCTAssert(Function.Count.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(2), "Count distinct does not include invalid values")
+			case .items:
+				XCTAssert(Function.items.apply([Value("")]) == Value(0), "Empty count returns zero")
+				XCTAssert(Function.items.apply([Value("Foo,bar,baz")]) == Value(3), "Count does not include invalid values and empty values")
 
-			case .Items:
-				XCTAssert(Function.Items.apply([Value("")]) == Value(0), "Empty count returns zero")
-				XCTAssert(Function.Items.apply([Value("Foo,bar,baz")]) == Value(3), "Count does not include invalid values and empty values")
+			case .countAll:
+				XCTAssert(Function.countAll.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(4), "CountAll includes invalid values and empty values")
 
-			case .CountAll:
-				XCTAssert(Function.CountAll.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(4), "CountAll includes invalid values and empty values")
+			case .negate:
+				XCTAssert(Function.negate.apply([Value(1337)]) == Value(-1337), "Negate")
 
-			case .Negate:
-				XCTAssert(Function.Negate.apply([Value(1337)]) == Value(-1337), "Negate")
+			case .or:
+				XCTAssert(Function.or.apply([Value(true), Value(true)]) == Value(true), "OR(true, true)")
+				XCTAssert(Function.or.apply([Value(true), Value(false)]) == Value(true), "OR(true, false)")
+				XCTAssert(Function.or.apply([Value(false), Value(false)]) == Value(false), "OR(false, false)")
+				XCTAssert(!Function.or.apply([Value(true), Value.invalid]).isValid, "OR(true, invalid)")
 
-			case .Or:
-				XCTAssert(Function.Or.apply([Value(true), Value(true)]) == Value(true), "OR(true, true)")
-				XCTAssert(Function.Or.apply([Value(true), Value(false)]) == Value(true), "OR(true, false)")
-				XCTAssert(Function.Or.apply([Value(false), Value(false)]) == Value(false), "OR(false, false)")
-				XCTAssert(!Function.Or.apply([Value(true), Value.invalid]).isValid, "OR(true, invalid)")
+			case .acos:
+				XCTAssert(Function.acos.apply([Value(0.337)]) == Value(acos(0.337)), "Acos")
+				XCTAssert(!Function.acos.apply([Value(1.337)]).isValid, "Acos")
 
-			case .Acos:
-				XCTAssert(Function.Acos.apply([Value(0.337)]) == Value(acos(0.337)), "Acos")
-				XCTAssert(!Function.Acos.apply([Value(1.337)]).isValid, "Acos")
+			case .asin:
+				XCTAssert(Function.asin.apply([Value(0.337)]) == Value(asin(0.337)), "Asin")
+				XCTAssert(!Function.asin.apply([Value(1.337)]).isValid, "Asin")
 
-			case .Asin:
-				XCTAssert(Function.Asin.apply([Value(0.337)]) == Value(asin(0.337)), "Asin")
-				XCTAssert(!Function.Asin.apply([Value(1.337)]).isValid, "Asin")
-
-			case .NormalInverse:
-				let ni = Function.NormalInverse.apply([Value(0.25), Value(42), Value(4)])
+			case .normalInverse:
+				let ni = Function.normalInverse.apply([Value(0.25), Value(42), Value(4)])
 				XCTAssert(ni > Value(39) && ni < Value(40), "NormalInverse")
 
-			case .Atan:
-				XCTAssert(Function.Atan.apply([Value(1.337)]) == Value(atan(1.337)), "Atan")
+			case .atan:
+				XCTAssert(Function.atan.apply([Value(1.337)]) == Value(atan(1.337)), "Atan")
 
-			case .Cosh:
-				XCTAssert(Function.Cosh.apply([Value(1.337)]) == Value(cosh(1.337)), "Cosh")
+			case .cosh:
+				XCTAssert(Function.cosh.apply([Value(1.337)]) == Value(cosh(1.337)), "Cosh")
 
-			case .Sinh:
-				XCTAssert(Function.Sinh.apply([Value(1.337)]) == Value(sinh(1.337)), "Sinh")
+			case .sinh:
+				XCTAssert(Function.sinh.apply([Value(1.337)]) == Value(sinh(1.337)), "Sinh")
 
-			case .Tanh:
-				XCTAssert(Function.Tanh.apply([Value(1.337)]) == Value(tanh(1.337)), "Tanh")
+			case .tanh:
+				XCTAssert(Function.tanh.apply([Value(1.337)]) == Value(tanh(1.337)), "Tanh")
 
-			case .Cos:
-				XCTAssert(Function.Cos.apply([Value(1.337)]) == Value(cos(1.337)), "Cos")
+			case .cos:
+				XCTAssert(Function.cos.apply([Value(1.337)]) == Value(cos(1.337)), "Cos")
 
-			case .Sin:
-				XCTAssert(Function.Sin.apply([Value(1.337)]) == Value(sin(1.337)), "Sin")
+			case .sin:
+				XCTAssert(Function.sin.apply([Value(1.337)]) == Value(sin(1.337)), "Sin")
 
-			case .Tan:
-				XCTAssert(Function.Tan.apply([Value(1.337)]) == Value(tan(1.337)), "Tan")
+			case .tan:
+				XCTAssert(Function.tan.apply([Value(1.337)]) == Value(tan(1.337)), "Tan")
 
-			case .Sqrt:
-				XCTAssert(Function.Sqrt.apply([Value(1.337)]) == Value(sqrt(1.337)), "Sqrt")
-				XCTAssert(!Function.Sqrt.apply([Value(-1)]).isValid, "Sqrt")
+			case .sqrt:
+				XCTAssert(Function.sqrt.apply([Value(1.337)]) == Value(sqrt(1.337)), "Sqrt")
+				XCTAssert(!Function.sqrt.apply([Value(-1)]).isValid, "Sqrt")
 
-			case .Round:
-				XCTAssert(Function.Round.apply([Value(1.337)]) == Value(1), "Round")
-				XCTAssert(Function.Round.apply([Value(1.337), Value(2)]) == Value(1.34), "Round")
-				XCTAssert(Function.Round.apply([Value(0.5)]) == Value(1), "Round")
+			case .round:
+				XCTAssert(Function.round.apply([Value(1.337)]) == Value(1), "Round")
+				XCTAssert(Function.round.apply([Value(1.337), Value(2)]) == Value(1.34), "Round")
+				XCTAssert(Function.round.apply([Value(0.5)]) == Value(1), "Round")
 
-			case .Log:
-				XCTAssert(Function.Log.apply([Value(1.337)]) == Value(log10(1.337)), "Log")
-				XCTAssert(!Function.Log.apply([Value(0)]).isValid, "Log")
+			case .log:
+				XCTAssert(Function.log.apply([Value(1.337)]) == Value(log10(1.337)), "Log")
+				XCTAssert(!Function.log.apply([Value(0)]).isValid, "Log")
 
-			case .Exp:
-				XCTAssert(Function.Exp.apply([Value(1.337)]) == Value(exp(1.337)), "Exp")
-				XCTAssert(Function.Exp.apply([Value(0)]) == Value(1), "Exp")
+			case .exp:
+				XCTAssert(Function.exp.apply([Value(1.337)]) == Value(exp(1.337)), "Exp")
+				XCTAssert(Function.exp.apply([Value(0)]) == Value(1), "Exp")
 
-			case .Ln:
-				XCTAssert(Function.Ln.apply([Value(1.337)]) == Value(log10(1.337) / log10(exp(1.0))), "Ln")
-				XCTAssert(!Function.Ln.apply([Value(0)]).isValid, "Ln")
+			case .ln:
+				XCTAssert(Function.ln.apply([Value(1.337)]) == Value(log10(1.337) / log10(exp(1.0))), "Ln")
+				XCTAssert(!Function.ln.apply([Value(0)]).isValid, "Ln")
 
-			case .Concat:
-				XCTAssert(Function.Concat.apply([Value(1), Value("33"), Value(false)]) == Value("1330"), "Concat")
+			case .concat:
+				XCTAssert(Function.concat.apply([Value(1), Value("33"), Value(false)]) == Value("1330"), "Concat")
 
-			case .If:
-				XCTAssert(Function.If.apply([Value(true), Value(13), Value(37)]) == Value(13), "If")
-				XCTAssert(Function.If.apply([Value(false), Value(13), Value(37)]) == Value(37), "If")
-				XCTAssert(!Function.If.apply([Value.invalid, Value(13), Value(37)]).isValid, "If")
+			case .`if`:
+				XCTAssert(Function.`if`.apply([Value(true), Value(13), Value(37)]) == Value(13), "If")
+				XCTAssert(Function.`if`.apply([Value(false), Value(13), Value(37)]) == Value(37), "If")
+				XCTAssert(!Function.`if`.apply([Value.invalid, Value(13), Value(37)]).isValid, "If")
 
-			case .Left:
-				XCTAssert(Function.Left.apply([Value(1337), Value(3)]) == Value(133), "Left")
-				XCTAssert(!Function.Left.apply([Value(1337), Value(5)]).isValid, "Left")
+			case .left:
+				XCTAssert(Function.left.apply([Value(1337), Value(3)]) == Value(133), "Left")
+				XCTAssert(!Function.left.apply([Value(1337), Value(5)]).isValid, "Left")
 
-			case .Right:
-				XCTAssert(Function.Right.apply([Value(1337), Value(3)]) == Value(337), "Right")
-				XCTAssert(!Function.Right.apply([Value(1337), Value(5)]).isValid, "Right")
+			case .right:
+				XCTAssert(Function.right.apply([Value(1337), Value(3)]) == Value(337), "Right")
+				XCTAssert(!Function.right.apply([Value(1337), Value(5)]).isValid, "Right")
 
-			case .Mid:
-				XCTAssert(Function.Mid.apply([Value(1337), Value(3), Value(1)]) == Value(7), "Mid")
-				XCTAssert(Function.Mid.apply([Value(1337), Value(3), Value(10)]) == Value(7), "Mid")
+			case .mid:
+				XCTAssert(Function.mid.apply([Value(1337), Value(3), Value(1)]) == Value(7), "Mid")
+				XCTAssert(Function.mid.apply([Value(1337), Value(3), Value(10)]) == Value(7), "Mid")
 
-			case .Substitute:
-				XCTAssert(Function.Substitute.apply([Value("foobar"), Value("foo"), Value("bar")]) == Value("barbar"), "Substitute")
+			case .substitute:
+				XCTAssert(Function.substitute.apply([Value("foobar"), Value("foo"), Value("bar")]) == Value("barbar"), "Substitute")
 
-			case .Length:
-				XCTAssert(Function.Length.apply([Value("test")]) == Value(4), "Length")
+			case .length:
+				XCTAssert(Function.length.apply([Value("test")]) == Value(4), "Length")
 
-			case .Sum:
-				XCTAssert(Function.Sum.apply([1,3,3,7].map({return Value($0)})) == Value(1+3+3+7), "Sum")
-				XCTAssert(Function.Sum.apply([]) == Value(0), "Sum")
+			case .sum:
+				XCTAssert(Function.sum.apply([1,3,3,7].map({return Value($0)})) == Value(1+3+3+7), "Sum")
+				XCTAssert(Function.sum.apply([]) == Value(0), "Sum")
 
-			case .Min:
-				XCTAssert(Function.Min.apply([1,3,3,7].map({return Value($0)})) == Value(1), "Min")
-				XCTAssert(!Function.Min.apply([]).isValid, "Min")
+			case .min:
+				XCTAssert(Function.min.apply([1,3,3,7].map({return Value($0)})) == Value(1), "Min")
+				XCTAssert(!Function.min.apply([]).isValid, "Min")
 
-			case .Max:
-				XCTAssert(Function.Max.apply([1,3,3,7].map({return Value($0)})) == Value(7), "Max")
-				XCTAssert(!Function.Max.apply([]).isValid, "Max")
+			case .max:
+				XCTAssert(Function.max.apply([1,3,3,7].map({return Value($0)})) == Value(7), "Max")
+				XCTAssert(!Function.max.apply([]).isValid, "Max")
 
-			case .Average:
-				XCTAssert(Function.Average.apply([1,3,3,7].map({return Value($0)})) == Value((1.0+3.0+3.0+7.0)/4.0), "Average")
-				XCTAssert(!Function.Average.apply([]).isValid, "Average")
+			case .average:
+				XCTAssert(Function.average.apply([1,3,3,7].map({return Value($0)})) == Value((1.0+3.0+3.0+7.0)/4.0), "Average")
+				XCTAssert(!Function.average.apply([]).isValid, "Average")
 
-			case .Trim:
-				XCTAssert(Function.Trim.apply([Value("   trim  ")]) == Value("trim"), "Trim")
-				XCTAssert(Function.Trim.apply([Value("  ")]) == Value(""), "Trim")
+			case .trim:
+				XCTAssert(Function.trim.apply([Value("   trim  ")]) == Value("trim"), "Trim")
+				XCTAssert(Function.trim.apply([Value("  ")]) == Value(""), "Trim")
 
-			case .Choose:
-				XCTAssert(Function.Choose.apply([3,3,3,7].map({return Value($0)})) == Value(7), "Choose")
-				XCTAssert(!Function.Choose.apply([Value(3)]).isValid, "Choose")
+			case .choose:
+				XCTAssert(Function.choose.apply([3,3,3,7].map({return Value($0)})) == Value(7), "Choose")
+				XCTAssert(!Function.choose.apply([Value(3)]).isValid, "Choose")
 
-			case .Random:
-				let rv = Function.Random.apply([])
+			case .random:
+				let rv = Function.random.apply([])
 				XCTAssert(rv >= Value(0.0) && rv <= Value(1.0), "Random")
 
-			case .RandomBetween:
-				let rv = Function.RandomBetween.apply([Value(-10), Value(9)])
+			case .randomBetween:
+				let rv = Function.randomBetween.apply([Value(-10), Value(9)])
 				XCTAssert(rv >= Value(-10.0) && rv <= Value(9.0), "RandomBetween")
 
-			case .RandomItem:
+			case .randomItem:
 				let items = [1,3,3,7].map({return Value($0)})
-				XCTAssert(items.contains(Function.RandomItem.apply(items)), "RandomItem")
+				XCTAssert(items.contains(Function.randomItem.apply(items)), "RandomItem")
 
-			case .Pack:
-				XCTAssert(Function.Pack.apply([Value("He,llo"),Value("World")]) == Value(Pack(["He,llo", "World"]).stringValue), "Pack")
+			case .pack:
+				XCTAssert(Function.pack.apply([Value("He,llo"),Value("World")]) == Value(Pack(["He,llo", "World"]).stringValue), "Pack")
 
-			case .Split:
-				XCTAssert(Function.Split.apply([Value("Hello#World"), Value("#")]) == Value("Hello,World"), "Split")
+			case .split:
+				XCTAssert(Function.split.apply([Value("Hello#World"), Value("#")]) == Value("Hello,World"), "Split")
 
-			case .Nth:
-				XCTAssert(Function.Nth.apply([Value("Foo,bar,baz"), Value(3)]) == Value("baz"), "Nth")
-				XCTAssert(!Function.Nth.apply([Value("Foo,bar,baz"), Value(4)]).isValid, "Nth")
-				XCTAssert(!Function.Nth.apply([Value("foo,bar,baz,boo"), Value("foo")]).isValid, "Nth with dictionary")
-				XCTAssert(!Function.Nth.apply([Value("foo,bar,baz,boo"), Value("xxx")]).isValid, "Nth with dictionary")
+			case .nth:
+				XCTAssert(Function.nth.apply([Value("Foo,bar,baz"), Value(3)]) == Value("baz"), "Nth")
+				XCTAssert(!Function.nth.apply([Value("Foo,bar,baz"), Value(4)]).isValid, "Nth")
+				XCTAssert(!Function.nth.apply([Value("foo,bar,baz,boo"), Value("foo")]).isValid, "Nth with dictionary")
+				XCTAssert(!Function.nth.apply([Value("foo,bar,baz,boo"), Value("xxx")]).isValid, "Nth with dictionary")
 
-			case .ValueForKey:
-				XCTAssert(Function.ValueForKey.apply([Value("foo,bar,baz,boo"), Value("foo")]) == Value("bar"), "Nth with dictionary")
-				XCTAssert(!Function.ValueForKey.apply([Value("foo,bar,baz,boo"), Value("xxx")]).isValid, "Nth with dictionary")
+			case .valueForKey:
+				XCTAssert(Function.valueForKey.apply([Value("foo,bar,baz,boo"), Value("foo")]) == Value("bar"), "Nth with dictionary")
+				XCTAssert(!Function.valueForKey.apply([Value("foo,bar,baz,boo"), Value("xxx")]).isValid, "Nth with dictionary")
 
-			case .Sign:
-				XCTAssert(Function.Sign.apply([Value(-1337)]) == Value(-1), "Sign")
-				XCTAssert(Function.Sign.apply([Value(0)]) == Value(0), "Sign")
-				XCTAssert(Function.Sign.apply([Value(1337)]) == Value(1), "Sign")
+			case .sign:
+				XCTAssert(Function.sign.apply([Value(-1337)]) == Value(-1), "Sign")
+				XCTAssert(Function.sign.apply([Value(0)]) == Value(0), "Sign")
+				XCTAssert(Function.sign.apply([Value(1337)]) == Value(1), "Sign")
 
-			case .IfError:
-				XCTAssert(Function.IfError.apply([Value.invalid, Value(1337)]) == Value(1337), "IfError")
-				XCTAssert(Function.IfError.apply([Value(1336), Value(1337)]) == Value(1336), "IfError")
+			case .ifError:
+				XCTAssert(Function.ifError.apply([Value.invalid, Value(1337)]) == Value(1337), "IfError")
+				XCTAssert(Function.ifError.apply([Value(1336), Value(1337)]) == Value(1336), "IfError")
 
-			case .Levenshtein:
-				XCTAssert(Function.Levenshtein.apply([Value("tommy"), Value("tom")]) == Value(2), "Levenshtein")
+			case .levenshtein:
+				XCTAssert(Function.levenshtein.apply([Value("tommy"), Value("tom")]) == Value(2), "Levenshtein")
 
-			case .RegexSubstitute:
-				XCTAssert(Function.RegexSubstitute.apply([Value("Tommy"), Value("m+"), Value("@")]) == Value("To@y"), "RegexSubstitute")
+			case .regexSubstitute:
+				XCTAssert(Function.regexSubstitute.apply([Value("Tommy"), Value("m+"), Value("@")]) == Value("To@y"), "RegexSubstitute")
 
-			case .Coalesce:
-				XCTAssert(Function.Coalesce.apply([Value.invalid, Value.invalid, Value(1337)]) == Value(1337), "Coalesce")
+			case .coalesce:
+				XCTAssert(Function.coalesce.apply([Value.invalid, Value.invalid, Value(1337)]) == Value(1337), "Coalesce")
 
-			case .Capitalize:
-				XCTAssert(Function.Capitalize.apply([Value("tommy van DER vorst")]) == Value("Tommy Van Der Vorst"), "Capitalize")
+			case .capitalize:
+				XCTAssert(Function.capitalize.apply([Value("tommy van DER vorst")]) == Value("Tommy Van Der Vorst"), "Capitalize")
 
-			case .URLEncode:
+			case .urlEncode:
 				// FIXME: URLEncode should probably also encode slashes, right?
-				XCTAssert(Function.URLEncode.apply([Value("tommy%/van DER vorst")]) == Value("tommy%25/van%20DER%20vorst"), "URLEncode")
+				XCTAssert(Function.urlEncode.apply([Value("tommy%/van DER vorst")]) == Value("tommy%25/van%20DER%20vorst"), "URLEncode")
 
-			case .In:
-				XCTAssert(Function.In.apply([Value(1), Value(1), Value(2)]) == Value.bool(true), "In")
-				XCTAssert(Function.In.apply([Value(1), Value(3), Value(2)]) == Value.bool(false), "In")
+			case .`in`:
+				XCTAssert(Function.`in`.apply([Value(1), Value(1), Value(2)]) == Value.bool(true), "In")
+				XCTAssert(Function.`in`.apply([Value(1), Value(3), Value(2)]) == Value.bool(false), "In")
 
-			case .NotIn:
-				XCTAssert(Function.NotIn.apply([Value(1), Value(2), Value(2)]) == Value.bool(true), "NotIn")
-				XCTAssert(Function.NotIn.apply([Value(1), Value(1), Value(2)]) == Value.bool(false), "NotIn")
+			case .notIn:
+				XCTAssert(Function.notIn.apply([Value(1), Value(2), Value(2)]) == Value.bool(true), "NotIn")
+				XCTAssert(Function.notIn.apply([Value(1), Value(1), Value(2)]) == Value.bool(false), "NotIn")
 
-			case .ToUnixTime:
+			case .toUnixTime:
 				let d = Date()
-				XCTAssert(Function.ToUnixTime.apply([Value(d)]) == Value(d.timeIntervalSince1970), "ToUnixTime")
+				XCTAssert(Function.toUnixTime.apply([Value(d)]) == Value(d.timeIntervalSince1970), "ToUnixTime")
 				let epoch = Date(timeIntervalSince1970: 0)
-				XCTAssert(Function.ToUnixTime.apply([Value(epoch)]) == Value(0), "ToUnixTime")
+				XCTAssert(Function.toUnixTime.apply([Value(epoch)]) == Value(0), "ToUnixTime")
 
-			case .FromUnixTime:
-				XCTAssert(Function.FromUnixTime.apply([Value(0)]) == Value(Date(timeIntervalSince1970: 0)), "FromUnixTime")
+			case .fromUnixTime:
+				XCTAssert(Function.fromUnixTime.apply([Value(0)]) == Value(Date(timeIntervalSince1970: 0)), "FromUnixTime")
 
-			case .Now:
+			case .now:
 				break
 
-			case .FromISO8601:
-				XCTAssert(Function.FromISO8601.apply([Value("1970-01-01T00:00:00Z")]) == Value(Date(timeIntervalSince1970: 0)), "FromISO8601")
+			case .fromISO8601:
+				XCTAssert(Function.fromISO8601.apply([Value("1970-01-01T00:00:00Z")]) == Value(Date(timeIntervalSince1970: 0)), "FromISO8601")
 
-			case .ToLocalISO8601:
+			case .toLocalISO8601:
 				break
 
-			case .ToUTCISO8601:
-				XCTAssert(Function.ToUTCISO8601.apply([Value(Date(timeIntervalSince1970: 0))]) == Value("1970-01-01T00:00:00Z"), "ToUTCISO8601")
+			case .toUTCISO8601:
+				XCTAssert(Function.toUTCISO8601.apply([Value(Date(timeIntervalSince1970: 0))]) == Value("1970-01-01T00:00:00Z"), "ToUTCISO8601")
 
-			case .FromExcelDate:
-				XCTAssert(Function.FromExcelDate.apply([Value(25569.0)]) == Value(Date(timeIntervalSince1970: 0.0)), "FromExcelDate")
-				XCTAssert(Function.FromExcelDate.apply([Value(42210.8330092593)]) == Value(Date(timeIntervalSinceReferenceDate: 459547172.0)), "FromExcelDate")
+			case .fromExcelDate:
+				XCTAssert(Function.fromExcelDate.apply([Value(25569.0)]) == Value(Date(timeIntervalSince1970: 0.0)), "FromExcelDate")
+				XCTAssert(Function.fromExcelDate.apply([Value(42210.8330092593)]) == Value(Date(timeIntervalSinceReferenceDate: 459547172.0)), "FromExcelDate")
 
-			case .ToExcelDate:
-				XCTAssert(Function.ToExcelDate.apply([Value(Date(timeIntervalSince1970: 0.0))]) == Value(25569.0), "ToExcelDate")
-				XCTAssert(Function.ToExcelDate.apply([Value(Date(timeIntervalSinceReferenceDate: 459547172))]).doubleValue!.approximates(42210.8330092593, epsilon: 0.01), "ToExcelDate")
+			case .toExcelDate:
+				XCTAssert(Function.toExcelDate.apply([Value(Date(timeIntervalSince1970: 0.0))]) == Value(25569.0), "ToExcelDate")
+				XCTAssert(Function.toExcelDate.apply([Value(Date(timeIntervalSinceReferenceDate: 459547172))]).doubleValue!.approximates(42210.8330092593, epsilon: 0.01), "ToExcelDate")
 
-			case .UTCDate:
-				XCTAssert(Function.UTCDate.apply([Value(2001), Value(1), Value(1)]) == Value.date(0.0), "UTCDate")
+			case .utcDate:
+				XCTAssert(Function.utcDate.apply([Value(2001), Value(1), Value(1)]) == Value.date(0.0), "UTCDate")
 
-			case .UTCYear:
-				XCTAssert(Function.UTCYear.apply([Value.date(0)]) == Value(2001), "UTCYear")
+			case .utcYear:
+				XCTAssert(Function.utcYear.apply([Value.date(0)]) == Value(2001), "UTCYear")
 
-			case .UTCMonth:
-				XCTAssert(Function.UTCMonth.apply([Value.date(0)]) == Value(1), "UTCMonth")
+			case .utcMonth:
+				XCTAssert(Function.utcMonth.apply([Value.date(0)]) == Value(1), "UTCMonth")
 
-			case .UTCDay:
-				XCTAssert(Function.UTCDay.apply([Value.date(0)]) == Value(1), "UTCDay")
+			case .utcDay:
+				XCTAssert(Function.utcDay.apply([Value.date(0)]) == Value(1), "UTCDay")
 
-			case .UTCHour:
-				XCTAssert(Function.UTCHour.apply([Value.date(0)]) == Value(0), "UTCHour")
+			case .utcHour:
+				XCTAssert(Function.utcHour.apply([Value.date(0)]) == Value(0), "UTCHour")
 
-			case .UTCMinute:
-				XCTAssert(Function.UTCMinute.apply([Value.date(0)]) == Value(0), "UTCMinute")
+			case .utcMinute:
+				XCTAssert(Function.utcMinute.apply([Value.date(0)]) == Value(0), "UTCMinute")
 
-			case .UTCSecond:
-				XCTAssert(Function.UTCSecond.apply([Value.date(0)]) == Value(0), "UTCSecond")
+			case .utcSecond:
+				XCTAssert(Function.utcSecond.apply([Value.date(0)]) == Value(0), "UTCSecond")
 
-			case .Duration:
+			case .duration:
 				let start = Value(Date(timeIntervalSinceReferenceDate: 1337.0))
 				let end = Value(Date(timeIntervalSinceReferenceDate: 1346.0))
-				XCTAssert(Function.Duration.apply([start, end]) == Value(9.0), "Duration")
-				XCTAssert(Function.Duration.apply([end, start]) == Value(-9.0), "Duration")
+				XCTAssert(Function.duration.apply([start, end]) == Value(9.0), "Duration")
+				XCTAssert(Function.duration.apply([end, start]) == Value(-9.0), "Duration")
 
-			case .After:
+			case .after:
 				let start = Value(Date(timeIntervalSinceReferenceDate: 1337.0))
 				let end = Value(Date(timeIntervalSinceReferenceDate: 1346.0))
-				XCTAssert(Function.After.apply([start, Value(9.0)]) == end, "After")
-				XCTAssert(Function.After.apply([end, Value(-9.0)]) == start, "After")
+				XCTAssert(Function.after.apply([start, Value(9.0)]) == end, "After")
+				XCTAssert(Function.after.apply([end, Value(-9.0)]) == start, "After")
 
-			case .Ceiling:
-				XCTAssert(Function.Ceiling.apply([Value(1.337)]) == Value(2), "Ceiling")
+			case .ceiling:
+				XCTAssert(Function.ceiling.apply([Value(1.337)]) == Value(2), "Ceiling")
 
-			case .Floor:
-				XCTAssert(Function.Floor.apply([Value(1.337)]) == Value(1), "Floor")
+			case .floor:
+				XCTAssert(Function.floor.apply([Value(1.337)]) == Value(1), "Floor")
 
-			case .RandomString:
-				XCTAssert(Function.RandomString.apply([Value("[0-9]")]).stringValue!.characters.count == 1, "RandomString")
+			case .randomString:
+				XCTAssert(Function.randomString.apply([Value("[0-9]")]).stringValue!.characters.count == 1, "RandomString")
 
-			case .ToUnicodeDateString:
-				XCTAssert(Function.ToUnicodeDateString.apply([Value.date(460226561.0), Value("yyy-MM-dd")]) == Value("2015-08-02"), "ToUnicodeDateString")
+			case .toUnicodeDateString:
+				XCTAssert(Function.toUnicodeDateString.apply([Value.date(460226561.0), Value("yyy-MM-dd")]) == Value("2015-08-02"), "ToUnicodeDateString")
 
-			case .FromUnicodeDateString:
-				XCTAssert(Function.FromUnicodeDateString.apply([Value("1988-08-11"), Value("yyyy-MM-dd")]) == Value(Date.fromISO8601FormattedDate("1988-08-11T00:00:00Z")!), "FromUnicodeDateString")
+			case .fromUnicodeDateString:
+				XCTAssert(Function.fromUnicodeDateString.apply([Value("1988-08-11"), Value("yyyy-MM-dd")]) == Value(Date.fromISO8601FormattedDate("1988-08-11T00:00:00Z")!), "FromUnicodeDateString")
 
-			case .Power:
-				XCTAssert(Function.Power.apply([Value(2), Value(0)]) == Value(1), "Power")
+			case .power:
+				XCTAssert(Function.power.apply([Value(2), Value(0)]) == Value(1), "Power")
 
-			case .UUID:
-				XCTAssert(Function.UUID.apply([]).stringValue!.lengthOfBytes(using: String.Encoding.utf8) == 36, "UUID must be 36 characters long")
+			case .uuid:
+				XCTAssert(Function.uuid.apply([]).stringValue!.lengthOfBytes(using: String.Encoding.utf8) == 36, "UUID must be 36 characters long")
 
-			case .IsEmpty:
-				XCTAssert(Function.IsEmpty.apply([Value.empty]) == Value.bool(true), "empty value is empty")
-				XCTAssert(Function.IsEmpty.apply([Value.int(1)]) == Value.bool(false), "value is not empty")
-				XCTAssert(Function.IsEmpty.apply([Value.invalid]) == Value.bool(false), "invalid value is not empty")
+			case .isEmpty:
+				XCTAssert(Function.isEmpty.apply([Value.empty]) == Value.bool(true), "empty value is empty")
+				XCTAssert(Function.isEmpty.apply([Value.int(1)]) == Value.bool(false), "value is not empty")
+				XCTAssert(Function.isEmpty.apply([Value.invalid]) == Value.bool(false), "invalid value is not empty")
 
-			case .IsInvalid:
-				XCTAssert(Function.IsInvalid.apply([Value.invalid]) == Value.bool(true), "invalid value is invalid")
-				XCTAssert(Function.IsInvalid.apply([Value.empty]) == Value.bool(false), "empty value is not invalid")
+			case .isInvalid:
+				XCTAssert(Function.isInvalid.apply([Value.invalid]) == Value.bool(true), "invalid value is invalid")
+				XCTAssert(Function.isInvalid.apply([Value.empty]) == Value.bool(false), "empty value is not invalid")
 
-			case .JSONDecode:
-				XCTAssert(Function.JSONDecode.apply([Value.string("[1,2,3]")]) == Pack(["1","2","3"]).value, "JSON decode array")
+			case .jsonDecode:
+				XCTAssert(Function.jsonDecode.apply([Value.string("[1,2,3]")]) == Pack(["1","2","3"]).value, "JSON decode array")
 
-			case .ParseNumber:
-				XCTAssert(Function.ParseNumber.apply([Value.string("1.337,40"), Value.string(","), Value.string(".")]) == Value.double(1337.40), "Parse number")
-				XCTAssert(Function.ParseNumber.apply([Value.string("1337,40"), Value.string(","), Value.string(".")]) == Value.double(1337.40), "Parse number")
-				XCTAssert(Function.ParseNumber.apply([Value.string("1,337.40"), Value.string("."), Value.string(",")]) == Value.double(1337.40), "Parse number")
-				XCTAssert(Function.ParseNumber.apply([Value.string("1337.40"), Value.string("."), Value.string(",")]) == Value.double(1337.40), "Parse number")
-				XCTAssert(!Function.ParseNumber.apply([Value.string("1.337.40"), Value.string("."), Value.string(",")]).isValid, "Parse number")
+			case .parseNumber:
+				XCTAssert(Function.parseNumber.apply([Value.string("1.337,40"), Value.string(","), Value.string(".")]) == Value.double(1337.40), "Parse number")
+				XCTAssert(Function.parseNumber.apply([Value.string("1337,40"), Value.string(","), Value.string(".")]) == Value.double(1337.40), "Parse number")
+				XCTAssert(Function.parseNumber.apply([Value.string("1,337.40"), Value.string("."), Value.string(",")]) == Value.double(1337.40), "Parse number")
+				XCTAssert(Function.parseNumber.apply([Value.string("1337.40"), Value.string("."), Value.string(",")]) == Value.double(1337.40), "Parse number")
+				XCTAssert(!Function.parseNumber.apply([Value.string("1.337.40"), Value.string("."), Value.string(",")]).isValid, "Parse number")
 
-			case .HilbertXYToD:
-				XCTAssert(Function.HilbertXYToD.apply([.int(2), .int(0), .int(0)]) == Value.int(0), "H(2,0,0) = 0")
-				XCTAssert(Function.HilbertXYToD.apply([.int(2), .int(1), .int(1)]) == Value.int(2), "H(2,1,1) = 2")
-				XCTAssert(!Function.HilbertXYToD.apply([.int(3), .int(0), .int(0)]).isValid, "H(3, ..) is invalid")
+			case .hilbertXYToD:
+				XCTAssert(Function.hilbertXYToD.apply([.int(2), .int(0), .int(0)]) == Value.int(0), "H(2,0,0) = 0")
+				XCTAssert(Function.hilbertXYToD.apply([.int(2), .int(1), .int(1)]) == Value.int(2), "H(2,1,1) = 2")
+				XCTAssert(!Function.hilbertXYToD.apply([.int(3), .int(0), .int(0)]).isValid, "H(3, ..) is invalid")
 
-			case .HilbertDToY:
-				XCTAssert(Function.HilbertDToY.apply([.int(2), .int(0)]) == Value.int(0), "Hy(2,0) = 0")
-				XCTAssert(Function.HilbertDToY.apply([.int(2), .int(2)]) == Value.int(1), "Hy(2,2) = 1")
-				XCTAssert(!Function.HilbertDToY.apply([.int(3), .int(2)]).isValid, "Hy(3,..) is invalid")
+			case .hilbertDToY:
+				XCTAssert(Function.hilbertDToY.apply([.int(2), .int(0)]) == Value.int(0), "Hy(2,0) = 0")
+				XCTAssert(Function.hilbertDToY.apply([.int(2), .int(2)]) == Value.int(1), "Hy(2,2) = 1")
+				XCTAssert(!Function.hilbertDToY.apply([.int(3), .int(2)]).isValid, "Hy(3,..) is invalid")
 
-			case .HilbertDToX:
-				XCTAssert(Function.HilbertDToX.apply([.int(2), .int(0)]) == Value.int(0), "Hx(2,0) = 0")
-				XCTAssert(Function.HilbertDToX.apply([.int(2), .int(2)]) == Value.int(1), "Hx(2,2) = 1")
-				XCTAssert(!Function.HilbertDToX.apply([.int(3), .int(2)]).isValid, "Hx(3,..) is invalid")
+			case .hilbertDToX:
+				XCTAssert(Function.hilbertDToX.apply([.int(2), .int(0)]) == Value.int(0), "Hx(2,0) = 0")
+				XCTAssert(Function.hilbertDToX.apply([.int(2), .int(2)]) == Value.int(1), "Hx(2,2) = 1")
+				XCTAssert(!Function.hilbertDToX.apply([.int(3), .int(2)]).isValid, "Hx(3,..) is invalid")
 
-			case .PowerDown:
-				XCTAssert(Function.PowerDown.apply([.int(1025), .int(2)]) == Value.int(1024), "PD(2,1025) = 1024")
-				XCTAssert(Function.PowerDown.apply([.int(1023), .int(2)]) == Value.int(512), "PD(2,1023) = 512")
-				XCTAssert(Function.PowerDown.apply([.int(1024), .int(2)]) == Value.int(1024), "PD(2, 1024) = 1024")
-				XCTAssert(!Function.PowerDown.apply([.int(0), .int(2)]).isValid, "PD(2, 0) is invalid")
-				XCTAssert(!Function.PowerDown.apply([.int(1024), .int(0)]).isValid, "PD(0, 1024) is invalid")
-				XCTAssert(!Function.PowerDown.apply([.int(1024), .int(1)]).isValid, "PD(1, 1024) is invalid")
+			case .powerDown:
+				XCTAssert(Function.powerDown.apply([.int(1025), .int(2)]) == Value.int(1024), "PD(2,1025) = 1024")
+				XCTAssert(Function.powerDown.apply([.int(1023), .int(2)]) == Value.int(512), "PD(2,1023) = 512")
+				XCTAssert(Function.powerDown.apply([.int(1024), .int(2)]) == Value.int(1024), "PD(2, 1024) = 1024")
+				XCTAssert(!Function.powerDown.apply([.int(0), .int(2)]).isValid, "PD(2, 0) is invalid")
+				XCTAssert(!Function.powerDown.apply([.int(1024), .int(0)]).isValid, "PD(0, 1024) is invalid")
+				XCTAssert(!Function.powerDown.apply([.int(1024), .int(1)]).isValid, "PD(1, 1024) is invalid")
 
-			case .PowerUp:
-				XCTAssert(Function.PowerUp.apply([.int(1025), .int(2)]) == Value.int(2048), "PU(2,1025) = 2048")
-				XCTAssert(Function.PowerUp.apply([.int(1023), .int(2)]) == Value.int(1024), "PU(2,1023) = 1024")
-				XCTAssert(Function.PowerUp.apply([.int(1024), .int(2)]) == Value.int(1024), "PU(2, 1024) = 1024")
-				XCTAssert(Function.PowerUp.apply([.int(0), .int(2)]) == Value.int(0), "PU(2,0) = 0")
-				XCTAssert(!Function.PowerUp.apply([.int(1024), .int(0)]).isValid, "PU(0, 1024) is invalid")
-				XCTAssert(!Function.PowerUp.apply([.int(1024), .int(1)]).isValid, "PU(1, 1024) is invalid")
+			case .powerUp:
+				XCTAssert(Function.powerUp.apply([.int(1025), .int(2)]) == Value.int(2048), "PU(2,1025) = 2048")
+				XCTAssert(Function.powerUp.apply([.int(1023), .int(2)]) == Value.int(1024), "PU(2,1023) = 1024")
+				XCTAssert(Function.powerUp.apply([.int(1024), .int(2)]) == Value.int(1024), "PU(2, 1024) = 1024")
+				XCTAssert(!Function.powerUp.apply([.int(0), .int(2)]).isValid, "PU(2,0) = 0")
+				XCTAssert(!Function.powerUp.apply([.int(1024), .int(0)]).isValid, "PU(0, 1024) is invalid")
+				XCTAssert(!Function.powerUp.apply([.int(1024), .int(1)]).isValid, "PU(1, 1024) is invalid")
+
+			case .base64Encode:
+				let hello = "Hello world!".data(using: .utf8)!
+				XCTAssert(Function.base64Encode.apply([.blob(hello)]) == Value.string("SGVsbG8gd29ybGQh"), "Base64 encode works")
+
+			case .base64Decode:
+				let decoded = Function.base64Decode.apply([.string("SGVsbG8gd29ybGQh")])
+				if case .blob(let data) = decoded, String(data: data, encoding: .utf8)! == "Hello world!" {
+					// OK
+				}
+				else {
+					XCTFail("Base64 decode")
+				}
+
+			case .encodeString:
+				break;
+
+			case .decodeString:
+				break;
+
+			case .numberOfBytes:
+				break;
+
+			case .hexEncode:
+				break;
+
+			case .hexDecode:
+				break;
+
 			}
 		}
 
@@ -531,20 +559,20 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(Binary.containsStringStrict.apply(Value("Tommy"), Value("x"))==Value(false), "Strict contains string operator should work")
 
 		// Split / nth
-		XCTAssert(Function.Split.apply([Value("van der Vorst, Tommy"), Value(" ")]).stringValue == "van,der,Vorst$0,Tommy", "Split works")
-		XCTAssert(Function.Nth.apply([Value("van,der,Vorst$0,Tommy"), Value(3)]).stringValue == "Vorst,", "Nth works")
-		XCTAssert(Function.Items.apply([Value("van,der,Vorst$0,Tommy")]).intValue == 4, "Items works")
+		XCTAssert(Function.split.apply([Value("van der Vorst, Tommy"), Value(" ")]).stringValue == "van,der,Vorst$0,Tommy", "Split works")
+		XCTAssert(Function.nth.apply([Value("van,der,Vorst$0,Tommy"), Value(3)]).stringValue == "Vorst,", "Nth works")
+		XCTAssert(Function.items.apply([Value("van,der,Vorst$0,Tommy")]).intValue == 4, "Items works")
 		
 		// Stats
-		let z = Function.NormalInverse.apply([Value(0.9), Value(10), Value(5)]).doubleValue
+		let z = Function.normalInverse.apply([Value(0.9), Value(10), Value(5)]).doubleValue
 		XCTAssert(z != nil, "NormalInverse should return a value under normal conditions")
 		XCTAssert(z! > 16.406 && z! < 16.408, "NormalInverse should results that are equal to those of NORM.INV.N in Excel")
 
 		// Equality of expressions
 		XCTAssert(Sibling(Column("x")) == Sibling(Column("x")), "Equality of expressions")
 		XCTAssert(Sibling(Column("x")) != Sibling(Column("y")), "Equality of expressions")
-		XCTAssert(Call(arguments: [], type: Function.Random) == Call(arguments: [], type: Function.Random), "Non-deterministic expression can be equal")
-		XCTAssert(!Call(arguments: [], type: Function.Random).isEquivalentTo(Call(arguments: [], type: Function.Random)), "Non-deterministic expression cannot be equivalent")
+		XCTAssert(Call(arguments: [], type: Function.random) == Call(arguments: [], type: Function.random), "Non-deterministic expression can be equal")
+		XCTAssert(!Call(arguments: [], type: Function.random).isEquivalentTo(Call(arguments: [], type: Function.random)), "Non-deterministic expression cannot be equivalent")
 	}
 	
 	func testEmptyRaster() {
@@ -661,15 +689,15 @@ class WarpCoreTests: XCTestCase {
 	}
 	
 	func testExpressions() {
-		let x = Call(arguments: [Sibling(Column("test")), Literal(Value(3))], type: .Left)
-		let y = Call(arguments: [Sibling(Column("test")), Literal(Value(3))], type: .Left)
+		let x = Call(arguments: [Sibling(Column("test")), Literal(Value(3))], type: .left)
+		let y = Call(arguments: [Sibling(Column("test")), Literal(Value(3))], type: .left)
 		XCTAssert(x == y, "Two identical expressions must be equal")
 		XCTAssert(x.hashValue == y.hashValue, "Two identical expressions must be equal")
 
 		XCTAssert(Literal(Value(13.46)).isConstant, "Literal expression should be constant")
-		XCTAssert(!Call(arguments: [], type: Function.RandomItem).isConstant, "Non-deterministic function expression should not be constant")
+		XCTAssert(!Call(arguments: [], type: Function.randomItem).isConstant, "Non-deterministic function expression should not be constant")
 		
-		XCTAssert(!Comparison(first: Literal(Value(13.45)), second: Call(arguments: [], type: Function.RandomItem), type: Binary.equal).isConstant, "Binary operator applied to at least one non-constant expression should not be constant itself")
+		XCTAssert(!Comparison(first: Literal(Value(13.45)), second: Call(arguments: [], type: Function.randomItem), type: Binary.equal).isConstant, "Binary operator applied to at least one non-constant expression should not be constant itself")
 		
 		
 		let locale = Language(language: Language.defaultLanguage)
@@ -933,7 +961,7 @@ class WarpCoreTests: XCTestCase {
 
 		// Raster modifications through RasterMutableDataset
 		let mutableRaster = RasterMutableDataset(raster: testRaster)
-		mutableRaster.performMutation(.alter(Schema(columns: cols)), job: job) { result in
+		mutableRaster.performMutation(.alter(Schema(columns: cols, identifier: Set([Column("X")]))), job: job) { result in
 			switch result {
 			case .success:
 				XCTAssert(testRaster.columns.count == 3, "Column count matches again after mutation")
@@ -1002,7 +1030,7 @@ class WarpCoreTests: XCTestCase {
 		let job = Job(.userInitiated)
 
 		asyncTest { callback in
-			rasterDataset.aggregate([:], values: ["x": Aggregator(map: Sibling(Column("c")), reduce: .Sum)]).raster(job) { result in
+			rasterDataset.aggregate([:], values: ["x": Aggregator(map: Sibling(Column("c")), reduce: .sum)]).raster(job) { result in
 				result.require { outRaster in
 					XCTAssert(WarpCoreTests.rasterEquals(outRaster, grid: [
 						[Value.int(n)]
