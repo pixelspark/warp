@@ -422,9 +422,18 @@
 "tP9-gl-6Kv.title" = "Converteer tekst naar hoofdletters";
 "SxS-3H-KbM.title" = "Wis spaties rondom tekst";
 "BEt-Hl-xZD.title" = "Kapitaliseer tekst";
-"Oj5-qf-lZq.title" = "Als JSON";
-"wg4-71-cYu.title" = "Als getal (punt is decimaalscheider)";
-"Ptc-RP-Cdc.title" = "Als getal (komma is decimaalscheider)";
+"Oj5-qf-lZq.title" = "Tekst als JSON";
+"wg4-71-cYu.title" = "Tekst als getal (punt is decimaalscheider)";
+"Ptc-RP-Cdc.title" = "Tekst als getal (komma is decimaalscheider)";
 "fSz-7d-xtf.title" = "Interpreteer";
 "qbe-hJ-gJy.title" = "Extraheer uit object...";
 "R8r-ah-a12.title" = "Regels naar rijen";
+
+"Oju-72-fBp.title" = "Encodeer";
+"RJL-nb-1oB.title" = "Data als Base64";
+"OZW-mD-cnJ.title" = "Data als hex";
+"ekI-ce-XHn.title" = "Tekst als UTF-8-data";
+"6fZ-oE-9qo.title" = "Data als UTF-8-tekst";
+"MIV-HX-Wq3.title" = "Tekst als Base64-gecodeerde data";
+"8Nn-NY-UO0.title" = "Tekst als hex-gecodeerde data";
+

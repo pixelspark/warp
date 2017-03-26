@@ -52,6 +52,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	case date(Double) // Number of seconds passed since 2001-01-01T00:00:00Z (=UTC) (what NSDate uses)
 	case empty		// Any empty value that has no specific type. Use to indicate deliberately missing values (much like NULL in SQL).
 	case invalid	// The result of any invalid operation (e.g. division by zero). Treat as NaN
+	case blob(Data) // Opaque binary data (which should never be implicitly converted to a string)
 	
 	public init(_ value: String) {
 		self = .string(value)
@@ -77,6 +78,9 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		}
 		else if let b = jsonObject as? Bool {
 			self = .bool(b)
+		}
+		else if let s = jsonObject as? Data {
+			self = .blob(s)
 		}
 		else if jsonObject is NSNull {
 			self = .empty
@@ -116,6 +120,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .empty: return 0
 		case .invalid: return 1
 		case .date(let d): return d.hashValue
+		case .blob(let b): return b.hashValue
 		}
 	}}
 	
@@ -129,6 +134,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .bool(let b): return b.toString()
 		case .double(let d): return d.toString()
 		case .date(let d): return Date(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate
+		case .blob(_): return nil
 		case .empty: return nil
 		case .invalid: return nil
 		}
@@ -139,13 +145,14 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	 properly formatted double or integer literals. */
 	public var doubleValue: Double? { get {
 		switch self {
-			case .string(let s): return s.toDouble()
-			case .int(let i): return i.toDouble()
-			case .bool(let b): return b.toDouble()
-			case .double(let d): return d
-			case .date(_): return nil
-			case .empty: return nil
-			case .invalid: return nil
+		case .string(let s): return s.toDouble()
+		case .int(let i): return i.toDouble()
+		case .bool(let b): return b.toDouble()
+		case .double(let d): return d
+		case .date(_): return nil
+		case .blob(_): return nil
+		case .empty: return nil
+		case .invalid: return nil
 		}
 	} }
 	
@@ -175,6 +182,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .date(_): return nil
 		case .empty: return nil
 		case .invalid: return nil
+		case .blob(_): return nil
 		}
 	}
 
@@ -191,6 +199,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .double(_): return nil
 		case .empty: return nil
 		case .invalid: return nil
+			case .blob(_): return nil
 		}
 	}
 
@@ -203,6 +212,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .double(let d): return d
 		case .empty: return nil
 		case .invalid: return nil
+			case .blob(let d): return d
 		}
 	}
 	
@@ -215,6 +225,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .date(let d): return "Value.date(\(Date(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate)))"
 		case .empty: return "Value.Empty"
 		case .invalid: return "Value.Invalid"
+		case .blob(let d): return "Value.blob(\(d.count))"
 		}
 	}
 	
@@ -440,6 +451,10 @@ public class ValueCoder: NSObject, NSSecureCoding {
 			
 		case .invalid:
 			coder.encode(6, forKey: "type")
+
+		case .blob(let b):
+			coder.encode(8, forKey: "type")
+			coder.encode(b, forKey: "value")
 		}
 	}
 }

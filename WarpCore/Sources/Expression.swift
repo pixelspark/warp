@@ -232,6 +232,9 @@ public final class Literal: Expression {
 		case .string(let s):
 			let escaped = s.replacingOccurrences(of: String(locale.stringQualifier), with: locale.stringQualifierEscape)
 			return "\(locale.stringQualifier)\(escaped)\(locale.stringQualifier)"
+
+		case .blob(let d):
+			return "\(locale.blobQualifier)\(d.base64EncodedString())\(locale.blobQualifier)"
 			
 		case .double(let d):
 			return locale.numberFormatter.string(from: NSNumber(value: d)) ?? ""

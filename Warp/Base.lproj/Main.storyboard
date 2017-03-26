@@ -857,22 +857,40 @@ GQ
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <menu key="submenu" title="Interpret" id="f7S-g8-nlz">
                                                 <items>
-                                                    <menuItem title="As number (point separates decimals)" id="wg4-71-cYu">
+                                                    <menuItem title="Data as UTF-8 text" id="6fZ-oE-9qo">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixUTF8Decode:" target="Ady-hI-5gd" id="wep-dK-3PD"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Text as Base64-encoded data" id="MIV-HX-Wq3">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixBase64Decode:" target="Ady-hI-5gd" id="Ied-Ml-7qp"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Text as hex-encoded data" id="8Nn-NY-UO0">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixHexDecode:" target="Ady-hI-5gd" id="J7L-hU-JJQ"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Text as JSON" id="Oj5-qf-lZq">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixJSON:" target="Ady-hI-5gd" id="jg2-fu-KfZ"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Text as number (point separates decimals)" id="wg4-71-cYu">
                                                         <modifierMask key="keyEquivalentModifierMask"/>
                                                         <connections>
                                                             <action selector="quickFixReadNumberDecimalPoint:" target="Ady-hI-5gd" id="4pq-lY-RT0"/>
                                                         </connections>
                                                     </menuItem>
-                                                    <menuItem title="As number (comma separates decimals)" id="Ptc-RP-Cdc">
+                                                    <menuItem title="Text as number (comma separates decimals)" id="Ptc-RP-Cdc">
                                                         <modifierMask key="keyEquivalentModifierMask"/>
                                                         <connections>
                                                             <action selector="quickFixReadNumberDecimalComma:" target="Ady-hI-5gd" id="MiY-jv-LYM"/>
-                                                        </connections>
-                                                    </menuItem>
-                                                    <menuItem title="As JSON" id="Oj5-qf-lZq">
-                                                        <modifierMask key="keyEquivalentModifierMask"/>
-                                                        <connections>
-                                                            <action selector="quickFixJSON:" target="Ady-hI-5gd" id="jg2-fu-KfZ"/>
                                                         </connections>
                                                     </menuItem>
                                                 </items>
@@ -904,6 +922,31 @@ GQ
                                                         <modifierMask key="keyEquivalentModifierMask"/>
                                                         <connections>
                                                             <action selector="quickFixTrimSpaces:" target="Ady-hI-5gd" id="uy2-bK-SJ9"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
+                                        </menuItem>
+                                        <menuItem title="Encode" id="Oju-72-fBp">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Encode" id="kK7-Jp-xCN">
+                                                <items>
+                                                    <menuItem title="Data using Base64" id="RJL-nb-1oB">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixBase64Encode:" target="Ady-hI-5gd" id="Soc-wZ-E3O"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Data as hex" id="OZW-mD-cnJ">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixHexEncode:" target="Ady-hI-5gd" id="jey-mY-Kbn"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Text as UTF-8 data" id="ekI-ce-XHn">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="quickFixUTF8Encode:" target="Ady-hI-5gd" id="t7F-Jw-mt9"/>
                                                         </connections>
                                                     </menuItem>
                                                 </items>

@@ -126,6 +126,14 @@ public enum Function: String {
 	case hilbertDToY = "hilbertDtoY"
 	case powerDown = "powerDown"
 	case powerUp = "powerUp"
+	case base64Encode = "base64Encode"
+	case base64Decode = "base64Decode"
+	case hexEncode = "hexEncode"
+	case hexDecode = "hexDecode"
+	case numberOfBytes = "numberOfBytes"
+	case encodeString = "encodeString"
+	case decodeString = "decodeString"
+
 
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -373,6 +381,13 @@ public enum Function: String {
 		case .hilbertDToY: return translationForString("Hilbert index to Y")
 		case .powerUp: return translationForString("to upper power of")
 		case .powerDown: return translationForString("to lower power of")
+		case .base64Decode: return translationForString("decode base64")
+		case .base64Encode: return translationForString("encode base64")
+		case .hexDecode: return translationForString("decode hex")
+		case .hexEncode: return translationForString("encode hex")
+		case .encodeString: return translationForString("encode text")
+		case .decodeString: return translationForString("decode text")
+		case .numberOfBytes: return translationForString("number of bytes")
 		}
 	}
 
@@ -719,6 +734,47 @@ public enum Function: String {
 				Parameter(name: translationForString("n"), exampleValue: Value.int(510)),
 				Parameter(name: translationForString("base"), exampleValue: Value.int(2))
 			]
+
+		case .base64Decode:
+			return [
+				Parameter(name: "data", exampleValue: Value.string("SGVsbG8gd29ybGQh"))
+			]
+
+		case .base64Encode:
+			let d = "SGVsbG8gd29ybGQh".data(using: .utf8)
+			return [
+				Parameter(name: "data", exampleValue: Value.blob(d!))
+			]
+
+		case .hexDecode:
+			return [
+				Parameter(name: "data", exampleValue: Value.string("SGVsbG8gd29ybGQh"))
+			]
+
+		case .hexEncode:
+			let d = "SGVsbG8gd29ybGQh".data(using: .utf8)
+			return [
+				Parameter(name: "data", exampleValue: Value.blob(d!))
+			]
+
+		case .encodeString:
+			return [
+				Parameter(name: "text", exampleValue: Value.string("Hello world!")),
+				Parameter(name: "encoding", exampleValue: Value.string("UTF-16"))
+			]
+
+		case .decodeString:
+			let d = "Hello world!".data(using: .utf16)
+			return [
+				Parameter(name: "data", exampleValue: Value.blob(d!)),
+				Parameter(name: "encoding", exampleValue: Value.string("UTF-16"))
+			]
+
+		case .numberOfBytes:
+			let d = "Hello world!".data(using: .utf16)
+			return [
+				Parameter(name: "data", exampleValue: Value.blob(d!)),
+			]
 		}
 	} }
 	
@@ -822,6 +878,13 @@ public enum Function: String {
 		case .hilbertDToY: return Arity.fixed(2)
 		case .powerDown: return Arity.fixed(2)
 		case .powerUp: return Arity.fixed(2)
+		case .base64Encode: return Arity.fixed(1)
+		case .base64Decode: return Arity.fixed(1)
+		case .hexEncode: return Arity.fixed(1)
+		case .hexDecode: return Arity.fixed(1)
+		case .encodeString: return Arity.fixed(2)
+		case .decodeString: return Arity.fixed(2)
+		case .numberOfBytes: return Arity.fixed(1)
 		}
 	}
 	
@@ -1469,6 +1532,52 @@ public enum Function: String {
 			}
 			return Value.invalid
 
+		case .base64Encode:
+			if case .blob(let data) = arguments[0] {
+				return Value.string(data.base64EncodedString())
+			}
+			return .invalid
+
+		case .base64Decode:
+			if let s = arguments[0].stringValue, let data = Data(base64Encoded: s) {
+				return .blob(data)
+			}
+			return .invalid
+
+		case .hexEncode:
+			if case .blob(let data) = arguments[0] {
+				return Value.string(data.map { String(format: "%02hhx", $0) }.joined())
+			}
+			return .invalid
+
+		case .hexDecode:
+			if let s = arguments[0].stringValue {
+				let chars = Array(s.characters)
+				let numbers = stride(from: 0, to: chars.count, by: 2).map() {
+					UInt8(strtoul(String(chars[$0 ..< Swift.min($0 + 2, chars.count)]), nil, 16))
+				}
+				return .blob(Data(bytes: numbers))
+			}
+			return .invalid
+
+		case .numberOfBytes:
+			if case .blob(let data) = arguments[0] {
+				return .int(data.count)
+			}
+			return .invalid
+
+		case .encodeString:
+			if let s = arguments[0].stringValue, let encoding = arguments[1].stringValue, let encType = Language.encodings[encoding], let data = s.data(using: encType) {
+				return .blob(data)
+			}
+			return .invalid
+
+		case .decodeString:
+			if case .blob(let data) = arguments[0], let encoding = arguments[1].stringValue, let encType = Language.encodings[encoding], let s = String(data: data, encoding: encType) {
+				return .string(s)
+			}
+			return .invalid
+
 
 		// The following functions are already implemented as a Reducer, just use that
 		case .sum, .min, .max, .count, .countAll, .average, .concat, .pack, .countDistinct, .median, .medianHigh,
@@ -1526,7 +1635,7 @@ public enum Function: String {
 		duration, after, xor, floor, ceiling, randomString, toUnicodeDateString, fromUnicodeDateString, power, uuid,
 		countDistinct, medianLow, medianHigh, medianPack, median, varianceSample, variancePopulation, standardDeviationSample,
 		standardDeviationPopulation, isEmpty, isInvalid, jsonDecode, parseNumber, valueForKey, hilbertXYToD, hilbertDToX,
-		hilbertDToY, powerDown, powerUp
+		hilbertDToY, powerDown, powerUp, base64Encode, base64Decode, encodeString, decodeString, hexEncode, hexDecode, numberOfBytes
 	]
 }
 

@@ -26,6 +26,7 @@ fileprivate extension Value {
 		case .int(let i): return R.expr(i)
 		case .invalid: return R.expr(1).div(0)
 		case .empty: return R.expr()
+		case .blob(let d): return R.expr(d)
 		}
 	}
 }

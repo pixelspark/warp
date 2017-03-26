@@ -29,6 +29,7 @@ public class Language {
 	public var stringQualifier: Character = "\""
 	public var stringQualifierEscape = "\"\""
 	public var argumentSeparator = ";"
+	public var blobQualifier: Character = "`";
 	public var currentCellIdentifier = "@"
 	public var csvFieldSeparator = ";"
 	public var csvLineSeparator = "\r\n"
@@ -42,6 +43,19 @@ public class Language {
 	public var constants: [Value: String]
 	public let functions: [String: Function]
 	public let postfixes: [String: Value]
+
+	public static let encodings: [String: String.Encoding] = [
+		"UTF-8": .utf8,
+		"UTF-16": .utf16,
+		"UTF-32": .utf32,
+		"ASCII": .ascii,
+		"LATIN1": .isoLatin1,
+		"LATIN2": .isoLatin2,
+		"MAC-ROMAN": .macOSRoman,
+		"CP1250": .windowsCP1250,
+		"CP1251": .windowsCP1251,
+		"CP1252": .windowsCP1252,
+	]
 	
 	public static let languages: [LanguageIdentifier: String] = [
 		"nl": translationForString("Dutch"),
@@ -213,6 +227,13 @@ public class Language {
 			"HILBERT.Y": Function.hilbertDToY,
 			"POWER.UP": Function.powerUp,
 			"POWER.DOWN": Function.powerDown,
+			"BASE64.ENCODE": Function.base64Encode,
+			"BASE64.DECODE": Function.base64Decode,
+			"HEX.ENCODE": Function.hexEncode,
+			"HEX.DECODE": Function.hexDecode,
+			"SIZE.OF": Function.numberOfBytes,
+			"ENCODE": Function.encodeString,
+			"DECODE": Function.decodeString,
 		],
 		
 		"nl": [
@@ -310,6 +331,13 @@ public class Language {
 			"HILBERT.Y": Function.hilbertDToY,
 			"MACHT.OMHOOG": Function.powerUp,
 			"MACHT.OMLAAG": Function.powerDown,
+			"BASE64.ENCODEREN": Function.base64Encode,
+			"BASE64.DECODEREN": Function.base64Decode,
+			"HEX.ENCODEREN": Function.hexEncode,
+			"HEX.DECODEREN": Function.hexDecode,
+			"ENCODEREN": Function.encodeString,
+			"DECODEREN": Function.decodeString,
+			"GROOTTE.VAN": Function.numberOfBytes,
 		]
 	]
 	
@@ -382,6 +410,9 @@ public class Language {
 			
 			case .date(let d):
 				return dateFormatter.string(from: Date(timeIntervalSinceReferenceDate: d))
+
+			case .blob(let b):
+				return "[\(b.count) bytes]"
 			
 			case .empty:
 				return ""
@@ -448,6 +479,9 @@ public class Language {
 			switch value {
 			case .string(let s):
 				line += "\(csvStringQualifier)\(s.replacingOccurrences(of: csvStringQualifier, with: csvStringEscaper))\(csvStringQualifier)"
+
+			case .blob(let d):
+				line += "\(csvStringQualifier)\(d.base64EncodedString(options: []))\(csvStringQualifier)"
 			
 			case .double(let d):
 				// FIXME: use decimalSeparator from locale

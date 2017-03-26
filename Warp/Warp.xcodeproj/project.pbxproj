@@ -59,7 +59,6 @@
 		651BEC5F1E196F3E0094F8AD /* QBERasterStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC141E196EF10094F8AD /* QBERasterStep.swift */; };
 		651BEC601E196F3E0094F8AD /* QBESearchStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC151E196EF10094F8AD /* QBESearchStep.swift */; };
 		651BEC881E1971170094F8AD /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 651BEC871E1971170094F8AD /* WarpConduit.framework */; };
-		651BEC8E1E1972170094F8AD /* WarpConduit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 651BEC871E1971170094F8AD /* WarpConduit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		651BED091E197B370094F8AD /* QBEPostgresStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC051E196EF10094F8AD /* QBEPostgresStep.swift */; };
 		651BED911E198D950094F8AD /* QBEConfigureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BED901E198D940094F8AD /* QBEConfigureViewController.swift */; };
 		651BEDAB1E198F610094F8AD /* Eureka.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 651BED9B1E198EFA0094F8AD /* Eureka.framework */; };
@@ -248,6 +247,7 @@
 		65BC51C21E2184EC005FEC76 /* QBETourViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65BC51C11E2184EC005FEC76 /* QBETourViewController.swift */; };
 		65CCEE211E87CCE2004A7483 /* QBEJSONStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CCEE201E87CCE2004A7483 /* QBEJSONStep.swift */; };
 		65CCEE221E87CCE2004A7483 /* QBEJSONStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CCEE201E87CCE2004A7483 /* QBEJSONStep.swift */; };
+		65CCEE2D1E881E08004A7483 /* WarpConduit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 651BEDA81E198F510094F8AD /* WarpConduit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65DAF6CA1D7C6FFD00163750 /* Rethink.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65DAF6C91D7C6FFD00163750 /* Rethink.framework */; };
 		65DAF6CF1D7C719D00163750 /* Rethink.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65DAF6CE1D7C719D00163750 /* Rethink.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65E1C7C31E219616003221A6 /* MobileTour.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E1C7C51E219616003221A6 /* MobileTour.strings */; };
@@ -521,13 +521,13 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				65CCEE2D1E881E08004A7483 /* WarpConduit.framework in Embed Frameworks */,
 				65BC51B61E1E2FC1005FEC76 /* WarpAI.framework in Embed Frameworks */,
 				651BEDAC1E198F680094F8AD /* Eureka.framework in Embed Frameworks */,
 				655F91D71E196684005A47A1 /* Rethink.framework in Embed Frameworks */,
 				655F91E41E1966BB005A47A1 /* SwiftParser.framework in Embed Frameworks */,
 				655F91DD1E196691005A47A1 /* SCRAM.framework in Embed Frameworks */,
 				655F91CA1E196665005A47A1 /* WarpCore.framework in Embed Frameworks */,
-				651BEC8E1E1972170094F8AD /* WarpConduit.framework in Embed Frameworks */,
 				655F91DF1E19669C005A47A1 /* Alamofire.framework in Embed Frameworks */,
 				655F91DA1E19668C005A47A1 /* GCDAsyncSocket.framework in Embed Frameworks */,
 			);

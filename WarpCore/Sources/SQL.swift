@@ -662,6 +662,14 @@ open class StandardSQLDialect: SQLDialect {
 			.replacingOccurrences(of: stringQualifier, with: stringQualifierEscape)
 		return "\(stringQualifier)\(escaped)\(stringQualifier)"
 	}
+
+	/** Convert the given blob to the literal representation in SQL. The default implementation follows the SQLite 
+	specification for blob literals: https://sqlite.org/lang_expr.html. MySQL follows this as well, and requires the number
+	 of characters to be even (which is the case in this implementation because of '%02hhx'). */
+	open func literalBlob(_ blob: Data) -> String {
+		let escaped = blob.map { String(format: "%02hhx", $0) }.joined()
+		return "X\(stringQualifier)\(escaped)\(stringQualifier)"
+	}
 	
 	open func forceNumericExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS NUMERIC)"
@@ -935,6 +943,9 @@ open class StandardSQLDialect: SQLDialect {
 		case .powerUp, .powerDown:
 			return nil
 
+		case .base64Decode, .base64Encode, .encodeString, .decodeString, .hexEncode, .hexDecode, .numberOfBytes:
+			return nil
+
 		case .parseNumber:
 			var value = args[0]
 
@@ -979,6 +990,9 @@ open class StandardSQLDialect: SQLDialect {
 				
 			case .empty:
 				return "NULL"
+
+			case .blob(let d):
+				return literalBlob(d)
 		}
 	}
 	

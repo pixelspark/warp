@@ -90,6 +90,12 @@ private class PostgresDialect: StandardSQLDialect {
 		}
 	}
 
+	/** Postgres expects binary data to be hex-encoded as E'\\xCAFEBABE' (MSB first). */
+	fileprivate override func literalBlob(_ blob: Data) -> String {
+		let escaped = blob.map { String(format: "%02hhx", $0) }.joined()
+		return "E'\\\\x\(escaped)'"
+	}
+
 	fileprivate override func forceStringExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS VARCHAR)"
 	}

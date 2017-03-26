@@ -96,6 +96,15 @@ public class Formula: Parser {
 		let text = self.text.replacingOccurrences(of: "\"\"", with: "\"")
 		annotate(stack.push(Literal(Value(text))))
 	}
+
+	private func pushBlob() {
+		if let data = Data(base64Encoded: self.text) {
+			annotate(stack.push(Literal(Value.blob(data))))
+		}
+		else {
+			annotate(stack.push(Literal(Value.invalid)))
+		}
+	}
 	
 	private func pushAddition() {
 		pushBinary(Binary.addition)
@@ -250,6 +259,7 @@ public class Formula: Parser {
 		add_named_rule("unaryFunction",		rule: ((Parser.matchAnyFrom(functionRules) => pushCall) ~~ ^"arguments") => popCall)
 		add_named_rule("constant",			rule: Parser.matchAnyFrom(locale.constants.values.map({Parser.matchLiteralInsensitive($0)})) => pushConstant)
 		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~  ((Parser.matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
+		add_named_rule("blobLiteral",		rule: literal(String(locale.blobQualifier)) ~  ((Parser.matchAnyCharacterExcept([locale.blobQualifier]))* => pushBlob) ~ literal(String(locale.blobQualifier)))
 		
 		add_named_rule("currentCell",		rule: literal(locale.currentCellIdentifier) => pushIdentity)
 		
@@ -264,8 +274,7 @@ public class Formula: Parser {
 		add_named_rule("doubleNumber",		rule: ((^"digits" ~ locale.decimalSeparator ~ ^"digits") => pushDouble) | ((^"digits") => pushInt))
 		add_named_rule("negativeNumber",	rule: ("-" ~ ^"doubleNumber") => pushNegate)
 		add_named_rule("postfixedNumber",	rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"numberPostfix")
-		
-		add_named_rule("value",				rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"foreign" | ^"subexpression")
+		add_named_rule("value",				rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"blobLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"foreign" | ^"subexpression")
 
 
 		add_named_rule("indexer",			rule: ((("[" ~~ ^"value" ~~ "]") => pushIndex) | (("->" ~~ ^"value") => pushValueForKey)))

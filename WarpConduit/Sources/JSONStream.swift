@@ -51,19 +51,19 @@ private enum JSONFileType {
 
 	func rowCount(for data: Any) -> Int? {
 		switch self {
-		case .arrayOfObjects(columns: let c):
+		case .arrayOfObjects(columns: _):
 			if let d = data as? Array<Any> {
 				return d.count
 			}
 			return nil
 
-		case .arrayOfValues(column: let c):
+		case .arrayOfValues(column: _):
 			if let d = data as? Array<Any> {
 				return d.count
 			}
 			return nil
 
-		case .singleValue(column: let c):
+		case .singleValue(column: _):
 			return 1
 		}
 	}

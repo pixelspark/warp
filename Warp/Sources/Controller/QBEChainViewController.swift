@@ -1089,6 +1089,10 @@ internal enum QBEEditingMode {
 	}
 
 	@discardableResult func dataView(_ view: QBEDatasetViewController, didChangeValue oldValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool {
+		if case .blob(_) = oldValue {
+			return false // Blob values cannot be edited through here
+		}
+
 		suggestions?.cancel()
 		let job = Job(.userInitiated)
 
@@ -2187,6 +2191,31 @@ internal enum QBEEditingMode {
 		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .capitalize))
 	}
 
+	@IBAction func quickFixBase64Encode(_ sender: NSObject) {
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .base64Encode))
+	}
+
+	@IBAction func quickFixBase64Decode(_ sender: NSObject) {
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .base64Decode))
+	}
+
+	@IBAction func quickFixHexEncode(_ sender: NSObject) {
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .hexEncode))
+	}
+
+	@IBAction func quickFixHexDecode(_ sender: NSObject) {
+		self.quickFixColumn(expression: Call(arguments: [Identity()], type: .hexDecode))
+	}
+
+	@IBAction func quickFixUTF8Encode(_ sender: NSObject) {
+		self.quickFixColumn(expression: Call(arguments: [Identity(), Literal(.string("UTF-8"))], type: .encodeString))
+	}
+
+	@IBAction func quickFixUTF8Decode(_ sender: NSObject) {
+		self.quickFixColumn(expression: Call(arguments: [Identity(), Literal(.string("UTF-8"))], type: .decodeString))
+	}
+
+
 	@IBAction func quickFixReadNumberDecimalPoint(_ sender: NSObject) {
 		self.quickFixColumn(expression: Call(arguments: [Identity(), Literal(.string(".")), Literal(.string(","))], type: .parseNumber))
 	}
@@ -2369,7 +2398,14 @@ internal enum QBEEditingMode {
 			selector==#selector(QBEChainViewController.quickFixJSON(_:)) ||
 			selector==#selector(QBEChainViewController.quickFixReadNumberDecimalComma(_:)) ||
 			selector==#selector(QBEChainViewController.quickFixReadNumberDecimalPoint(_:)) ||
-			selector==#selector(QBEChainViewController.quickFixTrimSpaces(_:)) {
+			selector==#selector(QBEChainViewController.quickFixTrimSpaces(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixHexDecode(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixHexEncode(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixBase64Decode(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixBase64Encode(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixUTF8Decode(_:)) ||
+			selector==#selector(QBEChainViewController.quickFixUTF8Encode(_:))
+		{
 			if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 				return colsToRemove.count > 0 && currentStep != nil
 			}

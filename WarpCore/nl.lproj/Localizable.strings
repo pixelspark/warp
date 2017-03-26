@@ -164,3 +164,10 @@
 "value for" = "waarde voor";
 "%@th item in %@" = "%@de item in %@";
 "%@ of %@" = "%@ van %@";
+"decode base64" = "decodeer base64";
+"encode base64" = "encodeer base64";
+"decode hex" = "decodeer hex";
+"encode hex" = "encodeer hex";
+"decode text" = "decodeer tekst";
+"encode text" = "encodeer tekst";
+"number of bytes" = "aantal bytes";

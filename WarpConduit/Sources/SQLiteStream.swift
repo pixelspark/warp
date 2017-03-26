@@ -78,6 +78,11 @@ public class SQLiteResult {
 
 					case .empty:
 						result = sqlite3_bind_null(self.resultSet, CInt(i+1))
+
+					case .blob(let d):
+						d.withUnsafeBytes { bytes in
+							result = sqlite3_bind_blob64(self.resultSet, CInt(i+1), bytes, sqlite3_uint64(d.count), sqlite3_transient_destructor)
+						}
 					}
 
 					if result != SQLITE_OK {
@@ -340,6 +345,11 @@ open class SQLiteConnection: NSObject, SQLConnection {
 
 			case .bool(let b):
 				sqlite3_result_int64(context, b ? 1 : 0)
+
+			case .blob(let d):
+				d.withUnsafeBytes { bytes in
+					sqlite3_result_blob64(context, bytes, sqlite_uint64(d.count), sqlite3_transient_destructor)
+				}
 			}
 		}
 	}
