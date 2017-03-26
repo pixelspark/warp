@@ -89,6 +89,7 @@ class QBEDocumentViewController: UIViewController {
 			}
 		}
 	}
+
 	override func viewWillDisappear(_ animated: Bool) {
 		super.viewWillDisappear(animated)
 		if self.isMovingFromParentViewController {

@@ -11,7 +11,7 @@ You should have received a copy of the GNU General Public License along with thi
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 import Foundation
 import Cocoa
-
+import WarpCore
 
 protocol QBETabletViewDelegate: NSObjectProtocol {
 	/** Called by the tablet when it wishes to be closed. The return value is true if the tablet should destroy itself. */
@@ -56,6 +56,9 @@ class QBETabletViewController: NSViewController {
 	}
 
 	func startEditing() {
+	}
+
+	func startEditingWithIdentifier(_ ids: Set<Column>, callback: (() -> ())? = nil) {
 	}
 
 	@IBAction func closeTablet(_ sender: AnyObject) {

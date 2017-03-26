@@ -239,7 +239,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		self.valueList?.reloadData()
 		filterChanged()
 	}
-	
+
 	override func viewWillAppear() {
 		if let tc = self.valueList?.tableColumn(withIdentifier: "value"), let cell = tc.dataCell as? NSCell {
 			cell.font = QBESettings.sharedInstance.monospaceFont ? NSFont.userFixedPitchFont(ofSize: 10.0) : NSFont.userFont(ofSize: 12.0)

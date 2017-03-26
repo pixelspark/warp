@@ -2096,7 +2096,7 @@ internal enum QBEEditingMode {
 
 	/** Start editing using the given set of identifier keys. If the set is empty, the data set must support line-based
 	editing (DatasetMutation.edit). */
-	private func startEditingWithIdentifier(_ ids: Set<Column>, callback: (() -> ())? = nil) {
+	func startEditingWithIdentifier(_ ids: Set<Column>, callback: (() -> ())? = nil) {
 		let job = Job(.userInitiated)
 
 		asyncMain {
