@@ -412,7 +412,8 @@ public class Language {
 				return dateFormatter.string(from: Date(timeIntervalSinceReferenceDate: d))
 
 			case .blob(let b):
-				return "[\(b.count) bytes]"
+				let s = ByteCountFormatter.string(fromByteCount: Int64(b.count), countStyle: ByteCountFormatter.CountStyle.file)
+				return "[\(s)]";
 			
 			case .empty:
 				return ""
@@ -426,6 +427,9 @@ public class Language {
 			
 			case .int(let i):
 				return i.toString()
+
+			case .blob(let b):
+				return b.base64EncodedString()
 			
 			default:
 				return value.stringValue ?? ""
