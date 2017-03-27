@@ -29,7 +29,7 @@ class QBEJoinStep: QBEStep, NSSecureCoding, QBEChainDependent {
 	required init(coder aDecoder: NSCoder) {
 		right = aDecoder.decodeObject(of: QBEChain.self, forKey: "right")
 		condition = aDecoder.decodeObject(of: Expression.self, forKey: "condition")
-		joinType = JoinType(rawValue: aDecoder.decodeObject(of: NSString.self, forKey: "joinType") as? String ?? "") ?? .leftJoin
+		joinType = JoinType(rawValue: aDecoder.decodeString(forKey: "joinType") ?? "") ?? .leftJoin
 		
 		super.init(coder: aDecoder)
 	}

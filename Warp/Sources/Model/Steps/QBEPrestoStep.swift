@@ -24,7 +24,7 @@ private class QBEPrestoSQLDialect: StandardSQLDialect {
 			if args.count > 1 {
 				var sql = args.last
 				for a in Array(args.dropLast().reversed()) {
-					sql = "CONCAT(\(a), \(sql))"
+					sql = "CONCAT(\(a), \(String(describing: sql)))"
 				}
 				return sql
 			}
@@ -203,7 +203,9 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 								self.stopped = true
 								self.nextURI = nil
 							}
-							return callback(.failure("Presto error \(response.response?.statusCode): \(response.result.error)"))
+							let ss = response.response?.statusCode ?? 0
+							let ld = response.result.error?.localizedDescription ?? ""
+							return callback(.failure("Presto error \(ss): \(ld))"))
 						}
 					}
 				})

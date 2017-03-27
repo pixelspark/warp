@@ -68,7 +68,7 @@ final public class DBFStream: NSObject, WarpCore.Stream {
 		(self.queue).async {
 			self.columns(job) { (columns) -> () in
 				let end = self.mutex.locked { () -> Int32 in
-					let end = min(self.recordCount, self.position + StreamDefaultBatchSize)
+					let end = min(self.recordCount, self.position + Int32(StreamDefaultBatchSize))
 					self.position = end
 					return end
 				}

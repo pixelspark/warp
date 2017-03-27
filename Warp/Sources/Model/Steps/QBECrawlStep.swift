@@ -39,10 +39,11 @@ class QBECrawler: NSObject, NSSecureCoding {
 	
 	required init?(coder: NSCoder) {
 		let urlExpression = coder.decodeObject(of: Expression.self, forKey: "url")
-		let targetBodyColumn = coder.decodeObject(of: NSString.self, forKey: "bodyColumn") as? String
-		let targetStatusColumn = coder.decodeObject(of: NSString.self, forKey: "statusColumn") as? String
-		let targetResponseTimeColumn = coder.decodeObject(of: NSString.self, forKey: "responseTimeColumn") as? String
-		let targetErrorColumn = coder.decodeObject(of: NSString.self, forKey: "errorColumn") as? String
+
+		let targetBodyColumn = coder.decodeString(forKey: "bodyColumn")
+		let targetStatusColumn = coder.decodeString(forKey: "statusColumn")
+		let targetResponseTimeColumn = coder.decodeString(forKey: "responseTimeColumn")
+		let targetErrorColumn = coder.decodeString(forKey: "errorColumn")
 		
 		self.maxConcurrentRequests = coder.decodeInteger(forKey: "maxConcurrentRequests")
 		self.maxRequestsPerSecond = coder.decodeInteger(forKey: "maxRequestsPerSecond")
@@ -121,7 +122,7 @@ class QBECrawlStream: WarpCore.Stream {
 					case .success(let rows):
 						var outRows: [Tuple] = []
 						
-						Array(rows).eachConcurrently(self.crawler.maxConcurrentRequests, maxPerSecond: self.crawler.maxRequestsPerSecond, each: { (tuple, callback) -> () in
+						eachConcurrently(AnySequence<Tuple>(rows), maxConcurrent: self.crawler.maxConcurrentRequests, maxPerSecond: self.crawler.maxRequestsPerSecond, each: { (tuple, callback) -> () in
 							// Check if we should continue
 							if job.isCancelled {
 								callback()

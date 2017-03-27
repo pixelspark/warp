@@ -1,0 +1,12 @@
+{
+  "autoPin": true,
+  "pins": [
+    {
+      "package": "SwiftParser",
+      "reason": null,
+      "repositoryURL": "https://github.com/pixelspark/swift-parser-generator",
+      "version": "1.0.1"
+    }
+  ],
+  "version": 1
+}

@@ -727,7 +727,10 @@ public extension NSCoder {
 	}
 	
 	public func decodeString(forKey key: String) -> String? {
-		return self.decodeObject(of: NSString.self, forKey: key) as? String
+		if let s = self.decodeObject(of: NSString.self, forKey: key) {
+			return String(s)
+		}
+		return nil
 	}
 
 	public func encode(value: Value, forKey key: String) {

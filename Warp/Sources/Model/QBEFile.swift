@@ -81,7 +81,7 @@ public enum QBEFileReference: Equatable {
 				return self
 			}
 			catch let error as NSError {
-				trace("Could not create bookmark for url \(u): \(error)")
+				trace("Could not create bookmark for url \(String(describing: u)): \(error)")
 			}
 			return self
 
@@ -110,7 +110,7 @@ public enum QBEFileReference: Equatable {
 				#endif
 
 				if stale {
-					trace("Resolved bookmark is stale: \(u)")
+					trace("Resolved bookmark is stale: \(String(describing: u))")
 					return QBEFileReference.absolute(u)
 				}
 
@@ -122,7 +122,7 @@ public enum QBEFileReference: Equatable {
 				return QBEFileReference.resolvedBookmark(b, oldURL)
 			}
 			catch let error as NSError {
-				trace("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(relativeToDocument): \(error)")
+				trace("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(String(describing: relativeToDocument)): \(error)")
 			}
 
 			return self
@@ -140,7 +140,7 @@ public enum QBEFileReference: Equatable {
 				#endif
 
 				if stale {
-					trace("Just-resolved bookmark is stale: \(u)")
+					trace("Just-resolved bookmark is stale: \(String(describing: u))")
 					return QBEFileReference.absolute(u)
 				}
 

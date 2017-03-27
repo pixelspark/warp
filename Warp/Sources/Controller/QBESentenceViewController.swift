@@ -126,7 +126,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		updateView()
 	}
 
-	@discardableResult private func change(token inputToken: QBESentenceColumnsToken, to selection: OrderedSet<Column>) {
+	private func change(token inputToken: QBESentenceColumnsToken, to selection: OrderedSet<Column>) {
 		let oldValue = inputToken.value
 
 		inputToken.select(selection)

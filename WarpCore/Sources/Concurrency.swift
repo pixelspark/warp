@@ -132,68 +132,73 @@ public func asyncMain(_ block: @escaping () -> ()) {
 }
 
 /** Extensions to process sequences in parallel. */
-public extension Sequence {
+/*public extension Sequence {
 	typealias Element = Iterator.Element
 	
 	/** Iterate over the items in this array, and call the 'each' block for each element. At most `maxConcurrent` calls
 	to `each` may be 'in flight' concurrently. After each has been called and called back for each of the items, the
 	completion block is called. */
 	func eachConcurrently(_ maxConcurrent: Int, maxPerSecond: Int?, each: @escaping (Element, @escaping () -> ()) -> (), completion: @escaping () -> ()) {
-		var iterator = self.makeIterator()
-		let mutex = Mutex()
-		var outstanding = 0
+		let s = self as! AnySequence<Element>
+		_eachConcurrently(s, maxConcurrent: maxConcurrent, maxPerSecond: maxPerSecond, each: each, completion: completion)
+	}
+}*/
 
-		func eachTimed(_ element: Element) {
-			let start = CFAbsoluteTimeGetCurrent()
-			each(element, {
-				let end = CFAbsoluteTimeGetCurrent()
-				advance(end - start)
-			})
-		}
-		
-		func advance(_ duration: Double) {
-			// There are more elements, call the each function on the next one
-			if let next = iterator.next() {
-				/* If we can make at most x requests per second, each request should take at least
-				1/x seconds if we would be executing these requests serially. Because we have n
-				concurrent requests, each request needs to take at least n/x seconds. */
-				if let mrps = maxPerSecond {
-					let minimumTime = Double(maxConcurrent) / Double(mrps)
-					if minimumTime > duration {
-						DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64((minimumTime - duration) * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) {
-							eachTimed(next)
-						}
-						return
+public func eachConcurrently<Element>(_ s: AnySequence<Element>, maxConcurrent: Int, maxPerSecond: Int?, each: @escaping (Element, @escaping () -> ()) -> (), completion: @escaping () -> ()) {
+	var iterator = s.makeIterator()
+	let mutex = Mutex()
+	var outstanding = 0
+
+	func eachTimed(_ element: Element) {
+		let start = CFAbsoluteTimeGetCurrent()
+		each(element, {
+			let end = CFAbsoluteTimeGetCurrent()
+			advance(end - start)
+		})
+	}
+
+	func advance(_ duration: Double) {
+		// There are more elements, call the each function on the next one
+		if let next = iterator.next() {
+			/* If we can make at most x requests per second, each request should take at least
+			1/x seconds if we would be executing these requests serially. Because we have n
+			concurrent requests, each request needs to take at least n/x seconds. */
+			if let mrps = maxPerSecond {
+				let minimumTime = Double(maxConcurrent) / Double(mrps)
+				if minimumTime > duration {
+					DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64((minimumTime - duration) * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) {
+						eachTimed(next)
 					}
-				}
-				eachTimed(next)
-			}
-			else {
-				mutex.locked {
-					outstanding -= 1
-					// No elements left to call each for, but there may be some elements in flight. The last one calls completion
-					if outstanding == 0 {
-						completion()
-					}
+					return
 				}
 			}
+			eachTimed(next)
 		}
-		
-		// Call `each` for at most maxConcurrent items
-		var atLeastOne = false
-		for _ in 0..<maxConcurrent {
-			if let next = iterator.next() {
-				atLeastOne = true
-				mutex.locked {
-					outstanding += 1
+		else {
+			mutex.locked {
+				outstanding -= 1
+				// No elements left to call each for, but there may be some elements in flight. The last one calls completion
+				if outstanding == 0 {
+					completion()
 				}
-				eachTimed(next)
 			}
 		}
-		
-		if !atLeastOne {
-			completion()
+	}
+
+	// Call `each` for at most maxConcurrent items
+	var atLeastOne = false
+	for _ in 0..<maxConcurrent {
+		if let next = iterator.next() {
+			atLeastOne = true
+			mutex.locked {
+				outstanding += 1
+			}
+			eachTimed(next)
 		}
+	}
+
+	if !atLeastOne {
+		completion()
 	}
 }
 
@@ -631,7 +636,7 @@ public class Mutex {
 			if Thread.isMainThread {
 				let duration = CFAbsoluteTimeGetCurrent() - start
 				if duration > 0.05 {
-					trace("Waited \(duration)s  on main thread for mutex (\(file):\(line)) last locked by \(self.locker)")
+					trace("Waited \(duration)s  on main thread for mutex (\(file):\(line)) last locked by \(String(describing: self.locker))")
 				}
 				self.locker = "\(file):\(line)"
 			}
@@ -790,7 +795,7 @@ class Batch<T>: Job {
 	main thread) and subsequently empty the waiting list. Enqueue can only be called once on a batch. */
 	func satisfy(_ value: T) {
 		self.mutex.locked {
-			assert(cached == nil, "Batch.satisfy called with cached!=nil: \(cached) \(value)")
+			assert(cached == nil, "Batch.satisfy called with cached!=nil: \(String(describing: cached)) \(value)")
 			assert(!satisfied, "Batch already satisfied")
 
 			self.cached = value

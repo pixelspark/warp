@@ -592,7 +592,7 @@ public enum Function: String {
 			]
 		
 		case .sin, .cos, .tan, .sinh, .cosh, .tanh, .exp, .ln, .log, .acos, .asin, .atan:
-			return [Parameter(name: translationForString("number"), exampleValue: Value(M_PI_4))]
+			return [Parameter(name: translationForString("number"), exampleValue: Value(Double.pi / 4.0))]
 			
 		case .sqrt:
 			return [Parameter(name: translationForString("number"), exampleValue: Value(144))]

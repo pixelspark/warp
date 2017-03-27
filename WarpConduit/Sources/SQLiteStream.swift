@@ -229,7 +229,7 @@ open class SQLiteConnection: NSObject, SQLConnection {
 	fileprivate static let sqliteUDFBinaryName = "WARP_BINARY"
 
 	public private(set) var url: String?
-	public let db: OpaquePointer?
+	public var db: OpaquePointer?
 	public let dialect: SQLDialect = SQLiteDialect()
 
 	private static let sharedMutex = Mutex()
