@@ -566,6 +566,7 @@ public func != (lhs: Value, rhs: Value) -> Bool {
 	return !(lhs == rhs)
 }
 
+/** The 'empty' value is considered smaller than all other numerable values. */
 public func > (lhs: Value, rhs: Value) -> Bool {
 	if !lhs.isValid || !rhs.isValid {
 		return false
@@ -574,6 +575,12 @@ public func > (lhs: Value, rhs: Value) -> Bool {
 	switch(lhs, rhs) {
 	case (.int, .int):
 		return lhs.intValue! > rhs.intValue!
+
+	case (.empty, _):
+		return false
+
+	case (_, .empty):
+		return true
 		
 	default:
 		if let a = lhs.doubleValue, let b = rhs.doubleValue {
@@ -591,6 +598,12 @@ public func < (lhs: Value, rhs: Value) -> Bool {
 	switch(lhs, rhs) {
 	case (.int, .int):
 		return lhs.intValue! < rhs.intValue!
+
+	case (.empty, _):
+		return true
+
+	case (_, .empty):
+		return false
 		
 	default:
 		if let a = lhs.doubleValue, let b = rhs.doubleValue {
@@ -608,6 +621,15 @@ public func >= (lhs: Value, rhs: Value) -> Bool {
 	switch(lhs, rhs) {
 	case (.int, .int):
 		return lhs.intValue! >= rhs.intValue!
+
+	case (.empty, .empty):
+		return true
+
+	case (.empty, _):
+		return false
+
+	case (_, .empty):
+		return true
 		
 	default:
 		if let a = lhs.doubleValue, let b = rhs.doubleValue {
@@ -625,6 +647,15 @@ public func <= (lhs: Value, rhs: Value) -> Bool {
 	switch(lhs, rhs) {
 	case (.int, .int):
 		return lhs.intValue! <= rhs.intValue!
+
+	case (.empty, .empty):
+		return true
+
+	case (.empty, _):
+		return true
+
+	case (_, .empty):
+		return false
 		
 	default:
 		if let a = lhs.doubleValue, let b = rhs.doubleValue {

@@ -1419,7 +1419,11 @@ open class SQLDataset: NSObject, Dataset {
 				else {
 					castedSQL = self.sql.dialect.forceStringExpression(esql)
 				}
-				return castedSQL + " " + (order.ascending ? "ASC" : "DESC")
+
+				// NULLS should be sorted first
+				let direction = (order.ascending ? "ASC" : "DESC");
+				let nullDirection = (!order.ascending ? "ASC" : "DESC");
+				return "ISNULL(\(castedSQL)) \(nullDirection), \(castedSQL) \(direction)";
 			}
 			else {
 				error = true

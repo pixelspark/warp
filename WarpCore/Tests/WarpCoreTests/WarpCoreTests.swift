@@ -74,6 +74,8 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(Value.empty != Value.string(""), "Empty does not equal empty string")
 		XCTAssert(Value.empty != Value.int(0), "Empty does not equal zero integer")
 		XCTAssert(Value.empty != Value.bool(false), "Empty does not equal false")
+		XCTAssert(Value.empty < Value.int(-9999), "Empty is smallest")
+		XCTAssert(!(Value.empty > Value.int(0)), "Empty is smallest")
 
 		// Numeric operations
 		XCTAssert(Value(12) * Value(13) == Value(156), "Integer multiplication")
