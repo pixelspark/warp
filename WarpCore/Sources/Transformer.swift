@@ -785,7 +785,7 @@ private class AggregateTransformer: Transformer {
 
 			// Check whether all aggregations can be written as a 'reducer' (then we can do streaming aggregation)
 			for (_, aggregation) in values {
-				if aggregation.reduce.reducer == nil {
+				if aggregation.reducer == nil {
 					fatalError("Not all aggregators are reducers")
 					break
 				}
@@ -807,7 +807,7 @@ private class AggregateTransformer: Transformer {
 	}
 
 	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
-		let reducerTemplate = self.values.mapDictionary { (c,a) in return (c, a.reduce.reducer!) }
+		let reducerTemplate = self.values.mapDictionary { (c,a) in return (c, a.reducer!) }
 		self.sourceColumnNames.get(job) { sourceColumnsFallible in
 			switch sourceColumnsFallible {
 			case .success(let sourceColumns):

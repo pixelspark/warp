@@ -732,27 +732,36 @@ open class StandardSQLDialect: SQLDialect {
 	
 	open func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
 		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias, foreignAlias: nil, inputValue: nil) {
+			let fun: String
+
 			switch aggregation.reduce {
-				case .average: return "AVG(\(expressionSQL))"
-				case .countAll: return "COUNT(*)"
-				case .countDistinct: return "COUNT(DISTINCT \(expressionSQL))"
-				case .sum: return "SUM(\(expressionSQL))"
-				case .min: return "MIN(\(expressionSQL))"
-				case .max: return "MAX(\(expressionSQL))"
-				case .standardDeviationPopulation: return "STDDEV_POP(\(expressionSQL))"
-				case .standardDeviationSample: return "STDDEV_SAMP(\(expressionSQL))"
-				case .variancePopulation: return "VAR_POP(\(expressionSQL))"
-				case .varianceSample: return "VAR_SAMP(\(expressionSQL))"
-				case .concat: return "GROUP_CONCAT(\(expressionSQL),'')"
+				case .average: fun = "AVG(\(expressionSQL))"
+				case .countAll: fun = "COUNT(*)"
+				case .countDistinct: fun = "COUNT(DISTINCT \(expressionSQL))"
+				case .sum: fun = "SUM(\(expressionSQL))"
+				case .min: fun = "MIN(\(expressionSQL))"
+				case .max: fun = "MAX(\(expressionSQL))"
+				case .standardDeviationPopulation: fun = "STDDEV_POP(\(expressionSQL))"
+				case .standardDeviationSample: fun = "STDDEV_SAMP(\(expressionSQL))"
+				case .variancePopulation: fun = "VAR_POP(\(expressionSQL))"
+				case .varianceSample: fun = "VAR_SAMP(\(expressionSQL))"
+				case .concat: fun = "GROUP_CONCAT(\(expressionSQL),'')"
 				
 				case .pack:
-					return "GROUP_CONCAT(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.escape)),\(literalString(Pack.escapeEscape))),\(literalString(Pack.separator)),\(literalString(Pack.separatorEscape))), \(literalString(Pack.separator)))"
+					fun = "GROUP_CONCAT(REPLACE(REPLACE(\(expressionSQL),\(literalString(Pack.escape)),\(literalString(Pack.escapeEscape))),\(literalString(Pack.separator)),\(literalString(Pack.separatorEscape))), \(literalString(Pack.separator)))"
 				
 				default:
 					/* TODO: RandomItem can be implemented using a UDF aggregation function in PostgreSQL. Implementing it in
 					SQLite is not easy.. (perhaps Warp can define a UDF from Swift?). */
 					return nil
 			}
+
+			if let minimum = aggregation.minimumCount {
+				/* COUNT() does not count NULLs (which is the expected behaviour). When `minimum` is not achieved, the 
+				aggregator is supposed to return an empty value (which NULL translates to). */
+				return "(CASE WHEN COUNT(\(expressionSQL)) >= \(minimum) THEN \(fun) ELSE NULL END)";
+			}
+			return fun
 		}
 		else {
 			return nil

@@ -110,55 +110,6 @@ public class Order: NSObject, NSCoding {
 	}
 }
 
-/** An aggregator collects values and summarizes them. The map expression generates values (it is called for each item 
-and included in the set if it is non-empty). The reduce function receives the mapped items as arguments and reduces them 
-to a single value. Note that the reduce function can be called multiple times with different sets (e.g. 
-reduce(reduce(a,b), reduce(c,d)) should be equal to reduce(a,b,c,d).  */
-public struct Aggregator {
-	public var map: Expression
-	public var reduce: Function
-
-	public init(map: Expression, reduce: Function) {
-		self.map = map
-		self.reduce = reduce
-	}
-}
-
-/** Specification of an aggregation, which is an aggregator that generates a particular target column. */
-public class Aggregation: NSObject, NSCoding {
-	public var aggregator: Aggregator
-	public var targetColumn: Column
-
-	public init(aggregator: Aggregator, targetColumn: Column) {
-		self.aggregator = aggregator
-		self.targetColumn = targetColumn
-	}
-	
-	public init(map: Expression, reduce: Function, targetColumn: Column) {
-		self.aggregator = Aggregator(map: map, reduce: reduce)
-		self.targetColumn = targetColumn
-	}
-	
-	required public init?(coder: NSCoder) {
-		targetColumn = Column((coder.decodeObject(forKey: "targetColumnName") as? String) ?? "")
-		let map = (coder.decodeObject(forKey: "map") as? Expression) ?? Identity()
-		let reduce: Function
-		if let rawReduce = coder.decodeObject(forKey: "reduce") as? String {
-			reduce = Function(rawValue: rawReduce) ?? Function.identity
-		}
-		else {
-			reduce = Function.identity
-		}
-		self.aggregator = Aggregator(map: map, reduce: reduce)
-	}
-	
-	public func encode(with aCoder: NSCoder) {
-		aCoder.encode(targetColumn.name, forKey: "targetColumnName")
-		aCoder.encode(aggregator.map, forKey: "map")
-		aCoder.encode(aggregator.reduce.rawValue, forKey: "reduce")
-	}
-}
-
 public enum JoinType: String {
 	/** In a left join, rows of the 'left'  table match with a row in the 'right' table if the join condition returns
 	true. The result set will contain all columns from the left table, and all columns in the right table that do not

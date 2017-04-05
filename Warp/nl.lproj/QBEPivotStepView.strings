@@ -1,39 +1,14 @@
-
-/* Class = "NSTableColumn"; headerCell.title = "Values"; ObjectID = "3Or-Lh-Otm"; */
 "3Or-Lh-Otm.headerCell.title" = "Waarden";
-
-/* Class = "NSTableColumn"; headerCell.title = "Columns"; ObjectID = "53u-P2-vqY"; */
 "53u-P2-vqY.headerCell.title" = "Kolommen";
-
-/* Class = "NSTextFieldCell"; title = "Drag columns to the lists below to pivot"; ObjectID = "7UZ-oJ-Pc6"; */
 "7UZ-oJ-Pc6.title" = "Sleep kolommen naar de lijsten hieronder";
-
-/* Class = "NSMenuItem"; title = "Item 2"; ObjectID = "ESU-Px-7dt"; */
 "ESU-Px-7dt.title" = "Item 2";
-
-/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "Uzp-14-hek"; */
 "Uzp-14-hek.title" = "Text Cell";
-
-/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "YAa-4h-GXg"; */
 "YAa-4h-GXg.title" = "Text Cell";
-
-/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "Ysx-RS-aWd"; */
 "Ysx-RS-aWd.title" = "Text Cell";
-
-/* Class = "NSTableColumn"; headerCell.title = "Show"; ObjectID = "arW-1a-mHN"; */
 "arW-1a-mHN.headerCell.title" = "Toon";
-
-/* Class = "NSTextFieldCell"; title = "Text Cell"; ObjectID = "eAk-Ck-DUd"; */
 "eAk-Ck-DUd.title" = "Text Cell";
-
-/* Class = "NSMenuItem"; title = "Item 1"; ObjectID = "jsK-Ps-fDh"; */
 "jsK-Ps-fDh.title" = "Item 1";
-
-/* Class = "NSMenuItem"; title = "Item 3"; ObjectID = "pDN-u6-0Va"; */
 "pDN-u6-0Va.title" = "Item 3";
-
-/* Class = "NSTableColumn"; headerCell.title = "Rows"; ObjectID = "v2t-fy-x8X"; */
 "v2t-fy-x8X.headerCell.title" = "Rijen";
-
-/* Class = "NSTableColumn"; headerCell.title = "Available columns"; ObjectID = "z8v-rj-zcH"; */
 "z8v-rj-zcH.headerCell.title" = "Beschikbare kolommen";
+"BsX-R0-aYF.headerCell.title" = "Minimumaantal";

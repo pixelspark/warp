@@ -50,6 +50,8 @@
 		65BC51941E1C56BC005FEC76 /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 656889761C146738008D1A7D /* SwiftParser.framework */; };
 		65BC51961E1C56BC005FEC76 /* WarpCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 656889681C146683008D1A7D /* WarpCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		65BC51981E1C56BC005FEC76 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 655BD6551C14703F00634C66 /* Localizable.strings */; };
+		65D605AB1E95850F00C6CD01 /* Aggregation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D605AA1E95850F00C6CD01 /* Aggregation.swift */; };
+		65D605AC1E95850F00C6CD01 /* Aggregation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D605AA1E95850F00C6CD01 /* Aggregation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -127,6 +129,7 @@
 		65A1436E1D74C26C0020192D /* Transformer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Transformer.swift; path = Sources/Transformer.swift; sourceTree = "<group>"; };
 		65A143721D74C3D70020192D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		65BC519C1E1C56BC005FEC76 /* WarpCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		65D605AA1E95850F00C6CD01 /* Aggregation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Aggregation.swift; path = Sources/Aggregation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -183,6 +186,7 @@
 		656889461C14662E008D1A7D /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				65D605AA1E95850F00C6CD01 /* Aggregation.swift */,
 				651568541D55DDC400A01CEB /* Collections.swift */,
 				6568894C1C146637008D1A7D /* Concurrency.swift */,
 				656889471C146637008D1A7D /* Data.swift */,
@@ -420,6 +424,7 @@
 				6568895B1C146637008D1A7D /* Language.swift in Sources */,
 				656889591C146637008D1A7D /* Function.swift in Sources */,
 				656889551C146637008D1A7D /* Data.swift in Sources */,
+				65D605AB1E95850F00C6CD01 /* Aggregation.swift in Sources */,
 				65A1436F1D74C26C0020192D /* Transformer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -452,6 +457,7 @@
 				65BC518F1E1C56BC005FEC76 /* Language.swift in Sources */,
 				65BC51901E1C56BC005FEC76 /* Function.swift in Sources */,
 				65BC51911E1C56BC005FEC76 /* Data.swift in Sources */,
+				65D605AC1E95850F00C6CD01 /* Aggregation.swift in Sources */,
 				65BC51921E1C56BC005FEC76 /* Transformer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

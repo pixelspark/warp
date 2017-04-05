@@ -235,6 +235,16 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 					step.aggregates[row].targetColumn = Column(s)
 				}
 			}
+			else if tableColumn?.identifier == "minimumCount" {
+				if let str = object as? String, let s = Int(str) {
+					step.aggregates[row].aggregator.minimumCount = (s <= 0 ? nil : s)
+				}
+				else {
+					step.aggregates[row].aggregator.minimumCount = 0
+				}
+				tableView.reloadData()
+				delegate?.configurableView(self, didChangeConfigurationFor: step)
+			}
 		}
 	}
 	
@@ -280,8 +290,16 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 				return step.columns[row].name
 				
 			case aggregatesTable!:
-				return step.aggregates[row].targetColumn.name
-				
+				if tableColumn?.identifier == "minimumCount" {
+					return step.aggregates[row].aggregator.minimumCount ?? ""
+				}
+				else if tableColumn?.identifier == "targetColumn" {
+					return step.aggregates[row].targetColumn.name
+				}
+				else {
+					assert(false, "This should not happen")
+				}
+
 			default:
 				return ""
 		}
