@@ -172,6 +172,7 @@ class QBEFactory {
 		NSStringFromClass(QBEHTTPStep.self): "DownloadIcon",
 		NSStringFromClass(QBEFileStep.self): "TextIcon",
 		NSStringFromClass(QBEJSONSourceStep.self): "JSONIcon",
+		NSStringFromClass(QBERankStep.self): "RankIcon",
 	]
 	
 	var fileExtensionsForWriting: Set<String> { get {

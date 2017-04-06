@@ -202,6 +202,14 @@ open class StreamDataset: Dataset {
 		return fallback().sort(by)
 	}
 
+	open func rank(_ ranks: [Column : Aggregator], by order: [Order]) -> Dataset {
+		if !order.isEmpty {
+			return self.sort(order).rank(ranks, by: [])
+		}
+
+		return StreamDataset(source: RankTransformer(source: source, ranks: ranks))
+	}
+
 	open func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset {
 		// Implemented as stream by CalculateTransformer
 		return StreamDataset(source: CalculateTransformer(source: source, calculations: calculations))
@@ -461,6 +469,80 @@ private class LimitTransformer: Transformer {
 
 	fileprivate override func clone() -> Stream {
 		return LimitTransformer(source: source.clone(), numberOfRows: limit)
+	}
+}
+
+/** The RankTransformer calculates a set of reducers incrementally, and adds the intermediate result to each row.  */
+private class RankTransformer: Transformer {
+	let ranks: [Column: Aggregator]
+	private var counters: [Column: Reducer]
+	private var sourceColumns: Future<Fallible<OrderedSet<Column>>>
+	private var rows: [Tuple] = []
+
+	init(source: Stream, ranks: [Column: Aggregator]) {
+		self.ranks = ranks
+		self.counters = ranks.mapDictionary { (k, v) in return (k, v.reducer!) }
+
+		self.sourceColumns = Future({ (job, callback) in
+			source.columns(job, callback: callback)
+		})
+
+		super.init(source: source)
+	}
+
+	override func columns(_ job: Job, callback: @escaping (Fallible<OrderedSet<Column>>) -> ()) {
+		self.sourceColumns.get(job) { result in
+			switch result {
+			case .success(let sourceColumns):
+				var newColumns = sourceColumns
+				newColumns.append(contentsOf: self.ranks.keys)
+				return callback(.success(newColumns))
+
+			case .failure(let e):
+				return callback(.failure(e))
+			}
+		}
+	}
+
+	fileprivate override func transform(_ rows: Array<Tuple>, streamStatus: StreamStatus, job: Job, callback: @escaping Sink) {
+		self.mutex.locked {
+			self.rows += rows
+		}
+
+		self.sourceColumns.get(job) { result in
+			switch result {
+			case .success(let sourceColumns):
+				var newColumns = sourceColumns
+				newColumns.append(contentsOf: self.ranks.keys)
+
+				let outRows = self.mutex.locked { () -> [Tuple] in
+					let outRows = self.rows.map { row -> Tuple in
+						let sourceRow = Row(row, columns: sourceColumns)
+						var destRow = sourceRow
+
+						// Update counters
+						for (k, agg) in self.ranks {
+							let value = agg.map.apply(sourceRow, foreign: nil, inputValue: nil)
+							self.counters[k]!.add([value])
+							destRow[k] = self.counters[k]!.result
+						}
+
+						return destRow.values
+					}
+					self.rows = []
+					return outRows
+				}
+
+				return callback(.success(outRows), streamStatus)
+
+			case .failure(let e):
+				return callback(.failure(e), .finished)
+			}
+		}
+	}
+
+	fileprivate override func clone() -> Stream {
+		return RankTransformer(source: self.source.clone(), ranks: self.ranks)
 	}
 }
 

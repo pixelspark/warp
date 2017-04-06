@@ -1655,6 +1655,27 @@ internal enum QBEEditingMode {
 		sortRows(true)
 	}
 
+	@IBAction func rankRows(_ sender: NSObject) {
+		assertMainThread()
+		let job = Job(.userInitiated)
+
+		if let selectedColumns = self.dataViewController?.tableView?.selectedColumnIndexes, let firstSelectedColumn = selectedColumns.first {
+			calculator.currentRaster?.get(job) {(r) -> () in
+				r.maybe { (raster) -> () in
+					if firstSelectedColumn < raster.columns.count {
+						let column = raster.columns[firstSelectedColumn]
+						let expression = Sibling(column)
+						let order = Order(expression: expression, ascending: true, numeric: true)
+
+						asyncMain {
+							self.suggestSteps([QBERankStep(previous: self.currentStep, orders: [order], target: Column("Rank".localized), aggregator: Aggregator(map: Identity(), reduce: .countAll))])
+						}
+					}
+				}
+			}
+		}
+	}
+
 	@IBAction func createDummyColumns(_ sender: NSObject) {
 		assertMainThread()
 		let job = Job(.userInitiated)
@@ -2494,6 +2515,9 @@ internal enum QBEEditingMode {
 			return currentStep != nil && useFullDataset
 		}
 		else if selector==#selector(QBEChainViewController.sortRows(_:) as (QBEChainViewController) -> (NSObject) -> ()) {
+			return currentStep != nil
+		}
+		else if selector==#selector(QBEChainViewController.rankRows(_:)) {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.explodeColumnHorizontally(_:)) {

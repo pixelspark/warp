@@ -444,3 +444,10 @@
 "Read JSON file [#]" = "Lees JSON-bestand [#]";
 "Delete" = "Verwijder";
 "Do you want to save this document?" = "Wil je dit document bewaren?";
+"Place [#] [#] of [#] (with rows [#]) in [#]" = "Plaats [#] [#] van [#] (rijen [#]) in [#]";
+"Place [#] of rows ([#]) in [#]" = "Plaats [#] van rijen ([#]) in [#]";
+"rank" = "rangorde";
+"running" = "lopende";
+"ordered by" = "op volgorde van";
+"in current order" = "in huidige volgorde";
+

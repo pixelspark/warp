@@ -376,7 +376,7 @@ public protocol Codeable {
 }
 
 public final class Coded<T: Codeable>: NSObject, NSCoding {
-	let subject: T
+	public let subject: T
 
 	public init(_ subject: T) {
 		self.subject = subject

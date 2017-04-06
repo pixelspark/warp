@@ -303,6 +303,13 @@ public protocol Dataset {
 	the source data set. */
 	func union(_ data: Dataset) -> Dataset
 
+	/** Assigns each row a value from the progressive application of the indicated aggregators, in the order specified.
+	The sorts are applied in-order, e.g. the rank is assigned sorted by the first order specified, in case of ties by 
+	the second, et cetera. If there are ties and there is no further order to sort by, ordering is unspecified. If no 
+	orders are specified, the ranking will be assigned based on the original data's ordering. The output data is sorted
+	by the indicated order. */
+	func rank(_ ranks: [Column: Aggregator], by: [Order]) -> Dataset
+
 	/** For certain optimizations it is required to determine whether another dataset is of the same type as another. As
 	datasets can be wrapped by objects that perform optimizations (e.g. operation coalescing, caching) this is made
 	difficult. The `underlyingData` variable returns the purest form of the underlying dataset. The behavior of the
@@ -352,6 +359,7 @@ open class ProxyDataset: NSObject, Dataset {
 	open func sort(_ by: [Order]) -> Dataset { return data.sort(by) }
 	open func join(_ join: Join) -> Dataset { return data.join(join) }
 	open func union(_ data: Dataset) -> Dataset { return data.union(data) }
+	open func rank(_ ranks: [Column : Aggregator], by: [Order]) -> Dataset { return data.rank(ranks, by:by) }
 
 	public var underlyingDataset: Dataset {
 		return self.data.underlyingDataset
@@ -380,6 +388,7 @@ enum CoalescedDataset: Dataset {
 	case transposing(Dataset)
 	case filtering(Dataset, Expression)
 	case sorting(Dataset, [Order])
+	case ranking(Dataset, targets: [Column: Aggregator], by: [Order])
 	case selectingColumns(Dataset, OrderedSet<Column>)
 	case calculating(Dataset, [Column: Expression])
 	case calculatingThenSelectingColumns(Dataset, OrderedDictionary<Column, Expression>)
@@ -419,7 +428,10 @@ enum CoalescedDataset: Dataset {
 			
 			case .calculating(let data, let calculations):
 				return data.calculate(calculations)
-			
+
+			case .ranking(let data, targets: let targets, by: let order):
+				return data.rank(targets, by: order)
+
 			case .calculatingThenSelectingColumns(let data, let calculations):
 				return data.calculate(calculations.values).selectColumns(OrderedSet(calculations.keys))
 			
@@ -442,6 +454,32 @@ enum CoalescedDataset: Dataset {
 	/** No optimzations are currently done on joins. */
 	func join(_ join: Join) -> Dataset {
 		return CoalescedDataset.none(data.join(join))
+	}
+
+	// TODO: optimize sort+rank => rank (with all sorts); rank+sort => rank (with all sorts)
+	func rank(_ newTargets: [Column : Aggregator], by newOrder: [Order]) -> Dataset {
+		switch self {
+		case .ranking(let data, targets: let targets, by: let order):
+			if order == newOrder || newOrder.isEmpty {
+				// Does the new order contain a result column? Then we cannot coalesce
+				let targetDependencies = Set(newTargets.flatMap { (_, v) in Array(v.map.siblingDependencies) })
+				let dependents = Set(newOrder.flatMap { return Array($0.expression?.siblingDependencies ?? Set()) }).union(targetDependencies)
+
+				if dependents.isDisjoint(with: targets.keys) {
+					var targets = targets
+					for (k, v) in newTargets {
+						targets[k] = v
+					}
+
+					return CoalescedDataset.ranking(data, targets: targets, by: order)
+				}
+			}
+
+		default:
+			break
+		}
+
+		return CoalescedDataset.ranking(self.data, targets: newTargets, by: newOrder)
 	}
 	
 	/** Combine calculations under the following circumstances:

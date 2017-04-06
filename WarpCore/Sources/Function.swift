@@ -1617,6 +1617,8 @@ public enum Function: String {
 		}
 	}
 
+	public static let allReducingFunctions: [Function] = allFunctions.filter({ $0.reducer != nil })
+
 	public static let allFunctions = [
 		uppercase, lowercase, negate, absolute, and, or, acos, asin, atan, cosh, sinh, tanh, cos, sin, tan, sqrt, concat,
 		`if`, left, right, mid, length, substitute, count, sum, trim, average, min, max, randomItem, countAll, pack, ifError,

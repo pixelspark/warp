@@ -96,8 +96,7 @@ class QBEPivotStep: QBEStep {
 		// The simple case is: N rows, N columns, one aggregation where them mapper is just a column
 		if aggregates.count == 1 {
 			if let aggregation = aggregates.first, let source = aggregation.aggregator.map as? Sibling {
-				let aggregatorFunctions: [Function] = [.sum, .count, .average, .standardDeviationSample, .standardDeviationPopulation, .concat, .count, .countAll]
-				let reducerTypes = aggregatorFunctions.mapDictionary { fn in
+				let reducerTypes = Function.allReducingFunctions.mapDictionary { fn in
 					return (fn.rawValue, fn.localizedName)
 				}
 

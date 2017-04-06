@@ -28,7 +28,7 @@ public protocol Reducer {
 and included in the set if it is non-empty). The reduce function receives the mapped items as arguments and reduces them
 to a single value. Note that the reduce function can be called multiple times with different sets (e.g.
 reduce(reduce(a,b), reduce(c,d)) should be equal to reduce(a,b,c,d).  */
-public struct Aggregator {
+public struct Aggregator: Codeable {
 	public var map: Expression
 	public var reduce: Function
 	public var minimumCount: Int? = nil
@@ -36,6 +36,33 @@ public struct Aggregator {
 	public init(map: Expression, reduce: Function) {
 		self.map = map
 		self.reduce = reduce
+	}
+
+	public init?(coder: NSCoder) {
+		self.map = (coder.decodeObject(forKey: "map") as? Expression) ?? Identity()
+
+		if let rawReduce = coder.decodeObject(forKey: "reduce") as? String {
+			self.reduce = Function(rawValue: rawReduce) ?? Function.identity
+		}
+		else {
+			self.reduce = Function.identity
+		}
+
+		if coder.containsValue(forKey: "minimumCount") {
+			self.minimumCount = coder.decodeInteger(forKey: "minimumCount")
+		}
+		else {
+			self.minimumCount = nil
+		}
+	}
+
+	public func encode(with aCoder: NSCoder) {
+		aCoder.encode(map, forKey: "map")
+		aCoder.encode(reduce.rawValue, forKey: "reduce")
+
+		if let mv = minimumCount {
+			aCoder.encode(mv, forKey: "minimumCount")
+		}
 	}
 
 	public var reducer: Reducer? {
@@ -64,30 +91,12 @@ public class Aggregation: NSObject, NSCoding {
 
 	required public init?(coder: NSCoder) {
 		targetColumn = Column((coder.decodeObject(forKey: "targetColumnName") as? String) ?? "")
-		let map = (coder.decodeObject(forKey: "map") as? Expression) ?? Identity()
-		let reduce: Function
-		if let rawReduce = coder.decodeObject(forKey: "reduce") as? String {
-			reduce = Function(rawValue: rawReduce) ?? Function.identity
-		}
-		else {
-			reduce = Function.identity
-		}
-
-		self.aggregator = Aggregator(map: map, reduce: reduce)
-
-		if coder.containsValue(forKey: "minimumCount") {
-			self.aggregator.minimumCount = coder.decodeInteger(forKey: "minimumCount")
-		}
+		self.aggregator = Aggregator(coder: coder)!
 	}
 
 	public func encode(with aCoder: NSCoder) {
 		aCoder.encode(targetColumn.name, forKey: "targetColumnName")
-		aCoder.encode(aggregator.map, forKey: "map")
-		aCoder.encode(aggregator.reduce.rawValue, forKey: "reduce")
-
-		if let mv = aggregator.minimumCount {
-			aCoder.encode(mv, forKey: "minimumCount")
-		}
+		aggregator.encode(with: aCoder)
 	}
 }
 

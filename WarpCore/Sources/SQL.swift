@@ -1406,6 +1406,16 @@ open class SQLDataset: NSObject, Dataset {
 		let valueString = values.joined(separator: ", ")
 		return apply(sourceSQL.sqlSelect(valueString), resultingColumns: newColumns)
     }
+
+	open func rank(_ ranks: [Column : Aggregator], by order: [Order]) -> Dataset {
+		if order.isEmpty {
+			// TODO: implement ranking in SQL
+			return fallback().rank(ranks, by: [])
+		}
+		else {
+			return self.sort(order).rank(ranks, by: [])
+		}
+	}
 	
 	open func sort(_ by: [Order]) -> Dataset {
 		var error = false

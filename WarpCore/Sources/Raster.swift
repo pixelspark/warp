@@ -753,6 +753,44 @@ public class RasterDataset: NSObject, Dataset {
 			return Raster(data: newDataset, columns: r.columns, readOnly: true)
 		}
 	}
+
+	public func rank(_ ranks: [Column : Aggregator], by order: [Order]) -> Dataset {
+		if !order.isEmpty {
+			return self.sort(order).rank(ranks, by: [])
+		}
+
+		return apply("rank") { (r: Raster, job, progressKey) -> Raster in
+			// Set up columns and counters
+			var columns = r.columns
+			var counters: [Column: Reducer] = [:]
+			for (k, v) in ranks {
+				columns.append(k)
+				counters[k] = v.reducer!
+			}
+
+			var n = 0
+			job?.reportProgress(0.0, forKey: progressKey)
+			let newDataset = r.rows.map { oldRow -> Tuple in
+				var newRow = oldRow
+
+				for (column, aggregator) in ranks {
+					let val = aggregator.map.apply(oldRow, foreign: nil, inputValue: nil)
+					counters[column]!.add([val])
+					newRow[column] = counters[column]!.result
+				}
+
+				// Report progress
+				n += 1
+				if n % 100 == 0 {
+					job?.reportProgress(Double(n) / Double(r.raster.count), forKey: progressKey)
+				}
+
+				return newRow.values
+			}
+			job?.reportProgress(1.0, forKey: progressKey)
+			return Raster(data: newDataset, columns: columns, readOnly: true)
+		}
+	}
 	
 	public func sort(_ by: [Order]) -> Dataset {
 		return apply("sort") {(r: Raster, job, progressKey) -> Raster in
