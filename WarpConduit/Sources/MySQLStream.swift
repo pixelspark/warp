@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+/* Copyright (c) 2014-2017 Pixelspark, Tommy van der Vorst
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -16,10 +16,29 @@ import Foundation
 import WarpCore
 
 /**
-Implementation of the MySQL 'SQL dialect'. Only deviatons from the standard dialect are implemented here. */
+Implementation of the MySQL 'SQL dialect'. Only deviations from the standard dialect are implemented here. */
 private final class QBEMySQLDialect: StandardSQLDialect {
 	override var identifierQualifier: String { get { return  "`" } }
 	override var identifierQualifierEscape: String { get { return  "\\`" } }
+	private var version: UInt
+
+	/** Enable/disable features based on what version of MySQL we are running. The default assumes MySQL 5.1. */
+	init(version: UInt = 50100) {
+		self.version = version
+	}
+
+	private var majorVersion: UInt {
+		return version / 10000
+	}
+
+	private var minorVersion: UInt {
+		return (version % 10000) / 100
+	}
+
+	override var supportsWindowFunctions: Bool {
+		// Windowing functions are supported as of MariaDB 10.2
+		return self.majorVersion > 10 || (self.majorVersion == 10 && self.minorVersion >= 2)
+	}
 
 	override func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		let value = args.joined(separator: ", ")
@@ -246,7 +265,7 @@ public class QBEMySQLDatabase: SQLDatabase {
 	private let user: String
 	private let password: String
 	public let databaseName: String?
-	public let dialect: SQLDialect = QBEMySQLDialect()
+	public var dialect: SQLDialect = QBEMySQLDialect()
 
 	/** When database is nil, the current database will be whatever default database MySQL starts with. */
 	public init(host: String, port: Int, user: String, password: String, database: String? = nil) {
@@ -285,6 +304,16 @@ public class QBEMySQLDatabase: SQLDatabase {
 			return .failure(connection.lastError)
 		}
 
+		// Get server version
+		var version: UInt = 0
+		_ = connection.perform { () -> Int32 in
+			version = mysql_get_server_version(connection.connection)
+			return 0
+		}
+
+		self.dialect = QBEMySQLDialect(version: version)
+
+		// Select database
 		if let dbn = databaseName, let dbc = dbn.cString(using: String.Encoding.utf8), !dbn.isEmpty {
 			if !connection.perform({() -> Int32 in
 				return mysql_select_db(connection.connection, dbc)
