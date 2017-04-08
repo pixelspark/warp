@@ -83,6 +83,7 @@ public protocol SQLDialect {
 	
 	func unaryToSQL(_ type: Function, args: [String]) -> String?
 	func binaryToSQL(_ type: Binary, first: String, second: String) -> String?
+	func orderToSQL(_ by: [Order], alias: String) -> String?
 	
 	/** Transforms the given aggregation to an aggregation description that can be incldued as part of a GROUP BY 
 	statement. The function may return nil for aggregations it cannot represent or transform to SQL. */
@@ -101,6 +102,11 @@ public protocol SQLDialect {
 	(if false, any changes can only be made by dropping and recreating the table). If false, the database should still
 	support ALTER TABLE to add columns. **/
 	var supportsChangingColumnDefinitionsWithAlter: Bool { get }
+
+	/** Whether the database supports windowing functions (x OVER (ORDER BY...)). */
+	var supportsWindowFunctions: Bool { get }
+
+	func running(aggregator: Aggregator, order: [Order], alias: String) -> String?
 }
 
 /** Represents a particular SQL database. In most cases, this will be a catalog or database on a particular database 
@@ -614,6 +620,7 @@ open class StandardSQLDialect: SQLDialect {
 	open var identifierQualifierEscape: String { return "\\\"" }
 	open var stringEscape: String { return "\\" }
 	open var supportsChangingColumnDefinitionsWithAlter: Bool { return true }
+	open var supportsWindowFunctions: Bool { return false }
 
 	public init() {
 	}
@@ -677,6 +684,37 @@ open class StandardSQLDialect: SQLDialect {
 	
 	open func forceStringExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS TEXT)"
+	}
+
+	open func orderToSQL(_ by: [Order], alias: String) -> String? {
+		var error = false
+
+		let sqlOrders = by.map({(order) -> (String) in
+			if let expression = order.expression, let esql = self.expressionToSQL(expression, alias: alias, foreignAlias: nil,inputValue: nil) {
+				let castedSQL: String
+				if order.numeric {
+					castedSQL = self.forceNumericExpression(esql)
+				}
+				else {
+					castedSQL = self.forceStringExpression(esql)
+				}
+
+				// NULLS should be sorted first
+				let direction = (order.ascending ? "ASC" : "DESC");
+				let nullDirection = (!order.ascending ? "ASC" : "DESC");
+				return "(CASE WHEN \(castedSQL) IS NULL THEN 1 ELSE 0 END) \(nullDirection), \(castedSQL) \(direction)";
+			}
+			else {
+				error = true
+				return ""
+			}
+		})
+
+		if error {
+			return nil
+		}
+
+		return sqlOrders.joined(separator: ", ")
 	}
 	
 	open func expressionToSQL(_ formula: Expression, alias: String, foreignAlias: String? = nil, inputValue: String? = nil) -> String? {
@@ -1053,6 +1091,27 @@ open class StandardSQLDialect: SQLDialect {
 		case .matchesRegexStrict: return "(\(self.forceStringExpression(second)) REGEXP BINARY \(self.forceStringExpression(first)))"
 		}
 	}
+
+	open func running(aggregator: Aggregator, order: [Order], alias: String) -> String? {
+		if !self.supportsWindowFunctions {
+			return nil
+		}
+
+		if let aggString = self.aggregationToSQL(aggregator, alias: alias) {
+			if !order.isEmpty {
+				if let orderString = self.orderToSQL(order, alias: alias) {
+					return "\(aggString) OVER (ORDER BY \(orderString) ROWS UNBOUNDED PRECEDING)";
+				}
+				return nil
+			}
+			else {
+				return "\(aggString) OVER (ROWS UNBOUNDED PRECEDING)";
+			}
+		}
+		else {
+			return nil
+		}
+	}
 }
 
 /** Logical fragments in an SQL statement, in order of logical execution. */
@@ -1408,47 +1467,62 @@ open class SQLDataset: NSObject, Dataset {
     }
 
 	open func rank(_ ranks: [Column : Aggregator], by order: [Order]) -> Dataset {
-		if order.isEmpty {
-			// TODO: implement ranking in SQL
-			return fallback().rank(ranks, by: [])
+		if sql.dialect.supportsWindowFunctions {
+			var newColumns = columns
+			let sourceSQL = sql
+			let sourceAlias = sourceSQL.aliasFor(.select)
+			var values: [String] = []
+
+			// Re-calculate existing columns first
+			for targetColumn in columns {
+				if let aggregator = ranks[targetColumn] {
+					if let expressionString = sql.dialect.running(aggregator: aggregator, order: order, alias: sourceAlias) {
+						values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil, schema: nil, database: nil))")
+					}
+					else {
+						return fallback().rank(ranks, by: order)
+					}
+				}
+				else {
+					values.append("\(sql.dialect.columnIdentifier(targetColumn, table: sourceAlias, schema: nil, database: nil)) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil, schema: nil, database: nil))")
+				}
+			}
+
+			// New columns are added at the end
+			for (targetColumn, aggregator) in ranks {
+				if !columns.contains(targetColumn) {
+					if let expressionString = sql.dialect.running(aggregator: aggregator, order: order, alias: sourceAlias) {
+						values.append("\(expressionString) AS \(sql.dialect.columnIdentifier(targetColumn, table: nil, schema: nil, database: nil))")
+					}
+					else {
+						return fallback().rank(ranks, by: order)
+					}
+					newColumns.append(targetColumn)
+				}
+			}
+
+			let valueString = values.joined(separator: ", ")
+			return apply(sourceSQL.sqlSelect(valueString), resultingColumns: newColumns)
 		}
 		else {
-			return self.sort(order).rank(ranks, by: [])
+			if order.isEmpty {
+				return fallback().rank(ranks, by: [])
+			}
+			else {
+				return self.sort(order).rank(ranks, by: [])
+			}
 		}
 	}
 	
 	open func sort(_ by: [Order]) -> Dataset {
-		var error = false
-		
-		let sqlOrders = by.map({(order) -> (String) in
-			if let expression = order.expression, let esql = self.sql.dialect.expressionToSQL(expression, alias: self.sql.aliasFor(.order), foreignAlias: nil,inputValue: nil) {
-				let castedSQL: String
-				if order.numeric {
-					castedSQL = self.sql.dialect.forceNumericExpression(esql)
-				}
-				else {
-					castedSQL = self.sql.dialect.forceStringExpression(esql)
-				}
-
-				// NULLS should be sorted first
-				let direction = (order.ascending ? "ASC" : "DESC");
-				let nullDirection = (!order.ascending ? "ASC" : "DESC");
-				return "ISNULL(\(castedSQL)) \(nullDirection), \(castedSQL) \(direction)";
-			}
-			else {
-				error = true
-				return ""
-			}
-		})
-		
 		// If one of the sorting expressions can't be represented in SQL, use the fall-back
 		// TODO: for ORDER BY a, b, c still perform ORDER BY b, c if a cannot be represented in sQL
-		if error {
+		if let orderClause = self.sql.dialect.orderToSQL(by, alias: self.sql.aliasFor(.order)) {
+			return apply(sql.sqlOrder(orderClause), resultingColumns: columns)
+		}
+		else {
 			return fallback().sort(by)
 		}
-		
-		let orderClause = sqlOrders.joined(separator: ", ")
-		return apply(sql.sqlOrder(orderClause), resultingColumns: columns)
 	}
 	
 	open func distinct() -> Dataset {
