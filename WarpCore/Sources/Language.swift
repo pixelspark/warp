@@ -26,6 +26,8 @@ public class Language {
 	
 	public var decimalSeparator: String
 	public var groupingSeparator: String
+	public var siblingQualifiers = (Character("["), Character("]"))
+	public var foreignModifier = "#"
 	public var stringQualifier: Character = "\""
 	public var stringQualifierEscape = "\"\""
 	public var argumentSeparator = ";"

@@ -745,7 +745,10 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 	}
 	
 	public override func toFormula(_ locale: Language, topLevel: Bool) -> String {
-		return "[@\(column.name)]"
+		if Formula.canBeWittenAsShorthandSibling(name: column.name) {
+			return column.name
+		}
+		return "[\(column.name)]"
 	}
 	
 	public override func encode(with aCoder: NSCoder) {

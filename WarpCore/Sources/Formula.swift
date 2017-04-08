@@ -236,7 +236,20 @@ public class Formula: Parser {
 		call.args.append(q)
 		callStack.push(call)
 	}
-	
+
+	/** Shorthand sibling notation: alphanumeric characters and underscore only, must start with alphabetic character. */
+	public static func shorthandSiblingRule() -> ParserRule {
+		let firstCharacter: ParserRule = (("a"-"z")|("A"-"Z"))
+		let followingCharacter: ParserRule = (firstCharacter | ("0"-"9") | literal("_"))
+
+		return (firstCharacter ~~ followingCharacter*)
+	}
+
+	public static func canBeWittenAsShorthandSibling(name: String) -> Bool {
+		let parser = Parser(rule_def: Formula.shorthandSiblingRule)
+		return parser.parse(name)
+	}
+
 	public override func rules() {
 		/* We need to sort the function names by length (longest first) to make sure the right one gets matched. If the 
 		shorter functions come first, they match with the formula before we get a chance to see whether the longer one 
@@ -258,13 +271,14 @@ public class Formula: Parser {
 		add_named_rule("arguments",			rule: (("(" ~~ Parser.matchList(^"logic" => pushArgument, separator: literal(locale.argumentSeparator)) ~~ ")")))
 		add_named_rule("unaryFunction",		rule: ((Parser.matchAnyFrom(functionRules) => pushCall) ~~ ^"arguments") => popCall)
 		add_named_rule("constant",			rule: Parser.matchAnyFrom(locale.constants.values.map({Parser.matchLiteralInsensitive($0)})) => pushConstant)
-		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~  ((Parser.matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
-		add_named_rule("blobLiteral",		rule: literal(String(locale.blobQualifier)) ~  ((Parser.matchAnyCharacterExcept([locale.blobQualifier]))* => pushBlob) ~ literal(String(locale.blobQualifier)))
+		add_named_rule("stringLiteral",		rule: literal(String(locale.stringQualifier)) ~ ((Parser.matchAnyCharacterExcept([locale.stringQualifier]) | locale.stringQualifierEscape)* => pushString) ~ literal(String(locale.stringQualifier)))
+		add_named_rule("blobLiteral",		rule: literal(String(locale.blobQualifier)) ~ ((Parser.matchAnyCharacterExcept([locale.blobQualifier]))* => pushBlob) ~ literal(String(locale.blobQualifier)))
 		
 		add_named_rule("currentCell",		rule: literal(locale.currentCellIdentifier) => pushIdentity)
 		
-		add_named_rule("sibling",			rule: "[@" ~  (Parser.matchAnyCharacterExcept(["]"])+ => pushSibling) ~ "]")
-		add_named_rule("foreign",			rule: "[#" ~  (Parser.matchAnyCharacterExcept(["]"])+ => pushForeign) ~ "]")
+		add_named_rule("sibling",			rule: literal(String(locale.siblingQualifiers.0)) ~  (Parser.matchAnyCharacterExcept([locale.siblingQualifiers.1])+ => pushSibling) ~ literal(String(locale.siblingQualifiers.1)))
+		add_named_rule("siblingSimple",		rule: Formula.shorthandSiblingRule() => pushSibling)
+		add_named_rule("foreign",			rule: literal(String(locale.siblingQualifiers.0)) ~ locale.foreignModifier ~  (Parser.matchAnyCharacterExcept([locale.siblingQualifiers.1])+ => pushForeign) ~ literal(String(locale.siblingQualifiers.1)))
 		add_named_rule("subexpression",		rule: (("(" ~~ (^"logic") ~~ ")")))
 		
 		// Number literals
@@ -274,7 +288,7 @@ public class Formula: Parser {
 		add_named_rule("doubleNumber",		rule: ((^"digits" ~ locale.decimalSeparator ~ ^"digits") => pushDouble) | ((^"digits") => pushInt))
 		add_named_rule("negativeNumber",	rule: ("-" ~ ^"doubleNumber") => pushNegate)
 		add_named_rule("postfixedNumber",	rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"numberPostfix")
-		add_named_rule("value",				rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"blobLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"sibling" | ^"foreign" | ^"subexpression")
+		add_named_rule("value",				rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"blobLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"siblingSimple" | ^"sibling" | ^"foreign" | ^"subexpression")
 
 
 		add_named_rule("indexer",			rule: ((("[" ~~ ^"value" ~~ "]") => pushIndex) | (("->" ~~ ^"value") => pushValueForKey)))
