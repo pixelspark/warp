@@ -69,13 +69,36 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 	}
 
 	override func controlTextDidEndEditing(_ obj: Notification) {
+		updateFromView(self.formulaField)
 		if let r = self.formulaField.currentEditor()?.selectedRange {
 			lastSelectedRange = r
 		}
 	}
 
-	override func controlTextDidChange(_ obj: Notification) {
+	@IBAction func apply(_ sender: AnyObject) {
 		updateFromView(self.formulaField)
+	}
+
+	override func controlTextDidChange(_ obj: Notification) {
+		self.updateSyntaxColoring()
+	}
+
+	private func updateSyntaxColoring() {
+		if let formulaText = self.formulaField?.stringValue, let locale = self.locale, let ff = self.formulaField {
+			let job = Job(.userInitiated)
+			self.syntaxColoringJob?.cancel()
+			self.syntaxColoringJob = job
+			job.async {
+				// Parse the formula to get coloring information. This can take a while, so do it in the background
+				if let formula = Formula(formula: formulaText, locale: locale) {
+					if !job.isCancelled {
+						asyncMain {
+							ff.attributedStringValue = formula.syntaxColoredFormula
+						}
+					}
+				}
+			}
+		}
 	}
 
 	func numberOfRows(in tableView: NSTableView) -> Int {
