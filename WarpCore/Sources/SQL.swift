@@ -1429,6 +1429,21 @@ open class SQLDataset: NSObject, Dataset {
 	open func calculate(_ calculations: Dictionary<Column, Expression>) -> Dataset {
 		var values: [String] = []
 		var newColumns = columns
+
+		// Check if the calculations are sound
+		for (col, expression) in calculations {
+			if expression.dependsOnForeigns {
+				let msg = String(format: translationForString("The calculation for column %@ references foreign columns, which can only be referenced when referencing a second data source."), col.name)
+				return StreamDataset(source: ErrorStream(msg))
+			}
+
+			let deps = expression.siblingDependencies
+			if !self.columns.isSuperset(of: deps) {
+				let missing = Array(deps.subtracting(self.columns)).map { return $0.name }.joined(separator: ", ")
+				let msg = String(format: translationForString("The following referenced columns are missing: %@ in calculation for column %@"), missing, col.name)
+				return StreamDataset(source: ErrorStream(msg))
+			}
+		}
 		
 		let sourceSQL = sql
 		let sourceAlias = sourceSQL.aliasFor(.select)

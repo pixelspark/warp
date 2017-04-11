@@ -633,6 +633,11 @@ private class CalculateTransformer: Transformer {
 	init(source: Stream, calculations: Dictionary<Column, Expression>) {
 		var optimizedCalculations = Dictionary<Column, Expression>()
 		for (column, expression) in calculations {
+			if expression.dependsOnForeigns {
+				let msg  = String(format: translationForString("The calculation for column %@ references foreign columns, which can only be referenced when referencing a second data source."), column.name)
+				self.columns = .failure(msg)
+				self.indices = .failure(msg)
+			}
 			optimizedCalculations[column] = expression.prepare()
 		}
 
@@ -642,35 +647,56 @@ private class CalculateTransformer: Transformer {
 		weak var s: CalculateTransformer? = self
 		self.ensureIndexes = Future({ (job, callback) -> () in
 			if let s = s {
-				if s.indices == nil {
-					source.columns(job) { (columns) -> () in
-						switch columns {
-						case .success(let cns):
-							var columns = cns
-							var indices = Dictionary<Column, Int>()
+				s.mutex.locked {
+					if s.indices == nil {
+						source.columns(job) { (columns) -> () in
+							switch columns {
+							case .success(let cns):
+								var columns = cns
 
-							// Create newly calculated columns
-							for (targetColumn, _) in s.calculations {
-								var columnIndex = cns.index(of: targetColumn) ?? -1
-								if columnIndex == -1 {
-									columns.append(targetColumn)
-									columnIndex = columns.count-1
+								// Check whether referenced columns exist
+								for (col, expression) in calculations {
+									let deps = expression.siblingDependencies
+									if !columns.isSuperset(of: deps) {
+										let missing = Array(deps.subtracting(columns)).map { return $0.name }.joined(separator: ", ")
+										s.mutex.locked {
+											let msg = String(format: translationForString("The following referenced columns are missing: %@ in calculation for column %@"), missing, col.name)
+											s.columns = .failure(msg)
+											s.indices = .failure(msg)
+										}
+									}
 								}
-								indices[targetColumn] = columnIndex
+
+								var indices = Dictionary<Column, Int>()
+
+								// Create newly calculated columns
+								for (targetColumn, _) in s.calculations {
+									var columnIndex = cns.index(of: targetColumn) ?? -1
+									if columnIndex == -1 {
+										columns.append(targetColumn)
+										columnIndex = columns.count-1
+									}
+									indices[targetColumn] = columnIndex
+								}
+
+								s.mutex.locked {
+									s.indices = .success(indices)
+									s.columns = .success(columns)
+								}
+
+							case .failure(let error):
+								s.mutex.locked {
+									s.columns = .failure(error)
+									s.indices = .failure(error)
+								}
 							}
-							s.indices = .success(indices)
-							s.columns = .success(columns)
 
-						case .failure(let error):
-							s.columns = .failure(error)
-							s.indices = .failure(error)
+							callback()
 						}
-
+					}
+					else {
 						callback()
 					}
-				}
-				else {
-					callback()
 				}
 			}
 		})

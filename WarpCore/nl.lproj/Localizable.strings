@@ -171,3 +171,5 @@
 "decode text" = "decodeer tekst";
 "encode text" = "encodeer tekst";
 "number of bytes" = "aantal bytes";
+"The calculation for column %@ references foreign columns, which can only be referenced when referencing a second data source." = "De berekening voor kolom %@ bevat verwijzingen naar vreemde kolommen, die alleen kunnen worden gebruikt wanneer er sprake is van een tweede dataset.";
+"The following referenced columns are missing: %@ in calculation for column %@" = "De volgende kolommen bestaan niet: %@. Naar deze kolommen wordt verwezen in de berekening voor kolom %@.";
