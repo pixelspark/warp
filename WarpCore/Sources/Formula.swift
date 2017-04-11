@@ -276,9 +276,9 @@ public class Formula: Parser {
 		
 		add_named_rule("currentCell",		rule: literal(locale.currentCellIdentifier) => pushIdentity)
 		
-		add_named_rule("sibling",			rule: literal(String(locale.siblingQualifiers.0)) ~  (Parser.matchAnyCharacterExcept([locale.siblingQualifiers.1])+ => pushSibling) ~ literal(String(locale.siblingQualifiers.1)))
+		add_named_rule("sibling",			rule: literal(String(locale.siblingQualifiers.0)) ~  (Parser.matchAnyCharacterExcept([locale.foreignModifier]) ~ Parser.matchAnyCharacterExcept([locale.siblingQualifiers.1])* => pushSibling) ~ literal(String(locale.siblingQualifiers.1)))
 		add_named_rule("siblingSimple",		rule: Formula.shorthandSiblingRule() => pushSibling)
-		add_named_rule("foreign",			rule: literal(String(locale.siblingQualifiers.0)) ~ locale.foreignModifier ~  (Parser.matchAnyCharacterExcept([locale.siblingQualifiers.1])+ => pushForeign) ~ literal(String(locale.siblingQualifiers.1)))
+		add_named_rule("foreign",			rule: literal(String(locale.siblingQualifiers.0)) ~ literal(String(locale.foreignModifier)) ~  (Parser.matchAnyCharacterExcept([locale.siblingQualifiers.1])+ => pushForeign) ~ literal(String(locale.siblingQualifiers.1)))
 		add_named_rule("subexpression",		rule: (("(" ~~ (^"logic") ~~ ")")))
 		
 		// Number literals
