@@ -3442,13 +3442,13 @@ Gw
         <scene sceneID="zxO-hf-1cr">
             <objects>
                 <viewController title="Steps view controller" storyboardIdentifier="stepsController" id="Ww8-Sq-VTz" customClass="QBEStepsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="3pN-vv-bdv">
+                    <view key="view" wantsLayer="YES" id="3pN-vv-bdv">
                         <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" verticalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="oh5-QN-ivd">
+                            <scrollView wantsLayer="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" verticalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="oh5-QN-ivd">
                                 <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
-                                <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="IgC-yr-ZlP">
+                                <clipView key="contentView" wantsLayer="YES" drawsBackground="NO" copiesOnScroll="NO" id="IgC-yr-ZlP">
                                     <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
@@ -3590,7 +3590,7 @@ Gw
                                                     <rect key="frame" x="7" y="7" width="589" height="120"/>
                                                     <clipView key="contentView" drawsBackground="NO" id="a5H-9j-83W">
                                                         <rect key="frame" x="1" y="1" width="587" height="118"/>
-                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                        <autoresizingMask key="autoresizingMask"/>
                                                         <subviews>
                                                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnSelection="YES" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" id="xj3-6c-xSH">
                                                                 <rect key="frame" x="0.0" y="0.0" width="587" height="118"/>
