@@ -661,9 +661,9 @@ class WarpCoreTests: XCTestCase {
 		
 		XCTAssert(Formula(formula: "6/(1-3/4)", locale: locale) != nil, "Formula in default dialect")
 		XCTAssert(Formula(formula: "6/(1-3/4)±", locale: locale) == nil, "Formula needs to ignore any garbage near the end of a formula")
-		XCTAssert(Formula(formula: "6/(1-3/4)+[@colRef]", locale: locale) != nil, "Formula in default dialect with column ref")
-		XCTAssert(Formula(formula: "6/(1-3/4)+[#colRef]", locale: locale) != nil, "Formula in default dialect with foreign ref")
-		XCTAssert(Formula(formula: "6/(1-3/4)+[@colRef]&\"stringLit\"", locale: locale) != nil, "Formula in default dialect with string literal")
+		XCTAssert(Formula(formula: "6/(1-3/4)+[colRef]", locale: locale) != nil, "Formula in default dialect with column ref")
+		XCTAssert(Formula(formula: "6/(1-3/4)+#[colRef]", locale: locale) != nil, "Formula in default dialect with foreign ref")
+		XCTAssert(Formula(formula: "6/(1-3/4)+[colRef]&\"stringLit\"", locale: locale) != nil, "Formula in default dialect with string literal")
 		
 		for ws in [" ","\t", " \t", "\r", "\n", "\r\n"] {
 			XCTAssert(Formula(formula: "6\(ws)/\(ws)(\(ws)1-3/\(ws)4)", locale: locale) != nil, "Formula with whitespace '\(ws)' in between")
@@ -688,6 +688,12 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(Formula(formula: "siN(1)", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(sin(1.0)), "siN(1)=sin(1)")
 		XCTAssert(Formula(formula: "POWER(1;)", locale: locale) == nil, "Empty arguments are invalid")
 		XCTAssert(Formula(formula: "POWER(2;4)", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(pow(2,4)), "POWER(2;4)==2^4")
+
+		XCTAssert(Sibling(Column("te_st")).toFormula(locale, topLevel: true)=="te_st", "Sibling written with shorthand syntax")
+		XCTAssert(Sibling(Column("test#")).toFormula(locale, topLevel: true)=="[test#]", "Sibling written with long syntax")
+		XCTAssert(Sibling(Column("#test")).toFormula(locale, topLevel: true)=="[#test]", "Sibling written with long syntax")
+		XCTAssert(Foreign(Column("test#")).toFormula(locale, topLevel: true)=="#[test#]", "Foreign written with long syntax")
+		XCTAssert(Foreign(Column("te_st")).toFormula(locale, topLevel: true)=="#te_st", "Foreign written with short syntax")
 	}
 	
 	func testExpressions() {

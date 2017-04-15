@@ -813,9 +813,12 @@ public final class Foreign: Expression, ColumnReferencingExpression {
 		column = Column((aDecoder.decodeObject(forKey: "columnName") as? String) ?? "")
 		super.init(coder: aDecoder)
 	}
-	
+
 	public override func toFormula(_ locale: Language, topLevel: Bool) -> String {
-		return "[#\(column.name)]"
+		if Formula.canBeWittenAsShorthandSibling(name: column.name) {
+			return String(locale.foreignModifier) + column.name
+		}
+		return "\(locale.foreignModifier)\(locale.siblingQualifiers.0)\(column.name)\(locale.siblingQualifiers.1)"
 	}
 	
 	public override func encode(with aCoder: NSCoder) {

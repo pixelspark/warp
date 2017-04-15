@@ -246,7 +246,9 @@ public class Formula: Parser {
 	}
 
 	public static func canBeWittenAsShorthandSibling(name: String) -> Bool {
-		let parser = Parser(rule_def: Formula.shorthandSiblingRule)
+		let parser = Parser(rule_def: {
+			return Formula.shorthandSiblingRule() ~ Parser.matchEOF()
+		})
 		return parser.parse(name)
 	}
 
@@ -276,9 +278,10 @@ public class Formula: Parser {
 		
 		add_named_rule("currentCell",		rule: literal(locale.currentCellIdentifier) => pushIdentity)
 		
-		add_named_rule("sibling",			rule: literal(String(locale.siblingQualifiers.0)) ~  (Parser.matchAnyCharacterExcept([locale.foreignModifier]) ~ Parser.matchAnyCharacterExcept([locale.siblingQualifiers.1])* => pushSibling) ~ literal(String(locale.siblingQualifiers.1)))
+		add_named_rule("sibling",			rule: literal(String(locale.siblingQualifiers.0)) ~ (Parser.matchAnyCharacterExcept([locale.siblingQualifiers.1])* => pushSibling) ~ literal(String(locale.siblingQualifiers.1)))
 		add_named_rule("siblingSimple",		rule: Formula.shorthandSiblingRule() => pushSibling)
-		add_named_rule("foreign",			rule: literal(String(locale.siblingQualifiers.0)) ~ literal(String(locale.foreignModifier)) ~  (Parser.matchAnyCharacterExcept([locale.siblingQualifiers.1])+ => pushForeign) ~ literal(String(locale.siblingQualifiers.1)))
+		add_named_rule("foreignSimple",		rule: literal(String(locale.foreignModifier)) ~ (Formula.shorthandSiblingRule() => pushForeign))
+		add_named_rule("foreign",			rule: literal(String(locale.foreignModifier)) ~ literal(String(locale.siblingQualifiers.0)) ~  (Parser.matchAnyCharacterExcept([locale.siblingQualifiers.1])+ => pushForeign) ~ literal(String(locale.siblingQualifiers.1)))
 		add_named_rule("subexpression",		rule: (("(" ~~ (^"logic") ~~ ")")))
 		
 		// Number literals
@@ -288,7 +291,7 @@ public class Formula: Parser {
 		add_named_rule("doubleNumber",		rule: ((^"digits" ~ locale.decimalSeparator ~ ^"digits") => pushDouble) | ((^"digits") => pushInt))
 		add_named_rule("negativeNumber",	rule: ("-" ~ ^"doubleNumber") => pushNegate)
 		add_named_rule("postfixedNumber",	rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"numberPostfix")
-		add_named_rule("value",				rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"blobLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"siblingSimple" | ^"sibling" | ^"foreign" | ^"subexpression")
+		add_named_rule("value",				rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"blobLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"siblingSimple" | ^"foreignSimple" | ^"sibling" | ^"foreign" | ^"subexpression")
 
 
 		add_named_rule("indexer",			rule: ((("[" ~~ ^"value" ~~ "]") => pushIndex) | (("->" ~~ ^"value") => pushValueForKey)))
@@ -319,6 +322,12 @@ public class Formula: Parser {
 }
 
 internal extension Parser {
+	static func matchEOF() -> ParserRule {
+		return {(parser: Parser, reader: Reader) -> Bool in
+			return reader.eof()
+		}
+	}
+
 	static func matchAnyCharacterExcept(_ characters: [Character]) -> ParserRule {
 		return {(parser: Parser, reader: Reader) -> Bool in
 			if reader.eof() {
