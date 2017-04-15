@@ -273,6 +273,16 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		self.add(step: ss)
 	}
 
+	func dataView(_ controller: QBEDataViewController, rank column: Column) {
+		let rs = QBERankStep(
+			previous: nil,
+			orders: [Order(expression: Sibling(column), ascending: true, numeric: true)],
+			target: Column("rank".localized),
+			aggregator: Aggregator(map: Identity(), reduce: .countAll)
+		)
+		self.add(step: rs)
+	}
+
 	func dataView(_ controller: QBEDataViewController, filter column: Column, for value: Value) {
 		if let fs = self.currentStep as? QBEFilterSetStep {
 			if let currentValues = fs.filterSet[column] {

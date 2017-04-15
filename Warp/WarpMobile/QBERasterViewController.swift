@@ -21,6 +21,7 @@ enum QBERasterViewState {
 protocol QBERasterViewControllerDelegate: class {
 	func rasterView(_ controller: QBERasterViewController, filter column: Column, for value: Value)
 	func rasterView(_ controller: QBERasterViewController, sort column: Column)
+	func rasterView(_ controller: QBERasterViewController, rank column: Column)
 }
 
 class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadViewDataSource {
@@ -86,7 +87,8 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 
 				mc.menuItems = [
 					UIMenuItem(title: "Filter".localized, action: #selector(QBERasterViewController.filterSelectedValue(_:))),
-					UIMenuItem(title: "Sort".localized, action: #selector(QBERasterViewController.sortSelectedColumn(_:)))
+					UIMenuItem(title: "Sort".localized, action: #selector(QBERasterViewController.sortSelectedColumn(_:))),
+					UIMenuItem(title: "Rank".localized, action: #selector(QBERasterViewController.rankSelectedColumn(_:)))
 				]
 
 				mc.setTargetRect(self.spreadView.cellRectForRow(at: sr, forColumnAt: sc), in: self.spreadView)
@@ -101,6 +103,13 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 		if let sc = self.selectedColumnPath, let r = raster {
 			let column = r.columns[sc.column]
 			self.delegate?.rasterView(self, sort: column)
+		}
+	}
+
+	@IBAction func rankSelectedColumn(_ sender: AnyObject) {
+		if let sc = self.selectedColumnPath, let r = raster {
+			let column = r.columns[sc.column]
+			self.delegate?.rasterView(self, rank: column)
 		}
 	}
 

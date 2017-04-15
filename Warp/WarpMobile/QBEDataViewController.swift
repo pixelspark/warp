@@ -15,6 +15,7 @@ import WarpCore
 protocol QBEDataViewControllerDelegate: class {
 	func dataView(_ controller: QBEDataViewController, filter column: Column, for value: Value)
 	func dataView(_ controller: QBEDataViewController, sort column: Column)
+	func dataView(_ controller: QBEDataViewController, rank column: Column)
 }
 
 class QBEDataViewController: UIViewController, QBERasterViewControllerDelegate, QBEEditViewControllerDelegate {
@@ -206,6 +207,10 @@ class QBEDataViewController: UIViewController, QBERasterViewControllerDelegate, 
 
 	func rasterView(_ controller: QBERasterViewController, sort column: Column) {
 		self.delegate?.dataView(self, sort:column)
+	}
+
+	func rasterView(_ controller: QBERasterViewController, rank column: Column) {
+		self.delegate?.dataView(self, rank:column)
 	}
 
 	func rasterView(_ controller: QBERasterViewController, filter column: Column, for value: Value) {
