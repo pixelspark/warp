@@ -61,6 +61,22 @@ private protocol QBENeuronAllocation {
 	func toValue(_ floats: [Float]) -> Value
 }
 
+private struct QBENullAllocation: QBENeuronAllocation, CustomStringConvertible {
+	let count = 0
+
+	func toFloats(_ value: Value) -> [Float] {
+		return []
+	}
+
+	func toValue(_ floats: [Float]) -> Value {
+		return Value.invalid
+	}
+
+	var description: String {
+		return "0";
+	}
+}
+
 private struct QBENormalizedNeuronAllocation: QBENeuronAllocation, CustomStringConvertible {
 	let count = 1
 	let standardDeviation: Double
@@ -181,7 +197,6 @@ private class QBENeuronAllocator {
 		self.allocations = columns.map { column -> QBENeuronAllocation in
 			let descriptive = (descriptives[column])!
 			let remainingCount = (maximumNumberofNeurons - allocatedCount)
-			allocatedColumns += 1
 
 			let v: QBENeuronAllocation
 			if output {
@@ -191,32 +206,38 @@ private class QBENeuronAllocator {
 						descriptive[.countAll]!.intValue! > 2 * descriptive[.countDistinct]!.intValue! {
 						v = QBEDummyNeuronAllocation(values: Array(min..<max).map { Value($0) })
 					}
-					else {
+					else if let min = descriptive[.min]!.doubleValue, let max = descriptive[.max]!.doubleValue {
 						v = QBELinearNeuronAllocation(
-							min: descriptive[.min]!.doubleValue!,
-							max: descriptive[.max]!.doubleValue!
+							min: min,
+							max: max
 						)
+					}
+					else {
+						v = QBENullAllocation()
 					}
 				}
 				else {
 					// Outputs are between 0..1, so we need to use a linear mapping
 					// TODO: perhaps base min and max on mu ± 2*sigma to reject outliers
-					v = QBELinearNeuronAllocation(
-						min: descriptive[.min]!.doubleValue!,
-						max: descriptive[.max]!.doubleValue!
-					)
+					if let min = descriptive[.min]!.doubleValue, let max = descriptive[.max]!.doubleValue {
+						v = QBELinearNeuronAllocation(min: min, max: max)
+					}
+					else {
+						v = QBENullAllocation()
+					}
 				}
 
+				allocatedColumns += 1
 				allocatedCount += v.count
 				return v
 			}
 			else {
-				let v = QBENormalizedNeuronAllocation(
-					mean: descriptive[.average]!.doubleValue!,
-					standardDeviation: descriptive[.standardDeviationPopulation]!.doubleValue!
-				)
-				allocatedCount += v.count
-				return v
+				if let mean = descriptive[.average]!.doubleValue, let stdev = descriptive[.standardDeviationPopulation]!.doubleValue {
+					let v = QBENormalizedNeuronAllocation(mean: mean, standardDeviation: stdev)
+					allocatedCount += v.count
+					return v
+				}
+				return QBENullAllocation()
 			}
 		}
 
@@ -322,8 +343,22 @@ private class QBEClassifierModel {
 	/** Classify multiple rows at once. If `appendOutputToInput` is set to true, the returned set of
 	rows will all each start with the input columns, followed by the output columns. */
 	func classify(_ inputs: [Row], appendOutputToInput: Bool, callback: @escaping (Fallible<[Tuple]>) -> ()) {
-		// Clear the reservoir with validation rows, we don't need those anymore as training should have finished now
-		self.validationReservoir.clear()
+		let ok = self.mutex.locked { () -> Bool in 
+			// Clear the reservoir with validation rows, we don't need those anymore as training should have finished now
+			self.validationReservoir.clear()
+
+			if self.inputAllocator.neuronCount == 0 || self.outputAllocator.neuronCount == 0 {
+				callback(.failure("No columns can be used to train a neural model on".localized))
+				return false
+			}
+
+			return true
+		}
+
+		if !ok {
+			return
+		}
+
 		do {
 			let outTuples = try inputs.map { row -> Tuple in
 				return (appendOutputToInput ? row.values : []) + (try self.classify(row))
@@ -367,6 +402,10 @@ private class QBEClassifierModel {
 	}
 
 	private func train(_ job: Job, stream: WarpCore.Stream, trainingColumns: OrderedSet<Column>, callback: @escaping (Fallible<()>) -> ()) {
+		if self.inputAllocator.neuronCount == 0 || self.outputAllocator.neuronCount == 0 {
+			return callback(.failure("No columns can be used to train a neural model on. Make sure there are numeric columns in the data.".localized))
+		}
+
 		stream.fetch(job) { result, streamStatus in
 			switch result {
 			case .success(let tuples):
