@@ -990,7 +990,11 @@ open class StandardSQLDialect: SQLDialect {
 		case .powerUp, .powerDown:
 			return nil
 
-		case .base64Decode, .base64Encode, .encodeString, .decodeString, .hexEncode, .hexDecode, .numberOfBytes:
+		case .base64Decode, .base64Encode, .encodeString, .decodeString, .hexEncode, .hexDecode, .numberOfBytes, .jsonEncode:
+			return nil
+
+		// These functions take lists and are therefore not supported
+		case .list, .packList, .glue:
 			return nil
 
 		case .parseNumber:
@@ -1010,7 +1014,7 @@ open class StandardSQLDialect: SQLDialect {
 		}
 	}
 
-	open func valueToSQL(_ value: Value) -> String {
+	open func valueToSQL(_ value: Value) -> String? {
 		switch value {
 			case .string(let s):
 				return literalString(s)
@@ -1040,6 +1044,9 @@ open class StandardSQLDialect: SQLDialect {
 
 			case .blob(let d):
 				return literalBlob(d)
+
+			case .list(_):
+				return nil
 		}
 	}
 	

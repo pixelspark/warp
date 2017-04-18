@@ -27,6 +27,7 @@ fileprivate extension Value {
 		case .invalid: return R.expr(1).div(0)
 		case .empty: return R.expr()
 		case .blob(let d): return R.expr(d)
+		case .list(let l): return R.expr(l.map { return $0.rethinkValue })
 		}
 	}
 }

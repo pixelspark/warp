@@ -247,6 +247,10 @@ public final class Literal: Expression {
 			
 		case .int(let i):
 			return "\(i)"
+
+		case .list(let l):
+			let ls = l.map { Literal($0).toFormula(locale, topLevel: true) }.joined(separator: locale.argumentSeparator)
+			return "{\(ls)}";
 		
 		case .invalid: return locale.constants[Value.empty]!
 		case .empty: return locale.constants[Value.empty]!

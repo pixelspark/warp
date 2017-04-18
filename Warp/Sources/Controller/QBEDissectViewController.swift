@@ -110,7 +110,7 @@ protocol QBEDissectViewControlllerDelegate: NSObjectProtocol {
 				return String(format: "[%d items]", a.count)
 			}
 			else if let a = item.value as? NSDictionary {
-				return String(format: "[%d items]", a.count)
+				return String(format: "{%d items}", a.count)
 			}
 			return item.value
 		}
@@ -179,20 +179,21 @@ protocol QBEDissectViewControlllerDelegate: NSObjectProtocol {
 		let input: Expression
 		if let p = parent {
 			input = p.expressionForExtraction(from: from)
+
+			let keyString = self.key as String
+			if !keyString.isEmpty {
+				if p.value is NSArray, let idx = Value.string(keyString).intValue {
+					return Call(arguments: [input, Literal(.int(idx+1))], type: .nth)
+				}
+				else {
+					return Call(arguments: [input, Literal(.string(keyString))], type: .valueForKey)
+				}
+			}
 		}
 		else {
 			input = from
 		}
 
-		let keyString = self.key as String
-		if !keyString.isEmpty {
-			if value is NSArray, let idx = Value.string(keyString).intValue {
-				return Call(arguments: [input, Literal(.int(idx))], type: .nth)
-			}
-			else {
-				return Call(arguments: [input, Literal(.string(keyString))], type: .valueForKey)
-			}
-		}
 		return input
 	}
 }

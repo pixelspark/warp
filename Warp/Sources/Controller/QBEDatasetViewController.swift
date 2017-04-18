@@ -77,6 +77,10 @@ private class QBEValueCell: MBTableGridCell {
 			self.textColor = NSColor.gray
 			self.alignment = .center
 
+		case .list(_):
+			self.textColor = NSColor.blue
+			self.alignment = .center
+
 		case .string(_), .date(_):
 			self.textColor = NSColor.black
 			self.alignment = .left

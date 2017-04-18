@@ -1089,8 +1089,8 @@ internal enum QBEEditingMode {
 	}
 
 	@discardableResult func dataView(_ view: QBEDatasetViewController, didChangeValue oldValue: Value, toValue: Value, inRow: Int, column: Int) -> Bool {
-		if case .blob(_) = oldValue {
-			return false // Blob values cannot be edited through here
+		if case .blob(_) = oldValue, case .list(_) = oldValue {
+			return false // Blob and list values cannot be edited through here
 		}
 
 		suggestions?.cancel()
@@ -2314,7 +2314,14 @@ internal enum QBEEditingMode {
 
 	@IBAction func dissectObject(_ sender: NSObject) {
 		if let value = self.dataViewController?.firstSelectedValue {
-			if let json = value.stringValue {
+			// FIXME needs a separate Value.dictionary type
+			if case .list(_) = value {
+				let ctr = QBEDissectViewController(nibName: "QBEDissectViewController", bundle: nil)!
+				ctr.data = value.nativeValue as? NSObject
+				ctr.delegate = self
+				self.presentViewControllerAsSheet(ctr)
+			}
+			else if let json = value.stringValue {
 				do {
 					let jsonObject = try JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: [])
 					let ctr = QBEDissectViewController(nibName: "QBEDissectViewController", bundle: nil)!
@@ -2530,8 +2537,13 @@ internal enum QBEEditingMode {
 			return currentStep != nil
 		}
 		else if selector==#selector(QBEChainViewController.dissectObject(_:)) {
-			if currentStep != nil, let v = self.dataViewController?.firstSelectedValue, v.stringValue != nil {
-				return true
+			if currentStep != nil, let v = self.dataViewController?.firstSelectedValue {
+				if v.stringValue != nil {
+					return true
+				}
+				else if case .list(_) = v {
+					return true
+				}
 			}
 			return false
 		}

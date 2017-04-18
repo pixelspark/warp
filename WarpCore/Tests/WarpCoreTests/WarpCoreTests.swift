@@ -482,7 +482,7 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.isInvalid.apply([Value.empty]) == Value.bool(false), "empty value is not invalid")
 
 			case .jsonDecode:
-				XCTAssert(Function.jsonDecode.apply([Value.string("[1,2,3]")]) == Pack(["1","2","3"]).value, "JSON decode array")
+				XCTAssert(Function.jsonDecode.apply([Value.string("[1,2,3]")]) == .list([Value.int(1), Value.int(2), Value.int(3)]), "JSON decode array")
 
 			case .parseNumber:
 				XCTAssert(Function.parseNumber.apply([Value.string("1.337,40"), Value.string(","), Value.string(".")]) == Value.double(1337.40), "Parse number")
@@ -548,6 +548,18 @@ class WarpCoreTests: XCTestCase {
 				break;
 
 			case .hexDecode:
+				break;
+
+			case .list:
+				XCTAssert(Function.list.apply([.int(1025), .int(2)]) == Value.list([.int(1025), .int(2)]), "List")
+
+			case .jsonEncode:
+				break;
+
+			case .packList:
+				break;
+
+			case .glue:
 				break;
 
 			}
@@ -639,6 +651,33 @@ class WarpCoreTests: XCTestCase {
 		// [a-z]{40} generates 4^40 items, which is much larger than Int.max, so cardinality cannot be reported.
 		XCTAssert(Sequencer("[a-z]{40}")!.cardinality == nil, "Very large sequences should not have cardinality defined")
 	}
+
+	func testFormulaRoundtrips() {
+		func checkFormulaRoundtrip(_ formula: String) {
+			let locale = Language(language: Language.defaultLanguage)
+			if let parsed = Formula(formula: formula, locale: locale) {
+				XCTAssert(parsed.root.toFormula(locale, topLevel: true) == formula, "Formula roundtrip: '\(formula)'")
+			}
+			else {
+				XCTFail("Formula '\(formula)' doesn't parse")
+			}
+		}
+
+		[
+			"1+1",
+			"col+1",
+			"col+other",
+			"{1;2;3}",
+			"{{1;2;3}}",
+			"{}",
+			"{{}}",
+			"SIN(1)",
+			"PACK(1;2;3)",
+			"SUM(1;2;3)",
+			"MIN(1;2;3)",
+			"\"test\""
+		].forEach { checkFormulaRoundtrip($0) }
+	}
 	
 	func testFormulaParser() {
 		let locale = Language(language: Language.defaultLanguage)
@@ -664,6 +703,14 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(Formula(formula: "6/(1-3/4)+[colRef]", locale: locale) != nil, "Formula in default dialect with column ref")
 		XCTAssert(Formula(formula: "6/(1-3/4)+#[colRef]", locale: locale) != nil, "Formula in default dialect with foreign ref")
 		XCTAssert(Formula(formula: "6/(1-3/4)+[colRef]&\"stringLit\"", locale: locale) != nil, "Formula in default dialect with string literal")
+
+		XCTAssert(Formula(formula: "6/(1-3/4)+colRef&\"stringLit\"", locale: locale) != nil, "Formula in default dialect with string literal")
+		XCTAssert(Formula(formula: "1+col", locale: locale) != nil, "Shorthand formula syntax with addition")
+		XCTAssert(Formula(formula: "col+1", locale: locale)!.root.toFormula(locale, topLevel: true) == "col+1", "Shorthand formula syntax with addition")
+		XCTAssert(Formula(formula: "{}", locale: locale) != nil, "Empty list")
+		XCTAssert(Formula(formula: "{1,2,3}", locale: locale)!.root.toFormula(locale) == "{123}", "Simple list with integer with thousand separator")
+		XCTAssert(Formula(formula: "{1;2;3}", locale: locale) != nil, "Simple list")
+		XCTAssert(Formula(formula: "{{1};{2;3};{4;5};6}", locale: locale)!.root.toFormula(locale) == "{{1};{2;3};{4;5};6}", "Complex list")
 		
 		for ws in [" ","\t", " \t", "\r", "\n", "\r\n"] {
 			XCTAssert(Formula(formula: "6\(ws)/\(ws)(\(ws)1-3/\(ws)4)", locale: locale) != nil, "Formula with whitespace '\(ws)' in between")

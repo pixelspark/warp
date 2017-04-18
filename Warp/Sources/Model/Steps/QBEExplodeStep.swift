@@ -14,12 +14,12 @@ import WarpCore
 
 class QBEExplodeVerticallyTransformer: Transformer {
 	let splitColumn: Column
-	let separator: String? // If nil, separation happens using Pack (lists)
+	let mode: QBEExplodeMode
 	let columnFuture: Future<Fallible<OrderedSet<Column>>>
 
-	init(source: WarpCore.Stream, splitColumn: Column, separator: String?) {
+	init(source: WarpCore.Stream, splitColumn: Column, mode: QBEExplodeMode) {
 		self.splitColumn = splitColumn
-		self.separator = separator
+		self.mode = mode
 		self.columnFuture = Future<Fallible<OrderedSet<Column>>>({ (job, callback) in
 			source.columns(job, callback: callback)
 		})
@@ -34,17 +34,12 @@ class QBEExplodeVerticallyTransformer: Transformer {
 				let tuples = rows.flatMap { tuple -> [[Value]] in
 					var row = Row(tuple, columns: columns)
 					if let valueToSplit = row[self.splitColumn] {
-						let pieces: [String]
-						if let s = self.separator {
-							pieces = valueToSplit.stringValue?.components(separatedBy: s) ?? []
-						}
-						else {
-							pieces = Pack(valueToSplit)?.items ?? []
-						}
+						let pieces = self.mode.split(valueToSplit)
 
+						// Create a row for each value from the list
 						return (0..<pieces.count).map { index in
 							let piece = pieces[index]
-							row[self.splitColumn] = Value(piece)
+							row[self.splitColumn] = piece
 							return row.values
 						}
 					}
@@ -62,20 +57,20 @@ class QBEExplodeVerticallyTransformer: Transformer {
 	}
 
 	override func clone() ->  WarpCore.Stream {
-		return QBEExplodeVerticallyTransformer(source: self.source.clone(), splitColumn: self.splitColumn, separator: self.separator)
+		return QBEExplodeVerticallyTransformer(source: self.source.clone(), splitColumn: self.splitColumn, mode: self.mode)
 	}
 }
 
 class QBEExplodeHorizontallyTransformer: Transformer {
 	let splitColumn: Column
-	let separator: String
+	let mode: QBEExplodeMode
 	let targetColumns: OrderedSet<Column>
 	let sourceColumnFuture: Future<Fallible<OrderedSet<Column>>>
 	let targetColumnFuture: Future<Fallible<OrderedSet<Column>>>
 
-	init(source: WarpCore.Stream, splitColumn: Column, separator: String, targetColumns: OrderedSet<Column>) {
+	init(source: WarpCore.Stream, splitColumn: Column, mode: QBEExplodeMode, targetColumns: OrderedSet<Column>) {
 		self.splitColumn = splitColumn
-		self.separator = separator
+		self.mode = mode
 		self.targetColumns = targetColumns
 
 		let sourceColumnFuture = Future<Fallible<OrderedSet<Column>>>({ (job, callback) in
@@ -121,14 +116,13 @@ class QBEExplodeHorizontallyTransformer: Transformer {
 								}
 							}
 
-							if let valueToSplit = sourceRow[self.splitColumn], let sv = valueToSplit.stringValue {
-								let parts = sv.components(separatedBy: self.separator)
-								let pieceCount = min(parts.count, self.targetColumns.count)
+							if let valueToSplit = sourceRow[self.splitColumn] {
+								let pieces = self.mode.split(valueToSplit)
+								let pieceCount = min(pieces.count, self.targetColumns.count)
 
 								for index in 0..<pieceCount {
-									let piece = parts[index]
-									destRow[self.targetColumns[index]] = Value(piece)
-
+									let piece = pieces[index]
+									destRow[self.targetColumns[index]] = piece
 								}
 							}
 
@@ -152,11 +146,12 @@ class QBEExplodeHorizontallyTransformer: Transformer {
 	}
 
 	override func clone() ->  WarpCore.Stream {
-		return QBEExplodeHorizontallyTransformer(source: self.source.clone(), splitColumn: self.splitColumn, separator: self.separator, targetColumns: self.targetColumns)
+		return QBEExplodeHorizontallyTransformer(source: self.source.clone(), splitColumn: self.splitColumn, mode: self.mode, targetColumns: self.targetColumns)
 	}
 }
 
-enum QBEExplodeVerticalMode {
+enum QBEExplodeMode {
+	case list
 	case pack
 	case separator(String)
 	case windowsNewLine
@@ -165,6 +160,7 @@ enum QBEExplodeVerticalMode {
 
 	var identifier: String {
 		switch self {
+		case .list: return "list"
 		case .pack: return "pack"
 		case .separator: return "separator"
 		case .windowsNewLine: return "rn"
@@ -175,6 +171,7 @@ enum QBEExplodeVerticalMode {
 
 	var separator: String? {
 		switch self {
+		case .list: return nil
 		case .pack: return nil
 		case .separator(let sep): return sep
 		case .macNewLine: return "\r"
@@ -185,7 +182,8 @@ enum QBEExplodeVerticalMode {
 
 	var localizedDescription: String {
 		switch self {
-		case .pack: return "lists".localized
+		case .list: return "lists".localized
+		case .pack: return "packs".localized
 		case .separator(_): return "values by separator".localized
 		case .windowsNewLine: return "lines (Windows-formatted)".localized
 		case .unixNewLine: return "lines (Unix-formatted)".localized
@@ -194,12 +192,13 @@ enum QBEExplodeVerticalMode {
 	}
 
 	static var allModes: [String: String] {
-		let all: [QBEExplodeVerticalMode] = [.pack, .separator(Pack.separator), .windowsNewLine, .unixNewLine, .macNewLine]
+		let all: [QBEExplodeMode] = [.list, .pack, .separator(Pack.separator), .windowsNewLine, .unixNewLine, .macNewLine]
 		return all.mapDictionary { mode in return (mode.identifier, mode.localizedDescription) }
 	}
 
-	static func create(identifier: String, defaultSeparator: String = Pack.separator) -> QBEExplodeVerticalMode {
+	static func create(identifier: String, defaultSeparator: String = Pack.separator) -> QBEExplodeMode {
 		switch identifier {
+		case "list": return .list
 		case "pack": return .pack
 		case "separator": return .separator(defaultSeparator)
 		case "rn": return .windowsNewLine
@@ -208,11 +207,29 @@ enum QBEExplodeVerticalMode {
 		default: return .pack
 		}
 	}
+
+	func split(_ value: Value) -> [Value] {
+		switch self {
+		case .list:
+			if case .list(let xs) = value {
+				return xs
+			}
+			else {
+				return [value]
+			}
+
+		case .pack:
+			return (Pack(value)?.items.map { return Value.string($0) }) ?? []
+
+		default:
+			return value.stringValue?.components(separatedBy: self.separator!).map { return Value.string($0) } ?? []
+		}
+	}
 }
 
 class QBEExplodeVerticallyStep: QBEStep {
 	var splitColumn: Column
-	var mode: QBEExplodeVerticalMode = .pack
+	var mode: QBEExplodeMode = .list
 
 	required init() {
 		splitColumn = Column("")
@@ -225,8 +242,8 @@ class QBEExplodeVerticallyStep: QBEStep {
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		let modeSelector = QBESentenceOptionsToken(options: QBEExplodeVerticalMode.allModes, value: self.mode.identifier) { (newMode) in
-			self.mode = QBEExplodeVerticalMode.create(identifier: newMode)
+		let modeSelector = QBESentenceOptionsToken(options: QBEExplodeMode.allModes, value: self.mode.identifier) { (newMode) in
+			self.mode = QBEExplodeMode.create(identifier: newMode)
 		}
 
 		let sourceColumnSelector = QBESentenceDynamicOptionsToken(value: self.splitColumn.name, provider: { [weak self] (callback) in
@@ -280,7 +297,7 @@ class QBEExplodeVerticallyStep: QBEStep {
 		splitColumn = Column(aDecoder.decodeString(forKey:"splitColumn") ?? "")
 
 		if let mode = aDecoder.decodeString(forKey: "mode"), !mode.isEmpty {
-			self.mode = QBEExplodeVerticalMode.create(identifier: mode, defaultSeparator: aDecoder.decodeString(forKey: "separator") ?? Pack.separator)
+			self.mode = QBEExplodeMode.create(identifier: mode, defaultSeparator: aDecoder.decodeString(forKey: "separator") ?? Pack.separator)
 		}
 		else {
 			if let sep = aDecoder.decodeString(forKey: "separator") {
@@ -303,85 +320,122 @@ class QBEExplodeVerticallyStep: QBEStep {
 	}
 
 	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
-		callback(.success(StreamDataset(source: QBEExplodeVerticallyTransformer(source: data.stream(), splitColumn: self.splitColumn, separator: self.mode.separator))))
+		callback(.success(StreamDataset(source: QBEExplodeVerticallyTransformer(source: data.stream(), splitColumn: self.splitColumn, mode: self.mode))))
 	}
 }
 
 class QBEExplodeHorizontallyStep: QBEStep {
-	var separator: String
+	var mode: QBEExplodeMode
 	var splitColumn: Column
 	var targetColumns: OrderedSet<Column>
 
 	required init() {
-		separator = Pack.separator
+		self.mode = .list
 		splitColumn = Column("")
 		self.targetColumns = OrderedSet(["A","B","C"].map { return Column($0) })
 		super.init()
 	}
 
-	init(previous: QBEStep?, splitColumn: Column, by separator: String = Pack.separator) {
+	init(previous: QBEStep?, splitColumn: Column, by mode: QBEExplodeMode = .list) {
 		self.splitColumn = splitColumn
-		self.separator = separator
+		self.mode = mode
 		self.targetColumns = OrderedSet((0..<3).map { return Column(splitColumn.name + "_\($0)") })
 		super.init(previous: previous)
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence(format: "Split the values in column [#] by [#] to columns [#]".localized,
-			   QBESentenceDynamicOptionsToken(value: self.splitColumn.name, provider: { [weak self] (callback) in
-				let job = Job(.userInitiated)
-				self?.previous?.exampleDataset(job, maxInputRows: 0, maxOutputRows: 0, callback: { result in
-					switch result {
-					case .success(let data):
-						data.columns(job) { result in
-							switch result {
-							case .success(let columns):
-								return callback(.success(columns.map { return $0.name }))
+		let modeSelector = QBESentenceOptionsToken(options: QBEExplodeMode.allModes, value: self.mode.identifier) { (newMode) in
+			self.mode = QBEExplodeMode.create(identifier: newMode)
+		}
 
-							case .failure(let e):
-								return callback(.failure(e))
-							}
+		let sourceColumnSelector = QBESentenceDynamicOptionsToken(value: self.splitColumn.name, provider: { [weak self] (callback) in
+			let job = Job(.userInitiated)
+			self?.previous?.exampleDataset(job, maxInputRows: 0, maxOutputRows: 0, callback: { result in
+				switch result {
+				case .success(let data):
+					data.columns(job) { result in
+						switch result {
+						case .success(let columns):
+							return callback(.success(columns.map { return $0.name }))
+
+						case .failure(let e):
+							return callback(.failure(e))
 						}
-
-					case .failure(let e):
-						return callback(.failure(e))
 					}
-				})
 
-				}, callback: { (newColumnName) in
-					self.splitColumn = Column(newColumnName)
-			}),
-			 QBESentenceTextToken(value: self.separator, callback: { (newSeparator) -> (Bool) in
+				case .failure(let e):
+					return callback(.failure(e))
+				}
+			})
+
+			}, callback: { (newColumnName) in
+				self.splitColumn = Column(newColumnName)
+		})
+
+		let targetColumnSelector = QBESentenceColumnsToken(value: self.targetColumns, callback: { (newColumns) in
+			self.targetColumns = newColumns
+		})
+
+		if case .separator(let sep) = self.mode {
+			let separatorSelector = QBESentenceTextToken(value: sep) { (newSeparator) -> (Bool) in
 				if !newSeparator.isEmpty {
-					self.separator = newSeparator
+					self.mode = .separator(newSeparator)
 					return true
 				}
 				return false
-			}),
-			 QBESentenceColumnsToken(value: self.targetColumns, callback: { (newColumns) in
-				self.targetColumns = newColumns
-			})
-		)
+			}
+
+			return QBESentence(format: "Split [#] [#] in column [#] to columns [#]".localized,
+			   modeSelector,
+			   separatorSelector,
+			   sourceColumnSelector,
+			   targetColumnSelector
+			)
+		}
+		else {
+			return QBESentence(format: "Split [#] in column [#] to columns [#]".localized,
+			   modeSelector,
+			   sourceColumnSelector,
+			   targetColumnSelector
+			)
+		}
 	}
 
 	required init(coder aDecoder: NSCoder) {
 		splitColumn = Column(aDecoder.decodeString(forKey:"splitColumn") ?? "")
-		separator = aDecoder.decodeString(forKey:"separator") ?? Pack.separator
 		let names = (aDecoder.decodeObject(forKey: "targetColumns") as? [String]) ?? []
 		self.targetColumns = OrderedSet<Column>(names.map { return Column($0) }.uniqueElements)
+
+		if let mode = aDecoder.decodeString(forKey: "mode"), !mode.isEmpty {
+			self.mode = QBEExplodeMode.create(identifier: mode, defaultSeparator: aDecoder.decodeString(forKey: "separator") ?? Pack.separator)
+		}
+		else {
+			if let sep = aDecoder.decodeString(forKey: "separator") {
+				self.mode = .separator(sep)
+			}
+			else {
+				self.mode = .pack
+			}
+		}
+
 		super.init(coder: aDecoder)
 	}
 
 	override func encode(with coder: NSCoder) {
 		let targetNames = self.targetColumns.map { return $0.name }
 		coder.encodeString(self.splitColumn.name, forKey: "splitColumn")
-		coder.encodeString(self.separator, forKey: "separator")
 		coder.encode(targetNames, forKey: "targetColumns")
+
+		coder.encodeString(self.mode.identifier, forKey: "mode")
+		if case .separator(let sep) = self.mode {
+			coder.encodeString(sep, forKey: "separator")
+		}
+
 		super.encode(with: coder)
 	}
 
 	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
-		callback(.success(StreamDataset(source: QBEExplodeHorizontallyTransformer(source: data.stream(), splitColumn: self.splitColumn, separator: self.separator, targetColumns: self.targetColumns))))
+		callback(.success(StreamDataset(source: QBEExplodeHorizontallyTransformer(source: data.stream(), splitColumn: self.splitColumn, mode: self.mode, targetColumns: self.targetColumns))))
 	}
 }
 

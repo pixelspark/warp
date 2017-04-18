@@ -236,6 +236,10 @@ public class Language {
 			"SIZE.OF": Function.numberOfBytes,
 			"ENCODE": Function.encodeString,
 			"DECODE": Function.decodeString,
+			"LIST": Function.list,
+			"TO.JSON": Function.jsonEncode,
+			"PACK.LIST": Function.packList,
+			"GLUE": Function.glue,
 		],
 		
 		"nl": [
@@ -340,6 +344,10 @@ public class Language {
 			"ENCODEREN": Function.encodeString,
 			"DECODEREN": Function.decodeString,
 			"GROOTTE.VAN": Function.numberOfBytes,
+			"LIJST": Function.list,
+			"LIJST.INPAKKEN": Function.packList,
+			"NAAR.JSON": Function.jsonEncode,
+			"LIJMEN": Function.glue,
 		]
 	]
 	
@@ -416,6 +424,9 @@ public class Language {
 			case .blob(let b):
 				let s = ByteCountFormatter.string(fromByteCount: Int64(b.count), countStyle: ByteCountFormatter.CountStyle.file)
 				return "[\(s)]";
+
+			case .list(let l):
+				return "{\(l.count)}";
 			
 			case .empty:
 				return ""
@@ -504,6 +515,10 @@ public class Language {
 				
 			case .date(let d):
 				line += Date(timeIntervalSinceReferenceDate: d).iso8601FormattedUTCDate
+
+			case .list(let v):
+				let p = Pack(v)
+				line += p.stringValue
 				
 			case .empty:
 				break

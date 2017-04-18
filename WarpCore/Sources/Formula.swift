@@ -237,6 +237,14 @@ public class Formula: Parser {
 		callStack.push(call)
 	}
 
+	private func pushList() {
+		callStack.push(CallSite(function: .list))
+	}
+
+	private func popList() {
+		self.popCall()
+	}
+
 	/** Shorthand sibling notation: alphanumeric characters and underscore only, must start with alphabetic character. */
 	public static func shorthandSiblingRule() -> ParserRule {
 		let firstCharacter: ParserRule = (("a"-"z")|("A"-"Z"))
@@ -270,6 +278,7 @@ public class Formula: Parser {
 		let postfixRules = locale.postfixes.map { (postfix, multiplier) in return (literal(postfix) => { [unowned self] in self.pushPostfixMultiplier(multiplier) }) }
 		
 		// String literals & constants
+		add_named_rule("list",				rule: (((literal("{") => pushList) ~~ Parser.matchList(^"logic" => pushArgument, separator: literal(locale.argumentSeparator)) ~~ "}")) => popList)
 		add_named_rule("arguments",			rule: (("(" ~~ Parser.matchList(^"logic" => pushArgument, separator: literal(locale.argumentSeparator)) ~~ ")")))
 		add_named_rule("unaryFunction",		rule: ((Parser.matchAnyFrom(functionRules) => pushCall) ~~ ^"arguments") => popCall)
 		add_named_rule("constant",			rule: Parser.matchAnyFrom(locale.constants.values.map({Parser.matchLiteralInsensitive($0)})) => pushConstant)
@@ -291,7 +300,7 @@ public class Formula: Parser {
 		add_named_rule("doubleNumber",		rule: ((^"digits" ~ locale.decimalSeparator ~ ^"digits") => pushDouble) | ((^"digits") => pushInt))
 		add_named_rule("negativeNumber",	rule: ("-" ~ ^"doubleNumber") => pushNegate)
 		add_named_rule("postfixedNumber",	rule: (^"negativeNumber" | ^"doubleNumber") ~ ^"numberPostfix")
-		add_named_rule("value",				rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"blobLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"siblingSimple" | ^"foreignSimple" | ^"sibling" | ^"foreign" | ^"subexpression")
+		add_named_rule("value",				rule: ^"postfixedNumber" | ^"timestamp" | ^"stringLiteral" | ^"blobLiteral" | ^"unaryFunction" | ^"currentCell" | ^"constant" | ^"siblingSimple" | ^"foreignSimple" | ^"sibling" | ^"foreign" | ^"list" | ^"subexpression")
 
 
 		add_named_rule("indexer",			rule: ((("[" ~~ ^"value" ~~ "]") => pushIndex) | (("->" ~~ ^"value") => pushValueForKey)))

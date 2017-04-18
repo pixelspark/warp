@@ -73,6 +73,9 @@ public class SQLiteResult {
 					case .bool(let b):
 						result = sqlite3_bind_int(self.resultSet, CInt(i+1), b ? 1 : 0)
 
+					case .list(_):
+						return .failure("SQLite does not support lists")
+
 					case .invalid:
 						result = sqlite3_bind_null(self.resultSet, CInt(i+1))
 
@@ -345,6 +348,9 @@ open class SQLiteConnection: NSObject, SQLConnection {
 
 			case .bool(let b):
 				sqlite3_result_int64(context, b ? 1 : 0)
+
+			case .list(_):
+				fatalError("SQLite does not support lists")
 
 			case .blob(let d):
 				d.withUnsafeBytes { bytes in

@@ -85,7 +85,7 @@ private class PostgresDialect: StandardSQLDialect {
 		}
 	}
 
-	fileprivate override func valueToSQL(_ value: Value) -> String {
+	fileprivate override func valueToSQL(_ value: Value) -> String? {
 		switch value {
 		case .invalid: return "('nan'::decimal)"
 		default: return super.valueToSQL(value)

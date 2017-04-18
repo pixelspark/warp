@@ -344,7 +344,10 @@
 "Cache data set" = "Cache gegevens";
 "Cannot cache data: data set does not contain columns" = "Kan de gegevens niet cachen: dataset bevat geen kolommen.";
 "The selected action cannot be performed on this data set right now." = "Deze actie kan op dit moment niet worden uitgevoerd op deze dataset.";
-"Split the values in column [#] by [#] to columns [#]" = "Splits de waarden in kolom [#] op [#] naar de kolommen [#]";
+
+"Split [#] [#] in column [#] to columns [#]" = "Splits [#] [#] in kolom [#] naar kolommen [#]";
+"Split [#] in column [#] to columns [#]" = "Splits [#] in kolom [#] naar kolommen [#]";
+
 "Create dummies from column [#]" = "Maak dummies voor waarden in kolom [#]";
 "Delay" = "Vertraag";
 "Download data at [#]" = "Download gegevens van [#]";
@@ -451,3 +454,4 @@
 "ordered by" = "op volgorde van";
 "in current order" = "in huidige volgorde";
 "No columns can be used to train a neural model on. Make sure there are numeric columns in the data." = "Geen van de aanwezige kolommen kan worden gebruikt om een model te trainen. Zorg dat er numerieke data aanwezig is.";
+"packs" = "pakketten";

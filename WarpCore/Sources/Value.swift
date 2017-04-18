@@ -53,6 +53,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 	case empty		// Any empty value that has no specific type. Use to indicate deliberately missing values (much like NULL in SQL).
 	case invalid	// The result of any invalid operation (e.g. division by zero). Treat as NaN
 	case blob(Data) // Opaque binary data (which should never be implicitly converted to a string)
+	case list([Value]) // Ordered array of values, possibly empty
 	
 	public init(_ value: String) {
 		self = .string(value)
@@ -60,12 +61,13 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 
 	public init(jsonObject: Any)	{
 		if let d = jsonObject as? [String: Any] {
+			// FIXME: should be a separate value type .dictionary
 			let values = d.flatMap { (k, v) -> [Value] in return [.string(k), Value(jsonObject: v)] }
-			self = Pack(values).value
+			self = .list(values)
 		}
 		else if let a = jsonObject as? [Any] {
 			let values = a.map { return Value(jsonObject: $0) }
-			self = Pack(values).value
+			self = .list(values)
 		}
 		else if let s = jsonObject as? String {
 			self = .string(s)
@@ -121,6 +123,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .invalid: return 1
 		case .date(let d): return d.hashValue
 		case .blob(let b): return b.hashValue
+		case .list(let l): return l.description.hashValue
 		}
 	}}
 	
@@ -137,6 +140,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .blob(_): return nil
 		case .empty: return nil
 		case .invalid: return nil
+		case .list(_): return nil
 		}
 	} }
 	
@@ -153,6 +157,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .blob(_): return nil
 		case .empty: return nil
 		case .invalid: return nil
+		case .list(_): return nil
 		}
 	} }
 	
@@ -183,6 +188,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .empty: return nil
 		case .invalid: return nil
 		case .blob(_): return nil
+		case .list(_): return nil
 		}
 	}
 
@@ -199,7 +205,8 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .double(_): return nil
 		case .empty: return nil
 		case .invalid: return nil
-			case .blob(_): return nil
+		case .blob(_): return nil
+		case .list(_): return nil
 		}
 	}
 
@@ -212,7 +219,8 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .double(let d): return d
 		case .empty: return nil
 		case .invalid: return nil
-			case .blob(let d): return d
+		case .blob(let d): return d
+		case .list(let l): return l.map { return $0.nativeValue }
 		}
 	}
 	
@@ -226,6 +234,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		case .empty: return "Value.Empty"
 		case .invalid: return "Value.Invalid"
 		case .blob(let d): return "Value.blob(\(d.count))"
+		case .list(let l): return "Value.list(\(l.debugDescription))"
 		}
 	}
 	
@@ -417,9 +426,17 @@ public class ValueCoder: NSObject, NSSecureCoding {
 			case 2: value = .int(aDecoder.decodeInteger(forKey: "value"))
 			case 3: value = .bool(aDecoder.decodeBool(forKey: "value"))
 			case 4: value = .double(aDecoder.decodeDouble(forKey: "value"))
-			case 7: value = .date(aDecoder.decodeDouble(forKey: "value"))
 			case 5: value = .empty
 			case 6: value = .invalid
+			case 7: value = .date(aDecoder.decodeDouble(forKey: "value"))
+			case 8:
+				let d = aDecoder.decodeObject(of: NSData.self, forKey: "value")! as Data
+				value = .blob(d)
+
+			case 9:
+				let d = aDecoder.decodeObject(of: NSArray.self, forKey: "value")! as! [ValueCoder]
+				value = .list(d.map { $0.value })
+
 			default: value = .empty
 		}
 	}
@@ -455,6 +472,11 @@ public class ValueCoder: NSObject, NSSecureCoding {
 		case .blob(let b):
 			coder.encode(8, forKey: "type")
 			coder.encode(b, forKey: "value")
+
+		case .list(let l):
+			coder.encode(9, forKey: "type")
+			let d: NSArray = l.map { (v: Value) -> ValueCoder in return ValueCoder(v) } as NSArray
+			coder.encode(d, forKey: "value")
 		}
 	}
 }

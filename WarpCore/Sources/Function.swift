@@ -124,7 +124,10 @@ public enum Function: String {
 	case numberOfBytes = "numberOfBytes"
 	case encodeString = "encodeString"
 	case decodeString = "decodeString"
-
+	case list = "list"
+	case jsonEncode = "jsonEncode"
+	case packList = "packList"
+	case glue = "glue"
 
 	/** This function optimizes an expression that is an application of this function to the indicates arguments to a
 	more efficient or succint expression. Note that other optimizations are applied elsewhere as well (e.g. if a function
@@ -379,6 +382,10 @@ public enum Function: String {
 		case .encodeString: return translationForString("encode text")
 		case .decodeString: return translationForString("decode text")
 		case .numberOfBytes: return translationForString("number of bytes")
+		case .list: return translationForString("list")
+		case .jsonEncode: return translationForString("encode JSON")
+		case .packList: return translationForString("list to pack")
+		case .glue: return translationForString("glue list")
 		}
 	}
 
@@ -423,6 +430,10 @@ public enum Function: String {
 		let name = locale.nameForFunction(self) ?? ""
 
 		switch self {
+		case .list:
+			let args = arguments.map({$0.toFormula(locale)}).joined(separator: locale.argumentSeparator)
+			return "{\(args)}";
+
 		case .nth where arguments.count == 2:
 			let args = arguments.map({$0.toFormula(locale)})
 			return "\(args[0])[\(args[1])]"
@@ -628,7 +639,7 @@ public enum Function: String {
 			
 		case .nth:
 			return [
-				Parameter(name: translationForString("pack"), exampleValue: Value(WarpCore.Pack(["correct","horse", "battery", "staple"]).stringValue)),
+				Parameter(name: translationForString("pack"), exampleValue: Value.list(["correct","horse","battery","staple"].map { return Value.string($0) })),
 				Parameter(name: translationForString("index"), exampleValue: Value.int(2))
 			]
 
@@ -766,6 +777,29 @@ public enum Function: String {
 			return [
 				Parameter(name: "data", exampleValue: Value.blob(d!)),
 			]
+
+		case .list:
+			return [
+				Parameter(name: "element1", exampleValue: Value.int(1)),
+				Parameter(name: "element2", exampleValue: Value.int(2)),
+				Parameter(name: "elementN", exampleValue: Value.int(3))
+			]
+
+		case .packList:
+			return [
+				Parameter(name: "list", exampleValue: Value.list([1,2,3,4].map { Value.int($0) }))
+			]
+
+		case .glue:
+			return [
+				Parameter(name: "list", exampleValue: Value.list([1,2,3,4].map { Value.int($0) })),
+				Parameter(name: "glue", exampleValue: Value.string("~"))
+			]
+
+		case .jsonEncode:
+			return [
+				Parameter(name: "list", exampleValue: Value.list([1,2,3,4].map { Value.int($0) }))
+			]
 		}
 	} }
 	
@@ -876,6 +910,10 @@ public enum Function: String {
 		case .encodeString: return Arity.fixed(2)
 		case .decodeString: return Arity.fixed(2)
 		case .numberOfBytes: return Arity.fixed(1)
+		case .list: return Arity.any
+		case .packList: return Arity.fixed(1)
+		case .jsonEncode: return Arity.fixed(1)
+		case .glue: return Arity.fixed(2)
 		}
 	}
 	
@@ -1207,15 +1245,37 @@ public enum Function: String {
 				return Value.string(pack.stringValue)
 			}
 			return Value.invalid
+
+		case .glue:
+			if case .list(let xs) = arguments[0], let separator = arguments[1].stringValue {
+				var error = false
+				let strings = xs.map { v -> String in
+					if let s = v.stringValue {
+						return s
+					}
+					error = true
+					return ""
+				}
+
+				if error {
+					return Value.invalid
+				}
+
+				return Value.string(strings.joined(separator: separator))
+			}
+			return Value.invalid
 			
 			
 		case .nth:
-			if let pack = WarpCore.Pack(arguments[0]) {
-				if let index = arguments[1].intValue {
-					let adjustedIndex = index-1
-					if adjustedIndex < pack.count && adjustedIndex >= 0 {
+			if let index = arguments[1].intValue, index >= 1 {
+				let adjustedIndex = index-1
+				if let pack = WarpCore.Pack(arguments[0]) {
+					if adjustedIndex < pack.count {
 						return Value.string(pack[adjustedIndex])
 					}
+				}
+				else if case .list(let xs) = arguments[0], adjustedIndex < xs.count {
+					return xs[adjustedIndex]
 				}
 			}
 			return Value.invalid
@@ -1224,6 +1284,14 @@ public enum Function: String {
 			if let pack = WarpCore.Pack(arguments[0]) {
 				if let index = arguments[1].stringValue, let value = pack[index] {
 					return Value.string(value)
+				}
+			}
+			else if case .list(let xs) = arguments[0] {
+				let needle = arguments[1]
+				for index in stride(from: 0, to: xs.count, by: 2) {
+					if xs[index] == needle && xs.count > (index+1) {
+						return xs[index+1]
+					}
 				}
 			}
 			return Value.invalid
@@ -1441,6 +1509,27 @@ public enum Function: String {
 			}
 			return Value.invalid
 
+		case .jsonEncode:
+			do {
+				if let n = arguments[0].nativeValue {
+					if JSONSerialization.isValidJSONObject(n) {
+						let encoded = try JSONSerialization.data(withJSONObject: n, options: [])
+						let encodedString = String(data: encoded, encoding: .utf8)!
+						return Value.string(encodedString)
+					}
+				}
+			}
+			catch {
+				return Value.invalid
+			}
+			return Value.invalid
+
+		case .packList:
+			if case .list(let xs) = arguments[0] {
+				return Pack(xs).value
+			}
+			return Value.invalid
+
 		case .parseNumber:
 			if let text = arguments[0].stringValue {
 				let decimalSeparator = arguments.count >= 2 ? (arguments[1].stringValue ?? ".") : "."
@@ -1544,9 +1633,20 @@ public enum Function: String {
 		case .hexDecode:
 			if let s = arguments[0].stringValue {
 				let chars = Array(s.characters)
-				let numbers = stride(from: 0, to: chars.count, by: 2).map() {
-					UInt8(strtoul(String(chars[$0 ..< Swift.min($0 + 2, chars.count)]), nil, 16))
+				var error = false
+				let numbers = stride(from: 0, to: chars.count, by: 2).map() { (idx: Int) -> UInt8 in
+					let res = strtoul(String(chars[idx ..< Swift.min(idx + 2, chars.count)]), nil, 16)
+					if res > UInt(UInt8.max) {
+						error = true
+						return UInt8(0)
+					}
+					return UInt8(res)
 				}
+
+				if error {
+					return .invalid
+				}
+
 				return .blob(Data(bytes: numbers))
 			}
 			return .invalid
@@ -1572,7 +1672,8 @@ public enum Function: String {
 
 		// The following functions are already implemented as a Reducer, just use that
 		case .sum, .min, .max, .count, .countAll, .average, .concat, .pack, .countDistinct, .median, .medianHigh,
-			.medianLow, .medianPack, .varianceSample, .variancePopulation, .standardDeviationPopulation, .standardDeviationSample:
+			.medianLow, .medianPack, .varianceSample, .variancePopulation, .standardDeviationPopulation,
+			.standardDeviationSample, .list:
 			var r = self.reducer!
 			r.add(arguments)
 			return r.result
@@ -1598,6 +1699,7 @@ public enum Function: String {
 		case .varianceSample: return VarianceReducer(varianceType: .sample)
 		case .standardDeviationPopulation: return StandardDeviationReducer(varianceType: .population)
 		case .standardDeviationSample: return StandardDeviationReducer(varianceType: .sample)
+		case .list: return ListReducer()
 
 		default:
 			return nil
@@ -1628,7 +1730,8 @@ public enum Function: String {
 		duration, after, xor, floor, ceiling, randomString, toUnicodeDateString, fromUnicodeDateString, power, uuid,
 		countDistinct, medianLow, medianHigh, medianPack, median, varianceSample, variancePopulation, standardDeviationSample,
 		standardDeviationPopulation, isEmpty, isInvalid, jsonDecode, parseNumber, valueForKey, hilbertXYToD, hilbertDToX,
-		hilbertDToY, powerDown, powerUp, base64Encode, base64Decode, encodeString, decodeString, hexEncode, hexDecode, numberOfBytes
+		hilbertDToY, powerDown, powerUp, base64Encode, base64Decode, encodeString, decodeString, hexEncode, hexDecode,
+		numberOfBytes, list, jsonEncode, packList, glue
 	]
 }
 
@@ -1869,6 +1972,15 @@ private struct AverageReducer: Reducer {
 	}
 
 	var result: Value { return self.total / Value(self.count) }
+}
+
+private struct ListReducer: Reducer {
+	var list: [Value] = []
+	var result: Value { return Value.list(list) }
+
+	mutating func add(_ values: [Value]) {
+		self.list.append(contentsOf: values)
+	}
 }
 
 private struct SumReducer: Reducer {

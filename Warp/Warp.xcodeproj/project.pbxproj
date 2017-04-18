@@ -1070,7 +1070,6 @@
 		6583EE8F1C14758B00AE6C00 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
-				6583EEA41C14758B00AE6C00 /* Steps */,
 				6583EE901C14758B00AE6C00 /* QBEAlterTableViewController.swift */,
 				6583EE911C14758B00AE6C00 /* QBEAppDelegate.swift */,
 				6583EE921C14758B00AE6C00 /* QBECalculator.swift */,
@@ -1080,12 +1079,12 @@
 				6583EE941C14758B00AE6C00 /* QBEColumnMappingViewController.swift */,
 				65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */,
 				6583EE951C14758B00AE6C00 /* QBEDatasetViewController.swift */,
+				657DB2E41D71E695001C4276 /* QBEDissectViewController.swift */,
 				6583EE961C14758B00AE6C00 /* QBEDocumentViewController.swift */,
 				6583EE971C14758B00AE6C00 /* QBEExportViewController.swift */,
 				6583EE991C14758B00AE6C00 /* QBEFilterViewController.swift */,
 				6583EE9A1C14758B00AE6C00 /* QBEFormulaEditorViewController.swift */,
 				6583EE9B1C14758B00AE6C00 /* QBEJobsViewController.swift */,
-				657DB2E41D71E695001C4276 /* QBEDissectViewController.swift */,
 				656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */,
 				650238D31D47C770000BE0F2 /* QBEListEditorViewController.swift */,
 				65B3CC621CA96408003FC6DF /* QBEMapTabletViewController.swift */,
@@ -1100,6 +1099,7 @@
 				6583EEA11C14758B00AE6C00 /* QBETourViewController.swift */,
 				6583EEA21C14758B00AE6C00 /* QBEUploadViewController.swift */,
 				6583EEA31C14758B00AE6C00 /* QBEWindowController.swift */,
+				6583EEA41C14758B00AE6C00 /* Steps */,
 			);
 			name = Controller;
 			path = Sources/Controller;
