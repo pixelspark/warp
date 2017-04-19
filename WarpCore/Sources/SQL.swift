@@ -994,7 +994,7 @@ open class StandardSQLDialect: SQLDialect {
 			return nil
 
 		// These functions take lists and are therefore not supported
-		case .list, .packList, .glue:
+		case .list, .packList, .glue, .unpackList, .appendValue, .appendList:
 			return nil
 
 		case .parseNumber:

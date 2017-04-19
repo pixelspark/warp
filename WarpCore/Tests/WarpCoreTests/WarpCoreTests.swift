@@ -140,6 +140,21 @@ class WarpCoreTests: XCTestCase {
 	}
 
 	func testFunctions() {
+		func verifyEqual(_ a: String, _ b: String) {
+			let locale = Language(language: Language.defaultLanguage)
+			if let fa = Formula(formula: a, locale: locale), let fb = Formula(formula: b, locale: locale) {
+				let row = Row([1,2,3].map { Value.int($0) }, columns: OrderedSet(["colA", "colB", "colC"].map { Column($0) }))
+
+				let va = fa.root.apply(row, foreign: nil, inputValue: nil)
+				let vb = fb.root.apply(row, foreign: nil, inputValue: nil)
+
+				XCTAssert(va == vb, "\(a) == \(b), but \(va) != \(vb)")
+			}
+			else {
+				XCTFail("Did not parse: \(a) or \(b)")
+			}
+		}
+
 		for fun in Function.allFunctions {
 			switch fun {
 			case .xor:
@@ -209,8 +224,7 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(Function.countDistinct.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(1), "Count distinct should not include invalid and empty values")
 
 			case .items:
-				XCTAssert(Function.items.apply([Value("")]) == Value(0), "Empty count returns zero")
-				XCTAssert(Function.items.apply([Value("Foo,bar,baz")]) == Value(3), "Count does not include invalid values and empty values")
+				verifyEqual("ITEMS({1;2;{3;4;5}})", "3")
 
 			case .countAll:
 				XCTAssert(Function.countAll.apply([Value(1), Value(1), Value.invalid, Value.empty]) == Value(4), "CountAll includes invalid values and empty values")
@@ -341,20 +355,16 @@ class WarpCoreTests: XCTestCase {
 				XCTAssert(items.contains(Function.randomItem.apply(items)), "RandomItem")
 
 			case .pack:
-				XCTAssert(Function.pack.apply([Value("He,llo"),Value("World")]) == Value(Pack(["He,llo", "World"]).stringValue), "Pack")
+				verifyEqual("PACK.VALUES(1;2;3)", "\"1,2,3\"")
 
 			case .split:
-				XCTAssert(Function.split.apply([Value("Hello#World"), Value("#")]) == Value("Hello,World"), "Split")
+				XCTAssert(Function.split.apply([Value("Hello#World"), Value("#")]) == Value.list(["Hello","World"].map { Value.string($0) }), "Split")
 
 			case .nth:
-				XCTAssert(Function.nth.apply([Value("Foo,bar,baz"), Value(3)]) == Value("baz"), "Nth")
-				XCTAssert(!Function.nth.apply([Value("Foo,bar,baz"), Value(4)]).isValid, "Nth")
-				XCTAssert(!Function.nth.apply([Value("foo,bar,baz,boo"), Value("foo")]).isValid, "Nth with dictionary")
-				XCTAssert(!Function.nth.apply([Value("foo,bar,baz,boo"), Value("xxx")]).isValid, "Nth with dictionary")
+				verifyEqual("{{1;2;3};2;3}[2]", "2")
 
 			case .valueForKey:
-				XCTAssert(Function.valueForKey.apply([Value("foo,bar,baz,boo"), Value("foo")]) == Value("bar"), "Nth with dictionary")
-				XCTAssert(!Function.valueForKey.apply([Value("foo,bar,baz,boo"), Value("xxx")]).isValid, "Nth with dictionary")
+				verifyEqual("{\"foo\";\"X\";\"bar\";\"Y\"}->\"bar\"", "\"Y\"")
 
 			case .sign:
 				XCTAssert(Function.sign.apply([Value(-1337)]) == Value(-1), "Sign")
@@ -557,10 +567,20 @@ class WarpCoreTests: XCTestCase {
 				break;
 
 			case .packList:
-				break;
+				verifyEqual("PACK({1;2;3})", "\"1,2,3\"")
 
 			case .glue:
+				verifyEqual("GLUE({1;2;3};\";\")", "\"1;2;3\"")
 				break;
+
+			case .appendList:
+				verifyEqual("APPEND.LIST({1;2;3};{4;5})", "{1;2;3;4;5}")
+
+			case .appendValue:
+				verifyEqual("APPEND({1;2;3};4)", "{1;2;3;4}")
+
+			case .unpackList:
+				verifyEqual("UNPACK(\"1,2,3\")", "{1;2;3}")
 
 			}
 		}
@@ -571,11 +591,6 @@ class WarpCoreTests: XCTestCase {
 		XCTAssert(Binary.containsStringStrict.apply(Value("Tommy"), Value("Tom"))==Value(true), "Strict contains string operator should work")
 		XCTAssert(Binary.containsStringStrict.apply(Value("Tommy"), Value("tom"))==Value(false), "Strict contains string operator should be case-sensitive")
 		XCTAssert(Binary.containsStringStrict.apply(Value("Tommy"), Value("x"))==Value(false), "Strict contains string operator should work")
-
-		// Split / nth
-		XCTAssert(Function.split.apply([Value("van der Vorst, Tommy"), Value(" ")]).stringValue == "van,der,Vorst$0,Tommy", "Split works")
-		XCTAssert(Function.nth.apply([Value("van,der,Vorst$0,Tommy"), Value(3)]).stringValue == "Vorst,", "Nth works")
-		XCTAssert(Function.items.apply([Value("van,der,Vorst$0,Tommy")]).intValue == 4, "Items works")
 		
 		// Stats
 		let z = Function.normalInverse.apply([Value(0.9), Value(10), Value(5)]).doubleValue
@@ -672,7 +687,6 @@ class WarpCoreTests: XCTestCase {
 			"{}",
 			"{{}}",
 			"SIN(1)",
-			"PACK(1;2;3)",
 			"SUM(1;2;3)",
 			"MIN(1;2;3)",
 			"\"test\""
@@ -721,8 +735,6 @@ class WarpCoreTests: XCTestCase {
 		// Test results
 		XCTAssert(Formula(formula: "6/(1-3/4)", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(24), "Formula in default dialect")
 		XCTAssert(Formula(formula: "7~2", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value(1), "Modulus operator")
-		XCTAssert(Formula(formula: "\"1,2,3\"[1]", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value("1"), "Index access")
-		XCTAssert(Formula(formula: "\"foo,bar,baz,faa\"->\"baz\"", locale: locale)!.root.apply(Row(), foreign: nil, inputValue: nil) == Value("faa"), "Index access using string")
 		
 		// Test whether parsing goes wrong when it should
 		XCTAssert(Formula(formula: "", locale: locale) == nil, "Empty formula")
