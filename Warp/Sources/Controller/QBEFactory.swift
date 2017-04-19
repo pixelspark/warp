@@ -17,6 +17,7 @@ public protocol QBEConfigurable: NSObjectProtocol {
 }
 
 public protocol QBEFullyConfigurable: QBEConfigurable {
+	var isEditable: Bool { get }
 	func setSentence(_ sentence: QBESentence)
 }
 

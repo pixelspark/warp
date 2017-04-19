@@ -484,8 +484,15 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		self.tokenFieldTextChanged()
 	}
 
-	private func tokenFieldTextChanged() {
+	private var isFullyEditable: Bool {
 		if let s = self.editingConfigurable as? QBEFullyConfigurable {
+			return s.isEditable
+		}
+		return false
+	}
+
+	private func tokenFieldTextChanged() {
+		if let fe = self.editingConfigurable as? QBEFullyConfigurable, isFullyEditable {
 			let sentence = QBESentence()
 
 			let tokens: [Any]
@@ -511,7 +518,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				}
 			}
 
-			s.setSentence(sentence)
+			fe.setSentence(sentence)
 		}
 	}
 
@@ -531,10 +538,16 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	func startConfiguring(_ configurable: QBEConfigurable?, variant: QBESentenceVariant, delegate: QBESentenceViewDelegate?) {
-		let wasEditable = self.editingConfigurable != nil && (self.editingConfigurable! is QBEFullyConfigurable)
+		let wasEditable = isFullyEditable
 
 		if configurable == nil || self.editingConfigurable == nil || !self.editingConfigurable!.isEqual(configurable!) {
-			let editable = (configurable is QBEFullyConfigurable)
+			let editable: Bool
+			if let se = configurable as? QBEFullyConfigurable, se.isEditable {
+				editable = true
+			}
+			else {
+				editable = false
+			}
 
 			let tr = CATransition()
 			tr.duration = 0.3
@@ -555,7 +568,9 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			self.tokenField.font = (monospace && editable) ? NSFont.userFixedPitchFont(ofSize: fontSize) : NSFont.systemFont(ofSize: fontSize)
 
 			self.tokenField.tokenizingCharacterSet = CharacterSet()
-			self.borderedView.backgroundColor = editable ? NSColor.controlBackgroundColor : NSColor.clear
+
+			let presentAsValue = (configurable is QBEFullyConfigurable)
+			self.borderedView.backgroundColor = presentAsValue ? NSColor.controlBackgroundColor : NSColor.clear
 			//self.tokenField.isBordered = editable
 
 			self.editingConfigurable = configurable

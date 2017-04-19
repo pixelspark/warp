@@ -12,37 +12,35 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import Cocoa
 import WarpCore
 
-class QBEValueConfigurable: NSObject, QBEConfigurable {
+/** Provides a configurable for a single value. If the value is a list, the configurable will provide a token to the
+sentence editor for each value. */
+class QBEValueConfigurable: NSObject, QBEFullyConfigurable {
 	var value: Value
-
-	var locale: Language {
-		return QBEAppDelegate.sharedInstance.locale
-	}
-
-	init(value: Value) {
-		self.value = value
-	}
-
-	func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence([
-			QBESentenceLabelToken(locale.localStringFor(self.value))
-		])
-	}
-}
-
-class QBEChangeableValueConfigurable: NSObject, QBEFullyConfigurable {
-	var value: Value
+	let isChangeable: Bool
 	let callback: (Value) -> ()
 	var locale: Language {
 		return QBEAppDelegate.sharedInstance.locale
 	}
 
-	init(value: Value, callback: @escaping (Value) -> ()) {
+	var isEditable: Bool {
+		switch value {
+		case .list(_):
+			return false
+
+		default:
+			return self.isChangeable
+		}
+	}
+
+	init(value: Value, editable: Bool, callback: @escaping (Value) -> ()) {
 		self.value = value
+		self.isChangeable = editable
 		self.callback = callback
 	}
 
 	func setSentence(_ sentence: QBESentence) {
+		assert(self.isEditable, "This value is not editable!")
+		
 		if let text = sentence.tokens.first {
 			self.value = locale.valueForLocalString(text.label)
 			self.callback(self.value)
@@ -53,9 +51,32 @@ class QBEChangeableValueConfigurable: NSObject, QBEFullyConfigurable {
 	}
 
 	func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
-		return QBESentence([
+		switch value {
+		case .list(let xs):
+			let n = min(6, xs.count)
+
+			var tokens = (0..<n).map { index -> QBESentenceToken in
+				let value = xs[index]
+				return QBESentenceTextToken(value: locale.localStringFor(value)) { newValue -> Bool in
+					var newList = xs
+					newList[index] = locale.valueForLocalString(newValue)
+					self.value = .list(newList)
+					self.callback(self.value)
+					return true
+				}
+			}
+
+			if xs.count > n {
+				tokens.append(QBESentenceLabelToken(String(format: "and %d more".localized, xs.count - n)))
+			}
+
+			return QBESentence(tokens)
+
+		default:
+			return QBESentence([
 				QBESentenceLabelToken(locale.localStringFor(self.value))
-		])
+			])
+		}
 	}
 }
 
@@ -119,12 +140,7 @@ internal class QBEChainTabletViewController: QBETabletViewController, QBEChainVi
 	}
 
 	func chainView(_ view: QBEChainViewController, editValue value: Value, changeable: Bool, callback: @escaping (Value) -> ()) {
-		if changeable {
-			self.delegate?.tabletView(self, didSelectConfigurable: QBEChangeableValueConfigurable(value: value, callback: callback), configureNow: false, delegate: nil)
-		}
-		else {
-			self.delegate?.tabletView(self, didSelectConfigurable: QBEValueConfigurable(value: value), configureNow: false, delegate: nil)
-		}
+		self.delegate?.tabletView(self, didSelectConfigurable: QBEValueConfigurable(value: value, editable: changeable, callback: callback), configureNow: false, delegate: nil)
 	}
 
 	func chainView(_ view: QBEChainViewController, configureStep step: QBEStep?, necessary: Bool, delegate: QBESentenceViewDelegate) {
