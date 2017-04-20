@@ -458,3 +458,4 @@
 "and %d more" = "en nog %d";
 "Presto error %@: %@" = "Presto-fout %@: %@";
 "no further information" = "geen verdere informatie";
+"Load data from Presto" = "Laad gegevens uit Presto";

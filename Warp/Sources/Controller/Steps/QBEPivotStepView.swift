@@ -295,7 +295,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 					return step.aggregates[row].targetColumn.name
 				}
 				else {
-					assert(false, "This should not happen")
+					fatalError("Unreachable")
 				}
 
 			default:

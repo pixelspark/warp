@@ -183,6 +183,10 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 				self.add(step: QBEMySQLSourceStep())
 			}))
 
+			uac.addAction(UIAlertAction(title: "Load data from Presto".localized, style: .default, handler: { act in
+				self.add(step: QBEPrestoSourceStep())
+			}))
+
 			uac.addAction(UIAlertAction(title: "Load data from a file".localized, style: .default, handler: { act in
 				self.addFileStep()
 			}))
