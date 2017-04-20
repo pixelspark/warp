@@ -456,3 +456,5 @@
 "No columns can be used to train a neural model on. Make sure there are numeric columns in the data." = "Geen van de aanwezige kolommen kan worden gebruikt om een model te trainen. Zorg dat er numerieke data aanwezig is.";
 "packs" = "pakketten";
 "and %d more" = "en nog %d";
+"Presto error %@: %@" = "Presto-fout %@: %@";
+"no further information" = "geen verdere informatie";

@@ -101,9 +101,10 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 					request.setValue(self.catalog, forHTTPHeaderField: "X-Presto-Catalog")
 					request.setValue(self.schema, forHTTPHeaderField: "X-Presto-Schema")
 					
-					if let sqlDataset = sql.data(using: String.Encoding.utf8, allowLossyConversion: false) {
-						request.httpBody = sqlDataset
+					if let sqlQueryData = sql.data(using: String.Encoding.utf8, allowLossyConversion: false) {
+						request.httpBody = sqlQueryData
 					}
+					job.log("Presto SQL: \(sql)")
 				}
 				else {
 					// Follow-up request
@@ -114,6 +115,26 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 					if response.result.isSuccess {
 						// Let's see if the response got something useful
 						if let d = response.result.value as? [String: AnyObject] {
+							// Was there an error?
+							if let error = d["error"] as? [String: AnyObject] {
+								let errorName = error["errorName"] as? String ?? "(unknown)"
+								let message: String
+								if let failureInfo = error["failureInfo"] as? [String: AnyObject] {
+									message = (failureInfo["message"] as? String) ?? "(no further information)".localized
+								}
+								else {
+									message = ""
+								}
+
+								self.mutex.locked {
+									self.nextURI = nil
+									self.stopped = true
+								}
+
+								callback(.failure(String(format: "Presto error %@: %@".localized, errorName, message)))
+								return
+							}
+
 							// Get progress data from response
 							if let stats = d["stats"] as? [String: AnyObject] {
 								if let completedSplits = stats["completedSplits"] as? Int,
@@ -177,6 +198,7 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 										templateRow.removeAll(keepingCapacity: true)
 									}
 								}
+
 							}
 
 							return callback(.success())
@@ -193,6 +215,15 @@ private class QBEPrestoStream: NSObject, WarpCore.Stream {
 							job.log("Presto returned status code 503, waiting for a while")
 							let queue = DispatchQueue.global(qos: .userInitiated)
 							queue.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+								callback(.success())
+							}
+							return
+						}
+						else if response.response?.statusCode == 410 {
+							// Status code 410 indicates a temporary error
+							job.log("Presto returned status code 410, waiting for a while")
+							let queue = DispatchQueue.global(qos: .userInitiated)
+							queue.asyncAfter(deadline: DispatchTime.now() + 1.0) {
 								callback(.success())
 							}
 							return
@@ -314,12 +345,13 @@ private class QBEPrestoDatabase {
 
 private class QBEPrestoDataset: SQLDataset {
 	private let db: QBEPrestoDatabase
-	
-	class func tableDataset(_ job: Job, db: QBEPrestoDatabase, tableName: String, callback: @escaping (Fallible<QBEPrestoDataset>) -> ()) {
-		let sql = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, schema: nil, database: nil))"
+
+	class func tableDataset(_ job: Job, db: QBEPrestoDatabase, tableName: String, schemaName: String, catalogName: String, callback: @escaping (Fallible<QBEPrestoDataset>) -> ()) {
+		let alias = tableName
+		let sql = "SELECT * FROM \(db.dialect.tableIdentifier(tableName, schema: schemaName, database: catalogName)) AS \(db.dialect.tableIdentifier(alias, schema: nil, database: nil))"
 		
 		db.query(sql).columns(job) { (columns) -> () in
-			callback(columns.use({return QBEPrestoDataset(db: db, fragment: SQLFragment(table: tableName, schema: nil, database: nil, dialect: db.dialect), columns: $0)}))
+			callback(columns.use({return QBEPrestoDataset(db: db, fragment: SQLFragment(table: tableName, schema: schemaName, database: catalogName, dialect: db.dialect), columns: $0)}))
 		}
 	}
 	
@@ -334,6 +366,15 @@ private class QBEPrestoDataset: SQLDataset {
 	
 	override func stream() -> WarpCore.Stream {
 		return db.query(self.sql.sqlSelect(nil).sql)
+	}
+
+	override func isCompatibleWith(_ other: SQLDataset) -> Bool {
+		/* Presto queries can be combined as long as they are on the same cluster. Here we check whether both are using 
+		the same coordinating server. */
+		if let otherPresto = other as? QBEPrestoDataset {
+			return otherPresto.db.url == self.db.url
+		}
+		return false
 	}
 }
 
@@ -357,9 +398,9 @@ class QBEPrestoSourceStep: QBEStep {
 	
 	required init(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
-		self.catalogName = (aDecoder.decodeObject(forKey: "catalogName") as? String) ?? self.catalogName
-		self.tableName = (aDecoder.decodeObject(forKey: "tableName") as? String) ?? self.tableName
-		self.schemaName = (aDecoder.decodeObject(forKey: "schemaName") as? String) ?? self.schemaName
+		self.catalogName = aDecoder.decodeString(forKey: "catalog") ?? self.catalogName
+		self.tableName = aDecoder.decodeString(forKey: "table") ?? self.catalogName
+		self.schemaName = aDecoder.decodeString(forKey: "schema") ?? self.catalogName
 		self.url = (aDecoder.decodeObject(forKey: "url") as? String) ?? self.url
 		switchDatabase()
 	}
@@ -448,7 +489,7 @@ class QBEPrestoSourceStep: QBEStep {
 	
 	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
 		if let d = db, !self.tableName.isEmpty {
-			QBEPrestoDataset.tableDataset(job, db: d, tableName: tableName, callback: { (fd) -> () in
+			QBEPrestoDataset.tableDataset(job, db: d, tableName: tableName, schemaName: schemaName, catalogName: catalogName, callback: { (fd) -> () in
 				callback(fd.use({return $0}))
 			})
 		}
