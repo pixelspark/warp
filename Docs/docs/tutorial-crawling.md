@@ -29,7 +29,7 @@ In order to crawl data from multiple URLs, you first need to make a list of URLs
 Now, we need to calculate the URL for each year. In order to do so, add a new column by typing the following formula in the '+' column to the right of the years:
 
 ````
-="https://ams-ix.net/historic_traffic_data?year="&[@Year]
+="https://ams-ix.net/historic_traffic_data?year="&[Year]
 ````
 
 ![Step 1b](img/tutorials/t1s3.png)
@@ -58,7 +58,7 @@ You will now see that Warp has put the JSON data for each year in the 'Content' 
 =FROM.JSON(@)
 ````
 
-This will instruct Warp to re-calculate the data in the 'Content' column, by applying the FROM.JSON function to the contents in the column (the '@' sign indicates 'current column' - the formula is equivalent to FROM.JSON([@Content])).
+This will instruct Warp to re-calculate the data in the 'Content' column, by applying the FROM.JSON function to the contents in the column (the '@' sign indicates 'current column' - the formula is equivalent to FROM.JSON([Content])).
 
 You will now see that the contents of the 'Content' column have changed - but they are not exactly readable just yet. What happened? Well, Warp read the JSON value and as it is an array, it translated it to a so-called 'pack formatted value' - basically a comma-separated list of the values in the array. Each value in the array represents an object with data on a particular month. We therefore need Warp to split the list into values for each month. To do so, make sure the 'Content' column is selected, and then choose 'Split list in column to rows' from the 'Rows' menu. 
 
@@ -71,10 +71,10 @@ If you look closely, you will see that the data is again a list, but now formatt
 Seeing is believing - create a new column by typing the following formula in the '+' column:
 
 ````
-=NTH([@Content]; "date")
+=[Content]->"date"
 ````
 
-This will extract the 'date' value from the list. You will also want the in_traffic data point (````=NTH([@Content];"in_traffic")````). Make sure to give the new columns proper names. You may also remove the other columns at this point. After this, you will have a nice data set!
+This will extract the 'date' value from the list. You will also want the in_traffic data point (````=[Content]->"in_traffic"````). Make sure to give the new columns proper names. You may also remove the other columns at this point. After this, you will have a nice data set!
 
 ![Step 3](img/tutorials/t1s7.png)
 
@@ -91,8 +91,8 @@ Now that the crawling works, it's time to hit the 'Calculate' button in the top 
 Notice how the 'Date' column contains dates formatted as 'Month Year' - what if you wanted to have the month number and year in separate columns? This is easy to fix in Warp. First, we need to split the month name from the year. To do so, add two columns with the following formulas:
 
 ````
-=NTH(SPLIT([@Date];" ");1)
-=NTH(SPLIT([@Date];" ");2)
+=SPLIT([Date];" ")[1]
+=SPLIT([Date];" ")[2]
 ````
 These formulas tell Warp to split the data in column 'Date' at each space, and then taking the first and second item which are the month name and the year, respectively. As these formulas are difficult to type, you may also try to type the year of a particular date in the new column, and Warp will likely automatically write the formula for you!
 

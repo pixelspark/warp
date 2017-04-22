@@ -1,3 +1,41 @@
+# Version 3.9
+
+Released: April 24, 2017
+
+* You can now rank rows as well as calculate running aggregates (e.g. running average)
+* You can set a minimum cell size for aggregations (e.g. in pivot table)	 which helps preserve statistical anonymity
+* Warp can now read JSON files
+* The formula syntax for referencing columns has been simplified. Simply use the column name if it contains only alphanumeric characters and starts with an alphabetic character. Otherwise just use "[colum_name]" instead of "[@column_name]".
+* Likewise, the syntax for referencing foreign columns has been simplified to "#column" and "#[column_name]"
+* Presto performance has been greatly improved, as Warp now pushes down operations to Presto when multiple tables from the same server are involved.
+* Warp now supports blob values
+* A native data type for lists has been introduced
+* Empty (NULL) values are now sorted consistently when sorting
+
+# Version 3.8
+
+Released: March 6, 2017
+* Minor bug fixes and improvements
+
+# Version 3.7
+
+Released: February 19, 2017 (iOS)
+
+* You can now calculate columns using formulas on iOS
+* You can now sort by column on iOS
+* Warp now has keyboard shortcuts on iOS
+* Various bug fixes and performance improvements
+
+# Version 3.6
+
+Released: January 8, 2017 (iOS)
+
+* First version of Warp for iOS!
+
+# Version 3.5
+
+Released: November 27, 2016
+
 # Version 3.4
 
 Released: September 12, 2016

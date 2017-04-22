@@ -13,16 +13,16 @@ If a value contains a comma, there is an issue with interpretation: is the comma
 In Warp, you can use the 'PACK' function to create a pack:
 
 ````
-=PACK("foo";"bar";"baz") will return "foo,bar,baz"
-=PACK("foo,bar";"baz") will return "foo$0bar,baz"
+=PACK.VALUES("foo";"bar";"baz") will return "foo,bar,baz"
+=PACK.VALUES("foo,bar";"baz") will return "foo$0bar,baz"
 ````
 
 ## Extracting values from a pack
 
-In Warp, you can use square brackets to extract data from a pack. This will return the value at the specified index in the pack, or return an invalid value if that index does not exist.
+In Warp, you can use the UNPACK function to unpack a pack into a list. After that, you can access elements in the list using square brackets.This will return the value at the specified index in the pack, or return an invalid value if that index does not exist.
 
 ````
-="foo,bar,baz"[2] will return "bar"
+=UNPACK("foo,bar,baz")[2] will return "bar"
 ````
 
 ## Key-value pairs
@@ -36,25 +36,5 @@ first_name,Tommy,last_name,van der Vorst
 You can use the 'arrow' syntax to extract values:
 
 ````
-="first_name,Tommy,last_name,van der Vorst"->"first_name" will return "Tommy"
-````
-
-## JSON
-
-Using the FROM.JSON function, you can parse JSON strings into packs. This is useful when you want to extract specific fields from JSON strings. JSON objects are translated to packs with key-value pairs, whereas arrays are converted to plain list packs. For instance, the following JSON string:
-
-````
-{"foo":"bar", "baz":{"deepSpace": 9}}
-````
-
-Will be represented as the following pack:
-
-````
-baz,deepSpace$09,foo,bar
-````
-
-Reading fields from this pack is simple:
-
-````
-=FROM.JSON("{""foo"":""bar"", ""baz"":{""deepSpace"": 9}}")->"baz"->"deepSpace" will return 9
+=UNPACK("first_name,Tommy,last_name,van der Vorst")->"first_name" will return "Tommy"
 ````

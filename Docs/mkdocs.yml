@@ -11,14 +11,22 @@ pages:
     - Transforming data: steps.md
     - Writing formulas: formulas.md
 
+- Reference:
+    - Data types: semantics.md
+    - Lists: lists.md
+    - Blobs: blobs.md
+    - Dates: date.md
+    - Special values: specials.md
+    - Functions: functions.md
+    - Packs: 'pack.md'
+
 - Tutorials:
     - Crawling websites: tutorial-crawling.md
 
 - In depth:
     - Language support: language.md
     - Performance: performance.md
-    - Packs: 'pack.md'
-    - Semantics: semantics.md
+
 - What's new: whatsnew.md
 - Known issues: knownissues.md
 - FAQ: faq.md

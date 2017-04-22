@@ -43,6 +43,16 @@ You may append SI postfixes to numeric values to indicate magnitude:
 
 The easiest way to create a date value is to use one of the date [functions](#functions), such as 'DATE.UTC' which takes the day, month and year as argument, and returns a date value for that day in UTC. You can also use 'NOW' to return the current date and time as date value. You can also specify a date as the number of seconds since the Warp reference date by prefixing the number with the '@' sign.
 
+## Lists
+
+List values are expressed as follows:
+
+````
+{"foo";"bar"}
+````
+
+Lists can contain values of all types (even other lists), and types may be mixed. An empty list is expressed as ````{}````.
+
 ## Text
 
 Formulas can contain text, enclosed between brackets:
@@ -79,22 +89,29 @@ The following special words indicate constant values (values that never change):
 
 Sometimes, a formula is calculated for a specific row. You may then refer to any of the values in that row. 
 
-In order to refer to a value in another column, you put the column name between '[@' and ']', like so:
+In order to refer to a value in another column, you put the column name between '[' and ']', like so:
 
 ````
-[@column]
+[column]
+````
+
+If the column name contains only alphanumeric characters and starts with an alphabetic character, you can omit the brackets:
+
+````
+column
 ````
 
 You can use the special '@' identifier to refer to the previous value in the current cell (note that this value is not always available, for instance if you are calculating a new column).
 
 
-In cases where two data sets are joined together, it is possible to refer to values in a row from either table. In that case, you use the #' sign instead of the '@' sign in the reference to refer to the 'foreign' row, as follows:
+In cases where two data sets are joined together, it is possible to refer to values in a row from either table. In that case, you use the #' to refer to the 'foreign' row, as follows:
 
 ````
-[#otherColumn]
+#[otherColumn]
+#otherColumn
 ````
 
-Note that in cases where a foreign row is present, the '@' identifier will not work.
+Note that in cases where a foreign row is present, the '@' identifier will not work. The shorthand syntax for foreign columns is only applicable to foreign columns that have an alphanumeric name that start with an alphabetic character.
 
 # Operators
 
@@ -151,99 +168,6 @@ MIN(1; 3; 4; 6)
 ````
 
 The 'MIN' function returns the smallest value passed to it - in this case it will result in '1'. Note that the spaces between the semicolons and the following number are completely optional.
-
-## List of available functions
-
-| Function|Description|
-|---------|-----------|
-|[ABS](#abs)(x)|Absolute value of x
-|[ACOS](#acos)(x)|Arc cosine of x
-|[AFTER](#after)(d; s)|Add s seconds to date d
-|[AND](#and)(x; y; ...)|Logical and
-|[ASIN](#asin)(x)|Arc sine of x
-|[ATAN](#atan)(x)|Arc tangens of x
-|[AVERAGE](#average)(x; y; ...)|Average of values
-|[CEILING](#ceiling)(x)|Round x up to nearest integer
-|[CHOOSE](#choose)(i; x; y; ...)|Return the i'th argument (excluding i itself)
-|[COALESCE](#coalesce)(x; y)|Return y if x is empty; otherwise return x
-|[CONCAT](#concat)(x; y; ...)|Concatenate strings
-|[COS](#cos)(x)|Cosine of x
-|[COSH](#cosh)(x)|Hyperbolic cosine of x
-|[COUNT](#count)(x; y; ...)|Return the number of numeric arguments
-|[COUNTA](#counta)(x; y; ...)|Return the number of arguments
-|[DATE.UTC](#date.utc)(y; m; d)|Returns the date corresponding to the given year y; month m and day d in UTC
-|[DAY.UTC](#day.utc)(d)|Returns the day in the month in UTC of date d
-|[DURATION](#duration)(x; y)|Returns the duration of the period between dates x and y in seconds
-|[ENCODEURL](#encodeurl)(s)|URL-encodes the given string
-|[EXP](#exp)(x)|Returns e to the power of x
-|[FLOOR](#floor)(x)|Round x down to nearest integer
-|[FROM.JSON](#from.json)(s)|Parses the specified JSON string, converting arrays and objects to a [pack](pack.md)
-|[FROM.EXCELDATE](#from.exceldate)(s)|Returns a date from the Excel serial date s
-|[FROM.ISO8601](#from.iso8601)(s)|Returns a date from the given ISO-8601 formatted date string s
-|[FROM.UNIX](#from.unix)(s)|Returns a date from the given UNIX timestamp s
-|[HOUR.UTC](#hour.utc)(d)|Returns the hour in UTC of date d
-|[IF](#if)(condition; if_true; if_false)|Evaluate boolean condition
-|[IFERROR](#iferror)(x; y)|Returns x; or y if x is an error value
-|[IN](#in)(v; x; y; ...)|Return whether v is equal to one of the arguments (excluding v)
-|[ITEMS](#items)(p)|Returns the number of items in pack p
-|[LARGE](#large)(x; y; ...)|Returns the largest value among the arguments
-|[LEFT](#left)(s; n)|Return the n leftmost characters in string s
-|[LENGTH](#length)(s)|Return the length of string s
-|[LN](#ln)(x)|Natural logarithm of x
-|[LOG](#log)(x[; y])|Logarithm of x; optionally in base y (default: 10)
-|[LOWER](#lower)(x)|Make string x loewrcase
-|[MAX](#max)(x; y; ...)|Return the highest argument
-|[MEDIAN](#median)(x; y; ...)|Return the median argument (average in case of a tie)
-|[MEDIAN.HIGH](#median.high)|Return the median argument (highest in case of a tie)
-|[MEDIAN.LOW](#median.low)|Return the median argument (lowest in case of a tie)
-|[MEDIAN.PACK](#median.pack)|Return the median argument (pack of both in case of a tie)
-|[MID](#mid)(t; s; l)|Return substring of t starting at index s and length l
-|[MIN](#min)(x; y; ...)|Return the lowest argument
-|[MINUTE.UTC](#minute.utc)(d)|Return the minute in UTC of date d
-|[MONTH.UTC](#month.utc)(d)|Return the month in UTC of date d
-|[NEGATE](#negate)(x)|Negate x
-|[NORM.INV](#norm.inv)(p; m; s)|Return the inverse normal value for probability p; average m and standard deviation s
-|[NOT](#not)(x)|Logical not
-|[NOT.IN](#not.in)(v; x; y; ...)|Returns whether v does not appear in x; y; ...
-|[NOW](#now)|The current date
-|[NTH](#nth)(p; i)|Returns the i'th value in pack p
-|[OR](#or)(x; y; ...)|Logical OR of arguments
-|[PACK](#pack)(x; y; ...)|Create a pack value of the arguments
-|[POWER](#power)(x; y)|x to the y'th power
-|[PROPER](#proper)(s)|capitalize string s
-|[RAND](#rand)|Random number between 0 and 1
-|[RANDBETWEEN](#randbetween)(x; y)|Random number between x and y
-|[RANDSTRING](#randstring)(p)|Random string using pattern
-|[READ.DATE](#read.date)(s; f)|Convert string s to date using format f
-|[REPLACE](#replace)(s; x; y)|Replace x with y in string s
-|[REPLACE.PATTERN](#replace.pattern)(t; x; y)|Replace instances of pattern x with y in string t
-|[RIGHT](#right)(s; n)|Return the n rightmost characters from string s
-|[ROUND](#round)(x; d)|Rounds x to d decimals
-|[SECOND.UTC](#second.utc)(d)|Returns the seconds in UTC for date d
-|[SIGN](#sign)(x)|Returns the sign of x (-1 for negative; 1 for positive; 0 for zero)
-|[SIMILARITY](#similarity)(x; y)|Returns the Levenshtein similarity for strings x and y
-|[SIN](#sin)(x)|Sine of x
-|[SINH](#sinh)(x)|Hyperbolic sine of x
-|[SMALL](#small)(x; y; ...)|Return the lowest parameter
-|[SPLIT](#split)(t; s)|Split string t using separator s; returns a pack
-|[SQRT](#sqrt)(x)|Square root of x
-|[STDEV.P](#stdev.p)(x; y; ...)|Standard population deviation of arguments
-|[STDEV.S](#stdev.s)(x; y; ...)|Standard sample deviation of arguments
-|[SUM](#sum)(x; y; ...)|The sum of all arguments
-|[TAN](#tan)(x)|Tangens of x
-|[TANH](#tanh)(x)|Tangens hyperbolicus of x
-|[TO.EXCELDATE](#to.exceldate)(d)|Returns the Excel serial date for date d
-|[TO.ISO8601](#to.iso8601)(d)|Convert date d to an ISO-8601 formatted date in the local timezone
-|[TO.ISO8601.UTC](#to.iso8601.utc)(d)|Convert date d to an ISO-8601 formatted UTC date
-|[TO.UNIX](#to.unix)(d)|Convert date d to a UNIX timestamp
-|[TRIM](#trim)(x)|Remove leading and trailing whitespace from string x
-|[UPPER](#upper)(x)|Make string x uppercase
-|[UUID](#uuid)|Generate a new UUID
-|[VAR.P](#var.p)(x; y; ...)|Return population variance of arguments
-|[VAR.S](#var.s)(x; y; ...)|Return sample variance of arguments
-|[WRITE.DATE](#write.date)(d; f)|Write date d to string in format f
-|[XOR](#xor)(x; y)|Exclusive logical or
-|[YEAR.UTC](#year.utc)(d)|Get year in UTC of date d
 
 # Interpretation
 

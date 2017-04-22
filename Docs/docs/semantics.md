@@ -1,6 +1,4 @@
-# Values
-
-## Types
+## Data types
 
 Warp supports the following value types:
 
@@ -10,21 +8,13 @@ Warp supports the following value types:
 | Integer | Integer numbers, which may be positive or negative |
 | Double | Double-precision decimal numbers |
 | Boolean | Either true or false |
-| Date | An absolute timestamp |
-| Empty | A special value indicating missing data |
-| Error | A special value indicating a calculation error |
+| [Date](date.md) | An absolute timestamp |
+| [Empty](specials.md) | A special value indicating missing data |
+| [Invalid](specials.md) | A special value indicating a calculation error |
+| [Blob](blobs.md) | Binary data |
+| [List](lists.md) | List of values |
 
 Warp only uses these types 'behind the scenes', that is - values of one type will be automatically converted to another when that is necessary. If you are for instance adding two strings ("1" + "2"), Warp will first convert the two strings to numbers, and then calculate the addition (1+2). Because of this, every operator or function has a strictly defined preference for types. If conversion of types is impossible (e.g. if you are trying to do "a" + "b", neither can be converted to a number), it will result in an error value.
-
-## Dates
-
-Dates are internally represented as the number of seconds since a particular reference date. They are shown in Warp in a 'friendly' format and in the local timezone. 
-
-## Special values
-
-The 'empty value' is used to indicate data that is missing - it is present on other rows but deliberately not on this row. The empty value is equal to other empty values, and equal to an empty string (""). The empty value is however not equal to any number.
-
-The 'error value' is used to indicate that the value is the result of a calculation gone wrong. For instance, dividing a value by zero will result in an error value. If a function is given wrong arguments or cannot do its work, it will also result in an error value. An error value is never equal to any other value, including other error values.
 
 ## Mapping to SQL
 

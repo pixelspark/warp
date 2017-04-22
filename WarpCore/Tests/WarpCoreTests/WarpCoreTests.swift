@@ -1109,6 +1109,48 @@ class WarpCoreTests: XCTestCase {
 		}
 	}
 
+	func testFunctionDocumentation() {
+		let dutch = Language(language: "nl")
+		let language = Language(language: Language.defaultLanguage)
+
+		var doc: [String] = []
+
+		for fn in Function.allFunctions {
+			let parameterDescription: String
+			let example: String
+			if let parameters = fn.parameters {
+				var parameterNames = parameters.map({ return $0.name })
+				switch fn.arity {
+				case .between(_, _), .atLeast(_), .any:
+					parameterNames.append("...")
+
+				default:
+					break
+				}
+				parameterDescription = parameterNames.joined(separator: language.argumentSeparator + " ")
+
+				// Calculate an example
+				let expression = Call(arguments: parameters.map({ return Literal($0.exampleValue) }), type: fn)
+				let result = expression.apply(Row(), foreign: nil, inputValue: nil)
+				example = "\(expression.toFormula(language, topLevel: true)) = \(language.localStringFor(result))"
+			}
+			else {
+				parameterDescription = fn.arity.explanation
+				example = ""
+			}
+
+			if let localName = language.nameForFunction(fn) {
+				//let dutchName = dutch.nameForFunction(fn) ?? ""
+				let line = "|\(localName)(\(parameterDescription))|\(fn.localizedName)|````\(example)````|"
+				doc.append(line)
+			}
+		}
+
+		print("\r\n")
+		print(doc.sorted().joined(separator: "\r\n"))
+		print("\r\n")
+	}
+
 	private func asyncTest(_ block: @escaping (_ callback: @escaping () -> ()) -> ()) {
 		let expectFinish = self.expectation(description: "CSV tests")
 
