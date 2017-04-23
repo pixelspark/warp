@@ -261,7 +261,8 @@ import WarpCore
 		self.sentenceEditor?.startConfiguring(nil, variant: .read, delegate: nil)
 		documentView.removeTablet(tablet) {
 			assertMainThread()
-			self.zoomToAll(true)
+
+			self.backToWorkspace(true)
 		
 			for cvc in self.childViewControllers {
 				if let child = cvc as? QBEChainViewController {
