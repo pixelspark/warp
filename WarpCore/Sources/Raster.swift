@@ -658,9 +658,13 @@ public class RasterDataset: NSObject, Dataset {
 		return apply("transpose") {(r: Raster, job, progressKey) -> Raster in
 			// Find new column names (first column stays in place)
 			if r.columns.count > 0 {
-				var columns: [Column] = [r.columns[0]]
+				var columns: [Column] = [Column.defaultNameForIndex(0)]
 				for i in 0..<r.rowCount {
-					columns.append(Column(r[i, 0].stringValue ?? ""))
+					var cn = Column(r[i, 0].stringValue ?? "")
+					if columns.contains(cn) {
+						cn = Column.defaultNameForNewColumn(OrderedSet(columns))
+					}
+					columns.append(cn)
 
 					if (i % Raster.progressReportRowInterval) == 0 {
 						job?.reportProgress(Double(i) / Double(r.rowCount), forKey: progressKey)
@@ -669,7 +673,6 @@ public class RasterDataset: NSObject, Dataset {
 						}
 					}
 				}
-				// FIXME: check for duplicate columns
 				
 				var newDataset: [[Value]] = []
 
