@@ -54,29 +54,29 @@ class QBERankStep: QBEStep {
 		let orderSentence: QBESentence
 		if orders.isEmpty {
 			orderSentence = QBESentence(format: NSLocalizedString("[#]", comment: ""),
-			                            QBESentenceFormulaToken(expression: Literal(Value.bool(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
-											self?.orders.append(Order(expression: newExpression, ascending: true, numeric: true))
-										})
+				QBESentenceFormulaToken(expression: Literal(Value.bool(false)), locale: locale, callback: { [weak self] (newExpression) -> () in
+					self?.orders.append(Order(expression: newExpression, ascending: true, numeric: true))
+				})
 			)
 		}
 		else if orders.count == 1 {
 			let order = orders[0]
 			orderSentence = QBESentence(format: NSLocalizedString("[#][#][#]", comment: ""),
-			                            QBESentenceFormulaToken(expression: order.expression ?? Literal(.bool(false)), locale: locale, callback: { (newExpression) -> () in
-											order.expression = newExpression
-										}, contextCallback: self.contextCallbackForFormulaSentence),
-			                            QBESentenceOptionsToken(options: [
-											"numeric": NSLocalizedString("numerically", comment: ""),
-											"alphabetic": NSLocalizedString("alphabetically", comment: "")
-											], value: order.numeric ? "numeric" : "alphabetic", callback: { (newOrder) -> () in
-												order.numeric = (newOrder == "numeric")
-										}),
-			                            QBESentenceOptionsToken(options: [
-											"ascending": NSLocalizedString("ascending", comment: ""),
-											"descending": NSLocalizedString("descending", comment: "")
-											], value: order.ascending ? "ascending" : "descending", callback: { (newOrder) -> () in
-												order.ascending = (newOrder == "ascending")
-										})
+				QBESentenceFormulaToken(expression: order.expression ?? Literal(.bool(false)), locale: locale, callback: { (newExpression) -> () in
+					order.expression = newExpression
+				}, contextCallback: self.contextCallbackForFormulaSentence),
+				QBESentenceOptionsToken(options: [
+					"numeric": NSLocalizedString("numerically", comment: ""),
+					"alphabetic": NSLocalizedString("alphabetically", comment: "")
+					], value: order.numeric ? "numeric" : "alphabetic", callback: { (newOrder) -> () in
+						order.numeric = (newOrder == "numeric")
+				}),
+				QBESentenceOptionsToken(options: [
+					"ascending": NSLocalizedString("ascending", comment: ""),
+					"descending": NSLocalizedString("descending", comment: "")
+					], value: order.ascending ? "ascending" : "descending", callback: { (newOrder) -> () in
+						order.ascending = (newOrder == "ascending")
+				})
 			)
 		}
 		else {
@@ -111,7 +111,12 @@ class QBERankStep: QBEStep {
 				self.aggregator.reduce = .countAll
 			}
 			else {
-				self.aggregator.map = Literal(Value.int(1))
+				if let expr = self.orders.first?.expression {
+					self.aggregator.map = expr
+				}
+				else {
+					self.aggregator.map = Literal(.int(1))
+				}
 				self.aggregator.reduce = .sum
 			}
 		}
