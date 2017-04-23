@@ -92,6 +92,30 @@ open class MutableProxyDataset: MutableDataset {
 	}
 }
 
+/** Proxy mutable data set that blocks edits to certain columns (e.g. those that have been calculated) */
+open class MaskedMutableDataset: MutableProxyDataset {
+	public let deny: Set<Column>
+
+	public init(original: MutableDataset, deny: Set<Column>) {
+		self.deny = deny
+		super.init(original: original)
+	}
+
+	open override func performMutation(_ mutation: DatasetMutation, job: Job, callback: @escaping (Fallible<Void>) -> ()) {
+		switch mutation {
+		case .update(key: _, column: let column, old: _, new: _):
+			if deny.contains(column) {
+				return callback(.failure(String(format: translationForString("The column '%@' is not editable."), column.name)))
+			}
+
+		default:
+			break;
+		}
+
+		super.performMutation(mutation, job: job, callback: callback)
+	}
+}
+
 /** Mapping that defines how source columns are matched to destination columns in an insert operation to a table that 
 already has columns defined. The destination columns are the keys, the source column where that column is filled from is 
 the value (or the empty column name, if we must attempt to insert nil) */

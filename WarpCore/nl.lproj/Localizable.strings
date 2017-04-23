@@ -180,3 +180,4 @@
 "pack to list" = "pakket naar lijst";
 "append list" = "lijst invoegen";
 "append value" = "waarde invoegen";
+"The column '%@' is not editable." = "De kolom '%@' kan niet worden gewijzigd.";
