@@ -198,27 +198,29 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	
 	private func setValue(_ value: Value, inRow: Int, inColumn: Int) {
 		if let r = raster {
-			if inRow < r.rowCount && inColumn < r.columns.count {
-				let oldValue = r[Int(inRow), Int(inColumn)]!
-				if oldValue != value {
-					if let d = delegate {
-						d.dataView(self, didChangeValue: oldValue, toValue: value, inRow: Int(inRow), column: Int(inColumn))
+			r.mutex.locked {
+				if inRow < r.rowCount && inColumn < r.columns.count {
+					let oldValue = r[Int(inRow), Int(inColumn)]!
+					if oldValue != value {
+						if let d = delegate {
+							d.dataView(self, didChangeValue: oldValue, toValue: value, inRow: Int(inRow), column: Int(inColumn))
+						}
 					}
 				}
-			}
-			else if inRow == r.rowCount && inColumn < r.columns.count && !value.isEmpty {
-				// New row
-				self.delegate?.dataView(self, addValue: value, inRow: nil, column: inColumn) { didAddRow in
+				else if inRow == r.rowCount && inColumn < r.columns.count && !value.isEmpty {
+					// New row
+					self.delegate?.dataView(self, addValue: value, inRow: nil, column: inColumn) { didAddRow in
+					}
 				}
-			}
-			else if inRow < r.rowCount && inColumn == r.columns.count && !value.isEmpty {
-				// New column
-				self.delegate?.dataView(self, addValue: value, inRow: inRow, column: nil) { didAddColumn in
+				else if inRow < r.rowCount && inColumn == r.columns.count && !value.isEmpty {
+					// New column
+					self.delegate?.dataView(self, addValue: value, inRow: inRow, column: nil) { didAddColumn in
+					}
 				}
-			}
-			else if inRow == r.rowCount && inColumn == r.columns.count && !value.isEmpty {
-				// New row and column
-				self.delegate?.dataView(self, addValue: value, inRow: nil, column: nil) { didAddColumn in
+				else if inRow == r.rowCount && inColumn == r.columns.count && !value.isEmpty {
+					// New row and column
+					self.delegate?.dataView(self, addValue: value, inRow: nil, column: nil) { didAddColumn in
+					}
 				}
 			}
 		}
@@ -231,15 +233,20 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 
 	func tableGrid(_ aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt, row rowIndex: UInt) -> NSCell! {
 		if let r = raster {
-			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
-				// Template row, return empty string
-				self.valueCell.value = .empty
-				return valueCell
-			}
-			else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
-				let x = r[Int(rowIndex), Int(columnIndex)]!
-				self.valueCell.value = x
-				return self.valueCell
+			return r.mutex.locked { () -> NSCell! in
+				if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
+					// Template row, return empty string
+					self.valueCell.value = .empty
+					return valueCell
+				}
+				else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
+					let x = r[Int(rowIndex), Int(columnIndex)]!
+					self.valueCell.value = x
+					return self.valueCell
+				}
+				else {
+					return nil
+				}
 			}
 		}
 		return nil
@@ -247,7 +254,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 
 	func tableGrid(_ aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> Any? {
 		if let r = raster {
-			r.mutex.locked { () -> Any? in
+			return r.mutex.locked { () -> Any? in
 				if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
 					// Template row, return empty string
 					return ""
@@ -264,7 +271,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 
 	func tableGrid(_ aTableGrid: MBTableGrid!, headerStringForColumn columnIndex: UInt) -> String! {
 		if let r = raster {
-			r.mutex.locked { () -> String in
+			return r.mutex.locked { () -> String in
 				if Int(columnIndex) == raster?.columns.count {
 					// Template column
 					return "+"
