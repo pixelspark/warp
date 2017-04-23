@@ -830,7 +830,10 @@ internal enum QBEEditingMode {
 			// If a formula was typed in, calculate the result first
 			if let f = Formula(formula: value.stringValue ?? "", locale: locale), !(f.root is Literal) && !(f.root is Identity) {
 				let row = inRow == nil ? Row() : editingRaster[inRow!]
-				value = f.root.apply(row, foreign: nil, inputValue: nil)
+				let formulaValue = f.root.apply(row, foreign: nil, inputValue: nil)
+				if !formulaValue.isEmpty && formulaValue.isValid {
+					value = formulaValue
+				}
 			}
 
 			// If we are in editing mode, the new value will actually be added to the source data set.
