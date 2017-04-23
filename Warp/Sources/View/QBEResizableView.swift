@@ -51,7 +51,30 @@ class QBEResizableView: NSView {
 	required init?(coder: NSCoder) {
 		fatalError("Not implemented")
 	}
-	
+
+	override func draw(_ dirtyRect: NSRect) {
+		NSColor.clear.set()
+		NSRectFill(dirtyRect)
+
+		if NSGraphicsContext.currentContextDrawingToScreen() {
+			let inset = self.resizerView.inset
+
+			// Clip to round rect
+			let path = NSBezierPath(roundedRect: self.bounds.inset(inset), xRadius: type(of: self).cornerRadius, yRadius: type(of: self).cornerRadius)
+			path.addClip()
+
+			// Background color
+			NSColor.windowBackgroundColor.set()
+			NSRectFill(self.bounds.inset(inset))
+
+			// Gradient on top
+			let gradientHeight: CGFloat = 30.0
+			let g = NSGradient(starting: NSColor(calibratedWhite: 1.0, alpha: 0.5), ending: NSColor(calibratedWhite: 1.0, alpha: 0.0))
+			let gradientFrame = NSMakeRect(self.bounds.origin.x + inset, self.bounds.origin.y + self.bounds.size.height - gradientHeight - inset, self.bounds.size.width - 2 * inset, gradientHeight)
+			g?.draw(in: gradientFrame, angle: 270.0)
+		}
+	}
+
 	var contentView: NSView? { didSet {
 		oldValue?.removeFromSuperview()
 		
@@ -60,12 +83,18 @@ class QBEResizableView: NSView {
 			c.wantsLayer = true
 			c.layer!.cornerRadius = type(of: self).cornerRadius
 			c.layer!.masksToBounds = true
+			c.translatesAutoresizingMaskIntoConstraints = false
 
-			resizerView.contentView = c
-			c.frame = self.bounds.inset(self.resizerView.inset)
-			c.autoresizingMask = [NSAutoresizingMaskOptions.viewHeightSizable, NSAutoresizingMaskOptions.viewWidthSizable]
 			self.addSubview(c, positioned: NSWindowOrderingMode.below, relativeTo: resizerView)
 			self.addSubview(resizerView, positioned: .above, relativeTo: nil)
+			resizerView.contentView = c
+
+			self.addConstraints([
+				NSLayoutConstraint(item: c, attribute: .top, relatedBy: .equal, toItem: self, attribute: .top, multiplier: 1.0, constant: self.resizerView.inset),
+				NSLayoutConstraint(item: c, attribute: .left, relatedBy: .equal, toItem: self, attribute: .left, multiplier: 1.0, constant: self.resizerView.inset),
+				NSLayoutConstraint(item: c, attribute: .right, relatedBy: .equal, toItem: self, attribute: .right, multiplier: 1.0, constant: -self.resizerView.inset),
+				NSLayoutConstraint(item: c, attribute: .bottom, relatedBy: .equal, toItem: self, attribute: .bottom, multiplier: 1.0, constant: -self.resizerView.inset)
+			])
 		}
 		else {
 			resizerView.contentView = nil
@@ -278,10 +307,6 @@ internal class QBEResizerView: NSView {
 		var sv: NSView? = self
 		while let svx = sv, !(svx is QBEWorkspaceView) {
 			sv = svx.superview
-		}
-		
-		if let workspace = sv as? QBEWorkspaceView {
-			return workspace.magnifiedView == nil
 		}
 		
 		return true

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12118" systemVersion="16E195" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12120" systemVersion="16E195" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaDFRPlugin" version="12062"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12118"/>
-        <plugIn identifier="com.apple.MapKitIBPlugin" version="12118"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12120"/>
+        <plugIn identifier="com.apple.MapKitIBPlugin" version="12120"/>
         <capability name="box content view" minToolsVersion="7.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
         <capability name="the Touch Bar" message="Use a version of macOS with Touch Bar support." minToolsVersion="8.1" minSystemVersion="10.12.1" requiredIntegratedClassName="NSTouchBar"/>
@@ -782,6 +782,15 @@ DQ
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="PYa-SM-ZQg"/>
+                                        <menuItem title="Back to overview" id="oR6-h0-3Ix">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="goBackToWorkspace:" target="Ady-hI-5gd" id="YX7-y0-MkO"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem title="Go to next table" id="iyV-Df-S2D">
                                             <string key="keyEquivalent" base64-UTF8="YES">
 CQ
@@ -800,16 +809,16 @@ GQ
                                                 <action selector="selectPreviousTablet:" target="Ady-hI-5gd" id="aKv-Ft-K9m"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Zoom to all tables" keyEquivalent=" " id="Zqo-PK-tz6">
-                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
-                                            <connections>
-                                                <action selector="zoomToAll:" target="Ady-hI-5gd" id="EF5-h1-lky"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Zoom to selected table" keyEquivalent=" " id="v55-av-755">
+                                        <menuItem title="Zoom in" keyEquivalent=" " id="v55-av-755">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="zoomSelection:" target="Ady-hI-5gd" id="0rI-wd-4pc"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Zoom out" keyEquivalent=" " id="Zqo-PK-tz6">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
+                                            <connections>
+                                                <action selector="zoomToAll:" target="Ady-hI-5gd" id="EF5-h1-lky"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="V8D-ck-WW5"/>
@@ -1668,27 +1677,52 @@ CA
                                         <action selector="toggleFullDataset:" target="6f7-a7-6o1" id="fUS-5g-p9O"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="C0BBED5C-8A5D-46E9-89F2-27F44E59EA83" label="Zoom" paletteLabel="Zoom" id="JIm-dh-FPE" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                <toolbarItem implicitItemIdentifier="7F28C747-8812-44E3-A7D9-17ED6E7CFEE6" label="Back" paletteLabel="Back" image="NSGoLeftTemplate" id="avK-qB-Bip" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
                                     <nil key="toolTip"/>
-                                    <size key="minSize" width="67" height="20"/>
-                                    <size key="maxSize" width="75" height="28"/>
-                                    <segmentedControl key="view" verticalHuggingPriority="750" id="vzD-dy-P39">
-                                        <rect key="frame" x="0.0" y="14" width="67" height="28"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="Xb3-fQ-eY0">
+                                        <rect key="frame" x="0.0" y="14" width="43" height="25"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                        <segmentedCell key="cell" borderStyle="border" alignment="left" style="texturedSquare" trackingMode="momentary" id="3cA-X5-HMI">
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="NSGoLeftTemplate" imagePosition="overlaps" alignment="center" lineBreakMode="truncatingTail" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="oPt-pi-qVi">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
-                                            <segments>
-                                                <segment image="ZoomOutIcon" width="32">
-                                                    <nil key="label"/>
-                                                </segment>
-                                                <segment image="ZoomInIcon" width="32" tag="1">
-                                                    <nil key="label"/>
-                                                </segment>
-                                            </segments>
-                                        </segmentedCell>
-                                    </segmentedControl>
+                                        </buttonCell>
+                                    </button>
                                     <connections>
-                                        <action selector="zoomSegment:" target="6f7-a7-6o1" id="fyI-nI-sgt"/>
+                                        <action selector="goBackToWorkspace:" target="6f7-a7-6o1" id="evu-TA-uZ1"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="3BABDD6C-39F7-499F-AAC1-B77FDA55BA49" label="Zoom in" paletteLabel="Zoom in" image="ZoomInIcon" id="99c-Rz-nEi" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="HMR-jE-8CB">
+                                        <rect key="frame" x="4" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="ZoomInIcon" imagePosition="above" alignment="center" lineBreakMode="truncatingTail" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="U7H-lx-LJJ">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
+                                    <connections>
+                                        <action selector="zoomSelection:" target="6f7-a7-6o1" id="heP-LO-KRa"/>
+                                    </connections>
+                                </toolbarItem>
+                                <toolbarItem implicitItemIdentifier="D35970FF-5EDD-4AF8-B935-F54B370BB2C4" label="Zoom out" paletteLabel="Zoom out" image="ZoomOutIcon" id="NeC-bn-6Bi" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
+                                    <nil key="toolTip"/>
+                                    <size key="minSize" width="43" height="25"/>
+                                    <size key="maxSize" width="45" height="25"/>
+                                    <button key="view" verticalHuggingPriority="750" id="9D1-Ex-JaA">
+                                        <rect key="frame" x="8" y="14" width="43" height="25"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                        <buttonCell key="cell" type="roundTextured" bezelStyle="texturedRounded" image="ZoomOutIcon" imagePosition="above" alignment="center" lineBreakMode="truncatingTail" borderStyle="border" imageScaling="proportionallyUpOrDown" inset="2" id="yM8-aK-ySC">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                    </button>
+                                    <connections>
+                                        <action selector="zoomToAll:" target="6f7-a7-6o1" id="cIs-mC-ZXb"/>
                                     </connections>
                                 </toolbarItem>
                                 <toolbarItem implicitItemIdentifier="93E10375-E66A-4C93-A8A9-2C2F3E0E03EB" label="Stop calculating" paletteLabel="Stop calculating" image="StopIcon" id="dSb-OG-sLN" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
@@ -1856,7 +1890,9 @@ CA
                                 <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="WJY-bU-M3o"/>
                             </allowedToolbarItems>
                             <defaultToolbarItems>
-                                <toolbarItem reference="JIm-dh-FPE"/>
+                                <toolbarItem reference="avK-qB-Bip"/>
+                                <toolbarItem reference="NeC-bn-6Bi"/>
+                                <toolbarItem reference="99c-Rz-nEi"/>
                                 <toolbarItem reference="oul-Vx-PF3"/>
                                 <toolbarItem reference="IjL-nI-Ixx"/>
                                 <toolbarItem reference="dSb-OG-sLN"/>
@@ -1963,14 +1999,14 @@ CA
         <scene sceneID="QgJ-tc-ecA">
             <objects>
                 <viewController storyboardIdentifier="documentController" id="y5B-O8-QaO" customClass="QBEDocumentViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <customView key="view" identifier="documentControllerView" id="MOi-0T-6QH">
+                    <customView key="view" identifier="documentControllerView" wantsLayer="YES" id="MOi-0T-6QH">
                         <rect key="frame" x="0.0" y="0.0" width="700" height="531"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <subviews>
-                            <visualEffectView blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
+                            <visualEffectView wantsLayer="YES" blendingMode="behindWindow" material="appearanceBased" state="active" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
                                 <rect key="frame" x="0.0" y="0.0" width="700" height="531"/>
                                 <subviews>
-                                    <customView translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
+                                    <customView wantsLayer="YES" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
                                         <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OEa-fZ-fMo">
@@ -2020,10 +2056,10 @@ CA
                                             <constraint firstAttribute="centerY" secondItem="OEa-fZ-fMo" secondAttribute="centerY" constant="4" id="v8g-g5-hb7"/>
                                         </constraints>
                                     </customView>
-                                    <customView verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
+                                    <customView verticalHuggingPriority="1000" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="20V-eU-jYi" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="500" width="700" height="31"/>
                                         <subviews>
-                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="1000" verticalHuggingPriority="750" verticalCompressionResistancePriority="1000" placeholderIntrinsicWidth="688" placeholderIntrinsicHeight="23" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
+                                            <containerView canDrawConcurrently="YES" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" verticalCompressionResistancePriority="250" placeholderIntrinsicWidth="688" placeholderIntrinsicHeight="23" translatesAutoresizingMaskIntoConstraints="NO" id="JGk-n3-nvK">
                                                 <rect key="frame" x="4" y="4" width="688" height="23"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="Spn-Np-XcJ"/>
@@ -2036,13 +2072,17 @@ CA
                                         </subviews>
                                         <constraints>
                                             <constraint firstAttribute="trailing" secondItem="JGk-n3-nvK" secondAttribute="trailing" constant="8" id="Cde-rP-Ydl"/>
+                                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="31" id="cFa-aG-ve2"/>
                                             <constraint firstItem="JGk-n3-nvK" firstAttribute="top" secondItem="20V-eU-jYi" secondAttribute="top" constant="4" id="gDJ-kl-0Pc"/>
                                             <constraint firstAttribute="bottom" secondItem="JGk-n3-nvK" secondAttribute="bottom" constant="4" id="lZT-7m-xMo"/>
                                             <constraint firstItem="JGk-n3-nvK" firstAttribute="leading" secondItem="20V-eU-jYi" secondAttribute="leading" constant="4" id="qYv-ch-zwG"/>
                                         </constraints>
                                         <userDefinedRuntimeAttributes>
-                                            <userDefinedRuntimeAttribute type="boolean" keyPath="bottomBorder" value="NO"/>
+                                            <userDefinedRuntimeAttribute type="boolean" keyPath="bottomBorder" value="YES"/>
                                             <userDefinedRuntimeAttribute type="boolean" keyPath="drawBackground" value="NO"/>
+                                            <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                                <color key="value" red="0.74943359375000007" green="0.74943359375000007" blue="0.74943359375000007" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                            </userDefinedRuntimeAttribute>
                                         </userDefinedRuntimeAttributes>
                                     </customView>
                                 </subviews>
@@ -4171,14 +4211,14 @@ DQ
             <objects>
                 <viewController storyboardIdentifier="sentenceController" id="dZx-NB-Ues" customClass="QBESentenceViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" wantsLayer="YES" canDrawConcurrently="YES" verticalCompressionResistancePriority="1000" id="OmE-kA-pRl">
-                        <rect key="frame" x="0.0" y="0.0" width="450" height="30"/>
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="25"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <customView wantsLayer="YES" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="pPD-4A-hSS" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="2" width="413" height="26"/>
+                            <customView wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="pPD-4A-hSS" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="2" width="413" height="21"/>
                                 <subviews>
-                                    <tokenField wantsLayer="YES" focusRingType="none" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" allowsCharacterPickerTouchBarItem="YES" preferredMaxLayoutWidth="399" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi" customClass="QBESentenceTokenField" customModule="Warp" customModuleProvider="target">
-                                        <rect key="frame" x="1" y="9" width="414" height="17"/>
+                                    <tokenField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="1000" allowsCharacterPickerTouchBarItem="YES" preferredMaxLayoutWidth="399" translatesAutoresizingMaskIntoConstraints="NO" id="fpC-FX-udi" customClass="QBESentenceTokenField" customModule="Warp" customModuleProvider="target">
+                                        <rect key="frame" x="1" y="2" width="414" height="19"/>
                                         <constraints>
                                             <constraint firstAttribute="height" relation="lessThanOrEqual" constant="100" id="dZk-vQ-8SK"/>
                                         </constraints>
@@ -4195,7 +4235,7 @@ DQ
                                 </subviews>
                                 <constraints>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="21" id="7O1-Rh-kjl"/>
-                                    <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="fpC-FX-udi" secondAttribute="bottom" id="DCT-3H-PFi"/>
+                                    <constraint firstAttribute="bottom" secondItem="fpC-FX-udi" secondAttribute="bottom" constant="2" id="DCT-3H-PFi"/>
                                     <constraint firstAttribute="trailing" secondItem="fpC-FX-udi" secondAttribute="trailing" id="K0U-Pr-tmE"/>
                                     <constraint firstItem="fpC-FX-udi" firstAttribute="leading" secondItem="pPD-4A-hSS" secondAttribute="leading" constant="3" id="VvO-1w-Oyr"/>
                                     <constraint firstItem="fpC-FX-udi" firstAttribute="top" secondItem="pPD-4A-hSS" secondAttribute="top" id="yF6-w0-sWm"/>
@@ -4213,7 +4253,7 @@ DQ
                                 </userDefinedRuntimeAttributes>
                             </customView>
                             <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CCw-Hx-VEJ">
-                                <rect key="frame" x="418" y="2" width="32" height="28"/>
+                                <rect key="frame" x="418" y="0.0" width="32" height="25"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="32" id="pY0-sW-1qB"/>
                                 </constraints>
@@ -4370,6 +4410,7 @@ DQ
         <image name="ExportIcon" width="102" height="102"/>
         <image name="NSActionTemplate" width="14" height="14"/>
         <image name="NSAddTemplate" width="11" height="11"/>
+        <image name="NSGoLeftTemplate" width="9" height="12"/>
         <image name="NSGoRightTemplate" width="9" height="12"/>
         <image name="NSRemoveTemplate" width="11" height="11"/>
         <image name="NextIconWhite" width="128" height="128"/>
@@ -4383,9 +4424,9 @@ DQ
         <image name="TipIcon" width="64" height="64"/>
         <image name="TrashIcon" width="102" height="102"/>
         <image name="TrashToolIcon" width="64" height="36"/>
-        <image name="ZoomInIcon" width="256" height="256"/>
+        <image name="ZoomInIcon" width="102" height="102"/>
         <image name="ZoomInIconWhite" width="128" height="128"/>
-        <image name="ZoomOutIcon" width="256" height="256"/>
+        <image name="ZoomOutIcon" width="102" height="102"/>
         <image name="ZoomOutIconWhite" width="128" height="128"/>
         <image name="sort-asc" width="8" height="9"/>
     </resources>

@@ -18,6 +18,11 @@ import WarpCore
 }
 
 @objc class QBEDocumentViewController: NSViewController, QBETabletViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
+	private enum State {
+		case workspace
+		case zoomed(controller: NSViewController, source: NSViewController, sourceView: NSView, sourceConstraints: [NSLayoutConstraint])
+	}
+
 	@IBOutlet var addTabletMenu: NSMenu!
 	@IBOutlet var readdMenuItem: NSMenuItem!
 	@IBOutlet var readdTabletMenu: NSMenu!
@@ -26,10 +31,10 @@ import WarpCore
 	@IBOutlet var documentAreaView: NSView!
 
 	@IBOutlet weak var delegate: QBEDocumentViewControllerDelegate? = nil
-
 	private var documentView: QBEDocumentView!
 	private var sentenceEditor: QBESentenceViewController? = nil
-	private var zoomedView: (NSView, CGRect)? = nil
+
+	private var state: State = .workspace
 	
 	var document: QBEDocument? { didSet {
 		self.documentView?.removeAllTablets()
@@ -44,7 +49,141 @@ import WarpCore
 	internal var locale: Language { get {
 		return QBEAppDelegate.sharedInstance.locale ?? Language()
 	} }
-	
+
+	private func zoom(to controller: QBETabletViewController, animated: Bool) {
+		switch self.state {
+		case .workspace:
+			if let resizableController = controller.parent {
+				if self.workspaceView.magnification < 1.0 {
+					if animated {
+						NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+							ac.duration = 0.3
+							self.workspaceView.animator().magnify(toFit: controller.view.superview!.frame)
+						}, completionHandler: nil)
+					}
+					else {
+						self.workspaceView.magnify(toFit: controller.view.superview!.frame)
+					}
+					return
+				}
+
+				let selectedView = controller.view
+				let sourceView = selectedView.superview!
+
+				let savedConstraints = sourceView.constraints.filter { ctr -> Bool in
+					if let fe = ctr.firstItem as? NSView, fe == selectedView {
+						return true
+					}
+
+					if let se = ctr.secondItem as? NSView, se == selectedView {
+						return true
+					}
+
+					return false
+				}
+
+				if animated {
+					let tr = CATransition()
+					tr.duration = 0.3
+					tr.startProgress = 0.0
+					tr.endProgress = 1.0
+					tr.type = kCATransitionFade
+					tr.subtype = kCATransitionFromRight
+					tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+					self.documentAreaView.layer?.add(tr, forKey: kCATransition)
+				}
+
+				controller.removeFromParentViewController()
+				selectedView.removeFromSuperview()
+				selectedView.frame = self.view.bounds
+				self.addChildViewController(controller)
+				self.documentAreaView.addSubview(selectedView)
+
+				self.documentAreaView.addConstraints([
+					NSLayoutConstraint(item: selectedView, attribute: .top, relatedBy: .equal, toItem: self.documentAreaView, attribute: .top, multiplier: 1.0, constant: 0.0),
+					NSLayoutConstraint(item: selectedView, attribute: .bottom, relatedBy: .equal, toItem: self.documentAreaView, attribute: .bottom, multiplier: 1.0, constant: 0.0),
+					NSLayoutConstraint(item: selectedView, attribute: .left, relatedBy: .equal, toItem: self.documentAreaView, attribute: .left, multiplier: 1.0, constant: 0.0),
+					NSLayoutConstraint(item: selectedView, attribute: .right, relatedBy: .equal, toItem: self.documentAreaView, attribute: .right, multiplier: 1.0, constant: 0.0)
+				])
+
+				self.workspaceView.isHidden = true
+				self.documentAreaView.layoutSubtreeIfNeeded()
+
+				self.state = .zoomed(controller: controller, source: resizableController, sourceView: sourceView, sourceConstraints: savedConstraints)
+			}
+
+		case .zoomed(controller: _, source: _, sourceView: _, sourceConstraints: _):
+			// Must zoom out first
+			self.backToWorkspace(animated) {
+				self.zoom(to: controller, animated: animated)
+			}
+			break
+		}
+	}
+
+	@IBAction func zoomSelection(_ sender: NSObject) {
+		if let selectedController = documentView.selectedTabletController {
+			self.zoom(to: selectedController, animated: true)
+		}
+	}
+
+	private func backToWorkspace(_ animated: Bool = true, completion: (() -> ())? = nil) {
+		switch self.state {
+		case .workspace:
+			completion?()
+			return
+
+		case .zoomed(controller: let selectedController, source: let source, sourceView: let sourceView, sourceConstraints: let sourceConstraints):
+			if animated {
+				let tr = CATransition()
+				tr.duration = 0.3
+				tr.startProgress = 0.0
+				tr.endProgress = 1.0
+				tr.type = kCATransitionFade
+				tr.subtype = kCATransitionFromRight
+				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+				self.documentAreaView.layer?.add(tr, forKey: kCATransition)
+			}
+
+			let selectedView = selectedController.view
+			selectedView.removeFromSuperview()
+			selectedController.removeFromParentViewController()
+			source.addChildViewController(selectedController)
+			sourceView.addSubview(selectedView)
+			sourceView.addConstraints(sourceConstraints)
+
+			self.view.layoutSubtreeIfNeeded()
+			self.documentView.resizeDocument()
+			self.workspaceView.isHidden = false
+			self.workspaceView.magnify(toFit: sourceView.frame)
+			self.state = .workspace
+			completion?()
+		}
+	}
+
+	private func zoomToAll(_ animated: Bool = true, completion: (() -> ())? = nil) {
+		switch self.state {
+		case .workspace:
+			// Not zoomed to a single tablet, zoom out to view all
+			if let ab = self.documentView.boundsOfAllTablets {
+				if animated {
+					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
+						ac.duration = 0.3
+						self.workspaceView.animator().magnify(toFit: ab)
+					}, completionHandler: completion)
+				}
+				else {
+					self.workspaceView.magnify(toFit: ab)
+					completion?()
+				}
+			}
+
+		default:
+			completion?()
+			return
+		}
+	}
+
 	func tabletViewDidClose(_ view: QBETabletViewController) -> Bool {
 		if let t = view.tablet {
 			let force = self.view.window?.currentEvent?.modifierFlags.contains(.option) ?? false
@@ -60,9 +199,7 @@ import WarpCore
 	}
 
 	func tabletViewDidChangeContents(_ view: QBETabletViewController) {
-		if workspaceView.magnifiedView == nil {
-			documentView.resizeDocument()
-		}
+		documentView.resizeDocument()
 		documentView.reloadData()
 	}
 	
@@ -70,7 +207,10 @@ import WarpCore
 		if self.documentView.selectedTablet != view.tablet {
 			documentView.selectTablet(view.tablet, notifyDelegate: true)
 		}
-		view.view.superview?.orderFront()
+
+		if case .workspace = self.state {
+			view.view.superview?.orderFront()
+		}
 
 		// Only show this tablet in the sentence editor if it really has become the selected tablet
 		if self.documentView.selectedTablet == view.tablet {
@@ -121,7 +261,7 @@ import WarpCore
 		self.sentenceEditor?.startConfiguring(nil, variant: .read, delegate: nil)
 		documentView.removeTablet(tablet) {
 			assertMainThread()
-			self.workspaceView.magnifyView(nil)
+			self.zoomToAll(true)
 		
 			for cvc in self.childViewControllers {
 				if let child = cvc as? QBEChainViewController {
@@ -188,24 +328,34 @@ import WarpCore
 	}
 	
 	@objc func addTablet(_ tablet: QBETablet, undo: Bool, animated: Bool, callback: ((QBETabletViewController) -> ())? = nil) {
-		self.workspaceView.magnifyView(nil) {
+		if let d = self.document {
 			// Check if this tablet is also in the document
-			if let d = self.document, tablet.document != self.document {
+			if tablet.document != self.document {
 				d.addTablet(tablet)
 			}
-			
+
 			if tablet.frame == nil {
 				tablet.frame = self.defaultTabletFrame
 			}
 
 			let vc = self.viewControllerForTablet(tablet)
 			self.addChildViewController(vc)
-				
+
 			self.documentView.addTablet(vc, animated: animated) {
 				self.documentView.selectTablet(tablet)
 				callback?(vc)
 			}
 			self.updateView()
+
+			// Zoom if first tablet
+			if d.tablets.count == 1 {
+				self.zoom(to: vc, animated: true)
+			}
+			else {
+				self.backToWorkspace(true) {
+					self.workspaceView.magnify(toFit: vc.view.superview!.frame)
+				}
+			}
 		}
 	}
 
@@ -229,27 +379,6 @@ import WarpCore
 		self.documentView.resizeDocument()
 		super.viewWillLayout()
 	}
-	
-	private func zoomToAll(_ animated: Bool = true) {
-		if let ab = documentView.boundsOfAllTablets {
-			if self.workspaceView.magnifiedView != nil {
-				self.workspaceView.magnifyView(nil) {
-					self.documentView.resizeDocument()
-				}
-			}
-			else {
-				if animated {
-					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
-						ac.duration = 0.3
-						self.workspaceView.animator().magnify(toFit: ab)
-					}, completionHandler: nil)
-				}
-				else {
-					self.workspaceView.magnify(toFit: ab)
-				}
-			}
-		}
-	}
 
 	@IBAction func selectPreviousTablet(_ sender: NSObject) {
 		cycleTablets(-1)
@@ -266,13 +395,12 @@ import WarpCore
 				let nextIndex = (index+offset) % d.tablets.count
 				let nextTablet = d.tablets[nextIndex]
 				self.documentView.selectTablet(nextTablet)
-				if let selectedView = documentView.selectedTabletController?.view.superview {
-					if self.workspaceView.magnification != 1.0 {
-						self.workspaceView.zoomView(selectedView)
+				if let selectedController = documentView.selectedTabletController, let selectedView = selectedController.view.superview {
+					if case .zoomed(controller: _, source: _, sourceView: _, sourceConstraints: _) = self.state {
+						self.zoom(to: selectedController, animated: true)
 					}
 					else {
 						self.workspaceView.animator().magnify(toFit: selectedView.frame)
-						//selectedView.scrollRectToVisible(selectedView.bounds)
 					}
 				}
 			}
@@ -287,19 +415,7 @@ import WarpCore
 	}
 
 	@IBAction func zoomToAll(_ sender: NSObject) {
-		zoomToAll()
-	}
-	
-	func documentView(_ view: QBEDocumentView, wantsZoomToView: NSView) {
-		workspaceView.zoomView(wantsZoomToView)
-		documentView.reloadData()
-	}
-	
-	@IBAction func zoomSelection(_ sender: NSObject) {
-		if let selectedView = documentView.selectedTabletController?.view.superview {
-			workspaceView.zoomView(selectedView)
-			documentView.reloadData()
-		}
+		zoomToAll(true, completion: nil)
 	}
 
 	@IBAction func pasteAsPlainText(_ sender: AnyObject) {
@@ -545,6 +661,11 @@ import WarpCore
 	func documentView(_ view: QBEDocumentView, didSelectTablet tablet: QBETablet?) {
 		didSelectTablet(tablet)
 	}
+
+	func documentView(_ view: QBEDocumentView, wantsZoomTo controller: QBETabletViewController) {
+		self.zoom(to: controller, animated: true)
+		documentView.reloadData()
+	}
 	
 	@discardableResult private func addTabletFromURL(_ url: URL, atLocation: CGPoint? = nil) -> QBETablet? {
 		assertMainThread()
@@ -680,13 +801,8 @@ import WarpCore
 		return validateSelector(item.action!)
 	}
 
-	@IBAction func zoomSegment(_ sender: NSSegmentedControl) {
-		if sender.selectedSegment == 0 {
-			self.zoomToAll(sender)
-		}
-		else if sender.selectedSegment == 1 {
-			self.zoomSelection(sender)
-		}
+	@IBAction func goBackToWorkspace(_ sender: Any) {
+		self.backToWorkspace(true, completion: nil)
 	}
 
 	private func validateSelector(_ selector: Selector) -> Bool {
@@ -702,9 +818,30 @@ import WarpCore
 		if selector == #selector(QBEDocumentViewController.addTabletFromMySQL(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromRethinkDB(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromPostgres(_:)) { return true }
-		if selector == #selector(QBEDocumentViewController.zoomSegment(_:)) { return documentView.boundsOfAllTablets != nil }
-		if selector == #selector(QBEDocumentViewController.zoomToAll(_:) as (QBEDocumentViewController) -> (NSObject) -> ()) { return documentView.boundsOfAllTablets != nil }
-		if selector == #selector(QBEDocumentViewController.zoomSelection(_:)) { return documentView.selectedTablet != nil }
+		if selector == #selector(QBEDocumentViewController.zoomSelection(_:)) {
+			switch self.state {
+			case .workspace:
+				return self.documentView.selectedTablet != nil
+			default:
+				return false
+			}
+		}
+		if selector == #selector(QBEDocumentViewController.zoomToAll(_:) as (QBEDocumentViewController) -> (NSObject) -> ()) {
+			switch self.state {
+			case .workspace:
+				return self.documentView.boundsOfAllTablets != nil && self.workspaceView.magnification >= 1.0
+			default:
+				return false
+			}
+		}
+		if selector == #selector(QBEDocumentViewController.goBackToWorkspace(_:) as (QBEDocumentViewController) -> (NSObject) -> ()) {
+			switch self.state {
+			case .workspace:
+				return false
+			default:
+				return true
+			}
+		}
 		if selector == #selector(NSText.delete(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.paste(_:)) {
 			let pboard = NSPasteboard.general()

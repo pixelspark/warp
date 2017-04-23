@@ -15,7 +15,7 @@ import WarpCore
 @objc protocol QBEDocumentViewDelegate: NSObjectProtocol {
 	func documentView(_ view: QBEDocumentView, didSelectTablet: QBETablet?)
 	func documentView(_ view: QBEDocumentView, didSelectArrow: QBETabletArrow?)
-	func documentView(_ view: QBEDocumentView, wantsZoomToView: NSView)
+	func documentView(_ view: QBEDocumentView, wantsZoomTo: QBETabletViewController)
 }
 
 internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDelegate {
@@ -96,7 +96,7 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 	}
 	
 	private func zoomToView(_ view: QBEResizableTabletView) {
-		delegate?.documentView(self, wantsZoomToView: view)
+		delegate?.documentView(self, wantsZoomTo: view.tabletController)
 	}
 	
 	func resizableViewWasSelected(_ view: QBEResizableView) {
@@ -257,124 +257,8 @@ private class QBEResizableTabletView: QBEResizableView {
 }
 
 class QBEScrollView: NSScrollView {
-	private var oldZoomedRect: NSRect? = nil
-	private(set) var magnifiedView: NSView? = nil
-	private var magnificationInProgress = false
-	
-	func zoomView(_ view: NSView, completion: (() -> ())? = nil) {
-		// First just try to magnify to the tablet
-		if self.magnification < 1.0 {
-			NSAnimationContext.runAnimationGroup({ (ac) -> Void in
-				ac.duration = 0.3
-				self.animator().magnify(toFit: view.frame)
-			}, completionHandler: {
-				// If the tablet is too large, we are still zoomed out a bit. Force zoom in by zooming in on a part of the tablet
-				if self.magnification < 1.0 {
-					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
-						ac.duration = 0.3
-						let maxSize = self.bounds
-						let frame = view.frame
-						let zoomedHeight = min(maxSize.size.height, frame.size.height)
-						let zoom = CGRect(x: frame.origin.x, y: frame.origin.y + (frame.size.height - zoomedHeight), width: min(maxSize.size.width, frame.size.width), height: zoomedHeight)
-						self.animator().magnify(toFit: zoom)
-					}, completionHandler: completion)
-				}
-			})
-		}
-		else {
-			self.magnifyView(view, completion: completion)
-		}
-	}
-	
-	func magnifyView(_ view: NSView?, completion: (() -> ())? = nil) {
-		assertMainThread()
-
-		if magnificationInProgress {
-			completion?()
-			return
-		}
-
-		magnificationInProgress = true
-
-		let completer = {() -> () in
-			assertMainThread()
-			self.magnificationInProgress = false
-			completion?()
-		}
-
-		let zoom = {() -> () in
-			if let zv = view {
-				self.magnifiedView = zv
-				self.oldZoomedRect = zv.frame
-				self.hasHorizontalScroller = false
-				self.hasVerticalScroller = false
-				
-				// Approximate the document visible rectangle at magnification 1.0, to smoothen the animation
-				let oldMagnification = self.magnification
-				self.magnification = 1.0
-				let visibleRect = self.documentVisibleRect
-				self.magnification = oldMagnification
-
-				NSAnimationContext.runAnimationGroup({ (ac) -> Void in
-					self.animator().magnification = 1.0
-					ac.duration = 0.3
-					zv.animator().frame = visibleRect
-				}) {
-					// Final adjustment
-					zv.frame = self.documentVisibleRect
-					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
-						ac.duration = 0.1
-						zv.animator().frame = self.documentVisibleRect.inset(-11.0)
-					}, completionHandler: completer)
-				}
-			}
-			else {
-				self.oldZoomedRect = nil
-				self.hasHorizontalScroller = true
-				self.hasVerticalScroller = true
-				
-				if let oldView = self.magnifiedView {
-					self.magnifiedView = nil
-					NSAnimationContext.runAnimationGroup({ (ac) -> Void in
-						ac.duration = 0.3
-						oldView.animator().scrollToVisible(oldView.bounds)
-					}, completionHandler: completer)
-				}
-				else {
-					completer()
-				}
-			}
-		}
-		
-		// Un-zoom the old view (if any)
-		if let old = self.magnifiedView, let oldRect = self.oldZoomedRect {
-			old.autoresizingMask = NSAutoresizingMaskOptions()
-			NSAnimationContext.runAnimationGroup({ (ac) -> Void in
-				ac.duration = 0.3
-				old.animator().frame = oldRect
-			}, completionHandler: zoom)
-			
-		}
-		else {
-			zoom()
-		}
-	}
-	
 	required init?(coder: NSCoder) {
 		super.init(coder: coder)
-	}
-	
-	override func scrollWheel(with theEvent: NSEvent) {
-		if magnifiedView == nil {
-			super.scrollWheel(with: theEvent)
-		}
-		else {
-			self.magnifyView(nil)
-		}
-
-		if theEvent.phase == .ended {
-			self.window?.invalidateCursorRects(for: self)
-		}
 	}
 }
 
