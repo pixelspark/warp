@@ -247,39 +247,52 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 
 	func tableGrid(_ aTableGrid: MBTableGrid!, objectValueForColumn columnIndex: UInt, row rowIndex: UInt) -> Any? {
 		if let r = raster {
-			if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
-				// Template row, return empty string
-				return ""
-			}
-			else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
-				let x = r[Int(rowIndex), Int(columnIndex)]!
-				return self.locale.localStringFor(x)
+			r.mutex.locked { () -> Any? in
+				if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
+					// Template row, return empty string
+					return ""
+				}
+				else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
+					let x = r[Int(rowIndex), Int(columnIndex)]!
+					return self.locale.localStringFor(x)
+				}
+				return nil
 			}
 		}
 		return nil
 	}
 
 	func tableGrid(_ aTableGrid: MBTableGrid!, headerStringForColumn columnIndex: UInt) -> String! {
-		if Int(columnIndex) == raster?.columns.count {
-			// Template column
-			return "+"
+		if let r = raster {
+			r.mutex.locked { () -> String in
+				if Int(columnIndex) == raster?.columns.count {
+					// Template column
+					return "+"
+				}
+				else if let r = raster, Int(columnIndex) >= r.columns.count {
+					// Out of range
+					return ""
+				}
+				else if let r = raster {
+					return r.columns[Int(columnIndex)].name
+				}
+				else {
+					return ""
+				}
+			}
 		}
-		else if let r = raster, Int(columnIndex) >= r.columns.count {
-			// Out of range
-			return ""
-		}
-		else if let r = raster {
-			return r.columns[Int(columnIndex)].name
-		}
-		else {
-			return ""
-		}
+		return ""
 	}
 	
 	func tableGrid(_ aTableGrid: MBTableGrid!, canMoveColumns columnIndexes: IndexSet!, to index: UInt) -> Bool {
 		// Make sure we are not dragging the template column, and not past the template column
-		if let r = raster, !columnIndexes.contains(r.columns.count) && Int(index) < r.columns.count {
-			return true
+		if let r = raster {
+			r.mutex.locked { () -> Bool in
+				if !columnIndexes.contains(r.columns.count) && Int(index) < r.columns.count {
+					return true
+				}
+				return false
+			}
 		}
 		return false
 	}
@@ -290,14 +303,16 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 
 	func tableGrid(_ aTableGrid: MBTableGrid!, moveColumns columnIndexes: IndexSet!, to index: UInt) -> Bool {
 		if let r = raster {
-			var columnsOrdered: OrderedSet<Column> = []
-			for columnIndex in 0..<r.columns.count {
-				if columnIndexes.contains(columnIndex) {
-					columnsOrdered.append(r.columns[columnIndex])
+			r.mutex.locked { () -> Bool in
+				var columnsOrdered: OrderedSet<Column> = []
+				for columnIndex in 0..<r.columns.count {
+					if columnIndexes.contains(columnIndex) {
+						columnsOrdered.append(r.columns[columnIndex])
+					}
 				}
+				
+				return delegate?.dataView(self, didOrderColumns: columnsOrdered, toIndex: Int(index)) ?? false
 			}
-			
-			return delegate?.dataView(self, didOrderColumns: columnsOrdered, toIndex: Int(index)) ?? false
 		}
 
 		return false
@@ -313,12 +328,14 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	
 	func tableGrid(_ aTableGrid: MBTableGrid!, setWidth width: Float, forColumn columnIndex: UInt)  {
 		if let r = raster {
-			if Int(columnIndex) < r.columns.count {
-				let cn = r.columns[Int(columnIndex)]
-				let previousWidth = QBESettings.sharedInstance.defaultWidthForColumn(cn)
-				
-				if width != Float(self.DefaultColumnWidth) || (previousWidth != nil && previousWidth! > 0) {
-					QBESettings.sharedInstance.setDefaultWidth(Double(width), forColumn: cn)
+			r.mutex.locked {
+				if Int(columnIndex) < r.columns.count {
+					let cn = r.columns[Int(columnIndex)]
+					let previousWidth = QBESettings.sharedInstance.defaultWidthForColumn(cn)
+					
+					if width != Float(self.DefaultColumnWidth) || (previousWidth != nil && previousWidth! > 0) {
+						QBESettings.sharedInstance.setDefaultWidth(Double(width), forColumn: cn)
+					}
 				}
 			}
 		}
