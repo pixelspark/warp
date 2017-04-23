@@ -475,7 +475,27 @@ public class Language {
 		
 		return Value.string(value)
 	}
-	
+
+	/** Returns the Value for the given string in the user's locale (like valueForLocalString). However, when the type of
+	the string is ambiguous (e.g. the text can represent text or a date string, for instance) this function will choose
+	depending on the type of the 'affinity' parameter. */
+	public func valueForLocalString(_ value: String, affinity affineValue: Value) -> Value {
+		// Use localValueForString to set the value, but add some affinity to the current data type
+		switch affineValue {
+		case .date(_):
+			// If the current value is a date, the entered value should become a date if it can be parsed as such
+			if let newDate = self.dateFormatter.date(from: value) {
+				return Value.date(newDate.timeIntervalSinceReferenceDate)
+			}
+			else {
+				return Value.string(value)
+			}
+
+		default:
+			return self.valueForLocalString(value)
+		}
+	}
+
 	/** Return the Value for the given string in the user's locale (e.g. as presented and entered in the UI). This is
 	a bit slower than the valueForExchangedString function (NSNumberFormatter.numberFromString is slower but accepts more
 	formats than strtod_l, which is used in our String.toDouble implementation). */

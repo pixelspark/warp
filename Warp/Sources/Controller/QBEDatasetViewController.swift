@@ -227,8 +227,21 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	}
 	
 	func tableGrid(_ aTableGrid: MBTableGrid!, setObjectValue anObject: Any?, forColumn columnIndex: UInt, row rowIndex: UInt) {
-		let valueObject = anObject==nil ? Value.empty : locale.valueForLocalString((anObject! as AnyObject).description)
-		setValue(valueObject, inRow: Int(rowIndex), inColumn: Int(columnIndex))
+		if let r = raster {
+			let currentValue = r.mutex.locked { () -> Value in
+				if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
+					// Template row, return empty string
+					return Value.invalid
+				}
+				else if columnIndex >= 0 && Int(columnIndex) < r.columns.count && rowIndex >= 0 && Int(rowIndex) < r.rowCount {
+					return r[Int(rowIndex), Int(columnIndex)]!
+				}
+				return Value.invalid
+			}
+
+			let valueObject = anObject==nil ? Value.empty : locale.valueForLocalString((anObject! as AnyObject).description, affinity: currentValue)
+			setValue(valueObject, inRow: Int(rowIndex), inColumn: Int(columnIndex))
+		}
 	}
 
 	func tableGrid(_ aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt, row rowIndex: UInt) -> NSCell! {

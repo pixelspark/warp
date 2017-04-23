@@ -478,6 +478,8 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			tokenField.objectValue = []
 			configureButton.isEnabled = false
 		}
+
+		self.updateEditability()
 	}
 
 	@IBAction func tokenFieldTextDidChange(_ sender: NSObject) {
@@ -507,7 +509,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				if let t = k as? QBESentenceToken {
 					sentence.append(t)
 				}
-				if let s = k as? String {
+				else if let s = k as? String {
 					let v = locale.valueForLocalString(s)
 					sentence.append(QBESentenceValueToken(value: v, locale: locale, callback: { (_) -> (Bool) in
 						return false
@@ -519,6 +521,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			}
 
 			fe.setSentence(sentence)
+			self.updateView()
 		}
 	}
 
@@ -537,36 +540,31 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		self.tokenField.invalidateIntrinsicContentSize()
 	}
 
+	private func updateEditability() {
+		let monospace = QBESettings.sharedInstance.monospaceFont
+		let fontSize = NSFont.systemFontSize(for: isFullyEditable ? .small : .regular)
+		self.tokenField.isEditable = isFullyEditable
+		self.tokenField.font = (monospace && isFullyEditable) ? NSFont.userFixedPitchFont(ofSize: fontSize) : NSFont.systemFont(ofSize: fontSize)
+	}
+
 	func startConfiguring(_ configurable: QBEConfigurable?, variant: QBESentenceVariant, delegate: QBESentenceViewDelegate?) {
 		let wasEditable = isFullyEditable
 
 		if configurable == nil || self.editingConfigurable == nil || !self.editingConfigurable!.isEqual(configurable!) {
-			let editable: Bool
-			if let se = configurable as? QBEFullyConfigurable, se.isEditable {
-				editable = true
-			}
-			else {
-				editable = false
-			}
-
 			let tr = CATransition()
 			tr.duration = 0.3
 			tr.type = kCATransitionPush
 			tr.subtype = self.editingConfigurable == nil ? kCATransitionFromTop : kCATransitionFromBottom
 			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
-			if editable && wasEditable {
+			let willBeEditable = (configurable as? QBEFullyConfigurable)?.isEditable ?? false
+			if willBeEditable && wasEditable {
 				self.tokenField.layer?.add(tr, forKey: kCATransition)
 			}
 			else {
 				self.view.layer?.add(tr, forKey: kCATransition)
 			}
 
-			let monospace = QBESettings.sharedInstance.monospaceFont
-			let fontSize = NSFont.systemFontSize(for: editable ? .small : .regular)
-			self.tokenField.isEditable = editable
 			self.tokenField.allowsEditingTextAttributes = false
-			self.tokenField.font = (monospace && editable) ? NSFont.userFixedPitchFont(ofSize: fontSize) : NSFont.systemFont(ofSize: fontSize)
-
 			self.tokenField.tokenizingCharacterSet = CharacterSet()
 
 			let presentAsValue = (configurable is QBEFullyConfigurable)
@@ -575,6 +573,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 			self.editingConfigurable = configurable
 			self.variant = variant
+			updateEditability()
 			updateView()
 		}
 

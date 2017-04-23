@@ -459,3 +459,14 @@
 "Presto error %@: %@" = "Presto-fout %@: %@";
 "no further information" = "geen verdere informatie";
 "Load data from Presto" = "Laad gegevens uit Presto";
+
+"Invalid" = "Ongeldig";
+"Empty" = "Leeg";
+"Text" = "Tekst";
+"Integer" = "Geheel getal";
+"Double" = "Kommagetal";
+"List" = "Lijst";
+"True" = "Waar";
+"False" = "Onwaar";
+"Date" = "Datum";
+"Blob" = "Blob";
