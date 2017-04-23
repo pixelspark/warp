@@ -995,7 +995,10 @@ internal enum QBEEditingMode {
 		if let md = self.currentStep?.mutableDataset, case .editing(identifiers:_, editingRaster: let editingRaster) = self.editingMode {
 			// If a formula was typed in, calculate the result first
 			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale), !(f.root is Literal) && !(f.root is Identity) {
-				toValue = f.root.apply(editingRaster[inRow], foreign: nil, inputValue: oldValue)
+				let formulaResult = f.root.apply(editingRaster[inRow], foreign: nil, inputValue: oldValue)
+				if formulaResult.isValid && !formulaResult.isEmpty {
+					toValue = formulaResult
+				}
 			}
 
 			let job = Job(.userInitiated)
