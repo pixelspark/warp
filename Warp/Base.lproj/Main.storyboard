@@ -2305,7 +2305,7 @@ CA
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <containerView wantsLayer="YES" canDrawConcurrently="YES" focusRingType="none" translatesAutoresizingMaskIntoConstraints="NO" id="mVs-W6-cUa">
-                                <rect key="frame" x="1" y="1" width="1087" height="399"/>
+                                <rect key="frame" x="1" y="0.0" width="1087" height="399"/>
                                 <constraints>
                                     <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="100" id="KeW-J3-VQO"/>
                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="100" id="uiJ-1d-vdA"/>
@@ -2315,49 +2315,67 @@ CA
                                     <segue destination="heg-Gg-TM4" kind="embed" identifier="grid" id="c37-ue-tCc"/>
                                 </connections>
                             </containerView>
-                            <containerView translatesAutoresizingMaskIntoConstraints="NO" id="788-NV-QHP">
-                                <rect key="frame" x="0.0" y="400" width="1032" height="36"/>
+                            <customView translatesAutoresizingMaskIntoConstraints="NO" id="veh-Sr-12h" customClass="QBEBorderedView" customModule="Warp" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="400" width="1089" height="36"/>
+                                <subviews>
+                                    <customView toolTip="Drag this to another table in order to link data" translatesAutoresizingMaskIntoConstraints="NO" id="W1j-vX-x7J" customClass="QBEOutletView" customModule="Warp" customModuleProvider="target">
+                                        <rect key="frame" x="1041" y="9" width="20" height="20"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="20" id="P0Z-T6-ZMi"/>
+                                            <constraint firstAttribute="width" constant="20" id="S7M-TG-H60"/>
+                                        </constraints>
+                                    </customView>
+                                    <button toolTip="Close and remove this card" horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="WZZ-hS-HjA">
+                                        <rect key="frame" x="1066" y="11" width="16" height="16"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="16" id="6B6-wz-kn2"/>
+                                            <constraint firstAttribute="height" constant="16" id="bXD-Sq-a6n"/>
+                                        </constraints>
+                                        <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="CloseIcon" imagePosition="only" alignment="left" imageScaling="proportionallyUpOrDown" id="r6I-th-VLx">
+                                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                            <font key="font" metaFont="system"/>
+                                        </buttonCell>
+                                        <connections>
+                                            <action selector="removeTablet:" target="DXE-ii-MK8" id="O8E-7n-lsI"/>
+                                        </connections>
+                                    </button>
+                                    <containerView translatesAutoresizingMaskIntoConstraints="NO" id="788-NV-QHP">
+                                        <rect key="frame" x="0.0" y="0.0" width="1036" height="36"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="36" id="ZXJ-2N-vw4"/>
+                                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="78" id="nMT-0Q-ueW"/>
+                                        </constraints>
+                                        <connections>
+                                            <segue destination="Ww8-Sq-VTz" kind="embed" identifier="steps" id="Muu-a2-euC"/>
+                                        </connections>
+                                    </containerView>
+                                </subviews>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="36" id="ZXJ-2N-vw4"/>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="78" id="nMT-0Q-ueW"/>
+                                    <constraint firstItem="W1j-vX-x7J" firstAttribute="top" secondItem="veh-Sr-12h" secondAttribute="top" constant="7" id="7kv-VG-G7z"/>
+                                    <constraint firstAttribute="trailing" secondItem="WZZ-hS-HjA" secondAttribute="trailing" constant="7" id="GmV-c4-37v"/>
+                                    <constraint firstItem="788-NV-QHP" firstAttribute="leading" secondItem="veh-Sr-12h" secondAttribute="leading" id="HIM-Te-mYo"/>
+                                    <constraint firstAttribute="bottom" secondItem="788-NV-QHP" secondAttribute="bottom" id="O7h-Vm-MwK"/>
+                                    <constraint firstItem="WZZ-hS-HjA" firstAttribute="top" secondItem="veh-Sr-12h" secondAttribute="top" constant="9" id="dkz-Mh-1Hz"/>
+                                    <constraint firstItem="WZZ-hS-HjA" firstAttribute="leading" secondItem="W1j-vX-x7J" secondAttribute="trailing" constant="5" id="gt9-KT-XLH"/>
+                                    <constraint firstItem="788-NV-QHP" firstAttribute="top" secondItem="veh-Sr-12h" secondAttribute="top" id="kV6-KN-7VV"/>
+                                    <constraint firstItem="W1j-vX-x7J" firstAttribute="leading" secondItem="788-NV-QHP" secondAttribute="trailing" constant="5" id="leO-Bh-vYO"/>
                                 </constraints>
-                                <connections>
-                                    <segue destination="Ww8-Sq-VTz" kind="embed" identifier="steps" id="Muu-a2-euC"/>
-                                </connections>
-                            </containerView>
-                            <button toolTip="Close and remove this card" horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="WZZ-hS-HjA">
-                                <rect key="frame" x="1066" y="411" width="16" height="16"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="16" id="6B6-wz-kn2"/>
-                                    <constraint firstAttribute="height" constant="16" id="bXD-Sq-a6n"/>
-                                </constraints>
-                                <buttonCell key="cell" type="bevel" bezelStyle="regularSquare" image="CloseIcon" imagePosition="only" alignment="left" imageScaling="proportionallyUpOrDown" id="r6I-th-VLx">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="removeTablet:" target="DXE-ii-MK8" id="O8E-7n-lsI"/>
-                                </connections>
-                            </button>
-                            <customView toolTip="Drag this to another table in order to link data" translatesAutoresizingMaskIntoConstraints="NO" id="W1j-vX-x7J" customClass="QBEOutletView" customModule="Warp" customModuleProvider="target">
-                                <rect key="frame" x="1039" y="409" width="20" height="20"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="20" id="P0Z-T6-ZMi"/>
-                                    <constraint firstAttribute="width" constant="20" id="S7M-TG-H60"/>
-                                </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="drawBackground" value="NO"/>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="bottomBorder" value="YES"/>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                        <color key="value" red="0.74943359379999996" green="0.74943359379999996" blue="0.74943359379999996" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
                             </customView>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="W1j-vX-x7J" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" constant="7" id="45H-4F-k2o"/>
-                            <constraint firstAttribute="bottom" secondItem="mVs-W6-cUa" secondAttribute="bottom" constant="1" id="Eaq-X1-yjL"/>
-                            <constraint firstItem="788-NV-QHP" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" id="KUA-gT-h2H"/>
+                            <constraint firstAttribute="bottom" secondItem="mVs-W6-cUa" secondAttribute="bottom" id="Eaq-X1-yjL"/>
                             <constraint firstItem="mVs-W6-cUa" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" constant="1" id="LzO-kr-yAA"/>
-                            <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="788-NV-QHP" secondAttribute="bottom" id="TS1-se-ljc"/>
-                            <constraint firstItem="WZZ-hS-HjA" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" constant="9" id="VEz-5v-Te2"/>
-                            <constraint firstAttribute="trailing" secondItem="WZZ-hS-HjA" secondAttribute="trailing" constant="7" id="WXq-TD-SdR"/>
-                            <constraint firstItem="WZZ-hS-HjA" firstAttribute="leading" secondItem="W1j-vX-x7J" secondAttribute="trailing" constant="7" id="jbY-dq-kaB"/>
-                            <constraint firstItem="W1j-vX-x7J" firstAttribute="leading" secondItem="788-NV-QHP" secondAttribute="trailing" constant="7" id="qYD-4T-w06"/>
-                            <constraint firstItem="788-NV-QHP" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="s3D-J4-XgD"/>
+                            <constraint firstItem="mVs-W6-cUa" firstAttribute="top" secondItem="veh-Sr-12h" secondAttribute="bottom" constant="1" id="Urh-Ir-upE"/>
+                            <constraint firstItem="veh-Sr-12h" firstAttribute="top" secondItem="fdQ-Cz-nnL" secondAttribute="top" id="kW4-0K-Whk"/>
+                            <constraint firstItem="veh-Sr-12h" firstAttribute="leading" secondItem="fdQ-Cz-nnL" secondAttribute="leading" id="kn0-6m-Fek"/>
+                            <constraint firstAttribute="trailing" secondItem="veh-Sr-12h" secondAttribute="trailing" id="sVY-rE-yXO"/>
                             <constraint firstAttribute="trailing" secondItem="mVs-W6-cUa" secondAttribute="trailing" constant="1" id="wGo-B6-Wht"/>
                         </constraints>
                     </view>
