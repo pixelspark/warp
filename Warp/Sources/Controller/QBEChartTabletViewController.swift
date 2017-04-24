@@ -213,8 +213,10 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 
 					let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
 
+					var min = 0.0
 					for (idx, y) in ys.enumerated() {
-						let yse = [BarChartDataEntry(x: 0, y: y)]
+						min = y < min ? y : min
+						let yse = [BarChartDataEntry(x: Double(idx), y: y)]
 						let ds = BarChartDataSet(values: yse, label: xs[idx].stringValue ?? "")
 						ds.drawValuesEnabled = false
 						ds.colors = [colors[idx % colors.count]]
@@ -222,6 +224,13 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 					}
 
 					barChartView.data = data
+					barChartView.xAxis.drawLabelsEnabled = false
+					barChartView.xAxis.drawGridLinesEnabled = false
+					barChartView.rightAxis.drawLabelsEnabled = false
+					barChartView.rightAxis.drawGridLinesEnabled = false
+					barChartView.rightAxis.drawAxisLineEnabled = false 
+					barChartView.leftAxis.axisMinimum = min
+					barChartView.fitBars = true
 					barChartView.gridBackgroundColor = NSUIColor.white
 					barChartView.doubleTapToZoomEnabled = false
 					barChartView.pinchZoomEnabled = false
