@@ -557,4 +557,18 @@ public class Language {
 		line += csvLineSeparator
 		return line
 	}
+
+	/** Given a set of columns, select one that is most likely to be primary key (by name). Returns nil if no column is
+	 deemed more likely to be a primary key than the others. */
+	public func likelyPrimaryKey(columns: OrderedSet<Column>) -> Column? {
+		let names = ["ID", "Key", "Identifier", "PK", "PK_UID", "ROW", "ROWNO", "UUID"].map { Column($0) }
+
+		for name in names {
+			if columns.contains(member: name) {
+				return name
+			}
+		}
+
+		return columns.first
+	}
 }

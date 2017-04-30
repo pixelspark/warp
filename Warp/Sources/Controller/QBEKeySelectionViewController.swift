@@ -23,6 +23,12 @@ class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
 	@IBOutlet private var okButton: NSButton!
 
 	override func viewWillAppear() {
+		if self.keyColumns.isEmpty {
+			if let locale = QBEAppDelegate.sharedInstance.locale, let likely = locale.likelyPrimaryKey(columns: columns) {
+				self.keyColumns = Set<Column>([likely])
+			}
+		}
+
 		self.tableView.reloadData()
 		self.updateView()
 		super.viewWillAppear()
