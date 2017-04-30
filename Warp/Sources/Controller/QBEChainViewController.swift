@@ -1766,38 +1766,92 @@ internal enum QBEEditingMode {
 	}
 	
 	private func selectColumns(_ remove: Bool) {
+		assertMainThread()
 		let job = Job(.userInitiated)
 
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
-			// Get the names of the columns to remove
-			calculator.currentRaster?.get(job) { (raster) -> () in
-				raster.maybe { (r) -> () in
-					var namesToRemove: OrderedSet<Column> = []
-					var namesToSelect: OrderedSet<Column> = []
-					
-					for i in 0..<r.columns.count {
-						if colsToRemove.contains(i) {
-							namesToRemove.append(r.columns[i])
-						}
-						else {
-							namesToSelect.append(r.columns[i])
-						}
-					}
+			switch self.editingMode {
+			case .editing(identifiers: _, editingRaster: let editingRaster):
+				if let md = self.currentStep?.mutableDataset, md.canPerformMutation(.alter) {
+					md.schema(job) { result in
+						switch result {
+						case .success(let schema):
+							let colNamesToRemove = colsToRemove.map { return schema.columns[$0] }
+							var newSchema = schema
+							newSchema.remove(columns: Set(colNamesToRemove))
+							let alterMutation = DatasetMutation.alter(newSchema)
+							md.performMutation(alterMutation, job: job) { result in
+								switch result {
+								case .success():
+									// Mutation has been performed, now replay it on the editing raster
+									RasterMutableDataset(raster: editingRaster).performMutation(alterMutation, job: job) { result in
+										QBEChangeNotification.broadcastChange(self.chain!)
+										asyncMain {
+											self.presentRaster(editingRaster)
+										}
+									}
 
-					asyncMain {
-						var steps: [QBEStep] = []
+								case .failure(let e):
+									asyncMain {
+										let a = NSAlert()
+										a.informativeText = e
+										a.messageText = "The selected action cannot be performed on this data set right now.".localized
+										a.alertStyle = NSAlertStyle.warning
+										if let w = self.view.window {
+											a.beginSheetModal(for: w, completionHandler: nil)
+										}
+									}
+								}
+							}
 
-						if namesToRemove.count > 0 && namesToRemove.count < r.columns.count {
-							steps.append(QBEColumnsStep(previous: self.currentStep, columns: namesToRemove, select: !remove))
+						case .failure(let e):
+							asyncMain {
+								let a = NSAlert()
+								a.informativeText = e
+								a.messageText = "The selected action cannot be performed on this data set right now.".localized
+								a.alertStyle = NSAlertStyle.warning
+								if let w = self.view.window {
+									a.beginSheetModal(for: w, completionHandler: nil)
+								}
+							}
 						}
-
-						if namesToSelect.count > 0 && namesToSelect.count < r.columns.count {
-							steps.append(QBEColumnsStep(previous: self.currentStep, columns: namesToSelect, select: remove))
-						}
-
-						self.suggestSteps(steps)
 					}
 				}
+
+			case .notEditing:
+				// Get the names of the columns to remove
+				calculator.currentRaster?.get(job) { (raster) -> () in
+					raster.maybe { (r) -> () in
+						var namesToRemove: OrderedSet<Column> = []
+						var namesToSelect: OrderedSet<Column> = []
+						
+						for i in 0..<r.columns.count {
+							if colsToRemove.contains(i) {
+								namesToRemove.append(r.columns[i])
+							}
+							else {
+								namesToSelect.append(r.columns[i])
+							}
+						}
+
+						asyncMain {
+							var steps: [QBEStep] = []
+
+							if namesToRemove.count > 0 && namesToRemove.count < r.columns.count {
+								steps.append(QBEColumnsStep(previous: self.currentStep, columns: namesToRemove, select: !remove))
+							}
+
+							if namesToSelect.count > 0 && namesToSelect.count < r.columns.count {
+								steps.append(QBEColumnsStep(previous: self.currentStep, columns: namesToSelect, select: remove))
+							}
+
+							self.suggestSteps(steps)
+						}
+					}
+				}
+
+			case .enablingEditing:
+				return
 			}
 		}
 	}

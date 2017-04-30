@@ -68,6 +68,8 @@ private final class QBEMySQLDialect: StandardSQLDialect {
 	fileprivate override func forceNumericExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS DECIMAL)"
 	}
+
+	override var supportsChangingColumnDefinitionsWithAlter: Bool { return true }
 }
 
 internal final class QBEMySQLResult: Sequence, IteratorProtocol {

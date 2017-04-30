@@ -22,6 +22,7 @@ private class PostgresDialect: StandardSQLDialect {
 	override var identifierQualifierEscape: String { get { return  "\\\"" } }
 
 	override var supportsWindowFunctions: Bool { return true }
+	override var supportsChangingColumnDefinitionsWithAlter: Bool { return true }
 
 	override func literalString(_ string: String) -> String {
 		/* PostgreSQL needs its string literals prefixed with 'E' to make C-style backslash escapes work.
