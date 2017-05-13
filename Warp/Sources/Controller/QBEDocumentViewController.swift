@@ -1025,14 +1025,15 @@ private class QBEDropChainAction: NSObject {
 	}
 
 	@objc func saveToWarehouse(_ sender: NSObject) {
+		let job = Job(.userInitiated)
+
 		let stepTypes = QBEFactory.sharedInstance.dataWarehouseSteps
-		if let s = sender as? NSMenuItem, s.tag >= 0 && s.tag <= stepTypes.count {
+		if let s = sender as? NSMenuItem, s.tag >= 0 && s.tag <= stepTypes.count, let sourceStep = chain.head {
 			let stepType = stepTypes[s.tag]
 
 			let uploadView = self.documentView.storyboard?.instantiateController(withIdentifier: "uploadDataset") as! QBEUploadViewController
 			let targetStep = stepType.init()
-			uploadView.targetStep = targetStep
-			uploadView.sourceStep = chain.head
+
 			uploadView.afterSuccessfulUpload = {
 				// Add the written data as tablet to the document view
 				asyncMain {
@@ -1040,7 +1041,18 @@ private class QBEDropChainAction: NSObject {
 					self.documentView.addTablet(tablet, atLocation: self.location, undo: true)
 				}
 			}
-			self.documentView.presentViewControllerAsSheet(uploadView)
+
+			uploadView.setup(job: job, source: sourceStep, target: targetStep) { result in
+				asyncMain {
+					switch result {
+					case .success():
+						self.documentView.presentViewControllerAsSheet(uploadView)
+
+					case .failure(let e):
+						NSAlert.showSimpleAlert("Cannot upload data".localized, infoText: e, style: .warning, window: self.documentView.view.window)
+					}
+				}
+			}
 		}
 	}
 

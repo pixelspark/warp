@@ -36,6 +36,7 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 	} }
 
 	var currentData: Future<Fallible<Dataset>>? = nil
+	private var mutableData: MutableDataset? = nil
 	var useFullData = false
 
 	override var canBecomeFirstResponder: Bool {
@@ -74,7 +75,7 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 			UIKeyCommand(input: "r", modifierFlags: .command, action: #selector(self.refreshData(_:)), discoverabilityTitle: "Refresh data".localized),
 		]
 
-		if let md = self.currentStep?.mutableDataset {
+		if let md = self.mutableData {
 			if md.canPerformMutation(.delete) {
 				cmds.append(UIKeyCommand(input: "d", modifierFlags: .command, action: #selector(self.deleteRow(_:)), discoverabilityTitle: "Delete row".localized))
 			}
@@ -119,13 +120,24 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		})
 
 		self.dataViewController?.data = nil
+		self.mutableData = nil
 		self.dataViewController?.mutableData = nil
-		currentData?.get(Job(.userInitiated), { (result) in
+		let job = Job(.userInitiated)
+		currentData?.get(job, { (result) in
 			asyncMain {
 				switch result {
 				case .success(let data):
+					if let s = self.currentStep {
+						s.mutableDataset(job) { result in
+							result.maybe { md in
+								asyncMain {
+									self.mutableData = md
+								}
+							}
+						}
+					}
 					self.dataViewController?.data = data
-					self.dataViewController?.mutableData = self.currentStep?.mutableDataset
+
 
 				case .failure(let e):
 					self.dataViewController?.data = StreamDataset(source: ErrorStream(e))
@@ -196,7 +208,7 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		self.fullDataToggle?.image = UIImage(named: self.useFullData ? "BigIcon" : "SmallIcon")
 		self.configureToggle?.isEnabled = self.currentStep is QBEFormConfigurable || self.currentStep is QBEJoinStep
 
-		if let md = self.currentStep?.mutableDataset {
+		if let md = self.mutableData {
 			self.addButton?.isEnabled = md.canPerformMutation(.insert)
 			self.editButton?.isEnabled = md.canPerformMutation(.update)
 			self.deleteButton?.isEnabled = md.canPerformMutation(.delete)

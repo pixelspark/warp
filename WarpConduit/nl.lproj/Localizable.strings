@@ -1,0 +1,11 @@
+"The fingerprint saved for this host does not match the fingerprint provided by the host: %@" = "De vingerafdruk die voor deze host is opgeslagen komt niet overeen met de vingerafdruk die de host nu opgeeft: %@";
+"No host fingerprint was set; please verify that the fingerprint '%@' is correct, and reconnect." = "Er is nog geen vingerafdruk opgeslagen voor deze host; controleer of de vingerafdruk '%@' correct is, en verbind opnieuw.";
+"Could not start SSH session" = "Kon de SSH-sessie niet starten";
+"Password authentication is not supported by the server. It only supports %@." = "Wachtwoordauthenticatie wordt niet ondersteund door deze server. De server ondersteunt alleen %@.";
+"Public key authentication is not supported by the server. It only supports: %@." = "Authenticatie met een publieke sleutel wordt niet ondersteund door deze server. De server ondersteunt alleen %@.";
+"Password authentication failed: %@" = "Wachtwoordauthenticatie mislukt: %@";
+"No key file selected" = "Geen sleutelbestand geselecteerd";
+"Could not obtain supported authentication mechanisms" = "Kon geen lijst ophalen met ondersteunde authenticatiemechanismen";
+"The provided username is not ASCII" = "De opgegeven gebruikersnaam is niet ASCII";
+"Could not obtain host fingerprint" = "Kon de vingerafdruk van de server niet verkrijgen";
+ "SSH handshake failed: %@" = "De SSH-handshake ging mis: %@";

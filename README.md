@@ -81,6 +81,7 @@ Dependencies are fetched automatically as Git submodules. Currently the followin
 * [Rethink.swift](https://github.com/pixelspark/rethink-swift) for connecting to RethinkDB databases
 * Libmysqlclient for accessing MySQL (included for OS X and iOS as binary)
 * Libpq for accessing PostgreSQL (included for OS X and iOS as binary)
+* [Libssh2](https://www.libssh2.org) for SSH tunneling
 
 ### Warp
 * [Charts](https://github.com/danielgindi/Charts) for chart drawing

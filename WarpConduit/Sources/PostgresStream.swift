@@ -667,7 +667,7 @@ public class PostgresDatabase: SQLDatabase {
 		callback(self.connect().use { return $0 })
 	}
 
-	public func connect() -> Fallible<PostgresConnection> {
+	fileprivate func connect() -> Fallible<PostgresConnection> {
 		let userEscaped = self.user.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlUserAllowed)!
 		let passwordEscaped = self.password.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPasswordAllowed)!
 		let hostEscaped = self.host.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlHostAllowed)!

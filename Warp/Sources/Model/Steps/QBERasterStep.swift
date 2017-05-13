@@ -53,7 +53,7 @@ class QBERasterStep: QBEStep {
 		callback(.success(RasterDataset(raster: self.raster).limit(min(maxInputRows, maxOutputRows))))
 	}
 
-	override internal var mutableDataset: MutableDataset? {
-		return RasterMutableDataset(raster: self.raster)
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
+		return callback(.success(RasterMutableDataset(raster: self.raster)))
 	}
 }

@@ -20,6 +20,10 @@ class QBEMySQLSourceStep: QBEStep {
 	var databaseName: String? = nil
 	var port: Int = 3306
 
+	var keyFile: QBEFileReference? = nil
+	let tunnel = SSHTunnel()
+	var tunnelConfiguration = SSHConfiguration()
+
 	var password: QBESecret {
 		return QBESecret(serviceType: "mysql", host: host, port: port, account: user, friendlyName: String(format: NSLocalizedString("User %@ at MySQL server %@ (port %d)", comment: ""), user, host, port))
 	}
@@ -49,6 +53,12 @@ class QBEMySQLSourceStep: QBEStep {
 		self.user = user
 		self.host = host
 		self.port = port
+		self.tunnelConfiguration = (aDecoder.decodeObject(of: [SSHConfiguration.self], forKey: "tunnelConfiguration") as? SSHConfiguration) ?? SSHConfiguration()
+		self.tunnelConfiguration.loadSecretsFromKeychain()
+
+		if let d = aDecoder.decodeObject(forKey: "keyFileBookmark") as? Data {
+			self.keyFile = QBEFileReference.bookmark(d)
+		}
 	}
 
 	required init() {
@@ -62,6 +72,19 @@ class QBEMySQLSourceStep: QBEStep {
 		coder.encode(user, forKey: "user")
 		coder.encode(databaseName, forKey: "database")
 		coder.encode(port, forKey: "port")
+		coder.encode(tunnelConfiguration, forKey: "tunnelConfiguration")
+		coder.encode(self.keyFile?.bookmark, forKey: "keyFileBookmark")
+		self.tunnelConfiguration.saveSecretsToKeychain()
+	}
+
+	override func willSaveToDocument(_ atURL: URL) {
+		self.keyFile = self.tunnelConfiguration.saveKeyFileReference(relativeToDocumentURL: atURL)
+	}
+
+	override func didLoadFromDocument(_ atURL: URL) {
+		if let ref = self.keyFile {
+			self.tunnelConfiguration.loadKeyFileReference(ref, relativeToDocumentURL: atURL)
+		}
 	}
 
 	override func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence {
@@ -73,21 +96,29 @@ class QBEMySQLSourceStep: QBEStep {
 
 		return QBESentence(format: NSLocalizedString(template, comment: ""),
 			QBESentenceDynamicOptionsToken(value: self.tableName ?? "", provider: { (callback) -> () in
-				let d = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
-				switch d.connect() {
-				case .success(let con):
-					con.tables { tablesFallible in
-						switch tablesFallible {
-						case .success(let tables):
-							callback(.success(tables))
+				let j = Job(.userInitiated)
+				self.database(j) { result in
+					switch result {
+					case .success(let d):
+						switch d.connect() {
+						case .success(let con):
+							con.tables { tablesFallible in
+								switch tablesFallible {
+								case .success(let tables):
+									callback(.success(tables))
+
+								case .failure(let e):
+									callback(.failure(e))
+								}
+							}
 
 						case .failure(let e):
 							callback(.failure(e))
 						}
-					}
 
-				case .failure(let e):
-					callback(.failure(e))
+					case .failure(let e):
+						callback(.failure(e))
+					}
 				}
 			}, callback: { (newTable) -> () in
 					self.tableName = newTable
@@ -96,21 +127,28 @@ class QBEMySQLSourceStep: QBEStep {
 			QBESentenceDynamicOptionsToken(value: self.databaseName ?? "", provider: { callback in
 				/* Connect without selecting a default database, because the database currently selected may not exists
 				(and then we get an error, and can't select another database). */
-				let d = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: nil)
-				switch d.connect() {
-				case .success(let con):
-					con.databases { dbFallible in
-						switch dbFallible {
-							case .success(let dbs):
-								callback(.success(dbs))
+				let j = Job(.userInitiated)
+				self.database(j) { result in
+					switch result {
+					case .success(let d):
+						switch d.connect() {
+						case .success(let con):
+							con.databases { dbFallible in
+								switch dbFallible {
+									case .success(let dbs):
+										callback(.success(dbs))
 
-							case .failure(let e):
-								callback(.failure(e))
+									case .failure(let e):
+										callback(.failure(e))
+								}
+							}
+
+						case .failure(let e):
+							callback(.failure(e))
 						}
+					case .failure(let e):
+						callback(.failure(e))
 					}
-
-				case .failure(let e):
-					callback(.failure(e))
 				}
 			}, callback: { (newDatabase) -> () in
 				self.databaseName = newDatabase
@@ -125,37 +163,68 @@ class QBEMySQLSourceStep: QBEStep {
 		return (host == "localhost") ? "127.0.0.1" : host
 	}
 
-	override var mutableDataset: MutableDataset? { get {
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
 		if let tn = self.tableName, !tn.isEmpty {
-			let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
-			return QBEMySQLMutableDataset(database: s, schemaName: nil, tableName: tn)
+			self.database(job) { result in
+				switch result {
+				case .success(let s):
+					return callback(.success(MySQLMutableDataset(database: s, schemaName: nil, tableName: tn)))
+
+				case .failure(let e):
+					return callback(.failure(e))
+				}
+			}
 		}
-		return nil
-	} }
+		else {
+			return callback(.failure("No table selected".localized))
+		}
+	}
 
 	var warehouse: Warehouse? {
-		let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
+		let s = MySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
 		return SQLWarehouse(database: s, schemaName: nil)
 	}
 
-	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
+	private func database(_ job: Job, withoutDatabase: Bool = false, callback: @escaping (Fallible<MySQLDatabase>) -> ()) {
 		job.async {
-			// First check whether the connection details are right
-			let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
-			switch  s.connect() {
-			case .success(_):
-				if let dbn = self.databaseName, !dbn.isEmpty {
-					if let tn = self.tableName, !tn.isEmpty {
-						let md = QBEMySQLDataset.create(s, tableName: tn)
-						callback(md.use { $0.coalesced })
+			// Connect tunnel
+			self.tunnel.connect(job: job, configuration: self.tunnelConfiguration, host: self.hostToConnectTo, port: self.port) { result in
+				switch result {
+				case .success(let addr):
+					// First check whether the connection details are right
+					job.log("MySQL tunneling over \(addr.host):\(addr.port)")
+					let s = MySQLDatabase(host: addr.host, port: addr.port, user: self.user, password: self.password.stringValue ?? "", database: withoutDatabase ? nil : self.databaseName)
+					return callback(.success(s))
+
+				case .failure(let e):
+					return callback(.failure(e))
+				}
+			}
+		}
+	}
+
+	override func fullDataset(_ job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {
+		self.database(job) { result in
+			switch result {
+			case .success(let s):
+				switch  s.connect() {
+				case .success(_):
+					if let dbn = self.databaseName, !dbn.isEmpty {
+						if let tn = self.tableName, !tn.isEmpty {
+							let md = MySQLDataset.create(s, tableName: tn)
+							callback(md.use { $0.coalesced })
+						}
+						else {
+							callback(.failure(NSLocalizedString("Please select a table.", comment: "")))
+						}
 					}
 					else {
-						callback(.failure(NSLocalizedString("Please select a table.", comment: "")))
+						callback(.failure(NSLocalizedString("Please select a database.", comment: "")))
 					}
+				case .failure(let e):
+					callback(.failure(e))
 				}
-				else {
-					callback(.failure(NSLocalizedString("Please select a database.", comment: "")))
-				}
+
 			case .failure(let e):
 				callback(.failure(e))
 			}
@@ -169,33 +238,37 @@ class QBEMySQLSourceStep: QBEStep {
 	}
 
 	override func related(job: Job, callback: @escaping (Fallible<[QBERelatedStep]>) -> ()) {
-		job.async {
-			// First check whether the connection details are right
-			let s = QBEMySQLDatabase(host: self.hostToConnectTo, port: self.port, user: self.user, password: self.password.stringValue ?? "", database: self.databaseName)
-			switch  s.connect() {
-			case .success(let con):
-				if let dbn = self.databaseName, !dbn.isEmpty, let tn = self.tableName, !tn.isEmpty {
-					con.constraints(fromTable: tn, inDatabase: dbn) { result in
-						switch result {
-						case .success(let constraints):
-							let steps = constraints.map { constraint -> QBERelatedStep in
-								let sourceStep = QBEMySQLSourceStep(host: self.host, port: self.port, user: self.user, database: constraint.referencedDatabase, tableName: constraint.referencedTable)
-								let joinExpression = Comparison(first: Sibling(Column(constraint.column)), second: Foreign(Column(constraint.referencedColumn)), type: .equal)
-								return QBERelatedStep.joinable(step: sourceStep, type: .leftJoin, condition: joinExpression)
-							}
-							return callback(.success(steps))
+		self.database(job) { result in
+			switch result {
+			case .success(let s):
+				switch  s.connect() {
+				case .success(let con):
+					if let dbn = self.databaseName, !dbn.isEmpty, let tn = self.tableName, !tn.isEmpty {
+						con.constraints(fromTable: tn, inDatabase: dbn) { result in
+							switch result {
+							case .success(let constraints):
+								let steps = constraints.map { constraint -> QBERelatedStep in
+									let sourceStep = QBEMySQLSourceStep(host: self.host, port: self.port, user: self.user, database: constraint.referencedDatabase, tableName: constraint.referencedTable)
+									let joinExpression = Comparison(first: Sibling(Column(constraint.column)), second: Foreign(Column(constraint.referencedColumn)), type: .equal)
+									return QBERelatedStep.joinable(step: sourceStep, type: .leftJoin, condition: joinExpression)
+								}
+								return callback(.success(steps))
 
-						case .failure(let e):
-							return callback(.failure(e))
+							case .failure(let e):
+								return callback(.failure(e))
+							}
 						}
 					}
-				}
-				else {
-					return callback(.failure("No database or table selected".localized))
+					else {
+						return callback(.failure("No database or table selected".localized))
+					}
+
+				case .failure(let e):
+					return callback(.failure(e))
 				}
 
 			case .failure(let e):
-				return callback(.failure(e))
+				callback(.failure(e))
 			}
 		}
 	}

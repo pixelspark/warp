@@ -74,9 +74,12 @@ class QBECloneStep: QBEStep, NSSecureCoding, QBEChainDependent {
 			callback(.failure(NSLocalizedString("Clone step cannot find the original to clone from.", comment: "")))
 		}
 	}
-
-	override var mutableDataset: MutableDataset? {
-		return self.right?.head?.mutableDataset
+	
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
+		if let p = self.right?.head {
+			return p.mutableDataset(job, callback: callback)
+		}
+		return callback(.failure("This data set cannot be changed.".localized))
 	}
 	
 	override func apply(_ data: Dataset, job: Job, callback: @escaping (Fallible<Dataset>) -> ()) {

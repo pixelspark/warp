@@ -158,11 +158,15 @@ class QBERankStep: QBEStep {
 		callback(.success(data.rank([self.targetColumn: self.aggregator], by: self.orders)))
 	}
 
-	override var mutableDataset: MutableDataset? {
-		// This step just shuffles rows from the previous data set, hence all mutations are supported, except to the calculatd column
-		if let md = self.previous?.mutableDataset {
-			return MaskedMutableDataset(original: md, deny: Set<Column>([self.targetColumn]))
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
+		self.previous?.mutableDataset(job) { result in
+			switch result {
+			case .success(let pmd):
+				return callback(.success(MaskedMutableDataset(original: pmd, deny: Set<Column>([self.targetColumn]))))
+
+			case .failure(let e):
+				return callback(.failure(e))
+			}
 		}
-		return nil
 	}
 }

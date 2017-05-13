@@ -120,9 +120,9 @@ public class QBEStep: NSObject, QBEConfigurable, NSCoding {
 		}
 	}
 
-	public var mutableDataset: MutableDataset? { get {
-		return nil
-	} }
+	public func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
+		return callback(.failure("Not supported".localized))
+	}
 	
 	/** Description returns a locale-dependent explanation of the step. It can (should) depend on the specific
 	configuration of the step. */

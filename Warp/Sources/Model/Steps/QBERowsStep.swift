@@ -144,9 +144,11 @@ class QBEFilterStep: QBEStep {
 		callback(.success(data.filter(condition)))
 	}
 
-	override var mutableDataset: MutableDataset? {
-		// This step just shuffles rows from the previous data set, hence all mutations are supported
-		return self.previous?.mutableDataset
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
+		if let p = self.previous {
+			return p.mutableDataset(job, callback: callback)
+		}
+		return callback(.failure("This data set cannot be changed.".localized))
 	}
 }
 
@@ -293,9 +295,11 @@ class QBEFilterSetStep: QBEStep {
 		}
 	}
 
-	override var mutableDataset: MutableDataset? {
-		// This step just shuffles rows from the previous data set, hence all mutations are supported
-		return self.previous?.mutableDataset
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
+		if let p = self.previous {
+			return p.mutableDataset(job, callback: callback)
+		}
+		return callback(.failure("This data set cannot be changed.".localized))
 	}
 }
 
@@ -345,9 +349,11 @@ class QBELimitStep: QBEStep {
 		return QBEStepMerge.impossible
 	}
 
-	override var mutableDataset: MutableDataset? {
-		// This step just shuffles rows from the previous data set, hence all mutations are supported
-		return self.previous?.mutableDataset
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
+		if let p = self.previous {
+			return p.mutableDataset(job, callback: callback)
+		}
+		return callback(.failure("This data set cannot be changed.".localized))
 	}
 }
 
@@ -389,9 +395,11 @@ class QBEOffsetStep: QBEStep {
 		callback(.success(data.offset(numberOfRows)))
 	}
 
-	override var mutableDataset: MutableDataset? {
-		// This step just shuffles rows from the previous data set, hence all mutations are supported
-		return self.previous?.mutableDataset
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
+		if let p = self.previous {
+			return p.mutableDataset(job, callback: callback)
+		}
+		return callback(.failure("This data set cannot be changed.".localized))
 	}
 }
 
@@ -434,9 +442,11 @@ class QBERandomStep: QBELimitStep {
 		return QBEStepMerge.impossible
 	}
 
-	override var mutableDataset: MutableDataset? {
-		// This step just shuffles rows from the previous data set, hence all mutations are supported
-		return self.previous?.mutableDataset
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
+		if let p = self.previous {
+			return p.mutableDataset(job, callback: callback)
+		}
+		return callback(.failure("This data set cannot be changed.".localized))
 	}
 }
 

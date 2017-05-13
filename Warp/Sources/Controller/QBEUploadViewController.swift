@@ -22,16 +22,37 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 
 	var afterSuccessfulUpload: (() -> ())? = nil
 	var mapping: ColumnMapping? = nil
-	var sourceStep: QBEStep? = nil
+	private var sourceStep: QBEStep? = nil
 	var retryUploadAfterMapping = false
 
-	var targetStep: QBEStep? { didSet {
+	private var targetStep: QBEStep? { didSet {
 		initializeView()
 	} }
 
 	var uploadJob: Job? = nil
 
+	private var targetMutableDataset: MutableDataset? = nil
+
+	public func setup(job: Job, source: QBEStep, target: QBEStep, callback: @escaping (Fallible<Void>) -> ()) {
+		self.sourceStep = source
+		self.targetStep = target
+
+		targetStep?.mutableDataset(job) { result in
+			switch result {
+			case .success(let md):
+				asyncMain {
+					self.targetMutableDataset = md
+					callback(.success())
+				}
+
+			case .failure(let e):
+				callback(.failure(e))
+			}
+		}
+	}
+
 	private func initializeView() {
+		assertMainThread()
 		if let s = targetStep {
 			self.targetSentenceViewController?.startConfiguring(s, variant: .write, delegate: self)
 		}
@@ -53,7 +74,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 	}
 
 	var needsColumnMapping: Bool {
-		if let s = targetStep?.mutableDataset {
+		if let s = targetMutableDataset {
 			return s.warehouse.hasFixedColumns
 		}
 		return false
@@ -90,36 +111,39 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 
 		if self.uploadJob == nil {
 			self.progressBar?.stopAnimation(nil)
-			if let source = sourceStep, let mutableDataset = targetStep?.mutableDataset {
+			if let source = sourceStep {
 				let job = Job(.userInitiated)
-				source.fullDataset(job) { data in
-					switch data {
-					case .success(let fd):
-						// FIXME add mapping (second [:])
-						let mutation = DatasetMutation.import(data: fd, withMapping: [:])
-						self.canPerformUpload = mutableDataset.canPerformMutation(mutation.kind)
-						self.canPerformTruncateBeforeUpload = mutableDataset.canPerformMutation(.truncate)
 
-						// Get the source column names
-						fd.columns(job) { result in
-							switch result {
-							case .success(let columns):
-								/* Put the source table definition on the 'table definition pasteboard'. The 'alter table'
-								view controller will try to read from the pasteboard, and use the column names given there
-								as default table definition when creating a new table. */
-								// TODO: can we get identifier information from the source data set?
-								let def = Schema(columns: columns, identifier: nil)
-								let pb = NSPasteboard(name: def.pasteboardName)
-								pb.setData(NSKeyedArchiver.archivedData(withRootObject: Coded(def)), forType: def.pasteboardName)
+				if let mutableDataset = targetMutableDataset {
+					source.fullDataset(job) { data in
+						switch data {
+						case .success(let fd):
+							// FIXME add mapping (second [:])
+							let mutation = DatasetMutation.import(data: fd, withMapping: [:])
+							self.canPerformUpload = mutableDataset.canPerformMutation(mutation.kind)
+							self.canPerformTruncateBeforeUpload = mutableDataset.canPerformMutation(.truncate)
 
-							case .failure(_):
-								break
+							// Get the source column names
+							fd.columns(job) { result in
+								switch result {
+								case .success(let columns):
+									/* Put the source table definition on the 'table definition pasteboard'. The 'alter table'
+									view controller will try to read from the pasteboard, and use the column names given there
+									as default table definition when creating a new table. */
+									// TODO: can we get identifier information from the source data set?
+									let def = Schema(columns: columns, identifier: nil)
+									let pb = NSPasteboard(name: def.pasteboardName)
+									pb.setData(NSKeyedArchiver.archivedData(withRootObject: Coded(def)), forType: def.pasteboardName)
+
+								case .failure(_):
+									break
+								}
 							}
-						}
 
-					case .failure(_):
-						self.canPerformUpload = false
-						self.canPerformTruncateBeforeUpload = false
+						case .failure(_):
+							self.canPerformUpload = false
+							self.canPerformTruncateBeforeUpload = false
+						}
 					}
 				}
 			}
@@ -278,7 +302,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 		self.retryUploadAfterMapping = andUploadAfterMapping
 
 		// Get source and destination columns
-		if let destination = self.targetStep?.mutableDataset, let source = self.sourceStep {
+		if let destination = self.targetMutableDataset, let source = self.sourceStep {
 			// Fetch destination columns
 			destination.data(job) { result in
 				switch result {
@@ -353,7 +377,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 	}
 
 	var canAlter: Bool {
-		if let md = self.targetStep?.mutableDataset {
+		if let md = self.targetMutableDataset {
 			return md.canPerformMutation(.alter) && md.warehouse.hasFixedColumns
 		}
 		return false
@@ -370,7 +394,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 	private func startUpload() {
 		assert(uploadJob == nil, "Cannot start two uploads at the same time")
 
-		if let source = sourceStep, let mutableDataset = targetStep?.mutableDataset, canPerformUpload {
+		if let source = sourceStep, let mutableDataset = targetMutableDataset, canPerformUpload {
 			let shouldTruncate = self.removeBeforeUpload?.state == NSOnState && self.canPerformTruncateBeforeUpload
 			self.uploadJob = Job(.userInitiated)
 			self.uploadJob!.addObserver(self)

@@ -124,12 +124,24 @@ internal class QBERethinkStepView: QBEConfigurableStepViewControllerFor<QBERethi
 	}
 
 	@IBAction func createTable(_ sender: NSObject) {
-		if let mutableDataset = self.step.mutableDataset {
-			let vc = QBEAlterTableViewController()
-			vc.warehouse = mutableDataset.warehouse
-			vc.delegate = self
-			vc.warehouseName = String(format: NSLocalizedString("RethinkDB database '%@'", comment: ""), self.step.database)
-			self.presentViewControllerAsModalWindow(vc)
+		let job = Job(.userInitiated)
+		self.step.mutableDataset(job) { result in
+			switch result {
+			case .success(let mutableDataset):
+				asyncMain {
+					let vc = QBEAlterTableViewController()
+					vc.warehouse = mutableDataset.warehouse
+					vc.delegate = self
+					vc.warehouseName = String(format: NSLocalizedString("RethinkDB database '%@'", comment: ""), self.step.database)
+					self.presentViewControllerAsModalWindow(vc)
+				}
+
+			case .failure(let e):
+				asyncMain {
+					NSAlert.showSimpleAlert(e, infoText: "The table cannot be created".localized, style: .critical, window: self.view.window)
+				}
+				return
+			}
 		}
 	}
 

@@ -56,6 +56,13 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 			self.presentViewControllerAsModalWindow(vc)
 		}
 	}
+
+	@IBAction func configureSSHTunnel(_ sender: NSObject) {
+		if let controller = QBESSHTunnelViewController(nibName: "QBESSHTunnelViewController", bundle: nil) {
+			controller.configuration = step.tunnelConfiguration
+			self.presentViewControllerAsModalWindow(controller)
+		}
+	}
 	
 	@IBAction func updateStep(_ sender: NSObject) {
 		var changed = false
@@ -116,7 +123,7 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 		self.createTableButton?.isEnabled = false
 
 		checkConnectionJob!.async {
-			let database = QBEMySQLDatabase(host: self.step.hostToConnectTo, port: self.step.port, user: self.step.user, password: self.step.password.stringValue ?? "", database: self.step.databaseName)
+			let database = MySQLDatabase(host: self.step.hostToConnectTo, port: self.step.port, user: self.step.user, password: self.step.password.stringValue ?? "", database: self.step.databaseName)
 			switch database.connect() {
 			case .success(let con):
 				con.serverInformation({ (fallibleInfo) -> () in

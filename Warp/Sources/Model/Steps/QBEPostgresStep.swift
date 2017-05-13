@@ -142,11 +142,11 @@ class QBEPostgresSourceStep: QBEStep {
 		return PostgresDatabase(host: ha, port: port, user: user, password: self.password.stringValue ?? "", database: databaseName)
 	}
 
-	override var mutableDataset: MutableDataset? {
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
 		if let d = self.database, !tableName.isEmpty && !schemaName.isEmpty {
-			return PostgresMutableDataset(database: d, schemaName: schemaName, tableName: tableName)
+			return callback(.success(PostgresMutableDataset(database: d, schemaName: schemaName, tableName: tableName)))
 		}
-		return nil
+		return callback(.failure("No table selected".localized))
 	}
 
 	var warehouse: Warehouse? {
@@ -160,17 +160,19 @@ class QBEPostgresSourceStep: QBEStep {
 		job.async {
 			if let s = self.database {
 				// Check whether the connection details are right
-				switch s.connect() {
-				case .success(_):
-					if !self.tableName.isEmpty {
-						callback(PostgresDataset.create(database: s, tableName: self.tableName, schemaName: self.schemaName).use({ return $0.coalesced }))
-					}
-					else {
-						callback(.failure(NSLocalizedString("No database or table selected", comment: "")))
-					}
+				s.connect { res in
+					switch res {
+					case .success(_):
+						if !self.tableName.isEmpty {
+							callback(PostgresDataset.create(database: s, tableName: self.tableName, schemaName: self.schemaName).use({ return $0.coalesced }))
+						}
+						else {
+							callback(.failure(NSLocalizedString("No database or table selected", comment: "")))
+						}
 
-				case .failure(let e):
-					callback(.failure(e))
+					case .failure(let e):
+						callback(.failure(e))
+					}
 				}
 			}
 			else {

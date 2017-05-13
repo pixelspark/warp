@@ -15,9 +15,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 import Foundation
 import WarpCore
 
-/**
-Implementation of the MySQL 'SQL dialect'. Only deviations from the standard dialect are implemented here. */
-private final class QBEMySQLDialect: StandardSQLDialect {
+/** Implementation of the MySQL 'SQL dialect'. Only deviations from the standard dialect are implemented here. */
+private final class MySQLDialect: StandardSQLDialect {
 	override var identifierQualifier: String { get { return  "`" } }
 	override var identifierQualifierEscape: String { get { return  "\\`" } }
 	private var version: UInt
@@ -72,22 +71,23 @@ private final class QBEMySQLDialect: StandardSQLDialect {
 	override var supportsChangingColumnDefinitionsWithAlter: Bool { return true }
 }
 
-internal final class QBEMySQLResult: Sequence, IteratorProtocol {
+/** A MySQL result set (MYSQL_RES in the API) */
+internal final class MySQLResult: Sequence, IteratorProtocol {
 	typealias Element = Fallible<Tuple>
-	typealias Iterator = QBEMySQLResult
+	typealias Iterator = MySQLResult
 
-	private let connection: QBEMySQLConnection
+	private let connection: MySQLConnection
 	private let result: UnsafeMutablePointer<MYSQL_RES>
 	private(set) var columns: OrderedSet<Column> = []
 	private(set) var columnTypes: [MYSQL_FIELD] = []
 	private(set) var finished = false
 
-	static func create(_ result: UnsafeMutablePointer<MYSQL_RES>, connection: QBEMySQLConnection) -> Fallible<QBEMySQLResult> {
+	static func create(_ result: UnsafeMutablePointer<MYSQL_RES>, connection: MySQLConnection) -> Fallible<MySQLResult> {
 		// Get column names from result set
-		var resultSet: Fallible<QBEMySQLResult> = .failure("Unknown error")
+		var resultSet: Fallible<MySQLResult> = .failure("Unknown error")
 
-		QBEMySQLConnection.sharedClient.queue.sync {
-			let realResult = QBEMySQLResult(result: result, connection: connection)
+		MySQLClient.sharedClient.queue.sync {
+			let realResult = MySQLResult(result: result, connection: connection)
 
 			let colCount = mysql_field_count(connection.connection)
 			for _ in 0..<colCount {
@@ -113,7 +113,7 @@ internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 		return resultSet
 	}
 
-	private init(result: UnsafeMutablePointer<MYSQL_RES>, connection: QBEMySQLConnection) {
+	private init(result: UnsafeMutablePointer<MYSQL_RES>, connection: MySQLConnection) {
 		self.result = result
 		self.connection = connection
 	}
@@ -144,7 +144,7 @@ internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 		_finish(true)
 
 		let result = self.result
-		QBEMySQLConnection.sharedClient.queue.sync {
+		MySQLClient.sharedClient.queue.sync {
 			mysql_free_result(result)
 			return
 		}
@@ -162,7 +162,7 @@ internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 	func row() -> [Value]? {
 		var rowDataset: [Value]? = nil
 
-		QBEMySQLConnection.sharedClient.queue.sync {
+		MySQLClient.sharedClient.queue.sync {
 			if let row = mysql_fetch_row(self.result) {
 				let lengths = mysql_fetch_lengths(self.result)
 				rowDataset = []
@@ -261,13 +261,13 @@ internal final class QBEMySQLResult: Sequence, IteratorProtocol {
 	}
 }
 
-public class QBEMySQLDatabase: SQLDatabase {
+public class MySQLDatabase: SQLDatabase {
 	private let host: String
 	private let port: Int
 	private let user: String
 	private let password: String
 	public let databaseName: String?
-	public var dialect: SQLDialect = QBEMySQLDialect()
+	public var dialect: SQLDialect = MySQLDialect()
 
 	/** When database is nil, the current database will be whatever default database MySQL starts with. */
 	public init(host: String, port: Int, user: String, password: String, database: String? = nil) {
@@ -278,7 +278,7 @@ public class QBEMySQLDatabase: SQLDatabase {
 		self.databaseName = database
 	}
 
-	func isCompatible(_ other: QBEMySQLDatabase) -> Bool {
+	func isCompatible(_ other: MySQLDatabase) -> Bool {
 		return self.host == other.host && self.user == other.user && self.password == other.password && self.port == other.port
 	}
 
@@ -286,10 +286,10 @@ public class QBEMySQLDatabase: SQLDatabase {
 		callback(self.connect().use { return $0 })
 	}
 
-	public func connect() -> Fallible<QBEMySQLConnection> {
+	public func connect() -> Fallible<MySQLConnection> {
 		guard let mysql = mysql_init(nil) else { return .failure("Could not initialize MySQL") }
 
-		let connection = QBEMySQLConnection(database: self, connection: mysql)
+		let connection = MySQLConnection(database: self, connection: mysql)
 
 		if !connection.perform({ () -> Int32 in
 			mysql_real_connect(connection.connection,
@@ -313,7 +313,7 @@ public class QBEMySQLDatabase: SQLDatabase {
 			return 0
 		}
 
-		self.dialect = QBEMySQLDialect(version: version)
+		self.dialect = MySQLDialect(version: version)
 
 		// Select database
 		if let dbn = databaseName, let dbc = dbn.cString(using: String.Encoding.utf8), !dbn.isEmpty {
@@ -340,7 +340,7 @@ public class QBEMySQLDatabase: SQLDatabase {
 	}
 
 	public func dataForTable(_ table: String, schema: String?, job: Job, callback: (Fallible<Dataset>) -> ()) {
-		switch QBEMySQLDataset.create(self, tableName: table) {
+		switch MySQLDataset.create(self, tableName: table) {
 		case .success(let md):
 			callback(.success(md))
 		case .failure(let e):
@@ -349,14 +349,25 @@ public class QBEMySQLDatabase: SQLDatabase {
 	}
 }
 
-private class QBEMySQLClient {
-	let queue: DispatchQueue
+/** Instantiates the MySQL client library. Note that when the library indicates it is threadsafe, we use a concurrent
+queue to execute operations, whereas otherwise the queue will be serial. With a serial queue, operations like connecting
+may take a long time and stall other operations. Note that we also maintain a per-connection serial queue, which targets
+the client queue. */
+fileprivate class MySQLClient {
+	fileprivate static var sharedClient = MySQLClient()
+	fileprivate let queue: DispatchQueue
 
-	init() {
+	fileprivate init() {
 		/* Mysql_library_init is what we should call, but as it is #defined to mysql_server_init, Swift doesn't see it.
 		So we just call mysql_server_int. */
 		if mysql_server_init(0, nil, nil) == 0 {
-			queue = DispatchQueue(label: "QBEMySQLConnection.Queue")
+			if mysql_thread_safe() == 1 {
+				queue = DispatchQueue(label: "MySQLConnection.Queue", qos: .default, attributes: [.concurrent], autoreleaseFrequency: .inherit, target: nil)
+			}
+			else {
+				trace("MySQL library is *NOT* thread safe, serializing all operations")
+				queue = DispatchQueue(label: "MySQLConnection.Queue")
+			}
 		}
 		else {
 			fatalError("Error initializing MySQL library")
@@ -364,7 +375,7 @@ private class QBEMySQLClient {
 	}
 }
 
-public struct QBEMySQLConstraint {
+public struct MySQLConstraint {
 	public let name: String
 
 	public let database: String
@@ -376,23 +387,24 @@ public struct QBEMySQLConstraint {
 	public let referencedColumn: String
 }
 
-/**
-Implements a connection to a MySQL database (corresponding to a MYSQL object in the MySQL library). The connection ensures
-that any operations are serialized (for now using a global queue for all MySQL operations). */
-public class QBEMySQLConnection: SQLConnection {
-	fileprivate static var sharedClient = QBEMySQLClient()
-	fileprivate(set) var database: QBEMySQLDatabase
-	fileprivate var connection: UnsafeMutablePointer<MYSQL>?
-	fileprivate(set) weak var result: QBEMySQLResult?
+/** Implements a connection to a MySQL database (corresponding to a MYSQL object in the MySQL library). The connection 
+ensures that any operations are serialized (for now using a global queue for all MySQL operations). */
+public class MySQLConnection: SQLConnection {
 
-	fileprivate init(database: QBEMySQLDatabase, connection: UnsafeMutablePointer<MYSQL>) {
+	fileprivate(set) var database: MySQLDatabase
+	fileprivate var connection: UnsafeMutablePointer<MYSQL>?
+	fileprivate(set) weak var result: MySQLResult?
+	fileprivate let queue: DispatchQueue
+
+	fileprivate init(database: MySQLDatabase, connection: UnsafeMutablePointer<MYSQL>) {
 		self.database = database
 		self.connection = connection
+		self.queue = DispatchQueue(label: "MySQLConnection", qos: .default, attributes: [], autoreleaseFrequency: .inherit, target: MySQLClient.sharedClient.queue)
 	}
 
 	deinit {
 		if connection != nil {
-			QBEMySQLConnection.sharedClient.queue.sync {
+			self.queue.sync {
 				mysql_close(self.connection)
 			}
 		}
@@ -413,7 +425,7 @@ public class QBEMySQLConnection: SQLConnection {
 		callback(.success())
 	}
 
-	func clone() -> Fallible<QBEMySQLConnection> {
+	func clone() -> Fallible<MySQLConnection> {
 		return self.database.connect()
 	}
 
@@ -473,13 +485,13 @@ public class QBEMySQLConnection: SQLConnection {
 		}
 	}
 
-	public func constraints(fromTable tableName: String, inDatabase databaseName: String, callback: (Fallible<[QBEMySQLConstraint]>) -> ()) {
+	public func constraints(fromTable tableName: String, inDatabase databaseName: String, callback: (Fallible<[MySQLConstraint]>) -> ()) {
 		let dbn = self.database.dialect.expressionToSQL(Literal(Value(databaseName)), alias: "", foreignAlias: nil, inputValue: nil)!
 		let tbn = self.database.dialect.expressionToSQL(Literal(Value(tableName)), alias: "", foreignAlias: nil, inputValue: nil)!
 
 		switch self.query("SELECT constraint_name, table_schema, table_name, column_name, referenced_table_schema, referenced_table_name, referenced_column_name FROM information_schema.key_column_usage WHERE table_schema=\(dbn) AND table_name=\(tbn) AND referenced_column_name IS NOT NULL") {
 		case .success(let result):
-			var constraints: [QBEMySQLConstraint] = []
+			var constraints: [MySQLConstraint] = []
 			while let d = result?.row() {
 				if	let constraintName = d[0].stringValue,
 					let tableSchema = d[1].stringValue,
@@ -488,7 +500,7 @@ public class QBEMySQLConnection: SQLConnection {
 					let referencedTableSchema = d[4].stringValue,
 					let referencedTableName = d[5].stringValue,
 					let referencedColumnName = d[6].stringValue {
-					constraints.append(QBEMySQLConstraint(
+					constraints.append(MySQLConstraint(
 						name: constraintName,
 						database: tableSchema, table: tableName, column: columnName,
 						referencedDatabase: referencedTableSchema, referencedTable: referencedTableName, referencedColumn: referencedColumnName
@@ -504,7 +516,7 @@ public class QBEMySQLConnection: SQLConnection {
 
 	fileprivate func perform(_ block: () -> (Int32)) -> Bool {
 		var success: Bool = false
-		QBEMySQLConnection.sharedClient.queue.sync {
+		self.queue.sync {
 			let result = block()
 			if result != 0 {
 				let message = String(cString: mysql_error(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
@@ -526,8 +538,8 @@ public class QBEMySQLConnection: SQLConnection {
 		return mysql_errno(self.connection) != 0
 	}
 
-	/** Returns the result as QBEMySQLResult. This is nil for queries that do not return a result (e.g. UPDATE, SET, etc.). */
-	func query(_ sql: String) -> Fallible<QBEMySQLResult?> {
+	/** Returns the result as MySQLResult. This is nil for queries that do not return a result (e.g. UPDATE, SET, etc.). */
+	func query(_ sql: String) -> Fallible<MySQLResult?> {
 		if self.result != nil && !self.result!.finished {
 			fatalError("Cannot start a query when the previous result is not finished yet")
 		}
@@ -539,7 +551,7 @@ public class QBEMySQLConnection: SQLConnection {
 
 		if self.perform({return mysql_query(self.connection, sql.cString(using: String.Encoding.utf8)!)}) {
 			if let r = mysql_use_result(self.connection) {
-				let result = QBEMySQLResult.create(r, connection: self)
+				let result = MySQLResult.create(r, connection: self)
 				return result.use({self.result = $0; return .success($0)})
 			}
 			else {
@@ -556,10 +568,10 @@ public class QBEMySQLConnection: SQLConnection {
 }
 
 /** Represents the result of a MySQL query as a Dataset object. */
-public final class QBEMySQLDataset: SQLDataset {
-	private let database: QBEMySQLDatabase
+public final class MySQLDataset: SQLDataset {
+	private let database: MySQLDatabase
 
-	public static func create(_ database: QBEMySQLDatabase, tableName: String) -> Fallible<QBEMySQLDataset> {
+	public static func create(_ database: MySQLDatabase, tableName: String) -> Fallible<MySQLDataset> {
 		let query = "SELECT * FROM \(database.dialect.tableIdentifier(tableName, schema: nil, database: database.databaseName)) LIMIT 1"
 
 		let fallibleConnection = database.connect()
@@ -571,7 +583,7 @@ public final class QBEMySQLDataset: SQLDataset {
 			case .success(let result):
 				if let result = result {
 					result.finish() // We're not interested in that one row we just requested, just the column names
-					return .success(QBEMySQLDataset(database: database, table: tableName, columns: result.columns))
+					return .success(MySQLDataset(database: database, table: tableName, columns: result.columns))
 				}
 				return .failure("no result returned, but also no error")
 
@@ -584,30 +596,30 @@ public final class QBEMySQLDataset: SQLDataset {
 		}
 	}
 
-	fileprivate init(database: QBEMySQLDatabase, fragment: SQLFragment, columns: OrderedSet<Column>) {
+	fileprivate init(database: MySQLDatabase, fragment: SQLFragment, columns: OrderedSet<Column>) {
 		self.database = database
 		super.init(fragment: fragment, columns: columns)
 	}
 
-	fileprivate init(database: QBEMySQLDatabase, table: String, columns: OrderedSet<Column>) {
+	fileprivate init(database: MySQLDatabase, table: String, columns: OrderedSet<Column>) {
 		self.database = database
 		super.init(table: table, schema: nil, database: database.databaseName!, dialect: database.dialect, columns: columns)
 	}
 
 	override public func apply(_ fragment: SQLFragment, resultingColumns: OrderedSet<Column>) -> Dataset {
-		return QBEMySQLDataset(database: self.database, fragment: fragment, columns: resultingColumns)
+		return MySQLDataset(database: self.database, fragment: fragment, columns: resultingColumns)
 	}
 
 	override public func stream() -> WarpCore.Stream {
-		return QBEMySQLStream(data: self)
+		return MySQLStream(data: self)
 	}
 
-	fileprivate func result() -> Fallible<QBEMySQLResult?> {
+	fileprivate func result() -> Fallible<MySQLResult?> {
 		return self.database.connect().use { $0.query(self.sql.sqlSelect(nil).sql) }
 	}
 
 	override public func isCompatibleWith(_ other: SQLDataset) -> Bool {
-		if let om = other as? QBEMySQLDataset {
+		if let om = other as? MySQLDataset {
 			if self.database.isCompatible(om.database) {
 				return true
 			}
@@ -617,26 +629,26 @@ public final class QBEMySQLDataset: SQLDataset {
 }
 
 /**
-QBEMySQLStream provides a stream of records from a MySQL result set. Because SQLite result can only be accessed once
+MySQLStream provides a stream of records from a MySQL result set. Because SQLite result can only be accessed once
 sequentially, cloning of this stream requires re-executing the query. */
-private final class QBEMySQLResultStream: SequenceStream {
-	init(result: QBEMySQLResult) {
+private final class MySQLResultStream: SequenceStream {
+	init(result: MySQLResult) {
 		super.init(AnySequence<Fallible<Tuple>>(result), columns: result.columns)
 	}
 
 	override func clone() -> WarpCore.Stream {
-		fatalError("QBEMySQLResultStream cannot be cloned, because a result cannot be iterated multiple times. Clone QBEMySQLStream instead")
+		fatalError("MySQLResultStream cannot be cloned, because a result cannot be iterated multiple times. Clone MySQLStream instead")
 	}
 }
 
 /**
 Stream that lazily queries and streams results from a MySQL query. */
-public final class QBEMySQLStream: WarpCore.Stream {
+public final class MySQLStream: WarpCore.Stream {
 	private var resultStream: WarpCore.Stream?
-	private let data: QBEMySQLDataset
+	private let data: MySQLDataset
 	private let mutex = Mutex()
 
-	init(data: QBEMySQLDataset) {
+	init(data: MySQLDataset) {
 		self.data = data
 	}
 
@@ -646,7 +658,7 @@ public final class QBEMySQLStream: WarpCore.Stream {
 				switch data.result() {
 				case .success(let result):
 					if let result = result {
-						resultStream = QBEMySQLResultStream(result: result)
+						resultStream = MySQLResultStream(result: result)
 					}
 					else {
 						resultStream = ErrorStream("no result received, but also not an error")
@@ -670,13 +682,13 @@ public final class QBEMySQLStream: WarpCore.Stream {
 	}
 
 	public func clone() -> WarpCore.Stream {
-		return QBEMySQLStream(data: data)
+		return MySQLStream(data: data)
 	}
 }
 
-public class QBEMySQLMutableDataset: SQLMutableDataset {
+public class MySQLMutableDataset: SQLMutableDataset {
 	override public func identifier(_ job: Job, callback: @escaping (Fallible<Set<Column>?>) -> ()) {
-		let db = self.database as! QBEMySQLDatabase
+		let db = self.database as! MySQLDatabase
 		switch db.connect() {
 		case .success(let connection):
 			let dbn = self.database.dialect.expressionToSQL(Literal(Value(self.database.databaseName ?? "")), alias: "", foreignAlias: nil, inputValue: nil)!

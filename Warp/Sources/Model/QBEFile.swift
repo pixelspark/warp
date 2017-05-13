@@ -12,6 +12,22 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import Foundation
 import WarpCore
 
+public class QBEFileAccess {
+	private let URL: URL
+
+	fileprivate init(_ URL: URL) {
+		self.URL = URL
+		if !URL.startAccessingSecurityScopedResource() {
+			trace("startAccessingSecurityScopedResource failed for \(URL)")
+		}
+	}
+
+	deinit {
+		trace("stopAccessingSecurityScopedResource for \(URL)")
+		URL.stopAccessingSecurityScopedResource()
+	}
+}
+
 /** QBEFileReference is the class to be used by steps that need to reference auxiliary files. It employs Apple's App
 Sandbox API to create 'secure bookmarks' to these files, so that they can be referenced when opening the Warp document
 again later. Steps should call bookmark() on all their references from the willSavetoDocument method, and call resolve()
@@ -22,7 +38,7 @@ On non-sandbox builds, QBEFileReference will not be able to resolve bookmarks to
 (which will allow regular unlimited access). */
 public enum QBEFileReference: Equatable {
 	case bookmark(Data)
-	case resolvedBookmark(Data, URL)
+	case resolvedBookmark(Data, URL, QBEFileAccess)
 	case absolute(URL?)
 
 	public static func create(_ url: URL?, _ bookmark: Data?) -> QBEFileReference? {
@@ -39,7 +55,7 @@ public enum QBEFileReference: Equatable {
 				return QBEFileReference.bookmark(bookmark!)
 			}
 			else {
-				return QBEFileReference.resolvedBookmark(bookmark!, url!)
+				return QBEFileReference.resolvedBookmark(bookmark!, url!, QBEFileAccess(url!))
 			}
 		}
 	}
@@ -71,7 +87,7 @@ public enum QBEFileReference: Equatable {
 							if stale {
 								trace("Just-created URL bookmark is already stale! \(resolved)")
 							}
-							return QBEFileReference.resolvedBookmark(bookmark, resolved)
+							return QBEFileReference.resolvedBookmark(bookmark, resolved, QBEFileAccess(resolved))
 						}
 					}
 					catch let error as NSError {
@@ -88,7 +104,7 @@ public enum QBEFileReference: Equatable {
 		case .bookmark(_):
 			return self
 
-		case .resolvedBookmark(_,_):
+		case .resolvedBookmark(_,_,_):
 			return self
 		}
 	}
@@ -98,7 +114,7 @@ public enum QBEFileReference: Equatable {
 		case .absolute(_):
 			return self
 
-		case .resolvedBookmark(let b, let oldURL):
+		case .resolvedBookmark(let b, let oldURL, _):
 			do {
 				var stale = false
 				#if os(macOS)
@@ -115,11 +131,11 @@ public enum QBEFileReference: Equatable {
 				}
 
 				if let u = u {
-					return QBEFileReference.resolvedBookmark(b, u)
+					return QBEFileReference.resolvedBookmark(b, u, QBEFileAccess(u))
 				}
 
 				// Resolving failed, but maybe the old URL still works
-				return QBEFileReference.resolvedBookmark(b, oldURL)
+				return QBEFileReference.resolvedBookmark(b, oldURL, QBEFileAccess(oldURL))
 			}
 			catch let error as NSError {
 				trace("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(String(describing: relativeToDocument)): \(error)")
@@ -145,7 +161,7 @@ public enum QBEFileReference: Equatable {
 				}
 
 				if let u = u {
-					return QBEFileReference.resolvedBookmark(b, u)
+					return QBEFileReference.resolvedBookmark(b, u, QBEFileAccess(u))
 				}
 				return QBEFileReference.bookmark(b)
 			}
@@ -158,7 +174,7 @@ public enum QBEFileReference: Equatable {
 
 	public var bookmark: Data? {
 		switch self {
-		case .resolvedBookmark(let d, _): return d
+		case .resolvedBookmark(let d, _, _): return d
 		case .bookmark(let d): return d
 		default: return nil
 		}
@@ -167,7 +183,7 @@ public enum QBEFileReference: Equatable {
 	public var url: URL? {
 		switch self {
 		case .absolute(let u): return u
-		case .resolvedBookmark(_, let u): return u
+		case .resolvedBookmark(_, let u, _): return u
 		default: return nil
 		}
 	}

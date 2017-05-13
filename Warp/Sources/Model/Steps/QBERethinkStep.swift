@@ -204,10 +204,10 @@ class QBERethinkSourceStep: QBEStep {
 		)
 	}
 
-	override var mutableDataset: MutableDataset? {
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
 		if let u = self.url, !self.table.isEmpty {
-			return RethinkMutableDataset(url: u, databaseName: self.database, tableName: self.table)
+			return callback(.success(RethinkMutableDataset(url: u, databaseName: self.database, tableName: self.table)))
 		}
-		return nil
+		return callback(.failure("No database selected".localized))
 	}
 }

@@ -261,16 +261,40 @@ internal enum QBEEditingMode {
 
 
 			@objc func uploadDataset(_ sender: AnyObject) {
-				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep, let destMutable = destStep.mutableDataset, destMutable.canPerformMutation(.import) {
-					let uploadView = self.view.storyboard?.instantiateController(withIdentifier: "uploadDataset") as! QBEUploadViewController
-					uploadView.sourceStep = sourceStep
-					uploadView.targetStep = destStep
-					uploadView.afterSuccessfulUpload = {
-						asyncMain {
-							self.view.calculate()
+				let job = Job(.userInitiated)
+
+				if let sourceStep = self.otherChain.head, let destStep = self.view.currentStep {
+					destStep.mutableDataset(job) { result in
+						switch result {
+						case .success(let destMutable):
+							if destMutable.canPerformMutation(.import) {
+								asyncMain {
+									let uploadView = self.view.storyboard?.instantiateController(withIdentifier: "uploadDataset") as! QBEUploadViewController
+
+									uploadView.afterSuccessfulUpload = {
+										asyncMain {
+											self.view.calculate()
+										}
+									}
+
+									uploadView.setup(job: job, source: sourceStep, target: destStep) { result in
+										switch result {
+										case .success():
+											asyncMain {
+												self.view.presentViewControllerAsSheet(uploadView)
+											}
+
+										case .failure(_):
+											break
+										}
+									}
+								}
+							}
+
+						case .failure(_):
+							break
 						}
 					}
-					self.view.presentViewControllerAsSheet(uploadView)
 				}
 			}
 
@@ -353,11 +377,24 @@ internal enum QBEEditingMode {
 				unionItem.target = self
 				dropMenu.addItem(unionItem)
 
-				if let destStep = self.view.currentStep, let destMutable = destStep.mutableDataset, destMutable.canPerformMutation(.import) {
-					dropMenu.addItem(NSMenuItem.separator())
-					let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .write).stringValue + "...", action: #selector(QBEDropChainAction.uploadDataset(_:)), keyEquivalent: "")
-					createItem.target = self
-					dropMenu.addItem(createItem)
+				// The menu item 'import data'  will appear asynchronously
+				if let destStep = self.view.currentStep {
+					let job = Job(.background)
+					destStep.mutableDataset(job) { result in
+						switch result {
+						case .success(let destMutable):
+							if destMutable.canPerformMutation(.import) {
+								asyncMain {
+									dropMenu.addItem(NSMenuItem.separator())
+									let createItem = NSMenuItem(title: destStep.sentence(self.view.locale, variant: .write).stringValue + "...", action: #selector(QBEDropChainAction.uploadDataset(_:)), keyEquivalent: "")
+									createItem.target = self
+									dropMenu.addItem(createItem)
+								}
+							}
+						case .failure(_):
+							break
+						}
+					}
 				}
 
 				NSMenu.popUpContextMenu(dropMenu, with: NSApplication.shared().currentEvent!, for: self.view.view)
@@ -837,97 +874,102 @@ internal enum QBEEditingMode {
 			}
 
 			// If we are in editing mode, the new value will actually be added to the source data set.
-			if let md = self.currentStep?.mutableDataset {
-				/* Check to see if we are adding a new column. Note that we're using the editing raster here. Previously,
-				the mutable data set would be queried for its columns here. This however provides isues with databases 
-				that do not have fixed column sets (e.g. NoSQL databases): after adding a column, the set of columns would
-				still be empty, and cause another 'add column' mutation to be performed, resulting in an infinite loop. */
-				if let cn = column, cn >= 0 && cn < editingRaster.columns.count {
-					// Column exists, just insert a row
-					let columnName = editingRaster.columns[cn]
-					let row = Row([value], columns: [columnName])
-					let mutation = DatasetMutation.insert(row: row)
-					md.performMutation(mutation, job: job) { result in
-						switch result {
-						case .success:
-							/* The mutation has been performed on the source data, now perform it on our own
-							temporary raster as well. We could also call self.calculate() here, but that takes
-							a while, and we would lose our current scrolling position, etc. */
-							RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
-								QBEChangeNotification.broadcastChange(self.chain!)
-								asyncMain {
-									self.presentRaster(editingRaster)
-									self.dataViewController?.sizeColumnToFit(columnName)
-									callback(true)
+			self.currentStep?.mutableDataset(job) { result in
+				switch result {
+				case .success(let md):
+					/* Check to see if we are adding a new column. Note that we're using the editing raster here. Previously,
+					the mutable data set would be queried for its columns here. This however provides isues with databases 
+					that do not have fixed column sets (e.g. NoSQL databases): after adding a column, the set of columns would
+					still be empty, and cause another 'add column' mutation to be performed, resulting in an infinite loop. */
+					if let cn = column, cn >= 0 && cn < editingRaster.columns.count {
+						// Column exists, just insert a row
+						let columnName = editingRaster.columns[cn]
+						let row = Row([value], columns: [columnName])
+						let mutation = DatasetMutation.insert(row: row)
+						md.performMutation(mutation, job: job) { result in
+							switch result {
+							case .success:
+								/* The mutation has been performed on the source data, now perform it on our own
+								temporary raster as well. We could also call self.calculate() here, but that takes
+								a while, and we would lose our current scrolling position, etc. */
+								RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
+									QBEChangeNotification.broadcastChange(self.chain!)
+									asyncMain {
+										self.presentRaster(editingRaster)
+										self.dataViewController?.sizeColumnToFit(columnName)
+										callback(true)
+									}
 								}
-							}
-							break
+								break
 
-						case .failure(let e):
-							asyncMain {
-								callback(false)
-								NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new row.", comment: ""), infoText: e, style: .critical, window: self.view.window)
+							case .failure(let e):
+								asyncMain {
+									callback(false)
+									NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new row.", comment: ""), infoText: e, style: .critical, window: self.view.window)
+								}
 							}
 						}
 					}
-				}
-				else {
-					md.schema(job) { result in
-						switch result {
-						case .success(let schema):
-							var newSchema = schema
+					else {
+						md.schema(job) { result in
+							switch result {
+							case .success(let schema):
+								var newSchema = schema
 
-							// need to add a new column first
-							let newColumnName = Column.defaultNameForNewColumn(newSchema.columns)
-							var cols = newSchema.columns
-							cols.append(newColumnName)
-							newSchema.change(columns: cols)
+								// need to add a new column first
+								let newColumnName = Column.defaultNameForNewColumn(newSchema.columns)
+								var cols = newSchema.columns
+								cols.append(newColumnName)
+								newSchema.change(columns: cols)
 
-							let mutation = DatasetMutation.alter(newSchema)
-							md.performMutation(mutation, job: job, callback: once { result in
-								switch result {
-								case .success:
-									/* The mutation has been performed on the source data, now perform it on our own
-									temporary raster as well. We could also call self.calculate() here, but that takes
-									a while, and we would lose our current scrolling position, etc. */
-									RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
-										QBEChangeNotification.broadcastChange(self.chain!)
+								let mutation = DatasetMutation.alter(newSchema)
+								md.performMutation(mutation, job: job, callback: once { result in
+									switch result {
+									case .success:
+										/* The mutation has been performed on the source data, now perform it on our own
+										temporary raster as well. We could also call self.calculate() here, but that takes
+										a while, and we would lose our current scrolling position, etc. */
+										RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
+											QBEChangeNotification.broadcastChange(self.chain!)
 
-										asyncMain {
-											self.presentRaster(editingRaster)
+											asyncMain {
+												self.presentRaster(editingRaster)
 
-											if let rn = inRow {
-												self.dataView(view, didChangeValue: Value.empty, toValue: value, inRow: rn, column: newSchema.columns.count-1)
-												self.dataViewController?.sizeColumnToFit(newColumnName)
-												callback(true)
-											}
-											else {
-												// We're also adding a new row
-												self.dataView(view, addValue: value, inRow: nil, column: newSchema.columns.count-1) { b in
-													asyncMain {
-														self.dataViewController?.sizeColumnToFit(newColumnName)
-														callback(b)
+												if let rn = inRow {
+													self.dataView(view, didChangeValue: Value.empty, toValue: value, inRow: rn, column: newSchema.columns.count-1)
+													self.dataViewController?.sizeColumnToFit(newColumnName)
+													callback(true)
+												}
+												else {
+													// We're also adding a new row
+													self.dataView(view, addValue: value, inRow: nil, column: newSchema.columns.count-1) { b in
+														asyncMain {
+															self.dataViewController?.sizeColumnToFit(newColumnName)
+															callback(b)
+														}
 													}
 												}
 											}
 										}
-									}
 
-								case .failure(let e):
-									asyncMain {
-										callback(false)
-										NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new column.", comment: ""), infoText: e, style: .critical, window: self.view.window)
+									case .failure(let e):
+										asyncMain {
+											callback(false)
+											NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new column.", comment: ""), infoText: e, style: .critical, window: self.view.window)
+										}
 									}
+								})
+
+							case .failure(let e):
+								asyncMain {
+									callback(false)
+									NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new column.", comment: ""), infoText: e, style: .critical, window: self.view.window)
 								}
-							})
-
-						case .failure(let e):
-							asyncMain {
-								callback(false)
-								NSAlert.showSimpleAlert(NSLocalizedString("Cannot create new column.", comment: ""), infoText: e, style: .critical, window: self.view.window)
 							}
 						}
 					}
+				case .failure(_):
+					return
 				}
 			}
 
@@ -940,51 +982,61 @@ internal enum QBEEditingMode {
 		let errorMessage = rows.count > 1 ? "Cannot remove these rows".localized : "Cannot remove this row".localized
 
 		// In editing mode, we perform the edit on the mutable data set
-		if let md = self.currentStep?.mutableDataset, case .editing(identifiers: let identifiers, editingRaster: let editingRaster) = self.editingMode {
+		if let cs = self.currentStep, case .editing(identifiers: let identifiers, editingRaster: let editingRaster) = self.editingMode {
 			let job = Job(.userInitiated)
 
-			if let ids = identifiers {
-				var keys: [[Column: Value]] = []
-				for rowNumber in rows {
-					// Create key
-					let row = editingRaster[rowNumber]
-					var key: [Column: Value] = [:]
-					for identifyingColumn in ids {
-						key[identifyingColumn] = row[identifyingColumn]
-					}
-					keys.append(key)
-				}
-
-				let deleteMutation = DatasetMutation.delete(keys: keys)
-
-				job.async {
-					md.performMutation(deleteMutation, job: job) { result in
-						switch result {
-						case .success():
-							/* The mutation has been performed on the source data, now perform it on our own
-							temporary raster as well. We could also call self.calculate() here, but that takes
-							a while, and we would lose our current scrolling position, etc. */
-							RasterMutableDataset(raster: editingRaster).performMutation(deleteMutation, job: job) { result in
-								QBEChangeNotification.broadcastChange(self.chain!)
-								asyncMain {
-									self.presentRaster(editingRaster)
-								}
+			cs.mutableDataset(job) { result in
+				switch result {
+				case .success(let md):
+					if let ids = identifiers {
+						var keys: [[Column: Value]] = []
+						for rowNumber in rows {
+							// Create key
+							let row = editingRaster[rowNumber]
+							var key: [Column: Value] = [:]
+							for identifyingColumn in ids {
+								key[identifyingColumn] = row[identifyingColumn]
 							}
-							break
+							keys.append(key)
+						}
 
-						case .failure(let e):
-							asyncMain {
-								NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
+						let deleteMutation = DatasetMutation.delete(keys: keys)
+
+						job.async {
+							md.performMutation(deleteMutation, job: job) { result in
+								switch result {
+								case .success():
+									/* The mutation has been performed on the source data, now perform it on our own
+									temporary raster as well. We could also call self.calculate() here, but that takes
+									a while, and we would lose our current scrolling position, etc. */
+									RasterMutableDataset(raster: editingRaster).performMutation(deleteMutation, job: job) { result in
+										QBEChangeNotification.broadcastChange(self.chain!)
+										asyncMain {
+											self.presentRaster(editingRaster)
+										}
+									}
+									break
+
+								case .failure(let e):
+									asyncMain {
+										NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
+									}
+								}
 							}
 						}
 					}
-				}
-			}
-			else {
-				// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
-				// TODO: ask the user what key to use ("what property makes each row unique?")
-				asyncMain {
-					NSAlert.showSimpleAlert(errorMessage, infoText: "There is not enough information to be able to distinguish rows.".localized, style: .critical, window: self.view.window)
+					else {
+						// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
+						// TODO: ask the user what key to use ("what property makes each row unique?")
+						asyncMain {
+							NSAlert.showSimpleAlert(errorMessage, infoText: "There is not enough information to be able to distinguish rows.".localized, style: .critical, window: self.view.window)
+						}
+					}
+
+				case .failure(let e):
+					asyncMain {
+						NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
+					}
 				}
 			}
 		}
@@ -993,57 +1045,68 @@ internal enum QBEEditingMode {
 	private func editValue(_ oldValue: Value, toValue: Value, inRow: Int, column: Int, identifiers: Set<Column>?) {
 		var toValue = toValue
 		let errorMessage = String(format: NSLocalizedString("Cannot change '%@' to '%@'", comment: ""), oldValue.stringValue ?? "", toValue.stringValue ?? "")
+		let job = Job(.userInitiated)
 
 		// In editing mode, we perform the edit on the mutable data set
-		if let md = self.currentStep?.mutableDataset, case .editing(identifiers:_, editingRaster: let editingRaster) = self.editingMode {
-			// If a formula was typed in, calculate the result first
-			if let f = Formula(formula: toValue.stringValue ?? "", locale: locale), !(f.root is Literal) && !(f.root is Identity) {
-				let formulaResult = f.root.apply(editingRaster[inRow], foreign: nil, inputValue: oldValue)
-				if formulaResult.isValid && !formulaResult.isEmpty {
-					toValue = formulaResult
-				}
-			}
-
-			let job = Job(.userInitiated)
-
-			if let ids = identifiers {
-				// Create key
-				let row = editingRaster[inRow]
-				var key: [Column: Value] = [:]
-				for identifyingColumn in ids {
-					key[identifyingColumn] = row[identifyingColumn]
-				}
-
-				let mutation = DatasetMutation.update(key: key, column: editingRaster.columns[column], old: oldValue, new: toValue)
-				job.async {
-					md.performMutation(mutation, job: job) { result in
-						switch result {
-						case .success():
-							/* The mutation has been performed on the source data, now perform it on our own
-							temporary raster as well. We could also call self.calculate() here, but that takes
-							a while, and we would lose our current scrolling position, etc. */
-							RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
-								QBEChangeNotification.broadcastChange(self.chain!)
-
-								asyncMain {
-									self.presentRaster(editingRaster)
-								}
-							}
-							break
-
-						case .failure(let e):
-							asyncMain {
-								NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
+		if let cs = self.currentStep, case .editing(identifiers:_, editingRaster: let editingRaster) = self.editingMode {
+			cs.mutableDataset(job) { result in
+				asyncMain {
+					switch result {
+					case .success(let md):
+						// If a formula was typed in, calculate the result first
+						if let f = Formula(formula: toValue.stringValue ?? "", locale: self.locale), !(f.root is Literal) && !(f.root is Identity) {
+							let formulaResult = f.root.apply(editingRaster[inRow], foreign: nil, inputValue: oldValue)
+							if formulaResult.isValid && !formulaResult.isEmpty {
+								toValue = formulaResult
 							}
 						}
+
+						if let ids = identifiers {
+							// Create key
+							let row = editingRaster[inRow]
+							var key: [Column: Value] = [:]
+							for identifyingColumn in ids {
+								key[identifyingColumn] = row[identifyingColumn]
+							}
+
+							let mutation = DatasetMutation.update(key: key, column: editingRaster.columns[column], old: oldValue, new: toValue)
+							job.async {
+								md.performMutation(mutation, job: job) { result in
+									switch result {
+									case .success():
+										/* The mutation has been performed on the source data, now perform it on our own
+										temporary raster as well. We could also call self.calculate() here, but that takes
+										a while, and we would lose our current scrolling position, etc. */
+										RasterMutableDataset(raster: editingRaster).performMutation(mutation, job: job) { result in
+											QBEChangeNotification.broadcastChange(self.chain!)
+
+											asyncMain {
+												self.presentRaster(editingRaster)
+											}
+										}
+										break
+
+									case .failure(let e):
+										asyncMain {
+											NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
+										}
+									}
+								}
+							}
+						}
+						else {
+							// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
+							// TODO: ask the user what key to use ("what property makes each row unique?")
+							asyncMain {
+								NSAlert.showSimpleAlert(errorMessage, infoText: NSLocalizedString("There is not enough information to be able to distinguish rows.", comment: ""), style: .critical, window: self.view.window)
+							}
+						}
+
+					case .failure(let e):
+						asyncMain {
+							NSAlert.showSimpleAlert(errorMessage, infoText: e, style: .critical, window: self.view.window)
+						}
 					}
-				}
-			}
-			else {
-				// We cannot change the data because we cannot do it by row number and we don't have a sure primary key
-				// TODO: ask the user what key to use ("what property makes each row unique?")
-				asyncMain {
-					NSAlert.showSimpleAlert(errorMessage, infoText: NSLocalizedString("There is not enough information to be able to distinguish rows.", comment: ""), style: .critical, window: self.view.window)
 				}
 			}
 		}
@@ -1059,35 +1122,38 @@ internal enum QBEEditingMode {
 			// Make a suggestion
 			suggestSteps([
 				QBERenameStep(previous: self.currentStep, renames: [column: to])
-				])
-			break
+			])
 
 		case .editing(_):
 			// Actually edit
 			let errorText = String(format: NSLocalizedString("Could not rename column '%@' to '%@'", comment: ""), column.name, to.name)
-			if let md = self.currentStep?.mutableDataset {
-				let mutation = DatasetMutation.rename([column: to])
-				let job = Job(.userInitiated)
-				if md.canPerformMutation(mutation.kind) {
-					md.performMutation(mutation, job: job, callback: { result in
-						switch result {
-						case .success(_):
-							asyncMain {
-								self.calculate()
-							}
+			let job = Job(.userInitiated)
 
-						case .failure(let e):
-							asyncMain {
-								NSAlert.showSimpleAlert(errorText, infoText: e, style: .critical, window: self.view.window)
+			self.currentStep?.mutableDataset(job) { result in
+				switch result {
+				case .success(let md):
+					let mutation = DatasetMutation.rename([column: to])
+
+					if md.canPerformMutation(mutation.kind) {
+						md.performMutation(mutation, job: job, callback: { result in
+							switch result {
+							case .success(_):
+								asyncMain {
+									self.calculate()
+								}
+
+							case .failure(let e):
+								asyncMain {
+									NSAlert.showSimpleAlert(errorText, infoText: e, style: .critical, window: self.view.window)
+								}
 							}
-						}
-					})
-				}
-				else {
-					NSAlert.showSimpleAlert(errorText, infoText: NSLocalizedString("The columns of this data set cannot be renamed.", comment: ""), style: .critical, window: self.view.window)
+						})
+					}
+
+				case .failure(let e):
+					NSAlert.showSimpleAlert(errorText, infoText: e, style: .critical, window: self.view.window)
 				}
 			}
-			break
 
 		case .enablingEditing:
 			break
@@ -1772,22 +1838,38 @@ internal enum QBEEditingMode {
 		if let colsToRemove = dataViewController?.tableView?.selectedColumnIndexes {
 			switch self.editingMode {
 			case .editing(identifiers: _, editingRaster: let editingRaster):
-				if let md = self.currentStep?.mutableDataset, md.canPerformMutation(.alter) {
-					md.schema(job) { result in
-						switch result {
-						case .success(let schema):
-							let colNamesToRemove = colsToRemove.map { return schema.columns[$0] }
-							var newSchema = schema
-							newSchema.remove(columns: Set(colNamesToRemove))
-							let alterMutation = DatasetMutation.alter(newSchema)
-							md.performMutation(alterMutation, job: job) { result in
+				self.currentStep?.mutableDataset(job) { result in
+					switch result {
+					case .success(let md):
+						if md.canPerformMutation(.alter) {
+							md.schema(job) { result in
 								switch result {
-								case .success():
-									// Mutation has been performed, now replay it on the editing raster
-									RasterMutableDataset(raster: editingRaster).performMutation(alterMutation, job: job) { result in
-										QBEChangeNotification.broadcastChange(self.chain!)
-										asyncMain {
-											self.presentRaster(editingRaster)
+								case .success(let schema):
+									let colNamesToRemove = colsToRemove.map { return schema.columns[$0] }
+									var newSchema = schema
+									newSchema.remove(columns: Set(colNamesToRemove))
+									let alterMutation = DatasetMutation.alter(newSchema)
+									md.performMutation(alterMutation, job: job) { result in
+										switch result {
+										case .success():
+											// Mutation has been performed, now replay it on the editing raster
+											RasterMutableDataset(raster: editingRaster).performMutation(alterMutation, job: job) { result in
+												QBEChangeNotification.broadcastChange(self.chain!)
+												asyncMain {
+													self.presentRaster(editingRaster)
+												}
+											}
+
+										case .failure(let e):
+											asyncMain {
+												let a = NSAlert()
+												a.informativeText = e
+												a.messageText = "The selected action cannot be performed on this data set right now.".localized
+												a.alertStyle = NSAlertStyle.warning
+												if let w = self.view.window {
+													a.beginSheetModal(for: w, completionHandler: nil)
+												}
+											}
 										}
 									}
 
@@ -1803,16 +1885,16 @@ internal enum QBEEditingMode {
 									}
 								}
 							}
+						}
 
-						case .failure(let e):
-							asyncMain {
-								let a = NSAlert()
-								a.informativeText = e
-								a.messageText = "The selected action cannot be performed on this data set right now.".localized
-								a.alertStyle = NSAlertStyle.warning
-								if let w = self.view.window {
-									a.beginSheetModal(for: w, completionHandler: nil)
-								}
+					case .failure(let e):
+						asyncMain {
+							let a = NSAlert()
+							a.informativeText = e
+							a.messageText = "The selected action cannot be performed on this data set right now.".localized
+							a.alertStyle = NSAlertStyle.warning
+							if let w = self.view.window {
+								a.beginSheetModal(for: w, completionHandler: nil)
 							}
 						}
 					}
@@ -2022,7 +2104,9 @@ internal enum QBEEditingMode {
 			return
 
 		case .editing(identifiers: _, editingRaster: _):
-			guard let cs = currentStep, let store = cs.mutableDataset, store.canPerformMutation(mutation.kind) else {
+			let job = Job(.userInitiated)
+
+			guard let cs = currentStep else {
 				let a = NSAlert()
 				a.messageText = "The selected action cannot be performed on this data set.".localized
 				a.alertStyle = NSAlertStyle.warning
@@ -2033,86 +2117,124 @@ internal enum QBEEditingMode {
 				return
 			}
 
-			let confirmationAlert = NSAlert()
-
-			switch mutation {
-			case .truncate:
-				confirmationAlert.messageText = NSLocalizedString("Are you sure you want to remove all rows in the source data set?", comment: "")
-
-			case .drop:
-				confirmationAlert.messageText = NSLocalizedString("Are you sure you want to completely remove the source data set?", comment: "")
-
-			default: fatalError("Mutation not supported here")
-			}
-
-			confirmationAlert.informativeText = NSLocalizedString("This will modify the original data, and cannot be undone.", comment: "")
-			confirmationAlert.alertStyle = NSAlertStyle.informational
-			let yesButton = confirmationAlert.addButton(withTitle: NSLocalizedString("Perform modifications", comment: ""))
-			let noButton = confirmationAlert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
-			yesButton.tag = 1
-			noButton.tag = 2
-			confirmationAlert.beginSheetModal(for: self.view.window!) { (response) -> Void in
-				if response == 1 {
-					// Confirmed
-					let job = Job(.userInitiated)
-
-					// Register this job with the background job manager
-					let name: String
-					switch mutation {
-					case .truncate: name = NSLocalizedString("Truncate data set", comment: "")
-					case .drop: name = NSLocalizedString("Remove data set", comment: "")
-					default: fatalError("Mutation not supported here")
-					}
-
-					QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: name)
-
-					// Start the mutation
-					store.performMutation(mutation, job: job) { result in
+			cs.mutableDataset(job) { result in
+				switch result {
+				case .success(let store):
+					if store.canPerformMutation(mutation.kind) {
 						asyncMain {
-							switch result {
-							case .success:
-								//NSAlert.showSimpleAlert(NSLocalizedString("Command completed successfully", comment: ""), style: NSAlertStyle.InformationalAlertStyle, window: self.view.window!)
-								self.useFullDataset = false
-								self.calculate()
+							let confirmationAlert = NSAlert()
 
-							case .failure(let e):
-								NSAlert.showSimpleAlert(NSLocalizedString("The selected action cannot be performed on this data set.",comment: ""), infoText: e, style: .warning, window: self.view.window!)
-
+							switch mutation {
+							case .truncate:
+								confirmationAlert.messageText = NSLocalizedString("Are you sure you want to remove all rows in the source data set?", comment: "")
+							case .drop:
+								confirmationAlert.messageText = NSLocalizedString("Are you sure you want to completely remove the source data set?", comment: "")
+							default: fatalError("Mutation not supported here")
 							}
-							callback?()
-							return
+
+							confirmationAlert.informativeText = NSLocalizedString("This will modify the original data, and cannot be undone.", comment: "")
+							confirmationAlert.alertStyle = NSAlertStyle.informational
+							let yesButton = confirmationAlert.addButton(withTitle: NSLocalizedString("Perform modifications", comment: ""))
+							let noButton = confirmationAlert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+							yesButton.tag = 1
+							noButton.tag = 2
+							confirmationAlert.beginSheetModal(for: self.view.window!) { (response) -> Void in
+								if response == 1 {
+									// Confirmed
+
+
+									// Register this job with the background job manager
+									let name: String
+									switch mutation {
+									case .truncate: name = NSLocalizedString("Truncate data set", comment: "")
+									case .drop: name = NSLocalizedString("Remove data set", comment: "")
+									default: fatalError("Mutation not supported here")
+									}
+
+									QBEAppDelegate.sharedInstance.jobsManager.addJob(job, description: name)
+
+									// Start the mutation
+									store.performMutation(mutation, job: job) { result in
+										asyncMain {
+											switch result {
+											case .success:
+												//NSAlert.showSimpleAlert(NSLocalizedString("Command completed successfully", comment: ""), style: NSAlertStyle.InformationalAlertStyle, window: self.view.window!)
+												self.useFullDataset = false
+												self.calculate()
+
+											case .failure(let e):
+												NSAlert.showSimpleAlert(NSLocalizedString("The selected action cannot be performed on this data set.",comment: ""), infoText: e, style: .warning, window: self.view.window!)
+												
+											}
+											callback?()
+											return
+										}
+									}
+								}
+								else {
+									callback?()
+									return
+								}
+							}
 						}
 					}
-				}
-				else {
-					callback?()
-					return
+					else {
+						let a = NSAlert()
+						a.messageText = "The selected action cannot be performed on this data set.".localized
+						a.alertStyle = NSAlertStyle.warning
+						if let w = self.view.window {
+							a.beginSheetModal(for: w, completionHandler: nil)
+						}
+						callback?()
+						return
+					}
+
+				case .failure(let e):
+					asyncMain {
+						let a = NSAlert()
+						a.messageText = "The selected action cannot be performed on this data set.".localized
+						a.informativeText = e
+						a.alertStyle = NSAlertStyle.warning
+						if let w = self.view.window {
+							a.beginSheetModal(for: w, completionHandler: nil)
+						}
+						callback?()
+						return
+					}
 				}
 			}
 		}
 	}
 
 	@IBAction func alterStore(_ sender: NSObject) {
-		if let md = self.currentStep?.mutableDataset, md.canPerformMutation(.alter) {
-			let alterViewController = QBEAlterTableViewController()
-			alterViewController.mutableDataset = md
-			alterViewController.warehouse = md.warehouse
-			alterViewController.delegate = self
+		let job = Job(.userInitiated)
 
-			// Get current column names
-			let job = Job(.userInitiated)
-			md.schema(job) { result in
-				switch result {
-				case .success(let schema):
-					asyncMain {
-						alterViewController.definition = schema
-						self.presentViewControllerAsSheet(alterViewController)
-					}
+		self.currentStep?.mutableDataset(job) { result in
+			switch result {
+			case .success(let md):
+				// Get current column names
+				md.schema(job) { result in
+					switch result {
+					case .success(let schema):
+						asyncMain {
+							let alterViewController = QBEAlterTableViewController()
+							alterViewController.mutableDataset = md
+							alterViewController.warehouse = md.warehouse
+							alterViewController.delegate = self
+							alterViewController.definition = schema
+							self.presentViewControllerAsSheet(alterViewController)
+						}
 
-				case .failure(let e):
-					asyncMain {
-						NSAlert.showSimpleAlert(NSLocalizedString("Could not modify table", comment: ""), infoText: e, style: .critical, window: self.view.window)
+					case .failure(let e):
+						asyncMain {
+							NSAlert.showSimpleAlert(NSLocalizedString("Could not modify table", comment: ""), infoText: e, style: .critical, window: self.view.window)
+						}
 					}
+				}
+
+			case .failure(let e):
+				asyncMain {
+					NSAlert.showSimpleAlert(NSLocalizedString("Could not modify table", comment: ""), infoText: e, style: .critical, window: self.view.window)
 				}
 			}
 		}
@@ -2132,47 +2254,59 @@ internal enum QBEEditingMode {
 
 	private func enterEditingMode(callback: (() -> ())? = nil) {
 		let forceCustomKeySelection = self.view.window?.currentEvent?.modifierFlags.contains(.option) ?? false
+		let job = Job(.userInitiated)
 
-		if let md = self.currentStep?.mutableDataset, self.supportsEditing {
-			self.editingMode = .enablingEditing
-			let job = Job(.userInitiated)
-			md.schema(job) { result in
+		self.currentStep?.mutableDataset(job) { result in
+			switch result {
+			case .success(let md):
 				asyncMain {
-					switch result {
-					case .success(let schema):
-						switch self.editingMode {
-						case .enablingEditing:
-							if let ids = schema.identifier, !forceCustomKeySelection {
-								self.startEditingWithIdentifier(ids, callback: callback)
-							}
-							else {
-								// Cannot start editing right now
-								self.editingMode = .notEditing
+					self.editingMode = .enablingEditing
 
-								let ctr = self.storyboard?.instantiateController(withIdentifier: "keyViewController") as! QBEKeySelectionViewController
-								ctr.columns = schema.columns
-								ctr.keyColumns = schema.identifier ?? []
-
-								ctr.callback = { keys in
-									asyncMain {
-										self.startEditingWithIdentifier(keys, callback: callback)
+					md.schema(job) { result in
+						asyncMain {
+							switch result {
+							case .success(let schema):
+								switch self.editingMode {
+								case .enablingEditing:
+									if let ids = schema.identifier, !forceCustomKeySelection {
+										self.startEditingWithIdentifier(ids, callback: callback)
 									}
+									else {
+										// Cannot start editing right now
+										self.editingMode = .notEditing
+
+										let ctr = self.storyboard?.instantiateController(withIdentifier: "keyViewController") as! QBEKeySelectionViewController
+										ctr.columns = schema.columns
+										ctr.keyColumns = schema.identifier ?? []
+
+										ctr.callback = { keys in
+											asyncMain {
+												self.startEditingWithIdentifier(keys, callback: callback)
+											}
+										}
+
+										self.presentViewControllerAsSheet(ctr)
+									}
+
+								default:
+									// Editing request was apparently cancelled, do not switch to editing mode
+									break
 								}
+								
+								self.view.window?.update()
 
-								self.presentViewControllerAsSheet(ctr)
+
+							case .failure(let e):
+								NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .warning, window: self.view.window)
 							}
-
-						default:
-							// Editing request was apparently cancelled, do not switch to editing mode
-							break
+							self.view.window?.update()
 						}
-						
-						self.view.window?.update()
-
-
-					case .failure(let e):
-						NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .warning, window: self.view.window)
 					}
+				}
+
+			case .failure(let e):
+				asyncMain {
+					NSAlert.showSimpleAlert(NSLocalizedString("This data set cannot be edited.", comment: ""), infoText: e, style: .warning, window: self.view.window)
 					self.view.window?.update()
 				}
 			}
@@ -2417,22 +2551,13 @@ internal enum QBEEditingMode {
 			return currentStep != nil
 		}
 		else if selector == #selector(QBEChainViewController.truncateStore(_:))  {
-			if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.truncate) {
-				return true
-			}
-			return false
+			return true
 		}
 		else if selector == #selector(QBEChainViewController.dropStore(_:))  {
-			if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.drop) {
-				return true
-			}
-			return false
+			return true
 		}
 		else if selector == #selector(QBEChainViewController.alterStore(_:))  {
-			if let cs = self.currentStep?.mutableDataset, cs.canPerformMutation(.alter) {
-				return true
-			}
-			return false
+			return true
 		}
 		else if selector==#selector(QBEChainViewController.clearAllFilters(_:)) {
 			return self.viewFilters.count > 0

@@ -330,9 +330,6 @@ class QBESQLiteExampleDataset: ProxyDataset {
 class QBESQLiteSourceStep: QBEStep {
 	var file: QBEFileReference? = nil { didSet {
 		oldValue?.url?.stopAccessingSecurityScopedResource()
-		if let b = file?.url?.startAccessingSecurityScopedResource(), !b {
-			trace("startAccessingSecurityScopedResource failed for \(file!.url!)")
-		}
 		switchDatabase()
 	} }
 	
@@ -464,9 +461,6 @@ class QBESQLiteSourceStep: QBEStep {
 		super.init(coder: aDecoder)
 		
 		if let url = u {
-			if !url.startAccessingSecurityScopedResource() {
-				trace("startAccessingSecurityScopedResource failed for \(url)")
-			}
 			self.db = SQLiteConnection(path: url.path, readOnly: true)
 		}
 	}
@@ -489,19 +483,16 @@ class QBESQLiteSourceStep: QBEStep {
 		return nil
 	}
 
-	override var mutableDataset: MutableDataset? {
+	override func mutableDataset(_ job: Job, callback: @escaping (Fallible<MutableDataset>) -> ()) {
 		if let u = self.file?.url, let tn = tableName {
-			return SQLiteMutableDataset(database: SQLiteDatabase(url: u, readOnly: false), schemaName: nil, tableName: tn)
+			return callback(.success(SQLiteMutableDataset(database: SQLiteDatabase(url: u, readOnly: false), schemaName: nil, tableName: tn)))
 		}
-		return nil
+		return callback(.failure("No database opened".localized))
 	}
 	
 	override func didLoadFromDocument(_ atURL: URL) {
 		self.file = self.file?.resolve(atURL)
 		if let url = self.file?.url {
-			if !url.startAccessingSecurityScopedResource() {
-				trace("startAccessingSecurityScopedResource failed for \(url)")
-			}
 			self.db = SQLiteConnection(path: url.path, readOnly: true)
 		}
 	}

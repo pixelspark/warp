@@ -28,7 +28,9 @@ FOUNDATION_EXPORT const unsigned char WarpConduitVersionString[];
 #import "mysql.h"
 #import "libpq-fe.h"
 #include "shapefil.h"
-
+#include "libssh2.h"
+#include "libssh2_sftp.h"
+#include "libssh2_publickey.h"
 
 #import "CHCSVParser.h"
 #import "TCMXMLWriter.h"

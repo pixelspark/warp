@@ -470,3 +470,10 @@
 "False" = "Onwaar";
 "Date" = "Datum";
 "Blob" = "Blob";
+
+"This data set cannot be changed." = "Deze dataset kan niet worden gewijzigd.";
+"The table cannot be created" = "De tabel kan niet worden gemaakt";
+
+"Testing SSH tunnel connection" = "SSH-tunnelverbinding testen";
+"The tunnel could succesfully be established." = "De tunnel kon zonder problemen worden opgezet.";
+"SSH tunnel" = "SSH-tunnel";
