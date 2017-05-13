@@ -92,6 +92,7 @@ class QBEFactory {
 	let dataWarehouseStepNames: [String: String] = [
 		NSStringFromClass(QBEMySQLSourceStep.self): NSLocalizedString("MySQL table", comment: ""),
 		NSStringFromClass(QBEPostgresSourceStep.self): NSLocalizedString("PostgreSQL table", comment: ""),
+		NSStringFromClass(QBECockroachSourceStep.self): NSLocalizedString("CockroachDB table", comment: ""),
 		NSStringFromClass(QBERethinkSourceStep.self): NSLocalizedString("RethinkDB table", comment: ""),
 		NSStringFromClass(QBESQLiteSourceStep.self): NSLocalizedString("SQLite table", comment: "")
 	]
@@ -130,7 +131,8 @@ class QBEFactory {
 		QBERethinkSourceStep.className(): QBERethinkStepView.self,
 		QBEJoinStep.className(): QBEJoinStepView.self,
 		QBESQLiteSourceStep.className(): QBESQLiteSourceStepView.self,
-		QBECacheStep.className(): QBECacheStepView.self
+		QBECacheStep.className(): QBECacheStepView.self,
+		QBECockroachSourceStep.className(): QBECockroachSourceStepView.self,
 	]
 	#endif
 
@@ -174,6 +176,7 @@ class QBEFactory {
 		NSStringFromClass(QBEFileStep.self): "TextIcon",
 		NSStringFromClass(QBEJSONSourceStep.self): "JSONIcon",
 		NSStringFromClass(QBERankStep.self): "RankIcon",
+		NSStringFromClass(QBECockroachSourceStep.self): "CockroachIcon",
 	]
 	
 	var fileExtensionsForWriting: Set<String> { get {

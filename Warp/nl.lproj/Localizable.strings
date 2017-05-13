@@ -82,8 +82,10 @@
 "number of items" = "aantal items";
 "Warp data" = "Warp-data";
 "PostgreSQL table" = "PostgreSQL-tabel";
+"CockroachDB table" = "CockroachDB-tabel";
 "RethinkDB table" = "RethinkDB-tabel";
 "Load table %@ from PostgreSQL database" = "Laad tabel %@ uit PostgreSQL-database";
+"Load table %@ from CockroachDB database" = "Laad tabel %@ uit CockroachDB-database";
 "Join data on [#], [#] rows without matches" = "Koppel gegevens op basis van [#], [#] rijen zonder matches";
 "Remove tablet" = "Verwijder onderdeel";
 "Add tablet" = "Voeg onderdeel toe";
@@ -105,6 +107,7 @@
 "Could not obtain a list of tables from the Presto database." = "Kon geen lijst met tabellen ophalen van de Presto-database.";
 "No database and/or table name have been set." = "Er is geen database- en/of tabelnaam ingesteld.";
 "Could not connect to the PostgreSQL database." = "Kon geen verbinding maken met de PostgreSQL-database.";
+"Could not connect to the CockroachDB database." = "Kon geen verbinding maken met de CockroachDB-database.";
 
 "Rename columns" = "Hernoem kolommen";
 "Rename column" = "Hernoem kolom";
@@ -191,6 +194,8 @@
 "Could not connect to database" = "Kon geen verbinding maken met de database";
 "Load table [#] from schema [#] in PostgreSQL database [#]" = "Lees tabel [#] uit schema [#] in PostgreSQL-database [#]";
 "Write to table [#] in schema [#] in PostgreSQL database [#]" = "Schijf naar tabel [#] in schema [#] in PostgreSQL-database [#]";
+"Load table [#] in CockroachDB database [#]" = "Lees tabel [#] in CockroachDB-database [#]";
+"Write to table [#] in CockroachDB database [#]" = "Schijf naar tabel [#] in CockroachDB-database [#]";
 "(missing)" = "(ontbrekend)";
 "(error)" = "(fout)";
 "Could not load column names from Presto." = "Kon geen kolomnamen laden uit Presto.";
@@ -228,6 +233,7 @@
 "Create a new table" = "Maak een nieuwe tabel";
 "RethinkDB database '%@'" = "RethinkDB-database '%@'";
 "PostgreSQL database '%@'" = "PostgreSQL-database '%@'";
+"CockroachDB database '%@'" = "CockroachDB-database '%@'";
 "MySQL database '%@'" = "MySQL-database '%@'";
 "Export data to file..." = "Exporteer gegevens naar bestand...";
 "(empty)" = "(leeg)";
@@ -237,6 +243,7 @@
 "There can only be one column named '%@' in this table." = "In deze tabel mag maar één kolom bestaan met de naam '%@'.";
 "User %@ at MySQL server %@ (port %d)" = "Gebruiker %@ op MySQL-server %@ (poort %d)";
 "User %@ at PostgreSQL server %@ (port %d)" = "Gebruiker %@ op PostgreSQL-server %@ (poort %d)";
+"User %@ at CockroachDB server %@ (port %d)" = "Gebruiker %@ op CockroachDB-server %@ (poort %d)";
 
 "In this area, all processing steps that are applied to the data are shown." = "Hier vind je alle verwerkingsslagen die op de data worden toegepast.";
 "See this little circle? Drag it around to copy or move data, or to link data together." = "Zie je deze cirkel? Sleep 'm om gegevens te kopiëren, verplaatsen, of te koppelen.";

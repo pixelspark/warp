@@ -179,6 +179,10 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 				self.add(step: QBEPostgresSourceStep())
 			}))
 
+			uac.addAction(UIAlertAction(title: "Load data from CockroachDB".localized, style: .default, handler: { act in
+				self.add(step: QBECockroachSourceStep())
+			}))
+
 			uac.addAction(UIAlertAction(title: "Load data from MySQL".localized, style: .default, handler: { act in
 				self.add(step: QBEMySQLSourceStep())
 			}))

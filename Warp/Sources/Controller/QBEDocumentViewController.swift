@@ -782,6 +782,13 @@ import WarpCore
 			self.sentenceEditor?.configure(self)
 		}
 	}
+
+	@IBAction func addTabletFromCockroach(_ sender: NSObject) {
+		let s = QBECockroachSourceStep(host: "127.0.0.1", port: 26257, user: "postgres", database: "postgres", tableName: "")
+		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
+			self.sentenceEditor?.configure(self)
+		}
+	}
 	
 	override func prepare(for segue: NSStoryboardSegue, sender: Any?) {
 		if segue.identifier == "sentence" {
@@ -818,6 +825,7 @@ import WarpCore
 		if selector == #selector(QBEDocumentViewController.addTabletFromPresto(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromMySQL(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromRethinkDB(_:)) { return true }
+		if selector == #selector(QBEDocumentViewController.addTabletFromCockroach(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromPostgres(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.zoomSelection(_:)) {
 			switch self.state {

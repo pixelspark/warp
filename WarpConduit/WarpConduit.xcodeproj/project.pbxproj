@@ -120,6 +120,8 @@
 		65F50F1C1D78D3F500F6FAE5 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EF01D78D3F500F6FAE5 /* libpq.a */; };
 		65F5762E1EC714430014B88F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65F576311EC714430014B88F /* Localizable.strings */; };
 		65F5762F1EC714430014B88F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65F576311EC714430014B88F /* Localizable.strings */; };
+		65F576341EC740690014B88F /* CockroachStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F576331EC740690014B88F /* CockroachStream.swift */; };
+		65F576351EC740690014B88F /* CockroachStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F576331EC740690014B88F /* CockroachStream.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -346,6 +348,7 @@
 		65F50EF01D78D3F500F6FAE5 /* libpq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libpq.a; sourceTree = "<group>"; };
 		65F576301EC714430014B88F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		65F576321EC714F10014B88F /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
+		65F576331EC740690014B88F /* CockroachStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CockroachStream.swift; path = Sources/CockroachStream.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -536,18 +539,19 @@
 		65F50E8B1D78CE1000F6FAE5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				65F50E941D78CE6300F6FAE5 /* WarpConduit.h */,
-				65F50E951D78CE6300F6FAE5 /* Info.plist */,
+				65F576331EC740690014B88F /* CockroachStream.swift */,
 				656822A41D78D93500410BA5 /* CSVStream.swift */,
 				656822A21D78D89C00410BA5 /* DBFStream.swift */,
+				65F50E951D78CE6300F6FAE5 /* Info.plist */,
+				65CCEE151E87CC73004A7483 /* JSONStream.swift */,
+				65BC51711E1C46EA005FEC76 /* MySQLStream.swift */,
+				65A732361D8F1CE300C5C397 /* PostgresStream.swift */,
+				65EE52FF1EA94AD70077C168 /* PrestoStream.swift */,
 				65DAF6C71D7C6F8500163750 /* RethinkStream.swift */,
 				65292F401D7CA7030053ADE3 /* SQLiteStream.swift */,
-				65A732361D8F1CE300C5C397 /* PostgresStream.swift */,
-				65BC51711E1C46EA005FEC76 /* MySQLStream.swift */,
-				65BC51741E1C4D4D005FEC76 /* WarpConduit.cpp */,
-				65CCEE151E87CC73004A7483 /* JSONStream.swift */,
-				65EE52FF1EA94AD70077C168 /* PrestoStream.swift */,
 				657DF0D11EB8F0A100CAD84F /* SSHTunnel.swift */,
+				65BC51741E1C4D4D005FEC76 /* WarpConduit.cpp */,
+				65F50E941D78CE6300F6FAE5 /* WarpConduit.h */,
 			);
 			name = Sources;
 			path = WarpConduit;
@@ -981,6 +985,7 @@
 				651BEC7D1E1970370094F8AD /* sqlite3.c in Sources */,
 				651BEC781E196FB30094F8AD /* DBFStream.swift in Sources */,
 				65EE53011EA94AD70077C168 /* PrestoStream.swift in Sources */,
+				65F576351EC740690014B88F /* CockroachStream.swift in Sources */,
 				651BEC771E196FAE0094F8AD /* CSVStream.swift in Sources */,
 				651BEC7A1E196FBB0094F8AD /* SQLiteStream.swift in Sources */,
 				651BEC7F1E19703C0094F8AD /* SQLiteHelpers.m in Sources */,
@@ -1005,6 +1010,7 @@
 				65F50EA11D78CF0C00F6FAE5 /* dbfopen.c in Sources */,
 				65F50EB51D78D10F00F6FAE5 /* SQLiteHelpers.m in Sources */,
 				65EE53001EA94AD70077C168 /* PrestoStream.swift in Sources */,
+				65F576341EC740690014B88F /* CockroachStream.swift in Sources */,
 				656822A31D78D89C00410BA5 /* DBFStream.swift in Sources */,
 				65F50EB31D78D0BA00F6FAE5 /* extension-functions.c in Sources */,
 				65F50EA21D78CF0C00F6FAE5 /* safileio.c in Sources */,

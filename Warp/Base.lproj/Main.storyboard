@@ -2151,16 +2151,22 @@ CA
                                         </connections>
                                     </menuItem>
                                     <menuItem isSeparatorItem="YES" id="Aka-j6-jVL"/>
-                                    <menuItem title="Load data from Presto..." id="PBU-iY-SYv">
+                                    <menuItem title="Load data from CockroachDB..." id="RRp-TN-hXa">
                                         <modifierMask key="keyEquivalentModifierMask"/>
                                         <connections>
-                                            <action selector="addTabletFromPresto:" target="0Jp-3X-LwR" id="0eO-Ap-ro3"/>
+                                            <action selector="addTabletFromCockroach:" target="0Jp-3X-LwR" id="kfs-ll-FQq"/>
                                         </connections>
                                     </menuItem>
                                     <menuItem title="Load data from MySQL..." id="l6x-MG-F5q">
                                         <modifierMask key="keyEquivalentModifierMask"/>
                                         <connections>
                                             <action selector="addTabletFromMySQL:" target="0Jp-3X-LwR" id="aGr-f2-Tjs"/>
+                                        </connections>
+                                    </menuItem>
+                                    <menuItem title="Load data from Presto..." id="PBU-iY-SYv">
+                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                        <connections>
+                                            <action selector="addTabletFromPresto:" target="0Jp-3X-LwR" id="0eO-Ap-ro3"/>
                                         </connections>
                                     </menuItem>
                                     <menuItem title="Load data from PostgreSQL..." id="Emm-Nr-CLs">

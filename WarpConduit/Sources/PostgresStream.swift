@@ -17,7 +17,7 @@ import WarpCore
 
 /**
 Implementation of the PostgreSQL 'SQL dialect'. Only deviatons from the standard dialect are implemented here. */
-private class PostgresDialect: StandardSQLDialect {
+internal class PostgresDialect: StandardSQLDialect {
 	override var identifierQualifier: String { get { return  "\"" } }
 	override var identifierQualifierEscape: String { get { return  "\\\"" } }
 
@@ -30,7 +30,7 @@ private class PostgresDialect: StandardSQLDialect {
 		return "E\(super.literalString(string))"
 	}
 
-	fileprivate override func unaryToSQL(_ type: Function, args: [String]) -> String? {
+	internal override func unaryToSQL(_ type: Function, args: [String]) -> String? {
 		switch type {
 		case .random: return "RANDOM()"
 
@@ -54,7 +54,7 @@ private class PostgresDialect: StandardSQLDialect {
 		}
 	}
 
-	fileprivate override func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
+	internal override func aggregationToSQL(_ aggregation: Aggregator, alias: String) -> String? {
 		// For Function.Count, we should count numeric values only. In PostgreSQL this can be done using REGEXP
 		if let expressionSQL = expressionToSQL(aggregation.map, alias: alias) {
 			switch aggregation.reduce {
@@ -78,7 +78,7 @@ private class PostgresDialect: StandardSQLDialect {
 		return super.aggregationToSQL(aggregation, alias: alias)
 	}
 
-	fileprivate override func binaryToSQL(_ type: Binary, first: String, second: String) -> String? {
+	internal override func binaryToSQL(_ type: Binary, first: String, second: String) -> String? {
 		switch type {
 		case .matchesRegex: return "(\(forceStringExpression(second)) ~* \(forceStringExpression(first)))"
 		case .matchesRegexStrict: return "(\(forceStringExpression(second)) ~ \(forceStringExpression(first)))"
@@ -86,7 +86,7 @@ private class PostgresDialect: StandardSQLDialect {
 		}
 	}
 
-	fileprivate override func valueToSQL(_ value: Value) -> String? {
+	internal override func valueToSQL(_ value: Value) -> String? {
 		switch value {
 		case .invalid: return "('nan'::decimal)"
 		default: return super.valueToSQL(value)
@@ -94,16 +94,16 @@ private class PostgresDialect: StandardSQLDialect {
 	}
 
 	/** Postgres expects binary data to be hex-encoded as E'\\xCAFEBABE' (MSB first). */
-	fileprivate override func literalBlob(_ blob: Data) -> String {
+	internal override func literalBlob(_ blob: Data) -> String {
 		let escaped = blob.map { String(format: "%02hhx", $0) }.joined()
 		return "E'\\\\x\(escaped)'"
 	}
 
-	fileprivate override func forceStringExpression(_ expression: String) -> String {
+	internal override func forceStringExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS VARCHAR)"
 	}
 
-	fileprivate override func forceNumericExpression(_ expression: String) -> String {
+	internal override func forceNumericExpression(_ expression: String) -> String {
 		return "CAST(\(expression) AS DECIMAL)"
 	}
 }
@@ -274,10 +274,11 @@ internal class PostgresResult: Sequence, IteratorProtocol {
 
 	fileprivate let connection: PostgresConnection
 	fileprivate var result: OpaquePointer?
-	fileprivate let columns: OrderedSet<Column>
 	fileprivate let columnTypes: [Oid]
 	fileprivate(set) var finished = false
 	fileprivate(set) var error: String? = nil
+
+	internal let columns: OrderedSet<Column>
 
 	static func create(_ connection: PostgresConnection) -> Fallible<PostgresResult> {
 		// Get column names from result set
@@ -554,7 +555,7 @@ public class PostgresDatabase: SQLDatabase {
 	public let password: String
 	public let database: String
 
-	public let dialect: SQLDialect = PostgresDialect()
+	public var dialect: SQLDialect { return PostgresDialect() }
 	public var databaseName: String? { return self.database }
 
 	public init(host: String, port: Int, user: String, password: String, database: String) {
@@ -667,7 +668,7 @@ public class PostgresDatabase: SQLDatabase {
 		callback(self.connect().use { return $0 })
 	}
 
-	fileprivate func connect() -> Fallible<PostgresConnection> {
+	internal func connect() -> Fallible<PostgresConnection> {
 		let userEscaped = self.user.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlUserAllowed)!
 		let passwordEscaped = self.password.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPasswordAllowed)!
 		let hostEscaped = self.host.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlHostAllowed)!
@@ -778,7 +779,7 @@ public class PostgresConnection: SQLConnection {
 
 	fileprivate var lastError: String { get {
 		return String(cString:  PQerrorMessage(self.connection), encoding: String.Encoding.utf8) ?? "(unknown)"
-		} }
+	} }
 
 	func query(_ sql: String) -> Fallible<PostgresResult> {
 		if self.result != nil && !self.result!.finished {
@@ -812,7 +813,7 @@ public class PostgresConnection: SQLConnection {
 }
 
 /** Represents the result of a PostgreSQL query as a Dataset object. */
-public class PostgresDataset: SQLDataset {
+public class PostgresDataset: SQLDataset, PostgresWireDataset {
 	private let database: PostgresDatabase
 
 	public static func create(database: PostgresDatabase, tableName: String, schemaName: String) -> Fallible<PostgresDataset> {
@@ -843,7 +844,7 @@ public class PostgresDataset: SQLDataset {
 		return PostgresStream(data: self)
 	}
 
-	fileprivate func result() -> Fallible<PostgresResult> {
+	internal func result() -> Fallible<PostgresResult> {
 		return database.connect().use {
 			$0.query(self.sql.sqlSelect(nil).sql)
 		}
@@ -871,13 +872,17 @@ private class PostgresResultStream: SequenceStream {
 	}
 }
 
+internal protocol PostgresWireDataset: Dataset {
+	func result() -> Fallible<PostgresResult>
+}
+
 /** Stream that lazily queries and streams results from a PostgreSQL query. */
 class PostgresStream: WarpCore.Stream {
 	private var resultStream: WarpCore.Stream?
-	private let data: PostgresDataset
+	private let data: PostgresWireDataset
 	private let mutex = Mutex()
 
-	init(data: PostgresDataset) {
+	init(data: PostgresWireDataset) {
 		self.data = data
 	}
 
