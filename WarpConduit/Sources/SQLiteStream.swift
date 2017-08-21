@@ -327,6 +327,16 @@ open class SQLiteConnection: NSObject, SQLConnection {
 			case SQLITE_INTEGER:
 				return Value.int(Int(sqlite3_value_int64(value)))
 
+			case SQLITE_BLOB:
+				if let b = sqlite3_value_blob(value) {
+					let sz = sqlite3_value_bytes(value)
+					let data = Data(bytes: b, count: Int(sz))
+					return Value.blob(data)
+				}
+				else {
+					return Value.empty
+				}
+
 			default:
 				return Value.invalid
 			}
