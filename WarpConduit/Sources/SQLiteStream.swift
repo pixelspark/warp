@@ -212,6 +212,14 @@ private class SQLiteResultGenerator: IteratorProtocol {
 					}
 					return Value.invalid
 
+				case SQLITE_BLOB:
+					if let b = sqlite3_column_blob(self.result.resultSet, Int32(idx)) {
+						let sz = sqlite3_column_bytes(self.result.resultSet, Int32(idx))
+						let data = Data(bytes: b, count: Int(sz))
+						return Value.blob(data)
+					}
+					return Value.empty
+
 				default:
 					return Value.invalid
 				}
