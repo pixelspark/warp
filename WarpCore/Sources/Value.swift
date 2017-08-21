@@ -875,7 +875,7 @@ public extension String {
 					let deletion = dist[i-1][j] + 1
 					let insertion = dist[i][j-1] + 1
 					let substitution = dist[i-1][j-1] + 1
-					dist[i][j] = min(deletion, insertion, substitution)
+					dist[i][j] = Swift.min(deletion, insertion, substitution)
 				}
 			}
 		}

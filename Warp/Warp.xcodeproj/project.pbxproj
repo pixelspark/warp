@@ -395,13 +395,6 @@
 			remoteGlobalIDString = 06165F241D8110E600722320;
 			remoteInfo = Charts;
 		};
-		654AA59F1DEE365D0030C7C9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 06B120D51D811E6200D14B02;
-			remoteInfo = ChartsRealm;
-		};
 		654AA5A11DEE365D0030C7C9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
@@ -970,7 +963,6 @@
 			isa = PBXGroup;
 			children = (
 				654AA59E1DEE365D0030C7C9 /* Charts.framework */,
-				654AA5A01DEE365D0030C7C9 /* ChartsRealm.framework */,
 				654AA5A21DEE365D0030C7C9 /* ChartsTests.xctest */,
 			);
 			name = Products;
@@ -1079,6 +1071,14 @@
 				652B26CC1B8E3F3500A2D38E /* Alamofire.framework */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		6573B5401F10EC0000A57A64 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				65DAF6C91D7C6FFD00163750 /* Rethink.framework */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		6583EE8F1C14758B00AE6C00 /* Controller */ = {
@@ -1327,6 +1327,7 @@
 				65E3C3021A062E5E007BB3C8 /* Tests */,
 				65E3C2B61A05222F007BB3C8 /* Products */,
 				653D19D81D1C76AC0094C441 /* Frameworks */,
+				6573B5401F10EC0000A57A64 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1577,13 +1578,6 @@
 			fileType = wrapper.framework;
 			path = Charts.framework;
 			remoteRef = 654AA59D1DEE365D0030C7C9 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		654AA5A01DEE365D0030C7C9 /* ChartsRealm.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = ChartsRealm.framework;
-			remoteRef = 654AA59F1DEE365D0030C7C9 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		654AA5A21DEE365D0030C7C9 /* ChartsTests.xctest */ = {
