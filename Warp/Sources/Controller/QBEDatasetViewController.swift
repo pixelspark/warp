@@ -246,7 +246,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 
 	func tableGrid(_ aTableGrid: MBTableGrid!, cellForColumn columnIndex: UInt, row rowIndex: UInt) -> NSCell! {
 		if let r = raster {
-			return r.mutex.locked { () -> NSCell! in
+			return r.mutex.locked { () -> NSCell? in
 				if Int(columnIndex) == r.columns.count || Int(rowIndex) == r.rowCount {
 					// Template row, return empty string
 					self.valueCell.value = .empty

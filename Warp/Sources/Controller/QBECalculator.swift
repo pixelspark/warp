@@ -174,10 +174,10 @@ public class QBECalculator: NSObject {
 		
 		let startTime = Date.timeIntervalSinceReferenceDate
 		let maxInputRows = inputRowsForExample(sourceStep, maximumTime: maxTime)
-		self.calculate(sourceStep, fullDataset: false, maximumTime: maxTime, job: job, callback: once { streamStatus in
+		self.calculate(sourceStep, fullDataset: false, maximumTime: maxTime, job: job, callback: once { (streamStatus: StreamStatus) -> () in
 			// Record extra information when calculating an example result
 
-			self.currentRaster!.get(job) {[unowned self] (raster) in
+			self.currentRaster!.get(job) {[unowned self] (raster) -> () in
 				switch raster {
 				case .success(let r):
 					let duration = Double(NSDate.timeIntervalSinceReferenceDate) - startTime
@@ -197,7 +197,7 @@ public class QBECalculator: NSObject {
 						}
 						perf.executionCount += 1
 						self.stepPerformance[index] = perf
-					
+
 						/* If we got zero rows, but there is stil time left, just try again. In many cases the back-end
 						is much faster than we think and we have plenty of time left to fill in our time budget. */
 						let maxExampleRows = self.currentParameters.maximumExampleInputRows
@@ -218,7 +218,7 @@ public class QBECalculator: NSObject {
 							callback()
 						}
 					}
-					
+
 				case .failure(_):
 					break;
 				}

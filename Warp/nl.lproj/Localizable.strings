@@ -1,4 +1,4 @@
-﻿"The data has been saved to '%@'" = "De gegevens zijn opgeslagen in bestand '%@'.";
+"The data has been saved to '%@'" = "De gegevens zijn opgeslagen in bestand '%@'.";
 "The data could not be saved to '%@': %@." = "De gegevens konden niet worden opgeslagen in bestand '%@': %@.";
 "Export completed" = "Exporteren voltooid";
 "Unknown file format: " = "Unknown file format: ";
@@ -484,3 +484,4 @@
 "Testing SSH tunnel connection" = "SSH-tunnelverbinding testen";
 "The tunnel could succesfully be established." = "De tunnel kon zonder problemen worden opgezet.";
 "SSH tunnel" = "SSH-tunnel";
+"value in column %@" = "waarde uit kolom %@";
