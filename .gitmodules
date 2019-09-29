@@ -8,9 +8,6 @@
 [submodule "WarpConduit/Libraries/TCMXMLWriter"]
 	path = WarpConduit/Libraries/TCMXMLWriter
 	url = https://github.com/monkeydom/TCMXMLWriter
-[submodule "Warp/Libraries/SwiftAI"]
-	path = Warp/Libraries/SwiftAI
-	url = https://github.com/pixelspark/Swift-AI.git
 [submodule "WarpCore/Libraries/SwiftParserGenerator"]
 	path = WarpCore/Libraries/SwiftParserGenerator
 	url = https://github.com/pixelspark/swift-parser-generator.git
@@ -18,9 +15,6 @@
 	path = Warp/Libraries/Charts
 	url = https://github.com/pixelspark/ios-charts
 	branch = master
-[submodule "WarpConduit/Libraries/Rethink"]
-	path = WarpConduit/Libraries/Rethink
-	url = https://github.com/pixelspark/rethink-swift
 [submodule "Warp/Libraries/MDSpreadView"]
 	path = Warp/Libraries/MDSpreadView
 	url = https://github.com/mochidev/MDSpreadView.git

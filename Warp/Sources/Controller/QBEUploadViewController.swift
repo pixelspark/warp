@@ -42,7 +42,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 			case .success(let md):
 				asyncMain {
 					self.targetMutableDataset = md
-					callback(.success())
+					callback(.success(()))
 				}
 
 			case .failure(let e):
@@ -132,8 +132,8 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 									as default table definition when creating a new table. */
 									// TODO: can we get identifier information from the source data set?
 									let def = Schema(columns: columns, identifier: nil)
-									let pb = NSPasteboard(name: def.pasteboardName)
-									pb.setData(NSKeyedArchiver.archivedData(withRootObject: Coded(def)), forType: def.pasteboardName)
+									let pb = NSPasteboard(name: convertToNSPasteboardName(def.pasteboardName))
+									pb.setData(NSKeyedArchiver.archivedData(withRootObject: Coded(def)), forType: convertToNSPasteboardPasteboardType(def.pasteboardName))
 
 								case .failure(_):
 									break
@@ -188,7 +188,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 			destination.performMutation(.truncate, job: self.uploadJob!) { res in
 				switch res {
 				case .success(_):
-					callback(.success())
+					callback(.success(()))
 
 				case .failure(let e):
 					asyncMain {
@@ -198,7 +198,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 			}
 		}
 		else {
-			callback(.success())
+			callback(.success(()))
 		}
 	}
 
@@ -285,7 +285,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 		self.updateView()
 
 		let alert = NSAlert()
-		alert.alertStyle = NSAlertStyle.critical
+		alert.alertStyle = NSAlert.Style.critical
 		alert.informativeText = message
 		alert.messageText = NSLocalizedString("Could not upload data", comment: "")
 		if let w = self.view.window {
@@ -350,7 +350,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 													vc.mapping = self.mapping!
 													vc.sourceColumns = sourceColumns
 													vc.delegate = self
-													self.presentViewControllerAsSheet(vc)
+													self.presentAsSheet(vc)
 												}
 											}
 
@@ -384,7 +384,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 	}
 
 	var shouldAlter: Bool {
-		return canAlter && (self.alterButton?.state ?? NSOffState) == NSOnState
+		return canAlter && (self.alterButton?.state ?? NSControl.StateValue.off) == NSControl.StateValue.on
 	}
 
 	@IBAction func create(_ sender: NSObject) {
@@ -395,7 +395,7 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 		assert(uploadJob == nil, "Cannot start two uploads at the same time")
 
 		if let source = sourceStep, let mutableDataset = targetMutableDataset, canPerformUpload {
-			let shouldTruncate = self.removeBeforeUpload?.state == NSOnState && self.canPerformTruncateBeforeUpload
+			let shouldTruncate = (self.removeBeforeUpload?.state ?? NSControl.StateValue.off) == NSControl.StateValue.on && self.canPerformTruncateBeforeUpload
 			self.uploadJob = Job(.userInitiated)
 			self.uploadJob!.addObserver(self)
 			self.progressBar?.doubleValue = 0.0
@@ -478,4 +478,19 @@ class QBEUploadViewController: NSViewController, QBESentenceViewDelegate, JobDel
 			self.progressBar?.doubleValue = didProgress
 		}
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSPasteboardName(_ input: String) -> NSPasteboard.Name {
+	return NSPasteboard.Name(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSPasteboardPasteboardType(_ input: String) -> NSPasteboard.PasteboardType {
+	return NSPasteboard.PasteboardType(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSControlStateValue(_ input: NSControl.StateValue) -> Int {
+	return input.rawValue
 }

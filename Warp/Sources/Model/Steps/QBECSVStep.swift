@@ -101,7 +101,7 @@ class QBECSVWriter: NSObject, QBEFileWriter, StreamDelegate {
 							}
 
 							if streamStatus == .finished {
-								callback(.success())
+								callback(.success(()))
 							}
 
 						case .failure(let e):
@@ -173,7 +173,7 @@ class QBEHTMLWriter: QBECSVWriter {
 											outStream.write(bytes, maxLength: footerData.count)
 											outStream.close()
 										}
-										callback(.success())
+										callback(.success(()))
 										return
 									}
 									else {

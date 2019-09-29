@@ -58,12 +58,12 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 	}
 
 	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-		switch tableColumn?.identifier ?? "" {
+		switch convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) {
 		case "source":
 			let dest = self.destinationColumns[row]
 			if let src = self.mapping[dest] {
 				// The '(empty)' menu item is in position 0, then a separator, then the columns (+2 is the first column's index)
-				return NSNumber(value: (self.sourceColumns.index(of: src) ?? -2) + 2)
+				return NSNumber(value: (self.sourceColumns.firstIndex(of: src) ?? -2) + 2)
 			}
 			return nil
 
@@ -80,7 +80,7 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 	}
 
 	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
-		if let n = object as? NSNumber, let tc = tableColumn, tc.identifier == "source" {
+		if let n = object as? NSNumber, let tc = tableColumn, convertFromNSUserInterfaceItemIdentifier(tc.identifier) == "source" {
 			let dest = self.destinationColumns[row]
 
 			if let item = self.sourceColumnsMenu.item(at: n.intValue) {
@@ -97,7 +97,7 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 	}
 
 	func tableView(_ tableView: NSTableView, dataCellFor tableColumn: NSTableColumn?, row: Int) -> NSCell? {
-		if tableColumn?.identifier == "source" {
+		if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "source" {
 			if let cell = tableColumn?.dataCell(forRow: row) as? NSPopUpButtonCell {
 				cell.menu = self.sourceColumnsMenu
 				return cell
@@ -105,4 +105,9 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 		}
 		return nil
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
 }

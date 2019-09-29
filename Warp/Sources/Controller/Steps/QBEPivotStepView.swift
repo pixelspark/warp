@@ -14,7 +14,7 @@ import Cocoa
 import WarpCore
 
 internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotStep>, NSTableViewDelegate, NSTableViewDataSource, NSMenuDelegate {
-	private let dragType = "nl.pixelspark.qbe.column"
+	private let dragType = NSPasteboard.PasteboardType("nl.pixelspark.qbe.column")
 
 	@IBOutlet var allTable: NSTableView?
 	@IBOutlet var rowsTable: NSTableView?
@@ -60,10 +60,10 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 	internal override func awakeFromNib() {
 		super.awakeFromNib()
 		
-		allTable?.register(forDraggedTypes: [dragType])
-		rowsTable?.register(forDraggedTypes: [dragType])
-		columnsTable?.register(forDraggedTypes: [dragType])
-		aggregatesTable?.register(forDraggedTypes: [dragType])
+		allTable?.registerForDraggedTypes([dragType])
+		rowsTable?.registerForDraggedTypes([dragType])
+		columnsTable?.registerForDraggedTypes([dragType])
+		aggregatesTable?.registerForDraggedTypes([dragType])
 		
 		aggregatorsMenu = NSMenu()
 		for fun in Function.allReducingFunctions {
@@ -99,11 +99,11 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		return true
 	}
 	
-	internal func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableViewDropOperation) -> NSDragOperation {
-		let pboard = info.draggingPasteboard()
+	internal func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
+		let pboard = info.draggingPasteboard
 		if pboard.data(forType: dragType) != nil {
 			// Dragging from self is disallowed
-			if info.draggingSource() as? NSTableView == tableView {
+			if info.draggingSource as? NSTableView == tableView {
 				return NSDragOperation()
 			}
 			
@@ -113,7 +113,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		return NSDragOperation()
 	}
 	
-	override func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+	func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
 		if menuItem.action == #selector(QBEPivotStepView.delete(_:)) {
 			if let fr = self.view.window?.firstResponder {
 				return fr == rowsTable || fr == columnsTable || fr == aggregatesTable
@@ -155,11 +155,11 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		delegate?.configurableView(self, didChangeConfigurationFor: step)
 	}
 	
-	internal func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableViewDropOperation) -> Bool {
-		let pboard = info.draggingPasteboard()
+	internal func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableView.DropOperation) -> Bool {
+		let pboard = info.draggingPasteboard
 		if let data = pboard.data(forType: dragType) {
 			// Dragging from self is disallowed
-			if info.draggingSource() as? NSTableView == tableView {
+			if info.draggingSource as? NSTableView == tableView {
 				return false
 			}
 			
@@ -179,10 +179,10 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 						}
 						else if tableView == allTable {
 							// Need to remove the dragged item from the source view
-							if info.draggingSource() as? NSTableView == rowsTable {
+							if info.draggingSource as? NSTableView == rowsTable {
 								self.step.rows.remove(column)
 							}
-							else if info.draggingSource() as? NSTableView == columnsTable {
+							else if info.draggingSource as? NSTableView == columnsTable {
 								self.step.columns.remove(column)
 							}
 						}
@@ -204,7 +204,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 				}
 
 				tableView.reloadData()
-				(info.draggingSource() as? NSTableView)?.reloadData()
+				(info.draggingSource as? NSTableView)?.reloadData()
 			}
 			
 			tableView.reloadData()
@@ -217,7 +217,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 	
 	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		if tableView == aggregatesTable {
-			if tableColumn?.identifier == "aggregator" {
+			if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "aggregator" {
 				if let menuItem = aggregatorsMenu?.item(at: (object as? Int) ?? 0) {
 					if let rep = menuItem.representedObject as? Function.RawValue {
 						if let fun = Function(rawValue: rep) {
@@ -228,12 +228,12 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 					}
 				}
 			}
-			else if tableColumn?.identifier == "targetColumn" {
+			else if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "targetColumn" {
 				if let s = object as? String {
 					step.aggregates[row].targetColumn = Column(s)
 				}
 			}
-			else if tableColumn?.identifier == "minimumCount" {
+			else if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "minimumCount" {
 				if let str = object as? String, let s = Int(str) {
 					step.aggregates[row].aggregator.minimumCount = (s <= 0 ? nil : s)
 				}
@@ -254,7 +254,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 	}
 	
 	func tableView(_ tableView: NSTableView, dataCellFor tableColumn: NSTableColumn?, row: Int) -> NSCell? {
-		if tableColumn?.identifier == "aggregator" {
+		if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "aggregator" {
 			if let cell = tableColumn?.dataCell(forRow: row) as? NSPopUpButtonCell {
 				cell.menu = self.aggregatorsMenu
 				return cell
@@ -264,7 +264,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 	}
 	
 	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-		if tableColumn?.identifier == "aggregator" {
+		if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "aggregator" {
 			let reducer = step.aggregates[row].aggregator.reduce 
 			
 			for index in 0..<aggregatorsMenu!.numberOfItems {
@@ -288,10 +288,10 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 				return step.columns[row].name
 				
 			case aggregatesTable!:
-				if tableColumn?.identifier == "minimumCount" {
+				if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "minimumCount" {
 					return step.aggregates[row].aggregator.minimumCount ?? ""
 				}
-				else if tableColumn?.identifier == "targetColumn" {
+				else if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "targetColumn" {
 					return step.aggregates[row].targetColumn.name
 				}
 				else {
@@ -321,4 +321,19 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 				return 0
 		}
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSPasteboardPasteboardTypeArray(_ input: [String]) -> [NSPasteboard.PasteboardType] {
+	return input.map { key in NSPasteboard.PasteboardType(key) }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSPasteboardPasteboardType(_ input: String) -> NSPasteboard.PasteboardType {
+	return NSPasteboard.PasteboardType(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
 }

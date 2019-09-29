@@ -27,7 +27,7 @@ protocol QBEDatasetViewDelegate: NSObjectProtocol {
 extension NSFont {
 	func sizeOfString(_ string: String) -> NSSize {
 		let s = NSString(string: string)
-		return s.size(withAttributes: [NSFontAttributeName: self])
+		return s.size(withAttributes: [NSAttributedString.Key.font: self])
 	}
 }
 
@@ -62,12 +62,12 @@ private class QBEValueCell: MBTableGridCell {
 			self.alignment = .center
 			self.textColor = NSColor.red
 			NSColor.red.withAlphaComponent(0.3).set()
-			NSRectFill(cellFrame)
+			cellFrame.fill()
 
 		case .empty:
 			self.textColor = NSColor.black
 			NSColor.black.withAlphaComponent(0.05).set()
-			NSRectFill(cellFrame)
+			cellFrame.fill()
 
 		case .bool(_):
 			self.textColor = NSColor.blue
@@ -383,9 +383,9 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			if !showNewRow {
 				let tr = CATransition()
 				tr.duration = 0.3
-				tr.type = kCATransitionFade
-				tr.subtype = kCATransitionFromBottom
-				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+				tr.type = CATransitionType.fade
+				tr.subtype = CATransitionSubtype.fromBottom
+				tr.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
 				self.tableView?.layer?.add(tr, forKey: kCATransition)
 			}
 
@@ -425,7 +425,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		return self.validateUserInterfaceItem(item)
 	}
 	
-	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+	@objc func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		switch item.action {
 		case .some(#selector(QBEDatasetViewController.sizeAllColumnsToFit(_:))),
 			 .some(#selector(QBEDatasetViewController.sizeAllColumnsToDefault(_:))),
@@ -482,7 +482,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		if let r = raster, Int(columnIndex) < r.columns.count {
 			self.delegate?.dataView(self, viewControllerForColumn: r.columns[Int(columnIndex)], info: true, callback: { vc in
 				if let rect = self.tableView?.headerRect(ofColumn: columnIndex) {
-					self.presentViewController(vc, asPopoverRelativeTo: rect, of: self.tableView!, preferredEdge: NSRectEdge.minY, behavior: NSPopoverBehavior.transient)
+					self.present(vc, asPopoverRelativeTo: rect, of: self.tableView!, preferredEdge: NSRectEdge.minY, behavior: NSPopover.Behavior.transient)
 				}
 			})
 		}
@@ -544,7 +544,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			let vr = tv.contentView().visibleRect
 			let firstRow = max(0, tv.row(at: CGPoint(x: vr.origin.x + 3.0, y: vr.origin.y + 3.0)))
 			let lastRow = min(firstRow + maxRowsToConsider, tv.row(at: CGPoint(x: 3.0 + vr.origin.x + vr.size.width, y: 3.0 + vr.origin.y + vr.size.height)))
-			let font = self.valueFont ?? NSFont.systemFont(ofSize: NSFont.systemFontSize())
+			let font = self.valueFont ?? NSFont.systemFont(ofSize: NSFont.systemFontSize)
 
 			if let r = raster {
 				for rowNumber in firstRow...lastRow {
@@ -583,7 +583,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			self.delegate?.dataView(self, viewControllerForColumn: r.columns[Int(columnIndex)], info: false) { viewFilterController in
 				assertMainThread()
 				let pv = NSPopover()
-				pv.behavior = NSPopoverBehavior.semitransient
+				pv.behavior = NSPopover.Behavior.semitransient
 				pv.contentViewController = viewFilterController
 
 				let columnRect = tv.rect(ofColumn: UInt(columnIndex))
@@ -676,7 +676,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 	
 	override func awakeFromNib() {
 		self.view.focusRingType = NSFocusRingType.none
-		self.view.layerContentsRedrawPolicy = NSViewLayerContentsRedrawPolicy.onSetNeedsDisplay
+		self.view.layerContentsRedrawPolicy = NSView.LayerContentsRedrawPolicy.onSetNeedsDisplay
 		self.view.wantsLayer = true
 		self.view.layer?.isOpaque = true
 		
@@ -685,19 +685,19 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			self.tableView!.wantsLayer = true
 			self.tableView!.layer?.isOpaque = true
 			self.tableView!.layer?.drawsAsynchronously = true
-			self.tableView!.layerContentsRedrawPolicy = NSViewLayerContentsRedrawPolicy.onSetNeedsDisplay
+			self.tableView!.layerContentsRedrawPolicy = NSView.LayerContentsRedrawPolicy.onSetNeedsDisplay
 			self.tableView!.focusRingType = NSFocusRingType.none
 			self.tableView!.translatesAutoresizingMaskIntoConstraints = false
-			self.tableView!.setContentHuggingPriority(1, for: NSLayoutConstraintOrientation.horizontal)
-			self.tableView!.setContentHuggingPriority(1, for: NSLayoutConstraintOrientation.vertical)
+			self.tableView!.setContentHuggingPriority(NSLayoutConstraint.Priority(rawValue: 1), for: NSLayoutConstraint.Orientation.horizontal)
+			self.tableView!.setContentHuggingPriority(NSLayoutConstraint.Priority(rawValue: 1), for: NSLayoutConstraint.Orientation.vertical)
 			self.tableView!.awakeFromNib()
-			self.tableView?.register(forDraggedTypes: [])
+			self.tableView?.registerForDraggedTypes([])
 			self.tableView!.columnHeaderView.menu = self.columnContextMenu
 			self.view.addSubview(tableView!)
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0));
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.left, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.left, multiplier: 1.0, constant: 0.0));
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.right, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.right, multiplier: 1.0, constant: 0.0));
-			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutAttribute.bottom, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutConstraint.Attribute.left, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.left, multiplier: 1.0, constant: 0.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutConstraint.Attribute.right, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.right, multiplier: 1.0, constant: 0.0));
+			self.view.addConstraint(NSLayoutConstraint(item: self.tableView!, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0));
 			
 			for vw in self.tableView!.subviews {
 				vw.focusRingType = NSFocusRingType.none
@@ -746,17 +746,17 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			}
 			
 			let tsv = rowDataset.joined(separator: "\r\n")
-			let pasteboard = NSPasteboard.general()
+			let pasteboard = NSPasteboard.general
 			pasteboard.clearContents()
-			pasteboard.declareTypes([NSPasteboardTypeTabularText, NSPasteboardTypeString], owner: nil)
-			pasteboard.setString(tsv, forType: NSPasteboardTypeTabularText)
-			pasteboard.setString(tsv, forType: NSPasteboardTypeString)
+			pasteboard.declareTypes([NSPasteboard.PasteboardType.tabularText, NSPasteboard.PasteboardType.string], owner: nil)
+			pasteboard.setString(tsv, forType: NSPasteboard.PasteboardType.tabularText)
+			pasteboard.setString(tsv, forType: NSPasteboard.PasteboardType.string)
 		}
 	}
 	
 	func tableGrid(_ aTableGrid: MBTableGrid!, pasteCellsAtColumns columnIndexes: IndexSet!, rows rowIndexes: IndexSet!) {
 		if let r = raster {
-			let tsvString = NSPasteboard.general().string(forType: NSPasteboardTypeTabularText)
+			let tsvString = NSPasteboard.general.string(forType: NSPasteboard.PasteboardType.tabularText)
 			
 			let startRow: Int = rowIndexes.first ?? 0
 			let startColumn: Int = columnIndexes.first ?? 0
@@ -783,3 +783,4 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		}
 	}
 }
+

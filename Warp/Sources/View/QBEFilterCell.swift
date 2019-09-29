@@ -23,7 +23,7 @@ internal class QBEFilterPlaceholderCell: NSButtonCell {
 
 	override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
 		NSColor.windowBackgroundColor.set()
-		NSRectFill(cellFrame)
+		cellFrame.fill()
 		QBEFilterPlaceholderCell.drawPlaceholder(frame: cellFrame)
 	}
 

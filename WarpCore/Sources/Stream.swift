@@ -218,7 +218,7 @@ internal class RasterStreamPuller: StreamPuller {
 		self.mutex.locked {
 			// Append the rows to our buffered raster
 			self.data.append(contentsOf: rows)
-			callback(.success())
+			callback(.success(()))
 
 			if self.delivery == .incremental {
 				self.deliver(status: .hasMore)

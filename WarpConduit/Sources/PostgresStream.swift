@@ -416,11 +416,11 @@ internal class PostgresResult: Sequence, IteratorProtocol {
 										case .bytea:
 											// This is delivered to us as '\\xdeadbeef'
 											// TODO this could probaby be made more efficient by not reading as UTF-8 first
-											let chars = Array(stringValue.characters)
+											let chars = Array(stringValue)
 											let numbers = stride(from: 2, to: chars.count, by: 2).map() {
 												UInt8(strtoul(String(chars[$0 ..< Swift.min($0 + 2, chars.count)]), nil, 16))
 											}
-											rowDataset!.append(.blob(Data(bytes: numbers)))
+											rowDataset!.append(.blob(Data(numbers)))
 
 										case .int8, .int4, .int2:
 											if let iv = stringValue.toInt() {
@@ -729,7 +729,7 @@ public class PostgresConnection: SQLConnection {
 			}
 		}
 
-		callback(.success())
+		callback(.success(()))
 	}
 
 	/** Fetches the server version number. This number can be used to enable/disable certain features by version. */

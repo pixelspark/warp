@@ -48,7 +48,8 @@ class QBEDocumentViewController: UIViewController {
 
 		if !opened {
 			opened = true
-			documentObserver = NotificationCenter.default.addObserver(forName: NSNotification.Name.UIDocumentStateChanged, object: document, queue: nil) { _ in
+			documentObserver = NotificationCenter.default.addObserver(forName:
+			UIDocument.stateChangedNotification, object: document, queue: nil) { _ in
 				if self.document.documentState.contains(.progressAvailable) {
 					//self.progressView.observedProgress = self.document.progress
 				}
@@ -93,7 +94,7 @@ class QBEDocumentViewController: UIViewController {
 
 	override func viewWillDisappear(_ animated: Bool) {
 		super.viewWillDisappear(animated)
-		if self.isMovingFromParentViewController {
+		if self.isMovingFromParent {
 			let pc = self.parent
 
 			document?.close(completionHandler: { success in

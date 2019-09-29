@@ -153,7 +153,7 @@ class QBEColumnsStep: QBEStep {
 		super.related(job: job) { result in
 			switch result {
 			case .success(let relatedSteps):
-				return callback(.success(relatedSteps.flatMap { related -> QBERelatedStep? in
+				return callback(.success(relatedSteps.compactMap { related -> QBERelatedStep? in
 					switch related {
 					case .joinable(step: _, type: _, condition: let expression):
 						// Rewrite the join expression to take into account any of our renames
@@ -253,7 +253,7 @@ class QBESortColumnsStep: QBEStep {
 					}
 					
 					// If we have an insertion point for the set of reordered columns, insert them there
-					if let before = self.before, let newIndex = newColumns.index(of: before) {
+					if let before = self.before, let newIndex = newColumns.firstIndex(of: before) {
 						newColumns.insert(contentsOf: self.sortColumns, at: newIndex)
 					}
 					else {

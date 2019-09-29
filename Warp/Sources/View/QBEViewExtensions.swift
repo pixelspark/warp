@@ -49,7 +49,7 @@ internal extension CGPoint {
 import Cocoa
 
 internal extension NSAlert {
-	static func showSimpleAlert(_ message: String, infoText: String, style: NSAlertStyle, window: NSWindow?) {
+	static func showSimpleAlert(_ message: String, infoText: String, style: NSAlert.Style, window: NSWindow?) {
 		assertMainThread()
 		let av = NSAlert()
 		av.messageText = message
@@ -80,7 +80,7 @@ internal extension NSAlert {
 	override func draw(_ dirtyRect: NSRect) {
 		if drawBackground {
 			backgroundColor.set()
-			NSRectFill(dirtyRect)
+			dirtyRect.fill()
 
 			let g = NSGradient(starting: gradientStartColor, ending: gradientEndColor)
 			g?.draw(in: self.bounds, angle: 270.0)
@@ -89,15 +89,15 @@ internal extension NSAlert {
 		borderColor.set()
 		
 		if leftBorder {
-			NSRectFill(CGRect(x: bounds.origin.x, y: bounds.origin.y, width: 1, height: bounds.size.height))
+			CGRect(x: bounds.origin.x, y: bounds.origin.y, width: 1, height: bounds.size.height).fill()
 		}
 		
 		if rightBorder {
-			NSRectFill(CGRect(x: bounds.origin.x + bounds.size.width, y: bounds.origin.y, width: 1, height: bounds.size.height))
+			CGRect(x: bounds.origin.x + bounds.size.width, y: bounds.origin.y, width: 1, height: bounds.size.height).fill()
 		}
 		
 		if topBorder {
-			NSRectFill(CGRect(x: bounds.origin.x, y: bounds.origin.y + bounds.size.height - 1, width: bounds.size.width, height: 1))
+			CGRect(x: bounds.origin.x, y: bounds.origin.y + bounds.size.height - 1, width: bounds.size.width, height: 1).fill()
 		}
 		
 		if bottomBorder {
@@ -146,14 +146,14 @@ internal extension NSView {
 		// Fade in
 		ta.fromValue = NSValue(caTransform3D: begin)
 		ta.toValue = NSValue(caTransform3D: end)
-		ta.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
+		ta.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
 		self.layer?.add(ta, forKey: "transformAnimation")
 
 		let oa = CABasicAnimation(keyPath: "opacity")
 		oa.fromValue = 1.0
 		oa.toValue = 0.0
-		oa.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
-		oa.fillMode = kCAFillModeForwards
+		oa.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+		oa.fillMode = CAMediaTimingFillMode.forwards
 		oa.isRemovedOnCompletion = false
 		self.layer?.add(oa, forKey: "opacityAnimation")
 
@@ -191,13 +191,13 @@ internal extension NSView {
 		// Fade in
 		ta.fromValue = NSValue(caTransform3D: begin)
 		ta.toValue = NSValue(caTransform3D: end)
-		ta.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
+		ta.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
 		view.layer?.add(ta, forKey: "transformAnimation")
 		
 		let oa = CABasicAnimation(keyPath: "opacity")
 		oa.fromValue = 0.0
 		oa.toValue = 1.0
-		oa.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
+		oa.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
 		view.layer?.add(oa, forKey: "opacityAnimation")
 		
 		CATransaction.commit()

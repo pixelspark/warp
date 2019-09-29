@@ -32,10 +32,10 @@ class QBESuggestionsListViewController: NSViewController, NSTableViewDataSource,
 	}
 	
 	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-		if tableColumn?.identifier == "suggestionLabel" {
+		if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "suggestionLabel" {
 			return suggestions?[row].explain(delegate?.locale ?? Language())
 		}
-		else if tableColumn?.identifier == "suggestionIcon" {
+		else if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "suggestionIcon" {
 			if let suggestedStep = suggestions?[row] {
 				if let icon = QBEFactory.sharedInstance.iconForStep(suggestedStep) {
 					return NSImage(named: icon)
@@ -58,4 +58,9 @@ class QBESuggestionsListViewController: NSViewController, NSTableViewDataSource,
 			}
 		}
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
 }

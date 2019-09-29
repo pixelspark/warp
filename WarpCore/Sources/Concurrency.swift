@@ -32,7 +32,8 @@ public func assertMainThread(_ file: StaticString = #file, line: UInt = #line) {
 
 /** Wrap a block so that it can be called only once. Calling the returned block twice results in a fatal error. After
 the first call but before returning the result from the wrapped block, the wrapped block is dereferenced. */
-public func once<P, R>(_ block: @escaping ((P) -> (R))) -> ((P) -> (R)) {
+////public func once<P, R>(_ block: @escaping (P) -> R) -> (P) -> R {
+public func once<P, R>(_ block: @escaping (P) -> R) -> (P) -> R {
 	#if DEBUG
 		var blockReference: ((P) -> (R))? = block
 		let mutex = Mutex()
@@ -46,6 +47,26 @@ public func once<P, R>(_ block: @escaping ((P) -> (R))) -> ((P) -> (R)) {
 			}
 
 			return block(p)
+		}
+	#else
+		return block
+	#endif
+}
+
+public func once2<P, Q, R>(_ block: @escaping (P, Q) -> R) -> (P, Q) -> R {
+	#if DEBUG
+		var blockReference: ((P, Q) -> (R))? = block
+		let mutex = Mutex()
+
+		return {(p: P, q: Q) -> (R) in
+			let block = mutex.locked { () -> ((P, Q) -> (R)) in
+				assert(blockReference != nil, "callback called twice!")
+				let r = blockReference!
+				blockReference = nil
+				return r
+			}
+
+			return block(p, q)
 		}
 	#else
 		return block
@@ -552,7 +573,7 @@ public class Job: JobDelegate {
 
 /** A pthread-based recursive mutex lock. */
 public class Mutex {
-	private var mutex: pthread_mutex_t = pthread_mutex_t()
+	private var mutex = UnsafeMutablePointer<pthread_mutex_t>.allocate(capacity: 1)
 
 	#if DEBUG
 	private var locker: String? = nil
@@ -563,7 +584,8 @@ public class Mutex {
 		pthread_mutexattr_init(&attr)
 		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE)
 
-		let err = pthread_mutex_init(&self.mutex, &attr)
+		mutex.initialize(to: pthread_mutex_t())
+		let err = pthread_mutex_init(mutex, &attr)
 		pthread_mutexattr_destroy(&attr)
 
 		switch err {
@@ -586,7 +608,7 @@ public class Mutex {
 	}
 
 	private final func lock() {
-		let ret = pthread_mutex_lock(&self.mutex)
+		let ret = pthread_mutex_lock(mutex)
 		switch ret {
 		case 0:
 			// Success
@@ -604,7 +626,7 @@ public class Mutex {
 	}
 
 	private final func unlock() {
-		let ret = pthread_mutex_unlock(&self.mutex)
+		let ret = pthread_mutex_unlock(mutex)
 		switch ret {
 		case 0:
 			// Success
@@ -622,8 +644,8 @@ public class Mutex {
 	}
 
 	deinit {
-		assert(pthread_mutex_trylock(&self.mutex) == 0 && pthread_mutex_unlock(&self.mutex) == 0, "deinitialization of a locked mutex results in undefined behavior!")
-		pthread_mutex_destroy(&self.mutex)
+		assert(pthread_mutex_trylock(mutex) == 0 && pthread_mutex_unlock(mutex) == 0, "deinitialization of a locked mutex results in undefined behavior!")
+		pthread_mutex_destroy(mutex)
 	}
 
 	/** Execute the given block while holding a lock to this mutex. */
@@ -658,8 +680,8 @@ if the result of the calculation was available in cache, or as soon as the resul
 /** The calculation itself is done by the 'producer' block. When the producer block is changed, the cached result is
 invalidated (pre-registered callbacks may still receive the stale result when it has been calculated). */
 public class Future<T> {
-	public typealias Callback = (T) -> ()
-	public typealias Producer = (Job, @escaping Callback) -> ()
+	public typealias Callback = (T) -> Void
+	public typealias Producer = (Job, @escaping Callback) -> Void
 
 	fileprivate var batch: Batch<T>?
 	fileprivate let mutex: Mutex = Mutex()
@@ -668,7 +690,8 @@ public class Future<T> {
 	let timeLimit: Double?
 	
 	public init(_ producer: @escaping Producer, timeLimit: Double? = nil)  {
-		self.producer = once(producer)
+		let p = once2(producer)
+		self.producer = p
 		self.timeLimit = timeLimit
 	}
 	

@@ -422,7 +422,7 @@ public class MySQLConnection: SQLConnection {
 			}
 		}
 
-		callback(.success())
+		callback(.success(()))
 	}
 
 	func clone() -> Fallible<MySQLConnection> {

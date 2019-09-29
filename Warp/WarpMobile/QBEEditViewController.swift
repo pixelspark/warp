@@ -139,74 +139,83 @@ class QBEEditViewController: FormViewController {
 		}
 	}
 
-	private func persistChanges(completion: (() -> ())? = nil) {
+	private func popAndPerformMutation(job: Job, callback: @escaping (() -> ())) {
+		assertMainThread()
+
+		let schema = self.schema!
+		let ids = schema.identifier!
+		let md = self.mutableData!
+
+		if let (column, newValue) = changes.popFirst() {
+			// Create key set
+			let key = ids.mapDictionary { c in
+				return (c, self.row![c]!)
+			}
+
+			guard let oldValue = self.row![column] else {
+				callback()
+				return
+			}
+
+			let mut = DatasetMutation.update(key: key, column: column, old: oldValue, new: newValue)
+			if md.canPerformMutation(mut.kind) {
+				md.performMutation(mut, job: job) { result in
+					switch result {
+					case .failure(let e):
+						asyncMain {
+							self.showError(message: e)
+							self.update()
+						}
+						callback()
+
+					case .success():
+						asyncMain {
+							self.row![column] = newValue
+							self.delegate?.editViewController(self, didPerform: mut) {
+								asyncMain {
+									self.popAndPerformMutation(job: job, callback: callback)
+								}
+							}
+						}
+					}
+				}
+			}
+			else {
+				asyncMain {
+					self.showError(message: String(format: "Cannot perform mutation of value in column '%@'.".localized, column.name))
+					callback()
+				}
+				return
+			}
+		}
+		else {
+			callback()
+		}
+	}
+
+	private func persistChanges(completion: @escaping (() -> ())) {
 		assertMainThread()
 
 		let job = Job(.userInitiated)
 
-		if let schema = self.schema, let ids = schema.identifier, let md = self.mutableData {
+		if let schema = self.schema, let _ = schema.identifier, let md = self.mutableData {
 			if self.row != nil {
 				// Updating an existing row
-				var changes = self.changes
+				let changes = self.changes
 
 				if changes.isEmpty {
-					completion?()
+					completion()
 					return
 				}
 
 				self.changes = [:]
 				self.updateNavigationBar()
-
-				func popAndPerformMutation(callback: (() -> ())? = nil) {
-					assertMainThread()
-
-					if let (column, newValue) = changes.popFirst() {
-						// Create key set
-						let key = ids.mapDictionary { c in
-							return (c, self.row![c])
-						}
-
-						let mut = DatasetMutation.update(key: key, column: column, old: self.row![column], new: newValue)
-						if md.canPerformMutation(mut.kind) {
-							md.performMutation(mut, job: job) { result in
-								switch result {
-								case .failure(let e):
-									asyncMain {
-										self.showError(message: e)
-										self.update()
-									}
-									callback?()
-
-								case .success():
-									asyncMain {
-										self.row![column] = newValue
-										self.delegate?.editViewController(self, didPerform: mut) {
-											asyncMain {
-												popAndPerformMutation(callback: callback)
-											}
-										}
-									}
-								}
-							}
-						}
-						else {
-							asyncMain {
-								self.showError(message: String(format: "Cannot perform mutation of value in column '%@'.".localized, column.name))
-								completion?()
-							}
-							return
-						}
-					}
-					else {
-						callback?()
-					}
-				}
-				popAndPerformMutation(callback: completion)
+				popAndPerformMutation(job: job, callback: completion)
 			}
 			else {
 				// Insert a new row
 				if changes.isEmpty {
-					completion?()
+					completion()
 					return
 				}
 
@@ -223,20 +232,20 @@ class QBEEditViewController: FormViewController {
 							self.changes = [:]
 							self.row = r
 							self.update()
-							completion?()
+							self.delegate?.editViewController(self, didPerform: mut, completion: completion)
 						}
 
 					case .failure(let e):
 						asyncMain {
 							self.showError(message: e)
-							completion?()
+							completion()
 						}
 					}
 				}
 			}
 		}
 		else {
-			completion?()
+			completion()
 		}
 	}
 
@@ -270,7 +279,7 @@ class QBEEditViewController: FormViewController {
 
 	@IBAction func apply(_ sender: AnyObject?) {
 		assertMainThread()
-		persistChanges()
+		persistChanges {}
 	}
 
 	@IBAction func done(_ sender: AnyObject?) {

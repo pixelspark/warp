@@ -181,15 +181,15 @@ internal enum QBEAnchor {
 	
 	var cursor: NSCursor? { get {
 		switch self {
-		case .north: return NSCursor.resizeDown()
-		case .south: return NSCursor.resizeUp()
-		case .east: return NSCursor.resizeRight()
-		case .west: return NSCursor.resizeLeft()
-		case .northEast: return NSCursor.resizeRight()
-		case .southEast: return NSCursor.resizeRight()
-		case .northWest: return NSCursor.resizeLeft()
-		case .southWest: return NSCursor.resizeLeft()
-		default: return NSCursor.openHand()
+		case .north: return NSCursor.resizeDown
+		case .south: return NSCursor.resizeUp
+		case .east: return NSCursor.resizeRight
+		case .west: return NSCursor.resizeLeft
+		case .northEast: return NSCursor.resizeRight
+		case .southEast: return NSCursor.resizeRight
+		case .northWest: return NSCursor.resizeLeft
+		case .southWest: return NSCursor.resizeLeft
+		default: return NSCursor.openHand
 		}
 	} }
 }

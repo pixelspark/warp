@@ -127,7 +127,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	
 	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		if row < values.count {
-			switch tableColumn?.identifier ?? "" {
+			switch convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) ?? "" {
 				case "selected":
 					if (object as? Bool) ?? false {
 						filter.selectedValues.insert(values[row].0)
@@ -147,7 +147,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		if row < values.count {
 			let value = values[row].0
 
-			switch tableColumn?.identifier ?? "" {
+			switch convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) ?? "" {
 				case "value":
 					switch value {
 						case .empty:
@@ -241,7 +241,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	}
 
 	override func viewWillAppear() {
-		if let tc = self.valueList?.tableColumn(withIdentifier: "value"), let cell = tc.dataCell as? NSCell {
+		if let tc = self.valueList?.tableColumn(withIdentifier: convertToNSUserInterfaceItemIdentifier("value")), let cell = tc.dataCell as? NSCell {
 			cell.font = QBESettings.sharedInstance.monospaceFont ? NSFont.userFixedPitchFont(ofSize: 10.0) : NSFont.userFont(ofSize: 12.0)
 		}
 
@@ -285,4 +285,14 @@ private extension Dataset {
 			}
 		}
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSUserInterfaceItemIdentifier(_ input: String) -> NSUserInterfaceItemIdentifier {
+	return NSUserInterfaceItemIdentifier(rawValue: input)
 }

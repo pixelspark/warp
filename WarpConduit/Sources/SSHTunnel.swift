@@ -57,7 +57,7 @@ fileprivate class SSHTunneledConnection: NSObject {
 		libssh2_session_set_blocking(session, 1)
 
 		// Create a forward channel
-		if let ch = destination.withCString({ (destString: UnsafePointer<Int8>) -> (OpaquePointer!) in
+		if let ch = destination.withCString({ (destString: UnsafePointer<Int8>) -> (OpaquePointer?) in
 			return libssh2_channel_direct_tcpip_ex(session, destString, Int32(destinationPort), "127.0.0.1".cString(using: .ascii), 22)
 		}) {
 			// Restore non-blocking mode
@@ -84,13 +84,13 @@ fileprivate class SSHTunneledConnection: NSObject {
 
 		super.init()
 
-		self.downstreamSource.setEventHandler { [weak self] _ in
+		self.downstreamSource.setEventHandler(handler: DispatchWorkItem(block: { [weak self] in
 			self?.pumpUp()
-		}
+		}))
 
-		self.upstreamSource.setEventHandler { [weak self] _ in
+		self.upstreamSource.setEventHandler(handler: DispatchWorkItem(block: { [weak self]  in
 			self?.pumpDown()
-		}
+		}))
 
 		self.downstreamSource.resume()
 		self.upstreamSource.resume()
@@ -176,7 +176,7 @@ fileprivate class SSHTunneledConnection: NSObject {
 				if Darwin.close(socket) != 0 {
 					trace("\(id) Could not close socket; errno=\(errno)")
 				}
-				self.readBuffer.deallocate(capacity: SSHTunneledConnection.readBufferSize)
+				self.readBuffer.deallocate()
 
 				let channel = self.channel
 
@@ -309,7 +309,7 @@ fileprivate class SSHForwardingSocket {
 			return accept(self.socket, UnsafeMutableRawPointer($0).assumingMemoryBound(to: sockaddr.self), &acceptedAddressSize)
 		}
 
-		trace("Accepted connection from \(inet_ntoa(acceptedAddress.sin_addr)), now requesting a channel")
+		trace("Accepted connection from \(String(describing: inet_ntoa(acceptedAddress.sin_addr))), now requesting a channel")
 		self.session.mutex.locked {
 			if let tc = SSHTunneledConnection(parent: self, socket: forwardSocket, destination: self.destination, port: self.destinationPort) {
 				self.connections.append(tc)
@@ -356,7 +356,7 @@ fileprivate class SSHSession {
 			// Obtain host fingerprint
 			if let fingerprint = libssh2_hostkey_hash(self.session, LIBSSH2_HOSTKEY_HASH_SHA1) {
 				self.hostFingerprint = Data(bytes: fingerprint, count: 20)
-				return callback(.success())
+				return callback(.success(()))
 			}
 			else {
 				return callback(.failure("Could not obtain host fingerprint".localized))
@@ -374,7 +374,7 @@ fileprivate class SSHSession {
 						switch authentication {
 						case .none:
 							// No authentication needed, just go on
-							return callback(.success())
+							return callback(.success(()))
 
 						case .password(let password):
 							if !str.contains("password") {
@@ -390,7 +390,7 @@ fileprivate class SSHSession {
 										return callback(.failure(msg))
 									}
 									else {
-										return callback(.success())
+										return callback(.success(()))
 									}
 								}
 							}
@@ -453,7 +453,7 @@ fileprivate class SSHSession {
 						}
 					}
 					else {
-						return callback(.success())
+						return callback(.success(()))
 					}
 				}
 			}

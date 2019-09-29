@@ -43,7 +43,7 @@ public class QBESentence: QBESubSentence {
 		var startIndex = format.startIndex
 		for token in tokens {
 			if let nextToken = format.range(of: QBESentence.formatStringTokenPlaceholder, options: [], range: startIndex..<format.endIndex) {
-				let constantString = format.substring(with: startIndex..<nextToken.lowerBound)
+				let constantString = String(format[startIndex..<nextToken.lowerBound])
 				self.tokens.append(QBESentenceLabelToken(constantString))
 
 				if let s = token as? QBESentence {
@@ -64,7 +64,7 @@ public class QBESentence: QBESubSentence {
 		}
 
 		if format.distance(from: startIndex, to: format.endIndex) > 0 {
-			self.tokens.append(QBESentenceLabelToken(format.substring(with: startIndex..<format.endIndex)))
+			self.tokens.append(QBESentenceLabelToken(String(format[startIndex..<format.endIndex])))
 		}
 
 		self.tokens = self.sanitizedTokens
@@ -309,7 +309,7 @@ public class QBESentenceFormulaToken: NSObject, QBESentenceToken {
 }
 
 public enum QBESentenceFileTokenMode {
-	case writing()
+	case writing
 	case reading(canCreate: Bool)
 }
 
@@ -335,7 +335,7 @@ public class QBESentenceFileToken: NSObject, QBESentenceToken {
 		self.callback = callback
 		self.allowedFileTypes = allowedFileTypes
 		self.isDirectory = false
-		self.mode = .writing()
+		self.mode = .writing
 	}
 
 	public init(file: QBEFileReference?, allowedFileTypes: [String], canCreate: Bool = false, callback: @escaping Callback) {

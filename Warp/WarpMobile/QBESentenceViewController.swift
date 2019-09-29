@@ -127,8 +127,8 @@ class QBESentenceViewController: UIViewController, UIDocumentPickerDelegate, QBE
 		asyncMain {
 			let trans = CATransition()
 			trans.duration = 0.3
-			trans.type = kCATransitionPush;
-			trans.subtype = kCATransitionFromBottom;
+			trans.type = CATransitionType.push;
+			trans.subtype = CATransitionSubtype.fromBottom;
 			self.view.layer.add(trans, forKey: "push")
 
 			let views = self.stackView.arrangedSubviews
@@ -144,7 +144,7 @@ class QBESentenceViewController: UIViewController, UIDocumentPickerDelegate, QBE
 					if let x = token as? QBESentenceLabelToken {
 						let label = UILabel()
 						label.text = x.label
-						label.textColor = UIColor.darkGray
+						label.textColor = UIColor.secondaryLabel
 						label.sizeToFit()
 						view = label
 					}
@@ -152,7 +152,7 @@ class QBESentenceViewController: UIViewController, UIDocumentPickerDelegate, QBE
 						let field = UITextField()
 						field.text = x.label
 						field.placeholder = x.label.isEmpty ? "(tap here to type)".localized : "...".localized
-						field.textColor = UIColor.blue
+						field.textColor = UIColor.systemBlue
 						field.autocapitalizationType = .none
 
 						field.addTarget(self, action: #selector(self.textFieldChanged(_:)), for: .editingChanged)
@@ -163,9 +163,9 @@ class QBESentenceViewController: UIViewController, UIDocumentPickerDelegate, QBE
 					}
 					else {
 						let title = token.label.isEmpty ? "(select...)".localized : token.label
-						let button = UIButton(type: UIButtonType.custom)
+						let button = UIButton(type: UIButton.ButtonType.custom)
 						button.setTitle(title, for: .normal)
-						button.setTitleColor(UIColor.blue, for: .normal)
+						button.setTitleColor(UIColor.systemBlue, for: .normal)
 						button.addTarget(self, action: #selector(self.tokenTapped(_:)), for: .touchUpInside)
 						view = button
 					}

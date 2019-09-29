@@ -38,7 +38,7 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		self.collectionView?.contentInset = UIEdgeInsets()
-		self.automaticallyAdjustsScrollViewInsets = false
+		//self.automaticallyAdjustsScrollViewInsets = false
 		self.edgesForExtendedLayout = []
 	}
 
@@ -55,7 +55,7 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 	}
 
 	private func updateSelection() {
-		if let cs = self.selectedStep, let idx = self.chain?.steps.index(of: cs) {
+		if let cs = self.selectedStep, let idx = self.chain?.steps.firstIndex(of: cs) {
 			self.collectionView?.selectItem(at: IndexPath(indexes: [QBEStepsViewController.stepsSection, idx]), animated: false, scrollPosition: .centeredHorizontally)
 		}
 	}
@@ -63,7 +63,7 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 	private func updateView() {
 		UIView.animate(withDuration: 0.2) {
 			self.collectionView?.reloadData()
-			if let cs = self.selectedStep, let idx = self.chain?.steps.index(of: cs) {
+			if let cs = self.selectedStep, let idx = self.chain?.steps.firstIndex(of: cs) {
 				self.collectionView?.selectItem(at: IndexPath(indexes: [QBEStepsViewController.stepsSection, idx]), animated: false, scrollPosition: .centeredHorizontally)
 			}
 		}
@@ -171,24 +171,12 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 				self.add(step: QBESequencerStep(pattern: "[a-z]{2}", column: Column("Value".localized)))
 			}))
 
-			uac.addAction(UIAlertAction(title: "Load data from RethinkDB".localized, style: .default, handler: { act in
-				self.add(step: QBERethinkSourceStep())
-			}))
-
 			uac.addAction(UIAlertAction(title: "Load data from PostgreSQL".localized, style: .default, handler: { act in
 				self.add(step: QBEPostgresSourceStep())
 			}))
 
-			uac.addAction(UIAlertAction(title: "Load data from CockroachDB".localized, style: .default, handler: { act in
-				self.add(step: QBECockroachSourceStep())
-			}))
-
 			uac.addAction(UIAlertAction(title: "Load data from MySQL".localized, style: .default, handler: { act in
 				self.add(step: QBEMySQLSourceStep())
-			}))
-
-			uac.addAction(UIAlertAction(title: "Load data from Presto".localized, style: .default, handler: { act in
-				self.add(step: QBEPrestoSourceStep())
 			}))
 
 			uac.addAction(UIAlertAction(title: "Load data from a file".localized, style: .default, handler: { act in
@@ -401,8 +389,7 @@ class QBEStepsViewCell: UICollectionViewCell {
 			mc.menuItems!.append(UIMenuItem(title: "Settings".localized, action: #selector(QBEStepsViewCell.configureStep(_:))))
 		}
 
-		mc.setTargetRect(self.bounds, in: self)
-		mc.setMenuVisible(true, animated: true)
+		mc.showMenu(from: self, rect: self.bounds)
 	}
 
 	override var canBecomeFirstResponder: Bool { return true }
@@ -430,7 +417,7 @@ class QBEStepsViewCell: UICollectionViewCell {
 	}
 
 	private func updateView() {
-		self.contentView.backgroundColor = self.isHighlighted ? UIColor.blue :  (self.isSelected ? UIColor(white: 0.95, alpha: 1.0)  : UIColor.clear)
+		self.contentView.backgroundColor = self.isHighlighted ? UIColor.systemBlue :  (self.isSelected ? UIColor.tertiarySystemGroupedBackground : UIColor.clear)
 		if let s = step, let imageName = QBEFactory.sharedInstance.iconForStep(s), let image = UIImage(named: imageName) {
 			self.imageView?.image = image
 		}

@@ -59,7 +59,7 @@ internal class QBEColumnsStepView: QBEConfigurableStepViewControllerFor<QBEColum
 	}
 	
 	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
-		if let identifier = tableColumn?.identifier, identifier == "selected" {
+		if let identifier = tableColumn?.identifier, identifier.rawValue == "selected" {
 			let select = (object as? Bool) ?? false
 			let name = columns[row]
 			step.columns.remove(name)
@@ -72,7 +72,7 @@ internal class QBEColumnsStepView: QBEConfigurableStepViewControllerFor<QBEColum
 	
 	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		if let tc = tableColumn {
-			if tc.identifier == "column" {
+			if convertFromNSUserInterfaceItemIdentifier(tc.identifier) == "column" {
 				return columns[row].name
 			}
 			else {
@@ -81,4 +81,9 @@ internal class QBEColumnsStepView: QBEConfigurableStepViewControllerFor<QBEColum
 		}
 		return nil
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
 }

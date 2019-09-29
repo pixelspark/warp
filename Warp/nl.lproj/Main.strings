@@ -145,7 +145,6 @@
 "dlO-l3-BJL.paletteLabel" = "Ga vooruit";
 "eGF-3B-6fa.title" = "Kolommen";
 "fB4-We-7hb.title" = "Importeer gegevens...";
-"Aqi-Ro-Cqz.title" = "Laad gegevens uit RethinkDB...";
 "fMr-YO-xzR.title" = "Toepassen";
 "gVA-U4-sdL.title" = "Plakken";
 "hQb-2v-fYv.title" = "Slimme aanhalingstekens";
@@ -449,4 +448,3 @@
 "aqc-tk-ulQ.title" = "Rangschik rijen op geselecteerde kolom";
 "LX7-dv-g8b.title" = "Pas toe";
 
-"RRp-TN-hXa.title" = "Load gegevens uit CockroachDB...";

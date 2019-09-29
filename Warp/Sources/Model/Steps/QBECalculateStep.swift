@@ -159,7 +159,7 @@ class QBECalculateStep: QBEStep {
 				callback(columns.use { (cns: OrderedSet<Column>) -> Dataset in
 					var cns = cns
 					cns.remove(self.targetColumn)
-					if let idx = cns.index(of: relativeTo) {
+					if let idx = cns.firstIndex(of: relativeTo) {
 						if self.insertBefore {
 							cns.insert(self.targetColumn, at: idx)
 						}
@@ -279,7 +279,7 @@ class QBECalculateStep: QBEStep {
 		super.related(job: job) { result in
 			switch result {
 			case .success(let relatedSteps):
-				return callback(.success(relatedSteps.flatMap { related -> QBERelatedStep? in
+				return callback(.success(relatedSteps.compactMap { related -> QBERelatedStep? in
 					switch related {
 					case .joinable(step: _, type: _, condition: let expression):
 						// Rewrite the join expression to take into account any of our renames

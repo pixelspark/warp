@@ -180,8 +180,8 @@ internal class QBEDocumentView: NSView, QBEResizableDelegate, QBEFlowchartViewDe
 		// Apply changes to flowchart and animate them
 		let tr = CATransition()
 		tr.duration = 0.3
-		tr.type = kCATransitionFade
-		tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+		tr.type = CATransitionType.fade
+		tr.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
 		self.flowchartView.layer?.add(tr, forKey: kCATransition)
 		self.flowchartView.arrows = arrows
 	}
@@ -285,13 +285,13 @@ class QBEWorkspaceView: QBEScrollView {
 	}
 	
 	override func awakeFromNib() {
-		register(forDraggedTypes: [NSFilenamesPboardType, QBEOutletView.dragType, MBTableGridColumnDataType, QBEStep.dragType])
+		registerForDraggedTypes([NSPasteboard.PasteboardType.filePromise, QBEOutletView.dragType, NSPasteboard.PasteboardType(MBTableGridColumnDataType), QBEStep.dragType])
 	}
 	
 	override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
-		let pboard = sender.draggingPasteboard()
+		let pboard = sender.draggingPasteboard
 		
-		if let _: [String] = pboard.propertyList(forType: NSFilenamesPboardType) as? [String] {
+		if let _: [String] = pboard.propertyList(forType: NSPasteboard.PasteboardType.filePromise) as? [String] {
 			draggingOver = true
 			setNeedsDisplay(self.bounds)
 			return NSDragOperation.copy
@@ -306,7 +306,7 @@ class QBEWorkspaceView: QBEScrollView {
 			setNeedsDisplay(self.bounds)
 			return NSDragOperation.link
 		}
-		else if let _ = pboard.data(forType: MBTableGridColumnDataType) {
+		else if let _ = pboard.data(forType: NSPasteboard.PasteboardType(MBTableGridColumnDataType)) {
 			draggingOver = true
 			setNeedsDisplay(self.bounds)
 			return NSDragOperation.link
@@ -323,7 +323,7 @@ class QBEWorkspaceView: QBEScrollView {
 		setNeedsDisplay(self.bounds)
 	}
 	
-	override func draggingEnded(_ sender: NSDraggingInfo?) {
+	override func draggingEnded(_ sender: NSDraggingInfo) {
 		draggingOver = false
 		setNeedsDisplay(self.bounds)
 	}
@@ -335,7 +335,7 @@ class QBEWorkspaceView: QBEScrollView {
 		else {
 			NSColor.clear.set()
 		}
-		NSRectFill(dirtyRect)
+		dirtyRect.fill()
 	}
 
 	@objc override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
@@ -343,12 +343,12 @@ class QBEWorkspaceView: QBEScrollView {
 	}
 	
 	override func performDragOperation(_ draggingInfo: NSDraggingInfo) -> Bool {
-		let pboard = draggingInfo.draggingPasteboard()
-		let pointInWorkspace = self.convert(draggingInfo.draggingLocation(), from: nil)
+		let pboard = draggingInfo.draggingPasteboard
+		let pointInWorkspace = self.convert(draggingInfo.draggingLocation, from: nil)
 		let pointInDocument = self.convert(pointInWorkspace, to: self.documentView)
 		
 		if pboard.data(forType: QBEOutletView.dragType) != nil {
-			if let ov = draggingInfo.draggingSource() as? QBEOutletView {
+			if let ov = draggingInfo.draggingSource as? QBEOutletView {
 				if let draggedChain = ov.draggedObject as? QBEChain {
 					delegate?.workspaceView(self, didReceiveChain: draggedChain, atLocation: pointInDocument)
 					return true
@@ -361,8 +361,8 @@ class QBEWorkspaceView: QBEScrollView {
 				return true
 			}
 		}
-		else if let d = pboard.data(forType: MBTableGridColumnDataType) {
-			if	let grid = draggingInfo.draggingSource() as? MBTableGrid,
+		else if let d = pboard.data(forType: NSPasteboard.PasteboardType(MBTableGridColumnDataType)) {
+			if	let grid = draggingInfo.draggingSource as? MBTableGrid,
 				let dc = grid.dataSource as? QBEDatasetViewController,
 				let indexSet = NSKeyedUnarchiver.unarchiveObject(with: d) as? IndexSet,
 				let nsa = dc.raster?.columns {
@@ -370,7 +370,7 @@ class QBEWorkspaceView: QBEScrollView {
 					delegate?.workspaceView(self, didReceiveColumnSet:names, fromDatasetViewController: dc)
 			}
 		}
-		else if let files: [String] = pboard.propertyList(forType: NSFilenamesPboardType) as? [String] {
+		else if let files: [String] = pboard.propertyList(forType: NSPasteboard.PasteboardType.filePromise) as? [String] {
 			delegate?.workspaceView(self, didReceiveFiles: files, atLocation: pointInDocument)
 		}
 		return true

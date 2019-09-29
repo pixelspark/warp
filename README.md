@@ -3,9 +3,9 @@ Warp - Convert and analyze large data sets at light speed
 
 Warp allows you to convert and analyze (very) large databases with ease at the speed of light. In Warp, you work on a small subset of the data, after which Warp repeats your actions on the entire dataset. Unlike most data analysis apps, you do not have to type any codes in Warp.
 
-* Read data from files (e.g. CSVs), databases (MySQL, PostgreSQL or SQLite) or even big data warehouses (RethinkDB and Facebook Presto)
+* Read data from files (e.g. CSVs) and databases (MySQL, PostgreSQL or SQLite)
 
-* Effortlessly juggle around data between files and databases by simply dragging-and-dropping! Load CSV files into MySQL or transfer a PostgreSQL table to a RethinkDB table by just dragging one to the other.
+* Effortlessly juggle around data between files and databases by simply dragging-and-dropping! Load CSV files into MySQL or transfer a PostgreSQL table to  MySQLa table by just dragging one to the other.
 
 * Efficiently analyze large datasets: Warp works closely together with databases to deliver the best performance. 
 
@@ -30,7 +30,7 @@ While there are many nice Mac applications for connecting to databases (e.g. Seq
 Warp consists of four components:
 
 * __WarpCore__ (framework) provides a common substrate for dataset operators. It defines value types, data operations and provides an in-memory implementation for each, as well as the building blocks for creating SQL.
-* __WarpConduit__ (framework) provides implementations of WarpCore's primitives for different databases and file formats. It links client libraries for RethinkDB, MySQL and PostgreSQL at this point. 
+* __WarpConduit__ (framework) provides implementations of WarpCore's primitives for different databases and file formats. It links client libraries for MySQL and PostgreSQL at this point. 
 * __Warp__ (app) is the Mac (Cocoa) desktop app.
 * __WarpMobile__ (app) is the iOS (UIKit) app.
 
@@ -76,16 +76,14 @@ Dependencies are fetched automatically as Git submodules. Currently the followin
 * [SwiftParserGenerator](https://github.com/dparnell/swift-parser-generator) for parsing formulas
 
 ### WarpConduit
-* [Rethink-Swift](https://github.com/pixelspark/rethink-swift) for RethinkDB connectivity
 * [TCXMLWriter](https://github.com/monkeydom/TCMXMLWriter) for writing to XML files.
-* [Rethink.swift](https://github.com/pixelspark/rethink-swift) for connecting to RethinkDB databases
 * Libmysqlclient for accessing MySQL (included for OS X and iOS as binary)
 * Libpq for accessing PostgreSQL (included for OS X and iOS as binary)
 * [Libssh2](https://www.libssh2.org) for SSH tunneling
 
 ### Warp
 * [Charts](https://github.com/danielgindi/Charts) for chart drawing
-* [Alamofire](https://github.com/Alamofire/Alamofire) for providing HTTP fetch and crawling functionality, as well as connectivity for Presto
+* [Alamofire](https://github.com/Alamofire/Alamofire) for providing HTTP fetch and crawling functionality
 * [MBTableGrid](https://github.com/pixelspark/mbtablegrid) for displaying data
 * [SwiftAI](https://github.com/collinhundley/Swift-AI) for (experimental) machine learning features
 
@@ -101,7 +99,7 @@ WarpConduit contains precompiled (unmodified) binaries of libpq and libmariadbcl
 
 Warp is written in Swift 3.0. Building Warp requires the latest XCode 8, on OS X Sierra or higher. After cloning the repository, run a `git submodule init && git submodule update` to fetch dependencies.
 
-In order to use WarpCore and/or WarpConduit in your own projects, simply drag the corresponding .xcodeproj files to your project/workspace and add as target depdendency. For WarpCore, you need to add the SwiftParser framework (contained in the WarpCore project) to the 'copy files' build phase of your app (as well as WarpCore.framework itself, but XCode should do this automatically when adding it as a dependency). For WarpConduit, you need to add libmariadbclient.a and libpq.a to the list of binaries linked with, as well as add Rethink.framework to the 'copy files' phase. You should probably also link to libssl, libcrypto and libiconv. Check out Warp's project settings when in doubt.
+In order to use WarpCore and/or WarpConduit in your own projects, simply drag the corresponding .xcodeproj files to your project/workspace and add as target depdendency. For WarpCore, you need to add the SwiftParser framework (contained in the WarpCore project) to the 'copy files' build phase of your app (as well as WarpCore.framework itself, but XCode should do this automatically when adding it as a dependency). For WarpConduit, you need to add libmariadbclient.a and libpq.a to the list of binaries linked with. You should probably also link to libssl, libcrypto and libiconv. Check out Warp's project settings when in doubt.
 
 # License
 

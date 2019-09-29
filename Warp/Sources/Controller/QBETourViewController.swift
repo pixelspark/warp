@@ -71,9 +71,9 @@ class QBETourViewController: NSViewController {
 		if animated {
 			let tr = CATransition()
 			tr.duration = 0.3
-			tr.type = kCATransitionFade
-			tr.subtype = kCATransitionFromRight
-			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+			tr.type = convertToCATransitionType(convertFromCATransitionType(CATransitionType.fade))
+			tr.subtype = convertToOptionalCATransitionSubtype(convertFromCATransitionSubtype(CATransitionSubtype.fromRight))
+			tr.timingFunction = CAMediaTimingFunction(name: convertToCAMediaTimingFunctionName(convertFromCAMediaTimingFunctionName(CAMediaTimingFunctionName.easeOut)))
 			animatedView.layer?.add(tr, forKey: kCATransition)
 		}
 		self.currentStep += 1
@@ -127,7 +127,7 @@ class QBETourViewController: NSViewController {
 		self.currentStep = 0
 		self.view.window?.center()
 		self.view.window?.titlebarAppearsTransparent = true
-		self.view.window?.titleVisibility = NSWindowTitleVisibility.hidden
+		self.view.window?.titleVisibility = NSWindow.TitleVisibility.hidden
 		self.view.window?.isMovableByWindowBackground = true
 		updateView()
 	}
@@ -135,4 +135,35 @@ class QBETourViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
     }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToCATransitionType(_ input: String) -> CATransitionType {
+	return CATransitionType(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromCATransitionType(_ input: CATransitionType) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToOptionalCATransitionSubtype(_ input: String?) -> CATransitionSubtype? {
+	guard let input = input else { return nil }
+	return CATransitionSubtype(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromCATransitionSubtype(_ input: CATransitionSubtype) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToCAMediaTimingFunctionName(_ input: String) -> CAMediaTimingFunctionName {
+	return CAMediaTimingFunctionName(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromCAMediaTimingFunctionName(_ input: CAMediaTimingFunctionName) -> String {
+	return input.rawValue
 }

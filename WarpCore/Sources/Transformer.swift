@@ -48,7 +48,7 @@ open class Transformer: NSObject, Stream {
 		}
 
 		if shouldContinue {
-			source.fetch(job, consumer: once { (fallibleRows, streamStatus) -> () in
+			source.fetch(job, consumer: once2 { (fallibleRows, streamStatus) -> () in
 				if streamStatus == .finished {
 					self.mutex.locked {
 						self.stopped = true
@@ -58,7 +58,7 @@ open class Transformer: NSObject, Stream {
 				switch fallibleRows {
 				case .success(let rows):
 					job.async {
-						self.transform(rows, streamStatus: streamStatus, job: job, callback: once { (transformedRows, newStreamStatus) -> () in
+						self.transform(rows, streamStatus: streamStatus, job: job, callback: once2 { (transformedRows, newStreamStatus) -> () in
 							let (sourceStopped, outstandingTransforms) = self.mutex.locked { () -> (Bool, Int) in
 								self.stopped = self.stopped || newStreamStatus != .hasMore
 								self.outstandingTransforms -= 1
@@ -71,7 +71,7 @@ open class Transformer: NSObject, Stream {
 										self.mutex.locked {
 											assert(self.stopped, "finish() called while not stopped yet")
 										}
-										self.finish(transformedRows, job: job, callback: once { extraRows, finalStreamStatus in
+										self.finish(transformedRows, job: job, callback: once2 { extraRows, finalStreamStatus in
 											job.reportProgress(1.0, forKey: Unmanaged.passUnretained(self).toOpaque().hashValue)
 											consumer(extraRows, finalStreamStatus)
 										})
@@ -559,7 +559,7 @@ private class ColumnsTransformer: Transformer {
 				switch sourceColumnNames {
 				case .success(let sourceCols):
 					for column in selectColumns {
-						if let idx = sourceCols.index(of: column) {
+						if let idx = sourceCols.firstIndex(of: column) {
 							idxs.append(idx)
 						}
 					}
@@ -671,7 +671,7 @@ private class CalculateTransformer: Transformer {
 
 								// Create newly calculated columns
 								for (targetColumn, _) in s.calculations {
-									var columnIndex = cns.index(of: targetColumn) ?? -1
+									var columnIndex = cns.firstIndex(of: targetColumn) ?? -1
 									if columnIndex == -1 {
 										columns.append(targetColumn)
 										columnIndex = columns.count-1
@@ -691,11 +691,11 @@ private class CalculateTransformer: Transformer {
 								}
 							}
 
-							callback()
+							callback(())
 						}
 					}
 					else {
-						callback()
+						callback(())
 					}
 				}
 			}

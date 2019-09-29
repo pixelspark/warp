@@ -42,10 +42,6 @@
 "Welcome to Warp! Click here to start and load some data." = "Welkom bij Warp! Klik hier om te beginnen door gegevens in te laden.";
 "By default, Warp shows you a small part of the data. Using this button, you can calculate the full result." = "Warp toont standaard een klein deel van de gegevens. Met deze knop kun je het volledige resultaat berekenen.";
 
-"Presto table" = "Presto-tabel";
-"Table from Presto server" = "Tabel van Presto-server";
-"Table '%@' from Presto server" = "Tabel '%@' van Presto-server";
-
 "Select %lu columns" = "Behoud %lu kolommen";
 "Remove %lu columns" = "Verwijder %lu kolommen";
 
@@ -82,10 +78,7 @@
 "number of items" = "aantal items";
 "Warp data" = "Warp-data";
 "PostgreSQL table" = "PostgreSQL-tabel";
-"CockroachDB table" = "CockroachDB-tabel";
-"RethinkDB table" = "RethinkDB-tabel";
 "Load table %@ from PostgreSQL database" = "Laad tabel %@ uit PostgreSQL-database";
-"Load table %@ from CockroachDB database" = "Laad tabel %@ uit CockroachDB-database";
 "Join data on [#], [#] rows without matches" = "Koppel gegevens op basis van [#], [#] rijen zonder matches";
 "Remove tablet" = "Verwijder onderdeel";
 "Add tablet" = "Voeg onderdeel toe";
@@ -107,7 +100,7 @@
 "Could not obtain a list of tables from the Presto database." = "Kon geen lijst met tabellen ophalen van de Presto-database.";
 "No database and/or table name have been set." = "Er is geen database- en/of tabelnaam ingesteld.";
 "Could not connect to the PostgreSQL database." = "Kon geen verbinding maken met de PostgreSQL-database.";
-"Could not connect to the CockroachDB database." = "Kon geen verbinding maken met de CockroachDB-database.";
+
 
 "Rename columns" = "Hernoem kolommen";
 "Rename column" = "Hernoem kolom";
@@ -187,15 +180,12 @@
 "(Over)write data to table [#]" = "(Over)schrijf gegevens naar tabel [#]";
 "(over)write" = "(over)schrijf";
 "Read table [#] from database [#]" = "Lees tabel [#] uit database [#]";
-"The location of the RethinkDB server is invalid." = "De locatie van de RethinkDB-server is ongeldig.";
 "Join data set to this data set" = "Koppel dataset aan deze dataset";
 "Append data set to this data set" = "Voeg dataset toe aan deze dataset";
 "No database or table selected" = "Geen database of tabel geselecteerd";
 "Could not connect to database" = "Kon geen verbinding maken met de database";
 "Load table [#] from schema [#] in PostgreSQL database [#]" = "Lees tabel [#] uit schema [#] in PostgreSQL-database [#]";
 "Write to table [#] in schema [#] in PostgreSQL database [#]" = "Schijf naar tabel [#] in schema [#] in PostgreSQL-database [#]";
-"Load table [#] in CockroachDB database [#]" = "Lees tabel [#] in CockroachDB-database [#]";
-"Write to table [#] in CockroachDB database [#]" = "Schijf naar tabel [#] in CockroachDB-database [#]";
 "(missing)" = "(ontbrekend)";
 "(error)" = "(fout)";
 "Could not load column names from Presto." = "Kon geen kolomnamen laden uit Presto.";
@@ -219,8 +209,6 @@
 "Column_%d" = "Kolom_%d";
 "Cannot create this table: %@" = "Kan deze tabel niet maken: %@";
 "Create a table in %@." = "Maak een tabel op %@.";
-"Read table [#] from RethinkDB database [#]" = "Lees tabel [#] uit RethinkDB-database [#]";
-"Write to table [#] in RethinkDB database [#]" = "Schrijf naar tabel [#] in RethinkDB database [#]";
 "Upload data to %@..." = "Upload gegevens naar %@...";
 "Could not upload data" = "De gegevens kunnen niet worden geupload";
 "Cannot create this table" = "Deze tabel kan niet worden gemaakt";
@@ -231,9 +219,8 @@
 
 "Create a new table in %@." = "Maak een nieuwe tabel in %@.";
 "Create a new table" = "Maak een nieuwe tabel";
-"RethinkDB database '%@'" = "RethinkDB-database '%@'";
 "PostgreSQL database '%@'" = "PostgreSQL-database '%@'";
-"CockroachDB database '%@'" = "CockroachDB-database '%@'";
+
 "MySQL database '%@'" = "MySQL-database '%@'";
 "Export data to file..." = "Exporteer gegevens naar bestand...";
 "(empty)" = "(leeg)";
@@ -243,7 +230,7 @@
 "There can only be one column named '%@' in this table." = "In deze tabel mag maar één kolom bestaan met de naam '%@'.";
 "User %@ at MySQL server %@ (port %d)" = "Gebruiker %@ op MySQL-server %@ (poort %d)";
 "User %@ at PostgreSQL server %@ (port %d)" = "Gebruiker %@ op PostgreSQL-server %@ (poort %d)";
-"User %@ at CockroachDB server %@ (port %d)" = "Gebruiker %@ op CockroachDB-server %@ (poort %d)";
+
 
 "In this area, all processing steps that are applied to the data are shown." = "Hier vind je alle verwerkingsslagen die op de data worden toegepast.";
 "See this little circle? Drag it around to copy or move data, or to link data together." = "Zie je deze cirkel? Sleep 'm om gegevens te kopiëren, verplaatsen, of te koppelen.";
@@ -305,7 +292,6 @@
 "The data set cannot be edited" = "De dataset kan niet worden bewerkt.";
 "Please select a database." = "Selecteer een database om gegevens op te halen.";
 "Please select a table." = "Selecteer een tabel om gegevens uit op te halen.";
-"User %@ at RethinkDB server %@ (port %d)" = "Gebruiker %@ op RethinkDB-server %@ (poort %d)";
 
 "Select rows where %@ = [#]" = "Selecteer rijen waarbij %@ = [#]";
 "[#] where %@ = [#]" = "[#] waarbij %@ = [#]";
@@ -391,7 +377,7 @@
 "Search for text" = "Zoek naar tekst";
 "Limit the number of rows" = "Beperk het aantal rijen";
 "Skip the first rows" = "Sla regels over";
-"Randomly select rows" = "Seleteer willekeurige rijen";
+"Randomly select rows" = "Selecteer willekeurige rijen";
 "Click + to add data" = "Tik op + om gegevens toe te voegen";
 "Rename" = "Hernoem";
 "Rename document" = "Hernoem document";
@@ -408,7 +394,6 @@
 "Apply" = "Toepassen";
 "Load data from PostgreSQL" = "Laad gegevens uit PostgreSQL";
 "Load data from MySQL" = "Laad gegevens uit MySQL";
-"Load data from RethinkDB" = "Laad gegevens uit RethinkDB";
 "Exporting to file..." = "Exporteren naar bestand...";
 "Export to file" = "Exporteer naar bestand";
 "File name" = "Bestandsnaam";
@@ -485,3 +470,5 @@
 "The tunnel could succesfully be established." = "De tunnel kon zonder problemen worden opgezet.";
 "SSH tunnel" = "SSH-tunnel";
 "value in column %@" = "waarde uit kolom %@";
+
+"Rank" = "Rangschik";

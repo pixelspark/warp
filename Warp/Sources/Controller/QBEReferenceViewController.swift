@@ -64,8 +64,8 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 					if let parsedFormula = Formula(formula: formula, locale: locale!) {
 						let ma = NSMutableAttributedString()
 						ma.append(parsedFormula.syntaxColoredFormula)
-						ma.append(NSAttributedString(string: " = ", attributes: [:]))
-						ma.append(NSAttributedString(string: locale!.localStringFor(result), attributes: [:]))
+						ma.append(NSAttributedString(string: " = ", attributes: convertToOptionalNSAttributedStringKeyDictionary([:])))
+						ma.append(NSAttributedString(string: locale!.localStringFor(result), attributes: convertToOptionalNSAttributedStringKeyDictionary([:])))
 						self.exampleLabel.attributedStringValue = ma
 					}
 					return
@@ -96,7 +96,7 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 			let functionName = functions[row]
 			if let function = locale?.functionWithName(functionName) {
 				if let tc = tableColumn {
-					switch tc.identifier {
+					switch convertFromNSUserInterfaceItemIdentifier(tc.identifier) {
 						case "name":
 							return functionName
 						
@@ -142,4 +142,15 @@ class QBEReferenceViewController: NSViewController,  NSTableViewDataSource, NSTa
 		self.valueList?.doubleAction = #selector(QBEReferenceViewController.didDoubleClickRow(_:))
 		self.valueList?.target = self
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToOptionalNSAttributedStringKeyDictionary(_ input: [String: Any]?) -> [NSAttributedString.Key: Any]? {
+	guard let input = input else { return nil }
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSAttributedString.Key(rawValue: key), value)})
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
 }

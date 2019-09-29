@@ -67,7 +67,7 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType>: Sequence {
 		var adjustedIndex = index
 		let existingValue = self.values[key]
 		if existingValue != nil {
-			let existingIndex = self.keys.index(of: key)!
+			let existingIndex = self.keys.firstIndex(of: key)!
 
 			if existingIndex < index {
 				adjustedIndex -= 1
@@ -112,13 +112,13 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType>: Sequence {
 	}
 
 	public mutating func orderKey(_ key: KeyType, toIndex: Int) {
-		precondition(self.keys.index(of: key) != nil, "key to be ordered must exist")
+		precondition(self.keys.firstIndex(of: key) != nil, "key to be ordered must exist")
 		self.keys.remove(key)
 		self.keys.insert(contentsOf: [key], at: toIndex)
 	}
 
 	public mutating func orderKey(_ key: KeyType, beforeKey: KeyType) {
-		if let newIndex = self.keys.index(of: beforeKey) {
+		if let newIndex = self.keys.firstIndex(of: beforeKey) {
 			orderKey(key, toIndex: newIndex)
 		}
 		else {
@@ -152,7 +152,7 @@ public struct OrderedDictionary<KeyType: Hashable, ValueType>: Sequence {
 	}
 
 	public mutating func sortPairsInPlace(_ isOrderedBefore: (PairType, PairType) -> Bool) {
-		self.keys.sort { a, b in
+		self.keys = self.keys.sorted { a, b in
 			return isOrderedBefore((a, self.values[a]!), (b, self.values[b]!))
 		}
 	}
@@ -209,8 +209,8 @@ WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEM
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 public struct OrderedSet<Element : Hashable> : Hashable, Collection, MutableCollection {
-	internal(set) var array: [Element]
-	internal(set) var set: Set<Element>
+	var array: [Element]
+	var set: Set<Element>
 
 	/** Always zero, which is the index of the first element when non-empty. **/
 	public var startIndex: Int {
@@ -234,9 +234,9 @@ public struct OrderedSet<Element : Hashable> : Hashable, Collection, MutableColl
 			array = array.enumerated().filter { (index, element) in return index == position || element.hashValue != newValue.hashValue }.map { $0.element }
 		}
 	}
-
-	public var hashValue: Int {
-		return set.hashValue
+	
+	public func hash(into: inout Hasher) {
+		set.hash(into: &into)
 	}
 
 	public func index(after i: Int) -> Int {
@@ -309,89 +309,89 @@ public func +=<Element, S : Sequence>( lhs: inout OrderedSet<Element>, rhs: S) w
 
 /** Set-related functions for OrderedSet. */
 public extension OrderedSet {
-	public init(minimumCapacity: Int) {
+	init(minimumCapacity: Int) {
 		self.array = []
 		self.set = Set(minimumCapacity: minimumCapacity)
 		reserveCapacity(minimumCapacity)
 	}
 
 	/** Returns `true` if the ordered set contains a member. */
-	public func contains(member: Element) -> Bool {
+	func contains(member: Element) -> Bool {
 		return set.contains(member)
 	}
 
 	/** Remove the member from the ordered set and return it if it was present. */
-	@discardableResult public mutating func remove(_ member: Element) -> Element? {
-		guard let index = array.index(of: member) else { return nil }
+	@discardableResult mutating func remove(_ member: Element) -> Element? {
+		guard let index = array.firstIndex(of: member) else { return nil }
 		set.remove(member)
 		return array.remove(at: index)
 	}
 
 	/** Returns true if the ordered set is a subset of a finite sequence as a `Set`. */
-	public func isSubset(of otherSet: Set<Element>) -> Bool {
+	func isSubset(of otherSet: Set<Element>) -> Bool {
 		return set.isSubset(of: otherSet)
 	}
 
 	/** Returns true if the ordered set is a subset of a finite sequence as a `Set` but not equal. */
-	public func isStrictSubset(of otherSet: Set<Element>) -> Bool {
+	func isStrictSubset(of otherSet: Set<Element>) -> Bool {
 		return set.isStrictSubset(of: otherSet)
 	}
 
 	/** Returns true if the ordered set is a superset of a finite sequence as a `Set`. */
-	public func isSuperset(of otherSet: Set<Element>) -> Bool {
+	func isSuperset(of otherSet: Set<Element>) -> Bool {
 		return set.isSuperset(of: otherSet)
 	}
 
 	/** Returns true if the ordered set is a superset of a finite sequence as a `Set` but not equal. */
-	public func isStrictSuperset(of otherSet: Set<Element>) -> Bool {
+	func isStrictSuperset(of otherSet: Set<Element>) -> Bool {
 		return set.isStrictSuperset(of: otherSet)
 	}
 
 	/** Returns true if no members in the ordered set are in a finite sequence as a `Set`. */
-	public func isDisjoint(with otherSet: Set<Element>) -> Bool {
+	func isDisjoint(with otherSet: Set<Element>) -> Bool {
 		return set.isDisjoint(with: otherSet)
 	}
 
 	/** Return a new `OrderedSet` with items in both this set and a finite sequence. */
-	public func union(with otherSet: OrderedSet<Element>) -> OrderedSet {
+	func union(with otherSet: OrderedSet<Element>) -> OrderedSet {
 		var c = self
 		c.formUnion(with: otherSet)
 		return c
 	}
 
 	/** Append elements of a finite sequence into this `OrderedSet`. */
-	public mutating func formUnion(with otherSet: OrderedSet<Element>) {
+	mutating func formUnion(with otherSet: OrderedSet<Element>) {
 		append(contentsOf: otherSet)
 	}
 
 	/** Return a new ordered set with elements in this set that do not occur in a finite sequence. */
-	public func subtracting(_ otherSet: Set<Element>) -> OrderedSet {
+	func subtracting(_ otherSet: Set<Element>) -> OrderedSet {
 		var c = self
 		c.subtract(otherSet)
 		return c
 	}
 
 	/** Remove all members in the ordered set that occur in a finite sequence. */
-	public mutating func subtract(_ otherSet: Set<Element>) {
+	mutating func subtract(_ otherSet: Set<Element>) {
 		set.subtract(otherSet)
 		array = array.filter { set.contains($0) }
 	}
 
 	/** Return a new ordered set with elements common to this ordered set and a finite sequence. */
-	public func intersection(with otherSet: Set<Element>) -> OrderedSet {
+	func intersection(with otherSet: Set<Element>) -> OrderedSet {
 		var c = self
 		c.formIntersection(with: otherSet)
 		return c
 	}
 
 	/** Remove any members of this ordered set that aren't also in a finite sequence. */
-	public mutating func formIntersection(with otherSet: Set<Element>) {
+	mutating func formIntersection(with otherSet: Set<Element>) {
 		set.formIntersection(otherSet)
 		array = array.filter { set.contains($0) }
 	}
 
 	/** If `!self.isEmpty`, remove the first element and return it, otherwise return `nil`. */
-	public mutating func popFirst() -> Element? {
+	mutating func popFirst() -> Element? {
 		guard let first = array.first else { return nil }
 		set.remove(first)
 		return array.removeFirst()

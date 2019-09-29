@@ -69,9 +69,9 @@ class QBEMobileTourViewController: UIViewController {
 
 		let title: String
 		switch self.currentIndex {
-		case 0: title = "Okay, show me!".localized
-		case self.items.count-1: title = "Get started".localized
-		default: title = "Got it!".localized
+		case 0: title = NSLocalizedString("mtour.showme", tableName: "MobileTour", bundle: Bundle.main, value: "", comment: "")
+		case self.items.count-1: title = NSLocalizedString("mtour.getstarted", tableName: "MobileTour", bundle: Bundle.main, value: "", comment: "")
+		default: title = NSLocalizedString("mtour.gotit", tableName: "MobileTour", bundle: Bundle.main, value: "", comment: "")
 		}
 
 		self.nextButton.setTitle(title, for: .normal)
@@ -81,8 +81,8 @@ class QBEMobileTourViewController: UIViewController {
 		if self.currentIndex < self.items.count-1 {
 			let trans = CATransition()
 			trans.duration = 0.3
-			trans.type = kCATransitionPush
-			trans.subtype = kCATransitionFromRight
+			trans.type = CATransitionType.push
+			trans.subtype = CATransitionSubtype.fromRight
 			self.view.layer.add(trans, forKey: "push")
 
 			self.currentIndex += 1

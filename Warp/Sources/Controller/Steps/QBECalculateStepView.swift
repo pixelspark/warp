@@ -121,7 +121,7 @@ internal class QBECalculateStepView: QBEConfigurableStepViewControllerFor<QBECal
 				// TODO: this should be a bit more informative
 				let a = NSAlert()
 				a.messageText = NSLocalizedString("The formula you typed is not valid.", comment: "")
-				a.alertStyle = NSAlertStyle.warning
+				a.alertStyle = NSAlert.Style.warning
 				a.beginSheetModal(for: self.view.window!, completionHandler: nil)
 			}
 		}

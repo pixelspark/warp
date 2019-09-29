@@ -113,7 +113,7 @@ public enum Value: Hashable, CustomDebugStringConvertible {
 		self = .date(value.timeIntervalSinceReferenceDate)
 	}
 	
-	public var hashValue: Int { get  {
+	public var hash: Int { get  {
 		switch self {
 		case .double(let d): return d.hashValue
 		case .int(let i): return i.hashValue
@@ -775,22 +775,22 @@ internal struct Stack<T> {
 }
 
 public extension NSCoder {
-	public func encodeString(_ string: String, forKey: String) {
+	func encodeString(_ string: String, forKey: String) {
 		self.encode(string, forKey: forKey)
 	}
 	
-	public func decodeString(forKey key: String) -> String? {
+	func decodeString(forKey key: String) -> String? {
 		if let s = self.decodeObject(of: NSString.self, forKey: key) {
 			return String(s)
 		}
 		return nil
 	}
 
-	public func encode(value: Value, forKey key: String) {
+	func encode(value: Value, forKey key: String) {
 		self.encode(ValueCoder(value), forKey: key)
 	}
 
-	public func decodeValue(forKey key: String) -> Value? {
+	func decodeValue(forKey key: String) -> Value? {
 		if let v = self.decodeObject(of: ValueCoder.self, forKey: key) {
 			return v.value
 		}
@@ -848,8 +848,8 @@ public extension String {
 	Calculates the Levenshtein (edit) distance between this string and another string. */
 	func levenshteinDistance(_ toString: String) -> Int {
 		// create character arrays
-		let a = Array(self.characters)
-		let b = Array(toString.characters)
+		let a = Array(self)
+		let b = Array(toString)
 		
 		// initialize matrix of size |a|+1 * |b|+1 to zero
 		var dist = [[Int]]()
@@ -886,7 +886,7 @@ public extension String {
 	func histogram() -> [Character: Int] {
 		var histogram = Dictionary<Character, Int>()
 		
-		for ch in self.characters {
+		for ch in self {
 			let old: Int = histogram[ch] ?? 0
 			histogram[ch] = old+1
 		}
@@ -897,7 +897,7 @@ public extension String {
 	func replace(_ pattern: String, withTemplate replacement: String, caseSensitive: Bool = true) -> String? {
 		do {
 			let re = try NSRegularExpression(pattern: pattern, options: (caseSensitive ? []: [.caseInsensitive]))
-			let range = NSMakeRange(0, self.characters.count)
+			let range = NSMakeRange(0, self.count)
 			return re.stringByReplacingMatches(in: self, options: NSRegularExpression.MatchingOptions(), range: range, withTemplate: replacement)
 		} catch _ {
 		}
@@ -907,7 +907,7 @@ public extension String {
 	func matches(_ pattern: String, caseSensitive: Bool = true) -> Bool? {
 		do {
 			let re = try NSRegularExpression(pattern: pattern, options: (caseSensitive ? [] : [.caseInsensitive]))
-			let range = NSMakeRange(0, self.characters.count)
+			let range = NSMakeRange(0, self.count)
 			return re.rangeOfFirstMatch(in: self, options: NSRegularExpression.MatchingOptions(), range: range).location != NSNotFound
 		} catch _ {
 		}
@@ -1079,7 +1079,7 @@ internal extension UInt64 {
 
 internal extension Int64 {
 	static func random(_ lower: Int64 = min, upper: Int64 = max) -> Int64 {
-		let (s, overflow) = Int64.subtractWithOverflow(upper, lower)
+		let (s, overflow) = upper.subtractingReportingOverflow(lower) 
 		let u = overflow ? UInt64.max - UInt64(~s) : UInt64(s)
 		let r = UInt64.random(upper: u)
 		
@@ -1142,7 +1142,7 @@ extension Int {
 
 		var y = n
 		while y < self {
-			let (result, didOverflow) = Int.multiplyWithOverflow(y, n)
+			let (result, didOverflow) = y.multipliedReportingOverflow(by: n)
 			if didOverflow {
 				return nil
 			}
@@ -1183,7 +1183,7 @@ struct Hilbert {
 		var x = x
 		var y = y
 
-		let (sSquare, didOverflow) = Int.multiplyWithOverflow(s, s)
+		let (sSquare, didOverflow) = s.multipliedReportingOverflow(by: s)
 		if didOverflow {
 			return nil
 		}
@@ -1191,12 +1191,12 @@ struct Hilbert {
 		while s > 0 {
 			let rx = ((x & s) != 0) ? 1 : 0
 			let ry = ((y & s) != 0) ? 1 : 0
-			let (multiplicant, didOverflow) = Int.multiplyWithOverflow(sSquare, ((3 * rx) ^ ry))
+			let (multiplicant, didOverflow) = sSquare.multipliedReportingOverflow(by: ((3 * rx) ^ ry))
 			if didOverflow {
 				return nil
 			}
 
-			let (result, nextDidOverflow) = Int.addWithOverflow(d, multiplicant)
+			let (result, nextDidOverflow) = d.addingReportingOverflow(multiplicant)
 			if nextDidOverflow {
 				return nil
 			}
@@ -1235,13 +1235,13 @@ struct Hilbert {
 			let ry = 1 & (t ^ rx)
 			rot(s, x: &x, y:&y, rx: rx, ry: ry)
 
-			let (result, didOverflow) = Int.addWithOverflow(x, s * rx)
+			let (result, didOverflow) = x.addingReportingOverflow(s * rx)
 			if didOverflow {
 				return nil
 			}
 			x = result
 
-			let (result2, didOverflow2) = Int.addWithOverflow(y, s * ry)
+			let (result2, didOverflow2) = y.addingReportingOverflow(s * ry)
 			if didOverflow2 {
 				return nil
 			}
@@ -1249,7 +1249,7 @@ struct Hilbert {
 
 			t /= 4
 
-			let (result3, didOverflow3) = Int.multiplyWithOverflow(s, 2)
+			let (result3, didOverflow3) = s.multipliedReportingOverflow(by: 2)
 			if didOverflow3 {
 				return nil
 			}

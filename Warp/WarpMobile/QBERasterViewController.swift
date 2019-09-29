@@ -91,8 +91,7 @@ class QBERasterViewController: UIViewController, MDSpreadViewDelegate, MDSpreadV
 					UIMenuItem(title: "Rank".localized, action: #selector(QBERasterViewController.rankSelectedColumn(_:)))
 				]
 
-				mc.setTargetRect(self.spreadView.cellRectForRow(at: sr, forColumnAt: sc), in: self.spreadView)
-				mc.setMenuVisible(true, animated: true)
+				mc.showMenu(from: self.spreadView, rect: self.spreadView.cellRectForRow(at: sr, forColumnAt: sc))
 			}
 		}
 	}

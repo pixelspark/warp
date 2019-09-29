@@ -216,19 +216,19 @@ fileprivate class QBEDocumentManager: NSObject {
 		should be run to morph old into new results.
 		*/
 
-		let oldResultAnimations: [QBEDocumentBrowserAnimation] = removedResults.array.flatMap { removedResult in
+		let oldResultAnimations: [QBEDocumentBrowserAnimation] = removedResults.array.compactMap { removedResult in
 			let oldIndex = oldResults.index(of: removedResult)
 			guard oldIndex != NSNotFound else { return nil }
 			return .delete(index: oldIndex)
 		}
 
-		let newResultAnimations: [QBEDocumentBrowserAnimation] = addedResults.array.flatMap { addedResult in
+		let newResultAnimations: [QBEDocumentBrowserAnimation] = addedResults.array.compactMap { addedResult in
 			let newIndex = newResults.index(of: addedResult)
 			guard newIndex != NSNotFound else { return nil }
 			return .add(index: newIndex)
 		}
 
-		let movedResultAnimations: [QBEDocumentBrowserAnimation] = changedResults.array.flatMap { movedResult in
+		let movedResultAnimations: [QBEDocumentBrowserAnimation] = changedResults.array.compactMap { movedResult in
 			let newIndex = newResults.index(of: movedResult)
 			let oldIndex = oldResults.index(of: movedResult)
 
@@ -281,7 +281,6 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 	var thumbnail: UIImage? {
 		didSet {
 			imageView.image = thumbnail
-			contentView.backgroundColor = thumbnail != nil ? UIColor.white : UIColor.lightGray
 		}
 	}
 
@@ -313,8 +312,7 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 			UIMenuItem(title: "Duplicate".localized, action: #selector(self.duplicate(_:)))
 		]
 
-		mc.setTargetRect(self.bounds, in: self)
-		mc.setMenuVisible(true, animated: true)
+		mc.showMenu(from: self, rect: self.bounds)
 	}
 
 	override func delete(_ sender: Any?) {
@@ -542,8 +540,10 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 					IndexPath(row: row, section: section)
 				])
 
-				let URL = oldResults[row].URL
-				self.thumbnailCache.removeThumbnailForURL(URL)
+				if row < oldResults.count {
+					let URL = oldResults[row].URL
+					self.thumbnailCache.removeThumbnailForURL(URL)
+				}
 
 			case .move(let from, let to):
 				let fromIndexPath = IndexPath(row: from, section: section)
@@ -610,13 +610,13 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 	}
 
 	func thumbnailCache(_ thumbnailCache: QBEDocumentThumbnailCache, didLoadThumbnailsForURLs URLs: Set<URL>) {
-		let documentPaths: [IndexPath] = URLs.flatMap { URL in
-			guard let matchingDocumentIndex = documents.index(where: { $0.URL as URL == URL }) else { return nil }
+		let documentPaths: [IndexPath] = URLs.compactMap { URL in
+			guard let matchingDocumentIndex = documents.firstIndex(where: { $0.URL as URL == URL }) else { return nil }
 			return IndexPath(item: matchingDocumentIndex, section: QBEDocumentBrowserViewController.documentsSection)
 		}
 
-		let fileDocumentPaths: [IndexPath] = URLs.flatMap { URL in
-			guard let matchingDocumentIndex = dataFileDocuments.index(where: { $0.URL as URL == URL }) else { return nil }
+		let fileDocumentPaths: [IndexPath] = URLs.compactMap { URL in
+			guard let matchingDocumentIndex = dataFileDocuments.firstIndex(where: { $0.URL as URL == URL }) else { return nil }
 			return IndexPath(item: matchingDocumentIndex, section: QBEDocumentBrowserViewController.dataFilesSection)
 		}
 
@@ -799,7 +799,7 @@ class QBEDocumentBrowserViewController: UICollectionViewController, QBEDocumentM
 									let tablet = QBEChainTablet(chain: QBEChain(head: s))
 									document.addTablet(tablet)
 									document.updateChangeCount(.done)
-									document.save(to: document.fileURL, for: UIDocumentSaveOperation.forOverwriting, completionHandler: { (success) in
+									document.save(to: document.fileURL, for: UIDocument.SaveOperation.forOverwriting, completionHandler: { (success) in
 										if success {
 											let controller = self.storyboard!.instantiateViewController(withIdentifier: "Document") as! QBEDocumentViewController
 											controller.documentURL = document.fileURL

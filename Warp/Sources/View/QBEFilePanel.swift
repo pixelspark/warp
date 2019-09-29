@@ -61,20 +61,19 @@ class QBEFilePanel {
 		no.isExtensionHidden = true
 
 		// Create accessory view
-		if let accessoryView = QBEFilePanelAccessoryView(nibName: "QBEFilePanelAccessoryView", bundle: nil) {
-			no.accessoryView = accessoryView.view
-			accessoryView.savePanel = no
-			accessoryView.allowedFileTypes = self.allowedFileTypes
+		let accessoryView = QBEFilePanelAccessoryView(nibName: "QBEFilePanelAccessoryView", bundle: nil)
+		no.accessoryView = accessoryView.view
+		accessoryView.savePanel = no
+		accessoryView.allowedFileTypes = self.allowedFileTypes
 
-			no.beginSheetModal(for: inWindow) { (result) -> Void in
-				let x = accessoryView
-				x.allowedFileTypes.removeAll()
-				if result == NSFileHandlingPanelOKButton {
-					callback(.success(no.url!))
-				}
-				else {
-					callback(.failure(NSLocalizedString("No file was selected.", comment: "")))
-				}
+		no.beginSheetModal(for: inWindow) { (result) -> Void in
+			let x = accessoryView
+			x.allowedFileTypes.removeAll()
+			if result == NSApplication.ModalResponse.OK {
+				callback(.success(no.url!))
+			}
+			else {
+				callback(.failure(NSLocalizedString("No file was selected.", comment: "")))
 			}
 		}
 	}

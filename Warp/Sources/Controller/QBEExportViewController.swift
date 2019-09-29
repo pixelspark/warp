@@ -89,7 +89,7 @@ class QBEExportViewController: NSViewController, JobDelegate, QBESentenceViewDel
 	}
 
 	@IBAction func exportOnce(_ sender: NSObject) {
-		let alertWindow = self.presenting?.view.window
+		let alertWindow = self.presentingViewController?.view.window
 		let job = Job(.userInitiated)
 		self.job = job
 		job.addObserver(self)

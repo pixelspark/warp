@@ -76,7 +76,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 		return self.validateUserInterfaceItem(item)
 	}
 	
-	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+	@objc func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		if item.action == #selector(QBESortStepView.delete(_:)) {
 			return (tableView?.selectedRowIndexes.count ?? 0) > 0
 		}
@@ -95,7 +95,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	}
 	
 	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
-		if let identifier = tableColumn?.identifier {
+		if let identifier = tableColumn?.identifier.rawValue {
 			let order = step.orders[row]
 			
 			if identifier == "formula" {
@@ -123,7 +123,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 		}
 	}
 	
-	private let QBESortStepViewItemType = "nl.pixelspark.qbe.QBESortStepView.Item"
+	private let QBESortStepViewItemType = NSPasteboard.PasteboardType("nl.pixelspark.qbe.QBESortStepView.Item")
 	
 	func tableView(_ tableView: NSTableView, writeRowsWith rowIndexes: IndexSet, to pboard: NSPasteboard) -> Bool {
 		let data = NSKeyedArchiver.archivedData(withRootObject: rowIndexes)
@@ -134,18 +134,18 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	}
 	
 	
-	func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableViewDropOperation) -> NSDragOperation {
-		if info.draggingSource() as? NSTableView == tableView {
-			if dropOperation == NSTableViewDropOperation.on {
-				tableView.setDropRow(row+1, dropOperation: NSTableViewDropOperation.above)
+	func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
+		if info.draggingSource as? NSTableView == tableView {
+			if dropOperation == NSTableView.DropOperation.on {
+				tableView.setDropRow(row+1, dropOperation: NSTableView.DropOperation.above)
 				return NSDragOperation.move
 			}
 		}
 		return NSDragOperation()
 	}
 	
-	func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableViewDropOperation) -> Bool {
-		let pboard = info.draggingPasteboard()
+	func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableView.DropOperation) -> Bool {
+		let pboard = info.draggingPasteboard
 		if let data = pboard.data(forType: QBESortStepViewItemType) {
 			if let rowIndexes = NSKeyedUnarchiver.unarchiveObject(with: data) as? IndexSet {
 				let movedItems = step.orders.objectsAtIndexes(rowIndexes)
@@ -159,7 +159,7 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	}
 	
 	internal func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-		if let identifier = tableColumn?.identifier {
+		if let identifier = tableColumn?.identifier.rawValue {
 			let order = step.orders[row]
 			
 			if identifier == "formula" {
@@ -180,6 +180,21 @@ internal class QBESortStepView: QBEConfigurableStepViewControllerFor<QBESortStep
 	
 	override func awakeFromNib() {
 		super.awakeFromNib()
-		tableView?.register(forDraggedTypes: [QBESortStepViewItemType])
+		tableView?.registerForDraggedTypes([QBESortStepViewItemType])
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSPasteboardPasteboardTypeArray(_ input: [String]) -> [NSPasteboard.PasteboardType] {
+	return input.map { key in NSPasteboard.PasteboardType(key) }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSPasteboardPasteboardType(_ input: String) -> NSPasteboard.PasteboardType {
+	return NSPasteboard.PasteboardType(rawValue: input)
 }

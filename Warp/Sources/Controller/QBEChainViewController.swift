@@ -58,12 +58,12 @@ protocol QBEChainViewControllerDelegate: NSObjectProtocol {
 }
 
 internal extension NSViewController {
-	internal func showTip(_ message: String, atView: NSView) {
+	func showTip(_ message: String, atView: NSView) {
 		assertMainThread()
 		
 		if let vc = self.storyboard?.instantiateController(withIdentifier: "tipController") as? QBETipViewController {
 			vc.message = message
-			self.presentViewController(vc, asPopoverRelativeTo: atView.bounds, of: atView, preferredEdge: NSRectEdge.maxY, behavior: NSPopoverBehavior.transient)
+			self.present(vc, asPopoverRelativeTo: atView.bounds, of: atView, preferredEdge: NSRectEdge.maxY, behavior: NSPopover.Behavior.transient)
 		}
 	}
 }
@@ -77,7 +77,7 @@ internal enum QBEEditingMode {
 @objc class QBEChainViewController: NSViewController, QBESuggestionsViewDelegate, QBESentenceViewDelegate,
 	QBEDatasetViewDelegate, QBEStepsControllerDelegate, JobDelegate, QBEOutletViewDelegate, QBEOutletDropTarget,
 	QBEFilterViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate,
-	QBEColumnViewDelegate, QBEChainViewDelegate, QBEDissectViewControlllerDelegate {
+	QBEColumnViewDelegate, QBEChainViewDelegate, QBEDissectViewControlllerDelegate, NSToolbarItemValidation {
 
 	private var suggestions: Future<[QBEStep]>?
 	private let calculator: QBECalculator = QBECalculator(incremental: true)
@@ -124,7 +124,7 @@ internal enum QBEEditingMode {
 		return QBEAppDelegate.sharedInstance.locale ?? Language()
 	} }
 	
-	dynamic var currentStep: QBEStep? {
+	@objc dynamic var currentStep: QBEStep? {
 		didSet {
 			self.editingMode = .notEditing
 			if let s = currentStep {
@@ -235,12 +235,12 @@ internal enum QBEEditingMode {
 		outletDropView = QBEOutletDropView(frame: self.view.bounds)
 		outletDropView.translatesAutoresizingMaskIntoConstraints = false
 		outletDropView.delegate = self
-		self.view.addSubview(self.outletDropView, positioned: NSWindowOrderingMode.above, relativeTo: nil)
+		self.view.addSubview(self.outletDropView, positioned: NSWindow.OrderingMode.above, relativeTo: nil)
 		self.view.addConstraints([
-			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0),
-			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutAttribute.bottom, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0),
-			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutAttribute.left, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.left, multiplier: 1.0, constant: 0.0),
-			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutAttribute.right, relatedBy: NSLayoutRelation.equal, toItem: self.view, attribute: NSLayoutAttribute.right, multiplier: 1.0, constant: 0.0)
+			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0),
+			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0),
+			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutConstraint.Attribute.left, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.left, multiplier: 1.0, constant: 0.0),
+			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutConstraint.Attribute.right, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.right, multiplier: 1.0, constant: 0.0)
 		])
 	}
 	
@@ -281,7 +281,7 @@ internal enum QBEEditingMode {
 										switch result {
 										case .success():
 											asyncMain {
-												self.view.presentViewControllerAsSheet(uploadView)
+												self.view.presentAsSheet(uploadView)
 											}
 
 										case .failure(_):
@@ -295,16 +295,6 @@ internal enum QBEEditingMode {
 							break
 						}
 					}
-				}
-			}
-
-			/** Add a tablet to the document containing a raster table containing training data for a classifier on the source
-			data set. */
-			@objc private func joinWithClassifier(_ sender: NSObject) {
-				asyncMain {
-					let classifyStep = QBEClassifierStep(previous: nil)
-					classifyStep.right = self.otherChain
-					self.view.suggestSteps([classifyStep])
 				}
 			}
 
@@ -369,10 +359,6 @@ internal enum QBEEditingMode {
 				joinItem.target = self
 				dropMenu.addItem(joinItem)
 
-				let classifyItem = NSMenuItem(title: "Add data using AI".localized, action: #selector(QBEDropChainAction.joinWithClassifier(_:)), keyEquivalent: "")
-				classifyItem.target = self
-				dropMenu.addItem(classifyItem)
-
 				let unionItem = NSMenuItem(title: NSLocalizedString("Append data set to this data set", comment: ""), action: #selector(QBEDropChainAction.unionChains(_:)), keyEquivalent: "")
 				unionItem.target = self
 				dropMenu.addItem(unionItem)
@@ -397,7 +383,7 @@ internal enum QBEEditingMode {
 					}
 				}
 
-				NSMenu.popUpContextMenu(dropMenu, with: NSApplication.shared().currentEvent!, for: self.view.view)
+				NSMenu.popUpContextMenu(dropMenu, with: NSApplication.shared.currentEvent!, for: self.view.view)
 			}
 		}
 
@@ -442,7 +428,7 @@ internal enum QBEEditingMode {
 			editorController.delegate = self
 			editorController.completionCallback = callback
 			editorController.locale = self.locale
-			self.presentViewControllerAsSheet(editorController)
+			self.presentAsSheet(editorController)
 		}
 	}
 
@@ -554,8 +540,8 @@ internal enum QBEEditingMode {
 			if raster == nil {
 				let tr = CATransition()
 				tr.duration = 0.3
-				tr.type = kCATransitionFade
-				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+				tr.type = CATransitionType.fade
+				tr.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
 				self.outletView.layer?.add(tr, forKey: kCATransition)
 				self.dataViewController?.errorMessage = nil
 			}
@@ -592,7 +578,7 @@ internal enum QBEEditingMode {
 					// TODO: make this message more helpful (maybe even indicate the offending step)
 					let a = NSAlert()
 					a.messageText = NSLocalizedString("The calculation steps for this data set form a loop, and therefore no data can be calculated.", comment: "")
-					a.alertStyle = NSAlertStyle.warning
+					a.alertStyle = NSAlert.Style.warning
 					a.beginSheetModal(for: w, completionHandler: nil)
 				}
 				calculator.cancel()
@@ -623,12 +609,15 @@ internal enum QBEEditingMode {
 						})
 					}
 					else {
-						calculator.calculateExample(sourceStep, maximumTime: nil, job: job, callback: throttle(interval: 0.5, queue: DispatchQueue.main) {
+						let cb = throttle(interval: 0.5, queue: DispatchQueue.main) {
 							asyncMain {
 								self.refreshDataset(incremental: true)
 								self.updateView()
 							}
-						})
+						}
+						calculator.calculateExample(sourceStep, maximumTime: nil, job: job) {
+							cb(())
+						}
 						self.refreshDataset(incremental: false)
 					}
 				}
@@ -814,7 +803,7 @@ internal enum QBEEditingMode {
 				var allColumns = r.columns
 				let beforeColumn = allColumns[toIndex]
 				columns.forEach { allColumns.remove($0) }
-				if let beforeIndex = allColumns.index(of: beforeColumn) {
+				if let beforeIndex = allColumns.firstIndex(of: beforeColumn) {
 					allColumns.insert(contentsOf: columns, at: beforeIndex)
 				}
 				pushStep(QBESortColumnsStep(previous: previous, sortColumns: allColumns, before: nil))
@@ -1429,7 +1418,7 @@ internal enum QBEEditingMode {
 
 		if supportsEditing {
 			let alert = NSAlert()
-			alert.alertStyle = NSAlertStyle.informational
+			alert.alertStyle = NSAlert.Style.informational
 			alert.messageText = String(format: "Changing '%@' to '%@'".localized, self.locale.localStringFor(to), self.locale.localStringFor(from))
 			alert.informativeText = "Warp can either change the value permanently in the source data set, or add a step that performs the change for all values in the column similarly.".localized
 			alert.addButton(withTitle: "Add step".localized)
@@ -1439,10 +1428,10 @@ internal enum QBEEditingMode {
 
 			alert.beginSheetModal(for: self.view.window!, completionHandler: { res in
 				switch res {
-				case NSAlertFirstButtonReturn:
+				case NSApplication.ModalResponse.alertFirstButtonReturn:
 					self.suggestSteps(steps)
 
-				case NSAlertSecondButtonReturn:
+				case NSApplication.ModalResponse.alertSecondButtonReturn:
 					self.enterEditingMode {
 						switch self.editingMode {
 						case .editing(identifiers: let ids, editingRaster: _):
@@ -1454,7 +1443,7 @@ internal enum QBEEditingMode {
 						}
 					}
 
-				case NSAlertThirdButtonReturn:
+				case NSApplication.ModalResponse.alertThirdButtonReturn:
 					// Cancel
 					break
 
@@ -1475,7 +1464,7 @@ internal enum QBEEditingMode {
 			// Alert
 			let alert = NSAlert()
 			alert.messageText = NSLocalizedString("I have no idea what you did.", comment: "")
-			alert.beginSheetModal(for: self.view.window!, completionHandler: { (a: NSModalResponse) -> Void in
+			alert.beginSheetModal(for: self.view.window!, completionHandler: { (a: NSApplication.ModalResponse) -> Void in
 			})
 		}
 		else {
@@ -1510,7 +1499,7 @@ internal enum QBEEditingMode {
 			if let sv = self.storyboard?.instantiateController(withIdentifier: "suggestionsList") as? QBESuggestionsListViewController {
 				sv.delegate = self
 				sv.suggestions = Array(alternatives)
-				self.presentViewController(sv, asPopoverRelativeTo: atView.bounds, of: atView, preferredEdge: NSRectEdge.maxX, behavior: NSPopoverBehavior.semitransient)
+				self.present(sv, asPopoverRelativeTo: atView.bounds, of: atView, preferredEdge: NSRectEdge.maxX, behavior: NSPopover.Behavior.semitransient)
 			}
 		}
 	}
@@ -1667,7 +1656,7 @@ internal enum QBEEditingMode {
 		assertMainThread()
 		
 		if let s = currentStep {
-			let pboard = NSPasteboard.general()
+			let pboard = NSPasteboard.general
 			pboard.clearContents()
 			pboard.declareTypes([QBEStep.dragType], owner: nil)
 			let data = NSKeyedArchiver.archivedData(withRootObject: s)
@@ -1865,7 +1854,7 @@ internal enum QBEEditingMode {
 												let a = NSAlert()
 												a.informativeText = e
 												a.messageText = "The selected action cannot be performed on this data set right now.".localized
-												a.alertStyle = NSAlertStyle.warning
+												a.alertStyle = NSAlert.Style.warning
 												if let w = self.view.window {
 													a.beginSheetModal(for: w, completionHandler: nil)
 												}
@@ -1878,7 +1867,7 @@ internal enum QBEEditingMode {
 										let a = NSAlert()
 										a.informativeText = e
 										a.messageText = "The selected action cannot be performed on this data set right now.".localized
-										a.alertStyle = NSAlertStyle.warning
+										a.alertStyle = NSAlert.Style.warning
 										if let w = self.view.window {
 											a.beginSheetModal(for: w, completionHandler: nil)
 										}
@@ -1892,7 +1881,7 @@ internal enum QBEEditingMode {
 							let a = NSAlert()
 							a.informativeText = e
 							a.messageText = "The selected action cannot be performed on this data set right now.".localized
-							a.alertStyle = NSAlertStyle.warning
+							a.alertStyle = NSAlert.Style.warning
 							if let w = self.view.window {
 								a.beginSheetModal(for: w, completionHandler: nil)
 							}
@@ -2096,7 +2085,7 @@ internal enum QBEEditingMode {
 			// Not now, another action in progress
 			let a = NSAlert()
 			a.messageText = "The selected action cannot be performed on this data set right now.".localized
-			a.alertStyle = NSAlertStyle.warning
+			a.alertStyle = NSAlert.Style.warning
 			if let w = self.view.window {
 				a.beginSheetModal(for: w, completionHandler: nil)
 			}
@@ -2109,7 +2098,7 @@ internal enum QBEEditingMode {
 			guard let cs = currentStep else {
 				let a = NSAlert()
 				a.messageText = "The selected action cannot be performed on this data set.".localized
-				a.alertStyle = NSAlertStyle.warning
+				a.alertStyle = NSAlert.Style.warning
 				if let w = self.view.window {
 					a.beginSheetModal(for: w, completionHandler: nil)
 				}
@@ -2133,13 +2122,13 @@ internal enum QBEEditingMode {
 							}
 
 							confirmationAlert.informativeText = NSLocalizedString("This will modify the original data, and cannot be undone.", comment: "")
-							confirmationAlert.alertStyle = NSAlertStyle.informational
+							confirmationAlert.alertStyle = NSAlert.Style.informational
 							let yesButton = confirmationAlert.addButton(withTitle: NSLocalizedString("Perform modifications", comment: ""))
 							let noButton = confirmationAlert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
 							yesButton.tag = 1
 							noButton.tag = 2
 							confirmationAlert.beginSheetModal(for: self.view.window!) { (response) -> Void in
-								if response == 1 {
+								if response == NSApplication.ModalResponse.continue {
 									// Confirmed
 
 
@@ -2181,7 +2170,7 @@ internal enum QBEEditingMode {
 					else {
 						let a = NSAlert()
 						a.messageText = "The selected action cannot be performed on this data set.".localized
-						a.alertStyle = NSAlertStyle.warning
+						a.alertStyle = NSAlert.Style.warning
 						if let w = self.view.window {
 							a.beginSheetModal(for: w, completionHandler: nil)
 						}
@@ -2194,7 +2183,7 @@ internal enum QBEEditingMode {
 						let a = NSAlert()
 						a.messageText = "The selected action cannot be performed on this data set.".localized
 						a.informativeText = e
-						a.alertStyle = NSAlertStyle.warning
+						a.alertStyle = NSAlert.Style.warning
 						if let w = self.view.window {
 							a.beginSheetModal(for: w, completionHandler: nil)
 						}
@@ -2222,7 +2211,7 @@ internal enum QBEEditingMode {
 							alterViewController.warehouse = md.warehouse
 							alterViewController.delegate = self
 							alterViewController.definition = schema
-							self.presentViewControllerAsSheet(alterViewController)
+							self.presentAsSheet(alterViewController)
 						}
 
 					case .failure(let e):
@@ -2285,7 +2274,7 @@ internal enum QBEEditingMode {
 											}
 										}
 
-										self.presentViewControllerAsSheet(ctr)
+										self.presentAsSheet(ctr)
 									}
 
 								default:
@@ -2386,7 +2375,7 @@ internal enum QBEEditingMode {
 		}
 	}
 
-	@objc override func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+	@objc func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
 		return self.validate(item)
 	}
 
@@ -2469,20 +2458,20 @@ internal enum QBEEditingMode {
 	func validate(_ item: NSToolbarItem) -> Bool {
 		if item.action == #selector(QBEChainViewController.toggleFullDataset(_:)) {
 			if let c = item.view as? NSButton {
-				c.state = (currentStep != nil && (hasFullDataset || useFullDataset)) ? NSOnState: NSOffState
+				c.state = (currentStep != nil && (hasFullDataset || useFullDataset)) ? NSControl.StateValue.on: NSControl.StateValue.off
 			}
 		}
 		else if item.action == #selector(QBEChainViewController.toggleEditing(_:)) {
 			if let c = item.view as? NSButton {
 				switch self.editingMode {
 				case .editing(_):
-					c.state = NSOnState
+					c.state = NSControl.StateValue.on
 
 				case .enablingEditing:
-					c.state = NSMixedState
+					c.state = NSControl.StateValue.mixed
 
 				case .notEditing:
-					c.state = NSOffState
+					c.state = NSControl.StateValue.off
 				}
 			}
 		}
@@ -2510,27 +2499,27 @@ internal enum QBEEditingMode {
 		if let value = self.dataViewController?.firstSelectedValue {
 			// FIXME needs a separate Value.dictionary type
 			if case .list(_) = value {
-				let ctr = QBEDissectViewController(nibName: "QBEDissectViewController", bundle: nil)!
+				let ctr = QBEDissectViewController(nibName: "QBEDissectViewController", bundle: nil)
 				ctr.data = value.nativeValue as? NSObject
 				ctr.delegate = self
-				self.presentViewControllerAsSheet(ctr)
+				self.presentAsSheet(ctr)
 			}
 			else if let json = value.stringValue {
 				do {
 					let jsonObject = try JSONSerialization.jsonObject(with: json.data(using: .utf8)!, options: [])
-					let ctr = QBEDissectViewController(nibName: "QBEDissectViewController", bundle: nil)!
+					let ctr = QBEDissectViewController(nibName: "QBEDissectViewController", bundle: nil)
 					ctr.unwrapFunction = .jsonDecode
 					ctr.data = jsonObject as? NSObject
 					ctr.delegate = self
-					self.presentViewControllerAsSheet(ctr)
+					self.presentAsSheet(ctr)
 				}
 				catch(_) {
 					// Treat as key/value pair pack and pretend it is JSON
 					let jsonObject = Pack(json).pairs
-					let ctr = QBEDissectViewController(nibName: "QBEDissectViewController", bundle: nil)!
+					let ctr = QBEDissectViewController(nibName: "QBEDissectViewController", bundle: nil)
 					ctr.data = jsonObject as NSObject?
 					ctr.delegate = self
-					self.presentViewControllerAsSheet(ctr)
+					self.presentAsSheet(ctr)
 				}
 			}
 			else {
@@ -2742,7 +2731,7 @@ internal enum QBEEditingMode {
 			return true
 		}
 		else if selector==#selector(QBEChainViewController.paste(_:)) {
-			let pboard = NSPasteboard.general()
+			let pboard = NSPasteboard.general
 			if pboard.data(forType: QBEStep.dragType) != nil {
 				return true
 			}
@@ -2927,7 +2916,7 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func paste(_ sender: NSObject) {
-		let pboard = NSPasteboard.general()
+		let pboard = NSPasteboard.general
 		
 		if let data = pboard.data(forType: QBEStep.dragType) {
 			if let step = NSKeyedUnarchiver.unarchiveObject(with: data) as? QBEStep {

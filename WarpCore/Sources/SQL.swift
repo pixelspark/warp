@@ -138,7 +138,7 @@ open class SQLWarehouse: Warehouse {
 	public let database: SQLDatabase
 	public let schemaName: String?
 	public var dialect: SQLDialect { return database.dialect }
-	open let hasFixedColumns: Bool = true
+	public let hasFixedColumns: Bool = true
 	public let hasNamedTables: Bool = true
 
 	public init(database: SQLDatabase, schemaName: String?) {
@@ -237,7 +237,7 @@ private class SQLInsertPuller: StreamPuller {
 
 		self.fastMapping = mapping.keys.map { targetField -> Int? in
 			if let sourceFieldName = mapping[targetField] {
-				return columns.index(of: sourceFieldName)
+				return columns.firstIndex(of: sourceFieldName)
 			}
 			else {
 				return nil
@@ -269,12 +269,12 @@ private class SQLInsertPuller: StreamPuller {
 						callback(.failure(e))
 
 					case .success(_):
-						callback(.success())
+						callback(.success(()))
 					}
 				}
 			}
 			else {
-				callback(.success())
+				callback(.success(()))
 			}
 		}
 	}
@@ -284,7 +284,7 @@ private class SQLInsertPuller: StreamPuller {
 			let cb = self.callback!
 			self.callback = nil
 			self.job.async {
-				cb(.success())
+				cb(.success(()))
 			}
 		}
 	}
@@ -460,7 +460,7 @@ open class SQLMutableDataset: MutableDataset {
 								return callback(.failure("Changing the primary key of this table is not supported, because it is not yet implemented."))
 							}
 							else {
-								return callback(.success())
+								return callback(.success(()))
 							}
 
 						case .failure(let e):
@@ -470,7 +470,7 @@ open class SQLMutableDataset: MutableDataset {
 				}
 				else {
 					// No change required
-					callback(.success())
+					callback(.success(()))
 				}
 
 			case .failure(let e): callback(.failure(e))
@@ -538,7 +538,7 @@ open class SQLMutableDataset: MutableDataset {
 					}
 					else {
 						// Value can't be written in this SQL dialect, bail out
-						return callback(.failure("value type not supported: '\(row[column])'"))
+						return callback(.failure("value type not supported: '\(String(describing: row[column]))'"))
 					}
 				}
 

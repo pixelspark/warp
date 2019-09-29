@@ -54,7 +54,7 @@ public final class CSVStream: NSObject, WarpCore.Stream, CHCSVParserDelegate {
 
 		// Create a queue and initialize the parser
 		queue = DispatchQueue(label: "nl.pixelspark.qbe.QBECSVStreamQueue", qos: .userInitiated, attributes: [], target: nil)
-		parser = CHCSVParser(contentsOfDelimitedURL: url as NSURL! as URL!, delimiter: fieldSeparator)
+		parser = CHCSVParser(contentsOfDelimitedURL: url as NSURL as URL, delimiter: fieldSeparator)
 		parser.sanitizesFields = true
 		super.init()
 

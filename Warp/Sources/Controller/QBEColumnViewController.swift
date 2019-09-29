@@ -90,32 +90,34 @@ class QBEColumnViewController: NSViewController {
 					])
 
 					descriptiveDataset.raster(self.descriptivesJob!) { [weak self] result in
-						switch result {
-						case .success(let raster):
-							asyncMain {
-								if raster.rowCount == 1 {
-									let row = raster.rows.makeIterator().next()!
-									self?.descriptives = QBEColumnDescriptives(
-										average: row["mu"].doubleValue,
-										standardDeviation: row["s"].doubleValue,
-										minimumValue: row["mn"],
-										maximumValue: row["mx"],
-										count: row["c"].intValue ?? 0,
-										countUnique: row["cd"].intValue ?? 0,
-										countEmpty: row["mt"].intValue ?? 0
-									)
-								}
-								else {
-									print("Did not receive enough descriptives data!")
+						asyncMain {
+							switch result {
+							case .success(let raster):
+								asyncMain {
+									if raster.rowCount == 1 {
+										let row = raster.rows.makeIterator().next()!
+										self?.descriptives = QBEColumnDescriptives(
+											average: row["mu"].doubleValue,
+											standardDeviation: row["s"].doubleValue,
+											minimumValue: row["mn"],
+											maximumValue: row["mx"],
+											count: row["c"].intValue ?? 0,
+											countUnique: row["cd"].intValue ?? 0,
+											countEmpty: row["mt"].intValue ?? 0
+										)
+									}
+									else {
+										print("Did not receive enough descriptives data!")
+									}
+
+									self?.descriptivesJob = nil
+									self?.update()
 								}
 
-								self?.descriptivesJob = nil
+							case .failure(let e):
+								print("Descriptives failure: \(e)")
 								self?.update()
 							}
-
-						case .failure(let e):
-							print("Descriptives failure: \(e)")
-							self?.update()
 						}
 					}
 				}
@@ -128,13 +130,15 @@ class QBEColumnViewController: NSViewController {
 	}
 
 	private func update() {
+		assertMainThread()
+
 		for v in [self.muLabel, self.sigmaLabel, self.maxLabel, self.minLabel, self.distinctLabel, self.countLabel, self.emptyLabel] {
 			if let vv = v {
 				let tr = CATransition()
 				tr.duration = 0.3
-				tr.type = kCATransitionPush
-				tr.subtype = kCATransitionFromBottom
-				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+				tr.type = convertToCATransitionType(convertFromCATransitionType(CATransitionType.push))
+				tr.subtype = convertToOptionalCATransitionSubtype(convertFromCATransitionSubtype(CATransitionSubtype.fromBottom))
+				tr.timingFunction = CAMediaTimingFunction(name: convertToCAMediaTimingFunctionName(convertFromCAMediaTimingFunctionName(CAMediaTimingFunctionName.easeOut)))
 				vv.layer?.add(tr, forKey: kCATransition)
 			}
 		}
@@ -143,7 +147,7 @@ class QBEColumnViewController: NSViewController {
 		self.nameField?.stringValue = column?.name ?? ""
 		self.progressIndicator?.isHidden = self.descriptivesJob == nil
 		self.descriptivesView?.isHidden = self.descriptives == nil
-		self.fullDatasetButton?.state = self.isFullDataset ? NSOnState: NSOffState
+		self.fullDatasetButton?.state = self.isFullDataset ? NSControl.StateValue.on: NSControl.StateValue.off
 		self.fullDatasetButton?.image =  NSImage(named: self.isFullDataset ? "BigIcon" : "SmallIcon")
 
 		if let d = self.descriptives, let locale = locale {
@@ -209,4 +213,40 @@ class QBEColumnViewController: NSViewController {
 			}
 		}
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToCATransitionType(_ input: String) -> CATransitionType {
+	return CATransitionType(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromCATransitionType(_ input: CATransitionType) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToOptionalCATransitionSubtype(_ input: String?) -> CATransitionSubtype? {
+	guard let input = input else { return nil }
+	return CATransitionSubtype(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromCATransitionSubtype(_ input: CATransitionSubtype) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToCAMediaTimingFunctionName(_ input: String) -> CAMediaTimingFunctionName {
+	return CAMediaTimingFunctionName(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromCAMediaTimingFunctionName(_ input: CAMediaTimingFunctionName) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSControlStateValue(_ input: Int) -> NSControl.StateValue {
+	return NSControl.StateValue(rawValue: input)
 }

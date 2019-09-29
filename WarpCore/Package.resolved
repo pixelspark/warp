@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "SwiftParser",
+        "repositoryURL": "https://github.com/pixelspark/swift-parser-generator",
+        "state": {
+          "branch": null,
+          "revision": "b3aaf8070dad2a84a3ffb45a9cff30b22f703019",
+          "version": "1.1.1"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

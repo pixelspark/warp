@@ -129,7 +129,7 @@ public class QBESecret: Equatable, CustomStringConvertible {
 			}
 
 			if status == noErr {
-				return .success()
+				return .success(())
 			}
 			else if status == errSecDuplicateItem && !update {
 				// TODO Update existing item
@@ -142,7 +142,7 @@ public class QBESecret: Equatable, CustomStringConvertible {
 		else {
 			let s = SecItemDelete(query as CFDictionary)
 			if s == noErr {
-				return .success()
+				return .success(())
 			}
 			else {
 				return .failure("SecItemDelete failed: \(s)")

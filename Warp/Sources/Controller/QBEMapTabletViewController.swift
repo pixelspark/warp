@@ -184,9 +184,9 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 			let panel = NSSavePanel()
 			panel.allowedFileTypes = ["png"]
 			panel.beginSheetModal(for: w) { (result) -> Void in
-				if result == NSFileHandlingPanelOKButton {
+				if result == NSApplication.ModalResponse.OK {
 					if let url = panel.url {
-						let opts = MKMapSnapshotOptions()
+						let opts = MKMapSnapshotter.Options()
 						opts.region = self.mapView.region
 						opts.mapType = MKMapType.standard
 						opts.size = self.tablet.frame?.size ?? CGSize(width: 1024, height: 768)
@@ -216,7 +216,7 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 
 									let rep = NSBitmapImageRep(focusedViewRect: NSMakeRect(0, 0, s.image.size.width, s.image.size.height))
 									s.image.unlockFocus()
-									if let data = rep?.representation(using: .PNG, properties: [:]) {
+									if let data = rep?.representation(using: .png, properties: convertToNSBitmapImageRepPropertyKeyDictionary([:])) {
 										if !((try? data.write(to: url, options: [.atomic])) != nil) {
 											NSAlert.showSimpleAlert("Could save a snapshot of this map".localized, infoText: "", style: .critical, window: w)
 										}
@@ -245,15 +245,15 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 	@IBAction func toggleEditing(_ sender: NSObject) {
 	}
 
-	override func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+	@objc func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
 		if item.action == #selector(QBEChartTabletViewController.toggleFullDataset(_:)) {
 			if let c = item.view as? NSButton {
-				c.state = (useFullDataset || presentedDatasetIsFullDataset) ? NSOnState: NSOffState
+				c.state = (useFullDataset || presentedDatasetIsFullDataset) ? NSControl.StateValue.on: NSControl.StateValue.off
 			}
 		}
 		else if item.action == #selector(QBEChartTabletViewController.toggleEditing(_:)) {
 			if let c = item.view as? NSButton {
-				c.state = NSOffState
+				c.state = NSControl.StateValue.off
 			}
 		}
 
@@ -264,7 +264,7 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 		return self.validateUserInterfaceItem(item)
 	}
 
-	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+	@objc func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		return validateSelector(item.action!)
 	}
 
@@ -279,4 +279,14 @@ class QBEMapTabletViewController: QBETabletViewController, MKMapViewDelegate,  Q
 		}
 		return false
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSBitmapImageRepPropertyKeyDictionary(_ input: [String: Any]) -> [NSBitmapImageRep.PropertyKey: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSBitmapImageRep.PropertyKey(rawValue: key), value)})
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSControlStateValue(_ input: Int) -> NSControl.StateValue {
+	return NSControl.StateValue(rawValue: input)
 }

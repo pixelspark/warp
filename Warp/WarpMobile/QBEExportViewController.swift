@@ -22,18 +22,18 @@ class QBEJobProgressViewController: JobDelegate {
 		self.alertController = UIAlertController(title: title, message: "-%", preferredStyle: .alert)
 		self.alertController.addAction(UIAlertAction(title: "Cancel".localized, style: .cancel, handler: { _ in
 			self.job.cancel()
-			self.dismiss()
+			self.dismiss() {}
 		}))
 
 		self.job.addObserver(self)
 	}
 
 	deinit {
-		self.dismiss()
+		self.dismiss(nil)
 	}
 
-	func dismiss() {
-		self.alertController.dismiss(animated: true, completion: nil)
+	func dismiss(_ completion: (() -> Void)? = nil) {
+		self.alertController.dismiss(animated: true, completion: completion)
 	}
 
 	func job(_ job: AnyObject, didProgress progress: Double) {
@@ -165,7 +165,7 @@ class QBEExportViewController: FormViewController {
 
 			do {
 				try fileManager.moveItem(at: readIntent.url, to: writeIntent.url)
-				completion(.success())
+				completion(.success(()))
 			}
 			catch {
 				completion(.failure(error.localizedDescription))
@@ -202,22 +202,25 @@ class QBEExportViewController: FormViewController {
 						switch result {
 						case .success():
 							asyncMain {
-								jc.dismiss()
+								jc.dismiss() {
+									return completion(.success(tempURL))
+								}
 							}
-							completion(.success(tempURL))
 
 						case .failure(let e):
 							asyncMain {
-								jc.dismiss()
+								jc.dismiss() {
+									return completion(.failure(e))
+								}
 							}
-							return completion(.failure(e))
 						}
 					})
 				case .failure(let e):
 					asyncMain {
-						jc.dismiss()
+						jc.dismiss() {
+							return completion(.failure(e))
+						}
 					}
-					return completion(.failure(e))
 				}
 			}
 		}
@@ -249,17 +252,17 @@ class QBEExportViewController: FormViewController {
 			switch result {
 			case .success(let tempURL):
 				asyncMain {
-					self.dismiss(animated: false) {
-						self.delegate?.exportViewController(self, shareFileAt: tempURL, callback: {
+
+					self.delegate?.exportViewController(self, shareFileAt: tempURL, callback: {
+						self.dismiss(animated: false) {
 							do {
 								try FileManager.default.removeItem(at: tempURL)
 							}
 							catch {
 								self.reportError(error.localizedDescription)
 							}
-						})
-					}
-
+						}
+					})
 				}
 			case .failure(let e):
 				self.reportError(e)

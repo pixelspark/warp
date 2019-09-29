@@ -31,7 +31,7 @@ class QBEListEditorViewController: NSViewController, NSTableViewDelegate, NSTabl
 	weak var delegate: QBEListEditorDelegate? = nil
 
 	override func viewWillAppear() {
-		tableView.register(forDraggedTypes: [type(of: self).dragType])
+		tableView.registerForDraggedTypes(convertToNSPasteboardPasteboardTypeArray([type(of: self).dragType]))
 		self.update()
 	}
 
@@ -60,21 +60,21 @@ class QBEListEditorViewController: NSViewController, NSTableViewDelegate, NSTabl
 
 	func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> NSPasteboardWriting? {
 		let item = NSPasteboardItem()
-		item.setString(String(row), forType: type(of: self).dragType)
+		item.setString(String(row), forType: convertToNSPasteboardPasteboardType(type(of: self).dragType))
 		return item
 	}
 
-	func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableViewDropOperation) -> NSDragOperation {
+	func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
 		if dropOperation == .above {
 			return .move
 		}
 		return []
 	}
 
-	func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableViewDropOperation) -> Bool {
+	func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation: NSTableView.DropOperation) -> Bool {
 		var oldIndexes = [Int]()
-		info.enumerateDraggingItems(options: [], for: tableView, classes: [NSPasteboardItem.self], searchOptions: [:]) {
-			if let str = ($0.0.item as! NSPasteboardItem).string(forType: type(of: self).dragType), let index = Int(str) {
+		info.enumerateDraggingItems(options: [], for: tableView, classes: [NSPasteboardItem.self], searchOptions: [:]) { (dri, _, _) in
+			if let str = (dri.item as! NSPasteboardItem).string(forType: convertToNSPasteboardPasteboardType(type(of: self).dragType)), let index = Int(str) {
 				oldIndexes.append(index)
 			}
 		}
@@ -100,7 +100,7 @@ class QBEListEditorViewController: NSViewController, NSTableViewDelegate, NSTabl
 	}
 
 	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
-		switch tableColumn?.identifier ?? "" {
+		switch convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) {
 		case "value":
 			self.selection[row] = (object as? String) ?? ""
 			self.delegate?.listEditor(self, didChangeSelection: selection)
@@ -111,7 +111,7 @@ class QBEListEditorViewController: NSViewController, NSTableViewDelegate, NSTabl
 	}
 
 	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-		switch tableColumn?.identifier ?? "" {
+		switch convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) {
 		case "value":
 			return selection[row]
 
@@ -119,4 +119,19 @@ class QBEListEditorViewController: NSViewController, NSTableViewDelegate, NSTabl
 		}
 	}
 
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSPasteboardPasteboardTypeArray(_ input: [String]) -> [NSPasteboard.PasteboardType] {
+	return input.map { key in NSPasteboard.PasteboardType(key) }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSPasteboardPasteboardType(_ input: String) -> NSPasteboard.PasteboardType {
+	return NSPasteboard.PasteboardType(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
 }

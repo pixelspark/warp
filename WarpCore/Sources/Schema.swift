@@ -39,9 +39,9 @@ public struct Column: ExpressibleByStringLiteral, Hashable, CustomDebugStringCon
 		self.name = value
 	}
 
-	public var hashValue: Int { get {
-		return self.name.lowercased().hashValue
-		} }
+	public func hash(into: inout Hasher) {
+		self.name.lowercased().hash(into: &into)
+	}
 
 	public var debugDescription: String { get {
 		return "Column(\(name))"

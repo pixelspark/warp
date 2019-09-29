@@ -67,8 +67,8 @@ internal class QBECSVStepView: QBEConfigurableStepViewControllerFor<QBECSVSource
 
 	private func updateView() {
 		separatorField?.stringValue = String(Character(UnicodeScalar(step.fieldSeparator)!))
-		hasHeadersButton?.state = step.hasHeaders ? NSOnState : NSOffState
-		languageField.selectItem(at: (self.languages.index(of: step.interpretLanguage ?? "") ?? -1) + 1)
+		hasHeadersButton?.state = step.hasHeaders ? NSControl.StateValue.on : NSControl.StateValue.off
+		languageField.selectItem(at: (self.languages.firstIndex(of: step.interpretLanguage ?? "") ?? -1) + 1)
 		
 		let testValue = Value.double(1110819.88)
 		if let language = step.interpretLanguage {
@@ -109,7 +109,7 @@ internal class QBECSVStepView: QBEConfigurableStepViewControllerFor<QBECSVSource
 		}
 		
 		// Headers
-		let shouldHaveHeaders = (hasHeadersButton?.state == NSOnState)
+		let shouldHaveHeaders = (hasHeadersButton?.state ?? NSControl.StateValue.off) == NSControl.StateValue.on
 		if step.hasHeaders != shouldHaveHeaders {
 			step.hasHeaders = shouldHaveHeaders
 			changed = true
@@ -121,4 +121,14 @@ internal class QBECSVStepView: QBEConfigurableStepViewControllerFor<QBECSVSource
 		
 		updateView()
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSControlStateValue(_ input: Int) -> NSControl.StateValue {
+	return NSControl.StateValue(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSControlStateValue(_ input: NSControl.StateValue) -> Int {
+	return input.rawValue
 }

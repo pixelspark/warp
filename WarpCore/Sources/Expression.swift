@@ -206,8 +206,8 @@ public final class Literal: Expression {
 		super.init()
 	}
 
-	public override var hashValue: Int {
-		return value.hashValue
+	public override var hash: Int {
+		return value.hash
 	}
 
 	override public var complexity: Int {
@@ -292,7 +292,7 @@ public class Identity: Expression {
 		super.init()
 	}
 
-	public override var hashValue: Int {
+	public override var hash: Int {
 		return 0x1D377170
 	}
 
@@ -343,8 +343,8 @@ public final class Comparison: Expression {
 		return first.isConstant && second.isConstant
 	}
 
-	public override var hashValue: Int {
-		return first.hashValue ^ (second.hashValue >> 3)
+	public override var hash: Int {
+		return first.hash ^ (second.hash >> 3)
 	}
 
 	/** Utility function to return the arguments of this binary expression in a partiular order. Suppose we want to test
@@ -484,11 +484,11 @@ public final class Comparison: Expression {
 						}
 					}
 					else if let targetString = toValue.stringValue, let fromString = f.stringValue {
-						if !targetString.isEmpty && !fromString.isEmpty && fromString.characters.count < targetString.characters.count {
+						if !targetString.isEmpty && !fromString.isEmpty && fromString.count < targetString.count {
 							// See if the target string shares a prefix with the source string
-							let targetPrefix = targetString.substring(with: targetString.startIndex..<targetString.characters.index(targetString.startIndex, offsetBy: fromString.characters.count))
+							let targetPrefix = targetString.substring(with: targetString.startIndex..<targetString.index(targetString.startIndex, offsetBy: fromString.count))
 							if fromString == targetPrefix {
-								let postfix = targetString.substring(with: targetString.characters.index(targetString.startIndex, offsetBy: fromString.characters.count)..<targetString.endIndex)
+								let postfix = targetString.substring(with: targetString.index(targetString.startIndex, offsetBy: fromString.count)..<targetString.endIndex)
 								print("'\(fromString)' => '\(targetString)' share prefix: '\(targetPrefix)' need postfix: '\(postfix)'")
 
 								let postfixSuggestions = Expression.infer(nil, toValue: Value.string(postfix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
@@ -499,10 +499,10 @@ public final class Comparison: Expression {
 							}
 							else {
 								// See if the target string shares a postfix with the source string
-								let prefixLength = targetString.characters.count - fromString.characters.count
-								let targetPostfix = targetString.substring(with: targetString.characters.index(targetString.startIndex, offsetBy: prefixLength)..<targetString.endIndex)
+								let prefixLength = targetString.count - fromString.count
+								let targetPostfix = targetString.substring(with: targetString.index(targetString.startIndex, offsetBy: prefixLength)..<targetString.endIndex)
 								if fromString == targetPostfix {
-									let prefix = targetString.substring(with: targetString.startIndex..<targetString.characters.index(targetString.startIndex, offsetBy: prefixLength))
+									let prefix = targetString.substring(with: targetString.startIndex..<targetString.index(targetString.startIndex, offsetBy: prefixLength))
 									print("'\(fromString)' => '\(targetString)' share postfix: '\(targetPostfix)' need prefix: '\(prefix)'")
 									
 									let prefixSuggestions = Expression.infer(nil, toValue: Value.string(prefix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
@@ -549,8 +549,10 @@ public final class Call: Expression {
 	public let arguments: [Expression]
 	public let type: Function
 
-	public override var hashValue: Int {
-		return arguments.reduce(type.hashValue) { t, e in return t ^ e.hashValue }
+	public override var hash: Int {
+		return arguments.reduce(type.hashValue) { t, e in
+			return t ^ e.hashValue
+		}
 	}
 	
 	public override var isConstant: Bool {
@@ -654,7 +656,7 @@ public final class Call: Expression {
 				// For binary and n-ary functions, specific test cases follow
 				var incompleteSuggestions: [Expression] = []
 				if let targetString = toValue.stringValue {
-					let length = Value(targetString.characters.count)
+					let length = Value(targetString.count)
 
 					// Is the 'to' string perhaps a substring of the 'from' string?
 					if let sourceString = f.stringValue {
@@ -693,7 +695,7 @@ public final class Call: Expression {
 								if let range = sourceString.range(of: targetString) {
 									suggestions.append(Call(arguments: [from, Literal(length)], type: Function.right))
 
-									let startIndex = sourceString.characters.distance(from: sourceString.startIndex, to: range.lowerBound)
+									let startIndex = sourceString.distance(from: sourceString.startIndex, to: range.lowerBound)
 									let start = Literal(Value(startIndex))
 									let length = Literal(Value(sourceString.distance(from: range.lowerBound, to: range.upperBound)))
 									if startIndex == 0 {
@@ -735,7 +737,7 @@ public final class Sibling: Expression, ColumnReferencingExpression {
 		return 2
 	}
 
-	public override var hashValue: Int {
+	public override var hash: Int {
 		return column.hashValue
 	}
 	
@@ -805,7 +807,7 @@ public final class Foreign: Expression, ColumnReferencingExpression {
 		super.init()
 	}
 
-	public override var hashValue: Int {
+	public override var hash: Int {
 		return ~column.hashValue
 	}
 	

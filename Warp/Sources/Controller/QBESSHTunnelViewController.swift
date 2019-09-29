@@ -69,8 +69,8 @@ class QBESSHTunnelViewController: NSViewController {
 		let openPanel = NSOpenPanel()
 		openPanel.canChooseFiles = true
 		//////no.allowedFileTypes = token.allowedFileTypes
-		openPanel.beginSheetModal(for: self.view.window!, completionHandler: { (result: Int) -> Void in
-			if result==NSFileHandlingPanelOKButton {
+		openPanel.beginSheetModal(for: self.view.window!, completionHandler: { (result: NSApplication.ModalResponse) -> Void in
+			if result == NSApplication.ModalResponse.OK {
 				if let url = openPanel.url {
 					self.configuration.mutex.locked {
 						switch self.configuration.authentication {
@@ -105,7 +105,7 @@ class QBESSHTunnelViewController: NSViewController {
 			}
 
 			// Parse host key
-			let chars = Array(self.fingerprintField.stringValue.characters)
+			let chars = Array(self.fingerprintField.stringValue)
 			if chars.isEmpty {
 				self.configuration.hostFingerprint = nil
 			}
@@ -147,7 +147,7 @@ class QBESSHTunnelViewController: NSViewController {
 
 	@IBAction func toggleEnabled(_ sender: AnyObject) {
 		self.configuration.mutex.locked {
-			self.configuration.enabled = (self.enabledCheck.state == NSOnState)
+			self.configuration.enabled = (self.enabledCheck.state) == NSControl.StateValue.on
 		}
 		self.updateView()
 	}
@@ -160,7 +160,7 @@ class QBESSHTunnelViewController: NSViewController {
 		assertMainThread()
 
 		self.configuration.mutex.locked {
-			self.enabledCheck.state = self.configuration.enabled ? NSOnState : NSOffState
+			self.enabledCheck.state = self.configuration.enabled ? NSControl.StateValue.on : NSControl.StateValue.off
 			self.hostField.isEnabled = self.configuration.enabled
 			self.userField.isEnabled = self.configuration.enabled
 			self.passwordRadio.isEnabled = self.configuration.enabled
@@ -171,8 +171,8 @@ class QBESSHTunnelViewController: NSViewController {
 
 			switch self.configuration.authentication {
 			case .none:
-				self.keyRadio.state = NSOnState
-				self.passwordRadio.state = NSOffState
+				self.keyRadio.state = NSControl.StateValue.on
+				self.passwordRadio.state = NSControl.StateValue.off
 				self.passwordField.stringValue = ""
 				self.passphraseField.stringValue = ""
 				self.passwordField.isEnabled = false
@@ -181,8 +181,8 @@ class QBESSHTunnelViewController: NSViewController {
 				self.keyLabel.stringValue = ""
 
 			case .key(file: let f, passphrase: let p):
-				self.keyRadio.state = NSOnState
-				self.passwordRadio.state = NSOffState
+				self.keyRadio.state = NSControl.StateValue.on
+				self.passwordRadio.state = NSControl.StateValue.off
 				self.passwordField.stringValue = ""
 				self.passphraseField.stringValue = p
 				self.passwordField.isEnabled = false
@@ -191,8 +191,8 @@ class QBESSHTunnelViewController: NSViewController {
 				self.keyLabel.stringValue = f?.lastPathComponent ?? ""
 
 			case .password(let p):
-				self.keyRadio.state = NSOffState
-				self.passwordRadio.state = NSOnState
+				self.keyRadio.state = NSControl.StateValue.off
+				self.passwordRadio.state = NSControl.StateValue.on
 				self.passwordField.stringValue = p
 				self.passphraseField.stringValue = ""
 				self.passwordField.isEnabled = self.configuration.enabled

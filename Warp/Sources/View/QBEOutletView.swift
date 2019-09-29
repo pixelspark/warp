@@ -18,7 +18,7 @@ import Cocoa
 private extension NSPasteboard {
 	var pasteURL: URL? { get {
 		var pasteboardRef: Pasteboard? = nil
-		PasteboardCreate(self.name as CFString, &pasteboardRef)
+		PasteboardCreate(self.name.rawValue as CFString, &pasteboardRef)
 		if let realRef = pasteboardRef {
 			PasteboardSynchronize(realRef)
 			var pasteURL: CFURL? = nil
@@ -44,7 +44,7 @@ class QBEOutletDropView: NSView {
 	
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
-		register(forDraggedTypes: [QBEOutletView.dragType])
+		registerForDraggedTypes([QBEOutletView.dragType])
 		self.wantsLayer = true
 		self.layer!.cornerRadius = QBEResizableView.cornerRadius
 		self.layer!.masksToBounds = true
@@ -65,16 +65,16 @@ class QBEOutletDropView: NSView {
 		setNeedsDisplay(self.bounds)
 	}
 	
-	override func draggingEnded(_ sender: NSDraggingInfo?) {
+	override func draggingEnded(_ sender: NSDraggingInfo) {
 		isDraggingOver = false
 		setNeedsDisplay(self.bounds)
 	}
 	
 	override func performDragOperation(_ draggingInfo: NSDraggingInfo) -> Bool {
-		let pboard = draggingInfo.draggingPasteboard()
+		let pboard = draggingInfo.draggingPasteboard
 		
 		if let _ = pboard.data(forType: QBEOutletView.dragType) {
-			if let ov = draggingInfo.draggingSource() as? QBEOutletView {
+			if let ov = draggingInfo.draggingSource as? QBEOutletView {
 				delegate?.receiveDropFromOutlet(ov.draggedObject)
 				return true
 			}
@@ -94,7 +94,7 @@ class QBEOutletDropView: NSView {
 			NSColor.clear.set()
 		}
 		
-		NSRectFill(dirtyRect)
+		dirtyRect.fill()
 	}
 	
 	override var acceptsFirstResponder: Bool { get { return false } }
@@ -129,7 +129,7 @@ private class QBELaceView: NSView {
 	}
 	
 	fileprivate override func draw(_ dirtyRect: NSRect) {
-		if let context = NSGraphicsContext.current()?.cgContext {
+		if let context = NSGraphicsContext.current?.cgContext {
 			context.saveGState()
 			
 			if let sourceRect = sourceScreenRect, let w = self.window {
@@ -164,7 +164,7 @@ private class QBELaceWindow: NSWindow {
 	
 	init() {
 		laceView = QBELaceView(frame: NSZeroRect)
-		super.init(contentRect: NSZeroRect, styleMask: NSBorderlessWindowMask, backing: NSBackingStoreType.buffered, defer: false)
+		super.init(contentRect: NSZeroRect, styleMask: NSWindow.StyleMask.borderless, backing: NSWindow.BackingStoreType.buffered, defer: false)
 		backgroundColor = NSColor.clear
 		isReleasedWhenClosed = false
 		isOpaque = false
@@ -215,7 +215,7 @@ QBEOutletView shows an 'outlet' from which an item can be dragged. Views that wa
 the QBEOutletView.dragType dragging type. Upon receiving a dragged outlet, they should find the dragging source (which 
 will be the sending QBEOutletView) and then obtain the draggedObject from that view. */
 @IBDesignable class QBEOutletView: NSView, NSDraggingSource, NSPasteboardItemDataProvider, NSFilePromiseProviderDelegate {
-	static let dragType = "nl.pixelspark.Warp.Outlet"
+	static let dragType = NSPasteboard.PasteboardType("nl.pixelspark.Warp.Outlet")
 
 	@IBInspectable var animating: Bool {
 		get {
@@ -232,7 +232,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 				self.endTimerAfter = nil
 				if self.timer == nil {
 					self.timer = Timer(timeInterval: 1.0 / 60.0, target: self, selector: #selector(updateFromTimer(_:)), userInfo: nil, repeats: true)
-					RunLoop.current.add(self.timer, forMode: RunLoopMode.defaultRunLoopMode)
+					RunLoop.current.add(self.timer, forMode: RunLoop.Mode.default)
 				}
 			}
 			else {
@@ -280,20 +280,20 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 							self.delegate = delegate
 						}
 
-						fileprivate override func writableTypes(for pasteboard: NSPasteboard) -> [String] {
+						fileprivate override func writableTypes(for pasteboard: NSPasteboard) -> [NSPasteboard.PasteboardType] {
 							var types = super.writableTypes(for: pasteboard)
 							types.append(QBEOutletView.dragType)
 							return types
 						}
 
-						fileprivate override func writingOptions(forType type: String, pasteboard: NSPasteboard) -> NSPasteboardWritingOptions {
+						fileprivate override func writingOptions(forType type: NSPasteboard.PasteboardType, pasteboard: NSPasteboard) -> NSPasteboard.WritingOptions {
 							if type == QBEOutletView.dragType {
 								return []
 							}
 							return super.writingOptions(forType: type, pasteboard: pasteboard)
 						}
 
-						fileprivate override func pasteboardPropertyList(forType type: String) -> Any? {
+						fileprivate override func pasteboardPropertyList(forType type: NSPasteboard.PasteboardType) -> Any? {
 							if type == QBEOutletView.dragType {
 								return nil
 							}
@@ -303,18 +303,19 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 
 					let promisedFile = QBEOutletFilePromiseProvider(fileType: kUTTypeCommaSeparatedText as String, delegate: self)
 					let fileDragItem = NSDraggingItem(pasteboardWriter: promisedFile)
+					fileDragItem.draggingFrame = NSMakeRect(fileDragItem.draggingFrame.origin.x, fileDragItem.draggingFrame.origin.y, 10, 10)
 
 					self.beginDraggingSession(with: [fileDragItem] as [NSDraggingItem], event: theEvent, source: self)
 				}
 				else {
 					/* Use the 'unofficial' API for file promises on OS X < 10.12 */
 					let pboardItem = NSPasteboardItem()
-					pboardItem.setData("[dragged outlet]".data(using: String.Encoding.utf8, allowLossyConversion: false), forType: QBEOutletView.dragType)
+					pboardItem.setData("[dragged outlet]".data(using: String.Encoding.utf8, allowLossyConversion: false)!, forType: QBEOutletView.dragType)
 
 					/* When this item is dragged to a finder window, promise to write a CSV file there. Our provideDatasetForType
 					function is called as soon as the system actually wants us to write that file. */
-					pboardItem.setDataProvider(self, forTypes: [kPasteboardTypeFileURLPromise])
-					pboardItem.setString(kUTTypeCommaSeparatedText as String, forType: kPasteboardTypeFilePromiseContent)
+					pboardItem.setDataProvider(self, forTypes: [NSPasteboard.PasteboardType(rawValue: kPasteboardTypeFileURLPromise)])
+					pboardItem.setString(kUTTypeCommaSeparatedText as String, forType: NSPasteboard.PasteboardType.filePromise)
 
 					let dragItem = NSDraggingItem(pasteboardWriter: pboardItem)
 					self.beginDraggingSession(with: [dragItem] as [NSDraggingItem], event: theEvent, source: self)
@@ -333,8 +334,8 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 		self.delegate?.outletView(self, didDropAtURL: url, callback: completionHandler)
 	}
 
-	func pasteboard(_ pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: String) {
-		if type == kPasteboardTypeFileURLPromise {
+	func pasteboard(_ pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: NSPasteboard.PasteboardType) {
+		if type.rawValue == kPasteboardTypeFileURLPromise {
 			// pasteURL is the directory to write something to. Now is a good time to pop up an export dialog
 			if let pu = pasteboard?.pasteURL {
 				self.delegate?.outletView(self, didDropAtURL: pu) { err in
@@ -342,13 +343,13 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 						Swift.print("Export failed: \(e)")
 					}
 				}
-				item.setString(pu.absoluteString, forType: kPasteboardTypeFileURLPromise)
+				item.setString(pu.absoluteString, forType: NSPasteboard.PasteboardType.filePromise)
 			}
 		}
 	}
 	
 	override func draw(_ dirtyRect: NSRect) {
-		if let context = NSGraphicsContext.current()?.cgContext {
+		if let context = NSGraphicsContext.current?.cgContext {
 			context.saveGState()
 			
 			// Largest square that fits in this view
@@ -431,7 +432,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 	}
 
 	override func resetCursorRects() {
-		addCursorRect(self.bounds, cursor: NSCursor.openHand())
+		addCursorRect(self.bounds, cursor: NSCursor.openHand)
 	}
 	
 	override func updateTrackingAreas() {
@@ -449,7 +450,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 		dragLineWindow?.targetScreenPoint = screenPoint
 		dragLineWindow!.orderFront(nil)
 		setNeedsDisplay(self.bounds)
-		NSCursor.closedHand().push()
+		NSCursor.closedHand.push()
 	}
 	
 	func draggingSession(_ session: NSDraggingSession, movedTo screenPoint: NSPoint) {

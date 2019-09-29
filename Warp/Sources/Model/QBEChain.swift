@@ -15,10 +15,11 @@ import WarpCore
 struct QBEDependency: Hashable, Equatable {
 	let step: QBEStep
 	let dependsOn: QBEChain
-	
-	var hashValue: Int { get {
-		return step.hashValue ^ dependsOn.hashValue
-	} }
+
+	func hash(into hasher: inout Hasher) {
+		step.hash(into: &hasher)
+		dependsOn.hash(into: &hasher)
+	}
 }
 
 func ==(lhs: QBEDependency, rhs: QBEDependency) -> Bool {
@@ -35,7 +36,7 @@ class QBEChain: NSObject, NSSecureCoding, QBEChainDependent {
 	static let dragType = "nl.pixelspark.Warp.Chain"
 	
 	var head: QBEStep? = nil
-	weak internal(set) var tablet: QBETablet? = nil
+	weak internal var tablet: QBETablet? = nil
 	
 	init(head: QBEStep? = nil) {
 		self.head = head

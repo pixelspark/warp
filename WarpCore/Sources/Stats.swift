@@ -77,6 +77,8 @@ public struct NormalDistribution: Distribution {
 	private let low = 0.02425
 	private let high = 0.97575
 
+	public init() {}
+
 	private func ltqnorm(_ p: Double) -> Double {
 		assert(p >= 0 && p <= 1, "the p value for ltqnorm needs to be [0..1]")
 

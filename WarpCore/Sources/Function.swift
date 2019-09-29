@@ -1115,9 +1115,9 @@ public enum Function: String {
 		case .left:
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
-					if s.characters.count >= idx {
-						let index = s.characters.index(s.startIndex, offsetBy: idx)
-						return Value(s.substring(to: index))
+					if s.count >= idx {
+						let index = s.index(s.startIndex, offsetBy: idx)
+						return Value(s[..<index].substring(to: index))
 					}
 				}
 			}
@@ -1126,8 +1126,8 @@ public enum Function: String {
 		case .right:
 			if let s = arguments[0].stringValue {
 				if let idx = arguments[1].intValue {
-					if s.characters.count >= idx {
-						let index = s.characters.index(s.endIndex, offsetBy: -idx)
+					if s.count >= idx {
+						let index = s.index(s.endIndex, offsetBy: -idx)
 						return Value(s.substring(from: index))
 					}
 				}
@@ -1138,10 +1138,10 @@ public enum Function: String {
 			if let s = arguments[0].stringValue {
 				if let start = arguments[1].intValue {
 					if let length = arguments[2].intValue {
-						let sourceLength = s.characters.count
+						let sourceLength = s.count
 						if sourceLength >= start {
-							let index = s.characters.index(s.startIndex, offsetBy: start)
-							let end = sourceLength >= (start+length) ? s.characters.index(index, offsetBy: length) : s.endIndex
+							let index = s.index(s.startIndex, offsetBy: start)
+							let end = sourceLength >= (start+length) ? s.index(index, offsetBy: length) : s.endIndex
 							
 							return Value(s.substring(with: index..<end))
 						}
@@ -1152,7 +1152,7 @@ public enum Function: String {
 			
 		case .length:
 			if let s = arguments[0].stringValue {
-				return Value(s.characters.count)
+				return Value(s.count)
 			}
 			return Value.invalid
 		
@@ -1678,7 +1678,7 @@ public enum Function: String {
 
 		case .hexDecode:
 			if let s = arguments[0].stringValue {
-				let chars = Array(s.characters)
+				let chars = Array(s)
 				var error = false
 				let numbers = stride(from: 0, to: chars.count, by: 2).map() { (idx: Int) -> UInt8 in
 					let res = strtoul(String(chars[idx ..< Swift.min(idx + 2, chars.count)]), nil, 16)
@@ -1693,7 +1693,7 @@ public enum Function: String {
 					return .invalid
 				}
 
-				return .blob(Data(bytes: numbers))
+				return .blob(Data(numbers))
 			}
 			return .invalid
 

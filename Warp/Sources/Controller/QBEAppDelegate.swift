@@ -23,7 +23,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 		NotificationCenter.default.addObserver(self, selector: #selector(QBEAppDelegate.defaultsChanged(_:)), name: UserDefaults.didChangeNotification, object: nil)
 	}
 	
-	func defaultsChanged(_ nf: Notification) {
+	@objc func defaultsChanged(_ nf: Notification) {
 		applyDefaults()
 	}
 	
@@ -37,7 +37,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 	}
 	
 	class var sharedInstance: QBEAppDelegate { get {
-		return NSApplication.shared().delegate as! QBEAppDelegate
+		return NSApplication.shared.delegate as! QBEAppDelegate
 	} }
 
 	/** This ensures that all our user notifications are shown at all times, even when the application is still frontmost. */
@@ -46,7 +46,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 	}
 
 	func application(_ sender: NSApplication, openFile filename: String) -> Bool {
-		let dc = NSDocumentController.shared()
+		let dc = NSDocumentController.shared
 		let u = URL(fileURLWithPath: filename)
 
 		// Check to see if the file being opened is a document
@@ -54,7 +54,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 		do {
 			try (u as NSURL).getResourceValue(&type, forKey: URLResourceKey.typeIdentifierKey)
 			if let uti = type as? String {
-				if NSWorkspace.shared().type(uti, conformsToType: "nl.pixelspark.Warp.Document") {
+				if NSWorkspace.shared.type(uti, conformsToType: "nl.pixelspark.Warp.Document") {
 					dc.openDocument(withContentsOf: u, display: true, completionHandler: { (doc, alreadyOpen, error) -> Void in
 					})
 					return true
@@ -80,7 +80,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 
 	@IBAction func showHelp(_ sender: NSObject) {
 		if let u = Bundle.main.infoDictionary?["WarpHelpURL"] as? String, let url = URL(string: u) {
-			NSWorkspace.shared().open(url)
+			NSWorkspace.shared.open(url)
 		}
 	}
 }

@@ -99,10 +99,10 @@ protocol QBEDissectViewControlllerDelegate: NSObjectProtocol {
 	@objc func outlineView(_ outlineView: NSOutlineView, objectValueFor tableColumn: NSTableColumn?, byItem item: Any?) -> Any? {
 		let item: QBEDissectItem = (item as? QBEDissectItem) ?? self.tree!
 
-		if tableColumn?.identifier == "key" {
+		if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "key" {
 			return item.key
 		}
-		else if tableColumn?.identifier == "keyPath" {
+		else if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "keyPath" {
 			return item.keyPath
 		}
 		else {
@@ -196,4 +196,9 @@ protocol QBEDissectViewControlllerDelegate: NSObjectProtocol {
 
 		return input
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
 }

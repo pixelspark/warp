@@ -146,7 +146,7 @@ class QBERenameStep: QBEStep {
 		super.related(job: job) { result in
 			switch result {
 			case .success(let relatedSteps):
-				return callback(.success(relatedSteps.flatMap { related -> QBERelatedStep? in
+				return callback(.success(relatedSteps.compactMap { related -> QBERelatedStep? in
 					switch related {
 					case .joinable(step: let joinStep, type: let joinType, condition: let expression):
 						// Rewrite the join expression to take into account any of our renames

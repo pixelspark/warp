@@ -35,7 +35,7 @@ class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
 	}
 
 	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-		switch tableColumn?.identifier ?? "" {
+		switch tableColumn?.identifier.rawValue ?? "" {
 		case "columnName":
 			return self.columns[row].name
 
@@ -48,7 +48,7 @@ class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
 	}
 
 	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
-		if tableColumn?.identifier == "include" {
+		if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "include" {
 			let col = self.columns[row]
 			if (object as? Bool) ?? false {
 				self.keyColumns.insert(col)
@@ -72,4 +72,9 @@ class QBEKeySelectionViewController: NSViewController, NSTableViewDataSource {
 		self.callback?(self.keyColumns)
 		self.dismiss(sender)
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
 }

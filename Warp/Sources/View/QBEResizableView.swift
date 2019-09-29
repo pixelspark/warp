@@ -43,7 +43,7 @@ class QBEResizableView: NSView {
 		self.layer!.shadowOpacity = 0.3
 
 		resizerView = QBEResizerView(frame: self.bounds)
-		resizerView.autoresizingMask = [NSAutoresizingMaskOptions.viewHeightSizable, NSAutoresizingMaskOptions.viewWidthSizable]
+		resizerView.autoresizingMask = [NSView.AutoresizingMask.height, NSView.AutoresizingMask.width]
 		resizerView.hide = true
 		addSubview(resizerView)
 	}
@@ -54,7 +54,7 @@ class QBEResizableView: NSView {
 
 	override func draw(_ dirtyRect: NSRect) {
 		NSColor.clear.set()
-		NSRectFill(dirtyRect)
+		dirtyRect.fill()
 
 		if NSGraphicsContext.currentContextDrawingToScreen() {
 			let inset = self.resizerView.inset
@@ -65,7 +65,7 @@ class QBEResizableView: NSView {
 
 			// Background color
 			NSColor.windowBackgroundColor.set()
-			NSRectFill(self.bounds.inset(inset))
+			self.bounds.inset(inset).fill()
 
 			// Gradient on top
 			let gradientHeight: CGFloat = 30.0
@@ -85,7 +85,7 @@ class QBEResizableView: NSView {
 			c.layer!.masksToBounds = true
 			c.translatesAutoresizingMaskIntoConstraints = false
 
-			self.addSubview(c, positioned: NSWindowOrderingMode.below, relativeTo: resizerView)
+			self.addSubview(c, positioned: NSWindow.OrderingMode.below, relativeTo: resizerView)
 			self.addSubview(resizerView, positioned: .above, relativeTo: nil)
 			resizerView.contentView = c
 
@@ -106,7 +106,7 @@ class QBEResizableView: NSView {
 			// Dirty hack to find out when one of our subviews is clicked, so we can select ourselves
 			let pt = convert(aPoint, from: superview)
 			if let ht = cv.hitTest(pt) {
-				if let ev = self.window?.currentEvent, ev.type == NSEventType.leftMouseDown {
+				if let ev = self.window?.currentEvent, ev.type == NSEvent.EventType.leftMouseDown {
 					self.resizerView.mouseDownInSubiew(ev)
 				}
 
@@ -137,7 +137,7 @@ class QBEResizableView: NSView {
 	private func findGrabbableViews(_ parent: NSView) {		
 		parent.subviews.forEach { (subview) -> () in
 			if subview is NSCollectionView {
-				self.addCursorRect(subview.convert(subview.bounds, to: self), cursor: NSCursor.openHand())
+				self.addCursorRect(subview.convert(subview.bounds, to: self), cursor: NSCursor.openHand)
 			}
 			findGrabbableViews(subview)
 		}
@@ -211,7 +211,7 @@ internal class QBEResizerView: NSView {
 		// If a subview is about to receive a mouse down event, then this tablet should be selected.
 		if self.bounds.contains(pt) {
 			if !self.selected {
-				if let ev = self.window?.currentEvent, ev.type == NSEventType.leftMouseDown {
+				if let ev = self.window?.currentEvent, ev.type == NSEvent.EventType.leftMouseDown {
 					self.mouseDownInSubiew(ev)
 				}
 			}
@@ -249,7 +249,7 @@ internal class QBEResizerView: NSView {
 	}
 	
 	override func resetCursorRects() {
-		self.addCursorRect(self.bounds.insetBy(dx: inset, dy: inset), cursor: NSCursor.openHand())
+		self.addCursorRect(self.bounds.insetBy(dx: inset, dy: inset), cursor: NSCursor.openHand)
 		if canResize {
 			for anchor in visibleAnchors {
 				let frame = anchor.frameInBounds(self.bounds, withInset: inset)
@@ -328,12 +328,12 @@ internal class QBEResizerView: NSView {
 			resizingSession = ResizingSession(downPoint: locationInSuperView, downRect: self.superview!.frame, downAnchor: realAnchor, moved: false)
 			setNeedsDisplay(self.bounds)
 			self.window?.disableCursorRects()
-			NSCursor.closedHand().set()
+			NSCursor.closedHand.set()
 		}
 	}
 	
 	override func draw(_ dirtyRect: NSRect) {
-		if let context = NSGraphicsContext.current()?.cgContext {
+		if let context = NSGraphicsContext.current?.cgContext {
 			context.clear(dirtyRect)
 
 			// Draw the bounding box

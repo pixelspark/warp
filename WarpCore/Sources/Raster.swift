@@ -413,7 +413,7 @@ public class Raster: NSObject, NSCoding {
 			let templateRow = Row(Array<Value>(repeating: Value.invalid, count: self.columns.count + rightColumnsInResult.count), columns: self.columns + rightColumnsInResult)
 			
 			// Create a list of indices of the columns from the right table that need to be copied over
-			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.index(of: $0)! })
+			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.firstIndex(of: $0)! })
 			let rightIndicesInResultSet = NSMutableIndexSet()
 			rightIndicesInResult.forEach({rightIndicesInResultSet.add($0)})
 			
@@ -483,7 +483,7 @@ public class Raster: NSObject, NSCoding {
 			let rightColumnsInResult = rightColumns.filter({return !self.columns.contains($0)})
 
 			// Create a list of indices of the columns from the right table that need to be copied over
-			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.index(of: $0)! })
+			let rightIndicesInResult = rightColumnsInResult.map({return rightColumns.firstIndex(of: $0)! })
 			let rightIndicesInResultSet = NSMutableIndexSet()
 			rightIndicesInResult.forEach({rightIndicesInResultSet.add($0)})
 			
@@ -932,7 +932,7 @@ public class RasterDataset: NSObject, Dataset {
 						}
 					
 						// Fill in data from the right side
-						let indices = rightRaster.columns.map({return columns.index(of: $0)})
+						let indices = rightRaster.columns.map({return columns.firstIndex(of: $0)})
 						let empty = Array<Value>(repeating: Value.empty, count: columns.count)
 						for row in rightRaster.raster {
 							var rowClone = empty
@@ -1123,7 +1123,7 @@ private class RasterInsertPuller: StreamPuller {
 
 		self.fastMapping = self.raster.columns.map { cn -> Int? in
 			if let sn = mapping[cn] {
-				return sourceColumns.index(of: sn)
+				return sourceColumns.firstIndex(of: sn)
 			}
 			return nil
 		}
@@ -1137,7 +1137,7 @@ private class RasterInsertPuller: StreamPuller {
 		}
 
 		self.raster.addRows(newRows)
-		callback(.success())
+		callback(.success(()))
 	}
 
 	override func onDoneReceiving() {
@@ -1145,7 +1145,7 @@ private class RasterInsertPuller: StreamPuller {
 			let cb = self.callback!
 			self.callback = nil
 			self.job.async {
-				cb(.success())
+				cb(.success(()))
 			}
 		}
 	}
@@ -1191,7 +1191,7 @@ public class RasterMutableDataset: MutableDataset {
 		switch mutation {
 		case .truncate:
 			self.raster.raster.removeAll()
-			callback(.success())
+			callback(.success(()))
 
 		case .rename(let mapping):
 			self.raster.columns = OrderedSet(self.raster.columns.map { cn -> Column in
@@ -1200,7 +1200,7 @@ public class RasterMutableDataset: MutableDataset {
 				}
 				return cn
 			})
-			callback(.success())
+			callback(.success(()))
 
 		case .alter(let def):
 			let removedColumns = self.raster.columns.filter { return !def.columns.contains($0) }
@@ -1210,7 +1210,7 @@ public class RasterMutableDataset: MutableDataset {
 			removedColumns.forEach { removeIndices.add(self.raster.indexOfColumnWithName($0)!) }
 			self.raster.removeColumns(removeIndices as IndexSet)
 			self.raster.addColumns(addedColumns)
-			callback(.success())
+			callback(.success(()))
 
 		case .import(data: let data, withMapping: let mapping):
 			let stream = data.stream()
@@ -1231,7 +1231,7 @@ public class RasterMutableDataset: MutableDataset {
 			}
 
 			raster.addRows([values])
-			callback(.success())
+			callback(.success(()))
 
 		case .update(key: let key, column: let column, old: let old, new: let new):
 			// Do all the specified columns exist?
@@ -1248,11 +1248,11 @@ public class RasterMutableDataset: MutableDataset {
 			}
 
 			raster.update(key, column: column, old: old, new: new)
-			callback(.success())
+			callback(.success(()))
 
 		case .delete(keys: let keys):
 			raster.removeRows(keys)
-			callback(.success())
+			callback(.success(()))
 
 		case .drop:
 			callback(.failure("Not supported"))
@@ -1328,11 +1328,13 @@ private class RasterDatasetStream: NSObject, Stream {
 
 private struct HashableArray<T: Hashable>: Hashable, Equatable {
 	let row: [T]
-	let hashValue: Int
 	
 	init(_ row: [T]) {
 		self.row = row
-		self.hashValue = row.reduce(0) { $0.hashValue ^ $1.hashValue }
+	}
+
+	func hash(into: inout Hasher) {
+		self.row.hash(into: &into)
 	}
 }
 

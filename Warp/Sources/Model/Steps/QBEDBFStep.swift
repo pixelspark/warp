@@ -95,7 +95,7 @@ class QBEDBFWriter: NSObject, NSCoding, QBEFileWriter {
 							dbfMutex.locked {
 								DBFClose(handle)
 							}
-							callback(.success())
+							callback(.success(()))
 						}
 
 					case .failure(let e):

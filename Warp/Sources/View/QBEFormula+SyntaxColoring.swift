@@ -27,47 +27,63 @@ extension Formula {
 		#endif
 
 		#if os(iOS)
-			let regularFont = UIFont.monospacedDigitSystemFont(ofSize: UIFont.labelFontSize, weight: UIFontWeightRegular)
+		let regularFont = UIFont.monospacedDigitSystemFont(ofSize: UIFont.labelFontSize, weight: UIFont.Weight.regular)
 		#endif
 
 		
-		let ma = NSMutableAttributedString(string: self.originalText, attributes: [
-			NSForegroundColorAttributeName: UXColor.black,
-			NSFontAttributeName: regularFont
-		])
+		let ma = NSMutableAttributedString(string: self.originalText, attributes: convertToOptionalNSAttributedStringKeyDictionary([
+			convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.black,
+			convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont
+		]))
 		
 		for fragment in self.fragments.sorted(by: {return $0.length > $1.length}) {
 			if fragment.expression is Literal {
-				ma.addAttributes([
-					NSFontAttributeName: regularFont,
-					NSForegroundColorAttributeName: UXColor.blue
-				], range: NSMakeRange(fragment.start, fragment.length))
+				ma.addAttributes(convertToNSAttributedStringKeyDictionary([
+					convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont,
+					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.blue
+				]), range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Sibling {
-				ma.addAttributes([
-					NSFontAttributeName: regularFont,
-					NSForegroundColorAttributeName: UXColor(red: 0.0, green: 0.5, blue: 0.0, alpha: 1.0)
-				], range: NSMakeRange(fragment.start, fragment.length))
+				ma.addAttributes(convertToNSAttributedStringKeyDictionary([
+					convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont,
+					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor(red: 0.0, green: 0.5, blue: 0.0, alpha: 1.0)
+				]), range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Foreign {
-				ma.addAttributes([
-					NSFontAttributeName: regularFont,
-					NSForegroundColorAttributeName: UXColor(red: 0.5, green: 0.5, blue: 0.0, alpha: 1.0)
-					], range: NSMakeRange(fragment.start, fragment.length))
+				ma.addAttributes(convertToNSAttributedStringKeyDictionary([
+					convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont,
+					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor(red: 0.5, green: 0.5, blue: 0.0, alpha: 1.0)
+					]), range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Identity {
-				ma.addAttributes([
-					NSFontAttributeName: regularFont,
-					NSForegroundColorAttributeName: UXColor(red: 0.8, green: 0.5, blue: 0.0, alpha: 1.0)
-				], range: NSMakeRange(fragment.start, fragment.length))
+				ma.addAttributes(convertToNSAttributedStringKeyDictionary([
+					convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont,
+					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor(red: 0.8, green: 0.5, blue: 0.0, alpha: 1.0)
+				]), range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Call {
-				ma.addAttributes([
-					NSFontAttributeName: regularFont,
-				], range: NSMakeRange(fragment.start, fragment.length))
+				ma.addAttributes(convertToNSAttributedStringKeyDictionary([
+					convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont,
+				]), range: NSMakeRange(fragment.start, fragment.length))
 			}
 		}
 		
 		return ma
 	} }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToOptionalNSAttributedStringKeyDictionary(_ input: [String: Any]?) -> [NSAttributedString.Key: Any]? {
+	guard let input = input else { return nil }
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSAttributedString.Key(rawValue: key), value)})
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSAttributedStringKey(_ input: NSAttributedString.Key) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSAttributedStringKeyDictionary(_ input: [String: Any]) -> [NSAttributedString.Key: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSAttributedString.Key(rawValue: key), value)})
 }

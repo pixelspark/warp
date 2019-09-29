@@ -52,7 +52,7 @@ internal class QBEPostgresStepView: QBEConfigurableStepViewControllerFor<QBEPost
 			vc.warehouse = warehouse
 			vc.delegate = self
 			vc.warehouseName = String(format: NSLocalizedString("PostgreSQL database '%@'", comment: ""), self.step.databaseName)
-			self.presentViewControllerAsModalWindow(vc)
+			self.presentAsModalWindow(vc)
 		}
 	}
 

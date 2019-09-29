@@ -109,7 +109,7 @@ public class SQLiteResult {
 				return .failure("SQLite: could not reset statement: \(self.db.lastError)")
 			}
 
-			return .success()
+			return .success(())
 		}
 	}
 
@@ -304,7 +304,7 @@ open class SQLiteConnection: NSObject, SQLConnection {
 			if code != SQLITE_OK && code != SQLITE_DONE && code != SQLITE_ROW {
 				return .failure("SQLite error \(code): \(self.lastError)")
 			}
-			return .success()
+			return .success(())
 		}
 	}
 
@@ -427,7 +427,7 @@ open class SQLiteConnection: NSObject, SQLConnection {
 				return callback(.failure(e))
 			}
 		}
-		return callback(.success())
+		return callback(.success(()))
 	}
 
 	public var tableNames: Fallible<[String]> {
@@ -454,14 +454,14 @@ open class SQLiteConnection: NSObject, SQLConnection {
 		let tableName = self.dialect.expressionToSQL(Literal(Value(table)), alias: "", foreignAlias: nil, inputValue: nil)!
 		switch query("PRAGMA foreign_key_list(\(tableName))") {
 		case .success(let names):
-			let constraints = names.sequence().flatMap { row -> SQLiteForeignKey? in
+			let constraints = names.sequence().compactMap { row -> SQLiteForeignKey? in
 				switch row {
 				case .success(let info):
 					return SQLiteForeignKey(
 						table: table,
-						column: info[names.columns.index(of: Column("from"))!].stringValue!,
-						referencedTable: info[names.columns.index(of: Column("table"))!].stringValue!,
-						referencedColumn: info[names.columns.index(of: Column("to"))!].stringValue!
+						column: info[names.columns.firstIndex(of: Column("from"))!].stringValue!,
+						referencedTable: info[names.columns.firstIndex(of: Column("table"))!].stringValue!,
+						referencedColumn: info[names.columns.firstIndex(of: Column("to"))!].stringValue!
 					)
 
 				case .failure(_):
@@ -700,8 +700,8 @@ public class SQLiteMutableDataset: SQLMutableDataset {
 				let c = con as! SQLiteConnection
 				switch c.query("PRAGMA table_info(\(s.dialect.tableIdentifier(self.tableName, schema: self.schemaName, database: nil)))") {
 				case .success(let result):
-					guard let nameIndex = result.columns.index(of: Column("name")) else { callback(.failure("No name column")); return }
-					guard let pkIndex = result.columns.index(of: Column("pk")) else { callback(.failure("No pk column")); return }
+					guard let nameIndex = result.columns.firstIndex(of: Column("name")) else { callback(.failure("No name column")); return }
+					guard let pkIndex = result.columns.firstIndex(of: Column("pk")) else { callback(.failure("No pk column")); return }
 
 					var identifiers = Set<Column>()
 					for row in result.sequence() {

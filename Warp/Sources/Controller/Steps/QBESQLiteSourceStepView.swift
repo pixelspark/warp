@@ -48,7 +48,7 @@ internal class QBESQLiteSourceStepView: QBEConfigurableStepViewControllerFor<QBE
 			vc.warehouse = warehouse
 			vc.delegate = self
 			vc.warehouseName = String(format: NSLocalizedString("SQLite database '%@'", comment: ""), self.step.file?.url?.lastPathComponent ?? "")
-			self.presentViewControllerAsModalWindow(vc)
+			self.presentAsModalWindow(vc)
 		}
 	}
 }

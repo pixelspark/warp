@@ -124,6 +124,12 @@
       "idiom" : "ipad",
       "filename" : "WarpWhite@167.png",
       "scale" : "2x"
+    },
+    {
+      "size" : "1024x1024",
+      "idiom" : "ios-marketing",
+      "filename" : "WarpWhite@1024w.png",
+      "scale" : "1x"
     }
   ],
   "info" : {

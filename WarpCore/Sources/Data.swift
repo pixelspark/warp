@@ -39,12 +39,12 @@ public struct Row {
 	}
 	
 	public func indexOfColumnWithName(_ name: Column) -> Int? {
-		return columns.index(of: name)
+		return columns.firstIndex(of: name)
 	}
 	
 	public subscript(column: Column) -> Value! {
 		get {
-			if let i = columns.index(of: column) {
+			if let i = columns.firstIndex(of: column) {
 				return values[i]
 			}
 			return nil
@@ -59,7 +59,7 @@ public struct Row {
 	}
 	
 	public mutating func setValue(_ value: Value, forColumn column: Column) {
-		if let i = columns.index(of: column) {
+		if let i = columns.firstIndex(of: column) {
 			values[i] = value
 		}
 		else {
@@ -321,7 +321,7 @@ public protocol Dataset {
 public extension Dataset {
 	/** Shorthand for single-delivery rasterization. */
 	func raster(_ job: Job, callback: @escaping (Fallible<Raster>) -> ()) {
-		self.raster(job, deliver: .onceComplete, callback: once { result, streamStatus in
+		self.raster(job, deliver: .onceComplete, callback: once2 { result, streamStatus in
 			assert(streamStatus == .finished, "Data.raster implementation should never return statuses other than .finished when not in incremental mode")
 			callback(result)
 		})

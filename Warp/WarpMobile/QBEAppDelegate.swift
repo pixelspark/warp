@@ -25,18 +25,18 @@ class QBEAppDelegate: UIResponder, UIApplicationDelegate {
 		return UIApplication.shared.delegate as! QBEAppDelegate
 	} }
 
-	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 		return true
 	}
 
-	func application(_ application: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey: Any]) -> Bool {
+	func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any]) -> Bool {
 		/*
 		`options[UIApplicationOpenURLOptionsOpenInPlaceKey]` will be set if
 		the app doesn't need to make a copy of the document to open or edit it.
 		For example, the document could be in the ubiquitous container of the
 		application.
 		*/
-		guard let shouldOpenInPlace = options[UIApplicationOpenURLOptionsKey.openInPlace] as? Bool else {
+		guard let shouldOpenInPlace = options[UIApplication.OpenURLOptionsKey.openInPlace] as? Bool else {
 			return false
 		}
 

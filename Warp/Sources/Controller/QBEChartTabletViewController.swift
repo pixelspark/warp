@@ -132,9 +132,9 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 		// Fade any changes in smoothly
 		let tr = CATransition()
 		tr.duration = 0.3
-		tr.type = kCATransitionFade
-		tr.subtype = kCATransitionFromRight
-		tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+		tr.type = convertToCATransitionType(convertFromCATransitionType(CATransitionType.fade))
+		tr.subtype = convertToOptionalCATransitionSubtype(convertFromCATransitionSubtype(CATransitionSubtype.fromRight))
+		tr.timingFunction = CAMediaTimingFunction(name: convertToCAMediaTimingFunctionName(convertFromCAMediaTimingFunctionName(CAMediaTimingFunctionName.easeOut)))
 		self.chartView.layer?.add(tr, forKey: kCATransition)
 
 		// Remove existing chart views
@@ -173,7 +173,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 						ds.drawValuesEnabled = false
 						ds.drawCirclesEnabled = false
 						ds.colors = [colors[(ySeriesIndex - 1) % colors.count]]
-						data.addDataSet(ds)
+						data.append(ds)
 					}
 
 					lineChartView.data = data
@@ -197,7 +197,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 						let ds = RadarChartDataSet(values: yse, label: r.columns[ySeriesIndex].name)
 						ds.drawValuesEnabled = false
 						ds.colors = [colors[(ySeriesIndex - 1) % colors.count]]
-						data.addDataSet(ds)
+						data.append(ds)
 					}
 
 					radarChartView.data = data
@@ -220,7 +220,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 						let ds = BarChartDataSet(values: yse, label: xs[idx].stringValue ?? "")
 						ds.drawValuesEnabled = false
 						ds.colors = [colors[idx % colors.count]]
-						data.addDataSet(ds)
+						data.append(ds)
 					}
 
 					barChartView.data = data
@@ -249,7 +249,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				let ds = PieChartDataSet(values: yse, label: "Data")
 				ds.drawValuesEnabled = true
 				ds.colors = colors
-				data.addDataSet(ds)
+				data.append(ds)
 
 				let nf = NumberFormatter()
 				nf.numberStyle = NumberFormatter.Style.decimal
@@ -268,18 +268,18 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 			cb.translatesAutoresizingMaskIntoConstraints = false
 			self.chartView.addSubview(cb)
 			self.chartView.addConstraints([
-				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.top, relatedBy: NSLayoutRelation.equal, toItem: self.chartView, attribute: NSLayoutAttribute.top, multiplier: 1.0, constant: 0.0),
-				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.bottom, relatedBy: NSLayoutRelation.equal, toItem: self.chartView, attribute: NSLayoutAttribute.bottom, multiplier: 1.0, constant: 0.0),
-				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.left, relatedBy: NSLayoutRelation.equal, toItem: self.chartView, attribute: NSLayoutAttribute.left, multiplier: 1.0, constant: 0.0),
-				NSLayoutConstraint(item: cb, attribute: NSLayoutAttribute.right, relatedBy: NSLayoutRelation.equal, toItem: self.chartView, attribute: NSLayoutAttribute.right, multiplier: 1.0, constant: 0.0)
+				NSLayoutConstraint(item: cb, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.chartView, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0),
+				NSLayoutConstraint(item: cb, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.chartView, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0),
+				NSLayoutConstraint(item: cb, attribute: NSLayoutConstraint.Attribute.left, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.chartView, attribute: NSLayoutConstraint.Attribute.left, multiplier: 1.0, constant: 0.0),
+				NSLayoutConstraint(item: cb, attribute: NSLayoutConstraint.Attribute.right, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.chartView, attribute: NSLayoutConstraint.Attribute.right, multiplier: 1.0, constant: 0.0)
 			])
 			cb.canDrawConcurrently = true
 
 			if animated {
 				cb.animate(xAxisDuration: 1.0, yAxisDuration: 1.0)
 			}
-			cb.chartDescription?.font = NSUIFont.systemFont(ofSize: 12.0)
-			cb.chartDescription?.text = ""
+			cb.chartDescription.font = NSUIFont.systemFont(ofSize: 12.0)
+			cb.chartDescription.text = ""
 		}
 	}
 
@@ -292,7 +292,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 			let panel = NSSavePanel()
 			panel.allowedFileTypes = ["png"]
 			panel.beginSheetModal(for: w) { (result) -> Void in
-				if result == NSFileHandlingPanelOKButton {
+				if result == NSApplication.ModalResponse.OK {
 					if let path = panel.url?.path {
 						// FIXME: if save returns false, show an error to the user indicating the file could not be saved
 						_ = chartView.save(to: path, format: .png, compressionQuality: 1.0)
@@ -317,22 +317,22 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	}
 
 
-	override func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+	@objc func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
 		if item.action == #selector(QBEChartTabletViewController.toggleFullDataset(_:)) {
 			if let c = item.view as? NSButton {
-				c.state = (useFullDataset || presentedDatasetIsFullDataset) ? NSOnState: NSOffState
+				c.state = (useFullDataset || presentedDatasetIsFullDataset) ? NSControl.StateValue.on: NSControl.StateValue.off
 			}
 		}
 		else if item.action == #selector(QBEChartTabletViewController.toggleEditing(_:)) {
 			if let c = item.view as? NSButton {
-				c.state = NSOffState
+				c.state = NSControl.StateValue.off
 			}
 		}
 
 		return validateSelector(item.action!)
 	}
 
-	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+	@objc func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		return validateSelector(item.action!)
 	}
 
@@ -347,4 +347,40 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 		}
 		return false
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToCATransitionType(_ input: String) -> CATransitionType {
+	return CATransitionType(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromCATransitionType(_ input: CATransitionType) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToOptionalCATransitionSubtype(_ input: String?) -> CATransitionSubtype? {
+	guard let input = input else { return nil }
+	return CATransitionSubtype(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromCATransitionSubtype(_ input: CATransitionSubtype) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToCAMediaTimingFunctionName(_ input: String) -> CAMediaTimingFunctionName {
+	return CAMediaTimingFunctionName(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromCAMediaTimingFunctionName(_ input: CAMediaTimingFunctionName) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSControlStateValue(_ input: Int) -> NSControl.StateValue {
+	return NSControl.StateValue(rawValue: input)
 }

@@ -16,7 +16,7 @@ protocol QBEFormulaEditorViewDelegate: NSObjectProtocol {
 	func formulaEditor(_ view: QBEFormulaEditorViewController, didChangeExpression: Expression?)
 }
 
-class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate, NSTextFieldDelegate, NSTableViewDataSource, NSTableViewDelegate {
+class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate, NSTextFieldDelegate, NSTableViewDataSource, NSTableViewDelegate, NSControlTextEditingDelegate {
 	weak var delegate: QBEFormulaEditorViewDelegate? = nil
 	var exampleResult: Value? = nil { didSet { assertMainThread(); self.updateView(false) } }
 	var columns: OrderedSet<Column> = [] { didSet { assertMainThread(); self.updateView(false) } }
@@ -49,7 +49,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 						replacement = "\(locale.nameForFunction(didSelectFunction)!)(\(selectedText))"
 					}
 					ed.replaceCharacters(in: er, with: replacement)
-					ed.selectedRange = NSMakeRange(er.location, replacement.characters.count)
+					ed.selectedRange = NSMakeRange(er.location, replacement.count)
 				}
 				else {
 					formulaField.stringValue += Call(arguments: [], type: didSelectFunction).toFormula(locale, topLevel: false)
@@ -68,7 +68,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		updateView(true)
 	}
 
-	override func controlTextDidEndEditing(_ obj: Notification) {
+	func controlTextDidEndEditing(_ obj: Notification) {
 		updateFromView(self.formulaField)
 		if let r = self.formulaField.currentEditor()?.selectedRange {
 			lastSelectedRange = r
@@ -79,7 +79,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 		updateFromView(self.formulaField)
 	}
 
-	override func controlTextDidChange(_ obj: Notification) {
+	func controlTextDidChange(_ obj: Notification) {
 		self.updateSyntaxColoring()
 	}
 
@@ -110,7 +110,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 	}
 
 	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-		if tableView == self.columnsTableView && tableColumn?.identifier == "column" && row < self.columns.count {
+		if tableView == self.columnsTableView && convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "column" && row < self.columns.count {
 			return self.columns[row].name
 		}
 
@@ -192,7 +192,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 					if er.length > 0 {
 						ed.selectedRange = er
 						ed.replaceCharacters(in: er, with: replacement)
-						ed.selectedRange = NSMakeRange(er.location, replacement.characters.count)
+						ed.selectedRange = NSMakeRange(er.location, replacement.count)
 					}
 					else {
 						if self.expression is Sibling || self.expression == nil {
@@ -232,4 +232,9 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 			}
 		}
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
 }

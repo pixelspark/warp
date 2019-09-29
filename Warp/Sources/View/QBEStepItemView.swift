@@ -37,7 +37,7 @@ import WarpCore
 	
 	private func setup() {
 		self.addToolTip(frame, owner: self, userData: nil)
-		self.addTrackingArea(NSTrackingArea(rect: frame, options: [NSTrackingAreaOptions.mouseEnteredAndExited, NSTrackingAreaOptions.activeInActiveApp], owner: self, userInfo: nil))
+		self.addTrackingArea(NSTrackingArea(rect: frame, options: [NSTrackingArea.Options.mouseEnteredAndExited, NSTrackingArea.Options.activeInActiveApp], owner: self, userInfo: nil))
 	}
 	
 	override func mouseEntered(with theEvent: NSEvent) {
@@ -52,7 +52,7 @@ import WarpCore
 		setNeedsDisplay(self.bounds)
 	}
 	
-	override func view(_ view: NSView, stringForToolTip tag: NSToolTipTag, point: NSPoint, userData data: UnsafeMutableRawPointer?) -> String {
+	func view(_ view: NSView, stringForToolTip tag: NSView.ToolTipTag, point: NSPoint, userData data: UnsafeMutableRawPointer?) -> String {
 		return step?.explain(Language()) ?? ""
 	}
 	
@@ -70,7 +70,7 @@ import WarpCore
 		}
 	}
 
-	override func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+	func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
 		return self.validate(menuItem)
 	}
 	
@@ -119,7 +119,7 @@ import WarpCore
 	
 	override func draw(_ dirtyRect: NSRect) {
 		NSColor.clear.set()
-		NSRectFill(dirtyRect)
+		dirtyRect.fill()
 
 		if self.selected {
 			if let sv = self.superview as? QBECollectionView , !sv.active {

@@ -1,0 +1,24 @@
+
+"mtour.0.title" = "Welcome to Warp!";
+"mtour.0.subtitle" = "Let's go through the basic features of the app to get you started.";
+"mtour.0.image" = "Tour0";
+
+"mtour.1.title" = "First, you need some data";
+"mtour.1.subtitle" = "You can open CSV or other files from iCoud Drive, or send them to Warp from other apps.";
+"mtour.1.image" = "Tour1";
+
+"mtour.2.title" = "Step by step";
+"mtour.2.subtitle" = "Every data operation in Warp is shown as a step. You can add steps by tapping the '+' button.";
+"mtour.2.image" = "Tour2";
+
+"mtour.3.title" = "Full speed ahead";
+"mtour.3.subtitle" = "For maximum speed, Warp shows you a preview of the output of your steps only. Use the button shown to ask Warp to calculate the full result.";
+"mtour.3.image" = "Tour3";
+
+"mtour.4.title" = "You are now ready!";
+"mtour.4.subtitle" = "We hope you will enjoy using Warp.";
+"mtour.4.image" = "Tour4";
+
+"mtour.showme" = "Okay, show me!";
+"mtour.getstarted" = "Get started";
+"mtour.gotit" = "Got it!";

@@ -148,7 +148,7 @@ private class QBESQLiteWriterSession {
 						return
 					}
 					else {
-						self.completion!(.success())
+						self.completion!(.success(()))
 						self.completion = nil
 					}
 				}

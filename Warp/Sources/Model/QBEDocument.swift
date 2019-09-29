@@ -108,7 +108,7 @@ class QBEDocument: UXDocument {
 			// Add any code here that needs to be executed once the windowController has loaded the document's window.
 		}
 
-		override class func autosavesInPlace() -> Bool {
+		override class var autosavesInPlace: Bool {
 			return true
 		}
 	
@@ -195,7 +195,7 @@ class QBEDocument: UXDocument {
 			self.tablets.forEach { $0.document = self; $0.didLoadFromDocument(url) }
 		}
 
-		override func save(to url: URL, for saveOperation: UIDocumentSaveOperation, completionHandler: ((Bool) -> Void)? = nil) {
+	override func save(to url: URL, for saveOperation: UIDocument.SaveOperation, completionHandler: ((Bool) -> Void)? = nil) {
 			self.tablets.forEach { $0.willSaveToDocument(url) }
 			super.save(to: url, for: saveOperation, completionHandler: completionHandler)
 		}

@@ -44,7 +44,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	var isAltering: Bool { return mutableDataset != nil }
 
 	required init() {
-		super.init(nibName: "QBEAlterTableViewController", bundle: nil)!
+		super.init(nibName: "QBEAlterTableViewController", bundle: nil)
 	}
 
 	required init?(coder: NSCoder) {
@@ -69,11 +69,11 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		self.removeColumn(sender)
 	}
 
-	func validate(_ item: NSValidatedUserInterfaceItem) -> Bool {
+	@objc func validate(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		return self.validateUserInterfaceItem(item)
 	}
 
-	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+	@objc func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 		switch item.action {
 		case .some(#selector(QBEAlterTableViewController.delete(_:))):
 			return tableView.selectedRowIndexes.count > 0
@@ -99,7 +99,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		let col = self.definition.columns[row]
 
 		if let tc = tableColumn {
-			switch tc.identifier {
+			switch convertFromNSUserInterfaceItemIdentifier(tc.identifier) {
 			case "columnName": return col.name
 			default: return nil
 			}
@@ -113,7 +113,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		}
 
 		if let tc = tableColumn {
-			switch tc.identifier {
+			switch convertFromNSUserInterfaceItemIdentifier(tc.identifier) {
 			case "columnName":
 				let col = Column(object as! String)
 				if !self.definition.columns.contains(col) {
@@ -257,7 +257,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		}
 	}
 
-	override func controlTextDidChange(_ obj: Notification) {
+	func controlTextDidChange(_ obj: Notification) {
 		self.updateView()
 	}
 
@@ -278,8 +278,8 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 	override func viewWillAppear() {
 		// Are we going to create a table? Then check if the pasteboard has a table definition for us we can propose
 		if self.definition.columns.isEmpty && (self.warehouse?.hasFixedColumns ?? false) {
-			let pb = NSPasteboard(name: self.definition.pasteboardName)
-			if let data = pb.data(forType: self.definition.pasteboardName), let def = NSKeyedUnarchiver.unarchiveObject(with: data) as? Schema {
+			let pb = NSPasteboard(name: convertToNSPasteboardName(self.definition.pasteboardName))
+			if let data = pb.data(forType: convertToNSPasteboardPasteboardType(self.definition.pasteboardName)), let def = NSKeyedUnarchiver.unarchiveObject(with: data) as? Schema {
 				self.definition = def
 			}
 		}
@@ -290,4 +290,19 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 
 	func job(_ job: AnyObject, didProgress: Double) {
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSPasteboardName(_ input: String) -> NSPasteboard.Name {
+	return NSPasteboard.Name(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSPasteboardPasteboardType(_ input: String) -> NSPasteboard.PasteboardType {
+	return NSPasteboard.PasteboardType(rawValue: input)
 }

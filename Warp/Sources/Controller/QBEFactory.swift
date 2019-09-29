@@ -36,12 +36,12 @@ class QBEConfigurableViewController: NSViewController {
 		fatalError("Do not call")
 	}
 
-	override init?(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-		super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
-	}
-
 	required init?(coder: NSCoder) {
 		super.init(coder: coder)
+	}
+
+	override init(nibName nibNameOrNil: NSNib.Name?, bundle nibBundleOrNil: Bundle?) {
+		super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
 	}
 }
 
@@ -85,15 +85,12 @@ class QBEFactory {
 	let dataWarehouseSteps: [QBEStep.Type] = [
 		QBEMySQLSourceStep.self,
 		QBEPostgresSourceStep.self,
-		QBERethinkSourceStep.self,
 		QBESQLiteSourceStep.self
 	]
 
 	let dataWarehouseStepNames: [String: String] = [
 		NSStringFromClass(QBEMySQLSourceStep.self): NSLocalizedString("MySQL table", comment: ""),
 		NSStringFromClass(QBEPostgresSourceStep.self): NSLocalizedString("PostgreSQL table", comment: ""),
-		NSStringFromClass(QBECockroachSourceStep.self): NSLocalizedString("CockroachDB table", comment: ""),
-		NSStringFromClass(QBERethinkSourceStep.self): NSLocalizedString("RethinkDB table", comment: ""),
 		NSStringFromClass(QBESQLiteSourceStep.self): NSLocalizedString("SQLite table", comment: "")
 	]
 
@@ -128,11 +125,9 @@ class QBEFactory {
 		QBERenameStep.className(): QBERenameStepView.self,
 		QBEPostgresSourceStep.className(): QBEPostgresStepView.self,
 		QBECrawlStep.className(): QBECrawlStepView.self,
-		QBERethinkSourceStep.className(): QBERethinkStepView.self,
 		QBEJoinStep.className(): QBEJoinStepView.self,
 		QBESQLiteSourceStep.className(): QBESQLiteSourceStepView.self,
 		QBECacheStep.className(): QBECacheStepView.self,
-		QBECockroachSourceStep.className(): QBECockroachSourceStepView.self,
 	]
 	#endif
 
@@ -142,7 +137,6 @@ class QBEFactory {
 		NSStringFromClass(QBELimitStep.self): "LimitIcon",
 		NSStringFromClass(QBEOffsetStep.self): "LimitIcon",
 		NSStringFromClass(QBERandomStep.self): "RandomIcon",
-		NSStringFromClass(QBERethinkSourceStep.self): "RethinkDBIcon",
 		NSStringFromClass(QBEPostgresSourceStep.self): "PostgresIcon",
 		NSStringFromClass(QBESearchStep.self): "SearchIcon",
 		NSStringFromClass(QBETransposeStep.self): "TransposeIcon",
@@ -158,7 +152,6 @@ class QBEFactory {
 		NSStringFromClass(QBECalculateStep.self): "CalculateIcon",
 		NSStringFromClass(QBEColumnsStep.self): "ColumnsIcon",
 		NSStringFromClass(QBESortColumnsStep.self): "ColumnsIcon",
-		NSStringFromClass(QBEPrestoSourceStep.self): "PrestoIcon",
 		NSStringFromClass(QBERasterStep.self): "RasterIcon",
 		NSStringFromClass(QBESortStep.self): "SortIcon",
 		NSStringFromClass(QBEJoinStep.self): "JoinIcon",
@@ -167,7 +160,6 @@ class QBEFactory {
 		NSStringFromClass(QBEMergeStep.self): "MergeIcon",
 		NSStringFromClass(QBECrawlStep.self): "CrawlIcon",
 		NSStringFromClass(QBEExportStep.self): "ExportStepIcon",
-		NSStringFromClass(QBEClassifierStep.self): "AIIcon",
 		NSStringFromClass(QBEExplodeVerticallyStep.self): "ExplodeVerticalIcon",
 		NSStringFromClass(QBEExplodeHorizontallyStep.self): "ExplodeHorizontalIcon",
 		NSStringFromClass(QBECacheStep.self): "CacheIcon",
@@ -176,7 +168,6 @@ class QBEFactory {
 		NSStringFromClass(QBEFileStep.self): "TextIcon",
 		NSStringFromClass(QBEJSONSourceStep.self): "JSONIcon",
 		NSStringFromClass(QBERankStep.self): "RankIcon",
-		NSStringFromClass(QBECockroachSourceStep.self): "CockroachIcon",
 	]
 	
 	var fileExtensionsForWriting: Set<String> { get {
@@ -195,7 +186,7 @@ class QBEFactory {
 		do {
 			#if os(macOS)
 				// Try to find reader by UTI type
-				let type = try NSWorkspace.shared().type(ofFile: atURL.path)
+				let type = try NSWorkspace.shared.type(ofFile: atURL.path)
 
 				// Exact match
 				if let creator = fileReaders[type] {
@@ -204,7 +195,7 @@ class QBEFactory {
 
 				// Conformance match
 				for (readerType, creator) in fileReaders {
-					if NSWorkspace.shared().type(type, conformsToType: readerType) {
+					if NSWorkspace.shared.type(type, conformsToType: readerType) {
 						return creator(atURL)
 					}
 				}

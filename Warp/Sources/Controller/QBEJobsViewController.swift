@@ -78,7 +78,7 @@ class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
 	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
 		let info = jobs[row]
 
-		switch tableColumn?.identifier ?? "" {
+		switch tableColumn?.identifier.rawValue ?? "" {
 			case "description": return info.description
 			case "progress": return "\(info.progress)"
 			default: return nil
@@ -88,7 +88,7 @@ class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
 	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
 		let info = jobs[row]
 
-		switch tableColumn?.identifier ?? "" {
+		switch tableColumn?.identifier.rawValue ?? "" {
 		case "description":
 			let vw = NSTextField()
 			vw.isBordered = false
@@ -98,7 +98,7 @@ class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
 
 		case "progress":
 			let vw = NSProgressIndicator()
-			vw.style = .barStyle
+			vw.style = .bar
 			vw.isIndeterminate = false
 			vw.doubleValue = info.progress
 			vw.maxValue = 1.0
@@ -126,4 +126,9 @@ class JobsViewController: NSViewController, NSTableViewDataSource, NSTableViewDe
 			self.updateView()
 		}
 	}
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSUserInterfaceItemIdentifier(_ input: NSUserInterfaceItemIdentifier) -> String {
+	return input.rawValue
 }

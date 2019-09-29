@@ -53,15 +53,14 @@ internal class QBEMySQLSourceStepView: QBEConfigurableStepViewControllerFor<QBEM
 			vc.warehouse = warehouse
 			vc.delegate = self
 			vc.warehouseName = String(format: NSLocalizedString("MySQL database '%@'", comment: ""), self.step.databaseName ?? "(unknown)".localized)
-			self.presentViewControllerAsModalWindow(vc)
+			self.presentAsModalWindow(vc)
 		}
 	}
 
 	@IBAction func configureSSHTunnel(_ sender: NSObject) {
-		if let controller = QBESSHTunnelViewController(nibName: "QBESSHTunnelViewController", bundle: nil) {
-			controller.configuration = step.tunnelConfiguration
-			self.presentViewControllerAsModalWindow(controller)
-		}
+		let controller = QBESSHTunnelViewController(nibName: "QBESSHTunnelViewController", bundle: nil)
+		controller.configuration = step.tunnelConfiguration
+		self.presentAsModalWindow(controller)
 	}
 	
 	@IBAction func updateStep(_ sender: NSObject) {

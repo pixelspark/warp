@@ -39,8 +39,38 @@ public class Sequencer: Parser {
 	private var stack = Stack<ValueSequence>()
 	
 	public init?(_ formula: String) {
-		super.init()
-		if !self.parse(formula) {
+		let reservedCharactersRule = Parser.matchAnyFrom(reservedCharacters.map({ return Parser.matchLiteral(String($0)) }))
+		let specialCharactersRule = Parser.matchAnyFrom(specialCharacters.keys.map({ return Parser.matchLiteral(String($0)) }))
+		let escapes = Parser.matchLiteral("\\") ~ (reservedCharactersRule | specialCharactersRule)
+
+		let grammar = Grammar();
+		super.init(grammar: grammar)
+
+		grammar["number"] = (("0" - "9")++)
+		grammar["escapedCharacter"] = escapes => pushValue
+		grammar["character"] = Parser.matchAnyCharacterExcept(reservedCharacters) => pushValue
+		grammar["string"] = (Parser.matchAnyCharacterExcept(reservedCharacters) | escapes)++ => pushString
+		grammar["charRange"] = (Parser.matchAnyCharacterExcept(reservedCharacters) ~~ "-" ~~ Parser.matchAnyCharacterExcept(reservedCharacters)) => pushRange
+		grammar["charSpec"] = (^"charRange" | ^"escapedCharacter" | ^"character")*
+
+		grammar["charset"] = (Parser.matchLiteral("[") => pushCharset) ~~ ^"charSpec" ~~ "]"
+		grammar["component"] = ^"subsequence" | ^"charset" | ^"string"
+		grammar["maybe"] = ^"component" ~~ (Parser.matchLiteral("?") => pushMaybe)/~
+		grammar["repeat"] = ^"maybe" ~~ (Parser.matchLiteral("{") ~~ (^"number" => pushRepeat) ~~ Parser.matchLiteral("}"))/~
+
+		grammar["following"] = ^"repeat" ~~ ((^"repeat") => pushFollowing)*
+		grammar["alternatives"] = ^"following" ~~ (("|" ~~ ^"following") => pushAfter)*
+		grammar["subsequence"] = "(" ~~ ^"alternatives" ~~ ")"
+		grammar.startRule = ^"alternatives"
+
+		do {
+			try _ = self.parse(formula)
+		}
+		catch {
+			return nil
+		}
+
+		if stack.items.isEmpty {
 			return nil
 		}
 	}
@@ -137,30 +167,6 @@ public class Sequencer: Parser {
 		else {
 			fatalError("Not supported!")
 		}
-	}
-	
-	public override func rules() {
-		let reservedCharactersRule = Parser.matchAnyFrom(reservedCharacters.map({ return Parser.matchLiteral(String($0)) }))
-		let specialCharactersRule = Parser.matchAnyFrom(specialCharacters.keys.map({ return Parser.matchLiteral(String($0)) }))
-		let escapes = Parser.matchLiteral("\\") ~ (reservedCharactersRule | specialCharactersRule)
-		
-		add_named_rule("number", rule: (("0" - "9")++))
-		add_named_rule("escapedCharacter", rule: escapes => pushValue)
-		add_named_rule("character", rule: (Parser.matchAnyCharacterExcept(reservedCharacters) => pushValue))
-		add_named_rule("string", rule: ((Parser.matchAnyCharacterExcept(reservedCharacters) | escapes)++ => pushString))
-		add_named_rule("charRange", rule: (Parser.matchAnyCharacterExcept(reservedCharacters) ~~ "-" ~~ Parser.matchAnyCharacterExcept(reservedCharacters)) => pushRange)
-		add_named_rule("charSpec", rule: (^"charRange" | ^"escapedCharacter" | ^"character")*)
-		
-		add_named_rule("charset", rule: ((Parser.matchLiteral("[") => pushCharset) ~~ ^"charSpec" ~~ "]"))
-		add_named_rule("component", rule: ^"subsequence" | ^"charset" | ^"string")
-		add_named_rule("maybe", rule: ^"component" ~~ (Parser.matchLiteral("?") => pushMaybe)/~)
-		add_named_rule("repeat", rule: ^"maybe" ~~ (Parser.matchLiteral("{") ~~ (^"number" => pushRepeat) ~~ Parser.matchLiteral("}"))/~)
-		
-		add_named_rule("following", rule: ^"repeat" ~~ ((^"repeat") => pushFollowing)*)
-		add_named_rule("alternatives", rule: ^"following" ~~ (("|" ~~ ^"following") => pushAfter)*)
-		add_named_rule("subsequence", rule: "(" ~~ ^"alternatives" ~~ ")")
-		
-		start_rule = ^"alternatives"
 	}
 	
 	public func stream(_ column: Column) -> Stream {

@@ -56,11 +56,11 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		super.viewDidLoad()
 	}
 
-	func tokenField(_ tokenField: NSTokenField, styleForRepresentedObject representedObject: Any) -> NSTokenStyle {
+	func tokenField(_ tokenField: NSTokenField, styleForRepresentedObject representedObject: Any) -> NSTokenField.TokenStyle {
 		if let r = representedObject as? QBESentenceToken {
-			return r.isToken ? NSTokenStyle.default : NSTokenStyle.none
+			return r.isToken ? NSTokenField.TokenStyle.default : NSTokenField.TokenStyle.none
 		}
-		return NSTokenStyle.none
+		return NSTokenField.TokenStyle.none
 	}
 
 	func tokenField(_ tokenField: NSTokenField, displayStringForRepresentedObject representedObject: Any) -> String? {
@@ -202,7 +202,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 			for key in keys {
 				let title = options.options[key]!
 				let item = NSMenuItem(title: title, action: #selector(QBESentenceViewController.selectOption(_:)), keyEquivalent: "")
-				item.state = (key == options.value) ? NSOnState : NSOffState
+				item.state = (key == options.value) ? NSControl.StateValue.on : NSControl.StateValue.off
 				item.tag = index
 				menu.addItem(item)
 				index += 1
@@ -377,7 +377,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 
 	@IBAction func showFileInFinder(_ sender: NSObject) {
 		if let token = editingToken?.token as? QBESentenceFileToken, let file = token.file?.url {
-			NSWorkspace.shared().activateFileViewerSelecting([file as URL])
+			NSWorkspace.shared.activateFileViewerSelecting([file as URL])
 		}
 	}
 
@@ -407,13 +407,13 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 					savePanel = no
 				}
 
-			case .writing():
+			case .writing:
 				savePanel = NSSavePanel()
 			}
 
 			savePanel.allowedFileTypes = token.allowedFileTypes
-			savePanel.beginSheetModal(for: self.view.window!, completionHandler: { (result: Int) -> Void in
-				if result==NSFileHandlingPanelOKButton {
+			savePanel.beginSheetModal(for: self.view.window!, completionHandler: { (result) -> Void in
+				if result == NSApplication.ModalResponse.OK {
 					if let url = savePanel.url {
 						let fileRef = QBEFileReference.absolute(url)
 						token.change(fileRef)
@@ -438,10 +438,10 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	}
 
 	private func showPopoverAtToken(_ viewController: NSViewController) {
-		let displayRect = NSMakeRect((NSEvent.mouseLocation().x - 2.5), (NSEvent.mouseLocation().y - 2.5), 5, 5)
+		let displayRect = NSMakeRect((NSEvent.mouseLocation.x - 2.5), (NSEvent.mouseLocation.y - 2.5), 5, 5)
 		if let realRect = self.view.window?.convertFromScreen(displayRect) {
 			let viewRect = self.view.convert(realRect, from: nil)
-			self.presentViewController(viewController, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: NSRectEdge.minY, behavior: NSPopoverBehavior.transient)
+			self.present(viewController, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: NSRectEdge.minY, behavior: NSPopover.Behavior.transient)
 		}
 	}
 
@@ -536,7 +536,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		return false
 	}
 
-	override func controlTextDidChange(_ obj: Notification) {
+	func controlTextDidChange(_ obj: Notification) {
 		self.tokenField.invalidateIntrinsicContentSize()
 	}
 
@@ -553,9 +553,9 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		if configurable == nil || self.editingConfigurable == nil || !self.editingConfigurable!.isEqual(configurable!) {
 			let tr = CATransition()
 			tr.duration = 0.3
-			tr.type = kCATransitionPush
-			tr.subtype = self.editingConfigurable == nil ? kCATransitionFromTop : kCATransitionFromBottom
-			tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+			tr.type = CATransitionType.push
+			tr.subtype = self.editingConfigurable == nil ? CATransitionSubtype.fromTop : CATransitionSubtype.fromBottom
+			tr.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
 			let willBeEditable = (configurable as? QBEFullyConfigurable)?.isEditable ?? false
 			if willBeEditable && wasEditable {
 				self.tokenField.layer?.add(tr, forKey: kCATransition)
@@ -592,7 +592,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 	/** Opens the popover containing more detailed configuration options for the current configurable. */
 	@IBAction func configure(_ sender: AnyObject) {
 		if let s = self.editingConfigurable, let stepView = QBEFactory.sharedInstance.viewForConfigurable(s, delegate: self) {
-			self.presentViewController(stepView, asPopoverRelativeTo: configureButton.frame, of: self.view, preferredEdge: NSRectEdge.minY, behavior: NSPopoverBehavior.semitransient)
+			self.present(stepView, asPopoverRelativeTo: configureButton.frame, of: self.view, preferredEdge: NSRectEdge.minY, behavior: NSPopover.Behavior.semitransient)
 		}
 	}
 
@@ -626,7 +626,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 					let windowRect = NSMakeRect(sender.locationInWindow.x + 5, sender.locationInWindow.y, 1, 1)
 					var viewRect = self.view.convert(windowRect, from: nil)
 					viewRect.origin.y = 0.0
-					self.presentViewController(editor, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: .minY, behavior: .transient)
+					self.present(editor, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: .minY, behavior: .transient)
 				}
 			}
 		}
@@ -645,7 +645,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 							let windowRect = NSMakeRect(sender.locationInWindow.x + 5, sender.locationInWindow.y, 1, 1)
 							var viewRect = self.view.convert(windowRect, from: nil)
 							viewRect.origin.y = 0.0
-							self.presentViewController(editor, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: .minY, behavior: .transient)
+							self.present(editor, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: .minY, behavior: .transient)
 						}
 					}
 				}
@@ -662,7 +662,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 				var viewRect = self.view.convert(windowRect, from: nil)
 				viewRect.origin.y = 0.0
 				editor.updateContextInformation(inputToken)
-				self.presentViewController(editor, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: NSRectEdge.minY, behavior: NSPopoverBehavior.transient)
+				self.present(editor, asPopoverRelativeTo: viewRect, of: self.view, preferredEdge: NSRectEdge.minY, behavior: NSPopover.Behavior.transient)
 			}
 		}
 	}

@@ -17,7 +17,7 @@ import WarpCore
 	func documentView(_ view: QBEDocumentViewController, didSelectSearchable: QBESearchable?)
 }
 
-@objc class QBEDocumentViewController: NSViewController, QBETabletViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
+@objc class QBEDocumentViewController: NSViewController, NSToolbarItemValidation, QBETabletViewDelegate, QBEDocumentViewDelegate, QBEWorkspaceViewDelegate, QBEExportViewDelegate, QBEAlterTableViewDelegate {
 	private enum State {
 		case workspace
 		case zoomed(controller: NSViewController, source: NSViewController, sourceView: NSView, sourceConstraints: [NSLayoutConstraint])
@@ -87,16 +87,16 @@ import WarpCore
 					tr.duration = 0.3
 					tr.startProgress = 0.0
 					tr.endProgress = 1.0
-					tr.type = kCATransitionFade
-					tr.subtype = kCATransitionFromRight
-					tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+					tr.type = CATransitionType.fade
+					tr.subtype = CATransitionSubtype.fromRight
+					tr.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
 					self.documentAreaView.layer?.add(tr, forKey: kCATransition)
 				}
 
-				controller.removeFromParentViewController()
+				controller.removeFromParent()
 				selectedView.removeFromSuperview()
 				selectedView.frame = self.view.bounds
-				self.addChildViewController(controller)
+				self.addChild(controller)
 				self.documentAreaView.addSubview(selectedView)
 
 				self.documentAreaView.addConstraints([
@@ -139,16 +139,16 @@ import WarpCore
 				tr.duration = 0.3
 				tr.startProgress = 0.0
 				tr.endProgress = 1.0
-				tr.type = kCATransitionFade
-				tr.subtype = kCATransitionFromRight
-				tr.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+				tr.type = CATransitionType.fade
+				tr.subtype = CATransitionSubtype.fromRight
+				tr.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
 				self.documentAreaView.layer?.add(tr, forKey: kCATransition)
 			}
 
 			let selectedView = selectedController.view
 			selectedView.removeFromSuperview()
-			selectedController.removeFromParentViewController()
-			source.addChildViewController(selectedController)
+			selectedController.removeFromParent()
+			source.addChild(selectedController)
 			sourceView.addSubview(selectedView)
 			sourceView.addConstraints(sourceConstraints)
 
@@ -264,10 +264,10 @@ import WarpCore
 
 			self.backToWorkspace(true)
 		
-			for cvc in self.childViewControllers {
+			for cvc in self.children {
 				if let child = cvc as? QBEChainViewController {
 					if child.chain?.tablet == tablet {
-						child.removeFromParentViewController()
+						child.removeFromParent()
 					}
 				}
 			}
@@ -340,7 +340,7 @@ import WarpCore
 			}
 
 			let vc = self.viewControllerForTablet(tablet)
-			self.addChildViewController(vc)
+			self.addChild(vc)
 
 			self.documentView.addTablet(vc, animated: animated) {
 				self.documentView.selectTablet(tablet)
@@ -420,9 +420,9 @@ import WarpCore
 	}
 
 	@IBAction func pasteAsPlainText(_ sender: AnyObject) {
-		let pboard = NSPasteboard.general()
+		let pboard = NSPasteboard.general
 
-		if let data = pboard.string(forType: NSPasteboardTypeString) {
+		if let data = pboard.string(forType: NSPasteboard.PasteboardType.string) {
 			let note = QBENoteTablet()
 			note.note.text = NSAttributedString(string: data)
 			self.addTablet(note, undo: true, animated: true)
@@ -431,7 +431,7 @@ import WarpCore
 
 	@IBAction func paste(_ sender: NSObject) {
 		// Pasting a step?
-		let pboard = NSPasteboard.general()
+		let pboard = NSPasteboard.general
 		if let data = pboard.data(forType: QBEStep.dragType) {
 			if let step = NSKeyedUnarchiver.unarchiveObject(with: data) as? QBEStep {
 				self.addTablet(QBEChainTablet(chain: QBEChain(head: step)), undo: true, animated: true)
@@ -439,9 +439,9 @@ import WarpCore
 		}
 		else {
 			// No? Maybe we're pasting TSV/CSV data...
-			var data = pboard.string(forType: NSPasteboardTypeString)
+			var data = pboard.string(forType: NSPasteboard.PasteboardType.string)
 			if data == nil {
-				data = pboard.string(forType: NSPasteboardTypeTabularText)
+				data = pboard.string(forType: NSPasteboard.PasteboardType.tabularText)
 			}
 			
 			if let tsvString = data {
@@ -523,7 +523,7 @@ import WarpCore
 		// The re-add menu item is hidden when the menu is opened from the context menu
 		readdMenuItem.isHidden = false
 		readdMenuItem.isEnabled = !adder.templateSteps.isEmpty
-		NSMenu.popUpContextMenu(self.addTabletMenu, with: NSApplication.shared().currentEvent!, for: self.view)
+		NSMenu.popUpContextMenu(self.addTabletMenu, with: NSApplication.shared.currentEvent!, for: self.view)
 		readdMenuItem.isEnabled = false
 		readdMenuItem.isHidden = true
 	}
@@ -611,7 +611,7 @@ import WarpCore
 	}
 
 	func tabletViewControllerForTablet(_ tablet: QBETablet) -> QBETabletViewController? {
-		for cvc in self.childViewControllers {
+		for cvc in self.children {
 			if let child = cvc as? QBETabletViewController {
 				if child.tablet == tablet {
 					return child
@@ -633,7 +633,7 @@ import WarpCore
 	private func didSelectTablet(_ tablet: QBETablet?) {
 		self.sentenceEditor?.startConfiguring(nil, variant: .neutral, delegate: nil)
 
-		for childController in self.childViewControllers {
+		for childController in self.children {
 			if let cvc = childController as? QBETabletViewController {
 				if cvc.tablet != tablet {
 					cvc.tabletWasDeselected()
@@ -679,7 +679,7 @@ import WarpCore
 		else {
 			// This may be a warp document - open separately
 			let p = url.path
-			NSWorkspace.shared().openFile(p)
+			NSWorkspace.shared.openFile(p)
 		}
 
 		return nil
@@ -741,8 +741,8 @@ import WarpCore
 		no.allowedFileTypes?.append("public.text")
 		//	= NSArray(arrayLiteral: "public.text") // QBEFactory.sharedInstance.fileTypesForReading
 		
-		no.beginSheetModal(for: self.view.window!, completionHandler: { (result: Int) -> Void in
-			if result==NSFileHandlingPanelOKButton {
+		no.beginSheetModal(for: self.view.window!, completionHandler: { result in
+			if result == NSApplication.ModalResponse.OK {
 				for url in no.urls {
 					self.addTabletFromURL(url)
 				}
@@ -756,21 +756,8 @@ import WarpCore
 		}
 	}
 	
-	@IBAction func addTabletFromPresto(_ sender: NSObject) {
-		self.addTablet(QBEChainTablet(chain: QBEChain(head: QBEPrestoSourceStep())), undo: true, animated: true) { _ in
-			self.sentenceEditor?.configure(self)
-		}
-	}
-	
 	@IBAction func addTabletFromMySQL(_ sender: NSObject) {
 		let s = QBEMySQLSourceStep(host: "127.0.0.1", port: 3306, user: "root", database: nil, tableName: nil)
-		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
-			self.sentenceEditor?.configure(self)
-		}
-	}
-
-	@IBAction func addTabletFromRethinkDB(_ sender: NSObject) {
-		let s = QBERethinkSourceStep(previous: nil)
 		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
@@ -778,13 +765,6 @@ import WarpCore
 	
 	@IBAction func addTabletFromPostgres(_ sender: NSObject) {
 		let s = QBEPostgresSourceStep(host: "127.0.0.1", port: 5432, user: "postgres", database: "postgres", schemaName: "public", tableName: "")
-		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
-			self.sentenceEditor?.configure(self)
-		}
-	}
-
-	@IBAction func addTabletFromCockroach(_ sender: NSObject) {
-		let s = QBECockroachSourceStep(host: "127.0.0.1", port: 26257, user: "postgres", database: "postgres", tableName: "")
 		self.addTablet(QBEChainTablet(chain: QBEChain(head: s)), undo: true, animated: true) { _ in
 			self.sentenceEditor?.configure(self)
 		}
@@ -801,11 +781,11 @@ import WarpCore
 		return self.validateUserInterfaceItem(item)
 	}
 
-	func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
+	@objc func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
 			return validateSelector(item.action!)
 	}
 
-	override func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+	@objc func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
 		return validateSelector(item.action!)
 	}
 
@@ -822,10 +802,7 @@ import WarpCore
 		if selector == #selector(QBEDocumentViewController.addNoteTablet(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromWeb(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromFile(_:)) { return true }
-		if selector == #selector(QBEDocumentViewController.addTabletFromPresto(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromMySQL(_:)) { return true }
-		if selector == #selector(QBEDocumentViewController.addTabletFromRethinkDB(_:)) { return true }
-		if selector == #selector(QBEDocumentViewController.addTabletFromCockroach(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.addTabletFromPostgres(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.zoomSelection(_:)) {
 			switch self.state {
@@ -853,14 +830,14 @@ import WarpCore
 		}
 		if selector == #selector(NSText.delete(_:)) { return true }
 		if selector == #selector(QBEDocumentViewController.paste(_:)) {
-			let pboard = NSPasteboard.general()
-			if pboard.data(forType: QBEStep.dragType) != nil || pboard.data(forType: NSPasteboardTypeString) != nil || pboard.data(forType: NSPasteboardTypeTabularText) != nil {
+			let pboard = NSPasteboard.general
+			if pboard.data(forType: QBEStep.dragType) != nil || pboard.data(forType: NSPasteboard.PasteboardType.string) != nil || pboard.data(forType: NSPasteboard.PasteboardType.tabularText) != nil {
 				return true
 			}
 		}
 		if selector == #selector(QBEDocumentViewController.pasteAsPlainText(_:)) {
-			let pboard = NSPasteboard.general()
-			return pboard.data(forType: NSPasteboardTypeString) != nil
+			let pboard = NSPasteboard.general
+			return pboard.data(forType: NSPasteboard.PasteboardType.string) != nil
 		}
 		return false
 	}
@@ -902,7 +879,7 @@ private class QBEDropChainAction: NSObject {
 		if let sourceTablet = chain.tablet as? QBEChainTablet {
 			let job = Job(.userInitiated)
 			let jobProgressView = QBEJobViewController(job: job, description: "Analyzing data...".localized)!
-			self.documentView.presentViewControllerAsSheet(jobProgressView)
+			self.documentView.presentAsSheet(jobProgressView)
 
 			sourceTablet.chain.head?.exampleDataset(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
 				switch result {
@@ -943,7 +920,7 @@ private class QBEDropChainAction: NSObject {
 		if let sourceTablet = chain.tablet as? QBEChainTablet {
 			let job = Job(.userInitiated)
 			let jobProgressView = QBEJobViewController(job: job, description: "Analyzing data...".localized)!
-			self.documentView.presentViewControllerAsSheet(jobProgressView)
+			self.documentView.presentAsSheet(jobProgressView)
 
 			sourceTablet.chain.head?.exampleDataset(job, maxInputRows: 1000, maxOutputRows: 1, callback: { (result) -> () in
 				switch result {
@@ -1028,7 +1005,7 @@ private class QBEDropChainAction: NSObject {
 			editorController.step = s
 			editorController.delegate = self.documentView
 			editorController.locale = self.documentView.locale
-			self.documentView.presentViewControllerAsSheet(editorController)
+			self.documentView.presentAsSheet(editorController)
 		}
 	}
 
@@ -1054,7 +1031,7 @@ private class QBEDropChainAction: NSObject {
 				asyncMain {
 					switch result {
 					case .success():
-						self.documentView.presentViewControllerAsSheet(uploadView)
+						self.documentView.presentAsSheet(uploadView)
 
 					case .failure(let e):
 						NSAlert.showSimpleAlert("Cannot upload data".localized, infoText: e, style: .warning, window: self.documentView.view.window)
@@ -1205,7 +1182,7 @@ private class QBEDropChainAction: NSObject {
 		relatedItem.submenu = relatedMenu
 		menu.addItem(relatedItem)
 
-		NSMenu.popUpContextMenu(menu, with: NSApplication.shared().currentEvent!, for: self.documentView.view)
+		NSMenu.popUpContextMenu(menu, with: NSApplication.shared.currentEvent!, for: self.documentView.view)
 	}
 }
 
@@ -1250,7 +1227,7 @@ private class QBEDropColumnsAction: NSObject {
 			if let sourceChainController = dataViewController.parent as? QBEChainViewController, let step = sourceChainController.chain?.head {
 				let job = Job(.userInitiated)
 				let jobProgressView = QBEJobViewController(job: job, description: String(format: NSLocalizedString("Analyzing %d column(s)...", comment: ""), columns.count))!
-				self.documentViewController.presentViewControllerAsSheet(jobProgressView)
+				self.documentViewController.presentAsSheet(jobProgressView)
 
 				step.fullDataset(job) { result in
 					switch result {
@@ -1307,6 +1284,6 @@ private class QBEDropColumnsAction: NSObject {
 			// Do something with more than one column (multijoin)
 		}
 
-		NSMenu.popUpContextMenu(menu, with: NSApplication.shared().currentEvent!, for: self.documentViewController.view)
+		NSMenu.popUpContextMenu(menu, with: NSApplication.shared.currentEvent!, for: self.documentViewController.view)
 	}
 }

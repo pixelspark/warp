@@ -86,7 +86,7 @@ class QBEDataViewController: UIViewController, QBERasterViewControllerDelegate, 
 					case .success(let schema):
 						if let ids = schema.identifier, md.canPerformMutation(.delete) {
 							let values = ids.mapDictionary { column in
-								return (column, row[column])
+								return (column, row[column]!)
 							}
 							let mutation = DatasetMutation.delete(keys: [values])
 							self.performMutation(mutation, job: job)
@@ -165,7 +165,7 @@ class QBEDataViewController: UIViewController, QBERasterViewControllerDelegate, 
 				case .success():
 					asyncMain {
 						self.replayMutation(mutation, job: job) {
-							return completion(.success())
+							return completion(.success(()))
 						}
 					}
 
@@ -182,6 +182,11 @@ class QBEDataViewController: UIViewController, QBERasterViewControllerDelegate, 
 	/** Replay a mutation on the current raster. */
 	private func replayMutation(_ mutation: DatasetMutation, job: Job, completion: @escaping () -> ()) {
 		assertMainThread()
+
+		// Make the raster mutable if it isn't
+		if let r = self.rasterViewController.raster, r.readOnly {
+			self.rasterViewController.state = .raster(r.clone(false))
+		}
 
 		if let r = self.rasterViewController.raster {
 			let rm = RasterMutableDataset(raster: r)

@@ -46,7 +46,15 @@ public class Formula: Parser {
 		self.locale = locale
 		self.fragments = []
 		super.init()
-		if !self.parse(formula) || self.error {
+		self.grammar = self.rules()
+		do {
+			_ = try self.parse(formula)
+		}
+		catch {
+			return nil
+		}
+
+		if self.error || self.stack.items.isEmpty {
 			return nil
 		}
 		super.captures.removeAll(keepingCapacity: false)
@@ -57,7 +65,7 @@ public class Formula: Parser {
 	}
 	
 	private func annotate(_ expression: Expression) {
-		if let cc = super.current_capture {
+		if let cc = super.currentCapture {
 			fragments.append(Fragment(start: cc.start, end: cc.end, expression: expression))
 		}
 	}
@@ -83,7 +91,7 @@ public class Formula: Parser {
 	}
 	
 	private func pushTimestamp() {
-		let ts = self.text.substring(from: self.text.characters.index(self.text.startIndex, offsetBy: 1))
+		let ts = self.text.substring(from: self.text.index(self.text.startIndex, offsetBy: 1))
 		if let n = self.locale.numberFormatter.number(from: ts) {
 			annotate(stack.push(Literal(Value.date(n.doubleValue))))
 		}
@@ -254,20 +262,25 @@ public class Formula: Parser {
 	}
 
 	public static func canBeWittenAsShorthandSibling(name: String) -> Bool {
-		let parser = Parser(rule_def: {
-			return Formula.shorthandSiblingRule() ~ Parser.matchEOF()
-		})
-		return parser.parse(name)
+		let parserRule = (Formula.shorthandSiblingRule() ~ Parser.matchEOF())
+		let grammar = Grammar()
+		grammar.startRule = parserRule
+		do {
+			return try Parser(grammar: grammar).parse(name)
+		}
+		catch {
+			return false
+		}
 	}
 
-	public override func rules() {
+	private func rules() -> Grammar {
 		/* We need to sort the function names by length (longest first) to make sure the right one gets matched. If the 
 		shorter functions come first, they match with the formula before we get a chance to see whether the longer one 
 		would also match  (parser is dumb) */
 		var functionRules: [ParserRule] = []
 		let functionNames = Function.allFunctions
 			.map({ return self.locale.nameForFunction($0) ?? "" })
-			.sorted(by: { (a,b) in return a.characters.count > b.characters.count})
+			.sorted(by: { (a,b) in return a.count > b.count})
 		
 		functionNames.forEach {(functionName) in
 			if !functionName.isEmpty {
@@ -276,6 +289,12 @@ public class Formula: Parser {
 		}
 
 		let postfixRules = locale.postfixes.map { (postfix, multiplier) in return (literal(postfix) => { [unowned self] in self.pushPostfixMultiplier(multiplier) }) }
+
+		let grammar = Grammar();
+
+		func add_named_rule(_ name: String, rule: ParserRule) {
+			grammar[name] = rule;
+		}
 		
 		// String literals & constants
 		add_named_rule("list",				rule: (((literal("{") => pushList) ~~ Parser.matchList(^"logic" => pushArgument, separator: literal(locale.argumentSeparator)) ~~ "}")) => popList)
@@ -326,19 +345,22 @@ public class Formula: Parser {
 		add_named_rule("logic",				rule: ^"concatenation" ~~ (^"greaterEqual" | ^"greater" | ^"lesserEqual" | ^"lesser" | ^"equal" | ^"notEqual" | ^"containsString" | ^"containsStringStrict" | ^"matchesRegex" | ^"matchesRegexStrict" )*)
 
 		let formula = (Formula.prefix)/~ ~~ self.whitespace ~~ (^"logic")*!*
-		start_rule = formula
+		grammar.startRule = formula
+		return grammar;
 	}
+
+	public var whitespace: ParserRule = (" " | "\t" | "\r\n" | "\r" | "\n")*
 }
 
 internal extension Parser {
 	static func matchEOF() -> ParserRule {
-		return {(parser: Parser, reader: Reader) -> Bool in
+		return ParserRule({ (parser: Parser, reader: Reader) -> Bool in
 			return reader.eof()
-		}
+		})
 	}
 
 	static func matchAnyCharacterExcept(_ characters: [Character]) -> ParserRule {
-		return {(parser: Parser, reader: Reader) -> Bool in
+		return ParserRule({ (parser: Parser, reader: Reader) -> Bool in
 			if reader.eof() {
 				return false
 			}
@@ -352,32 +374,35 @@ internal extension Parser {
 				}
 			}
 			return true
-		}
+		})
 	}
 	
 	static func matchAnyFrom(_ rules: [ParserRule]) -> ParserRule {
-		return {(parser: Parser, reader: Reader) -> Bool in
+		return ParserRule({ (parser: Parser, reader: Reader) -> Bool in
 			let pos = reader.position
 			for rule in rules {
-				if(rule(parser, reader)) {
-					return true
+				do {
+					if(try rule.matches(parser, reader)) {
+						return true
+					}
 				}
+				catch {}
 				reader.seek(pos)
 			}
 			
 			return false
-		}
+		})
 	}
 	
-	static func matchList(_ item: @escaping ParserRule, separator: @escaping ParserRule) -> ParserRule {
+	static func matchList(_ item: ParserRule, separator: ParserRule) -> ParserRule {
 		return item/~ ~~ (separator ~~ item)*
 	}
 	
 	static func matchLiteralInsensitive(_ string:String) -> ParserRule {
-		return {(parser: Parser, reader: Reader) -> Bool in
+		return ParserRule({ (parser: Parser, reader: Reader) -> Bool in
 			let pos = reader.position
 			
-			for ch in string.characters {
+			for ch in string {
 				let flag = (String(ch).caseInsensitiveCompare(String(reader.read())) == ComparisonResult.orderedSame)
 				
 				if !flag {
@@ -386,21 +411,21 @@ internal extension Parser {
 				}
 			}
 			return true
-		}
+		})
 	}
 
 	static func matchLiteral(_ string:String) -> ParserRule {
-		return {(parser: Parser, reader: Reader) -> Bool in
+		return ParserRule({ (parser: Parser, reader: Reader) -> Bool in
 			let pos = reader.position
 
-			for ch in string.characters {
+			for ch in string {
 				if ch != reader.read() {
 					reader.seek(pos)
 					return false
 				}
 			}
 			return true
-		}
+		})
 	}
 }
 

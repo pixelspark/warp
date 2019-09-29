@@ -99,7 +99,7 @@ class QBEXMLWriter: NSObject, QBEFileWriter, StreamDelegate {
 									}
 									else {
 										writer.closeLastTag()
-										callback(.success())
+										callback(.success(()))
 									}
 									
 								case .failure(let e):

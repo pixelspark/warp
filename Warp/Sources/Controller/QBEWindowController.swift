@@ -63,11 +63,11 @@ internal class QBEWindowController: NSWindowController, QBEDocumentViewControlle
 
 class QBEToolbarItem: NSToolbarItem {
 	var isValid: Bool {
-		if let f = NSApp.target(forAction: #selector(NSObject.validateToolbarItem(_:))) as? NSResponder {
+		if let f = NSApp.target(forAction: #selector(NSToolbarItemValidation.validateToolbarItem(_:))) as? NSResponder {
 			var responder: NSResponder? = f
 
 			while responder != nil {
-				if responder!.responds(to: #selector(NSObject.validateToolbarItem(_:))) && responder!.validateToolbarItem(self) {
+				if let nti = responder as? NSToolbarItemValidation, responder!.responds(to: #selector(NSToolbarItemValidation.validateToolbarItem(_:))) && nti.validateToolbarItem(self) {
 					return true
 				}
 				else {
@@ -85,7 +85,7 @@ class QBEToolbarItem: NSToolbarItem {
 		self.isEnabled = isValid
 		if let b = self.view as? NSButton {
 			if !self.isEnabled {
-				b.state = NSOffState
+				b.state = NSControl.StateValue.off
 			}
 		}
 	}

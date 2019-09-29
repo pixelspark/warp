@@ -121,7 +121,7 @@ class QBESettings {
 		do {
 			let attrs = try FileManager.default.attributesOfFileSystem(forPath: atLocation.path)
 			if let freeSpace = attrs[FileAttributeKey.systemFreeSize] as? NSNumber {
-				let freeSize = Double(size) / Double(freeSpace)
+				let freeSize = Double(size) / Double(truncating: freeSpace)
 				if freeSize < 0.8 {
 					return true
 				}

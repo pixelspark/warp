@@ -66,8 +66,8 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 	override var keyCommands: [UIKeyCommand]? {
 		var cmds = [
 			UIKeyCommand(input: "", modifierFlags: .command, action: #selector(self.doNothing(_:))),
-			UIKeyCommand(input: UIKeyInputLeftArrow, modifierFlags: .command, action: #selector(self.previousStep(_:)), discoverabilityTitle: "Previous step".localized),
-			UIKeyCommand(input: UIKeyInputRightArrow, modifierFlags: .command, action: #selector(self.nextStep(_:)), discoverabilityTitle: "Next step".localized),
+			UIKeyCommand(input: UIKeyCommand.inputLeftArrow, modifierFlags: .command, action: #selector(self.previousStep(_:)), discoverabilityTitle: "Previous step".localized),
+			UIKeyCommand(input: UIKeyCommand.inputRightArrow, modifierFlags: .command, action: #selector(self.nextStep(_:)), discoverabilityTitle: "Next step".localized),
 			UIKeyCommand(input: "+", modifierFlags: .command, action: #selector(self.addStep(_:)), discoverabilityTitle: "Add step".localized),
 			UIKeyCommand(input: "\u{8}", modifierFlags: .command, action: #selector(self.removeStep(_:)), discoverabilityTitle: "Remove step".localized),
 			UIKeyCommand(input: ",", modifierFlags: .command, action: #selector(self.configureStep(_:)), discoverabilityTitle: "Configure step".localized),
@@ -132,6 +132,8 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 							result.maybe { md in
 								asyncMain {
 									self.mutableData = md
+									self.dataViewController?.mutableData = md
+									self.updateToolbarItems()
 								}
 							}
 						}
@@ -156,14 +158,14 @@ class QBEChainTabletViewController: UIViewController, QBEStepsViewControllerDele
 		self.updateView()
 	}
 
-	func exportViewController(_: QBEExportViewController, shareFileAt url: URL, callback: @escaping () -> ()) {
+	func exportViewController(_ ev: QBEExportViewController, shareFileAt url: URL, callback: @escaping () -> ()) {
 		let sc = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-		sc.modalPresentationStyle = .popover
-		sc.popoverPresentationController?.barButtonItem = self.shareButton
 		sc.completionWithItemsHandler = { _,_,_,_ in
 			callback()
 		}
-		self.present(sc, animated: false)
+		sc.modalPresentationStyle = .popover
+		sc.popoverPresentationController?.barButtonItem = self.shareButton
+		ev.present(sc, animated: true)
 	}
 
 	@IBAction func share(_ sender: UIBarButtonItem) {

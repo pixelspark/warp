@@ -83,12 +83,10 @@ public enum QBEFileReference: Equatable {
 						let resolved = try URL(resolvingBookmarkData: bookmark, options: [], relativeTo: relativeToDocument, bookmarkDataIsStale: &stale)
 						#endif
 
-						if let resolved = resolved {
-							if stale {
-								trace("Just-created URL bookmark is already stale! \(resolved)")
-							}
-							return QBEFileReference.resolvedBookmark(bookmark, resolved, QBEFileAccess(resolved))
+						if stale {
+							trace("Just-created URL bookmark is already stale! \(resolved)")
 						}
+						return QBEFileReference.resolvedBookmark(bookmark, resolved, QBEFileAccess(resolved))
 					}
 					catch let error as NSError {
 						trace("Failed to resolve just-created bookmark: \(error)")
@@ -130,12 +128,7 @@ public enum QBEFileReference: Equatable {
 					return QBEFileReference.absolute(u)
 				}
 
-				if let u = u {
-					return QBEFileReference.resolvedBookmark(b, u, QBEFileAccess(u))
-				}
-
-				// Resolving failed, but maybe the old URL still works
-				return QBEFileReference.resolvedBookmark(b, oldURL, QBEFileAccess(oldURL))
+				return QBEFileReference.resolvedBookmark(b, u, QBEFileAccess(u))
 			}
 			catch let error as NSError {
 				trace("Could not re-resolve bookmark \(b) to \(oldURL) relative to \(String(describing: relativeToDocument)): \(error)")
@@ -160,10 +153,7 @@ public enum QBEFileReference: Equatable {
 					return QBEFileReference.absolute(u)
 				}
 
-				if let u = u {
-					return QBEFileReference.resolvedBookmark(b, u, QBEFileAccess(u))
-				}
-				return QBEFileReference.bookmark(b)
+				return QBEFileReference.resolvedBookmark(b, u, QBEFileAccess(u))
 			}
 			catch let error as NSError {
 				trace("Could not resolve secure bookmark \(b): \(error)")

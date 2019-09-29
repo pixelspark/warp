@@ -24,10 +24,12 @@ public enum QBERelatedStep: Hashable, Equatable {
 	/** The indicates step provides data that can be joined. */
 	case joinable(step: QBEStep, type: JoinType, condition: Expression)
 
-	public var hashValue: Int {
+	public func hash(into hasher: inout Hasher) {
 		switch self {
 		case .joinable(step: let s, type: let t, condition: let c):
-			return s.hashValue ^ t.hashValue ^ c.hashValue
+			s.hash(into: &hasher)
+			t.hash(into: &hasher)
+			c.hash(into: &hasher)
 		}
 	}
 
@@ -50,7 +52,11 @@ the 'full' data (which is the full dataset on which the final data operations ar
 Subclasses of QBEStep implement the data manipulation in the apply function, and should implement the description method
 as well as coding methods. The explanation variable contains a user-defined comment to an instance of the step. */
 public class QBEStep: NSObject, QBEConfigurable, NSCoding {
+	#if os(iOS)
 	public static let dragType = "nl.pixelspark.Warp.Step"
+	#elseif os(macOS)
+	public static let dragType = NSPasteboard.PasteboardType("nl.pixelspark.Warp.Step")
+	#endif
 
 	public var previous: QBEStep? { didSet {
 		assert(previous != self, "A step cannot be its own previous step")

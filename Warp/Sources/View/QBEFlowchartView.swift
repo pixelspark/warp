@@ -154,7 +154,7 @@ class QBEFlowchartView: NSView {
 	override func draw(_ dirtyRect: NSRect) {
 		super.draw(dirtyRect)
 		
-		if let context = NSGraphicsContext.current()?.cgContext {
+		if let context = NSGraphicsContext.current?.cgContext {
 			context.saveGState()
 			context.setLineWidth(2.0)
 			
