@@ -25,7 +25,7 @@ private class QBESQLiteConnection: SQLiteConnection {
 		}
 		else {
 			let url = URL(fileURLWithPath: path, isDirectory: false)
-			self.presenters = ["sqlite-journal", "sqlite-shm", "sqlite-wal", "sqlite-conch"].map { return QBEFileCoordinator.sharedInstance.present(url, secondaryExtension: $0) }
+			self.presenters = ["sqlite", "sqlite-journal", "sqlite-shm", "sqlite-wal", "sqlite-conch"].map { return QBEFileCoordinator.sharedInstance.present(url, secondaryExtension: $0) }
 		}
 
 		super.init(path: path, readOnly: readOnly)

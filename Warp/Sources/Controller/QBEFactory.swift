@@ -107,6 +107,9 @@ class QBEFactory {
 		"public.text": {(url) in return QBECSVSourceStep(url: url)},
 		"public.plain-text": {(url) in return QBECSVSourceStep(url: url)},
 		"org.sqlite.v3": {(url) in return QBESQLiteSourceStep(url: url)},
+		"nl.pixelspark.warp.sqlite": {(url) in return QBESQLiteSourceStep(url: url)},
+		"nl.pixelspark.warp.dbf": {(url) in return QBEDBFSourceStep(url: url)},
+		"nl.pixelspark.warp.csv": {(url) in return QBECSVSourceStep(url: url)},
 		"sqlite": {(url) in return QBESQLiteSourceStep(url: url)},
 		"dbf": {(url) in return QBEDBFSourceStep(url: url)},
 	]

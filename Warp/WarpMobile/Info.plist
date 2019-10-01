@@ -124,8 +124,14 @@
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
 			<key>UTTypeDescription</key>
 			<string>DBF file</string>
+			<key>UTTypeIconFiles</key>
+			<array/>
 			<key>UTTypeIdentifier</key>
 			<string>nl.pixelspark.warp.dbf</string>
 			<key>UTTypeTagSpecification</key>
@@ -145,8 +151,14 @@
 			</dict>
 		</dict>
 		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
 			<key>UTTypeDescription</key>
 			<string>SQLite file</string>
+			<key>UTTypeIconFiles</key>
+			<array/>
 			<key>UTTypeIdentifier</key>
 			<string>nl.pixelspark.warp.sqlite</string>
 			<key>UTTypeTagSpecification</key>
@@ -179,8 +191,14 @@
 			</dict>
 		</dict>
 		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
 			<key>UTTypeDescription</key>
 			<string>CSV file</string>
+			<key>UTTypeIconFiles</key>
+			<array/>
 			<key>UTTypeIdentifier</key>
 			<string>nl.pixelspark.warp.csv</string>
 			<key>UTTypeTagSpecification</key>
