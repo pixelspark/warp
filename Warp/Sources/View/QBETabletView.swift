@@ -31,5 +31,10 @@ internal class QBETabletView: NSView {
 		return true // Tablet controller becomes first responder
 	}
 
-	override var allowsVibrancy: Bool { return true }
+	override func draw(_ dirtyRect: NSRect) {
+		NSColor.controlBackgroundColor.set()
+		dirtyRect.fill()
+	}
+
+	override var allowsVibrancy: Bool { return false }
 }

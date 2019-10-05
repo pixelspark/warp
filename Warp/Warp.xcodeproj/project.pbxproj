@@ -12,6 +12,15 @@
 		6508DEB32163F4F5005ED603 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 65976DDA21045DF2006971BE /* Images.xcassets */; };
 		650FB25F1E5B9CEF00B1AFD5 /* QBEEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650FB25E1E5B9CEF00B1AFD5 /* QBEEditViewController.swift */; };
 		6510A7391A4D9832005633EF /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
+		6516035423491E98008174EE /* QBEMySQLSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DD021045DF2006971BE /* QBEMySQLSourceStepView.xib */; };
+		6516035E23491E9B008174EE /* QBEJoinStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DD221045DF2006971BE /* QBEJoinStepView.xib */; };
+		6516035F23491EA2008174EE /* QBECalculateStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DE621045DF4006971BE /* QBECalculateStepView.xib */; };
+		6516036023491EA5008174EE /* QBECrawlStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DD821045DF2006971BE /* QBECrawlStepView.xib */; };
+		6516036123491EB0008174EE /* QBEPivotStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DD621045DF2006971BE /* QBEPivotStepView.xib */; };
+		6516036223491EB4008174EE /* QBERenameStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DE821045DF4006971BE /* QBERenameStepView.xib */; };
+		6516036323491EB7008174EE /* QBESQLiteSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DE421045DF3006971BE /* QBESQLiteSourceStepView.xib */; };
+		6516036523493B43008174EE /* libboringssl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 6516036423493B43008174EE /* libboringssl.tbd */; };
+		6516036B23493D07008174EE /* CryptoTokenKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AD6CFB1D6F946C0020F478 /* CryptoTokenKit.framework */; };
 		651BEBEF1E196D3B0094F8AD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 651BEBEE1E196D3B0094F8AD /* Assets.xcassets */; };
 		651BEC331E196F090094F8AD /* QBEMySQLSourceStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBF91E196EF10094F8AD /* QBEMySQLSourceStep.swift */; };
 		651BEC351E196F090094F8AD /* QBESQLiteStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBFB1E196EF10094F8AD /* QBESQLiteStep.swift */; };
@@ -201,13 +210,11 @@
 		6596D0261E1959B700B06F4F /* QBEDataViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6596D0251E1959B700B06F4F /* QBEDataViewController.swift */; };
 		65976DC921045D04006971BE /* QBESSHTunnelViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DC721045D04006971BE /* QBESSHTunnelViewController.xib */; };
 		65976DCD21045D30006971BE /* QBESSHTunnelViewController.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65976DCB21045D2F006971BE /* QBESSHTunnelViewController.strings */; };
-		659C3D9321045E36003619BF /* QBERethinkStepView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 659C3D7221045E2E003619BF /* QBERethinkStepView.strings */; };
 		659C3D9421045E36003619BF /* QBESortStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 659C3D7D21045E2F003619BF /* QBESortStepView.xib */; };
 		659C3D9521045E36003619BF /* QBECSVStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 659C3D7F21045E30003619BF /* QBECSVStepView.xib */; };
 		659C3D9621045E36003619BF /* QBECacheStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DEA21045DF4006971BE /* QBECacheStepView.xib */; };
 		659C3D9721045E36003619BF /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 659C3D8121045E31003619BF /* Localizable.strings */; };
 		659C3D9821045E36003619BF /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 659C3D8321045E31003619BF /* Credits.rtf */; };
-		659C3D9921045E36003619BF /* QBERethinkStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 659C3D8521045E32003619BF /* QBERethinkStepView.xib */; };
 		659C3D9A21045E36003619BF /* QBEDissectViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 659C3D8721045E32003619BF /* QBEDissectViewController.xib */; };
 		659C3D9B21045E36003619BF /* Tour.strings in Resources */ = {isa = PBXBuildFile; fileRef = 659C3D8921045E33003619BF /* Tour.strings */; };
 		659C3D9C21045E36003619BF /* QBEJobViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 659C3D8B21045E33003619BF /* QBEJobViewController.xib */; };
@@ -235,7 +242,6 @@
 		659C3DD921045E4D003619BF /* QBEJoinStepView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 659C3DC221045E4B003619BF /* QBEJoinStepView.strings */; };
 		659C3DDA21045E4D003619BF /* QBECalculateStepView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 659C3DC421045E4C003619BF /* QBECalculateStepView.strings */; };
 		659C3DDB21045E4D003619BF /* QBEFilePanelAccessoryView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 659C3DC821045E4C003619BF /* QBEFilePanelAccessoryView.strings */; };
-		65ABC0EB233D5F7B004630B1 /* libssl.35.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65E224AA1D7C605B007433E6 /* libssl.35.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		65ABC0EC233D5F7C004630B1 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6537E1DC1D85ED1900CD80EC /* MapKit.framework */; };
 		65B3CC611CA3D055003FC6DF /* QBESetEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC601CA3D055003FC6DF /* QBESetEditorViewController.swift */; };
 		65B3CC631CA96408003FC6DF /* QBEMapTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3CC621CA96408003FC6DF /* QBEMapTabletViewController.swift */; };
@@ -273,8 +279,6 @@
 		65E224A41D7C600F007433E6 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EBA1D78D2B700F6FAE5 /* WarpCore.framework */; };
 		65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EB81D78D2AF00F6FAE5 /* WarpConduit.framework */; };
 		65E224A71D7C604C007433E6 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E224A61D7C604C007433E6 /* libpq.a */; };
-		65E224AB1D7C605B007433E6 /* libssl.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E224AA1D7C605B007433E6 /* libssl.35.dylib */; };
-		65E224AD1D7C605E007433E6 /* libcrypto.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E224AC1D7C605E007433E6 /* libcrypto.35.dylib */; };
 		65E224AE1D7C60C5007433E6 /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EB81D78D2AF00F6FAE5 /* WarpConduit.framework */; };
 		65E224AF1D7C60C8007433E6 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EBA1D78D2B700F6FAE5 /* WarpCore.framework */; };
 		65EC97971C9DFB8D0098A330 /* QBEColumnViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */; };
@@ -479,7 +483,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				65ABC0EB233D5F7B004630B1 /* libssl.35.dylib in CopyFiles */,
 				654AA5A61DEE36850030C7C9 /* Charts.framework in CopyFiles */,
 				65F50EB91D78D2AF00F6FAE5 /* WarpConduit.framework in CopyFiles */,
 				65F50EBB1D78D2B700F6FAE5 /* WarpCore.framework in CopyFiles */,
@@ -496,6 +499,7 @@
 		650238D31D47C770000BE0F2 /* QBEListEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEListEditorViewController.swift; sourceTree = "<group>"; };
 		650FB25E1E5B9CEF00B1AFD5 /* QBEEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEEditViewController.swift; sourceTree = "<group>"; };
 		6510A72E1A4D9811005633EF /* MBTableGrid.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MBTableGrid.xcodeproj; path = Libraries/MBTableGrid/MBTableGrid.xcodeproj; sourceTree = "<group>"; };
+		6516036423493B43008174EE /* libboringssl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libboringssl.tbd; path = usr/lib/libboringssl.tbd; sourceTree = SDKROOT; };
 		651BEBEE1E196D3B0094F8AD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		651BEBF91E196EF10094F8AD /* QBEMySQLSourceStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEMySQLSourceStep.swift; sourceTree = "<group>"; };
 		651BEBFB1E196EF10094F8AD /* QBESQLiteStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBESQLiteStep.swift; sourceTree = "<group>"; };
@@ -675,8 +679,6 @@
 		65976DCC21045D2F006971BE /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = Sources/Controller/nl.lproj/QBESSHTunnelViewController.strings; sourceTree = "<group>"; };
 		65976DCF21045DF2006971BE /* en */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = en; path = en.lproj/QBEDocument.icns; sourceTree = "<group>"; };
 		65976DDB21045DF2006971BE /* en */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = en; path = en.lproj/Images.xcassets; sourceTree = "<group>"; };
-		65976DE321045DF3006971BE /* en */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = en; path = en.lproj/pivot.html; sourceTree = "<group>"; };
-		659C3D7321045E2F003619BF /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/QBERethinkStepView.strings; sourceTree = "<group>"; };
 		659C3D8221045E31003619BF /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		659C3D8421045E31003619BF /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
 		659C3D8A21045E33003619BF /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Tour.strings; sourceTree = "<group>"; };
@@ -689,7 +691,6 @@
 		659C3DAB21045E45003619BF /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBECSVStepView.strings; sourceTree = "<group>"; };
 		659C3DAD21045E46003619BF /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEDissectViewController.strings; sourceTree = "<group>"; };
 		659C3DAE21045E46003619BF /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
-		659C3DAF21045E46003619BF /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBERethinkStepView.strings; sourceTree = "<group>"; };
 		659C3DB121045E47003619BF /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBEMySQLSourceStepView.strings; sourceTree = "<group>"; };
 		659C3DB321045E48003619BF /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/QBESortStepView.strings; sourceTree = "<group>"; };
 		659C3DB521045E49003619BF /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Main.strings; sourceTree = "<group>"; };
@@ -744,7 +745,6 @@
 		65D6FBB5226C536D000A3076 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBERenameStepView.xib; sourceTree = "<group>"; };
 		65D6FBB6226C536D000A3076 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBESQLiteSourceStepView.xib; sourceTree = "<group>"; };
 		65D6FBB7226C536D000A3076 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBEStepsItem.xib; sourceTree = "<group>"; };
-		65D6FBB8226C536E000A3076 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBERethinkStepView.xib; sourceTree = "<group>"; };
 		65D6FBB9226C536E000A3076 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/QBESortStepView.xib; sourceTree = "<group>"; };
 		65D6FBBA226C536F000A3076 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Sources/Controller/Base.lproj/QBESSHTunnelViewController.xib; sourceTree = "<group>"; };
 		65DAF6C91D7C6FFD00163750 /* Rethink.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Rethink.framework; path = "/Users/tommy/Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/Rethink.framework"; sourceTree = "<absolute>"; };
@@ -753,7 +753,6 @@
 		65E224A61D7C604C007433E6 /* libpq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpq.a; path = ../WarpConduit/Libraries/PostgreSQL/libpq.a; sourceTree = "<group>"; };
 		65E224A81D7C6055007433E6 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = ../WarpConduit/Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
 		65E224AA1D7C605B007433E6 /* libssl.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.35.dylib; path = ../WarpConduit/Libraries/libssl.35.dylib; sourceTree = "<group>"; };
-		65E224AC1D7C605E007433E6 /* libcrypto.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.35.dylib; path = ../WarpConduit/Libraries/libcrypto.35.dylib; sourceTree = "<group>"; };
 		65E3C2EC1A062E5E007BB3C8 /* Warp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Warp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E3C2FF1A062E5E007BB3C8 /* WarpTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WarpTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QBEColumnViewController.swift; sourceTree = "<group>"; };
@@ -782,14 +781,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6516036523493B43008174EE /* libboringssl.tbd in Frameworks */,
 				654AA5A51DEE367A0030C7C9 /* Charts.framework in Frameworks */,
 				656822561D78D60E00410BA5 /* libiconv.tbd in Frameworks */,
-				65E224AB1D7C605B007433E6 /* libssl.35.dylib in Frameworks */,
-				65E224AD1D7C605E007433E6 /* libcrypto.35.dylib in Frameworks */,
 				65ABC0EC233D5F7C004630B1 /* MapKit.framework in Frameworks */,
 				65E224A71D7C604C007433E6 /* libpq.a in Frameworks */,
 				65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */,
 				65E224A41D7C600F007433E6 /* WarpCore.framework in Frameworks */,
+				6516036B23493D07008174EE /* CryptoTokenKit.framework in Frameworks */,
 				6510A7391A4D9832005633EF /* MBTableGrid.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -851,6 +850,7 @@
 		653D19D81D1C76AC0094C441 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6516036423493B43008174EE /* libboringssl.tbd */,
 				65BAF9A523396385005AF47B /* CloudKit.framework */,
 				651BEC871E1971170094F8AD /* WarpConduit.framework */,
 				655F91E21E1966BB005A47A1 /* SwiftParser.framework */,
@@ -866,7 +866,6 @@
 				6537E1F71D89E6DD00CD80EC /* SCRAM.framework */,
 				6537E1DC1D85ED1900CD80EC /* MapKit.framework */,
 				65DAF6CE1D7C719D00163750 /* Rethink.framework */,
-				65E224AC1D7C605E007433E6 /* libcrypto.35.dylib */,
 				65E224AA1D7C605B007433E6 /* libssl.35.dylib */,
 				65E224A81D7C6055007433E6 /* libmariadbclient.a */,
 				65E224A61D7C604C007433E6 /* libpq.a */,
@@ -924,7 +923,6 @@
 				659C3DB621045E49003619BF /* QBESQLiteSourceStepView.strings */,
 				659C3DB821045E49003619BF /* QBEStepsItem.strings */,
 				65976DDC21045DF3006971BE /* Main.storyboard */,
-				65976DE221045DF3006971BE /* pivot.html */,
 				659C3D9121045E36003619BF /* AccessibilityImageDescriptions.strings */,
 				659C3D8321045E31003619BF /* Credits.rtf */,
 				659C3D8121045E31003619BF /* Localizable.strings */,
@@ -945,8 +943,6 @@
 				65976DE421045DF3006971BE /* QBESQLiteSourceStepView.xib */,
 				65976DDE21045DF3006971BE /* QBEStepsItem.xib */,
 				659C3DBE21045E4B003619BF /* QBERenameStepView.strings */,
-				659C3D7221045E2E003619BF /* QBERethinkStepView.strings */,
-				659C3D8521045E32003619BF /* QBERethinkStepView.xib */,
 				659C3D7D21045E2F003619BF /* QBESortStepView.xib */,
 				659C3D8921045E33003619BF /* Tour.strings */,
 				659C3D8D21045E33003619BF /* Tour.xcassets */,
@@ -1593,25 +1589,28 @@
 			buildActionMask = 2147483647;
 			files = (
 				659C3DD021045E4D003619BF /* QBEMySQLSourceStepView.strings in Resources */,
+				6516036223491EB4008174EE /* QBERenameStepView.xib in Resources */,
 				659C3DCD21045E4D003619BF /* QBECSVStepView.strings in Resources */,
 				659C3DCF21045E4D003619BF /* Main.storyboard in Resources */,
 				659C3D9621045E36003619BF /* QBECacheStepView.xib in Resources */,
 				659C3DA121045E36003619BF /* QBEAlterTableViewController.xib in Resources */,
-				659C3D9921045E36003619BF /* QBERethinkStepView.xib in Resources */,
 				659C3D9821045E36003619BF /* Credits.rtf in Resources */,
 				6508DEB32163F4F5005ED603 /* Images.xcassets in Resources */,
 				659C3DDB21045E4D003619BF /* QBEFilePanelAccessoryView.strings in Resources */,
+				6516036323491EB7008174EE /* QBESQLiteSourceStepView.xib in Resources */,
 				659C3DA221045E36003619BF /* AccessibilityImageDescriptions.strings in Resources */,
 				659C3DD921045E4D003619BF /* QBEJoinStepView.strings in Resources */,
 				659C3DD821045E4D003619BF /* QBEAlterTableViewController.strings in Resources */,
 				659C3DCC21045E4D003619BF /* QBEPostgresStepView.strings in Resources */,
 				659C3DD321045E4D003619BF /* QBESQLiteSourceStepView.strings in Resources */,
+				6516035F23491EA2008174EE /* QBECalculateStepView.xib in Resources */,
 				65976DCD21045D30006971BE /* QBESSHTunnelViewController.strings in Resources */,
 				659C3D9521045E36003619BF /* QBECSVStepView.xib in Resources */,
-				659C3D9321045E36003619BF /* QBERethinkStepView.strings in Resources */,
 				659C3D9F21045E36003619BF /* QBEStepsItem.xib in Resources */,
 				659C3D9721045E36003619BF /* Localizable.strings in Resources */,
+				6516036123491EB0008174EE /* QBEPivotStepView.xib in Resources */,
 				659C3DD121045E4D003619BF /* QBESortStepView.strings in Resources */,
+				6516035E23491E9B008174EE /* QBEJoinStepView.xib in Resources */,
 				659C3D9421045E36003619BF /* QBESortStepView.xib in Resources */,
 				659C3D9D21045E36003619BF /* QBEFilePanelAccessoryView.xib in Resources */,
 				659C3D9A21045E36003619BF /* QBEDissectViewController.xib in Resources */,
@@ -1621,10 +1620,12 @@
 				659C3D9E21045E36003619BF /* Tour.xcassets in Resources */,
 				659C3DD621045E4D003619BF /* QBECrawlStepView.strings in Resources */,
 				659C3DCE21045E4D003619BF /* QBEDissectViewController.strings in Resources */,
+				6516036023491EA5008174EE /* QBECrawlStepView.xib in Resources */,
 				65976DC921045D04006971BE /* QBESSHTunnelViewController.xib in Resources */,
 				659C3DD221045E4D003619BF /* Main.strings in Resources */,
 				659C3D9C21045E36003619BF /* QBEJobViewController.xib in Resources */,
 				659C3DD421045E4D003619BF /* QBEStepsItem.strings in Resources */,
+				6516035423491E98008174EE /* QBEMySQLSourceStepView.xib in Resources */,
 				659C3DCA21045E4D003619BF /* QBECacheStepView.strings in Resources */,
 				659C3DDA21045E4D003619BF /* QBECalculateStepView.strings in Resources */,
 				659C3DD521045E4D003619BF /* QBEJobViewController.strings in Resources */,
@@ -1986,14 +1987,6 @@
 			name = QBEAlterTableViewController.xib;
 			sourceTree = "<group>";
 		};
-		65976DE221045DF3006971BE /* pivot.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				65976DE321045DF3006971BE /* en */,
-			);
-			name = pivot.html;
-			sourceTree = "<group>";
-		};
 		65976DE421045DF3006971BE /* QBESQLiteSourceStepView.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -2024,15 +2017,6 @@
 				65D6FBAA226C5367000A3076 /* Base */,
 			);
 			name = QBECacheStepView.xib;
-			sourceTree = "<group>";
-		};
-		659C3D7221045E2E003619BF /* QBERethinkStepView.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				659C3D7321045E2F003619BF /* en */,
-				659C3DAF21045E46003619BF /* nl */,
-			);
-			name = QBERethinkStepView.strings;
 			sourceTree = "<group>";
 		};
 		659C3D7D21045E2F003619BF /* QBESortStepView.xib */ = {
@@ -2066,14 +2050,6 @@
 				659C3D8421045E31003619BF /* en */,
 			);
 			name = Credits.rtf;
-			sourceTree = "<group>";
-		};
-		659C3D8521045E32003619BF /* QBERethinkStepView.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				65D6FBB8226C536E000A3076 /* Base */,
-			);
-			name = QBERethinkStepView.xib;
 			sourceTree = "<group>";
 		};
 		659C3D8721045E32003619BF /* QBEDissectViewController.xib */ = {
@@ -2296,7 +2272,7 @@
 				INFOPLIST_FILE = WarpMobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 4.0;
+				MARKETING_VERSION = 4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpMobile;
 				PRODUCT_NAME = Warp;
 				SDKROOT = iphoneos;
@@ -2327,7 +2303,7 @@
 				INFOPLIST_FILE = WarpMobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 4.0;
+				MARKETING_VERSION = 4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpMobile;
 				PRODUCT_NAME = Warp;
 				SDKROOT = iphoneos;
@@ -2490,6 +2466,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 2T2T7HAA8S;
 				DYLIB_CURRENT_VERSION = "";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2506,6 +2483,7 @@
 					"$(PROJECT_DIR)Conduit/Libraries/MySQL",
 					"$(PROJECT_DIR)Conduit/Libraries",
 				);
+				MARKETING_VERSION = 4.1;
 				OTHER_CFLAGS = "-fno-optimize-sibling-calls";
 				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2528,6 +2506,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 2T2T7HAA8S;
 				DYLIB_CURRENT_VERSION = "";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2544,6 +2523,7 @@
 					"$(PROJECT_DIR)Conduit/Libraries/MySQL",
 					"$(PROJECT_DIR)Conduit/Libraries",
 				);
+				MARKETING_VERSION = 4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

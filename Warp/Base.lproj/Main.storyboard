@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="14868" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
+        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaDFRPlugin" version="14550"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14868"/>
         <plugIn identifier="com.apple.MapKitIBPlugin" version="14868"/>
@@ -33,7 +34,7 @@
         <scene sceneID="0By-pQ-uII">
             <objects>
                 <viewController title="Welcome to Warp" storyboardIdentifier="tourController" id="8AN-7a-PfY" customClass="QBETourViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <visualEffectView key="view" wantsLayer="YES" appearanceType="vibrantLight" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" id="T3g-my-X5g">
+                    <visualEffectView key="view" wantsLayer="YES" blendingMode="behindWindow" material="sheet" state="followsWindowActiveState" id="T3g-my-X5g">
                         <rect key="frame" x="0.0" y="0.0" width="953" height="859"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
@@ -1279,7 +1280,7 @@ CA
                         <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <visualEffectView appearanceType="vibrantLight" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="Dk1-Cz-gKd">
+                            <visualEffectView blendingMode="behindWindow" material="sheet" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="Dk1-Cz-gKd">
                                 <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
                                 <subviews>
                                     <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Rhr-dH-qDX">
@@ -1393,7 +1394,7 @@ CA
         <scene sceneID="q8y-wj-17x">
             <objects>
                 <viewController title="Settings" storyboardIdentifier="settingsController" id="nyj-Qm-GSe" customClass="QBESettingsViewController" customModule="Warp" customModuleProvider="target" sceneMemberID="viewController">
-                    <visualEffectView key="view" identifier="settingsView" appearanceType="vibrantLight" blendingMode="behindWindow" material="appearanceBased" state="followsWindowActiveState" id="Bad-TJ-c0c">
+                    <visualEffectView key="view" identifier="settingsView" blendingMode="behindWindow" material="underWindowBackground" state="followsWindowActiveState" id="Bad-TJ-c0c">
                         <rect key="frame" x="0.0" y="0.0" width="491" height="445"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <subviews>
@@ -1666,7 +1667,7 @@ CA
                         <windowCollectionBehavior key="collectionBehavior" fullScreenPrimary="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="183" y="108" width="1345" height="806"/>
-                        <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1178"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1177"/>
                         <toolbar key="toolbar" implicitIdentifier="2EBAC5BC-9FAB-4475-8666-2326836DC6DE" displayMode="iconOnly" sizeMode="regular" id="Mya-2b-t6F">
                             <allowedToolbarItems>
                                 <toolbarItem implicitItemIdentifier="67BCC4D2-D6F5-4F96-BCEE-BAA3D3CB1650" label="Calculate" paletteLabel="Calculate" image="SmallIcon" id="IjL-nI-Ixx" customClass="QBEToolbarItem" customModule="Warp" customModuleProvider="target">
@@ -1923,8 +1924,7 @@ CA
                                         <touchBarItem id="dkD-7y-wgi">
                                             <viewController key="viewController" id="IWL-Wv-MdZ">
                                                 <button key="view" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="o9p-Ba-aYW">
-                                                    <rect key="frame" x="0.0" y="0.0" width="156" height="41"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="90" height="30"/>
                                                     <buttonCell key="cell" type="push" bezelStyle="rounded" image="ZoomOutIconWhite" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="0El-vr-tab">
                                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                                         <font key="font" usesAppearanceFont="YES"/>
@@ -1939,8 +1939,7 @@ CA
                                         <touchBarItem id="7Ta-fj-E7m">
                                             <viewController key="viewController" id="Myf-if-gMg">
                                                 <button key="view" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="skh-RU-Km5">
-                                                    <rect key="frame" x="0.0" y="0.0" width="156" height="41"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="90" height="30"/>
                                                     <buttonCell key="cell" type="push" bezelStyle="rounded" image="ZoomInIconWhite" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ByQ-Vk-CPy">
                                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                                         <font key="font" usesAppearanceFont="YES"/>
@@ -1962,8 +1961,7 @@ CA
                                         <touchBarItem id="0H3-4I-54t">
                                             <viewController key="viewController" id="s6V-HJ-P0l">
                                                 <button key="view" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pbO-Fw-ms5">
-                                                    <rect key="frame" x="0.0" y="0.0" width="156" height="41"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="90" height="30"/>
                                                     <buttonCell key="cell" type="push" bezelStyle="rounded" image="PreviousIconWhite" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="frI-0F-9B2">
                                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                                         <font key="font" usesAppearanceFont="YES"/>
@@ -1978,8 +1976,7 @@ CA
                                         <touchBarItem id="zdz-wA-t4a">
                                             <viewController key="viewController" id="Asb-HA-rwH">
                                                 <button key="view" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="s7b-07-ILn">
-                                                    <rect key="frame" x="0.0" y="0.0" width="156" height="41"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="90" height="30"/>
                                                     <buttonCell key="cell" type="push" bezelStyle="rounded" image="NextIconWhite" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="r91-bb-GXn">
                                                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                                         <font key="font" usesAppearanceFont="YES"/>
@@ -2014,7 +2011,7 @@ CA
                         <rect key="frame" x="0.0" y="0.0" width="700" height="531"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <subviews>
-                            <visualEffectView wantsLayer="YES" blendingMode="behindWindow" material="appearanceBased" state="active" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
+                            <visualEffectView wantsLayer="YES" blendingMode="behindWindow" material="windowBackground" state="active" translatesAutoresizingMaskIntoConstraints="NO" id="cDc-rh-vev">
                                 <rect key="frame" x="0.0" y="0.0" width="700" height="531"/>
                                 <subviews>
                                     <customView wantsLayer="YES" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="jQq-6i-09S">
@@ -2031,7 +2028,7 @@ CA
                                                     <action selector="addButtonClicked:" target="y5B-O8-QaO" id="Xkt-W6-slr"/>
                                                 </connections>
                                             </textField>
-                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" appearanceType="aqua" verticalCompressionResistancePriority="250" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
+                                            <scrollView wantsLayer="YES" canDrawConcurrently="YES" verticalCompressionResistancePriority="250" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" hasVerticalScroller="NO" allowsMagnification="YES" maxMagnification="1" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Q9G-71-Jab" customClass="QBEWorkspaceView" customModule="Warp" customModuleProvider="target">
                                                 <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
                                                 <clipView key="contentView" drawsBackground="NO" id="883-xW-r8t">
                                                     <rect key="frame" x="0.0" y="0.0" width="700" height="500"/>
@@ -2089,7 +2086,7 @@ CA
                                             <constraint firstItem="JGk-n3-nvK" firstAttribute="leading" secondItem="20V-eU-jYi" secondAttribute="leading" constant="4" id="qYv-ch-zwG"/>
                                         </constraints>
                                         <userDefinedRuntimeAttributes>
-                                            <userDefinedRuntimeAttribute type="boolean" keyPath="bottomBorder" value="YES"/>
+                                            <userDefinedRuntimeAttribute type="boolean" keyPath="bottomBorder" value="NO"/>
                                             <userDefinedRuntimeAttribute type="boolean" keyPath="drawBackground" value="NO"/>
                                             <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
                                                 <color key="value" red="0.74943359375000007" green="0.74943359375000007" blue="0.74943359375000007" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -3509,7 +3506,7 @@ Gw
                                     <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <collectionView canDrawConcurrently="YES" selectable="YES" maxNumberOfRows="1" id="z7I-jG-SgO" customClass="QBECollectionView" customModule="Warp" customModuleProvider="target">
+                                        <collectionView selectable="YES" maxNumberOfRows="1" id="z7I-jG-SgO" customClass="QBECollectionView" customModule="Warp" customModuleProvider="target">
                                             <rect key="frame" x="0.0" y="0.0" width="617" height="32"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="primaryBackgroundColor" white="1" alpha="0.0" colorSpace="deviceWhite"/>

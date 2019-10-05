@@ -97,6 +97,10 @@ class QBEColumnMappingViewController: NSViewController, NSTableViewDataSource, N
 	}
 
 	func tableView(_ tableView: NSTableView, dataCellFor tableColumn: NSTableColumn?, row: Int) -> NSCell? {
+		if tableColumn == nil {
+			return nil
+		}
+
 		if convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) == "source" {
 			if let cell = tableColumn?.dataCell(forRow: row) as? NSPopUpButtonCell {
 				cell.menu = self.sourceColumnsMenu

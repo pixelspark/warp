@@ -372,7 +372,7 @@ import WarpCore
 		self.welcomeLabel.isHidden = (self.document?.tablets.count ?? 0) != 0
 
 		// Apparently, starting in El Capitan, the label does not repaint itself automatically and stays in view after setting hidden=true
-		self.welcomeLabel.setNeedsDisplay()
+		self.welcomeLabel.needsDisplay = true
 		self.view.setNeedsDisplay(self.view.bounds)
 	}
 

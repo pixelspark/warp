@@ -7,12 +7,45 @@
     },
     {
       "idiom" : "universal",
+      "filename" : "TrashIcon Dark@64.png",
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "universal",
       "filename" : "TrashIcon@128.png",
       "scale" : "2x"
     },
     {
       "idiom" : "universal",
+      "filename" : "TrashIcon Dark@128.png",
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "universal",
       "filename" : "TrashIcon@256.png",
+      "scale" : "3x"
+    },
+    {
+      "idiom" : "universal",
+      "filename" : "TrashIcon Dark@256.png",
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
       "scale" : "3x"
     }
   ],

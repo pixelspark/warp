@@ -113,7 +113,7 @@ internal class QBEPivotStepView: QBEConfigurableStepViewControllerFor<QBEPivotSt
 		return NSDragOperation()
 	}
 	
-	func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+	@objc func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
 		if menuItem.action == #selector(QBEPivotStepView.delete(_:)) {
 			if let fr = self.view.window?.firstResponder {
 				return fr == rowsTable || fr == columnsTable || fr == aggregatesTable

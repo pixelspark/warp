@@ -472,3 +472,5 @@
 "value in column %@" = "waarde uit kolom %@";
 
 "Rank" = "Rangschik";
+
+"Could not modify table" = "Kon de tabelstructuur niet aanpassen";

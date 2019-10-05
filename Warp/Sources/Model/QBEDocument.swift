@@ -116,6 +116,7 @@ class QBEDocument: UXDocument {
 			let storyboard = NSStoryboard(name: "Main", bundle: nil)
 
 			if !QBESettings.sharedInstance.once("tour", callback: { () -> () in
+				assertMainThread()
 				let ctr = storyboard.instantiateController(withIdentifier: "tour") as! NSWindowController
 				ctr.window?.titleVisibility = .hidden
 				self.addWindowController(ctr)

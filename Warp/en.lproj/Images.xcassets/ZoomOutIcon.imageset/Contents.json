@@ -7,12 +7,45 @@
     },
     {
       "idiom" : "universal",
+      "filename" : "ZoomOut Dark@64.png",
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "universal",
       "filename" : "ZoomOut@128.png",
       "scale" : "2x"
     },
     {
       "idiom" : "universal",
+      "filename" : "ZoomOut Dark@128.png",
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "universal",
       "filename" : "ZoomOut@256.png",
+      "scale" : "3x"
+    },
+    {
+      "idiom" : "universal",
+      "filename" : "ZoomOut Dark@256.png",
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
       "scale" : "3x"
     }
   ],

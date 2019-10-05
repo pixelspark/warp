@@ -70,7 +70,7 @@ import WarpCore
 		}
 	}
 
-	func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+	@objc func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
 		return self.validate(menuItem)
 	}
 	
@@ -123,14 +123,15 @@ import WarpCore
 
 		if self.selected {
 			if let sv = self.superview as? QBECollectionView , !sv.active {
-				NSColor.secondarySelectedControlColor.set()
+				NSColor.unemphasizedSelectedContentBackgroundColor.set()
 			}
 			else {
-				NSColor.blue.withAlphaComponent(0.2).set()
+				NSColor.selectedControlColor.set()
+				//NSColor.blue.withAlphaComponent(0.2).set()
 			}
 		}
 		else if self.highlighted {
-			NSColor.secondarySelectedControlColor.set()
+			NSColor.selectedControlColor.set()
 		}
 		else {
 			NSColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0).set()

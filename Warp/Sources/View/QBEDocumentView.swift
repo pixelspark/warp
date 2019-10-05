@@ -254,6 +254,11 @@ private class QBEResizableTabletView: QBEResizableView {
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
+
+	override func draw(_ dirtyRect: NSRect) {
+		NSColor.clear.set()
+		dirtyRect.fill()
+	}
 }
 
 class QBEScrollView: NSScrollView {

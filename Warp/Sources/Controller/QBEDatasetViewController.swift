@@ -55,7 +55,7 @@ private class QBEValueCell: MBTableGridCell {
 	fileprivate override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
 		switch value {
 		case .int(_), .double(_):
-			self.textColor = NSColor.black
+			self.textColor = NSColor.textColor
 			self.alignment = .right
 
 		case .invalid:
@@ -65,7 +65,7 @@ private class QBEValueCell: MBTableGridCell {
 			cellFrame.fill()
 
 		case .empty:
-			self.textColor = NSColor.black
+			self.textColor = NSColor.textColor
 			NSColor.black.withAlphaComponent(0.05).set()
 			cellFrame.fill()
 
@@ -82,7 +82,7 @@ private class QBEValueCell: MBTableGridCell {
 			self.alignment = .center
 
 		case .string(_), .date(_):
-			self.textColor = NSColor.black
+			self.textColor = NSColor.textColor
 			self.alignment = .left
 			break
 		}
@@ -666,8 +666,6 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		self.valueCell = QBEValueCell(language: self.locale ?? Language())
 
 		if let tv = self.tableView {
-			tv.rowHeaderView.headerCell?.textColor = NSColor.headerTextColor.withAlphaComponent(0.9)
-			tv.columnHeaderView.headerCell?.textColor = NSColor.headerTextColor.withAlphaComponent(0.9)
 			tv.rowHeaderView.headerCell?.labelFont = self.valueFont
 			tv.columnHeaderView.headerCell?.labelFont = self.valueFont
 			tv.contentView().rowHeight = monospace ? 16.0 : 18.0
@@ -684,7 +682,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			self.tableView = MBTableGrid(frame: view.frame)
 			self.tableView!.wantsLayer = true
 			self.tableView!.layer?.isOpaque = true
-			self.tableView!.layer?.drawsAsynchronously = true
+			self.tableView!.layer?.drawsAsynchronously = false
 			self.tableView!.layerContentsRedrawPolicy = NSView.LayerContentsRedrawPolicy.onSetNeedsDisplay
 			self.tableView!.focusRingType = NSFocusRingType.none
 			self.tableView!.translatesAutoresizingMaskIntoConstraints = false

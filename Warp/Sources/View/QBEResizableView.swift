@@ -25,6 +25,7 @@ class QBEResizableView: NSView {
 	
 	var selected: Bool = false { didSet {
 		setNeedsDisplay(self.bounds)
+		self.needsDisplay = true
 		resizerView.setNeedsDisplay(resizerView.bounds)
 		DispatchQueue.main.async {
 			self.addSubview(self.resizerView, positioned: .above, relativeTo: nil)
@@ -34,45 +35,24 @@ class QBEResizableView: NSView {
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 		self.wantsLayer = true
-		self.layer!.isOpaque = false
-		self.layer!.drawsAsynchronously = true
+		self.layer!.isOpaque = true
+		self.layer!.drawsAsynchronously = false
 		self.layer!.masksToBounds = true
 		self.layer!.cornerRadius = type(of: self).cornerRadius
 		self.layer!.shadowRadius = 3.0
 		self.layer!.shadowColor = NSColor.shadowColor.cgColor
 		self.layer!.shadowOpacity = 0.3
+		self.layerContentsRedrawPolicy = .onSetNeedsDisplay
 
 		resizerView = QBEResizerView(frame: self.bounds)
 		resizerView.autoresizingMask = [NSView.AutoresizingMask.height, NSView.AutoresizingMask.width]
 		resizerView.hide = true
+		self.needsDisplay = true
 		addSubview(resizerView)
 	}
 	
 	required init?(coder: NSCoder) {
 		fatalError("Not implemented")
-	}
-
-	override func draw(_ dirtyRect: NSRect) {
-		NSColor.clear.set()
-		dirtyRect.fill()
-
-		if NSGraphicsContext.currentContextDrawingToScreen() {
-			let inset = self.resizerView.inset
-
-			// Clip to round rect
-			let path = NSBezierPath(roundedRect: self.bounds.inset(inset), xRadius: type(of: self).cornerRadius, yRadius: type(of: self).cornerRadius)
-			path.addClip()
-
-			// Background color
-			NSColor.windowBackgroundColor.set()
-			self.bounds.inset(inset).fill()
-
-			// Gradient on top
-			let gradientHeight: CGFloat = 30.0
-			let g = NSGradient(starting: NSColor(calibratedWhite: 1.0, alpha: 0.5), ending: NSColor(calibratedWhite: 1.0, alpha: 0.0))
-			let gradientFrame = NSMakeRect(self.bounds.origin.x + inset, self.bounds.origin.y + self.bounds.size.height - gradientHeight - inset, self.bounds.size.width - 2 * inset, gradientHeight)
-			g?.draw(in: gradientFrame, angle: 270.0)
-		}
 	}
 
 	var contentView: NSView? { didSet {
@@ -180,7 +160,7 @@ internal class QBEResizerView: NSView {
 	override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 		self.wantsLayer = true
-		self.layer?.drawsAsynchronously = true
+		self.layer?.drawsAsynchronously = false
 		self.layer?.cornerRadius = QBEResizableView.cornerRadius
 		self.layer?.masksToBounds = true
 	}
@@ -331,14 +311,15 @@ internal class QBEResizerView: NSView {
 			NSCursor.closedHand.set()
 		}
 	}
-	
+
+	// This draws on top of a tablet
 	override func draw(_ dirtyRect: NSRect) {
 		if let context = NSGraphicsContext.current?.cgContext {
 			context.clear(dirtyRect)
 
 			// Draw the bounding box
 			let selected = (self.superview as! QBEResizableView).selected
-			let borderColor = selected ? NSColor.blue.withAlphaComponent(0.3) : NSColor.clear
+			let borderColor = selected ? NSColor.selectedControlColor : NSColor.clear
 			context.setStrokeColor(borderColor.cgColor)
 			let bounds = self.bounds.inset(inset - 1.0)
 			let rr = NSBezierPath(roundedRect: bounds, xRadius: QBEResizableView.cornerRadius, yRadius: QBEResizableView.cornerRadius)

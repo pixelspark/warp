@@ -77,7 +77,6 @@ class QBEFactory {
 	let fileWriters: [QBEFileWriter.Type] = [
 		QBECSVWriter.self,
 		QBEXMLWriter.self,
-		QBEHTMLWriter.self,
 		QBEDBFWriter.self,
 		QBESQLiteWriter.self
 	]
