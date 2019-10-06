@@ -17,7 +17,7 @@
 	branch = master
 [submodule "Warp/Libraries/MDSpreadView"]
 	path = Warp/Libraries/MDSpreadView
-	url = https://github.com/mochidev/MDSpreadView.git
+	url = https://github.com/pixelspark/MDSpreadView.git
 [submodule "Warp/Libraries/Eureka"]
 	path = Warp/Libraries/Eureka
 	url = https://github.com/xmartlabs/Eureka.git
