@@ -24,15 +24,17 @@ extension Formula {
 	var syntaxColoredFormula: NSAttributedString { get {
 		#if os(macOS)
 		let regularFont = NSFont.userFixedPitchFont(ofSize: NSFont.systemFontSize(for: .regular))!
+		let textColor = UXColor.textColor
 		#endif
 
 		#if os(iOS)
 		let regularFont = UIFont.monospacedDigitSystemFont(ofSize: UIFont.labelFontSize, weight: UIFont.Weight.regular)
+		let textColor = UXColor.label
 		#endif
 
 		
 		let ma = NSMutableAttributedString(string: self.originalText, attributes: convertToOptionalNSAttributedStringKeyDictionary([
-			convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.textColor,
+			convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): textColor,
 			convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont
 		]))
 		
