@@ -269,7 +269,7 @@ class QBEScrollView: NSScrollView {
 
 protocol QBEWorkspaceViewDelegate: NSObjectProtocol {
 	/** Files were dropped in the workspace. */
-	func workspaceView(_ view: QBEWorkspaceView, didReceiveFiles: [String], atLocation: CGPoint)
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveFiles: [URL], atLocation: CGPoint)
 
 	/** A chain was dropped to the workspace. The chain already exists in the workspace. */
 	func workspaceView(_ view: QBEWorkspaceView, didReceiveChain: QBEChain, atLocation: CGPoint)
@@ -290,13 +290,19 @@ class QBEWorkspaceView: QBEScrollView {
 	}
 	
 	override func awakeFromNib() {
-		registerForDraggedTypes([NSPasteboard.PasteboardType.filePromise, QBEOutletView.dragType, NSPasteboard.PasteboardType(MBTableGridColumnDataType), QBEStep.dragType])
+
+		registerForDraggedTypes([
+			NSPasteboard.PasteboardType.fileURL,
+			QBEOutletView.dragType,
+			NSPasteboard.PasteboardType(MBTableGridColumnDataType),
+			QBEStep.dragType
+		])
 	}
 	
 	override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
 		let pboard = sender.draggingPasteboard
 		
-		if let _: [String] = pboard.propertyList(forType: NSPasteboard.PasteboardType.filePromise) as? [String] {
+		if let _: String = pboard.propertyList(forType: NSPasteboard.PasteboardType.fileURL) as? String {
 			draggingOver = true
 			setNeedsDisplay(self.bounds)
 			return NSDragOperation.copy
@@ -375,8 +381,10 @@ class QBEWorkspaceView: QBEScrollView {
 					delegate?.workspaceView(self, didReceiveColumnSet:names, fromDatasetViewController: dc)
 			}
 		}
-		else if let files: [String] = pboard.propertyList(forType: NSPasteboard.PasteboardType.filePromise) as? [String] {
-			delegate?.workspaceView(self, didReceiveFiles: files, atLocation: pointInDocument)
+		else if let url = NSURL(from: pboard) as? URL {
+			let contents = try! Data(contentsOf: url)
+			print("Pboard file read len=\(contents.count)")
+			delegate?.workspaceView(self, didReceiveFiles: [url], atLocation: pointInDocument)
 		}
 		return true
 	}

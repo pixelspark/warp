@@ -556,41 +556,13 @@ import WarpCore
 		action.present()
 	}
 	
-	func workspaceView(_ view: QBEWorkspaceView, didReceiveFiles files: [String], atLocation: CGPoint) {
+	func workspaceView(_ view: QBEWorkspaceView, didReceiveFiles files: [URL], atLocation: CGPoint) {
 		// Gather file paths
 		var tabletsAdded: [QBETablet] = []
 		
 		for file in files {
-			var isDirectory: ObjCBool = false
-			FileManager.default.fileExists(atPath: file, isDirectory: &isDirectory)
-			if isDirectory.boolValue {
-				// Find the contents of the directory, and add.
-				if let enumerator = FileManager.default.enumerator(atPath: file) {
-					for child in enumerator {
-						if let cn = child as? String {
-							let childName = NSString(string: cn)
-							// Skip UNIX hidden files (e.g. .DS_Store).
-							// TODO: check Finder 'hidden' bit here like so: http://stackoverflow.com/questions/1140235/is-the-file-hidden
-							if !childName.lastPathComponent.hasPrefix(".") {
-								let childPath = NSString(string: file).appendingPathComponent(childName as String)
-								
-								// Is  the enumerated item a directory? Then ignore it, the enumerator already recurses
-								var isChildDirectory: ObjCBool = false
-								FileManager.default.fileExists(atPath: childPath, isDirectory: &isChildDirectory)
-								if !isChildDirectory.boolValue {
-									if let t = addTabletFromURL(URL(fileURLWithPath: childPath)) {
-										tabletsAdded.append(t)
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			else {
-				if let t = addTabletFromURL(URL(fileURLWithPath: file)) {
-					tabletsAdded.append(t)
-				}
+			if let t = addTabletFromURL(file) {
+				tabletsAdded.append(t)
 			}
 		}
 		

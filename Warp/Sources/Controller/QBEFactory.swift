@@ -186,22 +186,14 @@ class QBEFactory {
 	
 	func stepForReadingFile(_ atURL: URL) -> QBEStep? {
 		do {
-			#if os(macOS)
-				// Try to find reader by UTI type
-				let type = try NSWorkspace.shared.type(ofFile: atURL.path)
-
-				// Exact match
-				if let creator = fileReaders[type] {
-					return creator(atURL)
-				}
-
-				// Conformance match
-				for (readerType, creator) in fileReaders {
-					if NSWorkspace.shared.type(type, conformsToType: readerType) {
+			let rvs = try atURL.resourceValues(forKeys: [.typeIdentifierKey])
+			if let ti = rvs.typeIdentifier {
+				for (k, creator) in fileReaders {
+					if ti == k || NSWorkspace.shared.type(ti, conformsToType: k) {
 						return creator(atURL)
 					}
 				}
-			#endif
+			}
 
 			// Try by file extension
 			let ext = atURL.pathExtension
@@ -214,7 +206,7 @@ class QBEFactory {
 
 			// Generic file reader
 			#if os(macOS)
-			return QBEFileStep(file: QBEFileReference.absolute(atURL))
+				return QBEFileStep(file: QBEFileReference.absolute(atURL))
 			#endif
 		}
 		catch { }
