@@ -32,7 +32,7 @@ extension Formula {
 
 		
 		let ma = NSMutableAttributedString(string: self.originalText, attributes: convertToOptionalNSAttributedStringKeyDictionary([
-			convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.black,
+			convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.textColor,
 			convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont
 		]))
 		
@@ -40,30 +40,31 @@ extension Formula {
 			if fragment.expression is Literal {
 				ma.addAttributes(convertToNSAttributedStringKeyDictionary([
 					convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont,
-					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.blue
+					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.systemTeal
 				]), range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Sibling {
 				ma.addAttributes(convertToNSAttributedStringKeyDictionary([
 					convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont,
-					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor(red: 0.0, green: 0.5, blue: 0.0, alpha: 1.0)
+					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.systemGreen
 				]), range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Foreign {
 				ma.addAttributes(convertToNSAttributedStringKeyDictionary([
 					convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont,
-					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor(red: 0.5, green: 0.5, blue: 0.0, alpha: 1.0)
+					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.systemYellow
 					]), range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Identity {
 				ma.addAttributes(convertToNSAttributedStringKeyDictionary([
 					convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont,
-					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor(red: 0.8, green: 0.5, blue: 0.0, alpha: 1.0)
+					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.systemOrange
 				]), range: NSMakeRange(fragment.start, fragment.length))
 			}
 			else if fragment.expression is Call {
 				ma.addAttributes(convertToNSAttributedStringKeyDictionary([
 					convertFromNSAttributedStringKey(NSAttributedString.Key.font): regularFont,
+					convertFromNSAttributedStringKey(NSAttributedString.Key.foregroundColor): UXColor.systemBlue
 				]), range: NSMakeRange(fragment.start, fragment.length))
 			}
 		}
