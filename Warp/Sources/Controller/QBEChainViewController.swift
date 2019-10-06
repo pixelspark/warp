@@ -128,7 +128,6 @@ internal enum QBEEditingMode {
 		didSet {
 			self.editingMode = .notEditing
 			if let s = currentStep {
-				self.previewStep = nil				
 				delegate?.chainView(self, configureStep: s, necessary: false, delegate: self)
 			}
 			else {
@@ -202,15 +201,6 @@ internal enum QBEEditingMode {
 					fs.filterSet = newValue
 					self.pushStep(fs)
 				}
-			}
-		}
-	}
-	
-	var previewStep: QBEStep? {
-		didSet {
-			self.editingMode = .notEditing
-			if previewStep != currentStep?.previous {
-				previewStep?.previous = currentStep?.previous
 			}
 		}
 	}
@@ -592,7 +582,7 @@ internal enum QBEEditingMode {
 					parameters.maximumExampleTime = QBESettings.sharedInstance.exampleMaximumTime
 					calculator.parameters = parameters
 					
-					let sourceStep = previewStep ?? s
+					let sourceStep = s
 					
 					// Start calculation
 					if useFullDataset {
@@ -1325,57 +1315,38 @@ internal enum QBEEditingMode {
 	}
 	
 	func suggestionsView(_ view: NSViewController, didSelectStep step: QBEStep) {
-		previewStep = nil
-		pushStep(step)
-		stepsChanged()
-		updateView()
-		calculate()
 	}
+
 	
 	func suggestionsView(_ view: NSViewController, didSelectAlternativeStep step: QBEStep) {
-		selectAlternativeStep(step)
-	}
-	
-	private func selectAlternativeStep(_ step: QBEStep) {
-		previewStep = nil
-		
-		// Swap out alternatives
-		if var oldAlternatives = currentStep?.alternatives {
-			oldAlternatives.remove(step)
-			oldAlternatives.append(currentStep!)
-			step.alternatives = oldAlternatives
+		step.removeFromChain()
+		var s = chain?.head
+		print("Suggest \(step)")
+		print("Head is \(chain?.head)")
+		while let ss = s {
+			print("Step \(ss.previous) -> \(ss) -> \(ss.next)")
+			if let alts = ss.alternatives, alts.contains(step) {
+				print("Has alt")
+				// The proposed step is an alternative to this one
+				ss.next?.previous = step
+				step.previous = ss.previous
+				if ss == chain?.head {
+					chain?.head = step
+				}
+				break
+			}
+			s = ss.previous
 		}
-		
-		// Swap out step
-		let next = currentStep?.next
-		let previous = currentStep?.previous
-		step.previous = previous
-		currentStep = step
-		
-		if next == nil {
-			chain?.head = step
-		}
-		else {
-			next!.previous = step
-			step.next = next
-		}
+		currentStep = chain?.head
+		updateView()
 		stepsChanged()
-		calculate()
 
 		if let c = self.chain {
 			QBEChangeNotification.broadcastChange(c)
 		}
 	}
-	
+
 	func suggestionsView(_ view: NSViewController, previewStep step: QBEStep?) {
-		if step == currentStep || step == nil {
-			previewStep = nil
-		}
-		else {
-			previewStep = step
-		}
-		updateView()
-		calculate()
 	}
 	
 	private func updateView() {
@@ -1519,9 +1490,6 @@ internal enum QBEEditingMode {
 	}
 	
 	@IBAction func chooseFirstAlternativeStep(_ sender: NSObject) {
-		if let s = currentStep?.alternatives, s.count > 0 {
-			selectAlternativeStep(s.first!)
-		}
 	}
 	
 	@IBAction func setFullWorkingSet(_ sender: NSObject) {

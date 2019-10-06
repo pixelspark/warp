@@ -58,10 +58,16 @@ public class QBEStep: NSObject, QBEConfigurable, NSCoding {
 	public static let dragType = NSPasteboard.PasteboardType("nl.pixelspark.Warp.Step")
 	#endif
 
-	public var previous: QBEStep? { didSet {
-		assert(previous != self, "A step cannot be its own previous step")
-		previous?.next = self
-		} }
+	public var previous: QBEStep? {
+		didSet {
+			assert(previous != self, "A step cannot be its own previous step")
+			previous?.next = self
+		}
+
+		willSet {
+			previous?.next = nil
+		}
+	}
 
 	public var alternatives: [QBEStep]?
 	public weak var next: QBEStep?
@@ -165,6 +171,17 @@ public class QBEStep: NSObject, QBEConfigurable, NSCoding {
 			return p.related(job: job, callback: callback)
 		}
 		return callback(.success([]))
+	}
+
+	public func removeFromChain() {
+		self.next?.previous = self.previous
+		self.next = nil
+		self.previous = nil
+	}
+
+	public func clone() -> QBEStep {
+		let data = NSKeyedArchiver.archivedData(withRootObject: self)
+		return NSKeyedUnarchiver.unarchiveObject(with: data) as! QBEStep
 	}
 }
 
