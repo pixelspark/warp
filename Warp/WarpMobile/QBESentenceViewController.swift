@@ -11,7 +11,9 @@ You should have received a copy of the GNU General Public License along with thi
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 import UIKit
 import WarpCore
+#if os(iOS)
 import Eureka
+#endif
 
 protocol QBESentenceViewControllerDelegate: class {
 	func sentenceViewController(_ : QBESentenceViewController, didChangeSentence: QBESentence)

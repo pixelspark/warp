@@ -66,8 +66,6 @@
 		651BEC881E1971170094F8AD /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 651BEC871E1971170094F8AD /* WarpConduit.framework */; };
 		651BED091E197B370094F8AD /* QBEPostgresStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEC051E196EF10094F8AD /* QBEPostgresStep.swift */; };
 		651BED911E198D950094F8AD /* QBEConfigureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BED901E198D940094F8AD /* QBEConfigureViewController.swift */; };
-		651BEDAB1E198F610094F8AD /* Eureka.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 651BED9B1E198EFA0094F8AD /* Eureka.framework */; };
-		651BEDAC1E198F680094F8AD /* Eureka.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 651BED9B1E198EFA0094F8AD /* Eureka.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		651C68761C70D7B300F0F048 /* QBETabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68751C70D7B300F0F048 /* QBETabletViewController.swift */; };
 		651C687E1C70E2AB00F0F048 /* QBEChainTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687D1C70E2AB00F0F048 /* QBEChainTabletViewController.swift */; };
 		651C68801C70E96600F0F048 /* QBENote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C687F1C70E96600F0F048 /* QBENote.swift */; };
@@ -92,13 +90,10 @@
 		655B05A21E15AE7B00A28FCE /* QBEViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEDF1C14758B00AE6C00 /* QBEViewExtensions.swift */; };
 		655F91C91E196665005A47A1 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91C81E196665005A47A1 /* WarpCore.framework */; };
 		655F91CA1E196665005A47A1 /* WarpCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91C81E196665005A47A1 /* WarpCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		655F91DE1E19669C005A47A1 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC51AB0380200D2C2F6 /* Alamofire.framework */; };
-		655F91DF1E19669C005A47A1 /* Alamofire.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC51AB0380200D2C2F6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		655F91E31E1966BB005A47A1 /* SwiftParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91E21E1966BB005A47A1 /* SwiftParser.framework */; };
 		655F91E41E1966BB005A47A1 /* SwiftParser.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 655F91E21E1966BB005A47A1 /* SwiftParser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		656258D91C94AE100063253C /* QBEKeySelectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656258D81C94AE100063253C /* QBEKeySelectionViewController.swift */; };
 		656822561D78D60E00410BA5 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 656822551D78D60E00410BA5 /* libiconv.tbd */; };
-		65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		657DB2E51D71E695001C4276 /* QBEDissectViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 657DB2E41D71E695001C4276 /* QBEDissectViewController.swift */; };
 		6583EEE01C14758B00AE6C00 /* QBEAlterTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EE901C14758B00AE6C00 /* QBEAlterTableViewController.swift */; };
 		6583EEE11C14758B00AE6C00 /* QBEAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EE911C14758B00AE6C00 /* QBEAppDelegate.swift */; };
@@ -274,6 +269,9 @@
 		65D605AF1E96EB7200C6CD01 /* QBERankStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D605AE1E96EB7200C6CD01 /* QBERankStep.swift */; };
 		65D605B01E96EB7200C6CD01 /* QBERankStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D605AE1E96EB7200C6CD01 /* QBERankStep.swift */; };
 		65E0EAA028CE34A900A33C02 /* Charts in Frameworks */ = {isa = PBXBuildFile; productRef = 65E0EA9F28CE34A900A33C02 /* Charts */; };
+		65E0EAAB28CE351B00A33C02 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 65E0EAAA28CE351B00A33C02 /* Alamofire */; };
+		65E0EAB728CE37FB00A33C02 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 65E0EAB628CE37FB00A33C02 /* Alamofire */; };
+		65E0EAB928CE382600A33C02 /* Eureka in Frameworks */ = {isa = PBXBuildFile; productRef = 65E0EAB828CE382600A33C02 /* Eureka */; };
 		65E1C7C31E219616003221A6 /* MobileTour.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E1C7C51E219616003221A6 /* MobileTour.strings */; };
 		65E224A41D7C600F007433E6 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EBA1D78D2B700F6FAE5 /* WarpCore.framework */; };
 		65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EB81D78D2AF00F6FAE5 /* WarpConduit.framework */; };
@@ -325,13 +323,6 @@
 			remoteGlobalIDString = 51729DF51B9A4F5E004A00EB;
 			remoteInfo = EurekaTests;
 		};
-		651BED9E1E198F090094F8AD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 651BED951E198EFA0094F8AD /* Eureka.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 51729DEA1B9A4F5E004A00EB;
-			remoteInfo = Eureka;
-		};
 		651BEDA51E198F510094F8AD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 651BEDA01E198F510094F8AD /* WarpConduit.xcodeproj */;
@@ -381,26 +372,12 @@
 			remoteGlobalIDString = 06165F2E1D8110E600722320;
 			remoteInfo = ChartsTests;
 		};
-		655B05761E15A5EE00A28FCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = F8111E3219A95C8B0040E7D1;
-			remoteInfo = "Alamofire iOS";
-		};
 		655BD6411C146EDB00634C66 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65E3C2AC1A05222F007BB3C8 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 65E3C2EB1A062E5E007BB3C8;
 			remoteInfo = Warp;
-		};
-		655F91E01E19669C005A47A1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = F8111E3219A95C8B0040E7D1;
-			remoteInfo = "Alamofire iOS";
 		};
 		65734BC41AB0380200D2C2F6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -429,13 +406,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = F829C6B21A7A94F100A2CD59;
 			remoteInfo = "Alamofire OSX Tests";
-		};
-		65734BCD1AB0380F00D2C2F6 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65734BBD1AB0380200D2C2F6 /* Alamofire.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 4DD67C0A1A5C55C900ED2280;
-			remoteInfo = "Alamofire OSX";
 		};
 		65734BCF1AB0381500D2C2F6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -468,10 +438,8 @@
 			dstSubfolderSpec = 10;
 			files = (
 				65CCEE2D1E881E08004A7483 /* WarpConduit.framework in Embed Frameworks */,
-				651BEDAC1E198F680094F8AD /* Eureka.framework in Embed Frameworks */,
 				655F91E41E1966BB005A47A1 /* SwiftParser.framework in Embed Frameworks */,
 				655F91CA1E196665005A47A1 /* WarpCore.framework in Embed Frameworks */,
-				655F91DF1E19669C005A47A1 /* Alamofire.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -484,7 +452,6 @@
 			files = (
 				65F50EB91D78D2AF00F6FAE5 /* WarpConduit.framework in CopyFiles */,
 				65F50EBB1D78D2B700F6FAE5 /* WarpCore.framework in CopyFiles */,
-				65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */,
 				65F3867E1A6B1DFE00C83810 /* MBTableGrid.framework in CopyFiles */,
 				65F50EBE1D78D34E00F6FAE5 /* SwiftParser.framework in CopyFiles */,
 			);
@@ -766,11 +733,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				65BAF9A623396385005AF47B /* CloudKit.framework in Frameworks */,
-				651BEDAB1E198F610094F8AD /* Eureka.framework in Frameworks */,
 				651BEC881E1971170094F8AD /* WarpConduit.framework in Frameworks */,
 				655B059A1E15A8C700A28FCE /* WarpCore.framework in Frameworks */,
-				655F91DE1E19669C005A47A1 /* Alamofire.framework in Frameworks */,
+				65E0EAB728CE37FB00A33C02 /* Alamofire in Frameworks */,
 				655F91C91E196665005A47A1 /* WarpCore.framework in Frameworks */,
+				65E0EAB928CE382600A33C02 /* Eureka in Frameworks */,
 				655F91E31E1966BB005A47A1 /* SwiftParser.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -784,6 +751,7 @@
 				65ABC0EC233D5F7C004630B1 /* MapKit.framework in Frameworks */,
 				65E224A71D7C604C007433E6 /* libpq.a in Frameworks */,
 				65E0EAA028CE34A900A33C02 /* Charts in Frameworks */,
+				65E0EAAB28CE351B00A33C02 /* Alamofire in Frameworks */,
 				65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */,
 				65E224A41D7C600F007433E6 /* WarpCore.framework in Frameworks */,
 				6516036B23493D07008174EE /* CryptoTokenKit.framework in Frameworks */,
@@ -1288,11 +1256,12 @@
 			);
 			dependencies = (
 				651BEDAA1E198F580094F8AD /* PBXTargetDependency */,
-				651BED9F1E198F090094F8AD /* PBXTargetDependency */,
-				655B05771E15A5EE00A28FCE /* PBXTargetDependency */,
-				655F91E11E19669C005A47A1 /* PBXTargetDependency */,
 			);
 			name = "Warp iOS";
+			packageProductDependencies = (
+				65E0EAB628CE37FB00A33C02 /* Alamofire */,
+				65E0EAB828CE382600A33C02 /* Eureka */,
+			);
 			productName = WarpMobile;
 			productReference = 655B05561E15A57100A28FCE /* Warp.app */;
 			productType = "com.apple.product-type.application";
@@ -1309,12 +1278,12 @@
 			buildRules = (
 			);
 			dependencies = (
-				65734BCE1AB0380F00D2C2F6 /* PBXTargetDependency */,
 				6510A7381A4D982E005633EF /* PBXTargetDependency */,
 			);
 			name = Warp;
 			packageProductDependencies = (
 				65E0EA9F28CE34A900A33C02 /* Charts */,
+				65E0EAAA28CE351B00A33C02 /* Alamofire */,
 			);
 			productName = QBE;
 			productReference = 65E3C2EC1A062E5E007BB3C8 /* Warp.app */;
@@ -1395,6 +1364,8 @@
 			mainGroup = 65E3C2AB1A05222F007BB3C8;
 			packageReferences = (
 				65E0EA9E28CE34A900A33C02 /* XCRemoteSwiftPackageReference "Charts" */,
+				65E0EAA928CE351B00A33C02 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				65E0EAB228CE363800A33C02 /* XCRemoteSwiftPackageReference "Eureka" */,
 			);
 			productRefGroup = 65E3C2B61A05222F007BB3C8 /* Products */;
 			projectDirPath = "";
@@ -1848,35 +1819,15 @@
 			name = MBTableGrid;
 			targetProxy = 6510A7371A4D982E005633EF /* PBXContainerItemProxy */;
 		};
-		651BED9F1E198F090094F8AD /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Eureka;
-			targetProxy = 651BED9E1E198F090094F8AD /* PBXContainerItemProxy */;
-		};
 		651BEDAA1E198F580094F8AD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "WarpConduit iOS";
 			targetProxy = 651BEDA91E198F580094F8AD /* PBXContainerItemProxy */;
 		};
-		655B05771E15A5EE00A28FCE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "Alamofire iOS";
-			targetProxy = 655B05761E15A5EE00A28FCE /* PBXContainerItemProxy */;
-		};
 		655BD6421C146EDB00634C66 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 65E3C2EB1A062E5E007BB3C8 /* Warp */;
 			targetProxy = 655BD6411C146EDB00634C66 /* PBXContainerItemProxy */;
-		};
-		655F91E11E19669C005A47A1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "Alamofire iOS";
-			targetProxy = 655F91E01E19669C005A47A1 /* PBXContainerItemProxy */;
-		};
-		65734BCE1AB0380F00D2C2F6 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "Alamofire OSX";
-			targetProxy = 65734BCD1AB0380F00D2C2F6 /* PBXContainerItemProxy */;
 		};
 		65734BD01AB0381500D2C2F6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2276,7 +2227,7 @@
 					"$(PROJECT_DIR)Core/Libraries/SwiftParserGenerator/build/Debug",
 				);
 				INFOPLIST_FILE = WarpMobile/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2310,7 +2261,7 @@
 					"$(PROJECT_DIR)Core/Libraries/SwiftParserGenerator/build/Debug",
 				);
 				INFOPLIST_FILE = WarpMobile/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2380,12 +2331,12 @@
 					"$(SRCROOT)/Libraries/MBTableGrid",
 					"$(SRCROOT)/Libraries/TCMXMLWriter/TCXML",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/bin,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 12.3;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "";
@@ -2450,13 +2401,13 @@
 					"$(SRCROOT)/Libraries/MBTableGrid",
 					"$(SRCROOT)/Libraries/TCMXMLWriter/TCXML",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/bin,
 				);
 				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 12.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
@@ -2472,7 +2423,6 @@
 		65E3C3081A062E5E007BB3C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_RAND = YES;
@@ -2515,7 +2465,6 @@
 		65E3C3091A062E5E007BB3C8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_RAND = YES;
@@ -2656,6 +2605,22 @@
 				minimumVersion = 4.0.0;
 			};
 		};
+		65E0EAA928CE351B00A33C02 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.6.1;
+			};
+		};
+		65E0EAB228CE363800A33C02 /* XCRemoteSwiftPackageReference "Eureka" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/xmartlabs/Eureka.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.3.6;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -2663,6 +2628,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 65E0EA9E28CE34A900A33C02 /* XCRemoteSwiftPackageReference "Charts" */;
 			productName = Charts;
+		};
+		65E0EAAA28CE351B00A33C02 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 65E0EAA928CE351B00A33C02 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		65E0EAB628CE37FB00A33C02 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 65E0EAA928CE351B00A33C02 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		65E0EAB828CE382600A33C02 /* Eureka */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 65E0EAB228CE363800A33C02 /* XCRemoteSwiftPackageReference "Eureka" */;
+			productName = Eureka;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

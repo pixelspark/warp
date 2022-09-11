@@ -10,7 +10,10 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Ge
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 import UIKit
+
+#if os(iOS)
 import Eureka
+#endif
 import WarpCore
 import WarpConduit
 

@@ -1,5 +1,7 @@
 import UIKit
+#if os(iOS)
 import Eureka
+#endif
 import WarpCore
 
 protocol QBEEditViewControllerDelegate: NSObjectProtocol {

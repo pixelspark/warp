@@ -1,10 +1,6 @@
 [submodule "Warp/Libraries/MBTableGrid"]
 	path = Warp/Libraries/MBTableGrid
 	url = https://github.com/pixelspark/mbtablegrid
-[submodule "Warp/Libraries/Alamofire"]
-	path = Warp/Libraries/Alamofire
-	url = https://github.com/Alamofire/Alamofire
-	branch = master
 [submodule "WarpConduit/Libraries/TCMXMLWriter"]
 	path = WarpConduit/Libraries/TCMXMLWriter
 	url = https://github.com/monkeydom/TCMXMLWriter
@@ -14,6 +10,3 @@
 [submodule "Warp/Libraries/MDSpreadView"]
 	path = Warp/Libraries/MDSpreadView
 	url = https://github.com/pixelspark/MDSpreadView.git
-[submodule "Warp/Libraries/Eureka"]
-	path = Warp/Libraries/Eureka
-	url = https://github.com/xmartlabs/Eureka.git
