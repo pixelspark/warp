@@ -1332,7 +1332,6 @@
 					};
 					65E3C2EB1A062E5E007BB3C8 = {
 						CreatedOnToolsVersion = 6.1;
-						DevelopmentTeam = 2T2T7HAA8S;
 						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
