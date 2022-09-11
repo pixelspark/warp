@@ -19,7 +19,6 @@
 		6516036123491EB0008174EE /* QBEPivotStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DD621045DF2006971BE /* QBEPivotStepView.xib */; };
 		6516036223491EB4008174EE /* QBERenameStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DE821045DF4006971BE /* QBERenameStepView.xib */; };
 		6516036323491EB7008174EE /* QBESQLiteSourceStepView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 65976DE421045DF3006971BE /* QBESQLiteSourceStepView.xib */; };
-		6516036523493B43008174EE /* libboringssl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 6516036423493B43008174EE /* libboringssl.tbd */; };
 		6516036B23493D07008174EE /* CryptoTokenKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65AD6CFB1D6F946C0020F478 /* CryptoTokenKit.framework */; };
 		651BEBEF1E196D3B0094F8AD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 651BEBEE1E196D3B0094F8AD /* Assets.xcassets */; };
 		651BEC331E196F090094F8AD /* QBEMySQLSourceStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651BEBF91E196EF10094F8AD /* QBEMySQLSourceStep.swift */; };
@@ -275,7 +274,6 @@
 		65E1C7C31E219616003221A6 /* MobileTour.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E1C7C51E219616003221A6 /* MobileTour.strings */; };
 		65E224A41D7C600F007433E6 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EBA1D78D2B700F6FAE5 /* WarpCore.framework */; };
 		65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EB81D78D2AF00F6FAE5 /* WarpConduit.framework */; };
-		65E224A71D7C604C007433E6 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E224A61D7C604C007433E6 /* libpq.a */; };
 		65E224AE1D7C60C5007433E6 /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EB81D78D2AF00F6FAE5 /* WarpConduit.framework */; };
 		65E224AF1D7C60C8007433E6 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EBA1D78D2B700F6FAE5 /* WarpCore.framework */; };
 		65EC97971C9DFB8D0098A330 /* QBEColumnViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EC97961C9DFB8D0098A330 /* QBEColumnViewController.swift */; };
@@ -714,6 +712,9 @@
 		65D6FBBA226C536F000A3076 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Sources/Controller/Base.lproj/QBESSHTunnelViewController.xib; sourceTree = "<group>"; };
 		65DAF6C91D7C6FFD00163750 /* Rethink.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Rethink.framework; path = "/Users/tommy/Library/Developer/Xcode/DerivedData/Warp-ezppzhriuaqmfsaoocfeoipidduw/Build/Products/Debug/Rethink.framework"; sourceTree = "<absolute>"; };
 		65DAF6CE1D7C719D00163750 /* Rethink.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Rethink.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		65E0EAE128CE45D500A33C02 /* libheimdal-asn1.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libheimdal-asn1.tbd"; path = "usr/lib/libheimdal-asn1.tbd"; sourceTree = SDKROOT; };
+		65E0EAE328CE45E200A33C02 /* libgssapi_krb5.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libgssapi_krb5.tbd; path = usr/lib/libgssapi_krb5.tbd; sourceTree = SDKROOT; };
+		65E0EAE528CE45E900A33C02 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		65E1C7C61E219619003221A6 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/MobileTour.strings; sourceTree = "<group>"; };
 		65E224A61D7C604C007433E6 /* libpq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpq.a; path = ../WarpConduit/Libraries/PostgreSQL/libpq.a; sourceTree = "<group>"; };
 		65E224A81D7C6055007433E6 /* libmariadbclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmariadbclient.a; path = ../WarpConduit/Libraries/MySQL/libmariadbclient.a; sourceTree = "<group>"; };
@@ -746,10 +747,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6516036523493B43008174EE /* libboringssl.tbd in Frameworks */,
 				656822561D78D60E00410BA5 /* libiconv.tbd in Frameworks */,
 				65ABC0EC233D5F7C004630B1 /* MapKit.framework in Frameworks */,
-				65E224A71D7C604C007433E6 /* libpq.a in Frameworks */,
 				65E0EAA028CE34A900A33C02 /* Charts in Frameworks */,
 				65E0EAAB28CE351B00A33C02 /* Alamofire in Frameworks */,
 				65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */,
@@ -816,6 +815,9 @@
 		653D19D81D1C76AC0094C441 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				65E0EAE528CE45E900A33C02 /* libz.tbd */,
+				65E0EAE328CE45E200A33C02 /* libgssapi_krb5.tbd */,
+				65E0EAE128CE45D500A33C02 /* libheimdal-asn1.tbd */,
 				6516036423493B43008174EE /* libboringssl.tbd */,
 				65BAF9A523396385005AF47B /* CloudKit.framework */,
 				651BEC871E1971170094F8AD /* WarpConduit.framework */,
@@ -2279,9 +2281,7 @@
 		65E3C2C91A05222F007BB3C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -2309,7 +2309,6 @@
 				CURRENT_PROJECT_VERSION = 24;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -2330,6 +2329,7 @@
 					"$(SRCROOT)/Libraries/PostgreSQL/include",
 					"$(SRCROOT)/Libraries/MBTableGrid",
 					"$(SRCROOT)/Libraries/TCMXMLWriter/TCXML",
+					"~/.brew/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
 				LIBRARY_SEARCH_PATHS = (
@@ -2353,9 +2353,7 @@
 		65E3C2CA1A05222F007BB3C8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -2384,7 +2382,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = fast;
 				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
@@ -2400,6 +2397,7 @@
 					"$(SRCROOT)/Libraries/PostgreSQL/include",
 					"$(SRCROOT)/Libraries/MBTableGrid",
 					"$(SRCROOT)/Libraries/TCMXMLWriter/TCXML",
+					"~/.brew/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
 				LIBRARY_SEARCH_PATHS = (
@@ -2430,7 +2428,6 @@
 				CODE_SIGN_ENTITLEMENTS = Warp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_TEAM = 2T2T7HAA8S;
 				DYLIB_CURRENT_VERSION = "";
@@ -2456,9 +2453,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_SWIFT3_OBJC_INFERENCE = On;
 				SWIFT_VERSION = 5.0;
-				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Debug;
 		};
@@ -2472,7 +2467,6 @@
 				CODE_SIGN_ENTITLEMENTS = Warp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 33;
 				DEVELOPMENT_TEAM = 2T2T7HAA8S;
 				DYLIB_CURRENT_VERSION = "";
@@ -2497,9 +2491,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_SWIFT3_OBJC_INFERENCE = On;
 				SWIFT_VERSION = 5.0;
-				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Release;
 		};

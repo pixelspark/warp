@@ -7,10 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6516036E23493E49008174EE /* libssl.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6516036C23493E49008174EE /* libssl.35.dylib */; };
-		6516036F23493E49008174EE /* libcrypto.35.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6516036D23493E49008174EE /* libcrypto.35.dylib */; };
-		6516037023493E65008174EE /* libssl.35.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 6516036C23493E49008174EE /* libssl.35.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		6516037223493E70008174EE /* libcrypto.35.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 6516036D23493E49008174EE /* libcrypto.35.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		651BEC761E196FA70094F8AD /* WarpConduit.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50E941D78CE6300F6FAE5 /* WarpConduit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		651BEC771E196FAE0094F8AD /* CSVStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A41D78D93500410BA5 /* CSVStream.swift */; };
 		651BEC781E196FB30094F8AD /* DBFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A21D78D89C00410BA5 /* DBFStream.swift */; };
@@ -30,16 +26,12 @@
 		651BED061E197AFD0094F8AD /* pg_config_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EED1D78D3F500F6FAE5 /* pg_config_ext.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		651BED071E197B020094F8AD /* postgres_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EEE1D78D3F500F6FAE5 /* postgres_ext.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		651BED081E197B080094F8AD /* PostgresStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A732361D8F1CE300C5C397 /* PostgresStream.swift */; };
-		651BED8F1E1980680094F8AD /* libpq-ios in Frameworks */ = {isa = PBXBuildFile; fileRef = 651BED8E1E1980680094F8AD /* libpq-ios */; };
 		65292F411D7CA7030053ADE3 /* SQLiteStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65292F401D7CA7030053ADE3 /* SQLiteStream.swift */; };
 		656822541D78D60600410BA5 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 656822531D78D60600410BA5 /* libiconv.tbd */; };
 		656822941D78D69300410BA5 /* TCMXMLWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 6568227B1D78D69300410BA5 /* TCMXMLWriter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		656822951D78D69300410BA5 /* TCMXMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6568227C1D78D69300410BA5 /* TCMXMLWriter.m */; };
 		656822A31D78D89C00410BA5 /* DBFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A21D78D89C00410BA5 /* DBFStream.swift */; };
 		656822A51D78D93500410BA5 /* CSVStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656822A41D78D93500410BA5 /* CSVStream.swift */; };
-		657DF0C81EB8EF5100CAD84F /* libssh2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 657DF0C61EB8EF4A00CAD84F /* libssh2.a */; };
-		657DF0C91EB8EF5400CAD84F /* libssh2-simulator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 657DF0C51EB8EF4A00CAD84F /* libssh2-simulator.a */; platformFilter = maccatalyst; };
-		657DF0CA1EB8EF5600CAD84F /* libssh2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 657DF0C41EB8EF4A00CAD84F /* libssh2-ios.a */; platformFilter = ios; };
 		657DF0CB1EB8EF7B00CAD84F /* libssh2_publickey.h in Headers */ = {isa = PBXBuildFile; fileRef = 657DF0C21EB8EF4A00CAD84F /* libssh2_publickey.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		657DF0CC1EB8EF7D00CAD84F /* libssh2_sftp.h in Headers */ = {isa = PBXBuildFile; fileRef = 657DF0C31EB8EF4A00CAD84F /* libssh2_sftp.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		657DF0CD1EB8EF7F00CAD84F /* libssh2.h in Headers */ = {isa = PBXBuildFile; fileRef = 657DF0C71EB8EF4A00CAD84F /* libssh2.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -60,10 +52,23 @@
 		65BC51731E1C46EA005FEC76 /* MySQLStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65BC51711E1C46EA005FEC76 /* MySQLStream.swift */; };
 		65BC51751E1C4D4D005FEC76 /* WarpConduit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 65BC51741E1C4D4D005FEC76 /* WarpConduit.cpp */; };
 		65BC51761E1C4D4D005FEC76 /* WarpConduit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 65BC51741E1C4D4D005FEC76 /* WarpConduit.cpp */; };
-		65BC51791E1C4E12005FEC76 /* libmysqlclient-mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65BC51771E1C4E12005FEC76 /* libmysqlclient-mac.a */; };
 		65BC517C1E1C4E12005FEC76 /* libmysqlclient-simulator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65BC51781E1C4E12005FEC76 /* libmysqlclient-simulator.a */; platformFilter = maccatalyst; };
 		65CCEE161E87CC73004A7483 /* JSONStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CCEE151E87CC73004A7483 /* JSONStream.swift */; };
 		65CCEE171E87CC73004A7483 /* JSONStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CCEE151E87CC73004A7483 /* JSONStream.swift */; };
+		65E0EAC928CE3F1900A33C02 /* libmariadbclient-mac-both.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EAC828CE3F1900A33C02 /* libmariadbclient-mac-both.a */; };
+		65E0EACC28CE3FC400A33C02 /* libboringssl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EAC328CE3B0400A33C02 /* libboringssl.tbd */; };
+		65E0EADD28CE448300A33C02 /* libssl-mac-both.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EADB28CE448300A33C02 /* libssl-mac-both.a */; };
+		65E0EADE28CE448300A33C02 /* libcrypto-mac-both.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EADC28CE448300A33C02 /* libcrypto-mac-both.a */; };
+		65E0EAE028CE451D00A33C02 /* libssh2-mac-both.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EADF28CE451D00A33C02 /* libssh2-mac-both.a */; };
+		65E0EAE828CE463D00A33C02 /* libgssapi_krb5.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EAE728CE463D00A33C02 /* libgssapi_krb5.tbd */; };
+		65E0EAEA28CE464100A33C02 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EAE928CE464100A33C02 /* libz.tbd */; };
+		65E0EAEC28CE464F00A33C02 /* libldap.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EAEB28CE464F00A33C02 /* libldap.tbd */; };
+		65E0EAEF28CE477F00A33C02 /* libpgcommon-mac-both.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EAED28CE477F00A33C02 /* libpgcommon-mac-both.a */; };
+		65E0EAF028CE477F00A33C02 /* libpq-mac-both.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EAEE28CE477F00A33C02 /* libpq-mac-both.a */; };
+		65E0EAF228CE47B700A33C02 /* libc.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EAF128CE47B700A33C02 /* libc.tbd */; };
+		65E0EAF428CE480A00A33C02 /* libpgport-mac-both.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EAF328CE480A00A33C02 /* libpgport-mac-both.a */; };
+		65E0EAF528CE49F400A33C02 /* libssh2-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 657DF0C41EB8EF4A00CAD84F /* libssh2-ios.a */; };
+		65E0EAF828CE4A1B00A33C02 /* libpq-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E0EAF728CE4A1B00A33C02 /* libpq-ios.a */; };
 		65F50E961D78CE6300F6FAE5 /* WarpConduit.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50E941D78CE6300F6FAE5 /* WarpConduit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		65F50EA11D78CF0C00F6FAE5 /* dbfopen.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50E9E1D78CF0C00F6FAE5 /* dbfopen.c */; };
 		65F50EA21D78CF0C00F6FAE5 /* safileio.c in Sources */ = {isa = PBXBuildFile; fileRef = 65F50E9F1D78CF0C00F6FAE5 /* safileio.c */; };
@@ -114,7 +119,6 @@
 		65F50F191D78D3F500F6FAE5 /* pg_config_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EED1D78D3F500F6FAE5 /* pg_config_ext.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		65F50F1A1D78D3F500F6FAE5 /* postgres_ext.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EEE1D78D3F500F6FAE5 /* postgres_ext.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		65F50F1B1D78D3F500F6FAE5 /* libpq-fe.h in Headers */ = {isa = PBXBuildFile; fileRef = 65F50EEF1D78D3F500F6FAE5 /* libpq-fe.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		65F50F1C1D78D3F500F6FAE5 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EF01D78D3F500F6FAE5 /* libpq.a */; };
 		65F5762E1EC714430014B88F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65F576311EC714430014B88F /* Localizable.strings */; };
 		65F5762F1EC714430014B88F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65F576311EC714430014B88F /* Localizable.strings */; };
 /* End PBXBuildFile section */
@@ -171,27 +175,11 @@
 		};
 /* End PBXContainerItemProxy section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		6516037123493E65008174EE /* Embed Libraries */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				6516037223493E70008174EE /* libcrypto.35.dylib in Embed Libraries */,
-				6516037023493E65008174EE /* libssl.35.dylib in Embed Libraries */,
-			);
-			name = "Embed Libraries";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
 		6516036C23493E49008174EE /* libssl.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.35.dylib; path = Libraries/libssl.35.dylib; sourceTree = "<group>"; };
 		6516036D23493E49008174EE /* libcrypto.35.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.35.dylib; path = Libraries/libcrypto.35.dylib; sourceTree = "<group>"; };
 		651BEC661E196F6D0094F8AD /* WarpConduit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpConduit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		651BEC691E196F6D0094F8AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		651BED8E1E1980680094F8AD /* libpq-ios */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libpq-ios"; sourceTree = "<group>"; };
 		65292F401D7CA7030053ADE3 /* SQLiteStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SQLiteStream.swift; path = Sources/SQLiteStream.swift; sourceTree = SOURCE_ROOT; };
 		656822531D78D60600410BA5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		656822651D78D69300410BA5 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
@@ -221,7 +209,6 @@
 		657DF0C31EB8EF4A00CAD84F /* libssh2_sftp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = libssh2_sftp.h; path = Libraries/SSH/libssh2_sftp.h; sourceTree = "<group>"; };
 		657DF0C41EB8EF4A00CAD84F /* libssh2-ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libssh2-ios.a"; path = "Libraries/SSH/libssh2-ios.a"; sourceTree = "<group>"; };
 		657DF0C51EB8EF4A00CAD84F /* libssh2-simulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libssh2-simulator.a"; path = "Libraries/SSH/libssh2-simulator.a"; sourceTree = "<group>"; };
-		657DF0C61EB8EF4A00CAD84F /* libssh2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssh2.a; path = Libraries/SSH/libssh2.a; sourceTree = "<group>"; };
 		657DF0C71EB8EF4A00CAD84F /* libssh2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = libssh2.h; path = Libraries/SSH/libssh2.h; sourceTree = "<group>"; };
 		657DF0D11EB8F0A100CAD84F /* SSHTunnel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SSHTunnel.swift; path = Sources/SSHTunnel.swift; sourceTree = SOURCE_ROOT; };
 		65976DC421045C76006971BE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainWindow.xib; sourceTree = "<group>"; };
@@ -229,10 +216,24 @@
 		65BC51641E1C4566005FEC76 /* libmysqlclient-ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libmysqlclient-ios.a"; path = "Libraries/MySQL/libmysqlclient-ios.a"; sourceTree = SOURCE_ROOT; };
 		65BC51711E1C46EA005FEC76 /* MySQLStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MySQLStream.swift; path = Sources/MySQLStream.swift; sourceTree = SOURCE_ROOT; };
 		65BC51741E1C4D4D005FEC76 /* WarpConduit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WarpConduit.cpp; path = Sources/WarpConduit.cpp; sourceTree = SOURCE_ROOT; };
-		65BC51771E1C4E12005FEC76 /* libmysqlclient-mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libmysqlclient-mac.a"; sourceTree = "<group>"; };
 		65BC51781E1C4E12005FEC76 /* libmysqlclient-simulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libmysqlclient-simulator.a"; sourceTree = "<group>"; };
 		65BC519F1E1C56F6005FEC76 /* WarpCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = WarpCore.xcodeproj; path = ../WarpCore/WarpCore.xcodeproj; sourceTree = "<group>"; };
 		65CCEE151E87CC73004A7483 /* JSONStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = JSONStream.swift; path = Sources/JSONStream.swift; sourceTree = SOURCE_ROOT; };
+		65E0EAC328CE3B0400A33C02 /* libboringssl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libboringssl.tbd; path = usr/lib/libboringssl.tbd; sourceTree = SDKROOT; };
+		65E0EAC828CE3F1900A33C02 /* libmariadbclient-mac-both.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libmariadbclient-mac-both.a"; sourceTree = "<group>"; };
+		65E0EACD28CE3FDD00A33C02 /* libcorecrypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcorecrypto.tbd; path = usr/lib/system/libcorecrypto.tbd; sourceTree = SDKROOT; };
+		65E0EACE28CE3FDD00A33C02 /* libcommonCrypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcommonCrypto.tbd; path = usr/lib/system/libcommonCrypto.tbd; sourceTree = SDKROOT; };
+		65E0EADB28CE448300A33C02 /* libssl-mac-both.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libssl-mac-both.a"; path = "Libraries/libssl-mac-both.a"; sourceTree = "<group>"; };
+		65E0EADC28CE448300A33C02 /* libcrypto-mac-both.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libcrypto-mac-both.a"; path = "Libraries/libcrypto-mac-both.a"; sourceTree = "<group>"; };
+		65E0EADF28CE451D00A33C02 /* libssh2-mac-both.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libssh2-mac-both.a"; path = "Libraries/SSH/libssh2-mac-both.a"; sourceTree = "<group>"; };
+		65E0EAE728CE463D00A33C02 /* libgssapi_krb5.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libgssapi_krb5.tbd; path = usr/lib/libgssapi_krb5.tbd; sourceTree = SDKROOT; };
+		65E0EAE928CE464100A33C02 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		65E0EAEB28CE464F00A33C02 /* libldap.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libldap.tbd; path = usr/lib/libldap.tbd; sourceTree = SDKROOT; };
+		65E0EAED28CE477F00A33C02 /* libpgcommon-mac-both.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libpgcommon-mac-both.a"; sourceTree = "<group>"; };
+		65E0EAEE28CE477F00A33C02 /* libpq-mac-both.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libpq-mac-both.a"; sourceTree = "<group>"; };
+		65E0EAF128CE47B700A33C02 /* libc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libc.tbd; path = usr/lib/libc.tbd; sourceTree = SDKROOT; };
+		65E0EAF328CE480A00A33C02 /* libpgport-mac-both.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libpgport-mac-both.a"; sourceTree = "<group>"; };
+		65E0EAF728CE4A1B00A33C02 /* libpq-ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libpq-ios.a"; path = "Libraries/PostgreSQL/libpq-ios.a"; sourceTree = SOURCE_ROOT; };
 		65F50E891D78CE1000F6FAE5 /* WarpConduit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WarpConduit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		65F50E941D78CE6300F6FAE5 /* WarpConduit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WarpConduit.h; path = Sources/WarpConduit.h; sourceTree = SOURCE_ROOT; };
 		65F50E951D78CE6300F6FAE5 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Sources/Info.plist; sourceTree = SOURCE_ROOT; };
@@ -288,7 +289,6 @@
 		65F50EED1D78D3F500F6FAE5 /* pg_config_ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pg_config_ext.h; sourceTree = "<group>"; };
 		65F50EEE1D78D3F500F6FAE5 /* postgres_ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = postgres_ext.h; sourceTree = "<group>"; };
 		65F50EEF1D78D3F500F6FAE5 /* libpq-fe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "libpq-fe.h"; sourceTree = "<group>"; };
-		65F50EF01D78D3F500F6FAE5 /* libpq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libpq.a; sourceTree = "<group>"; };
 		65F576301EC714430014B88F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		65F576321EC714F10014B88F /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -298,11 +298,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				651BED8F1E1980680094F8AD /* libpq-ios in Frameworks */,
 				65BC51651E1C4567005FEC76 /* libmysqlclient-ios.a in Frameworks */,
-				657DF0C91EB8EF5400CAD84F /* libssh2-simulator.a in Frameworks */,
 				65BC517C1E1C4E12005FEC76 /* libmysqlclient-simulator.a in Frameworks */,
-				657DF0CA1EB8EF5600CAD84F /* libssh2-ios.a in Frameworks */,
+				65E0EAF828CE4A1B00A33C02 /* libpq-ios.a in Frameworks */,
+				65E0EAF528CE49F400A33C02 /* libssh2-ios.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,12 +309,19 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65E0EAF228CE47B700A33C02 /* libc.tbd in Frameworks */,
+				65E0EAEC28CE464F00A33C02 /* libldap.tbd in Frameworks */,
+				65E0EAEF28CE477F00A33C02 /* libpgcommon-mac-both.a in Frameworks */,
+				65E0EAF428CE480A00A33C02 /* libpgport-mac-both.a in Frameworks */,
+				65E0EAEA28CE464100A33C02 /* libz.tbd in Frameworks */,
+				65E0EAE828CE463D00A33C02 /* libgssapi_krb5.tbd in Frameworks */,
+				65E0EAE028CE451D00A33C02 /* libssh2-mac-both.a in Frameworks */,
+				65E0EACC28CE3FC400A33C02 /* libboringssl.tbd in Frameworks */,
+				65E0EAC928CE3F1900A33C02 /* libmariadbclient-mac-both.a in Frameworks */,
 				656822541D78D60600410BA5 /* libiconv.tbd in Frameworks */,
-				65F50F1C1D78D3F500F6FAE5 /* libpq.a in Frameworks */,
-				6516036F23493E49008174EE /* libcrypto.35.dylib in Frameworks */,
-				65BC51791E1C4E12005FEC76 /* libmysqlclient-mac.a in Frameworks */,
-				657DF0C81EB8EF5100CAD84F /* libssh2.a in Frameworks */,
-				6516036E23493E49008174EE /* libssl.35.dylib in Frameworks */,
+				65E0EADD28CE448300A33C02 /* libssl-mac-both.a in Frameworks */,
+				65E0EADE28CE448300A33C02 /* libcrypto-mac-both.a in Frameworks */,
+				65E0EAF028CE477F00A33C02 /* libpq-mac-both.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -406,6 +412,8 @@
 		657DF0B81EB8EF0A00CAD84F /* Vendor */ = {
 			isa = PBXGroup;
 			children = (
+				65E0EADC28CE448300A33C02 /* libcrypto-mac-both.a */,
+				65E0EADB28CE448300A33C02 /* libssl-mac-both.a */,
 				65F50EA41D78CFAC00F6FAE5 /* CSV */,
 				65F50E9D1D78CF0C00F6FAE5 /* DBF */,
 				65F50EC01D78D3F500F6FAE5 /* MySQL */,
@@ -420,11 +428,11 @@
 		657DF0C11EB8EF2F00CAD84F /* SSH */ = {
 			isa = PBXGroup;
 			children = (
+				65E0EADF28CE451D00A33C02 /* libssh2-mac-both.a */,
 				657DF0C21EB8EF4A00CAD84F /* libssh2_publickey.h */,
 				657DF0C31EB8EF4A00CAD84F /* libssh2_sftp.h */,
 				657DF0C41EB8EF4A00CAD84F /* libssh2-ios.a */,
 				657DF0C51EB8EF4A00CAD84F /* libssh2-simulator.a */,
-				657DF0C61EB8EF4A00CAD84F /* libssh2.a */,
 				657DF0C71EB8EF4A00CAD84F /* libssh2.h */,
 			);
 			name = SSH;
@@ -482,6 +490,13 @@
 		65F50E9A1D78CED100F6FAE5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				65E0EAF128CE47B700A33C02 /* libc.tbd */,
+				65E0EAEB28CE464F00A33C02 /* libldap.tbd */,
+				65E0EAE928CE464100A33C02 /* libz.tbd */,
+				65E0EAE728CE463D00A33C02 /* libgssapi_krb5.tbd */,
+				65E0EACE28CE3FDD00A33C02 /* libcommonCrypto.tbd */,
+				65E0EACD28CE3FDD00A33C02 /* libcorecrypto.tbd */,
+				65E0EAC328CE3B0400A33C02 /* libboringssl.tbd */,
 				6516036D23493E49008174EE /* libcrypto.35.dylib */,
 				6516036C23493E49008174EE /* libssl.35.dylib */,
 				656822531D78D60600410BA5 /* libiconv.tbd */,
@@ -525,8 +540,8 @@
 		65F50EC01D78D3F500F6FAE5 /* MySQL */ = {
 			isa = PBXGroup;
 			children = (
+				65E0EAC828CE3F1900A33C02 /* libmariadbclient-mac-both.a */,
 				65BC51641E1C4566005FEC76 /* libmysqlclient-ios.a */,
-				65BC51771E1C4E12005FEC76 /* libmysqlclient-mac.a */,
 				65BC51781E1C4E12005FEC76 /* libmysqlclient-simulator.a */,
 				65F50EC11D78D3F500F6FAE5 /* include */,
 			);
@@ -590,10 +605,12 @@
 		65F50EEA1D78D3F500F6FAE5 /* PostgreSQL */ = {
 			isa = PBXGroup;
 			children = (
+				65E0EAF328CE480A00A33C02 /* libpgport-mac-both.a */,
+				65E0EAED28CE477F00A33C02 /* libpgcommon-mac-both.a */,
+				65E0EAEE28CE477F00A33C02 /* libpq-mac-both.a */,
+				65E0EAF728CE4A1B00A33C02 /* libpq-ios.a */,
 				65F50EEB1D78D3F500F6FAE5 /* include */,
 				65F50EEF1D78D3F500F6FAE5 /* libpq-fe.h */,
-				651BED8E1E1980680094F8AD /* libpq-ios */,
-				65F50EF01D78D3F500F6FAE5 /* libpq.a */,
 			);
 			name = PostgreSQL;
 			path = Libraries/PostgreSQL;
@@ -721,7 +738,6 @@
 				65F50E841D78CE1000F6FAE5 /* Sources */,
 				65F50E851D78CE1000F6FAE5 /* Frameworks */,
 				65F50E871D78CE1000F6FAE5 /* Resources */,
-				6516037123493E65008174EE /* Embed Libraries */,
 			);
 			buildRules = (
 			);
@@ -1157,6 +1173,7 @@
 					"$(PROJECT_DIR)/Libraries/PostgreSQL",
 					"$(PROJECT_DIR)/Libraries",
 					"$(PROJECT_DIR)/Libraries/SSH",
+					"$(SDKROOT)/usr/lib/system",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpConduit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1194,6 +1211,7 @@
 					"$(PROJECT_DIR)/Libraries/PostgreSQL",
 					"$(PROJECT_DIR)/Libraries",
 					"$(PROJECT_DIR)/Libraries/SSH",
+					"$(SDKROOT)/usr/lib/system",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpConduit;
 				PRODUCT_NAME = "$(TARGET_NAME)";

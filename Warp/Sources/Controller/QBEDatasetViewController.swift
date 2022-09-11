@@ -542,7 +542,8 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		if let tv = self.tableView {
 			var w: CGFloat = 25.0 // minimum width
 			let vr = tv.contentView.visibleRect
-			let firstRow = max(0, tv.row(at: CGPoint(x: vr.origin.x + 3.0, y: vr.origin.y + 3.0)))
+            let rowAtPoint = tv.row(at: CGPoint(x: vr.origin.x + 3.0, y: vr.origin.y + 3.0))
+            let firstRow = rowAtPoint == NSNotFound ? 0 : rowAtPoint
 			let lastRow = min(firstRow + maxRowsToConsider, tv.row(at: CGPoint(x: 3.0 + vr.origin.x + vr.size.width, y: 3.0 + vr.origin.y + vr.size.height)))
 			let font = self.valueFont ?? NSFont.systemFont(ofSize: NSFont.systemFontSize)
 

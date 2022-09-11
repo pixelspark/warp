@@ -70,34 +70,52 @@ A `QBEStep` can be configured throgh wat is called a 'sentence' (`QBESentence`).
 ![Sentence bar screenshot](Docs/docs/img/sentencebar.png)
 
 # Dependencies
-Dependencies are fetched automatically as Git submodules. Currently the following are used:
+
+Dependencies are fetched automatically as Git submodules or Swift packages. Currently the following are used:
 
 ### WarpCore
+
 * [SwiftParserGenerator](https://github.com/dparnell/swift-parser-generator) for parsing formulas
 
 ### WarpConduit
+
 * [TCXMLWriter](https://github.com/monkeydom/TCMXMLWriter) for writing to XML files.
-* Libmysqlclient for accessing MySQL (included for OS X and iOS as binary)
-* Libpq for accessing PostgreSQL (included for OS X and iOS as binary)
-* [Libssh2](https://www.libssh2.org) for SSH tunneling
 
 ### Warp
+
 * [Charts](https://github.com/danielgindi/Charts) for chart drawing
 * [Alamofire](https://github.com/Alamofire/Alamofire) for providing HTTP fetch and crawling functionality
 * [MBTableGrid](https://github.com/pixelspark/mbtablegrid) for displaying data
-* [SwiftAI](https://github.com/collinhundley/Swift-AI) for (experimental) machine learning features
-
 
 ### Warp on iOS
+
 * [MDSpreadView](https://github.com/mochidev/MDSpreadView) for drawing tables
 * [Eureka](https://github.com/xmartlabs/Eureka) for forms
 
+WarpConduit contains precompiled (unmodified) binaries of:
 
-WarpConduit contains precompiled (unmodified) binaries of libpq and libmariadbclient. It also contains [SQLite](http://www.sqlite.org), CHCSVParser (by Dave Delong) and portions of Shapelib (by Frank Warmerdam, for reading DBF). 
+* libpq (libpq.a, libpgport.a, libpgcommon.a)
+* libmariadbclient
+* libssh2 
+* OpenSSL (libssl, libcrypto)
+
+These were obtained from Homebrew, as follows:
+
+````sh
+brew fetch --force-bottle libssh2
+````
+
+From the downloaded package, the `libssh2.a` can be extracted. Doing this from both an amd64 and arm64 Mac will result in a version for each platform. To combine these:
+
+````sh
+lipo ./libssh2-amd64.a ./libssh2-arm64.a -create -output ./libssh2-mac-both.a
+````
+
+WarpConduit also contains [SQLite](http://www.sqlite.org), CHCSVParser (by Dave Delong) and portions of Shapelib (by Frank Warmerdam, for reading DBF). 
 
 # Building
 
-Warp is written in Swift 3.0. Building Warp requires the latest XCode 8, on OS X Sierra or higher. After cloning the repository, run a `git submodule init && git submodule update` to fetch dependencies.
+Warp is written in Swift 5.0. Building Warp requires the latest XCode 13, on macOS Monterey or higher. After cloning the repository, run a `git submodule init && git submodule update` to fetch dependencies.
 
 In order to use WarpCore and/or WarpConduit in your own projects, simply drag the corresponding .xcodeproj files to your project/workspace and add as target depdendency. For WarpCore, you need to add the SwiftParser framework (contained in the WarpCore project) to the 'copy files' build phase of your app (as well as WarpCore.framework itself, but XCode should do this automatically when adding it as a dependency). For WarpConduit, you need to add libmariadbclient.a and libpq.a to the list of binaries linked with. You should probably also link to libssl, libcrypto and libiconv. Check out Warp's project settings when in doubt.
 
@@ -112,7 +130,7 @@ Which license applies to which component is usually indicated at the top of each
 ### MIT license (WarpCore, WarpConduit)
 
 ```
-Copyright (c) 2014-2016 Pixelspark, Tommy van der Vorst
+Copyright (c) 2014-2022 Pixelspark, Tommy van der Vorst
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
