@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -74,8 +74,6 @@
 		651C68821C70E9F400F0F048 /* QBENoteTabletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651C68811C70E9F400F0F048 /* QBENoteTabletViewController.swift */; };
 		65436EDD1B30C38000636299 /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65734BC71AB0380200D2C2F6 /* Alamofire.framework */; };
 		65436EDE1B30C38000636299 /* MBTableGrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6510A7361A4D9812005633EF /* MBTableGrid.framework */; };
-		654AA5A51DEE367A0030C7C9 /* Charts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 654AA59E1DEE365D0030C7C9 /* Charts.framework */; };
-		654AA5A61DEE36850030C7C9 /* Charts.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 654AA59E1DEE365D0030C7C9 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6550B6F81E22B20E00DC1448 /* QBEFormulaViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6550B6F71E22B20E00DC1448 /* QBEFormulaViewController.swift */; };
 		6550B6F91E22B36D00DC1448 /* QBEFormula+SyntaxColoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6583EEDB1C14758B00AE6C00 /* QBEFormula+SyntaxColoring.swift */; };
 		6550B6FB1E22D36700DC1448 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 6550B6FA1E22D36700DC1448 /* Settings.bundle */; };
@@ -275,6 +273,7 @@
 		65CCEE2D1E881E08004A7483 /* WarpConduit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 651BEDA81E198F510094F8AD /* WarpConduit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		65D605AF1E96EB7200C6CD01 /* QBERankStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D605AE1E96EB7200C6CD01 /* QBERankStep.swift */; };
 		65D605B01E96EB7200C6CD01 /* QBERankStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D605AE1E96EB7200C6CD01 /* QBERankStep.swift */; };
+		65E0EAA028CE34A900A33C02 /* Charts in Frameworks */ = {isa = PBXBuildFile; productRef = 65E0EA9F28CE34A900A33C02 /* Charts */; };
 		65E1C7C31E219616003221A6 /* MobileTour.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E1C7C51E219616003221A6 /* MobileTour.strings */; };
 		65E224A41D7C600F007433E6 /* WarpCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EBA1D78D2B700F6FAE5 /* WarpCore.framework */; };
 		65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F50EB81D78D2AF00F6FAE5 /* WarpConduit.framework */; };
@@ -459,13 +458,6 @@
 			remoteGlobalIDString = 4CF626F81BA7CB3E0011A099;
 			remoteInfo = "Alamofire tvOS Tests";
 		};
-		65D6FBC4226C5990000A3076 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 65B3F68A1C73CF93000983D0 /* Charts.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = A58A4ED274A941CA248EA921;
-			remoteInfo = Charts;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -490,7 +482,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				654AA5A61DEE36850030C7C9 /* Charts.framework in CopyFiles */,
 				65F50EB91D78D2AF00F6FAE5 /* WarpConduit.framework in CopyFiles */,
 				65F50EBB1D78D2B700F6FAE5 /* WarpCore.framework in CopyFiles */,
 				65734BD91AB0CBBE00D2C2F6 /* Alamofire.framework in CopyFiles */,
@@ -789,10 +780,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				6516036523493B43008174EE /* libboringssl.tbd in Frameworks */,
-				654AA5A51DEE367A0030C7C9 /* Charts.framework in Frameworks */,
 				656822561D78D60E00410BA5 /* libiconv.tbd in Frameworks */,
 				65ABC0EC233D5F7C004630B1 /* MapKit.framework in Frameworks */,
 				65E224A71D7C604C007433E6 /* libpq.a in Frameworks */,
+				65E0EAA028CE34A900A33C02 /* Charts in Frameworks */,
 				65E224A51D7C6015007433E6 /* WarpConduit.framework in Frameworks */,
 				65E224A41D7C600F007433E6 /* WarpCore.framework in Frameworks */,
 				6516036B23493D07008174EE /* CryptoTokenKit.framework in Frameworks */,
@@ -1318,11 +1309,13 @@
 			buildRules = (
 			);
 			dependencies = (
-				65D6FBC5226C5990000A3076 /* PBXTargetDependency */,
 				65734BCE1AB0380F00D2C2F6 /* PBXTargetDependency */,
 				6510A7381A4D982E005633EF /* PBXTargetDependency */,
 			);
 			name = Warp;
+			packageProductDependencies = (
+				65E0EA9F28CE34A900A33C02 /* Charts */,
+			);
 			productName = QBE;
 			productReference = 65E3C2EC1A062E5E007BB3C8 /* Warp.app */;
 			productType = "com.apple.product-type.application";
@@ -1400,6 +1393,9 @@
 				Base,
 			);
 			mainGroup = 65E3C2AB1A05222F007BB3C8;
+			packageReferences = (
+				65E0EA9E28CE34A900A33C02 /* XCRemoteSwiftPackageReference "Charts" */,
+			);
 			productRefGroup = 65E3C2B61A05222F007BB3C8 /* Products */;
 			projectDirPath = "";
 			projectReferences = (
@@ -1887,11 +1883,6 @@
 			name = "Alamofire OSX Tests";
 			targetProxy = 65734BCF1AB0381500D2C2F6 /* PBXContainerItemProxy */;
 		};
-		65D6FBC5226C5990000A3076 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Charts;
-			targetProxy = 65D6FBC4226C5990000A3076 /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -2286,7 +2277,10 @@
 				);
 				INFOPLIST_FILE = WarpMobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 4.3;
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpMobile;
 				PRODUCT_NAME = Warp;
@@ -2317,7 +2311,10 @@
 				);
 				INFOPLIST_FILE = WarpMobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 4.3;
 				PRODUCT_BUNDLE_IDENTIFIER = nl.pixelspark.warp.WarpMobile;
 				PRODUCT_NAME = Warp;
@@ -2463,8 +2460,9 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OBJC_BRIDGING_HEADER = Sources/QBEObjectiveCBridge.h;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -2489,7 +2487,10 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/system",
@@ -2529,7 +2530,10 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/system",
@@ -2565,7 +2569,11 @@
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = Tests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
@@ -2585,7 +2593,11 @@
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = Tests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "nl.pixelspark.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
@@ -2634,6 +2646,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		65E0EA9E28CE34A900A33C02 /* XCRemoteSwiftPackageReference "Charts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/danielgindi/Charts.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		65E0EA9F28CE34A900A33C02 /* Charts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 65E0EA9E28CE34A900A33C02 /* XCRemoteSwiftPackageReference "Charts" */;
+			productName = Charts;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 65E3C2AC1A05222F007BB3C8 /* Project object */;
 }

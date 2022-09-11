@@ -169,7 +169,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
 						let yse = ys.enumerated().map { idx, i in return ChartDataEntry(x: xVals[idx], y: i) }
 
-						let ds = LineChartDataSet(values: yse, label: r.columns[ySeriesIndex].name)
+                        let ds = LineChartDataSet(entries: yse, label: r.columns[ySeriesIndex].name)
 						ds.drawValuesEnabled = false
 						ds.drawCirclesEnabled = false
 						ds.colors = [colors[(ySeriesIndex - 1) % colors.count]]
@@ -194,7 +194,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 						let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
 						let yse = ys.enumerated().map { idx, i in return ChartDataEntry(x: xVals[idx], y: i) }
 
-						let ds = RadarChartDataSet(values: yse, label: r.columns[ySeriesIndex].name)
+                        let ds = RadarChartDataSet(entries: yse, label: r.columns[ySeriesIndex].name)
 						ds.drawValuesEnabled = false
 						ds.colors = [colors[(ySeriesIndex - 1) % colors.count]]
 						data.append(ds)
@@ -217,7 +217,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 					for (idx, y) in ys.enumerated() {
 						min = y < min ? y : min
 						let yse = [BarChartDataEntry(x: Double(idx), y: y)]
-						let ds = BarChartDataSet(values: yse, label: xs[idx].stringValue ?? "")
+                        let ds = BarChartDataSet(entries: yse, label: xs[idx].stringValue ?? "")
 						ds.drawValuesEnabled = false
 						ds.colors = [colors[idx % colors.count]]
 						data.append(ds)
@@ -246,7 +246,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 				let ys = r.rows.map { chart.yExpression.apply($0, foreign: nil, inputValue: nil).doubleValue ?? Double.nan }
 
 				let yse = ys.enumerated().map { (idx, val) in PieChartDataEntry(value: val, label: xVals[idx]) }
-				let ds = PieChartDataSet(values: yse, label: "Data")
+                let ds = PieChartDataSet(entries: yse, label: "Data")
 				ds.drawValuesEnabled = true
 				ds.colors = colors
 				data.append(ds)
