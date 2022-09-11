@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="20037" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="10117"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="20037"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="QBEAlterTableViewController" customModule="Warp" customModuleProvider="target">
@@ -27,7 +27,7 @@
             <autoresizingMask key="autoresizingMask"/>
             <subviews>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="oQG-Gu-VK1">
-                    <rect key="frame" x="598" y="3" width="115" height="32"/>
+                    <rect key="frame" x="604" y="3" width="110" height="32"/>
                     <buttonCell key="cell" type="push" title="Create table" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Zh7-6N-m3d">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -40,7 +40,7 @@ DQ
                     </connections>
                 </button>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="XlI-Cl-Z82">
-                    <rect key="frame" x="518" y="3" width="82" height="32"/>
+                    <rect key="frame" x="532" y="3" width="76" height="32"/>
                     <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="oM7-iK-kU7">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -56,7 +56,7 @@ Gw
                     <rect key="frame" x="10" y="10" width="16" height="16"/>
                 </progressIndicator>
                 <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="8vj-Eh-trt">
-                    <rect key="frame" x="34" y="10" width="37" height="17"/>
+                    <rect key="frame" x="34" y="10" width="37" height="16"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="IVf-eW-Cqe">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -64,7 +64,7 @@ Gw
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ytI-Q4-c61">
-                    <rect key="frame" x="8" y="277" width="40" height="17"/>
+                    <rect key="frame" x="8" y="278" width="40" height="16"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="IZA-R9-7AG">
                         <font key="font" metaFont="systemBold"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -72,7 +72,7 @@ Gw
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="mTE-5E-fTp">
-                    <rect key="frame" x="8" y="250" width="78" height="17"/>
+                    <rect key="frame" x="8" y="252" width="77" height="16"/>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Table name:" id="oAY-pI-QTd">
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -80,21 +80,20 @@ Gw
                     </textFieldCell>
                 </textField>
                 <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="s7N-Tu-kkJ">
-                    <rect key="frame" x="10" y="67" width="697" height="173"/>
+                    <rect key="frame" x="10" y="66" width="697" height="176"/>
                     <clipView key="contentView" id="yAr-qO-Lrj">
-                        <rect key="frame" x="1" y="0.0" width="695" height="172"/>
+                        <rect key="frame" x="1" y="1" width="695" height="174"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnSelection="YES" autosaveColumns="NO" headerView="kmf-VH-yIX" id="1Bg-9Z-GDW">
-                                <rect key="frame" x="0.0" y="0.0" width="695" height="149"/>
-                                <autoresizingMask key="autoresizingMask"/>
+                                <rect key="frame" x="0.0" y="0.0" width="695" height="151"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <size key="intercellSpacing" width="3" height="2"/>
                                 <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                 <tableColumns>
                                     <tableColumn identifier="columnName" width="400" minWidth="40" maxWidth="1000" id="YF0-Ur-IRV">
                                         <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Columns">
-                                            <font key="font" metaFont="smallSystem"/>
                                             <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                         </tableHeaderCell>
@@ -112,23 +111,22 @@ Gw
                                 </connections>
                             </tableView>
                         </subviews>
-                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </clipView>
-                    <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="z56-Ti-fPT">
+                    <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="z56-Ti-fPT">
                         <rect key="frame" x="1" y="119" width="223" height="15"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
-                    <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="dTS-Ch-Iyy">
+                    <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="dTS-Ch-Iyy">
                         <rect key="frame" x="680" y="23" width="16" height="0.0"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </scroller>
-                    <tableHeaderView key="headerView" id="kmf-VH-yIX">
+                    <tableHeaderView key="headerView" wantsLayer="YES" id="kmf-VH-yIX">
                         <rect key="frame" x="0.0" y="0.0" width="695" height="23"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </tableHeaderView>
                 </scrollView>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="PY9-Ra-Crg">
-                    <rect key="frame" x="114" y="29" width="137" height="32"/>
+                    <rect key="frame" x="105" y="29" width="132" height="32"/>
                     <buttonCell key="cell" type="push" title="Remove column" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="rui-WR-Jvw">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -138,7 +136,7 @@ Gw
                     </connections>
                 </button>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="2c3-9o-rIQ">
-                    <rect key="frame" x="4" y="29" width="112" height="32"/>
+                    <rect key="frame" x="3" y="29" width="106" height="32"/>
                     <buttonCell key="cell" type="push" title="Add column" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="jEz-7g-lhd">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -148,13 +146,13 @@ Gw
                     </connections>
                 </button>
                 <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ura-aR-Kc5">
-                    <rect key="frame" x="94" y="247" width="200" height="22"/>
+                    <rect key="frame" x="93" y="249" width="200" height="21"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="200" id="zJx-9P-Iog"/>
                     </constraints>
                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="VqQ-47-bbn">
                         <font key="font" metaFont="system"/>
-                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                     <connections>
@@ -163,7 +161,7 @@ Gw
                     </connections>
                 </textField>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Psf-D7-Wh9">
-                    <rect key="frame" x="249" y="29" width="160" height="32"/>
+                    <rect key="frame" x="233" y="29" width="154" height="32"/>
                     <buttonCell key="cell" type="push" title="Remove all columns" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="kGl-gk-d1C">
                         <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="system"/>
@@ -201,6 +199,7 @@ Gw
                 <constraint firstItem="2c3-9o-rIQ" firstAttribute="leading" secondItem="4Hu-CK-ZIY" secondAttribute="leading" constant="10" id="wZL-RG-r0e"/>
                 <constraint firstItem="8vj-Eh-trt" firstAttribute="centerY" secondItem="oeX-k0-gKz" secondAttribute="centerY" id="ygc-E2-vjL"/>
             </constraints>
+            <point key="canvasLocation" x="141" y="154"/>
         </view>
     </objects>
 </document>
