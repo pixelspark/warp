@@ -827,7 +827,7 @@ internal enum QBEEditingMode {
 						let targetColumn = Column.defaultNameForNewColumn(raster.columns)
 
 						self.suggestions = Future<[QBEStep]>({(job, callback) -> () in
-							job.async {
+							asyncMain {
 								let expressions = QBECalculateStep.suggest(change: nil, toValue: value, inRaster: raster, row: row, column: nil, locale: self.locale, job: job)
 								callback(expressions.map({QBECalculateStep(previous: self.currentStep, targetColumn: targetColumn, function: $0)}))
 							}
