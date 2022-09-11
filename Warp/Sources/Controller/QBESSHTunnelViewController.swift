@@ -121,7 +121,7 @@ class QBESSHTunnelViewController: NSViewController {
 				}
 
 				if !error {
-					self.configuration.hostFingerprint = Data(bytes: numbers)
+					self.configuration.hostFingerprint = Data(numbers)
 				}
 				else {
 					NSAlert.showSimpleAlert("The host fingerprint is invalid".localized, infoText: "", style: .warning, window: self.view.window)

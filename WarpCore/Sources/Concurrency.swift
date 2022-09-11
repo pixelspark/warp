@@ -166,7 +166,7 @@ public func asyncMain(_ block: @escaping () -> ()) {
 }*/
 
 public func eachConcurrently<Element>(_ s: AnySequence<Element>, maxConcurrent: Int, maxPerSecond: Int?, each: @escaping (Element, @escaping () -> ()) -> (), completion: @escaping () -> ()) {
-	var iterator = s.makeIterator()
+	let iterator = s.makeIterator()
 	let mutex = Mutex()
 	var outstanding = 0
 

@@ -139,32 +139,43 @@ class QBECrawlStream: WarpCore.Stream {
 									request.cachePolicy = .returnCacheDataElseLoad
 									
 									let startTime = CFAbsoluteTimeGetCurrent()
-									Alamofire.request(request as URLRequest).responseString(encoding: String.Encoding.utf8) { response in
-										let data = response.result.value
+									AF.request(request as URLRequest).responseString(encoding: String.Encoding.utf8) { response in
+                                        let duration = CFAbsoluteTimeGetCurrent() - startTime
+                                        if let timeColumn = self.crawler.targetResponseTimeColumn {
+                                            row.setValue(Value(duration), forColumn: timeColumn)
+                                        }
+                                        
+                                        switch response.result {
+                                        case .success(let data):
+                                            // Store results in the row
+                                            if let bodyColumn = self.crawler.targetBodyColumn {
+                                                row.setValue(Value.string(data), forColumn: bodyColumn)
+                                            }
+                                            
+                                            if let statusColumn = self.crawler.targetStatusColumn {
+                                                row.setValue(Value(response.response!.statusCode), forColumn: statusColumn)
+                                            }
+                                            
+                                            if let errorColumn = self.crawler.targetErrorColumn {
+                                                row.setValue(Value.empty, forColumn: errorColumn)
+                                            }
 
-										let duration = CFAbsoluteTimeGetCurrent() - startTime
-										
-										// Store results in the row
-										if let bodyColumn = self.crawler.targetBodyColumn {
-											row.setValue(data != nil ? Value(data!) : Value.invalid, forColumn: bodyColumn)
-										}
-										
-										if let statusColumn = self.crawler.targetStatusColumn {
-											row.setValue(response.response != nil ? Value(response.response!.statusCode) : Value.invalid, forColumn: statusColumn)
-										}
-										
-										if let errorColumn = self.crawler.targetErrorColumn {
-											row.setValue(response.result.isFailure ? Value("\(response.result.error!)") : Value.empty, forColumn: errorColumn)
-										}
-										
-										if let timeColumn = self.crawler.targetResponseTimeColumn {
-											row.setValue(Value(duration), forColumn: timeColumn)
-										}
-										
-										asyncMain {
-											outRows.append(row.values)
-											callback()
-										}
+                                            asyncMain {
+                                                outRows.append(row.values)
+                                                callback()
+                                            }
+                                            
+                                        case.failure(let error):
+                                            if let bodyColumn = self.crawler.targetBodyColumn {
+                                                row.setValue(Value.invalid, forColumn: bodyColumn)
+                                            }
+                                            if let statusColumn = self.crawler.targetStatusColumn {
+                                                row.setValue(Value.invalid, forColumn: statusColumn)
+                                            }
+                                            if let errorColumn = self.crawler.targetErrorColumn {
+                                                row.setValue(Value.string(error.localizedDescription), forColumn: errorColumn)
+                                            }
+                                        }
 									}
 								}
 								else {

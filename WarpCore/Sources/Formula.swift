@@ -91,8 +91,8 @@ public class Formula: Parser {
 	}
 	
 	private func pushTimestamp() {
-		let ts = self.text.substring(from: self.text.index(self.text.startIndex, offsetBy: 1))
-		if let n = self.locale.numberFormatter.number(from: ts) {
+        let ts = self.text[self.text.index(self.text.startIndex, offsetBy: 1)...]
+        if let n = self.locale.numberFormatter.number(from: String(ts)) {
 			annotate(stack.push(Literal(Value.date(n.doubleValue))))
 		}
 		else {

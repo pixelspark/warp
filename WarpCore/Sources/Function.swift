@@ -1117,7 +1117,7 @@ public enum Function: String {
 				if let idx = arguments[1].intValue {
 					if s.count >= idx {
 						let index = s.index(s.startIndex, offsetBy: idx)
-						return Value(s[..<index].substring(to: index))
+                        return Value(String(s[..<index][...index]))
 					}
 				}
 			}
@@ -1128,7 +1128,7 @@ public enum Function: String {
 				if let idx = arguments[1].intValue {
 					if s.count >= idx {
 						let index = s.index(s.endIndex, offsetBy: -idx)
-						return Value(s.substring(from: index))
+                        return Value(String(s[index...]))
 					}
 				}
 			}
@@ -1143,7 +1143,7 @@ public enum Function: String {
 							let index = s.index(s.startIndex, offsetBy: start)
 							let end = sourceLength >= (start+length) ? s.index(index, offsetBy: length) : s.endIndex
 							
-							return Value(s.substring(with: index..<end))
+							return Value(String(s[index..<end]))
 						}
 					}
 				}

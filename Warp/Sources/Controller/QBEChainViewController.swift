@@ -227,10 +227,10 @@ internal enum QBEEditingMode {
 		outletDropView.delegate = self
 		self.view.addSubview(self.outletDropView, positioned: NSWindow.OrderingMode.above, relativeTo: nil)
 		self.view.addConstraints([
-			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0),
-			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0),
-			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutConstraint.Attribute.left, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.left, multiplier: 1.0, constant: 0.0),
-			NSLayoutConstraint(item: outletDropView, attribute: NSLayoutConstraint.Attribute.right, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.right, multiplier: 1.0, constant: 0.0)
+			NSLayoutConstraint(item: outletDropView!, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1.0, constant: 0.0),
+			NSLayoutConstraint(item: outletDropView!, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1.0, constant: 0.0),
+			NSLayoutConstraint(item: outletDropView!, attribute: NSLayoutConstraint.Attribute.left, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.left, multiplier: 1.0, constant: 0.0),
+            NSLayoutConstraint(item: outletDropView!, attribute: NSLayoutConstraint.Attribute.right, relatedBy: NSLayoutConstraint.Relation.equal, toItem: self.view, attribute: NSLayoutConstraint.Attribute.right, multiplier: 1.0, constant: 0.0)
 		])
 	}
 	
@@ -1103,7 +1103,7 @@ internal enum QBEEditingMode {
 				QBERenameStep(previous: self.currentStep, renames: [column: to])
 			])
 
-		case .editing(_):
+		case .editing(_,_):
 			// Actually edit
 			let errorText = String(format: NSLocalizedString("Could not rename column '%@' to '%@'", comment: ""), column.name, to.name)
 			let job = Job(.userInitiated)
@@ -1321,12 +1321,8 @@ internal enum QBEEditingMode {
 	func suggestionsView(_ view: NSViewController, didSelectAlternativeStep step: QBEStep) {
 		step.removeFromChain()
 		var s = chain?.head
-		print("Suggest \(step)")
-		print("Head is \(chain?.head)")
 		while let ss = s {
-			print("Step \(ss.previous) -> \(ss) -> \(ss.next)")
 			if let alts = ss.alternatives, alts.contains(step) {
-				print("Has alt")
 				// The proposed step is an alternative to this one
 				ss.next?.previous = step
 				step.previous = ss.previous
@@ -2432,7 +2428,7 @@ internal enum QBEEditingMode {
 		else if item.action == #selector(QBEChainViewController.toggleEditing(_:)) {
 			if let c = item.view as? NSButton {
 				switch self.editingMode {
-				case .editing(_):
+				case .editing(_,_):
 					c.state = NSControl.StateValue.on
 
 				case .enablingEditing:

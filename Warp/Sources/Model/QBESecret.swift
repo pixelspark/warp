@@ -24,8 +24,8 @@ public class QBESecret: Equatable, CustomStringConvertible {
 		let q: [String : Any] = [
 			kSecClass as String: kSecClassGenericPassword,
 			//kSecAttrService as String: serviceType,
-			kSecReturnAttributes as String: kCFBooleanTrue,
-			kSecReturnRef as String: kCFBooleanTrue,
+            kSecReturnAttributes as String: kCFBooleanTrue!,
+			kSecReturnRef as String: kCFBooleanTrue!,
 			kSecMatchLimit as String: kSecMatchLimitAll
 		]
 

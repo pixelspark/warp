@@ -63,7 +63,7 @@ class QBETabletArrow: NSObject, QBEArrow {
 /** A 'tablet' is an interactive widget that is contained in the document that allows visualisation and/or manipulation
 of data. A tablet has a rectangular shape and a certain position in the document ('frame'). */
 @objc class QBETablet: NSObject, NSSecureCoding {
-	weak internal(set) var document: QBEDocument? = nil
+	weak internal var document: QBEDocument? = nil
 	var frame: CGRect? = nil
 
 	/** An arrow is a dependency between two tablets. */

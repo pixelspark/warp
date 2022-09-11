@@ -76,7 +76,7 @@ internal class QBEColumnsStepView: QBEConfigurableStepViewControllerFor<QBEColum
 				return columns[row].name
 			}
 			else {
-				return NSNumber(value: step.columns.index(of: columns[row]) != nil)
+                return NSNumber(value: step.columns.firstIndex(of: columns[row]) != nil)
 			}
 		}
 		return nil

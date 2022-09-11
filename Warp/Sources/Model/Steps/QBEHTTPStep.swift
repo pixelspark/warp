@@ -42,14 +42,15 @@ class QBEHTTPStream: WarpCore.Stream {
 				request.httpMethod = "GET"
 				request.cachePolicy = .reloadRevalidatingCacheData
 
-				Alamofire.request(request as URLRequest).responseString(encoding: String.Encoding.utf8) { response in
+				AF.request(request as URLRequest).responseString(encoding: String.Encoding.utf8) { response in
 					let value: Value
-					if let data = response.result.value {
-						value = Value(data)
-					}
-					else {
-						value = .invalid
-					}
+                    switch response.result {
+                        case .success(let v):
+                            value = Value(v)
+                        case .failure(_):
+                            value = Value.invalid
+                        
+                    }
 
 					let rows = [[value]]
 					consumer(.success(rows), .finished)

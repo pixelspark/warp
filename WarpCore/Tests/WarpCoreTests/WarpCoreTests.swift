@@ -1110,7 +1110,6 @@ class WarpCoreTests: XCTestCase {
 	}
 
 	func testFunctionDocumentation() {
-		let dutch = Language(language: "nl")
 		let language = Language(language: Language.defaultLanguage)
 
 		var doc: [String] = []

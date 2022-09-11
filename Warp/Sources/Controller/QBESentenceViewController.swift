@@ -34,7 +34,7 @@ class QBESentenceViewController: NSViewController, NSTokenFieldDelegate, NSTextF
 		}
 		set {
 			assertMainThread()
-			tokenField.isEnabled = enabled
+			tokenField.isEnabled = newValue
 		}
 	}
 

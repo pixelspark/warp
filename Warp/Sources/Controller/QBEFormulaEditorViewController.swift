@@ -39,7 +39,7 @@ class QBEFormulaEditorViewController: NSViewController, QBEReferenceViewDelegate
 				let er = lastSelectedRange ?? ed.selectedRange
 				if er.length > 0 {
 					ed.selectedRange = er
-					let selectedText = NSString(string: ed.string ?? "").substring(with: er)
+					let selectedText = NSString(string: ed.string).substring(with: er)
 					let replacement: String
 					if let f = Formula(formula: selectedText, locale: locale) {
 						let wrapped = Call(arguments: [f.root], type: didSelectFunction)

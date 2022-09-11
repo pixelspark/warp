@@ -12,7 +12,7 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import Foundation
 import WarpCore
 
-extension RangeReplaceableCollection where Index : Comparable {
+extension RangeReplaceableCollection {
 	mutating func removeAtIndices<S : Sequence>(_ indices: S) where S.Iterator.Element == Index {
 		indices.sorted().lazy.reversed().forEach{ remove(at: $0) }
 	}

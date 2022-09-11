@@ -21,7 +21,6 @@
 #import <MBTableGrid/MBTableGridFooterView.h>
 #import <MBTableGrid/MBTableGridCell.h>
 #import <MBTableGrid/MBTableGridHeaderCell.h>
-#import <MBTableGrid/MBFooterTextCell.h>
 #endif
 
 #if TARGET_OS_IPHONE

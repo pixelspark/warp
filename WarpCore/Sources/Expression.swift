@@ -486,12 +486,12 @@ public final class Comparison: Expression {
 					else if let targetString = toValue.stringValue, let fromString = f.stringValue {
 						if !targetString.isEmpty && !fromString.isEmpty && fromString.count < targetString.count {
 							// See if the target string shares a prefix with the source string
-							let targetPrefix = targetString.substring(with: targetString.startIndex..<targetString.index(targetString.startIndex, offsetBy: fromString.count))
+							let targetPrefix = targetString[targetString.startIndex..<targetString.index(targetString.startIndex, offsetBy: fromString.count)]
 							if fromString == targetPrefix {
-								let postfix = targetString.substring(with: targetString.index(targetString.startIndex, offsetBy: fromString.count)..<targetString.endIndex)
+								let postfix = targetString[targetString.index(targetString.startIndex, offsetBy: fromString.count)..<targetString.endIndex]
 								print("'\(fromString)' => '\(targetString)' share prefix: '\(targetPrefix)' need postfix: '\(postfix)'")
 
-								let postfixSuggestions = Expression.infer(nil, toValue: Value.string(postfix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+                                let postfixSuggestions = Expression.infer(nil, toValue: Value.string(String(postfix)), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 								
 								postfixSuggestions.forEach {
 									suggestions.append(Comparison(first: $0, second: from, type: Binary.concatenation))
@@ -500,12 +500,12 @@ public final class Comparison: Expression {
 							else {
 								// See if the target string shares a postfix with the source string
 								let prefixLength = targetString.count - fromString.count
-								let targetPostfix = targetString.substring(with: targetString.index(targetString.startIndex, offsetBy: prefixLength)..<targetString.endIndex)
+								let targetPostfix = targetString[targetString.index(targetString.startIndex, offsetBy: prefixLength)..<targetString.endIndex]
 								if fromString == targetPostfix {
-									let prefix = targetString.substring(with: targetString.startIndex..<targetString.index(targetString.startIndex, offsetBy: prefixLength))
+									let prefix = targetString[targetString.startIndex..<targetString.index(targetString.startIndex, offsetBy: prefixLength)]
 									print("'\(fromString)' => '\(targetString)' share postfix: '\(targetPostfix)' need prefix: '\(prefix)'")
 									
-									let prefixSuggestions = Expression.infer(nil, toValue: Value.string(prefix), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
+                                    let prefixSuggestions = Expression.infer(nil, toValue: Value.string(String(prefix)), level: level-1, row: row, column: 0, maxComplexity: Int.max, previousValues: [toValue, f], job: job)
 									
 									prefixSuggestions.forEach {
 										suggestions.append(Comparison(first: from, second: $0, type: Binary.concatenation))

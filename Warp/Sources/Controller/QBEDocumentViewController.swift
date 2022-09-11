@@ -392,7 +392,7 @@ import WarpCore
 	private func cycleTablets(_ offset: Int) {
 		if let d = self.document, d.tablets.count > 0 {
 			let currentTablet = documentView.selectedTablet ?? d.tablets[0]
-			if let index = d.tablets.index(of: currentTablet) {
+            if let index = d.tablets.firstIndex(of: currentTablet) {
 				let nextIndex = (index+offset) % d.tablets.count
 				let nextTablet = d.tablets[nextIndex]
 				self.documentView.selectTablet(nextTablet)

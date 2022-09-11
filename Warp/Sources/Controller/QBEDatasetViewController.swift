@@ -157,7 +157,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 			/* Store the current scroll position. Setting raster to nil will reset scrolling, but we want the original 
 			scroll position again when raster is set to a non-null value. */
 			if oldValue != nil {
-				visibleContentRect = self.tableView?.contentView().visibleRect
+                visibleContentRect = self.tableView?.contentView.visibleRect
 			}
 
 			footerCells.forEach { $0.value.cancel() }
@@ -169,7 +169,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 
 			// Restore earlier scroll position
 			if let visibleRect = self.visibleContentRect {
-				self.tableView?.contentView().scrollToVisible(visibleRect)
+				self.tableView?.contentView.scrollToVisible(visibleRect)
 			}
 		}
 	}
@@ -541,7 +541,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 
 		if let tv = self.tableView {
 			var w: CGFloat = 25.0 // minimum width
-			let vr = tv.contentView().visibleRect
+			let vr = tv.contentView.visibleRect
 			let firstRow = max(0, tv.row(at: CGPoint(x: vr.origin.x + 3.0, y: vr.origin.y + 3.0)))
 			let lastRow = min(firstRow + maxRowsToConsider, tv.row(at: CGPoint(x: 3.0 + vr.origin.x + vr.size.width, y: 3.0 + vr.origin.y + vr.size.height)))
 			let font = self.valueFont ?? NSFont.systemFont(ofSize: NSFont.systemFontSize)
@@ -668,7 +668,7 @@ class QBEDatasetViewController: NSViewController, MBTableGridDataSource, MBTable
 		if let tv = self.tableView {
 			tv.rowHeaderView.headerCell?.labelFont = self.valueFont
 			tv.columnHeaderView.headerCell?.labelFont = self.valueFont
-			tv.contentView().rowHeight = monospace ? 16.0 : 18.0
+			tv.contentView.rowHeight = monospace ? 16.0 : 18.0
 		}
 	}
 	

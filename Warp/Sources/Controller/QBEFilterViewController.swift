@@ -127,7 +127,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 	
 	func tableView(_ tableView: NSTableView, setObjectValue object: Any?, for tableColumn: NSTableColumn?, row: Int) {
 		if row < values.count {
-			switch convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) ?? "" {
+			switch convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) {
 				case "selected":
 					if (object as? Bool) ?? false {
 						filter.selectedValues.insert(values[row].0)
@@ -147,7 +147,7 @@ class QBEFilterViewController: NSViewController, NSTableViewDataSource, NSTableV
 		if row < values.count {
 			let value = values[row].0
 
-			switch convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) ?? "" {
+			switch convertFromNSUserInterfaceItemIdentifier((tableColumn?.identifier)!) {
 				case "value":
 					switch value {
 						case .empty:
