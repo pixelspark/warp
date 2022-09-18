@@ -102,17 +102,19 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 		pasteboard.declareTypes([QBEStepsViewController.dragType, QBEStep.dragType], owner: nil)
 		
 		// We're writing an internal drag item (just the index) and an external drag item (serialized step)
-		let data = NSKeyedArchiver.archivedData(withRootObject: indexes)
-		pasteboard.setData(data, forType: QBEStepsViewController.dragType)
-		
-		let first = indexes.first
-		if first != NSNotFound {
-			if let step = steps?[first!] {
-				let fullData = NSKeyedArchiver.archivedData(withRootObject: step)
-				pasteboard.setData(fullData, forType: QBEStep.dragType)
-			}
-		}
-		
+        
+        let data = try? NSKeyedArchiver.archivedData(withRootObject: indexes, requiringSecureCoding: true)
+        
+        pasteboard.setData(data, forType: QBEStepsViewController.dragType)
+        
+        let first = indexes.first
+        if first != NSNotFound {
+            if let step = steps?[first!] {
+                let fullData = try? NSKeyedArchiver.archivedData(withRootObject: step, requiringSecureCoding: true)
+                pasteboard.setData(fullData, forType: QBEStep.dragType)
+            }
+        }
+        
 		return true
 	}
 	
@@ -128,7 +130,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 			// Check if we're doing an internal move
 			if	let data = pboard.data(forType: QBEStepsViewController.dragType),
 				let ds = draggingInfo.draggingSource as? NSCollectionView, ds == collectionView {
-				if let indices = NSKeyedUnarchiver.unarchiveObject(with: data) as? IndexSet {
+                if let indices = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? IndexSet {
 					let draggedIndex = indices.first
 					
 					if let d = draggedIndex, d < s.count {
@@ -141,7 +143,7 @@ class QBEStepsViewController: NSViewController, NSCollectionViewDelegate {
 			}
 			// ... or are receiving a step from some other place
 			else if let data = pboard.data(forType: QBEStep.dragType) {
-				if let step = NSKeyedUnarchiver.unarchiveObject(with: data) as? QBEStep {
+				if let step = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? QBEStep {
 					// We only want the dragged step, not its predecessors
 					step.previous = nil
 					self.delegate?.stepsController(self, didInsertStep: step, afterStep: afterStep)

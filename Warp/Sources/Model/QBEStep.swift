@@ -180,8 +180,8 @@ public class QBEStep: NSObject, QBEConfigurable, NSCoding {
 	}
 
 	public func clone() -> QBEStep {
-		let data = NSKeyedArchiver.archivedData(withRootObject: self)
-		return NSKeyedUnarchiver.unarchiveObject(with: data) as! QBEStep
+		let data = try! NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: true)
+		return try! NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as! QBEStep
 	}
 }
 

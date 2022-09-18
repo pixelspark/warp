@@ -12,6 +12,7 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import Cocoa
 import Charts
 import WarpCore
+import UniformTypeIdentifiers
 
 class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDelegate, NSUserInterfaceValidations, JobDelegate {
 	@IBOutlet var chartView: NSView!
@@ -290,7 +291,7 @@ class QBEChartTabletViewController: QBETabletViewController, QBESentenceViewDele
 	@IBAction func exportFile(_ sender: NSObject) {
 		if let w = self.view.window, let chartView = self.chartBaseView {
 			let panel = NSSavePanel()
-			panel.allowedFileTypes = ["png"]
+            panel.allowedContentTypes = [UTType.png]
 			panel.beginSheetModal(for: w) { (result) -> Void in
 				if result == NSApplication.ModalResponse.OK {
 					if let path = panel.url?.path {

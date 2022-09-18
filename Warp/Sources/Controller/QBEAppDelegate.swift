@@ -11,6 +11,7 @@ You should have received a copy of the GNU General Public License along with thi
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 import Cocoa
 import WarpCore
+import UniformTypeIdentifiers
 
 @NSApplicationMain
 class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
@@ -19,6 +20,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 	
 	func applicationDidFinishLaunching(_ aNotification: Notification) {
 		applyDefaults()
+        
 		NSUserNotificationCenter.default.delegate = self
 		NotificationCenter.default.addObserver(self, selector: #selector(QBEAppDelegate.defaultsChanged(_:)), name: UserDefaults.didChangeNotification, object: nil)
 	}
@@ -54,7 +56,7 @@ class QBEAppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterD
 		do {
 			try (u as NSURL).getResourceValue(&type, forKey: URLResourceKey.typeIdentifierKey)
 			if let uti = type as? String {
-				if NSWorkspace.shared.type(uti, conformsToType: "nl.pixelspark.Warp.Document") {
+                if(UTType(uti)!.conforms(to: UTType("nl.pixelspark.Warp.Document")!)) {
 					dc.openDocument(withContentsOf: u, display: true, completionHandler: { (doc, alreadyOpen, error) -> Void in
 					})
 					return true

@@ -10,6 +10,7 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Ge
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 import Cocoa
+import UniformTypeIdentifiers
 
 @objc protocol QBEOutletDropTarget: NSObjectProtocol {
 	func receiveDropFromOutlet(_ draggedObject: AnyObject?)
@@ -274,9 +275,9 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 					at the same time (for outlet connection inside the app) we subclass NSFilePromiseProvider here. Note
 					that for some reason, proxying NSFilePromiseProvider doesn't work. */
 					class QBEOutletFilePromiseProvider: NSFilePromiseProvider {
-						convenience init(fileType: String, delegate: NSFilePromiseProviderDelegate) {
+						convenience init(fileType: UTType, delegate: NSFilePromiseProviderDelegate) {
 							self.init()
-							self.fileType = fileType
+                            self.fileType = fileType.identifier
 							self.delegate = delegate
 						}
 
@@ -301,7 +302,7 @@ will be the sending QBEOutletView) and then obtain the draggedObject from that v
 						}
 					}
 
-					let promisedFile = QBEOutletFilePromiseProvider(fileType: kUTTypeCommaSeparatedText as String, delegate: self)
+                    let promisedFile = QBEOutletFilePromiseProvider(fileType: UTType.commaSeparatedText, delegate: self)
 					let fileDragItem = NSDraggingItem(pasteboardWriter: promisedFile)
 					fileDragItem.draggingFrame = NSMakeRect(fileDragItem.draggingFrame.origin.x, fileDragItem.draggingFrame.origin.y, 10, 10)
 

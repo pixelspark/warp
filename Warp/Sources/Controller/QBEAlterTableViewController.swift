@@ -279,7 +279,7 @@ class QBEAlterTableViewController: NSViewController, JobDelegate, NSTableViewDat
 		// Are we going to create a table? Then check if the pasteboard has a table definition for us we can propose
 		if self.definition.columns.isEmpty && (self.warehouse?.hasFixedColumns ?? false) {
 			let pb = NSPasteboard(name: convertToNSPasteboardName(self.definition.pasteboardName))
-			if let data = pb.data(forType: convertToNSPasteboardPasteboardType(self.definition.pasteboardName)), let def = NSKeyedUnarchiver.unarchiveObject(with: data) as? Schema {
+			if let data = pb.data(forType: convertToNSPasteboardPasteboardType(self.definition.pasteboardName)), let def = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Schema {
 				self.definition = def
 			}
 		}

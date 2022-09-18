@@ -11,6 +11,7 @@ You should have received a copy of the GNU General Public License along with thi
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 import Foundation
 import WarpCore
+import UniformTypeIdentifiers
 
 public protocol QBEConfigurable: NSObjectProtocol {
 	func sentence(_ locale: Language, variant: QBESentenceVariant) -> QBESentence
@@ -93,6 +94,7 @@ class QBEFactory {
 		NSStringFromClass(QBESQLiteSourceStep.self): NSLocalizedString("SQLite table", comment: "")
 	]
 
+    // Keys are typeIdentifiers
 	private let fileReaders: [String: QBEFileReaderCreator] = [
 		"json": {(url) in return QBEJSONSourceStep(url: url)},
 		"public.json": {(url) in return QBEJSONSourceStep(url: url)},
@@ -190,7 +192,7 @@ class QBEFactory {
 				let rvs = try atURL.resourceValues(forKeys: [.typeIdentifierKey])
 				if let ti = rvs.typeIdentifier {
 					for (k, creator) in fileReaders {
-						if ti == k || NSWorkspace.shared.type(ti, conformsToType: k) {
+                        if ti == k || UTType(ti)!.conforms(to: UTType(k)!) {
 							return creator(atURL)
 						}
 					}
