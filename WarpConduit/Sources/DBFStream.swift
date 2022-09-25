@@ -67,14 +67,15 @@ final public class DBFStream: NSObject, WarpCore.Stream {
 	public func fetch(_ job: Job, consumer: @escaping Sink) {
 		(self.queue).async {
 			self.columns(job) { (columns) -> () in
-				let end = self.mutex.locked { () -> Int32 in
-					let end = min(self.recordCount, self.position + Int32(StreamDefaultBatchSize))
+                let (start, end): (Int32, Int32) = self.mutex.locked { () -> (Int32, Int32) in
+                    let start = self.position
+					let end = min(self.recordCount, start + Int32(StreamDefaultBatchSize))
 					self.position = end
-					return end
+					return (start, end)
 				}
 
 				var rows: [Tuple] = []
-				for recordIndex in self.position..<end {
+				for recordIndex in start..<end {
 					if DBFIsRecordDeleted(self.handle, recordIndex) == 0 {
 						var row: Tuple = []
 						for fieldIndex in 0..<self.fieldCount {

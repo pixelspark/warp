@@ -190,11 +190,13 @@ class QBEFactory {
 		do {
 			#if os(macOS)
 				let rvs = try atURL.resourceValues(forKeys: [.typeIdentifierKey])
-				if let ti = rvs.typeIdentifier {
+                if let ti = rvs.contentType {
 					for (k, creator) in fileReaders {
-                        if ti == k || UTType(ti)!.conforms(to: UTType(k)!) {
-							return creator(atURL)
-						}
+                        if let readerType = UTType(k) {
+                            if ti == readerType || ti.conforms(to: readerType) {
+                                return creator(atURL)
+                            }
+                        }
 					}
 				}
 			#endif
