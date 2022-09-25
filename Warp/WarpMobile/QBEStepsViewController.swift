@@ -12,7 +12,7 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import UIKit
 import WarpCore
 
-protocol QBEStepsViewControllerDelegate: class {
+protocol QBEStepsViewControllerDelegate: AnyObject {
 	func stepsViewController(_ : QBEStepsViewController, didSelectStep: QBEStep?)
 	func stepsViewController(_ : QBEStepsViewController, didChangeChain: QBEChain)
 }
@@ -330,7 +330,7 @@ class QBEStepsViewController: UICollectionViewController, QBEStepsViewCellDelega
 	}
 }
 
-protocol QBEStepsViewCellDelegate: class {
+protocol QBEStepsViewCellDelegate: AnyObject {
 	func stepsViewCell(_ : QBEStepsViewCell, removeStep: QBEStep)
 	func stepsViewCell(_ : QBEStepsViewCell, configureStep: QBEStep)
 }

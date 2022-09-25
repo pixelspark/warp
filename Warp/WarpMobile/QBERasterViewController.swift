@@ -18,7 +18,7 @@ enum QBERasterViewState {
 	case raster(Raster)
 }
 
-protocol QBERasterViewControllerDelegate: class {
+protocol QBERasterViewControllerDelegate: AnyObject {
 	func rasterView(_ controller: QBERasterViewController, filter column: Column, for value: Value)
 	func rasterView(_ controller: QBERasterViewController, sort column: Column)
 	func rasterView(_ controller: QBERasterViewController, rank column: Column)

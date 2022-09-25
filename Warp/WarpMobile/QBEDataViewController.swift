@@ -12,7 +12,7 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import UIKit
 import WarpCore
 
-protocol QBEDataViewControllerDelegate: class {
+protocol QBEDataViewControllerDelegate: AnyObject {
 	func dataView(_ controller: QBEDataViewController, filter column: Column, for value: Value)
 	func dataView(_ controller: QBEDataViewController, sort column: Column)
 	func dataView(_ controller: QBEDataViewController, rank column: Column)

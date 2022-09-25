@@ -71,7 +71,7 @@ extension QBECSVWriter: QBEConfigurableFileWriter {
 	}
 }
 
-protocol QBEExportViewControllerDelegate: class {
+protocol QBEExportViewControllerDelegate: AnyObject {
 	func exportViewController(_: QBEExportViewController, shareFileAt url: URL, callback: @escaping () -> ())
 }
 

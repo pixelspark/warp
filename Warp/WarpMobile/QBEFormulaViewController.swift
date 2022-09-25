@@ -12,7 +12,7 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-13
 import UIKit
 import WarpCore
 
-protocol QBEFormulaViewControllerDelegate: class {
+protocol QBEFormulaViewControllerDelegate: AnyObject {
 	func formula(_ controller: QBEFormulaViewController, didChangeExpression to: Expression)
 }
 

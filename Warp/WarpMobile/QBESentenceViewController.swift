@@ -15,11 +15,11 @@ import WarpCore
 import Eureka
 #endif
 
-protocol QBESentenceViewControllerDelegate: class {
+protocol QBESentenceViewControllerDelegate: AnyObject {
 	func sentenceViewController(_ : QBESentenceViewController, didChangeSentence: QBESentence)
 }
 
-fileprivate protocol QBEOptionsViewControllerDelegate: class {
+fileprivate protocol QBEOptionsViewControllerDelegate: AnyObject {
 	func optionsView(_ controller: QBEOptionsViewController, changedSelection to: Set<Value>)
 }
 

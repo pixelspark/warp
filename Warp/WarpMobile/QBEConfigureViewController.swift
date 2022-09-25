@@ -195,7 +195,7 @@ extension QBECSVSourceStep: QBEFormConfigurableStep {
 }
 
 
-protocol QBEConfigurableFormViewControllerDelegate: class {
+protocol QBEConfigurableFormViewControllerDelegate: AnyObject {
 	func configurableFormViewController(_ : QBEConfigurableFormViewController, hasChangedConfigurable: QBEFormConfigurable)
 }
 

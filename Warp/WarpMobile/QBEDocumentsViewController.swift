@@ -330,7 +330,7 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 		}
 	}
 
-	@IBAction func duplicate(_ sender: Any?) {
+    @IBAction override func duplicate(_ sender: Any?) {
 		if let du = self.document?.URL {
 			self.controller?.createNewDocumentWithTemplate(.file(du), completion: { _ in
 				return
@@ -338,7 +338,7 @@ class QBEDocumentBrowserCell: UICollectionViewCell {
 		}
 	}
 
-	@IBAction func rename(_ sender: Any?) {
+    @IBAction override func rename(_ sender: Any?) {
 		var newNameField: UITextField? = nil
 		let uac = UIAlertController(title: "Rename document".localized, message: nil, preferredStyle: .alert)
 		uac.addTextField { (tf) in
